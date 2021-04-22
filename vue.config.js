@@ -8,7 +8,7 @@ module.exports = {
   configureWebpack: config => {
     return {
       externals: {
-        moment: 'moment'
+        // moment: 'moment'
       }
     }
   }

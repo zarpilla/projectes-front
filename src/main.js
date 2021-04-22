@@ -15,8 +15,14 @@ import './registerServiceWorker'
 /* Vue. Main component */
 import App from './App.vue'
 
+/* Progress bar */
+import KProgress from 'k-progress'
+Vue.component('k-progress', KProgress)
+
 /* Default title tag */
-const defaultDocumentTitle = 'Admin One Bulma'
+const defaultDocumentTitle = 'Projectes'
+
+window.$ = window.jQuery = require('jquery')
 
 /* Collapse mobile aside menu on route change & set document title from route meta */
 router.afterEach(to => {
@@ -32,6 +38,8 @@ router.afterEach(to => {
 Vue.config.productionTip = false
 
 Vue.use(Buefy)
+
+// Vue.use(require('vue-moment'))
 
 new Vue({
   router,

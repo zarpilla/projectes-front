@@ -1,6 +1,6 @@
 <template>
   <div class="is-user-avatar">
-    <img :src="newUserAvatar" :alt="userName" />
+    <!-- <img :src="newUserAvatar" :alt="userName" /> -->
   </div>
 </template>
 
@@ -30,7 +30,8 @@ export default {
         name = this.userName.replace(/[^a-z0-9]+/i, '')
       }
 
-      return `https://avatars.dicebear.com/v2/human/${name}.svg?options[mood][]=happy`
+      // return `https://avatars.dicebear.com/v2/human/${name}.svg?options[mood][]=happy`
+      return name
     },
     ...mapState(['userAvatar', 'userName'])
   }

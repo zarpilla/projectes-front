@@ -15,29 +15,27 @@
       :striped="true"
       :hoverable="true"
       default-sort="name"
-      :data="clients"
+      :data="activities"
     >
-      <b-table-column cell-class="has-no-head-mobile is-image-cell" v-slot="props">
-        <div class="image">
-          <img :src="props.row.avatar" class="is-rounded">
-        </div>
+      <b-table-column label="Tasca" field="description" sortable v-slot="props">
+        {{ props.row.description }}
       </b-table-column>
-      <b-table-column label="Name" field="name" sortable v-slot="props">
-        {{ props.row.name }}
+      <b-table-column label="Projecte" field="project.name" sortable v-slot="props">
+        {{ props.row.project.name }}
       </b-table-column>
-      <b-table-column label="Company" field="company" sortable v-slot="props">
-        {{ props.row.company }}
+      <b-table-column label="Data" field="date" sortable v-slot="props">
+        {{ props.row.date ? props.row.date : '' }}
       </b-table-column>
-      <b-table-column label="City" field="city" sortable v-slot="props">
-        {{ props.row.city }}
+      <b-table-column label="Persona" field="users_permissions_user.username" sortable v-slot="props">
+        {{ props.row.users_permissions_user ? props.row.users_permissions_user.username : '' }}
       </b-table-column>
-      <b-table-column cell-class="is-progress-col" label="Progress" field="progress" sortable v-slot="props">
-        <progress class="progress is-small is-primary" :value="props.row.progress" max="100">{{ props.row.progress }}</progress>
+      <b-table-column label="Hores" field="hours" sortable v-slot="props">
+        {{ props.row.hours ? props.row.hours : '-' }}
       </b-table-column>
-      <b-table-column label="Created" v-slot="props">
-        <small class="has-text-grey is-abbr-like" :title="props.row.created">{{ props.row.created }}</small>
-      </b-table-column>
-      <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
+      <!-- <b-table-column label="Creat" v-slot="props" sortable field="created_at">
+        <small class="has-text-grey is-abbr-like" :title="props.row.created_at">{{ props.row.created_at }}</small>
+      </b-table-column> -->
+      <!-- <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
         <div class="buttons is-right">
           <router-link :to="{name:'client.edit', params: {id: props.row.id}}" class="button is-small is-primary">
             <b-icon icon="account-edit" size="is-small"/>
@@ -46,7 +44,7 @@
             <b-icon icon="trash-can" size="is-small"/>
           </button>
         </div>
-      </b-table-column>
+      </b-table-column> -->
 
       <section slot="empty" class="section">
         <div class="content has-text-grey has-text-centered">
@@ -71,9 +69,11 @@
 <script>
 import ModalBox from '@/components/ModalBox'
 import service from '@/service/index'
+import subDays from 'date-fns/subDays'
+import format from 'date-fns/format'
 
 export default {
-  name: 'ClientsTableSample',
+  name: 'DedicationTable',
   components: { ModalBox },
   props: {
     dataUrl: {
@@ -89,7 +89,7 @@ export default {
     return {
       isModalActive: false,
       trashObject: null,
-      clients: [],
+      activities: [],
       isLoading: false,
       paginated: false,
       perPage: 10,
@@ -103,49 +103,21 @@ export default {
       }
 
       return null
-    }
+    }// ,
+    // weekday () {
+    //   return this.$moment.add(-7, 'days').format('YYYY-MM-DD')
+    // }
   },
   mounted () {
-    service({ requiresAuth: true }).get('clients').then((r) => {
-      this.isLoading = false
-      if (r.data && r.data.data) {
-        if (r.data.data.length > this.perPage) {
-          this.paginated = true
-        }
-        this.clients = r.data.data
-      }
-    })
-      .catch((e) => {
-        this.isLoading = false
-        this.$buefy.toast.open({
-          message: `Error: ${e.message}`,
-          type: 'is-danger'
-        })
-      })
-    if (this.dataUrl) {
-      this.isLoading = true
-
-      // axios
-      //   .get(this.dataUrl)
-      //   .then((r) => {
-      //     this.isLoading = false
-      //     if (r.data && r.data.data) {
-      //       if (r.data.data.length > this.perPage) {
-      //         this.paginated = true
-      //       }
-      //       this.clients = r.data.data
-      //     }
-      //   })
-      //   .catch((e) => {
-      //     this.isLoading = false
-      //     this.$buefy.toast.open({
-      //       message: `Error: ${e.message}`,
-      //       type: 'is-danger'
-      //     })
-      //   })
-    }
+    this.getActivities()
   },
   methods: {
+    getActivities () {
+      const weekday = format(subDays(new Date(), 7), 'yyyy-MM-dd')
+      service({ requiresAuth: true }).get(`activities?_where[date_gte]=${weekday}`).then((r) => {
+        this.activities = r.data
+      })
+    },
     trashModal (trashObject) {
       this.trashObject = trashObject
       this.isModalActive = true

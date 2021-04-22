@@ -7,11 +7,11 @@
       >
         <b-icon :icon="menuToggleMobileIcon" />
       </a>
-      <div class="navbar-item has-control no-left-space-touch">
+      <!-- <div class="navbar-item has-control no-left-space-touch">
         <div class="control">
           <input class="input" placeholder="Search everywhere..." />
         </div>
-      </div>
+      </div> -->
     </div>
     <div class="navbar-brand is-right">
       <a
@@ -26,7 +26,7 @@
       :class="{ 'is-active': isMenuNavBarActive }"
     >
       <div class="navbar-end">
-        <nav-bar-menu class="has-divider">
+        <!-- <nav-bar-menu class="has-divider">
           <b-icon icon="menu" custom-size="default" />
           <span>Sample Menu</span>
           <div slot="dropdown" class="navbar-dropdown">
@@ -52,15 +52,15 @@
               <span>Log Out</span>
             </a>
           </div>
-        </nav-bar-menu>
-        <nav-bar-menu class="has-divider has-user-avatar">
+        </nav-bar-menu> -->
+        <nav-bar-menu class="has-divider zhas-user-avatar">
           <user-avatar />
           <div class="is-user-name">
             <span>{{ userName }}</span>
           </div>
 
           <div slot="dropdown" class="navbar-dropdown">
-            <router-link
+            <!-- <router-link
               to="/profile"
               class="navbar-item"
               exact-active-class="is-active"
@@ -75,30 +75,30 @@
             <a class="navbar-item">
               <b-icon icon="email" custom-size="default"></b-icon>
               <span>Messages</span>
-            </a>
+            </a> -->
             <hr class="navbar-divider" />
-            <a class="navbar-item">
+            <a class="navbar-item" @click="logout">
               <b-icon icon="logout" custom-size="default"></b-icon>
-              <span>Log Out</span>
+              <span>Sortir</span>
             </a>
           </div>
         </nav-bar-menu>
-        <a
+        <!-- <a
           href="https://justboil.me/bulma-admin-template/one"
           class="navbar-item has-divider is-desktop-icon-only"
           title="About"
         >
           <b-icon icon="help-circle-outline" custom-size="default" />
           <span>About</span>
-        </a>
-        <a
+        </a> -->
+        <!-- <a
           class="navbar-item is-desktop-icon-only"
           title="Log out"
           @click="logout"
         >
           <b-icon icon="logout" custom-size="default" />
           <span>Log out</span>
-        </a>
+        </a> -->
       </div>
     </div>
   </nav>
@@ -142,10 +142,12 @@ export default {
       this.isMenuNavBarActive = !this.isMenuNavBarActive
     },
     logout () {
+      localStorage.removeItem('user')
       this.$buefy.snackbar.open({
-        message: 'Log out clicked',
+        message: 'Log out',
         queue: false
       })
+      location.href = process.env.API_LOGIN || 'http://localhost:1337/admin'
     }
   }
 }

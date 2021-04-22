@@ -17,6 +17,50 @@ const routes = [
   },
   {
     meta: {
+      title: 'Panell Projectes'
+    },
+    path: '/stats-projectes',
+    name: 'stats.projectes',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsProjectes.vue')
+  },
+  {
+    meta: {
+      title: 'Panell Dedicacio'
+    },
+    path: '/stats-dedicacio',
+    name: 'stats.dedicacio',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsDedicacio.vue')
+  },
+  {
+    meta: {
+      title: 'Panell Estratègies'
+    },
+    path: '/stats-estrategies',
+    name: 'stats.estrategies',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsEstrategies.vue')
+  },
+  {
+    meta: {
+      title: 'Panell Intercooperació'
+    },
+    path: '/stats-intercoop',
+    name: 'stats.intercoop',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsIntercoop.vue')
+  },
+  {
+    meta: {
       title: 'Tables'
     },
     path: '/tables',
@@ -57,6 +101,15 @@ const routes = [
     path: '/client/:id',
     name: 'client.edit',
     component: () => import(/* webpackChunkName: "client-form" */ '../views/ClientForm.vue'),
+    props: true
+  },
+  {
+    meta: {
+      title: 'Dedicació'
+    },
+    path: '/dedicacio',
+    name: 'dedicacio',
+    component: () => import(/* webpackChunkName: "client-form" */ '../views/Dedicacio.vue'),
     props: true
   }
 ]

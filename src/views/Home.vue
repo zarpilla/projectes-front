@@ -1,8 +1,66 @@
 <template>
   <div>
     <title-bar :title-stack="titleStack" />
-    <hero-bar :has-right-visible="false">
-      Dashboard
+    <!-- <hero-bar :has-right-visible="false">
+      General
+    </hero-bar> -->
+    <section class="section is-main-section">
+      <tiles>
+        <card-widget
+          class="tile is-child"
+          type="is-primary"
+          icon="account-multiple"
+          :number="projectsNumber"
+          label="Projectes Actius"
+        />
+        <card-widget
+          class="tile is-child"
+          type="is-info"
+          icon="scale-balance"
+          :number="balance"
+          suffix="€"
+          label="Balanç"
+        />
+        <card-widget
+          class="tile is-child"
+          type="is-danger"
+          icon="clock-outline"
+          :number="dedication"
+          label="Hores dedicades"
+        />
+        <card-widget
+          class="tile is-child"
+          type="is-success"
+          icon="clock"
+          :number="estimatedDedication"
+          label="Hores estimades"
+        />
+      </tiles>
+
+      <!-- <card-component
+        title="Performance"
+        icon="finance"
+        header-icon="reload"
+        @header-icon-click="fillChartData"
+      >
+        <div v-if="defaultChart.chartData" class="chart-area">
+          <bar-chart
+            ref="bigChart"
+            style="height: 100%;"
+            chart-id="big-line-chart"
+            :chart-data="defaultChart.chartData"
+            :extra-options="defaultChart.extraOptions"
+          >
+          </bar-chart>
+        </div>
+      </card-component> -->
+
+      <card-component title="Projectes Actius" class="has-table has-mobile-sort-spaced">
+        <projects-table />
+      </card-component>
+    </section>
+    <!-- <hero-bar :has-right-visible="false">
+      Personal
     </hero-bar>
     <section class="section is-main-section">
       <tiles>
@@ -10,51 +68,26 @@
           class="tile is-child"
           type="is-primary"
           icon="account-multiple"
-          :number="512"
-          label="Clients"
+          :number="projectsNumber"
+          label="Projectes Actius"
         />
         <card-widget
           class="tile is-child"
           type="is-info"
-          icon="cart-outline"
-          :number="7770"
-          prefix="$"
-          label="Sales"
+          icon="account-clock"
+          :number="balance"
+          suffix="€"
+          label="Balanç"
         />
         <card-widget
           class="tile is-child"
           type="is-success"
-          icon="chart-timeline-variant"
-          :number="256"
-          suffix="%"
-          label="Performance"
+          icon="account-multiple"
+          :number="estimatedDedication"
+          label="Hores"
         />
       </tiles>
-
-      <card-component
-        title="Performance"
-        icon="finance"
-        header-icon="reload"
-        @header-icon-click="fillChartData"
-      >
-        <div v-if="defaultChart.chartData" class="chart-area">
-          <line-chart
-            ref="bigChart"
-            style="height: 100%;"
-            chart-id="big-line-chart"
-            :chart-data="defaultChart.chartData"
-            :extra-options="defaultChart.extraOptions"
-          >
-          </line-chart>
-        </div>
-      </card-component>
-
-      <card-component title="Clients" class="has-table has-mobile-sort-spaced">
-        <clients-table-sample
-          :data-url="`${$router.options.base}data-sources/clients.json`"
-        />
-      </card-component>
-    </section>
+    </section> -->
   </div>
 </template>
 
@@ -62,21 +95,25 @@
 // @ is an alias to /src
 import * as chartConfig from '@/components/Charts/chart.config'
 import TitleBar from '@/components/TitleBar'
-import HeroBar from '@/components/HeroBar'
+// import HeroBar from '@/components/HeroBar'
 import Tiles from '@/components/Tiles'
 import CardWidget from '@/components/CardWidget'
 import CardComponent from '@/components/CardComponent'
-import LineChart from '@/components/Charts/LineChart'
-import ClientsTableSample from '@/components/ClientsTableSample'
+// import LineChart from '@/components/Charts/LineChart'
+// import BarChart from '@/components/Charts/BarChart'
+import ProjectsTable from '@/components/ProjectsTable'
+import service from '@/service/index'
+import sumBy from 'lodash/sumBy'
+
 export default {
   name: 'Home',
   components: {
-    ClientsTableSample,
-    LineChart,
+    ProjectsTable,
+    // BarChart,
     CardComponent,
     CardWidget,
     Tiles,
-    HeroBar,
+    // HeroBar,
     TitleBar
   },
   data () {
@@ -84,12 +121,19 @@ export default {
       defaultChart: {
         chartData: null,
         extraOptions: chartConfig.chartOptionsMain
-      }
+      },
+      projectsNumber: 0,
+      contactsNumber: 0,
+      projects: [],
+      activities: [],
+      balance: 0,
+      dedication: 0,
+      estimatedDedication: 0
     }
   },
   computed: {
     titleStack () {
-      return ['Admin', 'Dashboard']
+      return ['Panells', 'General']
     }
   },
   mounted () {
@@ -98,6 +142,31 @@ export default {
     this.$buefy.snackbar.open({
       message: 'Welcome back',
       queue: false
+    })
+
+    service({ requiresAuth: true }).get('contacts/count').then((r) => {
+      // console.log('contacts', r.data)
+      this.contactsNumber = r.data
+    })
+
+    service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
+      // console.log('projects', r.data)
+      this.projects = r.data
+      this.projectsNumber = this.projects.length
+      this.balance = sumBy(this.projects, p => {
+        return p.balance ? p.balance : 0
+      })
+      this.estimatedDedication = sumBy(this.projects, p => {
+        return p.total_estimated_hours ? p.total_estimated_hours : 0
+      })
+
+      service({ requiresAuth: true }).get('activities').then((r) => {
+        // console.log('activities', r.data)
+        this.activities = r.data.filter(a => this.projects.find(p => p.id === a.project.id))
+        this.dedication = sumBy(this.activities, p => {
+          return p.hours
+        })
+      })
     })
   },
   methods: {
@@ -127,37 +196,37 @@ export default {
             pointHoverBorderWidth: 15,
             pointRadius: 4,
             data: this.randomChartData(9)
-          },
-          {
-            fill: false,
-            borderColor: chartConfig.chartColors.default.info,
-            borderWidth: 2,
-            borderDash: [],
-            borderDashOffset: 0.0,
-            pointBackgroundColor: chartConfig.chartColors.default.info,
-            pointBorderColor: 'rgba(255,255,255,0)',
-            pointHoverBackgroundColor: chartConfig.chartColors.default.info,
-            pointBorderWidth: 20,
-            pointHoverRadius: 4,
-            pointHoverBorderWidth: 15,
-            pointRadius: 4,
-            data: this.randomChartData(9)
-          },
-          {
-            fill: false,
-            borderColor: chartConfig.chartColors.default.danger,
-            borderWidth: 2,
-            borderDash: [],
-            borderDashOffset: 0.0,
-            pointBackgroundColor: chartConfig.chartColors.default.danger,
-            pointBorderColor: 'rgba(255,255,255,0)',
-            pointHoverBackgroundColor: chartConfig.chartColors.default.danger,
-            pointBorderWidth: 20,
-            pointHoverRadius: 4,
-            pointHoverBorderWidth: 15,
-            pointRadius: 4,
-            data: this.randomChartData(9)
-          }
+          }//,
+          // {
+          //   fill: false,
+          //   borderColor: chartConfig.chartColors.default.info,
+          //   borderWidth: 2,
+          //   borderDash: [],
+          //   borderDashOffset: 0.0,
+          //   pointBackgroundColor: chartConfig.chartColors.default.info,
+          //   pointBorderColor: 'rgba(255,255,255,0)',
+          //   pointHoverBackgroundColor: chartConfig.chartColors.default.info,
+          //   pointBorderWidth: 20,
+          //   pointHoverRadius: 4,
+          //   pointHoverBorderWidth: 15,
+          //   pointRadius: 4,
+          //   data: this.randomChartData(9)
+          // },
+          // {
+          //   fill: false,
+          //   borderColor: chartConfig.chartColors.default.danger,
+          //   borderWidth: 2,
+          //   borderDash: [],
+          //   borderDashOffset: 0.0,
+          //   pointBackgroundColor: chartConfig.chartColors.default.danger,
+          //   pointBorderColor: 'rgba(255,255,255,0)',
+          //   pointHoverBackgroundColor: chartConfig.chartColors.default.danger,
+          //   pointBorderWidth: 20,
+          //   pointHoverRadius: 4,
+          //   pointHoverBorderWidth: 15,
+          //   pointRadius: 4,
+          //   data: this.randomChartData(9)
+          // }
         ],
         labels: ['01', '02', '03', '04', '05', '06', '07', '08', '09']
       }

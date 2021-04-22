@@ -14,30 +14,21 @@
       :per-page="perPage"
       :striped="true"
       :hoverable="true"
-      default-sort="name"
-      :data="clients"
+      :data="projects"
     >
-      <b-table-column cell-class="has-no-head-mobile is-image-cell" v-slot="props">
-        <div class="image">
-          <img :src="props.row.avatar" class="is-rounded">
-        </div>
-      </b-table-column>
-      <b-table-column label="Name" field="name" sortable v-slot="props">
+      <b-table-column label="Nom" field="name" sortable v-slot="props">
         {{ props.row.name }}
       </b-table-column>
-      <b-table-column label="Company" field="company" sortable v-slot="props">
-        {{ props.row.company }}
+      <b-table-column label="Client" field="client.name" sortable v-slot="props">
+        {{ props.row.client ? props.row.client.name : '' }}
       </b-table-column>
-      <b-table-column label="City" field="city" sortable v-slot="props">
-        {{ props.row.city }}
+      <b-table-column label="Hores dedicades" field="activities_hours" sortable v-slot="props">
+        {{ props.row.activities_hours }}
       </b-table-column>
-      <b-table-column cell-class="is-progress-col" label="Progress" field="progress" sortable v-slot="props">
-        <progress class="progress is-small is-primary" :value="props.row.progress" max="100">{{ props.row.progress }}</progress>
-      </b-table-column>
-      <b-table-column label="Created" v-slot="props">
-        <small class="has-text-grey is-abbr-like" :title="props.row.created">{{ props.row.created }}</small>
-      </b-table-column>
-      <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
+      <!-- <b-table-column label="Creat" v-slot="props" sortable field="created_at">
+        <small class="has-text-grey is-abbr-like" :title="props.row.created_at">{{ props.row.created_at_dt }}</small>
+      </b-table-column> -->
+      <!-- <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
         <div class="buttons is-right">
           <router-link :to="{name:'client.edit', params: {id: props.row.id}}" class="button is-small is-primary">
             <b-icon icon="account-edit" size="is-small"/>
@@ -46,7 +37,7 @@
             <b-icon icon="trash-can" size="is-small"/>
           </button>
         </div>
-      </b-table-column>
+      </b-table-column> -->
 
       <section slot="empty" class="section">
         <div class="content has-text-grey has-text-centered">
@@ -71,9 +62,11 @@
 <script>
 import ModalBox from '@/components/ModalBox'
 import service from '@/service/index'
+import moment from 'moment'
+import sumBy from 'lodash/sumBy'
 
 export default {
-  name: 'ClientsTableSample',
+  name: 'ProjectsTable',
   components: { ModalBox },
   props: {
     dataUrl: {
@@ -89,7 +82,7 @@ export default {
     return {
       isModalActive: false,
       trashObject: null,
-      clients: [],
+      projects: [],
       isLoading: false,
       paginated: false,
       perPage: 10,
@@ -106,44 +99,10 @@ export default {
     }
   },
   mounted () {
-    service({ requiresAuth: true }).get('clients').then((r) => {
-      this.isLoading = false
-      if (r.data && r.data.data) {
-        if (r.data.data.length > this.perPage) {
-          this.paginated = true
-        }
-        this.clients = r.data.data
-      }
+    service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
+      this.projects = r.data.map(d => { return { ...d, activities_hours: sumBy(d.activities, 'hours'), created_at_dt: moment(d.created_at).format('DD-MM-YYYY HH:mm') } })
+      console.log('this.projects', this.projects)
     })
-      .catch((e) => {
-        this.isLoading = false
-        this.$buefy.toast.open({
-          message: `Error: ${e.message}`,
-          type: 'is-danger'
-        })
-      })
-    if (this.dataUrl) {
-      this.isLoading = true
-
-      // axios
-      //   .get(this.dataUrl)
-      //   .then((r) => {
-      //     this.isLoading = false
-      //     if (r.data && r.data.data) {
-      //       if (r.data.data.length > this.perPage) {
-      //         this.paginated = true
-      //       }
-      //       this.clients = r.data.data
-      //     }
-      //   })
-      //   .catch((e) => {
-      //     this.isLoading = false
-      //     this.$buefy.toast.open({
-      //       message: `Error: ${e.message}`,
-      //       type: 'is-danger'
-      //     })
-      //   })
-    }
   },
   methods: {
     trashModal (trashObject) {
