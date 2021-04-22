@@ -147,7 +147,7 @@ export default {
         message: 'Log out',
         queue: false
       })
-      location.href = process.env.API_LOGIN || 'http://localhost:1337/admin'
+      location.href = process.env.VUE_APP_API_LOGIN || 'http://localhost:1337/admin'
     }
   }
 }

@@ -2,7 +2,7 @@ import axios from 'axios'
 
 export default ({ requiresAuth = false } = {}) => {
   const options = {}
-  options.baseURL = process.env.API_URL || 'http://localhost:1337'
+  options.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:1337'
 
   if (requiresAuth) {
     const userFromStorage = localStorage.getItem('user')
