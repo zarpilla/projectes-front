@@ -226,6 +226,7 @@ export default {
         this.form.users_permissions_user = null
         this.userNameSearch = ''
         this.projectNameSearch = ''
+        this.form.id = 0
       }
     },
     cancel () {
