@@ -106,13 +106,13 @@ export default {
     }
   },
   mounted () {
-    service({ requiresAuth: true }).get('clients').then((r) => {
+    service({ requiresAuth: true }).get('contacts').then((r) => {
       this.isLoading = false
-      if (r.data && r.data.data) {
-        if (r.data.data.length > this.perPage) {
+      if (r.data && r.data) {
+        if (r.data.length > this.perPage) {
           this.paginated = true
         }
-        this.clients = r.data.data
+        this.clients = r.data
       }
     })
       .catch((e) => {

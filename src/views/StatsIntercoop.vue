@@ -91,21 +91,18 @@
 </template>
 
 <script>
-// import mapValues from 'lodash/mapValues'
 import TitleBar from '@/components/TitleBar'
 import CardComponent from '@/components/CardComponent'
-// import HeroBar from '@/components/HeroBar'
-// import DedicationWidget from '@/components/DedicationWidget'
 import IntercoopPivot from '@/components/IntercoopPivot'
 import service from '@/service/index'
+import defaultProjectState from '@/service/projectState'
+import { addScript, addStyle } from '@/helpers/addScript'
 
 export default {
   name: 'StatsIntercoop',
   components: {
-    // HeroBar,
     CardComponent,
     TitleBar,
-    // DedicationWidget,
     IntercoopPivot
   },
   data () {
@@ -119,7 +116,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Panells', 'Intercooperació']
+      return ['Projectes', 'Intercooperació']
     }
   },
   async mounted () {
@@ -128,11 +125,10 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        // await this.addScript('/vendor/jquery/jquery.js')
-        await this.addScript('/vendor/kendo/kendo.all.min.js')
-        await this.addStyle('/vendor/kendo/kendo.common.min.css')
-        await this.addStyle('/vendor/kendo/kendo.custom.css')
-        await this.addStyle('/vendor/kendo/custom.css')
+        await addScript('/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle('/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle('/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle('/vendor/kendo/custom.css', 'custom-css')
         this.isLoading = false
         this.getData()
       }
@@ -147,6 +143,7 @@ export default {
       service({ requiresAuth: true }).get('project-states').then((r) => {
         this.project_states = r.data
         this.project_states.unshift({ id: 0, name: 'Tots' })
+        this.filters.project_state = defaultProjectState
       })
     },
     async addScript (src) {

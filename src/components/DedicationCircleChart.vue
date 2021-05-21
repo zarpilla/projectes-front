@@ -3,12 +3,12 @@
       <card-component
       class="mt-5"
         :title="`Dedicació x ${title}`">
-        <div v-if="mainChart.chartData" class="chart-area">
+        <div v-if="mainChart.chartData && !isLoading && mainChart.chartData" class="chart-area">
           <div class="columns">
             <div class="column">
               <pie-chart
                 ref="mainChart"
-                style="height: 100%;"
+                style="height: 500px;"
                 :chart-id="`big-${table}-${field}-chart`"
                 :chart-data="mainChart.chartData"
                 :extra-options="mainChart.extraOptions"
@@ -20,13 +20,13 @@
                 <div>
                   {{ 'Total' }}: {{ hoursTotal }}h
                 </div>
-                <k-progress :color="'#bbb'" :percent="100" :line-height="16" />
+                <kk-progress :color="'#bbb'" :percent="100" :line-height="16" />
               </div>
               <div v-for="(p, i) in distinctDataObj" v-bind:key="i" class="projects-bars">
                 <div>
                   {{ p.name ? p.name : 'Sense assignar' }}: {{ p.hours }}h
                 </div>
-                <k-progress :color="getChartColor(i)" :percent="p.pct" :line-height="16" />
+                <kk-progress v-if="!isLoading" :color="getChartColor(i)" :percent="p.pct" :line-height="16" />
               </div>
             </div>
           </div>

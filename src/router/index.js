@@ -24,7 +24,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsProjectes.vue')
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsProjectes.vue')
   },
   {
     meta: {
@@ -35,7 +35,29 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsDedicacio.vue')
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsDedicacio.vue')
+  },
+  {
+    meta: {
+      title: 'Panell Despeses'
+    },
+    path: '/stats-despeses',
+    name: 'stats.despeses',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsExpenses.vue')
+  },
+  {
+    meta: {
+      title: 'Panell Previsió Dedicacio'
+    },
+    path: '/stats-previsio-hores',
+    name: 'stats.previsiohores',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsDedicacioEst.vue')
   },
   {
     meta: {
@@ -46,7 +68,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsEstrategies.vue')
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsEstrategies.vue')
   },
   {
     meta: {
@@ -57,7 +79,7 @@ const routes = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "tables" */ '../views/StatsIntercoop.vue')
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsIntercoop.vue')
   },
   {
     meta: {
@@ -109,7 +131,45 @@ const routes = [
     },
     path: '/dedicacio',
     name: 'dedicacio',
-    component: () => import(/* webpackChunkName: "client-form" */ '../views/Dedicacio.vue'),
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Dedicacio.vue'),
+    props: true
+  },
+  {
+    meta: {
+      title: 'Gràfiques Dedicació'
+    },
+    path: '/dedicacio-charts',
+    name: 'dedicacio-charts',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioCharts.vue'),
+    props: true
+  },
+  {
+    meta: {
+      title: 'Saldo Projectes'
+    },
+    path: '/dedicacio-saldo',
+    name: 'stats.dedicacio.saldo',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "stats" */ '../views/DedicacioSaldo.vue')
+  },
+  {
+    meta: {
+      title: 'Pressupost'
+    },
+    path: '/quote/:id',
+    name: 'quote.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/Quote.vue'),
+    props: true
+  },
+  {
+    meta: {
+      title: 'Tresoreria'
+    },
+    path: '/tresoreria',
+    name: 'tresoreria.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/Tresoreria.vue'),
     props: true
   }
 ]

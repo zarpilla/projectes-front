@@ -84,7 +84,7 @@
       </card-component>
 
       <card-component title="Projectes">
-        <dedication-pivot :project-state="filters.project_state" v-if="!isLoading" />
+        <dedication-est-pivot :project-state="filters.project_state" v-if="!isLoading" />
       </card-component>
     </section>
   </div>
@@ -93,7 +93,7 @@
 <script>
 import TitleBar from '@/components/TitleBar'
 import CardComponent from '@/components/CardComponent'
-import DedicationPivot from '@/components/DedicationPivot'
+import DedicationEstPivot from '@/components/DedicationEstPivot'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'
@@ -105,7 +105,7 @@ export default {
     CardComponent,
     TitleBar,
     // DedicationWidget,
-    DedicationPivot
+    DedicationEstPivot
   },
   data () {
     return {
@@ -118,7 +118,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Estadístiques']
+      return ['Dedicació', 'Previsió dedicació']
     }
   },
   async mounted () {

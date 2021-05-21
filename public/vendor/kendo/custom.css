@@ -9,4 +9,12 @@
   background-color: #999!important;
   border-color: #999!important;
 }
-
+.k-settings-measures.k-pivot-setting .k-button{
+  min-width: 180px;
+  text-align: left;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+.k-pivot-toolbar .k-button{
+  padding-right: 2.5rem;
+}

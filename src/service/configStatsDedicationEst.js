@@ -21,23 +21,14 @@ const config = {
       name: 'month',
       expand: false
     }, {
-      name: 'dedication_type',
-      expand: false
-    }, {
-      name: 'activity_type',
-      expand: false
-    }, {
       name: 'username',
       expand: false
     }], // Specify a dimension on columns.
     rows: [{
-      name: 'date',
-      expand: false
-    }, {
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Hores reals'],
+    measures: ['Hores reals', 'Hores previstes'],
     schema: {
       model: {
         fields: {
@@ -67,12 +58,6 @@ const config = {
           },
           date: {
             type: 'straing'
-          },
-          activity_type: {
-            type: 'string'
-          },
-          dedication_type: {
-            type: 'string'
           }
         }
       },
@@ -107,12 +92,6 @@ const config = {
           },
           username: {
             caption: 'Persones (TOTES)'
-          },
-          activity_type: {
-            caption: 'Tipus activitat (TOTES)'
-          },
-          dedication_type: {
-            caption: 'Tipus dedicació (TOTES)'
           }
         },
         measures: {
@@ -122,8 +101,11 @@ const config = {
           },
           'Hores reals': {
             field: 'hours',
-            aggregate: 'sum',
-            format: '{0} h'
+            aggregate: 'sum'
+          },
+          'Hores previstes': {
+            field: 'estimated_hours',
+            aggregate: 'sum'
           }
         }
       }

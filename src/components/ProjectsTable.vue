@@ -19,12 +19,30 @@
       <b-table-column label="Nom" field="name" sortable v-slot="props">
         {{ props.row.name }}
       </b-table-column>
-      <b-table-column label="Client" field="client.name" sortable v-slot="props">
-        {{ props.row.client ? props.row.client.name : '' }}
-      </b-table-column>
       <b-table-column label="Hores dedicades" field="activities_hours" sortable v-slot="props">
         {{ props.row.activities_hours }}
       </b-table-column>
+      <b-table-column label="Hores previstes" field="activities_hours" sortable v-slot="props">
+        {{ props.row.total_estimated_hours }}
+      </b-table-column>
+      <b-table-column label="Resultat real" field="real_incomes_expenses" sortable v-slot="props">
+        {{ formatPrice(props.row.real_incomes_expenses) }} €
+      </b-table-column>
+      <b-table-column label="Resultat previst" field="incomes_expenses" sortable v-slot="props">
+        {{ formatPrice(props.row.incomes_expenses) }}
+      </b-table-column>
+      <!-- <b-table-column label="Ingressos esperats" field="total_incomes" sortable v-slot="props">
+        {{ props.row.total_incomes }}
+      </b-table-column>
+      <b-table-column label="Despeses esperades" field="total_expenses" sortable v-slot="props">
+        {{ props.row.total_expenses }}
+      </b-table-column> -->
+      <!-- <b-table-column label="Ingressos reals" field="real_total_incomes" sortable v-slot="props">
+        {{ props.row.real_total_incomes }}
+      </b-table-column>
+      <b-table-column label="Despeses reals" field="real_total_expenses" sortable v-slot="props">
+        {{ props.row.real_total_expenses }}
+      </b-table-column> -->
       <!-- <b-table-column label="Creat" v-slot="props" sortable field="created_at">
         <small class="has-text-grey is-abbr-like" :title="props.row.created_at">{{ props.row.created_at_dt }}</small>
       </b-table-column> -->
@@ -100,7 +118,18 @@ export default {
   },
   mounted () {
     service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
-      this.projects = r.data.map(d => { return { ...d, activities_hours: sumBy(d.activities, 'hours'), created_at_dt: moment(d.created_at).format('DD-MM-YYYY HH:mm') } })
+      this.projects = r.data.map(d => {
+        const realTotalIncomes = sumBy(d.emitted_invoices, 'total_base')
+        const realTotalExpenses = sumBy(d.received_invoices, 'total_base') + sumBy(d.diets, 'total_base') + sumBy(d.tickets, 'total_base')
+        return {
+          ...d,
+          activities_hours: sumBy(d.activities, 'hours'),
+          real_total_incomes: realTotalIncomes,
+          real_total_expenses: realTotalExpenses,
+          real_incomes_expenses: realTotalIncomes - realTotalExpenses,
+          created_at_dt: moment(d.created_at).format('DD-MM-YYYY HH:mm')
+        }
+      })
       console.log('this.projects', this.projects)
     })
   },
@@ -118,6 +147,10 @@ export default {
     },
     trashCancel () {
       this.isModalActive = false
+    },
+    formatPrice (value) {
+      const val = (value / 1).toFixed(2).replace('.', ',')
+      return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
     }
   }
 }

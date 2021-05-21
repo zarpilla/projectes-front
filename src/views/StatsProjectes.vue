@@ -24,6 +24,28 @@
                 {{ s.name }}
               </option>
             </b-select>
+            <!-- <b-field label="Inici">
+              <b-datepicker
+                v-model="filters.date1"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                :disabled="filters.lastUpdated"
+                trap-focus>
+              </b-datepicker>
+            </b-field>
+            <b-field label="Final">
+              <b-datepicker
+                v-model="filters.date2"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                :disabled="filters.lastUpdated"
+                trap-focus>
+              </b-datepicker>
+            </b-field> -->
             <!-- <b-field label="Persona">
               <b-autocomplete
                 v-model="userNameSearch"
@@ -84,20 +106,20 @@
       </card-component>
 
       <card-component title="Projectes">
-        <projectes-pivot :project-state="filters.project_state" v-if="!isLoading" />
+        <projectes-pivot :project-state="filters.project_state" :date1="filters.date1" :date2="filters.date2" v-if="!isLoading" />
       </card-component>
     </section>
   </div>
 </template>
 
 <script>
-// import mapValues from 'lodash/mapValues'
 import TitleBar from '@/components/TitleBar'
 import CardComponent from '@/components/CardComponent'
-// import HeroBar from '@/components/HeroBar'
-// import DedicationWidget from '@/components/DedicationWidget'
 import ProjectesPivot from '@/components/ProjectesPivot'
 import service from '@/service/index'
+import moment from 'moment'
+import defaultProjectState from '@/service/projectState'
+import { addScript, addStyle } from '@/helpers/addScript'
 
 export default {
   name: 'StatsProjectes',
@@ -112,27 +134,30 @@ export default {
     return {
       isLoading: true,
       filters: {
-        project_state: null
+        project_state: null,
+        date1: null,
+        date2: null
       },
       project_states: []
     }
   },
   computed: {
     titleStack () {
-      return ['Panells', 'Projectes']
+      return ['Projectes', 'Estadístiques']
     }
   },
   async mounted () {
     this.isLoading = true
+    this.filters.date1 = moment().add(-6, 'days').toDate()
+    this.filters.date2 = moment().toDate()
 
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        // await this.addScript('/vendor/jquery/jquery.js')
-        await this.addScript('/vendor/kendo/kendo.all.min.js')
-        await this.addStyle('/vendor/kendo/kendo.common.min.css')
-        await this.addStyle('/vendor/kendo/kendo.custom.css')
-        await this.addStyle('/vendor/kendo/custom.css')
+        await addScript('/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle('/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle('/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle('/vendor/kendo/custom.css', 'custom-css')
         this.isLoading = false
         this.getData()
       }
@@ -147,6 +172,7 @@ export default {
       service({ requiresAuth: true }).get('project-states').then((r) => {
         this.project_states = r.data
         this.project_states.unshift({ id: 0, name: 'Tots' })
+        this.filters.project_state = defaultProjectState
       })
     },
     async addScript (src) {

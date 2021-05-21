@@ -17,7 +17,15 @@ import App from './App.vue'
 
 /* Progress bar */
 import KProgress from 'k-progress'
-Vue.component('k-progress', KProgress)
+
+/* Calendar */
+import VCalendar from 'v-calendar'
+
+Vue.use(VCalendar, {
+  componentPrefix: 'v'
+})
+
+Vue.component('kk-progress', KProgress)
 
 /* Default title tag */
 const defaultDocumentTitle = 'Projectes'

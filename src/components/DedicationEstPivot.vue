@@ -11,7 +11,7 @@
 import service from '@/service/index'
 // import sumBy from 'lodash/sumBy'
 import moment from 'moment'
-import configPivot from '@/service/configStatsDedication'
+import configPivot from '@/service/configStatsDedicationEst'
 import sortBy from 'lodash/sortBy'
 
 moment.locale('ca')
@@ -75,20 +75,23 @@ export default {
       this.leaders = (await service({ requiresAuth: true }).get('users')).data
       this.contacts = (await service({ requiresAuth: true }).get('contacts')).data
 
+      // const from = moment(this.date1).format('YYYY-MM-DD')
+      // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
       let query = `projects?_where[project_state_eq]=${projectState}`
       // let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
       if (this.projectState === 0) {
         query = 'projects?_limit=999'
       }
-
-      this.dedicationTypes = (await service({ requiresAuth: true }).get('dedication-types')).data
-      this.activityTypes = (await service({ requiresAuth: true }).get('activity-types')).data
-
+      // if (this.user) {
+      //   query = `${query}&[users_permissions_user.id]=${this.user}`
+      // }
+      // if (this.project) {
+      //   query = `${query}&[project.id]=${this.project}`
+      // }
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)
         const activities = []
-
         const projects = r.data.forEach(p => {
           if (p.activities) {
             p.activities.forEach(a => {
@@ -107,16 +110,42 @@ export default {
                 day: a.date ? moment(a.date).format('DD').toString() : 0,
                 date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
                 username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
-                dedication_type: '-', // a.dedication_type ? this.dedicationTypes.find(t => t.id === a.dedication_type).name : '-',
-                activity_type: '-', // a.activity_type ? this.activityTypes.find(t => t.id === a.activity_type).name : '-',
                 count: 1
               }
               activities.push(activity)
             })
           }
+          if (p.estimated_hours && p.estimated_hours.length > 0) {
+            p.estimated_hours.forEach(a => {
+              // console.log('a.users_permissions_user', a.users_permissions_user)
+              const activity = {
+                project_name: p.name,
+                project_leader: p.leader ? p.leader.username : '-',
+                project_state: p.project_state ? p.project_state.name : '-',
+                project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                project_scope_name: p.project_scope ? p.project_scope.name : '-',
+                project_client: p.client ? p.client.name : '-',
+                total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
+                total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
+                count: 1,
+                month: a.month ? a.month.month_number.toString() : 0,
+                year: a.year ? a.year.year.toString() : 0,
+                day: 0,
+                date: '-',
+                hours: 0,
+                estimated_hours: a.quantity ? a.quantity : 0,
+                dedication_type: '-',
+                username: a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-'
+              }
+              activities.push(activity)
+            })
+          }
         })
+        // console.log('projects', projects)
+        // console.log('activities', activities)
         this.projects = projects
-        this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'date', 'dedication_type', 'activity_type'], ['asc', 'asc', 'asc', 'asc', 'asc']))
+        // this.pivotData = Object.freeze(activities)
+        this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'project_name'], ['asc', 'asc', 'asc']))
         configPivot.dataSource.data = this.pivotData
         window.jQuery('#project-stats').empty()
         window.jQuery('#project-stats').kendoPivotGrid(configPivot)

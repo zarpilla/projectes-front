@@ -28,15 +28,27 @@
               :type="viewType == 'all' ? 'is-primary' : 'is-disabled'"
               icon-left="table-headers-eye-off" />
             <b-button
-              @click="viewType = 'chart'"
+              @click="viewType = 'calendar'"
               class="view-button"
-              :type="viewType == 'chart' ? 'is-primary' : 'is-disabled'"
-              icon-left="chart-bar" />
+              :type="viewType == 'calendar' ? 'is-primary' : 'is-disabled'"
+              icon-left="calendar" />
             <b-button
               @click="viewType = 'table'"
               class="view-button"
               :type="viewType == 'table' ? 'is-primary' : 'is-disabled'"
               icon-left="table-large" />
+              <span class="separator"></span>
+            <b-button
+              @click="colorTypeChanged('user')"
+              class="view-button"
+              :type="colorType == 'user' ? 'is-primary' : 'is-disabled'"
+              icon-left="account" />
+            <b-button
+              @click="colorTypeChanged('project')"
+              class="view-button"
+              :type="colorType == 'project' ? 'is-primary' : 'is-disabled'"
+              icon-left="wrench" />
+              <span class="separator"></span>
             <b-button
               @click="showModal(null)"
               class="view-button is-warning"
@@ -46,7 +58,39 @@
       </div>
     </card-component>
 
-    <div class="table-view"  v-if="viewType == 'all' || viewType == 'table'">
+    <v-calendar
+      ref="calendar"
+      locale="ca"
+      class="custom-calendar max-w-full mb-5"
+      :first-day-of-week="2"
+      :masks="masks"
+      :attributes="attributes"
+      @update:from-page="pageChange"
+      title-position="left"
+      is-expanded
+      v-if="viewType == 'all' || viewType == 'calendar'"
+    >
+      <template v-slot:day-content="{ day, attributes }">
+        <div class="flex flex-col h-full z-10 overflow-hidden">
+          <span class="day-label text-sm text-gray-900" @click="dayClicked(day)">{{ day.day }}</span>
+          <div class="flex-grow overflow-y-auto overflow-x-auto">
+            <span
+              v-for="attr in attributes"
+              :key="attr.key"
+              class="text-xs leading-tight rounded-sm p-1 mt-0 mb-1 tag tag-hours"
+              :class="attr.customData ? attr.customData.class : null"
+              :style="{ backgroundColor: attr.customData ? attr.customData.bg_project : 'transparent' }"
+            >
+              <span v-if="attr.customData" @click="showModal(attr.customData.a)">
+                {{ attr.customData.project }} - {{ attr.customData.username }} - {{ attr.customData.hours }}h
+              </span>
+            </span>
+          </div>
+        </div>
+      </template>
+    </v-calendar>
+
+    <div class="table-view" v-if="viewType == 'all' || viewType == 'table'">
       <card-component class="has-table has-mobile-sort-spaced" v-for="(d, i) in distinctDaysObj" v-bind:key="i">
         <div v-for="(a, j) in d.activities" v-bind:key="j" class="card-body" :class="{ 'is-total': a.project.name === 'Total', 'is-activity': a.project.name !== 'Total' }">
           <div class="columns">
@@ -81,7 +125,7 @@
         </div>
       </card-component>
     </div>
-    <card-component
+    <!-- <card-component
         class="mt-5"
         title="Dedicació x dia"
         v-if="viewType == 'all' || viewType == 'chart'"
@@ -104,7 +148,7 @@
       <dedication-circle-chart title="Tipus de tasca" v-if="!isLoading" :activities="activities" :table="'activity_type'" :field="'name'">
       </dedication-circle-chart>
       <dedication-circle-chart title="Tipus d'activitat" v-if="!isLoading" :activities="activities" :table="'dedication_type'" :field="'name'">
-      </dedication-circle-chart>
+      </dedication-circle-chart> -->
   </div>
 </template>
 
@@ -112,21 +156,21 @@
 import ModalBox from '@/components/ModalBox'
 import service from '@/service/index'
 // import LineChart from '@/components/Charts/LineChart'
-import BarChart from '@/components/Charts/BarChart'
+// import BarChart from '@/components/Charts/BarChart'
 import uniq from 'lodash/uniq'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
 import moment from 'moment'
 import CardComponent from '@/components/CardComponent'
-import DedicationCircleChart from '@/components/DedicationCircleChart'
+// import DedicationCircleChart from '@/components/DedicationCircleChart'
 import * as chartConfig from '@/components/Charts/chart.config'
 import ModalBoxDedication from '@/components/ModalBoxDedication'
 
 moment.locale('ca')
 
 export default {
-  name: 'DedicationWidget',
-  components: { ModalBox, CardComponent, BarChart, DedicationCircleChart, ModalBoxDedication },
+  name: 'DedicationInput',
+  components: { ModalBox, CardComponent, ModalBoxDedication },
   props: {
     user: {
       type: Number,
@@ -150,9 +194,9 @@ export default {
     }
   },
   data () {
-    // const month = new Date().getMonth()
-    // const year = new Date().getFullYear()
     return {
+      moving: false,
+      firstTime: true,
       isModalActive: false,
       isModalEditActive: false,
       dedicationObject: null,
@@ -182,10 +226,12 @@ export default {
         chartData: null,
         extraOptions: chartConfig.chartOptionsPie
       },
-      viewType: 'chart',
+      viewType: 'all',
+      colorType: 'user',
       masks: {
         weekdays: 'WWW'
-      }
+      },
+      attributes: []
     }
   },
   computed: {
@@ -202,6 +248,7 @@ export default {
   },
   watch: {
     user: function (newVal, oldVal) {
+      // console.log('user newVal', newVal)
       this.getActivities()
     },
     date1: function (newVal, oldVal) {
@@ -219,6 +266,8 @@ export default {
   },
   mounted () {
     this.getActivities()
+
+    // this.$on('update:page', () => { console.log('update:page') })
   },
   methods: {
     async getActivities () {
@@ -228,6 +277,13 @@ export default {
       }
       const from = moment(this.date1).format('YYYY-MM-DD')
       const to = moment(this.date2).format('YYYY-MM-DD')
+      const calendar = this.$refs.calendar
+      this.moving = true
+      if (calendar) {
+        await calendar.move({ month: parseInt(moment(this.date1).format('M')), year: parseInt(moment(this.date1).format('YYYY')) })
+      }
+      this.moving = false
+
       let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
       if (this.last) {
         query = `activities?_where[updated_at_gte]=${moment().add(-7, 'days').format('YYYY-MM-DD')}`
@@ -262,8 +318,30 @@ export default {
           const hours = sumBy(activities, 'hours')
           return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
         })
-        this.fillChartData()
+        // this.fillChartData()
+
+        this.attributes = this.activities.map((a, i) => {
+          return {
+            key: i + 1,
+            customData: {
+              a: a,
+              bg_project: this.colorType === 'user' ? this.getChartColor(this.distinctUsers.findIndex(p => p === a.users_permissions_user.username)) : this.getChartColor(this.distinctProjects.findIndex(p => p === a.project.name)),
+              class: 'tag zis-primary',
+              project: a.project.name,
+              username: a.users_permissions_user.username,
+              hours: a.hours
+            },
+            dates: a.date
+          }
+        })
+        this.attributes.unshift({
+          key: 'today',
+          highlight: 'red',
+          dates: new Date()
+        })
+
         this.isLoading = false
+        this.firstTime = true
       })
     },
     trashModal (trashObject) {
@@ -357,6 +435,22 @@ export default {
     },
     modalCancel () {
       this.isModalEditActive = false
+    },
+    pageChange (page) {
+      if (!this.moving) {
+        this.$emit('calendar-changed', { year: page.year, month: page.month })
+      }
+    },
+    colorTypeChanged (colorType) {
+      if (this.colorType !== colorType) {
+        this.colorType = colorType
+        this.getActivities()
+      }
+    },
+    dayClicked (day) {
+      console.log('day', day)
+      console.log('mm', moment(day.date).format('YYYY-MM-DD'))
+      this.showModal({ date: moment(day.date).format('YYYY-MM-DD') })
     }
   },
   filters: {
@@ -375,6 +469,19 @@ export default {
   }
 }
 </script>
+<style scoped>
+.separator{
+  margin-right: 0.5rem;
+  display: inline-block;
+}
+.tag-hours{
+  cursor: pointer;
+  color:#fff;
+}
+.day-label{
+  cursor: pointer;
+}
+</style>
 <style>
 .card-body{
   padding: 0.75rem 1rem;
@@ -402,4 +509,71 @@ export default {
 .view-button{
   margin-left: 0.5rem;
 }
+</style>
+
+<style lang="postcss">
+.vc-container{
+  font-family: 'Nunito';
+}
+::-webkit-scrollbar {
+  width: 0px;
+}
+::-webkit-scrollbar-track {
+  display: none;
+}
+.custom-calendar.vc-container {
+  --day-border: 1px solid #b8c2cc;
+  --day-border-highlight: 1px solid #b8c2cc;
+  --day-width: 90px;
+  --day-height: 90px;
+  --weekday-bg: #f8fafc;
+  --weekday-border: 1px solid #eaeaea;
+  border-radius: 0.25rem;
+  border:0;
+  width: 100%;
+}
+  .custom-calendar.vc-container .vc-header {
+    background-color: #eee;
+    padding: 10px 0;
+  }
+  .custom-calendar.vc-container .vc-weeks {
+    padding: 0;
+  }
+  .custom-calendar.vc-container .vc-weekday {
+    background-color:  #F8F8F8;
+    border-bottom: 1px solid #eaeaea;
+    border-top: 1px solid #eaeaea;
+    padding: 5px 0;
+  }
+  .custom-calendar.vc-container .vc-day {
+    padding: 0 5px 3px 5px;
+    text-align: left;
+    height: auto;
+    min-height: 90px;
+    min-width: 90px;
+    background-color: white;
+  }
+    .custom-calendar.vc-container .vc-day.weekday-1,
+    .custom-calendar.vc-container .vc-day.weekday-7 {
+      background-color: #eff8ff;
+      background: #eee
+    }
+    .custom-calendar.vc-container .vc-day:not(.on-bottom) {
+      border-bottom: 1px solid #b8c2cc;
+    }
+      .custom-calendar.vc-container .vc-day:not(.on-bottom).weekday-1 {
+        border-bottom: 1px solid #b8c2cc;
+      }
+
+    .custom-calendar.vc-container .vc-day:not(.on-right) {
+      border-right: 1px solid #b8c2cc;
+    }
+
+  .custom-calendar.vc-container .vc-day .vc-day-dots {
+    margin-bottom: 5px;
+  }
+  .custom-calendar .vc-title{
+    margin-left: 1rem;
+  }
+
 </style>

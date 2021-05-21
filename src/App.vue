@@ -23,7 +23,7 @@ export default {
   computed: {
     menu () {
       return [
-        'Panells',
+        'Projectes',
         [
           {
             to: '/',
@@ -36,9 +36,9 @@ export default {
             label: 'Projectes'
           },
           {
-            to: '/stats-dedicacio',
+            to: '/stats-despeses',
             icon: 'table',
-            label: 'Dedicació'
+            label: 'Despeses'
           },
           {
             to: '/stats-estrategies',
@@ -56,7 +56,35 @@ export default {
           {
             to: '/dedicacio',
             label: 'Entrada Hores',
-            icon: 'arrow-right'
+            icon: 'table'
+          },
+          {
+            to: '/dedicacio-charts',
+            label: 'Gràfiques',
+            icon: 'table'
+          },
+          {
+            to: '/stats-dedicacio',
+            icon: 'table',
+            label: 'Estadístiques'
+          },
+          {
+            to: '/stats-previsio-hores',
+            icon: 'table',
+            label: 'Previsió dedicació'
+          },
+          {
+            to: '/dedicacio-saldo',
+            icon: 'table',
+            label: 'Saldo hores'
+          }
+        ],
+        'Tresoreria',
+        [
+          {
+            to: '/tresoreria',
+            icon: 'table',
+            label: 'Tresoreria'
           }
           // {
           //   to: '/tables',
@@ -126,6 +154,9 @@ export default {
       } else {
         location.href = process.env.VUE_APP_API_LOGIN || 'http://localhost:1337/admin'
       }
+    }
+    if (this.$route.query.navigate) {
+      this.$router.push('/' + this.$route.query.navigate)
     }
   }
 }

@@ -1,12 +1,16 @@
 <template>
   <div>
     <div id="project-stats"></div>
+    <!-- <pre>
+      {{pivotData}}
+    </pre> -->
   </div>
 </template>
 
 <script>
 import service from '@/service/index'
 import sumBy from 'lodash/sumBy'
+import sortBy from 'lodash/sortBy'
 import moment from 'moment'
 import configPivot from '@/service/configStatsProject'
 
@@ -19,6 +23,14 @@ export default {
     projectState: {
       type: Number,
       default: 1
+    },
+    date1: {
+      type: Date,
+      default: null
+    },
+    date2: {
+      type: Date,
+      default: null
     }
   },
   data () {
@@ -44,22 +56,21 @@ export default {
     //   console.log('user newVal', newVal)
     //   this.getActivities()
     // },
-    // date1: function (newVal, oldVal) {
-    //   this.getActivities()
-    // },
-    // date2: function (newVal, oldVal) {
-    //   this.getActivities()
-    // },
+    date1: function (newVal, oldVal) {
+      this.getActivities()
+    },
+    date2: function (newVal, oldVal) {
+      this.getActivities()
+    },
     // project: function (newVal, oldVal) {
     //   this.getActivities()
     // },
     projectState: function (newVal, oldVal) {
-      console.log('filter state', newVal)
       this.getActivities()
     }
   },
   mounted () {
-    console.log('mounted')
+    // console.log('mounted')
     this.getActivities()
   },
   methods: {
@@ -86,8 +97,18 @@ export default {
       //   query = `${query}&[project.id]=${this.project}`
       // }
       service({ requiresAuth: true }).get(query).then((r) => {
-        // console.log('r.data', r.data)
+        console.log('projects rdata', r.data)
         const projects = r.data.map(p => {
+          const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
+          const realIncomes = sumBy(p.emitted_invoices.map(a => { return { incomes: a.total_base } }), 'incomes')
+          const realExpenses = sumBy(p.received_invoices.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.diets.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.tickets.map(a => { return { expenses: a.total_base } }), 'expenses')
+
+          // console.log('p.invoice_hours_price', p.invoice_hours_price)
+          // console.log('incomes', incomes)
+
+          // const bbbb = p.invoice_hours_price ? sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes') : (p.incomes ? p.incomes : 0)
+          // console.log('bbbb', bbbb)
+
           return {
             project_name: p.name,
             project_state: p.project_state ? p.project_state.name : '-',
@@ -96,15 +117,23 @@ export default {
             project_client: p.client ? p.client.name : '-',
             total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
             hours: sumBy(p.activities, 'hours'),
-            incomes_expenses: p.incomes_expenses ? p.incomes_expenses : 0,
-            pricehour: sumBy(p.activities, 'hours') && p.incomes_expenses ? parseFloat((p.incomes_expenses / sumBy(p.activities, 'hours')).toFixed(2)) : 0,
-            pricehour_estimate: p.total_estimated_hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / p.total_estimated_hours).toFixed(2)) : 0,
+            incomes: p.invoice_hours_price ? incomes : p.total_incomes,
+            total_incomes: p.total_incomes,
+            expenses: p.total_expenses,
+            real_incomes: realIncomes,
+            real_expenses: realExpenses,
+            invoice_hours_price: p.invoice_hours_price,
+            invoice_type: p.invoice_hours_price ? 'Hores' : 'Projecte',
+            pricehour: p.invoice_hours_price ? p.invoice_hours_price : (sumBy(p.activities, 'hours') && p.incomes_expenses ? parseFloat((p.incomes_expenses / sumBy(p.activities, 'hours')).toFixed(2)) : 0),
+            pricehour_estimate: p.invoice_hours_price ? p.invoice_hours_price : p.total_estimated_hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / p.total_estimated_hours).toFixed(2)) : 0,
+            balance_estimate: p.invoice_hours_price ? (p.invoice_hours_price * p.total_estimated_hours) - p.total_expenses : p.total_incomes - p.total_expenses,
             count: 1
           }
         })
+
         console.log('projects', projects)
         this.projects = r.data
-        this.pivotData = Object.freeze(projects)
+        this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
         configPivot.dataSource.data = this.pivotData
         window.jQuery('#project-stats').empty()
         window.jQuery('#project-stats').kendoPivotGrid(configPivot)

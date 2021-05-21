@@ -19,7 +19,15 @@
           icon="scale-balance"
           :number="balance"
           suffix="€"
-          label="Balanç"
+          label="Resultat previst"
+        />
+        <card-widget
+          class="tile is-child"
+          type="is-info"
+          icon="scale-balance"
+          :number="realIncomes - realExpenses"
+          suffix="€"
+          label="Resultat real"
         />
         <card-widget
           class="tile is-child"
@@ -127,20 +135,22 @@ export default {
       projects: [],
       activities: [],
       balance: 0,
+      realIncomes: 0,
+      realExpenses: 0,
       dedication: 0,
       estimatedDedication: 0
     }
   },
   computed: {
     titleStack () {
-      return ['Panells', 'General']
+      return ['Projectes', 'General']
     }
   },
   mounted () {
     this.fillChartData()
 
     this.$buefy.snackbar.open({
-      message: 'Welcome back',
+      message: 'Benvinguda',
       queue: false
     })
 
@@ -149,13 +159,28 @@ export default {
       this.contactsNumber = r.data
     })
 
-    service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
-      // console.log('projects', r.data)
+    // service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
+    service({ requiresAuth: true }).get('projects').then((r) => {
+      // console.log('projects rdata', r.data)
       this.projects = r.data
-      this.projectsNumber = this.projects.length
+      this.projectsNumber = this.projects.filter(p => p.project_state !== null && p.project_state.id === 1).length
+      // this.balance = sumBy(this.projects, p => {
+      //   return p.balance ? p.balance : 0
+      // })
       this.balance = sumBy(this.projects, p => {
-        return p.balance ? p.balance : 0
+        return p.total_incomes - p.total_expenses
       })
+
+      this.realIncomes = sumBy(this.projects, p => {
+        return sumBy(p.emitted_invoices, 'total_base')
+      })
+      this.realExpenses = sumBy(this.projects, p => {
+        const invoices = sumBy(p.received_invoices, 'total_base')
+        const tickets = sumBy(p.tickets, 'total_base')
+        const diets = sumBy(p.diets, 'total_base')
+        return invoices + tickets + diets
+      })
+
       this.estimatedDedication = sumBy(this.projects, p => {
         return p.total_estimated_hours ? p.total_estimated_hours : 0
       })

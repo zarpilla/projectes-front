@@ -61,7 +61,7 @@
           </b-field>
         </form>
       </card-component>
-      <dedication-input @calendar-changed="calendarChanged" :user="filters.user" :date1="filters.date1" :date2="filters.date2" :project="filters.project" :last="filters.lastUpdated" />
+      <dedication-widget :user="filters.user" :date1="filters.date1" :date2="filters.date2" :project="filters.project" :last="filters.lastUpdated" />
     </section>
   </div>
 </template>
@@ -70,19 +70,17 @@
 import mapValues from 'lodash/mapValues'
 import TitleBar from '@/components/TitleBar'
 import CardComponent from '@/components/CardComponent'
-// import HeroBar from '@/components/HeroBar'
-import DedicationInput from '@/components/DedicationInput'
+import DedicationWidget from '@/components/DedicationWidget'
 import service from '@/service/index'
 import moment from 'moment'
 import { mapState } from 'vuex'
 
 export default {
-  name: 'Dedicacio',
+  name: 'DedicacioCharts',
   components: {
-    // HeroBar,
     CardComponent,
     TitleBar,
-    DedicationInput
+    DedicationWidget
   },
   data () {
     return {
@@ -109,7 +107,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Projectes', 'Dedicació']
+      return ['Projectes', 'Gràfiques']
     },
     filteredUsers () {
       return this.users.filter(option => {
@@ -181,17 +179,6 @@ export default {
         message: 'Reset successfully',
         queue: false
       })
-    },
-    calendarChanged (data) {
-      const first = moment(`${data.year}/${data.month}/01`, 'YYYY/M/DD').toDate()
-      const last = moment(first).clone().endOf('month').toDate()
-      if (this.filters.date1 === null || this.filters.date2 === null) {
-        return
-      }
-      if (moment(first).format('YYYYMMDD') !== moment(this.filters.date1).format('YYYYMMDD') || moment(last).format('YYYYMMDD') !== moment(this.filters.date2).format('YYYYMMDD')) {
-        this.filters.date1 = first
-        this.filters.date2 = last
-      }
     }
   }
 }

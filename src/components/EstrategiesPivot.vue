@@ -59,7 +59,7 @@ export default {
     }
   },
   mounted () {
-    console.log('mounted')
+    // console.log('mounted')
     this.getActivities()
   },
   methods: {
@@ -86,7 +86,7 @@ export default {
       //   query = `${query}&[project.id]=${this.project}`
       // }
       service({ requiresAuth: true }).get(query).then((r) => {
-        console.log('r.data', r.data)
+        // console.log('r.data', r.data)
         const strategies = []
         const projects = r.data.forEach(p => {
           if (p.strategies) {

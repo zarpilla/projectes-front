@@ -13,17 +13,20 @@ const config = {
       name: 'project_scope',
       expand: false
     }, {
-    //   name: 'invoice_type',
-    //   expand: false
-    // }, {
+      name: 'invoice_type',
+      expand: false
+    }, {
       name: 'project_client',
       expand: false
     }], // Specify a dimension on columns.
     rows: [{
       name: 'project_name',
       expand: false
+    }, {
+      name: 'expense_type',
+      expand: false
     }], // Specify a dimension on rows.
-    measures: ['Num', 'Resultat previst', 'Resultat real', 'Ingressos previstos', 'Ingressos reals', 'Despeses previstes', 'Despeses reals', 'Hores previstes', 'Hores reals', 'Preu/hora previst', 'Preu/hora real'],
+    measures: ['Num', 'Despeses'],
     schema: {
       model: {
         fields: {
@@ -43,6 +46,9 @@ const config = {
             type: 'string'
           },
           project_client: {
+            type: 'string'
+          },
+          expense_type: {
             type: 'string'
           }
         }
@@ -66,6 +72,9 @@ const config = {
           },
           project_client: {
             caption: 'Clients (TOTS)'
+          },
+          expense_type: {
+            caption: 'Tipus despesa (TOTES)'
           }
         },
         // measures: ['Sum']
@@ -78,25 +87,13 @@ const config = {
             field: 'invoice_hours_price',
             aggregate: 'sum'
           },
-          'Ingressos previstos': {
+          incomes: {
             field: 'incomes',
-            aggregate: 'sum',
-            format: '{0:0.00} €'
+            aggregate: 'sum'
           },
-          'Ingressos reals': {
-            field: 'real_incomes',
-            aggregate: 'sum',
-            format: '{0:0.00} €'
-          },
-          'Despeses previstes': {
+          expenses: {
             field: 'expenses',
-            aggregate: 'sum',
-            format: '{0:0.00} €'
-          },
-          'Despeses reals': {
-            field: 'real_expenses',
-            aggregate: 'sum',
-            format: '{0:0.00} €'
+            aggregate: 'sum'
           },
           total_real_hours: {
             field: 'total_real_hours',
@@ -104,9 +101,14 @@ const config = {
           },
           total_incomes: {
             field: 'total_incomes',
-            aggregate: 'sum'
+            aggregate: 'average'
           },
-          'Resultat previst': {
+          Despeses: {
+            field: 'expense',
+            aggregate: 'sum',
+            format: '{0:0.00} €'
+          },
+          Balanç: {
             field: 'incomes_expenses',
             // aggregate: 'sum',
             aggregate: function (value, state, context) {
@@ -121,24 +123,9 @@ const config = {
             },
             format: '{0:0.00} €'
           },
-          'Resultat real': {
-            field: 'incomes_expenses',
-            // aggregate: 'sum',
-            aggregate: function (value, state, context) {
-              var dataItem = context.dataItem
-              var incomes = dataItem.real_incomes
-              var expenses = dataItem.real_expenses
-              state.real_incomes = (state.real_incomes || 0) + incomes
-              state.real_expenses = (state.real_expenses || 0) + expenses
-            },
-            result: function (state) {
-              return state.real_incomes - state.real_expenses
-            },
-            format: '{0:0.00} €'
-          },
           'Balanç previst': {
             field: 'balance_estimate',
-            aggregate: 'average',
+            aggregate: 'sum',
             format: '{0:0.00} €'
           },
           'Hores previstes': {
@@ -149,37 +136,20 @@ const config = {
             field: 'hours',
             aggregate: 'sum'
           },
-          'Preu/hora previst': {
+          'Preu/hora': {
             field: 'pricehour',
             // aggregate: 'average',
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem
               var incomes = dataItem.incomes
               var expenses = dataItem.expenses
-              var hours = dataItem.total_estimated_hours
+              var hours = dataItem.hours
               state.incomes = (state.incomes || 0) + incomes
               state.expenses = (state.expenses || 0) + expenses
-              state.total_estimated_hours = (state.total_estimated_hours || 0) + hours
-            },
-            result: function (state) {
-              return state.total_estimated_hours ? (state.incomes - state.expenses) / state.total_estimated_hours : 0
-            },
-            format: '{0:0.00} €'
-          },
-          'Preu/hora real': {
-            field: 'pricehour',
-            // aggregate: 'average',
-            aggregate: function (value, state, context) {
-              var dataItem = context.dataItem
-              var incomes = dataItem.real_incomes
-              var expenses = dataItem.real_expenses
-              var hours = dataItem.hours
-              state.real_incomes = (state.real_incomes || 0) + incomes
-              state.real_expenses = (state.real_expenses || 0) + expenses
               state.hours = (state.hours || 0) + hours
             },
             result: function (state) {
-              return state.hours ? (state.real_incomes - state.real_expenses) / state.hours : 0
+              return state.hours ? (state.incomes - state.expenses) / state.hours : 0
             },
             format: '{0:0.00} €'
           },
@@ -220,7 +190,7 @@ const config = {
             },
             format: '{0:0.00} €'
           },
-          'Preu/hora previstZZZ': {
+          'Preu/hora previst': {
             field: 'total_estimated_hours',
             // aggregate: 'sum',
             aggregate: function (value, state, context) {
@@ -249,7 +219,7 @@ const config = {
     //     }
     // },
   },
-  height: '90vh'
+  height: '74vh'
 }
 
 export default config

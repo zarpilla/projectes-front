@@ -3,13 +3,14 @@ module.exports = {
     ? '/admin-one-vue-bulma-dashboard/'
     : '/',
 
-  // Remove moment.js from chart.js
-  // https://www.chartjs.org/docs/latest/getting-started/integration.html#bundlers-webpack-rollup-etc
-  configureWebpack: config => {
-    return {
-      externals: {
-        // moment: 'moment'
-      }
+  configureWebpack: {
+    module: {
+      rules: [
+        {
+          test: /\.postcss$/,
+          use: [ 'postcss-loader' ]
+        }
+      ]
     }
   }
 }
