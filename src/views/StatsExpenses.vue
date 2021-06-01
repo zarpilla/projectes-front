@@ -64,11 +64,11 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        // await this.addScript(process.env.publicPath + '/vendor/jquery/jquery.js')
-        await addScript(process.env.publicPath + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle(process.env.publicPath + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle(process.env.publicPath + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle(process.env.publicPath + '/vendor/kendo/custom.css', 'custom-css')
+        // await this.addScript(process.env.VUE_APP_PATH + '/vendor/jquery/jquery.js')
+        await addScript(process.env.VUE_APP_PATH + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle(process.env.VUE_APP_PATH + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle(process.env.VUE_APP_PATH + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle(process.env.VUE_APP_PATH + '/vendor/kendo/custom.css', 'custom-css')
         this.isLoading = false
         this.getData()
       }
