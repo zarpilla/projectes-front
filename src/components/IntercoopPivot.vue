@@ -76,7 +76,7 @@ export default {
       const projectState = this.projectState !== null ? this.projectState : 1
       let query = `projects?_where[project_state_eq]=${projectState}`
       // let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
-      if (this.projectState === 0) {
+      if (projectState === 0) {
         query = 'projects?_limit=999'
       }
       // if (this.user) {
