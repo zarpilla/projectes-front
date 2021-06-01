@@ -18,7 +18,7 @@ export default {
   props: {
     projectState: {
       type: Number,
-      default: 1
+      default: 0
     }
   },
   data () {
