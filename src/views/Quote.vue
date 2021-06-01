@@ -36,19 +36,19 @@
                       <tr>
                         <td>
                           <div class="client">PROVEÏDOR</div>
-                          {{ me.name }}<br />
-                          {{ me.nif }}<br />
-                          {{ me.address }}<br />{{ me.postcode }} {{ me.city }}<br />
-                          {{ me.phone }}<br />
-                          {{ me.email }}<br />
+                          <div v-if="me.name">{{ me.name }}</div>
+                          <div v-if="me.nif">{{ me.nif }}</div>
+                          <div v-if="me.address">{{ me.address }}<br />{{ me.postcode }} {{ me.city }}</div>
+                          <div v-if="me.phone">{{ me.phone }}</div>
+                          <div v-if="me.email">{{ me.email }}</div>
                         </td>
-
                         <td>
                           <div class="client">CLIENT</div>
-                          {{ quote.client.name }}<br />
-                          {{ quote.client.email }}<br />
-                          {{ quote.client.phone }}<br />
-                          {{ quote.client.address }} {{ quote.client.postcode }}<br />{{ quote.client.city }}<br />
+                          <div v-if="quote.client.name">{{ quote.client.name }}</div>
+                          <div v-if="quote.client.nif">{{ quote.client.nif }}</div>
+                          <div v-if="quote.client.email">{{ quote.client.email }}</div>
+                          <div v-if="quote.client.address">{{ quote.client.address }}<br />{{ quote.client.postcode }} {{ quote.client.city }}</div>
+                          <div v-if="quote.client.phone">{{ quote.client.phone }}</div>
                         </td>
                       </tr>
                     </table>
