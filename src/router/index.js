@@ -165,6 +165,15 @@ const routes = [
   },
   {
     meta: {
+      title: 'Factura'
+    },
+    path: '/invoice/:id',
+    name: 'invoice.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/Invoice.vue'),
+    props: true
+  },
+  {
+    meta: {
       title: 'Tresoreria'
     },
     path: '/tresoreria',

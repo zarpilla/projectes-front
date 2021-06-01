@@ -22,8 +22,9 @@
                         </td>
 
                         <td  class='more'>
-                          Pressupost {{ quote.code }}<br />
-                          Data: {{ quote.date ? quote.date : quote.updated_at | formatDMYDate }}<br />
+                          Factura {{ quote.code }}<br />
+                          Data: {{ quote.emitted ? quote.emitted : quote.updated_at | formatDMYDate }}<br />
+                          <span v-if="quote.paybefore">Venciment: {{ quote.paybefore | formatDMYDate }}</span><br />
                         </td>
                       </tr>
                     </table>
@@ -45,10 +46,10 @@
 
                         <td>
                           <div class="client">CLIENT</div>
-                          {{ quote.client.name }}<br />
-                          {{ quote.client.email }}<br />
-                          {{ quote.client.phone }}<br />
-                          {{ quote.client.address }} {{ quote.client.postcode }}<br />{{ quote.client.city }}<br />
+                          {{ quote.contact.name }}<br />
+                          {{ quote.contact.email }}<br />
+                          {{ quote.contact.phone }}<br />
+                          {{ quote.contact.address }} {{ quote.contact.postcode }}<br />{{ quote.contact.city }}<br />
                         </td>
                       </tr>
                     </table>
@@ -61,6 +62,7 @@
                         <td>Concepte</td>
                         <td v-if="showQuantity">Quantitat</td>
                         <td v-if="showQuantity || showVat">Preu</td>
+                        <td v-if="showIrpf">IRPF</td>
                         <td v-if="showVat">IVA</td>
                         <td>Total</td>
                       </tr>
@@ -71,12 +73,20 @@
                           </div>
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
-                        <td v-if="showQuantity || showVat">{{ line.base }}€</td>
-                        <td v-if="showVat">{{ line.vat }}%</td>
-                        <td>{{ line.quantity * line.base * (1+ line.vat / 100) | formatCurrency }}€</td>
+                        <td v-if="showQuantity || showVat">{{ line.base | formatCurrency}}€</td>
+                        <td v-if="showIrpf">{{ -1 * line.quantity * line.base * line.irpf / 100 | formatCurrency }} ({{ line.irpf }}%)</td>
+                        <td v-if="showVat">{{ line.quantity * line.base * line.vat / 100 | formatCurrency }}  ({{ line.vat }}%)</td>
+                        <td>{{ line.quantity * line.base - (line.quantity * line.base * line.irpf / 100) + ( line.quantity * line.base * line.vat / 100) | formatCurrency }}€</td>
                       </tr>
                       <tr class="total">
-                        <td :colspan="6">Total: {{ quote.total }}€</td>
+                        <td :colspan="6">
+                          Base imposable: {{ quote.total_base | formatCurrency }}€<br>
+                          IVA: {{ quote.total_vat | formatCurrency }}€<br>
+                          IRPF: {{ quote.total_irpf | formatCurrency }}€<br>
+                          <span class="total-val">
+                          Total: {{ quote.total | formatCurrency }}€
+                          </span>
+                        </td>
                       </tr>
                     </table>
                   </td>
@@ -135,7 +145,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Administració', 'Pressupost']
+      return ['Administració', 'Factures emeses']
     },
     heroTitle () {
       return this.quote ? this.quote.code : ''
@@ -145,6 +155,9 @@ export default {
     },
     showVat () {
       return this.quote.lines.find(l => l.vat > 0) !== undefined
+    },
+    showIrpf () {
+      return this.quote.lines.find(l => l.irpf > 0) !== undefined
     },
     columnsShown () {
       return this.showQuantity && this.showVat ? 5 : (this.showQuantity ? 3 : 4)
@@ -157,10 +170,10 @@ export default {
     getData () {
       if (this.$route.params.id) {
         service({ requiresAuth: true })
-          .get(`quotes/${this.$route.params.id}`)
+          .get(`emitted-invoices/${this.$route.params.id}`)
           .then((r) => {
-            console.log('quote', r.data)
             this.quote = r.data
+            console.log('this.quote', this.quote)
           })
         service({ requiresAuth: true })
           .get('me')
@@ -178,10 +191,10 @@ export default {
       var element = document.getElementById('quote')
       var opt = {
         margin: 1,
-        filename: `pressupost-${this.quote.client.name}-${this.quote.code}`,
-        // image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { dpi: 300, letterRendering: false },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        filename: `factura-${this.quote.contact.name}-${this.quote.code}`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { dpi: 300, scale: 4, letterRendering: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
       }
       html2pdf().set(opt).from(element).save()
     },
@@ -227,6 +240,12 @@ border: 1px solid #eee;
   background: #fff;
 }
 
+@media print {
+  .invoice-box {
+    padding: 30px 0;
+  }
+}
+
 .invoice-box table {
   width: 100%;
   line-height: inherit;
@@ -248,6 +267,12 @@ border: 1px solid #eee;
   text-align: right;
 }
 .invoice-box table tr td:nth-child(5) {
+  text-align: right;
+}
+.invoice-box table tr td:nth-child(6) {
+  text-align: right;
+}
+.invoice-box table tr td:nth-child(7) {
   text-align: right;
 }
 .invoice-box table tr.top table td {
@@ -287,8 +312,10 @@ border: 1px solid #eee;
 }
 .invoice-box table tr.total td{
   text-align: right;
-  font-weight: bold;
   color:#222;
+}
+.invoice-box table tr.total td .total-val{
+  font-weight: bold;
 }
 .invoice-box table tr.total td:nth-child(2) {
   border-top: 1px solid #f9a43b;
