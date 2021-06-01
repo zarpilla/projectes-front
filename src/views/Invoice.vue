@@ -80,12 +80,12 @@
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
-                          Base imposable: {{ quote.total_base | formatCurrency }}€<br>
-                          IVA: {{ quote.total_vat | formatCurrency }}€<br>
-                          IRPF: {{ quote.total_irpf | formatCurrency }}€<br>
-                          <span class="total-val">
+                          <div>Base imposable: {{ quote.total_base | formatCurrency }}€</div>
+                          <div v-if="quote.total_vat">IVA: {{ quote.total_vat | formatCurrency }}€</div>
+                          <div v-if="quote.total_irpf">IRPF: {{ quote.total_irpf | formatCurrency }}€</div>
+                          <div class="total-val">
                           Total: {{ quote.total | formatCurrency }}€
-                          </span>
+                          </div>
                         </td>
                       </tr>
                     </table>
@@ -96,8 +96,8 @@
                 <div class="more notes">Notes</div>
                 <div class="notes-content" v-html="quote.comments"></div>
               </div>
-              <div v-if="me.quote_footer" class="comments global-comments quote-footer">
-                <span v-html="me.quote_footer"></span>
+              <div v-if="me.invoice_footer" class="comments global-comments quote-footer">
+                <span v-html="me.invoice_footer.replace(/(?:\r\n|\r|\n)/g, '<br>')"></span>
               </div>
             </div>
           </div>
@@ -173,13 +173,13 @@ export default {
           .get(`emitted-invoices/${this.$route.params.id}`)
           .then((r) => {
             this.quote = r.data
-            console.log('this.quote', this.quote)
           })
         service({ requiresAuth: true })
           .get('me')
           .then((r) => {
             console.log('me', r.data)
             this.me = r.data
+            console.log('me', this.me)
             const img = `${this.baseUrl}${this.me.logo.url}`
             this.toDataUrl(img, (base64) => {
               this.imageUrl = base64

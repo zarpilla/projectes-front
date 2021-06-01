@@ -87,7 +87,7 @@
                 <div class="notes-content" v-html="quote.comments"></div>
               </div>
               <div v-if="me.quote_footer" class="comments global-comments quote-footer">
-                <span v-html="me.quote_footer"></span>
+                <span v-html="me.quote_footer.replace(/(?:\r\n|\r|\n)/g, '<br>')"></span>
               </div>
             </div>
           </div>
