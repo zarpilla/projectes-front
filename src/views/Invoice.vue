@@ -60,7 +60,7 @@
                     <table>
                       <tr class="t-heading">
                         <td>Concepte</td>
-                        <td v-if="showQuantity">Quantitat</td>
+                        <td v-if="showQuantity">Q.</td>
                         <td v-if="showQuantity || showVat">Preu</td>
                         <td v-if="showIrpf">IRPF</td>
                         <td v-if="showVat">IVA</td>
@@ -82,13 +82,27 @@
                         <td :colspan="6">
                           <div>Base imposable: {{ quote.total_base | formatCurrency }}€</div>
                           <div v-if="quote.total_vat">IVA: {{ quote.total_vat | formatCurrency }}€</div>
-                          <div v-if="quote.total_irpf">IRPF: {{ quote.total_irpf | formatCurrency }}€</div>
+                          <div v-if="quote.total_irpf">IRPF: {{ -1*quote.total_irpf | formatCurrency }}€</div>
                           <div class="total-val">
                           Total: {{ quote.total | formatCurrency }}€
                           </div>
                         </td>
                       </tr>
                     </table>
+                  </td>
+                </tr>
+                <tr class="zt-heading" v-if="quote.payment_method && quote.payment_method.invoice_text">
+                  <td :colspan="5">
+                     <table>
+                      <tr class="t-heading">
+                        <td>Notes</td>
+                      </tr>
+                      <tr>
+                        <td>
+                        {{ quote.payment_method.invoice_text }}
+                        </td>
+                      </tr>
+                     </table>
                   </td>
                 </tr>
               </table>
@@ -173,13 +187,12 @@ export default {
           .get(`emitted-invoices/${this.$route.params.id}`)
           .then((r) => {
             this.quote = r.data
+            console.log('this.invoice', this.quote)
           })
         service({ requiresAuth: true })
           .get('me')
           .then((r) => {
-            console.log('me', r.data)
             this.me = r.data
-            console.log('me', this.me)
             const img = `${this.baseUrl}${this.me.logo.url}`
             this.toDataUrl(img, (base64) => {
               this.imageUrl = base64

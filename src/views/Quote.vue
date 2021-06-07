@@ -59,7 +59,7 @@
                     <table>
                       <tr class="t-heading">
                         <td>Concepte</td>
-                        <td v-if="showQuantity">Quantitat</td>
+                        <td v-if="showQuantity">Q.</td>
                         <td v-if="showQuantity || showVat">Preu</td>
                         <td v-if="showVat">IVA</td>
                         <td>Total</td>
@@ -72,11 +72,17 @@
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
                         <td v-if="showQuantity || showVat">{{ line.base }}€</td>
-                        <td v-if="showVat">{{ line.vat }}%</td>
+                        <td v-if="showVat">{{ line.quantity * line.base * line.vat / 100 | formatCurrency }}€ ({{ line.vat }}%)</td>
                         <td>{{ line.quantity * line.base * (1+ line.vat / 100) | formatCurrency }}€</td>
                       </tr>
                       <tr class="total">
-                        <td :colspan="6">Total: {{ quote.total }}€</td>
+                        <td :colspan="6">
+                          <div v-if="showVat">Total (sense IVA): {{ quote.total_base | formatCurrency }}€</div>
+                          <div v-if="showVat">IVA: {{ quote.total_vat | formatCurrency}}€</div>
+                          <div>
+                          Total: {{ quote.total | formatCurrency}}€
+                          </div>
+                        </td>
                       </tr>
                     </table>
                   </td>
