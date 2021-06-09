@@ -12,12 +12,6 @@ const config = {
     }, {
       name: 'project_scope',
       expand: false
-    }, {
-    //   name: 'invoice_type',
-    //   expand: false
-    // }, {
-      name: 'project_client',
-      expand: false
     }], // Specify a dimension on columns.
     rows: [{
       name: 'project_name',
@@ -63,10 +57,10 @@ const config = {
           },
           invoice_type: {
             caption: 'Facturació (TOTS)'
-          },
-          project_client: {
-            caption: 'Clients (TOTS)'
           }
+          // project_client: {
+          //   caption: 'Clients (TOTS)'
+          // }
         },
         // measures: ['Sum']
         measures: {
