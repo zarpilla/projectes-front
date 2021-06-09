@@ -28,7 +28,7 @@
                   :key="index"
                   :value="year"
                 >
-                  {{ year.name }}
+                  {{ year.year }}
                 </option>
               </b-select>
             </b-field>
@@ -96,7 +96,8 @@ export default {
   mounted () {
     this.isLoading = true
 
-    service({ requiresAuth: true }).get('series').then((r) => {
+    service({ requiresAuth: true }).get('years').then((r) => {
+      console.log('r.data', r.data)
       this.years = r.data
       this.filters.year = this.years[this.years.length - 1]
     })
