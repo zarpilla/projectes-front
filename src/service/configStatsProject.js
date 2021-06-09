@@ -84,7 +84,7 @@ const config = {
             format: '{0:0.00} €'
           },
           'Ingressos reals': {
-            field: 'real_incomes',
+            field: 'total_real_incomes',
             aggregate: 'sum',
             format: '{0:0.00} €'
           },
@@ -108,32 +108,32 @@ const config = {
           },
           'Resultat previst': {
             field: 'incomes_expenses',
-            // aggregate: 'sum',
-            aggregate: function (value, state, context) {
-              var dataItem = context.dataItem
-              var incomes = dataItem.incomes
-              var expenses = dataItem.expenses
-              state.incomes = (state.incomes || 0) + incomes
-              state.expenses = (state.expenses || 0) + expenses
-            },
-            result: function (state) {
-              return state.incomes - state.expenses
-            },
+            aggregate: 'sum',
+            // aggregate: function (value, state, context) {
+            //   var dataItem = context.dataItem
+            //   var incomes = dataItem.incomes
+            //   var expenses = dataItem.expenses
+            //   state.incomes = (state.incomes || 0) + incomes
+            //   state.expenses = (state.expenses || 0) + expenses
+            // },
+            // result: function (state) {
+            //   return state.incomes - state.expenses
+            // },
             format: '{0:0.00} €'
           },
           'Resultat real': {
-            field: 'incomes_expenses',
-            // aggregate: 'sum',
-            aggregate: function (value, state, context) {
-              var dataItem = context.dataItem
-              var incomes = dataItem.real_incomes
-              var expenses = dataItem.real_expenses
-              state.real_incomes = (state.real_incomes || 0) + incomes
-              state.real_expenses = (state.real_expenses || 0) + expenses
-            },
-            result: function (state) {
-              return state.real_incomes - state.real_expenses
-            },
+            field: 'total_real_incomes_expenses',
+            aggregate: 'sum',
+            // aggregate: function (value, state, context) {
+            //   var dataItem = context.dataItem
+            //   var incomes = dataItem.real_incomes
+            //   var expenses = dataItem.real_expenses
+            //   state.real_incomes = (state.real_incomes || 0) + incomes
+            //   state.real_expenses = (state.real_expenses || 0) + expenses
+            // },
+            // result: function (state) {
+            //   return state.real_incomes - state.real_expenses
+            // },
             format: '{0:0.00} €'
           },
           'Balanç previst': {

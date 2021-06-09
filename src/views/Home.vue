@@ -23,6 +23,13 @@
         />
         <card-widget
           class="tile is-child"
+          type="is-success"
+          icon="clock"
+          :number="estimatedDedication"
+          label="Hores previstes"
+        />
+        <card-widget
+          class="tile is-child"
           type="is-info"
           icon="scale-balance"
           :number="realIncomes - realExpenses"
@@ -34,17 +41,9 @@
           type="is-danger"
           icon="clock-outline"
           :number="dedication"
-          label="Hores dedicades"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-success"
-          icon="clock"
-          :number="estimatedDedication"
-          label="Hores estimades"
+          label="Hores reals"
         />
       </tiles>
-
       <!-- <card-component
         title="Performance"
         icon="finance"
@@ -168,17 +167,20 @@ export default {
       //   return p.balance ? p.balance : 0
       // })
       this.balance = sumBy(this.projects, p => {
-        return p.total_incomes - p.total_expenses
+        // return p.total_incomes - p.total_expenses
+        return p.incomes_expenses
       })
 
-      this.realIncomes = sumBy(this.projects, p => {
-        return sumBy(p.emitted_invoices, 'total_base')
-      })
+      // this.realIncomes = sumBy(this.projects, p => {
+      //   return p.total_real_incomes_expenses
+      // })
+      this.realIncomes = sumBy(this.projects, 'total_real_incomes_expenses')
       this.realExpenses = sumBy(this.projects, p => {
-        const invoices = sumBy(p.received_invoices, 'total_base')
-        const tickets = sumBy(p.tickets, 'total_base')
-        const diets = sumBy(p.diets, 'total_base')
-        return invoices + tickets + diets
+        // const invoices = sumBy(p.received_invoices, 'total_base')
+        // const tickets = sumBy(p.tickets, 'total_base')
+        // const diets = sumBy(p.diets, 'total_base')
+        // return invoices + tickets + diets
+        return 0
       })
 
       this.estimatedDedication = sumBy(this.projects, p => {

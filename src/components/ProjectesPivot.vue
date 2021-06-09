@@ -100,8 +100,8 @@ export default {
         console.log('projects rdata', r.data)
         const projects = r.data.map(p => {
           const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
-          const realIncomes = sumBy(p.emitted_invoices.map(a => { return { incomes: a.total_base } }), 'incomes')
-          const realExpenses = sumBy(p.received_invoices.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.diets.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.tickets.map(a => { return { expenses: a.total_base } }), 'expenses')
+          // const realIncomes = sumBy(p.emitted_invoices.map(a => { return { incomes: a.total_base } }), 'incomes')
+          // const realExpenses = sumBy(p.received_invoices.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.diets.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.tickets.map(a => { return { expenses: a.total_base } }), 'expenses')
 
           // console.log('p.invoice_hours_price', p.invoice_hours_price)
           // console.log('incomes', incomes)
@@ -119,14 +119,18 @@ export default {
             hours: sumBy(p.activities, 'hours'),
             incomes: p.invoice_hours_price ? incomes : p.total_incomes,
             total_incomes: p.total_incomes,
-            expenses: p.total_expenses,
-            real_incomes: realIncomes,
-            real_expenses: realExpenses,
+            // expenses: p.total_expenses,
+            real_incomes: p.total_real_incomes,
+            real_expenses: p.total_real_expenses + p.total_real_hours_price, // realExpenses,
             invoice_hours_price: p.invoice_hours_price,
             invoice_type: p.invoice_hours_price ? 'Hores' : 'Projecte',
             pricehour: p.invoice_hours_price ? p.invoice_hours_price : (sumBy(p.activities, 'hours') && p.incomes_expenses ? parseFloat((p.incomes_expenses / sumBy(p.activities, 'hours')).toFixed(2)) : 0),
             pricehour_estimate: p.invoice_hours_price ? p.invoice_hours_price : p.total_estimated_hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / p.total_estimated_hours).toFixed(2)) : 0,
             balance_estimate: p.invoice_hours_price ? (p.invoice_hours_price * p.total_estimated_hours) - p.total_expenses : p.total_incomes - p.total_expenses,
+            incomes_expenses: p.incomes_expenses,
+            total_real_incomes_expenses: p.total_real_incomes_expenses,
+            total_real_incomes: p.total_real_incomes,
+            expenses: p.total_expenses + p.total_estimated_hours_price,
             count: 1
           }
         })
