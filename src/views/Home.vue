@@ -62,7 +62,7 @@
         </div>
       </card-component> -->
 
-      <card-component title="Projectes Actius" class="has-table has-mobile-sort-spaced">
+      <card-component title="Projectes" class="has-table has-mobile-sort-spaced">
         <projects-table />
       </card-component>
     </section>
@@ -161,7 +161,7 @@ export default {
     // service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
     service({ requiresAuth: true }).get('projects').then((r) => {
       // console.log('projects rdata', r.data)
-      this.projects = r.data
+      this.projects = r.data.filter(p => p.project_state !== 2)
       this.projectsNumber = this.projects.filter(p => p.project_state !== null && p.project_state.id === 1).length
       // this.balance = sumBy(this.projects, p => {
       //   return p.balance ? p.balance : 0

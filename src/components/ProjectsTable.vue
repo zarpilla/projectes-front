@@ -117,8 +117,8 @@ export default {
     }
   },
   mounted () {
-    service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
-      this.projects = r.data.map(d => {
+    service({ requiresAuth: true }).get('projects').then((r) => {
+      this.projects = r.data.filter(p => p.project_state !== 2).map(d => {
         const realTotalIncomes = sumBy(d.emitted_invoices, 'total_base')
         const realTotalExpenses = sumBy(d.received_invoices, 'total_base') + sumBy(d.diets, 'total_base') + sumBy(d.tickets, 'total_base')
         return {
