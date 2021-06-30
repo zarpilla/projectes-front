@@ -63,13 +63,13 @@
                 />
               </b-field>
             </b-field>
-            <b-field label="Tipus dedicació" class="has-check" horizontal v-if="!isLoading1 && dedicationTypes && dedicationTypes['1']">
+            <b-field label="Tipus dedicació" class="has-check" horizontal v-if="!isLoading1 && dedicationTypes && hasDedications">
               <radio-picker
                 v-model="form.dedication_type"
                 :options="dedicationTypes"
               ></radio-picker>
             </b-field>
-            <b-field label="Tasca" class="has-check" horizontal v-if="!isLoading2 && activityTypes && activityTypes['1']">
+            <b-field label="Tasca" class="has-check" horizontal v-if="!isLoading2 && activityTypes && hasActivities">
               <radio-picker
                 v-model="form.activity_type"
                 :options="activityTypes"
@@ -122,6 +122,8 @@ export default {
       isModalActive: false,
       isLoading1: false,
       isLoading2: false,
+      hasDedications: false,
+      hasActivities: false,
       form: {
         description: null,
         hours: null,
@@ -188,8 +190,10 @@ export default {
         // console.log('this.projects', this.projects)
       })
       service({ requiresAuth: true }).get('dedication-types').then((r) => {
+        this.hasDedications = false
         for (var i in r.data) {
           this.dedicationTypes[r.data[i].id] = r.data[i].name
+          this.hasDedications = false
         }
         this.isLoading1 = false
       })
@@ -246,8 +250,10 @@ export default {
         this.isLoading2 = true
         const project = this.projects.find(p => p.id === this.form.project)
         this.activityTypes = {}
+        this.hasActivities = false
         project.activity_types.forEach(a => {
           this.activityTypes[a.id] = a.name
+          this.hasActivities = true
         })
         this.isLoading2 = false
       }
