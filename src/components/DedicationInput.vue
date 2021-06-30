@@ -356,7 +356,7 @@ export default {
       this.getActivities()
 
       this.$buefy.snackbar.open({
-        message: 'Confirmed',
+        message: 'Esborrat',
         queue: false
       })
     },
@@ -417,17 +417,25 @@ export default {
       this.isModalEditActive = true
     },
     async modalSubmit (activity) {
-      console.log('activity', activity)
-      console.log('activity dt', moment(activity.date).format('YYYY-MM-DD'))
-
+      // console.log('activity', activity)
+      // console.log('activity dt', moment(activity.date).format('YYYY-MM-DD'))
       const activity2 = { ...activity }
       activity2.date = moment(activity.date).format('YYYY-MM-DD')
+      activity2.hours = activity2.hours.replace(',', '.')
       this.isModalEditActive = false
 
-      if (activity.id) {
-        await service({ requiresAuth: true }).put(`activities/${activity.id}`, activity2)
-      } else {
-        await service({ requiresAuth: true }).post('activities', activity2)
+      try {
+        if (activity.id) {
+          await service({ requiresAuth: true }).put(`activities/${activity.id}`, activity2)
+        } else {
+          await service({ requiresAuth: true }).post('activities', activity2)
+        }
+      } catch (err) {
+        console.error('activities error', err)
+        this.$buefy.snackbar.open({
+          message: 'Error',
+          queue: false
+        })
       }
 
       this.getActivities()
