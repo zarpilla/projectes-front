@@ -417,13 +417,17 @@ export default {
       this.isModalEditActive = true
     },
     async modalSubmit (activity) {
-      // activity.date = moment(activity.date).format('YYYY-MM-DD')
+      console.log('activity', activity)
+      console.log('activity dt', moment(activity.date).format('YYYY-MM-DD'))
+
+      const activity2 = { ...activity }
+      activity2.date = moment(activity.date).format('YYYY-MM-DD')
       this.isModalEditActive = false
 
       if (activity.id) {
-        await service({ requiresAuth: true }).put(`activities/${activity.id}`, activity)
+        await service({ requiresAuth: true }).put(`activities/${activity.id}`, activity2)
       } else {
-        await service({ requiresAuth: true }).post('activities', activity)
+        await service({ requiresAuth: true }).post('activities', activity2)
       }
 
       this.getActivities()
@@ -448,8 +452,8 @@ export default {
       }
     },
     dayClicked (day) {
-      console.log('day', day)
-      console.log('mm', moment(day.date).format('YYYY-MM-DD'))
+      // console.log('day', day)
+      // console.log('mm', moment(day.date).format('YYYY-MM-DD'))
       this.showModal({ date: moment(day.date).format('YYYY-MM-DD') })
     }
   },

@@ -177,8 +177,8 @@ export default {
       }
     },
     dedicationObject (newValue) {
-      console.log('dedicationObject', newValue)
-      console.log('dedicationObject this', this.dedicationObject)
+      // console.log('dedicationObject', newValue)
+      // console.log('dedicationObject this', this.dedicationObject)
     }
   },
   methods: {
