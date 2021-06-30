@@ -63,13 +63,13 @@
                 />
               </b-field>
             </b-field>
-            <b-field label="Tipus dedicació" class="has-check" horizontal v-if="!isLoading1">
+            <b-field label="Tipus dedicació" class="has-check" horizontal v-if="!isLoading1 && dedicationTypes && dedicationTypes['1']">
               <radio-picker
                 v-model="form.dedication_type"
                 :options="dedicationTypes"
               ></radio-picker>
             </b-field>
-            <b-field label="Tipus activitat" class="has-check" horizontal v-if="!isLoading2">
+            <b-field label="Tasca" class="has-check" horizontal v-if="!isLoading2 && activityTypes && activityTypes['1']">
               <radio-picker
                 v-model="form.activity_type"
                 :options="activityTypes"

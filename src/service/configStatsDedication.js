@@ -109,7 +109,7 @@ const config = {
             caption: 'Persones (TOTES)'
           },
           activity_type: {
-            caption: 'Tipus activitat (TOTES)'
+            caption: 'Tasques (TOTES)'
           },
           dedication_type: {
             caption: 'Tipus dedicació (TOTES)'
