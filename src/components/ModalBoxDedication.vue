@@ -185,7 +185,7 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-      service({ requiresAuth: true }).get('projects').then((r) => {
+      service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
         this.projects = r.data.filter(p => p.project_state !== 2)
         // console.log('this.projects', this.projects)
       })

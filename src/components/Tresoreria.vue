@@ -74,15 +74,15 @@ export default {
   async mounted () {
     this.isLoading = true
 
-    const treasuries = (await service({ requiresAuth: true }).get('treasuries')).data
-    this.emitted = (await service({ requiresAuth: true }).get('emitted-invoices')).data
-    this.received = (await service({ requiresAuth: true }).get('received-invoices')).data
-    this.tickets = (await service({ requiresAuth: true }).get('tickets')).data
-    this.diets = (await service({ requiresAuth: true }).get('diets')).data
-    this.emittedGrants = (await service({ requiresAuth: true }).get('emitted-grants')).data
-    this.receivedGrants = (await service({ requiresAuth: true }).get('emitted-grants')).data
+    const treasuries = (await service({ requiresAuth: true }).get('treasuries?_limit=-1')).data
+    this.emitted = (await service({ requiresAuth: true }).get('emitted-invoices?_limit=-1')).data
+    this.received = (await service({ requiresAuth: true }).get('received-invoices?_limit=-1')).data
+    this.tickets = (await service({ requiresAuth: true }).get('tickets?_limit=-1')).data
+    this.diets = (await service({ requiresAuth: true }).get('diets?_limit=-1')).data
+    this.emittedGrants = (await service({ requiresAuth: true }).get('emitted-grants?_limit=-1')).data
+    this.receivedGrants = (await service({ requiresAuth: true }).get('emitted-grants?_limit=-1')).data
 
-    service({ requiresAuth: true }).get('projects').then((r) => {
+    service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
       this.projects = r.data
       this.projects.forEach(p => {
         p.expenses.forEach(e => {

@@ -140,7 +140,7 @@ export default {
       service({ requiresAuth: true }).get(query).then(async (r) => {
         this.activities = r.data
         // console.log('this.activities', this.activities)
-        const festives = (await service({ requiresAuth: true }).get('festives')).data
+        const festives = (await service({ requiresAuth: true }).get('festives?_limit=-1')).data
         service({ requiresAuth: true }).get(`daily-dedications?_where[users_permissions_user.id]=${this.user}`).then((r) => {
           this.dailyDedications = r.data
           // console.log('this.dailyDedications', this.dailyDedications)

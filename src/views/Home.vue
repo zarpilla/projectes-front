@@ -158,8 +158,7 @@ export default {
       this.contactsNumber = r.data
     })
 
-    // service({ requiresAuth: true }).get('projects?project_state=1').then((r) => {
-    service({ requiresAuth: true }).get('projects').then((r) => {
+    service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
       // console.log('projects rdata', r.data)
       this.projects = r.data.filter(p => p.project_state !== 2)
       this.projectsNumber = this.projects.filter(p => p.project_state !== null && p.project_state.id === 1).length
@@ -187,7 +186,7 @@ export default {
         return p.total_estimated_hours ? p.total_estimated_hours : 0
       })
 
-      service({ requiresAuth: true }).get('activities').then((r) => {
+      service({ requiresAuth: true }).get('activities?_limit=-1').then((r) => {
         // console.log('activities', r.data)
         this.activities = r.data.filter(a => this.projects.find(p => p.id === a.project.id))
         this.dedication = sumBy(this.activities, p => {
