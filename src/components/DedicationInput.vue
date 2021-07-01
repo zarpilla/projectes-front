@@ -421,7 +421,7 @@ export default {
       // console.log('activity dt', moment(activity.date).format('YYYY-MM-DD'))
       const activity2 = { ...activity }
       activity2.date = moment(activity.date).format('YYYY-MM-DD')
-      activity2.hours = activity2.hours.replace(',', '.')
+      activity2.hours = activity.hours ? activity.hours.replace(',', '.') : activity.hours
       this.isModalEditActive = false
 
       try {
