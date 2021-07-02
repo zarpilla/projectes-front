@@ -11,6 +11,7 @@
       :dedication-object="dedicationObject"
       @submit="modalSubmit"
       @cancel="modalCancel"
+      @delete="modalDelete"
     />
     <card-component class="has-table has-mobile-sort-spaced">
       <div class="card-body is-total">
@@ -227,7 +228,7 @@ export default {
         extraOptions: chartConfig.chartOptionsPie
       },
       viewType: 'all',
-      colorType: 'user',
+      colorType: 'project',
       masks: {
         weekdays: 'WWW'
       },
@@ -417,11 +418,11 @@ export default {
       this.isModalEditActive = true
     },
     async modalSubmit (activity) {
-      // console.log('activity', activity)
+      console.log('activity', activity)
       // console.log('activity dt', moment(activity.date).format('YYYY-MM-DD'))
       const activity2 = { ...activity }
       activity2.date = moment(activity.date).format('YYYY-MM-DD')
-      activity2.hours = activity.hours ? activity.hours.replace(',', '.') : activity.hours
+      activity2.hours = activity.hours ? activity.hours.toString().replace(',', '.') : activity.hours
       this.isModalEditActive = false
 
       try {
@@ -444,6 +445,17 @@ export default {
         message: 'Guardat',
         queue: false
       })
+    },
+    async modalDelete (activity) {
+      if (activity.id) {
+        await service({ requiresAuth: true }).delete(`activities/${activity.id}`)
+        this.isModalEditActive = false
+        this.getActivities()
+        this.$buefy.snackbar.open({
+          message: 'Esborrat',
+          queue: false
+        })
+      }
     },
     modalCancel () {
       this.isModalEditActive = false

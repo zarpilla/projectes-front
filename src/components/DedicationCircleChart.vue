@@ -40,6 +40,7 @@ import PieChart from '@/components/Charts/PieChart'
 import uniq from 'lodash/uniq'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
+import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import CardComponent from '@/components/CardComponent'
 import * as chartConfig from '@/components/Charts/chart.config'
@@ -97,11 +98,11 @@ export default {
       this.isLoading = true
       this.hoursTotal = sumBy(this.activities, 'hours')
       this.distinctData = uniq(map(this.activities, `${this.table}.${this.field}`))
-      this.distinctDataObj = this.distinctData.map(p => {
+      this.distinctDataObj = orderBy(this.distinctData.map(p => {
         const activities = this.activities.filter(a => (p && a[this.table] && a[this.table][this.field] === p) || (!p && !a[this.table]))
         const hours = sumBy(activities, 'hours')
         return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
-      })
+      }), ['hours'], ['desc'])
       this.fillChartData()
       this.isLoading = false
     },

@@ -88,6 +88,7 @@
         </section>
         <footer class="modal-card-foot">
           <button class="button" type="button" @click="cancel">Cancel·la</button>
+          <button v-if="form.id > 0" class="button" type="button" @click="trashModal(form)">Esborra</button>
           <button class="button is-primary" :disabled="!enabled" native-type="submit">D'acord</button>
         </footer>
       </form>
@@ -95,6 +96,13 @@
     <!-- <div>
       {{ dedicationObject }}
     </div> -->
+
+    <modal-box
+      :is-active="isDeleteModalActive"
+      :trash-object-name="trashObjectName"
+      @confirm="trashConfirm"
+      @cancel="trashCancel"
+    />
   </b-modal>
 </template>
 
@@ -103,10 +111,11 @@ import service from '@/service/index'
 import RadioPicker from '@/components/RadioPicker'
 import moment from 'moment'
 import { mapState } from 'vuex'
+import ModalBox from '@/components/ModalBox'
 
 export default {
-  name: 'ModalBox',
-  components: { RadioPicker },
+  name: 'ModalBoxDedication',
+  components: { RadioPicker, ModalBox },
   props: {
     isActive: {
       type: Boolean,
@@ -138,7 +147,9 @@ export default {
       activityTypes: {},
       users: [],
       userNameSearch: '',
-      projectNameSearch: ''
+      projectNameSearch: '',
+      trashObject: null,
+      isDeleteModalActive: false
     }
   },
   computed: {
@@ -165,6 +176,13 @@ export default {
             .indexOf(this.projectNameSearch.toLowerCase()) >= 0
         )
       })
+    },
+    trashObjectName () {
+      if (this.trashObject) {
+        return this.trashObject.name
+      }
+
+      return null
     }
   },
   watch: {
@@ -185,32 +203,7 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-      service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
-        this.projects = r.data.filter(p => p.project_state !== 2)
-        // console.log('this.projects', this.projects)
-      })
-      service({ requiresAuth: true }).get('dedication-types').then((r) => {
-        this.hasDedications = false
-        for (var i in r.data) {
-          this.dedicationTypes[r.data[i].id] = r.data[i].name
-          this.hasDedications = false
-        }
-        this.isLoading1 = false
-      })
-      // service({ requiresAuth: true }).get('activity-types').then((r) => {
-      //   for (var i in r.data) {
-      //     this.activityTypes[r.data[i].id] = r.data[i].name
-      //   }
-      //   this.isLoading2 = false
-      // })
-      service({ requiresAuth: true }).get('users').then((r) => {
-        this.users = r.data.filter(u => u.username !== 'app')
-        const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
-        if (user && user.id) {
-          this.userNameSearch = user.username
-          this.form.users_permissions_user = user.id
-        }
-      })
+
       if (this.dedicationObject) {
         this.form.description = this.dedicationObject.description ? this.dedicationObject.description : null
         this.form.date = this.dedicationObject.date ? moment(this.dedicationObject.date, 'YYYY-MM-DD').toDate() : null
@@ -234,6 +227,34 @@ export default {
         this.projectNameSearch = ''
         this.form.id = 0
       }
+
+      service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
+        this.projects = r.data.filter(p => p.project_state !== 2)
+        // console.log('this.projects', this.projects)
+        this.projectChanged()
+      })
+      service({ requiresAuth: true }).get('dedication-types').then((r) => {
+        this.hasDedications = false
+        for (var i in r.data) {
+          this.dedicationTypes[r.data[i].id] = r.data[i].name
+          this.hasDedications = false
+        }
+        this.isLoading1 = false
+      })
+      // service({ requiresAuth: true }).get('activity-types').then((r) => {
+      //   for (var i in r.data) {
+      //     this.activityTypes[r.data[i].id] = r.data[i].name
+      //   }
+      //   this.isLoading2 = false
+      // })
+      service({ requiresAuth: true }).get('users').then((r) => {
+        this.users = r.data.filter(u => u.username !== 'app')
+        const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+        if (user && user.id) {
+          this.userNameSearch = user.username
+          this.form.users_permissions_user = user.id
+        }
+      })
     },
     cancel () {
       this.$emit('cancel')
@@ -247,6 +268,8 @@ export default {
     },
     projectChanged () {
       if (this.form.project) {
+        console.log('this.form.project', this.form.project)
+        console.log('this.projects', this.projects)
         this.isLoading2 = true
         const project = this.projects.find(p => p.id === this.form.project)
         this.activityTypes = {}
@@ -257,6 +280,17 @@ export default {
         })
         this.isLoading2 = false
       }
+    },
+    trashModal (trashObject) {
+      this.trashObject = trashObject
+      this.isDeleteModalActive = true
+    },
+    trashCancel () {
+      this.isDeleteModalActive = false
+    },
+    async trashConfirm () {
+      this.isDeleteModalActive = false
+      this.$emit('delete', this.form)
     }
   }
 }
