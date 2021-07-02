@@ -250,7 +250,7 @@ export default {
       service({ requiresAuth: true }).get('users').then((r) => {
         this.users = r.data.filter(u => u.username !== 'app')
         const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
-        if (user && user.id) {
+        if (user && user.id && this.form.users_permissions_user === null) {
           this.userNameSearch = user.username
           this.form.users_permissions_user = user.id
         }
