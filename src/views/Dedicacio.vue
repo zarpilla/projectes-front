@@ -61,7 +61,7 @@
           </b-field>
         </form>
       </card-component>
-      <dedication-input @calendar-changed="calendarChanged" :user="filters.user" :date1="filters.date1" :date2="filters.date2" :project="filters.project" :last="filters.lastUpdated" />
+      <dedication-input @calendar-changed="calendarChanged" :user="filters.user" :date1="filters.date1" :date2="filters.date2" :project="filters.project" :last="filters.lastUpdated" :projects="projects" />
     </section>
   </div>
 </template>

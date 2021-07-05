@@ -18,12 +18,17 @@ import App from './App.vue'
 /* Progress bar */
 import KProgress from 'k-progress'
 
+/* JSON 2 csv */
+import JsonCSV from 'vue-json-csv'
+
 /* Calendar */
 import VCalendar from 'v-calendar'
 
 Vue.use(VCalendar, {
   componentPrefix: 'v'
 })
+
+Vue.component('downloadCsv', JsonCSV)
 
 Vue.component('kk-progress', KProgress)
 

@@ -18,6 +18,12 @@
         <div class="columns">
           <div class="column is-6 has-text-weight-bold">
             Total
+            <!-- <download-csv :data="activitiesJSON">
+              <b-button
+              class="zview-button"
+              :type="'is-disabled'"
+              icon-left="export" />
+            </download-csv> -->
           </div>
           <div class="column has-text-weight-bold">
             {{ superTotal }} h
@@ -25,32 +31,46 @@
           <div class="column is-4 has-text-right">
             <b-button
               @click="viewType = 'all'"
+              title="Vista completa"
               class="view-button"
               :type="viewType == 'all' ? 'is-primary' : 'is-disabled'"
               icon-left="table-headers-eye-off" />
             <b-button
               @click="viewType = 'calendar'"
+              title="Vista calendari"
               class="view-button"
               :type="viewType == 'calendar' ? 'is-primary' : 'is-disabled'"
               icon-left="calendar" />
             <b-button
               @click="viewType = 'table'"
+              title="Vista taula"
               class="view-button"
               :type="viewType == 'table' ? 'is-primary' : 'is-disabled'"
               icon-left="table-large" />
-              <span class="separator"></span>
+            <span class="separator"></span>
+            <download-csv class="export view-button" :data="activitiesJSON">
+              <b-button
+              title="Exporta dades"
+              class="zview-button"
+              :type="'is-disabled'"
+              icon-left="export" />
+            </download-csv>
+            <span class="separator"></span>
             <b-button
+              title="Vista persona"
               @click="colorTypeChanged('user')"
               class="view-button"
               :type="colorType == 'user' ? 'is-primary' : 'is-disabled'"
               icon-left="account" />
             <b-button
+              title="Vista projecte"
               @click="colorTypeChanged('project')"
               class="view-button"
               :type="colorType == 'project' ? 'is-primary' : 'is-disabled'"
               icon-left="wrench" />
-              <span class="separator"></span>
+            <span class="separator"></span>
             <b-button
+              title="Afegir dedicació"
               @click="showModal(null)"
               class="view-button is-warning"
               icon-left="plus" />
@@ -192,6 +212,9 @@ export default {
     last: {
       type: Boolean,
       default: false
+    },
+    projects: {
+      type: Array
     }
   },
   data () {
@@ -203,6 +226,7 @@ export default {
       dedicationObject: null,
       trashObject: null,
       activities: [],
+      activitiesJSON: [],
       isLoading: false,
       paginated: false,
       perPage: 10,
@@ -343,6 +367,18 @@ export default {
 
         this.isLoading = false
         this.firstTime = true
+        this.activitiesJSON = this.activities.map(a => {
+          const project = a.project.id ? this.projects.find(p => p.id === a.project.id) : null
+          const client = project && project.clients && project.clients.length > 0 ? project.clients[0].name : null
+          return {
+            date: a.date,
+            project: a.project.name,
+            username: a.users_permissions_user.username,
+            hours: a.hours,
+            description: a.activity_type.name,
+            client: client
+          }
+        })
       })
     },
     trashModal (trashObject) {
@@ -532,6 +568,9 @@ export default {
 }
 .view-button{
   margin-left: 0.5rem;
+}
+.export{
+  display: inline-block;
 }
 </style>
 
