@@ -375,7 +375,9 @@ export default {
             project: a.project.name,
             username: a.users_permissions_user.username,
             hours: a.hours,
-            description: a.activity_type.name,
+            description: a.description,
+            activity: a.activity_type ? a.activity_type.name : '',
+            type: a.dedication_type ? a.dedication_type.name : '',
             client: client
           }
         })
