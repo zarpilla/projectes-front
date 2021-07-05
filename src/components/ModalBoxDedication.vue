@@ -237,7 +237,7 @@ export default {
         this.hasDedications = false
         for (var i in r.data) {
           this.dedicationTypes[r.data[i].id] = r.data[i].name
-          this.hasDedications = false
+          this.hasDedications = true
         }
         this.isLoading1 = false
       })
