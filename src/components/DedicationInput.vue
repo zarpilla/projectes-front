@@ -181,6 +181,7 @@ import service from '@/service/index'
 import uniq from 'lodash/uniq'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
+import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import CardComponent from '@/components/CardComponent'
 // import DedicationCircleChart from '@/components/DedicationCircleChart'
@@ -324,12 +325,12 @@ export default {
         this.hoursTotal = sumBy(this.activities, 'hours')
         this.distinctDays = uniq(map(this.activities, 'date'))
         this.distinctDays.sort()
-        this.distinctDaysObj = this.distinctDays.map(d => {
+        this.distinctDaysObj = orderBy(this.distinctDays.map(d => {
           const activities = this.activities.filter(a => a.date === d)
           const hours = sumBy(activities, 'hours')
           activities.unshift({ id: 'Total', project: { name: 'Total' }, hours: hours })
           return { day: d, activities: activities, hours: hours }
-        })
+        }), ['day'], ['desc'])
         this.distinctTotals = this.distinctDaysObj.map(d => { return { day: d.day, hours: d.hours } })
         this.distinctProjects = uniq(map(this.activities, 'project.name'))
         this.distinctProjectsObj = this.distinctProjects.map(p => {
