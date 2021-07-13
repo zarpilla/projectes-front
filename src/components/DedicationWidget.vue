@@ -238,6 +238,7 @@ export default {
       if (this.project) {
         query = `${query}&[project.id]=${this.project}`
       }
+      query = `${query}&_limit=-1`
       service({ requiresAuth: true }).get(query).then((r) => {
         this.activities = r.data
         this.hoursTotal = sumBy(this.activities, 'hours')

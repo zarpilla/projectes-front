@@ -130,7 +130,7 @@ export default {
       const from = moment(this.year).startOf('year').format('YYYY-MM-DD')
       const to = moment(this.year).endOf('year').format('YYYY-MM-DD')
 
-      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
+      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
       if (this.user) {
         query = `${query}&[users_permissions_user.id]=${this.user}`
       } else {
@@ -141,7 +141,7 @@ export default {
         this.activities = r.data
         // console.log('this.activities', this.activities)
         const festives = (await service({ requiresAuth: true }).get('festives?_limit=-1')).data
-        service({ requiresAuth: true }).get(`daily-dedications?_where[users_permissions_user.id]=${this.user}`).then((r) => {
+        service({ requiresAuth: true }).get(`daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`).then((r) => {
           this.dailyDedications = r.data
           // console.log('this.dailyDedications', this.dailyDedications)
           console.log('festives', festives)

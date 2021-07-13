@@ -85,10 +85,9 @@ export default {
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
-      let query = `projects?_where[project_state_eq]=${projectState}`
-      // let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
+      let query = `projects?_where[project_state_eq]=${projectState}&_limit=-1`
       if (projectState === 0 || projectState === '0') {
-        query = 'projects?_limit=999'
+        query = 'projects?_limit=-1'
       }
       // if (this.user) {
       //   query = `${query}&[users_permissions_user.id]=${this.user}`
@@ -143,48 +142,6 @@ export default {
         window.jQuery('#project-stats').kendoPivotGrid(configPivot)
         this.isLoading = false
       })
-      // if (!this.date1 || !this.date2) {
-      //   return
-      // }
-      // const from = moment(this.date1).format('YYYY-MM-DD')
-      // const to = moment(this.date2).format('YYYY-MM-DD')
-      // let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
-      // if (this.last) {
-      //   query = `activities?_where[updated_at_gte]=${moment().add(-7, 'days').format('YYYY-MM-DD')}`
-      // }
-      // if (this.user) {
-      //   query = `${query}&[users_permissions_user.id]=${this.user}`
-      // }
-      // if (this.project) {
-      //   query = `${query}&[project.id]=${this.project}`
-      // }
-      // service({ requiresAuth: true }).get(query).then((r) => {
-      //   this.activities = r.data
-      //   this.hoursTotal = sumBy(this.activities, 'hours')
-      //   this.distinctDays = uniq(map(this.activities, 'date'))
-      //   this.distinctDays.sort()
-      //   this.distinctDaysObj = this.distinctDays.map(d => {
-      //     const activities = this.activities.filter(a => a.date === d)
-      //     const hours = sumBy(activities, 'hours')
-      //     activities.unshift({ id: 'Total', project: { name: 'Total' }, hours: hours })
-      //     return { day: d, activities: activities, hours: hours }
-      //   })
-      //   this.distinctTotals = this.distinctDaysObj.map(d => { return { day: d.day, hours: d.hours } })
-      //   this.distinctProjects = uniq(map(this.activities, 'project.name'))
-      //   this.distinctProjectsObj = this.distinctProjects.map(p => {
-      //     const activities = this.activities.filter(a => a.project.name === p)
-      //     const hours = sumBy(activities, 'hours')
-      //     return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
-      //   })
-      //   this.distinctUsers = uniq(map(this.activities, 'users_permissions_user.username'))
-      //   this.distinctUsersObj = this.distinctUsers.map(p => {
-      //     const activities = this.activities.filter(a => (p && a.users_permissions_user && a.users_permissions_user.username === p) || (!p && !a.users_permissions_user))
-      //     const hours = sumBy(activities, 'hours')
-      //     return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
-      //   })
-      //   this.fillChartData()
-      //   this.isLoading = false
-      //   })
     }
   },
   filters: {
