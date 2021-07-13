@@ -145,13 +145,11 @@ export default {
       for (var i in r.data) {
         this.dedicationTypes[r.data[i].id] = r.data[i].name
       }
-      this.isLoading1 = false
     })
     service({ requiresAuth: true }).get('activity-types').then((r) => {
       for (var i in r.data) {
         this.activityTypes[r.data[i].id] = r.data[i].name
       }
-      this.isLoading2 = false
     })
     service({ requiresAuth: true }).get('users').then((r) => {
       this.users = r.data.filter(u => u.username !== 'app')
@@ -162,9 +160,8 @@ export default {
         this.userNameSearch = user.username
         this.filters.user = user.id
       }
+      this.isLoading = false
     })
-
-    this.isLoading = false
   },
   methods: {
     submit () {},
