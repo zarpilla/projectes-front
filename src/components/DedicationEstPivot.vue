@@ -1,6 +1,12 @@
 <template>
   <div>
     <div id="project-stats"></div>
+    <download-csv class="export" :data="pivotData">
+      <b-button
+      title="Exporta dades"
+      class="export-button"
+      icon-left="export" />
+    </download-csv>
     <!-- <pre>
       {{ pivotData }}
     </pre> -->
@@ -21,6 +27,14 @@ export default {
   components: { },
   props: {
     projectState: {
+      type: Number,
+      default: 0
+    },
+    year: {
+      type: Number,
+      default: 0
+    },
+    month: {
       type: Number,
       default: 0
     }
@@ -58,7 +72,14 @@ export default {
     //   this.getActivities()
     // },
     projectState: function (newVal, oldVal) {
-      console.log('filter state', newVal)
+      // console.log('filter state', newVal)
+      this.getActivities()
+    },
+    year: function (newVal, oldVal) {
+      // console.log('filter year', newVal)
+      this.getActivities()
+    },
+    month: function (newVal, oldVal) {
       this.getActivities()
     }
   },
@@ -69,6 +90,10 @@ export default {
   methods: {
     async getActivities () {
       this.isLoading = true
+
+      if (this.projectState === null || this.year === null || this.month === null) {
+        return
+      }
 
       this.scopes = (await service({ requiresAuth: true }).get('project-scopes')).data
       this.states = (await service({ requiresAuth: true }).get('project-states')).data
@@ -88,49 +113,55 @@ export default {
         const projects = r.data.forEach(p => {
           if (p.activities) {
             p.activities.forEach(a => {
-              const activity = {
-                project_name: p.name,
-                project_state: p.project_state ? p.project_state.name : '-',
-                project_leader: p.leader ? p.leader.username : '-',
-                project_scope: p.project_scope ? p.project_scope.short_name : '-',
-                project_client: p.client ? p.client.name : '-',
-                total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-                hours: a.hours,
-                incomes_expenses: p.incomes_expenses ? p.incomes_expenses : 0,
-                pricehour: a.hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / a.hours).toFixed(2)) : 0,
-                month: a.date ? moment(a.date).format('MM').toString() : 0,
-                year: a.date ? moment(a.date).format('YYYY').toString() : 0,
-                day: a.date ? moment(a.date).format('DD').toString() : 0,
-                date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
-                username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
-                count: 1
+              if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) && (this.month === 0 || (this.month > 0 && a.date && parseInt(moment(a.date).format('MM')) === this.month))) {
+                const activity = {
+                  project_name: p.name,
+                  project_state: p.project_state ? p.project_state.name : '-',
+                  project_leader: p.leader ? p.leader.username : '-',
+                  project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                  project_client: p.client ? p.client.name : '-',
+                  total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
+                  hours: a.hours,
+                  incomes_expenses: p.incomes_expenses ? p.incomes_expenses : 0,
+                  pricehour: a.hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / a.hours).toFixed(2)) : 0,
+                  month: a.date ? moment(a.date).format('MM').toString() : 0,
+                  year: a.date ? moment(a.date).format('YYYY').toString() : 0,
+                  day: a.date ? moment(a.date).format('DD').toString() : 0,
+                  date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
+                  username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
+                  count: 1
+                }
+                activities.push(activity)
               }
-              activities.push(activity)
             })
           }
           if (p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
               // console.log('a.users_permissions_user', a.users_permissions_user)
-              const activity = {
-                project_name: p.name,
-                project_leader: p.leader ? p.leader.username : '-',
-                project_state: p.project_state ? p.project_state.name : '-',
-                project_scope: p.project_scope ? p.project_scope.short_name : '-',
-                project_scope_name: p.project_scope ? p.project_scope.name : '-',
-                project_client: p.client ? p.client.name : '-',
-                total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-                total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
-                count: 1,
-                month: a.month ? a.month.month_number.toString() : 0,
-                year: a.year ? a.year.year.toString() : 0,
-                day: 0,
-                date: '-',
-                hours: 0,
-                estimated_hours: a.quantity ? a.quantity : 0,
-                dedication_type: '-',
-                username: a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-'
+              // console.log('this.month', this.month)
+              // console.log('a.month', a.month)
+              if ((this.year === 0 || (this.year > 0 && a.year && a.year.year && a.year.year === this.year)) && (this.month === 0 || (this.month > 0 && a.month && a.month.month && a.month.month === this.month))) {
+                const activity = {
+                  project_name: p.name,
+                  project_leader: p.leader ? p.leader.username : '-',
+                  project_state: p.project_state ? p.project_state.name : '-',
+                  project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                  project_scope_name: p.project_scope ? p.project_scope.name : '-',
+                  project_client: p.client ? p.client.name : '-',
+                  total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
+                  total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
+                  count: 1,
+                  month: a.month ? a.month.month_number.toString() : 0,
+                  year: a.year ? a.year.year.toString() : 0,
+                  day: 0,
+                  date: '-',
+                  hours: 0,
+                  estimated_hours: a.quantity ? a.quantity : 0,
+                  dedication_type: '-',
+                  username: a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-'
+                }
+                activities.push(activity)
               }
-              activities.push(activity)
             })
           }
         })
@@ -188,5 +219,8 @@ export default {
 }
 .view-button{
   margin-left: 0.5rem;
+}
+.export-button{
+  margin-top: 1rem;
 }
 </style>

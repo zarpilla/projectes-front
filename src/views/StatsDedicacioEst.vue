@@ -10,20 +10,52 @@
     <section class="section is-main-section">
       <card-component title="Filtres">
         <form @submit.prevent="submit2">
-          <b-field horizontal label="Estat projecte">
-            <b-select
-              v-model="filters.project_state"
-              placeholder="Estat"
-              required
-            >
-              <option
-                v-for="(s, index) in project_states"
-                :key="index"
-                :value="s.id"
+          <b-field horizontal>
+            <b-field label="Estat projecte">
+              <b-select
+                v-model="filters.project_state"
+                placeholder="Estat"
+                required
               >
-                {{ s.name }}
-              </option>
-            </b-select>
+                <option
+                  v-for="(s, index) in project_states"
+                  :key="index"
+                  :value="s.id"
+                >
+                  {{ s.name }}
+                </option>
+              </b-select>
+            </b-field>
+            <b-field label="Any">
+              <b-select
+                v-model="filters.year"
+                placeholder="Any"
+                required
+              >
+                <option
+                  v-for="(s, index) in years"
+                  :key="index"
+                  :value="s.year"
+                >
+                  {{ s.display }}
+                </option>
+              </b-select>
+            </b-field>
+            <b-field label="Mes">
+              <b-select
+                v-model="filters.month"
+                placeholder="Mes"
+                required
+              >
+                <option
+                  v-for="(s, index) in months"
+                  :key="index"
+                  :value="s.month"
+                >
+                  {{ s.display }}
+                </option>
+              </b-select>
+            </b-field>
             <!-- <b-field label="Persona">
               <b-autocomplete
                 v-model="userNameSearch"
@@ -84,7 +116,7 @@
       </card-component>
 
       <card-component title="Projectes">
-        <dedication-est-pivot :project-state="filters.project_state" v-if="!isLoading" />
+        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :month="filters.month" v-if="!isLoading" />
       </card-component>
     </section>
   </div>
@@ -97,6 +129,7 @@ import DedicationEstPivot from '@/components/DedicationEstPivot'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'
+// import moment from 'moment'
 
 export default {
   name: 'StatsDedicacio',
@@ -111,9 +144,13 @@ export default {
     return {
       isLoading: true,
       filters: {
-        project_state: null
+        project_state: null,
+        year: null,
+        month: null
       },
-      project_states: []
+      project_states: [],
+      years: [],
+      months: null
     }
   },
   computed: {
@@ -146,6 +183,16 @@ export default {
         this.project_states = r.data
         this.project_states.unshift({ id: 0, name: 'Tots' })
         this.filters.project_state = defaultProjectState
+      })
+      service({ requiresAuth: true }).get('years').then((r) => {
+        this.years = r.data.map(y => { return { ...y, display: y.year } })
+        this.years.unshift({ id: 0, year: 0, display: 'Tots' })
+        this.filters.year = 0
+      })
+      service({ requiresAuth: true }).get('months').then((r) => {
+        this.months = r.data.map(y => { return { ...y, display: `${y.month_number} - ${y.name}` } })
+        this.months.unshift({ id: 0, month: 0, display: 'Tots' })
+        this.filters.month = 0
       })
     },
     async addScript (src) {

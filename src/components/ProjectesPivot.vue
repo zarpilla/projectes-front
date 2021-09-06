@@ -1,9 +1,12 @@
 <template>
   <div>
     <div id="project-stats"></div>
-    <!-- <pre>
-      {{pivotData}}
-    </pre> -->
+    <download-csv class="export" :data="pivotData">
+      <b-button
+      title="Exporta dades"
+      class="export-button"
+      icon-left="export" />
+    </download-csv>
   </div>
 </template>
 
@@ -134,14 +137,22 @@ export default {
           }
         })
 
-        console.log('projects', projects)
+        // console.log('projects', projects)
         this.projects = r.data
         this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
         configPivot.dataSource.data = this.pivotData
         window.jQuery('#project-stats').empty()
         window.jQuery('#project-stats').kendoPivotGrid(configPivot)
+        // setTimeout(() => {
+        //   const b1 = window.jQuery('.k-button[data-name=project_state]')
+        //   b1.text(b1.text().replace('project_state', 'Estat'))
+        //   console.log('b1', b1.text())
+        // }, 500)
         this.isLoading = false
       })
+    },
+    exportCSV () {
+
     }
   },
   filters: {
@@ -186,5 +197,8 @@ export default {
 }
 .view-button{
   margin-left: 0.5rem;
+}
+.export-button{
+  margin-top: 1rem;
 }
 </style>
