@@ -135,7 +135,43 @@ export default {
               }
             })
           }
-          if (p.estimated_hours && p.estimated_hours.length > 0) {
+          if (p.phases && p.phases.length > 0) {
+            p.phases.forEach(ph => {
+              if (ph.subphases && ph.subphases.length > 0) {
+                ph.subphases.forEach(sph => {
+                  if (sph.estimated_hours && sph.estimated_hours.length > 0) {
+                    sph.estimated_hours.forEach(h => {
+                      console.log('sph.estimated_hours', p.name, h)
+                      const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
+                      console.log('sph diff', p.name, mdiff)
+                      for (var i = 0; i < mdiff; i++) {
+                        const activity = {
+                          project_name: p.name,
+                          project_leader: p.leader ? p.leader.username : '-',
+                          project_state: p.project_state ? p.project_state.name : '-',
+                          project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                          project_scope_name: p.project_scope ? p.project_scope.name : '-',
+                          project_client: p.client ? p.client.name : '-',
+                          total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
+                          total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
+                          count: 1,
+                          month: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('MM'),
+                          year: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY'),
+                          day: 0,
+                          date: '-',
+                          hours: 0,
+                          estimated_hours: h.quantity && mdiff > 0 ? h.quantity / mdiff : 0,
+                          dedication_type: '-',
+                          username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-'
+                        }
+                        activities.push(activity)
+                      }
+                    })
+                  }
+                })
+              }
+            })
+          } else if (p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
               // console.log('a.users_permissions_user', a.users_permissions_user)
               // console.log('this.month', this.month)

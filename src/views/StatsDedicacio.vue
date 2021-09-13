@@ -24,61 +24,6 @@
                 {{ s.name }}
               </option>
             </b-select>
-            <!-- <b-field label="Persona">
-              <b-autocomplete
-                v-model="userNameSearch"
-                placeholder="Persona"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredUsers"
-                field="username"
-                @select="(option) => (filters.user = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Projecte">
-              <b-autocomplete
-                v-model="projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="
-                  (option) => (filters.project = option ? option.id : null)
-                "
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field> -->
-            <!-- <b-field label="Inici">
-              <b-datepicker
-                v-model="filters.date1"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Final">
-              <b-datepicker
-                v-model="filters.date2"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Últimes">
-              <b-checkbox v-model="filters.lastUpdated"> </b-checkbox>
-            </b-field> -->
           </b-field>
         </form>
       </card-component>

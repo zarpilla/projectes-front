@@ -6,7 +6,7 @@
       </header>
       <section class="modal-card-body">
         <p>
-          S'esborrarà permanentment l'activitat <b>{{ trashObjectName }}</b>
+          {{ message }} <b>{{ trashObjectName }}</b>
         </p>
         <p>No es podrà desfer.</p>
       </section>
@@ -29,6 +29,10 @@ export default {
     trashObjectName: {
       type: String,
       default: null
+    },
+    message: {
+      type: String,
+      default: 'S\'esborrarà permanentment l\'activitat'
     }
   },
   data () {

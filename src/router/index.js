@@ -83,6 +83,15 @@ const routes = [
   },
   {
     meta: {
+      title: 'Edita Projecte'
+    },
+    path: '/project/:id',
+    name: 'project.edit',
+    component: () => import(/* webpackChunkName: "project-form" */ '../views/ProjectForm.vue'),
+    props: true
+  },
+  {
+    meta: {
       title: 'Tables'
     },
     path: '/tables',

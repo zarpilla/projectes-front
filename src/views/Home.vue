@@ -11,15 +11,14 @@
           type="is-primary"
           icon="account-multiple"
           :number="projectsNumber"
-          label="Projectes Actius"
+          label="Projectes"
         />
         <card-widget
           class="tile is-child"
-          type="is-info"
-          icon="scale-balance"
-          :number="balance"
-          suffix="€"
-          label="Resultat previst"
+          type="is-danger"
+          icon="clock-outline"
+          :number="dedication"
+          label="Hores reals"
         />
         <card-widget
           class="tile is-child"
@@ -27,8 +26,7 @@
           icon="clock"
           :number="estimatedDedication"
           label="Hores previstes"
-        />
-        <card-widget
+        /><card-widget
           class="tile is-child"
           type="is-info"
           icon="scale-balance"
@@ -38,10 +36,11 @@
         />
         <card-widget
           class="tile is-child"
-          type="is-danger"
-          icon="clock-outline"
-          :number="dedication"
-          label="Hores reals"
+          type="is-info"
+          icon="scale-balance"
+          :number="balance"
+          suffix="€"
+          label="Resultat previst"
         />
       </tiles>
       <!-- <card-component
@@ -62,8 +61,45 @@
         </div>
       </card-component> -->
 
+      <card-component>
+        <form @submit.prevent="submit2">
+          <b-field grouped>
+            <b-field horizontal label="Estat">
+              <b-select
+                v-model="filters.project_state"
+                placeholder="Estat"
+                @change.native="onChange($event)"
+              >
+                <option
+                  v-for="(s, index) in project_states"
+                  :key="index"
+                  :value="s.id"
+                >
+                  {{ s.name }}
+                </option>
+              </b-select>
+            </b-field>
+            <b-field horizontal label="Nom">
+              <b-input
+                :value="filters.q" @keyup.native="queryProjects($event.target.value)"
+                placeholder="Nom del projecte"
+              >
+              </b-input>
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                class="view-button is-primary"
+                @click="navNewProject"
+                icon-left="plus">
+                Nou projecte
+              </b-button>
+            </b-field>
+          </b-field>
+        </form>
+      </card-component>
+
       <card-component title="Projectes" class="has-table has-mobile-sort-spaced">
-        <projects-table />
+        <projects-table :project_state="filters.project_state" :projects="projects" />
       </card-component>
     </section>
     <!-- <hero-bar :has-right-visible="false">
@@ -137,7 +173,10 @@ export default {
       realIncomes: 0,
       realExpenses: 0,
       dedication: 0,
-      estimatedDedication: 0
+      estimatedDedication: 0,
+      project_states: [],
+      filters: { project_state: 1, q: '' },
+      queryChanged: 0
     }
   },
   computed: {
@@ -153,49 +192,29 @@ export default {
       queue: false
     })
 
+    service({ requiresAuth: true }).get('project-states').then((r) => {
+      this.project_states = r.data
+      this.project_states.unshift({ id: 0, name: 'Tots' })
+      // this.filters.project_state = defaultProjectState
+    })
+
     service({ requiresAuth: true }).get('contacts/count').then((r) => {
       // console.log('contacts', r.data)
       this.contactsNumber = r.data
     })
 
-    service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
-      // console.log('projects rdata', r.data)
-      this.projects = r.data.filter(p => p.project_state !== 2)
-      this.projectsNumber = this.projects.filter(p => p.project_state !== null && p.project_state.id === 1).length
-      // this.balance = sumBy(this.projects, p => {
-      //   return p.balance ? p.balance : 0
-      // })
-      this.balance = sumBy(this.projects, p => {
-        // return p.total_incomes - p.total_expenses
-        return p.incomes_expenses
-      })
-
-      // this.realIncomes = sumBy(this.projects, p => {
-      //   return p.total_real_incomes_expenses
-      // })
-      this.realIncomes = sumBy(this.projects, 'total_real_incomes_expenses')
-      this.realExpenses = sumBy(this.projects, p => {
-        // const invoices = sumBy(p.received_invoices, 'total_base')
-        // const tickets = sumBy(p.tickets, 'total_base')
-        // const diets = sumBy(p.diets, 'total_base')
-        // return invoices + tickets + diets
-        return 0
-      })
-
-      this.estimatedDedication = sumBy(this.projects, p => {
-        return p.total_estimated_hours ? p.total_estimated_hours : 0
-      })
-
-      service({ requiresAuth: true }).get('activities?_limit=-1').then((r) => {
-        // console.log('activities', r.data)
-        this.activities = r.data.filter(a => this.projects.find(p => p.id === a.project.id))
-        this.dedication = sumBy(this.activities, p => {
-          return p.hours
-        })
-      })
+    service({ requiresAuth: true }).get('projects?_limit=-1&project_state=1').then((r) => {
+      this.projects = r.data.filter(p => p.project_state !== null && p.project_state.id === 1)
+      this.applyProjects()
     })
   },
   methods: {
+    navNewProject () {
+      this.$router.push('/project/0')
+    },
+    onChange (event) {
+      this.doFilteredQuery(this.filters.q)
+    },
     randomChartData (n) {
       const data = []
 
@@ -204,6 +223,53 @@ export default {
       }
 
       return data
+    },
+    queryProjects (q) {
+      if (this.queryChanged) {
+        clearTimeout(this.queryChanged)
+      }
+      this.queryChanged = setTimeout(() => {
+        this.filters.q = q
+        this.doFilteredQuery(q)
+      }, 400)
+    },
+    doFilteredQuery (q) {
+      const where = this.filters.project_state ? `&project_state=${this.filters.project_state}` : ''
+      if (q) {
+        service({ requiresAuth: true }).get(`projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where}`).then((r) => {
+          this.projects = r.data
+          this.applyProjects()
+        })
+      } else {
+        service({ requiresAuth: true }).get(`projects?_limit=-1${where}`).then((r) => {
+          this.projects = r.data
+          this.applyProjects()
+        })
+      }
+      // page=1&pageSize=10&_sort=name:ASC&_q=c00
+    },
+    applyProjects () {
+      this.projectsNumber = this.projects.length
+      this.balance = sumBy(this.projects, p => {
+        return p.incomes_expenses
+      })
+      this.realIncomes = sumBy(this.projects, 'total_real_incomes_expenses')
+      this.realExpenses = sumBy(this.projects, p => {
+        return 0
+      })
+      this.estimatedDedication = sumBy(this.projects, p => {
+        return p.total_estimated_hours ? p.total_estimated_hours : 0
+      })
+      this.dedication = sumBy(this.projects, p => {
+        return p.total_real_hours ? p.total_real_hours : 0
+      })
+
+      // service({ requiresAuth: true }).get('activities?_limit=-1').then((r) => {
+      //   this.activities = r.data.filter(a => a.project !== null && this.projects.find(p => p.id === a.project.id))
+      //   this.dedication = sumBy(this.activities, p => {
+      //     return p.hours
+      //   })
+      // })
     },
     fillChartData () {
       this.defaultChart.chartData = {
@@ -222,37 +288,7 @@ export default {
             pointHoverBorderWidth: 15,
             pointRadius: 4,
             data: this.randomChartData(9)
-          }//,
-          // {
-          //   fill: false,
-          //   borderColor: chartConfig.chartColors.default.info,
-          //   borderWidth: 2,
-          //   borderDash: [],
-          //   borderDashOffset: 0.0,
-          //   pointBackgroundColor: chartConfig.chartColors.default.info,
-          //   pointBorderColor: 'rgba(255,255,255,0)',
-          //   pointHoverBackgroundColor: chartConfig.chartColors.default.info,
-          //   pointBorderWidth: 20,
-          //   pointHoverRadius: 4,
-          //   pointHoverBorderWidth: 15,
-          //   pointRadius: 4,
-          //   data: this.randomChartData(9)
-          // },
-          // {
-          //   fill: false,
-          //   borderColor: chartConfig.chartColors.default.danger,
-          //   borderWidth: 2,
-          //   borderDash: [],
-          //   borderDashOffset: 0.0,
-          //   pointBackgroundColor: chartConfig.chartColors.default.danger,
-          //   pointBorderColor: 'rgba(255,255,255,0)',
-          //   pointHoverBackgroundColor: chartConfig.chartColors.default.danger,
-          //   pointBorderWidth: 20,
-          //   pointHoverRadius: 4,
-          //   pointHoverBorderWidth: 15,
-          //   pointRadius: 4,
-          //   data: this.randomChartData(9)
-          // }
+          }
         ],
         labels: ['01', '02', '03', '04', '05', '06', '07', '08', '09']
       }
