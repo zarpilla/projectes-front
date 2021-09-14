@@ -30,6 +30,9 @@
         </b-select>
       </b-field>
     </div>
+    <!-- <pre style="height:600px;width:800px;overflow:scroll">
+      {{ project.phases }}
+    </pre> -->
     <div class='gstc-wrapper' ref='gstc'></div>
   </div>
 </template>
@@ -142,7 +145,8 @@ export default {
       zoom: 24,
       user: {},
       dedicationObject: null,
-      state: null
+      state: null,
+      phases: null
     }
   },
   mounted () {
@@ -151,9 +155,9 @@ export default {
       this.dedicationObject = item
       this.isModalActive = true
     })
-    // EventBus.$on('phases-updated', (msg) => {
-    //   this.initializeGannt()
-    // })
+    EventBus.$on('phases-updated', (phases) => {
+      this.phases = phases
+    })
     this.initializeGannt()
   },
   beforeUnmount () {
@@ -190,7 +194,7 @@ export default {
               onStart (lastSelected) {
                 // we can clear selection each time we start to prevent shift+select multiple cells
                 // gstc.api.plugins.selection.selectCells([]);
-                console.log('selecting start', lastSelected)
+                // console.log('selecting start', lastSelected)
               },
               // @ts-ignore
               onSelecting (selecting, lastSelected) {
@@ -278,7 +282,7 @@ export default {
             item.monthly_quantity = 0
           }
           // console.log('item', item)
-          this.$emit('gantt-item-update', item)
+          // this.$emit('gantt-item-update', item)
         }
       })
       this.state = state
@@ -313,8 +317,9 @@ export default {
     },
     generateItems () {
       const items = {}
-      for (let i = 0; i < this.project.phases.length; i++) {
-        const phase = this.project.phases[i]
+      const phases = this.phases || this.project.phases
+      for (let i = 0; i < phases.length; i++) {
+        const phase = phases[i]
         for (let j = 0; j < phase.subphases.length; j++) {
           const subphase = phase.subphases[j]
           const rowId = GSTC.api.GSTCID(('f' + i + 's' + j).toString())
@@ -390,7 +395,7 @@ export default {
           }
         }
       }
-      console.log('this.user', this.user)
+      // console.log('this.user', this.user)
       const item = {
         id,
         label: this.itemLabelContent,
@@ -401,6 +406,7 @@ export default {
         rowId,
         users_permissions_user: this.user,
         quantity: subphase.quantity || 1,
+        _uuid: this.create_UUID(),
         _phase: phase,
         _subphase: subphase,
         _hours: {
@@ -413,7 +419,13 @@ export default {
         // to: hours.to || to,
         monthly_quantity: 1
       }
-      state.update(`config.chart.items.${item.id}`, item)
+      const items = this.generateItems()
+      items[id] = item
+      state.update('config.chart.items', () => {
+        return items
+      })
+      this.$emit('gantt-item-update', item)
+      // state.update(`config.chart.items.${item.id}`, item)
       // state.update('config.chart.items', () => {
       //   return item
       // })
@@ -428,6 +440,7 @@ export default {
     async modalSubmit (activity) {
       // console.log('modalSubmit activity', activity)
       const items = state.get('config.chart.items')
+      // console.log('modalSubmit items', items)
       const itemToUpdate = items[activity.id]
       itemToUpdate.quantity = activity.quantity
       itemToUpdate.comment = activity.comment
@@ -439,6 +452,7 @@ export default {
         item._hours.quantity = itemToUpdate.quantity
         return item
       })
+      this.$emit('gantt-item-update', itemToUpdate)
       this.isModalActive = false
     },
     async modalDelete (activity) {

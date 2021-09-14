@@ -147,6 +147,7 @@ export default {
         // console.log('this.dedicationObject.users_permissions_user', this.dedicationObject.users_permissions_user)
         this.form.users_permissions_user = null // this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user : null
         this.form.id = this.dedicationObject._hours.id
+        this.form._uuid = this.dedicationObject._uuid
         // this.userNameSearch = this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user.username : ''
       } else {
         this.form.comment = null
@@ -157,7 +158,7 @@ export default {
       }
       service({ requiresAuth: true }).get('users').then((r) => {
         this.users = r.data.filter(u => u.username !== 'app')
-        console.log('this.dedicationObject', this.dedicationObject)
+        // console.log('this.dedicationObject', this.dedicationObject)
         if (this.dedicationObject && this.dedicationObject.users_permissions_user) {
           const user = this.users.find(u => u.username.toLowerCase() === this.dedicationObject.users_permissions_user.username.toLowerCase())
           this.form.users_permissions_user = user
@@ -175,14 +176,10 @@ export default {
     },
     submit () {
       this.form.id = this.dedicationObject.id
+      this.form._uuid = this.dedicationObject._uuid
       this.form._hours = this.dedicationObject._hours
       this.form._phase = this.dedicationObject._phase
       this.form._subphase = this.dedicationObject._subphase
-      // console.log('this.form.date', this.form)
-      // if (typeof this.form.date.getMonth === 'function') {
-      //   this.form.date = moment(this.form.date).format('YYYY-MM-DD')
-      // }
-      // this.form.monthly_quantity = this.form.quantity / this.form.m
       this.$emit('submit', this.form)
     },
     trashModal (trashObject) {

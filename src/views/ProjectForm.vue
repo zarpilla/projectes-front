@@ -511,6 +511,9 @@
             Guardar i Actualitzar
             <b-icon icon="refresh" size="is-small"/>
           </button>
+          <!-- <pre style="height:600px;width:800px;overflow:scroll">
+            {{ form.phases }}
+          </pre> -->
           <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" />
           <hr />
           <b-field>
@@ -909,28 +912,31 @@ export default {
     },
     ganttItemUpdate (item) {
       // console.log('ganttItemUpdate', item)
+      // console.log('ganttItemUpdate _uuid', item._uuid)
       const id = item._hours.id
       const pid = item._phase.id
       const sid = item._subphase.id
+      const uuid = item._uuid
       const subphase = this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid)
       // console.log('subphase', subphase)
       if (!subphase || !subphase.estimated_hours) {
         return
       }
-      const hours = this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.find(h => h.id === id)
+      const hours = this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.find(h => (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid))
       if (hours) {
         hours.from = item.from
         hours.to = item.to
         hours.monthly_quantity = item.monthly_quantity
         hours.quantity = item.quantity
         hours.users_permissions_user = item.users_permissions_user // .id
-      } else {
+      } else if (uuid) {
         const hour = {
           from: item.from,
           to: item.to,
           monthly_quantity: item.monthly_quantity,
           quantity: item.frquantityom,
-          users_permissions_user: item.users_permissions_user
+          users_permissions_user: item.users_permissions_user,
+          _uuid: item._uuid
         }
         this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.push(hour)
       }
@@ -940,6 +946,7 @@ export default {
       }
       this.updatingGanttTimer = setTimeout(() => {
         this.updatingGantt = false
+        EventBus.$emit('phases-updated', this.form.phases)
         // console.log('ganttItemUpdate timeout!!!')
       }, 800)
       // console.log('ganttItemUpdate', item)
