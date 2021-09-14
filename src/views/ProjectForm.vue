@@ -934,7 +934,7 @@ export default {
           from: item.from,
           to: item.to,
           monthly_quantity: item.monthly_quantity,
-          quantity: item.frquantityom,
+          quantity: item.quantity,
           users_permissions_user: item.users_permissions_user,
           _uuid: item._uuid
         }

@@ -137,7 +137,7 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-
+      console.log('this.dedicationObject', this.dedicationObject)
       if (this.dedicationObject) {
         this.form._hours = this.dedicationObject._hours
         this.form._phase = this.dedicationObject._phase
