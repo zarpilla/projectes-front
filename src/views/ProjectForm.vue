@@ -308,7 +308,7 @@
               <b-input
                 placeholder="Nom de la fase..."
                 v-model="props.row.name"
-                @blur="blurPhaseEdit(phase)"
+                @input="blurPhaseEdit(phase)"
                 class="phase-detail-input">
               </b-input>
             </form>
@@ -321,6 +321,7 @@
                 :subunits-value=false
                 :hide-subunits=false>
               </money-format>
+              {{ totalSubPhase(props.row) }}
             </div>
           </b-table-column>
           <b-table-column field="name" label="Esborrar" width="150" v-slot="props">
@@ -346,7 +347,7 @@
                       name="Unitats"
                       placeholder="Quantitat, hores, unitats..."
                       v-model="subphase.quantity"
-                      @blur="blurSubPhase"
+                      @input="blurSubPhase"
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
@@ -355,7 +356,7 @@
                       name="PreuUnitari"
                       placeholder="Preu per unitat"
                       v-model="subphase.amount"
-                      @blur="blurSubPhase"
+                      @input="blurSubPhase"
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
@@ -710,6 +711,7 @@ export default {
     },
     blurSubPhase () {
       this.form.phases = this.form.phases.map(r => { return { ...r, opened: true, total_amount: sumBy(r.subphases, x => x.quantity * x.amount) } })
+      console.log('blurSubPhase')
       // console.log('blurSubPhase', this.form.phases)
     },
     // editTodo (todo) {
@@ -950,6 +952,9 @@ export default {
     },
     sumByFn (arr, field) {
       return sumBy(arr, field)
+    },
+    totalSubPhase (phase) {
+      return ''
     }
   }
 }
