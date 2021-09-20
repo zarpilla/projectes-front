@@ -166,6 +166,38 @@
                 placeholder="Descripció"
               />
             </b-field>
+            <b-field label="Inici" horizontal>
+              <b-datepicker
+                v-model="form.date_start"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data inici (informativa)"
+                @input="input"
+              >
+              </b-datepicker>
+            </b-field>
+            <b-field label="Final" horizontal>
+              <b-datepicker
+                v-model="form.date_end"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data final (informativa)"
+                @input="input"
+              >
+              </b-datepicker>
+            </b-field>
+            <b-field label="Despeses d'estructura (%)" horizontal v-if="me.structural_expenses">
+              <b-input
+                type="numeric"
+                v-model="form.structural_expenses_pct"
+                placeholder="Percentatge de despeses d'estructura"
+              >
+              </b-input>
+            </b-field>
             <!-- <b-field label="Company" message="Client's company name" horizontal>
               <b-input
                 v-model="form.company"
@@ -229,6 +261,7 @@
               {{ form.total_real_hours }}
             </div>
           </b-field>
+          <hr>
           <b-field label="Ingressos previstos" horizontal>
             <div
               class="readonly subphase-detail-input">
@@ -255,6 +288,40 @@
             <div
               class="readonly subphase-detail-input">
               <money-format :value="form.incomes_expenses"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value=false
+                :hide-subunits=false>
+              </money-format>
+            </div>
+          </b-field>
+          <hr v-if="me.treasury">
+          <b-field label="Ingressos reals" horizontal v-if="me.treasury">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="form.total_real_incomes"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value=false
+                  :hide-subunits=false>
+                </money-format>
+            </div>
+          </b-field>
+          <b-field label="Despeses reals" horizontal v-if="me.treasury">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="form.total_real_expenses"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value=false
+                  :hide-subunits=false>
+                </money-format>
+            </div>
+          </b-field>
+          <b-field label="Resultat real" horizontal v-if="me.treasury">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="form.total_real_incomes_expenses"
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value=false
@@ -333,13 +400,12 @@
             <ul class="subphases-list">
               <li v-for="(subphase, j) in props.row.subphases" :key="j" class="subphase mt-2 mb-2">
                 <b-field grouped>
-                  <b-field :label="j == 0 ? 'Concepte' : null">
+                  <b-field :label="j == 0 ? 'Concepte' : null" class="subphase-detail-input-large-field">
                     <b-input
                       name="SubFase"
-                      style="width:27.5rem"
                       placeholder="Nom de la subfase..."
                       v-model="subphase.concept"
-                      class="subphase-detail-input">
+                      class="subphase-detail-input subphase-detail-input-large">
                     </b-input>
                   </b-field>
                   <b-field :label="j == 0 ? 'Quantitat' : null">
@@ -359,6 +425,25 @@
                       @input="blurSubPhase"
                       class="subphase-detail-input">
                     </b-input>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.treasury">
+                    <b-checkbox
+                      v-model="subphase.paid"
+                      class="checkbox-inline"
+                    >
+                    </b-checkbox>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Data' : null" v-if="me.treasury">
+                    <b-datepicker
+                      v-model="subphase.date"
+                      :show-week-number="false"
+                      :locale="'ca-ES'"
+                      :first-day-of-week="1"
+                      icon="calendar-today"
+                      placeholder="Data pagament"
+                      @input="input"
+                    >
+                    </b-datepicker>
                   </b-field>
                   <b-field :label="j == 0 ? 'Total' : null">
                     <div
@@ -402,7 +487,7 @@
           <hr>
           <b-field label="Total Ingressos" class="mt-5">
             <div
-                      class="readonly subphase-detail-input">
+              class="readonly subphase-detail-input">
             <money-format :value="totalAmount"
               :locale="'es'"
               :currency-code="'EUR'"
@@ -428,13 +513,12 @@
         <ul class="subphases-list">
           <li v-for="(expense, j) in form.expenses" :key="j" class="subphase mt-2 mb-2">
             <b-field grouped>
-              <b-field :label="j == 0 ? 'Concepte' : null">
+              <b-field :label="j == 0 ? 'Concepte' : null" class="subphase-detail-input-large-field">
                 <b-input
                   name="SubFase"
-                  style="width:27.5rem"
                   placeholder="Nom de la despesa"
                   v-model="expense.concept"
-                  class="subphase-detail-input">
+                  class="subphase-detail-input subphase-detail-input-large">
                 </b-input>
               </b-field>
               <b-field :label="j == 0 ? 'Quantitat' : null">
@@ -454,6 +538,25 @@
                   @blur="blurSubPhase"
                   class="subphase-detail-input">
                 </b-input>
+              </b-field>
+              <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.treasury">
+                <b-checkbox
+                  v-model="expense.paid"
+                  class="checkbox-inline"
+                >
+                </b-checkbox>
+              </b-field>
+              <b-field :label="j == 0 ? 'Data' : null" v-if="me.treasury">
+                <b-datepicker
+                  v-model="expense.date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data pagament"
+                  @input="input"
+                >
+                </b-datepicker>
               </b-field>
               <b-field :label="j == 0 ? 'Total' : null">
                 <div
@@ -546,6 +649,8 @@ import ProjectGannt from '@/components/ProjectGannt.vue'
 import MoneyFormat from 'vue-money-format'
 import { EventBus } from '@/service/event-bus.js'
 import sumBy from 'lodash/sumBy'
+import { mapState } from 'vuex'
+import moment from 'moment'
 
 export default {
   name: 'ProjectForm',
@@ -598,6 +703,7 @@ export default {
     }
   },
   computed: {
+    ...mapState(['me']),
     filteredClients () {
       return this.clients.filter(option => {
         return (
@@ -714,7 +820,6 @@ export default {
     },
     blurSubPhase () {
       this.form.phases = this.form.phases.map(r => { return { ...r, opened: true, total_amount: sumBy(r.subphases, x => x.quantity * x.amount) } })
-      console.log('blurSubPhase')
       // console.log('blurSubPhase', this.form.phases)
     },
     // editTodo (todo) {
@@ -743,6 +848,18 @@ export default {
     getData () {
       if (this.$route.params.id && this.$route.params.id > 0) {
         this.isLoading = true
+        console.log('me', this.me)
+        if (!this.me) {
+          service({ requiresAuth: true })
+            .get('me')
+            .then((r) => {
+              this.me = r.data
+              this.$store.commit('me', {
+                me: r.data
+              })
+            })
+        }
+
         service({ requiresAuth: true }).get('projects/' + this.$route.params.id).then(async (r) => {
           if (r.data && r.data.id) {
             this.isProfileExists = true
@@ -779,6 +896,20 @@ export default {
               }
             }
             this.form.phases = this.form.phases.map(r => { return { ...r, opened: true, total_amount: sumBy(r.subphases, 'total_amount') } })
+
+            this.form.phases.forEach(p => {
+              p.subphases.forEach(s => {
+                if (s.date) {
+                  s.date = moment(s.date, 'YYYY-MM-DD').toDate()
+                }
+              })
+            })
+
+            this.form.expenses.forEach(e => {
+              if (e.date) {
+                e.date = moment(e.date, 'YYYY-MM-DD').toDate()
+              }
+            })
 
             this.getAuxiliarData()
 
@@ -1005,8 +1136,17 @@ export default {
   max-width: 100%;
   width: 100%;
 }
+.subphase .field{
+  width: 35%;
+}
+.subphase .field.subphase-detail-input-large-field{
+  width: 75%;
+}
 .subphases-list{margin-left: 2rem;}
 .subphases-list .subphase-detail-input.readonly, .subphases-list .subphase-detail-input.readonly.subphase-detail-input-phase-total{
   width: 8rem;
+}
+.checkbox-inline{
+  margin-top: 10px;
 }
 </style>

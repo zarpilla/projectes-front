@@ -19,7 +19,10 @@ export default new Vuex.Store({
 
     /* Aside */
     isAsideVisible: true,
-    isAsideMobileExpanded: false
+    isAsideMobileExpanded: false,
+
+    /* Options */
+    me: null
   },
   mutations: {
     /* A fit-them-all commit */
@@ -62,6 +65,13 @@ export default new Vuex.Store({
       }
 
       state.isAsideMobileExpanded = isShow
+    },
+
+    me (state, payload) {
+      console.log('payload', payload)
+      if (payload.me) {
+        state.me = payload.me
+      }
     }
   },
   actions: {
