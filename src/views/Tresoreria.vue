@@ -36,7 +36,7 @@
         </form>
       </card-component> -->
 
-      <tresoreria />
+      <tresoreria-table />
       <!-- <card-component class="has-table has-mobile-sort-spaced" v-if="!isLoading">
         <div class="columns card-body">
           <div class="column has-text-weight-bold">
@@ -102,7 +102,7 @@
 
 <script>
 import TitleBar from '@/components/TitleBar'
-import Tresoreria from '@/components/Tresoreria'
+import TresoreriaTable from '@/components/TresoreriaTable'
 // import CardComponent from '@/components/CardComponent'
 // import DedicationSaldo from '@/components/DedicationSaldo'
 // import service from '@/service/index'
@@ -115,7 +115,7 @@ export default {
   components: {
     // CardComponent,
     TitleBar,
-    Tresoreria
+    TresoreriaTable
     // DedicationSaldo
   },
   data () {
@@ -137,7 +137,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Projectes', 'Tresoreria']
+      return ['Facturació', 'Tresoreria']
     },
     filteredUsers () {
       return this.users.filter(option => {
