@@ -189,6 +189,24 @@ const routes = [
     name: 'tresoreria.view',
     component: () => import(/* webpackChunkName: "quote" */ '../views/Tresoreria.vue'),
     props: true
+  },
+  {
+    meta: {
+      title: 'Factures emeses'
+    },
+    path: '/emitted-invoices',
+    name: 'emitted.invoices.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/EmittedInvoices.vue'),
+    props: true
+  },
+  {
+    meta: {
+      title: 'Factures rebudes'
+    },
+    path: '/received-invoices',
+    name: 'received.invoices.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/ReceivedInvoices.vue'),
+    props: true
   }
 ]
 

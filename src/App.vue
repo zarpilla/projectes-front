@@ -28,12 +28,12 @@ export default {
           {
             to: '/',
             icon: 'table',
-            label: 'General'
+            label: 'Projectes'
           },
           {
             to: '/stats-projectes',
             icon: 'table',
-            label: 'Projectes'
+            label: 'Estadístiques'
           },
           {
             to: '/stats-despeses',
@@ -79,8 +79,18 @@ export default {
             label: 'Saldo hores'
           }
         ],
-        'Tresoreria',
+        'Facturació',
         [
+          {
+            to: '/emitted-invoices',
+            icon: 'table',
+            label: 'Factures emeses'
+          },
+          {
+            to: '/received-invoices',
+            icon: 'table',
+            label: 'Factures rebudes'
+          },
           {
             to: '/tresoreria',
             icon: 'table',

@@ -159,7 +159,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Administració', 'Factures emeses']
+      return ['Facturació', 'Factures emeses']
     },
     heroTitle () {
       return this.quote ? this.quote.code : ''

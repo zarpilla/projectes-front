@@ -141,7 +141,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Administració', 'Pressupost']
+      return ['Facturació', 'Pressupost']
     },
     heroTitle () {
       return this.quote ? this.quote.code : ''
