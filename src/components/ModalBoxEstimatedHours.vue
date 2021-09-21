@@ -2,19 +2,17 @@
   <b-modal :active.sync="isModalActive" has-modal-card>
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
-        <p class="modal-card-title">Entrada hores</p>
+        <p class="modal-card-title">Planificació</p>
       </header>
       <form @submit.prevent="submit">
         <section class="modal-card-body">
             <b-field label="Hores" horizontal>
-              <b-field>
-                <b-input
-                  v-model="form.quantity"
-                  placeholder="Hores"
-                  name="hours"
-                  required
-                />
-              </b-field>
+              <b-input
+                v-model="form.quantity"
+                placeholder="Hores"
+                name="hours"
+                required
+              />
             </b-field>
             <b-field label="Persona" horizontal>
               <b-select
@@ -29,6 +27,14 @@
                   {{ s.username }}
                 </option>
               </b-select>
+            </b-field>
+            <b-field label="Cost/hora" horizontal v-if="me.options && me.options.userHasCostByHour">
+              <b-input
+                v-model="form.amount"
+                placeholder="Cost/hora"
+                name="hours"
+                required
+              />
             </b-field>
             <b-field label="Descripció" horizontal>
               <b-field>
@@ -98,6 +104,7 @@ export default {
   },
   computed: {
     ...mapState(['userName']),
+    ...mapState(['me']),
     enabled () {
       return this.form.quantity && this.form.users_permissions_user
     },
@@ -144,6 +151,7 @@ export default {
         this.form._subphase = this.dedicationObject._subphase
         this.form.comment = this.dedicationObject._hours.comment ? this.dedicationObject._hours.comment : null
         this.form.quantity = this.dedicationObject.quantity
+        this.form.amount = this.dedicationObject.amount
         // console.log('this.dedicationObject.users_permissions_user', this.dedicationObject.users_permissions_user)
         this.form.users_permissions_user = null // this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user : null
         this.form.id = this.dedicationObject._hours.id
@@ -158,16 +166,24 @@ export default {
       }
       service({ requiresAuth: true }).get('users').then((r) => {
         this.users = r.data.filter(u => u.username !== 'app')
-        // console.log('this.dedicationObject', this.dedicationObject)
+        console.log('this.dedicationObject', this.dedicationObject)
         if (this.dedicationObject && this.dedicationObject.users_permissions_user) {
           const user = this.users.find(u => u.username.toLowerCase() === this.dedicationObject.users_permissions_user.username.toLowerCase())
           this.form.users_permissions_user = user
+          console.log('this.form.amount', this.form.amount, user)
+          if (this.form.amount === undefined && user.cost_by_hour) {
+            this.form.amount = user.cost_by_hour
+          }
           return
         }
         const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
         if (user && user.id && this.form.users_permissions_user === null) {
           // this.userNameSearch = user.username
           this.form.users_permissions_user = user
+          console.log('this.form.amount 2', this.form.amount, user.cost_by_hour)
+          if (this.form.amount === undefined && user.cost_by_hour) {
+            this.form.amount = user.cost_by_hour
+          }
         }
       })
     },

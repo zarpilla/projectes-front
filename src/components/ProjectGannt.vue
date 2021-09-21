@@ -50,6 +50,7 @@ import { EventBus } from '@/service/event-bus.js'
 import ModalBoxEstimatedHours from '@/components/ModalBoxEstimatedHours'
 import { mapState } from 'vuex'
 import 'gantt-schedule-timeline-calendar/dist/style.css'
+import sumBy from 'lodash/sumBy'
 
 let gstc, state
 // helper functions
@@ -122,7 +123,8 @@ export default {
     ModalBoxEstimatedHours
   },
   computed: {
-    ...mapState(['userName'])
+    ...mapState(['userName']),
+    ...mapState(['me'])
   },
   watch: {
     project: function (newVal, oldVal) {
@@ -146,7 +148,8 @@ export default {
       user: {},
       dedicationObject: null,
       state: null,
-      phases: null
+      phases: null,
+      minYear: null
     }
   },
   mounted () {
@@ -253,6 +256,23 @@ export default {
           }
         }
       }
+
+      if (this.minYear) {
+        config.chart.time.from = GSTC.api.date(`${this.minYear}-01-01`).valueOf()
+      }
+
+      if (this.me.options && this.me.options.userHasCostByHour) {
+        config.list.columns.data[GSTC.api.GSTCID('total_amount')] = {
+          id: GSTC.api.GSTCID('total_amount'),
+          width: 90,
+          data: 'total_amount',
+          header: {
+            content: 'Cost'
+          }
+        }
+        console.log('config.list.columns.data', config.list.columns.data)
+      }
+
       state = GSTC.api.stateFromConfig(config)
       gstc = GSTC({
         element: this.$refs.gstc,
@@ -303,11 +323,13 @@ export default {
         const phase = this.project.phases[i]
         for (let j = 0; j < phase.subphases.length; j++) {
           const subphase = phase.subphases[j]
+          console.log('subphase', subphase)
           const id2 = GSTC.api.GSTCID(('f' + i + 's' + j).toString())
           rows[id2] = {
             id: id2,
             label: `${phase.name} - ${subphase.concept}`,
             total_hours: subphase.total_estimated_hours,
+            total_amount: sumBy(subphase.estimated_hours, 'total_amount') + '€',
             _phase: phase,
             _subphase: subphase
           }
@@ -337,6 +359,11 @@ export default {
               const to = GSTC.api.date(end).format('YYYY-MM-DD')
               const monthlyQuantity = months > 0 ? hours.quantity / months : 0
 
+              const minYear = parseInt(GSTC.api.date(start).format('YYYY'))
+              if (!this.minYear || this.minYear > minYear) {
+                this.minYear = minYear
+              }
+
               items[id] = {
                 id,
                 label: this.itemLabelContent,
@@ -348,6 +375,8 @@ export default {
                 from: hours.from || from,
                 to: hours.to || to,
                 monthly_quantity: monthlyQuantity,
+                amount: hours.amount,
+                total_amount: hours.total_amount,
                 _phase: phase,
                 _subphase: subphase,
                 _hours: hours,
@@ -443,10 +472,14 @@ export default {
       // console.log('modalSubmit items', items)
       const itemToUpdate = items[activity.id]
       itemToUpdate.quantity = activity.quantity
+      itemToUpdate.amount = activity.amount
+      itemToUpdate.total_amount = activity.total_amount
       itemToUpdate.comment = activity.comment
       itemToUpdate.users_permissions_user = activity.users_permissions_user
       state.update(`config.chart.items.${activity.id}`, (item) => {
         item.quantity = itemToUpdate.quantity
+        item.amount = itemToUpdate.amount
+        item.total_amount = itemToUpdate.total_amount
         item.users_permissions_user = itemToUpdate.users_permissions_user
         item._hours.users_permissions_user = itemToUpdate.users_permissions_user
         item._hours.quantity = itemToUpdate.quantity

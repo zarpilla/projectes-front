@@ -17,7 +17,6 @@
         <div class="column is-two-thirds">
           <card-component
           :title="formCardTitle"
-          icon="account-edit"
           class="tile is-child"
         >
           <form @submit.prevent="submit" v-if="!isLoading">
@@ -173,7 +172,7 @@
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
                 icon="calendar-today"
-                placeholder="Data inici (informativa)"
+                placeholder="Data inici"
                 @input="input"
               >
               </b-datepicker>
@@ -185,12 +184,12 @@
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
                 icon="calendar-today"
-                placeholder="Data final (informativa)"
+                placeholder="Data final"
                 @input="input"
               >
               </b-datepicker>
             </b-field>
-            <b-field label="Despeses d'estructura (%)" horizontal v-if="me.structural_expenses">
+            <b-field label="Despesa Indirecta (%)" horizontal v-if="me.options && me.options.structuralExpenses">
               <b-input
                 type="numeric"
                 v-model="form.structural_expenses_pct"
@@ -240,8 +239,7 @@
         <div class="column">
           <card-component
           v-if="isProfileExists"
-          title="Dades"
-          icon="account"
+          title="Resum"
           class="tile is-child"
         >
           <!-- <user-avatar
@@ -284,6 +282,17 @@
                 </money-format>
             </div>
           </b-field>
+          <b-field label="Hores previstes" horizontal v-if="me.options && me.options.userHasCostByHour">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="form.total_estimated_hours_price"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value=false
+                  :hide-subunits=false>
+                </money-format>
+            </div>
+          </b-field>
           <b-field label="Resultat previst" horizontal>
             <div
               class="readonly subphase-detail-input">
@@ -295,8 +304,8 @@
               </money-format>
             </div>
           </b-field>
-          <hr v-if="me.treasury">
-          <b-field label="Ingressos reals" horizontal v-if="me.treasury">
+          <hr v-if="me.options && me.options.treasury">
+          <b-field label="Ingressos reals" horizontal v-if="me.options && me.options.treasury">
             <div
               class="readonly subphase-detail-input">
               <money-format :value="form.total_real_incomes"
@@ -307,7 +316,7 @@
                 </money-format>
             </div>
           </b-field>
-          <b-field label="Despeses reals" horizontal v-if="me.treasury">
+          <b-field label="Despeses reals" horizontal v-if="me.options && me.options.treasury">
             <div
               class="readonly subphase-detail-input">
               <money-format :value="form.total_real_expenses"
@@ -318,7 +327,18 @@
                 </money-format>
             </div>
           </b-field>
-          <b-field label="Resultat real" horizontal v-if="me.treasury">
+          <b-field label="Hores reals" horizontal v-if="me.options && me.options.userHasCostByHour">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="form.total_real_hours_price"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value=false
+                  :hide-subunits=false>
+                </money-format>
+            </div>
+          </b-field>
+          <b-field label="Resultat real" horizontal v-if="me.options && me.options.treasury">
             <div
               class="readonly subphase-detail-input">
               <money-format :value="form.total_real_incomes_expenses"
@@ -358,9 +378,23 @@
             >
           </b-field> -->
         </card-component>
+
+        <card-component
+          v-if="isProfileExists"
+          title="Documents"
+          class="ztile is-child mt-2"
+        >
+
+        <b-field label="Factures emeses" v-if="form.emitted_invoices && form.emitted_invoices.length">
+          <div class="tag is-primary mr-1" v-for="invoice in form.emitted_invoices" :key="invoice.id">{{invoice.code}}: {{ invoice.total_base}}€</div>
+        </b-field>
+        <b-field label="Factures rebudes" v-if="form.received_invoices && form.received_invoices.length">
+          <div class="tag is-primary mr-1" v-for="invoice in form.received_invoices" :key="invoice.id">{{invoice.code}}: {{ invoice.total_base}}€</div>
+        </b-field>
+        </card-component>
         </div>
       </div>
-      <card-component title="Ingressos i Fases">
+      <card-component title="Fases i Ingressos">
 
         <b-table
           :data="form.phases"
@@ -426,14 +460,16 @@
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.treasury">
+                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
                     <b-checkbox
                       v-model="subphase.paid"
                       class="checkbox-inline"
                     >
                     </b-checkbox>
+                    <span v-if="me.options && me.options.treasury && subphase.paid && subphase.invoice && subphase.invoice.id" :title="`Factura ${subphase.invoice.code}`" class="tag is-primary invoice-tag">{{subphase.invoice.code}}</span>
+                    <span v-if="me.options && me.options.treasury && subphase.paid && (!subphase.invoice || !subphase.invoice.id)" class="tag is-warning invoice-tag">{{ 'Informar factura'}}</span>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Data' : null" v-if="me.treasury">
+                  <b-field :label="j == 0 ? 'Data' : null" v-if="me.options && me.options.treasury">
                     <b-datepicker
                       v-model="subphase.date"
                       :show-week-number="false"
@@ -539,14 +575,14 @@
                   class="subphase-detail-input">
                 </b-input>
               </b-field>
-              <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.treasury">
+              <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury">
                 <b-checkbox
                   v-model="expense.paid"
                   class="checkbox-inline"
                 >
                 </b-checkbox>
               </b-field>
-              <b-field :label="j == 0 ? 'Data' : null" v-if="me.treasury">
+              <b-field :label="j == 0 ? 'Data' : null" v-if="me.options && me.options.treasury">
                 <b-datepicker
                   v-model="expense.date"
                   :show-week-number="false"
@@ -1059,7 +1095,9 @@ export default {
         hours.to = item.to
         hours.monthly_quantity = item.monthly_quantity
         hours.quantity = item.quantity
-        hours.users_permissions_user = item.users_permissions_user // .id
+        hours.users_permissions_user = item.users_permissions_user
+        hours.amount = item.amount
+        hours.total_amount = item.total_amount
       } else if (uuid) {
         const hour = {
           from: item.from,
@@ -1067,6 +1105,8 @@ export default {
           monthly_quantity: item.monthly_quantity,
           quantity: item.quantity,
           users_permissions_user: item.users_permissions_user,
+          amount: item.amount,
+          total_amount: item.total_amount,
           _uuid: item._uuid
         }
         this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.push(hour)
@@ -1136,7 +1176,10 @@ export default {
   max-width: 100%;
   width: 100%;
 }
-.subphase .field{
+/* .subphase .field{
+  width: 80px;
+} */
+.subphase .field:not(.short-field){
   width: 35%;
 }
 .subphase .field.subphase-detail-input-large-field{
@@ -1148,5 +1191,8 @@ export default {
 }
 .checkbox-inline{
   margin-top: 10px;
+}
+.invoice-tag{
+  margin-top: 8px;
 }
 </style>
