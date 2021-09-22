@@ -518,7 +518,10 @@ export default {
       this.showModal({ date: moment(day.date).format('YYYY-MM-DD') })
     },
     daySum (attributes) {
-      return sumBy(attributes.map(a => { return { hours: a.customData.hours } }), 'hours')
+      if (!attributes || (attributes && attributes.length === 0)) {
+        return false
+      }
+      return sumBy(attributes.map(a => { return { hours: a.customData ? a.customData.hours : 0 } }), 'hours')
     }
   },
   filters: {
