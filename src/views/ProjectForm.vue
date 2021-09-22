@@ -901,20 +901,18 @@ export default {
       }
     },
     getData () {
+      if (!this.me) {
+        service({ requiresAuth: true })
+          .get('me')
+          .then((r) => {
+            this.me = r.data
+            this.$store.commit('me', {
+              me: r.data
+            })
+          })
+      }
       if (this.$route.params.id && this.$route.params.id > 0) {
         this.isLoading = true
-        console.log('me', this.me)
-        if (!this.me) {
-          service({ requiresAuth: true })
-            .get('me')
-            .then((r) => {
-              this.me = r.data
-              this.$store.commit('me', {
-                me: r.data
-              })
-            })
-        }
-
         service({ requiresAuth: true }).get('projects/' + this.$route.params.id).then(async (r) => {
           if (r.data && r.data.id) {
             this.isProfileExists = true
@@ -1033,6 +1031,7 @@ export default {
       delete option.projects
       delete option.quotes
       delete option.projectes
+      this.form.clients = this.form.clients || []
       if (!this.form.clients.find(c => c.id === option.id)) {
         this.form.clients.push(option)
       }
