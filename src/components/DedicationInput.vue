@@ -94,6 +94,7 @@
       <template v-slot:day-content="{ day, attributes }">
         <div class="flex flex-col h-full z-10 overflow-hidden">
           <span class="day-label text-sm text-gray-900" @click="dayClicked(day)">{{ day.day }}</span>
+          <span class="day-sum-label text-sm text-gray-900" v-if="daySum(attributes)">{{ daySum(attributes) }}h</span>
           <div class="flex-grow overflow-y-auto overflow-x-auto">
             <span
               v-for="attr in attributes"
@@ -515,6 +516,9 @@ export default {
       // console.log('day', day)
       // console.log('mm', moment(day.date).format('YYYY-MM-DD'))
       this.showModal({ date: moment(day.date).format('YYYY-MM-DD') })
+    },
+    daySum (attributes) {
+      return sumBy(attributes.map(a => { return { hours: a.customData.hours } }), 'hours')
     }
   },
   filters: {
@@ -575,6 +579,12 @@ export default {
 }
 .export{
   display: inline-block;
+}
+.day-sum-label{
+  float: right;
+  font-size: 12px;
+  color:#999;
+  padding-top: 3px;
 }
 </style>
 
