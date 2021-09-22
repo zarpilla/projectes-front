@@ -65,10 +65,10 @@
                 </option>
               </b-select>
             </b-field>
-            <b-field label="Lidera" horizontal>
+            <b-field label="Coordina" horizontal>
               <b-select
                 v-model="form.leader.id"
-                placeholder="Lidera"
+                placeholder="Coordina"
                 required
               >
                 <option
@@ -174,6 +174,8 @@
                 icon="calendar-today"
                 placeholder="Data inici"
                 @input="input"
+                trap-focus
+                editable
               >
               </b-datepicker>
             </b-field>
@@ -186,6 +188,8 @@
                 icon="calendar-today"
                 placeholder="Data final"
                 @input="input"
+                trap-focus
+                editable
               >
               </b-datepicker>
             </b-field>
@@ -460,27 +464,6 @@
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
-                    <b-checkbox
-                      v-model="subphase.paid"
-                      class="checkbox-inline"
-                    >
-                    </b-checkbox>
-                    <span v-if="me.options && me.options.treasury && subphase.paid && subphase.invoice && subphase.invoice.id" :title="`Factura ${subphase.invoice.code}`" class="tag is-primary invoice-tag">{{subphase.invoice.code}}</span>
-                    <span v-if="me.options && me.options.treasury && subphase.paid && (!subphase.invoice || !subphase.invoice.id)" class="tag is-warning invoice-tag">{{ 'Informar factura'}}</span>
-                  </b-field>
-                  <b-field :label="j == 0 ? 'Data' : null" v-if="me.options && me.options.treasury">
-                    <b-datepicker
-                      v-model="subphase.date"
-                      :show-week-number="false"
-                      :locale="'ca-ES'"
-                      :first-day-of-week="1"
-                      icon="calendar-today"
-                      placeholder="Data pagament"
-                      @input="input"
-                    >
-                    </b-datepicker>
-                  </b-field>
                   <b-field :label="j == 0 ? 'Total' : null">
                     <div
                       class="readonly subphase-detail-input">
@@ -491,12 +474,39 @@
                         :hide-subunits=false>
                       </money-format>
                     </div>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
+                    <b-checkbox
+                      v-model="subphase.paid"
+                      class="checkbox-inline"
+                    >
+                    </b-checkbox>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Data' : null" v-if="me.options && me.options.treasury">
+                    <b-datepicker
+                      v-model="subphase.date"
+                      :show-week-number="false"
+                      :locale="'ca-ES'"
+                      :first-day-of-week="1"
+                      icon="calendar-today"
+                      placeholder="Data pagament"
+                      @input="input"
+                      trap-focus
+                      editable
+                    >
+                    </b-datepicker>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Accions' : null" class="medium-field">
                     <button class="button is-small is-danger ml-2" type="button" @click.prevent="removeSubPhase(props.row, subphase, j)">
                       <b-icon icon="trash-can" size="is-small"/>
                     </button>
                     <button v-if="j === props.row.subphases.length - 1" class="button is-small is-primary ml-2" type="button" @click.prevent="addSubPhase(props.row)">
                       <b-icon icon="plus-circle" size="is-small"/>
                     </button>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Factura' : null" v-if="me.options && me.options.treasury">
+                    <span v-if="me.options && me.options.treasury && subphase.invoice && subphase.invoice.id" :title="`Factura ${subphase.invoice.code}`" class="tag is-primary invoice-tag">{{subphase.invoice.code}}</span>
+                    <span v-if="me.options && me.options.treasury && subphase.paid && (!subphase.invoice || !subphase.invoice.id)" class="tag is-warning invoice-tag">{{ 'Factura?'}}</span>
                   </b-field>
                 </b-field>
               </li>
@@ -575,7 +585,18 @@
                   class="subphase-detail-input">
                 </b-input>
               </b-field>
-              <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury">
+              <b-field :label="j == 0 ? 'Total' : null">
+                <div
+                  class="readonly subphase-detail-input">
+                  <money-format :value="expense.quantity * expense.amount"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value=false
+                    :hide-subunits=false>
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
                 <b-checkbox
                   v-model="expense.paid"
                   class="checkbox-inline"
@@ -591,25 +612,22 @@
                   icon="calendar-today"
                   placeholder="Data pagament"
                   @input="input"
+                  trap-focus
+                  editable
                 >
                 </b-datepicker>
               </b-field>
-              <b-field :label="j == 0 ? 'Total' : null">
-                <div
-                  class="readonly subphase-detail-input">
-                  <money-format :value="expense.quantity * expense.amount"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value=false
-                    :hide-subunits=false>
-                  </money-format>
-                </div>
+              <b-field :label="j == 0 ? 'Accions' : null" class="medium-field">
                 <button class="button is-small is-danger ml-2" type="button" @click.prevent="removeExpense(expense, j)">
                   <b-icon icon="trash-can" size="is-small"/>
                 </button>
                 <button v-if="j === form.expenses.length - 1" class="button is-small is-primary ml-2" type="button" @click.prevent="addExpense()">
                   <b-icon icon="plus-circle" size="is-small"/>
                 </button>
+              </b-field>
+              <b-field :label="j == 0 ? 'Factura' : null" v-if="me.options && me.options.treasury">
+                <span v-if="me.options && me.options.treasury && expense.invoice && expense.invoice.id" :title="`Factura ${expense.invoice.code}`" class="tag is-primary invoice-tag">{{expense.invoice.code}}</span>
+                <span v-if="me.options && me.options.treasury && expense.paid && (!expense.invoice || !expense.invoice.id)" class="tag is-warning invoice-tag">{{ 'Factura?'}}</span>
               </b-field>
             </b-field>
           </li>
@@ -735,7 +753,8 @@ export default {
       updatingGanttTimer: 0,
       defaultOpenedDetails: [1],
       showDetailIcon: true,
-      useTransition: false
+      useTransition: false,
+      selected: new Date()
     }
   },
   computed: {
@@ -1133,6 +1152,11 @@ export default {
     },
     totalSubPhase (phase) {
       return ''
+    },
+    clearDate () {
+      // this.form.date_start = null
+      this.selected = null
+      // this.form[date] = null
     }
   }
 }
@@ -1182,12 +1206,18 @@ export default {
 .subphase .field:not(.short-field){
   width: 35%;
 }
+.subphase .field.short-field{
+  width: 10%;
+}
+.subphase .field.medium-field{
+  width: 20%;
+}
 .subphase .field.subphase-detail-input-large-field{
   width: 75%;
 }
 .subphases-list{margin-left: 2rem;}
 .subphases-list .subphase-detail-input.readonly, .subphases-list .subphase-detail-input.readonly.subphase-detail-input-phase-total{
-  width: 8rem;
+  width: 100%;
 }
 .checkbox-inline{
   margin-top: 10px;
