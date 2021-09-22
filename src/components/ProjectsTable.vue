@@ -24,7 +24,7 @@
           </span>
           </router-link>
       </b-table-column>
-      <b-table-column label="Lidera" field="leader" sortable v-slot="props">
+      <b-table-column label="Coordina" field="leader" sortable v-slot="props">
         {{ props.row.leader ? props.row.leader.username : '' }}
       </b-table-column>
       <!-- <b-table-column label="Àmbit" field="project_scope.name" sortable v-slot="props">
