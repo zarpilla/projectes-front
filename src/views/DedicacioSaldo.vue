@@ -35,7 +35,7 @@
           </b-field>
         </form>
       </card-component>
-      <dedication-saldo :user="filters.user" :year="filters.year" />
+      <dedication-saldo :user="filters.user" :year="filters.year ? filters.year.year : null" />
     </section>
   </div>
 </template>
@@ -46,6 +46,7 @@ import CardComponent from '@/components/CardComponent'
 import DedicationSaldo from '@/components/DedicationSaldo'
 import service from '@/service/index'
 import { mapState } from 'vuex'
+// import moment from 'moment'
 
 export default {
   name: 'DedicacioSaldo',
@@ -97,9 +98,10 @@ export default {
     this.isLoading = true
 
     service({ requiresAuth: true }).get('years').then((r) => {
-      console.log('r.data', r.data)
+      // console.log('r.data', r.data)
       this.years = r.data
       this.filters.year = this.years[this.years.length - 1]
+      console.log('this.filters.year', this.filters.year)
     })
 
     service({ requiresAuth: true }).get('users').then((r) => {

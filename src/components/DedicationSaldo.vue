@@ -73,9 +73,9 @@ export default {
       type: Number,
       default: null
     },
-    last: {
-      type: Boolean,
-      default: false
+    year: {
+      type: Number,
+      default: null
     }
   },
   data () {
@@ -127,8 +127,13 @@ export default {
     async getActivities () {
       this.isLoading = true
 
-      const from = moment(this.year).startOf('year').format('YYYY-MM-DD')
-      const to = moment(this.year).endOf('year').format('YYYY-MM-DD')
+      console.log('year', this.year)
+      if (!this.year) {
+        return
+      }
+
+      const from = moment(this.year, 'YYYY').startOf('year').format('YYYY-MM-DD')
+      const to = moment().format('YYYY-MM-DD')
 
       let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
       if (this.user) {
@@ -158,9 +163,9 @@ export default {
             const dailyDedication = this.dailyDedications.find(dd => date >= dd.from && date <= dd.to)
             const activities = this.activities.filter(a => a.date === date)
             const festive = festives.find(a => a.date === date)
-            if (!dailyDedication) {
-              console.warn('dedication undefinded', date)
-            }
+            // if (!dailyDedication) {
+            //   console.warn('dedication undefinded', date)
+            // }
             const theoricHours = !festive && dailyDedication && (day !== 0 && day !== 6) ? dailyDedication.hours : 0
             const workedHours = sumBy(activities, 'hours')
             const dateDescription = festive ? 'FESTIU' : ''
@@ -184,7 +189,7 @@ export default {
     },
     enumerateDaysBetweenDates () {
       var dates = []
-      var currDate = moment(this.year).startOf('year')
+      var currDate = moment(this.year, 'YYYY').startOf('year')
       var lastDate = moment()
       dates.push(currDate.clone().toDate())
       while (currDate.add(1, 'days').diff(lastDate) < 0) {
