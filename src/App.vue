@@ -33,7 +33,7 @@ export default {
           {
             to: '/stats-projectes',
             icon: 'table',
-            label: 'Estadístiques'
+            label: 'Taula dinàmica'
           },
           {
             to: '/stats-despeses',
@@ -66,7 +66,7 @@ export default {
           {
             to: '/stats-dedicacio',
             icon: 'table',
-            label: 'Estadístiques'
+            label: 'Taula dinàmica'
           },
           {
             to: '/stats-previsio-hores',

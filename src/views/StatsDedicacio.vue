@@ -63,7 +63,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Estadístiques']
+      return ['Dedicació', 'Taula dinàmica']
     }
   },
   async mounted () {

@@ -143,7 +143,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Projectes', 'Estadístiques']
+      return ['Projectes', 'Taula dinàmica']
     }
   },
   async mounted () {
