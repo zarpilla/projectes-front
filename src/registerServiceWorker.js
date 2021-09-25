@@ -5,7 +5,7 @@ import { register } from 'register-service-worker'
 if (process.env.NODE_ENV === 'production') {
   register(`${process.env.BASE_URL}service-worker.js`, {
     ready () {
-      console.log('projectes v.0.9.0')
+      console.log('projectes v.0.9.1')
       console.log(
         'App is being served from cache by a service worker.\n' +
         'For more details, visit https://goo.gl/AFskqB'
@@ -22,7 +22,7 @@ if (process.env.NODE_ENV === 'production') {
     },
     updated () {
       console.log('New content is available; please refresh.')
-      alert('New content is available; please refresh.')
+      alert('Nova versió disponible. Si us plau, refresca el navegador (Ctrl+F5).')
     },
     offline () {
       console.log('No internet connection found. App is running in offline mode.')
