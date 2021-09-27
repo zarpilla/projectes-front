@@ -283,16 +283,16 @@ export default {
     //   this.filters.year = this.years[this.years.length - 1]
     // })
 
-    service({ requiresAuth: true }).get('users').then((r) => {
-      this.users = r.data.filter(u => u.username !== 'app')
-      this.usersList = JSON.parse(JSON.stringify(r.data.filter(u => u.username !== 'app')))
-      this.usersList.unshift({ id: 0, username: 'Totes' })
-      const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
-      if (user && user.id) {
-        this.userNameSearch = user.username
-        this.filters.user = user.id
-      }
-    })
+    // service({ requiresAuth: true }).get('users').then((r) => {
+    //   this.users = r.data.filter(u => u.username !== 'app')
+    //   this.usersList = JSON.parse(JSON.stringify(r.data.filter(u => u.username !== 'app')))
+    //   this.usersList.unshift({ id: 0, username: 'Totes' })
+    //   const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+    //   if (user && user.id) {
+    //     this.userNameSearch = user.username
+    //     this.filters.user = user.id
+    //   }
+    // })
 
     this.isLoading = false
   },
