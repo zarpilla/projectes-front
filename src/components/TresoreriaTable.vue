@@ -86,7 +86,7 @@ export default {
       this.projects = r.data
       this.projects.forEach(p => {
         p.expenses.forEach(e => {
-          console.log('e', e)
+          // console.log('e', e)
           if (!e.paid) {
             const expense = {
               project_name: p.name,
@@ -134,59 +134,58 @@ export default {
             this.projectIncomes.push({ type: 'grant', id: i.grant.id, code: i.grant.code })
           }
         })
-        // p.received_invoices.forEach(e => {
-        //   const expense = {
-        //     project_name: p.name,
-        //     type: e.paid ? 'Factura pagada' : 'Factura rebuda',
-        //     concept: e.code,
-        //     total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-        //     date: e.paid_date || e.paybefore || e.emitted,
-        //     date_error: false,
-        //     paid: e.paid,
-        //     contact: e.provider && e.provider.name ? e.provider.name : '-'
-        //   }
-        //   this.treasury.push(expense)
-        // })
-        // p.emitted_invoices.forEach(i => {
-        //   const income = {
-        //     project_name: p.name,
-        //     type: i.paid ? 'Factura cobrada' : 'Factura emesa',
-        //     concept: i.code,
-        //     total_amount: i.total ? Math.abs(i.total) : 0,
-        //     date: i.paid_date || i.paybefore || i.emitted || moment().format('YYYY-MM-DD'),
-        //     date_error: (i.paid_date || i.paybefore || i.emitted) === null,
-        //     real: true,
-        //     paid: i.paid,
-        //     contact: i.contact && i.contact.name ? i.contact.name : '?'
-        //   }
-        //   this.treasury.push(income)
-        // })
-        // p.diets.forEach(e => {
-        //   const expense = {
-        //     project_name: p.name,
-        //     type: 'Dieta',
-        //     concept: e.code,
-        //     total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-        //     date: e.paid_date || e.paybefore || e.emitted || moment().format('YYYY-MM-DD'),
-        //     date_error: (e.paid_date || e.paybefore || e.emitted) === null,
-        //     paid: e.paid,
-        //     contact: e.provider && e.provider.name ? e.provider.name : '-'
-        //   }
-        //   this.treasury.push(expense)
-        // })
-        // p.tickets.forEach(e => {
-        //   const expense = {
-        //     project_name: p.name,
-        //     type: 'Ticket',
-        //     concept: e.code,
-        //     total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-        //     date: e.date || moment().format('YYYY-MM-DD'),
-        //     date_error: e.date === null,
-        //     paid: e.paid,
-        //     contact: e.provider && e.provider.name ? e.provider.name : '-'
-        //   }
-        //   this.treasury.push(expense)
-        // })
+
+        p.phases.forEach(ph => {
+          ph.expenses.forEach(e => {
+            // console.log('e', e)
+            if (!e.paid) {
+              const expense = {
+                project_name: p.name,
+                type: 'Despesa esperada',
+                concept: e.concept,
+                total_amount: e.total_amount ? -1 * Math.abs(e.total_amount) : 0,
+                date: e.date || moment().format('YYYY-MM-DD'),
+                date_error: e.date === null,
+                paid: false,
+                contact: e.provider && e.provider.name ? e.provider.name : '-'
+              }
+              this.treasury.push(expense)
+            }
+            if (e.invoice && e.invoice.id) {
+              this.projectExpenses.push({ type: 'invoice', id: e.invoice.id, code: e.invoice.code })
+            }
+            if (e.grant && e.grant.id) {
+              this.projectExpenses.push({ type: 'grant', id: e.grant.id, code: e.grant.code })
+            }
+            if (e.ticket && e.ticket.id) {
+              this.projectExpenses.push({ type: 'ticket', id: e.ticket.id, code: e.ticket.code })
+            }
+            if (e.diet && e.diet.id) {
+              this.projectExpenses.push({ type: 'diet', id: e.diet.id, code: e.diet.code })
+            }
+          })
+          ph.subphases.forEach(i => {
+            if (!i.paid) {
+              const income = {
+                project_name: p.name,
+                type: 'Ingrés esperat',
+                concept: i.concept,
+                total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
+                date: i.date || moment().format('YYYY-MM-DD'),
+                date_error: i.date === null,
+                paid: false,
+                contact: i.client && i.client.name ? i.client.name : '-'
+              }
+              this.treasury.push(income)
+            }
+            if (i.invoice && i.invoice.id) {
+              this.projectIncomes.push({ type: 'invoice', id: i.invoice.id, code: i.invoice.code })
+            }
+            if (i.grant && i.grant.id) {
+              this.projectIncomes.push({ type: 'grant', id: i.grant.id, code: i.grant.code })
+            }
+          })
+        })
       })
       // console.log('treasuries', treasuries)
       treasuries.forEach(e => {
