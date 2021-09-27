@@ -238,7 +238,7 @@
           </form>
         </card-component>
         </div>
-        <div class="column">
+        <div class="column is-one-third">
           <card-component
           v-if="isProfileExists"
           title="Resum"
@@ -388,10 +388,32 @@
         >
 
         <b-field label="Factures emeses" v-if="form.emitted_invoices && form.emitted_invoices.length">
-          <div class="tag is-primary mr-1" v-for="invoice in form.emitted_invoices" :key="invoice.id">{{invoice.code}}: {{ invoice.total_base}}€</div>
+          <div class="columns is-multiline">
+            <div class="column is-one-quarter" v-for="invoice in form.emitted_invoices" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            </div>
+          </div>
         </b-field>
         <b-field label="Factures rebudes" v-if="form.received_invoices && form.received_invoices.length">
-          <div class="tag is-primary mr-1" v-for="invoice in form.received_invoices" :key="invoice.id">{{invoice.code}}: {{ invoice.total_base}}€</div>
+          <div class="columns is-multiline">
+            <div class="column is-one-quarter" v-for="invoice in form.received_invoices" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            </div>
+          </div>
+        </b-field>
+        <b-field label="Tiquets" v-if="form.tickets && form.tickets.length">
+          <div class="columns is-multiline">
+            <div class="column is-one-quarter" v-for="invoice in form.tickets" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            </div>
+          </div>
+        </b-field>
+        <b-field label="Dietes" v-if="form.diets && form.diets.length">
+          <div class="columns is-multiline">
+            <div class="column is-one-quarter" v-for="invoice in form.diets" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            </div>
+          </div>
         </b-field>
         </card-component>
         </div>
@@ -662,6 +684,7 @@
             {{ form.phases }}
           </pre> -->
           <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" />
+          <!-- <project-gannt2 class="left-container" :project="form" :users="leaders" :tasks="tasks" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" /> -->
           <hr />
           <b-field>
             <b-button
@@ -689,6 +712,7 @@ import CardComponent from '@/components/CardComponent'
 // import Notification from '@/components/Notification'
 import service from '@/service/index'
 import ProjectGannt from '@/components/ProjectGannt.vue'
+// import ProjectGannt2 from '@/components/ProjectGannt2.vue'
 // import CurrencyInput from '@/components/CurrencyInput'
 import MoneyFormat from 'vue-money-format'
 import { EventBus } from '@/service/event-bus.js'
@@ -707,6 +731,7 @@ export default {
     TitleBar,
     ProjectGannt,
     MoneyFormat
+    // ProjectGannt2
     // CurrencyInput
     // Notification
   },
@@ -744,7 +769,16 @@ export default {
       defaultOpenedDetails: [1],
       showDetailIcon: true,
       useTransition: false,
-      selected: new Date()
+      selected: new Date(),
+      tasks: {
+        data: [
+          { id: 1, text: 'Task #1', start_date: '2020-01-17', duration: 3, progress: 0.6 },
+          { id: 2, text: 'Task #2', start_date: '2020-01-20', duration: 3, progress: 0.4 }
+        ],
+        links: [
+          { id: 1, source: 1, target: 2, type: '0' }
+        ]
+      }
     }
   },
   computed: {
@@ -876,7 +910,7 @@ export default {
     // },
     addPhase () {
       this.needsUpdate = true
-      this.form.phases.push({ name: this.phaseToAdd, edit: false, opened: true, subphases: [], total_amount: 0 })
+      this.form.phases.push({ name: this.phaseToAdd, edit: false, opened: true, subphases: [], expenses: [], total_amount: 0 })
       this.phaseToAdd = ''
     },
     removePhase (i) {
@@ -1245,6 +1279,9 @@ export default {
 .subphase .field:not(.short-field){
   width: 35%;
 }
+.subphase .datepicker-header .field{
+  width: auto!important;
+}
 .subphase .field.short-field{
   width: 10%;
 }
@@ -1266,5 +1303,10 @@ export default {
 }
 .has-text-left .field-label {
   text-align: left;
+}
+.left-container {
+  overflow: hidden;
+  position: relative;
+  height: 100%;
 }
 </style>
