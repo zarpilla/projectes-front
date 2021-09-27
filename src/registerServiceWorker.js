@@ -22,7 +22,8 @@ if (process.env.NODE_ENV === 'production') {
     },
     updated () {
       console.log('New content is available; please refresh.')
-      alert('Nova versió disponible. Si us plau, refresca el navegador (Ctrl+F5).')
+      alert('Nova versió disponible. La pàgina es recarregarà.')
+      setTimeout(() => location.reload(), 100)
     },
     offline () {
       console.log('No internet connection found. App is running in offline mode.')
