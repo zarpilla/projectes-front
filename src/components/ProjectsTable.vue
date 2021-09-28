@@ -27,9 +27,9 @@
       <b-table-column label="Coordina" field="leader" sortable v-slot="props">
         {{ props.row.leader ? props.row.leader.username : '' }}
       </b-table-column>
-      <!-- <b-table-column label="Àmbit" field="project_scope.name" sortable v-slot="props">
+      <b-table-column label="Àmbit" field="project_scope.name" sortable v-slot="props">
         {{ props.row.project_scope ? props.row.project_scope.name : '' }}
-      </b-table-column> -->
+      </b-table-column>
       <b-table-column label="Hores dedicades" field="total_real_hours" sortable numeric v-slot="props">
         {{ props.row.total_real_hours }}
       </b-table-column>
