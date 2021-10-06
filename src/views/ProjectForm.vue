@@ -1,18 +1,14 @@
 <template>
   <div>
+    <modal-box-invoicing
+      :is-active="isModalActive"
+      :invoicing-object="invoicingObject"
+      @submit="modalSubmit"
+      @cancel="modalCancel"
+      @delete="modalDelete"
+    />
     <title-bar :title-stack="titleStack" />
-    <!-- <hero-bar>
-      {{ heroTitle }}
-      <router-link slot="right" :to="heroRouterLinkTo" class="button">
-        {{ heroRouterLinkLabel }}
-      </router-link>
-    </hero-bar> -->
     <section class="section is-main-section">
-      <!-- <notification class="is-info">
-        <div>
-          <span><b>Demo only.</b> No data will be saved/updated</span>
-        </div>
-      </notification> -->
       <div class="columns">
         <div class="column is-two-thirds">
           <card-component
@@ -20,14 +16,6 @@
           class="tile is-child"
         >
           <form @submit.prevent="submit" v-if="!isLoading">
-            <!-- <b-field label="ID" horizontal>
-              <b-input v-model="form.id" custom-class="is-static" readonly />
-            </b-field>
-            <hr />
-            <b-field label="Avatar" horizontal>
-              <file-picker />
-            </b-field>
-            <hr /> -->
             <b-field label="Codi" horizontal>
               <b-input
                 v-model="form.name"
@@ -351,34 +339,6 @@
               </money-format>
             </div>
           </b-field>
-          <!-- <pre style="height:400px;width:800px;overflow:scroll">
-            {{ form }}
-          </pre> -->
-          <!-- <b-field label="Name">
-            <b-input :value="form.name" custom-class="is-static" readonly />
-          </b-field>
-          <b-field label="Company">
-            <b-input :value="form.company" custom-class="is-static" readonly />
-          </b-field>
-          <b-field label="City">
-            <b-input :value="form.city" custom-class="is-static" readonly />
-          </b-field>
-          <b-field label="Created">
-            <b-input
-              :value="createdReadable"
-              custom-class="is-static"
-              readonly
-            />
-          </b-field>
-          <hr />
-          <b-field label="Progress">
-            <progress
-              class="progress is-small is-primary"
-              :value="form.progress"
-              max="100"
-              >{{ form.progress }}</progress
-            >
-          </b-field> -->
         </card-component>
 
         <card-component
@@ -389,29 +349,36 @@
 
         <b-field label="Factures emeses" v-if="form.emitted_invoices && form.emitted_invoices.length">
           <div class="columns is-multiline">
-            <div class="column is-one-quarter" v-for="invoice in form.emitted_invoices" :key="invoice.id">
-              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            <div class="column is-full" v-for="invoice in form.emitted_invoices" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}} - {{getContactName(invoice)}} -  {{ invoice.total_base}}€</div>
+            </div>
+          </div>
+        </b-field>
+        <b-field label="Subvencions rebudes" v-if="form.received_grants && form.received_grants.length">
+          <div class="columns is-multiline">
+            <div class="column is-full" v-for="invoice in form.received_grants" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}} - {{getContactName(invoice)}} - {{ invoice.total_base}}€</div>
             </div>
           </div>
         </b-field>
         <b-field label="Factures rebudes" v-if="form.received_invoices && form.received_invoices.length">
           <div class="columns is-multiline">
-            <div class="column is-one-quarter" v-for="invoice in form.received_invoices" :key="invoice.id">
-              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            <div class="column is-full" v-for="invoice in form.received_invoices" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}} - {{getContactName(invoice)}} - {{ invoice.total_base}}€</div>
             </div>
           </div>
         </b-field>
         <b-field label="Tiquets" v-if="form.tickets && form.tickets.length">
           <div class="columns is-multiline">
-            <div class="column is-one-quarter" v-for="invoice in form.tickets" :key="invoice.id">
-              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            <div class="column is-full" v-for="invoice in form.tickets" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}} - {{getContactName(invoice)}} - {{ invoice.total_base}}€</div>
             </div>
           </div>
         </b-field>
         <b-field label="Dietes" v-if="form.diets && form.diets.length">
           <div class="columns is-multiline">
-            <div class="column is-one-quarter" v-for="invoice in form.diets" :key="invoice.id">
-              <div class="tag is-primary">{{invoice.code}}: {{ invoice.total_base}}€</div>
+            <div class="column is-full" v-for="invoice in form.diets" :key="invoice.id">
+              <div class="tag is-primary">{{invoice.code}} - {{getContactName(invoice)}} - {{ invoice.total_base}}€</div>
             </div>
           </div>
         </b-field>
@@ -440,7 +407,7 @@
           </b-table-column>
           <b-table-column field="name" label="Total" width="150" v-slot="props">
             <div class="readonly subphase-detail-input subphase-detail-input-phase-total">
-              <money-format :value="props.row.total_amount"
+              <money-format :value="props.row.total_amount ? props.row.total_amount : 0"
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value=false
@@ -496,20 +463,13 @@
                   <b-field :label="j == 0 ? 'Total' : null">
                     <div
                       class="readonly subphase-detail-input">
-                      <money-format :value="subphase.quantity * subphase.amount"
+                      <money-format :value="subphase.quantity * subphase.amount ? subphase.quantity * subphase.amount : 0"
                         :locale="'es'"
                         :currency-code="'EUR'"
                         :subunits-value=false
                         :hide-subunits=false>
                       </money-format>
                     </div>
-                  </b-field>
-                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
-                    <b-checkbox
-                      v-model="subphase.paid"
-                      class="checkbox-inline"
-                    >
-                    </b-checkbox>
                   </b-field>
                   <b-field :label="j == 0 ? 'Data' : null" v-if="me.options && me.options.treasury">
                     <b-datepicker
@@ -533,9 +493,17 @@
                       <b-icon icon="plus-circle" size="is-small"/>
                     </button>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Factura' : null" v-if="me.options && me.options.treasury">
-                    <span v-if="me.options && me.options.treasury && subphase.invoice && subphase.invoice.id" :title="`Factura ${subphase.invoice.code}`" class="tag is-primary invoice-tag">{{subphase.invoice.code}}</span>
-                    <span v-if="me.options && me.options.treasury && subphase.paid && (!subphase.invoice || !subphase.invoice.id)" class="tag is-warning invoice-tag">{{ 'Factura?'}}</span>
+                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
+                    <b-checkbox
+                      v-model="subphase.paid"
+                      class="checkbox-inline"
+                    >
+                    </b-checkbox>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Document' : null" v-if="me.options && me.options.treasury" class="zshort-field">
+                    <span v-if="me.options && me.options.treasury && subphase.invoice && subphase.invoice.id" :title="`Document ${subphase.invoice.code}`" class="tag is-primary invoice-tag clickable" @click="setInvoice('incomes', props.row, subphase, props.index, j)">F {{subphase.invoice.code}}</span>
+                    <span v-if="me.options && me.options.treasury && subphase.grant && subphase.grant.id" :title="`Document ${subphase.grant.code}`" class="tag is-primary invoice-tag clickable" @click="setInvoice('incomes', props.row, subphase, props.index, j)">S {{subphase.grant.code}}</span>
+                    <span v-if="me.options && me.options.treasury && subphase.paid && (!subphase.invoice && !subphase.grant)" class="tag is-warning invoice-tag clickable" @click="setInvoice('incomes', props.row, subphase, props.index, j)">{{ 'Document'}}</span>
                   </b-field>
                 </b-field>
               </li>
@@ -595,13 +563,6 @@
                       </money-format>
                     </div>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
-                    <b-checkbox
-                      v-model="subphase.paid"
-                      class="checkbox-inline"
-                    >
-                    </b-checkbox>
-                  </b-field>
                   <b-field :label="j == 0 ? 'Data' : null" v-if="me.options && me.options.treasury">
                     <b-datepicker
                       v-model="subphase.date"
@@ -624,9 +585,18 @@
                       <b-icon icon="plus-circle" size="is-small"/>
                     </button>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Factura' : null" v-if="me.options && me.options.treasury">
-                    <span v-if="me.options && me.options.treasury && subphase.invoice && subphase.invoice.id" :title="`Factura ${subphase.invoice.code}`" class="tag is-primary invoice-tag">{{subphase.invoice.code}}</span>
-                    <span v-if="me.options && me.options.treasury && subphase.paid && (!subphase.invoice || !subphase.invoice.id)" class="tag is-warning invoice-tag">{{ 'Factura?'}}</span>
+                  <b-field :label="j == 0 ? 'Pagat' : null" v-if="me.options && me.options.treasury" class="short-field">
+                    <b-checkbox
+                      v-model="subphase.paid"
+                      class="checkbox-inline"
+                    >
+                    </b-checkbox>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Document' : null" v-if="me.options && me.options.treasury">
+                    <span v-if="me.options && me.options.treasury && subphase.invoice && subphase.invoice.id" :title="`${subphase.invoice.code}`" class="tag is-primary invoice-tag clickable" @click="setInvoice('expenses', props.row, subphase, props.index, j)">F {{subphase.invoice.code}}</span>
+                    <span v-if="me.options && me.options.treasury && subphase.ticket && subphase.ticket.id" :title="`${subphase.ticket.code}`" class="tag is-primary invoice-tag clickable" @click="setInvoice('expenses', props.row, subphase, props.index, j)">T {{subphase.ticket.code}}</span>
+                    <span v-if="me.options && me.options.treasury && subphase.diet && subphase.diet.id" :title="`${subphase.diet.code}`" class="tag is-primary invoice-tag clickable" @click="setInvoice('expenses', props.row, subphase, props.index, j)">D {{subphase.diet.code}}</span>
+                    <span v-if="me.options && me.options.treasury && subphase.paid && (!subphase.invoice && !subphase.ticket && !subphase.diet)" class="tag is-warning invoice-tag clickable" @click="setInvoice('expenses', props.row, subphase, props.index, j)">{{ 'Document'}}</span>
                   </b-field>
                 </b-field>
               </li>
@@ -655,7 +625,7 @@
           <b-field label="Total Pressupost" class="mt-5">
             <div
               class="readonly subphase-detail-input">
-            <money-format :value="totalAmount"
+            <money-format :value="totalAmount ? totalAmount : 0"
               :locale="'es'"
               :currency-code="'EUR'"
               :subunits-value=false
@@ -709,7 +679,7 @@ import TitleBar from '@/components/TitleBar'
 import CardComponent from '@/components/CardComponent'
 // import FilePicker from '@/components/FilePicker'
 // import UserAvatar from '@/components/UserAvatar'
-// import Notification from '@/components/Notification'
+import ModalBoxInvoicing from '@/components/ModalBoxInvoicing'
 import service from '@/service/index'
 import ProjectGannt from '@/components/ProjectGannt.vue'
 // import ProjectGannt2 from '@/components/ProjectGannt2.vue'
@@ -730,7 +700,8 @@ export default {
     // HeroBar,
     TitleBar,
     ProjectGannt,
-    MoneyFormat
+    MoneyFormat,
+    ModalBoxInvoicing
     // ProjectGannt2
     // CurrencyInput
     // Notification
@@ -778,7 +749,9 @@ export default {
         links: [
           { id: 1, source: 1, target: 2, type: '0' }
         ]
-      }
+      },
+      invoicingObject: {},
+      isModalActive: false
     }
   },
   computed: {
@@ -1048,10 +1021,10 @@ export default {
       service({ requiresAuth: true }).get('project-scopes').then((r) => {
         this.project_scopes = r.data
       })
-      service({ requiresAuth: true }).get('users').then((r) => {
+      service({ requiresAuth: true }).get('users?_limit=-1').then((r) => {
         this.leaders = r.data.filter(u => u.hidden !== true)
       })
-      service({ requiresAuth: true }).get('contacts').then((r) => {
+      service({ requiresAuth: true }).get('contacts?_limit=-1').then((r) => {
         this.clients = r.data
       })
       service({ requiresAuth: true }).get('strategies').then((r) => {
@@ -1230,6 +1203,49 @@ export default {
       // this.form.date_start = null
       this.selected = null
       // this.form[date] = null
+    },
+    getContactName (invoice) {
+      return invoice && invoice.contact && this.clients.find(c => c.id === invoice.contact) ? this.clients.find(c => c.id === invoice.contact).name : ''
+    },
+    setInvoice (type, phase, subphase, i, j) {
+      this.invoicingObject = {
+        type,
+        phase,
+        subphase,
+        i,
+        j,
+        emitted_invoices: this.form.emitted_invoices,
+        received_invoices: this.form.received_invoices,
+        received_grants: this.form.received_grants,
+        diets: this.form.diets,
+        tickets: this.form.tickets,
+        contacts: this.clients
+      }
+      this.isModalActive = true
+    },
+    async modalSubmit (invoicing) {
+      console.log('invoicing', invoicing)
+      if (this.invoicingObject.type === 'incomes') {
+        const phase = this.form.phases.find((p, idx) => idx === this.invoicingObject.i)
+        const subphase = phase.subphases.find((p, idx) => idx === this.invoicingObject.j)
+        subphase.paid = true
+        subphase.invoice = invoicing.emitted
+        subphase.grant = invoicing.grant
+      } else if (this.invoicingObject.type === 'expenses') {
+        const phase = this.form.phases.find((p, idx) => idx === this.invoicingObject.i)
+        const subphase = phase.expenses.find((p, idx) => idx === this.invoicingObject.j)
+        subphase.paid = true
+        subphase.invoice = invoicing.received
+        subphase.ticket = invoicing.ticket
+        subphase.diet = invoicing.diet
+      }
+      this.isModalActive = false
+    },
+    async modalDelete (activity) {
+      this.isModalActive = false
+    },
+    modalCancel () {
+      this.isModalActive = false
     }
   }
 }
@@ -1308,5 +1324,8 @@ export default {
   overflow: hidden;
   position: relative;
   height: 100%;
+}
+.clickable {
+  cursor: pointer;
 }
 </style>

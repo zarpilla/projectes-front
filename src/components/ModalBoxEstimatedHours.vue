@@ -33,7 +33,6 @@
                 v-model="form.amount"
                 placeholder="Cost/hora"
                 name="hours"
-                required
               />
             </b-field>
             <b-field label="Descripció" horizontal>

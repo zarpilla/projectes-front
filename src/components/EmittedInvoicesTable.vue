@@ -13,22 +13,23 @@
       :data="emitted"
       :row-class="(row, index) => row.subtotal < 0 && 'has-text-danger has-text-bold' || row.type == 'Avui' && 'has-text-info' "
     >
-      <b-table-column label="Codi" field="code" v-slot="props" sortable>
-        <a :href="props.row.pdf" target="_blank">
+      <b-table-column label="Codi" field="number" v-slot="props" sortable>
+        <a :href="props.row.pdf" target="_blank" v-if="props.row.pdf">
           {{ props.row.code }}
         </a>
+        <b v-else>{{ props.row.code }}</b>
       </b-table-column>
       <b-table-column label="Data" field="emitted" v-slot="props" sortable>
-        {{ formatDate(props.row.emitted) }}
+        {{ props.row.emitted ? formatDate(props.row.emitted) : '' }}
       </b-table-column>
       <b-table-column label="Venciment" field="paybefore" v-slot="props" sortable>
-        {{ formatDate(props.row.paybefore) }}
+        {{ props.row.paybefore ? formatDate(props.row.paybefore) : '' }}
       </b-table-column>
       <b-table-column label="Contacte" field="contact.name" v-slot="props" sortable>
-        {{ props.row.contact.name }}
+        {{ props.row.contact ? props.row.contact.name : '' }}
       </b-table-column>
       <b-table-column label="NIF Contacte" field="contact.name" v-slot="props" sortable>
-        {{ props.row.contact.nif }}
+        {{ props.row.contact ? props.row.contact.nif : null }}
       </b-table-column>
       <b-table-column label="Concepte" field="lines" v-slot="props" sortable>
         {{ props.row.lines && props.row.lines.length > 0 ? props.row.lines[0].concept : '' }}
@@ -55,7 +56,7 @@
 <script>
 import service from '@/service/index'
 import moment from 'moment'
-// import sortBy from 'lodash/sortBy'
+import sumBy from 'lodash/sumBy'
 
 export default {
   name: 'Tresoreria',
@@ -125,6 +126,8 @@ export default {
           total: e.total
         }
       })
+
+      this.emitted.push({ number: 0, code: 'Total', emitted: null, paybefore: null, contact: null, project: null, concept: '', total_base: sumBy(this.emitted, 'total_base'), total_vat: sumBy(this.emitted, 'total_vat'), total_irpf: sumBy(this.emitted, 'total_irpf'), total: sumBy(this.emitted, 'total') })
 
       this.isLoading = false
     }

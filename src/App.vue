@@ -49,6 +49,11 @@ export default {
             to: '/stats-intercoop',
             icon: 'table',
             label: 'Intercooperació'
+          },
+          {
+            href: `${process.env.VUE_APP_API_URL || 'http://localhost:1337'}/admin`,
+            icon: 'table',
+            label: 'Strapi'
           }
         ],
         'Dedicació',

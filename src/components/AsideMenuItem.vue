@@ -2,8 +2,7 @@
   <li :class="{ 'is-active': isDropdownActive }">
     <component
       :is="componentIs"
-      :to="itemTo"
-      :href="itemHref"
+      v-bind="item"
       exact-active-class="is-active"
       :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown }"
       @click="menuClick"

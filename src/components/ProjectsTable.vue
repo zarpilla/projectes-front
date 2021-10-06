@@ -42,18 +42,6 @@
       <b-table-column label="Resultat previst" field="incomes_expenses" sortable numeric v-slot="props">
         {{ formatPrice(props.row.incomes_expenses) }}
       </b-table-column>
-      <!-- <b-table-column label="Ingressos esperats" field="total_incomes" sortable v-slot="props">
-        {{ props.row.total_incomes }}
-      </b-table-column>
-      <b-table-column label="Despeses esperades" field="total_expenses" sortable v-slot="props">
-        {{ props.row.total_expenses }}
-      </b-table-column> -->
-      <!-- <b-table-column label="Ingressos reals" field="real_total_incomes" sortable v-slot="props">
-        {{ props.row.real_total_incomes }}
-      </b-table-column>
-      <b-table-column label="Despeses reals" field="real_total_expenses" sortable v-slot="props">
-        {{ props.row.real_total_expenses }}
-      </b-table-column> -->
       <!-- <b-table-column label="Creat" v-slot="props" sortable field="created_at">
         <small class="has-text-grey is-abbr-like" :title="props.row.created_at">{{ props.row.created_at_dt }}</small>
       </b-table-column> -->

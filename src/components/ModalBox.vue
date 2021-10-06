@@ -2,17 +2,17 @@
   <b-modal :active.sync="isModalActive" has-modal-card>
     <div class="modal-card">
       <header class="modal-card-head">
-        <p class="modal-card-title">Esborrar?</p>
+        <p class="modal-card-title">{{ title }}</p>
       </header>
       <section class="modal-card-body">
         <p>
           {{ message }} <b>{{ trashObjectName }}</b>
         </p>
-        <p>No es podrà desfer.</p>
+        <p v-if="!canUndo">No es podrà desfer.</p>
       </section>
       <footer class="modal-card-foot">
         <button class="button" type="button" @click="cancel">Cancel·la</button>
-        <button class="button is-danger" @click="confirm">Esborra</button>
+        <button class="button is-danger" @click="confirm">{{okButton}}</button>
       </footer>
     </div>
   </b-modal>
@@ -33,6 +33,18 @@ export default {
     message: {
       type: String,
       default: 'S\'esborrarà permanentment l\'activitat'
+    },
+    title: {
+      type: String,
+      default: 'Esborrar?'
+    },
+    okButton: {
+      type: String,
+      default: 'Esborra'
+    },
+    canUndo: {
+      type: Boolean,
+      default: false
     }
   },
   data () {

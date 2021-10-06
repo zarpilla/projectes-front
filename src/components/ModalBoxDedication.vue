@@ -268,8 +268,6 @@ export default {
     },
     projectChanged () {
       if (this.form.project) {
-        console.log('this.form.project', this.form.project)
-        console.log('this.projects', this.projects)
         this.isLoading2 = true
         const project = this.projects.find(p => p.id === this.form.project)
         this.activityTypes = {}
