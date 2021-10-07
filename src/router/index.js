@@ -207,6 +207,15 @@ const routes = [
     name: 'received.invoices.view',
     component: () => import(/* webpackChunkName: "quote" */ '../views/ReceivedInvoices.vue'),
     props: true
+  },
+  {
+    meta: {
+      title: 'Documentació'
+    },
+    path: '/documentacio',
+    name: 'documentation.view',
+    component: () => import(/* webpackChunkName: "documentation" */ '../views/Documentation.vue'),
+    props: true
   }
 ]
 

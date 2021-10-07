@@ -132,7 +132,16 @@ export default {
           //     }
           //   ]
           // }
-        ]//,
+        ],
+        'Ajuda',
+        [
+          {
+            to: '/documentacio',
+            icon: 'table',
+            label: 'Documentació'
+          }
+        ]
+        //,
         // 'About',
         // [
         //   {
