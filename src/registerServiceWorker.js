@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === 'production') {
     updated () {
       console.log('New content is available; please refresh.')
       alert('Nova versió disponible. Recarrega la página fent Ctrl+F5.')
-      setTimeout(() => location.reload(), 700)
+      setTimeout(() => window.location.reload(true), 700)
     },
     offline () {
       console.log('No internet connection found. App is running in offline mode.')
