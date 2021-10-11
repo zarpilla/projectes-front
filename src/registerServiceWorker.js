@@ -20,10 +20,13 @@ if (process.env.NODE_ENV === 'production') {
     updatefound () {
       console.log('New content is downloading.')
     },
-    updated () {
+    updated (registration) {
       console.log('New content is available; please refresh.')
-      alert('Nova versió disponible. Recarrega la página fent Ctrl+F5.')
-      setTimeout(() => window.location.reload(true), 700)
+      // alert('Nova versió disponible. Recarrega la página fent Ctrl+F5.')
+      // setTimeout(() => window.location.reload(true), 700)
+      document.dispatchEvent(
+        new CustomEvent('swUpdated', { detail: registration })
+      )
     },
     offline () {
       console.log('No internet connection found. App is running in offline mode.')

@@ -12,6 +12,7 @@
 import NavBar from '@/components/NavBar'
 import AsideMenu from '@/components/AsideMenu'
 import FooterBar from '@/components/FooterBar'
+import update from '@/mixins/update'
 
 export default {
   name: 'Home',
@@ -20,6 +21,7 @@ export default {
     AsideMenu,
     NavBar
   },
+  mixins: [update],
   computed: {
     menu () {
       return [
