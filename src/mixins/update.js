@@ -29,7 +29,7 @@ export default {
       this.updateExists = true
       this.$buefy.snackbar.open({
         indefinite: true,
-        message: 'Hi ha una actualització disponible. L\'aplicació s\'actualitzarà',
+        message: 'Hi ha una nova versió disponible. L\'aplicació s\'actualitzarà',
         cancelText: 'No',
         onAction: e => {
           this.refreshApp()
