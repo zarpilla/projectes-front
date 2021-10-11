@@ -10,7 +10,8 @@
               <li><a href="/stats/docum/02.03.projectes-ingressos-despeses-fases-planificacio.mkv" target="_blank">Projectes: Fases i pressupost intern</a></li>
               <li><a href="/stats/docum/03.hores-entrada.mkv" target="_blank">Entrada d'hores dedicades</a></li>
               <li><a href="/stats/docum/03.hores-saldo.mkv" target="_blank">Saldo d'hores</a></li>
-              <li><a href="/stats/docum/04.informacio-economica" target="_blank">Entrada d'informació econòmica</a></li>
+              <li><a href="/stats/docum/04.informacio-economica.mkv" target="_blank">Entrada d'informació econòmica</a></li>
+              <li><a href="/stats/docum/05.tresoreria.mkv" target="_blank">Tresoreria</a></li>
           </ul>
       </card-component>
     </section>
