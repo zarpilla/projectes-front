@@ -11,7 +11,7 @@ export default {
       once: true
     })
 
-    this.updateAvailable({ detail: '' })
+    // this.updateAvailable({ detail: '' })
 
     // Prevent multiple refreshes
     if (navigator.serviceWorker) {
