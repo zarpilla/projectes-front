@@ -140,7 +140,7 @@ export default {
                 type: 'Despesa esperada',
                 concept: e.concept,
                 total_amount: e.total_amount ? -1 * Math.abs(e.total_amount) : 0,
-                date: e.date || moment().format('YYYY-MM-DD'),
+                date: moment(e.date, 'YYYY-MM-DD') || moment(),
                 date_error: e.date === null,
                 paid: false,
                 contact: e.provider && e.provider.name ? e.provider.name : '-'
@@ -168,7 +168,7 @@ export default {
                 type: 'Ingrés esperat',
                 concept: i.concept,
                 total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
-                date: i.date || moment().format('YYYY-MM-DD'),
+                date: moment(i.date, 'YYYY-MM-DD') || moment(),
                 date_error: i.date === null,
                 paid: false,
                 contact: i.client && i.client.name ? i.client.name : '-'
@@ -194,7 +194,7 @@ export default {
                   type: 'Despesa esperada',
                   concept: e.concept,
                   total_amount: e.total_amount ? -1 * Math.abs(e.total_amount) : 0,
-                  date: e.date || moment().format('YYYY-MM-DD'),
+                  date: moment(e.date, 'YYYY-MM-DD') || moment(),
                   date_error: e.date === null,
                   paid: false,
                   contact: e.provider && e.provider.name ? e.provider.name : '-'
@@ -223,7 +223,7 @@ export default {
                   type: 'Ingrés esperat',
                   concept: i.concept,
                   total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
-                  date: i.date || moment().format('YYYY-MM-DD'),
+                  date: moment(i.date, 'YYYY-MM-DD') || moment(),
                   date_error: i.date === null,
                   paid: false,
                   contact: i.client && i.client.name ? i.client.name : '-'
@@ -247,7 +247,7 @@ export default {
             type: 'Entrada manual',
             concept: e.comment,
             total_amount: e.total,
-            date: e.date || moment().format('YYYY-MM-DD'),
+            date: moment(e.date, 'YYYY-MM-DD') || moment(),
             date_error: e.date === null,
             paid: true,
             contact: '-'
@@ -261,7 +261,7 @@ export default {
           type: 'Avui',
           concept: '-',
           total_amount: 0,
-          date: moment().format('YYYY-MM-DD'),
+          date: moment(),
           date_error: false,
           paid: null,
           contact: '-'
@@ -269,7 +269,7 @@ export default {
         this.treasury.push(today)
         // emitted
         this.emitted.forEach(i => {
-          const date = i.paid_date ? i.paid_date : moment.max([i.paybefore ? moment(i.paybefore, 'YYYY-MM-DD') : moment(), i.emitted ? moment(i.emitted, 'YYYY-MM-DD') : moment(), moment()])
+          const date = i.paid_date ? moment(i.paid_date, 'YYYY-MM-DD') : moment.max([i.paybefore ? moment(i.paybefore, 'YYYY-MM-DD') : moment(), i.emitted ? moment(i.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const income = {
             project_name: i.project && i.project.name ? i.project.name : '',
             project_id: i.project ? i.project.id : 0,
@@ -287,7 +287,7 @@ export default {
         })
         // received
         this.received.forEach(e => {
-          const date = e.paid_date ? e.paid_date : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
+          const date = e.paid_date ? moment(e.paid_date, 'YYYY-MM-DD') : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const expense = {
             project_name: e.project && e.project.name ? e.project.name : '',
             project_id: e.project ? e.project.id : 0,
@@ -304,7 +304,7 @@ export default {
           this.treasury.push(expense)
         })
         this.diets.forEach(e => {
-          const date = e.paid_date ? e.paid_date : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
+          const date = e.paid_date ? moment(e.paid_date, 'YYYY-MM-DD') : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const expense = {
             project_name: e.project && e.project.name ? e.project.name : '',
             project_id: e.project ? e.project.id : 0,
@@ -319,7 +319,7 @@ export default {
           this.treasury.push(expense)
         })
         this.tickets.forEach(e => {
-          const date = e.paid_date ? e.paid_date : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
+          const date = e.paid_date ? moment(e.paid_date, 'YYYY-MM-DD') : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const expense = {
             project_name: e.project && e.project.name ? e.project.name : '',
             project_id: e.project ? e.project.id : 0,
@@ -334,7 +334,10 @@ export default {
           this.treasury.push(expense)
         })
         // sort and show
-        const treasuryData = sortBy(this.treasury, 'date')
+        const treasuryData = sortBy(this.treasury, (o) => {
+          console.log('o', o && o.date && o.date.format ? '' : o)
+          return o.date.format('YYYYMMDD')
+        })
         let subtotal = 0
         for (let i = 0; i < treasuryData.length; i++) {
           const t = treasuryData[i]
