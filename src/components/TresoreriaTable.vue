@@ -269,13 +269,14 @@ export default {
         this.treasury.push(today)
         // emitted
         this.emitted.forEach(i => {
+          const date = i.paid_date ? i.paid_date : moment.max([i.paybefore ? moment(i.paybefore, 'YYYY-MM-DD') : moment(), i.emitted ? moment(i.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const income = {
             project_name: i.project && i.project.name ? i.project.name : '',
             project_id: i.project ? i.project.id : 0,
             type: i.paid ? 'Factura cobrada' : 'Factura emesa',
             concept: i.code,
             total_amount: i.total ? Math.abs(i.total) : 0,
-            date: i.paid_date || i.paybefore || i.emitted || moment().format('YYYY-MM-DD'),
+            date: date,
             date_error: (i.paid_date || i.paybefore || i.emitted) === null,
             real: true,
             pdf: i.pdf,
@@ -286,13 +287,14 @@ export default {
         })
         // received
         this.received.forEach(e => {
+          const date = e.paid_date ? e.paid_date : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const expense = {
             project_name: e.project && e.project.name ? e.project.name : '',
             project_id: e.project ? e.project.id : 0,
             type: e.paid ? 'Factura pagada' : 'Factura rebuda',
             concept: e.code,
             total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: e.paid_date || e.paybefore || e.emitted,
+            date: date,
             date_error: false,
             paid: e.paid,
             real: true,
@@ -302,13 +304,14 @@ export default {
           this.treasury.push(expense)
         })
         this.diets.forEach(e => {
+          const date = e.paid_date ? e.paid_date : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const expense = {
             project_name: e.project && e.project.name ? e.project.name : '',
             project_id: e.project ? e.project.id : 0,
             type: 'Dieta',
             concept: e.code,
             total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: e.paid_date || e.paybefore || e.emitted || moment().format('YYYY-MM-DD'),
+            date: date,
             date_error: (e.paid_date || e.paybefore || e.emitted) === null,
             paid: e.paid,
             contact: e.contact && e.contact.name ? e.contact.name : '-'
@@ -316,13 +319,14 @@ export default {
           this.treasury.push(expense)
         })
         this.tickets.forEach(e => {
+          const date = e.paid_date ? e.paid_date : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const expense = {
             project_name: e.project && e.project.name ? e.project.name : '',
             project_id: e.project ? e.project.id : 0,
             type: 'Ticket',
             concept: e.code,
             total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: e.paid_date || e.emitted || moment().format('YYYY-MM-DD'),
+            date: date,
             date_error: (e.paid_date || e.emitted) === null,
             paid: e.paid,
             contact: e.provider && e.provider.name ? e.provider.name : '-'
