@@ -302,7 +302,7 @@ export default {
             item.monthly_quantity = 0
           }
           // console.log('item', item)
-          // this.$emit('gantt-item-update', item)
+          this.$emit('gantt-item-update', item)
         }
       })
       this.state = state
