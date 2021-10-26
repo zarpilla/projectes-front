@@ -162,6 +162,7 @@ export default {
       
       // console.log('initializeGannt', this.project)
       this.tasks = { data: [] }
+      const minDate = moment().format('YYYY-MM-DD')
       for (let i = 0; i < this.project.phases.length; i++) {
         const phase = this.project.phases[i]
         const task = { id: phase.id, text: phase.name, open: true, type: gantt.config.types.project, _phase: phase }
@@ -180,12 +181,16 @@ export default {
             const hoursName = `${hours.users_permissions_user ? hours.users_permissions_user.username : ''} - ${hours.quantity}h`
             const hoursTask = { id: 99999999 + hours.id, text: hoursName, start_date: hours.from, end_date: hours.to, parent: 9999 + subphase.id, open: true, _hours: hours, _phase: phase, _subphase: subphase }
             this.tasks.data.push(hoursTask)
+            if (minDate > hours.from) {
+              minDate = hours.from
+            }            
           }
         }
       }
-      const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').toDate()
+      const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').toDate();
+      const endDate = this.project.date_end ? moment(this.project.date_end).add(1, 'year').endOf('year').toDate() : moment().add(3, 'year').endOf('year').toDate();
       gantt.config.start_date = initialDate;
-			gantt.config.end_date = moment().add(3, 'year').toDate(); // new Date(2023, 2,1);
+			gantt.config.end_date = endDate;
       gantt.config.columns = [
 		    {name: "text", label: "Fases i dedicacions", tree: true, width: '*'},
       ]
