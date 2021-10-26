@@ -447,7 +447,7 @@
                       name="Unitats"
                       placeholder="Quantitat, hores, unitats..."
                       v-model="subphase.quantity"
-                      @input="blurSubPhase"
+                      @input="changeSubPhase(subphase, 'quantity', subphase.quantity)"
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
@@ -456,7 +456,7 @@
                       name="PreuUnitari"
                       placeholder="Preu per unitat"
                       v-model="subphase.amount"
-                      @input="blurSubPhase"
+                      @input="changeSubPhase(subphase.amount, 'amount', subphase.amount)"
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
@@ -539,7 +539,7 @@
                       name="Unitats"
                       placeholder="Quantitat, hores, unitats..."
                       v-model="subphase.quantity"
-                      @input="blurSubPhase"
+                      @input="changeSubPhase(subphase, 'quantity', subphase.quantity)"
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
@@ -548,7 +548,7 @@
                       name="PreuUnitari"
                       placeholder="Preu per unitat"
                       v-model="subphase.amount"
-                      @input="blurSubPhase"
+                      @input="changeSubPhase(subphase, 'amount', subphase.amount)"
                       class="subphase-detail-input">
                     </b-input>
                   </b-field>
@@ -653,8 +653,8 @@
           <!-- <pre style="height:600px;width:800px;overflow:scroll">
             {{ form.phases }}
           </pre> -->
-          <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" />
-          <!-- <project-gannt2 class="left-container" :project="form" :users="leaders" :tasks="tasks" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" /> -->
+          <!-- <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" /> -->
+          <project-gannt2 v-if="!isLoading" class="left-container" :project="form" :users="leaders" :tasks="tasks" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" />
           <hr />
           <b-field>
             <b-button
@@ -681,8 +681,8 @@ import CardComponent from '@/components/CardComponent'
 // import UserAvatar from '@/components/UserAvatar'
 import ModalBoxInvoicing from '@/components/ModalBoxInvoicing'
 import service from '@/service/index'
-import ProjectGannt from '@/components/ProjectGannt.vue'
-// import ProjectGannt2 from '@/components/ProjectGannt2.vue'
+// import ProjectGannt from '@/components/ProjectGannt.vue'
+import ProjectGannt2 from '@/components/ProjectGannt2.vue'
 // import CurrencyInput from '@/components/CurrencyInput'
 import MoneyFormat from 'vue-money-format'
 import { EventBus } from '@/service/event-bus.js'
@@ -699,10 +699,10 @@ export default {
     // Tiles,
     // HeroBar,
     TitleBar,
-    ProjectGannt,
+    // ProjectGannt,
     MoneyFormat,
-    ModalBoxInvoicing
-    // ProjectGannt2
+    ModalBoxInvoicing,
+    ProjectGannt2
     // CurrencyInput
     // Notification
   },
@@ -874,13 +874,12 @@ export default {
       this.blurPhase(null)
       // this.$emit('update')
     },
-    blurSubPhase () {
+    changeSubPhase (subphase, field, value) {
+      if (value && value.toString().includes(',')) {
+        subphase[field] = value.toString().replace(',', '.')
+      }
       this.form.phases = this.form.phases.map(r => { return { ...r, opened: true, total_amount: sumBy(r.subphases, x => x.quantity * x.amount) - sumBy(r.expenses, x => x.quantity * x.amount) } })
-      // console.log('blurSubPhase', this.form.phases)
     },
-    // editTodo (todo) {
-    //   this.editedTodo = todo
-    // },
     addPhase () {
       this.needsUpdate = true
       this.form.phases.push({ name: this.phaseToAdd, edit: false, opened: true, subphases: [], expenses: [], total_amount: 0 })
@@ -1143,7 +1142,8 @@ export default {
       }, 500)
     },
     ganttItemUpdate (item) {
-      // console.log('ganttItemUpdate', item)
+      console.log('ganttItemUpdate', item)
+      // return item
       // console.log('ganttItemUpdate _uuid', item._uuid)
       const id = item._hours.id
       const pid = item._phase.id
@@ -1155,25 +1155,33 @@ export default {
         return
       }
       const hours = this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.find(h => (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid))
+      console.log('hours', hours)
+      console.log('item', item)
       if (hours) {
-        hours.from = item.from
-        hours.to = item.to
-        hours.monthly_quantity = item.monthly_quantity
-        hours.quantity = item.quantity
-        hours.users_permissions_user = item.users_permissions_user
-        hours.amount = item.amount
+        hours.from = moment(item.start_date).format('YYYY-MM-DD')
+        hours.to = item.end_date ? moment(item.end_date).add(-1, 'day').format('YYYY-MM-DD') : moment(item.start_date).add(1, 'month').add(-1, 'day').format('YYYY-MM-DD')
+        const to2 = moment(hours.to, 'YYYY-MM-DD')
+        const months = moment(to2).diff(item.start_date, 'months') + 1
+        hours.monthly_quantity = item.quantity * months
+        hours.quantity = item._hours.quantity
+        hours.users_permissions_user = item._hours.users_permissions_user
+        hours.amount = item._hours.amount
         hours.total_amount = item.total_amount
       } else if (uuid) {
         const hour = {
-          from: item.from,
-          to: item.to,
-          monthly_quantity: item.monthly_quantity,
-          quantity: item.quantity,
-          users_permissions_user: item.users_permissions_user,
-          amount: item.amount,
-          total_amount: item.total_amount,
-          _uuid: item._uuid
+          from: moment(item.start_date).format('YYYY-MM-DD'),
+          to: item.end_date ? moment(item.end_date).add(-1, 'day').format('YYYY-MM-DD') : moment(item.start_date).add(1, 'month').add(-1, 'day').format('YYYY-MM-DD'),
+          monthly_quantity: null,
+          quantity: item._hours.quantity,
+          users_permissions_user: item._hours.users_permissions_user,
+          amount: item._hours.amount,
+          total_amount: item._hours.total_amount,
+          _uuid: item._uuid,
+          // _hours: item._hours,
+          // _phase: item._phase,
+          // _subphase: item._subphase,
         }
+        console.log('hour to ush', hour)
         this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.push(hour)
       }
       this.updatingGantt = true

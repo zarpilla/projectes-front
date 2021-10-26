@@ -93,7 +93,8 @@ export default {
       form: {
         comment: null,
         quantity: null,
-        users_permissions_user: null
+        users_permissions_user: null,
+        amount: null
       },
       users: [],
       userNameSearch: '',
@@ -126,12 +127,15 @@ export default {
     }
   },
   watch: {
-    isActive (newValue) {
-      this.isModalActive = newValue
-      if (newValue) {
+    isActive (newValue) {        
+      if (newValue && !this.isModalActive) {        
+        this.isModalActive = newValue
         this.show()
-      } else {
+      } else if (!newValue && !this.isModalActive) {
+        this.isModalActive = newValue
         this.cancel()
+      } else  {
+        this.isModalActive = newValue
       }
     },
     dedicationObject (newValue) {
@@ -143,17 +147,18 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-      console.log('this.dedicationObject', this.dedicationObject)
+      console.log('show this.dedicationObject', this.dedicationObject)
       if (this.dedicationObject) {
+        this.form.id = this.dedicationObject.id
         this.form._hours = this.dedicationObject._hours
         this.form._phase = this.dedicationObject._phase
         this.form._subphase = this.dedicationObject._subphase
         this.form.comment = this.dedicationObject._hours.comment ? this.dedicationObject._hours.comment : null
-        this.form.quantity = this.dedicationObject.quantity
-        this.form.amount = this.dedicationObject.amount
+        this.form.quantity = this.dedicationObject._hours.quantity
+        this.form.amount = this.dedicationObject._hours.amount
         // console.log('this.dedicationObject.users_permissions_user', this.dedicationObject.users_permissions_user)
         this.form.users_permissions_user = null // this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user : null
-        this.form.id = this.dedicationObject._hours.id
+        // this.form.id = this.dedicationObject._hours.id
         this.form._uuid = this.dedicationObject._uuid
         // this.userNameSearch = this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user.username : ''
       } else {
@@ -165,11 +170,11 @@ export default {
       }
       service({ requiresAuth: true }).get('users').then((r) => {
         this.users = r.data.filter(u => u.username !== 'app')
-        console.log('this.dedicationObject', this.dedicationObject)
-        if (this.dedicationObject && this.dedicationObject.users_permissions_user) {
-          const user = this.users.find(u => u.username.toLowerCase() === this.dedicationObject.users_permissions_user.username.toLowerCase())
+        // console.log('this.dedicationObject', this.dedicationObject)
+        if (this.dedicationObject && this.dedicationObject._hours && this.dedicationObject._hours.users_permissions_user) {
+          const user = this.users.find(u => u.username.toLowerCase() === this.dedicationObject._hours.users_permissions_user.username.toLowerCase())
           this.form.users_permissions_user = user
-          console.log('this.form.amount', this.form.amount, user)
+          // console.log('this.form.amount', this.form.amount, user)
           if (this.form.amount === undefined && user.cost_by_hour) {
             this.form.amount = user.cost_by_hour
           }
@@ -179,7 +184,7 @@ export default {
         if (user && user.id && this.form.users_permissions_user === null) {
           // this.userNameSearch = user.username
           this.form.users_permissions_user = user
-          console.log('this.form.amount 2', this.form.amount, user.cost_by_hour)
+          // console.log('this.form.amount 2', this.form.amount, user.cost_by_hour)
           if (this.form.amount === undefined && user.cost_by_hour) {
             this.form.amount = user.cost_by_hour
           }
@@ -187,7 +192,8 @@ export default {
       })
     },
     cancel () {
-      this.$emit('cancel')
+      this.isModalActive = false
+      this.$emit('cancel')      
     },
     submit () {
       this.form.id = this.dedicationObject.id
@@ -195,6 +201,13 @@ export default {
       this.form._hours = this.dedicationObject._hours
       this.form._phase = this.dedicationObject._phase
       this.form._subphase = this.dedicationObject._subphase
+
+      this.form._hours.quantity = this.form.quantity
+      this.form._hours.amount = this.form.amount
+      this.form._hours.total_amount = this.form.amount * this.form.quantity
+      this.form._hours.comment = this.form.comment
+      this.form._hours.users_permissions_user = this.form.users_permissions_user
+
       this.$emit('submit', this.form)
     },
     trashModal (trashObject) {
@@ -206,6 +219,7 @@ export default {
     },
     async trashConfirm () {
       this.isDeleteModalActive = false
+      this.isModalActive = true
       this.$emit('delete', this.form)
     }
   }

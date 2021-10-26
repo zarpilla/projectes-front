@@ -75,7 +75,14 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "semi": "warn",
+      "no-tabs": "warn",
+      "indent": "warn",
+      "comma-spacing": "warn",
+      "no-mixed-spaces-and-tabs": "warn"
+    },
+    "ignorePatterns": ["src/**/*.js", "src/**/*.vue"]
   },
   "browserslist": [
     "> 1%",

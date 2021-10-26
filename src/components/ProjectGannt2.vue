@@ -44,6 +44,7 @@ import ModalBoxEstimatedHours from '@/components/ModalBoxEstimatedHours'
 import { mapState } from 'vuex'
 // import sumBy from 'lodash/sumBy'
 import { gantt } from 'dhtmlx-gantt'
+import moment from 'moment'
 
 function onItemClick (item) {
   EventBus.$emit('item-clicked', item)
@@ -55,12 +56,12 @@ export default {
   props: {
     project: Object,
     users: Array,
-    tasks: {
-      type: Object,
-      default () {
-        return { data: [], links: [] }
-      }
-    }
+    // tasks: {
+    //   type: Object,
+    //   default () {
+    //     return { data: [], links: [] }
+    //   }
+    // }
   },
   components: {
     ModalBoxEstimatedHours
@@ -71,7 +72,7 @@ export default {
   },
   watch: {
     project: function (newVal, oldVal) {
-      console.log('project changes', newVal)
+      // console.log('project changes', newVal)
       // if (gstc) gstc.destroy()
       // this.initializeGannt()
     },
@@ -92,7 +93,9 @@ export default {
       dedicationObject: null,
       state: null,
       phases: null,
-      minYear: null
+      minYear: null,
+      tasks: {},
+      updating: false
     }
   },
   mounted () {
@@ -108,14 +111,80 @@ export default {
   },
   methods: {
     initializeGannt () {
+      /*
+      tasks: {
+        data: [
+          { id: 1, text: 'Task #1', start_date: '2020-01-17', duration: 3, progress: 0.6 },
+          { id: 2, text: 'Task #2', start_date: '2020-01-20', duration: 3, progress: 0.4 }
+        ],
+        links: [
+          { id: 1, source: 1, target: 2, type: '0' }
+        ]
+      },
+      */
+      // console.log('initializeGannt', this.project)
+      this.tasks = { data: [] }
+      for (let i = 0; i < this.project.phases.length; i++) {
+        const phase = this.project.phases[i]
+        const task = { id: phase.id, text: phase.name, open: true, type: gantt.config.types.project, _phase: phase }
+        this.tasks.data.push(task)
+        for (let j = 0; j < phase.subphases.length; j++) {
+          const subphase = phase.subphases[j]
+          const unscheduled = !subphase.estimated_hours || subphase.estimated_hours.length === 0
+          // console.log('unscheduled', unscheduled)
+          const subTask = { id: 9999 + subphase.id, text: subphase.concept, parent: phase.id, open: true, unscheduled: unscheduled, type: gantt.config.types.project, _phase: phase, _subphase: subphase }
+          this.tasks.data.push(subTask)
+          
+          for (let k = 0; k < subphase.estimated_hours.length; k++) {
+            const hours = subphase.estimated_hours[k]
+            // console.log('hours', hours)
+            const hoursName = `${hours.users_permissions_user ? hours.users_permissions_user.username : ''} - ${hours.quantity}h`
+            const hoursTask = { id: 99999999 + hours.id, text: hoursName, start_date: hours.from, end_date: hours.to, parent: 9999 + subphase.id, open: true, _hours: hours, _phase: phase, _subphase: subphase }
+            this.tasks.data.push(hoursTask)
+          }
+        }
+      }
+      gantt.config.start_date = new Date(2021, 1, 1);
+			gantt.config.end_date = moment().add(3, 'year').toDate(); // new Date(2023, 2,1);
+      gantt.config.columns = [
+		    {name: "text", label: "Fases i dedicacions", tree: true, width: '*'},
+      ]
+      gantt.plugins({ click_drag: true })
       gantt.config.xml_date = '%Y-%m-%d'
       gantt.config.duration_unit = 'month'
       gantt.config.scales = [
         { unit: 'year', step: 1, format: '%Y' },
         { unit: 'month', step: 1, format: '%M' }
       ]
+      gantt.config.click_drag = {
+        callback: this.onDragEnd,
+        singleRow: true
+      }
+      gantt.attachEvent("onTaskClick", (id, e) => {
+        this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
+        if (this.dedicationObject.type === 'project') {
+          return
+        }   
+        this.isModalActive = true        
+        return true;
+      });
+      gantt.attachEvent("onAfterTaskUpdate", (id, item) => {
+        //any custom logic here        
+        // this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
+        // this.isModalActive = true
+        if (!this.updating) {
+          const task = this.tasks.data.find(t => t.id.toString() === id.toString())
+          task.start_date = item.start_date
+          task.end_date = item.end_date
+          task.end_date = item.end_date
+          // console.log('onAfterTaskUpdate item', item)
+          // console.log('onAfterTaskUpdate task', task)
+          this.$emit('gantt-item-update', task)
+        }
+      });
       gantt.init(this.$refs.gantt)
-      gantt.parse(this.$props.tasks)
+      // gantt.parse(this.$props.tasks)
+      gantt.parse(this.tasks)
     },
     // updateFirstRow () {
     //   state.update(`config.list.rows.${GSTC.api.GSTCID('0')}`, (row) => {
@@ -123,147 +192,82 @@ export default {
     //     return row
     //   })
     // },
+    onDragEnd (startPoint, endPoint, startDate, endDate, tasksBetweenDates, tasksInRow) {
+      
+      const taskName = `${this.user.username}`
+      let taskId = 0
+
+      if (tasksInRow.length === 1) {
+			  var currentTask = tasksInRow[0];
+        // console.log('currentTask', currentTask)
+
+        if (!currentTask.parent) {
+          return
+        }
+
+        var taskToAdd = null
+        const metaInfo = {
+          _uuid: this.create_UUID(),
+          _phase: currentTask._phase, 
+          _subphase: currentTask._subphase, 
+          _hours: {
+            users_permissions_user: this.user,
+            quantity: currentTask._subphase.quantity || 1
+          }
+        };
+
+        // console.log('metaInfo', metaInfo)
+
+				if (currentTask.type === "project") {
+					// currentTask.render = "split";
+					taskId = gantt.addTask({
+						text: taskName,
+						start_date: gantt.roundDate(startDate),
+						end_date: gantt.roundDate(endDate)
+					}, currentTask.id);
+
+          taskToAdd = { id: taskId, text: taskName, parent: currentTask.id, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
+
+          this.tasks.data.push(taskToAdd)
+
+          gantt.getTask(currentTask.id).start_date = gantt.roundDate(startDate)
+          gantt.getTask(currentTask.id).end_date = gantt.roundDate(endDate)
+          gantt.getTask(currentTask.id).unscheduled = false
+          gantt.updateTask(currentTask.id)
+
+				} else {
+          taskId = gantt.addTask({
+						text: taskName,
+						start_date: gantt.roundDate(startDate),
+						end_date: gantt.roundDate(endDate)
+					}, currentTask.parent);
+
+          taskToAdd = { id: taskId, text: taskName, parent: currentTask.parent, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
+
+          this.tasks.data.push(taskToAdd)
+				}
+			} else if (tasksInRow.length === 0) {
+				taskId = gantt.createTask({
+					text: taskName,
+					start_date: gantt.roundDate(startDate),
+					end_date: gantt.roundDate(endDate)
+				});
+
+        taskToAdd = { id: taskId, text: taskName, parent: currentTask.id, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
+
+        this.tasks.data.push(taskToAdd)
+			}
+      // console.log('taskToAdd', taskToAdd)
+      this.dedicationObject = taskToAdd
+      this.isModalActive = true
+
+      // console.log('taskId', taskId)
+      // console.log('this.tasks', JSON.parse(JSON.stringify(this.tasks)))
+      
+    },
     changeZoomLevel (delta) {
       this.zoom = this.zoom + delta
       // state.update('config.chart.time.zoom', this.zoom)
-    },
-    generateRows () {
-      const rows = {}
-      // for (let i = 0; i < this.project.phases.length; i++) {
-      //   const phase = this.project.phases[i]
-      //   for (let j = 0; j < phase.subphases.length; j++) {
-      //     const subphase = phase.subphases[j]
-      //     console.log('subphase', subphase)
-      //     const id2 = GSTC.api.GSTCID(('f' + i + 's' + j).toString())
-      //     rows[id2] = {
-      //       id: id2,
-      //       label: `${phase.name} - ${subphase.concept}`,
-      //       total_hours: subphase.total_estimated_hours,
-      //       total_amount: sumBy(subphase.estimated_hours, 'total_amount') + '€',
-      //       _phase: phase,
-      //       _subphase: subphase
-      //     }
-      //   }
-      // }
-      return rows
-    },
-    generateItems () {
-      const items = {}
-      // const phases = this.phases || this.project.phases
-      // for (let i = 0; i < phases.length; i++) {
-      //   const phase = phases[i]
-      //   for (let j = 0; j < phase.subphases.length; j++) {
-      //     const subphase = phase.subphases[j]
-      //     const rowId = GSTC.api.GSTCID(('f' + i + 's' + j).toString())
-      //     if (subphase.estimated_hours) {
-      //       for (let k = 0; k < subphase.estimated_hours.length; k++) {
-      //         const hours = subphase.estimated_hours[k]
-      //         // console.log('generateItems hours', hours)
-      //         // console.log('hours!!!', hours)
-      //         const id = GSTC.api.GSTCID(('f' + i + 's' + j + 'h' + k).toString())
-      //         const start = hours.from ? GSTC.api.date(hours.from) : GSTC.api.date(`${hours.year ? hours.year.year : GSTC.api.date().format('YYYY')}-${hours.month ? hours.month.month : '01'}-01`)
-      //         const end = hours.to ? GSTC.api.date(hours.to) : (hours.month ? start.endOf('month') : start.endOf('year'))
-
-      //         const months = end.diff(start, 'month') + 1 // - item.time.start
-      //         const from = GSTC.api.date(start).format('YYYY-MM-DD')
-      //         const to = GSTC.api.date(end).format('YYYY-MM-DD')
-      //         const monthlyQuantity = months > 0 ? hours.quantity / months : 0
-
-      //         const minYear = parseInt(GSTC.api.date(start).format('YYYY'))
-      //         if (!this.minYear || this.minYear > minYear) {
-      //           this.minYear = minYear
-      //         }
-
-      //         items[id] = {
-      //           id,
-      //           label: this.itemLabelContent,
-      //           rowId,
-      //           users_permissions_user: hours.users_permissions_user,
-      //           quantity: hours.quantity,
-      //           year: hours.year,
-      //           month: hours.month,
-      //           from: hours.from || from,
-      //           to: hours.to || to,
-      //           monthly_quantity: monthlyQuantity,
-      //           amount: hours.amount,
-      //           total_amount: hours.total_amount,
-      //           _phase: phase,
-      //           _subphase: subphase,
-      //           _hours: hours,
-      //           time: {
-      //             start: start.valueOf(),
-      //             end: end.valueOf()
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
-      return items
-    },
-    itemLabelContent ({ item, vido }) {
-      return vido.html`<div class="my-item-content" style="cursor:pointer;" @click=${() =>
-        onItemClick(
-          item
-        )}>${item._hours.users_permissions_user ? item._hours.users_permissions_user.username : ' ? '} - ${item._hours.quantity}h</div>`
-    },
-    addItem (cells) {
-      // if (cells.length <= 0) {
-      //   return
-      // }
-      // let rowId = ''
-      // // const id = GSTC.api.GSTCID(('f0s0k9'))
-      // const id = GSTC.api.GSTCID(this.create_UUID())
-      // let startDayjs = 0
-      // let endDayjs = 0
-      // let phase = null
-      // let subphase = null
-      // for (var i in cells) {
-      //   const cell = cells[i]
-      //   if (cell.row.id === rowId || rowId === '') {
-      //     rowId = cell.row.id
-      //     phase = cell.row._phase
-      //     subphase = cell.row._subphase
-      //     const startDayjsCell = GSTC.api.date(cell.time.leftGlobalDate).startOf('month').valueOf()
-      //     if (startDayjsCell < startDayjs || startDayjs === 0) {
-      //       startDayjs = startDayjsCell
-      //     }
-      //     const endDayjsCell = GSTC.api.date(cell.time.rightGlobalDate).endOf('month').valueOf()
-      //     if (endDayjsCell > endDayjs) {
-      //       endDayjs = endDayjsCell
-      //     }
-      //   }
-      // }
-      // // console.log('this.user', this.user)
-      // const item = {
-      //   id,
-      //   label: this.itemLabelContent,
-      //   time: {
-      //     start: startDayjs,
-      //     end: endDayjs
-      //   },
-      //   rowId,
-      //   users_permissions_user: this.user,
-      //   quantity: subphase.quantity || 1,
-      //   _uuid: this.create_UUID(),
-      //   _phase: phase,
-      //   _subphase: subphase,
-      //   _hours: {
-      //     users_permissions_user: this.user,
-      //     quantity: subphase.quantity || 1
-      //   },
-      //   // year: hours.year,
-      //   // month: hours.month,
-      //   // from: hours.from || from,
-      //   // to: hours.to || to,
-      //   monthly_quantity: 1
-      // }
-      // const items = this.generateItems()
-      // items[id] = item
-      // state.update('config.chart.items', () => {
-      //   return items
-      // })
-      // this.$emit('gantt-item-update', item)
     },
     async trashConfirm () {
       this.isModalActive = false
@@ -273,7 +277,21 @@ export default {
       // })
     },
     async modalSubmit (activity) {
-      // // console.log('modalSubmit activity', activity)
+      this.updating = true
+
+      // console.log('modalSubmit activity', activity)
+      const task = this.tasks.data.find(t => t.id.toString() === activity.id.toString())
+      // console.log('task', task)
+      const taskName = `${activity.users_permissions_user ? activity.users_permissions_user.username : ''} - ${activity.quantity}h`
+      gantt.getTask(activity.id).text = taskName      
+      gantt.updateTask(activity.id)
+
+      // const task = this.tasks.data.find(t => t.id.toString() === activity.id.toString())
+      // console.log('modalSubmit activity task', task)
+      
+      
+      // console.log('modalSubmit task', task)
+
       // const items = state.get('config.chart.items')
       // // console.log('modalSubmit items', items)
       // const itemToUpdate = items[activity.id]
@@ -291,12 +309,21 @@ export default {
       //   item._hours.quantity = itemToUpdate.quantity
       //   return item
       // })
-      // this.$emit('gantt-item-update', itemToUpdate)
-      // this.isModalActive = false
+      this.isModalActive = false
+      this.$emit('gantt-item-update', task)
+
+      this.updating = false
+      
     },
     async modalDelete (activity) {
-      // console.log('modalDelete activity', activity)
-      // this.$emit('gantt-item-delete', activity)
+      // console.log('modalDelete activity', activity, this.tasks.data)
+      this.tasks.data = this.tasks.data.filter(t => t.id.toString() !== activity.id.toString())
+      gantt.deleteTask(activity.id)
+
+      this.isModalActive = false
+
+      this.$emit('gantt-item-delete', activity)
+
       // const t = this
       // state.update('config.chart.items', {})
       // state.update('config.chart.items', () => {
@@ -314,7 +341,12 @@ export default {
       // // }
     },
     modalCancel () {
+      // console.log('modalCancel')
+      // const task = this.tasks.data.find(t => t.id.toString() === this.dedicationObject.id.toString())
+      // gantt.deleteTask(this.dedicationObject.id)
+      // this.tasks.data = this.tasks.data.filter(t => t.id.toString() !== this.dedicationObject.id.toString())
       this.isModalActive = false
+      // console.log('modalcancel', this.dedicationObject)
     },
     trashCancel () {
       this.isModalActive = false
@@ -344,6 +376,6 @@ export default {
     @import "~dhtmlx-gantt/codebase/dhtmlxgantt.css";
 
     .gantt > div {
-      height: 300px;
+      min-height: 600px;
     }
 </style>
