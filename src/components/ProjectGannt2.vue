@@ -99,13 +99,12 @@ export default {
       updating: false,
       showGantt: false,
       ganttId: '',
-      dedications: []
+      dedications: [],
+      showSubPhases: false
     }
   },
   async mounted () {
-
     this.dedications = (await service({ requiresAuth: true }).get('daily-dedications?_limit=-1')).data
-    console.log('this.dedications', this.dedications)
 
     EventBus.$on('item-clicked', (item) => {
       // console.log('item-clicked', item)
@@ -166,6 +165,10 @@ export default {
       for (let i = 0; i < this.project.phases.length; i++) {
         const phase = this.project.phases[i]
         const task = { id: phase.id, text: phase.name, open: true, type: gantt.config.types.project, _phase: phase }
+        let parentId = phase.id
+        if (this.me.options.showEstimatedHoursInPhases && phase.subphases.length) {
+          task._subphase = phase.subphases[0]
+        }
         this.tasks.data.push(task)
         for (let j = 0; j < phase.subphases.length; j++) {
           const subphase = phase.subphases[j]
@@ -174,12 +177,15 @@ export default {
           }
           const unscheduled = !subphase.estimated_hours || subphase.estimated_hours.length === 0
           const subTask = { id: 9999 + subphase.id, text: subphase.concept, parent: phase.id, open: true, unscheduled: unscheduled, type: gantt.config.types.project, _phase: phase, _subphase: subphase }
-          this.tasks.data.push(subTask)
+          if (!this.me.options.showEstimatedHoursInPhases && phase.subphases.length) {
+            this.tasks.data.push(subTask)
+            parentId = 9999 + subphase.id
+          }          
           
           for (let k = 0; k < subphase.estimated_hours.length; k++) {
             const hours = subphase.estimated_hours[k]
             const hoursName = `${hours.users_permissions_user ? hours.users_permissions_user.username : ''} - ${hours.quantity}h`
-            const hoursTask = { id: 99999999 + hours.id, text: hoursName, start_date: hours.from, end_date: hours.to, parent: 9999 + subphase.id, open: true, _hours: hours, _phase: phase, _subphase: subphase }
+            const hoursTask = { id: 99999999 + hours.id, text: hoursName, start_date: hours.from, end_date: hours.to, parent: parentId, open: true, _hours: hours, _phase: phase, _subphase: subphase }
             this.tasks.data.push(hoursTask)
             if (minDate > hours.from) {
               minDate = hours.from
