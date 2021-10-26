@@ -263,7 +263,7 @@ export default {
 			  var currentTask = tasksInRow[0];
         // console.log('currentTask', currentTask)
 
-        if (!currentTask.parent) {
+        if (!currentTask.parent && !this.me.options.showEstimatedHoursInPhases) {
           return
         }
 
