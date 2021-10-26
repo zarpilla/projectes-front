@@ -130,6 +130,9 @@ export default {
         this.tasks.data.push(task)
         for (let j = 0; j < phase.subphases.length; j++) {
           const subphase = phase.subphases[j]
+          if (!subphase.estimated_hours) {
+            subphase.estimated_hours = []
+          }
           const unscheduled = !subphase.estimated_hours || subphase.estimated_hours.length === 0
           // console.log('unscheduled', unscheduled)
           const subTask = { id: 9999 + subphase.id, text: subphase.concept, parent: phase.id, open: true, unscheduled: unscheduled, type: gantt.config.types.project, _phase: phase, _subphase: subphase }
