@@ -183,7 +183,8 @@ export default {
           }
         }
       }
-      gantt.config.start_date = new Date(2021, 1, 1);
+      const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').toDate()
+      gantt.config.start_date = initialDate;
 			gantt.config.end_date = moment().add(3, 'year').toDate(); // new Date(2023, 2,1);
       gantt.config.columns = [
 		    {name: "text", label: "Fases i dedicacions", tree: true, width: '*'},
