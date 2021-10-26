@@ -33,6 +33,9 @@
     <div class="gannt-container" v-if="showGantt">
       <!-- <div v-for="(g, i) in gantts" :key="i" class="gantt" :ref="g"></div> -->
       <div class="gantt" :id="ganttId"></div>
+      <!-- <pre>
+        {{ tasks }}
+      </pre> -->
     </div>
     
   </div>
@@ -256,7 +259,7 @@ export default {
           _subphase: currentTask._subphase, 
           _hours: {
             users_permissions_user: this.user,
-            quantity: currentTask._subphase.quantity || 1
+            quantity: currentTask._subphase && currentTask._subphase.quantity ? currentTask._subphase.quantity : 1
           }
         };
 
@@ -264,10 +267,12 @@ export default {
 
 				if (currentTask.type === "project") {
 					// currentTask.render = "split";
+
 					taskId = gantt.addTask({
 						text: taskName,
 						start_date: gantt.roundDate(startDate),
-						end_date: gantt.roundDate(endDate)
+						end_date: gantt.roundDate(endDate),
+            ...metaInfo
 					}, currentTask.id);
 
           taskToAdd = { id: taskId, text: taskName, parent: currentTask.id, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
@@ -283,14 +288,16 @@ export default {
           taskId = gantt.addTask({
 						text: taskName,
 						start_date: gantt.roundDate(startDate),
-						end_date: gantt.roundDate(endDate)
+						end_date: gantt.roundDate(endDate),
+            ...metaInfo
 					}, currentTask.parent);
 
-          taskToAdd = { id: taskId, text: taskName, parent: currentTask.parent, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
-
+          taskToAdd = { id: taskId, text: taskName, parent: currentTask.parent, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }          
+          // console.log('taskToAdd', taskToAdd)
           this.tasks.data.push(taskToAdd)
 				}
 			} else if (tasksInRow.length === 0) {
+        // TODO never?
 				taskId = gantt.createTask({
 					text: taskName,
 					start_date: gantt.roundDate(startDate),
@@ -323,7 +330,8 @@ export default {
     async modalSubmit (activity) {
       this.updating = true
 
-      // console.log('modalSubmit activity', activity)
+      console.log('modalSubmit activity', activity)
+
       const task = this.tasks.data.find(t => t.id.toString() === activity.id.toString())
       // console.log('task', task)
       const taskName = `${activity.users_permissions_user ? activity.users_permissions_user.username : ''} - ${activity.quantity}h`
