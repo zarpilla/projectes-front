@@ -421,9 +421,9 @@
             </button>
           </b-table-column>
           <template #detail="props">
-            <b-field label="Ingressos" horizontal class="has-text-left">
+            <b-field label="Ingressos!" horizontal class="has-text-left">
               <div class="readonly subphase-detail-input subphase-detail-input-phase-total">
-              <money-format :value="totalSubPhase(props.row.subphases)"
+              <money-format :value="totalSubPhase(props.row.subphases) ? totalSubPhase(props.row.subphases) : 0"
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value=false

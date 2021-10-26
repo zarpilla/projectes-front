@@ -162,7 +162,7 @@ export default {
       
       // console.log('initializeGannt', this.project)
       this.tasks = { data: [] }
-      const minDate = moment().format('YYYY-MM-DD')
+      let minDate = moment().format('YYYY-MM-DD')
       for (let i = 0; i < this.project.phases.length; i++) {
         const phase = this.project.phases[i]
         const task = { id: phase.id, text: phase.name, open: true, type: gantt.config.types.project, _phase: phase }
