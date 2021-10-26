@@ -99,7 +99,7 @@ export default {
       //   query = `${query}&[project.id]=${this.project}`
       // }
       service({ requiresAuth: true }).get(query).then((r) => {
-        console.log('projects rdata', r.data)
+        // console.log('projects rdata', r.data)
         const projects = r.data.map(p => {
           const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
           // const realIncomes = sumBy(p.emitted_invoices.map(a => { return { incomes: a.total_base } }), 'incomes')

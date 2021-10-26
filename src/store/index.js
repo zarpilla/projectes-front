@@ -68,7 +68,7 @@ export default new Vuex.Store({
     },
 
     me (state, payload) {
-      console.log('payload', payload)
+      // console.log('payload', payload)
       if (payload.me) {
         state.me = payload.me
       }

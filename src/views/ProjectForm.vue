@@ -654,7 +654,8 @@
             {{ form.phases }}
           </pre> -->
           <!-- <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" /> -->
-          <project-gannt2 v-if="!isLoading" class="left-container" :project="form" :users="leaders" :tasks="tasks" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" />
+          <project-gannt2 v-if="!isLoading && !needsUpdate && form.id && form.phases && form.phases.length && form.phases[0].id" class="left-container" :project="form" :users="leaders" :tasks="tasks" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" />
+          <span class="bg-info" v-else>Es necessari tenir fases i guardar el projecte per accedir a la planificació</span>
           <hr />
           <b-field>
             <b-button
@@ -1142,7 +1143,10 @@ export default {
       }, 500)
     },
     ganttItemUpdate (item) {
-      console.log('ganttItemUpdate', item)
+      // console.log('ganttItemUpdate', item)
+      if (!item._hours) {
+        return
+      }
       // return item
       // console.log('ganttItemUpdate _uuid', item._uuid)
       const id = item._hours.id
@@ -1155,14 +1159,14 @@ export default {
         return
       }
       const hours = this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.find(h => (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid))
-      console.log('hours', hours)
-      console.log('item', item)
+      // console.log('hours', hours)
+      // console.log('item', item)
       if (hours) {
         hours.from = moment(item.start_date).format('YYYY-MM-DD')
         hours.to = item.end_date ? moment(item.end_date).add(-1, 'day').format('YYYY-MM-DD') : moment(item.start_date).add(1, 'month').add(-1, 'day').format('YYYY-MM-DD')
         const to2 = moment(hours.to, 'YYYY-MM-DD')
         const months = moment(to2).diff(item.start_date, 'months') + 1
-        hours.monthly_quantity = item.quantity * months
+        hours.monthly_quantity = item._hours.quantity * months
         hours.quantity = item._hours.quantity
         hours.users_permissions_user = item._hours.users_permissions_user
         hours.amount = item._hours.amount
@@ -1181,7 +1185,7 @@ export default {
           // _phase: item._phase,
           // _subphase: item._subphase,
         }
-        console.log('hour to ush', hour)
+        // console.log('hour to ush', hour)
         this.form.phases.find(p => p.id === pid).subphases.find(s => s.id === sid).estimated_hours.push(hour)
       }
       this.updatingGantt = true

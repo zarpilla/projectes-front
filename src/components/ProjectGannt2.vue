@@ -10,12 +10,12 @@
     <div class='toolbox'>
       <!-- <button @click='updateFirstRow'>Update first row</button> -->
       <b-field grouped>
-        <button class="button zis-small is-primary mr-1" type="button" @click="changeZoomLevel(-1)">
+        <!-- <button class="button zis-small is-primary mr-1" type="button" @click="changeZoomLevel(-1)">
           <b-icon icon="magnify-minus" size="is-small"/>
         </button>
         <button class="button zis-small is-primary mr-1" type="button" @click="changeZoomLevel(+1)">
           <b-icon icon="magnify-plus" size="is-small"/>
-        </button>
+        </button> -->
         <b-select
           v-model="user"
           placeholder="Persona"
@@ -30,11 +30,11 @@
         </b-select>
       </b-field>
     </div>
-    <!-- <pre style="height:600px;width:800px;overflow:scroll">
-      {{ project.phases }}
-    </pre> -->
-    <!-- <div class='gstc-wrapper' ref='gstc'></div> -->
-    <div class="gantt" ref="gantt"></div>
+    <div class="gannt-container" v-if="showGantt">
+      <!-- <div v-for="(g, i) in gantts" :key="i" class="gantt" :ref="g"></div> -->
+      <div class="gantt" :id="ganttId"></div>
+    </div>
+    
   </div>
 </template>
 
@@ -95,7 +95,9 @@ export default {
       phases: null,
       minYear: null,
       tasks: {},
-      updating: false
+      updating: false,
+      showGantt: false,
+      ganttId: ''
     }
   },
   mounted () {
@@ -107,21 +109,51 @@ export default {
     EventBus.$on('phases-updated', (phases) => {
       this.phases = phases
     })
-    this.initializeGannt()
+
+    this.ganttId = 'gantt-' + this.create_UUID()
+
+    setTimeout(() => {
+      this.showGantt = true
+      // console.log('gantt', gantt)
+      gantt.clearAll();
+      
+
+      this.tasks = { data: [] }
+
+      setTimeout(() => {
+        this.initializeGannt()
+      }, 250)
+    }, 250)
+    
+  },
+  beforeDestroy() {
+    // console.log('beforeDestroy')
+    // var myGantt = Gantt.getGanttInstance();
+    // console.log('myGantt', myGantt)
+    //destroying a gantt instance
+    // gantt.destructor();
+
+    gantt.detachEvent("onTaskClick");
+    gantt.detachEvent("onAfterTaskUpdate");
+
+
+    this.showGantt = false
   },
   methods: {
     initializeGannt () {
-      /*
-      tasks: {
-        data: [
-          { id: 1, text: 'Task #1', start_date: '2020-01-17', duration: 3, progress: 0.6 },
-          { id: 2, text: 'Task #2', start_date: '2020-01-20', duration: 3, progress: 0.4 }
-        ],
-        links: [
-          { id: 1, source: 1, target: 2, type: '0' }
-        ]
-      },
-      */
+
+      // console.log('initializeGannt!!!')
+      
+      // const xtasks = {
+      //   data: [
+      //     { id: 1, text: 'Task #1', start_date: '2020-01-17', duration: 3, progress: 0.6 },
+      //     { id: 2, text: 'Task #2', start_date: '2020-01-20', duration: 3, progress: 0.4 }
+      //   ],
+      //   links: [
+      //     { id: 1, source: 1, target: 2, type: '0' }
+      //   ]
+      // }
+      
       // console.log('initializeGannt', this.project)
       this.tasks = { data: [] }
       for (let i = 0; i < this.project.phases.length; i++) {
@@ -134,13 +166,11 @@ export default {
             subphase.estimated_hours = []
           }
           const unscheduled = !subphase.estimated_hours || subphase.estimated_hours.length === 0
-          // console.log('unscheduled', unscheduled)
           const subTask = { id: 9999 + subphase.id, text: subphase.concept, parent: phase.id, open: true, unscheduled: unscheduled, type: gantt.config.types.project, _phase: phase, _subphase: subphase }
           this.tasks.data.push(subTask)
           
           for (let k = 0; k < subphase.estimated_hours.length; k++) {
             const hours = subphase.estimated_hours[k]
-            // console.log('hours', hours)
             const hoursName = `${hours.users_permissions_user ? hours.users_permissions_user.username : ''} - ${hours.quantity}h`
             const hoursTask = { id: 99999999 + hours.id, text: hoursName, start_date: hours.from, end_date: hours.to, parent: 9999 + subphase.id, open: true, _hours: hours, _phase: phase, _subphase: subphase }
             this.tasks.data.push(hoursTask)
@@ -170,12 +200,14 @@ export default {
         }   
         this.isModalActive = true        
         return true;
-      });
+      }, {id: "onTaskClick"});
       gantt.attachEvent("onAfterTaskUpdate", (id, item) => {
         //any custom logic here        
         // this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
         // this.isModalActive = true
         if (!this.updating) {
+          // console.log('onAfterTaskUpdate', item)
+          // console.log('onAfterTaskUpdate', this.tasks.data)
           const task = this.tasks.data.find(t => t.id.toString() === id.toString())
           task.start_date = item.start_date
           task.end_date = item.end_date
@@ -184,10 +216,19 @@ export default {
           // console.log('onAfterTaskUpdate task', task)
           this.$emit('gantt-item-update', task)
         }
-      });
-      gantt.init(this.$refs.gantt)
+      }, {id: "onAfterTaskUpdate"});
+      gantt.init(this.ganttId)
       // gantt.parse(this.$props.tasks)
-      gantt.parse(this.tasks)
+
+      // console.log('initializeGannt tasks', this.tasks)
+
+      gantt.parse(this.tasks);
+
+      // setTimeout(() => {
+      //   gantt.refreshData();
+      // }, 500)
+
+      
     },
     // updateFirstRow () {
     //   state.update(`config.list.rows.${GSTC.api.GSTCID('0')}`, (row) => {
@@ -380,5 +421,8 @@ export default {
 
     .gantt > div {
       min-height: 600px;
+    }
+    .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
+      min-width: 300px;
     }
 </style>
