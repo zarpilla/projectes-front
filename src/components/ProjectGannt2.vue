@@ -6,6 +6,7 @@
       @submit="modalSubmit"
       @cancel="modalCancel"
       @delete="modalDelete"
+      :dedications="dedications"
     />
     <div class='toolbox'>
       <!-- <button @click='updateFirstRow'>Update first row</button> -->
@@ -48,10 +49,7 @@ import { mapState } from 'vuex'
 // import sumBy from 'lodash/sumBy'
 import { gantt } from 'dhtmlx-gantt'
 import moment from 'moment'
-
-function onItemClick (item) {
-  EventBus.$emit('item-clicked', item)
-}
+import service from '@/service/index'
 
 // main component
 export default {
@@ -100,10 +98,15 @@ export default {
       tasks: {},
       updating: false,
       showGantt: false,
-      ganttId: ''
+      ganttId: '',
+      dedications: []
     }
   },
-  mounted () {
+  async mounted () {
+
+    this.dedications = (await service({ requiresAuth: true }).get('daily-dedications?_limit=-1')).data
+    console.log('this.dedications', this.dedications)
+
     EventBus.$on('item-clicked', (item) => {
       // console.log('item-clicked', item)
       this.dedicationObject = item
@@ -432,5 +435,8 @@ export default {
     }
     .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
       min-width: 300px;
+    }
+    .gantt_task_line.gantt_project, .gantt_task_line {
+      border-radius: 30px;
     }
 </style>
