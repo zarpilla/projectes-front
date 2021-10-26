@@ -64,7 +64,7 @@ export default {
     //   this.getActivities()
     // },
     projectState: function (newVal, oldVal) {
-      console.log('filter state', newVal)
+      // console.log('filter state', newVal)
       this.getActivities()
     }
   },
@@ -112,8 +112,8 @@ export default {
                 day: a.date ? moment(a.date).format('DD').toString() : 0,
                 date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
                 username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
-                dedication_type: '-', // a.dedication_type ? this.dedicationTypes.find(t => t.id === a.dedication_type).name : '-',
-                activity_type: '-', // a.activity_type ? this.activityTypes.find(t => t.id === a.activity_type).name : '-',
+                dedication_type: a.dedication_type ? this.dedicationTypes.find(t => t.id === a.dedication_type).name : '-',
+                activity_type: a.activity_type ? this.activityTypes.find(t => t.id === a.activity_type).name : '-',
                 count: 1
               }
               activities.push(activity)

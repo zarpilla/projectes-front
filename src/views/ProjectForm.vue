@@ -1042,7 +1042,7 @@ export default {
           this.getData()
         } else {
           const newProject = await service({ requiresAuth: true }).post('projects', this.form)
-          console.log('newProject', newProject.data)
+          // console.log('newProject', newProject.data)
           this.$router.push({ name: 'project.edit', params: { id: newProject.data.id } })
           // this.getData()
         }

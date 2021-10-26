@@ -60,7 +60,7 @@ export default {
     //   this.getActivities()
     // },
     projectState: function (newVal, oldVal) {
-      console.log('filter state', newVal)
+      // console.log('filter state', newVal)
       this.getActivities()
     }
   },
