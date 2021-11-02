@@ -152,7 +152,7 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-      console.log('show this.dedicationObject', this.dedicationObject)
+      // console.log('show this.dedicationObject', this.dedicationObject)
       if (this.dedicationObject) {
         this.form.id = this.dedicationObject.id
         this.form._hours = this.dedicationObject._hours
@@ -183,7 +183,7 @@ export default {
           this.form.users_permissions_user = user
           const today = moment().format('YYYY-MM-DD')
           const dedication = this.dedications.find(d => d.users_permissions_user && d.users_permissions_user.id === user.id && d.from <= today && d.to >= today)
-          if (this.form.amount === undefined && dedication.costByHour) {
+          if (this.form.amount === undefined && dedication && dedication.costByHour) {
             this.form.amount = dedication.costByHour
           }
           return

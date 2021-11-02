@@ -258,17 +258,17 @@ export default {
       
       const taskName = `${this.user.username}`
       let taskId = 0
-
+      
       if (tasksInRow.length === 1) {
 			  var currentTask = tasksInRow[0];
-        // console.log('currentTask', currentTask)
+        
 
         if (!currentTask.parent && !this.me.options.showEstimatedHoursInPhases) {
           return
         }
 
         var taskToAdd = null
-        const metaInfo = {
+        var metaInfo = {
           _uuid: this.create_UUID(),
           _phase: currentTask._phase, 
           _subphase: currentTask._subphase, 
@@ -311,17 +311,67 @@ export default {
           // console.log('taskToAdd', taskToAdd)
           this.tasks.data.push(taskToAdd)
 				}
-			} else if (tasksInRow.length === 0) {
-        // TODO never?
-				taskId = gantt.createTask({
-					text: taskName,
-					start_date: gantt.roundDate(startDate),
-					end_date: gantt.roundDate(endDate)
-				});
+      } else if (tasksInRow.length > 1) {
+        const ph = this.project.phases[this.project.phases.length - 1]
+        const sph = ph.subphases[ph.subphases.length - 1]
+        currentTask = tasksInRow.find(t => t.type === 'project' && t._subphase.id === sph.id)
+        if (!currentTask) {
+          return
+        }
+        metaInfo = {
+          _uuid: this.create_UUID(),
+          _phase: currentTask._phase, 
+          _subphase: currentTask._subphase, 
+          _hours: {
+            users_permissions_user: this.user,
+            quantity: currentTask._subphase && currentTask._subphase.quantity ? currentTask._subphase.quantity : 1
+          }
+        };
+
+        // console.log('currentTask!!', currentTask)
+        taskId = gantt.addTask({
+          text: taskName,
+          start_date: gantt.roundDate(startDate),
+          end_date: gantt.roundDate(endDate),
+          ...metaInfo
+        }, currentTask.id);
 
         taskToAdd = { id: taskId, text: taskName, parent: currentTask.id, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
 
         this.tasks.data.push(taskToAdd)
+
+        gantt.getTask(currentTask.id).start_date = gantt.roundDate(startDate)
+        gantt.getTask(currentTask.id).end_date = gantt.roundDate(endDate)
+        gantt.getTask(currentTask.id).unscheduled = false
+        gantt.updateTask(currentTask.id)
+
+			} else if (tasksInRow.length === 0) {
+        // last phase
+        console.log('this.tasks.data', this.tasks.data)
+        // const ph = this.project.phases[this.project.phases.length - 1]
+        // const sph = ph.subphases[ph.subphases.length - 1]
+
+        // const metaInfo = {
+        //   _uuid: this.create_UUID(),
+        //   _phase: ph, 
+        //   _subphase: sph, 
+        //   _hours: {
+        //     users_permissions_user: this.user,
+        //     quantity: sph && sph.quantity ? sph.quantity : 1
+        //   }
+        // };
+
+
+        // // TODO never?
+				// taskId = gantt.createTask({
+				// 	text: taskName,
+				// 	start_date: gantt.roundDate(startDate),
+				// 	end_date: gantt.roundDate(endDate)
+				// });
+
+        // taskToAdd = { id: taskId, text: taskName, parent: currentTask.id, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
+
+        // this.tasks.data.push(taskToAdd)
 			}
       // console.log('taskToAdd', taskToAdd)
       this.dedicationObject = taskToAdd
@@ -345,7 +395,7 @@ export default {
     async modalSubmit (activity) {
       this.updating = true
 
-      console.log('modalSubmit activity', activity)
+      // console.log('modalSubmit activity', activity)
 
       const task = this.tasks.data.find(t => t.id.toString() === activity.id.toString())
       // console.log('task', task)
