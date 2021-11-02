@@ -30,7 +30,7 @@
           class="tile is-child"
           type="is-info"
           icon="scale-balance"
-          :number="realIncomes - realExpenses"
+          :number="(realIncomes - realExpenses).toFixed(2)"
           suffix="€"
           label="Resultat real"
         />
@@ -38,7 +38,7 @@
           class="tile is-child"
           type="is-info"
           icon="scale-balance"
-          :number="balance"
+          :number="balance.toFixed(2)"
           suffix="€"
           label="Resultat previst"
         />
