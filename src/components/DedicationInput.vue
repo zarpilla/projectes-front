@@ -2,13 +2,14 @@
   <div>
     <modal-box
       :is-active="isModalActive"
-      :trash-object-name="trashObjectName"
+      :trash-object-name="trashObjectName"      
       @confirm="trashConfirm"
       @cancel="trashCancel"
     />
     <modal-box-dedication
       :is-active="isModalEditActive"
       :dedication-object="dedicationObject"
+      :projects="projects"
       @submit="modalSubmit"
       @cancel="modalCancel"
       @delete="modalDelete"

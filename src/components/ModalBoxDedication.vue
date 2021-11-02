@@ -124,7 +124,12 @@ export default {
     dedicationObject: {
       type: Object,
       default: null
+    },
+    projects: {
+      type: Array,
+      default: []
     }
+    
   },
   data () {
     return {
@@ -142,7 +147,7 @@ export default {
         dedication_type: null,
         activity_type: null
       },
-      projects: [],
+      // projects: [],
       dedicationTypes: {},
       activityTypes: {},
       users: [],
@@ -228,11 +233,11 @@ export default {
         this.form.id = 0
       }
 
-      service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
-        this.projects = r.data.filter(p => p.project_state !== 2)
-        // console.log('this.projects', this.projects)
-        this.projectChanged()
-      })
+      // service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
+      //   this.projects = r.data.filter(p => p.project_state !== 2)
+      //   // console.log('this.projects', this.projects)
+      //   this.projectChanged()
+      // })
       service({ requiresAuth: true }).get('dedication-types').then((r) => {
         this.hasDedications = false
         for (var i in r.data) {

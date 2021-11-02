@@ -421,7 +421,7 @@
             </button>
           </b-table-column>
           <template #detail="props">
-            <b-field label="Ingressos!" horizontal class="has-text-left">
+            <b-field label="Ingressos" horizontal class="has-text-left">
               <div class="readonly subphase-detail-input subphase-detail-input-phase-total">
               <money-format :value="totalSubPhase(props.row.subphases) ? totalSubPhase(props.row.subphases) : 0"
                 :locale="'es'"
@@ -930,6 +930,9 @@ export default {
                 mustUpdate = true
                 for (let i = 0; i < this.form.incomes.length; i++) {
                   const income = this.form.incomes[i]
+                  if (income.client && !income.client.id) {
+                    delete income.client
+                  }
                   delete income.id
                   phase.subphases.push(income)
                 }
@@ -1036,6 +1039,10 @@ export default {
     },
     async submit () {
       this.isLoading = true
+
+      if (!this.form.structural_expenses_pct) {
+        this.form.structural_expenses_pct = null
+      }
 
       try {
         if (this.form.id) {
