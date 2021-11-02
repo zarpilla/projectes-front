@@ -258,7 +258,7 @@ export default {
       
       const taskName = `${this.user.username}`
       let taskId = 0
-      
+      // console.log('tasksInRow', tasksInRow)
       if (tasksInRow.length === 1) {
 			  var currentTask = tasksInRow[0];
         
@@ -314,7 +314,9 @@ export default {
       } else if (tasksInRow.length > 1) {
         const ph = this.project.phases[this.project.phases.length - 1]
         const sph = ph.subphases[ph.subphases.length - 1]
-        currentTask = tasksInRow.find(t => t.type === 'project' && t._subphase.id === sph.id)
+        // console.log('sph', sph)
+        var projects = tasksInRow.filter(t => t.type === 'project')
+        currentTask = projects[projects.length - 1]
         if (!currentTask) {
           return
         }
