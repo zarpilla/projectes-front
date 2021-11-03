@@ -94,6 +94,14 @@
                 Nou projecte
               </b-button>
             </b-field>
+            <b-field horizontal>
+              <download-csv class="export" :data="projectsCSV">
+                <b-button
+                title="Exporta dades"
+                class="export-button"
+                icon-left="export" />
+              </download-csv>
+            </b-field>
           </b-field>
         </form>
       </card-component>
@@ -182,6 +190,28 @@ export default {
   computed: {
     titleStack () {
       return ['Projectes', 'General']
+    },
+    projectsCSV () {
+      // return this.projects
+      return this.projects.map(p => { return { 
+        id: p.id,
+        name: p.name,
+        state: p.project_state && p.project_state.id ? p.project_state.name : '',
+        scope: p.project_scope && p.project_scope.id ? p.project_scope.name : '',
+        leader: p.leader && p.leader.id ? p.leader.name : '',
+        estimated_hours: p.total_estimated_hours,        
+        real_hours: p.total_real_hours,
+
+        estimated_incomes: p.total_incomes,
+        estimated_expenses: p.total_expenses,
+        estimated_hours_price: p.total_estimated_hours_price,
+        estimated_result: p.incomes_expenses,
+        
+        real_incomes: p.total_real_incomes,
+        real_expenses: p.total_real_expenses,
+        real_hours_price: p.total_real_hours_price,
+        real_result: p.total_real_incomes_expenses
+      }})
     }
   },
   mounted () {
