@@ -30,8 +30,8 @@
         :data="treasuryData"
         :row-class="(row, index) => row.subtotal < 0 && 'has-text-danger has-text-bold' || row.type == 'Avui' && 'has-text-info' "
       >
-        <b-table-column label="Data" field="date" v-slot="props">
-          {{ formatDate(props.row.date) }}
+        <b-table-column label="Data" field="datex" v-slot="props">
+          {{ props.row.datex }}
           <b-icon
             v-if="props.row.date_error"
             class="has-text-danger"
@@ -138,8 +138,7 @@ export default {
       service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
         this.projects = r.data
         this.projects.forEach(p => {
-          p.expenses.forEach(e => {
-            // console.log('e', e)
+          p.expenses.forEach(e => {                        
             if (!e.paid) {
               const expense = {
                 project_name: p.name,
@@ -191,8 +190,8 @@ export default {
           })
 
           p.phases.forEach(ph => {
-            ph.expenses.forEach(e => {
-              // console.log('e', e)
+            ph.expenses.forEach((e, i) => {
+              // console.log('expenses', e)
               if (!e.paid) {
                 const expense = {
                   expenseId: e.id,
@@ -206,7 +205,7 @@ export default {
                   paid: false,
                   contact: e.provider && e.provider.name ? e.provider.name : '-'
                 }
-                this.treasury.push(expense)
+                this.treasury.push(expense)                
               }
               if (e.invoice && e.invoice.id) {
                 this.projectExpenses.push({ type: 'invoice', id: e.invoice.id, code: e.invoice.code })
@@ -276,15 +275,14 @@ export default {
         this.treasury.push(today)
         // emitted
         this.emitted.forEach(i => {
-          // const date = i.paid_date ? moment(i.paid_date, 'YYYY-MM-DD') : (i.paybefore ? moment(i.paybefore, 'YYYY-MM-DD') : i.emitted ? moment(i.emitted, 'YYYY-MM-DD') : moment())
-          const date = i.paid_date ? moment(i.paid_date, 'YYYY-MM-DD') : moment.max([i.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), i.emitted ? moment(i.emitted, 'YYYY-MM-DD') : moment(), moment()])
+          const date = i.paid_date ? moment(i.paid_date, 'YYYY-MM-DD') : moment.max([i.paybefore ? moment(i.paybefore, 'YYYY-MM-DD') : moment(), i.emitted ? moment(i.emitted, 'YYYY-MM-DD') : moment(), moment()])
           const income = {
             project_name: i.project && i.project.name ? i.project.name : '',
             project_id: i.project ? i.project.id : 0,
             type: i.paid ? 'Factura cobrada' : 'Factura emesa',
             concept: i.code,
             total_amount: i.total ? Math.abs(i.total) : 0,
-            date: date.format('YYYYMMDD'),
+            date: date,
             date_error: (i.paid_date || i.paybefore || i.emitted) === null,
             real: true,
             pdf: i.pdf,
@@ -302,7 +300,7 @@ export default {
             type: e.paid ? 'Factura pagada' : 'Factura rebuda',
             concept: e.code,
             total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: date.format('YYYYMMDD'),
+            date: date,
             date_error: false,
             paid: e.paid,
             real: true,
@@ -319,7 +317,7 @@ export default {
             type: 'Dieta',
             concept: e.code,
             total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: date.format('YYYYMMDD'),
+            date: date,
             date_error: (e.paid_date || e.paybefore || e.emitted) === null,
             paid: e.paid,
             contact: e.contact && e.contact.name ? e.contact.name : '-'
@@ -334,7 +332,7 @@ export default {
             type: 'Ticket',
             concept: e.code,
             total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: date.format('YYYYMMDD'),
+            date: date,
             date_error: (e.paid_date || e.emitted) === null,
             paid: e.paid,
             contact: e.provider && e.provider.name ? e.provider.name : '-'
@@ -342,16 +340,17 @@ export default {
           this.treasury.push(expense)
         })
         // sort and show
-        const treasuryData = sortBy(this.treasury, (o) => {
-          // console.log('o', o && o.date && o.date.format ? '' : o)
-          return o.date > 0 ? o.date : moment() // .format('YYYYMMDD')
-        })
+        
+        this.treasury = this.treasury.map(t => { return { ...t, datef: t.date.format('YYYYMMDD')}})
+        console.log('this.treasury 2',this.treasury)
+        const treasuryData = sortBy(this.treasury, 'datef')
         let subtotal = 0
         for (let i = 0; i < treasuryData.length; i++) {
           const t = treasuryData[i]
           subtotal += t.total_amount
-          this.treasuryData.push({ ...t, date: t.date > 0 ? t.date : moment(), subtotal })
+          this.treasuryData.push({ ...t, datex: moment(treasuryData[i].datef, 'YYYYMMDD').format('DD-MM-YYYY'), subtotal })
         }
+        console.log('this.treasury 3',this.treasuryData)
       })
 
       this.isLoading = false
