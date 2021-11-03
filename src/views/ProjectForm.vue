@@ -294,6 +294,51 @@
               </money-format>
             </div>
           </b-field>
+          <!-- <hr v-if="me.options && me.options.treasury">
+          <b-field label="Ingressos executats" horizontal v-if="me.options && me.options.treasury">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="executedIncomes"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value=false
+                  :hide-subunits=false>
+                </money-format>
+            </div>
+          </b-field>
+          <b-field label="Despeses executades" horizontal v-if="me.options && me.options.treasury">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="executedExpenses"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value=false
+                  :hide-subunits=false>
+                </money-format>
+            </div>
+          </b-field>
+          <b-field label="Hores executades" horizontal v-if="me.options && me.options.userHasCostByHour">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="form.total_real_hours_price"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value=false
+                  :hide-subunits=false>
+                </money-format>
+            </div>
+          </b-field>
+          <b-field label="Resultat executat" horizontal v-if="me.options && me.options.treasury">
+            <div
+              class="readonly subphase-detail-input">
+              <money-format :value="executedIncomes - executedExpenses - form.total_real_hours_price"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value=false
+                :hide-subunits=false>
+              </money-format>
+            </div>
+          </b-field> -->
           <hr v-if="me.options && me.options.treasury">
           <b-field label="Ingressos reals" horizontal v-if="me.options && me.options.treasury">
             <div
@@ -845,6 +890,14 @@ export default {
     },
     totalExpenses () {
       return sumBy(this.form.expenses, x => x.quantity * x.amount)
+    },
+    executedIncomes () {
+      return sumBy(this.form.emitted_invoices, x => x.total_base) + sumBy(this.form.received_grants, x => x.total_base)
+
+    },
+    executedExpenses () {
+      return sumBy(this.form.received_invoices, x => x.total_base) + sumBy(this.form.tickets, x => x.total_base) + sumBy(this.form.diets, x => x.total_base)
+
     }
   },
   watch: {

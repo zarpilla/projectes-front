@@ -15,6 +15,13 @@
       @submit="modalSubmit"
       @cancel="modalCancel"
     />
+    <download-csv class="export view-button" :data="treasuryData" v-if="treasuryData && treasuryData.length">
+      <b-button
+      title="Exporta dades"
+      class="zview-button"
+      :type="'is-disabled'"
+      icon-left="export" />
+    </download-csv>
     <section class="section">
       <b-table
         :loading="isLoading"
@@ -32,12 +39,12 @@
             title="No hi ha data"
             size="is-small">
           </b-icon>
+        </b-table-column>        
+        <b-table-column label="Import" field="total_amount" v-slot="props">
+          {{ formatPrice(props.row.total_amount) }} €
         </b-table-column>
         <b-table-column label="Saldo" field="subtotal" v-slot="props">
           {{ formatPrice(props.row.subtotal) }} €
-        </b-table-column>
-        <b-table-column label="Import" field="total_amount" v-slot="props">
-          {{ formatPrice(props.row.total_amount) }} €
         </b-table-column>
         <b-table-column label="Moviment" field="type" v-slot="props">
           <span :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'">
@@ -342,7 +349,7 @@ export default {
         for (let i = 0; i < treasuryData.length; i++) {
           const t = treasuryData[i]
           subtotal += t.total_amount
-          this.treasuryData.push({ ...t, subtotal })
+          this.treasuryData.push({ ...t, date: treasuryData[i].date.format('DD-MM-YYYY'), subtotal })
         }
       })
 
