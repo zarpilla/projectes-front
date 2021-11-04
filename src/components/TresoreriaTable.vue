@@ -15,13 +15,13 @@
       @submit="modalSubmit"
       @cancel="modalCancel"
     />
-    <download-csv class="export view-button" :data="treasuryData" v-if="treasuryData && treasuryData.length">
+    <download-excel class="export view-button" :data="treasuryData" v-if="treasuryData && treasuryData.length">
       <b-button
       title="Exporta dades"
       class="zview-button"
       :type="'is-disabled'"
-      icon-left="export" />
-    </download-csv>
+      icon-left="file-excel" />
+    </download-excel>
     <section class="section">
       <b-table
         :loading="isLoading"
@@ -342,7 +342,7 @@ export default {
         // sort and show
         
         this.treasury = this.treasury.map(t => { return { ...t, datef: t.date.format('YYYYMMDD')}})
-        console.log('this.treasury 2',this.treasury)
+        // console.log('this.treasury 2',this.treasury)
         const treasuryData = sortBy(this.treasury, 'datef')
         let subtotal = 0
         for (let i = 0; i < treasuryData.length; i++) {

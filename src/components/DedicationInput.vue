@@ -23,7 +23,7 @@
               <b-button
               class="zview-button"
               :type="'is-disabled'"
-              icon-left="export" />
+              icon-left="file-excel" />
             </download-csv> -->
           </div>
           <div class="column has-text-weight-bold">
@@ -49,13 +49,13 @@
               :type="viewType == 'table' ? 'is-primary' : 'is-disabled'"
               icon-left="table-large" />
             <span class="separator"></span>
-            <download-csv class="export view-button" :data="activitiesJSON">
+            <download-excel class="export view-button" :data="activitiesJSON">
               <b-button
               title="Exporta dades"
               class="zview-button"
               :type="'is-disabled'"
-              icon-left="export" />
-            </download-csv>
+              icon-left="file-excel" />
+            </download-excel>
             <span class="separator"></span>
             <b-button
               title="Vista persona"

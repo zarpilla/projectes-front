@@ -1,12 +1,12 @@
 <template>
   <div>
     <div id="project-despeses"></div>
-    <download-csv class="export" :data="pivotData">
+    <download-excel class="export" :data="pivotData">
       <b-button
       title="Exporta dades"
       class="export-button"
-      icon-left="export" />
-    </download-csv>
+      icon-left="file-excel" />
+    </download-excel>
     <!-- <pre>
       {{pivotData}}
     </pre> -->

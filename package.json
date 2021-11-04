@@ -35,6 +35,7 @@
     "vue-currency-input": "^2.0.2",
     "vue-full-calendar": "^2.8.1-0",
     "vue-json-csv": "^1.2.12",
+    "vue-json-excel": "^0.3.0",
     "vue-moment": "^4.1.0",
     "vue-money-format": "^1.2.4",
     "vue-pivot-table-plus": "^0.7.0",
@@ -82,7 +83,10 @@
       "comma-spacing": "warn",
       "no-mixed-spaces-and-tabs": "warn"
     },
-    "ignorePatterns": ["src/**/*.js", "src/**/*.vue"]
+    "ignorePatterns": [
+      "src/**/*.js",
+      "src/**/*.vue"
+    ]
   },
   "browserslist": [
     "> 1%",

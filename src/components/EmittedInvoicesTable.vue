@@ -1,11 +1,11 @@
 <template>
   <section class="xsection">
-    <download-csv class="export" :data="emittedCSV">
+    <download-excel class="export" :data="emittedCSV">
       <b-button
       title="Exporta dades"
       class="export-button mb-3"
-      icon-left="export" />
-    </download-csv>
+      icon-left="file-excel" />
+    </download-excel>
     <b-table
       :loading="isLoading"
       :paginated="false"
