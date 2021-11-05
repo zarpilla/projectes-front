@@ -210,19 +210,19 @@ export default {
             p.project_state && p.project_state.id ? p.project_state.name : "",
           scope:
             p.project_scope && p.project_scope.id ? p.project_scope.name : "",
-          leader: p.leader && p.leader.id ? p.leader.name : "",
-          estimated_hours: p.total_estimated_hours,
-          real_hours: p.total_real_hours,
+          leader: p.leader && p.leader.id ? p.leader.username : "",
+          estimated_hours: p.total_estimated_hours.toString().replace('.', ','),
+          real_hours: p.total_real_hours.toString().replace('.', ','),
 
-          estimated_incomes: p.total_incomes,
-          estimated_expenses: p.total_expenses,
-          estimated_hours_price: p.total_estimated_hours_price,
-          estimated_result: p.incomes_expenses,
+          estimated_incomes: p.total_incomes.toString().replace('.', ','),
+          estimated_expenses: p.total_expenses.toString().replace('.', ','),
+          estimated_hours_price: p.total_estimated_hours_price.toString().replace('.', ','),
+          estimated_result: p.incomes_expenses.toString().replace('.', ','),
 
-          real_incomes: p.total_real_incomes,
-          real_expenses: p.total_real_expenses,
-          real_hours_price: p.total_real_hours_price,
-          real_result: p.total_real_incomes_expenses,
+          real_incomes: p.total_real_incomes.toString().replace('.', ','),
+          real_expenses: p.total_real_expenses.toString().replace('.', ','),
+          real_hours_price: p.total_real_hours_price.toString().replace('.', ','),
+          real_result: p.total_real_incomes_expenses.toString().replace('.', ','),
         };
       });
       return projectsCSV;

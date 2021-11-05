@@ -1,6 +1,6 @@
 <template>
   <div>
-      <!-- <modal-box
+    <!-- <modal-box
         :is-active="isModalActive"
         :message="'El concepte es marcarà com a pagat i desapareixerà de la tresoreria'"
         :title="'Marcat com a pagat'"
@@ -15,20 +15,101 @@
       @submit="modalSubmit"
       @cancel="modalCancel"
     />
-    <download-excel class="export view-button" :data="treasuryData" v-if="treasuryData && treasuryData.length">
+    <download-excel
+      class="export view-button"
+      :data="pivotData"
+      v-if="treasuryData && treasuryData.length"
+    >
       <b-button
-      title="Exporta dades"
-      class="zview-button"
-      :type="'is-disabled'"
-      icon-left="file-excel" />
+        title="Exporta dades"
+        class="zview-button"
+        :type="'is-disabled'"
+        icon-left="file-excel"
+      />
     </download-excel>
+
+    <!-- <pre>{{ pivotData }}</pre> -->
+    <section class="section">
+  <div class="b-table treasury-table">
+    <div class="table-wrapper has-mobile-cards has-sticky-header table-container">
+    <table class="table">
+      <thead>
+        <th></th>
+        <th class="has-text-right" >
+          <div class="zth-wrap has-text-right">
+              <span class="is-relative">
+          Avui
+          </span>
+          </div>
+        </th>
+        <th class="has-text-right" v-for="(column, i) in pivotData" :key="i">
+          <div class="zth-wrap has-text-right">
+              <span class="is-relative">
+          {{ column.month }} / {{ column.year }} 
+          </span>
+          </div>
+        </th>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="has-text-weight-bold">Balanç</td>
+          <td class="has-text-right"></td>
+          <td class="has-text-right" v-for="(data, i) in pivotData" :key="i">
+            {{ formatPrice(data.total_amount) }} €
+          </td>
+        </tr>
+        <tr>
+          <td class="has-text-weight-bold">Ingressos</td>
+          <td class="has-text-right"></td>
+          <td class="has-text-right" v-for="(data, i) in pivotData" :key="i">
+            {{ formatPrice(data.total_incomes) }} €
+          </td>
+        </tr>
+        <tr>
+          <td class="has-text-weight-bold">Despeses</td>
+          <td class="has-text-right"></td>
+          <td class="has-text-right" v-for="(data, i) in pivotData" :key="i">
+            {{ formatPrice(data.total_expenses) }} €
+          </td>
+        </tr>
+        <tr>
+          <td class="has-text-weight-bold">Saldo</td>
+          <td class="has-text-right">{{ formatPrice(todaySubTotal) }}€</td>
+          <td class="has-text-right has-text-weight-bold" v-for="(data, i) in pivotData" :key="i">
+            {{ formatPrice(data.subtotal) }} €
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+</div>
+
+<download-excel
+      class="export view-button"
+      :data="treasuryData"
+      v-if="treasuryData && treasuryData.length"
+    >
+      <b-button
+        title="Exporta dades"
+        class="zview-button"
+        :type="'is-disabled'"
+        icon-left="file-excel"
+      />
+    </download-excel>
+
+</section>
+    <!-- <div id="treasury-pivot"></div> -->
     <section class="section">
       <b-table
         :loading="isLoading"
         :paginated="false"
         :striped="false"
         :data="treasuryData"
-        :row-class="(row, index) => row.subtotal < 0 && 'has-text-danger has-text-bold' || row.type == 'Avui' && 'has-text-info' "
+        :row-class="
+          (row, index) =>
+            (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
+            (row.type == 'Avui' && 'has-text-info')
+        "
       >
         <b-table-column label="Data" field="datex" v-slot="props">
           {{ props.row.datex }}
@@ -37,9 +118,10 @@
             class="has-text-danger"
             icon="alert-circle"
             title="No hi ha data"
-            size="is-small">
+            size="is-small"
+          >
           </b-icon>
-        </b-table-column>        
+        </b-table-column>
         <b-table-column label="Import" field="total_amount" v-slot="props">
           {{ formatPrice(props.row.total_amount) }} €
         </b-table-column>
@@ -47,8 +129,10 @@
           {{ formatPrice(props.row.subtotal) }} €
         </b-table-column>
         <b-table-column label="Moviment" field="type" v-slot="props">
-          <span :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'">
-          {{ props.row.type }}
+          <span
+            :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'"
+          >
+            {{ props.row.type }}
           </span>
         </b-table-column>
         <b-table-column label="Concepte" field="concept" v-slot="props">
@@ -58,21 +142,35 @@
           <span v-else>{{ props.row.concept }}</span>
         </b-table-column>
         <b-table-column label="Projecte" field="project_name" v-slot="props">
-          <router-link :to="{name:'project.edit', params: {id: props.row.project_id}}">
+          <router-link
+            :to="{ name: 'project.edit', params: { id: props.row.project_id } }"
+          >
             <span class="project-name has-text-info">
               {{ props.row.project_name }}
             </span>
-            </router-link>
+          </router-link>
         </b-table-column>
         <b-table-column label="Contacte" field="contact" v-slot="props">
           {{ props.row.contact }}
         </b-table-column>
         <b-table-column label="Accions" v-slot="props">
-          <button v-if="props.row.expenseId" class="button is-small is-danger" type="button" @click.prevent="trashModal(props.row)" title="Marcar com a pagat">
-            <b-icon icon="cash-multiple" size="is-small"/>
+          <button
+            v-if="props.row.expenseId"
+            class="button is-small is-danger"
+            type="button"
+            @click.prevent="trashModal(props.row)"
+            title="Marcar com a pagat"
+          >
+            <b-icon icon="cash-multiple" size="is-small" />
           </button>
-          <button v-if="props.row.incomeId" class="button is-small is-danger" type="button" @click.prevent="trashModal(props.row)" title="Marcar com a pagat">
-            <b-icon icon="cash-multiple" size="is-small"/>
+          <button
+            v-if="props.row.incomeId"
+            class="button is-small is-danger"
+            type="button"
+            @click.prevent="trashModal(props.row)"
+            title="Marcar com a pagat"
+          >
+            <b-icon icon="cash-multiple" size="is-small" />
           </button>
         </b-table-column>
       </b-table>
@@ -82,23 +180,25 @@
 
 <script>
 // import ModalBox from '@/components/ModalBox'
-import service from '@/service/index'
-import moment from 'moment'
-import sortBy from 'lodash/sortBy'
-import ModalBoxInvoicing from './ModalBoxInvoicing.vue'
+import service from "@/service/index";
+import moment from "moment";
+import sortBy from "lodash/sortBy";
+import _ from "lodash";
+import configPivot from "@/service/configStatsTreasury";
+import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
 
 export default {
-  name: 'Tresoreria',
+  name: "Tresoreria",
   components: {
-    ModalBoxInvoicing
+    ModalBoxInvoicing,
   },
   props: {
     titleStack: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
-  data () {
+  data() {
     return {
       isLoading: false,
       years: [],
@@ -115,269 +215,443 @@ export default {
       projectIncomes: [],
       projectExpenses: [],
       isModalActive: false,
-      trashObject: null
-    }
+      trashObject: null,
+      pivotData: [],
+    };
   },
-  async mounted () {
-    this.getData()
+  async mounted() {
+    this.getData();
+  },
+  computed: {
+    monthlySummary() {
+      const treasuryData = this.treasuryData
+        .filter((t) => t.datef >= moment().format("YYYYMMDD"))
+        .map((t) => {
+          return {
+            ...t,
+            year: moment(t.datef, "YYYYMMDD").format("YYYY"),
+            month: moment(t.datef, "YYYYMMDD").format("MM"),
+            ym: moment(t.datef, "YYYYMMDD").format("YYYYMM"),
+          };
+        });
+      return treasuryData;
+    },
+    monthlySummaryTotal() {
+      const ans = _(this.monthlySummary)
+        .groupBy("ym")
+        .map((ym, id) => ({
+          ym: id,
+          year: !isNaN(id) ? id.substring(0, 4) : "2099",
+          month: !isNaN(id) ? id.substring(4, 6) : "99",
+          valid: !isNaN(id),
+          maxYm: _.maxBy(this.monthlySummary, (e) => (!isNaN(e.ym) ? e.ym : ""))
+            .ym,
+          total_amount: _.sumBy(ym, "total_amount"),
+          total_incomes: _.sumBy(ym, (e) =>
+            e.total_amount > 0 ? e.total_amount : 0
+          ),
+          total_expenses: _.sumBy(ym, (e) =>
+            e.total_amount < 0 ? e.total_amount : 0
+          ),
+          subtotal: this.todaySubTotal,
+        }))
+        .value();
+
+      const ansWithSubtotal = [];
+      var subtotal = this.todaySubTotal;
+      for (var i = 0; i < ans.length; i++) {
+        subtotal = subtotal + ans[i].total_amount;
+        ans[i]["subtotal"] = subtotal;
+        ansWithSubtotal.push(ans[i]);
+      }
+
+      return ansWithSubtotal;
+    },
+    todaySubTotal() {
+      const today = this.treasuryData.find((t) => t.type === "Avui");
+      return today ? today.subtotal : 0;
+    },
   },
   methods: {
-    async getData () {
-      this.isLoading = true
-      this.treasury = []
-      this.treasuryData = []
-      const treasuries = (await service({ requiresAuth: true }).get('treasuries?_limit=-1')).data
-      this.emitted = (await service({ requiresAuth: true }).get('emitted-invoices?_limit=-1')).data
-      this.received = (await service({ requiresAuth: true }).get('received-invoices?_limit=-1')).data
-      this.tickets = (await service({ requiresAuth: true }).get('tickets?_limit=-1')).data
-      this.diets = (await service({ requiresAuth: true }).get('diets?_limit=-1')).data
-      this.emittedGrants = (await service({ requiresAuth: true }).get('emitted-grants?_limit=-1')).data
-      this.receivedGrants = (await service({ requiresAuth: true }).get('emitted-grants?_limit=-1')).data
-      this.contacts = (await service({ requiresAuth: true }).get('contacts?_limit=-1')).data
+    async getData() {
+      this.isLoading = true;
+      this.treasury = [];
+      this.treasuryData = [];
+      const treasuries = (
+        await service({ requiresAuth: true }).get("treasuries?_limit=-1")
+      ).data;
+      this.emitted = (
+        await service({ requiresAuth: true }).get("emitted-invoices?_limit=-1")
+      ).data;
+      this.received = (
+        await service({ requiresAuth: true }).get("received-invoices?_limit=-1")
+      ).data;
+      this.tickets = (
+        await service({ requiresAuth: true }).get("tickets?_limit=-1")
+      ).data;
+      this.diets = (
+        await service({ requiresAuth: true }).get("diets?_limit=-1")
+      ).data;
+      this.emittedGrants = (
+        await service({ requiresAuth: true }).get("emitted-grants?_limit=-1")
+      ).data;
+      this.receivedGrants = (
+        await service({ requiresAuth: true }).get("emitted-grants?_limit=-1")
+      ).data;
+      this.contacts = (
+        await service({ requiresAuth: true }).get("contacts?_limit=-1")
+      ).data;
 
-      service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
-        this.projects = r.data
-        this.projects.forEach(p => {
-          p.expenses.forEach(e => {                        
-            if (!e.paid) {
-              const expense = {
-                project_name: p.name,
-                project_id: p.id,
-                type: 'Despesa esperada',
-                concept: e.concept,
-                total_amount: e.total_amount ? -1 * Math.abs(e.total_amount) : 0,
-                date: moment(e.date, 'YYYY-MM-DD') || moment(),
-                date_error: e.date === null,
-                paid: false,
-                contact: e.provider && e.provider.name ? e.provider.name : '-'
-              }
-              this.treasury.push(expense)
-            }
-            if (e.invoice && e.invoice.id) {
-              this.projectExpenses.push({ type: 'invoice', id: e.invoice.id, code: e.invoice.code })
-            }
-            if (e.grant && e.grant.id) {
-              this.projectExpenses.push({ type: 'grant', id: e.grant.id, code: e.grant.code })
-            }
-            if (e.ticket && e.ticket.id) {
-              this.projectExpenses.push({ type: 'ticket', id: e.ticket.id, code: e.ticket.code })
-            }
-            if (e.diet && e.diet.id) {
-              this.projectExpenses.push({ type: 'diet', id: e.diet.id, code: e.diet.code })
-            }
-          })
-          p.incomes.forEach(i => {
-            if (!i.paid) {
-              const income = {
-                project_name: p.name,
-                project_id: p.id,
-                type: 'Ingrés esperat',
-                concept: i.concept,
-                total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
-                date: moment(i.date, 'YYYY-MM-DD') || moment(),
-                date_error: i.date === null,
-                paid: false,
-                contact: i.client && i.client.name ? i.client.name : '-'
-              }
-              this.treasury.push(income)
-            }
-            if (i.invoice && i.invoice.id) {
-              this.projectIncomes.push({ type: 'invoice', id: i.invoice.id, code: i.invoice.code })
-            }
-            if (i.grant && i.grant.id) {
-              this.projectIncomes.push({ type: 'grant', id: i.grant.id, code: i.grant.code })
-            }
-          })
-
-          p.phases.forEach(ph => {
-            ph.expenses.forEach((e, i) => {
-              // console.log('expenses', e)
+      service({ requiresAuth: true })
+        .get("projects?_limit=-1")
+        .then((r) => {
+          this.projects = r.data;
+          this.projects.forEach((p) => {
+            p.expenses.forEach((e) => {
               if (!e.paid) {
                 const expense = {
-                  expenseId: e.id,
                   project_name: p.name,
                   project_id: p.id,
-                  type: 'Despesa esperada',
+                  type: "Despesa esperada",
                   concept: e.concept,
-                  total_amount: e.total_amount ? -1 * Math.abs(e.total_amount) : 0,
-                  date: moment(e.date, 'YYYY-MM-DD') || moment(),
+                  total_amount: e.total_amount
+                    ? -1 * Math.abs(e.total_amount)
+                    : 0,
+                  date: moment(e.date, "YYYY-MM-DD") || moment(),
                   date_error: e.date === null,
                   paid: false,
-                  contact: e.provider && e.provider.name ? e.provider.name : '-'
-                }
-                this.treasury.push(expense)                
+                  contact:
+                    e.provider && e.provider.name ? e.provider.name : "-",
+                };
+                this.treasury.push(expense);
               }
               if (e.invoice && e.invoice.id) {
-                this.projectExpenses.push({ type: 'invoice', id: e.invoice.id, code: e.invoice.code })
+                this.projectExpenses.push({
+                  type: "invoice",
+                  id: e.invoice.id,
+                  code: e.invoice.code,
+                });
               }
               if (e.grant && e.grant.id) {
-                this.projectExpenses.push({ type: 'grant', id: e.grant.id, code: e.grant.code })
+                this.projectExpenses.push({
+                  type: "grant",
+                  id: e.grant.id,
+                  code: e.grant.code,
+                });
               }
               if (e.ticket && e.ticket.id) {
-                this.projectExpenses.push({ type: 'ticket', id: e.ticket.id, code: e.ticket.code })
+                this.projectExpenses.push({
+                  type: "ticket",
+                  id: e.ticket.id,
+                  code: e.ticket.code,
+                });
               }
               if (e.diet && e.diet.id) {
-                this.projectExpenses.push({ type: 'diet', id: e.diet.id, code: e.diet.code })
+                this.projectExpenses.push({
+                  type: "diet",
+                  id: e.diet.id,
+                  code: e.diet.code,
+                });
               }
-            })
-            ph.subphases.forEach(i => {
+            });
+            p.incomes.forEach((i) => {
               if (!i.paid) {
                 const income = {
-                  incomeId: i.id,
                   project_name: p.name,
                   project_id: p.id,
-                  type: 'Ingrés esperat',
+                  type: "Ingrés esperat",
                   concept: i.concept,
                   total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
-                  date: moment(i.date, 'YYYY-MM-DD') || moment(),
+                  date: moment(i.date, "YYYY-MM-DD") || moment(),
                   date_error: i.date === null,
                   paid: false,
-                  contact: i.client && i.client.name ? i.client.name : '-'
-                }
-                this.treasury.push(income)
+                  contact: i.client && i.client.name ? i.client.name : "-",
+                };
+                this.treasury.push(income);
               }
               if (i.invoice && i.invoice.id) {
-                this.projectIncomes.push({ type: 'invoice', id: i.invoice.id, code: i.invoice.code })
+                this.projectIncomes.push({
+                  type: "invoice",
+                  id: i.invoice.id,
+                  code: i.invoice.code,
+                });
               }
               if (i.grant && i.grant.id) {
-                this.projectIncomes.push({ type: 'grant', id: i.grant.id, code: i.grant.code })
+                this.projectIncomes.push({
+                  type: "grant",
+                  id: i.grant.id,
+                  code: i.grant.code,
+                });
               }
-            })
-          })
-        })
-        // console.log('treasuries', treasuries)
-        treasuries.forEach(e => {
-          const expense = {
-            project_name: '-',
-            project_id: 0,
-            type: 'Entrada manual',
-            concept: e.comment,
-            total_amount: e.total,
-            date: moment(e.date, 'YYYY-MM-DD') || moment(),
-            date_error: e.date === null,
-            paid: true,
-            contact: '-'
-          }
-          this.treasury.push(expense)
-        })
-        // today
-        const today = {
-          project_name: '-',
-          project_id: 0,
-          type: 'Avui',
-          concept: '-',
-          total_amount: 0,
-          date: moment(),
-          date_error: false,
-          paid: null,
-          contact: '-'
-        }
-        this.treasury.push(today)
-        // emitted
-        this.emitted.forEach(i => {
-          const date = i.paid_date ? moment(i.paid_date, 'YYYY-MM-DD') : moment.max([i.paybefore ? moment(i.paybefore, 'YYYY-MM-DD') : moment(), i.emitted ? moment(i.emitted, 'YYYY-MM-DD') : moment(), moment()])
-          const income = {
-            project_name: i.project && i.project.name ? i.project.name : '',
-            project_id: i.project ? i.project.id : 0,
-            type: i.paid ? 'Factura cobrada' : 'Factura emesa',
-            concept: i.code,
-            total_amount: i.total ? Math.abs(i.total) : 0,
-            date: date,
-            date_error: (i.paid_date || i.paybefore || i.emitted) === null,
-            real: true,
-            pdf: i.pdf,
-            paid: i.paid,
-            contact: i.contact && i.contact.name ? i.contact.name : '?'
-          }
-          this.treasury.push(income)
-        })
-        // received
-        this.received.forEach(e => {
-          const date = e.paid_date ? moment(e.paid_date, 'YYYY-MM-DD') : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
-          const expense = {
-            project_name: e.project && e.project.name ? e.project.name : '',
-            project_id: e.project ? e.project.id : 0,
-            type: e.paid ? 'Factura pagada' : 'Factura rebuda',
-            concept: e.code,
-            total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: date,
-            date_error: false,
-            paid: e.paid,
-            real: true,
-            pdf: e.pdf,
-            contact: e.contact && e.contact.name ? e.contact.name : '-'
-          }
-          this.treasury.push(expense)
-        })
-        this.diets.forEach(e => {
-          const date = e.paid_date ? moment(e.paid_date, 'YYYY-MM-DD') : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
-          const expense = {
-            project_name: e.project && e.project.name ? e.project.name : '',
-            project_id: e.project ? e.project.id : 0,
-            type: 'Dieta',
-            concept: e.code,
-            total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: date,
-            date_error: (e.paid_date || e.paybefore || e.emitted) === null,
-            paid: e.paid,
-            contact: e.contact && e.contact.name ? e.contact.name : '-'
-          }
-          this.treasury.push(expense)
-        })
-        this.tickets.forEach(e => {
-          const date = e.paid_date ? moment(e.paid_date, 'YYYY-MM-DD') : moment.max([e.paybefore ? moment(e.paybefore, 'YYYY-MM-DD') : moment(), e.emitted ? moment(e.emitted, 'YYYY-MM-DD') : moment(), moment()])
-          const expense = {
-            project_name: e.project && e.project.name ? e.project.name : '',
-            project_id: e.project ? e.project.id : 0,
-            type: 'Ticket',
-            concept: e.code,
-            total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-            date: date,
-            date_error: (e.paid_date || e.emitted) === null,
-            paid: e.paid,
-            contact: e.provider && e.provider.name ? e.provider.name : '-'
-          }
-          this.treasury.push(expense)
-        })
-        // sort and show
-        
-        this.treasury = this.treasury.map(t => { return { ...t, datef: t.date.format('YYYYMMDD')}})
-        // console.log('this.treasury 2',this.treasury)
-        const treasuryData = sortBy(this.treasury, 'datef')
-        let subtotal = 0
-        for (let i = 0; i < treasuryData.length; i++) {
-          const t = treasuryData[i]
-          subtotal += t.total_amount
-          this.treasuryData.push({ ...t, datex: moment(treasuryData[i].datef, 'YYYYMMDD').format('DD-MM-YYYY'), subtotal })
-        }
-        console.log('this.treasury 3',this.treasuryData)
-      })
+            });
 
-      this.isLoading = false
+            p.phases.forEach((ph) => {
+              ph.expenses.forEach((e, i) => {
+                // console.log('expenses', e)
+                if (!e.paid) {
+                  const expense = {
+                    expenseId: e.id,
+                    project_name: p.name,
+                    project_id: p.id,
+                    type: "Despesa esperada",
+                    concept: e.concept,
+                    total_amount: e.total_amount
+                      ? -1 * Math.abs(e.total_amount)
+                      : 0,
+                    date: moment(e.date, "YYYY-MM-DD") || moment(),
+                    date_error: e.date === null,
+                    paid: false,
+                    contact:
+                      e.provider && e.provider.name ? e.provider.name : "-",
+                  };
+                  this.treasury.push(expense);
+                }
+                if (e.invoice && e.invoice.id) {
+                  this.projectExpenses.push({
+                    type: "invoice",
+                    id: e.invoice.id,
+                    code: e.invoice.code,
+                  });
+                }
+                if (e.grant && e.grant.id) {
+                  this.projectExpenses.push({
+                    type: "grant",
+                    id: e.grant.id,
+                    code: e.grant.code,
+                  });
+                }
+                if (e.ticket && e.ticket.id) {
+                  this.projectExpenses.push({
+                    type: "ticket",
+                    id: e.ticket.id,
+                    code: e.ticket.code,
+                  });
+                }
+                if (e.diet && e.diet.id) {
+                  this.projectExpenses.push({
+                    type: "diet",
+                    id: e.diet.id,
+                    code: e.diet.code,
+                  });
+                }
+              });
+              ph.subphases.forEach((i) => {
+                if (!i.paid) {
+                  const income = {
+                    incomeId: i.id,
+                    project_name: p.name,
+                    project_id: p.id,
+                    type: "Ingrés esperat",
+                    concept: i.concept,
+                    total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
+                    date: moment(i.date, "YYYY-MM-DD") || moment(),
+                    date_error: i.date === null,
+                    paid: false,
+                    contact: i.client && i.client.name ? i.client.name : "-",
+                  };
+                  this.treasury.push(income);
+                }
+                if (i.invoice && i.invoice.id) {
+                  this.projectIncomes.push({
+                    type: "invoice",
+                    id: i.invoice.id,
+                    code: i.invoice.code,
+                  });
+                }
+                if (i.grant && i.grant.id) {
+                  this.projectIncomes.push({
+                    type: "grant",
+                    id: i.grant.id,
+                    code: i.grant.code,
+                  });
+                }
+              });
+            });
+          });
+          // console.log('treasuries', treasuries)
+          treasuries.forEach((e) => {
+            const expense = {
+              project_name: "-",
+              project_id: 0,
+              type: "Entrada manual",
+              concept: e.comment,
+              total_amount: e.total,
+              date: moment(e.date, "YYYY-MM-DD") || moment(),
+              date_error: e.date === null,
+              paid: true,
+              contact: "-",
+            };
+            this.treasury.push(expense);
+          });
+          // today
+          const today = {
+            project_name: "-",
+            project_id: 0,
+            type: "Avui",
+            concept: "-",
+            total_amount: 0,
+            date: moment(),
+            date_error: false,
+            paid: null,
+            contact: "-",
+          };
+          this.treasury.push(today);
+          // emitted
+          this.emitted.forEach((i) => {
+            const date = i.paid_date
+              ? moment(i.paid_date, "YYYY-MM-DD")
+              : moment.max([
+                  i.paybefore ? moment(i.paybefore, "YYYY-MM-DD") : moment(),
+                  i.emitted ? moment(i.emitted, "YYYY-MM-DD") : moment(),
+                  moment(),
+                ]);
+            const income = {
+              project_name: i.project && i.project.name ? i.project.name : "",
+              project_id: i.project ? i.project.id : 0,
+              type: i.paid ? "Factura cobrada" : "Factura emesa",
+              concept: i.code,
+              total_amount: i.total ? Math.abs(i.total) : 0,
+              date: date,
+              date_error: (i.paid_date || i.paybefore || i.emitted) === null,
+              real: true,
+              pdf: i.pdf,
+              paid: i.paid,
+              contact: i.contact && i.contact.name ? i.contact.name : "?",
+            };
+            this.treasury.push(income);
+          });
+          // received
+          this.received.forEach((e) => {
+            const date = e.paid_date
+              ? moment(e.paid_date, "YYYY-MM-DD")
+              : moment.max([
+                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
+                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
+                  moment(),
+                ]);
+            const expense = {
+              project_name: e.project && e.project.name ? e.project.name : "",
+              project_id: e.project ? e.project.id : 0,
+              type: e.paid ? "Factura pagada" : "Factura rebuda",
+              concept: e.code,
+              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              date: date,
+              date_error: false,
+              paid: e.paid,
+              real: true,
+              pdf: e.pdf,
+              contact: e.contact && e.contact.name ? e.contact.name : "-",
+            };
+            this.treasury.push(expense);
+          });
+          this.diets.forEach((e) => {
+            const date = e.paid_date
+              ? moment(e.paid_date, "YYYY-MM-DD")
+              : moment.max([
+                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
+                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
+                  moment(),
+                ]);
+            const expense = {
+              project_name: e.project && e.project.name ? e.project.name : "",
+              project_id: e.project ? e.project.id : 0,
+              type: "Dieta",
+              concept: e.code,
+              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              date: date,
+              date_error: (e.paid_date || e.paybefore || e.emitted) === null,
+              paid: e.paid,
+              contact: e.contact && e.contact.name ? e.contact.name : "-",
+            };
+            this.treasury.push(expense);
+          });
+          this.tickets.forEach((e) => {
+            const date = e.paid_date
+              ? moment(e.paid_date, "YYYY-MM-DD")
+              : moment.max([
+                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
+                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
+                  moment(),
+                ]);
+            const expense = {
+              project_name: e.project && e.project.name ? e.project.name : "",
+              project_id: e.project ? e.project.id : 0,
+              type: "Ticket",
+              concept: e.code,
+              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              date: date,
+              date_error: (e.paid_date || e.emitted) === null,
+              paid: e.paid,
+              contact: e.provider && e.provider.name ? e.provider.name : "-",
+            };
+            this.treasury.push(expense);
+          });
+          // sort and show
+
+          this.treasury = this.treasury.map((t) => {
+            return { ...t, datef: t.date.format("YYYYMMDD") };
+          });
+          // console.log('this.treasury 2',this.treasury)
+          const treasuryData = sortBy(this.treasury, "datef");
+          let subtotal = 0;
+          for (let i = 0; i < treasuryData.length; i++) {
+            const t = treasuryData[i];
+            subtotal += t.total_amount;
+            this.treasuryData.push({
+              ...t,
+              datex: moment(treasuryData[i].datef, "YYYYMMDD").format(
+                "DD-MM-YYYY"
+              ),
+              subtotal,
+            });
+          }
+
+          this.pivotData = Object.freeze(this.monthlySummaryTotal);
+          // configPivot.dataSource.data = this.pivotData;
+          // window.jQuery("#treasury-pivot").empty();
+          // window.jQuery("#treasury-pivot").kendoPivotGrid(configPivot);
+          // console.log('this.treasury 3',this.treasuryData)
+        });
+
+      this.isLoading = false;
     },
-    formatPrice (value) {
-      const val = (value / 1).toFixed(2).replace('.', ',')
-      return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    formatPrice(value) {
+      const val = (value / 1).toFixed(2).replace(".", ",");
+      return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
-    formatDate (value) {
-      return moment(value, 'YYYY-MM-DD').format('DD-MM-YYYY')
+    formatDate(value) {
+      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
     },
-    trashModal (trashObject) {
+    trashModal(trashObject) {
       // console.log('trashObject', trashObject)
 
       const invoicingObject = {
-        origin: 'treasury',
+        origin: "treasury",
         ...trashObject,
-        type: trashObject.expenseId ? 'expenses' : 'incomes',
-        emitted_invoices: this.emitted.filter(i => i.project && i.project.id === trashObject.project_id),
-        received_invoices: this.received.filter(i => i.project && i.project.id === trashObject.project_id),
-        diets: this.diets.filter(i => i.project && i.project.id === trashObject.project_id),
-        tickets: this.tickets.filter(i => i.project && i.project.id === trashObject.project_id),
-        grants: trashObject.expenseId ? this.receivedGrants.filter(i => i.project && i.project.id === trashObject.project_id) : this.emittedGrants.filter(i => i.project && i.project.id === trashObject.project_id),
-        contacts: this.contacts
-      }
+        type: trashObject.expenseId ? "expenses" : "incomes",
+        emitted_invoices: this.emitted.filter(
+          (i) => i.project && i.project.id === trashObject.project_id
+        ),
+        received_invoices: this.received.filter(
+          (i) => i.project && i.project.id === trashObject.project_id
+        ),
+        diets: this.diets.filter(
+          (i) => i.project && i.project.id === trashObject.project_id
+        ),
+        tickets: this.tickets.filter(
+          (i) => i.project && i.project.id === trashObject.project_id
+        ),
+        grants: trashObject.expenseId
+          ? this.receivedGrants.filter(
+              (i) => i.project && i.project.id === trashObject.project_id
+            )
+          : this.emittedGrants.filter(
+              (i) => i.project && i.project.id === trashObject.project_id
+            ),
+        contacts: this.contacts,
+      };
 
-      console.log('invoicingObject', invoicingObject)
+      console.log("invoicingObject", invoicingObject);
 
       // this.invoicingObject = {
       //   type,
@@ -390,28 +664,37 @@ export default {
       //   diets: this.form.diets,
       //   tickets: this.form.tickets
       // }
-      this.trashObject = invoicingObject
-      this.isModalActive = true
+      this.trashObject = invoicingObject;
+      this.isModalActive = true;
     },
-    async modalSubmit (invoicing) {
-      console.log('invoicing', invoicing)
-      this.isModalActive = false
+    async modalSubmit(invoicing) {
+      console.log("invoicing", invoicing);
+      this.isModalActive = false;
       if (this.trashObject.expenseId) {
-        await service({ requiresAuth: true }).put(`projects/${this.trashObject.project_id}/pay-expense/${this.trashObject.expenseId}`, invoicing)
+        await service({ requiresAuth: true }).put(
+          `projects/${this.trashObject.project_id}/pay-expense/${this.trashObject.expenseId}`,
+          invoicing
+        );
       } else if (this.trashObject.incomeId) {
-        await service({ requiresAuth: true }).put(`projects/${this.trashObject.project_id}/pay-income/${this.trashObject.incomeId}`, invoicing)
+        await service({ requiresAuth: true }).put(
+          `projects/${this.trashObject.project_id}/pay-income/${this.trashObject.incomeId}`,
+          invoicing
+        );
       }
       // await service({ requiresAuth: true }).delete(`projects/${this.trashObject.id}`)
       // this.projectsData = this.projectsData.filter(p => p.id !== this.trashObject.id)
       this.$buefy.snackbar.open({
-        message: 'Fet',
-        queue: false
-      })
-      this.getData()
+        message: "Fet",
+        queue: false,
+      });
+      this.getData();
     },
-    modalCancel () {
-      this.isModalActive = false
-    }
-  }
-}
+    modalCancel() {
+      this.isModalActive = false;
+    },
+  },
+};
 </script>
+<style>
+.treasury-table.b-table .table th, .treasury-table.b-table td { min-width: 150px;}
+</style>

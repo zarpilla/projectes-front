@@ -255,7 +255,7 @@
           <card-component
             v-if="isProfileExists"
             title="Resum"
-            class="tile is-child"
+            class="tile is-child summary-card"
           >
             <!-- <user-avatar
             :avatar="form.avatar"
@@ -385,132 +385,6 @@
         </div>
       </div>
 
-      <card-component
-            v-if="documents && documents.length"
-            title="Moviments"
-            class="ztile is-child mt-2"
-          >
-          <b-table :data="documents">
-            <!-- <b-table-column label="Nom" field="name" sortable v-slot="props">
-              <router-link :to="{name:'project.edit', params: {id: props.row.id}}">
-                <span class="project-name has-text-info">
-                  {{ props.row.name }}
-                </span>
-                </router-link>
-            </b-table-column> -->
-            <b-table-column label="Tipus" field="docTypeDesc" sortable v-slot="props">
-              {{ props.row.docTypeDesc }}
-            </b-table-column>            
-            <b-table-column label="Emés" field="document.emitted" sortable v-slot="props">
-              {{ props.row.document.emitted ? formatDate(props.row.document.emitted) : '' }}
-            </b-table-column>
-            <b-table-column label="Document" field="document.code" sortable v-slot="props">
-              {{ props.row.document.code }}
-            </b-table-column>
-            <b-table-column label="Contacte" field="document.contact" sortable v-slot="props">
-              {{ getContactName(props.row.document) }}
-            </b-table-column>
-            <b-table-column label="Base imp." field="document.total_base" sortable numeric v-slot="props" class="has-text-right">
-              <money-format
-                    :value="props.row.document.total_base * props.row.multiplier"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-            </b-table-column>
-            <b-table-column label="Pagat" field="document.paid" sortable v-slot="props">
-              {{ props.row.document.paid ? 'SÍ' : 'NO' }}
-            </b-table-column>
-            <b-table-column label="Data Pagament" field="document.paid_date" sortable v-slot="props">
-              {{ props.row.document.paid_date }}
-            </b-table-column>
-            
-          </b-table>
-
-          <!-- <pre>{{documents}}</pre> -->
-            <!-- <b-field
-              label="Factures emeses"
-              v-if="form.emitted_invoices && form.emitted_invoices.length"
-            >
-              <div class="columns is-multiline">
-                <div
-                  class="column is-full"
-                  v-for="invoice in form.emitted_invoices"
-                  :key="invoice.id"
-                >
-                  <div class="tag is-primary">
-                    {{ invoice.code }} - {{ getContactName(invoice) }} -
-                    {{ invoice.total_base }}€
-                  </div>
-                </div>
-              </div>
-            </b-field>
-            <b-field
-              label="Subvencions rebudes"
-              v-if="form.received_grants && form.received_grants.length"
-            >
-              <div class="columns is-multiline">
-                <div
-                  class="column is-full"
-                  v-for="invoice in form.received_grants"
-                  :key="invoice.id"
-                >
-                  <div class="tag is-primary">
-                    {{ invoice.code }} - {{ getContactName(invoice) }} -
-                    {{ invoice.total_base }}€
-                  </div>
-                </div>
-              </div>
-            </b-field>
-            <b-field
-              label="Factures rebudes"
-              v-if="form.received_invoices && form.received_invoices.length"
-            >
-              <div class="columns is-multiline">
-                <div
-                  class="column is-full"
-                  v-for="invoice in form.received_invoices"
-                  :key="invoice.id"
-                >
-                  <div class="tag is-primary">
-                    {{ invoice.code }} - {{ getContactName(invoice) }} -
-                    {{ invoice.total_base }}€
-                  </div>
-                </div>
-              </div>
-            </b-field>
-            <b-field label="Tiquets" v-if="form.tickets && form.tickets.length">
-              <div class="columns is-multiline">
-                <div
-                  class="column is-full"
-                  v-for="invoice in form.tickets"
-                  :key="invoice.id"
-                >
-                  <div class="tag is-primary">
-                    {{ invoice.code }} - {{ getContactName(invoice) }} -
-                    {{ invoice.total_base }}€
-                  </div>
-                </div>
-              </div>
-            </b-field>
-            <b-field label="Dietes" v-if="form.diets && form.diets.length">
-              <div class="columns is-multiline">
-                <div
-                  class="column is-full"
-                  v-for="invoice in form.diets"
-                  :key="invoice.id"
-                >
-                  <div class="tag is-primary">
-                    {{ invoice.code }} - {{ getContactName(invoice) }} -
-                    {{ invoice.total_base }}€
-                  </div>
-                </div>
-              </div>
-            </b-field> -->
-          </card-component>
-
       <card-component title="Fases i Pressupost">
         <b-table
           :data="form.phases"
@@ -593,6 +467,23 @@
               >
                 <b-field grouped>
                   <b-field
+                    :label="j == 0 ? 'Tipus' : null"
+                    class="subphase-detail-input"
+                  >
+                    <b-select                      
+                      v-model="subphase.income_type"
+                      placeholder="Tipus"
+                    >
+                      <option
+                        v-for="(s, index) in incomeTypes"
+                        :key="index"
+                        :value="s"
+                      >
+                        {{ s.name }}
+                      </option>
+                    </b-select>
+                  </b-field>
+                  <b-field
                     :label="j == 0 ? 'Concepte' : null"
                     class="subphase-detail-input-large-field"
                   >
@@ -604,7 +495,7 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Quantitat' : null">
+                  <b-field :label="j == 0 ? 'Quantitat' : null" class="medium-field">
                     <b-input
                       name="Unitats"
                       placeholder="Quantitat, hores, unitats..."
@@ -616,7 +507,7 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Preu' : null">
+                  <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
                     <b-input
                       name="PreuUnitari"
                       placeholder="Preu per unitat"
@@ -632,7 +523,7 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Total' : null">
+                  <b-field :label="j == 0 ? 'Total' : null" class="medium-field">
                     <div class="readonly subphase-detail-input">
                       <money-format
                         :value="
@@ -651,6 +542,7 @@
                   <b-field
                     :label="j == 0 ? 'Data' : null"
                     v-if="me.options && me.options.treasury"
+                    class="date-field"
                   >
                     <b-datepicker
                       v-model="subphase.date"
@@ -799,6 +691,23 @@
               >
                 <b-field grouped>
                   <b-field
+                    :label="j == 0 ? 'Tipus' : null"
+                    class="subphase-detail-input"
+                  >
+                    <b-select
+                      v-model="subphase.expense_type"
+                      placeholder="Tipus"
+                    >
+                      <option
+                        v-for="(s, index) in expenseTypes"
+                        :key="index"
+                        :value="s"
+                      >
+                        {{ s.name }}
+                      </option>
+                    </b-select>
+                  </b-field>
+                  <b-field
                     :label="j == 0 ? 'Concepte' : null"
                     class="subphase-detail-input-large-field"
                   >
@@ -810,7 +719,7 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Quantitat' : null">
+                  <b-field :label="j == 0 ? 'Quantitat' : null" class="medium-field">
                     <b-input
                       name="Unitats"
                       placeholder="Quantitat, hores, unitats..."
@@ -818,11 +727,11 @@
                       @input="
                         changeSubPhase(subphase, 'quantity', subphase.quantity)
                       "
-                      class="subphase-detail-input"
+                      class="subphase-detail-input subphase-detail-input-short"
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Preu' : null">
+                  <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
                     <b-input
                       name="PreuUnitari"
                       placeholder="Preu per unitat"
@@ -830,12 +739,12 @@
                       @input="
                         changeSubPhase(subphase, 'amount', subphase.amount)
                       "
-                      class="subphase-detail-input"
+                      class="subphase-detail-input subphase-detail-input-short"
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Total' : null">
-                    <div class="readonly subphase-detail-input">
+                  <b-field :label="j == 0 ? 'Total' : null" class="medium-field">
+                    <div class="readonly subphase-detail-input subphase-detail-input-short">
                       <money-format
                         :value="subphase.quantity * subphase.amount"
                         :locale="'es'"
@@ -849,6 +758,7 @@
                   <b-field
                     :label="j == 0 ? 'Data' : null"
                     v-if="me.options && me.options.treasury"
+                    class="date-field"
                   >
                     <b-datepicker
                       v-model="subphase.date"
@@ -1071,6 +981,148 @@
           >
         </b-field>
       </card-component>
+
+
+
+      <card-component
+        v-if="documents && documents.length"
+        title="Moviments"
+        class="ztile is-child mt-2"
+      >
+        <b-table :data="documents">
+          <b-table-column
+            label="Tipus"
+            field="docTypeDesc"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.docTypeDesc }}
+          </b-table-column>
+          <b-table-column
+            label="Emés"
+            field="document.emitted"
+            sortable
+            v-slot="props"
+          >
+            {{
+              props.row.document.emitted
+                ? formatDate(props.row.document.emitted)
+                : ""
+            }}
+          </b-table-column>
+          <b-table-column
+            label="Document"
+            field="document.code"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.document.code }}
+          </b-table-column>
+          <b-table-column
+            label="Contacte"
+            field="document.contact"
+            sortable
+            v-slot="props"
+          >
+            {{ getContactName(props.row.document) }}
+          </b-table-column>
+          <b-table-column
+            label="Import"
+            field="document.total_base"
+            sortable
+            numeric
+            v-slot="props"
+            class="has-text-right"
+          >
+            <money-format
+              :value="props.row.document.total_base * props.row.multiplier"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            >
+            </money-format>
+          </b-table-column>
+          <b-table-column
+            label="Pagat"
+            field="document.paid"
+            sortable
+            v-slot="props"
+          >
+          <span class="ztag" :class="props.row.document.paid ? 'has-text-primary' : 'has-text-danger'">
+            {{ props.row.document.paid ? "SÍ" : "NO" }}
+            </span>
+          </b-table-column>
+          <b-table-column
+            label="Data Pagament"
+            field="document.paid_date"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.document.paid_date }}
+          </b-table-column>
+          <b-table-column
+            label="Assignat"
+            v-slot="props"
+          >
+          <span :class="treasuryDone.find(t => t.docType === props.row.docType && t.id === props.row.document.id) ? 'has-text-primary' : 'has-text-danger'">
+            {{ treasuryDone.find(t => t.docType === props.row.docType && t.id === props.row.document.id) ? 'SÍ' : 'NO' }}
+            </span>
+          </b-table-column>
+        </b-table>
+      </card-component>
+
+      <card-component
+        v-if="treasury && treasury.length"
+        title="Tresoreria"
+        class="ztile is-child mt-2"
+      >
+        <b-table :data="treasury">
+          <b-table-column
+            label="Tipus"
+            field="docTypeDesc"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.docType === 'income' ? 'Ingrés esperat' : 'Despesa esperada' }}
+          </b-table-column>
+          <b-table-column
+            label="Concepte"
+            field="document.concept"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.docType === 'income' && props.row.document.income_type ? props.row.document.income_type.name + ' - ' : ( props.row.docType === 'expense' && props.row.document.expense_type ? props.row.document.expense_type.name + ' - ' : '' ) }}
+            {{ props.row.document.concept }}
+          </b-table-column>          
+          <b-table-column
+            label="Import"
+            field="document.total_amount"
+            sortable
+            numeric
+            v-slot="props"
+          >
+          <money-format
+              :value="props.row.document.total_amount * props.row.multiplier"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            >
+            </money-format>
+          </b-table-column>
+          <b-table-column
+            label="Data"
+            field="document.date"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.document.date ? formatDate(props.row.document.date) : '' }}
+          </b-table-column>
+        </b-table>
+      </card-component>
+
+
     </section>
   </div>
 </template>
@@ -1095,7 +1147,7 @@ import { EventBus } from "@/service/event-bus.js";
 import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import moment from "moment";
-import sortBy from 'lodash/sortBy'
+import sortBy from "lodash/sortBy";
 
 export default {
   name: "ProjectForm",
@@ -1132,6 +1184,8 @@ export default {
       leaders: [],
       clients: [],
       strategies: [],
+      expenseTypes: [],
+      incomeTypes: [],      
       clientSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",
@@ -1275,25 +1329,134 @@ export default {
         sumBy(this.form.diets, (x) => x.total_base)
       );
     },
-    documents () {
-      const documents = []
-      this.form.emitted_invoices.forEach(e => {
-        documents.push ({ docType: 'emitted_invoices', docTypeDesc: 'Factura emesa', multiplier: 1, document: e })
+    documents() {
+      const documents = [];
+      if (this.form.emitted_invoices) {
+        this.form.emitted_invoices.forEach((e) => {
+          documents.push({
+            docType: "emitted_invoices",
+            docTypeDesc: "Factura emesa",
+            multiplier: 1,
+            document: e,
+          });
+        });
+      }
+      if (this.form.received_grants) {
+        this.form.received_grants.forEach((e) => {
+          documents.push({
+            docType: "received_grants",
+            docTypeDesc: "Subvenció rebuda",
+            multiplier: 1,
+            document: e,
+          });
+        });
+      }
+      if (this.form.received_invoices) {
+        this.form.received_invoices.forEach((e) => {
+          documents.push({
+            docType: "received_invoices",
+            docTypeDesc: "Factura rebuda",
+            multiplier: -1,
+            document: e,
+          });
+        });
+      }
+      if (this.form.tickets) {
+        this.form.tickets.forEach((e) => {
+          documents.push({
+            docType: "tickets",
+            docTypeDesc: "Ticket",
+            multiplier: -1,
+            document: e,
+          });
+        });
+      }
+      if (this.form.diets) {
+        this.form.diets.forEach((e) => {
+          documents.push({
+            docType: "diets",
+            docTypeDesc: "Dieta",
+            multiplier: -1,
+            document: e,
+          });
+        });
+      }
+      return sortBy(documents, "document.emitted");
+    },
+    treasuryDone() {
+      const documents = [];
+      this.form.phases.forEach(ph => {
+        ph.subphases.forEach(income => {
+          if (income.paid) {
+            if (income.invoice) {
+              documents.push({
+                docType: "emitted_invoices",
+                id: income.invoice.id,
+                multiplier: 1
+              });
+            }
+            if (income.grant) {
+              documents.push({
+                docType: "received_grants",
+                id: income.grant.id,
+                multiplier: 1
+              });
+            }
+          }
+        })
+        ph.expenses.forEach(expense => {
+          if (expense.paid) {
+            if (expense.invoice) {
+              documents.push({
+                docType: "received_invoices",
+                id: expense.invoice.id,
+                multiplier: -1
+              });
+            }
+            if (expense.ticket) {
+              documents.push({
+                docType: "tickets",
+                id: expense.ticket.id,
+                multiplier: -1
+              });
+            }
+            if (expense.diet) {
+              documents.push({
+                docType: "diets",
+                id: expense.diet.id,
+                multiplier: -1
+              });
+            }
+          }
+        })
       })
-      this.form.received_grants.forEach(e => {
-        documents.push ({ docType: 'received_grants', docTypeDesc: 'Subvenció rebuda', multiplier: 1, document: e })
+      return documents
+    },
+    treasury() {
+      const documents = [];
+      this.form.phases.forEach(ph => {
+        ph.subphases.forEach(income => {
+          if (!income.paid) {
+            documents.push({
+                docType: "income",
+                document: income,
+                multiplier: 1
+              }); 
+          }
+        })
+        ph.expenses.forEach(expense => {
+          if (!expense.paid) {
+            documents.push({
+                docType: "expense",
+                document: expense,
+                multiplier: -1
+              }); 
+          }
+        })
       })
-      this.form.received_invoices.forEach(e => {
-        documents.push ({ docType: 'received_invoices', docTypeDesc: 'Factura rebuda', multiplier: -1, document: e })
-      })
-      this.form.tickets.forEach(e => {
-        documents.push ({ docType: 'tickets', docTypeDesc: 'Ticket', multiplier: -1, document: e })
-      })
-      this.form.diets.forEach(e => {
-        documents.push ({ docType: 'diets', docTypeDesc: 'Dieta', multiplier: -1, document: e })
-      })
-      return sortBy(documents, 'document.emitted')
-    }
+      return documents
+      // return sortBy(documents, "document.emitted");
+    },
   },
   watch: {
     id(newValue) {
@@ -1542,6 +1705,17 @@ export default {
         .then((r) => {
           this.strategies = r.data;
         });
+      service({ requiresAuth: true })
+        .get("expense-types")
+        .then((r) => {
+          this.expenseTypes = r.data;
+        });
+      service({ requiresAuth: true })
+        .get("income-types")
+        .then((r) => {
+          this.incomeTypes = r.data;
+        });
+        
     },
     input(v) {
       this.createdReadable = dayjs(v).format("MMM D, YYYY");
@@ -1831,10 +2005,10 @@ export default {
     modalCancel() {
       this.isModalActive = false;
     },
-    formatDate (value) {
-      return moment(value, 'YYYY-MM-DD').format('DD-MM-YYYY')
+    formatDate(value) {
+      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
     },
-  }  
+  },
 };
 </script>
 <style>
@@ -1882,6 +2056,12 @@ export default {
 .subphase .field:not(.short-field) {
   width: 35%;
 }
+.subphase .field.medium-field {
+  width: 23%;
+}
+.subphase .field.date-field {
+  width: 28%;
+}
 .subphase .datepicker-header .field {
   width: auto !important;
 }
@@ -1894,8 +2074,11 @@ export default {
 .subphase .field.subphase-detail-input-large-field {
   width: 75%;
 }
+/* .subphase .subphase-detail-input-short {
+  max-width: 150px;
+} */
 .subphases-list {
-  margin-left: 2rem;
+  margin-left: 1rem;
 }
 .subphases-list .subphase-detail-input.readonly,
 .subphases-list
@@ -1918,5 +2101,9 @@ export default {
 }
 .clickable {
   cursor: pointer;
+}
+.summary-card .column{  
+  margin-bottom: 0!important;
+  padding-bottom: 0!important;
 }
 </style>
