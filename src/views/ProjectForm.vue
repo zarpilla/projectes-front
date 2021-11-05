@@ -467,6 +467,7 @@
               >
                 <b-field grouped>
                   <b-field
+                    v-if="(incomeTypes && incomeTypes.length) || (expenseTypes && expenseTypes.length)"
                     :label="j == 0 ? 'Tipus' : null"
                     class="subphase-detail-input"
                   >
@@ -691,6 +692,7 @@
               >
                 <b-field grouped>
                   <b-field
+                    v-if="(incomeTypes && incomeTypes.length) || (expenseTypes && expenseTypes.length)"
                     :label="j == 0 ? 'Tipus' : null"
                     class="subphase-detail-input"
                   >
