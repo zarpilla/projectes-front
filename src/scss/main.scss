@@ -23,3 +23,8 @@
 
 /* Animate.css custom build (just selected animations to minimize bundle size) */
 @import "../css/animate.min.css";
+
+
+.export.view-button {
+    display: inline-block;
+}
