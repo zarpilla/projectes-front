@@ -12,9 +12,9 @@ const config = {
     }, {
       name: 'project_scope',
       expand: false
-    }, {
-      name: 'invoice_type',
-      expand: false
+    // }, {
+    //   name: 'invoice_type',
+    //   expand: false
     }, {
       name: 'project_client',
       expand: false
@@ -42,9 +42,9 @@ const config = {
           project_scope: {
             type: 'string'
           },
-          invoice_type: {
-            type: 'string'
-          },
+          // invoice_type: {
+          //   type: 'string'
+          // },
           project_client: {
             type: 'string'
           },
@@ -67,9 +67,9 @@ const config = {
           project_scope: {
             caption: 'Àmbits (TOTS)'
           },
-          invoice_type: {
-            caption: 'Facturació (TOTS)'
-          },
+          // invoice_type: {
+          //   caption: 'Facturació (TOTS)'
+          // },
           project_client: {
             caption: 'Clients (TOTS)'
           },

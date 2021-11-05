@@ -17,7 +17,7 @@ const config = {
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Num', 'Resultat previst', 'Resultat real', 'Ingressos previstos', 'Ingressos reals', 'Despeses previstes', 'Despeses reals', 'Hores previstes', 'Hores reals', 'Preu/hora previst', 'Preu/hora real'],
+    measures: ['Num', 'Hores previstes', 'Hores reals', 'Resultat previst', 'Resultat real', 'Ingressos previstos', 'Ingressos reals', 'Despeses previstes', 'Despeses reals', 'Hores previstes €', 'Hores reals €', 'Preu/hora previst', 'Preu/hora real', 'Despeses/hora previst', 'Despeses/hora real'],
     schema: {
       model: {
         fields: {
@@ -33,9 +33,9 @@ const config = {
           project_scope: {
             type: 'string'
           },
-          invoice_type: {
-            type: 'string'
-          },
+          // invoice_type: {
+          //   type: 'string'
+          // },
           project_client: {
             type: 'string'
           }
@@ -55,9 +55,9 @@ const config = {
           project_scope: {
             caption: 'Àmbits (TOTS)'
           },
-          invoice_type: {
-            caption: 'Facturació (TOTS)'
-          }
+          // invoice_type: {
+          //   caption: 'Facturació (TOTS)'
+          // }
           // project_client: {
           //   caption: 'Clients (TOTS)'
           // }
@@ -137,11 +137,23 @@ const config = {
           },
           'Hores previstes': {
             field: 'total_estimated_hours',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:0.##} h'
           },
           'Hores reals': {
             field: 'hours',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:0.##} h'
+          },
+          'Hores previstes €': {
+            field: 'total_estimated_hours_price',
+            aggregate: 'sum',
+            format: '{0:0.00}  €'
+          },
+          'Hores reals €': {
+            field: 'total_real_hours_price',
+            aggregate: 'sum',
+            format: '{0:0.0}  €'
           },
           'Preu/hora previst': {
             field: 'pricehour',
@@ -174,6 +186,42 @@ const config = {
             },
             result: function (state) {
               return state.hours ? (state.real_incomes - state.real_expenses) / state.hours : 0
+            },
+            format: '{0:0.00} €'
+          },
+          'Despeses/hora previst': {
+            field: 'pricehour',
+            // aggregate: 'average',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var incomes = dataItem.incomes
+              var expenses = dataItem.expenses || 0
+              var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
+              var hours = dataItem.total_estimated_hours
+              // state.incomes = (state.incomes || 0) + incomes
+              state.expenses = (state.expenses || 0) + expenses + total_estimated_hours_price
+              state.total_estimated_hours = (state.total_estimated_hours || 0) + hours
+            },
+            result: function (state) {
+              return state.total_estimated_hours ? (state.expenses) / state.total_estimated_hours : 0
+            },
+            format: '{0:0.00} €'
+          },
+          'Despeses/hora real': {
+            field: 'pricehour',
+            // aggregate: 'average',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var incomes = dataItem.real_incomes
+              var expenses = dataItem.real_expenses
+              var total_real_hours_price = dataItem.total_real_hours_price || 0
+              var hours = dataItem.hours
+              // state.real_incomes = (state.real_incomes || 0) + incomes
+              state.real_expenses = (state.real_expenses || 0) + expenses + total_real_hours_price
+              state.hours = (state.hours || 0) + hours
+            },
+            result: function (state) {
+              return state.hours ? (state.real_expenses) / state.hours : 0
             },
             format: '{0:0.00} €'
           },

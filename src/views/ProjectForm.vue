@@ -327,12 +327,11 @@
                 </div>
               </b-field>
             </div>
-
             <div class="columns">
               <b-field label="Hores previstes" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_expenses"
+                    :value="form.total_estimated_hours_price"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -344,7 +343,7 @@
               <b-field label="Hores executades" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_real_expenses"
+                    :value="form.total_real_hours_price"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"

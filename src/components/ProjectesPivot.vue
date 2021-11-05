@@ -132,7 +132,9 @@ export default {
             incomes_expenses: p.incomes_expenses,
             total_real_incomes_expenses: p.total_real_incomes_expenses,
             total_real_incomes: p.total_real_incomes,
-            expenses: p.total_expenses + p.total_estimated_hours_price,
+            expenses: p.total_expenses, // + p.total_estimated_hours_price,
+            total_estimated_hours_price: p.total_estimated_hours_price,
+            total_real_hours_price: p.total_real_hours_price,
             count: 1
           }
         })
