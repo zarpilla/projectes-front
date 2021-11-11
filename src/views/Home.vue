@@ -61,7 +61,7 @@
         </div>
       </card-component> -->
 
-      <card-component>
+      <card-component title="FILTRES">
         <form @submit.prevent="submit2">
           <b-field grouped>
             <b-field horizontal label="Estat">
@@ -79,6 +79,26 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field horizontal label="Coordina">
+              <b-select
+                v-model="filters.user"
+                placeholder="Coordina"
+                @change.native="onUserChange($event)"
+              >
+              <option
+                  value="0"
+                >
+                  --
+                </option>
+                <option
+                  v-for="(s, index) in users"
+                  :key="index"
+                  :value="s.id"
+                >
+                  {{ s.username }}
+                </option>
+              </b-select>
+            </b-field>
             <b-field horizontal label="Nom">
               <b-input
                 :value="filters.q"
@@ -87,35 +107,17 @@
               >
               </b-input>
             </b-field>
-            <b-field horizontal>
-              <b-button
-                class="view-button is-primary"
-                @click="navNewProject"
-                icon-left="plus"
-              >
-                Nou projecte
-              </b-button>
-            </b-field>
-            <b-field horizontal>              
-              <download-excel :data="projectsCSV">
-                <b-button
-                  title="Exporta dades"
-                  class="export-button"
-                  icon-left="file-excel"
-                />
-              </download-excel>
-            </b-field>
           </b-field>
           <b-field grouped v-if="scopes && scopes.length">
             <div class="columns mt-5">
               <div class="column">
-                <b-button class="zis-warning scope" @click="setScope(0)" :class="0 === scopeId ? 'is-warning' : 'is-primary'"
+                <b-button class="zis-warning scope" @click="setScope(0)" :class="0 === filters.scopeId ? 'is-warning' : 'is-light'"
                 >
                 Tots
                 </b-button>
               </div>
               <div class="column" v-for="(scope, i) in scopes" :key="i">
-                <b-button class="is-primary scope" @click="setScope(scope.id)" :class="scope.id === scopeId ? 'is-warning' : 'is-primary'"
+                <b-button class="scope" @click="setScope(scope.id)" :class="scope.id === filters.scopeId ? 'is-warning' : 'is-light'"
                 >
                 {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : '' }}
                 </b-button>
@@ -125,8 +127,25 @@
         </form>
       </card-component>
 
+      <div class="actions is-flex mb-5">
+        <b-button
+                class="view-button is-primary"
+                @click="navNewProject"
+                icon-left="plus"
+              >
+                Nou projecte
+              </b-button>
+<download-excel :data="projectsCSV">
+                <b-button
+                  title="Exporta dades"
+                  class="export-button ml-4"
+                  icon-left="file-excel"
+                />
+              </download-excel>
+      </div>
+
       <card-component
-        title="Projectes"
+        title="PROJECTES"
         class="has-table has-mobile-sort-spaced"
       >
         <projects-table
@@ -209,9 +228,9 @@ export default {
       dedication: 0,
       estimatedDedication: 0,
       project_states: [],
-      filters: { project_state: 1, q: "" },
-      queryChanged: 0,
-      scopeId: 0
+      filters: { project_state: 1, q: "", user: '', scopeId: 0 },
+      queryChanged: 0,      
+      users: []
     };
   },
   computed: {
@@ -265,6 +284,13 @@ export default {
         // this.filters.project_state = defaultProjectState
       });
 
+    service({ requiresAuth: true })
+      .get("users?_limit=-1")
+      .then((r) => {        
+        const users = r.data.filter(u => !u.hidden);
+        this.users = users
+      });
+
     // service({ requiresAuth: true })
     //   .get("contacts/count")
     //   .then((r) => {
@@ -295,6 +321,9 @@ export default {
     onChange(event) {
       this.doFilteredQuery(this.filters.q);
     },
+    onUserChange(event) {
+      this.doFilteredQuery(this.filters.q);
+    },
     randomChartData(n) {
       const data = [];
 
@@ -317,17 +346,18 @@ export default {
       const where1 = this.filters.project_state
         ? `&project_state=${this.filters.project_state}`
         : "";
-      const where2 = this.scopeId ? '&project_scope=' + this.scopeId : ''
+      const where2 = this.filters.scopeId ? '&project_scope=' + this.filters.scopeId : ''
+      const where3 = this.filters.user && this.filters.user > 0 ? '&leader=' + this.filters.user : ''
       if (q) {
         service({ requiresAuth: true })
-          .get(`projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}`)
+          .get(`projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`)
           .then((r) => {
             this.projects = r.data;
             this.applyProjects();
           });
       } else {
         service({ requiresAuth: true })
-          .get(`projects?_limit=-1${where1}${where2}`)
+          .get(`projects?_limit=-1${where1}${where2}${where3}`)
           .then((r) => {
             this.projects = r.data;
             this.applyProjects();
@@ -381,7 +411,7 @@ export default {
       };
     },
     setScope (scopeId) {
-      this.scopeId = scopeId
+      this.filters.scopeId = scopeId
       this.doFilteredQuery(this.filters.q)
     }
   },
