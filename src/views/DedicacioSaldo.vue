@@ -97,10 +97,10 @@ export default {
   mounted () {
     this.isLoading = true
 
-    service({ requiresAuth: true }).get('years').then((r) => {
+    service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
       // console.log('r.data', r.data)
       this.years = r.data
-      this.filters.year = this.years[this.years.length - 1]
+      this.filters.year = this.years[0]
       console.log('this.filters.year', this.filters.year)
     })
 

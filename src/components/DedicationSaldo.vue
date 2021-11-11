@@ -133,7 +133,7 @@ export default {
       }
 
       const from = moment(this.year, 'YYYY').startOf('year').format('YYYY-MM-DD')
-      const to = moment().format('YYYY-MM-DD')
+      const to = moment(this.year, 'YYYY').endOf('year').format('YYYY-MM-DD')
 
       let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
       if (this.user) {
@@ -190,7 +190,9 @@ export default {
     enumerateDaysBetweenDates () {
       var dates = []
       var currDate = moment(this.year, 'YYYY').startOf('year')
-      var lastDate = moment()
+      const endOfYear = moment(this.year, 'YYYY').endOf('year')
+      var lastDate = endOfYear.diff(moment()) < 0 ? moment(this.year, 'YYYY').endOf('year') : moment()
+      // var lastDate = moment()
       dates.push(currDate.clone().toDate())
       while (currDate.add(1, 'days').diff(lastDate) < 0) {
         dates.push(currDate.clone().toDate())
