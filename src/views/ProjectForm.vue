@@ -270,7 +270,7 @@
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ -1 *(form.total_estimated_hours - form.total_real_hours) }} h
+                  {{ form.total_estimated_hours - form.total_real_hours }} h
                 </div>
               </b-field>
             </div>
@@ -302,7 +302,7 @@
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="-1 *(form.total_incomes - form.total_real_incomes)"
+                    :value="form.total_incomes - form.total_real_incomes"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -341,7 +341,7 @@
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="-1 *(form.total_expenses - form.total_real_expenses)"
+                    :value="form.total_expenses - form.total_real_expenses"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -379,7 +379,7 @@
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="-1 *(form.total_estimated_hours_price - form.total_real_hours_price)"
+                    :value="form.total_estimated_hours_price - form.total_real_hours_price"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -418,7 +418,7 @@
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="-1 *(form.incomes_expenses - form.total_real_incomes_expenses)"
+                    :value="form.incomes_expenses - form.total_real_incomes_expenses"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -450,12 +450,26 @@
               </b-field>
               <b-field label="Pagaments realitzats" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ 'error' }} 
+                  <money-format
+                    :value="treasuryExpensesDone"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ 'error' }} 
+                  <money-format
+                    :value="treasuryExpensesPending - treasuryExpensesDone"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
                 </div>
               </b-field>
             </div>
@@ -475,12 +489,26 @@
               </b-field>
               <b-field label="Cobraments realitzats" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ 'error' }} 
+                  <money-format
+                    :value="treasuryIncomesDone"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ 'error' }} 
+                  <money-format
+                    :value="treasuryIncomesPending - treasuryIncomesDone"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
                 </div>
               </b-field>
             </div>
@@ -1530,11 +1558,21 @@ export default {
       // return sortBy(documents, "document.emitted");
     },
     treasuryIncomesPending () {
-      return sumBy(this.treasury.filter(t => t.multiplier > 0), 'document.total_amount')
+      return sumBy(this.documents.filter(t => t.multiplier > 0 && !t.document.paid), 'document.total_base')
     },
     treasuryExpensesPending () {
-      return sumBy(this.treasury.filter(t => t.multiplier < 0), 'document.total_amount')
+      return sumBy(this.documents.filter(t => t.multiplier < 0 && !t.document.paid), 'document.total_base')
+    },
+    treasuryIncomesDone () {
+      return sumBy(this.documents.filter(t => t.multiplier > 0 && t.document.paid), 'document.total_base')
+    },
+    treasuryExpensesDone () {
+      return sumBy(this.documents.filter(t => t.multiplier < 0 && t.document.paid), 'document.total_base')
+    },
+    treasuryExpensesDone2 () {
+      return this.documents.filter(t => t.multiplier < 0 && t.document.paid)
     }
+    
   },
   watch: {
     id(newValue) {
@@ -2183,5 +2221,10 @@ export default {
 .summary-card .column{  
   margin-bottom: 0!important;
   padding-bottom: 0!important;
+}
+.summary-card .label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
