@@ -109,7 +109,7 @@
             </b-field>
           </b-field>
           <b-field grouped v-if="scopes && scopes.length">
-            <div class="columns mt-5">
+            <div class="columns is-multiline mt-5">
               <div class="column">
                 <b-button class="zis-warning scope" @click="setScope(0)" :class="0 === filters.scopeId ? 'is-warning' : 'is-light'"
                 >
