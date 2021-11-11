@@ -29,152 +29,189 @@
     </download-excel>
 
     <!-- <pre>{{ pivotData }}</pre> -->
-    <section class="section">
-  <div class="b-table treasury-table">
-    <div class="table-wrapper has-mobile-cards has-sticky-header table-container">
-    <table class="table">
-      <thead>
-        <th></th>
-        <th class="has-text-right" >
-          <div class="zth-wrap has-text-right">
-              <span class="is-relative">
-          Avui
-          </span>
-          </div>
-        </th>
-        <th class="has-text-right" v-for="(column, i) in pivotData" :key="i">
-          <div class="zth-wrap has-text-right">
-              <span class="is-relative">
-          {{ column.month }} / {{ column.year }} 
-          </span>
-          </div>
-        </th>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="has-text-weight-bold">Balanç</td>
-          <td class="has-text-right"></td>
-          <td class="has-text-right" v-for="(data, i) in pivotData" :key="i">
-            {{ formatPrice(data.total_amount) }} €
-          </td>
-        </tr>
-        <tr>
-          <td class="has-text-weight-bold">Ingressos</td>
-          <td class="has-text-right"></td>
-          <td class="has-text-right" v-for="(data, i) in pivotData" :key="i">
-            {{ formatPrice(data.total_incomes) }} €
-          </td>
-        </tr>
-        <tr>
-          <td class="has-text-weight-bold">Despeses</td>
-          <td class="has-text-right"></td>
-          <td class="has-text-right" v-for="(data, i) in pivotData" :key="i">
-            {{ formatPrice(data.total_expenses) }} €
-          </td>
-        </tr>
-        <tr>
-          <td class="has-text-weight-bold">Saldo</td>
-          <td class="has-text-right">{{ formatPrice(todaySubTotal) }}€</td>
-          <td class="has-text-right has-text-weight-bold" v-for="(data, i) in pivotData" :key="i">
-            {{ formatPrice(data.subtotal) }} €
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-</div>
-
-<download-excel
-      class="export view-button"
-      :data="treasuryData"
-      v-if="treasuryData && treasuryData.length"
-    >
-      <b-button
-        title="Exporta dades"
-        class="zview-button"
-        :type="'is-disabled'"
-        icon-left="file-excel"
-      />
-    </download-excel>
-
-</section>
-    <!-- <div id="treasury-pivot"></div> -->
-    <section class="section">
-      <b-table
-        :loading="isLoading"
-        :paginated="false"
-        :striped="false"
-        :data="treasuryData"
-        :row-class="
-          (row, index) =>
-            (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
-            (row.type == 'Avui' && 'has-text-info')
-        "
+    
+      <card-component
+        title="PREVISIÓ DE TRESORERIA"
+        class="ztile is-child mt-2"
       >
-        <b-table-column label="Data" field="datex" v-slot="props">
-          {{ props.row.datex }}
-          <b-icon
-            v-if="props.row.date_error"
-            class="has-text-danger"
-            icon="alert-circle"
-            title="No hi ha data"
-            size="is-small"
+        <section class="section">
+        <div class="b-table treasury-table">
+          <div
+            class="
+              table-wrapper
+              has-mobile-cards has-sticky-header
+              table-container
+            "
           >
-          </b-icon>
-        </b-table-column>
-        <b-table-column label="Import" field="total_amount" v-slot="props">
-          {{ formatPrice(props.row.total_amount) }} €
-        </b-table-column>
-        <b-table-column label="Saldo" field="subtotal" v-slot="props">
-          {{ formatPrice(props.row.subtotal) }} €
-        </b-table-column>
-        <b-table-column label="Moviment" field="type" v-slot="props">
-          <span
-            :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'"
-          >
-            {{ props.row.type }}
-          </span>
-        </b-table-column>
-        <b-table-column label="Concepte" field="concept" v-slot="props">
-          <a :href="props.row.pdf" target="_blank" v-if="props.row.pdf">
-            {{ props.row.concept }}
-          </a>
-          <span v-else>{{ props.row.concept }}</span>
-        </b-table-column>
-        <b-table-column label="Projecte" field="project_name" v-slot="props">
-          <router-link
-            :to="{ name: 'project.edit', params: { id: props.row.project_id } }"
-          >
-            <span class="project-name has-text-info">
-              {{ props.row.project_name }}
+            <table class="table">
+              <thead>
+                <th></th>
+                <th class="has-text-right">
+                  <div class="zth-wrap has-text-right">
+                    <span class="is-relative"> Avui </span>
+                  </div>
+                </th>
+                <th
+                  class="has-text-right"
+                  v-for="(column, i) in pivotData"
+                  :key="i"
+                >
+                  <div class="zth-wrap has-text-right">
+                    <span class="is-relative">
+                      {{ column.month }} / {{ column.year }}
+                    </span>
+                  </div>
+                </th>
+              </thead>
+              <tbody>
+                
+                <tr>
+                  <td class="has-text-weight-bold">Cobraments</td>
+                  <td class="has-text-right"></td>
+                  <td
+                    class="has-text-right"
+                    v-for="(data, i) in pivotData"
+                    :key="i"
+                  >
+                    {{ formatPrice(data.total_incomes) }} €
+                  </td>
+                </tr>
+                <tr>
+                  <td class="has-text-weight-bold">Pagaments</td>
+                  <td class="has-text-right"></td>
+                  <td
+                    class="has-text-right"
+                    v-for="(data, i) in pivotData"
+                    :key="i"
+                  >
+                    {{ formatPrice(data.total_expenses) }} €
+                  </td>
+                </tr>
+                <tr>
+                  <td class="has-text-weight-bold">Resultat</td>
+                  <td class="has-text-right"></td>
+                  <td
+                    class="has-text-right"
+                    v-for="(data, i) in pivotData"
+                    :key="i"
+                  >
+                    {{ formatPrice(data.total_amount) }} €
+                  </td>
+                </tr>
+                <tr>
+                  <td class="has-text-weight-bold">Saldo</td>
+                  <td class="has-text-right">
+                    {{ formatPrice(todaySubTotal) }}€
+                  </td>
+                  <td
+                    class="has-text-right has-text-weight-bold"
+                    v-for="(data, i) in pivotData"
+                    :key="i"
+                  >
+                    {{ formatPrice(data.subtotal) }} €
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        </section>
+      </card-component>
+      <download-excel
+        class="export view-button"
+        :data="treasuryData"
+        v-if="treasuryData && treasuryData.length"
+      >
+        <b-button
+          title="Exporta dades"
+          class="zview-button"
+          :type="'is-disabled'"
+          icon-left="file-excel"
+        />
+      </download-excel>
+    
+
+    <card-component title="MOVIMENTS BANCARIS" class="ztile is-child mt-2">
+      <section class="section">
+        <b-table
+          :loading="isLoading"
+          :paginated="false"
+          :striped="false"
+          :data="treasuryData"
+          :row-class="
+            (row, index) =>
+              (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
+              (row.type == 'Avui' && 'has-text-info')
+          "
+        >
+          <b-table-column label="Data" field="datex" v-slot="props">
+            {{ props.row.datex }}
+            <b-icon
+              v-if="props.row.date_error"
+              class="has-text-danger"
+              icon="alert-circle"
+              title="No hi ha data"
+              size="is-small"
+            >
+            </b-icon>
+          </b-table-column>
+          <b-table-column label="Import" field="total_amount" v-slot="props">
+            {{ formatPrice(props.row.total_amount) }} €
+          </b-table-column>
+          <b-table-column label="Saldo" field="subtotal" v-slot="props">
+            {{ formatPrice(props.row.subtotal) }} €
+          </b-table-column>
+          <b-table-column label="Moviment" field="type" v-slot="props">
+            <span
+              :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'"
+            >
+              {{ props.row.type }}
             </span>
-          </router-link>
-        </b-table-column>
-        <b-table-column label="Contacte" field="contact" v-slot="props">
-          {{ props.row.contact }}
-        </b-table-column>
-        <b-table-column label="Accions" v-slot="props">
-          <button
-            v-if="props.row.expenseId"
-            class="button is-small is-danger"
-            type="button"
-            @click.prevent="trashModal(props.row)"
-            title="Marcar com a pagat"
-          >
-            <b-icon icon="cash-multiple" size="is-small" />
-          </button>
-          <button
-            v-if="props.row.incomeId"
-            class="button is-small is-danger"
-            type="button"
-            @click.prevent="trashModal(props.row)"
-            title="Marcar com a pagat"
-          >
-            <b-icon icon="cash-multiple" size="is-small" />
-          </button>
-        </b-table-column>
-      </b-table>
-    </section>
+          </b-table-column>
+          <b-table-column label="Concepte" field="concept" v-slot="props">
+            <a :href="props.row.pdf" target="_blank" v-if="props.row.pdf">
+              {{ props.row.concept }}
+            </a>
+            <span v-else>{{ props.row.concept }}</span>
+          </b-table-column>
+          <b-table-column label="Projecte" field="project_name" v-slot="props">
+            <router-link
+              :to="{
+                name: 'project.edit',
+                params: { id: props.row.project_id },
+              }"
+            >
+              <span class="project-name has-text-info">
+                {{ props.row.project_name }}
+              </span>
+            </router-link>
+          </b-table-column>
+          <b-table-column label="Contacte" field="contact" v-slot="props">
+            {{ props.row.contact }}
+          </b-table-column>
+          <b-table-column label="Accions" v-slot="props">
+            <button
+              v-if="props.row.expenseId"
+              class="button is-small is-danger"
+              type="button"
+              @click.prevent="trashModal(props.row)"
+              title="Marcar com a pagat"
+            >
+              <b-icon icon="cash-multiple" size="is-small" />
+            </button>
+            <button
+              v-if="props.row.incomeId"
+              class="button is-small is-danger"
+              type="button"
+              @click.prevent="trashModal(props.row)"
+              title="Marcar com a pagat"
+            >
+              <b-icon icon="cash-multiple" size="is-small" />
+            </button>
+          </b-table-column>
+        </b-table>
+      </section>
+    </card-component>
   </div>
 </template>
 
@@ -186,11 +223,13 @@ import sortBy from "lodash/sortBy";
 import _ from "lodash";
 import configPivot from "@/service/configStatsTreasury";
 import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
+import CardComponent from "./CardComponent.vue";
 
 export default {
   name: "Tresoreria",
   components: {
     ModalBoxInvoicing,
+    CardComponent,
   },
   props: {
     titleStack: {
@@ -696,5 +735,8 @@ export default {
 };
 </script>
 <style>
-.treasury-table.b-table .table th, .treasury-table.b-table td { min-width: 150px;}
+.treasury-table.b-table .table th,
+.treasury-table.b-table td {
+  min-width: 150px;
+}
 </style>

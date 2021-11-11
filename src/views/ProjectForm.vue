@@ -254,14 +254,9 @@
         <div class="column is-one-third">
           <card-component
             v-if="isProfileExists"
-            title="Resum"
+            title="RESUM FINANCER PROJECTE"
             class="tile is-child summary-card"
           >
-            <!-- <user-avatar
-            :avatar="form.avatar"
-            class="image has-max-width is-aligned-center"
-          />
-          <hr /> -->
             <div class="columns">
               <b-field label="Hores previstes" class="column">
                 <div class="readonly subphase-detail-input">
@@ -271,6 +266,11 @@
               <b-field label="Hores executades" class="column">
                 <div class="readonly subphase-detail-input">
                   {{ form.total_real_hours }} h
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  {{ -1 *(form.total_estimated_hours - form.total_real_hours) }} h
                 </div>
               </b-field>
             </div>
@@ -291,6 +291,18 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_real_incomes"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="-1 *(form.total_incomes - form.total_real_incomes)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -326,6 +338,18 @@
                   </money-format>
                 </div>
               </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="-1 *(form.total_expenses - form.total_real_expenses)"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
             </div>
             <div class="columns">
               <b-field label="Hores previstes" class="column">
@@ -344,6 +368,18 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_real_hours_price"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="-1 *(form.total_estimated_hours_price - form.total_real_hours_price)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -379,12 +415,82 @@
                   </money-format>
                 </div>
               </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="-1 *(form.incomes_expenses - form.total_real_incomes_expenses)"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
             </div>
           </card-component>
+
+          <card-component
+            v-if="isProfileExists"
+            title="RESUM TRESORERIA PROJECTE"
+            class="ztile is-child summary-card mt-4"
+          >
+            <div class="columns">
+              <b-field label="Pagaments previstos" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="treasuryExpensesPending"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Pagaments realitzats" class="column">
+                <div class="readonly subphase-detail-input">
+                  {{ 'error' }} 
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  {{ 'error' }} 
+                </div>
+              </b-field>
+            </div>
+
+            <div class="columns">
+              <b-field label="Cobraments previstos" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="treasuryIncomesPending"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Cobraments realitzats" class="column">
+                <div class="readonly subphase-detail-input">
+                  {{ 'error' }} 
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  {{ 'error' }} 
+                </div>
+              </b-field>
+            </div>
+          </card-component>
+
         </div>
+        
       </div>
 
-      <card-component title="Fases i Pressupost">
+      <card-component title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST">
         <b-table
           :data="form.phases"
           ref="table"
@@ -437,26 +543,7 @@
             </button>
           </b-table-column>
           <template #detail="props">
-            <b-field label="Ingressos" horizontal class="has-text-left">
-              <div
-                class="
-                  readonly
-                  subphase-detail-input subphase-detail-input-phase-total
-                "
-              >
-                <money-format
-                  :value="
-                    totalSubPhase(props.row.subphases)
-                      ? totalSubPhase(props.row.subphases)
-                      : 0
-                  "
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
+            <b-field label="Ingressos" horizontal class="has-text-left">              
             </b-field>
             <ul class="subphases-list">
               <li
@@ -540,7 +627,7 @@
                     </div>
                   </b-field>
                   <b-field
-                    :label="j == 0 ? 'Data' : null"
+                    :label="j == 0 ? 'Data previsió pag.' : null"
                     v-if="me.options && me.options.treasury"
                     class="date-field"
                   >
@@ -666,22 +753,7 @@
                 <b-icon icon="plus-circle" size="is-small" />
               </button>
             </div>
-            <b-field label="Despeses" horizontal class="has-text-left mt-5">
-              <div
-                class="
-                  readonly
-                  subphase-detail-input subphase-detail-input-phase-total
-                "
-              >
-                <money-format
-                  :value="totalSubPhase(props.row.expenses)"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
+            <b-field label="Despeses" horizontal class="has-text-left mt-5">              
             </b-field>
             <ul class="subphases-list">
               <li
@@ -757,7 +829,7 @@
                     </div>
                   </b-field>
                   <b-field
-                    :label="j == 0 ? 'Data' : null"
+                    :label="j == 0 ? 'Data previsió pag.' : null"
                     v-if="me.options && me.options.treasury"
                     class="date-field"
                   >
@@ -918,7 +990,7 @@
             </b-input>
           </b-field>
         </form>
-        <div class="quote-summary">
+        <!-- <div class="quote-summary">
           <hr />
           <b-field label="Total Pressupost" class="mt-5">
             <div class="readonly subphase-detail-input">
@@ -932,7 +1004,7 @@
               </money-format>
             </div>
           </b-field>
-        </div>
+        </div> -->
         <hr />
         <b-field>
           <b-button type="is-primary" :loading="isLoading" @click="submit"
@@ -941,53 +1013,10 @@
         </b-field>
       </card-component>
 
-      <card-component v-if="!isLoading && !isUpdating" title="Planificació">
-        <button
-          v-if="needsUpdate"
-          class="button is-small is-danger ml-2"
-          type="button"
-          @click.prevent="updateGantt"
-        >
-          Guardar i Actualitzar
-          <b-icon icon="refresh" size="is-small" />
-        </button>
-        <!-- <pre style="height:600px;width:800px;overflow:scroll">
-            {{ form.phases }}
-          </pre> -->
-        <!-- <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" /> -->
-        <project-gannt2
-          v-if="
-            !isLoading &&
-            !needsUpdate &&
-            form.id &&
-            form.phases &&
-            form.phases.length &&
-            form.phases[0].id
-          "
-          class="left-container"
-          :project="form"
-          :users="leaders"
-          :tasks="tasks"
-          @gantt-item-update="ganttItemUpdate"
-          @gantt-item-delete="ganttItemDelete"
-        />
-        <span class="bg-info" v-else
-          >Es necessari tenir fases i guardar el projecte per accedir a la
-          planificació</span
-        >
-        <hr />
-        <b-field>
-          <b-button type="is-primary" :loading="isLoading" @click="submit"
-            >Guardar</b-button
-          >
-        </b-field>
-      </card-component>
-
-
-
+      
       <card-component
         v-if="documents && documents.length"
-        title="Moviments"
+        title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
         class="ztile is-child mt-2"
       >
         <b-table :data="documents">
@@ -1075,7 +1104,7 @@
 
       <card-component
         v-if="treasury && treasury.length"
-        title="Tresoreria"
+        title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
         <b-table :data="treasury">
@@ -1085,7 +1114,7 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.docType === 'income' ? 'Ingrés esperat' : 'Despesa esperada' }}
+            {{ props.row.docType === 'income' ? 'Cobrament esperat' : 'Pagament esperat' }}
           </b-table-column>
           <b-table-column
             label="Concepte"
@@ -1121,6 +1150,48 @@
             {{ props.row.document.date ? formatDate(props.row.document.date) : '' }}
           </b-table-column>
         </b-table>
+      </card-component>
+
+      <card-component v-if="!isLoading && !isUpdating" title="PLANIFICACIÓ">
+        <button
+          v-if="needsUpdate"
+          class="button is-small is-danger ml-2"
+          type="button"
+          @click.prevent="updateGantt"
+        >
+          Guardar i Actualitzar
+          <b-icon icon="refresh" size="is-small" />
+        </button>
+        <!-- <pre style="height:600px;width:800px;overflow:scroll">
+            {{ form.phases }}
+          </pre> -->
+        <!-- <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" /> -->
+        <project-gannt2
+          v-if="
+            !isLoading &&
+            !needsUpdate &&
+            form.id &&
+            form.phases &&
+            form.phases.length &&
+            form.phases[0].id
+          "
+          class="left-container"
+          :project="form"
+          :users="leaders"
+          :tasks="tasks"
+          @gantt-item-update="ganttItemUpdate"
+          @gantt-item-delete="ganttItemDelete"
+        />
+        <span class="bg-info" v-else
+          >Es necessari tenir fases i guardar el projecte per accedir a la
+          planificació</span
+        >
+        <hr />
+        <b-field>
+          <b-button type="is-primary" :loading="isLoading" @click="submit"
+            >Guardar</b-button
+          >
+        </b-field>
       </card-component>
 
 
@@ -1292,9 +1363,9 @@ export default {
     },
     formCardTitle() {
       if (this.isProfileExists) {
-        return "Edita Projecte";
+        return "DADES BÀSIQUES PROJECTE";
       } else {
-        return "Nou Projecte";
+        return "DADES BÀSIQUES PROJECTE";
       }
     },
     transitionName() {
@@ -1458,6 +1529,12 @@ export default {
       return documents
       // return sortBy(documents, "document.emitted");
     },
+    treasuryIncomesPending () {
+      return sumBy(this.treasury.filter(t => t.multiplier > 0), 'document.total_amount')
+    },
+    treasuryExpensesPending () {
+      return sumBy(this.treasury.filter(t => t.multiplier < 0), 'document.total_amount')
+    }
   },
   watch: {
     id(newValue) {

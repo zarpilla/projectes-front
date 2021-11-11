@@ -106,6 +106,22 @@
               </download-excel>
             </b-field>
           </b-field>
+          <b-field grouped v-if="scopes && scopes.length">
+            <div class="columns mt-5">
+              <div class="column">
+                <b-button class="zis-warning scope" @click="setScope(0)" :class="0 === scopeId ? 'is-warning' : 'is-primary'"
+                >
+                Tots
+                </b-button>
+              </div>
+              <div class="column" v-for="(scope, i) in scopes" :key="i">
+                <b-button class="is-primary scope" @click="setScope(scope.id)" :class="scope.id === scopeId ? 'is-warning' : 'is-primary'"
+                >
+                {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : '' }}
+                </b-button>
+              </div>
+            </div>
+          </b-field>
         </form>
       </card-component>
 
@@ -183,9 +199,10 @@ export default {
         extraOptions: chartConfig.chartOptionsMain,
       },
       projectsNumber: 0,
-      contactsNumber: 0,
+      // contactsNumber: 0,
       projects: [],
       activities: [],
+      scopes: [],
       balance: 0,
       realIncomes: 0,
       realExpenses: 0,
@@ -194,6 +211,7 @@ export default {
       project_states: [],
       filters: { project_state: 1, q: "" },
       queryChanged: 0,
+      scopeId: 0
     };
   },
   computed: {
@@ -202,6 +220,7 @@ export default {
     },
     projectsCSV() {
       // return this.projects
+      console.log('this.projects', this.projects)
       const projectsCSV = this.projects.map((p) => {
         return {
           id: p.id,
@@ -211,6 +230,8 @@ export default {
           scope:
             p.project_scope && p.project_scope.id ? p.project_scope.name : "",
           leader: p.leader && p.leader.id ? p.leader.username : "",
+          date_start: p.date_start,
+          date_end: p.date_end,
           estimated_hours: p.total_estimated_hours.toString().replace('.', ','),
           real_hours: p.total_real_hours.toString().replace('.', ','),
 
@@ -244,15 +265,22 @@ export default {
         // this.filters.project_state = defaultProjectState
       });
 
-    service({ requiresAuth: true })
-      .get("contacts/count")
-      .then((r) => {
-        // console.log('contacts', r.data)
-        this.contactsNumber = r.data;
-      });
+    // service({ requiresAuth: true })
+    //   .get("contacts/count")
+    //   .then((r) => {
+    //     // console.log('contacts', r.data)
+    //     this.contactsNumber = r.data;
+    //   });
 
     service({ requiresAuth: true })
-      .get("projects?_limit=-1&project_state=1")
+      .get("project-scopes?_limit=-1&_sort=code:ASC")
+      .then((r) => {
+        this.scopes = r.data
+        // this.applyProjects();
+      });
+    const query = `projects?_limit=-1&project_state=1`
+    service({ requiresAuth: true })
+      .get(query)
       .then((r) => {
         this.projects = r.data.filter(
           (p) => p.project_state !== null && p.project_state.id === 1
@@ -286,19 +314,20 @@ export default {
       }, 400);
     },
     doFilteredQuery(q) {
-      const where = this.filters.project_state
+      const where1 = this.filters.project_state
         ? `&project_state=${this.filters.project_state}`
         : "";
+      const where2 = this.scopeId ? '&project_scope=' + this.scopeId : ''
       if (q) {
         service({ requiresAuth: true })
-          .get(`projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where}`)
+          .get(`projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}`)
           .then((r) => {
             this.projects = r.data;
             this.applyProjects();
           });
       } else {
         service({ requiresAuth: true })
-          .get(`projects?_limit=-1${where}`)
+          .get(`projects?_limit=-1${where1}${where2}`)
           .then((r) => {
             this.projects = r.data;
             this.applyProjects();
@@ -351,6 +380,10 @@ export default {
         labels: ["01", "02", "03", "04", "05", "06", "07", "08", "09"],
       };
     },
+    setScope (scopeId) {
+      this.scopeId = scopeId
+      this.doFilteredQuery(this.filters.q)
+    }
   },
 };
 </script>
