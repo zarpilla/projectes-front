@@ -3,9 +3,17 @@
     <modal-box-invoicing
       :is-active="isModalActive"
       :invoicing-object="invoicingObject"
-      @submit="modalSubmit"
+      @submit="modalSubmit"      
       @cancel="modalCancel"
       @delete="modalDelete"
+    />
+    <modal-box-split
+      :is-active="isModalSplitActive"
+      :invoicing-object="invoicingObject"
+      @submit="modalSplitSubmit"
+      @action="modalSplitSubmit"
+      @cancel="modalSplitCancel"
+      @delete="modalSplitDelete"
     />
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
@@ -679,6 +687,13 @@
                     :label="j == 0 ? 'Accions' : null"
                     class="medium-field"
                   >
+                  <button
+                      class="button is-small is-primary ml-2"
+                      type="button"
+                      @click.prevent="splitSubPhase(props.row, subphase, props.index, j)"
+                    >
+                      <b-icon icon="arrow-split-horizontal" size="is-small" />
+                    </button>
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
@@ -881,6 +896,13 @@
                     :label="j == 0 ? 'Accions' : null"
                     class="medium-field"
                   >
+                    <button
+                      class="button is-small is-primary ml-2"
+                      type="button"
+                      @click.prevent="splitSubExpense(props.row, subphase, props.index, j)"
+                    >
+                      <b-icon icon="arrow-split-horizontal" size="is-small" />
+                    </button>
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
@@ -1241,6 +1263,7 @@ import CardComponent from "@/components/CardComponent";
 // import FilePicker from '@/components/FilePicker'
 // import UserAvatar from '@/components/UserAvatar'
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
+import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
 // import ProjectGannt from '@/components/ProjectGannt.vue'
 import ProjectGannt2 from "@/components/ProjectGannt2.vue";
@@ -1264,6 +1287,7 @@ export default {
     // ProjectGannt,
     MoneyFormat,
     ModalBoxInvoicing,
+    ModalBoxSplit,
     ProjectGannt2,
     // CurrencyInput
     // Notification
@@ -1326,6 +1350,7 @@ export default {
       },
       invoicingObject: {},
       isModalActive: false,
+      isModalSplitActive: false
     };
   },
   computed: {
@@ -1961,6 +1986,18 @@ export default {
       this.needsUpdate = true;
       phase.expenses.push({ concept: "", quantity: 1, amount: 0 });
     },
+    splitSubPhase(phase, subphase, i, j) {
+      this.invoicingObject = {
+        phase, subphase, i, j, type: 'income'
+      }
+      this.isModalSplitActive = true;
+    },
+    splitSubExpense(phase, subphase, i, j) {
+      this.invoicingObject = {
+        phase, subphase, i, j, type: 'expense'
+      }
+      this.isModalSplitActive = true;
+    },
     updateGantt() {
       EventBus.$emit("zphases-updated", {});
       this.isUpdating = true;
@@ -2127,6 +2164,76 @@ export default {
     formatDate(value) {
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
     },
+    async modalSplitSubmit(action) {
+      // console.log('action',action)
+      if (action.type === 'income') {
+        if (action.action === 'x2') {          
+          const newIncome = {
+            income_type: action.subphase.income_type,
+            concept: action.subphase.concept,
+            amount: action.subphase.amount,
+            quantity: action.subphase.quantity
+          }
+          this.form.phases[action.i].subphases.splice(action.j + 1, 0, newIncome);
+        } else if (action.action === 'x12') {          
+          for (let i = 0; i < 12; i++) {
+            const newIncome = {
+              income_type: action.subphase.income_type,
+              concept: action.subphase.concept,
+              amount: action.subphase.amount,
+              quantity: action.subphase.quantity
+            }
+            this.form.phases[action.i].subphases.splice(action.j + 1, 0, newIncome);
+          } 
+        } else if (action.action === 'split') {          
+          const newIncome = {
+            income_type: action.subphase.income_type,
+            concept: action.subphase.concept,
+            amount: action.amount,
+            quantity: action.subphase.quantity
+          }
+          this.form.phases[action.i].subphases[action.j].amount = this.form.phases[action.i].subphases[action.j].amount - action.amount
+          this.form.phases[action.i].subphases.splice(action.j + 1, 0, newIncome);
+        }
+      } else if (action.type === 'expense') {
+        if (action.action === 'x2') {          
+          const newIncome = {
+            expense_type: action.subphase.expense_type,
+            concept: action.subphase.concept,
+            amount: action.subphase.amount,
+            quantity: action.subphase.quantity
+          }
+          this.form.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
+        } else if (action.action === 'x12') {          
+          for (let i = 0; i < 12; i++) {
+            const newIncome = {
+              expense_type: action.subphase.expense_type,
+              concept: action.subphase.concept,
+              amount: action.subphase.amount,
+              quantity: action.subphase.quantity
+            }
+            this.form.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
+          }          
+        } else if (action.action === 'split') {          
+          const newIncome = {
+            expense_type: action.subphase.expense_type,
+            concept: action.subphase.concept,
+            amount: action.amount,
+            quantity: action.subphase.quantity
+          }
+          this.form.phases[action.i].expenses[action.j].amount = this.form.phases[action.i].expenses[action.j].amount - action.amount
+          this.form.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
+        }
+      }
+
+      this.isModalSplitActive = false;
+    },
+    async modalSplitDelete(invoicing) {
+      this.isModalSplitActive = false;
+    },
+    async modalSplitCancel() {
+      this.isModalSplitActive = false;
+    },
   },
 };
 </script>
@@ -2186,9 +2293,6 @@ export default {
 }
 .subphase .field.short-field {
   width: 10%;
-}
-.subphase .field.medium-field {
-  width: 20%;
 }
 .subphase .field.subphase-detail-input-large-field {
   width: 75%;
