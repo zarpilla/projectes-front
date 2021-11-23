@@ -101,7 +101,6 @@ export default {
       // console.log('r.data', r.data)
       this.years = r.data
       this.filters.year = this.years[0]
-      console.log('this.filters.year', this.filters.year)
     })
 
     service({ requiresAuth: true }).get('users').then((r) => {
