@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card>
+  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Entrada hores</p>
