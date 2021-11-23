@@ -146,7 +146,7 @@ export default {
         this.dedicationTypes[r.data[i].id] = r.data[i].name
       }
     })
-    service({ requiresAuth: true }).get('activity-types').then((r) => {
+    service({ requiresAuth: true }).get('activity-types?_limit=-1').then((r) => {
       for (var i in r.data) {
         this.activityTypes[r.data[i].id] = r.data[i].name
       }

@@ -3,7 +3,7 @@
     <modal-box-invoicing
       :is-active="isModalActive"
       :invoicing-object="invoicingObject"
-      @submit="modalSubmit"      
+      @submit="modalSubmit"
       @cancel="modalCancel"
       @delete="modalDelete"
     />
@@ -43,7 +43,7 @@
                 <b-select
                   v-model="form.project_scope.id"
                   placeholder="Àmbit"
-                  required
+                  
                 >
                   <option
                     v-for="(s, index) in project_scopes"
@@ -58,7 +58,7 @@
                 <b-select
                   v-model="form.leader.id"
                   placeholder="Coordina"
-                  required
+                  
                 >
                   <option
                     v-for="(s, index) in leaders"
@@ -223,6 +223,38 @@
                 >
                 </b-input>
               </b-field>
+              <b-field label="Tasques" horizontal v-if="form.id">
+                <b-input
+                  placeholder="Nom de la tasca"
+                  v-model="newTask"
+                  icon-right="plus-circle"
+                  icon-right-clickable
+                  @icon-right-click="addTask"
+                >
+                </b-input>
+              </b-field>
+              <b-field
+                label=""
+                horizontal
+                v-if="form.activity_types && form.activity_types.length"
+              >
+                <div class="list">
+                  <ul class="ulist">
+                    <li
+                      v-for="(activityType, i) in form.activity_types"
+                      :key="i"
+                      class="tag is-primary"
+                    >
+                      {{ activityType.name }}
+                      <b-button
+                        @click="removeTask(activityType)"
+                        class="no-button"
+                        icon-left="close-circle"
+                      />
+                    </li>
+                  </ul>
+                </div>
+              </b-field>
               <!-- <b-field label="Company" message="Client's company name" horizontal>
               <b-input
                 v-model="form.company"
@@ -259,7 +291,7 @@
             </form>
           </card-component>
         </div>
-        <div class="column is-one-third">
+        <div class="column is-one-third" v-if="!isLoading">
           <card-component
             v-if="isProfileExists"
             title="RESUM FINANCER PROJECTE"
@@ -371,7 +403,9 @@
               <b-field label="Diferència (€)" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.incomes_expenses - form.total_real_incomes_expenses"
+                    :value="
+                      form.incomes_expenses - form.total_real_incomes_expenses
+                    "
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -427,7 +461,10 @@
               <b-field label="Diferència (€)" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_estimated_hours_price - form.total_real_hours_price"
+                    :value="
+                      form.total_estimated_hours_price -
+                      form.total_real_hours_price
+                    "
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -437,8 +474,6 @@
                 </div>
               </b-field>
             </div>
-
-            
           </card-component>
 
           <card-component
@@ -524,12 +559,10 @@
               </b-field>
             </div>
           </card-component>
-
         </div>
-        
       </div>
 
-      <card-component title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST">
+      <card-component v-if="!isLoading" title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST">
         <b-table
           :data="form.phases"
           ref="table"
@@ -582,7 +615,7 @@
             </button>
           </b-table-column>
           <template #detail="props">
-            <b-field label="Ingressos" horizontal class="has-text-left">              
+            <b-field label="Ingressos" horizontal class="has-text-left">
             </b-field>
             <ul class="subphases-list">
               <li
@@ -592,11 +625,14 @@
               >
                 <b-field grouped>
                   <b-field
-                    v-if="(incomeTypes && incomeTypes.length) || (expenseTypes && expenseTypes.length)"
+                    v-if="
+                      (incomeTypes && incomeTypes.length) ||
+                      (expenseTypes && expenseTypes.length)
+                    "
                     :label="j == 0 ? 'Tipus' : null"
                     class="subphase-detail-input"
                   >
-                    <b-select                      
+                    <b-select
                       v-model="subphase.income_type"
                       placeholder="Tipus"
                     >
@@ -621,7 +657,10 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Quantitat' : null" class="medium-field">
+                  <b-field
+                    :label="j == 0 ? 'Quantitat' : null"
+                    class="medium-field"
+                  >
                     <b-input
                       name="Unitats"
                       placeholder="Quantitat, hores, unitats..."
@@ -649,7 +688,10 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Total' : null" class="medium-field">
+                  <b-field
+                    :label="j == 0 ? 'Total' : null"
+                    class="medium-field"
+                  >
                     <div class="readonly subphase-detail-input">
                       <money-format
                         :value="
@@ -687,10 +729,12 @@
                     :label="j == 0 ? 'Accions' : null"
                     class="medium-field"
                   >
-                  <button
+                    <button
                       class="button is-small is-primary ml-2"
                       type="button"
-                      @click.prevent="splitSubPhase(props.row, subphase, props.index, j)"
+                      @click.prevent="
+                        splitSubPhase(props.row, subphase, props.index, j)
+                      "
                     >
                       <b-icon icon="arrow-split-horizontal" size="is-small" />
                     </button>
@@ -799,7 +843,7 @@
                 <b-icon icon="plus-circle" size="is-small" />
               </button>
             </div>
-            <b-field label="Despeses" horizontal class="has-text-left mt-5">              
+            <b-field label="Despeses" horizontal class="has-text-left mt-5">
             </b-field>
             <ul class="subphases-list">
               <li
@@ -809,7 +853,10 @@
               >
                 <b-field grouped>
                   <b-field
-                    v-if="(incomeTypes && incomeTypes.length) || (expenseTypes && expenseTypes.length)"
+                    v-if="
+                      (incomeTypes && incomeTypes.length) ||
+                      (expenseTypes && expenseTypes.length)
+                    "
                     :label="j == 0 ? 'Tipus' : null"
                     class="subphase-detail-input"
                   >
@@ -838,7 +885,10 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Quantitat' : null" class="medium-field">
+                  <b-field
+                    :label="j == 0 ? 'Quantitat' : null"
+                    class="medium-field"
+                  >
                     <b-input
                       name="Unitats"
                       placeholder="Quantitat, hores, unitats..."
@@ -862,8 +912,16 @@
                     >
                     </b-input>
                   </b-field>
-                  <b-field :label="j == 0 ? 'Total' : null" class="medium-field">
-                    <div class="readonly subphase-detail-input subphase-detail-input-short">
+                  <b-field
+                    :label="j == 0 ? 'Total' : null"
+                    class="medium-field"
+                  >
+                    <div
+                      class="
+                        readonly
+                        subphase-detail-input subphase-detail-input-short
+                      "
+                    >
                       <money-format
                         :value="subphase.quantity * subphase.amount"
                         :locale="'es'"
@@ -899,7 +957,9 @@
                     <button
                       class="button is-small is-primary ml-2"
                       type="button"
-                      @click.prevent="splitSubExpense(props.row, subphase, props.index, j)"
+                      @click.prevent="
+                        splitSubExpense(props.row, subphase, props.index, j)
+                      "
                     >
                       <b-icon icon="arrow-split-horizontal" size="is-small" />
                     </button>
@@ -1066,9 +1126,8 @@
         </b-field>
       </card-component>
 
-      
       <card-component
-        v-if="documents && documents.length"
+        v-if="documents && documents.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
         class="ztile is-child mt-2"
       >
@@ -1132,8 +1191,13 @@
             sortable
             v-slot="props"
           >
-          <span class="ztag" :class="props.row.document.paid ? 'has-text-primary' : 'has-text-danger'">
-            {{ props.row.document.paid ? "SÍ" : "NO" }}
+            <span
+              class="ztag"
+              :class="
+                props.row.document.paid ? 'has-text-primary' : 'has-text-danger'
+              "
+            >
+              {{ props.row.document.paid ? "SÍ" : "NO" }}
             </span>
           </b-table-column>
           <b-table-column
@@ -1144,19 +1208,34 @@
           >
             {{ props.row.document.paid_date }}
           </b-table-column>
-          <b-table-column
-            label="Assignat"
-            v-slot="props"
-          >
-          <span :class="treasuryDone.find(t => t.docType === props.row.docType && t.id === props.row.document.id) ? 'has-text-primary' : 'has-text-danger'">
-            {{ treasuryDone.find(t => t.docType === props.row.docType && t.id === props.row.document.id) ? 'SÍ' : 'NO' }}
+          <b-table-column label="Assignat" v-slot="props">
+            <span
+              :class="
+                treasuryDone.find(
+                  (t) =>
+                    t.docType === props.row.docType &&
+                    t.id === props.row.document.id
+                )
+                  ? 'has-text-primary'
+                  : 'has-text-danger'
+              "
+            >
+              {{
+                treasuryDone.find(
+                  (t) =>
+                    t.docType === props.row.docType &&
+                    t.id === props.row.document.id
+                )
+                  ? "SÍ"
+                  : "NO"
+              }}
             </span>
           </b-table-column>
         </b-table>
       </card-component>
 
       <card-component
-        v-if="treasury && treasury.length"
+        v-if="treasury && treasury.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
@@ -1167,7 +1246,11 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.docType === 'income' ? 'Cobrament esperat' : 'Pagament esperat' }}
+            {{
+              props.row.docType === "income"
+                ? "Cobrament esperat"
+                : "Pagament esperat"
+            }}
           </b-table-column>
           <b-table-column
             label="Concepte"
@@ -1175,9 +1258,16 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.docType === 'income' && props.row.document.income_type ? props.row.document.income_type.name + ' - ' : ( props.row.docType === 'expense' && props.row.document.expense_type ? props.row.document.expense_type.name + ' - ' : '' ) }}
+            {{
+              props.row.docType === "income" && props.row.document.income_type
+                ? props.row.document.income_type.name + " - "
+                : props.row.docType === "expense" &&
+                  props.row.document.expense_type
+                ? props.row.document.expense_type.name + " - "
+                : ""
+            }}
             {{ props.row.document.concept }}
-          </b-table-column>          
+          </b-table-column>
           <b-table-column
             label="Import"
             field="document.total_amount"
@@ -1185,7 +1275,7 @@
             numeric
             v-slot="props"
           >
-          <money-format
+            <money-format
               :value="props.row.document.total_amount * props.row.multiplier"
               :locale="'es'"
               :currency-code="'EUR'"
@@ -1200,7 +1290,9 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.document.date ? formatDate(props.row.document.date) : '' }}
+            {{
+              props.row.document.date ? formatDate(props.row.document.date) : ""
+            }}
           </b-table-column>
         </b-table>
       </card-component>
@@ -1246,8 +1338,6 @@
           >
         </b-field>
       </card-component>
-
-
     </section>
   </div>
 </template>
@@ -1312,7 +1402,7 @@ export default {
       clients: [],
       strategies: [],
       expenseTypes: [],
-      incomeTypes: [],      
+      incomeTypes: [],
       clientSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",
@@ -1350,7 +1440,8 @@ export default {
       },
       invoicingObject: {},
       isModalActive: false,
-      isModalSplitActive: false
+      isModalSplitActive: false,
+      newTask: "",
     };
   },
   computed: {
@@ -1513,94 +1604,105 @@ export default {
     },
     treasuryDone() {
       const documents = [];
-      this.form.phases.forEach(ph => {
-        ph.subphases.forEach(income => {
+      this.form.phases.forEach((ph) => {
+        ph.subphases.forEach((income) => {
           if (income.paid) {
             if (income.invoice) {
               documents.push({
                 docType: "emitted_invoices",
                 id: income.invoice.id,
-                multiplier: 1
+                multiplier: 1,
               });
             }
             if (income.grant) {
               documents.push({
                 docType: "received_grants",
                 id: income.grant.id,
-                multiplier: 1
+                multiplier: 1,
               });
             }
           }
-        })
-        ph.expenses.forEach(expense => {
+        });
+        ph.expenses.forEach((expense) => {
           if (expense.paid) {
             if (expense.invoice) {
               documents.push({
                 docType: "received_invoices",
                 id: expense.invoice.id,
-                multiplier: -1
+                multiplier: -1,
               });
             }
             if (expense.ticket) {
               documents.push({
                 docType: "tickets",
                 id: expense.ticket.id,
-                multiplier: -1
+                multiplier: -1,
               });
             }
             if (expense.diet) {
               documents.push({
                 docType: "diets",
                 id: expense.diet.id,
-                multiplier: -1
+                multiplier: -1,
               });
             }
           }
-        })
-      })
-      return documents
+        });
+      });
+      return documents;
     },
     treasury() {
       const documents = [];
-      this.form.phases.forEach(ph => {
-        ph.subphases.forEach(income => {
+      this.form.phases.forEach((ph) => {
+        ph.subphases.forEach((income) => {
           if (!income.paid) {
             documents.push({
-                docType: "income",
-                document: income,
-                multiplier: 1
-              }); 
+              docType: "income",
+              document: income,
+              multiplier: 1,
+            });
           }
-        })
-        ph.expenses.forEach(expense => {
+        });
+        ph.expenses.forEach((expense) => {
           if (!expense.paid) {
             documents.push({
-                docType: "expense",
-                document: expense,
-                multiplier: -1
-              }); 
+              docType: "expense",
+              document: expense,
+              multiplier: -1,
+            });
           }
-        })
-      })
-      return documents
+        });
+      });
+      return documents;
       // return sortBy(documents, "document.emitted");
     },
-    treasuryIncomesPending () {
-      return sumBy(this.documents.filter(t => t.multiplier > 0 && !t.document.paid), 'document.total_base')
+    treasuryIncomesPending() {
+      return sumBy(
+        this.documents.filter((t) => t.multiplier > 0 && !t.document.paid),
+        "document.total_base"
+      );
     },
-    treasuryExpensesPending () {
-      return sumBy(this.documents.filter(t => t.multiplier < 0 && !t.document.paid), 'document.total_base')
+    treasuryExpensesPending() {
+      return sumBy(
+        this.documents.filter((t) => t.multiplier < 0 && !t.document.paid),
+        "document.total_base"
+      );
     },
-    treasuryIncomesDone () {
-      return sumBy(this.documents.filter(t => t.multiplier > 0 && t.document.paid), 'document.total_base')
+    treasuryIncomesDone() {
+      return sumBy(
+        this.documents.filter((t) => t.multiplier > 0 && t.document.paid),
+        "document.total_base"
+      );
     },
-    treasuryExpensesDone () {
-      return sumBy(this.documents.filter(t => t.multiplier < 0 && t.document.paid), 'document.total_base')
+    treasuryExpensesDone() {
+      return sumBy(
+        this.documents.filter((t) => t.multiplier < 0 && t.document.paid),
+        "document.total_base"
+      );
     },
-    treasuryExpensesDone2 () {
-      return this.documents.filter(t => t.multiplier < 0 && t.document.paid)
-    }
-    
+    treasuryExpensesDone2() {
+      return this.documents.filter((t) => t.multiplier < 0 && t.document.paid);
+    },
   },
   watch: {
     id(newValue) {
@@ -1859,7 +1961,6 @@ export default {
         .then((r) => {
           this.incomeTypes = r.data;
         });
-        
     },
     input(v) {
       this.createdReadable = dayjs(v).format("MMM D, YYYY");
@@ -1988,14 +2089,22 @@ export default {
     },
     splitSubPhase(phase, subphase, i, j) {
       this.invoicingObject = {
-        phase, subphase, i, j, type: 'income'
-      }
+        phase,
+        subphase,
+        i,
+        j,
+        type: "income",
+      };
       this.isModalSplitActive = true;
     },
     splitSubExpense(phase, subphase, i, j) {
       this.invoicingObject = {
-        phase, subphase, i, j, type: 'expense'
-      }
+        phase,
+        subphase,
+        i,
+        j,
+        type: "expense",
+      };
       this.isModalSplitActive = true;
     },
     updateGantt() {
@@ -2166,63 +2275,91 @@ export default {
     },
     async modalSplitSubmit(action) {
       // console.log('action',action)
-      if (action.type === 'income') {
-        if (action.action === 'x2') {          
+      if (action.type === "income") {
+        if (action.action === "x2") {
           const newIncome = {
             income_type: action.subphase.income_type,
             concept: action.subphase.concept,
             amount: action.subphase.amount,
-            quantity: action.subphase.quantity
-          }
-          this.form.phases[action.i].subphases.splice(action.j + 1, 0, newIncome);
-        } else if (action.action === 'x12') {          
+            quantity: action.subphase.quantity,
+          };
+          this.form.phases[action.i].subphases.splice(
+            action.j + 1,
+            0,
+            newIncome
+          );
+        } else if (action.action === "x12") {
           for (let i = 0; i < 12; i++) {
             const newIncome = {
               income_type: action.subphase.income_type,
               concept: action.subphase.concept,
               amount: action.subphase.amount,
-              quantity: action.subphase.quantity
-            }
-            this.form.phases[action.i].subphases.splice(action.j + 1, 0, newIncome);
-          } 
-        } else if (action.action === 'split') {          
+              quantity: action.subphase.quantity,
+            };
+            this.form.phases[action.i].subphases.splice(
+              action.j + 1,
+              0,
+              newIncome
+            );
+          }
+        } else if (action.action === "split") {
           const newIncome = {
             income_type: action.subphase.income_type,
             concept: action.subphase.concept,
             amount: action.amount,
-            quantity: action.subphase.quantity
-          }
-          this.form.phases[action.i].subphases[action.j].amount = this.form.phases[action.i].subphases[action.j].amount - action.amount
-          this.form.phases[action.i].subphases.splice(action.j + 1, 0, newIncome);
+            quantity: action.subphase.quantity,
+          };
+          this.form.phases[action.i].subphases[action.j].amount =
+            this.form.phases[action.i].subphases[action.j].amount -
+            action.amount;
+          this.form.phases[action.i].subphases.splice(
+            action.j + 1,
+            0,
+            newIncome
+          );
         }
-      } else if (action.type === 'expense') {
-        if (action.action === 'x2') {          
+      } else if (action.type === "expense") {
+        if (action.action === "x2") {
           const newIncome = {
             expense_type: action.subphase.expense_type,
             concept: action.subphase.concept,
             amount: action.subphase.amount,
-            quantity: action.subphase.quantity
-          }
-          this.form.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
-        } else if (action.action === 'x12') {          
+            quantity: action.subphase.quantity,
+          };
+          this.form.phases[action.i].expenses.splice(
+            action.j + 1,
+            0,
+            newIncome
+          );
+        } else if (action.action === "x12") {
           for (let i = 0; i < 12; i++) {
             const newIncome = {
               expense_type: action.subphase.expense_type,
               concept: action.subphase.concept,
               amount: action.subphase.amount,
-              quantity: action.subphase.quantity
-            }
-            this.form.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
-          }          
-        } else if (action.action === 'split') {          
+              quantity: action.subphase.quantity,
+            };
+            this.form.phases[action.i].expenses.splice(
+              action.j + 1,
+              0,
+              newIncome
+            );
+          }
+        } else if (action.action === "split") {
           const newIncome = {
             expense_type: action.subphase.expense_type,
             concept: action.subphase.concept,
             amount: action.amount,
-            quantity: action.subphase.quantity
-          }
-          this.form.phases[action.i].expenses[action.j].amount = this.form.phases[action.i].expenses[action.j].amount - action.amount
-          this.form.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
+            quantity: action.subphase.quantity,
+          };
+          this.form.phases[action.i].expenses[action.j].amount =
+            this.form.phases[action.i].expenses[action.j].amount -
+            action.amount;
+          this.form.phases[action.i].expenses.splice(
+            action.j + 1,
+            0,
+            newIncome
+          );
         }
       }
 
@@ -2233,6 +2370,21 @@ export default {
     },
     async modalSplitCancel() {
       this.isModalSplitActive = false;
+    },
+    async addTask() {
+      if (this.newTask) {
+        const resp = await service({ requiresAuth: true }).post(
+          `activity-types`,
+          { name: this.newTask }
+        );
+        this.form.activity_types.push(resp.data);
+        this.newTask = "";
+      }
+    },
+    removeTask(task) {
+      this.form.activity_types = this.form.activity_types.filter(
+        (t) => t.id !== task.id
+      );
     },
   },
 };
@@ -2325,14 +2477,18 @@ export default {
 .clickable {
   cursor: pointer;
 }
-.summary-card .column{  
-  margin-bottom: 0!important;
-  padding-bottom: 0!important;
+.summary-card .column {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 .summary-card .label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.80rem;
+  font-size: 0.8rem;
+}
+.ulist .tag {
+  margin-right: 3px;
+  margin-bottom: 3px;
 }
 </style>

@@ -4,7 +4,7 @@
       <header class="modal-card-head">
         <p class="modal-card-title">Edició de pressupost</p>
       </header>
-      <form @submit.prevent="submit">
+      <form @submit.prevent="submit" v-if="invoicingObject && invoicingObject.subphase">
         <section class="modal-card-body">
           <!-- {{ invoicingObject.subphase }} -->
           <b-field grouped>
