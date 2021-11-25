@@ -32,6 +32,7 @@ export default new Vuex.Store({
 
     /* User */
     user (state, payload) {
+      // console.log('payload', payload)
       if (payload.name) {
         state.userName = payload.name
       }

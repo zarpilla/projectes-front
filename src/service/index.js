@@ -5,10 +5,10 @@ export default ({ requiresAuth = false } = {}) => {
   options.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:1337'
 
   if (requiresAuth) {
-    const userFromStorage = localStorage.getItem('user')
-    if (userFromStorage) {
-      const user = JSON.parse(userFromStorage)
-      options.headers = { Authorization: `Bearer ${user.jwt}` }
+    const jwt = localStorage.getItem('jwt')
+    if (jwt) {
+      // const user = JSON.parse(userFromStorage)
+      options.headers = { Authorization: `Bearer ${jwt}` }
     }
   }
   const instance = axios.create(options)

@@ -143,11 +143,12 @@ export default {
     },
     logout () {
       localStorage.removeItem('user')
+      localStorage.removeItem('jwt')
       this.$buefy.snackbar.open({
         message: 'Log out',
         queue: false
       })
-      location.href = process.env.VUE_APP_API_LOGIN || 'http://localhost:1337/admin'
+      location.href = process.env.VUE_APP_PATH || '/'
     }
   }
 }
