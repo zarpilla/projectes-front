@@ -19,8 +19,6 @@
         </div>
       </div>
     </card-component>
-
-{{ isLoading }}
     <!-- <card-component
         class="mt-5"
         title="Dedicació x dia"
