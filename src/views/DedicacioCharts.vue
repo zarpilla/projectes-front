@@ -132,25 +132,7 @@ export default {
   },
   mounted () {
     this.isLoading = true
-    this.filters.date1 = moment().clone().startOf('month').toDate()
-    this.filters.date2 = moment().clone().endOf('month').toDate()
-    service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
-      this.projects = r.data.filter(p => p.project_state !== 2)
-      this.projectsList = JSON.parse(JSON.stringify(r.data.filter(p => p.project_state !== 2)))
-      this.projectsList.unshift({ id: 0, name: 'Tots' })
-    })
-    service({ requiresAuth: true }).get('dedication-types').then((r) => {
-      for (var i in r.data) {
-        this.dedicationTypes[r.data[i].id] = r.data[i].name
-      }
-      this.isLoading1 = false
-    })
-    service({ requiresAuth: true }).get('activity-types?_limit=-1').then((r) => {
-      for (var i in r.data) {
-        this.activityTypes[r.data[i].id] = r.data[i].name
-      }
-      this.isLoading2 = false
-    })
+    
     service({ requiresAuth: true }).get('users').then((r) => {
       this.users = r.data.filter(u => u.username !== 'app')
       this.usersList = JSON.parse(JSON.stringify(r.data.filter(u => u.username !== 'app')))
@@ -160,6 +142,28 @@ export default {
         this.userNameSearch = user.username
         this.filters.user = user.id
       }
+
+
+      this.filters.date1 = moment().clone().startOf('month').toDate()
+      this.filters.date2 = moment().clone().endOf('month').toDate()    
+      service({ requiresAuth: true }).get('dedication-types').then((r) => {
+        for (var i in r.data) {
+          this.dedicationTypes[r.data[i].id] = r.data[i].name
+        }
+        this.isLoading1 = false
+      })
+      service({ requiresAuth: true }).get('activity-types?_limit=-1').then((r) => {
+        for (var i in r.data) {
+          this.activityTypes[r.data[i].id] = r.data[i].name
+        }
+        this.isLoading2 = false
+      })
+
+      service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
+        this.projects = r.data.filter(p => p.project_state !== 2)
+        this.projectsList = JSON.parse(JSON.stringify(r.data.filter(p => p.project_state !== 2)))
+        this.projectsList.unshift({ id: 0, name: 'Tots' })
+      })
     })
 
     this.isLoading = false
