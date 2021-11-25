@@ -1,16 +1,11 @@
 <template>
   <div>
+    <vue-topprogress ref="topProgress"></vue-topprogress>
     <modal-box
       :is-active="isModalActive"
       :trash-object-name="trashObjectName"
       @confirm="trashConfirm"
       @cancel="trashCancel"
-    />
-    <modal-box-dedication
-      :is-active="isModalEditActive"
-      :dedication-object="dedicationObject"
-      @submit="modalSubmit"
-      @cancel="modalCancel"
     />
     <card-component class="has-table has-mobile-sort-spaced">
       <div class="card-body is-total">
@@ -20,68 +15,13 @@
           </div>
           <div class="column has-text-weight-bold">
             {{ superTotal }} h
-          </div>
-          <div class="column is-4 has-text-right">
-            <b-button
-              @click="viewType = 'all'"
-              class="view-button"
-              :type="viewType == 'all' ? 'is-primary' : 'is-disabled'"
-              icon-left="table-headers-eye-off" />
-            <b-button
-              @click="viewType = 'chart'"
-              class="view-button"
-              :type="viewType == 'chart' ? 'is-primary' : 'is-disabled'"
-              icon-left="chart-bar" />
-            <b-button
-              @click="viewType = 'table'"
-              class="view-button"
-              :type="viewType == 'table' ? 'is-primary' : 'is-disabled'"
-              icon-left="table-large" />
-            <b-button
-              @click="showModal(null)"
-              class="view-button is-warning"
-              icon-left="plus" />
-          </div>
+          </div>          
         </div>
       </div>
     </card-component>
 
-    <div class="table-view"  v-if="viewType == 'all' || viewType == 'table'">
-      <card-component class="has-table has-mobile-sort-spaced" v-for="(d, i) in distinctDaysObj" v-bind:key="i">
-        <div v-for="(a, j) in d.activities" v-bind:key="j" class="card-body" :class="{ 'is-total': a.project.name === 'Total', 'is-activity': a.project.name !== 'Total' }">
-          <div class="columns">
-            <div class="column is-4" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="showModal(a)">
-              <span class="is-total" v-if="a.project.name === 'Total'">
-                {{ d.day | formatTitle }}
-              </span>
-              <span v-else>
-                {{ a.project && a.project.name ? a.project.name : '' }}
-              </span>
-              <div class="auxiliar">
-                {{ a.description ? a.description : '' }}
-              </div>
-            </div>
-            <div class="column" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="showModal(a)">
-              {{ a.users_permissions_user && a.users_permissions_user.username ? a.users_permissions_user.username : '' }}
-            </div>
-            <div class="column" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="showModal(a)">
-              {{ a.hours }} h
-            </div>
-            <div class="column auxiliar" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="showModal(a)">
-              <div>{{ a.dedication_type ? a.dedication_type.name : '' }}</div>
-              <div>{{ a.activity_type ? a.activity_type.name : '' }}</div>
-            </div>
-            <div class="column is-2" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="trashModal(a)">
-              <b-button
-                  label="Esborra"
-                  type="is-danger"
-                  icon-left="close" v-if="a.project.name !== 'Total' && !a.invoiced" />
-            </div>
-          </div>
-        </div>
-      </card-component>
-    </div>
-    <card-component
+{{ isLoading }}
+    <!-- <card-component
         class="mt-5"
         title="Dedicació x dia"
         v-if="viewType == 'all' || viewType == 'chart'"
@@ -96,7 +36,7 @@
           >
           </bar-chart>
         </div>
-      </card-component>
+      </card-component> -->
       <dedication-circle-chart title="Persona" v-if="!isLoading" :activities="activities" :table="'users_permissions_user'" :field="'username'">
       </dedication-circle-chart>
       <dedication-circle-chart title="Projecte" v-if="!isLoading" :activities="activities" :table="'project'" :field="'name'">
@@ -121,12 +61,13 @@ import CardComponent from '@/components/CardComponent'
 import DedicationCircleChart from '@/components/DedicationCircleChart'
 import * as chartConfig from '@/components/Charts/chart.config'
 import ModalBoxDedication from '@/components/ModalBoxDedication'
+import { vueTopprogress } from 'vue-top-progress'
 
 moment.locale('ca')
 
 export default {
   name: 'DedicationWidget',
-  components: { ModalBox, CardComponent, BarChart, DedicationCircleChart, ModalBoxDedication },
+  components: { ModalBox, CardComponent, BarChart, DedicationCircleChart, ModalBoxDedication, vueTopprogress },
   props: {
     user: {
       type: Number,
@@ -223,6 +164,7 @@ export default {
   methods: {
     async getActivities () {
       this.isLoading = true
+      this.$refs.topProgress.start()
       if (!this.date1 || !this.date2) {
         return
       }
@@ -242,29 +184,30 @@ export default {
       service({ requiresAuth: true }).get(query).then((r) => {
         this.activities = r.data
         this.hoursTotal = sumBy(this.activities, 'hours')
-        this.distinctDays = uniq(map(this.activities, 'date'))
-        this.distinctDays.sort()
-        this.distinctDaysObj = this.distinctDays.map(d => {
-          const activities = this.activities.filter(a => a.date === d)
-          const hours = sumBy(activities, 'hours')
-          activities.unshift({ id: 'Total', project: { name: 'Total' }, hours: hours })
-          return { day: d, activities: activities, hours: hours }
-        })
-        this.distinctTotals = this.distinctDaysObj.map(d => { return { day: d.day, hours: d.hours } })
-        this.distinctProjects = uniq(map(this.activities, 'project.name'))
-        this.distinctProjectsObj = this.distinctProjects.map(p => {
-          const activities = this.activities.filter(a => a.project.name === p)
-          const hours = sumBy(activities, 'hours')
-          return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
-        })
-        this.distinctUsers = uniq(map(this.activities, 'users_permissions_user.username'))
-        this.distinctUsersObj = this.distinctUsers.map(p => {
-          const activities = this.activities.filter(a => (p && a.users_permissions_user && a.users_permissions_user.username === p) || (!p && !a.users_permissions_user))
-          const hours = sumBy(activities, 'hours')
-          return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
-        })
-        this.fillChartData()
+        // this.distinctDays = uniq(map(this.activities, 'date'))
+        // this.distinctDays.sort()
+        // this.distinctDaysObj = this.distinctDays.map(d => {
+        //   const activities = this.activities.filter(a => a.date === d)
+        //   const hours = sumBy(activities, 'hours')
+        //   activities.unshift({ id: 'Total', project: { name: 'Total' }, hours: hours })
+        //   return { day: d, activities: activities, hours: hours }
+        // })
+        // this.distinctTotals = this.distinctDaysObj.map(d => { return { day: d.day, hours: d.hours } })
+        // this.distinctProjects = uniq(map(this.activities, 'project.name'))
+        // this.distinctProjectsObj = this.distinctProjects.map(p => {
+        //   const activities = this.activities.filter(a => a.project && a.project.name === p)
+        //   const hours = sumBy(activities, 'hours')
+        //   return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
+        // })
+        // this.distinctUsers = uniq(map(this.activities, 'users_permissions_user.username'))
+        // this.distinctUsersObj = this.distinctUsers.map(p => {
+        //   const activities = this.activities.filter(a => (p && a.users_permissions_user && a.users_permissions_user.username === p) || (!p && !a.users_permissions_user))
+        //   const hours = sumBy(activities, 'hours')
+        //   return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
+        // })
+        // this.fillChartData()
         this.isLoading = false
+        this.$refs.topProgress.done()
       })
     },
     trashModal (trashObject) {
@@ -297,7 +240,7 @@ export default {
           datasets.push({
             label: p,
             backgroundColor: this.getChartColor(j),
-            data: this.distinctDays.map(dd => { return sumBy(this.activities.filter(a => a.project.name === p && a.date === dd), 'hours') })
+            data: this.distinctDays.map(dd => { return sumBy(this.activities.filter(a => a.project && a.project.name === p && a.date === dd), 'hours') })
           })
         })
         chartData.labels = labels

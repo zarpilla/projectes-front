@@ -324,7 +324,7 @@ export default {
       }
       query = `${query}&_limit=-1`
       service({ requiresAuth: true }).get(query).then((r) => {
-        this.activities = r.data
+        this.activities = r.data.filter(a => a.project && a.project.id)
         this.hoursTotal = sumBy(this.activities, 'hours')
         this.distinctDays = uniq(map(this.activities, 'date'))
         this.distinctDays.sort()
@@ -337,7 +337,7 @@ export default {
         this.distinctTotals = this.distinctDaysObj.map(d => { return { day: d.day, hours: d.hours } })
         this.distinctProjects = uniq(map(this.activities, 'project.name'))
         this.distinctProjectsObj = this.distinctProjects.map(p => {
-          const activities = this.activities.filter(a => a.project.name === p)
+          const activities = this.activities.filter(a => a.project && a.project.name === p)
           const hours = sumBy(activities, 'hours')
           return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
         })
@@ -354,9 +354,9 @@ export default {
             key: i + 1,
             customData: {
               a: a,
-              bg_project: this.colorType === 'user' ? this.getChartColor(this.distinctUsers.findIndex(p => p === a.users_permissions_user.username)) : this.getChartColor(this.distinctProjects.findIndex(p => p === a.project.name)),
+              bg_project: this.colorType === 'user' ? this.getChartColor(this.distinctUsers.findIndex(p => p === a.users_permissions_user.username)) : this.getChartColor(this.distinctProjects.findIndex(p => a.project && p === a.project.name)),
               class: 'tag zis-primary',
-              project: a.project.name,
+              project: a.project ? a.project.name : '',
               username: a.users_permissions_user.username,
               hours: a.hours
             },
@@ -372,11 +372,11 @@ export default {
         this.isLoading = false
         this.firstTime = true
         this.activitiesJSON = this.activities.map(a => {
-          const project = a.project.id ? this.projects.find(p => p.id === a.project.id) : null
+          const project = a.project && a.project.id ? this.projects.find(p => p.id === a.project.id) : null
           const client = project && project.clients && project.clients.length > 0 ? project.clients[0].name : null
           return {
             date: a.date,
-            project: a.project.name,
+            project: a.project ? a.project.name : '',
             username: a.users_permissions_user.username,
             hours: a.hours,
             description: a.description,
@@ -417,7 +417,7 @@ export default {
           datasets.push({
             label: p,
             backgroundColor: this.getChartColor(j),
-            data: this.distinctDays.map(dd => { return sumBy(this.activities.filter(a => a.project.name === p && a.date === dd), 'hours') })
+            data: this.distinctDays.map(dd => { return sumBy(this.activities.filter(a => a.project && a.project.name === p && a.date === dd), 'hours') })
           })
         })
         chartData.labels = labels
