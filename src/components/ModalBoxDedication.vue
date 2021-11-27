@@ -319,7 +319,7 @@ export default {
     },
     doCounter() {
       this.counterInterval = setInterval(() => {
-        const startTime = moment(this.counter.start, 'YYYY-MM-DDTHH:mm:ss.000Z')
+        const startTime = moment(this.counter.created_at, 'YYYY-MM-DDTHH:mm:ss.000Z')
         const endTime = moment()
         const duration = moment.duration(endTime.diff(startTime));
         const hours = parseInt(duration.asHours());
