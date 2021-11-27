@@ -10,14 +10,16 @@
       :is-active="isModalEditActive"
       :dedication-object="dedicationObject"
       :projects="projects"
+      :counter="counterClicked ? counter : null"
       @submit="modalSubmit"
       @cancel="modalCancel"
       @delete="modalDelete"
+      @counter-continue="counterContinue"
     />
     <card-component class="has-table has-mobile-sort-spaced">
       <div class="card-body is-total">
         <div class="columns">
-          <div class="column is-6 has-text-weight-bold">
+          <div class="column is-4 has-text-weight-bold">
             Total
             <!-- <download-csv :data="activitiesJSON">
               <b-button
@@ -26,7 +28,7 @@
               icon-left="file-excel" />
             </download-csv> -->
           </div>
-          <div class="column has-text-weight-bold">
+          <div class="column is-4 has-text-weight-bold">
             {{ superTotal }} h
           </div>
           <div class="column is-4 has-text-right">
@@ -71,12 +73,36 @@
               icon-left="wrench" />
             <span class="separator"></span>
             <b-button
+              id="time-counter-button"
+              title="Començar dedicació"
+              @click="showModalCounter"
+              class="view-button is-warning"              
+              icon-left="clock-outline" />
+            <b-button
               title="Afegir dedicació"
               @click="showModal(null)"
               class="view-button is-warning"
               icon-left="plus" />
           </div>
         </div>
+      </div>
+    </card-component>
+
+    <card-component class="has-table has-mobile-sort-spaced" v-if="counter">
+      <div class="card-body is-total  zhas-text-danger clickable" @click="showModalCounter">
+        <div class="columns">
+          <div class="column is-4 has-text-weight-bold has-text-danger">            
+            <b-icon icon="clock-outline" />
+            Activitat actual 
+          </div>
+          <div class="column is-3 has-text-weight-bold">
+            <time-counter :counter="counter" @update="updateCounter" />
+          </div>
+          <div class="column is-5">
+            {{ counter.project ? counter.project.name : '' }}<br>
+            {{ counter.description ? counter.description : '' }}
+          </div>
+        </div>         
       </div>
     </card-component>
 
@@ -132,7 +158,7 @@
               {{ a.users_permissions_user && a.users_permissions_user.username ? a.users_permissions_user.username : '' }}
             </div>
             <div class="column" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="showModal(a)">
-              {{ a.hours }} h
+              {{ a.hours.toFixed(2) }} h
             </div>
             <div class="column auxiliar" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="showModal(a)">
               <div>{{ a.dedication_type ? a.dedication_type.name : '' }}</div>
@@ -186,19 +212,24 @@ import sumBy from 'lodash/sumBy'
 import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import CardComponent from '@/components/CardComponent'
+import TimeCounter from '@/components/TimeCounter'
 // import DedicationCircleChart from '@/components/DedicationCircleChart'
 import * as chartConfig from '@/components/Charts/chart.config'
 import ModalBoxDedication from '@/components/ModalBoxDedication'
+import { mapState } from 'vuex'
 
 moment.locale('ca')
 
 export default {
   name: 'DedicationInput',
-  components: { ModalBox, CardComponent, ModalBoxDedication },
+  components: { ModalBox, CardComponent, ModalBoxDedication, TimeCounter },
   props: {
     user: {
       type: Number,
       default: null
+    },
+    users: {
+      type: Array
     },
     date1: {
       type: Date,
@@ -259,7 +290,13 @@ export default {
       masks: {
         weekdays: 'WWW'
       },
-      attributes: []
+      attributes: [],
+      counter: null,
+      counterClicked: false,
+      counterDisplayTime: '',
+      counterDisplayTimeInHours: '',
+      counterInterval: 0,
+      updateCounterCount: 0
     }
   },
   computed: {
@@ -271,7 +308,26 @@ export default {
       return null
     },
     superTotal () {
-      return sumBy(this.activities, 'hours')
+      return sumBy(this.activities, 'hours').toFixed(2)
+    },
+    ...mapState(['me', 'userName']),
+    counterTime () {
+      if (this.counter === null) {
+        return 0
+      }
+      const startTime = moment(this.counter.start, 'YYYY-MM-DDTHH:mm:ss.000Z')
+      const endTime = moment()
+      // const d = moment(this.counter, 'YYYY-MM-DD HH:mm:ss')
+      var duration = moment.duration(endTime.diff(startTime));
+      var hours = parseInt(duration.asHours());
+      var minutes = parseInt(duration.asMinutes())%60;
+      var seconds = parseInt(duration.asSeconds())%3600;
+
+      var hoursDiff = endTime.diff(startTime, 'hours') - hours;
+      var minutesDiff = endTime.diff(startTime, 'minutes') - hours*60;
+      var secondsDiff = endTime.diff(startTime, 'seconds') - hours*60*60 - minutes*60;
+        
+      return hours + 'h '+ minutes+' m ' + seconds + 's' + ' -----' + `${hoursDiff}h ${minutesDiff}m  ${secondsDiff}s`
     }
   },
   watch: {
@@ -290,17 +346,19 @@ export default {
     },
     last: function (newVal, oldVal) {
       this.getActivities()
+    },
+    projects: function (newVal, oldVal) {
+      this.getActivities()
     }
   },
   mounted () {
+    // console.log('mounted')
     this.getActivities()
-
-    // this.$on('update:page', () => { console.log('update:page') })
   },
   methods: {
     async getActivities () {
       this.isLoading = true
-      if (!this.date1 || !this.date2) {
+      if (!this.date1 || !this.date2 || !this.projects || !this.projects.length) {
         return
       }
       const from = moment(this.date1).format('YYYY-MM-DD')
@@ -369,6 +427,8 @@ export default {
           dates: new Date()
         })
 
+        this.getCounters()
+
         this.isLoading = false
         this.firstTime = true
         this.activitiesJSON = this.activities.map(a => {
@@ -386,6 +446,16 @@ export default {
           }
         })
       })
+    },
+    async getCounters() {
+      if (this.counter === null) {
+        const resp = await service({ requiresAuth: true }).get(`time-counters?_where[users_permissions_user.username]=${this.userName}`)
+        const counters = resp.data
+        if (resp.data && resp.data.length) {
+          this.counter = resp.data[0]        
+          this.showModalCounter()
+        }
+      }
     },
     trashModal (trashObject) {
       this.trashObject = trashObject
@@ -456,11 +526,33 @@ export default {
       return chartConfig.chartDataColors[n]
     },
     showModal (activity) {
-      this.dedicationObject = activity
+      this.counterClicked = false
+      if (activity) {
+        activity.counter = null
+        this.dedicationObject = activity
+      }
+      this.isModalEditActive = true
+    },    
+    async showModalCounter() {
+      if (this.counter === null) {
+        const userId = this.users.find(u => u.username === this.userName)
+        const counterResp = await service({ requiresAuth: true }).post(`time-counters`, { start: moment().format('YYYY-MM-DD HH:mm:ss'), users_permissions_user: userId })
+        if (counterResp.data && counterResp.data.id) {
+          this.counter = counterResp.data
+        }
+      }
+      this.counterClicked = true
+      // this.showModal(null)
+      this.dedicationObject = null
       this.isModalEditActive = true
     },
     async modalSubmit (activity) {
-      console.log('activity', activity)
+      // console.log('activity', activity)
+      if (activity.counter) {
+        await service({ requiresAuth: true }).delete(`time-counters/${activity.counter.id}`)
+        this.counter = null
+      }
+      this.counterClicked = false
       // console.log('activity dt', moment(activity.date).format('YYYY-MM-DD'))
       const activity2 = { ...activity }
       activity2.date = moment(activity.date).format('YYYY-MM-DD')
@@ -498,8 +590,19 @@ export default {
           queue: false
         })
       }
+      else if (activity.counter && activity.counter.id) {
+        this.counterClicked = false
+        await service({ requiresAuth: true }).delete(`time-counters/${activity.counter.id}`)
+        this.isModalEditActive = false
+        this.$buefy.snackbar.open({
+          message: 'Esborrat',
+          queue: false
+        })
+        this.counter = null        
+      }
     },
     modalCancel () {
+      this.counterClicked = false
       this.isModalEditActive = false
     },
     pageChange (page) {
@@ -522,7 +625,26 @@ export default {
       if (!attributes || (attributes && attributes.length === 0)) {
         return false
       }
-      return sumBy(attributes.map(a => { return { hours: a.customData ? a.customData.hours : 0 } }), 'hours')
+      return sumBy(attributes.map(a => { return { hours: a.customData ? a.customData.hours : 0 } }), 'hours').toFixed(2)
+    },
+    async counterContinue (info) {
+      if (info) {
+        await service({ requiresAuth: true }).put(`time-counters/${this.counter.id}`, { project: info.project, description: info.description })
+        this.counter.project = this.projects.find(p => p.id === info.project)
+        this.counter.description = info.description
+      }
+      this.counterClicked = false
+      this.isModalEditActive = false
+    },    
+    updateCounter () {
+      this.updateCounterCount++
+      const button = document.getElementById('time-counter-button')
+      if (button && this.updateCounterCount % 2 == 0) {
+        button.classList.toggle('is-danger')        
+      }
+      if (this.updateCounterCount == 10) {
+        this.updateCounterCount = 0
+      }
     }
   },
   filters: {

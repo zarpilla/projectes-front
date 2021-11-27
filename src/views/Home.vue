@@ -239,7 +239,7 @@ export default {
     },
     projectsCSV() {
       // return this.projects
-      console.log('this.projects', this.projects)
+      // console.log('this.projects', this.projects)
       const projectsCSV = this.projects.map((p) => {
         return {
           id: p.id,
