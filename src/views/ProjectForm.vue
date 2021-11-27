@@ -2474,9 +2474,6 @@ export default {
   position: relative;
   height: 100%;
 }
-.clickable {
-  cursor: pointer;
-}
 .summary-card .column {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;

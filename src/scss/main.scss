@@ -24,11 +24,13 @@
 /* Animate.css custom build (just selected animations to minimize bundle size) */
 @import "../css/animate.min.css";
 
-
 .export.view-button {
-    display: inline-block;
+  display: inline-block;
 }
 .scope {
-    width: 100%;
-    text-transform: uppercase;
+  width: 100%;
+  text-transform: uppercase;
+}
+.clickable {
+  cursor: pointer;
 }
