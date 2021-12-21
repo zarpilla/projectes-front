@@ -2,7 +2,8 @@
   <div class="container">
     <div class="columns">
       <div class="column is-one-third">
-        <h4 class="title">Accedeix</h4>
+        <h4 class="subtitle">Projectes Coop</h4>
+        <h4 class="title mt-5">Accedeix</h4>
         <form>
           <label class="label" for="email">Correu electrònic</label>
           <div class="field">
