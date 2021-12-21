@@ -3,7 +3,7 @@
     <div class="columns">
       <div class="column is-one-third">
         <h4 class="subtitle">Projectes Coop</h4>
-        <h4 class="title">Canviar clau de pas</h4>
+        <h4 class="title mt-5">Canviar clau de pas</h4>
         <form @submit="resetPassword">
           <div class="field">
             <label class="label" for="pwd">Clau de pas</label>
