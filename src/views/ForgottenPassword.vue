@@ -2,6 +2,7 @@
   <div class="container">
     <div class="columns">
       <div class="column is-one-third">
+        <h4 class="subtitle">Projectes Coop</h4>
         <h4 class="title">Recuperar clau de pas</h4>
         <form @submit="forgotPassword">
           <div class="field">
