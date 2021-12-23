@@ -42,9 +42,9 @@
       <b-table-column label="Resultat previst" field="incomes_expenses" sortable numeric v-slot="props">
         {{ formatPrice(props.row.incomes_expenses) }}
       </b-table-column>
-      <!-- <b-table-column label="Creat" v-slot="props" sortable field="created_at">
-        <small class="has-text-grey is-abbr-like" :title="props.row.created_at">{{ props.row.created_at_dt }}</small>
-      </b-table-column> -->
+      <b-table-column label="Estat" v-slot="props" sortable field="project_state.name">
+        {{ props.row.project_state ? props.row.project_state.name : '' }}
+      </b-table-column>
       <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
         <div class="buttons is-right">
           <router-link :to="{name:'project.edit', params: {id: props.row.id}}" class="button is-small is-primary">
