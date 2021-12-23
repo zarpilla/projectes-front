@@ -1989,26 +1989,36 @@ export default {
             name: "project.edit",
             params: { id: newProject.data.id },
           });
-          // this.getData()
+
+          this.$buefy.snackbar.open({
+            message: "Guardat",
+            queue: false,
+          });
+
+          this.needsUpdate = false;
+
+          setTimeout(() => {
+            this.isLoading = false;
+          }, 500);
         }
       } catch (err) {
-        console.error("projects error", err);
-        this.$buefy.snackbar.open({
-          message: "Error",
-          queue: false,
-        });
+        // console.error("projects error", err);        
+        const oldProjectData = await service({ requiresAuth: true }).get(`projects?name=${this.form.name}`)
+        if (oldProjectData && oldProjectData.data && oldProjectData.data.length) {
+          this.$buefy.snackbar.open({
+            message: "Error. El projecte ja existeix",
+            queue: false,
+          });
+        } else {
+          this.$buefy.snackbar.open({
+            message: "Error",
+            queue: false,
+          });
+        }
+        this.isLoading = false;
       }
 
-      this.$buefy.snackbar.open({
-        message: "Guardat",
-        queue: false,
-      });
-
-      this.needsUpdate = false;
-
-      setTimeout(() => {
-        this.isLoading = false;
-      }, 500);
+      
     },
     clientSelected(option) {
       delete option.projects;

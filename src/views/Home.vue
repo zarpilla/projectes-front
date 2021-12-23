@@ -251,8 +251,8 @@ export default {
           leader: p.leader && p.leader.id ? p.leader.username : "",
           date_start: p.date_start,
           date_end: p.date_end,
-          estimated_hours: p.total_estimated_hours.toString().replace('.', ','),
-          real_hours: p.total_real_hours.toString().replace('.', ','),
+          estimated_hours: p.total_estimated_hours ? p.total_estimated_hours.toString().replace('.', ',') : '',
+          real_hours: p.total_real_hours ? p.total_real_hours.toString().replace('.', ',') : '',
 
           estimated_incomes: p.total_incomes ? p.total_incomes.toString().replace('.', ',') : '',
           estimated_expenses: p.total_expenses ? p.total_expenses.toString().replace('.', ',') : '',
