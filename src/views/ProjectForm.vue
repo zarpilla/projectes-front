@@ -2305,6 +2305,7 @@ export default {
               concept: action.subphase.concept,
               amount: action.subphase.amount,
               quantity: action.subphase.quantity,
+              date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
             };
             this.form.phases[action.i].subphases.splice(
               action.j + 1,
@@ -2348,6 +2349,7 @@ export default {
               concept: action.subphase.concept,
               amount: action.subphase.amount,
               quantity: action.subphase.quantity,
+              date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
             };
             this.form.phases[action.i].expenses.splice(
               action.j + 1,
