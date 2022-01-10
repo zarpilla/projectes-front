@@ -142,7 +142,10 @@
                   icon-left="file-excel"
                 />
               </download-excel>
+              loading: {{ loading }}
       </div>
+
+      <b-loading :is-full-page="true" v-model="loading" :can-cancel="false"></b-loading>
 
       <card-component
         title="PROJECTES"
@@ -230,7 +233,8 @@ export default {
       project_states: [],
       filters: { project_state: 1, q: "", user: '', scopeId: 0 },
       queryChanged: 0,      
-      users: []
+      users: [],
+      loading: false
     };
   },
   computed: {
@@ -304,6 +308,7 @@ export default {
         this.scopes = r.data
         // this.applyProjects();
       });
+    this.loading = true
     const query = `projects?_limit=-1&project_state=1`
     service({ requiresAuth: true })
       .get(query)
@@ -311,6 +316,7 @@ export default {
         this.projects = r.data.filter(
           (p) => p.project_state !== null && p.project_state.id === 1
         );
+        this.loading = false
         this.applyProjects();
       });
   },
@@ -348,11 +354,13 @@ export default {
         : "";
       const where2 = this.filters.scopeId ? '&project_scope=' + this.filters.scopeId : ''
       const where3 = this.filters.user && this.filters.user > 0 ? '&leader=' + this.filters.user : ''
+      this.loading = true
       if (q) {
         service({ requiresAuth: true })
           .get(`projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`)
           .then((r) => {
             this.projects = r.data;
+            this.loading = false
             this.applyProjects();
           });
       } else {
@@ -360,6 +368,7 @@ export default {
           .get(`projects?_limit=-1${where1}${where2}${where3}`)
           .then((r) => {
             this.projects = r.data;
+            this.loading = false
             this.applyProjects();
           });
       }
