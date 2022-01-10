@@ -142,7 +142,6 @@
                   icon-left="file-excel"
                 />
               </download-excel>
-              loading: {{ loading }}
       </div>
 
       <b-loading :is-full-page="true" v-model="loading" :can-cancel="false"></b-loading>
