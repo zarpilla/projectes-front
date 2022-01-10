@@ -102,6 +102,21 @@ const routes = [
   },
   {
     meta: {
+      title: 'Panell Previsió Dedicacio'
+    },
+    path: '/stats-previsio-gantt',
+    name: 'stats.previsiogantt',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsDedicacioGantt.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  
+  {
+    meta: {
       title: 'Panell Estratègies'
     },
     path: '/stats-estrategies',

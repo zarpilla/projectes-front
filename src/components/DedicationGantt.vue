@@ -1,6 +1,7 @@
 <template>
   <div>
     <div id="project-stats"></div>
+    <DedicationGanttChart :leaders="leaders" :dedications="pivotData" v-if="!isLoading"></DedicationGanttChart>    
     <download-excel :data="pivotData">
       <b-button
         title="Exporta dades"
@@ -8,6 +9,7 @@
         icon-left="file-excel"
       />
     </download-excel>
+    
     <!-- <pre>
       {{ pivotData }}
     </pre> -->
@@ -18,14 +20,17 @@
 import service from '@/service/index'
 // import sumBy from 'lodash/sumBy'
 import moment from 'moment'
-import configPivot from '@/service/configStatsDedicationEst'
+import DedicationGanttChart from '@/components/DedicationGanttChart'
 import sortBy from 'lodash/sortBy'
+import uniq from 'lodash/uniq'
+import map from 'lodash/map'
+
 
 moment.locale('ca')
 
 export default {
   name: 'DedicationPivot',
-  components: { },
+  components: { DedicationGanttChart },
   props: {
     projectState: {
       type: Number,
@@ -55,7 +60,8 @@ export default {
       states: [],
       leaders: [],
       contacts: [],
-      pivotData: []
+      pivotData: [],
+      isLoading: true
     }
   },
   watch: {
@@ -90,6 +96,7 @@ export default {
   },
   methods: {
     async getActivities () {
+
       this.isLoading = true
 
       if (this.projectState === null || this.year === null || this.month === null) {
@@ -113,8 +120,10 @@ export default {
         const activities = []
         const projects = r.data.forEach(p => {
           if (p.activities) {
+            // legacy ?
+            // console.log('legacy 1', p)
             p.activities.forEach(a => {
-              if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) && (this.month === 0 || (this.month > 0 && a.date && parseInt(moment(a.date).format('MM')) === this.month))) {
+              if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) >= this.year)) && (this.month === 0 || (this.month > 0 && a.date && parseInt(moment(a.date).format('MM')) === this.month))) {
                 const activity = {
                   project_name: p.name,
                   project_state: p.project_state ? p.project_state.name : '-',
@@ -165,7 +174,9 @@ export default {
                           dedication_type: '-',
                           username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-'
                         }
-                        activities.push(activity)
+                        if (activity.year >= this.year) {
+                          activities.push(activity)
+                        }                        
                       }
                     })
                   }
@@ -174,6 +185,8 @@ export default {
             })
           } else if (p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
+              // legacy ?
+              // console.log('legacy 2', p)
               // console.log('a.users_permissions_user', a.users_permissions_user)
               // console.log('this.month', this.month)
               // console.log('a.month', a.month)
@@ -205,11 +218,14 @@ export default {
         // console.log('projects', projects)
         // console.log('activities', activities)
         this.projects = projects
+
+        
+
         // this.pivotData = Object.freeze(activities)
-        this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'project_name'], ['asc', 'asc', 'asc']))
-        configPivot.dataSource.data = this.pivotData
-        window.jQuery('#project-stats').empty()
-        window.jQuery('#project-stats').kendoPivotGrid(configPivot)
+        this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'project_name'], ['asc', 'asc', 'asc']))        
+
+        // this.distinctUsers = uniq(map(this.projects, 'username'))
+
         this.isLoading = false
       })
     }

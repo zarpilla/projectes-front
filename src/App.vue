@@ -82,7 +82,12 @@ export default {
           {
             to: '/stats-previsio-hores',
             icon: 'table',
-            label: 'Previsió dedicació'
+            label: 'Previsió (TD)'
+          },
+          {
+            to: '/stats-previsio-gantt',
+            icon: 'table',
+            label: 'Previsió (Gantt)'
           },
           {
             to: '/dedicacio-saldo',

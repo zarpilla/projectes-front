@@ -50,6 +50,7 @@ import { mapState } from 'vuex'
 import { gantt } from 'dhtmlx-gantt'
 import moment from 'moment'
 import service from '@/service/index'
+import _ from "lodash";
 
 // main component
 export default {
@@ -133,14 +134,8 @@ export default {
   },
   beforeDestroy() {
     // console.log('beforeDestroy')
-    // var myGantt = Gantt.getGanttInstance();
-    // console.log('myGantt', myGantt)
-    //destroying a gantt instance
-    // gantt.destructor();
-
     gantt.detachEvent("onTaskClick");
     gantt.detachEvent("onAfterTaskUpdate");
-
 
     this.showGantt = false
   },
@@ -193,14 +188,27 @@ export default {
           }
         }
       }
-      const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').toDate();
+      const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').add(-1, 'year').toDate();
       const endDate = this.project.date_end ? moment(this.project.date_end).add(1, 'year').endOf('year').toDate() : moment().add(3, 'year').endOf('year').toDate();
       gantt.config.start_date = initialDate;
 			gantt.config.end_date = endDate;
       gantt.config.columns = [
 		    {name: "text", label: "Fases i dedicacions", tree: true, width: '*'},
       ]
-      gantt.plugins({ click_drag: true })
+      gantt.plugins({ click_drag: true, tooltip: true })
+
+      gantt.templates.tooltip_text = (start,end,task) => {
+        // console.log('task', task)
+        var children = this.tasks.data.filter(t => t.parent === task.id)
+        if (!children || !children.length) {
+          return
+        }
+        var hours = _.sumBy(children, '_hours.quantity')
+        if (hours) {
+          return "<b>Durada:</b> " + hours + 'h';
+        }
+      };
+
       gantt.config.xml_date = '%Y-%m-%d'
       gantt.config.duration_unit = 'month'
       gantt.config.scales = [
@@ -405,29 +413,6 @@ export default {
       gantt.getTask(activity.id).text = taskName      
       gantt.updateTask(activity.id)
 
-      // const task = this.tasks.data.find(t => t.id.toString() === activity.id.toString())
-      // console.log('modalSubmit activity task', task)
-      
-      
-      // console.log('modalSubmit task', task)
-
-      // const items = state.get('config.chart.items')
-      // // console.log('modalSubmit items', items)
-      // const itemToUpdate = items[activity.id]
-      // itemToUpdate.quantity = activity.quantity
-      // itemToUpdate.amount = activity.amount
-      // itemToUpdate.total_amount = activity.total_amount
-      // itemToUpdate.comment = activity.comment
-      // itemToUpdate.users_permissions_user = activity.users_permissions_user
-      // state.update(`config.chart.items.${activity.id}`, (item) => {
-      //   item.quantity = itemToUpdate.quantity
-      //   item.amount = itemToUpdate.amount
-      //   item.total_amount = itemToUpdate.total_amount
-      //   item.users_permissions_user = itemToUpdate.users_permissions_user
-      //   item._hours.users_permissions_user = itemToUpdate.users_permissions_user
-      //   item._hours.quantity = itemToUpdate.quantity
-      //   return item
-      // })
       this.isModalActive = false
       this.$emit('gantt-item-update', task)
 
@@ -443,21 +428,6 @@ export default {
 
       this.$emit('gantt-item-delete', activity)
 
-      // const t = this
-      // state.update('config.chart.items', {})
-      // state.update('config.chart.items', () => {
-      //   return t.generateItems()
-      // })
-      // this.isModalActive = false
-      // // if (activity.id) {
-      // //   await service({ requiresAuth: true }).delete(`activities/${activity.id}`)
-      // //   this.isModalEditActive = false
-      // //   this.getActivities()
-      // //   this.$buefy.snackbar.open({
-      // //     message: 'Esborrat',
-      // //     queue: false
-      // //   })
-      // // }
     },
     modalCancel () {
       // console.log('modalCancel')

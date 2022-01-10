@@ -61,7 +61,7 @@
       </card-component>
 
       <card-component title="Projectes">
-        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :month="filters.month" v-if="!isLoading" />
+        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :month="filters.month" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
       </card-component>
     </section>
   </div>
@@ -88,6 +88,9 @@ export default {
   data () {
     return {
       isLoading: true,
+      isLoading1: true,
+      isLoading2: true,
+      isLoading3: true,
       filters: {
         project_state: null,
         year: null,
@@ -128,16 +131,19 @@ export default {
         this.project_states = r.data
         this.project_states.unshift({ id: 0, name: 'Tots' })
         this.filters.project_state = defaultProjectState
+        this.isLoading1 = false
       })
       service({ requiresAuth: true }).get('years').then((r) => {
         this.years = r.data.map(y => { return { ...y, display: y.year } })
         this.years.unshift({ id: 0, year: 0, display: 'Tots' })
         this.filters.year = 0
+        this.isLoading2 = false
       })
       service({ requiresAuth: true }).get('months').then((r) => {
         this.months = r.data.map(y => { return { ...y, display: `${y.month_number} - ${y.name}` } })
         this.months.unshift({ id: 0, month: 0, display: 'Tots' })
         this.filters.month = 0
+        this.isLoading3 = false
       })
     },
     async addScript (src) {
