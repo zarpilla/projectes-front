@@ -59,7 +59,6 @@ export default {
       scopes: [],
       states: [],
       leaders: [],
-      contacts: [],
       pivotData: [],
       isLoading: true
     }
@@ -106,8 +105,6 @@ export default {
       this.scopes = (await service({ requiresAuth: true }).get('project-scopes')).data
       this.states = (await service({ requiresAuth: true }).get('project-states')).data
       this.leaders = (await service({ requiresAuth: true }).get('users')).data
-      this.contacts = (await service({ requiresAuth: true }).get('contacts?_limit=-1')).data
-
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
