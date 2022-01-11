@@ -21,10 +21,10 @@
         <div class="column is-two-thirds">
           <card-component :title="formCardTitle" class="tile is-child">
             <form @submit.prevent="submit" v-if="!isLoading">
-              <b-field label="Codi" horizontal>
+              <b-field label="Codi *" horizontal>
                 <b-input v-model="form.name" placeholder="Codi" required />
               </b-field>
-              <b-field label="Estat" horizontal>
+              <b-field label="Estat *" horizontal>
                 <b-select
                   v-model="form.project_state.id"
                   placeholder="Estat"
@@ -185,7 +185,7 @@
                   placeholder="Descripció"
                 />
               </b-field>
-              <b-field label="Inici" horizontal>
+              <b-field label="Inici *" horizontal>
                 <b-datepicker
                   v-model="form.date_start"
                   :show-week-number="false"
@@ -198,7 +198,7 @@
                 >
                 </b-datepicker>
               </b-field>
-              <b-field label="Final" horizontal>
+              <b-field label="Final *" horizontal>
                 <b-datepicker
                   v-model="form.date_end"
                   :show-week-number="false"
@@ -419,17 +419,17 @@
             <div class="columns">
               <b-field label="Hores previstes (h)" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ form.total_estimated_hours }} h
+                  {{ form.total_estimated_hours.toFixed(2) }} h
                 </div>
               </b-field>
               <b-field label="Hores executades (h)" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ form.total_real_hours }} h
+                  {{ form.total_real_hours.toFixed(2) }} h
                 </div>
               </b-field>
               <b-field label="Diferència (h)" class="column">
                 <div class="readonly subphase-detail-input">
-                  {{ form.total_estimated_hours - form.total_real_hours }} h
+                  {{ (form.total_estimated_hours - form.total_real_hours).toFixed(2) }} h
                 </div>
               </b-field>
             </div>
@@ -1980,6 +1980,18 @@ export default {
           );
           this.getData();
         } else {
+
+          console.log('this.form', this.form)
+          if (!this.form.name || this.form.date_start || !this.form.date_end || (!this.form.project_state || this.form.project_state.id === 0)) {
+            this.$buefy.snackbar.open({
+              message: "Error. Codi, Estat, Data Inici i Data Final son dades obligatòries",
+              queue: false,
+            });
+            this.isLoading = false
+            return
+          }
+          
+
           const newProject = await service({ requiresAuth: true }).post(
             "projects",
             this.form
