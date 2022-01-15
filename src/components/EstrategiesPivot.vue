@@ -80,9 +80,9 @@ export default {
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
-      let query = `projects?_where[project_state_eq]=${projectState}&_limit=-1`
+      let query = `projects/basic?_where[project_state_eq]=${projectState}&_limit=-1`
       if (projectState === 0 || projectState === '0') {
-        query = 'projects?_limit=-1'
+        query = 'projects/basic?_limit=-1'
       }
       // if (this.user) {
       //   query = `${query}&[users_permissions_user.id]=${this.user}`

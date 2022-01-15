@@ -1978,6 +1978,10 @@ export default {
             `projects/${this.form.id}`,
             this.form
           );
+          this.$buefy.snackbar.open({
+            message: "Guardat",
+            queue: false,
+          });
           this.getData();
         } else {
 

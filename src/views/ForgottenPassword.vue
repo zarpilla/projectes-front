@@ -16,7 +16,7 @@
             />
           </div>
 
-          <button type="submit" class="button is-primary mt-4">Envia</button>
+          <button v-show="!sent" type="submit" class="button is-primary mt-4">Envia</button>
         </form>
 
         <p v-show="done" class="has-text-primary mt-4">{{ message }}</p>
@@ -39,6 +39,7 @@ import service from "@/service/index";
             return {
                 email: '',
                 done: false,
+                sent: false,
                 error: false,
                 message0: "S'ha enviat un enllaç per canviar la clau de pas a",
                 message: "S'ha enviat un enllaç per canviar la clau de pas a"
@@ -49,6 +50,7 @@ import service from "@/service/index";
                 e.preventDefault()
                 this.done = false;
                 this.error = false;
+                this.sent = true;
                 service()
                 .post("auth/forgot-password", {
                     email: this.email,

@@ -304,7 +304,7 @@ export default {
         this.scopes = r.data
         // this.applyProjects();
       });
-    const query = `projects?_limit=-1&project_state=1`
+    const query = `projects/basic?_limit=-1&project_state=1`
     service({ requiresAuth: true })
       .get(query)
       .then((r) => {

@@ -332,7 +332,7 @@ export default {
         // this.applyProjects();
       });
     this.loading = true;
-    const query = `projects?_limit=-1&project_state=1`;
+    const query = `projects/basic?_limit=-1&project_state=1`;
     service({ requiresAuth: true })
       .get(query)
       .then((r) => {
@@ -386,7 +386,7 @@ export default {
       if (q) {
         service({ requiresAuth: true })
           .get(
-            `projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`
+            `projects/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`
           )
           .then((r) => {
             this.projects = r.data;
@@ -395,7 +395,7 @@ export default {
           });
       } else {
         service({ requiresAuth: true })
-          .get(`projects?_limit=-1${where1}${where2}${where3}`)
+          .get(`projects/basic?_limit=-1${where1}${where2}${where3}`)
           .then((r) => {
             this.projects = r.data;
             this.loading = false;

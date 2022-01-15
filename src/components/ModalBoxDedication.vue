@@ -284,12 +284,6 @@ export default {
         }
         
       }
-
-      // service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
-      //   this.projects = r.data.filter(p => p.project_state !== 2)
-      //   // console.log('this.projects', this.projects)
-      //   this.projectChanged()
-      // })
       service({ requiresAuth: true }).get('dedication-types').then((r) => {
         this.hasDedications = false
         for (var i in r.data) {
@@ -298,12 +292,7 @@ export default {
         }
         this.isLoading1 = false
       })
-      // service({ requiresAuth: true }).get('activity-types').then((r) => {
-      //   for (var i in r.data) {
-      //     this.activityTypes[r.data[i].id] = r.data[i].name
-      //   }
-      //   this.isLoading2 = false
-      // })
+      
       service({ requiresAuth: true }).get('users').then((r) => {
         this.users = r.data.filter(u => u.username !== 'app')
         const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())

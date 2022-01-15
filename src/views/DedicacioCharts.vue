@@ -159,7 +159,7 @@ export default {
         this.isLoading2 = false
       })
 
-      service({ requiresAuth: true }).get('projects?_limit=-1').then((r) => {
+      service({ requiresAuth: true }).get('projects/basic?_limit=-1').then((r) => {
         this.projects = r.data.filter(p => p.project_state !== 2)
         this.projectsList = JSON.parse(JSON.stringify(r.data.filter(p => p.project_state !== 2)))
         this.projectsList.unshift({ id: 0, name: 'Tots' })
