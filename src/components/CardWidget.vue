@@ -8,6 +8,7 @@
           </h3>
           <h1 class="title">
             <growing-number :value="number" :prefix="prefix" :suffix="suffix" />
+            <!-- <div>{{ prefix }}{{ newValueFormatted }}{{ suffix }}</div> -->
           </h1>
         </div>
       </div>
@@ -32,7 +33,7 @@ export default {
       default: null
     },
     number: {
-      type: Number,
+      type: String,
       default: 0
     },
     prefix: {

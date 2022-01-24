@@ -17,7 +17,7 @@ export default {
       default: null
     },
     value: {
-      type: Number,
+      type: String,
       default: 0
     },
     duration: {
@@ -33,19 +33,20 @@ export default {
   },
   computed: {
     newValueFormatted () {
-      return this.newValue < 1000
-        ? this.newValue
-        : numeral(this.newValue).format('0,0')
+      // return parseInt(this.newValue) < 1000
+      //   ? this.newValue
+      //   : numeral(this.value).format('0,0')
+      return parseInt(this.value) < 1000 ? this.value : numeral(this.value).format('0,000')
     }
   },
-  watch: {
-    value () {
-      this.growInit()
-    }
-  },
-  mounted () {
-    this.growInit()
-  },
+  // watch: {
+  //   value () {
+  //     this.growInit()
+  //   }
+  // },
+  // mounted () {
+  //   this.growInit()
+  // },
   methods: {
     growInit () {
       const m = this.value / (this.duration / 25)
