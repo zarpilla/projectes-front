@@ -142,8 +142,8 @@ export default {
       this.isMenuNavBarActive = !this.isMenuNavBarActive
     },
     logout () {
-      localStorage.removeItem('user')
-      localStorage.removeItem('jwt')
+      sessionStorage.removeItem('user')
+      sessionStorage.removeItem('jwt')
       this.$buefy.snackbar.open({
         message: 'Log out',
         queue: false

@@ -76,8 +76,8 @@ export default {
           })
           .then((response) => {
             let is_admin = response.data.user.is_admin;
-            localStorage.setItem("user", JSON.stringify(response.data.user));
-            localStorage.setItem("jwt", response.data.jwt);
+            sessionStorage.setItem("user", JSON.stringify(response.data.user));
+            sessionStorage.setItem("jwt", response.data.jwt);
             this.$store.commit("user", {
               name: response.data.user.username,
               jwt: response.data.jwt,

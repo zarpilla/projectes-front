@@ -170,38 +170,14 @@ export default {
     }
   },
   created () {
-    // this.$store.commit('user', this.form)
-    if (localStorage.getItem('user') && localStorage.getItem('jwt')) {
-      const user = JSON.parse(localStorage.getItem('user'))      
-      user['jwt'] = localStorage.getItem('jwt')
+    if (sessionStorage.getItem('user') && sessionStorage.getItem('jwt')) {
+      const user = JSON.parse(sessionStorage.getItem('user'))      
+      user['jwt'] = sessionStorage.getItem('jwt')
       this.$store.commit('user', {
         name: user.username,
-        jwt: localStorage.getItem('jwt')
+        jwt: sessionStorage.getItem('jwt')
       })
     }
-    // console.log('App created query', this.$route.query)
-    // if (this.$route.query.username && this.$route.query.jwt) {
-    //   this.$store.commit('user', {
-    //     name: this.$route.query.username,
-    //     jwt: this.$route.query.jwt
-    //   })
-    //   const localUser = JSON.stringify(this.$route.query)
-    //   localStorage.setItem('user', localUser)
-    // } else {
-    //   const userFromStorage = localStorage.getItem('user')
-    //   if (userFromStorage) {
-    //     const user = JSON.parse(userFromStorage)
-    //     this.$store.commit('user', {
-    //       name: user.username,
-    //       jwt: user.jwt
-    //     })
-    //   } else {
-    //     location.href = process.env.VUE_APP_API_LOGIN || 'http://localhost:1337/admin'
-    //   }
-    // }
-    // if (this.$route.query.navigate) {
-    //   this.$router.push('/' + this.$route.query.navigate)
-    // }
   }
 }
 </script>
