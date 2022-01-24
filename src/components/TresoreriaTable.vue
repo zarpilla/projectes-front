@@ -1,14 +1,5 @@
 <template>
   <div>
-    <!-- <modal-box
-        :is-active="isModalActive"
-        :message="'El concepte es marcarà com a pagat i desapareixerà de la tresoreria'"
-        :title="'Marcat com a pagat'"
-        ok-button="D'acord"
-        :can-undo="true"
-        @confirm="trashConfirm"
-        @cancel="trashCancel"
-        /> -->
     <modal-box-invoicing
       :is-active="isModalActive"
       :invoicing-object="trashObject"
@@ -57,8 +48,26 @@
                   :key="i"
                 >
                   <div class="zth-wrap has-text-right">
-                    <span class="is-relative">
+                    <span class="is-relative" v-if="column.month !== '00' && column.month !== '99'">
                       {{ column.month }} / {{ column.year }}
+                    </span>
+                    <span class="is-relative" v-if="column.month == '00'">                      
+                      TOTAL {{ column.year }}
+                      <b-icon
+                        class="has-text-danger"
+                        icon="star"
+                        size="is-small"
+                      >
+                      </b-icon>
+                    </span>
+                    <span class="is-relative" v-if="column.month == '99'">
+                      SENSE DATA 
+                      <b-icon
+                        class="has-text-danger"
+                        icon="alert-circle"
+                        size="is-small"
+                      >
+                      </b-icon>
                     </span>
                   </div>
                 </th>
@@ -302,6 +311,22 @@ export default {
         subtotal = subtotal + ans[i].total_amount;
         ans[i]["subtotal"] = subtotal;
         ansWithSubtotal.push(ans[i]);
+        if (ans[i].month === '12') {
+          const y = ans[i].year
+          const yearValues = ansWithSubtotal.filter(a => a.year === y)
+          const yearSummary = {
+            "ym": `${y}00`,
+            "year": y,
+            "month": "00",
+            "valid": true,
+            "maxYm": ans[i].maxYm,
+            "total_amount": _.sumBy(yearValues, 'total_amount'),
+            "total_incomes": _.sumBy(yearValues, 'total_incomes'),
+            "total_expenses": _.sumBy(yearValues, 'total_expenses'),
+            "subtotal": ans[i].subtotal
+          }
+          ansWithSubtotal.push(yearSummary);
+        }
       }
 
       return ansWithSubtotal;
@@ -630,7 +655,9 @@ export default {
           this.treasury = this.treasury.map((t) => {
             return { ...t, datef: t.date.format("YYYYMMDD") };
           });
-          // console.log('this.treasury 2',this.treasury)
+          
+          console.log('this.treasury 2',this.treasury)
+
           const treasuryData = sortBy(this.treasury, "datef");
           let subtotal = 0;
           for (let i = 0; i < treasuryData.length; i++) {
