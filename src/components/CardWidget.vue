@@ -12,7 +12,7 @@
           </h1>
         </div>
       </div>
-      <div v-if="icon" class="level-item has-widget-icon">
+      <div v-if="icon" class="level-item has-widget-icon   is-hidden-mobile  is-hidden-tablet-only is-hidden-desktop-only is-hidden-widescreen-only ">
         <div class="is-widget-icon">
           <b-icon :icon="icon" size="is-large" :type="type" />
         </div>
@@ -33,7 +33,7 @@ export default {
       default: null
     },
     number: {
-      type: String,
+      type: Number,
       default: 0
     },
     prefix: {
