@@ -381,6 +381,7 @@ export default {
   },
   data() {
     return {
+      isProfileExists: false,
       isLoading: false,
       series: [],
       form: this.getClearFormObject(),
@@ -389,54 +390,7 @@ export default {
       projectSearch: "",
       methodSearch: "",
       paymentMethods: [],
-
-
-      isUpdating: false,
-      needsUpdate: false,
-
-      createdReadable: null,
-      isProfileExists: false,
-      project_states: [],
-      project_scopes: [],
-      leaders: [],
-
-      strategies: [],
-      expenseTypes: [],
-      incomeTypes: [],
-      
-
-      cooperaSearch: "",
-      strategiesSearch: "",
-      phaseToAdd: "",
-      updatingGantt: false,
-      updatingGanttTimer: 0,
-      defaultOpenedDetails: [1],
-      showDetailIcon: true,
-      useTransition: false,
-      selected: new Date(),
-      tasks: {
-        data: [
-          {
-            id: 1,
-            text: "Task #1",
-            start_date: "2020-01-17",
-            duration: 3,
-            progress: 0.6,
-          },
-          {
-            id: 2,
-            text: "Task #2",
-            start_date: "2020-01-20",
-            duration: 3,
-            progress: 0.4,
-          },
-        ],
-        links: [{ id: 1, source: 1, target: 2, type: "0" }],
-      },
-      invoicingObject: {},
-      isModalActive: false,
-      isModalSplitActive: false,
-      newTask: "",
+      projects: []
     };
   },
   computed: {
@@ -472,13 +426,13 @@ export default {
       });
     },
     titleStack() {
-      return ["Factures Emeses", this.formCardTitle];
+      return ["Facturació", "Factures Emeses", this.formCardTitle];
     },
     formCardTitle() {
       if (this.isProfileExists) {
         return this.form.code;
       } else {
-        return "NOVA FACTURA EMESA";
+        return "Nova factura";
       }
     },
     transitionName() {
@@ -501,12 +455,12 @@ export default {
     }
   },
   watch: {
-    id(newValue) {
-      this.isProfileExists = false;
+    async id(newValue) {
+      this.isProfileExists = false;      
       if (!newValue || newValue === 0) {
-        this.form = this.getClearFormObject();
-        this.getAuxiliarData();
-      } else {
+        await this.getAuxiliarData();
+        this.form = this.getClearFormObject();        
+      } else {        
         this.getData();
       }
     },
@@ -538,7 +492,7 @@ export default {
         show: false
       };
     },
-    getData() {
+    async getData() {
       if (!this.me) {
         service({ requiresAuth: true })
           .get("me")
@@ -549,6 +503,9 @@ export default {
             });
           });
       }
+
+      await this.getAuxiliarData();
+
       if (this.$route.params.id && this.$route.params.id > 0) {
         this.isLoading = true;
         service({ requiresAuth: true })
@@ -580,9 +537,7 @@ export default {
                 this.form.payment_method = this.form.payment_method.id
               }
               
-              
-
-              this.getAuxiliarData();
+              // this.getAuxiliarData();
 
               this.isLoading = false;
             } else {
@@ -590,30 +545,31 @@ export default {
             }
           });
       } else {
-        this.getAuxiliarData();
+        // this.getAuxiliarData();
       }
     },
     async getAuxiliarData() {
-      service({ requiresAuth: true })
-        .get("series")
-        .then((r) => {
-          this.series = r.data;
-        });
-      service({ requiresAuth: true })
-        .get("payment-methods")
-        .then((r) => {
-          this.paymentMethods = r.data;
-        });
-      service({ requiresAuth: true })
-        .get("projects/basic?_limit=-1&project_state=1")
-        .then((r) => {
-          this.projects =  r.data;
-        });
-      service({ requiresAuth: true })
-        .get("contacts?_limit=-1")
-        .then((r) => {
-          this.clients = r.data;
-        });
+      console.log('getAuxiliarData')
+      this.series = (await service({ requiresAuth: true }).get("series")).data
+      this.paymentMethods = (await service({ requiresAuth: true }).get("payment-methods")).data
+      this.projects = (await service({ requiresAuth: true }).get("projects/basic?_limit=-1&project_state=1")).data
+      this.clients = (await service({ requiresAuth: true }).get("contacts?_limit=-1")).data
+        
+      // service({ requiresAuth: true })
+      //   .get("payment-methods")
+      //   .then((r) => {
+      //     this.paymentMethods = r.data;
+      //   });
+      // service({ requiresAuth: true })
+      //   .get("projects/basic?_limit=-1&project_state=1")
+      //   .then((r) => {
+      //     this.projects =  r.data;
+      //   });
+      // service({ requiresAuth: true })
+      //   .get("contacts?_limit=-1")
+      //   .then((r) => {
+      //     this.clients = r.data;
+      //   });
     },
     changeLine(line, field, value) {
       if (value && value.toString().includes(",")) {
