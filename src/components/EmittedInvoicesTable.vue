@@ -1,11 +1,18 @@
 <template>
-  <section class="xsection">
+  <section class="xsection">    
     <download-excel class="export" :data="emittedCSV">
       <b-button
       title="Exporta dades"
       class="export-button mb-3"
       icon-left="file-excel" />
     </download-excel>
+    <b-button
+                class="view-button is-primary mb-3"
+                @click="navNew"
+                icon-left="plus"
+              >
+                Nova factura
+              </b-button>
     <b-table
       :loading="isLoading"
       :paginated="false"
@@ -97,6 +104,9 @@ export default {
     this.getData()
   },
   methods: {
+    navNew() {
+      this.$router.push("/emitted-invoice/0");
+    },
     formatPrice (value) {
       const val = (value / 1).toFixed(2).replace('.', ',')
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')

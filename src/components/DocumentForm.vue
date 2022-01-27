@@ -311,12 +311,16 @@
               </b-field>
 
               <hr>
-
+              <b-field horizontal>
+                <a v-if="form.pdf" :href="form.pdf" class="button is-warning" target="_blank">
+                  Visualitzar PDF
+                </a>
+              </b-field>
               <b-field horizontal>
                 <b-button type="is-primary" :loading="isLoading" @click="submit"
                   >Guardar</b-button
                 >
-              </b-field>
+              </b-field>              
             </form>
           </card-component>
         </div>
