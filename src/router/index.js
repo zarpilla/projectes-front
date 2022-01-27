@@ -157,6 +157,18 @@ const routes = [
   },
   {
     meta: {
+      title: 'Edita Factura emesa'
+    },
+    path: '/emitted-invoice/:id',
+    name: 'emitted-invoice.edit',
+    component: () => import(/* webpackChunkName: "document-form" */ '../views/EmittedInvoiceForm.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Tables'
     },
     path: '/tables',

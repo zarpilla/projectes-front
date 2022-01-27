@@ -39,7 +39,7 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field label="Àmbit" horizontal>
+              <b-field label="Àmbit *" horizontal>
                 <b-select
                   v-model="form.project_scope.id"
                   placeholder="Àmbit"
@@ -54,7 +54,7 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field label="Coordina" horizontal>
+              <b-field label="Coordina *" horizontal>
                 <b-select
                   v-model="form.leader.id"
                   placeholder="Coordina"
@@ -1405,13 +1405,7 @@ export default {
       incomeTypes: [],
       clientSearch: "",
       cooperaSearch: "",
-      strategiesSearch: "",
-      todos: [
-        { title: "one value", edit: false },
-        { title: "other value", edit: false },
-        { title: "otro titulo", edit: false },
-      ],
-      editedTodo: null,
+      strategiesSearch: "",      
       phaseToAdd: "",
       updatingGantt: false,
       updatingGanttTimer: 0,
@@ -1986,9 +1980,13 @@ export default {
         } else {
 
           console.log('this.form', this.form)
-          if (!this.form.name || this.form.date_start || !this.form.date_end || (!this.form.project_state || this.form.project_state.id === 0)) {
+          if (!this.form.name || !this.form.date_start || !this.form.date_end 
+            || (!this.form.project_state || this.form.project_state.id === 0)
+            || (!this.form.project_scope || this.form.project_scope.id === 0)
+            || (!this.form.leader || this.form.leader.id === 0)
+            ) {
             this.$buefy.snackbar.open({
-              message: "Error. Codi, Estat, Data Inici i Data Final son dades obligatòries",
+              message: "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
               queue: false,
             });
             this.isLoading = false

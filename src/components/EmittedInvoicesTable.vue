@@ -14,9 +14,9 @@
       :row-class="(row, index) => row.subtotal < 0 && 'has-text-danger has-text-bold' || row.type == 'Avui' && 'has-text-info' "
     >
       <b-table-column label="Codi" field="number" v-slot="props" sortable>
-        <a :href="props.row.pdf" target="_blank" v-if="props.row.pdf">
-          {{ props.row.code }}
-        </a>
+        <router-link v-if="props.row.id" :to="{name:'emitted-invoice.edit', params: {id: props.row.id}}">
+            {{ props.row.code }}
+        </router-link>
         <b v-else>{{ props.row.code }}</b>
       </b-table-column>
       <b-table-column label="Data" field="emitted" v-slot="props" sortable>
