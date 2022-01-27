@@ -1,6 +1,6 @@
 <template>
   <div>
-    <document-form :id="id" type="emitted-invoices" />
+    <document-form :id="id" type="received-invoices" />
   </div>
 </template>
 

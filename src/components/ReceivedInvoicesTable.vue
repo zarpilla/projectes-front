@@ -6,6 +6,13 @@
       class="export-button mb-3"
       icon-left="file-excel" />
     </download-excel>
+    <b-button
+      class="view-button is-primary mb-3"
+      @click="navNew"
+      icon-left="plus"
+    >
+      Nova factura
+    </b-button>
     <b-table
       :loading="isLoading"
       :paginated="false"
@@ -13,9 +20,15 @@
       :data="emitted"
       :row-class="(row, index) => row.subtotal < 0 && 'has-text-danger has-text-bold' || row.type == 'Avui' && 'has-text-info' "
     >
-      <b-table-column label="Codi" field="code" v-slot="props" sortable>
-        {{ props.row.code }}
-      </b-table-column>
+    <b-table-column label="Codi" field="number" v-slot="props" sortable>
+        <router-link
+          v-if="props.row.id"
+          :to="{ name: 'received-invoices.edit', params: { id: props.row.id } }"
+        >
+          {{ props.row.code }}
+        </router-link>
+        <b v-else>{{ props.row.code }}</b>
+      </b-table-column>      
       <b-table-column label="Data" field="emitted" v-slot="props" sortable>
         {{ formatDate(props.row.emitted) }}
       </b-table-column>
@@ -94,6 +107,9 @@ export default {
     this.getData()
   },
   methods: {
+    navNew() {
+      this.$router.push("/received-invoice/0");
+    },
     formatPrice (value) {
       const val = (value / 1).toFixed(2).replace('.', ',')
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')

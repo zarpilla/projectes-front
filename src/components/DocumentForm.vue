@@ -14,7 +14,7 @@
                   <option
                     v-for="(s, index) in series"
                     :key="index"
-                    :value="s"
+                    :value="s.id"
                   >
                     {{ s.name }}
                   </option>
@@ -426,7 +426,8 @@ export default {
       });
     },
     titleStack() {
-      return ["Facturació", "Factures Emeses", this.formCardTitle];
+      const type = this.type === "emitted-invoices" ? "Factures Emeses" : "Factures Rebudes"
+      return ["Facturació", type, this.formCardTitle];
     },
     formCardTitle() {
       if (this.isProfileExists) {
@@ -509,7 +510,7 @@ export default {
       if (this.$route.params.id && this.$route.params.id > 0) {
         this.isLoading = true;
         service({ requiresAuth: true })
-          .get("emitted-invoices/" + this.$route.params.id)
+          .get(`${this.type}/${this.$route.params.id}`)
           .then(async (r) => {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
@@ -523,6 +524,9 @@ export default {
               }
               if (this.form.paid_date) {
                 this.form.paid_date = moment(this.form.paid_date, 'YYYY-MM-DD').toDate()
+              }
+              if (this.form.serial && this.form.serial.id) {
+                this.form.serial = this.form.serial.id
               }
               if (this.form.contact && this.form.contact.id) {
                 this.clientSearch = this.form.contact.name
@@ -601,7 +605,7 @@ export default {
           }
 
           await service({ requiresAuth: true }).put(
-            `emitted-invoices/${this.form.id}`,
+            `${this.type}/${this.form.id}`,
             this.form
           );
           this.$buefy.snackbar.open({
@@ -627,12 +631,12 @@ export default {
           }
 
           const newProject = await service({ requiresAuth: true }).post(
-            "emitted-invoices",
+            this.type,
             this.form
           );
           // console.log('newProject', newProject.data)
           this.$router.push({
-            name: "emitted-invoice.edit",
+            name: `${this.type}.edit`,
             params: { id: newProject.data.id },
           });
 
