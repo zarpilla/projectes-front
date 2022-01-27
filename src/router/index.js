@@ -340,13 +340,13 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (sessionStorage.getItem('jwt') == null) {
+    if (localStorage.getItem('jwt') == null) {
       next({
         path: '/',
         params: { nextUrl: to.fullPath }
       })
     } else {
-      let user = JSON.parse(sessionStorage.getItem('user'))
+      let user = JSON.parse(localStorage.getItem('user'))
       if (to.matched.some(record => record.meta.is_admin)) {
         if (user.is_admin == 1) {
           next()
@@ -358,7 +358,7 @@ router.beforeEach((to, from, next) => {
       }
     }
   } else if (to.matched.some(record => record.meta.guest)) {
-    if (sessionStorage.getItem('jwt') == null) {
+    if (localStorage.getItem('jwt') == null) {
       next()
     } else {
       next({ name: 'projectes.view' })

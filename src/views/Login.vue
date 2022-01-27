@@ -49,6 +49,7 @@
 <script>
 import service from "@/service/index";
 import { mapState } from "vuex";
+import moment from 'moment';
 
 export default {
   data() {
@@ -60,7 +61,7 @@ export default {
   computed: {
     ...mapState(["userName"]),
   },
-  mounted() {
+  async mounted() {
     if (this.userName) {
       this.$router.push("projectes");
     }
@@ -76,8 +77,8 @@ export default {
           })
           .then((response) => {
             let is_admin = response.data.user.is_admin;
-            sessionStorage.setItem("user", JSON.stringify(response.data.user));
-            sessionStorage.setItem("jwt", response.data.jwt);
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+            localStorage.setItem("jwt", response.data.jwt);
             this.$store.commit("user", {
               name: response.data.user.username,
               jwt: response.data.jwt,

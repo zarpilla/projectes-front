@@ -14,6 +14,7 @@ import AsideMenu from '@/components/AsideMenu'
 import FooterBar from '@/components/FooterBar'
 import update from '@/mixins/update'
 import { mapState } from 'vuex'
+import service from "@/service/index";
 
 export default {
   name: 'Home',
@@ -169,14 +170,23 @@ export default {
       ]
     }
   },
-  created () {
-    if (sessionStorage.getItem('user') && sessionStorage.getItem('jwt')) {
-      const user = JSON.parse(sessionStorage.getItem('user'))      
-      user['jwt'] = sessionStorage.getItem('jwt')
-      this.$store.commit('user', {
-        name: user.username,
-        jwt: sessionStorage.getItem('jwt')
-      })
+  async created () {
+
+    if (localStorage.getItem('user') && localStorage.getItem('jwt')) {
+
+      const me = await service({ requiresAuth: true })
+        .get("users/me")
+
+      if (me && me.data && me.data.username) {
+        const user = JSON.parse(localStorage.getItem('user'))      
+        user['jwt'] = localStorage.getItem('jwt')
+        this.$store.commit('user', {
+          name: user.username,
+          jwt: sessionStorage.getItem('jwt')
+        })
+      }
+
+      
     }
   }
 }
