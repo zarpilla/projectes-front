@@ -1,23 +1,36 @@
 <template>
   <div>
-    <div class="table-view">
-      <card-component class="has-table has-mobile-sort-spaced" v-if="!isLoading">
+    <div class="table-view">      
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="!isLoading"
+      >
         <div class="columns card-body">
-          <div class="column has-text-weight-bold">
-            Data
+          <div class="column has-text-weight-bold">Tipus</div>
+          <div class="column has-text-weight-bold">Hores</div>
+        </div>
+        <div v-for="(value, key) in summary" v-bind:key="key" class="card-body">
+          <div class="columns">
+            <div class="column">
+              {{ key }}
+            </div>
+            <div class="column">
+              {{ value }}
+            </div>
           </div>
-          <div class="column has-text-weight-bold">
-            Hores teòriques
-          </div>
-          <div class="column has-text-weight-bold">
-            Hores treballades
-          </div>
-          <div class="column has-text-weight-bold">
-            Total hores treballades
-          </div>
-          <div class="column has-text-weight-bold">
-            Saldo hores
-          </div>
+        </div>
+      </card-component>
+
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="!isLoading"
+      >
+        <div class="columns card-body">
+          <div class="column has-text-weight-bold">Data</div>
+          <div class="column has-text-weight-bold">Hores teòriques</div>
+          <div class="column has-text-weight-bold">Hores treballades</div>
+          <div class="column has-text-weight-bold">Total hores treballades</div>
+          <div class="column has-text-weight-bold">Saldo hores</div>
         </div>
         <div v-for="(d, i) in dates" v-bind:key="i" class="card-body">
           <div class="columns">
@@ -25,7 +38,8 @@
               {{ d.date }}
             </div>
             <div class="column">
-              {{ d.theoricHours }} {{ d.dateDescription ? `- ${d.dateDescription}` : '' }}
+              {{ d.theoricHours }}
+              {{ d.dateDescription ? `- ${d.dateDescription}` : "" }}
             </div>
             <div class="column">
               {{ d.workedHours }}
@@ -44,41 +58,41 @@
 </template>
 
 <script>
-import service from '@/service/index'
+import service from "@/service/index";
 // import uniq from 'lodash/uniq'
 // import map from 'lodash/map'
-import sumBy from 'lodash/sumBy'
-import moment from 'moment'
-import CardComponent from '@/components/CardComponent'
+import sumBy from "lodash/sumBy";
+import moment from "moment";
+import CardComponent from "@/components/CardComponent";
 
-moment.locale('ca')
+moment.locale("ca");
 
 export default {
-  name: 'DedicationSaldo',
+  name: "DedicationSaldo",
   components: { CardComponent },
   props: {
     user: {
       type: Number,
-      default: null
+      default: null,
     },
     date1: {
       type: Date,
-      default: null
+      default: null,
     },
     date2: {
       type: Date,
-      default: null
+      default: null,
     },
     project: {
       type: Number,
-      default: null
+      default: null,
     },
     year: {
       type: Number,
-      default: null
-    }
+      default: null,
+    },
   },
-  data () {
+  data() {
     return {
       activities: [],
       isLoading: false,
@@ -89,177 +103,226 @@ export default {
       distinctUsersObj: [],
       hoursTotal: 0,
       dailyDedications: [],
-      dates: []
-    }
+      dates: [],
+      summary: {},
+    };
   },
   computed: {
-    trashObjectName () {
+    trashObjectName() {
       if (this.trashObject) {
-        return this.trashObject.name
+        return this.trashObject.name;
       }
 
-      return null
+      return null;
     },
-    superTotal () {
-      return sumBy(this.activities, 'hours')
-    }
+    superTotal() {
+      return sumBy(this.activities, "hours");
+    },
   },
   watch: {
     user: function (newVal, oldVal) {
-      this.getActivities()
+      this.getActivities();
     },
     date1: function (newVal, oldVal) {
-      this.getActivities()
+      this.getActivities();
     },
     date2: function (newVal, oldVal) {
-      this.getActivities()
+      this.getActivities();
     },
     year: function (newVal, oldVal) {
-      this.getActivities()
-    }
+      this.getActivities();
+    },
   },
-  mounted () {
-    this.getActivities()
+  mounted() {
+    this.getActivities();
 
     // this.$on('update:page', () => { console.log('update:page') })
   },
   methods: {
-    async getActivities () {
-      this.isLoading = true
+    async getActivities() {
+      this.isLoading = true;
 
-      console.log('year', this.year)
       if (!this.year) {
-        return
+        return;
       }
 
-      const from = moment(this.year, 'YYYY').startOf('year').format('YYYY-MM-DD')
-      const to = moment(this.year, 'YYYY').endOf('year').format('YYYY-MM-DD')
+      const from = moment(this.year, "YYYY")
+        .startOf("year")
+        .format("YYYY-MM-DD");
+      const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
 
-      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
+      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
-        query = `${query}&[users_permissions_user.id]=${this.user}`
+        query = `${query}&[users_permissions_user.id]=${this.user}`;
       } else {
-        return
+        return;
       }
 
-      service({ requiresAuth: true }).get(query).then(async (r) => {
-        this.activities = r.data
-        // console.log('this.activities', this.activities)
-        const festives = (await service({ requiresAuth: true }).get('festives?_limit=-1')).data
-        service({ requiresAuth: true }).get(`daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`).then((r) => {
-          this.dailyDedications = r.data
-          // console.log('this.dailyDedications', this.dailyDedications)
-          console.log('festives', festives)
-          var allDates = this.enumerateDaysBetweenDates()
-          var balance = 0
-          var totalWorkedHours = 0
-          var dates = []
-          allDates.forEach(d => {
-            // console.log('date', moment(d).day)
-            const date = moment(d).format('YYYY-MM-DD')
-            const displayDate = moment(d).format('ddd DD-MM-YYYY')
-            const day = moment(d).day()
-            const week = moment(d).week()
-            const dailyDedication = this.dailyDedications.find(dd => date >= dd.from && date <= dd.to)
-            const activities = this.activities.filter(a => a.date === date)
-            const festive = festives.find(a => a.date === date)
-            // if (!dailyDedication) {
-            //   console.warn('dedication undefinded', date)
-            // }
-            const theoricHours = !festive && dailyDedication && (day !== 0 && day !== 6) ? dailyDedication.hours : 0
-            const workedHours = sumBy(activities, 'hours')
-            const dateDescription = festive ? 'FESTIU' : ''
-            totalWorkedHours += workedHours
-            balance += workedHours - theoricHours
-            dates.push({
-              date: displayDate,
-              dateDescription: dateDescription,
-              week: week,
-              theoricHours: theoricHours,
-              workedHours: workedHours,
-              totalWorkedHours: totalWorkedHours,
-              balance: balance,
-              error: dailyDedication === null
-            })
-          })
-          this.dates = dates.reverse()
-          this.isLoading = false
-        })
-      })
+      service({ requiresAuth: true })
+        .get(query)
+        .then(async (r) => {
+          this.activities = r.data;
+
+          const festiveTypes = (
+            await service({ requiresAuth: true }).get("festive-types?_limit=-1")
+          ).data;
+          festiveTypes.forEach((ft) => {
+            this.summary[ft.name] = 0;
+          });
+          
+          const festives = (
+            await service({ requiresAuth: true }).get("festives?_limit=-1")
+          ).data.filter(
+            (f) =>
+              f.users_permissions_user === null ||
+              f.users_permissions_user.id === this.user
+          );
+
+          service({ requiresAuth: true })
+            .get(
+              `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
+            )
+            .then((r) => {
+              this.dailyDedications = r.data;
+              var allDates = this.enumerateDaysBetweenDates();
+              var balance = 0;
+              var totalWorkedHours = 0;
+              var dates = [];
+              allDates.forEach((d) => {
+                // console.log('date', moment(d).day)
+                const date = moment(d).format("YYYY-MM-DD");
+                const displayDate = moment(d).format("ddd DD-MM-YYYY");
+                const day = moment(d).day();
+                const week = moment(d).week();
+                const dailyDedication = this.dailyDedications.find(
+                  (dd) => date >= dd.from && date <= dd.to
+                );
+                const activities = this.activities.filter(
+                  (a) => a.date === date
+                );
+                const festive = festives.find((f) => f.date === date);
+                const theoricHours =
+                  !festive && dailyDedication && day !== 0 && day !== 6
+                    ? dailyDedication.hours
+                    : 0;
+                const workedHours = sumBy(activities, "hours");
+                const dateDescription = festive
+                  ? festive.festive_type
+                    ? festive.festive_type.name
+                    : "FESTIU"
+                  : "";
+                totalWorkedHours += workedHours;
+                balance += workedHours - theoricHours;
+                dates.push({
+                  date: displayDate,
+                  dateDescription: dateDescription,
+                  week: week,
+                  theoricHours: theoricHours,
+                  workedHours: workedHours,
+                  totalWorkedHours: totalWorkedHours,
+                  balance: balance,
+                  error: dailyDedication === null,
+                });
+
+                if (day !== 0 && day !== 6 && festive && festive.festive_type && dailyDedication) {
+                  this.summary[festive.festive_type.name] +=
+                    dailyDedication.hours;
+                }
+              });
+              this.dates = dates.reverse();
+              this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours
+              this.summary['Saldo hores'] = this.dates[0].balance
+              this.isLoading = false;
+            });
+        });
     },
-    enumerateDaysBetweenDates () {
-      var dates = []
-      var currDate = moment(this.year, 'YYYY').startOf('year')
-      const endOfYear = moment(this.year, 'YYYY').endOf('year')
-      var lastDate = endOfYear.diff(moment()) < 0 ? moment(this.year, 'YYYY').endOf('year') : moment()
+    enumerateDaysBetweenDates() {
+      var dates = [];
+      var currDate = moment(this.year, "YYYY").startOf("year");
+      const endOfYear = moment(this.year, "YYYY").endOf("year");
+      var lastDate =
+        endOfYear.diff(moment()) < 0
+          ? moment(this.year, "YYYY").endOf("year")
+          : moment();
       // var lastDate = moment()
-      dates.push(currDate.clone().toDate())
-      while (currDate.add(1, 'days').diff(lastDate) < 0) {
-        dates.push(currDate.clone().toDate())
+      dates.push(currDate.clone().toDate());
+      while (currDate.add(1, "days").diff(lastDate) < 0) {
+        dates.push(currDate.clone().toDate());
       }
-      return dates
-    }
+      return dates;
+    },
   },
   filters: {
-    formatDate (val) {
-      if (!val) { return '-' }
-      return moment(val).fromNow()
+    formatDate(val) {
+      if (!val) {
+        return "-";
+      }
+      return moment(val).fromNow();
     },
-    formatDMYDate (val) {
-      if (!val) { return '-' }
-      return moment(val).format('dddd DD/MM/YYYY')
+    formatDMYDate(val) {
+      if (!val) {
+        return "-";
+      }
+      return moment(val).format("dddd DD/MM/YYYY");
     },
-    formatTitle (val) {
-      if (!val) { return '-' }
-      return moment(val).format('dddd DD/MM/YYYY') + ' (' + moment(val).fromNow() + ')'
-    }
-  }
-}
+    formatTitle(val) {
+      if (!val) {
+        return "-";
+      }
+      return (
+        moment(val).format("dddd DD/MM/YYYY") +
+        " (" +
+        moment(val).fromNow() +
+        ")"
+      );
+    },
+  },
+};
 </script>
 <style scoped>
-.separator{
+.separator {
   margin-right: 0.5rem;
   display: inline-block;
 }
-.tag-hours{
+.tag-hours {
   cursor: pointer;
 }
-.day-label{
+.day-label {
   cursor: pointer;
 }
 </style>
 <style>
-.card-body{
+.card-body {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #eee;
 }
-.card-header-title{
+.card-header-title {
   text-transform: capitalize;
 }
-.is-activity{
+.is-activity {
   cursor: pointer;
 }
-.is-total{
+.is-total {
   background: #eee;
   text-transform: capitalize;
 }
-.auxiliar{
-  color:#999;
+.auxiliar {
+  color: #999;
 }
-.projects-bars{
+.projects-bars {
   margin-bottom: 2rem;
 }
-.projects-bars progress{
+.projects-bars progress {
   margin-top: 1rem;
 }
-.view-button{
+.view-button {
   margin-left: 0.5rem;
 }
 </style>
 
 <style lang="postcss">
-.vc-container{
-  font-family: 'Nunito';
+.vc-container {
+  font-family: "Nunito";
 }
 ::-webkit-scrollbar {
   width: 0px;
@@ -275,53 +338,52 @@ export default {
   --weekday-bg: #f8fafc;
   --weekday-border: 1px solid #eaeaea;
   border-radius: 0.25rem;
-  border:0;
+  border: 0;
   width: 100%;
 }
-  .custom-calendar.vc-container .vc-header {
-    background-color: #eee;
-    padding: 10px 0;
-    border-top-right-radius: 0.25rem;
-    border-top-left-radius: 0.25rem;
-  }
-  .custom-calendar.vc-container .vc-weeks {
-    padding: 0;
-  }
-  .custom-calendar.vc-container .vc-weekday {
-    background-color:  #F8F8F8;
-    border-bottom: 1px solid #eaeaea;
-    border-top: 1px solid #eaeaea;
-    padding: 5px 0;
-  }
-  .custom-calendar.vc-container .vc-day {
-    padding: 0 5px 3px 5px;
-    text-align: left;
-    height: auto;
-    min-height: 90px;
-    min-width: 90px;
-    background-color: white;
-  }
-    .custom-calendar.vc-container .vc-day.weekday-1,
-    .custom-calendar.vc-container .vc-day.weekday-7 {
-      background-color: #eff8ff;
-      background: #eee
-    }
-    .custom-calendar.vc-container .vc-day:not(.on-bottom) {
-      border-bottom: 1px solid #b8c2cc;
-    }
-      .custom-calendar.vc-container .vc-day:not(.on-bottom).weekday-1 {
-        border-bottom: 1px solid #b8c2cc;
-      }
+.custom-calendar.vc-container .vc-header {
+  background-color: #eee;
+  padding: 10px 0;
+  border-top-right-radius: 0.25rem;
+  border-top-left-radius: 0.25rem;
+}
+.custom-calendar.vc-container .vc-weeks {
+  padding: 0;
+}
+.custom-calendar.vc-container .vc-weekday {
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #eaeaea;
+  border-top: 1px solid #eaeaea;
+  padding: 5px 0;
+}
+.custom-calendar.vc-container .vc-day {
+  padding: 0 5px 3px 5px;
+  text-align: left;
+  height: auto;
+  min-height: 90px;
+  min-width: 90px;
+  background-color: white;
+}
+.custom-calendar.vc-container .vc-day.weekday-1,
+.custom-calendar.vc-container .vc-day.weekday-7 {
+  background-color: #eff8ff;
+  background: #eee;
+}
+.custom-calendar.vc-container .vc-day:not(.on-bottom) {
+  border-bottom: 1px solid #b8c2cc;
+}
+.custom-calendar.vc-container .vc-day:not(.on-bottom).weekday-1 {
+  border-bottom: 1px solid #b8c2cc;
+}
 
-    .custom-calendar.vc-container .vc-day:not(.on-right) {
-      border-right: 1px solid #b8c2cc;
-    }
+.custom-calendar.vc-container .vc-day:not(.on-right) {
+  border-right: 1px solid #b8c2cc;
+}
 
-  .custom-calendar.vc-container .vc-day .vc-day-dots {
-    margin-bottom: 5px;
-  }
-  .custom-calendar .vc-title{
-    margin-left: 1rem;
-  }
-
+.custom-calendar.vc-container .vc-day .vc-day-dots {
+  margin-bottom: 5px;
+}
+.custom-calendar .vc-title {
+  margin-left: 1rem;
+}
 </style>

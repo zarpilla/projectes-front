@@ -10,11 +10,21 @@
       :is-active="isModalEditActive"
       :dedication-object="dedicationObject"
       :projects="projects"
+      :users="users"
       :counter="counterClicked ? counter : null"
       @submit="modalSubmit"
       @cancel="modalCancel"
       @delete="modalDelete"
       @counter-continue="counterContinue"
+    />
+    <modal-box-festive
+      :is-active="isModalFestiveActive"
+      :festive-object="festiveObject"
+      :users="users"
+      :festive-types="festiveTypes"
+      @submit="modalFestiveSubmit"
+      @cancel="modalFestiveCancel"
+      @delete="modalFestiveDelete"
     />
     <card-component class="has-table has-mobile-sort-spaced">
       <div class="card-body is-total">
@@ -73,6 +83,11 @@
               icon-left="wrench" />
             <span class="separator"></span>
             <b-button
+              title="Afegir festiu"
+              @click="showModalFestive(null)"
+              class="view-button is-warning"
+              icon-left="calendar-star" />
+            <b-button
               id="time-counter-button"
               title="Començar dedicació"
               @click="showModalCounter"
@@ -130,8 +145,11 @@
               :class="attr.customData ? attr.customData.class : null"
               :style="{ backgroundColor: attr.customData ? attr.customData.bg_project : 'transparent' }"
             >
-              <span v-if="attr.customData" @click="showModal(attr.customData.a)">
-                {{ attr.customData.project }} - {{ attr.customData.username }} - {{ attr.customData.hours }}h
+              <span v-if="attr.customData && attr.customData.type === 'activity'" @click="showModal(attr.customData.a)">
+                {{ attr.customData.project }} - {{ attr.customData.username }} {{ attr.customData.hours ? `- ${attr.customData.hours}h` : '' }}
+              </span>
+              <span v-if="attr.customData && attr.customData.type === 'festive'" @click="showModalFestive(attr.customData.a)">
+                {{ attr.customData.project }} - {{ attr.customData.username }} {{ attr.customData.hours ? `- ${attr.customData.hours}h` : '' }}
               </span>
             </span>
           </div>
@@ -174,38 +192,12 @@
         </div>
       </card-component>
     </div>
-    <!-- <card-component
-        class="mt-5"
-        title="Dedicació x dia"
-        v-if="viewType == 'all' || viewType == 'chart'"
-      >
-        <div v-if="defaultChart.chartData && !isLoading" class="chart-area">
-          <bar-chart
-            ref="bigChart"
-            style="height: 100%;"
-            chart-id="big-line-chart"
-            :chart-data="defaultChart.chartData"
-            :extra-options="defaultChart.extraOptions"
-          >
-          </bar-chart>
-        </div>
-      </card-component>
-      <dedication-circle-chart title="Persona" v-if="!isLoading" :activities="activities" :table="'users_permissions_user'" :field="'username'">
-      </dedication-circle-chart>
-      <dedication-circle-chart title="Projecte" v-if="!isLoading" :activities="activities" :table="'project'" :field="'name'">
-      </dedication-circle-chart>
-      <dedication-circle-chart title="Tipus de tasca" v-if="!isLoading" :activities="activities" :table="'activity_type'" :field="'name'">
-      </dedication-circle-chart>
-      <dedication-circle-chart title="Tipus d'activitat" v-if="!isLoading" :activities="activities" :table="'dedication_type'" :field="'name'">
-      </dedication-circle-chart> -->
   </div>
 </template>
 
 <script>
 import ModalBox from '@/components/ModalBox'
 import service from '@/service/index'
-// import LineChart from '@/components/Charts/LineChart'
-// import BarChart from '@/components/Charts/BarChart'
 import uniq from 'lodash/uniq'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
@@ -213,16 +205,16 @@ import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import CardComponent from '@/components/CardComponent'
 import TimeCounter from '@/components/TimeCounter'
-// import DedicationCircleChart from '@/components/DedicationCircleChart'
 import * as chartConfig from '@/components/Charts/chart.config'
 import ModalBoxDedication from '@/components/ModalBoxDedication'
+import ModalBoxFestive from '@/components/ModalBoxFestive'
 import { mapState } from 'vuex'
 
 moment.locale('ca')
 
 export default {
   name: 'DedicationInput',
-  components: { ModalBox, CardComponent, ModalBoxDedication, TimeCounter },
+  components: { ModalBox, CardComponent, ModalBoxDedication, TimeCounter, ModalBoxFestive },
   props: {
     user: {
       type: Number,
@@ -256,8 +248,10 @@ export default {
       moving: false,
       firstTime: true,
       isModalActive: false,
-      isModalEditActive: false,
+      isModalEditActive: false,      
       dedicationObject: null,
+      festiveObject: null,
+      isModalFestiveActive: false,      
       trashObject: null,
       activities: [],
       activitiesJSON: [],
@@ -296,7 +290,8 @@ export default {
       counterDisplayTime: '',
       counterDisplayTimeInHours: '',
       counterInterval: 0,
-      updateCounterCount: 0
+      updateCounterCount: 0,
+      festiveTypes: []
     }
   },
   computed: {
@@ -351,9 +346,11 @@ export default {
       this.getActivities()
     }
   },
-  mounted () {
+  async mounted () {
     // console.log('mounted')
     this.getActivities()
+    // this.users = (await service({ requiresAuth: true }).get('users')).data.filter(u => u.hidden !== true)
+    this.festiveTypes = (await service({ requiresAuth: true }).get('festive-types')).data
   },
   methods: {
     async getActivities () {
@@ -370,6 +367,11 @@ export default {
       }
       this.moving = false
 
+      let festivesQuery = `festives?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
+
+      const festives = (await service({ requiresAuth: true }).get(festivesQuery)).data
+      const userFestives = festives.filter(f => f.users_permissions_user == null || (f.users_permissions_user && f.users_permissions_user.id === this.user))
+      
       let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
       if (this.last) {
         query = `activities?_where[updated_at_gte]=${moment().add(-7, 'days').format('YYYY-MM-DD')}`
@@ -405,7 +407,6 @@ export default {
           const hours = sumBy(activities, 'hours')
           return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
         })
-        // this.fillChartData()
 
         this.attributes = this.activities.map((a, i) => {
           return {
@@ -416,7 +417,8 @@ export default {
               class: 'tag zis-primary',
               project: a.project ? a.project.name : '',
               username: a.users_permissions_user.username,
-              hours: a.hours
+              hours: a.hours,
+              type: 'activity'
             },
             dates: a.date
           }
@@ -425,6 +427,22 @@ export default {
           key: 'today',
           highlight: 'red',
           dates: new Date()
+        })
+        const len = this.activities.length
+        userFestives.forEach((f, i) => {
+          this.attributes.push({
+            key: len + i + 1,
+            customData: {
+              a: f,
+              bg_project: '#f03a5f',
+              class: 'tag zis-primary',
+              project: f.festive_type ? f.festive_type.name : 'Festiu',
+              username: f.users_permissions_user ? f.users_permissions_user.username : 'TOTES',
+              hours: 0,
+              type: 'festive'
+            },
+            dates: f.date
+          })
         })
 
         this.getCounters()
@@ -533,6 +551,10 @@ export default {
       }
       this.isModalEditActive = true
     },    
+    showModalFestive (festive) {
+      this.festiveObject = festive
+      this.isModalFestiveActive = true
+    },
     async showModalCounter() {
       if (this.counter === null) {
         const userId = this.users.find(u => u.username === this.userName)
@@ -645,7 +667,48 @@ export default {
       if (this.updateCounterCount == 10) {
         this.updateCounterCount = 0
       }
-    }
+    },
+    async modalFestiveSubmit(festive) {
+      
+      const festive2 = { ...festive }
+      festive2.date = moment(festive.date).format('YYYY-MM-DD')
+      this.isModalFestiveActive = false
+
+      try {
+        if (festive.id) {
+          await service({ requiresAuth: true }).put(`festives/${festive.id}`, festive2)
+        } else {
+          await service({ requiresAuth: true }).post('festives', festive2)
+        }
+      } catch (err) {
+        console.error('activities error', err)
+        this.$buefy.snackbar.open({
+          message: 'Error',
+          queue: false
+        })
+      }
+
+      this.getActivities()
+
+      this.$buefy.snackbar.open({
+        message: 'Guardat',
+        queue: false
+      })
+    },
+    async modalFestiveCancel() {
+      this.isModalFestiveActive = false
+    },
+    async modalFestiveDelete(festive) {
+      if (festive.id) {
+        await service({ requiresAuth: true }).delete(`festives/${festive.id}`)
+        this.isModalFestiveActive = false
+        this.getActivities()
+        this.$buefy.snackbar.open({
+          message: 'Esborrat',
+          queue: false
+        })
+      }
+    },
   },
   filters: {
     formatDate (val) {

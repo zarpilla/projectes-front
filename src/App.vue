@@ -38,6 +38,11 @@ export default {
             label: 'Projectes'
           },
           {
+            to: '/contacts',
+            icon: 'table',
+            label: 'Contactes'
+          },
+          {
             to: '/stats-projectes',
             icon: 'table',
             label: 'Taula dinàmica'
@@ -149,7 +154,7 @@ export default {
         [
           {
             to: '/documentacio',
-            icon: 'table',
+            icon: 'help-circle',
             label: 'Documentació'
           }
         ]

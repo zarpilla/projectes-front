@@ -159,7 +159,11 @@ export default {
     counter: {
       type: Object,
       default: null
-    }    
+    },
+    users: {
+      type: Array,
+      default: []
+    }
   },
   data () {
     return {
@@ -181,7 +185,7 @@ export default {
       // projects: [],
       dedicationTypes: {},
       activityTypes: {},
-      users: [],
+      // users: [],
       userNameSearch: '',
       projectNameSearch: '',
       trashObject: null,
@@ -293,14 +297,20 @@ export default {
         this.isLoading1 = false
       })
       
-      service({ requiresAuth: true }).get('users').then((r) => {
-        this.users = r.data.filter(u => u.username !== 'app')
-        const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
-        if (user && user.id && this.form.users_permissions_user === null) {
-          this.userNameSearch = user.username
-          this.form.users_permissions_user = user.id
-        }
-      })
+      const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+      if (user && user.id && this.form.users_permissions_user === null) {
+        this.userNameSearch = user.username
+        this.form.users_permissions_user = user.id
+      }
+      
+      // service({ requiresAuth: true }).get('users').then((r) => {
+      //   this.users = r.data.filter(u => u.username !== 'app')
+      //   const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+      //   if (user && user.id && this.form.users_permissions_user === null) {
+      //     this.userNameSearch = user.username
+      //     this.form.users_permissions_user = user.id
+      //   }
+      // })
 
       if (this.counter) {
         this.doCounter()

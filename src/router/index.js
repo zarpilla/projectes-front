@@ -338,6 +338,30 @@ const routes = [
   },
   {
     meta: {
+      title: 'Contactes'
+    },
+    path: '/contacts',
+    name: 'contacts.view',
+    component: () => import(/* webpackChunkName: "contact" */ '../views/Contacts.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: 'Contacte'
+    },
+    path: '/contact/:id',
+    name: 'contacts.edit',
+    component: () => import(/* webpackChunkName: "contact" */ '../views/ContactForm.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Documentació'
     },
     path: '/documentacio',
