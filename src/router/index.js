@@ -268,10 +268,18 @@ const routes = [
     },
     path: '/dedicacio-saldo',
     name: 'stats.dedicacio.saldo',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "stats" */ '../views/DedicacioSaldo.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: 'Bestretes'
+    },
+    path: '/salary',
+    name: 'stats.dedicacio.saldo',
+    component: () => import(/* webpackChunkName: "stats" */ '../views/DedicacioSalary.vue'),
     meta: {
       requiresAuth: true
     }

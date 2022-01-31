@@ -99,6 +99,11 @@ export default {
             to: '/dedicacio-saldo',
             icon: 'table',
             label: 'Saldo hores'
+          },
+          {
+            to: '/salary',
+            icon: 'table',
+            label: 'Bestretes'
           }
         ],
         'Facturació',

@@ -72,26 +72,14 @@ import CardComponent from "@/components/CardComponent";
 moment.locale("ca");
 
 export default {
-  name: "DedicationSaldo",
+  name: "DedicationSalary",
   components: { CardComponent },
   props: {
     user: {
       type: Number,
       default: null,
     },
-    date1: {
-      type: Date,
-      default: null,
-    },
-    date2: {
-      type: Date,
-      default: null,
-    },
-    project: {
-      type: Number,
-      default: null,
-    },
-    year: {
+    months: {
       type: Number,
       default: null,
     },
@@ -127,13 +115,7 @@ export default {
     user: function (newVal, oldVal) {
       this.getActivities();
     },
-    date1: function (newVal, oldVal) {
-      this.getActivities();
-    },
-    date2: function (newVal, oldVal) {
-      this.getActivities();
-    },
-    year: function (newVal, oldVal) {
+    months: function (newVal, oldVal) {
       this.getActivities();
     },
   },
@@ -146,14 +128,12 @@ export default {
     async getActivities() {
       this.isLoading = true;
 
-      if (!this.year) {
+      if (!this.months) {
         return;
       }
 
-      const from = moment(this.year, "YYYY")
-        .startOf("year")
-        .format("YYYY-MM-DD");
-      const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
+      const from = moment().add(-1*this.months, 'months').format("YYYY-MM-DD");
+      const to = moment().format("YYYY-MM-DD");
 
       let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
@@ -170,9 +150,9 @@ export default {
           const festiveTypes = (
             await service({ requiresAuth: true }).get("festive-types?_limit=-1")
           ).data;
-          festiveTypes.forEach((ft) => {
-            this.summary[ft.name] = 0;
-          });
+          // festiveTypes.forEach((ft) => {
+          //   this.summary[ft.name] = 0;
+          // });
           
           const festives = (
             await service({ requiresAuth: true }).get("festives?_limit=-1")
@@ -238,25 +218,25 @@ export default {
                   salary += dailyDedication.costByHour*workedHours
                 }
 
-                if (day !== 0 && day !== 6 && festive && festive.festive_type && dailyDedication) {
-                  this.summary[festive.festive_type.name] +=
-                    dailyDedication.hours;
-                }
+                // if (day !== 0 && day !== 6 && festive && festive.festive_type && dailyDedication) {
+                //   this.summary[festive.festive_type.name] +=
+                //     dailyDedication.hours;
+                // }
               });
               this.dates = dates.reverse();
-              // this.summary['Dies Laborables'] = laborableDays
               this.summary['Saldo hores'] = this.dates[0].balance.toFixed(2)
-              this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)                            
-              // this.summary['Bestreta per hora treballada*'] = `${this.dates[0].costByHour} €`
-              // this.summary['Hores treballades diaries'] = (this.dates[0].totalWorkedHours / laborableDays).toFixed(2)
-              // this.summary['Bestreta'] = `${salary.toFixed(2)} €`
+              this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)              
+              this.summary['Dies Laborables'] = laborableDays
+              this.summary['Bestreta per hora treballada'] = `${this.dates[0].costByHour} €`
+              this.summary['Promig hores treballades diaries'] = (this.dates[0].totalWorkedHours / laborableDays).toFixed(2)
+              this.summary['Bestreta mensual'] = `${(salary / this.months).toFixed(2)} €`
               this.isLoading = false;
             });
         });
     },
     enumerateDaysBetweenDates() {
       var dates = [];
-      var currDate = moment(this.year, "YYYY").startOf("year");
+      var currDate = moment().add(-1*this.months, 'months');
       const endOfYear = moment(this.year, "YYYY").endOf("year");
       var lastDate =
         endOfYear.diff(moment()) < 0
