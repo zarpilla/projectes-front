@@ -552,8 +552,17 @@ export default {
       this.isModalEditActive = true
     },    
     showModalFestive (festive) {
-      this.festiveObject = festive
-      this.isModalFestiveActive = true
+      console.log('festive', festive)
+      if ((festive && festive.festive_type && festive.festive_type.personal === true) || festive === null) {
+        this.festiveObject = festive
+        this.isModalFestiveActive = true
+      } else {
+        this.$buefy.snackbar.open({
+          message: 'No es poden editar els festius globals',
+          queue: false
+        })
+      }
+      
     },
     async showModalCounter() {
       if (this.counter === null) {

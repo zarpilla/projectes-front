@@ -141,8 +141,10 @@ export default {
 
       for (var i in this.festiveTypes) {
         const f = this.festiveTypes[i]
-        this.festiveTypesObj[f.id] = f.name
-        this.hasTypes = true
+        if (f.personal) {
+          this.festiveTypesObj[f.id] = f.name
+          this.hasTypes = true
+        }        
       }
 
       if (this.festiveObject) {
@@ -159,26 +161,35 @@ export default {
         this.form.id = 0
       }
 
-      // service({ requiresAuth: true }).get('festive-types').then((r) => {
-      //   this.hasDedications = false
-      //   for (var i in r.data) {
-      //     this.festiveTypesObj[r.data[i].id] = r.data[i].name
-      //     this.hasTypes = true
-      //   }
-      //   this.isLoading1 = false
-      // })
 
       const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
       if (user && user.id && this.form.users_permissions_user === null) {
-          this.userNameSearch = user.username
-          this.form.users_permissions_user = user.id
+        this.userNameSearch = user.username
+        this.form.users_permissions_user = user.id
       }
+
+      
     },
     cancel () {
       this.$emit('cancel')
     },
     submit () {   
-      this.$emit('submit', this.form)
+      const festiveType = this.festiveTypes.find(f => f.id == this.form.festive_type)
+      if (festiveType.personal && this.form.users_permissions_user === null) {
+        this.$buefy.snackbar.open({
+          message: 'Ha d\'haver una persona als festius personals',
+          queue: false
+        })
+      }
+      else if (festiveType.personal === false && this.form.users_permissions_user !== null) {
+        this.$buefy.snackbar.open({
+          message: 'No pot haver una persona en els festius globals',
+          queue: false
+        })
+      }
+      else {
+        this.$emit('submit', this.form)
+      }
     },
     trashModal (trashObject) {
       this.trashObject = trashObject
