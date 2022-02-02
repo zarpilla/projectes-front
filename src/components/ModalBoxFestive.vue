@@ -5,7 +5,7 @@
         <p class="modal-card-title">Entrada festiu</p>
       </header>
       <form @submit.prevent="submit">
-        <section class="modal-card-body">
+        <section class="modal-card-body modal-card-body-festive">
             <b-field label="Data" horizontal>
               <b-datepicker
                   v-model="form.date"
@@ -211,5 +211,8 @@ export default {
 }
 .modal-card-dedication .modal-card-body {
   max-height: calc(100vh - 200px);
+}
+.modal-card-body-festive {
+  min-height: 450px;
 }
 </style>
