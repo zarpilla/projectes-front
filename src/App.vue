@@ -184,17 +184,27 @@ export default {
 
     if (localStorage.getItem('user') && localStorage.getItem('jwt')) {
 
-      const me = await service({ requiresAuth: true })
+      try {
+        const me = await service({ requiresAuth: true })
         .get("users/me")
 
-      if (me && me.data && me.data.username) {
-        const user = JSON.parse(localStorage.getItem('user'))      
-        user['jwt'] = localStorage.getItem('jwt')
-        this.$store.commit('user', {
-          name: user.username,
-          jwt: sessionStorage.getItem('jwt')
-        })
+        if (me && me.data && me.data.username) {
+          const user = JSON.parse(localStorage.getItem('user'))      
+          user['jwt'] = localStorage.getItem('jwt')
+          this.$store.commit('user', {
+            name: user.username,
+            jwt: sessionStorage.getItem('jwt')
+          })
+          if (this.$route.name === 'login') {
+            this.$router.push("projectes");
+          }
+        }
+      } catch {
+        localStorage.removeItem('user')
+        localStorage.removeItem('jwt')
+        this.$router.push("/");
       }
+      
 
       
     }
