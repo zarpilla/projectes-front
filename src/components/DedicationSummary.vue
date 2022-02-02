@@ -190,14 +190,11 @@ export default {
               f.users_permissions_user === null ||
               f.users_permissions_user.id === this.user
           );
-          console.log('festives',festives)
 
           const dailyDedications = (await service({ requiresAuth: true })
             .get(
               `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
             )).data
-              
-          console.log('dailyDedications', dailyDedications)
 
           var allDates = this.enumerateDaysBetweenDates()
           var totalWorkedDays = 0
@@ -231,78 +228,14 @@ export default {
           })
           const ratio = totalWorkedHours / totalWorkedDays / 8
 
-          this.summary['Jornada'] = { hours: `${(ratio*8).toFixed(2)}h/dia (${(ratio * 100).toFixed(1)}%)`, days: '' };
+          this.summary['Jornada'] = { hours: `${(ratio*8).toFixed(2)} h/dia (${(ratio * 100).toFixed(1)}%)`, days: '' };
 
-          this.summary['Laborables (Dl-Dv)'] = { hours: totalWorkedHours, days: totalWorkedDays}
+          this.summary['Laborables (Dl-Dv)'] = { hours: totalWorkedHours.toFixed(2), days: totalWorkedDays}
           
-          
-          this.summary['Màx. Conveni'] = { hours: (yearDetails.working_hours * ratio).toFixed(2), days: yearDetails.working_hours / 8 };
-          this.summary['Disponibles (Laborables - Conveni)'] = { hours: (totalWorkedHours - yearDetails.working_hours * ratio).toFixed(2), days: totalWorkedDays - yearDetails.working_hours / 8 };
-              
+          this.summary['Màxim Conveni'] = { hours: (yearDetails.working_hours * ratio).toFixed(2), days: yearDetails.working_hours / 8 };
+          this.summary['Lliure Elecció Disponibles'] = { hours: (totalWorkedHours - yearDetails.working_hours * ratio).toFixed(2), days: totalWorkedDays - yearDetails.working_hours / 8 };
 
-              // var allDates = this.enumerateDaysBetweenDates()
-              // var balance = 0
-              // var totalWorkedHours = 0
-              // var dates = []
-              // var laborableDays = 0
-              // var salary = 0
-              // allDates.forEach((d) => {
-              //   // console.log('date', moment(d).day)
-              //   const date = moment(d).format("YYYY-MM-DD");
-              //   const displayDate = moment(d).format("ddd DD-MM-YYYY");
-              //   const day = moment(d).day();
-              //   const week = moment(d).week();
-              //   const dailyDedication = this.dailyDedications.find(
-              //     (dd) => date >= dd.from && date <= dd.to
-              //   );
-              //   const activities = this.activities.filter(
-              //     (a) => a.date === date
-              //   );
-              //   const festive = festives.find((f) => f.date === date);
-              //   const theoricHours =
-              //     !festive && dailyDedication && day !== 0 && day !== 6
-              //       ? dailyDedication.hours
-              //       : 0;
-              //   if (!festive && dailyDedication && day !== 0 && day !== 6) {
-              //     laborableDays++
-              //   }
-              //   const workedHours = sumBy(activities, "hours");
-              //   const dateDescription = festive
-              //     ? festive.festive_type
-              //       ? festive.festive_type.name
-              //       : "FESTIU"
-              //     : "";
-              //   totalWorkedHours += workedHours;
-              //   balance += workedHours - theoricHours;
-              //   dates.push({
-              //     date: displayDate,
-              //     dateDescription: dateDescription,
-              //     week: week,
-              //     theoricHours: theoricHours,
-              //     workedHours: workedHours,
-              //     totalWorkedHours: totalWorkedHours,
-              //     balance: balance,
-              //     costByHour: dailyDedication ? dailyDedication.costByHour : 0,
-              //     costByDay: dailyDedication ? dailyDedication.costByHour*workedHours : 0,
-              //     error: dailyDedication === null,
-              //   });
-              //   if (dailyDedication) {
-              //     salary += dailyDedication.costByHour*workedHours
-              //   }
-
-              //   if (day !== 0 && day !== 6 && festive && festive.festive_type && dailyDedication) {
-              //     this.summary[festive.festive_type.name] +=
-              //       dailyDedication.hours;
-              //   }
-              // });
-              // this.dates = dates.reverse();
-              // // this.summary['Dies Laborables'] = laborableDays
-              // this.summary['Saldo hores'] = this.dates[0].balance.toFixed(2)
-              // this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)                            
-              // // this.summary['Bestreta per hora treballada*'] = `${this.dates[0].costByHour} €`
-              // // this.summary['Hores treballades diaries'] = (this.dates[0].totalWorkedHours / laborableDays).toFixed(2)
-              // // this.summary['Bestreta'] = `${salary.toFixed(2)} €`
-              this.isLoading = false;
+          this.isLoading = false;
            
         });
     },
