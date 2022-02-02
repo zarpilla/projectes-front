@@ -57,6 +57,15 @@
                 name="cost"                
               />
             </b-field>
+
+
+            <b-field label="Salari mensual (€)" horizontal>
+              <b-input
+                v-model="form.monthly_salary"
+                placeholder="Salari mensual (€)"
+                name="monthly_salary"
+              />
+            </b-field>
         </section>
         <footer class="modal-card-foot">
           <button class="button" type="button" @click="cancel">Cancel·la</button>
@@ -113,7 +122,8 @@ export default {
         to: null,
         users_permissions_user: null,
         hours: null,
-        costByHour: null
+        costByHour: null,
+        monthly_salary: null
       },      
       trashObject: null,
       isDeleteModalActive: false,
@@ -173,6 +183,7 @@ export default {
         this.form.from = this.dedicationObject._dedication.from ? moment(this.dedicationObject._dedication.from, 'YYYY-MM-DD').toDate() : null
         this.form.to = this.dedicationObject._dedication.to ? moment(this.dedicationObject._dedication.to, 'YYYY-MM-DD').toDate() : null
         this.form.costByHour = this.dedicationObject._dedication.costByHour
+        this.form.monthly_salary = this.dedicationObject._dedication.monthly_salary
         this.form.hours = this.dedicationObject._dedication.hours
         this.form.users_permissions_user = this.dedicationObject._dedication.users_permissions_user ? this.dedicationObject._dedication.users_permissions_user.id : null
         this.userNameSearch = this.dedicationObject._dedication.users_permissions_user ? this.dedicationObject._dedication.users_permissions_user.username : ''
@@ -182,6 +193,7 @@ export default {
         this.form.users_permissions_user = null
         this.form.hours = 0
         this.form.costByHour = 0
+        this.form.monthly_salary = 0
         this.form.id = 0
       }
 

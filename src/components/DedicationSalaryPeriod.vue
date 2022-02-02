@@ -21,45 +21,7 @@
         </div>
       </card-component>
 
-      <!-- <pre>{{months}}</pre> -->
-
       <card-component
-        class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Mes</div>
-          <!-- <div class="column has-text-weight-bold">Obj</div> -->
-          <div class="column has-text-weight-bold">Treballades</div>
-          <div class="column has-text-weight-bold">Teòriques</div>
-          <div class="column has-text-weight-bold">Saldo</div>
-          <div class="column has-text-weight-bold">Salari</div>
-        </div>
-        <div v-for="(value, key) in months" v-bind:key="key" class="card-body">
-          <div class="columns">
-            <div class="column">
-              {{ key }}
-            </div>
-            <!-- <div class="column">
-              {{ value }}
-            </div> -->
-            <div class="column">
-              {{ value.worked }} h
-            </div>
-            <div class="column">
-              {{ value.theoricHours }} h
-            </div>
-            <div class="column">
-              {{ value.balance }} h
-            </div>
-            <div class="column">
-              {{ (value.dailySalary / value.theoricDays).toFixed(2) }} €
-            </div>
-          </div>
-        </div>
-      </card-component>
-
-      <!-- <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="!isLoading"
       >
@@ -94,7 +56,7 @@
             </div>
           </div>
         </div>
-      </card-component> -->
+      </card-component>
     </div>
   </div>
 </template>
@@ -117,7 +79,7 @@ export default {
       type: Number,
       default: null,
     },
-    year: {
+    months: {
       type: Number,
       default: null,
     },
@@ -135,7 +97,6 @@ export default {
       dailyDedications: [],
       dates: [],
       summary: {},
-      months: {},
     };
   },
   computed: {
@@ -148,31 +109,31 @@ export default {
     },
     superTotal() {
       return sumBy(this.activities, "hours");
-    }
+    },
   },
   watch: {
     user: function (newVal, oldVal) {
       this.getActivities();
     },
-    year: function (newVal, oldVal) {
+    months: function (newVal, oldVal) {
       this.getActivities();
     },
   },
   mounted() {
     this.getActivities();
+
+    // this.$on('update:page', () => { console.log('update:page') })
   },
   methods: {
     async getActivities() {
       this.isLoading = true;
 
-      if (!this.year) {
+      if (!this.months) {
         return;
       }
 
-      this.months = {}
-      
-      const from = moment(this.year, "YYYY").startOf("year").format("YYYY-MM-DD");
-      const to = moment().endOf("month").format("YYYY-MM-DD");
+      const from = moment().add(-1*this.months, 'months').format("YYYY-MM-DD");
+      const to = moment().format("YYYY-MM-DD");
 
       let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
@@ -213,14 +174,12 @@ export default {
               var dates = []
               var laborableDays = 0
               var salary = 0
-              var theoricHoursTotal = 0
               allDates.forEach((d) => {
-                // console.log('date', d)
+                // console.log('date', moment(d).day)
                 const date = moment(d).format("YYYY-MM-DD");
                 const displayDate = moment(d).format("ddd DD-MM-YYYY");
                 const day = moment(d).day();
                 const week = moment(d).week();
-                const month = moment(d).format('M');
                 const dailyDedication = this.dailyDedications.find(
                   (dd) => date >= dd.from && date <= dd.to
                 );
@@ -241,24 +200,6 @@ export default {
                     ? festive.festive_type.name
                     : "FESTIU"
                   : "";
-
-                if (theoricHours) {
-                  theoricHoursTotal += theoricHours
-                  if (!this.months[month]) {
-                    this.months[month] = { theoricHours: 0, theoricDays: 0, worked: 0, balance: 0, theoricRatio: 0, dailySalary: 0 }
-                  }
-                  this.months[month].theoricHours += theoricHours
-                  this.months[month].theoricDays += 1
-
-                  this.months[month].theoricRatio = this.months[month].theoricHours / this.months[month].theoricDays / 8
-                  this.months[month].dailySalary += dailyDedication.monthly_salary * this.months[month].theoricRatio
-                  
-                  
-                  this.months[month].worked += workedHours
-                  this.months[month].balance = this.months[month].worked - this.months[month].theoricHours
-                }
-                
-
                 totalWorkedHours += workedHours;
                 balance += workedHours - theoricHours;
                 dates.push({
@@ -276,23 +217,31 @@ export default {
                 if (dailyDedication) {
                   salary += dailyDedication.costByHour*workedHours
                 }
+
+                // if (day !== 0 && day !== 6 && festive && festive.festive_type && dailyDedication) {
+                //   this.summary[festive.festive_type.name] +=
+                //     dailyDedication.hours;
+                // }
               });
-              this.dates = dates.reverse();              
-              this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)              
-              this.summary['Total hores laborables teòriques'] = theoricHoursTotal.toFixed(2)
+              this.dates = dates.reverse();
               this.summary['Saldo hores'] = this.dates[0].balance.toFixed(2)
+              this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)              
+              this.summary['Dies Laborables'] = laborableDays
+              this.summary['Bestreta per hora treballada'] = `${this.dates[0].costByHour} €`
+              this.summary['Promig hores treballades diaries'] = (this.dates[0].totalWorkedHours / laborableDays).toFixed(2)
+              this.summary['Bestreta mensual'] = `${(salary / this.months).toFixed(2)} €`
               this.isLoading = false;
             });
         });
     },
     enumerateDaysBetweenDates() {
       var dates = [];
-      var currDate = moment(this.year, "YYYY").startOf("year");
+      var currDate = moment().add(-1*this.months, 'months');
       const endOfYear = moment(this.year, "YYYY").endOf("year");
       var lastDate =
         endOfYear.diff(moment()) < 0
           ? moment(this.year, "YYYY").endOf("year")
-          : moment().endOf("month");
+          : moment();
       // var lastDate = moment()
       dates.push(currDate.clone().toDate());
       while (currDate.add(1, "days").diff(lastDate) < 0) {

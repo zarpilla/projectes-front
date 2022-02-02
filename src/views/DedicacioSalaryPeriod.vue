@@ -18,24 +18,24 @@
               >
               </b-autocomplete>
             </b-field>
-            <b-field label="Any">
+            <b-field label="Període">
               <b-select
-                v-model="filters.year"
+                v-model="filters.months"
                 required
               >
                 <option
-                  v-for="(year, index) in years"
+                  v-for="(m, index) in months"
                   :key="index"
-                  :value="year"
+                  :value="m.value"
                 >
-                  {{ year.year }}
+                  {{ m.text }}
                 </option>
               </b-select>
             </b-field>
           </b-field>
         </form>
       </card-component>
-      <dedication-salary :user="filters.user" :year="filters.year ? filters.year.year : null" />
+      <dedication-salary :user="filters.user" :months="filters.months" />
     </section>
   </div>
 </template>
@@ -59,12 +59,12 @@ export default {
       isLoading: false,
       filters: {
         user: null,
-        year: null
+        months: 6
       },
       users: [],
       usersList: [],
       userNameSearch: '',
-      years: []
+      months: [{ value: 6, text: '6 mesos'},{ value: 12, text: '12 mesos'}]
     }
   },
   computed: {
@@ -85,12 +85,6 @@ export default {
   },
   mounted () {
     this.isLoading = true
-
-    service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
-      // console.log('r.data', r.data)
-      this.years = r.data
-      this.filters.year = this.years[0]
-    })
 
     service({ requiresAuth: true }).get('users').then((r) => {
       this.users = r.data.filter(u => u.username !== 'app')

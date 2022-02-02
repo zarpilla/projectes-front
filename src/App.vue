@@ -110,11 +110,11 @@ export default {
             icon: 'table',
             label: 'Jornades'
           },
-          // {
-          //   to: '/salary',
-          //   icon: 'table',
-          //   label: 'Bestretes'
-          // }
+          {
+            to: '/salary',
+            icon: 'table',
+            label: 'Bestretes'
+          }
         ],
         'Facturació',
         [
