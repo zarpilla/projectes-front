@@ -216,6 +216,10 @@ export default {
                   !festive && dailyDedication && day !== 0 && day !== 6
                     ? dailyDedication.hours
                     : 0;
+            laborableHours += dailyDedication && day !== 0 && day !== 6
+                    ? dailyDedication.hours
+                    : 0;
+
             if (festive) {
               this.summary[festive.festive_type.name].hours += dailyDedication.hours
               this.summary[festive.festive_type.name].days++
@@ -225,10 +229,15 @@ export default {
               totalWorkedHours += theoricHours
             }
           })
+          const ratio = totalWorkedHours / totalWorkedDays / 8
 
-          this.summary['Laborables'] = { hours: totalWorkedHours, days: totalWorkedDays };
-          this.summary['Màx. Conveni'] = { hours: yearDetails.working_hours, days: yearDetails.working_hours / 8 };
-          this.summary['Disponibles (Laborables - Conveni)'] = { hours: totalWorkedHours - yearDetails.working_hours, days: totalWorkedDays - yearDetails.working_hours / 8 };
+          this.summary['Jornada'] = { hours: `${ratio*8}h/dia (${(ratio * 100).toFixed(1)}%)`, days: '' };
+          
+          this.summary['Laborables (Dl-Dv)'] = { hours: totalWorkedHours, days: totalWorkedDays}
+          
+          
+          this.summary['Màx. Conveni'] = { hours: yearDetails.working_hours * ratio, days: yearDetails.working_hours / 8 };
+          this.summary['Disponibles (Laborables - Conveni)'] = { hours: totalWorkedHours - yearDetails.working_hours * ratio, days: totalWorkedDays - yearDetails.working_hours / 8 };
               
 
               // var allDates = this.enumerateDaysBetweenDates()
