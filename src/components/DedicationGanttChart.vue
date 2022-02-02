@@ -23,6 +23,7 @@ export default {
     project: Object,
     leaders: Array,
     dedications: Array,
+    festives: Array,
   },
   components: {
   },
@@ -91,10 +92,27 @@ export default {
             this.tasks.data.push(task)
           }
 
+          // add festives
+          this.festives.forEach(f => {
+            if ((f.users_permissions_user && f.users_permissions_user.username === leader.username) || f.users_permissions_user === null) {
+              let dailyHours = 8
+              leader.daily_dedications.forEach(dd => {
+                if (dd.from <= f.date && dd.to >= f.date) {
+                  dailyHours = dd.hours
+                }
+              })
+              const festiveDedication = {
+                project_name: f.festive_type.name,
+                ym: moment(f.date, 'YYYY-MM-DD').format('YYYYMM'),
+                estimated_hours: dailyHours
+              }
+              userDedications.push(festiveDedication)
+            }
+          })
+
           const dedicationTotals = _(userDedications)
           .groupBy('ym')
           .map((ym, id) => ({
-            // platformId: id,
             ym: id,
             year: !isNaN(id) ? id.substring(0, 4) : "2099",
             month: !isNaN(id) ? id.substring(4, 6) : "99",
@@ -170,6 +188,44 @@ export default {
             out += `<b>${td.project_name}:</b> ${td.estimated_hours.toFixed(2)}h<br>`
           }          
         })
+
+        const festiveDedications = []
+        this.festives.forEach(f => {
+            if ((f.users_permissions_user && f.users_permissions_user.username === task._username) || f.users_permissions_user === null) {
+              if (moment(f.date, 'YYYY-MM-DD').format('YYYY') == task._year && moment(f.date, 'YYYY-MM-DD').format('MM') == task._month) {
+                let dailyHours = 8
+                const taskUser = this.leaders.find(l => l.username === task._username)
+                taskUser.daily_dedications.forEach(dd => {
+                  if (dd.from <= f.date && dd.to >= f.date) {
+                    dailyHours = dd.hours
+                  }
+                })
+                const festiveDedication = {
+                  project_name: f.festive_type.name,
+                  ym: moment(f.date, 'YYYY-MM-DD').format('YYYYMM'),
+                  estimated_hours: dailyHours
+                }
+                festiveDedications.push(festiveDedication)
+
+              }
+              
+            }
+          })
+        
+        const festiveDedicationsByProject = _(festiveDedications)
+          .groupBy('project_name')
+          .map((project_name, id) => ({
+            project_name: id,
+            estimated_hours: _.sumBy(project_name, 'estimated_hours')
+          }))
+          .value()
+
+        festiveDedicationsByProject.forEach(td => {
+          if (td.estimated_hours) {
+            out += `<b>${td.project_name}:</b> ${td.estimated_hours.toFixed(2)}h<br>`
+          }          
+        })
+
         return out;
       };
 

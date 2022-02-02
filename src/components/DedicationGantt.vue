@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="project-stats"></div>
-    <DedicationGanttChart :leaders="leaders" :dedications="pivotData" v-if="!isLoading"></DedicationGanttChart>    
+    <DedicationGanttChart :leaders="leaders" :dedications="pivotData" :festives="festives" v-if="!isLoading"></DedicationGanttChart>    
     <download-excel :data="pivotData">
       <b-button
         title="Exporta dades"
@@ -60,29 +60,15 @@ export default {
       states: [],
       leaders: [],
       pivotData: [],
-      isLoading: true
+      isLoading: true,
+      festives: []
     }
   },
   watch: {
-    // user: function (newVal, oldVal) {
-    //   console.log('user newVal', newVal)
-    //   this.getActivities()
-    // },
-    // date1: function (newVal, oldVal) {
-    //   this.getActivities()
-    // },
-    // date2: function (newVal, oldVal) {
-    //   this.getActivities()
-    // },
-    // project: function (newVal, oldVal) {
-    //   this.getActivities()
-    // },
     projectState: function (newVal, oldVal) {
-      // console.log('filter state', newVal)
       this.getActivities()
     },
     year: function (newVal, oldVal) {
-      // console.log('filter year', newVal)
       this.getActivities()
     },
     month: function (newVal, oldVal) {
@@ -112,6 +98,10 @@ export default {
       if (projectState === 0 || projectState === '0') {
         query = 'projects?_limit=-1'
       }
+      const from = moment().startOf('year').format('YYYY-MM-DD')
+      this.festives = (await service({ requiresAuth: true }).get(`festives?_where[date_gt]=${from}&_limit=-1`)).data
+      console.log('this.festives', this.festives)
+
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)
         const activities = []
