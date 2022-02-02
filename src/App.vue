@@ -105,6 +105,11 @@ export default {
             icon: 'table',
             label: 'Hores anuals'
           },
+          {
+            to: '/working-day',
+            icon: 'table',
+            label: 'Jornades'
+          },
           // {
           //   to: '/salary',
           //   icon: 'table',

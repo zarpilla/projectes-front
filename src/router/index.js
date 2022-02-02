@@ -267,8 +267,8 @@ const routes = [
       title: 'Saldo Projectes'
     },
     path: '/dedicacio-saldo',
-    name: 'stats.dedicacio.saldo',
-    component: () => import(/* webpackChunkName: "stats" */ '../views/DedicacioSaldo.vue'),
+    name: 'dedicacio-saldo',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioSaldo.vue'),
     meta: {
       requiresAuth: true
     }
@@ -278,8 +278,19 @@ const routes = [
       title: 'Resum Hores'
     },
     path: '/dedicacio-summary',
-    name: 'stats.dedicacio.summary',
-    component: () => import(/* webpackChunkName: "stats" */ '../views/DedicacioSummary.vue'),
+    name: 'dedicacio-summary',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioSummary.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: 'Jornada'
+    },
+    path: '/working-day',
+    name: 'dedicacio-working-day',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioWorkingDay.vue'),
     meta: {
       requiresAuth: true
     }
@@ -289,8 +300,8 @@ const routes = [
       title: 'Bestretes'
     },
     path: '/salary',
-    name: 'stats.dedicacio.saldo',
-    component: () => import(/* webpackChunkName: "stats" */ '../views/DedicacioSalary.vue'),
+    name: 'dedicacio-salary',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioSalary.vue'),
     meta: {
       requiresAuth: true
     }
@@ -385,7 +396,7 @@ const routes = [
     },
     path: '/documentacio',
     name: 'documentation.view',
-    component: () => import(/* webpackChunkName: "documentation" */ '../views/Documentation.vue'),
+    component: () => import(/* webpackChunkName: "quote" */ '../views/Documentation.vue'),
     props: true,
     meta: {
       requiresAuth: true
