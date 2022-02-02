@@ -275,6 +275,17 @@ const routes = [
   },
   {
     meta: {
+      title: 'Resum Hores'
+    },
+    path: '/dedicacio-summary',
+    name: 'stats.dedicacio.summary',
+    component: () => import(/* webpackChunkName: "stats" */ '../views/DedicacioSummary.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Bestretes'
     },
     path: '/salary',

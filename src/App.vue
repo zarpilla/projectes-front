@@ -101,10 +101,15 @@ export default {
             label: 'Saldo hores'
           },
           {
-            to: '/salary',
+            to: '/dedicacio-summary',
             icon: 'table',
-            label: 'Bestretes'
-          }
+            label: 'Hores anuals'
+          },
+          // {
+          //   to: '/salary',
+          //   icon: 'table',
+          //   label: 'Bestretes'
+          // }
         ],
         'Facturació',
         [
