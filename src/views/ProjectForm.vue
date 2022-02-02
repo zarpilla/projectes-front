@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="project-form">
     <modal-box-invoicing
       :is-active="isModalActive"
       :invoicing-object="invoicingObject"
@@ -2417,102 +2417,4 @@ export default {
 };
 </script>
 <style>
-.button.no-button {
-  background: none;
-  border: 0;
-  padding: 0;
-  display: inline-block;
-  vertical-align: -1px;
-  padding-left: 5px;
-}
-.phases-list .phase .phase-detail {
-  padding: calc(0.5em - 2px) 0.5rem;
-  border: 0px solid #ccc;
-}
-.phases-list .phase .phase-detail label {
-  vertical-align: 2px;
-  padding-left: 4px;
-}
-.phases-list .subphase {
-  padding-left: 2.5rem;
-}
-.phases-list .phase .phase-detail-input {
-  border: 0px solid #ccc;
-}
-.add-subphase {
-  margin-left: 2.5rem;
-}
-.subphase-detail-input.readonly {
-  width: auto;
-  border: 1px solid #ccc;
-  background: #e5e5e5;
-  color: #777;
-  border-radius: 4px;
-  padding-bottom: calc(0.5em - 1px);
-  padding-left: calc(0.75em - 1px);
-  padding-right: calc(0.75em - 1px);
-  padding-top: calc(0.5em - 1px);
-  max-width: 100%;
-  width: 100%;
-}
-/* .subphase .field{
-  width: 80px;
-} */
-.subphase .field:not(.short-field) {
-  width: 35%;
-}
-.subphase .field.medium-field {
-  width: 23%;
-}
-.subphase .field.date-field {
-  width: 28%;
-}
-.subphase .datepicker-header .field {
-  width: auto !important;
-}
-.subphase .field.short-field {
-  width: 10%;
-}
-.subphase .field.subphase-detail-input-large-field {
-  width: 75%;
-}
-/* .subphase .subphase-detail-input-short {
-  max-width: 150px;
-} */
-.subphases-list {
-  margin-left: 1rem;
-}
-.subphases-list .subphase-detail-input.readonly,
-.subphases-list
-  .subphase-detail-input.readonly.subphase-detail-input-phase-total {
-  width: 100%;
-}
-.checkbox-inline {
-  margin-top: 10px;
-}
-.invoice-tag {
-  margin-top: 8px;
-}
-.has-text-left .field-label {
-  text-align: left;
-}
-.left-container {
-  overflow: hidden;
-  position: relative;
-  height: 100%;
-}
-.summary-card .column {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-.summary-card .label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.8rem;
-}
-.ulist .tag {
-  margin-right: 3px;
-  margin-bottom: 3px;
-}
 </style>

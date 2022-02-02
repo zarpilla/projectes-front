@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="document-form">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
@@ -78,6 +78,22 @@
                 </b-datepicker>
               </b-field>
 
+              <b-field label="Modificable" horizontal>
+                <b-switch v-model="form.updatable">
+                </b-switch>
+                <b-datepicker
+                  v-model="form.paid_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data Pagament"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+
               <b-field label="Mètode de pagament" horizontal>
                 <b-select v-model="form.payment_method" placeholder="" required>
                   <option
@@ -90,7 +106,7 @@
                 </b-select>
               </b-field>
 
-              <b-field label="Clienta *" horizontal>
+              <b-field :label="type == 'emitted-invoices' ? 'Clienta *' : 'Proveïdora *'" horizontal>
                 <b-autocomplete
                   v-model="clientSearch"
                   placeholder="Escriu el nom de la clienta..."
@@ -104,6 +120,19 @@
                 >
                 </b-autocomplete>
               </b-field>
+
+              <b-field v-if="type == 'received-invoices'"
+                  label="Número factura proveïdora"
+                  horizontal
+                >
+                  <b-input
+                    name="Unitats"
+                    placeholder="Referència de factura de la proveïdora"
+                    v-model="form.contact_invoice_number"
+                    class="subphase-detail-input"
+                  >
+                  </b-input>
+                </b-field>
 
               <b-field label="Projecte *" horizontal>
                 <b-autocomplete
@@ -540,6 +569,9 @@ export default {
                 this.methodSearch = this.form.payment_method.name
                 this.form.payment_method = this.form.payment_method.id
               }
+              if (this.form.updatable === null) {
+                this.form.updatable = true
+              }
               
               // this.getAuxiliarData();
 
@@ -706,31 +738,6 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 
-.line .field.medium-field {
-  width: 10%;
-}
-.line .field.subphase-detail-input-large-field {
-  width: 30%;
-}
-.summary-card .column {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-}
-.summary-card .label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.8rem;
-}
-.ulist .tag {
-  margin-right: 3px;
-  margin-bottom: 3px;
-}
-.summary label{
-  margin-right: 0.5rem;  
-}
-.line-notes .control {width: 50%;}
-.line-notes textarea {width: 100%;}
 </style>
