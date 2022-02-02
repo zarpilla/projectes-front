@@ -231,13 +231,13 @@ export default {
           })
           const ratio = totalWorkedHours / totalWorkedDays / 8
 
-          this.summary['Jornada'] = { hours: `${ratio*8}h/dia (${(ratio * 100).toFixed(1)}%)`, days: '' };
-          
+          this.summary['Jornada'] = { hours: `${(ratio*8).toFixed(2)}h/dia (${(ratio * 100).toFixed(1)}%)`, days: '' };
+
           this.summary['Laborables (Dl-Dv)'] = { hours: totalWorkedHours, days: totalWorkedDays}
           
           
-          this.summary['Màx. Conveni'] = { hours: yearDetails.working_hours * ratio, days: yearDetails.working_hours / 8 };
-          this.summary['Disponibles (Laborables - Conveni)'] = { hours: totalWorkedHours - yearDetails.working_hours * ratio, days: totalWorkedDays - yearDetails.working_hours / 8 };
+          this.summary['Màx. Conveni'] = { hours: (yearDetails.working_hours * ratio).toFixed(2), days: yearDetails.working_hours / 8 };
+          this.summary['Disponibles (Laborables - Conveni)'] = { hours: (totalWorkedHours - yearDetails.working_hours * ratio).toFixed(2), days: totalWorkedDays - yearDetails.working_hours / 8 };
               
 
               // var allDates = this.enumerateDaysBetweenDates()
