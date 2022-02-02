@@ -346,15 +346,21 @@ export default {
       this.$emit('submit', this.form)
     },
     projectChanged () {
-      if (this.form.project) {
+      if (this.form.project) {        
         this.isLoading2 = true
-        const project = this.projects.find(p => p.id === this.form.project)
+        const project = this.projects.find(p => p.id === this.form.project)        
         this.activityTypes = {}
         this.hasActivities = false
         project.activity_types.forEach(a => {
           this.activityTypes[a.id] = a.name
           this.hasActivities = true
         })
+        if (project.default_dedication_type && project.default_dedication_type.id && this.form.dedication_type == null) {
+          this.form.dedication_type = project.default_dedication_type.id
+        } else if (project.default_dedication_type === null && this.form.dedication_type == null){
+          this.form.dedication_type = null
+        }
+
         this.isLoading2 = false
       }
       if (this.counter !== null) {

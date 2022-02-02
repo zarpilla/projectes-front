@@ -211,6 +211,22 @@
                 >
                 </b-datepicker>
               </b-field>
+              <b-field v-if="dedicationTypes && dedicationTypes.length" label="Tipus de dedicació" horizontal>
+                <b-select
+                  v-model="form.default_dedication_type.id"
+                  placeholder="Tipus de dedicació"
+                  
+                >
+                  <option>-- Qualsevol --</option>
+                  <option
+                    v-for="(s, index) in dedicationTypes"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
               <b-field
                 label="Despesa Indirecta (%)"
                 horizontal
@@ -255,33 +271,6 @@
                   </ul>
                 </div>
               </b-field>
-              <!-- <b-field label="Company" message="Client's company name" horizontal>
-              <b-input
-                v-model="form.company"
-                placeholder="e.g. Berton & Steinway"
-                required
-              />
-            </b-field>
-            <b-field label="City" message="Client's city" horizontal>
-              <b-input
-                v-model="form.city"
-                placeholder="e.g. Geoffreyton"
-                required
-              />
-            </b-field>
-            <b-field label="Created" horizontal>
-              <b-datepicker
-                v-model="form.created_date"
-                placeholder="Click to select..."
-                icon="calendar-today"
-                @input="input"
-              >
-              </b-datepicker>
-            </b-field>
-            <hr />
-            <b-field label="Progress" horizontal>
-              <b-slider v-model="form.progress" />
-            </b-field> -->
               <hr />
               <b-field horizontal>
                 <b-button type="is-primary" :loading="isLoading" @click="submit"
@@ -1403,6 +1392,7 @@ export default {
       strategies: [],
       expenseTypes: [],
       incomeTypes: [],
+      dedicationTypes: [],
       clientSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",      
@@ -1765,6 +1755,7 @@ export default {
         leader: { id: 0 },
         phases: [],
         expenses: [],
+        default_dedication_type: { id: 0 }
       };
     },
     getData() {
@@ -1846,6 +1837,9 @@ export default {
                   this.form.phases = this.form.phases.map((r) => {
                     return { ...r, expenses: [] };
                   });
+                }
+                if (this.form.default_dedication_type === null) {
+                  this.form.default_dedication_type = { id: 0 }
                 }
 
                 if (mustUpdate) {
@@ -1955,6 +1949,13 @@ export default {
         .then((r) => {
           this.incomeTypes = r.data;
         });
+      service({ requiresAuth: true })
+        .get("dedication-types")
+        .then((r) => {
+          this.dedicationTypes = r.data;
+        });
+        
+
     },
     input(v) {
       this.createdReadable = dayjs(v).format("MMM D, YYYY");
