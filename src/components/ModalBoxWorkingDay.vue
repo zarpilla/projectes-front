@@ -41,12 +41,20 @@
               </b-autocomplete>
             </b-field>
 
-            <b-field label="Hores" horizontal>
+            <b-field label="Hores" horizontal message="Hores diaries de treball">
               <b-input
                 v-model="form.hours"
                 placeholder="Hores"
                 name="hours"
                 required
+              />
+            </b-field>
+
+            <b-field label="Salari base (€)" horizontal message="Salari base mensual a jornada completa (si es fessin 8h)">
+              <b-input
+                v-model="form.monthly_salary"
+                placeholder="Salari base mensual jornada completa (€)"
+                name="monthly_salary"                
               />
             </b-field>
 
@@ -58,14 +66,6 @@
               />
             </b-field>
 
-
-            <b-field label="Salari mensual (€)" horizontal>
-              <b-input
-                v-model="form.monthly_salary"
-                placeholder="Salari mensual (€)"
-                name="monthly_salary"
-              />
-            </b-field>
         </section>
         <footer class="modal-card-foot">
           <button class="button" type="button" @click="cancel">Cancel·la</button>
@@ -172,10 +172,8 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-
-      
-      console.log('show this.dedicationObject', this.dedicationObject)
-      console.log('show this.users', this.users)
+      // console.log('show this.dedicationObject', this.dedicationObject)
+      // console.log('show this.users', this.users)
       
       if (this.dedicationObject) {
         // this.form = this.dedicationObject._dedication

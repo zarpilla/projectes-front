@@ -79,7 +79,7 @@ export default {
 
           userDedications.forEach(d => {
             const dedicationTask = { 
-              id: 999 + d.id, 
+              id: 9999 + d.id, 
               text: `${d.hours} h`, 
               start_date: d.from, 
               end_date: d.to, 
@@ -92,81 +92,13 @@ export default {
             
           });
 
-          // if (userDedications && userDedications.length) {
-          //   this.tasks.data.push(task)
-          // }
-
-          // // add festives
-          // this.festives.forEach(f => {
-          //   if ((f.users_permissions_user && f.users_permissions_user.username === leader.username) || f.users_permissions_user === null) {
-          //     let dailyHours = 8
-          //     leader.daily_dedications.forEach(dd => {
-          //       if (dd.from <= f.date && dd.to >= f.date) {
-          //         dailyHours = dd.hours
-          //       }
-          //     })
-          //     const festiveDedication = {
-          //       project_name: f.festive_type.name,
-          //       ym: moment(f.date, 'YYYY-MM-DD').format('YYYYMM'),
-          //       estimated_hours: dailyHours
-          //     }
-          //     userDedications.push(festiveDedication)
-          //   }
-          // })
-
-          // const dedicationTotals = _(userDedications)
-          // .groupBy('ym')
-          // .map((ym, id) => ({
-          //   ym: id,
-          //   year: !isNaN(id) ? id.substring(0, 4) : "2099",
-          //   month: !isNaN(id) ? id.substring(4, 6) : "99",
-          //   total: _.sumBy(ym, 'estimated_hours')
-          // }))
-          // .value()
-
-          // for (let j = 0; j < dedicationTotals.length; j++) {            
-          //   tid++
-          //   const dedication = dedicationTotals[j]
-          //   const start_date = `${dedication.year}-${dedication.month}-01`
-          //   const end_date = moment(start_date, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD') 
-          //   if (end_date > maxEnddate) {
-          //     maxEnddate = end_date
-          //   }
-          //   let dailyHours = 8
-          //   leader.daily_dedications.forEach(dd => {
-          //     if (dd.from <= start_date && dd.to >= start_date) {
-          //       dailyHours = dd.hours
-          //     }
-          //   })
-
-          //   const hoursTask = { 
-          //     id: tid, 
-          //     text: `${dedication.total.toFixed(2)}h`, 
-          //     start_date: start_date, 
-          //     end_date: end_date, 
-          //     parent: leader.id, 
-          //     progress: dedication.total / (20 * dailyHours),
-          //     readonly: true,
-          //     _username: leader.username,
-          //     _month: dedication.month,
-          //     _year: dedication.year,
-          //     // open: true
-          //   }
-          //   // console.log('hoursTask', hoursTask)
-          //   this.tasks.data.push(hoursTask)
-          // }
         }        
       }
-      // const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').toDate();
-      // const endDate = this.project.date_end ? moment(this.project.date_end).add(1, 'year').endOf('year').toDate() : moment().add(3, 'year').endOf('year').toDate();
-      // gantt.config.start_date = moment().startOf('year').toDate();
-			// gantt.config.end_date = moment(maxEnddate, 'YYYY-MM-DD').add(3, 'monthy').toDate();
+      
       gantt.config.columns = [
 		    { name: "text", label: "Jornada", tree: true, width: '*', resize: true },
       ]
-      // gantt.plugins({ click_drag: true })
-      // gantt.config.readonly = true
-      // gantt.config.editable_property = "editable";
+      
       gantt.config.xml_date = '%Y-%m-%d'
       gantt.config.duration_unit = 'month'
       gantt.config.scales = [
@@ -176,72 +108,25 @@ export default {
 
       gantt.attachEvent("onTaskClick", (id, e) => {
         this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
-        // console.log('this.dedicationObject', this.dedicationObject)
-        // if (this.dedicationObject.type === 'project') {
-        //   return
-        // }   
+        if (this.dedicationObject._dedication.users_permissions_user && !this.dedicationObject._dedication.hours) {
+          const usersTask = this.tasks.data.filter(d => d._dedication && d._dedication.users_permissions_user.id === this.dedicationObject._dedication.users_permissions_user.id).map(t => { return t._dedication})
+          if (usersTask && usersTask.length) {
+            const lastTask = _.maxBy(usersTask, function(o) {
+              return o.from;
+            })
+            if (lastTask) {
+              this.dedicationObject._dedication.from = moment(lastTask.to, 'YYYY-MM-YY').add(1, 'days')
+              this.dedicationObject._dedication.hours = lastTask.hours
+              this.dedicationObject._dedication.costByHour = lastTask.costByHour
+              this.dedicationObject._dedication.monthly_salary = lastTask.monthly_salary
+            }
+          }
+          console.log('usersTask', usersTask)
+        }
+        console.log('this.dedicationObject', this.dedicationObject)
         this.isModalActive = true        
         return true;
       }, {id: "onTaskClick"});
-
-      // gantt.plugins({ tooltip: true }); 
-
-      // gantt.templates.tooltip_text = (start,end,task) => {
-      //   const taskDedications = this.dedications.filter(d => d.username === task._username && d.year === task._year && d.month === task._month)
-      //   const taskDedicationsByProject = _(taskDedications)
-      //     .groupBy('project_name')
-      //     .map((project_name, id) => ({
-      //       project_name: id,
-      //       estimated_hours: _.sumBy(project_name, 'estimated_hours')
-      //     }))
-      //     .value()
-
-      //   let out = ''
-      //   taskDedicationsByProject.forEach(td => {
-      //     if (td.estimated_hours) {
-      //       out += `<b>${td.project_name}:</b> ${td.estimated_hours.toFixed(2)}h<br>`
-      //     }          
-      //   })
-
-      //   const festiveDedications = []
-      //   this.festives.forEach(f => {
-      //       if ((f.users_permissions_user && f.users_permissions_user.username === task._username) || f.users_permissions_user === null) {
-      //         if (moment(f.date, 'YYYY-MM-DD').format('YYYY') == task._year && moment(f.date, 'YYYY-MM-DD').format('MM') == task._month) {
-      //           let dailyHours = 8
-      //           const taskUser = this.leaders.find(l => l.username === task._username)
-      //           taskUser.daily_dedications.forEach(dd => {
-      //             if (dd.from <= f.date && dd.to >= f.date) {
-      //               dailyHours = dd.hours
-      //             }
-      //           })
-      //           const festiveDedication = {
-      //             project_name: f.festive_type.name,
-      //             ym: moment(f.date, 'YYYY-MM-DD').format('YYYYMM'),
-      //             estimated_hours: dailyHours
-      //           }
-      //           festiveDedications.push(festiveDedication)
-
-      //         }
-              
-      //       }
-      //     })
-        
-      //   const festiveDedicationsByProject = _(festiveDedications)
-      //     .groupBy('project_name')
-      //     .map((project_name, id) => ({
-      //       project_name: id,
-      //       estimated_hours: _.sumBy(project_name, 'estimated_hours')
-      //     }))
-      //     .value()
-
-      //   festiveDedicationsByProject.forEach(td => {
-      //     if (td.estimated_hours) {
-      //       out += `<b>${td.project_name}:</b> ${td.estimated_hours.toFixed(2)}h<br>`
-      //     }          
-      //   })
-
-      //   return out;
-      // };
 
       gantt.init(this.ganttId)
       
@@ -260,7 +145,7 @@ export default {
     },
     async modalSubmit (activity) {
       this.updating = true
-      console.log('activity', activity)
+      // console.log('activity', activity)
 
       if (activity.id) {
         const activityObject = activity
