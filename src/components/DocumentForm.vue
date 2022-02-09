@@ -543,6 +543,13 @@ export default {
           .then(async (r) => {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
+
+              if (r.data.lines) {
+                r.data.lines.forEach(l => {
+                  l.show = l.show || false
+                })
+              }
+
               this.form = r.data;
               this.form.emitted = moment(this.form.emitted, 'YYYY-MM-DD').toDate()
               if (this.form.paybefore) {
@@ -571,8 +578,7 @@ export default {
               }
               if (this.form.updatable === null) {
                 this.form.updatable = true
-              }
-              
+              }              
               // this.getAuxiliarData();
 
               this.isLoading = false;
