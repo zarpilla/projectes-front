@@ -5,366 +5,378 @@
       <div class="columns">
         <div class="column is-full" v-if="!isLoading">
           <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
-            
-              <b-field label="Número" horizontal>
-                <b-input v-model="form.code" placeholder="" disabled />
-              </b-field>
-              <b-field label="Sèrie *" horizontal>
-                <b-select v-model="form.serial" placeholder="" required>
-                  <option
-                    v-for="(s, index) in series"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field>
-              <b-field label="Emissió *" horizontal>
-                <b-datepicker
-                  v-model="form.emitted"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data Emissió"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
-              </b-field>
+            <b-field label="Número" horizontal>
+              <b-input v-model="form.code" placeholder="" disabled />
+            </b-field>
+            <b-field label="Sèrie *" horizontal>
+              <b-select v-model="form.serial" placeholder="" required>
+                <option v-for="(s, index) in series" :key="index" :value="s.id">
+                  {{ s.name }}
+                </option>
+              </b-select>
+            </b-field>
+            <b-field label="Emissió *" horizontal>
+              <b-datepicker
+                v-model="form.emitted"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Emissió"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
 
-              <b-field label="Venciment" horizontal>
-                <b-datepicker
-                  v-model="form.paybefore"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data Venciment"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
-              </b-field>
-              <b-field label="Enviada" horizontal>
-                <b-checkbox v-model="form.sent" class="checkbox-inline">
-                </b-checkbox>
-                <b-datepicker
-                  v-model="form.sent_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data Enviament"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
-              </b-field>
-              <b-field label="Pagada" horizontal>
-                <b-checkbox v-model="form.paid" class="checkbox-inline">
-                </b-checkbox>
-                <b-datepicker
-                  v-model="form.paid_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data Pagament"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
-              </b-field>
+            <b-field label="Venciment" horizontal>
+              <b-datepicker
+                v-model="form.paybefore"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Venciment"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
+            <b-field label="Enviada" horizontal>
+              <b-checkbox v-model="form.sent" class="checkbox-inline">
+              </b-checkbox>
+              <b-datepicker
+                v-model="form.sent_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Enviament"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
+            <b-field label="Pagada" horizontal>
+              <b-checkbox v-model="form.paid" class="checkbox-inline">
+              </b-checkbox>
+              <b-datepicker
+                v-model="form.paid_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Pagament"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
 
-              <b-field label="Modificable" horizontal>
-                <b-switch v-model="form.updatable">
-                </b-switch>
-              </b-field>
+            <b-field label="Modificable" horizontal>
+              <b-switch v-model="form.updatable"> </b-switch>
+            </b-field>
 
-              <b-field label="Mètode de pagament" horizontal>
-                <b-select v-model="form.payment_method" placeholder="" required>
-                  <option
-                    v-for="(s, index) in paymentMethods"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field>
-
-              <b-field :label="type == 'emitted-invoices' ? 'Clienta *' : 'Proveïdora *'" horizontal>
-                <b-autocomplete
-                  v-model="clientSearch"
-                  placeholder="Escriu el nom de la clienta..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredClients"
-                  field="name"
-                  @select="clientSelected"
-                  :clearable="true"
-                  required
+            <b-field label="Mètode de pagament" horizontal>
+              <b-select v-model="form.payment_method" placeholder="" required>
+                <option
+                  v-for="(s, index) in paymentMethods"
+                  :key="index"
+                  :value="s.id"
                 >
-                </b-autocomplete>
-              </b-field>
+                  {{ s.name }}
+                </option>
+              </b-select>
+            </b-field>
 
-              <b-field v-if="type == 'received-invoices'"
-                  label="Número factura proveïdora"
-                  horizontal
-                >
-                  <b-input
-                    name="Unitats"
-                    placeholder="Referència de factura de la proveïdora"
-                    v-model="form.contact_invoice_number"
-                    class="subphase-detail-input"
-                  >
-                  </b-input>
-                </b-field>
+            <b-field
+              :label="type == 'emitted-invoices' ? 'Clienta *' : 'Proveïdora *'"
+              horizontal
+            >
+              <b-autocomplete
+                v-model="clientSearch"
+                placeholder="Escriu el nom de la clienta..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredClients"
+                field="name"
+                @select="clientSelected"
+                :clearable="true"
+                required
+              >
+              </b-autocomplete>
+            </b-field>
 
-              <b-field label="Projecte *" horizontal>
-                <b-autocomplete
-                  v-model="projectSearch"
-                  placeholder="Escriu el nom del projecte..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredProjects"
-                  field="name"
-                  @select="projectSelected"
-                  :clearable="true"
-                  required
-                >
-                </b-autocomplete>
-              </b-field>
+            <b-field
+              v-if="type == 'received-invoices'"
+              label="Número factura proveïdora"
+              horizontal
+            >
+              <b-input
+                name="Unitats"
+                placeholder="Referència de factura de la proveïdora"
+                v-model="form.contact_invoice_number"
+                class="subphase-detail-input"
+              >
+              </b-input>
+            </b-field>
+
+            <b-field label="Projecte *" horizontal>
+              <b-autocomplete
+                v-model="projectSearch"
+                placeholder="Escriu el nom del projecte..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredProjects"
+                field="name"
+                @select="projectSelected"
+                :clearable="true"
+                required
+              >
+              </b-autocomplete>
+            </b-field>
           </card-component>
           <hr />
 
-              <card-component v-if="!isLoading && !isLoadingProject" title="DETALL DEL PROJECTE">
-                <div class="project-form">
-                    <project-phases :form="project" :project-phases="project.phases" @phases-updated="phasesUpdated" :mode="type === 'emitted-invoices' ? 'incomes' : 'expenses'" />                    
-                    <div class="helper">
-                      <b-icon icon="help-circle"  />
-                      
-                      Cal assignar el document (factura, tiquet, dieta...) a una línia de pressupost del projecte. Si la línia no existís, es pot crear en aquest moment o també es pot desdoblar alguna existent. Per assignar-lo, cal marcar la casella de 'Facturat' i clicar al botó de 'Document'. Un cop assignat, caldrà guardar la factura.
-                    </div>                    
-                </div>
-                <hr v-if="shouldSaveProject">
-                <b-field v-if="shouldSaveProject">
+          <card-component
+            v-if="!isLoading && !isLoadingProject"
+            title="DETALL DEL PROJECTE"
+          >
+            <div class="project-form">
+              <project-phases
+                :form="project"
+                :project-phases="project.phases"
+                @phases-updated="phasesUpdated"
+                :mode="type === 'emitted-invoices' ? 'incomes' : 'expenses'"
+              />
+              <div class="helper">
+                <b-icon icon="help-circle" />
 
-                  <b-button type="is-warning" :loading="isLoading" @click="undoProject"
-                    >
-                    <b-icon icon="undo" custom-size="default" />
-                    Desfés
-                    </b-button
-                  >
-                </b-field>
-              </card-component>
+                Cal assignar el document (factura, tiquet, dieta...) a una línia
+                de pressupost del projecte. Si la línia no existís, es pot crear
+                en aquest moment o també es pot desdoblar alguna existent. Per
+                assignar-lo, cal marcar la casella de 'Facturat' i clicar al
+                botó de 'Document'. Un cop assignat, caldrà guardar la factura.
+              </div>
+            </div>
+            <hr v-if="shouldSaveProject" />
+            <b-field v-if="shouldSaveProject">
+              <b-button
+                type="is-warning"
+                :loading="isLoading"
+                @click="undoProject"
+              >
+                <b-icon icon="undo" custom-size="default" />
+                Desfés
+              </b-button>
+            </b-field>
+          </card-component>
 
-              <hr />
-            <card-component title="LINIES">
-
-              <ul class="subphases-list">
-                <li
-                  v-for="(line, j) in form.lines"
-                  :key="j"
-                  class="subphase line mt-2 mb-2"
-                >
-                  <b-field grouped>
-                    <b-field
-                      :label="j == 0 ? 'Concepte' : null"
-                      class="subphase-detail-input-large-field"
-                    >
-                      <b-input
-                        name="SubFase"
-                        placeholder="Concepte..."
-                        v-model="line.concept"
-                        class="
-                          subphase-detail-input subphase-detail-input-large
-                        "
-                      >
-                      </b-input>
-                    </b-field>
-                    <b-field
-                      :label="j == 0 ? 'Quantitat' : null"
-                      class="medium-field"
-                    >
-                      <b-input
-                        name="Unitats"
-                        placeholder="Quantitat, hores, unitats..."
-                        v-model="line.quantity"
-                        class="subphase-detail-input"
-                        @input="changeLine(line, 'quantity', line.quantity)"
-                      >
-                      </b-input>
-                    </b-field>
-                    <b-field
-                      :label="j == 0 ? 'Preu' : null"
-                      class="medium-field"
-                    >
-                      <b-input
-                        name="base"
-                        placeholder="Preu per unitat"
-                        v-model="line.base"
-                        class="subphase-detail-input"
-                        @input="changeLine(line, 'base', line.base)"
-                      >
-                      </b-input>
-                    </b-field>
-                    <b-field
-                      :label="j == 0 ? 'Descompte %' : null"
-                      class="medium-field"
-                    >
-                      <b-input
-                        name="discount"
-                        placeholder="Preu per unitat"
-                        v-model="line.discount"
-                        class="subphase-detail-input"
-                        @input="changeLine(line, 'discount', line.discount)"
-                      >
-                      </b-input>
-                    </b-field>
-                    <b-field
-                      :label="j == 0 ? 'IVA %' : null"
-                      class="medium-field"
-                    >
-                      <b-input
-                        name="vat"
-                        placeholder="Preu per unitat"
-                        v-model="line.vat"
-                        class="subphase-detail-input"
-                        @input="changeLine(line, 'vat', line.vat)"
-                      >
-                      </b-input>
-                    </b-field>
-                    <b-field
-                      :label="j == 0 ? 'IRPF %' : null"
-                      class="medium-field"
-                    >
-                      <b-input
-                        name="irpf"
-                        placeholder="Preu per unitat"
-                        v-model="line.irpf"
-                        class="subphase-detail-input"
-                        @input="changeLine(line, 'irpf', line.irpf)"
-                      >
-                      </b-input>
-                    </b-field>
-                    <b-field
-                      :label="j == 0 ? 'Accions' : null"
-                      class="medium-field"
-                    >
-                    <button                      
-                        class="button is-small is-primary ml-2"
-                        type="button"
-                        @click.prevent="line.show = !line.show"
-                      >
-                        <b-icon icon="comment" size="is-small" />
-                      </button>
-                      <button
-                      v-if="form.lines.length > 1"
-                        class="button is-small is-danger ml-2"
-                        type="button"
-                        @click.prevent="removeLine(line, j)"
-                      >
-                        <b-icon icon="trash-can" size="is-small" />
-                      </button>
-                      <button
-                        v-if="j === form.lines.length - 1"
-                        class="button is-small is-primary ml-2"
-                        type="button"
-                        @click.prevent="addLine(line)"
-                      >
-                        <b-icon icon="plus-circle" size="is-small" />
-                      </button>
-                    </b-field>
-                  </b-field>
+          <hr />
+          <card-component title="LINIES">
+            <ul class="subphases-list">
+              <li
+                v-for="(line, j) in form.lines"
+                :key="j"
+                class="subphase line mt-2 mb-2"
+              >
+                <b-field grouped>
                   <b-field
-                    label="Notes"
-                    grouped
-                    class="line-notes mb-5"
-                    :class="line.show ? 'z' : 'is-hidden'"
+                    :label="j == 0 ? 'Concepte' : null"
+                    class="subphase-detail-input-large-field"
                   >
                     <b-input
-                      type="textarea"
-                      v-model="line.comments"
-                      placeholder="Descripció del concepte"                      
-                    />
+                      name="SubFase"
+                      placeholder="Concepte..."
+                      v-model="line.concept"
+                      class="subphase-detail-input subphase-detail-input-large"
+                    >
+                    </b-input>
                   </b-field>
-                </li>
-              </ul>
-              <hr />
-              <div class="summary has-background-white-ter p-4">
-                <div class="is-flex is-justify-content-flex-end">
-                  <label>Base: </label>
-                  <money-format
-                    :value="totalBase"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
+                  <b-field
+                    :label="j == 0 ? 'Quantitat' : null"
+                    class="medium-field"
                   >
-                  </money-format>
-                </div>
-                <div class="is-flex is-justify-content-flex-end">
-                  <label>IVA: </label>
-                  <money-format
-                    :value="totalVat"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
+                    <b-input
+                      name="Unitats"
+                      placeholder="Quantitat, hores, unitats..."
+                      v-model="line.quantity"
+                      class="subphase-detail-input"
+                      @input="changeLine(line, 'quantity', line.quantity)"
+                    >
+                    </b-input>
+                  </b-field>
+                  <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
+                    <b-input
+                      name="base"
+                      placeholder="Preu per unitat"
+                      v-model="line.base"
+                      class="subphase-detail-input"
+                      @input="changeLine(line, 'base', line.base)"
+                    >
+                    </b-input>
+                  </b-field>
+                  <b-field
+                    :label="j == 0 ? 'Descompte %' : null"
+                    class="medium-field"
                   >
-                  </money-format>
-                </div>
-                <div class="is-flex is-justify-content-flex-end">
-                  <label>IRPF: </label>
-                  <money-format
-                    :value="totalIrpf"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
+                    <b-input
+                      name="discount"
+                      placeholder="Preu per unitat"
+                      v-model="line.discount"
+                      class="subphase-detail-input"
+                      @input="changeLine(line, 'discount', line.discount)"
+                    >
+                    </b-input>
+                  </b-field>
+                  <b-field
+                    :label="j == 0 ? 'IVA %' : null"
+                    class="medium-field"
                   >
-                  </money-format>
-                </div>
-                <div class="is-flex is-justify-content-flex-end has-text-weight-bold mt-5">
-                  <label>Total </label>
-                  <money-format
-                    :value="total"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
+                    <b-input
+                      name="vat"
+                      placeholder="Preu per unitat"
+                      v-model="line.vat"
+                      class="subphase-detail-input"
+                      @input="changeLine(line, 'vat', line.vat)"
+                    >
+                    </b-input>
+                  </b-field>
+                  <b-field
+                    :label="j == 0 ? 'IRPF %' : null"
+                    class="medium-field"
                   >
-                  </money-format>
-                </div>
-              </div>
-              <hr>
-
-              <b-field
-                label="Notes"
-                horizontal
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.comments"
-                  placeholder="Notes sobre la factura (visible a la factura)"
-                />
-              </b-field>
-
-              <hr>
-              <b-field horizontal>
-                <a v-if="form.pdf" :href="form.pdf" class="button is-warning" target="_blank">
-                  Visualitzar PDF
-                </a>
-              </b-field>
-              <b-field horizontal>
-                <b-button type="is-primary" :loading="isLoading" @click="submit"
-                  >Guardar</b-button
+                    <b-input
+                      name="irpf"
+                      placeholder="Preu per unitat"
+                      v-model="line.irpf"
+                      class="subphase-detail-input"
+                      @input="changeLine(line, 'irpf', line.irpf)"
+                    >
+                    </b-input>
+                  </b-field>
+                  <b-field
+                    :label="j == 0 ? 'Accions' : null"
+                    class="medium-field"
+                  >
+                    <button
+                      class="button is-small is-primary ml-2"
+                      type="button"
+                      @click.prevent="line.show = !line.show"
+                    >
+                      <b-icon icon="comment" size="is-small" />
+                    </button>
+                    <button
+                      v-if="form.lines.length > 1"
+                      class="button is-small is-danger ml-2"
+                      type="button"
+                      @click.prevent="removeLine(line, j)"
+                    >
+                      <b-icon icon="trash-can" size="is-small" />
+                    </button>
+                    <button
+                      v-if="j === form.lines.length - 1"
+                      class="button is-small is-primary ml-2"
+                      type="button"
+                      @click.prevent="addLine(line)"
+                    >
+                      <b-icon icon="plus-circle" size="is-small" />
+                    </button>
+                  </b-field>
+                </b-field>
+                <b-field
+                  label="Notes"
+                  grouped
+                  class="line-notes mb-5"
+                  :class="line.show ? 'z' : 'is-hidden'"
                 >
-              </b-field>                                      
+                  <b-input
+                    type="textarea"
+                    v-model="line.comments"
+                    placeholder="Descripció del concepte"
+                  />
+                </b-field>
+              </li>
+            </ul>
+            <hr />
+            <div class="summary has-background-white-ter p-4">
+              <div class="is-flex is-justify-content-flex-end">
+                <label>Base: </label>
+                <money-format
+                  :value="totalBase"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value="false"
+                  :hide-subunits="false"
+                >
+                </money-format>
+              </div>
+              <div class="is-flex is-justify-content-flex-end">
+                <label>IVA: </label>
+                <money-format
+                  :value="totalVat"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value="false"
+                  :hide-subunits="false"
+                >
+                </money-format>
+              </div>
+              <div class="is-flex is-justify-content-flex-end">
+                <label>IRPF: </label>
+                <money-format
+                  :value="totalIrpf"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value="false"
+                  :hide-subunits="false"
+                >
+                </money-format>
+              </div>
+              <div
+                class="
+                  is-flex is-justify-content-flex-end
+                  has-text-weight-bold
+                  mt-5
+                "
+              >
+                <label>Total </label>
+                <money-format
+                  :value="total"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value="false"
+                  :hide-subunits="false"
+                >
+                </money-format>
+              </div>
+            </div>
+            <hr />
+
+            <b-field label="Notes" horizontal>
+              <b-input
+                type="textarea"
+                v-model="form.comments"
+                placeholder="Notes sobre la factura (visible a la factura)"
+              />
+            </b-field>
           </card-component>
+          <hr />
+          <b-field>
+            <a
+              v-if="form.pdf"
+              :href="form.pdf"
+              class="button is-warning"
+              target="_blank"
+            >
+              Visualitzar PDF
+            </a>
+          </b-field>
+          <b-field>
+            <b-button type="is-primary" :loading="isLoading" @click="submit"
+              >Guardar</b-button
+            >
+          </b-field>
         </div>
       </div>
     </section>
@@ -421,7 +433,7 @@ export default {
       projects: [],
       project: null,
       projectCopy: null,
-      shouldSaveProject: false
+      shouldSaveProject: false,
     };
   },
   computed: {
@@ -602,7 +614,7 @@ export default {
                     `projects/${this.form.project}`
                   )
                 ).data;
-                this.projectCopy = JSON.parse(JSON.stringify(this.project))
+                this.projectCopy = JSON.parse(JSON.stringify(this.project));
               }
               if (this.form.payment_method && this.form.payment_method.id) {
                 this.methodSearch = this.form.payment_method.name;
@@ -681,7 +693,8 @@ export default {
             return;
           }
 
-          const assignedToProjectPhase = this.validateIfProjectPhasesHasDocument()
+          const assignedToProjectPhase =
+            this.validateIfProjectPhasesHasDocument();
 
           if (!assignedToProjectPhase) {
             this.$buefy.snackbar.open({
@@ -699,7 +712,7 @@ export default {
           );
 
           if (this.shouldSaveProject) {
-            await this.updateProjectPhases(this.form.id)
+            await this.updateProjectPhases(this.form.id);
           }
 
           this.$buefy.snackbar.open({
@@ -711,8 +724,10 @@ export default {
           // console.log("this.form", this.form);
           if (
             !this.form.emitted ||
-            (!this.form.contact || (this.form.contact && this.form.contact.id === 0)) ||
-            (!this.form.serial || (this.form.serial && this.form.serial.id === 0)) ||
+            !this.form.contact ||
+            (this.form.contact && this.form.contact.id === 0) ||
+            !this.form.serial ||
+            (this.form.serial && this.form.serial.id === 0) ||
             !this.form.project
           ) {
             this.$buefy.snackbar.open({
@@ -724,7 +739,8 @@ export default {
             return;
           }
 
-          const assignedToProjectPhase = this.validateIfProjectPhasesHasDocument()
+          const assignedToProjectPhase =
+            this.validateIfProjectPhasesHasDocument();
 
           if (!assignedToProjectPhase) {
             this.$buefy.snackbar.open({
@@ -742,7 +758,7 @@ export default {
           );
 
           if (this.shouldSaveProject) {
-            await this.updateProjectPhases(newProject.data.id)
+            await this.updateProjectPhases(newProject.data.id);
           }
 
           // console.log('newProject', newProject.data)
@@ -787,7 +803,7 @@ export default {
         this.project = (
           await service({ requiresAuth: true }).get(`projects/${option.id}`)
         ).data;
-        this.projectCopy = this.project
+        this.projectCopy = this.project;
         this.isLoadingProject = false;
       }, 150);
     },
@@ -802,78 +818,76 @@ export default {
       this.form.lines.push(this.getNewLine());
     },
     phasesUpdated(phases) {
-      this.shouldSaveProject = true
-      this.project.phases = phases
+      this.shouldSaveProject = true;
+      this.project.phases = phases;
     },
     validateIfProjectPhasesHasDocument() {
-      var validateIfProjectPhasesHasDocument = false
-      if (this.type === 'emitted-invoices') {
-        this.project.phases.forEach(ph => {
-          ph.subphases.forEach(sph => {
+      var validateIfProjectPhasesHasDocument = false;
+      if (this.type === "emitted-invoices") {
+        this.project.phases.forEach((ph) => {
+          ph.subphases.forEach((sph) => {
             if (sph.invoice && sph.invoice.id === this.form.id) {
-              validateIfProjectPhasesHasDocument = true
+              validateIfProjectPhasesHasDocument = true;
+            } else if (sph.assign) {
+              validateIfProjectPhasesHasDocument = true;
             }
-            else if (sph.assign) {
-              validateIfProjectPhasesHasDocument = true
-            }
-          })
-        })
-      }
-      else if (this.type === 'received-invoices') {
-        this.project.phases.forEach(ph => {
-          ph.expenses.forEach(sph => {
+          });
+        });
+      } else if (this.type === "received-invoices") {
+        this.project.phases.forEach((ph) => {
+          ph.expenses.forEach((sph) => {
             if (sph.invoice && sph.invoice.id === this.form.id) {
-              validateIfProjectPhasesHasDocument = true
+              validateIfProjectPhasesHasDocument = true;
+            } else if (sph.assign) {
+              validateIfProjectPhasesHasDocument = true;
             }
-            else if (sph.assign) {
-              validateIfProjectPhasesHasDocument = true
-            }
-          })
-        })
+          });
+        });
       }
-      return validateIfProjectPhasesHasDocument      
+      return validateIfProjectPhasesHasDocument;
     },
     async updateProjectPhases(id) {
-      if (this.type === 'emitted-invoices') {
-        this.project.phases.forEach(ph => {
-          ph.subphases.forEach(sph => {
+      if (this.type === "emitted-invoices") {
+        this.project.phases.forEach((ph) => {
+          ph.subphases.forEach((sph) => {
             if (sph.assign) {
-              sph.invoice = id
+              sph.invoice = id;
             }
-          })
-        })
-      }
-      else if (this.type === 'received-invoices') {
-        this.project.phases.forEach(ph => {
-          ph.expenses.forEach(sph => {
+          });
+        });
+      } else if (this.type === "received-invoices") {
+        this.project.phases.forEach((ph) => {
+          ph.expenses.forEach((sph) => {
             if (sph.assign) {
-              sph.invoice = id
+              sph.invoice = id;
             }
-          })
-        })
+          });
+        });
       }
-      await service({ requiresAuth: true }).put(`projects/${this.project.id}`, { phases: this.project.phases })
+      await service({ requiresAuth: true }).put(`projects/${this.project.id}`, {
+        phases: this.project.phases,
+      });
     },
     undoProject() {
       this.isLoadingProject = true;
       setTimeout(() => {
-        this.project = this.projectCopy
+        this.project = this.projectCopy;
         this.isLoadingProject = false;
-        this.shouldSaveProject()
-      }, 100)
-    }
+        this.shouldSaveProject();
+      }, 100);
+    },
   },
 };
 </script>
 <style lang="scss">
 .helper {
-  margin-top: 1rem;  
-  color:#aaa;
+  margin-top: 1rem;
+  color: #aaa;
   font-size: 0.9rem;
-  .subtitle{
+  .subtitle {
     font-size: 1.1rem;
-    line-height: 1.0rem;
-    color:#aaa;
+    line-height: 1rem;
+    color: #aaa;
     margin-left: 0.5rem;
   }
 }
