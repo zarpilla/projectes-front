@@ -142,7 +142,12 @@
 
               <card-component v-if="!isLoading && !isLoadingProject" title="DETALL DEL PROJECTE">
                 <div class="project-form">
-                    <project-phases :form="project" :project-phases="project.phases" @phases-updated="phasesUpdated" :mode="type === 'emitted-invoices' ? 'incomes' : 'expenses'" />
+                    <project-phases :form="project" :project-phases="project.phases" @phases-updated="phasesUpdated" :mode="type === 'emitted-invoices' ? 'incomes' : 'expenses'" />                    
+                    <div class="helper">
+                      <b-icon icon="help-circle"  />
+                      
+                      Cal assignar el document (factura, tiquet, dieta...) a una línia de pressupost del projecte. Si la línia no existís, es pot crear en aquest moment o també es pot desdoblar alguna existent. Per assignar-lo, cal marcar la casella de 'Facturat' i clicar al botó de 'Document'. Un cop assignat, caldrà guardar la factura.
+                    </div>                    
                 </div>
                 <hr v-if="shouldSaveProject">
                 <b-field v-if="shouldSaveProject">
@@ -861,4 +866,15 @@ export default {
 };
 </script>
 <style lang="scss">
+.helper {
+  margin-top: 1rem;  
+  color:#aaa;
+  font-size: 0.9rem;
+  .subtitle{
+    font-size: 1.1rem;
+    line-height: 1.0rem;
+    color:#aaa;
+    margin-left: 0.5rem;
+  }
+}
 </style>
