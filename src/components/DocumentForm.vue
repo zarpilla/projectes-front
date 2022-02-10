@@ -139,7 +139,7 @@
           <hr />
 
           <card-component
-            v-if="!isLoading && !isLoadingProject"
+            v-if="!isLoading && !isLoadingProject && project"
             title="DETALL DEL PROJECTE"
           >
             <div class="project-form">
