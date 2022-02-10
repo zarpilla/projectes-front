@@ -29,7 +29,7 @@
         /><card-widget
           class="tile is-child"
           type="is-info"
-          icon="scale-balance"
+          icon="currency-eur"
           :number="(realIncomes - realExpenses).toFixed(2)"
           suffix="€"
           label="Resultat real"
@@ -37,7 +37,7 @@
         <card-widget
           class="tile is-child"
           type="is-info"
-          icon="scale-balance"
+          icon="currency-eur"
           :number="balance.toFixed(2)"
           suffix="€"
           label="Resultat previst"

@@ -1,5 +1,40 @@
 <template>
   <section class="xsection">
+    <tiles>
+      <card-widget
+        class="tile is-child"
+        type="is-primary"
+        icon="currency-eur"
+        :number="total_base"
+        suffix="€"
+        label="Base"
+      />
+      <card-widget
+        class="tile is-child"
+        type="is-primary"
+        icon="currency-eur"
+        :number="total_vat"
+        label="IVA"
+        suffix="€"
+      />
+      <card-widget
+        class="tile is-child"
+        type="is-primary"
+        icon="currency-eur"
+        :number="total_irpf"
+        label="IRPF"
+        suffix="€"
+      />
+      <card-widget
+        class="tile is-child"
+        type="is-primary"
+        icon="currency-eur"
+        :number="total_total"
+        label="Total"
+        suffix="€"
+      />
+    </tiles>
+
     <download-excel class="export" :data="emittedCSV">
       <b-button
         title="Exporta dades"
@@ -91,9 +126,12 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
+import Tiles from "@/components/Tiles";
+import CardWidget from "@/components/CardWidget";
 
 export default {
-  name: "Tresoreria",
+  name: "EmittedInvoices",
+  components: { Tiles, CardWidget },
   props: {
     titleStack: {
       type: Array,
@@ -102,6 +140,20 @@ export default {
     year: {
       type: Object,
       default: null,
+    },
+  },
+  computed: {
+    total_base() {
+      return sumBy(this.emitted, "total_base").toFixed(2);
+    },
+    total_vat() {
+      return sumBy(this.emitted, "total_vat").toFixed(2);
+    },
+    total_irpf() {
+      return -1 * sumBy(this.emitted, "total_irpf").toFixed(2);
+    },
+    total_total() {
+      return sumBy(this.emitted, "total").toFixed(2);
     },
   },
   data() {
