@@ -160,35 +160,6 @@
         />
       </card-component>
     </section>
-    <!-- <hero-bar :has-right-visible="false">
-      Personal
-    </hero-bar>
-    <section class="section is-main-section">
-      <tiles>
-        <card-widget
-          class="tile is-child"
-          type="is-primary"
-          icon="account-multiple"
-          :number="projectsNumber"
-          label="Projectes Actius"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-info"
-          icon="account-clock"
-          :number="balance"
-          suffix="€"
-          label="Balanç"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-success"
-          icon="account-multiple"
-          :number="estimatedDedication"
-          label="Hores"
-        />
-      </tiles>
-    </section> -->
   </div>
 </template>
 
