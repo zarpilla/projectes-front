@@ -186,7 +186,7 @@ export default {
         margin: 1,
         filename: `pressupost-${this.quote.client.name}-${this.quote.code}`,
         // image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { dpi: 300, letterRendering: false },
+        html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       }
       html2pdf().set(opt).from(element).save()

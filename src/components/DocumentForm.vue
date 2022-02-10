@@ -3,9 +3,9 @@
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
-        <div class="column is-full">
-          <card-component class="tile is-child">
-            <form @submit.prevent="submit" v-if="!isLoading">
+        <div class="column is-full" v-if="!isLoading">
+          <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
+            
               <b-field label="Número" horizontal>
                 <b-input v-model="form.code" placeholder="" disabled />
               </b-field>
@@ -81,17 +81,6 @@
               <b-field label="Modificable" horizontal>
                 <b-switch v-model="form.updatable">
                 </b-switch>
-                <b-datepicker
-                  v-model="form.paid_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data Pagament"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
               </b-field>
 
               <b-field label="Mètode de pagament" horizontal>
@@ -148,7 +137,27 @@
                 >
                 </b-autocomplete>
               </b-field>
+          </card-component>
+          <hr />
+
+              <card-component v-if="!isLoading && !isLoadingProject" title="DETALL DEL PROJECTE">
+                <div class="project-form">
+                    <project-phases :form="project" :project-phases="project.phases" @phases-updated="phasesUpdated" :mode="type === 'emitted-invoices' ? 'incomes' : 'expenses'" />
+                </div>
+                <hr v-if="shouldSaveProject">
+                <b-field v-if="shouldSaveProject">
+
+                  <b-button type="is-warning" :loading="isLoading" @click="undoProject"
+                    >
+                    <b-icon icon="undo" custom-size="default" />
+                    Desfés
+                    </b-button
+                  >
+                </b-field>
+              </card-component>
+
               <hr />
+            <card-component title="LINIES">
 
               <ul class="subphases-list">
                 <li
@@ -349,8 +358,7 @@
                 <b-button type="is-primary" :loading="isLoading" @click="submit"
                   >Guardar</b-button
                 >
-              </b-field>              
-            </form>
+              </b-field>                                      
           </card-component>
         </div>
       </div>
@@ -359,21 +367,13 @@
 </template>
 
 <script>
-// import axios from 'axios'
 import dayjs from "dayjs";
-// import find from 'lodash/find'
 import TitleBar from "@/components/TitleBar";
-// import HeroBar from '@/components/HeroBar'
-// import Tiles from '@/components/Tiles'
 import CardComponent from "@/components/CardComponent";
-// import FilePicker from '@/components/FilePicker'
-// import UserAvatar from '@/components/UserAvatar'
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
-// import ProjectGannt from '@/components/ProjectGannt.vue'
-import ProjectGannt2 from "@/components/ProjectGannt2.vue";
-// import CurrencyInput from '@/components/CurrencyInput'
+import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "vue-money-format";
 import { EventBus } from "@/service/event-bus.js";
 import sumBy from "lodash/sumBy";
@@ -382,21 +382,14 @@ import moment from "moment";
 import sortBy from "lodash/sortBy";
 
 export default {
-  name: "ProjectForm",
+  name: "DocumentForm",
   components: {
-    // UserAvatar,
-    // FilePicker,
     CardComponent,
-    // Tiles,
-    // HeroBar,
     TitleBar,
-    // ProjectGannt,
     MoneyFormat,
     ModalBoxInvoicing,
     ModalBoxSplit,
-    ProjectGannt2,
-    // CurrencyInput
-    // Notification
+    ProjectPhases,
   },
   props: {
     id: {
@@ -412,6 +405,7 @@ export default {
     return {
       isProfileExists: false,
       isLoading: false,
+      isLoadingProject: false,
       series: [],
       form: this.getClearFormObject(),
       clients: [],
@@ -419,7 +413,10 @@ export default {
       projectSearch: "",
       methodSearch: "",
       paymentMethods: [],
-      projects: []
+      projects: [],
+      project: null,
+      projectCopy: null,
+      shouldSaveProject: false
     };
   },
   computed: {
@@ -455,7 +452,10 @@ export default {
       });
     },
     titleStack() {
-      const type = this.type === "emitted-invoices" ? "Factures Emeses" : "Factures Rebudes"
+      const type =
+        this.type === "emitted-invoices"
+          ? "Factures Emeses"
+          : "Factures Rebudes";
       return ["Facturació", type, this.formCardTitle];
     },
     formCardTitle() {
@@ -471,26 +471,35 @@ export default {
       }
       return "x";
     },
-    totalBase () {
-      return sumBy(this.form.lines, l => { return l.quantity * l.base * (1 - l.discount / 100) })
+    totalBase() {
+      return sumBy(this.form.lines, (l) => {
+        return l.quantity * l.base * (1 - l.discount / 100);
+      });
     },
-    totalVat () {
-      return sumBy(this.form.lines, l => { return l.quantity * l.base * (1 - l.discount / 100) * l.vat / 100 })
+    totalVat() {
+      return sumBy(this.form.lines, (l) => {
+        return (l.quantity * l.base * (1 - l.discount / 100) * l.vat) / 100;
+      });
     },
-    totalIrpf () {
-      return -1*sumBy(this.form.lines, l => { return l.quantity * l.base * (1 - l.discount / 100) * l.irpf / 100 })
+    totalIrpf() {
+      return (
+        -1 *
+        sumBy(this.form.lines, (l) => {
+          return (l.quantity * l.base * (1 - l.discount / 100) * l.irpf) / 100;
+        })
+      );
     },
-    total () {
-      return this.totalBase + this.totalVat + this.totalIrpf
-    }
+    total() {
+      return this.totalBase + this.totalVat + this.totalIrpf;
+    },
   },
   watch: {
     async id(newValue) {
-      this.isProfileExists = false;      
+      this.isProfileExists = false;
       if (!newValue || newValue === 0) {
         await this.getAuxiliarData();
-        this.form = this.getClearFormObject();        
-      } else {        
+        this.form = this.getClearFormObject();
+      } else {
         this.getData();
       }
     },
@@ -519,7 +528,7 @@ export default {
         vat: 0,
         irpf: 0,
         comments: "",
-        show: false
+        show: false,
       };
     },
     async getData() {
@@ -545,40 +554,58 @@ export default {
               this.isProfileExists = true;
 
               if (r.data.lines) {
-                r.data.lines.forEach(l => {
-                  l.show = l.show || false
-                })
+                r.data.lines.forEach((l) => {
+                  l.show = l.show || false;
+                });
               }
 
               this.form = r.data;
-              this.form.emitted = moment(this.form.emitted, 'YYYY-MM-DD').toDate()
+              this.form.emitted = moment(
+                this.form.emitted,
+                "YYYY-MM-DD"
+              ).toDate();
               if (this.form.paybefore) {
-                this.form.paybefore = moment(this.form.paybefore, 'YYYY-MM-DD').toDate()
+                this.form.paybefore = moment(
+                  this.form.paybefore,
+                  "YYYY-MM-DD"
+                ).toDate();
               }
               if (this.form.sent_date) {
-                this.form.sent_date = moment(this.form.sent_date, 'YYYY-MM-DD').toDate()
+                this.form.sent_date = moment(
+                  this.form.sent_date,
+                  "YYYY-MM-DD"
+                ).toDate();
               }
               if (this.form.paid_date) {
-                this.form.paid_date = moment(this.form.paid_date, 'YYYY-MM-DD').toDate()
+                this.form.paid_date = moment(
+                  this.form.paid_date,
+                  "YYYY-MM-DD"
+                ).toDate();
               }
               if (this.form.serial && this.form.serial.id) {
-                this.form.serial = this.form.serial.id
+                this.form.serial = this.form.serial.id;
               }
               if (this.form.contact && this.form.contact.id) {
-                this.clientSearch = this.form.contact.name
-                this.form.contact = this.form.contact.id
+                this.clientSearch = this.form.contact.name;
+                this.form.contact = this.form.contact.id;
               }
               if (this.form.project && this.form.project.id) {
-                this.projectSearch = this.form.project.name
-                this.form.project = this.form.project.id
+                this.projectSearch = this.form.project.name;
+                this.form.project = this.form.project.id;
+                this.project = (
+                  await service({ requiresAuth: true }).get(
+                    `projects/${this.form.project}`
+                  )
+                ).data;
+                this.projectCopy = JSON.parse(JSON.stringify(this.project))
               }
               if (this.form.payment_method && this.form.payment_method.id) {
-                this.methodSearch = this.form.payment_method.name
-                this.form.payment_method = this.form.payment_method.id
+                this.methodSearch = this.form.payment_method.name;
+                this.form.payment_method = this.form.payment_method.id;
               }
               if (this.form.updatable === null) {
-                this.form.updatable = true
-              }              
+                this.form.updatable = true;
+              }
               // this.getAuxiliarData();
 
               this.isLoading = false;
@@ -591,12 +618,20 @@ export default {
       }
     },
     async getAuxiliarData() {
-      console.log('getAuxiliarData')
-      this.series = (await service({ requiresAuth: true }).get("series")).data
-      this.paymentMethods = (await service({ requiresAuth: true }).get("payment-methods")).data
-      this.projects = (await service({ requiresAuth: true }).get("projects/basic?_limit=-1&project_state=1")).data
-      this.clients = (await service({ requiresAuth: true }).get("contacts?_limit=-1")).data
-        
+      // console.log("getAuxiliarData");
+      this.series = (await service({ requiresAuth: true }).get("series")).data;
+      this.paymentMethods = (
+        await service({ requiresAuth: true }).get("payment-methods")
+      ).data;
+      this.projects = (
+        await service({ requiresAuth: true }).get(
+          "projects/basic?_limit=-1&project_state=1"
+        )
+      ).data;
+      this.clients = (
+        await service({ requiresAuth: true }).get("contacts?_limit=-1")
+      ).data;
+
       // service({ requiresAuth: true })
       //   .get("payment-methods")
       //   .then((r) => {
@@ -626,7 +661,6 @@ export default {
 
       try {
         if (this.form.id) {
-
           if (
             !this.form.emitted ||
             !this.form.contact ||
@@ -636,6 +670,18 @@ export default {
             this.$buefy.snackbar.open({
               message:
                 "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+              queue: false,
+            });
+            this.isLoading = false;
+            return;
+          }
+
+          const assignedToProjectPhase = this.validateIfProjectPhasesHasDocument()
+
+          if (!assignedToProjectPhase) {
+            this.$buefy.snackbar.open({
+              message:
+                "Error. La factura no està assignada a cap línea del projecte",
               queue: false,
             });
             this.isLoading = false;
@@ -646,18 +692,23 @@ export default {
             `${this.type}/${this.form.id}`,
             this.form
           );
+
+          if (this.shouldSaveProject) {
+            await this.updateProjectPhases(this.form.id)
+          }
+
           this.$buefy.snackbar.open({
             message: "Guardat",
             queue: false,
           });
           this.getData();
         } else {
-          console.log("this.form", this.form);
+          // console.log("this.form", this.form);
           if (
             !this.form.emitted ||
-            !this.form.contact ||
-            !this.form.project ||
-            !this.form.serial
+            (!this.form.contact || (this.form.contact && this.form.contact.id === 0)) ||
+            (!this.form.serial || (this.form.serial && this.form.serial.id === 0)) ||
+            !this.form.project
           ) {
             this.$buefy.snackbar.open({
               message:
@@ -668,10 +719,27 @@ export default {
             return;
           }
 
+          const assignedToProjectPhase = this.validateIfProjectPhasesHasDocument()
+
+          if (!assignedToProjectPhase) {
+            this.$buefy.snackbar.open({
+              message:
+                "Error. La factura no està assignada a cap línea del projecte",
+              queue: false,
+            });
+            this.isLoading = false;
+            return;
+          }
+
           const newProject = await service({ requiresAuth: true }).post(
             this.type,
             this.form
           );
+
+          if (this.shouldSaveProject) {
+            await this.updateProjectPhases(newProject.data.id)
+          }
+
           // console.log('newProject', newProject.data)
           this.$router.push({
             name: `${this.type}.edit`,
@@ -688,62 +756,109 @@ export default {
           }, 100);
         }
       } catch (err) {
-
         this.$buefy.snackbar.open({
-            message: "Error",
-            queue: false,
-          });
-
-        // console.error("projects error", err);
-        // const oldProjectData = await service({ requiresAuth: true }).get(
-        //   `projects?name=${this.form.name}`
-        // );
-        // if (
-        //   oldProjectData &&
-        //   oldProjectData.data &&
-        //   oldProjectData.data.length
-        // ) {
-        //   this.$buefy.snackbar.open({
-        //     message: "Error. El projecte ja existeix",
-        //     queue: false,
-        //   });
-        // } else {
-        //   this.$buefy.snackbar.open({
-        //     message: "Error",
-        //     queue: false,
-        //   });
-        // }
+          message: "Error",
+          queue: false,
+        });
         this.isLoading = false;
       }
     },
     clientSelected(option) {
       if (!option || !option.id) {
-        this.form.contact = null
+        this.form.contact = null;
       }
       delete option.projects;
       delete option.quotes;
       delete option.projectes;
-      this.form.contact = option;      
+      this.form.contact = option;
     },
-    projectSelected(option) {
+    async projectSelected(option) {
       if (!option || !option.id) {
-        this.form.project = null
+        this.form.project = null;
       }
       this.form.project = option.id;
+      setTimeout(async () => {
+        this.isLoadingProject = true;
+        this.project = (
+          await service({ requiresAuth: true }).get(`projects/${option.id}`)
+        ).data;
+        this.projectCopy = this.project
+        this.isLoadingProject = false;
+      }, 150);
     },
     methodSelected(option) {
-      this.form.payment_method = option;      
+      this.form.payment_method = option;
     },
     removeLine(line, j) {
       this.needsUpdate = true;
       this.form.lines = this.form.lines.filter((l, i) => i !== j);
     },
     addLine() {
-      this.form.lines.push(this.getNewLine())
+      this.form.lines.push(this.getNewLine());
     },
+    phasesUpdated(phases) {
+      this.shouldSaveProject = true
+      this.project.phases = phases
+    },
+    validateIfProjectPhasesHasDocument() {
+      var validateIfProjectPhasesHasDocument = false
+      if (this.type === 'emitted-invoices') {
+        this.project.phases.forEach(ph => {
+          ph.subphases.forEach(sph => {
+            if (sph.invoice && sph.invoice.id === this.form.id) {
+              validateIfProjectPhasesHasDocument = true
+            }
+            else if (sph.assign) {
+              validateIfProjectPhasesHasDocument = true
+            }
+          })
+        })
+      }
+      else if (this.type === 'received-invoices') {
+        this.project.phases.forEach(ph => {
+          ph.expenses.forEach(sph => {
+            if (sph.invoice && sph.invoice.id === this.form.id) {
+              validateIfProjectPhasesHasDocument = true
+            }
+            else if (sph.assign) {
+              validateIfProjectPhasesHasDocument = true
+            }
+          })
+        })
+      }
+      return validateIfProjectPhasesHasDocument      
+    },
+    async updateProjectPhases(id) {
+      if (this.type === 'emitted-invoices') {
+        this.project.phases.forEach(ph => {
+          ph.subphases.forEach(sph => {
+            if (sph.assign) {
+              sph.invoice = id
+            }
+          })
+        })
+      }
+      else if (this.type === 'received-invoices') {
+        this.project.phases.forEach(ph => {
+          ph.expenses.forEach(sph => {
+            if (sph.assign) {
+              sph.invoice = id
+            }
+          })
+        })
+      }
+      await service({ requiresAuth: true }).put(`projects/${this.project.id}`, { phases: this.project.phases })
+    },
+    undoProject() {
+      this.isLoadingProject = true;
+      setTimeout(() => {
+        this.project = this.projectCopy
+        this.isLoadingProject = false;
+        this.shouldSaveProject()
+      }, 100)
+    }
   },
 };
 </script>
 <style lang="scss">
-
 </style>

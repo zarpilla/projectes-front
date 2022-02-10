@@ -61,7 +61,7 @@
                       <tr class="t-heading">
                         <td>Concepte</td>
                         <td v-if="showQuantity">Q.</td>
-                        <td v-if="showQuantity || showVat">Preu</td>
+                        <td v-if="showQuantity || showVat">Base</td>
                         <td v-if="showIrpf">IRPF</td>
                         <td v-if="showVat">IVA</td>
                         <td>Total</td>
@@ -95,11 +95,11 @@
                   <td :colspan="5">
                      <table>
                       <tr class="t-heading">
-                        <td>Notes</td>
+                        <td>Mètode de pagament</td>
                       </tr>
                       <tr>
                         <td>
-                        {{ quote.payment_method.invoice_text }}
+                        {{ quote.payment_method.invoice_text.replace(/(?:\r\n|\r|\n)/g, '<br>') }}
                         </td>
                       </tr>
                      </table>
@@ -108,7 +108,7 @@
               </table>
               <div v-if="quote.comments" class="comments global-comments">
                 <div class="more notes">Notes</div>
-                <div class="notes-content" v-html="quote.comments"></div>
+                <div class="notes-content" v-html="quote.comments.replace(/(?:\r\n|\r|\n)/g, '<br>')"></div>
               </div>
               <div v-if="me.invoice_footer" class="comments global-comments quote-footer">
                 <span v-html="me.invoice_footer.replace(/(?:\r\n|\r|\n)/g, '<br>')"></span>
@@ -241,11 +241,12 @@ export default {
 .invoice-box-container{
 box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 border: 1px solid #eee;
+background: #fff;
 }
 .invoice-box {
   max-width: 800px;
-  margin: auto;
-  padding: 30px;
+  margin: 30px;
+  padding: 0px;
   font-size: 16px;
   line-height: 24px;
   font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
@@ -255,7 +256,7 @@ border: 1px solid #eee;
 
 @media print {
   .invoice-box {
-    padding: 30px 0;
+    padding: 0px;
   }
 }
 

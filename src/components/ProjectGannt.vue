@@ -323,7 +323,7 @@ export default {
         const phase = this.project.phases[i]
         for (let j = 0; j < phase.subphases.length; j++) {
           const subphase = phase.subphases[j]
-          console.log('subphase', subphase)
+          // console.log('subphase', subphase)
           const id2 = GSTC.api.GSTCID(('f' + i + 's' + j).toString())
           rows[id2] = {
             id: id2,

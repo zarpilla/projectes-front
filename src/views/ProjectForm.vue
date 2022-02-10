@@ -1,20 +1,5 @@
 <template>
   <div class="project-form">
-    <modal-box-invoicing
-      :is-active="isModalActive"
-      :invoicing-object="invoicingObject"
-      @submit="modalSubmit"
-      @cancel="modalCancel"
-      @delete="modalDelete"
-    />
-    <modal-box-split
-      :is-active="isModalSplitActive"
-      :invoicing-object="invoicingObject"
-      @submit="modalSplitSubmit"
-      @action="modalSplitSubmit"
-      @cancel="modalSplitCancel"
-      @delete="modalSplitDelete"
-    />
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
@@ -551,570 +536,23 @@
         </div>
       </div>
 
-      <card-component v-if="!isLoading" title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST">
-        <b-table
-          :data="form.phases"
-          ref="table"
-          :opened-detailed="[true]"
-          detailed
-          detail-key="opened"
-          :detail-transition="transitionName"
-          :show-detail-icon="false"
-        >
-          <b-table-column field="name" label="Fase" width="500" v-slot="props">
-            <form @submit.prevent="blurPhaseEdit(phase)">
-              <b-input
-                placeholder="Nom de la fase..."
-                v-model="props.row.name"
-                @input="blurPhaseEdit(phase)"
-                class="phase-detail-input"
-              >
-              </b-input>
-            </form>
-          </b-table-column>
-          <b-table-column field="name" label="Total" width="150" v-slot="props">
-            <div
-              class="
-                readonly
-                subphase-detail-input subphase-detail-input-phase-total
-              "
-            >
-              <money-format
-                :value="props.row.total_amount ? props.row.total_amount : 0"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-table-column>
-          <b-table-column
-            field="name"
-            label="Esborrar"
-            width="150"
-            v-slot="props"
-          >
-            <button
-              class="button is-small is-danger"
-              type="button"
-              @click.prevent="removePhase(props.index)"
-            >
-              <b-icon icon="trash-can" size="is-small" />
-            </button>
-          </b-table-column>
-          <template #detail="props">
-            <b-field label="Ingressos" horizontal class="has-text-left">
-            </b-field>
-            <ul class="subphases-list">
-              <li
-                v-for="(subphase, j) in props.row.subphases"
-                :key="j"
-                class="subphase mt-2 mb-2"
-              >
-                <b-field grouped>
-                  <b-field
-                    v-if="
-                      (incomeTypes && incomeTypes.length) ||
-                      (expenseTypes && expenseTypes.length)
-                    "
-                    :label="j == 0 ? 'Tipus' : null"
-                    class="subphase-detail-input"
-                  >
-                    <b-select
-                      v-model="subphase.income_type"
-                      placeholder="Tipus"
-                    >
-                      <option
-                        v-for="(s, index) in incomeTypes"
-                        :key="index"
-                        :value="s"
-                      >
-                        {{ s.name }}
-                      </option>
-                    </b-select>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Concepte' : null"
-                    class="subphase-detail-input-large-field"
-                  >
-                    <b-input
-                      name="SubFase"
-                      placeholder="Nom de la subfase..."
-                      v-model="subphase.concept"
-                      class="subphase-detail-input subphase-detail-input-large"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Quantitat' : null"
-                    class="medium-field"
-                  >
-                    <b-input
-                      name="Unitats"
-                      placeholder="Quantitat, hores, unitats..."
-                      v-model="subphase.quantity"
-                      @input="
-                        changeSubPhase(subphase, 'quantity', subphase.quantity)
-                      "
-                      class="subphase-detail-input"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
-                    <b-input
-                      name="PreuUnitari"
-                      placeholder="Preu per unitat"
-                      v-model="subphase.amount"
-                      @input="
-                        changeSubPhase(
-                          subphase.amount,
-                          'amount',
-                          subphase.amount
-                        )
-                      "
-                      class="subphase-detail-input"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Total' : null"
-                    class="medium-field"
-                  >
-                    <div class="readonly subphase-detail-input">
-                      <money-format
-                        :value="
-                          subphase.quantity * subphase.amount
-                            ? subphase.quantity * subphase.amount
-                            : 0
-                        "
-                        :locale="'es'"
-                        :currency-code="'EUR'"
-                        :subunits-value="false"
-                        :hide-subunits="false"
-                      >
-                      </money-format>
-                    </div>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Data previsió pag.' : null"
-                    v-if="me.options && me.options.treasury"
-                    class="date-field"
-                  >
-                    <b-datepicker
-                      v-model="subphase.date"
-                      :show-week-number="false"
-                      :locale="'ca-ES'"
-                      :first-day-of-week="1"
-                      icon="calendar-today"
-                      placeholder="Data pagament"
-                      @input="input"
-                      trap-focus
-                      editable
-                    >
-                    </b-datepicker>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Accions' : null"
-                    class="medium-field"
-                  >
-                    <button
-                      class="button is-small is-primary ml-2"
-                      type="button"
-                      @click.prevent="
-                        splitSubPhase(props.row, subphase, props.index, j)
-                      "
-                    >
-                      <b-icon icon="arrow-split-horizontal" size="is-small" />
-                    </button>
-                    <button
-                      class="button is-small is-danger ml-2"
-                      type="button"
-                      @click.prevent="removeSubPhase(props.row, subphase, j)"
-                    >
-                      <b-icon icon="trash-can" size="is-small" />
-                    </button>
-                    <button
-                      v-if="j === props.row.subphases.length - 1"
-                      class="button is-small is-primary ml-2"
-                      type="button"
-                      @click.prevent="addSubPhase(props.row)"
-                    >
-                      <b-icon icon="plus-circle" size="is-small" />
-                    </button>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Pagat' : null"
-                    v-if="me.options && me.options.treasury"
-                    class="short-field"
-                  >
-                    <b-checkbox v-model="subphase.paid" class="checkbox-inline">
-                    </b-checkbox>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Document' : null"
-                    v-if="me.options && me.options.treasury"
-                    class="zshort-field"
-                  >
-                    <span
-                      v-if="
-                        me.options &&
-                        me.options.treasury &&
-                        subphase.invoice &&
-                        subphase.invoice.id
-                      "
-                      :title="`Document ${subphase.invoice.code}`"
-                      class="tag is-primary invoice-tag clickable"
-                      @click="
-                        setInvoice(
-                          'incomes',
-                          props.row,
-                          subphase,
-                          props.index,
-                          j
-                        )
-                      "
-                      >F {{ subphase.invoice.code }}</span
-                    >
-                    <span
-                      v-if="
-                        me.options &&
-                        me.options.treasury &&
-                        subphase.grant &&
-                        subphase.grant.id
-                      "
-                      :title="`Document ${subphase.grant.code}`"
-                      class="tag is-primary invoice-tag clickable"
-                      @click="
-                        setInvoice(
-                          'incomes',
-                          props.row,
-                          subphase,
-                          props.index,
-                          j
-                        )
-                      "
-                      >S {{ subphase.grant.code }}</span
-                    >
-                    <span
-                      v-if="
-                        me.options &&
-                        me.options.treasury &&
-                        subphase.paid &&
-                        !subphase.invoice &&
-                        !subphase.grant
-                      "
-                      class="tag is-warning invoice-tag clickable"
-                      @click="
-                        setInvoice(
-                          'incomes',
-                          props.row,
-                          subphase,
-                          props.index,
-                          j
-                        )
-                      "
-                      >{{ "Document" }}</span
-                    >
-                  </b-field>
-                </b-field>
-              </li>
-            </ul>
-            <div
-              class="add-subphase mt-2"
-              v-if="props.row.subphases.length === 0"
-            >
-              <button
-                class="button is-small is-primary"
-                type="button"
-                @click.prevent="addSubPhase(props.row)"
-              >
-                <b-icon icon="plus-circle" size="is-small" />
-              </button>
-            </div>
-            <b-field label="Despeses" horizontal class="has-text-left mt-5">
-            </b-field>
-            <ul class="subphases-list">
-              <li
-                v-for="(subphase, j) in props.row.expenses"
-                :key="j"
-                class="subphase mt-2 mb-2"
-              >
-                <b-field grouped>
-                  <b-field
-                    v-if="
-                      (incomeTypes && incomeTypes.length) ||
-                      (expenseTypes && expenseTypes.length)
-                    "
-                    :label="j == 0 ? 'Tipus' : null"
-                    class="subphase-detail-input"
-                  >
-                    <b-select
-                      v-model="subphase.expense_type"
-                      placeholder="Tipus"
-                    >
-                      <option
-                        v-for="(s, index) in expenseTypes"
-                        :key="index"
-                        :value="s"
-                      >
-                        {{ s.name }}
-                      </option>
-                    </b-select>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Concepte' : null"
-                    class="subphase-detail-input-large-field"
-                  >
-                    <b-input
-                      name="SubFase"
-                      placeholder="Nom de la despesa..."
-                      v-model="subphase.concept"
-                      class="subphase-detail-input subphase-detail-input-large"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Quantitat' : null"
-                    class="medium-field"
-                  >
-                    <b-input
-                      name="Unitats"
-                      placeholder="Quantitat, hores, unitats..."
-                      v-model="subphase.quantity"
-                      @input="
-                        changeSubPhase(subphase, 'quantity', subphase.quantity)
-                      "
-                      class="subphase-detail-input subphase-detail-input-short"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
-                    <b-input
-                      name="PreuUnitari"
-                      placeholder="Preu per unitat"
-                      v-model="subphase.amount"
-                      @input="
-                        changeSubPhase(subphase, 'amount', subphase.amount)
-                      "
-                      class="subphase-detail-input subphase-detail-input-short"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Total' : null"
-                    class="medium-field"
-                  >
-                    <div
-                      class="
-                        readonly
-                        subphase-detail-input subphase-detail-input-short
-                      "
-                    >
-                      <money-format
-                        :value="subphase.quantity * subphase.amount"
-                        :locale="'es'"
-                        :currency-code="'EUR'"
-                        :subunits-value="false"
-                        :hide-subunits="false"
-                      >
-                      </money-format>
-                    </div>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Data previsió pag.' : null"
-                    v-if="me.options && me.options.treasury"
-                    class="date-field"
-                  >
-                    <b-datepicker
-                      v-model="subphase.date"
-                      :show-week-number="false"
-                      :locale="'ca-ES'"
-                      :first-day-of-week="1"
-                      icon="calendar-today"
-                      placeholder="Data pagament"
-                      @input="input"
-                      trap-focus
-                      editable
-                    >
-                    </b-datepicker>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Accions' : null"
-                    class="medium-field"
-                  >
-                    <button
-                      class="button is-small is-primary ml-2"
-                      type="button"
-                      @click.prevent="
-                        splitSubExpense(props.row, subphase, props.index, j)
-                      "
-                    >
-                      <b-icon icon="arrow-split-horizontal" size="is-small" />
-                    </button>
-                    <button
-                      class="button is-small is-danger ml-2"
-                      type="button"
-                      @click.prevent="removeSubExpense(props.row, subphase, j)"
-                    >
-                      <b-icon icon="trash-can" size="is-small" />
-                    </button>
-                    <button
-                      v-if="j === props.row.expenses.length - 1"
-                      class="button is-small is-primary ml-2"
-                      type="button"
-                      @click.prevent="addSubExpense(props.row)"
-                    >
-                      <b-icon icon="plus-circle" size="is-small" />
-                    </button>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Pagat' : null"
-                    v-if="me.options && me.options.treasury"
-                    class="short-field"
-                  >
-                    <b-checkbox v-model="subphase.paid" class="checkbox-inline">
-                    </b-checkbox>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Document' : null"
-                    v-if="me.options && me.options.treasury"
-                  >
-                    <span
-                      v-if="
-                        me.options &&
-                        me.options.treasury &&
-                        subphase.invoice &&
-                        subphase.invoice.id
-                      "
-                      :title="`${subphase.invoice.code}`"
-                      class="tag is-primary invoice-tag clickable"
-                      @click="
-                        setInvoice(
-                          'expenses',
-                          props.row,
-                          subphase,
-                          props.index,
-                          j
-                        )
-                      "
-                      >F {{ subphase.invoice.code }}</span
-                    >
-                    <span
-                      v-if="
-                        me.options &&
-                        me.options.treasury &&
-                        subphase.ticket &&
-                        subphase.ticket.id
-                      "
-                      :title="`${subphase.ticket.code}`"
-                      class="tag is-primary invoice-tag clickable"
-                      @click="
-                        setInvoice(
-                          'expenses',
-                          props.row,
-                          subphase,
-                          props.index,
-                          j
-                        )
-                      "
-                      >T {{ subphase.ticket.code }}</span
-                    >
-                    <span
-                      v-if="
-                        me.options &&
-                        me.options.treasury &&
-                        subphase.diet &&
-                        subphase.diet.id
-                      "
-                      :title="`${subphase.diet.code}`"
-                      class="tag is-primary invoice-tag clickable"
-                      @click="
-                        setInvoice(
-                          'expenses',
-                          props.row,
-                          subphase,
-                          props.index,
-                          j
-                        )
-                      "
-                      >D {{ subphase.diet.code }}</span
-                    >
-                    <span
-                      v-if="
-                        me.options &&
-                        me.options.treasury &&
-                        subphase.paid &&
-                        !subphase.invoice &&
-                        !subphase.ticket &&
-                        !subphase.diet
-                      "
-                      class="tag is-warning invoice-tag clickable"
-                      @click="
-                        setInvoice(
-                          'expenses',
-                          props.row,
-                          subphase,
-                          props.index,
-                          j
-                        )
-                      "
-                      >{{ "Document" }}</span
-                    >
-                  </b-field>
-                </b-field>
-              </li>
-            </ul>
-            <div
-              class="add-subphase mt-2"
-              v-if="props.row.expenses.length === 0"
-            >
-              <button
-                class="button is-small is-primary"
-                type="button"
-                @click.prevent="addSubExpense(props.row)"
-              >
-                <b-icon icon="plus-circle" size="is-small" />
-              </button>
-            </div>
-          </template>
-        </b-table>
+      <card-component v-if="!isLoading && form && form.phases" title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST" :closeIcon="true" >
+        <project-phases :form="form" :project-phases="form.phases" @phases-updated="phasesUpdated" />
+        <hr v-if="form.phases.length && form.original_phases.length === 0">
+        <b-field v-if="form.phases.length && form.original_phases.length === 0">
 
-        <form @submit.prevent="addPhase">
-          <b-field label="Nova Fase" class="mt-5">
-            <b-input
-              placeholder="Nom de la fase..."
-              v-model="phaseToAdd"
-              icon-right="plus-circle"
-              icon-right-clickable
-              @icon-right-click="addPhase"
+          <b-button type="is-warning" @click="closeQuote"
             >
-            </b-input>
-          </b-field>
-        </form>
-        <!-- <div class="quote-summary">
-          <hr />
-          <b-field label="Total Pressupost" class="mt-5">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="totalAmount ? totalAmount : 0"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div> -->
-        <hr />
-        <b-field>
-          <b-button type="is-primary" :loading="isLoading" @click="submit"
-            >Guardar</b-button
+            Tancar Pressupost
+            </b-button
           >
         </b-field>
       </card-component>
 
+      <card-component v-if="!isLoading && form && form.original_phases && form.original_phases.length > 0" title="GESTIÓ ECONÒMICA - PRESSUPOST ORIGINAL" :closeIcon="true" :content-visible="originalPhasesVisible">
+        <project-phases :form="form" :project-phases="form.original_phases" v-if="form.original_phases" @phases-updated="originalPhasesUpdated" mode="simple" />        
+      </card-component>
+            
       <card-component
         v-if="documents && documents.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
@@ -1296,10 +734,6 @@
           Guardar i Actualitzar
           <b-icon icon="refresh" size="is-small" />
         </button>
-        <!-- <pre style="height:600px;width:800px;overflow:scroll">
-            {{ form.phases }}
-          </pre> -->
-        <!-- <project-gannt :project="form" :users="leaders" @gantt-item-update="ganttItemUpdate" @gantt-item-delete="ganttItemDelete" /> -->
         <project-gannt2
           v-if="
             !isLoading &&
@@ -1312,7 +746,7 @@
           class="left-container"
           :project="form"
           :users="leaders"
-          :tasks="tasks"
+          :tasks="{}"
           @gantt-item-update="ganttItemUpdate"
           @gantt-item-delete="ganttItemDelete"
         />
@@ -1332,21 +766,14 @@
 </template>
 
 <script>
-// import axios from 'axios'
 import dayjs from "dayjs";
-// import find from 'lodash/find'
 import TitleBar from "@/components/TitleBar";
-// import HeroBar from '@/components/HeroBar'
-// import Tiles from '@/components/Tiles'
 import CardComponent from "@/components/CardComponent";
-// import FilePicker from '@/components/FilePicker'
-// import UserAvatar from '@/components/UserAvatar'
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
-// import ProjectGannt from '@/components/ProjectGannt.vue'
 import ProjectGannt2 from "@/components/ProjectGannt2.vue";
-// import CurrencyInput from '@/components/CurrencyInput'
+import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "vue-money-format";
 import { EventBus } from "@/service/event-bus.js";
 import sumBy from "lodash/sumBy";
@@ -1357,19 +784,13 @@ import sortBy from "lodash/sortBy";
 export default {
   name: "ProjectForm",
   components: {
-    // UserAvatar,
-    // FilePicker,
     CardComponent,
-    // Tiles,
-    // HeroBar,
     TitleBar,
-    // ProjectGannt,
     MoneyFormat,
     ModalBoxInvoicing,
     ModalBoxSplit,
     ProjectGannt2,
-    // CurrencyInput
-    // Notification
+    ProjectPhases
   },
   props: {
     id: {
@@ -1403,29 +824,11 @@ export default {
       showDetailIcon: true,
       useTransition: false,
       selected: new Date(),
-      tasks: {
-        data: [
-          {
-            id: 1,
-            text: "Task #1",
-            start_date: "2020-01-17",
-            duration: 3,
-            progress: 0.6,
-          },
-          {
-            id: 2,
-            text: "Task #2",
-            start_date: "2020-01-20",
-            duration: 3,
-            progress: 0.4,
-          },
-        ],
-        links: [{ id: 1, source: 1, target: 2, type: "0" }],
-      },
       invoicingObject: {},
       isModalActive: false,
       isModalSplitActive: false,
       newTask: "",
+      originalPhasesVisible: false
     };
   },
   computed: {
@@ -1703,49 +1106,6 @@ export default {
     this.getData();
   },
   methods: {
-    blurPhase(phase) {
-      this.form.phases.forEach((p) => {
-        p.edit = false;
-      });
-      if (phase) {
-        phase.edit = true;
-      }
-    },
-    blurPhaseEdit(phase) {
-      this.needsUpdate = true;
-      this.blurPhase(null);
-      // this.$emit('update')
-    },
-    changeSubPhase(subphase, field, value) {
-      if (value && value.toString().includes(",")) {
-        subphase[field] = value.toString().replace(",", ".");
-      }
-      this.form.phases = this.form.phases.map((r) => {
-        return {
-          ...r,
-          opened: true,
-          total_amount:
-            sumBy(r.subphases, (x) => x.quantity * x.amount) -
-            sumBy(r.expenses, (x) => x.quantity * x.amount),
-        };
-      });
-    },
-    addPhase() {
-      this.needsUpdate = true;
-      this.form.phases.push({
-        name: this.phaseToAdd,
-        edit: false,
-        opened: true,
-        subphases: [],
-        expenses: [],
-        total_amount: 0,
-      });
-      this.phaseToAdd = "";
-    },
-    removePhase(i) {
-      this.needsUpdate = true;
-      this.form.phases = this.form.phases.filter((p, j) => i !== j);
-    },
     getClearFormObject() {
       return {
         id: null,
@@ -1838,9 +1198,7 @@ export default {
                     return { ...r, expenses: [] };
                   });
                 }
-                if (this.form.default_dedication_type === null) {
-                  this.form.default_dedication_type = { id: 0 }
-                }
+                
 
                 if (mustUpdate) {
                   // await this.submit()
@@ -1860,34 +1218,9 @@ export default {
                 });
               }
 
-              this.form.phases = this.form.phases.map((r) => {
-                return {
-                  ...r,
-                  opened: true,
-                  total_amount:
-                    sumBy(r.subphases, "total_amount") -
-                    sumBy(r.expenses, "total_amount"),
-                };
-              });
-
-              this.form.phases.forEach((p) => {
-                p.subphases.forEach((s) => {
-                  if (s.date) {
-                    s.date = moment(s.date, "YYYY-MM-DD").toDate();
-                  }
-                });
-                p.expenses.forEach((s) => {
-                  if (s.date) {
-                    s.date = moment(s.date, "YYYY-MM-DD").toDate();
-                  }
-                });
-              });
-
-              // this.form.expenses.forEach(e => {
-              //   if (e.date) {
-              //     e.date = moment(e.date, 'YYYY-MM-DD').toDate()
-              //   }
-              // })
+              if (this.form.default_dedication_type === null) {
+                this.form.default_dedication_type = { id: 0 }
+              }
 
               if (this.form.date_start) {
                 this.form.date_start = moment(
@@ -1939,16 +1272,16 @@ export default {
         .then((r) => {
           this.strategies = r.data;
         });
-      service({ requiresAuth: true })
-        .get("expense-types")
-        .then((r) => {
-          this.expenseTypes = r.data;
-        });
-      service({ requiresAuth: true })
-        .get("income-types")
-        .then((r) => {
-          this.incomeTypes = r.data;
-        });
+      // service({ requiresAuth: true })
+      //   .get("expense-types")
+      //   .then((r) => {
+      //     this.expenseTypes = r.data;
+      //   });
+      // service({ requiresAuth: true })
+      //   .get("income-types")
+      //   .then((r) => {
+      //     this.incomeTypes = r.data;
+      //   });
       service({ requiresAuth: true })
         .get("dedication-types")
         .then((r) => {
@@ -1957,14 +1290,18 @@ export default {
         
 
     },
-    input(v) {
-      this.createdReadable = dayjs(v).format("MMM D, YYYY");
-    },
+    // input(v) {
+    //   this.createdReadable = dayjs(v).format("MMM D, YYYY");
+    // },
     async submit() {
       this.isLoading = true;
 
       if (!this.form.structural_expenses_pct) {
         this.form.structural_expenses_pct = null;
+      }
+      //console.log('type default_dedication_type', typeof this.form.default_dedication_type, this.form.default_dedication_type)
+      if (this.form.default_dedication_type && typeof this.form.default_dedication_type === 'object' && !this.form.default_dedication_type.id) {
+        this.form.default_dedication_type = null;
       }
 
       try {
@@ -2084,54 +1421,7 @@ export default {
       this.form.strategies = this.form.strategies.filter(
         (c) => c.id !== option.id
       );
-    },
-    removeSubPhase(phase, subphase, j) {
-      this.needsUpdate = true;
-      phase.subphases = phase.subphases.filter((s, i) => i !== j);
-    },
-    removeSubExpense(phase, subphase, j) {
-      this.needsUpdate = true;
-      phase.expenses = phase.expenses.filter((s, i) => i !== j);
-    },
-    removeExpense(expense, j) {
-      this.form.expenses = this.form.expenses.filter((s, i) => i !== j);
-    },
-    addExpense(expense) {
-      this.form.expenses.push({
-        concept: "",
-        quantity: 1,
-        amount: 0,
-        expense_type: null,
-      });
-    },
-    addSubPhase(phase) {
-      this.needsUpdate = true;
-      phase.subphases.push({ concept: "", quantity: 1, amount: 0 });
-    },
-    addSubExpense(phase) {
-      this.needsUpdate = true;
-      phase.expenses.push({ concept: "", quantity: 1, amount: 0 });
-    },
-    splitSubPhase(phase, subphase, i, j) {
-      this.invoicingObject = {
-        phase,
-        subphase,
-        i,
-        j,
-        type: "income",
-      };
-      this.isModalSplitActive = true;
-    },
-    splitSubExpense(phase, subphase, i, j) {
-      this.invoicingObject = {
-        phase,
-        subphase,
-        i,
-        j,
-        type: "expense",
-      };
-      this.isModalSplitActive = true;
-    },
+    },    
     updateGantt() {
       EventBus.$emit("zphases-updated", {});
       this.isUpdating = true;
@@ -2247,156 +1537,8 @@ export default {
         ? this.clients.find((c) => c.id === invoice.contact).name
         : "";
     },
-    setInvoice(type, phase, subphase, i, j) {
-      this.invoicingObject = {
-        type,
-        phase,
-        subphase,
-        i,
-        j,
-        emitted_invoices: this.form.emitted_invoices,
-        received_invoices: this.form.received_invoices,
-        received_grants: this.form.received_grants,
-        diets: this.form.diets,
-        tickets: this.form.tickets,
-        contacts: this.clients,
-      };
-      this.isModalActive = true;
-    },
-    async modalSubmit(invoicing) {
-      console.log("invoicing", invoicing);
-      if (this.invoicingObject.type === "incomes") {
-        const phase = this.form.phases.find(
-          (p, idx) => idx === this.invoicingObject.i
-        );
-        const subphase = phase.subphases.find(
-          (p, idx) => idx === this.invoicingObject.j
-        );
-        subphase.paid = true;
-        subphase.invoice = invoicing.emitted;
-        subphase.grant = invoicing.grant;
-      } else if (this.invoicingObject.type === "expenses") {
-        const phase = this.form.phases.find(
-          (p, idx) => idx === this.invoicingObject.i
-        );
-        const subphase = phase.expenses.find(
-          (p, idx) => idx === this.invoicingObject.j
-        );
-        subphase.paid = true;
-        subphase.invoice = invoicing.received;
-        subphase.ticket = invoicing.ticket;
-        subphase.diet = invoicing.diet;
-      }
-      this.isModalActive = false;
-    },
-    async modalDelete(activity) {
-      this.isModalActive = false;
-    },
-    modalCancel() {
-      this.isModalActive = false;
-    },
     formatDate(value) {
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
-    },
-    async modalSplitSubmit(action) {
-      // console.log('action',action)
-      if (action.type === "income") {
-        if (action.action === "x2") {
-          const newIncome = {
-            income_type: action.subphase.income_type,
-            concept: action.subphase.concept,
-            amount: action.subphase.amount,
-            quantity: action.subphase.quantity,
-          };
-          this.form.phases[action.i].subphases.splice(
-            action.j + 1,
-            0,
-            newIncome
-          );
-        } else if (action.action === "x12") {
-          for (let i = 0; i < 12; i++) {
-            const newIncome = {
-              income_type: action.subphase.income_type,
-              concept: action.subphase.concept,
-              amount: action.subphase.amount,
-              quantity: action.subphase.quantity,
-              date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
-            };
-            this.form.phases[action.i].subphases.splice(
-              action.j + 1,
-              0,
-              newIncome
-            );
-          }
-        } else if (action.action === "split") {
-          const newIncome = {
-            income_type: action.subphase.income_type,
-            concept: action.subphase.concept,
-            amount: action.amount,
-            quantity: action.subphase.quantity,
-          };
-          this.form.phases[action.i].subphases[action.j].amount =
-            this.form.phases[action.i].subphases[action.j].amount -
-            action.amount;
-          this.form.phases[action.i].subphases.splice(
-            action.j + 1,
-            0,
-            newIncome
-          );
-        }
-      } else if (action.type === "expense") {
-        if (action.action === "x2") {
-          const newIncome = {
-            expense_type: action.subphase.expense_type,
-            concept: action.subphase.concept,
-            amount: action.subphase.amount,
-            quantity: action.subphase.quantity,
-          };
-          this.form.phases[action.i].expenses.splice(
-            action.j + 1,
-            0,
-            newIncome
-          );
-        } else if (action.action === "x12") {
-          for (let i = 0; i < 12; i++) {
-            const newIncome = {
-              expense_type: action.subphase.expense_type,
-              concept: action.subphase.concept,
-              amount: action.subphase.amount,
-              quantity: action.subphase.quantity,
-              date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
-            };
-            this.form.phases[action.i].expenses.splice(
-              action.j + 1,
-              0,
-              newIncome
-            );
-          }
-        } else if (action.action === "split") {
-          const newIncome = {
-            expense_type: action.subphase.expense_type,
-            concept: action.subphase.concept,
-            amount: action.amount,
-            quantity: action.subphase.quantity,
-          };
-          this.form.phases[action.i].expenses[action.j].amount =
-            this.form.phases[action.i].expenses[action.j].amount -
-            action.amount;
-          this.form.phases[action.i].expenses.splice(
-            action.j + 1,
-            0,
-            newIncome
-          );
-        }
-      }
-
-      this.isModalSplitActive = false;
-    },
-    async modalSplitDelete(invoicing) {
-      this.isModalSplitActive = false;
-    },
-    async modalSplitCancel() {
-      this.isModalSplitActive = false;
     },
     async addTask() {
       if (this.newTask) {
@@ -2413,6 +1555,26 @@ export default {
         (t) => t.id !== task.id
       );
     },
+    phasesUpdated(phases) {
+      this.form.phases = phases
+    },
+    originalPhasesUpdated(phases) {
+      this.form.original_phases = phases
+    },
+    closeQuote() {
+      this.originalPhasesVisible = true
+      this.form.original_phases = this.form.phases
+      this.form.original_phases.forEach(p => {
+        delete p.id
+        p.subphases.forEach(sp => {
+          delete sp.id
+        })
+        p.expenses.forEach(sp => {
+          delete sp.id
+        })
+      })
+      console.log('closeQuote', this.form.original_phases)
+    }
   },
 };
 </script>
