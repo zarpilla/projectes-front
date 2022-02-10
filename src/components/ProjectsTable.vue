@@ -47,9 +47,9 @@
       </b-table-column>
       <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
         <div class="buttons is-right">
-          <router-link :to="{name:'project.edit', params: {id: props.row.id}}" class="button is-small is-primary">
+          <!-- <router-link :to="{name:'project.edit', params: {id: props.row.id}}" class="button is-small is-primary">
             <b-icon icon="account-edit" size="is-small"/>
-          </router-link>
+          </router-link> -->
           <button class="button is-small is-danger" type="button" @click.prevent="trashModal(props.row)">
             <b-icon icon="trash-can" size="is-small"/>
           </button>
