@@ -47,6 +47,7 @@
                 placeholder="Hores"
                 name="hours"
                 required
+                @input="fixDecimals('hours', form.hours)"
               />
             </b-field>
 
@@ -54,7 +55,8 @@
               <b-input
                 v-model="form.monthly_salary"
                 placeholder="Salari base mensual jornada completa (€)"
-                name="monthly_salary"                
+                name="monthly_salary"
+                @input="fixDecimals('monthly_salary', form.monthly_salary)"
               />
             </b-field>
 
@@ -62,7 +64,8 @@
               <b-input
                 v-model="form.costByHour"
                 placeholder="Cost"
-                name="cost"                
+                name="cost"
+                @input="fixDecimals('costByHour', form.costByHour)"
               />
             </b-field>
 
@@ -216,6 +219,11 @@ export default {
       this.isDeleteModalActive = false
       this.isModalActive = true
       this.$emit('delete', this.form)
+    },
+    fixDecimals(field, value) {
+      if (value && value.toString().includes(",")) {
+        this.form[field] = value.toString().replace(",", ".");
+      }
     }
   }
 }

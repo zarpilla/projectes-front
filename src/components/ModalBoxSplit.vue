@@ -19,6 +19,7 @@
                 placeholder="Preu per unitat"
                 v-model="newAmount"                
                 class="subphase-detail-input"
+                @input="fixDecimals(newAmount)"
               >
               </b-input>
             </b-field>
@@ -212,7 +213,12 @@ export default {
     async trashConfirm() {
       this.isDeleteModalActive = false;
       this.$emit("delete", this.form);
-    }
+    },
+    fixDecimals(value) {
+      if (value && value.toString().includes(",")) {
+        this.newAmount = value.toString().replace(",", ".");
+      }
+    }    
   },
 };
 </script>

@@ -12,6 +12,7 @@
                 placeholder="Hores"
                 name="hours"
                 required
+                @input="fixDecimals('quantity', form.quantity)"
               />
             </b-field>
             <b-field label="Persona" horizontal>
@@ -33,6 +34,7 @@
                 v-model="form.amount"
                 placeholder="Cost/hora (€)"
                 name="hours"
+                @input="fixDecimals('amount', form.amount)"
               />
             </b-field>
             <b-field label="Descripció" horizontal>
@@ -234,6 +236,11 @@ export default {
       this.isDeleteModalActive = false
       this.isModalActive = true
       this.$emit('delete', this.form)
+    },
+    fixDecimals(field, value) {
+      if (value && value.toString().includes(",")) {
+        this.form[field] = value.toString().replace(",", ".");
+      }
     }
   }
 }
