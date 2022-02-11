@@ -135,7 +135,7 @@
                       v-model="subphase.amount"
                       @input="
                         changeSubPhase(
-                          subphase.amount,
+                          subphase,
                           'amount',
                           subphase.amount
                         )
