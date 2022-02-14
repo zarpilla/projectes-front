@@ -15,6 +15,9 @@ const config = {
       name: 'project_client',
       expand: false
     }, {
+      name: 'dedication_type',
+      expand: false
+    }, {
       name: 'year',
       expand: false
     }, {
@@ -92,6 +95,9 @@ const config = {
           },
           username: {
             caption: 'Persones (TOTES)'
+          },
+          dedication_type: {
+            caption: 'Tipus Dedicació (TOTES)'
           }
         },
         measures: {
@@ -101,11 +107,13 @@ const config = {
           },
           'Hores reals': {
             field: 'hours',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: "{0:n2}" 
           },
           'Hores previstes': {
             field: 'estimated_hours',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: "{0:n2}" 
           }
         }
       }

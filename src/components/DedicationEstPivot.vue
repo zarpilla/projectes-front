@@ -44,7 +44,7 @@ export default {
     return {
       projects: [],
       projectsList: [],
-      dedicationTypes: {},
+      dedicationTypes: [],
       activityTypes: {},
       users: [],
       usersList: [],
@@ -98,6 +98,7 @@ export default {
 
       this.scopes = (await service({ requiresAuth: true }).get('project-scopes')).data
       this.states = (await service({ requiresAuth: true }).get('project-states')).data
+      this.dedicationTypes = (await service({ requiresAuth: true }).get('dedication-types')).data
       this.leaders = (await service({ requiresAuth: true }).get('users')).data
       this.contacts = (await service({ requiresAuth: true }).get('contacts?_limit=-1')).data
 
@@ -111,9 +112,10 @@ export default {
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)
         const activities = []
-        const projects = r.data.forEach(p => {
+        const projects = r.data.forEach(p => {          
           if (p.activities) {
             p.activities.forEach(a => {
+              // console.log('p.activities a', a)
               if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) && (this.month === 0 || (this.month > 0 && a.date && parseInt(moment(a.date).format('MM')) === this.month))) {
                 const activity = {
                   project_name: p.name,
@@ -130,7 +132,8 @@ export default {
                   day: a.date ? moment(a.date).format('DD').toString() : 0,
                   date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
                   username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
-                  count: 1
+                  count: 1,
+                  dedication_type: a.dedication_type && this.dedicationTypes.length ? this.dedicationTypes.find(d => d.id === a.dedication_type).name : '-'
                 }
                 activities.push(activity)
               }
@@ -162,8 +165,8 @@ export default {
                           date: '-',
                           hours: 0,
                           estimated_hours: h.quantity && mdiff > 0 ? h.quantity / mdiff : 0,
-                          dedication_type: '-',
-                          username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-'
+                          username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
+                          dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
                         }
                         activities.push(activity)
                       }
@@ -194,8 +197,8 @@ export default {
                   date: '-',
                   hours: 0,
                   estimated_hours: a.quantity ? a.quantity : 0,
-                  dedication_type: '-',
-                  username: a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-'
+                  username: a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-',
+                  dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
                 }
                 activities.push(activity)
               }
