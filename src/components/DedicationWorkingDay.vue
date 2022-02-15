@@ -8,9 +8,23 @@
       @delete="modalDelete"
       :users="users"
     />
+    <b-field label="Modificable" zhorizontal>
+      <b-switch v-model="updatable"> </b-switch>
+    </b-field>
     <div class="gannt-container" v-if="showGantt">
       <div class="gantt" :id="ganttId"></div>      
-    </div>    
+    </div>
+    <div class="help">
+      <b-icon icon="help-circle-outline" custom-size="default" />
+      <b>Com funciona?</b><br>      
+      Fent click sobre el nom de la persona o en cadascun dels períodes ja definits (blau) es pot editar el període, les hores diaries de treball, el salari base i el cost hora.
+      <br><br>
+      <b-icon icon="help-circle-outline" custom-size="default" />
+      <b>Per què cal marcar abans la casella de modificable?</b><br>
+      Modificar les jornades laborals o els salaris de períodes passats pot afectar a les bestretes actuals i sobretot, a les anteriors, per això cal que estiguis segura del que vas a fer.
+
+    </div>
+
   </div>
 </template>
 
@@ -39,7 +53,8 @@ export default {
       tasks: {},
       showGantt: false,
       ganttId: '',
-      users: []
+      users: [],
+      updatable: false
     }
   },
   async mounted () {
@@ -107,6 +122,9 @@ export default {
       ]
 
       gantt.attachEvent("onTaskClick", (id, e) => {
+        if (!this.updatable) {
+          return
+        }
         this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
         if (this.dedicationObject._dedication.users_permissions_user && !this.dedicationObject._dedication.hours) {
           const usersTask = this.tasks.data.filter(d => d._dedication && d._dedication.users_permissions_user.id === this.dedicationObject._dedication.users_permissions_user.id).map(t => { return t._dedication})
@@ -115,15 +133,14 @@ export default {
               return o.from;
             })
             if (lastTask) {
-              this.dedicationObject._dedication.from = moment(lastTask.to, 'YYYY-MM-YY').add(1, 'days')
+              this.dedicationObject._dedication.from = moment(lastTask.to, 'YYYY-MM-DD').add(1, 'days')
               this.dedicationObject._dedication.hours = lastTask.hours
               this.dedicationObject._dedication.costByHour = lastTask.costByHour
               this.dedicationObject._dedication.monthly_salary = lastTask.monthly_salary
             }
           }
-          console.log('usersTask', usersTask)
         }
-        console.log('this.dedicationObject', this.dedicationObject)
+        
         this.isModalActive = true        
         return true;
       }, {id: "onTaskClick"});

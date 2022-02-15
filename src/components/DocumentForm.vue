@@ -534,6 +534,7 @@ export default {
         paybefore: null,
         contact: { id: 0 },
         lines: [this.getNewLine()],
+        updatable: true
       };
     },
     getNewLine() {
@@ -636,17 +637,17 @@ export default {
     },
     async getAuxiliarData() {
       // console.log("getAuxiliarData");
-      this.series = (await service({ requiresAuth: true }).get("series")).data;
+      this.series = (await service({ requiresAuth: true }).get("series?_sort=name:DESC")).data;
       this.paymentMethods = (
         await service({ requiresAuth: true }).get("payment-methods")
       ).data;
       this.projects = (
         await service({ requiresAuth: true }).get(
-          "projects/basic?_limit=-1&project_state=1"
+          "projects/basic?_limit=-1&project_state=1&_sort=name:ASC"
         )
       ).data;
       this.clients = (
-        await service({ requiresAuth: true }).get("contacts?_limit=-1")
+        await service({ requiresAuth: true }).get("contacts?_limit=-1&_sort=name:ASC")
       ).data;
 
       // service({ requiresAuth: true })

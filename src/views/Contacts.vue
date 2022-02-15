@@ -42,7 +42,7 @@ export default {
   },
   mounted () {
     this.isLoading = true
-    service({ requiresAuth: true }).get('years').then((r) => {
+    service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
       this.years = r.data
       this.filters.year = this.years.find(y => y.year.toString() === moment().format('YYYY'))
       this.isLoading = false

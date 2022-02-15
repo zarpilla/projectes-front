@@ -78,7 +78,7 @@ export default {
     },    
     async getData() {
       this.isLoading = true;      
-      this.contacts = (await service({ requiresAuth: true }).get(`contacts?_limit=-1`)).data;
+      this.contacts = (await service({ requiresAuth: true }).get(`contacts?_limit=-1&_sort=name:ASC`)).data;
       this.contactsCSV = this.contacts
       // .map((e) => {
       //   return {

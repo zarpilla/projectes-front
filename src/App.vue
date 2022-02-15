@@ -96,6 +96,11 @@ export default {
             label: 'Previsió (Gantt)'
           },
           {
+            to: '/working-day',
+            icon: 'table',
+            label: 'Jornades'
+          },
+          {
             to: '/dedicacio-saldo',
             icon: 'table',
             label: 'Saldo hores'
@@ -104,11 +109,6 @@ export default {
             to: '/dedicacio-summary',
             icon: 'table',
             label: 'Hores anuals'
-          },
-          {
-            to: '/working-day',
-            icon: 'table',
-            label: 'Jornades'
           },
           {
             to: '/salary',

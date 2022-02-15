@@ -1263,7 +1263,7 @@ export default {
           this.leaders = r.data.filter((u) => u.hidden !== true);
         });
       service({ requiresAuth: true })
-        .get("contacts?_limit=-1")
+        .get("contacts?_limit=-1&_sort=name:ASC")
         .then((r) => {
           this.clients = r.data;
         });

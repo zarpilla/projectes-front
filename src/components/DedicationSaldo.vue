@@ -1,26 +1,6 @@
 <template>
   <div>
-    <div class="table-view">      
-      <!-- <card-component
-        class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Tipus</div>
-          <div class="column has-text-weight-bold">Hores</div>
-        </div>
-        <div v-for="(value, key) in summary" v-bind:key="key" class="card-body">
-          <div class="columns">
-            <div class="column">
-              {{ key }}
-            </div>
-            <div class="column">
-              {{ value }}
-            </div>
-          </div>
-        </div>
-      </card-component> -->
-
+    <div class="table-view">
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="!isLoading"
@@ -28,9 +8,8 @@
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Data</div>
           <div class="column has-text-weight-bold">Hores teòriques</div>
-          <div class="column has-text-weight-bold">Hores treballades</div>
+          <div class="column has-text-weight-bold">Hores treballades dia</div>
           <div class="column has-text-weight-bold">Total hores treballades</div>
-          <div class="column has-text-weight-bold">Bestreta Diaria</div>
           <div class="column has-text-weight-bold">Saldo hores</div>
         </div>
         <div v-for="(d, i) in dates" v-bind:key="i" class="card-body">
@@ -48,9 +27,6 @@
             <div class="column">
               {{ d.totalWorkedHours.toFixed(2) }}
             </div>
-            <div class="column">
-              {{ d.costByDay.toFixed(2) }}
-            </div>            
             <div class="column">
               {{ d.balance.toFixed(2) }}
             </div>

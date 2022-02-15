@@ -58,43 +58,6 @@
           </div>
         </div>
       </card-component>
-
-      <!-- <card-component
-        class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Data</div>
-          <div class="column has-text-weight-bold">Hores teòriques</div>
-          <div class="column has-text-weight-bold">Hores treballades</div>
-          <div class="column has-text-weight-bold">Total hores treballades</div>
-          <div class="column has-text-weight-bold">Bestreta Diaria</div>
-          <div class="column has-text-weight-bold">Saldo hores</div>
-        </div>
-        <div v-for="(d, i) in dates" v-bind:key="i" class="card-body">
-          <div class="columns">
-            <div class="column">
-              {{ d.date }}
-            </div>
-            <div class="column">
-              {{ d.theoricHours.toFixed(2) }}
-              {{ d.dateDescription ? `- ${d.dateDescription}` : "" }}
-            </div>
-            <div class="column">
-              {{ d.workedHours.toFixed(2) }}
-            </div>
-            <div class="column">
-              {{ d.totalWorkedHours.toFixed(2) }}
-            </div>
-            <div class="column">
-              {{ d.costByDay.toFixed(2) }}
-            </div>            
-            <div class="column">
-              {{ d.balance.toFixed(2) }}
-            </div>
-          </div>
-        </div>
-      </card-component> -->
     </div>
   </div>
 </template>

@@ -90,13 +90,13 @@ export default {
         this.filters.project_state = defaultProjectState
         this.isLoading1 = false
       })
-      service({ requiresAuth: true }).get('years').then((r) => {
+      service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
         this.years = r.data.map(y => { return { ...y, display: y.year } })
         this.years.unshift({ id: 0, year: 0, display: 'Tots' })
         this.filters.year = parseInt(moment().format('YYYY'))
         this.isLoading2 = false
       })
-      service({ requiresAuth: true }).get('months').then((r) => {
+      service({ requiresAuth: true }).get('months?_sort=name:DESC').then((r) => {
         this.months = r.data.map(y => { return { ...y, display: `${y.month_number} - ${y.name}` } })
         this.months.unshift({ id: 0, month: 0, display: 'Tots' })
         this.filters.month = 0

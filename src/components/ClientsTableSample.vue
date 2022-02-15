@@ -106,7 +106,7 @@ export default {
     }
   },
   mounted () {
-    service({ requiresAuth: true }).get('contacts?_limit=-1').then((r) => {
+    service({ requiresAuth: true }).get('contacts?_limit=-1&_sort=name:ASC').then((r) => {
       this.isLoading = false
       if (r.data && r.data) {
         if (r.data.length > this.perPage) {

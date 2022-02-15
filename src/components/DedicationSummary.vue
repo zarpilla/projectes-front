@@ -1,9 +1,15 @@
 <template>
   <div>
-    <div class="table-view">      
+    <div class="table-view">
+      
+      <div class="alert" v-if="warn">
+        <b-icon icon="alert-circle"></b-icon>
+        Atenció, abans de consultar el resum d'hores anuals cal definir la <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de tot l'any.
+      </div>
+      
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading"
+        v-if="!isLoading && !warn"
       >
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Tipus</div>
@@ -24,43 +30,6 @@
           </div>
         </div>
       </card-component>
-
-      <!-- <card-component
-        class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Data</div>
-          <div class="column has-text-weight-bold">Hores teòriques</div>
-          <div class="column has-text-weight-bold">Hores treballades</div>
-          <div class="column has-text-weight-bold">Total hores treballades</div>
-          <div class="column has-text-weight-bold">Bestreta Diaria</div>
-          <div class="column has-text-weight-bold">Saldo hores</div>
-        </div>
-        <div v-for="(d, i) in dates" v-bind:key="i" class="card-body">
-          <div class="columns">
-            <div class="column">
-              {{ d.date }}
-            </div>
-            <div class="column">
-              {{ d.theoricHours.toFixed(2) }}
-              {{ d.dateDescription ? `- ${d.dateDescription}` : "" }}
-            </div>
-            <div class="column">
-              {{ d.workedHours.toFixed(2) }}
-            </div>
-            <div class="column">
-              {{ d.totalWorkedHours.toFixed(2) }}
-            </div>
-            <div class="column">
-              {{ d.costByDay.toFixed(2) }}
-            </div>            
-            <div class="column">
-              {{ d.balance.toFixed(2) }}
-            </div>
-          </div>
-        </div>
-      </card-component> -->
     </div>
   </div>
 </template>
@@ -113,6 +82,7 @@ export default {
       // dailyDedications: [],
       dates: [],
       summary: {},
+      warn: false
     };
   },
   computed: {
@@ -174,8 +144,7 @@ export default {
           const yearDetails = (
             await service({ requiresAuth: true }).get(`years?_where[year_eq]=${this.year}`)
           ).data[0];
-          console.log('yearDetails', yearDetails)
-
+          
           const festiveTypes = (
             await service({ requiresAuth: true }).get('festive-types?_limit=-1')
           ).data;
@@ -201,6 +170,7 @@ export default {
           var totalWorkedHours = 0
           var laborableDays = 0
           var laborableHours = 0
+          this.warn = false;
           allDates.forEach((d) => {
             const date = moment(d).format("YYYY-MM-DD");
             const day = moment(d).day()
@@ -208,6 +178,10 @@ export default {
             const dailyDedication = dailyDedications.find(
                   (dd) => date >= dd.from && date <= dd.to
             );
+            if (!dailyDedication) {
+              this.warn = true
+              console.warn('date!', date)
+            }
             // const festive = festives.find((f) => f.date === date);
             const theoricHours =
                   !festive && dailyDedication && day !== 0 && day !== 6
@@ -216,8 +190,7 @@ export default {
             laborableHours += dailyDedication && day !== 0 && day !== 6
                     ? dailyDedication.hours
                     : 0;
-
-            if (festive) {
+            if (festive && dailyDedication) {              
               this.summary[festive.festive_type.name].hours += dailyDedication.hours
               this.summary[festive.festive_type.name].days++
             }
@@ -233,7 +206,7 @@ export default {
           this.summary['Laborables (Dl-Dv)'] = { hours: totalWorkedHours.toFixed(2), days: totalWorkedDays}
           
           this.summary['Màxim Conveni'] = { hours: (yearDetails.working_hours * ratio).toFixed(2), days: yearDetails.working_hours / 8 };
-          this.summary['Lliure Elecció Disponibles'] = { hours: (totalWorkedHours - yearDetails.working_hours * ratio).toFixed(2), days: totalWorkedDays - yearDetails.working_hours / 8 };
+          this.summary['Saldo pendent assignar'] = { hours: (totalWorkedHours - yearDetails.working_hours * ratio).toFixed(2), days: totalWorkedDays - yearDetails.working_hours / 8 };
 
           this.isLoading = false;
            

@@ -363,7 +363,7 @@ export default {
         await service({ requiresAuth: true }).get("emitted-grants?_limit=-1")
       ).data;
       this.contacts = (
-        await service({ requiresAuth: true }).get("contacts?_limit=-1")
+        await service({ requiresAuth: true }).get("contacts?_limit=-1&_sort=name:ASC")
       ).data;
 
       service({ requiresAuth: true })
