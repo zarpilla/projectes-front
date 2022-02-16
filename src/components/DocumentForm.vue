@@ -1,9 +1,9 @@
 <template>
-  <div class="document-form">
+  <div class="document-form" v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
-        <div class="column is-full" v-if="!isLoading">
+        <div class="column is-full">
           <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
             <b-field label="Número" horizontal>
               <b-input v-model="form.code" placeholder="" disabled />
@@ -675,10 +675,12 @@ export default {
           });
       }
 
+      this.isLoading = true;
+
       await this.getAuxiliarData();
 
       if (this.$route.params.id && this.$route.params.id > 0) {
-        this.isLoading = true;
+        
         service({ requiresAuth: true })
           .get(`${this.type}/${this.$route.params.id}`)
           .then(async (r) => {
@@ -748,7 +750,7 @@ export default {
             }
           });
       } else {
-        // this.getAuxiliarData();
+        this.isLoading = false;
       }
     },
     async getAuxiliarData() {
