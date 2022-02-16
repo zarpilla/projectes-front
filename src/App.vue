@@ -43,24 +43,14 @@ export default {
             label: 'Contactes'
           },
           {
-            to: '/stats-projectes',
-            icon: 'table',
-            label: 'Taula dinàmica'
+            to: '/dedicacio',
+            label: 'Hores dedicades',
+            icon: 'table'
           },
           {
-            to: '/stats-despeses',
+            to: '/working-day',
             icon: 'table',
-            label: 'Despeses'
-          },
-          {
-            to: '/stats-estrategies',
-            icon: 'table',
-            label: 'Estratègies'
-          },
-          {
-            to: '/stats-intercoop',
-            icon: 'table',
-            label: 'Intercooperació'
+            label: 'Jornades'
           },
           {
             href: `${process.env.VUE_APP_API_URL || 'http://localhost:1337'}/admin`,
@@ -68,27 +58,40 @@ export default {
             label: 'Strapi'
           }
         ],
-        'Dedicació',
+        'Facturació',
         [
           {
-            to: '/dedicacio',
-            label: 'Entrada Hores',
-            icon: 'table'
+            to: '/emitted-invoices',
+            icon: 'table',
+            label: 'Ingressos'
+          },
+          {
+            to: '/received-invoices',
+            icon: 'table',
+            label: 'Despeses'
+          },
+          {
+            to: '/tresoreria',
+            icon: 'table',
+            label: 'Tresoreria'
+          }
+        ],
+        'Consulta dades',
+        [
+          {
+            to: '/stats-projectes',
+            icon: 'table',
+            label: 'Projectes (TD)'
           },
           {
             to: '/dedicacio-charts',
-            label: 'Gràfiques',
+            label: 'Hores dedicades',
             icon: 'table'
           },
           {
             to: '/stats-dedicacio',
             icon: 'table',
-            label: 'Taula dinàmica'
-          },
-          {
-            to: '/stats-previsio-hores',
-            icon: 'table',
-            label: 'Previsió (TD)'
+            label: 'Hores dedicades (TD)'
           },
           {
             to: '/stats-previsio-gantt',
@@ -96,9 +99,24 @@ export default {
             label: 'Previsió (Gantt)'
           },
           {
-            to: '/working-day',
+            to: '/stats-previsio-hores',
             icon: 'table',
-            label: 'Jornades'
+            label: 'Previsió (TD)'
+          },
+          {
+            to: '/stats-despeses',
+            icon: 'table',
+            label: 'Despeses (TD)'
+          },
+          {
+            to: '/stats-estrategies',
+            icon: 'table',
+            label: 'Estratègies (TD)'
+          },
+          {
+            to: '/stats-intercoop',
+            icon: 'table',
+            label: 'Intercooperació (TD)'
           },
           {
             to: '/dedicacio-saldo',
@@ -115,55 +133,6 @@ export default {
             icon: 'table',
             label: 'Bestretes'
           }
-        ],
-        'Facturació',
-        [
-          {
-            to: '/emitted-invoices',
-            icon: 'table',
-            label: 'Factures emeses'
-          },
-          {
-            to: '/received-invoices',
-            icon: 'table',
-            label: 'Factures rebudes'
-          },
-          {
-            to: '/tresoreria',
-            icon: 'table',
-            label: 'Tresoreria'
-          }
-          // {
-          //   to: '/tables',
-          //   label: 'Tables',
-          //   icon: 'table',
-          //   updateMark: true
-          // },
-          // {
-          //   to: '/forms',
-          //   label: 'Forms',
-          //   icon: 'square-edit-outline'
-          // },
-          // {
-          //   to: '/profile',
-          //   label: 'Profile',
-          //   icon: 'account-circle'
-          // },
-          // {
-          //   label: 'Submenus',
-          //   subLabel: 'Submenus Example',
-          //   icon: 'view-list',
-          //   menu: [
-          //     {
-          //       href: '#void',
-          //       label: 'Sub-item One'
-          //     },
-          //     {
-          //       href: '#void',
-          //       label: 'Sub-item Two'
-          //     }
-          //   ]
-          // }
         ],
         'Ajuda',
         [

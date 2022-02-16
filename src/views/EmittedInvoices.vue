@@ -59,7 +59,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Facturació', 'Factures emeses']
+      return ['Facturació', 'Ingressos']
     }
   },
   mounted () {

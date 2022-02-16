@@ -1573,7 +1573,6 @@ export default {
           delete sp.id
         })
       })
-      console.log('closeQuote', this.form.original_phases)
     }
   },
 };

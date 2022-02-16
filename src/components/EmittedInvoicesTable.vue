@@ -49,6 +49,13 @@
     >
       Nova factura
     </b-button>
+    <b-button
+      class="view-button is-primary mb-3 ml-3"
+      @click="navNewIncome"
+      icon-left="plus"
+    >
+      Nou ingrès
+    </b-button>
     <b-table
       :loading="isLoading"
       :paginated="false"
@@ -63,11 +70,22 @@
       <b-table-column label="Codi" field="number" v-slot="props" sortable>
         <router-link
           v-if="props.row.id"
-          :to="{ name: 'emitted-invoices.edit', params: { id: props.row.id } }"
+          :to="{ name: 'document.edit', params: { id: props.row.id, type: props.row.type } }"
         >
           {{ props.row.code }}
         </router-link>
         <b v-else>{{ props.row.code }}</b>
+      </b-table-column>
+      <b-table-column label="Tipus" field="emitted" v-slot="props" sortable>
+        <span v-if="props.row.type === 'emitted-invoices'">
+          Factura
+        </span>
+        <span v-if="props.row.type === 'received-incomes'">
+          {{props.row.document_type.name }}
+        </span>
+        <span v-if="props.row.type === 'received-invoices'">
+          Factura 
+        </span>
       </b-table-column>
       <b-table-column label="Data" field="emitted" v-slot="props" sortable>
         {{ props.row.emitted ? formatDate(props.row.emitted) : "" }}
@@ -128,6 +146,7 @@ import moment from "moment";
 import sumBy from "lodash/sumBy";
 import Tiles from "@/components/Tiles";
 import CardWidget from "@/components/CardWidget";
+import _ from "lodash";
 
 export default {
   name: "EmittedInvoices",
@@ -184,8 +203,11 @@ export default {
   },
   methods: {
     navNew() {
-      this.$router.push("/emitted-invoice/0");
+      this.$router.push("/document/0/emitted-invoices");
     },
+    navNewIncome() {
+      this.$router.push("/document/0/received-incomes");
+    },    
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -200,11 +222,30 @@ export default {
       }
       const from = moment(this.year).startOf("year").format("YYYY-MM-DD");
       const to = moment(this.year).endOf("year").format("YYYY-MM-DD");
-      this.emitted = (
+      let invoices = (
         await service({ requiresAuth: true }).get(
           `emitted-invoices?_limit=-1&_where[emitted_gte]=${from}&[emitted_lte]=${to}`
         )
       ).data;
+
+      invoices = invoices.map((element) => {
+        return { ...element, type: 'emitted-invoices' };
+      });
+
+      let incomes = (
+        await service({ requiresAuth: true }).get(
+          `received-incomes?_limit=-1&_where[emitted_gte]=${from}&[emitted_lte]=${to}`
+        )
+      ).data;
+
+      incomes = incomes.map((element) => {
+        return { ...element, type: 'received-incomes' };
+      });
+
+      const emitted = _.concat(invoices, incomes)
+      console.log('emitted', emitted)
+      this.emitted = emitted
+
       this.emittedCSV = this.emitted.map((e) => {
         return {
           num: e.code,
@@ -220,19 +261,19 @@ export default {
         };
       });
 
-      this.emitted.push({
-        number: 0,
-        code: "Total",
-        emitted: null,
-        paybefore: null,
-        contact: null,
-        project: null,
-        concept: "",
-        total_base: sumBy(this.emitted, "total_base"),
-        total_vat: sumBy(this.emitted, "total_vat"),
-        total_irpf: sumBy(this.emitted, "total_irpf"),
-        total: sumBy(this.emitted, "total"),
-      });
+      // this.emitted.push({
+      //   number: 0,
+      //   code: "Total",
+      //   emitted: null,
+      //   paybefore: null,
+      //   contact: null,
+      //   project: null,
+      //   concept: "",
+      //   total_base: sumBy(this.emitted, "total_base"),
+      //   total_vat: sumBy(this.emitted, "total_vat"),
+      //   total_irpf: sumBy(this.emitted, "total_irpf"),
+      //   total: sumBy(this.emitted, "total"),
+      // });
 
       this.isLoading = false;
     },

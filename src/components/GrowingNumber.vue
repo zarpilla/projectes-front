@@ -17,7 +17,7 @@ export default {
       default: null
     },
     value: {
-      type: String,
+      type: [Number, String],
       default: 0
     },
     duration: {

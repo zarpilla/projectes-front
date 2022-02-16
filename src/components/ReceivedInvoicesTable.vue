@@ -50,6 +50,13 @@
       >
         Nova factura
       </b-button>
+      <b-button
+        class="view-button is-primary mb-3"
+        @click="navNew"
+        icon-left="plus"
+      >
+        Nova Despesa
+      </b-button>
 
       <b-table
         :loading="isLoading"
@@ -190,7 +197,10 @@ export default {
   },
   methods: {
     navNew() {
-      this.$router.push("/received-invoice/0");
+      this.$router.push("/document/0/received-invoices");
+    },
+    navNew() {
+      this.$router.push("/document/0/received-invoices");
     },
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");

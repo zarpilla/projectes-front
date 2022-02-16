@@ -157,23 +157,11 @@ const routes = [
   },
   {
     meta: {
-      title: 'Edita Factura emesa'
+      title: 'Edita document'
     },
-    path: '/emitted-invoice/:id',
-    name: 'emitted-invoices.edit',
+    path: '/document/:id/:type',
+    name: 'document.edit',
     component: () => import(/* webpackChunkName: "document-form" */ '../views/EmittedInvoiceForm.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
-    meta: {
-      title: 'Edita Factura rebuda'
-    },
-    path: '/received-invoice/:id',
-    name: 'received-invoices.edit',
-    component: () => import(/* webpackChunkName: "document-form" */ '../views/ReceivedInvoiceForm.vue'),
     props: true,
     meta: {
       requiresAuth: true

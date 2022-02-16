@@ -272,8 +272,31 @@
                       v-if="
                         me.options &&
                         me.options.treasury &&
+                        subphase.income &&
+                        subphase.income.id
+                      "
+                      :title="`Document ${subphase.income.code}`"
+                      class="tag is-primary invoice-tag clickable"
+                      @click="
+                        setInvoice(
+                          'incomes',
+                          props.row,
+                          subphase,
+                          props.index,
+                          j
+                        )
+                      "
+                      >D {{ subphase.income.code }}
+                      <b-icon icon="alert-circle" class="warning-tag" size="is-small" v-if="importWarning(subphase, subphase.income)" title="Imports diferents" />
+                      </span
+                    >
+                    <span
+                      v-if="
+                        me.options &&
+                        me.options.treasury &&
                         subphase.paid &&
                         !subphase.invoice &&
+                        !subphase.income &&
                         !subphase.grant
                       "
                       class="tag is-warning invoice-tag clickable"
@@ -895,18 +918,18 @@ export default {
           (p, idx) => idx === j
         );
 
-        if ( (!subphase.invoice || !subphase.invoice.id) && (!subphase.grant || !subphase.grant.id)) {
+        if ( (!subphase.invoice || !subphase.invoice.id) && (!subphase.grant || !subphase.grant.id) && (!subphase.income || !subphase.income.id)) {
           this.phases.forEach(p => {
             p.subphases.forEach(s => {
               s.assign = false
             })
           })
           
-          if (!subphase.invoice || !subphase.invoice.id) {
-            subphase.paid = false; // necessary
-            subphase.assign = !subphase.assign;
-            subphase.paid = true; // necessary
-          }
+          // if (!subphase.invoice || !subphase.invoice.id) {
+          subphase.paid = false; // necessary
+          subphase.assign = !subphase.assign;
+          subphase.paid = true; // necessary
+          // }
           
           this.$emit('phases-updated', this.phases)
         }
@@ -919,7 +942,7 @@ export default {
           (p, idx) => idx === j
         );
         
-        if ( (!subphase.invoice || !subphase.invoice.id) && (!subphase.ticket || !subphase.ticket.id) && (!subphase.grant || !subphase.grant.id) && (!subphase.diet || !subphase.diet.id) ) {
+        if ( (!subphase.invoice || !subphase.invoice.id) && (!subphase.ticket || !subphase.ticket.id) && (!subphase.grant || !subphase.grant.id) && (!subphase.diet || !subphase.diet.id) && (!subphase.expense || !subphase.expense.id) ) {
           this.phases.forEach(p => {
             p.expenses.forEach(s => {
               s.assign = false
@@ -946,6 +969,7 @@ export default {
         );
         subphase.paid = true;
         subphase.invoice = invoicing.emitted;
+        subphase.income = invoicing.income;
         subphase.grant = invoicing.grant;
       } else if (this.invoicingObject.type === "expenses") {
         const phase = this.phases.find(
@@ -956,6 +980,7 @@ export default {
         );
         subphase.paid = true;
         subphase.invoice = invoicing.received;
+        subphase.expense = invoicing.expense;
         subphase.ticket = invoicing.ticket;
         subphase.diet = invoicing.diet;
       }
@@ -1072,12 +1097,13 @@ export default {
       // this.$emit('phases-updated', this.phases)
       this.isModalSplitActive = false;
     },
-    paidChanged(subphase) {      
-      console.log('subphase paid', subphase.paid)
+    paidChanged(subphase) {
       if (!subphase.paid) {
         subphase.invoice = null
         subphase.ticket = null
         subphase.diet = null
+        subphase.income = null
+        subphase.expense = null
       }
       this.somethingChanged();
     },

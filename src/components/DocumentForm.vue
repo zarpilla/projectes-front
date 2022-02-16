@@ -15,6 +15,21 @@
                 </option>
               </b-select>
             </b-field>
+
+            <b-field label="Tipus" horizontal v-if="type === 'received-incomes'">
+              <b-select v-model="form.document_type" placeholder="" required>
+                <option
+                  v-for="(s, index) in documentTypes"
+                  :key="index"
+                  :value="s.id"
+                >
+                  {{ s.name }}
+                </option>
+              </b-select>
+            </b-field>
+{{ form.document_type }}
+            
+
             <b-field label="Emissió *" horizontal>
               <b-datepicker
                 v-model="form.emitted"
@@ -29,7 +44,7 @@
               </b-datepicker>
             </b-field>
 
-            <b-field label="Venciment" horizontal>
+            <b-field label="Venciment" horizontal v-if="type !== 'received-incomes'">
               <b-datepicker
                 v-model="form.paybefore"
                 :show-week-number="false"
@@ -42,7 +57,7 @@
               >
               </b-datepicker>
             </b-field>
-            <b-field label="Enviada" horizontal>
+            <b-field label="Enviada" horizontal v-if="type !== 'received-incomes'">
               <b-checkbox v-model="form.sent" class="checkbox-inline">
               </b-checkbox>
               <b-datepicker
@@ -90,7 +105,8 @@
             </b-field>
 
             <b-field
-              :label="type == 'emitted-invoices' ? 'Clienta *' : 'Proveïdora *'"
+              v-if="type == 'emitted-invoices'"
+              label="Clienta *"
               horizontal
             >
               <b-autocomplete
@@ -106,8 +122,61 @@
               >
               </b-autocomplete>
             </b-field>
-
             <b-field
+              v-if="type == 'emitted-invoices'"
+              label="Clienta *"
+              horizontal
+            >
+              <b-autocomplete
+                v-model="clientSearch"
+                placeholder="Escriu el nom de la clienta..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredClients"
+                field="name"
+                @select="clientSelected"
+                :clearable="true"
+                required
+              >
+              </b-autocomplete>
+            </b-field>
+            <b-field 
+              v-if="type == 'received-invoices'"
+              label="Proveïdora *"
+              horizontal
+            >
+              <b-autocomplete
+                v-model="clientSearch"
+                placeholder="Escriu el nom del contacte..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredClients"
+                field="name"
+                @select="clientSelected"
+                :clearable="true"
+              >
+              </b-autocomplete>
+            </b-field>
+            <b-field 
+              v-if="type == 'received-incomes'"
+              label="Contacte *"
+              horizontal
+            >
+              <b-autocomplete
+                v-model="clientSearch"
+                placeholder="Escriu el nom del contacte..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredClients"
+                field="name"
+                @select="clientSelected"
+                :clearable="true"
+                required
+              >
+              </b-autocomplete>
+            </b-field>
+
+            <b-field 
               v-if="type == 'received-invoices'"
               label="Número factura proveïdora"
               horizontal
@@ -136,42 +205,7 @@
               </b-autocomplete>
             </b-field>
           </card-component>
-          <hr />
-
-          <card-component
-            v-if="!isLoading && !isLoadingProject && project"
-            title="DETALL DEL PROJECTE"
-          >
-            <div class="project-form">
-              <project-phases
-                :form="project"
-                :project-phases="project.phases"
-                @phases-updated="phasesUpdated"
-                :mode="type === 'emitted-invoices' ? 'incomes' : 'expenses'"
-              />
-              <div class="helper">
-                <b-icon icon="help-circle" />
-
-                Cal assignar el document (factura, tiquet, dieta...) a una línia
-                de pressupost del projecte. Si la línia no existís, es pot crear
-                en aquest moment o també es pot desdoblar alguna existent. Per
-                assignar-lo, cal marcar la casella de 'Facturat' i clicar al
-                botó de 'Document'. Un cop assignat, caldrà guardar la factura.
-              </div>
-            </div>
-            <hr v-if="shouldSaveProject" />
-            <b-field v-if="shouldSaveProject">
-              <b-button
-                type="is-warning"
-                :loading="isLoading"
-                @click="undoProject"
-              >
-                <b-icon icon="undo" custom-size="default" />
-                Desfés
-              </b-button>
-            </b-field>
-          </card-component>
-
+          
           <hr />
           <card-component title="LINIES">
             <ul class="subphases-list">
@@ -361,6 +395,42 @@
               />
             </b-field>
           </card-component>
+
+          <hr />
+
+          <card-component
+            v-if="!isLoading && !isLoadingProject && project"
+            title="DETALL DEL PROJECTE"
+          >
+            <div class="project-form">
+              <project-phases
+                :form="project"
+                :project-phases="project.phases"
+                @phases-updated="phasesUpdated"
+                :mode="type === 'emitted-invoices' || type === 'received-incomes' ? 'incomes' : 'expenses'"
+              />
+              <div class="helper">
+                <b-icon icon="help-circle" />
+
+                Cal assignar el document (factura, tiquet, dieta...) a una línia
+                de pressupost del projecte. Si la línia no existís, es pot crear
+                en aquest moment o també es pot desdoblar alguna existent. Per
+                assignar-lo, cal marcar la casella de 'Facturat' i clicar al
+                botó de 'Document'. Un cop assignat, caldrà guardar la factura.
+              </div>
+            </div>
+            <hr v-if="shouldSaveProject" />
+            <b-field v-if="shouldSaveProject" class="is-pulled-right">
+              <b-button                
+                type="is-warning"
+                :loading="isLoading"
+                @click="undoProject"
+              >
+                <b-icon icon="undo" custom-size="default" />
+                Desfés detall de projecte
+              </b-button>
+            </b-field>
+          </card-component>
           <hr />
           <b-field>
             <a
@@ -434,6 +504,7 @@ export default {
       project: null,
       projectCopy: null,
       shouldSaveProject: false,
+      documentTypes: []
     };
   },
   computed: {
@@ -469,17 +540,31 @@ export default {
       });
     },
     titleStack() {
-      const type =
-        this.type === "emitted-invoices"
-          ? "Factures Emeses"
-          : "Factures Rebudes";
+      let type = ''      
+      if (this.type === "emitted-invoices") {
+        type = "Factures Emeses"
+      }
+      else if (this.type === "received-incomes") {
+        type = "Ingressos rebuts"
+      }
+      else {
+        type = "Factures Rebudes"
+      }
       return ["Facturació", type, this.formCardTitle];
     },
     formCardTitle() {
       if (this.isProfileExists) {
         return this.form.code;
       } else {
-        return "Nova factura";
+        if (this.type === "emitted-invoices") {
+          return "Nova factura"
+        }
+        else if (this.type === "received-incomes") {
+          return "Nou ingrès"
+        }
+        else {
+          return "Nova factura"
+        }
       }
     },
     transitionName() {
@@ -624,7 +709,9 @@ export default {
               if (this.form.updatable === null) {
                 this.form.updatable = true;
               }
-              // this.getAuxiliarData();
+              if (this.form.document_type && this.form.document_type.id) {
+                this.form.document_type = this.form.document_type.id;
+              }
 
               this.isLoading = false;
             } else {
@@ -649,6 +736,14 @@ export default {
       this.clients = (
         await service({ requiresAuth: true }).get("contacts?_limit=-1&_sort=name:ASC")
       ).data;
+      const typeFilter = this.type === 'received-incomes' ? 'income' : 'expense'
+      this.documentTypes = (
+        await service({ requiresAuth: true }).get(`document-types?_where[type_eq]=${typeFilter}&_limit=-1&_sort=name:ASC`)
+      ).data;
+      
+      if (this.documentTypes.length && !this.form.document_type) {
+        this.form.document_type = this.documentTypes[0].id
+      }
 
       // service({ requiresAuth: true })
       //   .get("payment-methods")
@@ -764,8 +859,8 @@ export default {
 
           // console.log('newProject', newProject.data)
           this.$router.push({
-            name: `${this.type}.edit`,
-            params: { id: newProject.data.id },
+            name: `document.edit`,
+            params: { id: newProject.data.id, type: this.type },
           });
 
           this.$buefy.snackbar.open({
@@ -834,6 +929,17 @@ export default {
             }
           });
         });
+      }
+      else if (this.type === "received-incomes") {
+        this.project.phases.forEach((ph) => {
+          ph.subphases.forEach((sph) => {
+            if (sph.income && sph.income.id === this.form.id) {
+              validateIfProjectPhasesHasDocument = true;
+            } else if (sph.assign) {
+              validateIfProjectPhasesHasDocument = true;
+            }
+          });
+        });
       } else if (this.type === "received-invoices") {
         this.project.phases.forEach((ph) => {
           ph.expenses.forEach((sph) => {
@@ -853,6 +959,14 @@ export default {
           ph.subphases.forEach((sph) => {
             if (sph.assign) {
               sph.invoice = id;
+            }
+          });
+        });
+      } else if (this.type === "received-incomes") {
+        this.project.phases.forEach((ph) => {
+          ph.subphases.forEach((sph) => {
+            if (sph.assign) {
+              sph.income = id;
             }
           });
         });

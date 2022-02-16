@@ -1,6 +1,6 @@
 <template>
   <div>
-    <document-form :id="id" type="emitted-invoices" />
+    <document-form v-if="type" :id="id" :type="type" />
   </div>
 </template>
 
@@ -23,11 +23,15 @@ export default {
   },
   data() {
     return {
-      isLoading: false
+      isLoading: false,
+      type: null
     };
   },
   computed: {
     ...mapState(["me"]),    
+  },
+  created() {
+    this.type = this.$route.params.type
   },
 };
 </script>

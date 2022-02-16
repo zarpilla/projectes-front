@@ -9,7 +9,7 @@
           {{ menuGroup }}
         </p>
         <aside-menu-list
-          v-else
+          v-else          
           :key="index"
           :menu="menuGroup"
           @menu-click="menuClick"
@@ -30,7 +30,7 @@ export default {
   props: {
     menu: {
       type: Array,
-      default: () => []
+      default: []
     }
   },
   computed: {
@@ -43,3 +43,11 @@ export default {
   }
 }
 </script>
+<style>
+.menu-list a{
+  padding: 0.35rem 0;
+}
+aside.aside{
+    overflow-y: auto;
+}
+</style>
