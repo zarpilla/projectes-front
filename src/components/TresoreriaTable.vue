@@ -178,9 +178,15 @@
             </span>
           </b-table-column>
           <b-table-column label="Concepte" field="concept" v-slot="props">
-            <a :href="props.row.pdf" target="_blank" v-if="props.row.pdf">
-              {{ props.row.concept }}
-            </a>
+
+            <router-link
+              v-if="props.row.to"
+              :to="props.row.to"
+            >
+              <span class="project-name has-text-info">
+                {{ props.row.concept }}
+              </span>
+            </router-link>
             <span v-else>{{ props.row.concept }}</span>
           </b-table-column>
           <b-table-column label="Projecte" field="project_name" v-slot="props">
@@ -262,6 +268,8 @@ export default {
       receivedGrants: [],
       projectIncomes: [],
       projectExpenses: [],
+      receivedIncomes: [],
+      receivedExpenses: [],
       isModalActive: false,
       trashObject: null,
       pivotData: [],
@@ -362,6 +370,12 @@ export default {
       this.receivedGrants = (
         await service({ requiresAuth: true }).get("emitted-grants?_limit=-1")
       ).data;
+      this.receivedIncomes = (
+        await service({ requiresAuth: true }).get("received-incomes?_limit=-1")
+      ).data;
+      this.receivedExpenses = (
+        await service({ requiresAuth: true }).get("received-expenses?_limit=-1")
+      ).data;
       this.contacts = (
         await service({ requiresAuth: true }).get("contacts?_limit=-1&_sort=name:ASC")
       ).data;
@@ -417,6 +431,13 @@ export default {
                   code: e.diet.code,
                 });
               }
+              if (e.expense && e.expense.id) {
+                this.projectExpenses.push({
+                  type: "expense",
+                  id: e.expense.id,
+                  code: e.expense.code,
+                });
+              }
             });
             p.incomes.forEach((i) => {
               if (!i.paid) {
@@ -445,6 +466,13 @@ export default {
                   type: "grant",
                   id: i.grant.id,
                   code: i.grant.code,
+                });
+              }
+              if (i.income && i.income.id) {
+                this.projectIncomes.push({
+                  type: "income",
+                  id: i.income.id,
+                  code: i.income.code,
                 });
               }
             });
@@ -498,6 +526,13 @@ export default {
                     code: e.diet.code,
                   });
                 }
+                if (e.expense && e.expense.id) {
+                  this.projectExpenses.push({
+                    type: "expense",
+                    id: e.expense.id,
+                    code: e.expense.code,
+                  });
+                }
               });
               ph.subphases.forEach((i) => {
                 if (!i.paid) {
@@ -527,6 +562,13 @@ export default {
                     type: "grant",
                     id: i.grant.id,
                     code: i.grant.code,
+                  });
+                }
+                if (i.income && i.income.id) {
+                  this.projectIncomes.push({
+                    type: "income",
+                    id: i.income.id,
+                    code: i.income.code,
                   });
                 }
               });
@@ -581,6 +623,31 @@ export default {
               pdf: i.pdf,
               paid: i.paid,
               contact: i.contact && i.contact.name ? i.contact.name : "?",
+              to: `/document/${i.id}/emitted-invoices`
+            };
+            this.treasury.push(income);
+          });
+          this.receivedIncomes.forEach((i) => {
+            const date = i.paid_date
+              ? moment(i.paid_date, "YYYY-MM-DD")
+              : moment.max([
+                  i.paybefore ? moment(i.paybefore, "YYYY-MM-DD") : moment(),
+                  i.emitted ? moment(i.emitted, "YYYY-MM-DD") : moment(),
+                  moment(),
+                ]);
+            const income = {
+              project_name: i.project && i.project.name ? i.project.name : "",
+              project_id: i.project ? i.project.id : 0,
+              type: `${i.paid ? "Ingrés cobrat" : "Ingrés emès"} (${i.document_type.name})`,
+              concept: i.code,
+              total_amount: i.total ? Math.abs(i.total) : 0,
+              date: date,
+              date_error: (i.paid_date || i.paybefore || i.emitted) === null,
+              real: true,
+              pdf: i.pdf,
+              paid: i.paid,
+              contact: i.contact && i.contact.name ? i.contact.name : "?",
+              to: `/document/${i.id}/received-incomes`
             };
             this.treasury.push(income);
           });
@@ -605,6 +672,31 @@ export default {
               real: true,
               pdf: e.pdf,
               contact: e.contact && e.contact.name ? e.contact.name : "-",
+              to: `/document/${e.id}/received-invoices`
+            };
+            this.treasury.push(expense);
+          });
+          this.receivedExpenses.forEach((e) => {
+            const date = e.paid_date
+              ? moment(e.paid_date, "YYYY-MM-DD")
+              : moment.max([
+                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
+                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
+                  moment(),
+                ]);
+            const expense = {
+              project_name: e.project && e.project.name ? e.project.name : "",
+              project_id: e.project ? e.project.id : 0,
+              type: `${e.paid ? "Despesa pagada" : "Despesa rebuda"} (${e.document_type.name})`,
+              concept: e.code,
+              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              date: date,
+              date_error: false,
+              paid: e.paid,
+              real: true,
+              pdf: e.pdf,
+              contact: e.contact && e.contact.name ? e.contact.name : "-",
+              to: `/document/${e.id}/received-expenses`
             };
             this.treasury.push(expense);
           });
@@ -656,7 +748,7 @@ export default {
             return { ...t, datef: t.date.format("YYYYMMDD") };
           });
           
-          console.log('this.treasury 2',this.treasury)
+          // console.log('this.treasury 2',this.treasury)
 
           const treasuryData = sortBy(this.treasury, "datef");
           let subtotal = 0;
@@ -717,7 +809,7 @@ export default {
         contacts: this.contacts,
       };
 
-      console.log("invoicingObject", invoicingObject);
+      // console.log("invoicingObject", invoicingObject);
 
       // this.invoicingObject = {
       //   type,
@@ -734,7 +826,6 @@ export default {
       this.isModalActive = true;
     },
     async modalSubmit(invoicing) {
-      console.log("invoicing", invoicing);
       this.isModalActive = false;
       if (this.trashObject.expenseId) {
         await service({ requiresAuth: true }).put(

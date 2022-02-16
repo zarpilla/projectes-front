@@ -83,9 +83,6 @@
         <span v-if="props.row.type === 'received-incomes'">
           {{props.row.document_type.name }}
         </span>
-        <span v-if="props.row.type === 'received-invoices'">
-          Factura 
-        </span>
       </b-table-column>
       <b-table-column label="Data" field="emitted" v-slot="props" sortable>
         {{ props.row.emitted ? formatDate(props.row.emitted) : "" }}
@@ -213,6 +210,7 @@ export default {
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
     formatDate(value) {
+      if (!value) return ''
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
     },
     async getData() {
@@ -243,7 +241,6 @@ export default {
       });
 
       const emitted = _.concat(invoices, incomes)
-      console.log('emitted', emitted)
       this.emitted = emitted
 
       this.emittedCSV = this.emitted.map((e) => {

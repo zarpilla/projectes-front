@@ -51,8 +51,8 @@
         Nova factura
       </b-button>
       <b-button
-        class="view-button is-primary mb-3"
-        @click="navNew"
+        class="view-button is-primary mb-3 ml-3"
+        @click="navNewExpense"
         icon-left="plus"
       >
         Nova Despesa
@@ -73,13 +73,21 @@
           <router-link
             v-if="props.row.id"
             :to="{
-              name: 'received-invoices.edit',
-              params: { id: props.row.id },
+              name: 'document.edit',
+              params: { id: props.row.id, type: props.row.type },
             }"
           >
             {{ props.row.code }}
           </router-link>
           <b v-else>{{ props.row.code }}</b>
+        </b-table-column>
+        <b-table-column label="Tipus" field="emitted" v-slot="props" sortable>
+          <span v-if="props.row.type === 'received-invoices'">
+            Factura
+          </span>
+          <span v-if="props.row.type === 'received-expenses'">
+            {{props.row.document_type.name }}
+          </span>
         </b-table-column>
         <b-table-column label="Data" field="emitted" v-slot="props" sortable>
           {{ formatDate(props.row.emitted) }}
@@ -141,6 +149,7 @@ import moment from "moment";
 import sumBy from "lodash/sumBy";
 import Tiles from "@/components/Tiles";
 import CardWidget from "@/components/CardWidget";
+import _ from "lodash";
 
 export default {
   name: "ReceivedInvoices",
@@ -199,14 +208,15 @@ export default {
     navNew() {
       this.$router.push("/document/0/received-invoices");
     },
-    navNew() {
-      this.$router.push("/document/0/received-invoices");
+    navNewExpense() {
+      this.$router.push("/document/0/received-expenses");
     },
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
     formatDate(value) {
+      if (!value) return ''
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
     },
     async getData() {
@@ -216,11 +226,30 @@ export default {
       }
       const from = moment(this.year).startOf("year").format("YYYY-MM-DD");
       const to = moment(this.year).endOf("year").format("YYYY-MM-DD");
-      this.emitted = (
+
+      let invoices = (
         await service({ requiresAuth: true }).get(
           `received-invoices?_limit=-1&_where[emitted_gte]=${from}&[emitted_lte]=${to}`
         )
       ).data;
+
+      invoices = invoices.map((element) => {
+        return { ...element, type: 'received-invoices' };
+      });
+
+      let expenses = (
+        await service({ requiresAuth: true }).get(
+          `received-expenses?_limit=-1&_where[emitted_gte]=${from}&[emitted_lte]=${to}`
+        )
+      ).data;
+
+      expenses = expenses.map((element) => {
+        return { ...element, type: 'received-expenses' };
+      });
+
+      const emitted = _.concat(invoices, expenses)
+      this.emitted = emitted
+
       this.emittedCSV = this.emitted.map((e) => {
         return {
           num: e.code,

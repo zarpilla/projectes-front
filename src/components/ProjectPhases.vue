@@ -544,10 +544,32 @@
                       v-if="
                         me.options &&
                         me.options.treasury &&
+                        subphase.expense &&
+                        subphase.expense.id
+                      "
+                      :title="`${subphase.expense.code}`"
+                      class="tag is-primary invoice-tag clickable"
+                      @click="
+                        setInvoice(
+                          'expenses',
+                          props.row,
+                          subphase,
+                          props.index,
+                          j
+                        )
+                      "
+                      >D {{ subphase.expense.code }}
+                      <b-icon icon="alert-circle" class="warning-tag" size="is-small" v-if="importWarning(subphase, subphase.expense)" title="Imports diferents" /></span
+                    >
+                    <span
+                      v-if="
+                        me.options &&
+                        me.options.treasury &&
                         subphase.paid &&
                         !subphase.invoice &&
                         !subphase.ticket &&
-                        !subphase.diet
+                        !subphase.diet && 
+                        !subphase.expense
                       "
                       class="tag is-warning invoice-tag clickable"
                       @click="
@@ -742,6 +764,11 @@ export default {
       .then((r) => {
         this.incomeTypes = r.data;
     });
+    service({ requiresAuth: true })
+        .get("contacts?_limit=-1&_sort=name:ASC")
+        .then((r) => {
+          this.clients = r.data;
+        });
     
     this.phases = this.projectPhases.map((r) => {
       return {
@@ -907,6 +934,8 @@ export default {
           diets: this.form.diets,
           tickets: this.form.tickets,
           contacts: this.clients,
+          received_incomes: this.form.received_incomes,
+          received_expenses: this.form.received_expenses
         };
         this.isModalActive = true;
       }

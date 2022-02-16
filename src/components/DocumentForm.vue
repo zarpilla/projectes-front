@@ -16,7 +16,11 @@
               </b-select>
             </b-field>
 
-            <b-field label="Tipus" horizontal v-if="type === 'received-incomes'">
+            <b-field
+              label="Tipus"
+              horizontal
+              v-if="type === 'received-incomes'"
+            >
               <b-select v-model="form.document_type" placeholder="" required>
                 <option
                   v-for="(s, index) in documentTypes"
@@ -27,8 +31,21 @@
                 </option>
               </b-select>
             </b-field>
-{{ form.document_type }}
-            
+            <b-field
+              label="Tipus"
+              horizontal
+              v-if="type === 'received-expenses'"
+            >
+              <b-select v-model="form.document_type" placeholder="" required>
+                <option
+                  v-for="(s, index) in documentTypes"
+                  :key="index"
+                  :value="s.id"
+                >
+                  {{ s.name }}
+                </option>
+              </b-select>
+            </b-field>
 
             <b-field label="Emissió *" horizontal>
               <b-datepicker
@@ -44,7 +61,11 @@
               </b-datepicker>
             </b-field>
 
-            <b-field label="Venciment" horizontal v-if="type !== 'received-incomes'">
+            <b-field
+              label="Venciment"
+              horizontal
+              v-if="type !== 'received-incomes' && type !== 'received-expenses'"
+            >
               <b-datepicker
                 v-model="form.paybefore"
                 :show-week-number="false"
@@ -57,7 +78,11 @@
               >
               </b-datepicker>
             </b-field>
-            <b-field label="Enviada" horizontal v-if="type !== 'received-incomes'">
+            <b-field
+              label="Enviada"
+              horizontal
+              v-if="type !== 'received-incomes' && type !== 'received-expenses'"
+            >
               <b-checkbox v-model="form.sent" class="checkbox-inline">
               </b-checkbox>
               <b-datepicker
@@ -140,7 +165,7 @@
               >
               </b-autocomplete>
             </b-field>
-            <b-field 
+            <b-field
               v-if="type == 'received-invoices'"
               label="Proveïdora *"
               horizontal
@@ -157,8 +182,8 @@
               >
               </b-autocomplete>
             </b-field>
-            <b-field 
-              v-if="type == 'received-incomes'"
+            <b-field
+              v-if="type == 'received-incomes' || type == 'received-expenses'"
               label="Contacte *"
               horizontal
             >
@@ -176,7 +201,7 @@
               </b-autocomplete>
             </b-field>
 
-            <b-field 
+            <b-field
               v-if="type == 'received-invoices'"
               label="Número factura proveïdora"
               horizontal
@@ -205,7 +230,7 @@
               </b-autocomplete>
             </b-field>
           </card-component>
-          
+
           <hr />
           <card-component title="LINIES">
             <ul class="subphases-list">
@@ -407,7 +432,11 @@
                 :form="project"
                 :project-phases="project.phases"
                 @phases-updated="phasesUpdated"
-                :mode="type === 'emitted-invoices' || type === 'received-incomes' ? 'incomes' : 'expenses'"
+                :mode="
+                  type === 'emitted-invoices' || type === 'received-incomes'
+                    ? 'incomes'
+                    : 'expenses'
+                "
               />
               <div class="helper">
                 <b-icon icon="help-circle" />
@@ -421,7 +450,7 @@
             </div>
             <hr v-if="shouldSaveProject" />
             <b-field v-if="shouldSaveProject" class="is-pulled-right">
-              <b-button                
+              <b-button
                 type="is-warning"
                 :loading="isLoading"
                 @click="undoProject"
@@ -504,7 +533,7 @@ export default {
       project: null,
       projectCopy: null,
       shouldSaveProject: false,
-      documentTypes: []
+      documentTypes: [],
     };
   },
   computed: {
@@ -540,15 +569,15 @@ export default {
       });
     },
     titleStack() {
-      let type = ''      
+      let type = "";
       if (this.type === "emitted-invoices") {
-        type = "Factures Emeses"
-      }
-      else if (this.type === "received-incomes") {
-        type = "Ingressos rebuts"
-      }
-      else {
-        type = "Factures Rebudes"
+        type = "Factures Emeses";
+      } else if (this.type === "received-incomes") {
+        type = "Ingressos rebuts";
+      } else if (this.type === "received-expenses") {
+        type = "Despeses rebudes";
+      } else {
+        type = "Factures Rebudes";
       }
       return ["Facturació", type, this.formCardTitle];
     },
@@ -557,13 +586,13 @@ export default {
         return this.form.code;
       } else {
         if (this.type === "emitted-invoices") {
-          return "Nova factura"
-        }
-        else if (this.type === "received-incomes") {
-          return "Nou ingrès"
-        }
-        else {
-          return "Nova factura"
+          return "Nova factura";
+        } else if (this.type === "received-incomes") {
+          return "Nou ingrès";
+        } else if (this.type === "received-expenses") {
+          return "Nova despesa";
+        } else {
+          return "Nova factura";
         }
       }
     },
@@ -619,7 +648,7 @@ export default {
         paybefore: null,
         contact: { id: 0 },
         lines: [this.getNewLine()],
-        updatable: true
+        updatable: true,
       };
     },
     getNewLine() {
@@ -724,7 +753,9 @@ export default {
     },
     async getAuxiliarData() {
       // console.log("getAuxiliarData");
-      this.series = (await service({ requiresAuth: true }).get("series?_sort=name:DESC")).data;
+      this.series = (
+        await service({ requiresAuth: true }).get("series?_sort=name:DESC")
+      ).data;
       this.paymentMethods = (
         await service({ requiresAuth: true }).get("payment-methods")
       ).data;
@@ -734,15 +765,20 @@ export default {
         )
       ).data;
       this.clients = (
-        await service({ requiresAuth: true }).get("contacts?_limit=-1&_sort=name:ASC")
+        await service({ requiresAuth: true }).get(
+          "contacts?_limit=-1&_sort=name:ASC"
+        )
       ).data;
-      const typeFilter = this.type === 'received-incomes' ? 'income' : 'expense'
+      const typeFilter =
+        this.type === "received-incomes" ? "income" : "expense";
       this.documentTypes = (
-        await service({ requiresAuth: true }).get(`document-types?_where[type_eq]=${typeFilter}&_limit=-1&_sort=name:ASC`)
+        await service({ requiresAuth: true }).get(
+          `document-types?_where[type_eq]=${typeFilter}&_limit=-1&_sort=name:ASC`
+        )
       ).data;
-      
+
       if (this.documentTypes.length && !this.form.document_type) {
-        this.form.document_type = this.documentTypes[0].id
+        this.form.document_type = this.documentTypes[0].id;
       }
 
       // service({ requiresAuth: true })
@@ -815,6 +851,7 @@ export default {
             message: "Guardat",
             queue: false,
           });
+          this.shouldSaveProject = false;
           this.getData();
         } else {
           // console.log("this.form", this.form);
@@ -857,7 +894,7 @@ export default {
             await this.updateProjectPhases(newProject.data.id);
           }
 
-          // console.log('newProject', newProject.data)
+          this.shouldSaveProject = false;
           this.$router.push({
             name: `document.edit`,
             params: { id: newProject.data.id, type: this.type },
@@ -929,8 +966,7 @@ export default {
             }
           });
         });
-      }
-      else if (this.type === "received-incomes") {
+      } else if (this.type === "received-incomes") {
         this.project.phases.forEach((ph) => {
           ph.subphases.forEach((sph) => {
             if (sph.income && sph.income.id === this.form.id) {
@@ -944,6 +980,16 @@ export default {
         this.project.phases.forEach((ph) => {
           ph.expenses.forEach((sph) => {
             if (sph.invoice && sph.invoice.id === this.form.id) {
+              validateIfProjectPhasesHasDocument = true;
+            } else if (sph.assign) {
+              validateIfProjectPhasesHasDocument = true;
+            }
+          });
+        });
+      } else if (this.type === "received-expenses") {
+        this.project.phases.forEach((ph) => {
+          ph.expenses.forEach((sph) => {
+            if (sph.expense && sph.expense.id === this.form.id) {
               validateIfProjectPhasesHasDocument = true;
             } else if (sph.assign) {
               validateIfProjectPhasesHasDocument = true;
@@ -975,6 +1021,14 @@ export default {
           ph.expenses.forEach((sph) => {
             if (sph.assign) {
               sph.invoice = id;
+            }
+          });
+        });
+      } else if (this.type === "received-expenses") {
+        this.project.phases.forEach((ph) => {
+          ph.expenses.forEach((sph) => {
+            if (sph.assign) {
+              sph.expense = id;
             }
           });
         });

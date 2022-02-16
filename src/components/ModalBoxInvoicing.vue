@@ -20,7 +20,21 @@
               >
               </b-autocomplete>
             </b-field>
-            <b-field label="Subvenció rebuda" horizontal v-if="invoicingObject.type === 'incomes'">
+            <b-field label="Ingrés" horizontal v-if="invoicingObject.type === 'incomes'">
+              <b-autocomplete
+                v-model="incomeSearch"
+                placeholder="Ingrés"
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredIncome"
+                field="display"
+                @select="option => (form.income = option ? option : null)"
+                :clearable="true"
+                @input="incomeChanged"
+              >
+              </b-autocomplete>
+            </b-field>
+            <!-- <b-field label="Subvenció rebuda" horizontal v-if="invoicingObject.type === 'incomes'">
               <b-autocomplete
                 v-model="grantSearch"
                 placeholder="Subvenció"
@@ -33,7 +47,7 @@
                 @input="grantChanged"
               >
               </b-autocomplete>
-            </b-field>
+            </b-field> -->
             <b-field label="Factura rebuda" horizontal v-if="invoicingObject.type === 'expenses'">
               <b-autocomplete
                 v-model="receivedSearch"
@@ -48,7 +62,21 @@
               >
               </b-autocomplete>
             </b-field>
-            <b-field label="Ticket rebut" horizontal v-if="invoicingObject.type === 'expenses'">
+            <b-field label="Despesa rebuda" horizontal v-if="invoicingObject.type === 'expenses'">
+              <b-autocomplete
+                v-model="expenseSearch"
+                placeholder="Despesa"
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredExpense"
+                field="display"
+                @select="option => (form.expense = option ? option : null)"
+                :clearable="true"
+                @input="expenseChanged"
+              >
+              </b-autocomplete>
+            </b-field>
+            <!-- <b-field label="Ticket rebut" horizontal v-if="invoicingObject.type === 'expenses'">
               <b-autocomplete
                 v-model="ticketSearch"
                 placeholder="Ticket"
@@ -76,7 +104,7 @@
                 @input="dietChanged"
               >
               </b-autocomplete>
-            </b-field>
+            </b-field> -->
         </section>
         <footer class="modal-card-foot">
           <button class="button" type="button" @click="cancel">Cancel·la</button>
@@ -124,14 +152,17 @@ export default {
         ticket: null
       },
       emittedSearch: '',
-      grantSearch: '',
+      incomeSearch: '',
       receivedSearch: '',
       ticketSearch: '',
+      expenseSearch: '',
       dietSearch: '',
       trashObject: null,
       isDeleteModalActive: false,
       emitted_invoices: [],
       received_invoices: [],
+      received_incomes: [],
+      received_expenses: [],
       grants: [],
       tickets: [],
       diets: [],
@@ -149,13 +180,13 @@ export default {
         )
       })
     },
-    filteredGrant () {
-      return this.grants.filter(option => {
+    filteredIncome () {
+      return this.received_incomes.filter(option => {
         return (
           option.display
             .toString()
             .toLowerCase()
-            .indexOf(this.grantSearch.toLowerCase()) >= 0
+            .indexOf(this.incomeSearch.toLowerCase()) >= 0
         )
       })
     },
@@ -179,13 +210,13 @@ export default {
         )
       })
     },
-    filteredTicket () {
-      return this.tickets.filter(option => {
+    filteredExpense () {
+      return this.received_expenses .filter(option => {
         return (
           option.display
             .toString()
             .toLowerCase()
-            .indexOf(this.ticketSearch.toLowerCase()) >= 0
+            .indexOf(this.expenseSearch.toLowerCase()) >= 0
         )
       })
     },
@@ -213,13 +244,15 @@ export default {
   },
   methods: {
     show () {
-      console.log('invoicingObject', this.invoicingObject)
+      //console.log('invoicingObject', this.invoicingObject)
       this.form.type = this.invoicingObject.type
       this.emittedSearch = ''
       this.grantSearch = ''
       this.receivedSearch = ''
       this.ticketSearch = ''
       this.dietSearch = ''
+      this.incomeSearch = ''
+      this.expenseSearch = ''
 
       this.contacts = this.invoicingObject.contacts
 
@@ -239,6 +272,14 @@ export default {
         this.tickets = this.invoicingObject.tickets.map(i => { return { ...i, display: `${i.code} - ${this.getContactName(i)} - ${i.total_base} €` } })
       }
 
+      if (this.invoicingObject.received_incomes) {
+        this.received_incomes = this.invoicingObject.received_incomes.map(i => { return { ...i, display: `${i.code} - ${this.getContactName(i)} - ${i.total_base} €` } })
+      }
+
+      if (this.invoicingObject.received_expenses) {
+        this.received_expenses = this.invoicingObject.received_expenses.map(i => { return { ...i, display: `${i.code} - ${this.getContactName(i)} - ${i.total_base} €` } })
+      }
+
       if (this.invoicingObject.type === 'incomes' && this.invoicingObject.subphase && this.invoicingObject.subphase.paid && this.invoicingObject.subphase.invoice) {
         this.form.emitted = this.invoicingObject.subphase.invoice
         const i = this.invoicingObject.subphase.invoice
@@ -249,6 +290,13 @@ export default {
         const i = this.invoicingObject.subphase.grant
         this.grantSearch = `${i.code} - ${this.getContactName(i)} - ${i.total_base} €`
       }
+
+      if (this.invoicingObject.type === 'incomes' && this.invoicingObject.subphase && this.invoicingObject.subphase.paid && this.invoicingObject.subphase.income) {
+        this.form.grant = this.invoicingObject.subphase.income
+        const i = this.invoicingObject.subphase.income
+        this.incomeSearch = `${i.code} - ${this.getContactName(i)} - ${i.total_base} €`
+      }
+
       if (this.invoicingObject.type === 'expenses' && this.invoicingObject.subphase && this.invoicingObject.subphase.paid && this.invoicingObject.subphase.invoice) {
         this.form.received = this.invoicingObject.subphase.invoice
         const i = this.invoicingObject.subphase.invoice
@@ -264,7 +312,14 @@ export default {
         this.form.diet = this.invoicingObject.subphase.diet
         // this.dietSearch = this.invoicingObject.subphase.diet.code
         const i = this.invoicingObject.subphase.diet
-        this.diet = `${i.code} - ${this.getContactName(i)} - ${i.total_base} €`
+        this.dietSearch = `${i.code} - ${this.getContactName(i)} - ${i.total_base} €`
+      }
+
+      if (this.invoicingObject.type === 'expenses' && this.invoicingObject.subphase && this.invoicingObject.subphase.paid && this.invoicingObject.subphase.expense) {
+        this.form.expense = this.invoicingObject.subphase.expense
+        // this.dietSearch = this.invoicingObject.subphase.diet.code
+        const i = this.invoicingObject.subphase.expense
+        this.expenseSearch = `${i.code} - ${this.getContactName(i)} - ${i.total_base} €`
       }
     },
     cancel () {
@@ -288,12 +343,14 @@ export default {
       if (this.form.received) {
         this.form.ticket = null
         this.form.diet = null
+        this.form.expense = null
         this.ticketSearch = ''
         this.dietSearch = ''
+        this.expenseSearch = ''
       }
     },
-    ticketChanged () {
-      if (this.form.ticket) {
+    expenseChanged () {
+      if (this.form.expense) {
         this.form.received = null
         this.form.diet = null
         this.receivedSearch = ''
@@ -310,18 +367,18 @@ export default {
     },
     emittedChanged () {
       if (this.form.emitted) {
-        this.form.grant = null
-        this.rgrantSearch = ''
+        this.form.income = null
+        this.incomeSearch = ''
       }
     },
-    grantChanged () {
-      if (this.form.grant) {
+    incomeChanged () {
+      if (this.form.income) {
         this.form.emitted = null
         this.emittedSearch = ''
       }
     },
     getContactName (invoice) {
-      console.log('this.contacts', invoice)
+      console.log('invoice contacts', this.contacts)
       const contact = invoice.contact && invoice.contact.id ? invoice.contact.id : invoice.contact
       if (!contact) {
         return '-'
