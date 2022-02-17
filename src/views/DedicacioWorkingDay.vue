@@ -2,7 +2,7 @@
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">      
-      <dedication-working-day />
+      <dedication-working-day :key="1" />
     </section>
   </div>
 </template>
@@ -15,7 +15,7 @@ import service from '@/service/index'
 import { mapState } from 'vuex'
 
 export default {
-  name: 'DedicacioSaldo',
+  name: 'DedicationWorkingDayView',
   components: {
     CardComponent,
     TitleBar,

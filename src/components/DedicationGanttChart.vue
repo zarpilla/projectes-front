@@ -60,7 +60,9 @@ export default {
     this.ganttId = 'gantt-' + this.create_UUID()
     this.initializeAll();    
   },
-  beforeDestroy() {    
+  beforeDestroy() {        
+    console.log('beforeDestroy')
+    gantt.clearAll()
     // gantt.destructor()
     this.showGantt = false
   },
@@ -171,6 +173,10 @@ export default {
       ]
 
       gantt.plugins({ tooltip: true }); 
+      
+      gantt.showLightbox = function(id){
+        // code of the custom form
+      }
 
       gantt.templates.tooltip_text = (start,end,task) => {
         const taskDedications = this.dedications.filter(d => d.username === task._username && d.year === task._year && d.month === task._month)

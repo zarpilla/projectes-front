@@ -58,11 +58,15 @@ export default {
     }
   },
   async mounted () {
+    console.log('gantt wd', gantt)
     this.ganttId = 'gantt-' + this.create_UUID()
     this.initializeAll();    
   },
   beforeDestroy() {
+    console.log('beforeDestroy')
     gantt.detachEvent("onTaskClick");
+    gantt.clearAll()
+    // gantt.detachEvent("onBeforeLightbox");
     
     this.showGantt = false
   },
@@ -121,6 +125,13 @@ export default {
         { unit: 'month', step: 1, format: '%M' }
       ]
 
+      // gantt.attachEvent("onBeforeLightbox", (id) => {
+      //     return false;
+      // }, {id: "onBeforeLightbox"});
+      gantt.showLightbox = function(id){
+        // code of the custom form
+      }
+      
       gantt.attachEvent("onTaskClick", (id, e) => {
         if (!this.updatable) {
           return

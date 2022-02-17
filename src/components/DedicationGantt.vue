@@ -77,6 +77,8 @@ export default {
   },
   mounted () {
     // console.log('mounted')
+    console.log('gantt dg', gantt)
+
     this.getActivities()
   },
   methods: {
@@ -100,7 +102,6 @@ export default {
       }
       const from = moment().startOf('year').format('YYYY-MM-DD')
       this.festives = (await service({ requiresAuth: true }).get(`festives?_where[date_gt]=${from}&_limit=-1`)).data
-      console.log('this.festives', this.festives)
 
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)

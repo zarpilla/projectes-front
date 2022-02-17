@@ -133,9 +133,11 @@ export default {
     
   },
   beforeDestroy() {
-    // console.log('beforeDestroy')
+    console.log('beforeDestroy')
     gantt.detachEvent("onTaskClick");
     gantt.detachEvent("onAfterTaskUpdate");
+    // gantt.detachEvent("onBeforeLightbox");
+    gantt.clearAll()
 
     this.showGantt = false
   },
@@ -227,6 +229,7 @@ export default {
         this.isModalActive = true        
         return true;
       }, {id: "onTaskClick"});
+
       gantt.attachEvent("onAfterTaskUpdate", (id, item) => {
         //any custom logic here        
         // this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
@@ -243,6 +246,16 @@ export default {
           this.$emit('gantt-item-update', task)
         }
       }, {id: "onAfterTaskUpdate"});
+
+      // gantt.attachEvent("onBeforeLightbox", (id) => {
+      //   console.log('id, e', id)
+      //     return false;
+      // }, {id: "onBeforeLightbox"});
+      
+      gantt.showLightbox = function(id){
+        // code of the custom form
+      }
+
       gantt.init(this.ganttId)
       // gantt.parse(this.$props.tasks)
 
