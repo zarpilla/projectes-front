@@ -29,6 +29,10 @@ export default {
     projectState: {
       type: Number,
       default: 0
+    },
+    year: {
+      type: Number,
+      default: 0
     }
   },
   data () {
@@ -60,9 +64,9 @@ export default {
     // date2: function (newVal, oldVal) {
     //   this.getActivities()
     // },
-    // project: function (newVal, oldVal) {
-    //   this.getActivities()
-    // },
+    year: function (newVal, oldVal) {
+      this.getActivities()
+    },
     projectState: function (newVal, oldVal) {
       // console.log('filter state', newVal)
       this.getActivities()

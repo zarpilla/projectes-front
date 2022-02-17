@@ -35,7 +35,7 @@ export default {
       type: Number,
       default: 0
     },
-    month: {
+    user: {
       type: Number,
       default: 0
     }
@@ -80,7 +80,7 @@ export default {
       // console.log('filter year', newVal)
       this.getActivities()
     },
-    month: function (newVal, oldVal) {
+    user: function (newVal, oldVal) {
       this.getActivities()
     }
   },
@@ -92,7 +92,7 @@ export default {
     async getActivities () {
       this.isLoading = true
 
-      if (this.projectState === null || this.year === null || this.month === null) {
+      if (this.projectState === null || this.year === null || this.user === null) {
         return
       }
 
@@ -115,8 +115,9 @@ export default {
         const projects = r.data.forEach(p => {          
           if (p.activities) {
             p.activities.forEach(a => {
-              // console.log('p.activities a', a)
-              if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) && (this.month === 0 || (this.month > 0 && a.date && parseInt(moment(a.date).format('MM')) === this.month))) {
+              if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) 
+                && (this.user === 0 || (this.user > 0 && a.users_permissions_user && a.users_permissions_user.toString() === this.user.toString()))
+                ) {
                 const activity = {
                   project_name: p.name,
                   project_state: p.project_state ? p.project_state.name : '-',
@@ -149,26 +150,31 @@ export default {
                       const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
                       // console.log('sph diff', p.name, mdiff)
                       for (var i = 0; i < mdiff; i++) {
-                        const activity = {
-                          project_name: p.name,
-                          project_leader: p.leader ? p.leader.username : '-',
-                          project_state: p.project_state ? p.project_state.name : '-',
-                          project_scope: p.project_scope ? p.project_scope.short_name : '-',
-                          project_scope_name: p.project_scope ? p.project_scope.name : '-',
-                          project_client: p.client ? p.client.name : '-',
-                          total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-                          total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
-                          count: 1,
-                          month: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('MM'),
-                          year: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY'),
-                          day: 0,
-                          date: '-',
-                          hours: 0,
-                          estimated_hours: h.quantity && mdiff > 0 ? h.quantity / mdiff : 0,
-                          username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
-                          dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
+                        const year = moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY')
+
+                        if ((year.toString() === this.year.toString() || this.year === 0) && 
+                        (this.user === 0 || (this.user > 0 && h.users_permissions_user && h.users_permissions_user.id.toString() === this.user.toString()))) {
+                          const activity = {
+                            project_name: p.name,
+                            project_leader: p.leader ? p.leader.username : '-',
+                            project_state: p.project_state ? p.project_state.name : '-',
+                            project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                            project_scope_name: p.project_scope ? p.project_scope.name : '-',
+                            project_client: p.client ? p.client.name : '-',
+                            total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
+                            total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
+                            count: 1,
+                            month: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('MM'),
+                            year: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY'),
+                            day: 0,
+                            date: '-',
+                            hours: 0,
+                            estimated_hours: h.quantity && mdiff > 0 ? h.quantity / mdiff : 0,
+                            username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
+                            dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
+                          }
+                          activities.push(activity)
                         }
-                        activities.push(activity)
                       }
                     })
                   }

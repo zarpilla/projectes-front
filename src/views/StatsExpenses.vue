@@ -55,7 +55,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Projectes', 'Despeses']
+      return ['Projectes', 'Ingressos i Despeses']
     }
   },
   async mounted () {

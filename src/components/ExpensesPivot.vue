@@ -103,59 +103,56 @@ export default {
       // }
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)
-        const expenses = []
+        const data = []
         r.data.forEach(p => {
-          const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
-
-          if (p.expenses && p.expenses.length > 0) {
-            // console.log('p.expenses', p.expenses)
-            p.expenses.forEach(e => {
-              const expense = {
-                project_name: p.name,
-                project_state: p.project_state ? p.project_state.name : '-',
-                project_leader: p.leader ? p.leader.username : '-',
-                project_scope: p.project_scope ? p.project_scope.short_name : '-',
-                project_client: p.client ? p.client.name : '-',
-                total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-                hours: sumBy(p.activities, 'hours'),
-                incomes: p.invoice_hours_price ? incomes : p.total_incomes,
-                total_incomes: p.total_incomes,
-                expense: e.total_amount,
-                expense_type: e.expense_type ? e.expense_type.name : '-',
-                // expenses: p.total_expenses,
-                invoice_hours_price: p.invoice_hours_price,
-                invoice_type: p.invoice_hours_price ? 'Hores' : 'Projecte',
-                pricehour: p.invoice_hours_price ? p.invoice_hours_price : (sumBy(p.activities, 'hours') && p.incomes_expenses ? parseFloat((p.incomes_expenses / sumBy(p.activities, 'hours')).toFixed(2)) : 0),
-                pricehour_estimate: p.invoice_hours_price ? p.invoice_hours_price : p.total_estimated_hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / p.total_estimated_hours).toFixed(2)) : 0,
-                balance_estimate: p.invoice_hours_price ? (p.invoice_hours_price * p.total_estimated_hours) - p.total_expenses : p.total_incomes - p.total_expenses,
-                count: 1
+          if (p.phases) {
+            p.phases.forEach(ph => {
+              if (ph.subphases) {
+                ph.subphases.forEach(inc => {         
+                  if (inc.quantity && inc.amount) {
+                    const row = {
+                      project_name: p.name,
+                      project_state: p.project_state ? p.project_state.name : '-',
+                      project_leader: p.leader ? p.leader.username : '-',
+                      project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                      project_client: p.client ? p.client.name : '-',
+                      type: inc.income_type ? inc.income_type.name : '-',
+                      incomes: inc.quantity && inc.amount,
+                      expenses: 0,
+                      real_incomes: inc.income && inc.income.id ? inc.income.total_base : inc.invoice && inc.invoice.id ? inc.invoice.total_base : 0,
+                      real_expenses: 0
+                    }
+                    data.push(row)
+                  }                  
+                })
               }
-              expenses.push(expense)
+              if (ph.expenses) {
+                ph.expenses.forEach(exp => {
+                  if (exp.quantity && exp.amount) {
+                    const row = {
+                      project_name: p.name,
+                      project_state: p.project_state ? p.project_state.name : '-',
+                      project_leader: p.leader ? p.leader.username : '-',
+                      project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                      project_client: p.client ? p.client.name : '-',
+                      type: exp.expense_type ? exp.expense_type.name : '-',
+                      incomes: 0,
+                      expenses: exp.quantity && exp.amount,
+                      real_incomes: 0,
+                      real_expenses: exp.expense && exp.expense.id ? exp.expense.total_base : exp.invoice && exp.invoice.id ? exp.invoice.total_base : 0,
+                    }
+                    data.push(row)
+                  }
+                })
+              }
+              
+              
+
             })
-          } else {
-            const expense = {
-              project_name: p.name,
-              project_state: p.project_state ? p.project_state.name : '-',
-              project_leader: p.leader ? p.leader.username : '-',
-              project_scope: p.project_scope ? p.project_scope.short_name : '-',
-              project_client: p.client ? p.client.name : '-',
-              total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-              hours: sumBy(p.activities, 'hours'),
-              incomes: p.invoice_hours_price ? incomes : p.total_incomes,
-              total_incomes: p.total_incomes,
-              expense: 0,
-              expense_type: '-',
-              // expenses: p.total_expenses,
-              invoice_hours_price: p.invoice_hours_price,
-              invoice_type: p.invoice_hours_price ? 'Hores' : 'Projecte',
-              pricehour: p.invoice_hours_price ? p.invoice_hours_price : (sumBy(p.activities, 'hours') && p.incomes_expenses ? parseFloat((p.incomes_expenses / sumBy(p.activities, 'hours')).toFixed(2)) : 0),
-              pricehour_estimate: p.invoice_hours_price ? p.invoice_hours_price : p.total_estimated_hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / p.total_estimated_hours).toFixed(2)) : 0,
-              balance_estimate: p.invoice_hours_price ? (p.invoice_hours_price * p.total_estimated_hours) - p.total_expenses : p.total_incomes - p.total_expenses,
-              count: 1
-            }
-            expenses.push(expense)
           }
-          this.pivotData = Object.freeze(sortBy(expenses, ['project_name']))
+          
+
+          this.pivotData = Object.freeze(sortBy(data, ['project_name']))
           configPivot.dataSource.data = this.pivotData
           window.jQuery('#project-despeses').empty()
           window.jQuery('#project-despeses').kendoPivotGrid(configPivot)

@@ -15,7 +15,6 @@
               <b-select
                 v-model="filters.project_state"
                 placeholder="Estat"
-                required
               >
                 <option
                   v-for="(s, index) in project_states"
@@ -26,11 +25,10 @@
                 </option>
               </b-select>
             </b-field>
-            <!-- <b-field label="Any">
+            <b-field label="Any">
               <b-select
                 v-model="filters.year"
                 placeholder="Any"
-                required
               >
                 <option
                   v-for="(s, index) in years"
@@ -41,27 +39,26 @@
                 </option>
               </b-select>
             </b-field>
-            <b-field label="Mes">
+            <b-field label="Persona">
               <b-select
-                v-model="filters.month"
-                placeholder="Mes"
-                required
+                v-model="filters.user"
+                placeholder="Persona"
               >
                 <option
-                  v-for="(s, index) in months"
+                  v-for="(s, index) in users"
                   :key="index"
-                  :value="s.month"
+                  :value="s.id"
                 >
-                  {{ s.display }}
+                  {{ s.username }}
                 </option>
               </b-select>
-            </b-field> -->
+            </b-field>
           </b-field>
         </form>
       </card-component>
 
       <card-component title="Projectes">
-        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :month="filters.month" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
+        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :user="filters.user" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
       </card-component>
     </section>
   </div>
@@ -94,11 +91,11 @@ export default {
       filters: {
         project_state: null,
         year: null,
-        month: null
+        user: null
       },
       project_states: [],
       years: [],
-      months: null
+      users: []
     }
   },
   computed: {
@@ -139,10 +136,10 @@ export default {
         this.filters.year = 0
         this.isLoading2 = false
       })
-      service({ requiresAuth: true }).get('months').then((r) => {
-        this.months = r.data.map(y => { return { ...y, display: `${y.month_number} - ${y.name}` } })
-        this.months.unshift({ id: 0, month: 0, display: 'Tots' })
-        this.filters.month = 0
+      service({ requiresAuth: true }).get('users').then((r) => {
+        this.users = r.data.filter((u) => u.hidden !== true);
+        this.users.unshift({ id: 0, username: 'Tots' })
+        this.filters.user = 0
         this.isLoading3 = false
       })
     },

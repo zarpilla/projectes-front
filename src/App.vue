@@ -39,22 +39,22 @@ export default {
           },
           {
             to: '/contacts',
-            icon: 'table',
+            icon: 'account-box',
             label: 'Contactes'
           },
           {
             to: '/dedicacio',
             label: 'Hores dedicades',
-            icon: 'table'
+            icon: 'calendar'
           },
           {
             to: '/working-day',
-            icon: 'table',
+            icon: 'chart-timeline',
             label: 'Jornades'
           },
           {
             href: `${process.env.VUE_APP_API_URL || 'http://localhost:1337'}/admin`,
-            icon: 'table',
+            icon: 'open-in-new',
             label: 'Strapi'
           }
         ],
@@ -62,12 +62,12 @@ export default {
         [
           {
             to: '/emitted-invoices',
-            icon: 'table',
+            icon: 'import',
             label: 'Ingressos'
           },
           {
             to: '/received-invoices',
-            icon: 'table',
+            icon: 'export',
             label: 'Despeses'
           },
           {
@@ -81,42 +81,42 @@ export default {
           {
             to: '/stats-projectes',
             icon: 'table',
-            label: 'Projectes (TD)'
+            label: 'Projectes'
           },
           {
             to: '/dedicacio-charts',
-            label: 'Hores dedicades',
-            icon: 'table'
+            label: 'Dedicació',
+            icon: 'chart-pie'
           },
           {
             to: '/stats-dedicacio',
             icon: 'table',
-            label: 'Hores dedicades (TD)'
+            label: 'Dedicació'
           },
           {
             to: '/stats-previsio-gantt',
-            icon: 'table',
-            label: 'Previsió (Gantt)'
+            icon: 'chart-timeline',
+            label: 'Previsió dedicació'
           },
           {
             to: '/stats-previsio-hores',
             icon: 'table',
-            label: 'Previsió (TD)'
+            label: 'Previsió/Real Dedicació'
           },
           {
             to: '/stats-despeses',
             icon: 'table',
-            label: 'Despeses (TD)'
+            label: 'Ingressos/Despeses'
           },
           {
             to: '/stats-estrategies',
             icon: 'table',
-            label: 'Estratègies (TD)'
+            label: 'Estratègies'
           },
           {
             to: '/stats-intercoop',
             icon: 'table',
-            label: 'Intercooperació (TD)'
+            label: 'Intercooperació'
           },
           {
             to: '/dedicacio-saldo',

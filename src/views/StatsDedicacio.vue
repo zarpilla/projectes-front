@@ -25,11 +25,25 @@
               </option>
             </b-select>
           </b-field>
+          <!-- <b-field horizontal label="Any">
+            <b-select
+              v-model="filters.year"
+              placeholder="Any"              
+            >
+              <option
+                v-for="(s, index) in years"
+                :key="index"
+                :value="s.year"
+              >
+                {{ s.year ? s.year : 'Tots' }}
+              </option>
+            </b-select>
+          </b-field>           -->
         </form>
       </card-component>
 
       <card-component title="Projectes">
-        <dedication-pivot :project-state="filters.project_state" v-if="!isLoading" />
+        <dedication-pivot :project-state="filters.project_state" :year="filters.year" v-if="!isLoading" />
       </card-component>
     </section>
   </div>
@@ -42,6 +56,7 @@ import DedicationPivot from '@/components/DedicationPivot'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'
+import moment from 'moment'
 
 export default {
   name: 'StatsDedicacio',
@@ -56,9 +71,11 @@ export default {
     return {
       isLoading: true,
       filters: {
-        project_state: null
+        project_state: null,
+        year: null
       },
-      project_states: []
+      project_states: [],
+      years: []
     }
   },
   computed: {
@@ -75,9 +92,11 @@ export default {
         await addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
         await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
         await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
-        this.isLoading = false
+        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')        
         this.getData()
+        setTimeout(() => {
+          this.isLoading = false
+        }, 250)
       }
     }, 100)
 
@@ -91,6 +110,13 @@ export default {
         this.project_states = r.data
         this.project_states.unshift({ id: 0, name: 'Tots' })
         this.filters.project_state = defaultProjectState
+      })
+      service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
+        this.years = r.data
+        this.years.unshift({ id: 0, year: 0 })
+        // this.filters.year = 0
+        this.filters.year = this.years.find(y => y.year.toString() === moment().format('YYYY')).year
+        this.isLoading = false
       })
     },
     async addScript (src) {
