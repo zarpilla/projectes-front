@@ -39,22 +39,22 @@ const config = {
           'Balanç': {
             field: 'total_amount',
             aggregate: 'sum',
-            format: '{0:###,###.00} €'
+            format: '{0:n2} €'
           },
           Ingressos: {
             field: 'total_incomes',
             aggregate: 'sum',
-            format: '{0:###,###.00} €'
+            format: '{0:n2} €'
           },
           Despeses: {
             field: 'total_expenses',
             aggregate: 'sum',
-            format: '{0:###,###.00} €'
+            format: '{0:n2} €'
           },
           Saldo: {
             field: 'subtotal',
             aggregate: 'sum',
-            format: '{0:###,###.00} €'
+            format: '{0:n2} €'
           }
         }
       }

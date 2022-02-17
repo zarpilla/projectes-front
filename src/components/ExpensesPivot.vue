@@ -106,21 +106,66 @@ export default {
         const data = []
         r.data.forEach(p => {
           if (p.phases) {
+            var hasOriginal = p.original_phases && p.original_phases.length
+            if (hasOriginal) {
+              p.original_phases.forEach(ph => {
+                if (ph.subphases) {
+                  ph.subphases.forEach(inc => {         
+                    if (inc.quantity && inc.amount) {
+                      const row = {
+                        project_name: p.name,
+                        project_state: p.project_state ? p.project_state.name : '-',
+                        project_leader: p.leader ? p.leader.username : '-',
+                        project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                        project_client: p.client ? p.client.name : '-',
+                        type: inc.income_type ? inc.income_type.name : '-',
+                        incomes: parseFloat(inc.quantity * inc.amount),
+                        expenses: 0,
+                        real_incomes: 0,
+                        real_expenses: 0
+                      }
+                      data.push(row)
+                    }                  
+                  })
+                }
+                if (ph.expenses) {
+                  ph.expenses.forEach(exp => {
+                    if (exp.quantity && exp.amount) {
+                      const row = {
+                        project_name: p.name,
+                        project_state: p.project_state ? p.project_state.name : '-',
+                        project_leader: p.leader ? p.leader.username : '-',
+                        project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                        project_client: p.client ? p.client.name : '-',
+                        type: exp.expense_type ? exp.expense_type.name : '-',
+                        incomes: 0,
+                        expenses: parseFloat(exp.quantity * exp.amount),
+                        real_incomes: 0,
+                        real_expenses: 0,
+                      }
+                      data.push(row)
+                    }
+                  })
+                }
+              })
+            }
             p.phases.forEach(ph => {
               if (ph.subphases) {
                 ph.subphases.forEach(inc => {         
-                  if (inc.quantity && inc.amount) {
+                  if ((inc.quantity && inc.amount) || inc.income || inc.invoice) {
                     const row = {
                       project_name: p.name,
+                      concept: inc.concept,
                       project_state: p.project_state ? p.project_state.name : '-',
                       project_leader: p.leader ? p.leader.username : '-',
                       project_scope: p.project_scope ? p.project_scope.short_name : '-',
                       project_client: p.client ? p.client.name : '-',
                       type: inc.income_type ? inc.income_type.name : '-',
-                      incomes: inc.quantity && inc.amount,
+                      incomes: hasOriginal ? 0 : parseFloat(inc.quantity * inc.amount),
                       expenses: 0,
-                      real_incomes: inc.income && inc.income.id ? inc.income.total_base : inc.invoice && inc.invoice.id ? inc.invoice.total_base : 0,
-                      real_expenses: 0
+                      real_incomes: inc.income && inc.income.id ? inc.income.total_base : (inc.invoice && inc.invoice.id ? inc.invoice.total_base : (inc.paid ? parseFloat(inc.quantity * inc.amount): 0)),
+                      real_expenses: 0,
+                      
                     }
                     data.push(row)
                   }                  
@@ -128,7 +173,7 @@ export default {
               }
               if (ph.expenses) {
                 ph.expenses.forEach(exp => {
-                  if (exp.quantity && exp.amount) {
+                  if ((exp.quantity && exp.amount) || exp.expense || exp.invoice) {
                     const row = {
                       project_name: p.name,
                       project_state: p.project_state ? p.project_state.name : '-',
@@ -137,17 +182,14 @@ export default {
                       project_client: p.client ? p.client.name : '-',
                       type: exp.expense_type ? exp.expense_type.name : '-',
                       incomes: 0,
-                      expenses: exp.quantity && exp.amount,
+                      expenses: hasOriginal ? 0 : (exp.quantity | 0) * (exp.amount | 0),
                       real_incomes: 0,
-                      real_expenses: exp.expense && exp.expense.id ? exp.expense.total_base : exp.invoice && exp.invoice.id ? exp.invoice.total_base : 0,
+                      real_expenses: exp.expense && exp.expense.id ? exp.expense.total_base : (exp.invoice && exp.invoice.id ? exp.invoice.total_base : (exp.paid ? parseFloat(exp.quantity * exp.amount): 0)),
                     }
                     data.push(row)
                   }
                 })
               }
-              
-              
-
             })
           }
           

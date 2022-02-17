@@ -70,22 +70,22 @@ const config = {
           'Ingressos previstos': {
             field: 'incomes',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Despeses previstes': {
             field: 'expenses',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Ingressos reals': {
             field: 'real_incomes',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Despeses reals': {
             field: 'real_expenses',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           // Balanç: {
           //   field: 'incomes_expenses',
@@ -100,7 +100,7 @@ const config = {
           //   result: function (state) {
           //     return state.incomes - state.expenses
           //   },
-          //   format: '{0:0.00} €'
+          //   format: '{0:n2} €'
           // },          
         }
       }

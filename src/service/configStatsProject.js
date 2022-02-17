@@ -75,22 +75,22 @@ const config = {
           'Ingressos previstos': {
             field: 'incomes',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Ingressos reals': {
             field: 'total_real_incomes',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Despeses previstes': {
             field: 'expenses',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Despeses reals': {
             field: 'real_expenses',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           total_real_hours: {
             field: 'total_real_hours',
@@ -113,7 +113,7 @@ const config = {
             // result: function (state) {
             //   return state.incomes - state.expenses
             // },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Resultat real': {
             field: 'total_real_incomes_expenses',
@@ -128,32 +128,32 @@ const config = {
             // result: function (state) {
             //   return state.real_incomes - state.real_expenses
             // },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Balanç previst': {
             field: 'balance_estimate',
             aggregate: 'average',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Hores previstes': {
             field: 'total_estimated_hours',
             aggregate: 'sum',
-            format: '{0:0.##} h'
+            format: '{0:n2} h'
           },
           'Hores reals': {
             field: 'hours',
             aggregate: 'sum',
-            format: '{0:0.##} h'
+            format: '{0:n2} h'
           },
           'Hores previstes €': {
             field: 'total_estimated_hours_price',
             aggregate: 'sum',
-            format: '{0:0.00}  €'
+            format: '{0:0.00} €'
           },
           'Hores reals €': {
             field: 'total_real_hours_price',
             aggregate: 'sum',
-            format: '{0:0.0}  €'
+            format: '{0:0.0} €'
           },
           'Preu/hora previst': {
             field: 'pricehour',
@@ -170,7 +170,7 @@ const config = {
             result: function (state) {
               return state.total_estimated_hours ? (state.incomes - state.expenses) / state.total_estimated_hours : 0
             },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Preu/hora real': {
             field: 'pricehour',
@@ -187,7 +187,7 @@ const config = {
             result: function (state) {
               return state.hours ? (state.real_incomes - state.real_expenses) / state.hours : 0
             },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Despeses/hora previst': {
             field: 'pricehour',
@@ -205,7 +205,7 @@ const config = {
             result: function (state) {
               return state.total_estimated_hours ? (state.expenses) / state.total_estimated_hours : 0
             },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Despeses/hora real': {
             field: 'pricehour',
@@ -223,7 +223,7 @@ const config = {
             result: function (state) {
               return state.hours ? (state.real_expenses) / state.hours : 0
             },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Preu/hora realW': {
             field: 'pricehour',
@@ -241,7 +241,7 @@ const config = {
               const [valueSum, weightSum] = state.hoursList.reduce(([valueSum, weightSum], [value, weight]) => ([valueSum + value * weight, weightSum + weight]), [0, 0])
               return valueSum / weightSum
             },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Preu/hora previstW': {
             field: 'pricehour',
@@ -260,7 +260,7 @@ const config = {
               const [valueSum, weightSum] = state.hoursList2.reduce(([valueSum, weightSum], [value, weight]) => ([valueSum + value * weight, weightSum + weight]), [0, 0])
               return valueSum / weightSum
             },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Preu/hora previstZZZ': {
             field: 'total_estimated_hours',
@@ -277,7 +277,7 @@ const config = {
             result: function (state) {
               return state.totalEstimatedHours ? (state.incomes - state.expenses) / state.totalEstimatedHours : 0
             },
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           }
         }
       }

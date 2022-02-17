@@ -378,7 +378,7 @@ export default {
       }
     },
     getContactName (invoice) {
-      console.log('invoice contacts', this.contacts)
+      // console.log('invoice contacts', this.contacts)
       const contact = invoice.contact && invoice.contact.id ? invoice.contact.id : invoice.contact
       if (!contact) {
         return '-'

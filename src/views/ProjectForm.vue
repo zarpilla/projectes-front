@@ -577,7 +577,11 @@
         </div>
       </div>
 
-      <card-component v-if="!isLoading && form && form.phases" title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST" :closeIcon="true" >
+      <card-component v-if="!isLoading && form && form.original_phases && form.original_phases.length > 0" title="GESTIÓ ECONÒMICA - PRESSUPOST ORIGINAL" :closeIcon="true" :content-visible="originalPhasesVisible">
+        <project-phases :form="form" :project-phases="form.original_phases" v-if="form.original_phases" @phases-updated="originalPhasesUpdated" mode="simple" />        
+      </card-component>      
+
+      <card-component v-if="!isLoading && form && form.phases" title="GESTIÓ ECONÒMICA - FASES I EXECUCIÓ PRESSUPOST" :closeIcon="true" >
         <project-phases :form="form" :project-phases="form.phases" @phases-updated="phasesUpdated" />
         <hr v-if="form.phases.length && form.original_phases.length === 0">
         <b-field v-if="form.phases.length && form.original_phases.length === 0">
@@ -588,10 +592,6 @@
             </b-button
           >
         </b-field>
-      </card-component>
-
-      <card-component v-if="!isLoading && form && form.original_phases && form.original_phases.length > 0" title="GESTIÓ ECONÒMICA - PRESSUPOST ORIGINAL" :closeIcon="true" :content-visible="originalPhasesVisible">
-        <project-phases :form="form" :project-phases="form.original_phases" v-if="form.original_phases" @phases-updated="originalPhasesUpdated" mode="simple" />        
       </card-component>
             
       <card-component
