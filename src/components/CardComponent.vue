@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <header v-if="title" class="card-header">
-      <p class="card-header-title" @click.prevent="showContent">
+      <p class="card-header-title">
         <b-icon v-if="icon" :icon="icon" custom-size="default" />
         {{ title }}
       </p>
