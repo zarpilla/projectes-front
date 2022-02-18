@@ -1347,6 +1347,20 @@ export default {
 
       try {
         if (this.form.id) {
+
+          if (!this.form.name || !this.form.date_start || !this.form.date_end 
+            || (!this.form.project_state || this.form.project_state.id === 0)
+            || (!this.form.project_scope || this.form.project_scope.id === 0)
+            || (!this.form.leader || this.form.leader.id === 0)
+            ) {
+            this.$buefy.snackbar.open({
+              message: "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
+              queue: false,
+            });
+            this.isLoading = false
+            return
+          }
+
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
             this.form
@@ -1358,7 +1372,6 @@ export default {
           this.getData();
         } else {
 
-          console.log('this.form', this.form)
           if (!this.form.name || !this.form.date_start || !this.form.date_end 
             || (!this.form.project_state || this.form.project_state.id === 0)
             || (!this.form.project_scope || this.form.project_scope.id === 0)
