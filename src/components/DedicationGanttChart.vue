@@ -160,7 +160,7 @@ export default {
       gantt.config.start_date = moment().startOf('year').toDate();
 			gantt.config.end_date = moment(maxEnddate, 'YYYY-MM-DD').add(3, 'monthy').toDate();
       gantt.config.columns = [
-		    { name: "text", label: "Previsió", tree: true, width: '*' },
+		    { name: "text", label: "Previsió", tree: true, width: '150', resize: true },
       ]
       // gantt.plugins({ click_drag: true })
       // gantt.config.readonly = true
@@ -269,9 +269,9 @@ export default {
     .gantt > div {
       min-height: 600px;
     }
-    .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
+    /* .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
       min-width: 300px;
-    }
+    } */
     .gantt_task_line.gantt_project, .gantt_task_line {
       border-radius: 30px;
     }

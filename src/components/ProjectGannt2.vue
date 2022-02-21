@@ -33,7 +33,7 @@
     </div>
     <div class="gannt-container" v-if="showGantt">
       <!-- <div v-for="(g, i) in gantts" :key="i" class="gantt" :ref="g"></div> -->
-      <div class="gantt" :id="ganttId"></div>
+      <div class="gantt" :id="ganttId" style="height:400px;"></div>
       <!-- <pre>
         {{ tasks }}
       </pre> -->
@@ -195,7 +195,7 @@ export default {
       gantt.config.start_date = initialDate;
 			gantt.config.end_date = endDate;
       gantt.config.columns = [
-		    {name: "text", label: "Fases i dedicacions", tree: true, width: '*'},
+		    {name: "text", label: "Fases i dedicacions", tree: true, width: '300'},
       ]
       gantt.plugins({ click_drag: true, tooltip: true })
 
@@ -480,9 +480,10 @@ export default {
     .gantt > div {
       min-height: 600px;
     }
-    .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
+    /* .gantt_row_project, .zgantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell, .gantt .gantt_layout_y .gantt_layout_x .gantt_layout_content .gantt_grid{
       min-width: 300px;
-    }
+    } */
+
     .gantt_task_line.gantt_project, .gantt_task_line {
       border-radius: 30px;
     }

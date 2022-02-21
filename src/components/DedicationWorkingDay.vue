@@ -115,7 +115,7 @@ export default {
       }
       
       gantt.config.columns = [
-		    { name: "text", label: "Jornada", tree: true, width: '*', resize: true },
+		    { name: "text", label: "Jornada", tree: true, width: '150', resize: true },
       ]
       
       gantt.config.xml_date = '%Y-%m-%d'
@@ -283,9 +283,9 @@ export default {
     .gantt > div {
       min-height: 600px;
     }
-    .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
+    /* .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
       min-width: 100px;
-    }
+    } */
     .gantt_task_line.gantt_project, .gantt_task_line {
       border-radius: 30px;
     }
