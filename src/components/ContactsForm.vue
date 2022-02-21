@@ -222,14 +222,11 @@ export default {
         if (this.form.id) {
 
           if (
-            !this.form.emitted ||
-            !this.form.contact ||
-            !this.form.project ||
-            !this.form.serial
+            !this.form.name
           ) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+                "Error. Raó social és obligatòria",
               queue: false,
             });
             this.isLoading = false;
@@ -237,7 +234,7 @@ export default {
           }
 
           await service({ requiresAuth: true }).put(
-            `${this.type}/${this.form.id}`,
+            `contacts/${this.form.id}`,
             this.form
           );
           this.$buefy.snackbar.open({
@@ -248,14 +245,11 @@ export default {
         } else {
           console.log("this.form", this.form);
           if (
-            !this.form.emitted ||
-            !this.form.contact ||
-            !this.form.project ||
-            !this.form.serial
+            !this.form.name
           ) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+                "Error. Raó social és obligatòria",
               queue: false,
             });
             this.isLoading = false;
@@ -263,12 +257,12 @@ export default {
           }
 
           const newProject = await service({ requiresAuth: true }).post(
-            this.type,
+            'contacts',
             this.form
           );
           // console.log('newProject', newProject.data)
           this.$router.push({
-            name: `${this.type}.edit`,
+            name: `contacts.edit`,
             params: { id: newProject.data.id },
           });
 
