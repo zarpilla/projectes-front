@@ -55,7 +55,7 @@
         @click="navNewExpense"
         icon-left="plus"
       >
-        Nova Despesa
+        Nova despesa
       </b-button>
 
       <b-table
