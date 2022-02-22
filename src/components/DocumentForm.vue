@@ -907,9 +907,9 @@ export default {
             queue: false,
           });
 
-          setTimeout(() => {
-            this.isLoading = false;
-          }, 100);
+          // setTimeout(() => {
+          //   this.isLoading = false;
+          // }, 100);
         }
       } catch (err) {
         this.$buefy.snackbar.open({
