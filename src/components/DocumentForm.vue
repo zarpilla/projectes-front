@@ -97,7 +97,7 @@
               >
               </b-datepicker>
             </b-field>
-            <b-field label="Pagada" horizontal>
+            <b-field :label="type !== 'received-incomes' && type !== 'emitted-invoices' ? 'Pagada' : 'Cobrada'" horizontal>
               <b-checkbox v-model="form.paid" class="checkbox-inline">
               </b-checkbox>
               <b-datepicker
@@ -117,7 +117,7 @@
               <b-switch v-model="form.updatable"> </b-switch>
             </b-field>
 
-            <b-field label="Mètode de pagament" horizontal>
+            <b-field :label="type !== 'received-incomes' && type !== 'emitted-invoices' ? 'Mètode de pagament' : 'Mètode de cobrament'" horizontal>
               <b-select v-model="form.payment_method" placeholder="" required>
                 <option
                   v-for="(s, index) in paymentMethods"
@@ -588,7 +588,7 @@ export default {
         if (this.type === "emitted-invoices") {
           return "Nova factura";
         } else if (this.type === "received-incomes") {
-          return "Nou ingrès";
+          return "Nou ingrés";
         } else if (this.type === "received-expenses") {
           return "Nova despesa";
         } else {

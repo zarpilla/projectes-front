@@ -54,7 +54,7 @@
       @click="navNewIncome"
       icon-left="plus"
     >
-      Nou ingrès
+      Nou ingrés
     </b-button>
     <b-table
       :loading="isLoading"
