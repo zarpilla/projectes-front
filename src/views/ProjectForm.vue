@@ -854,6 +854,7 @@ export default {
       strategies: [],
       expenseTypes: [],
       incomeTypes: [],
+      documentTypes: [],
       dedicationTypes: [],
       clientSearch: "",
       cooperaSearch: "",
@@ -1023,6 +1024,26 @@ export default {
           documents.push({
             docType: "diets",
             docTypeDesc: "Dieta",
+            multiplier: -1,
+            document: e,
+          });
+        });
+      }
+      if (this.form.received_incomes) {
+        this.form.received_incomes.forEach((e) => {
+          documents.push({
+            docType: "received_income",
+            docTypeDesc: e.document_type ? this.documentTypes.find(t => t.id === e.document_type)?.name : '',
+            multiplier: 1,
+            document: e,
+          });
+        });
+      }
+      if (this.form.received_expenses) {
+        this.form.received_expenses.forEach((e) => {
+          documents.push({
+            docType: "received_expense",
+            docTypeDesc: e.document_type ? this.documentTypes.find(t => t.id === e.document_type)?.name : '',
             multiplier: -1,
             document: e,
           });
@@ -1313,16 +1334,11 @@ export default {
         .then((r) => {
           this.strategies = r.data;
         });
-      // service({ requiresAuth: true })
-      //   .get("expense-types")
-      //   .then((r) => {
-      //     this.expenseTypes = r.data;
-      //   });
-      // service({ requiresAuth: true })
-      //   .get("income-types")
-      //   .then((r) => {
-      //     this.incomeTypes = r.data;
-      //   });
+      service({ requiresAuth: true })
+        .get("document-types")
+        .then((r) => {
+          this.documentTypes = r.data;
+        });
       service({ requiresAuth: true })
         .get("dedication-types")
         .then((r) => {
