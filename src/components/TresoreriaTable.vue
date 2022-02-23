@@ -270,6 +270,7 @@ export default {
       projectExpenses: [],
       receivedIncomes: [],
       receivedExpenses: [],
+      payrolls: [],
       isModalActive: false,
       trashObject: null,
       pivotData: [],
@@ -378,6 +379,9 @@ export default {
       ).data;
       this.contacts = (
         await service({ requiresAuth: true }).get("contacts?_limit=-1&_sort=name:ASC")
+      ).data;
+      this.payrolls = (
+        await service({ requiresAuth: true }).get("payrolls?_limit=-1")
       ).data;
 
       service({ requiresAuth: true })
@@ -742,6 +746,28 @@ export default {
             };
             this.treasury.push(expense);
           });
+
+          this.payrolls.forEach((e) => {
+            const date = e.paid_date
+              ? moment(e.paid_date, "YYYY-MM-DD")
+              : moment.max([
+                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
+                  moment(),
+                ]);
+            const expense = {
+              project_name: '',
+              project_id: 0,
+              type: e.paid ? "Nómina pagada" : "Nómina esperada",
+              concept: `Nómina ${e.month.name} ${e.year.year}`,
+              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              date: date,
+              date_error: (e.paid_date || e.emitted) === null,
+              paid: e.paid,
+              contact: e.users_permissions_user && e.users_permissions_user.username ? e.users_permissions_user.username : '',
+            };
+            this.treasury.push(expense);
+          });
+
           // sort and show
 
           this.treasury = this.treasury.map((t) => {

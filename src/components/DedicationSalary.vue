@@ -21,8 +21,6 @@
         </div>
       </card-component>
 
-      <!-- <pre>{{months}}</pre> -->
-
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="!isLoading"
@@ -34,6 +32,7 @@
           <div class="column has-text-weight-bold">Teòriques</div>
           <div class="column has-text-weight-bold">Saldo</div>
           <div class="column has-text-weight-bold">Salari</div>
+          <div class="column has-text-weight-bold">Nómina</div>
         </div>
         <div v-for="(value, key) in months" v-bind:key="key" class="card-body">
           <div class="columns">
@@ -52,8 +51,27 @@
             <div class="column">
               {{ value.balance }} h
             </div>
+            <div class="column">                            
+              <span>
+                {{ (value.dailySalary / value.theoricDays).toFixed(2) }} € 
+                <span v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
+                (Teòric)
+                </span>
+              </span>
+              <br v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
+              <span v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
+                {{ hasPayroll(key).total_base.toFixed(2) }} € (Nómina)
+              </span>              
+            </div>
             <div class="column">
-              {{ (value.dailySalary / value.theoricDays).toFixed(2) }} €
+              <div class="is-flex">
+                <b-button v-if="!hasPayroll(key)" @click="createPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2) )" class="is-warning" icon="edit">Crear</b-button>
+                <b-button v-if="hasPayroll(key) && !payrollDetail(key).paid" @click="payPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2))" class="is-primary mr-3" :disabled="(value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)" icon="edit">Pagar</b-button>
+                <b-button v-if="hasPayroll(key)" @click="deletePayroll(key)" class="is-danger zml-3">
+                  <b-icon icon="trash-can" size="is-small"/>
+                </b-button>                
+              </div>
+              
             </div>
           </div>
         </div>
@@ -99,6 +117,9 @@ export default {
       dates: [],
       summary: {},
       months: {},
+      monthsDb: [],
+      yearsDb: [],
+      payrolls: []
     };
   },
   computed: {
@@ -133,9 +154,10 @@ export default {
       }
 
       this.months = {}
+      this.payrolls = []
       
       const from = moment(this.year, "YYYY").startOf("year").format("YYYY-MM-DD");
-      const to = moment().endOf("month").format("YYYY-MM-DD");
+      const to = moment().endOf("year").format("YYYY-MM-DD");
 
       let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
@@ -143,6 +165,25 @@ export default {
       } else {
         return;
       }
+
+      // service({ requiresAuth: true })
+      //   .get(`payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`)
+      //   .then((r) => {
+      //     this.payrolls = r.data
+      // })
+      await this.updatePayrolls()
+      
+      if (this.monthsDb.length === 0) {
+        this.monthsDb = (
+          await service({ requiresAuth: true }).get("months")
+        ).data;
+      }
+      if (this.yearsDb.length === 0) {
+        this.yearsDb = (
+          await service({ requiresAuth: true }).get("years")
+        ).data;
+      }
+      
 
       service({ requiresAuth: true })
         .get(query)
@@ -163,6 +204,8 @@ export default {
               f.users_permissions_user === null ||
               f.users_permissions_user.id === this.user
           );
+
+          
 
           service({ requiresAuth: true })
             .get(
@@ -255,7 +298,7 @@ export default {
       var lastDate =
         endOfYear.diff(moment()) < 0
           ? moment(this.year, "YYYY").endOf("year")
-          : moment().endOf("month");
+          : moment().endOf("year");
       // var lastDate = moment()
       dates.push(currDate.clone().toDate());
       while (currDate.add(1, "days").diff(lastDate) < 0) {
@@ -263,6 +306,49 @@ export default {
       }
       return dates;
     },
+    hasPayroll(month) {
+      const m = this.monthsDb.find(m => m.month === parseInt(month))
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
+      return payroll
+    },
+    payrollDetail(month) {
+      const m = this.monthsDb.find(m => m.month === parseInt(month))
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
+      return payroll
+    },
+    async createPayroll(month, total) {      
+      const m = this.monthsDb.find(m => m.month === parseInt(month))
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+
+      const emitted = moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD')
+
+      const payroll = { month: m.id, year: y.id, users_permissions_user: this.user, total_base: total, total: total, total_irpf: 0, total_vat: 0, paid: false, emitted: emitted  }
+
+      await service({ requiresAuth: true }).post('payrolls', payroll)
+
+      await this.updatePayrolls()
+    },
+    async payPayroll(month, total) {
+      const m = this.monthsDb.find(m => m.month === parseInt(month))
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
+      await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, { paid: true, paid_date: payroll.emitted, total_base: total, total: total })
+      await this.updatePayrolls()
+    },
+    async deletePayroll(month) {
+      const m = this.monthsDb.find(m => m.month === parseInt(month))
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
+
+      await service({ requiresAuth: true }).delete(`payrolls/${payroll.id}`)
+      await this.updatePayrolls()
+    },
+    
+    async updatePayrolls() {
+      this.payrolls = (await service({ requiresAuth: true }).get(`payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`)).data
+    }
   },
   filters: {
     formatDate(val) {
