@@ -43,13 +43,13 @@
               {{ value }}
             </div> -->
             <div class="column">
-              {{ value.worked }} h
+              {{ value.worked.toFixed(2) }} h
             </div>
             <div class="column">
-              {{ value.theoricHours }} h
+              {{ value.theoricHours.toFixed(2) }} h
             </div>
             <div class="column">
-              {{ value.balance }} h
+              {{ value.balance.toFixed(2) }} h
             </div>
             <div class="column">                            
               <span>
