@@ -236,7 +236,6 @@ export default {
                 const activities = this.activities.filter(
                   (a) => a.date === date
                 );
-                console.log('activities', activities, date)
                 const festive = festives.find((f) => f.date === date);
                 const theoricHours =
                   !festive && dailyDedication && day !== 0 && day !== 6
