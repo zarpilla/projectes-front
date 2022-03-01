@@ -159,12 +159,15 @@ export default {
       const from = moment(this.year, "YYYY").startOf("year").format("YYYY-MM-DD");
       const to = moment().endOf("year").format("YYYY-MM-DD");
 
-      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
+      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`;
       if (this.user) {
         query = `${query}&[users_permissions_user.id]=${this.user}`;
       } else {
         return;
       }
+    
+      query = `${query}&_limit=-1`;
+      
 
       // service({ requiresAuth: true })
       //   .get(`payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`)
@@ -233,6 +236,7 @@ export default {
                 const activities = this.activities.filter(
                   (a) => a.date === date
                 );
+                console.log('activities', activities, date)
                 const festive = festives.find((f) => f.date === date);
                 const theoricHours =
                   !festive && dailyDedication && day !== 0 && day !== 6
@@ -248,22 +252,19 @@ export default {
                     : "FESTIU"
                   : "";
 
-                if (theoricHours) {
-                  theoricHoursTotal += theoricHours
-                  if (!this.months[month]) {
-                    this.months[month] = { theoricHours: 0, theoricDays: 0, worked: 0, balance: 0, theoricRatio: 0, dailySalary: 0 }
-                  }
-                  this.months[month].theoricHours += theoricHours
-                  this.months[month].theoricDays += 1
-
-                  this.months[month].theoricRatio = this.months[month].theoricHours / this.months[month].theoricDays / 8
-                  this.months[month].dailySalary += dailyDedication.monthly_salary * this.months[month].theoricRatio
-                  
-                  
-                  this.months[month].worked += workedHours
-                  this.months[month].balance = this.months[month].worked - this.months[month].theoricHours
+                theoricHoursTotal += theoricHours
+                if (!this.months[month]) {
+                  this.months[month] = { theoricHours: 0, theoricDays: 0, worked: 0, balance: 0, theoricRatio: 0, dailySalary: 0 }
                 }
+                this.months[month].theoricHours += theoricHours
+                this.months[month].theoricDays += 1
+
+                this.months[month].theoricRatio = this.months[month].theoricHours / this.months[month].theoricDays / 8
+                this.months[month].dailySalary += dailyDedication.monthly_salary * this.months[month].theoricRatio
                 
+                
+                this.months[month].worked += workedHours
+                this.months[month].balance = this.months[month].worked - this.months[month].theoricHours
 
                 totalWorkedHours += workedHours;
                 balance += workedHours - theoricHours;
