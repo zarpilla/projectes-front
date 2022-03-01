@@ -21,7 +21,7 @@
       <br><br>
       <b-icon icon="help-circle-outline" custom-size="default" />
       <b>Per què cal marcar abans la casella de modificable?</b><br>
-      Modificar les jornades laborals o els salaris de períodes passats pot afectar a les bestretes actuals i sobretot, a les anteriors, per això cal que estiguis segura del que vas a fer.
+      Modificar les jornades laborals o els salaris o els costos laborals de períodes passats pot afectar a les bestretes i sobretot, als costos dels projectes amb hores dedicades, per això cal que estiguis segura del que vas a fer.
 
     </div>
 
