@@ -101,7 +101,7 @@ export default {
           {
             to: '/stats-previsio-hores',
             icon: 'table',
-            label: 'Previsió/Real Dedicació'
+            label: 'Prev./Real Dedicació'
           },
           {
             to: '/stats-despeses',
@@ -132,6 +132,11 @@ export default {
             to: '/salary',
             icon: 'table',
             label: 'Bestretes'
+          },
+          {
+            to: '/justifications',
+            icon: 'table',
+            label: 'Justificacions'
           }
         ],
         'Ajuda',
