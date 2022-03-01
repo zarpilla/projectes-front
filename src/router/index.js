@@ -296,6 +296,17 @@ const routes = [
   },
   {
     meta: {
+      title: 'Justificacions'
+    },
+    path: '/justifications',
+    name: 'justifications',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Justifications.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Pressupost'
     },
     path: '/quote/:id',
