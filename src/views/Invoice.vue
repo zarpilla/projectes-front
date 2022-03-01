@@ -99,7 +99,7 @@
                       </tr>
                       <tr>
                         <td>
-                        {{ quote.payment_method.invoice_text.replace(/(?:\r\n|\r|\n)/g, '<br>') }}
+                          <span v-html="paymentText"></span>
                         </td>
                       </tr>
                      </table>
@@ -175,6 +175,9 @@ export default {
     },
     columnsShown () {
       return this.showQuantity && this.showVat ? 5 : (this.showQuantity ? 3 : 4)
+    },
+    paymentText () {
+      return this.quote?.payment_method?.invoice_text?.replace(/(?:\r\n|\r|\n)/g, '<br>')
     }
   },
   created () {
