@@ -25,7 +25,7 @@
               {{ value.hours }}
             </div>
             <div class="column">
-              {{ value.days }}
+              {{ value.days }} {{ value.max ? `/ ${value.max}` : '' }}
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default {
             await service({ requiresAuth: true }).get('festive-types?_limit=-1')
           ).data;
           festiveTypes.forEach((ft) => {
-            this.summary[ft.name] = { hours: 0, days: 0 };
+            this.summary[ft.name] = { hours: 0, days: 0, max: ft.max };
           });
           
           const festives = (
