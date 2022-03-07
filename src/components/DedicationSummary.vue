@@ -15,6 +15,7 @@
           <div class="column has-text-weight-bold">Tipus</div>
           <div class="column has-text-weight-bold">Hores</div>
           <div class="column has-text-weight-bold">Dies</div>
+          <div class="column has-text-weight-bold">Gastats avui</div>
         </div>
         <div v-for="(value, key) in summary" v-bind:key="key" class="card-body">
           <div class="columns">
@@ -26,6 +27,9 @@
             </div>
             <div class="column">
               {{ value.days }} {{ value.max ? `/ ${value.max}` : '' }}
+            </div>
+            <div class="column">
+              {{ value.daysCurrent }} {{ value.max ? `/ ${value.max}` : '' }}
             </div>
           </div>
         </div>
@@ -149,7 +153,7 @@ export default {
             await service({ requiresAuth: true }).get('festive-types?_limit=-1')
           ).data;
           festiveTypes.forEach((ft) => {
-            this.summary[ft.name] = { hours: 0, days: 0, max: ft.max };
+            this.summary[ft.name] = { hours: 0, days: 0, max: ft.max, daysCurrent: 0 };
           });
           
           const festives = (
@@ -193,6 +197,10 @@ export default {
             if (festive && dailyDedication) {              
               this.summary[festive.festive_type.name].hours += dailyDedication.hours
               this.summary[festive.festive_type.name].days++
+              if (moment(d).isBefore(moment())) {
+                this.summary[festive.festive_type.name].daysCurrent++
+                console.log('daysCurrent', d, festive.festive_type.name)
+              }
             }
             if (theoricHours) {
               totalWorkedDays++
