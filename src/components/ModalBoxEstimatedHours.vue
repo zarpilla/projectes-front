@@ -135,7 +135,6 @@ export default {
   },
   watch: {
     isActive (newValue) {
-      console.log('')
       if (newValue && !this.isModalActive) {        
         this.isModalActive = newValue
         this.show()

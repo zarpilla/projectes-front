@@ -23,6 +23,12 @@ export default {
     }
   },
   render (createElement) {
+    if (!this.$slots) {
+      return
+    }
+    if (!this.$slots.default) {
+      return
+    }
     if (this.$slots.default.length <= this.maxPerRow) {
       return this.renderAncestor(createElement, this.$slots.default)
     } else {

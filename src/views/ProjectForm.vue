@@ -1508,19 +1508,18 @@ export default {
       // return item
       // console.log('ganttItemUpdate _uuid', item._uuid)
       const id = item._hours.id;
-      const pid = item._phase.id;
-      const sid = item._subphase.id;
       const uuid = item._uuid;
-      const subphase = this.form.phases
+      const pid = item._phase.id;
+
+      var subphase = item._subphase ? item._subphase : null;
+      if (!item._subphase) {
+        const phase = this.form.phases
         .find((p) => p.id === pid)
-        .subphases.find((s) => s.id === sid);
-      // console.log('subphase', subphase)
-      if (!subphase || !subphase.estimated_hours) {
-        return;
-      }
-      const hours = this.form.phases
-        .find((p) => p.id === pid)
-        .subphases.find((s) => s.id === sid)
+        phase.subphases.push({ concept: 'SF', estimated_hours: [] })
+        subphase = phase.subphases[0]        
+      } 
+      
+      const hours = subphase
         .estimated_hours.find(
           (h) =>
             (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid)
@@ -1562,9 +1561,7 @@ export default {
           // _subphase: item._subphase,
         };
         // console.log('hour to ush', hour)
-        this.form.phases
-          .find((p) => p.id === pid)
-          .subphases.find((s) => s.id === sid)
+        subphase
           .estimated_hours.push(hour);
       }
       this.updatingGantt = true;
