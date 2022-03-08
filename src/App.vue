@@ -58,7 +58,7 @@ export default {
             label: 'Strapi'
           }
         ],
-        'Facturació',
+        'Diners',
         [
           {
             to: '/emitted-invoices',
@@ -74,6 +74,11 @@ export default {
             to: '/tresoreria',
             icon: 'table',
             label: 'Tresoreria'
+          },
+          {
+            to: '/salary',
+            icon: 'table',
+            label: 'Bestretes'
           }
         ],
         'Consulta dades',
@@ -127,11 +132,6 @@ export default {
             to: '/dedicacio-summary',
             icon: 'table',
             label: 'Hores anuals'
-          },
-          {
-            to: '/salary',
-            icon: 'table',
-            label: 'Bestretes'
           },
           {
             to: '/justifications',

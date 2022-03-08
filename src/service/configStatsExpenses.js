@@ -12,9 +12,9 @@ const config = {
     }, {
       name: 'project_scope',
       expand: false
-    // }, {
-    //   name: 'invoice_type',
-    //   expand: false
+    }, {
+      name: 'project_mother',
+      expand: false
     }, {
       name: 'project_client',
       expand: false
@@ -63,7 +63,10 @@ const config = {
           },
           type: {
             caption: 'Tipus (TOTES)'
-          }
+          },
+          project_mother: {
+            caption: 'Mare (TOTES)'
+          },
         },
         // measures: ['Sum']
         measures: {

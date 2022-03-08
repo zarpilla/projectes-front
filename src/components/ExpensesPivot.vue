@@ -114,6 +114,7 @@ export default {
                     if (inc.quantity && inc.amount) {
                       const row = {
                         project_name: p.name,
+                        project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
                         project_state: p.project_state ? p.project_state.name : '-',
                         project_leader: p.leader ? p.leader.username : '-',
                         project_scope: p.project_scope ? p.project_scope.short_name : '-',
@@ -133,6 +134,7 @@ export default {
                     if (exp.quantity && exp.amount) {
                       const row = {
                         project_name: p.name,
+                        project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
                         project_state: p.project_state ? p.project_state.name : '-',
                         project_leader: p.leader ? p.leader.username : '-',
                         project_scope: p.project_scope ? p.project_scope.short_name : '-',
@@ -155,6 +157,7 @@ export default {
                   if ((inc.quantity && inc.amount) || inc.income || inc.invoice) {
                     const row = {
                       project_name: p.name,
+                      project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
                       concept: inc.concept,
                       project_state: p.project_state ? p.project_state.name : '-',
                       project_leader: p.leader ? p.leader.username : '-',
@@ -176,6 +179,7 @@ export default {
                   if ((exp.quantity && exp.amount) || exp.expense || exp.invoice) {
                     const row = {
                       project_name: p.name,
+                      project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
                       project_state: p.project_state ? p.project_state.name : '-',
                       project_leader: p.leader ? p.leader.username : '-',
                       project_scope: p.project_scope ? p.project_scope.short_name : '-',

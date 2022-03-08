@@ -539,6 +539,13 @@
               </b-datepicker>
             </b-field>
 
+
+            <b-field v-if="form.ss_base" label="Despesa total" horizontal>
+              <b-input v-model="form.total" placeholder="" disabled />
+
+            </b-field>
+
+
           </card-component>
 
           <hr />
@@ -591,7 +598,7 @@
               Visualitzar PDF
             </a>
           </b-field>
-          <b-field>
+          <b-field v-if="type !== 'payrolls'">
             <b-button type="is-primary" :loading="isLoading" @click="submit"
               >Guardar</b-button
             >
@@ -888,62 +895,64 @@ export default {
                 this.form.ss_date = moment(this.form.ss_date, "YYYY-MM-DD").toDate()
                 this.form.other_date = moment(this.form.other_date, "YYYY-MM-DD").toDate()
 
-                this.form.concepts = [];
-                this.form.concepts.push({
-                  concept: "Salari base",
-                  quantity: 1,
-                  base: 1*this.form.total_base,
-                  date: moment(this.form.paid_datem).format('YYYY-MM-DD')
-                });
-                if (this.dedication.pct_irpf) {
-                  this.form.concepts.push({
-                    concept: `SS a càrrec de la treballadora (${this.dedication.pct_irpf}%)`,
-                    quantity: 1,
-                    base: (
-                      (-1 * this.form.total_base * this.dedication.pct_irpf) /
-                      100
-                    ),
-                  });
-                }
-                if (this.dedication.quota) {
-                  this.form.concepts.push({
-                    concept: `Quota a càrrec de la cooperativa`,
-                    quantity: 1,
-                    base: (-1 * this.dedication.quota),
-                  });
-                }
-                if (this.dedication.pct_other) {
-                  this.form.concepts.push({
-                    concept: `Altres a càrrec de la treballadora (${this.dedication.pct_other}%)`,
-                    quantity: 1,
-                    base: (
-                      (-1 * this.form.total_base * this.dedication.pct_other) /
-                      100
-                    ),
-                  });
-                }
+                this.form.total = this.form.total_base + this.form.ss_base
 
-                const net = sumBy(this.form.concepts, 'base')
+                // this.form.concepts = [];
+                // this.form.concepts.push({
+                //   concept: "Salari base",
+                //   quantity: 1,
+                //   base: 1*this.form.total_base,
+                //   date: moment(this.form.paid_datem).format('YYYY-MM-DD')
+                // });
+                // if (this.dedication.pct_irpf) {
+                //   this.form.concepts.push({
+                //     concept: `SS a càrrec de la treballadora (${this.dedication.pct_irpf}%)`,
+                //     quantity: 1,
+                //     base: (
+                //       (-1 * this.form.total_base * this.dedication.pct_irpf) /
+                //       100
+                //     ),
+                //   });
+                // }
+                // if (this.dedication.quota) {
+                //   this.form.concepts.push({
+                //     concept: `Quota a càrrec de la cooperativa`,
+                //     quantity: 1,
+                //     base: (-1 * this.dedication.quota),
+                //   });
+                // }
+                // if (this.dedication.pct_other) {
+                //   this.form.concepts.push({
+                //     concept: `Altres a càrrec de la treballadora (${this.dedication.pct_other}%)`,
+                //     quantity: 1,
+                //     base: (
+                //       (-1 * this.form.total_base * this.dedication.pct_other) /
+                //       100
+                //     ),
+                //   });
+                // }
 
-                this.form.concepts.push({
-                    concept: `Salari net`,
-                    quantity: 1,
-                    base: net,
-                    format: 'bold'
-                  });
+                // const net = sumBy(this.form.concepts, 'base')
+
+                // this.form.concepts.push({
+                //     concept: `Salari net`,
+                //     quantity: 1,
+                //     base: net,
+                //     format: 'bold'
+                //   });
 
                 
 
-                if (this.dedication.pct_quota) {
-                  this.form.concepts.push({
-                    concept: `SS a càrrec de la cooperativa (${this.dedication.pct_quota}%)`,
-                    quantity: 1,
-                    base: (
-                      (this.form.total_base * this.dedication.pct_quota) /
-                      100
-                    ),
-                  });
-                }
+                // if (this.dedication.pct_quota) {
+                //   this.form.concepts.push({
+                //     concept: `SS a càrrec de la cooperativa (${this.dedication.pct_quota}%)`,
+                //     quantity: 1,
+                //     base: (
+                //       (this.form.total_base * this.dedication.pct_quota) /
+                //       100
+                //     ),
+                //   });
+                // }
               }
 
               this.isLoading = false;

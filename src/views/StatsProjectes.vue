@@ -1,12 +1,6 @@
 <template>
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
-    <!-- <hero-bar>
-      Dedicació
-      <router-link slot="right" to="/" class="button">
-        Dashboard
-      </router-link>
-    </hero-bar> -->
     <section class="section is-main-section">
       <card-component title="Filtres">
         <form @submit.prevent="submit2">
@@ -24,89 +18,12 @@
                 {{ s.name }}
               </option>
             </b-select>
-            <!-- <b-field label="Inici">
-              <b-datepicker
-                v-model="filters.date1"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus>
-              </b-datepicker>
-            </b-field>
-            <b-field label="Final">
-              <b-datepicker
-                v-model="filters.date2"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus>
-              </b-datepicker>
-            </b-field> -->
-            <!-- <b-field label="Persona">
-              <b-autocomplete
-                v-model="userNameSearch"
-                placeholder="Persona"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredUsers"
-                field="username"
-                @select="(option) => (filters.user = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Projecte">
-              <b-autocomplete
-                v-model="projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="
-                  (option) => (filters.project = option ? option.id : null)
-                "
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field> -->
-            <!-- <b-field label="Inici">
-              <b-datepicker
-                v-model="filters.date1"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Final">
-              <b-datepicker
-                v-model="filters.date2"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Últimes">
-              <b-checkbox v-model="filters.lastUpdated"> </b-checkbox>
-            </b-field> -->
           </b-field>
         </form>
       </card-component>
 
       <card-component title="Projectes">
-        <projectes-pivot :project-state="filters.project_state" :date1="filters.date1" :date2="filters.date2" v-if="!isLoading" />
+        <projectes-pivot :project-state="filters.project_state" v-if="!isLoading" />
       </card-component>
     </section>
   </div>
@@ -135,8 +52,6 @@ export default {
       isLoading: true,
       filters: {
         project_state: null,
-        date1: null,
-        date2: null
       },
       project_states: []
     }
@@ -148,9 +63,7 @@ export default {
   },
   async mounted () {
     this.isLoading = true
-    this.filters.date1 = moment().add(-6, 'days').toDate()
-    this.filters.date2 = moment().toDate()
-
+    
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)

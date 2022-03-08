@@ -17,7 +17,7 @@
     <div class="help">
       <b-icon icon="help-circle-outline" custom-size="default" />
       <b>Com funciona?</b><br>      
-      Fent click sobre el nom de la persona o en cadascun dels períodes ja definits (blau) es pot editar el període, les hores diaries de treball, el salari base i el cost hora.
+      Fent click sobre el nom de la persona o en cadascun dels períodes ja definits (blau) es pot editar el període, les hores diaries de treball, el salari i el cost hora.
       <br><br>
       <b-icon icon="help-circle-outline" custom-size="default" />
       <b>Per què cal marcar abans la casella de modificable?</b><br>

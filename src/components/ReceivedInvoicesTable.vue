@@ -145,16 +145,16 @@
           {{ props.row.project ? props.row.project.name : "-" }}
         </b-table-column>
         <b-table-column label="Base" field="total_base" v-slot="props" sortable>
-          {{ formatPrice(props.row.total_base) }} €
+          {{ formatPrice(props.row.total_base) }}€
         </b-table-column>
         <b-table-column label="IVA" field="total_vat" v-slot="props" sortable>
-          {{ formatPrice(props.row.total_vat) }} €
+          {{ formatPrice(props.row.total_vat) }}€
         </b-table-column>
         <b-table-column label="IRPF" field="total_irpf" v-slot="props" sortable>
-          {{ formatPrice(-1 * props.row.total_irpf) }} €
+          {{ formatPrice(-1 * props.row.total_irpf) }}€
         </b-table-column>
         <b-table-column label="Total" field="total" v-slot="props" sortable>
-          {{ formatPrice(props.row.total) }} €
+          {{ formatPrice(props.row.total) }}€
         </b-table-column>
       </b-table>
     </section>
@@ -273,7 +273,7 @@ export default {
       ).data;
 
       payrolls = payrolls.map((element) => {
-        return { ...element, type: 'payrolls' };
+        return { ...element, type: 'payrolls', total_base: element.total };
       });
 
       const emitted = _.concat(invoices, expenses, payrolls)

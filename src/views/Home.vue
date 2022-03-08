@@ -229,6 +229,7 @@ export default {
           leader: p.leader && p.leader.id ? p.leader.username : "",
           date_start: p.date_start,
           date_end: p.date_end,
+          mother: p.mother ? p.mother.name : '',
           estimated_hours: p.total_estimated_hours
             ? p.total_estimated_hours.toString().replace(".", ",")
             : "",

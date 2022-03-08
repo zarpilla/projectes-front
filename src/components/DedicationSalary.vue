@@ -361,7 +361,8 @@ export default {
         other_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(1, 'day').format('YYYY-MM-DD'),
       }
 
-      payroll.net_base = payroll.total - payroll.irpf_base - payroll.other_base
+      payroll.net_base = parseFloat(payroll.total) - parseFloat(payroll.irpf_base) - parseFloat(payroll.other_base)
+      payroll.total = parseFloat(payroll.total) + parseFloat(payroll.ss_base)
 
       await service({ requiresAuth: true }).post('payrolls', payroll)
 
@@ -371,7 +372,7 @@ export default {
       const m = this.monthsDb.find(m => m.month === parseInt(month))
       const y = this.yearsDb.find(y => y.year === parseInt(this.year))
       const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-      await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, { paid: true, paid_date: payroll.emitted, total_base: total, total: total })
+      await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, { paid: true, paid_date: payroll.emitted })
       await this.updatePayrolls()
     },
     async deletePayroll(month) {

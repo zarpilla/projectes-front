@@ -26,14 +26,6 @@ export default {
     projectState: {
       type: Number,
       default: 0
-    },
-    date1: {
-      type: Date,
-      default: null
-    },
-    date2: {
-      type: Date,
-      default: null
     }
   },
   data () {
@@ -85,38 +77,24 @@ export default {
       this.leaders = (await service({ requiresAuth: true }).get('users')).data
       this.contacts = (await service({ requiresAuth: true }).get('contacts?_limit=-1&_sort=name:ASC')).data
 
-      // const from = moment(this.date1).format('YYYY-MM-DD')
-      // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
       let query = `projects?_where[project_state_eq]=${projectState}&_limit=-1`
       if (projectState === 0 || projectState === '0') {
         query = 'projects?_limit=-1'
       }
-      // if (this.user) {
-      //   query = `${query}&[users_permissions_user.id]=${this.user}`
-      // }
-      // if (this.project) {
-      //   query = `${query}&[project.id]=${this.project}`
-      // }
+      
       service({ requiresAuth: true }).get(query).then((r) => {
-        // console.log('projects rdata', r.data)
+        console.log('projects rdata', r.data)
         const projects = r.data.map(p => {
           const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
-          // const realIncomes = sumBy(p.emitted_invoices.map(a => { return { incomes: a.total_base } }), 'incomes')
-          // const realExpenses = sumBy(p.received_invoices.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.diets.map(a => { return { expenses: a.total_base } }), 'expenses') + sumBy(p.tickets.map(a => { return { expenses: a.total_base } }), 'expenses')
-
-          // console.log('p.invoice_hours_price', p.invoice_hours_price)
-          // console.log('incomes', incomes)
-
-          // const bbbb = p.invoice_hours_price ? sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes') : (p.incomes ? p.incomes : 0)
-          // console.log('bbbb', bbbb)
 
           return {
             project_name: p.name,
-            project_state: p.project_state ? p.project_state.name : '-',
-            project_leader: p.leader ? p.leader.username : '-',
-            project_scope: p.project_scope ? p.project_scope.short_name : '-',
-            project_client: p.client ? p.client.name : '-',
+            project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
+            project_state: p.project_state && p.project_state.name ? p.project_state.name : '-',
+            project_leader: p.leader && p.leader.username ? p.leader.username : '-',
+            project_scope: p.project_scope && p.project_scope.short_name ? p.project_scope.short_name : '-',
+            project_client: p.client && p.client? p.client.name : '-',
             total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
             hours: sumBy(p.activities, 'hours'),
             incomes: p.invoice_hours_price ? incomes : p.total_incomes,
@@ -139,7 +117,7 @@ export default {
           }
         })
 
-        // console.log('projects', projects)
+        console.log('projects', projects)
         this.projects = r.data
         this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
         configPivot.dataSource.data = this.pivotData

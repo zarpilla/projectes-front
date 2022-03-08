@@ -10,6 +10,9 @@ const config = {
       name: 'project_leader',
       expand: false
     }, {
+      name: 'project_mother',
+      expand: false    
+    }, {
       name: 'project_scope',
       expand: false
     }], // Specify a dimension on columns.
@@ -24,6 +27,9 @@ const config = {
           project_state: {
             type: 'string'
           },
+          project_mother: {
+            type: 'string'
+          },          
           project_leader: {
             type: 'string'
           },
@@ -45,6 +51,9 @@ const config = {
         dimensions: {
           project_state: {
             caption: 'Estats (TOTS)'
+          },
+          project_mother: {
+            caption: 'Mare (TOTES)'
           },
           project_leader: {
             caption: 'Líders (TOTS)'
