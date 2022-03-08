@@ -1,19 +1,30 @@
 <template>
   <section class="xsection">
-    <download-excel class="export" :data="contactsCSV">
+    <div class="is-flex">
+      <download-excel class="export" :data="contactsCSV">
+        <b-button
+          title="Exporta dades"
+          class="export-button mb-3"
+          icon-left="file-excel"
+        />
+      </download-excel>
       <b-button
-        title="Exporta dades"
-        class="export-button mb-3"
-        icon-left="file-excel"
-      />
-    </download-excel>
-    <b-button
-      class="view-button is-primary mb-3"
-      @click="navNew"
-      icon-left="plus"
-    >
-      Nou Contacte
-    </b-button>
+        class="view-button is-primary mb-3"
+        @click="navNew"
+        icon-left="plus"
+      >
+        Nou Contacte
+      </b-button>
+
+      <b-field horizontal label="Cercar" class="ml-5 is-full-width">
+        <b-input
+          :value="filters.q"
+          @keyup.native="queryProjects($event.target.value)"
+          placeholder="Contacte"
+        >
+        </b-input>
+      </b-field>
+  </div>
     <!-- <pre>{{contacts}}</pre> -->
     <b-table
       :loading="isLoading"
@@ -66,7 +77,11 @@ export default {
     return {
       isLoading: false,      
       contacts: [],
-      contactsCSV: []      
+      contactsCSV: [],
+      filters: {
+        q: ''
+      },
+      queryChanged: 0,
     };
   },  
   async mounted() {
@@ -78,24 +93,27 @@ export default {
     },    
     async getData() {
       this.isLoading = true;      
-      this.contacts = (await service({ requiresAuth: true }).get(`contacts?_limit=-1&_sort=name:ASC`)).data;
-      this.contactsCSV = this.contacts
-      // .map((e) => {
-      //   return {
-      //     num: e.code,
-      //     data: e.date,
-      //     proveidor: e.contact ? e.contact.name : "",
-      //     nif: e.contact ? e.contact.nif : "",
-      //     concepte: e.lines && e.lines.length > 0 ? e.lines[0].concepte : "-",
-      //     projecte: e.project ? e.project.name : "-",
-      //     base: e.total_base,
-      //     vat: e.total_vat,
-      //     irpf: e.total_irpf,
-      //     total: e.total,
-      //   };
-      // });
 
+      if (this.filters.q) {
+        this.contacts = (await service({ requiresAuth: true })
+          .get(
+            `contacts?_limit=-1&_sort=name:ASC&_q=${this.filters.q}`
+          )).data;
+      } else {
+        this.contacts = (await service({ requiresAuth: true }).get(`contacts?_limit=-1&_sort=name:ASC`)).data;
+      }
+      
+      this.contactsCSV = this.contacts
       this.isLoading = false;
+    },
+    queryProjects(q) {
+      if (this.queryChanged) {
+        clearTimeout(this.queryChanged);
+      }
+      this.queryChanged = setTimeout(() => {
+        this.filters.q = q;
+        this.getData();
+      }, 400);
     },
   },
 };
