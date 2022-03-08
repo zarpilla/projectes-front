@@ -50,7 +50,7 @@ export default {
           {
             to: '/working-day',
             icon: 'chart-timeline',
-            label: 'Jornades'
+            label: 'Persones'
           },
           {
             href: `${process.env.VUE_APP_API_URL || 'http://localhost:1337'}/admin`,

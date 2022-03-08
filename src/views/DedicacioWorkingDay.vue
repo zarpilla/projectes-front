@@ -29,7 +29,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Dedicació', 'Jornades']
+      return ['Persones', 'Jornades']
     }
   },
   mounted () {

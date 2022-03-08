@@ -6,7 +6,7 @@
       </header>
       <form @submit.prevent="submit">
         <section class="modal-card-body">            
-            <b-field label="Inici" horizontal>
+            <b-field label="Període" class="datepickers" horizontal>
               <b-datepicker
                   v-model="form.from"
                   :show-week-number="false"
@@ -15,8 +15,6 @@
                   icon="calendar-today"                  
                   trap-focus>
               </b-datepicker>
-            </b-field>            
-            <b-field label="Final" horizontal>
               <b-datepicker
                   v-model="form.to"
                   :show-week-number="false"
@@ -66,6 +64,66 @@
                 placeholder="Cost"
                 name="cost"
                 @input="fixDecimals('costByHour', form.costByHour)"
+              />
+            </b-field>
+
+            <b-field label="Seguretat Social" horizontal>
+              <b-radio v-model="form.scheme"
+                name="name"
+                native-value="autonoma">
+                Treballadora Autònoma
+              </b-radio>
+              <b-radio v-model="form.scheme"
+                  name="name"
+                  native-value="general">
+                  Règim General
+              </b-radio>
+            </b-field>
+
+            <b-field label="Quota (€ / %)" horizontal message="Quota S.S. mensual soportada per la cooperativa">
+              <b-input
+                v-model="form.quota"
+                placeholder="Quota fixa €"
+                name="quota"
+                @input="fixDecimals('quota', form.quota)"
+                message="soportada per la cooperativa (€)"
+              />
+              <b-input
+                v-model="form.pct_quota"
+                placeholder="Quota %"
+                name="pct_quota"
+                @input="fixDecimals('pct_quota', form.pct_quota)"
+                message="soportada per la cooperativa (%)"
+              />
+            </b-field>
+<!-- 
+            <b-field label="Quota (%)" horizontal message="Quota S.S. mensual soportada per la cooperativa sobre el salari base">
+              <b-input
+                v-model="form.pct_quota"
+                placeholder="Cuota"
+                name="pct_quota"
+                @input="fixDecimals('pct_quota', form.pct_quota)"
+                message="soportada per la cooperativa (%)"
+              />
+            </b-field> -->
+
+            <b-field label="% IRPF" horizontal message="Percentatge sobre el salari base mensual">
+              <b-input
+                v-model="form.pct_irpf"
+                placeholder="% IRPF"
+                name="pct_irpf"
+                :disabled="form.scheme === 'autonoma'"
+                @input="fixDecimals('pct_irpf', form.pct_irpf)"
+              />
+            </b-field>
+
+            <b-field label="% Altres" horizontal message="Contingències, atur... Percentatge sobre el salari base mensual">
+              <b-input
+                v-model="form.pct_other"
+                placeholder="% Altres"
+                name="pct_other"
+                :disabled="form.scheme === 'autonoma'"
+                @input="fixDecimals('pct_other', form.pct_other)"                
               />
             </b-field>
 
@@ -126,7 +184,11 @@ export default {
         users_permissions_user: null,
         hours: null,
         costByHour: null,
-        monthly_salary: null
+        monthly_salary: null,
+        scheme: '',
+        quota: 0,
+        pct_irpf: 0,
+        pct_other: 0,
       },      
       trashObject: null,
       isDeleteModalActive: false,
@@ -175,7 +237,7 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-      // console.log('show this.dedicationObject', this.dedicationObject)
+      console.log('show this.dedicationObject', this.dedicationObject)
       // console.log('show this.users', this.users)
       
       if (this.dedicationObject) {
@@ -188,6 +250,11 @@ export default {
         this.form.hours = this.dedicationObject._dedication.hours
         this.form.users_permissions_user = this.dedicationObject._dedication.users_permissions_user ? this.dedicationObject._dedication.users_permissions_user.id : null
         this.userNameSearch = this.dedicationObject._dedication.users_permissions_user ? this.dedicationObject._dedication.users_permissions_user.username : ''
+        this.form.scheme = this.dedicationObject._dedication.scheme
+        this.form.quota = this.dedicationObject._dedication.quota
+        this.form.pct_quota = this.dedicationObject._dedication.pct_quota
+        this.form.pct_irpf = this.dedicationObject._dedication.pct_irpf
+        this.form.pct_other = this.dedicationObject._dedication.pct_other
       } else {
         this.form.from = null
         this.form.to = null
@@ -195,6 +262,11 @@ export default {
         this.form.hours = 0
         this.form.costByHour = 0
         this.form.monthly_salary = 0
+        this.form.scheme = 'autonoma'
+        this.form.quota = 0
+        this.form.pct_quota = 0
+        this.form.pct_irpf = 0
+        this.form.pct_other = 0
         this.form.id = 0
       }
 
@@ -230,7 +302,10 @@ export default {
 </script>
 <style>
 .modal-card-dedication .field:not(:last-child){
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.0rem;
+}
+.modal-card-dedication .datepickers .field{
+  margin-bottom: 0;
 }
 .modal-card-dedication .modal-card-body {
   max-height: calc(100vh - 200px);

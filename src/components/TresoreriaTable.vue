@@ -757,15 +757,48 @@ export default {
             const expense = {
               project_name: '',
               project_id: 0,
-              type: e.paid ? "Nómina pagada" : "Nómina esperada",
-              concept: `Nómina ${e.month.name} ${e.year.year}`,
-              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
-              date: date,
+              type: e.paid ? "Nòmina pagada" : "Nòmina esperada",
+              concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
+              total_amount: e.net_base ? -1 * Math.abs(e.net_base) : 0,
+              date: moment(e.net_date, "YYYY-MM-DD"),
               date_error: (e.paid_date || e.emitted) === null,
               paid: e.paid,
               contact: e.users_permissions_user && e.users_permissions_user.username ? e.users_permissions_user.username : '',
+              to: `/document/${e.id}/payrolls`
             };
             this.treasury.push(expense);
+
+            if (e.irpf_base || e.other_base) {
+              const expense2 = {
+                project_name: '',
+                project_id: 0,
+                type: e.paid ? "IRPF pagat" : "IRPF esperat",
+                concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
+                total_amount: e.irpf_base || e.other_base ? -1 * Math.abs(e.irpf_base + e.other_base) : 0,
+                date: moment(e.irpf_date, "YYYY-MM-DD"),
+                date_error: (e.irpf_date) === null,
+                paid: e.paid,
+                contact: e.users_permissions_user && e.users_permissions_user.username ? e.users_permissions_user.username : '',
+                to: `/document/${e.id}/payrolls`
+              };
+              this.treasury.push(expense2);
+            }
+
+            if (e.ss_base) {
+              const expense3 = {
+                project_name: '',
+                project_id: 0,
+                type: e.paid ? "SS pagat" : "SS esperat",
+                concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
+                total_amount: e.ss_base ? -1 * Math.abs(e.ss_base) : 0,
+                date: moment(e.ss_date, "YYYY-MM-DD"),
+                date_error: (e.ss_date) === null,
+                paid: e.paid,
+                contact: e.users_permissions_user && e.users_permissions_user.username ? e.users_permissions_user.username : '',
+                to: `/document/${e.id}/payrolls`
+              };
+              this.treasury.push(expense3);
+            }
           });
 
           // sort and show

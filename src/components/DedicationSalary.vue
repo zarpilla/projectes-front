@@ -1,9 +1,15 @@
 <template>
   <div>
     <div class="table-view">      
+
+      <div class="alert" v-if="warn">
+        <b-icon icon="alert-circle"></b-icon>
+        Atenció, abans de consultar les nòmines cal definir la <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de tot l'any.
+      </div>
+
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading"
+        v-if="!isLoading && !warn"
       >
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Tipus</div>
@@ -32,7 +38,7 @@
           <div class="column has-text-weight-bold">Teòriques</div>
           <div class="column has-text-weight-bold">Saldo</div>
           <div class="column has-text-weight-bold">Salari</div>
-          <div class="column has-text-weight-bold">Nómina</div>
+          <div class="column has-text-weight-bold">Nòmina</div>
         </div>
         <div v-for="(value, key) in months" v-bind:key="key" class="card-body">
           <div class="columns">
@@ -60,7 +66,7 @@
               </span>
               <br v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
               <span v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
-                {{ hasPayroll(key).total_base.toFixed(2) }} € (Nómina)
+                {{ hasPayroll(key).total_base.toFixed(2) }} € (Nòmina)
               </span>              
             </div>
             <div class="column">
@@ -119,7 +125,8 @@ export default {
       months: {},
       monthsDb: [],
       yearsDb: [],
-      payrolls: []
+      payrolls: [],
+      warn: false
     };
   },
   computed: {
@@ -208,7 +215,7 @@ export default {
               f.users_permissions_user.id === this.user
           );
 
-          
+          this.warn = false          
 
           service({ requiresAuth: true })
             .get(
@@ -233,6 +240,11 @@ export default {
                 const dailyDedication = this.dailyDedications.find(
                   (dd) => date >= dd.from && date <= dd.to
                 );
+                
+                if (!dailyDedication) {
+                  this.warn = true
+                  console.warn('date!', date)
+                }
                 const activities = this.activities.filter(
                   (a) => a.date === date
                 );
@@ -240,10 +252,7 @@ export default {
                 const theoricHours =
                   !festive && dailyDedication && day !== 0 && day !== 6
                     ? dailyDedication.hours
-                    : 0;
-                if (!festive && dailyDedication && day !== 0 && day !== 6) {
-                  laborableDays++
-                }
+                    : 0;                
                 const workedHours = sumBy(activities, "hours");
                 const dateDescription = festive
                   ? festive.festive_type
@@ -256,11 +265,15 @@ export default {
                   this.months[month] = { theoricHours: 0, theoricDays: 0, worked: 0, balance: 0, theoricRatio: 0, dailySalary: 0 }
                 }
                 this.months[month].theoricHours += theoricHours
-                this.months[month].theoricDays += 1
+
+                if (!festive && dailyDedication && day !== 0 && day !== 6) {
+                  laborableDays++
+                  this.months[month].theoricDays += 1
+                }
+                // this.months[month].theoricDays += 1
 
                 this.months[month].theoricRatio = this.months[month].theoricHours / this.months[month].theoricDays / 8
-                this.months[month].dailySalary += dailyDedication.monthly_salary * this.months[month].theoricRatio
-                
+                this.months[month].dailySalary = dailyDedication.monthly_salary * this.months[month].theoricRatio * this.months[month].theoricDays
                 
                 this.months[month].worked += workedHours
                 this.months[month].balance = this.months[month].worked - this.months[month].theoricHours
@@ -324,7 +337,31 @@ export default {
 
       const emitted = moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD')
 
-      const payroll = { month: m.id, year: y.id, users_permissions_user: this.user, total_base: total, total: total, total_irpf: 0, total_vat: 0, paid: false, emitted: emitted  }
+      const dailyDedication = this.dailyDedications.find(
+                  (dd) => emitted >= dd.from && emitted <= dd.to
+      );
+
+      const payroll = { 
+        month: m.id, 
+        year: y.id, 
+        users_permissions_user: this.user, 
+        total_base: total, 
+        total: total, 
+        total_irpf: 0, 
+        total_vat: 0, 
+        paid: false, 
+        emitted: emitted,
+        net_base: 0,
+        net_date: emitted,
+        ss_base: dailyDedication.pct_quota ? total * dailyDedication.pct_quota / 100 : dailyDedication.quota,
+        ss_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').add(1, 'month').endOf('month').format('YYYY-MM-DD'),  // mes següent vençut
+        irpf_base: dailyDedication.pct_irpf ? total * dailyDedication.pct_irpf / 100 : 0,
+        irpf_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(1, 'day').format('YYYY-MM-DD'),
+        other_base: dailyDedication.pct_other ? total * dailyDedication.pct_other / 100 : 0,
+        other_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(1, 'day').format('YYYY-MM-DD'),
+      }
+
+      payroll.net_base = payroll.total - payroll.irpf_base - payroll.other_base
 
       await service({ requiresAuth: true }).post('payrolls', payroll)
 

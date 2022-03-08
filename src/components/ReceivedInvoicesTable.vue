@@ -71,7 +71,7 @@
       >
         <b-table-column label="Codi" field="number" v-slot="props" sortable>
           <router-link
-            v-if="props.row.id"
+            v-if="props.row.id && props.row.type !== 'payrolls'"
             :to="{
               name: 'document.edit',
               params: { id: props.row.id, type: props.row.type },
@@ -79,14 +79,26 @@
           >
             {{ props.row.code }}
           </router-link>
-          <b v-else>{{ props.row.code }}</b>
+          <b v-else-if="props.row.code && props.row.type !== 'payrolls'">{{ props.row.code }}</b>
+          <router-link v-else
+          :to="{
+              name: 'document.edit',
+              params: { id: props.row.id, type: props.row.type },
+            }"
+          >{{ `${props.row.year.year}-${props.row.month.month}-${props.row.id}` }}
+
+          </router-link>
+          
         </b-table-column>
-        <b-table-column label="Tipus" field="emitted" v-slot="props" sortable>
+        <b-table-column label="Tipus" field="type" v-slot="props" sortable>
           <span v-if="props.row.type === 'received-invoices'">
             Factura
           </span>
           <span v-if="props.row.type === 'received-expenses'">
             {{props.row.document_type.name }}
+          </span>
+          <span v-if="props.row.type === 'payrolls'">
+            Nòmina
           </span>
         </b-table-column>
         <b-table-column label="Data" field="emitted" v-slot="props" sortable>
@@ -117,11 +129,17 @@
           {{ props.row.contact ? props.row.contact.nif : "-" }}
         </b-table-column>
         <b-table-column label="Concepte" field="lines" v-slot="props" sortable>
+          <span v-if="props.row.type === 'payrolls'">
+            {{ props.row.users_permissions_user.username }}
+          </span>
+          <span v-else>
           {{
             props.row.lines && props.row.lines.length > 0
               ? props.row.lines[0].concept
               : ""
           }}
+          </span>
+          
         </b-table-column>
         <b-table-column label="Projecte" field="lines" v-slot="props" sortable>
           {{ props.row.project ? props.row.project.name : "-" }}
@@ -247,7 +265,18 @@ export default {
         return { ...element, type: 'received-expenses' };
       });
 
-      const emitted = _.concat(invoices, expenses)
+
+      let payrolls = (
+        await service({ requiresAuth: true }).get(
+          `payrolls?_limit=-1&_where[emitted_gte]=${from}&[emitted_lte]=${to}&[paid_eq]=true`
+        )
+      ).data;
+
+      payrolls = payrolls.map((element) => {
+        return { ...element, type: 'payrolls' };
+      });
+
+      const emitted = _.concat(invoices, expenses, payrolls)
       this.emitted = emitted
 
       this.emittedCSV = this.emitted.map((e) => {

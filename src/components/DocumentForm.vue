@@ -8,12 +8,28 @@
             <b-field label="Número" horizontal>
               <b-input v-model="form.code" placeholder="" disabled />
             </b-field>
-            <b-field label="Sèrie *" horizontal>
+            <b-field label="Sèrie *" horizontal v-if="type !== 'payrolls'">
               <b-select v-model="form.serial" placeholder="" required>
                 <option v-for="(s, index) in series" :key="index" :value="s.id">
                   {{ s.name }}
                 </option>
               </b-select>
+            </b-field>
+
+            <b-field label="Any" horizontal v-if="type === 'payrolls'">
+              <b-input v-model="form.year.year" placeholder="" disabled />
+            </b-field>
+
+            <b-field label="Mes" horizontal v-if="type === 'payrolls'">
+              <b-input v-model="form.month.month" placeholder="" disabled />
+            </b-field>
+
+            <b-field label="Persona" horizontal v-if="type === 'payrolls'">
+              <b-input
+                v-model="form.users_permissions_user.username"
+                placeholder=""
+                disabled
+              />
             </b-field>
 
             <b-field
@@ -64,7 +80,11 @@
             <b-field
               label="Venciment"
               horizontal
-              v-if="type !== 'received-incomes' && type !== 'received-expenses'"
+              v-if="
+                type !== 'received-incomes' &&
+                type !== 'received-expenses' &&
+                type !== 'payrolls'
+              "
             >
               <b-datepicker
                 v-model="form.paybefore"
@@ -81,7 +101,11 @@
             <b-field
               label="Enviada"
               horizontal
-              v-if="type !== 'received-incomes' && type !== 'received-expenses'"
+              v-if="
+                type !== 'received-incomes' &&
+                type !== 'received-expenses' &&
+                type !== 'payrolls'
+              "
             >
               <b-checkbox v-model="form.sent" class="checkbox-inline">
               </b-checkbox>
@@ -97,7 +121,14 @@
               >
               </b-datepicker>
             </b-field>
-            <b-field :label="type !== 'received-incomes' && type !== 'emitted-invoices' ? 'Pagada' : 'Cobrada'" horizontal>
+            <b-field
+              :label="
+                type !== 'received-incomes' && type !== 'emitted-invoices'
+                  ? 'Pagada'
+                  : 'Cobrada'
+              "
+              horizontal
+            >
               <b-checkbox v-model="form.paid" class="checkbox-inline">
               </b-checkbox>
               <b-datepicker
@@ -113,11 +144,19 @@
               </b-datepicker>
             </b-field>
 
-            <b-field label="Modificable" horizontal>
+            <b-field label="Modificable" horizontal v-if="type !== 'payrolls'">
               <b-switch v-model="form.updatable"> </b-switch>
             </b-field>
 
-            <b-field :label="type !== 'received-incomes' && type !== 'emitted-invoices' ? 'Mètode de pagament' : 'Mètode de cobrament'" horizontal>
+            <b-field
+              :label="
+                type !== 'received-incomes' && type !== 'emitted-invoices'
+                  ? 'Mètode de pagament'
+                  : 'Mètode de cobrament'
+              "
+              horizontal
+              v-if="type !== 'payrolls'"
+            >
               <b-select v-model="form.payment_method" placeholder="" required>
                 <option
                   v-for="(s, index) in paymentMethods"
@@ -215,7 +254,7 @@
               </b-input>
             </b-field>
 
-            <b-field label="Projecte *" horizontal>
+            <b-field label="Projecte *" horizontal v-if="type !== 'payrolls'">
               <b-autocomplete
                 v-model="projectSearch"
                 placeholder="Escriu el nom del projecte..."
@@ -232,7 +271,7 @@
           </card-component>
 
           <hr />
-          <card-component title="LINIES">
+          <card-component title="LINIES" v-if="form.lines">
             <ul class="subphases-list">
               <li
                 v-for="(line, j) in form.lines"
@@ -420,6 +459,87 @@
               />
             </b-field>
           </card-component>
+          <card-component v-if="type === 'payrolls' && dedication" title="DETALL">
+
+            <b-field label="Salari base" horizontal>
+              <b-input v-model="form.total_base" placeholder="" disabled />
+            
+              <!-- <b-datepicker
+                v-model="form.net_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder=""
+                disabled
+              >
+              </b-datepicker> -->
+            </b-field>
+
+            <b-field v-if="form.irpf_base" :label="`IRPF a càrrec de la treballadora (${dedication.pct_irpf}%)`" horizontal>
+              <b-input v-model="form.irpf_base" placeholder="" disabled />
+
+              <b-datepicker
+                v-model="form.irpf_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder=""
+                disabled
+              >
+              </b-datepicker>
+            </b-field>
+
+
+            <b-field v-if="form.other_base" :label="`Altres a càrrec de la treballadora (${dedication.pct_other}%)`" horizontal>
+              <b-input v-model="form.other_base" placeholder="" disabled />
+
+              <b-datepicker
+                v-model="form.irpf_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder=""
+                disabled
+              >
+              </b-datepicker>
+            </b-field>
+
+
+            <b-field :label="`Salari net a percebre per la treballadora`" horizontal>
+              <b-input v-model="form.net_base" placeholder="" disabled />
+
+              <b-datepicker
+                v-model="form.net_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder=""
+                disabled
+              >
+              </b-datepicker>
+            </b-field>
+
+
+            <b-field v-if="form.ss_base" :label="`SS a càrrec de la cooperativa ${dedication.pct_quota ? '(' + dedication.pct_quota + '%)' : ''}`" horizontal>
+              <b-input v-model="form.ss_base" placeholder="" disabled />
+
+              <b-datepicker
+                v-model="form.ss_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder=""
+                disabled
+              >
+              </b-datepicker>
+            </b-field>
+
+          </card-component>
 
           <hr />
 
@@ -534,6 +654,8 @@ export default {
       projectCopy: null,
       shouldSaveProject: false,
       documentTypes: [],
+      dedications: null,
+      dedication: null
     };
   },
   computed: {
@@ -680,7 +802,6 @@ export default {
       await this.getAuxiliarData();
 
       if (this.$route.params.id && this.$route.params.id > 0) {
-        
         service({ requiresAuth: true })
           .get(`${this.type}/${this.$route.params.id}`)
           .then(async (r) => {
@@ -742,6 +863,87 @@ export default {
               }
               if (this.form.document_type && this.form.document_type.id) {
                 this.form.document_type = this.form.document_type.id;
+              }
+
+              if (this.type === "payrolls") {
+                this.form.code =
+                  this.form.code ||
+                  `${this.form.year.year}-${this.form.month.month}-${this.form.id}`;
+
+                this.dedications = (
+                  await service({ requiresAuth: true }).get(
+                    "daily-dedications?_limit=-1&users_permissions_user.id=" +
+                      this.form.users_permissions_user.id
+                  )
+                ).data;
+
+                this.dedication = this.dedications.find(
+                  (d) =>
+                    d.from <= moment(this.form.emitted).format("YYYY-MM-DD") &&
+                    d.to >= moment(this.form.emitted).format("YYYY-MM-DD")
+                );
+
+                this.form.net_date = moment(this.form.net_date, "YYYY-MM-DD").toDate()
+                this.form.irpf_date = moment(this.form.irpf_date, "YYYY-MM-DD").toDate()
+                this.form.ss_date = moment(this.form.ss_date, "YYYY-MM-DD").toDate()
+                this.form.other_date = moment(this.form.other_date, "YYYY-MM-DD").toDate()
+
+                this.form.concepts = [];
+                this.form.concepts.push({
+                  concept: "Salari base",
+                  quantity: 1,
+                  base: 1*this.form.total_base,
+                  date: moment(this.form.paid_datem).format('YYYY-MM-DD')
+                });
+                if (this.dedication.pct_irpf) {
+                  this.form.concepts.push({
+                    concept: `SS a càrrec de la treballadora (${this.dedication.pct_irpf}%)`,
+                    quantity: 1,
+                    base: (
+                      (-1 * this.form.total_base * this.dedication.pct_irpf) /
+                      100
+                    ),
+                  });
+                }
+                if (this.dedication.quota) {
+                  this.form.concepts.push({
+                    concept: `Quota a càrrec de la cooperativa`,
+                    quantity: 1,
+                    base: (-1 * this.dedication.quota),
+                  });
+                }
+                if (this.dedication.pct_other) {
+                  this.form.concepts.push({
+                    concept: `Altres a càrrec de la treballadora (${this.dedication.pct_other}%)`,
+                    quantity: 1,
+                    base: (
+                      (-1 * this.form.total_base * this.dedication.pct_other) /
+                      100
+                    ),
+                  });
+                }
+
+                const net = sumBy(this.form.concepts, 'base')
+
+                this.form.concepts.push({
+                    concept: `Salari net`,
+                    quantity: 1,
+                    base: net,
+                    format: 'bold'
+                  });
+
+                
+
+                if (this.dedication.pct_quota) {
+                  this.form.concepts.push({
+                    concept: `SS a càrrec de la cooperativa (${this.dedication.pct_quota}%)`,
+                    quantity: 1,
+                    base: (
+                      (this.form.total_base * this.dedication.pct_quota) /
+                      100
+                    ),
+                  });
+                }
               }
 
               this.isLoading = false;
