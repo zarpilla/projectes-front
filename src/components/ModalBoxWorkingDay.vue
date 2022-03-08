@@ -237,7 +237,7 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-      console.log('show this.dedicationObject', this.dedicationObject)
+      // console.log('show this.dedicationObject', this.dedicationObject)
       // console.log('show this.users', this.users)
       
       if (this.dedicationObject) {

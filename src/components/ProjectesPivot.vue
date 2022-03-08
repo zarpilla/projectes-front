@@ -84,7 +84,6 @@ export default {
       }
       
       service({ requiresAuth: true }).get(query).then((r) => {
-        console.log('projects rdata', r.data)
         const projects = r.data.map(p => {
           const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
 
@@ -117,7 +116,6 @@ export default {
           }
         })
 
-        console.log('projects', projects)
         this.projects = r.data
         this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
         configPivot.dataSource.data = this.pivotData
