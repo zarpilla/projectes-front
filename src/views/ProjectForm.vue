@@ -159,6 +159,21 @@
                   </ul>
                 </div>
               </b-field>
+              <b-field label="Àmbit territorial" horizontal>
+                <b-select
+                  v-model="form.region.id"
+                  placeholder="Àmbit"
+                  
+                >
+                  <option
+                    v-for="(s, index) in regions"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
               <b-field
                 label="Descripció"
                 message="Descripció o notes sobre el projecte"
@@ -168,6 +183,17 @@
                   type="textarea"
                   v-model="form.description"
                   placeholder="Descripció"
+                />
+              </b-field>
+              <b-field
+                label="Propòsit"
+                message="Propòsit del projecte"
+                horizontal
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.purpose"
+                  placeholder="Propòsit"
                 />
               </b-field>
               <b-field label="Inici *" horizontal>
@@ -856,6 +882,7 @@ export default {
       incomeTypes: [],
       documentTypes: [],
       dedicationTypes: [],
+      regions: [],
       clientSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",      
@@ -1174,6 +1201,7 @@ export default {
         name: null,
         project_state: { id: 0 },
         project_scope: { id: 0 },
+        region: { id: 0 },
         leader: { id: 0 },
         phases: [],
         expenses: [],
@@ -1210,6 +1238,10 @@ export default {
               this.form.leader =
                 this.form.leader && this.form.leader.id
                   ? this.form.leader
+                  : { id: 0 };
+              this.form.region =
+                this.form.region && this.form.region.id
+                  ? this.form.region
                   : { id: 0 };
               this.form.phases = this.form.phases.map((p) => {
                 return { ...p, edit: false };
@@ -1344,6 +1376,11 @@ export default {
         .then((r) => {
           this.dedicationTypes = r.data;
         });
+      service({ requiresAuth: true })
+        .get("regions")
+        .then((r) => {
+          this.regions = r.data;
+        });
         
 
     },
@@ -1361,22 +1398,32 @@ export default {
         this.form.default_dedication_type = null;
       }
 
+      if (this.form.region && this.form.region.id === 0) {
+        this.form.region = null
+      }
+      
+
       try {
+
+        const stateInvalid = this.form.project_state.id === 0
+        const scopeInvalid = this.form.project_scope.id === 0
+        const leaderInvalid = this.form.leader.id === 0
+
+        if (!this.form.name || !this.form.date_start || !this.form.date_end 
+          || stateInvalid
+          || scopeInvalid
+          || leaderInvalid
+          ) {
+          this.$buefy.snackbar.open({
+            message: "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
+            queue: false,
+          });
+          this.isLoading = false
+          return
+        }
+        
         if (this.form.id) {
-
-          if (!this.form.name || !this.form.date_start || !this.form.date_end 
-            || (!this.form.project_state || this.form.project_state.id === 0)
-            || (!this.form.project_scope || this.form.project_scope.id === 0)
-            || (!this.form.leader || this.form.leader.id === 0)
-            ) {
-            this.$buefy.snackbar.open({
-              message: "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
-              queue: false,
-            });
-            this.isLoading = false
-            return
-          }
-
+          
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
             this.form
@@ -1387,20 +1434,6 @@ export default {
           });
           this.getData();
         } else {
-
-          if (!this.form.name || !this.form.date_start || !this.form.date_end 
-            || (!this.form.project_state || this.form.project_state.id === 0)
-            || (!this.form.project_scope || this.form.project_scope.id === 0)
-            || (!this.form.leader || this.form.leader.id === 0)
-            ) {
-            this.$buefy.snackbar.open({
-              message: "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
-              queue: false,
-            });
-            this.isLoading = false
-            return
-          }
-          
 
           const newProject = await service({ requiresAuth: true }).post(
             "projects",
