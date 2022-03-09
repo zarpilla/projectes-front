@@ -183,7 +183,7 @@ export default {
     getPDF () {
       var element = document.getElementById('quote')
       var opt = {
-        margin: 1,
+        margin: [0, 0],
         filename: `pressupost-${this.quote.client.name}-${this.quote.code}`,
         // image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
@@ -228,7 +228,7 @@ border: 1px solid #eee;
   padding: 30px;
   font-size: 16px;
   line-height: 24px;
-  font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+  font-family: "Nunito", sans-serif, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
   color: #222;
   background: #fff;
 }
