@@ -44,7 +44,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Facturació', 'Tresoreria']
+      return ['Tresoreria']
     },
     filteredUsers () {
       return this.users.filter(option => {

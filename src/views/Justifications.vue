@@ -5,7 +5,7 @@
       <card-component title="Filtres">
         <form @submit.prevent="submit2">
           <b-field horizontal>
-            <b-field label="Projecte">
+            <!-- <b-field label="Projecte">
               <b-autocomplete
                 v-model="projectSearch"
                 placeholder="Projecte"
@@ -17,7 +17,7 @@
                 :clearable="true"
               >
               </b-autocomplete>
-            </b-field>
+            </b-field> -->
             <b-field label="Any">
               <b-select
                 v-model="filters.year"
@@ -70,7 +70,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Dedicació', 'Bestretes']
+      return ['Justificacions de projectes subvencionables']
     },
     filteredProjects() {
       return this.projects.filter((option) => {

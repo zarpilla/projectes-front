@@ -1,7 +1,6 @@
 <template>
   <div>
-    <div class="table-view">      
-      
+    <div class="table-view">
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal && monthlyActivitiesTotal.length"
@@ -9,9 +8,11 @@
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Mes</div>
           <div class="column has-text-weight-bold">Persona</div>
+          <div class="column has-text-weight-bold">Projecte</div>
+          <div class="column has-text-weight-bold has-text-right">Hores (h)</div>
           <div class="column has-text-weight-bold has-text-right">Hores (€)</div>
           <div class="column has-text-weight-bold has-text-right">Bestreta (€)</div>
-          <div class="column has-text-weight-bold has-text-right">%</div>
+          <div class="column has-text-weight-bold has-text-right">% Hores/Bestreta</div>
         </div>
         <div v-for="(row, i) in monthlyActivitiesTotal" v-bind:key="i" class="card-body">
           <div class="columns">
@@ -20,6 +21,12 @@
             </div>
             <div class="column">
               {{ row.username }}
+            </div>
+            <div class="column">
+              {{ row.project }}
+            </div>
+            <div class="column has-text-right">
+              {{ row.hours }}
             </div>
             <div class="column has-text-right">
               {{ row.cost ? row.cost.toFixed(2) : '0' }} €
@@ -33,7 +40,6 @@
           </div>
         </div>
       </card-component>
-
     </div>
   </div>
 </template>
@@ -67,7 +73,8 @@ export default {
       isLoading: false,
       projectInfo: null,
       payrolls: [],
-      users: []
+      users: [],
+      projects: [],
     };
   },
   computed: {
@@ -79,51 +86,70 @@ export default {
       return null;
     },
     monthlyActivities() {
-      if (!this.projectInfo || !this.projectInfo.activities) {
-        return []
+      if (!this.users || !this.users.length) {
+        return [];
       }
-      const activities = this.projectInfo.activities
-      .filter(a => this.year.toString() === moment(a.date, "YYYY-MM-DD").format("YYYY"))
-        .map((a) => {
-          return {
-            ...a,
-            year: moment(a.date, "YYYY-MM-DD").format("YYYY"),
-            month: moment(a.date, "YYYY-MM-DD").format("MM"),
-            // users_permissions_user: a.users_permissions_user,
-            ym: moment(a.date, "YYYY-MM-DD").format("YYYYMM") + '-' + a.users_permissions_user,
-            // username: this.users.find(u => u.id === a.users_permissions_user).username,
-            cost_by_hour_calc: this.users.find(u => u.id === a.users_permissions_user).daily_dedications.find(dd => dd.from <= a.date && dd.to >= a.date)?.costByHour
-          };
-        });
+      const activities = [];
+      this.projects.forEach((p) => {
+        p.activities
+          .filter(
+            (a) =>
+              this.year.toString() ===
+              moment(a.date, "YYYY-MM-DD").format("YYYY")
+          )
+          .forEach((a) => {
+            const activity = {
+              ...a,
+              project: a.project,
+              project_name: p.name,
+              users_permissions_user: a.users_permissions_user,
+              year: moment(a.date, "YYYY-MM-DD").format("YYYY"),
+              month: moment(a.date, "YYYY-MM-DD").format("MM"),
+              key:
+                moment(a.date, "YYYY-MM-DD").format("YYYYMM") +
+                "-" +
+                a.users_permissions_user +
+                "-" +
+                a.project,
+            };
+            activities.push(activity);
+          });
+      });
       return activities;
     },
     monthlyActivitiesTotal() {
       const activities = _(this.monthlyActivities)
-        .groupBy("ym", "users_permissions_user")
-        .map((ym, id) => ({
-          ym: id,
-          year: parseInt(id.substring(0, 4)),
-          month: parseInt(id.substring(4, 6)),
-          users_permissions_user: parseInt(id.substring(7, 9)),
-          hours: _.sumBy(ym, 'hours'),
-          cost: _.sumBy(ym, (e) =>
-            e.cost_by_hour_calc && e.hours ? e.cost_by_hour_calc * e.hours : 0
-          ),
-          // rows: ym
-        }))
+        .groupBy("key")
+        .map((rows, id) => {
+          const pr = this.payrolls.find(p => p.users_permissions_user.id.toString() === rows[0].users_permissions_user.toString() && parseInt(p.year.year) === parseInt(rows[0].year) && parseInt(p.month.month) === parseInt(rows[0].month))
+          return {
+            ym: id,
+            cost: _.sumBy(rows, (r) => r.hours * r.cost_by_hour),
+            hours: _.sumBy(rows, 'hours'),
+            year: rows[0].year,
+            month: rows[0].month,
+            users_permissions_user: rows[0].users_permissions_user,
+            username: this.users.find(
+              (u) => u.id === rows[0].users_permissions_user
+            ).username,
+            project: rows[0].project_name,
+            payroll: pr ? pr.total : null
+            // rows: rows
+          };
+        })
         .value();
 
-      const activitiesWithPayrolls = activities.map(a => {
-        const pr = this.payrolls.find(p => p.users_permissions_user.id === a.users_permissions_user && p.year.year === a.year && p.month.month === a.month)
-        return {
-          ...a,
-          username: this.users.find(u => u.id === a.users_permissions_user).username,
-          // userdata: this.users.find(u => u.id === a.users_permissions_user),
-          payroll: pr ? pr.total_base: null
-        }
-      })
-
-      return activitiesWithPayrolls;
+      // const activitiesWithPayrolls = activities.map(a => {
+      //   const pr = this.payrolls.find(p => p.users_permissions_user.id === a.users_permissions_user && p.year.year === a.year && p.month.month === a.month)
+      //   return {
+      //     ...a,
+      //     username: this.users.find(u => u.id === a.users_permissions_user).username,
+      //     // userdata: this.users.find(u => u.id === a.users_permissions_user),
+      //     payroll: pr ? pr.total_base: null
+      //   }
+      // })
+      return activities;
+      // return activitiesWithPayrolls;
     },
   },
   watch: {
@@ -141,28 +167,26 @@ export default {
     async getActivities() {
       this.isLoading = true;
 
-      if (!this.year || !this.project) {
+      if (!this.year) {
         return;
       }
 
-      this.months = {}
-      this.payrolls = []
-      
-      const from = moment(this.year, "YYYY").startOf("year").format("YYYY-MM-DD");
+      this.months = {};
+      this.payrolls = [];
+
+      const from = moment(this.year, "YYYY")
+        .startOf("year")
+        .format("YYYY-MM-DD");
       const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
 
       let query = `payrolls?_where[paid_date_gte]=${from}&[paid_date_lte]=${to}&_limit=-1`;
-      // if (this.user) {
-      //   query = `${query}&[users_permissions_user.id]=${this.user}`;
-      // } else {
-      //   return;
-      // }
-
-      this.payrolls = (await service({ requiresAuth: true }).get(query)).data
-      this.users = (await service({ requiresAuth: true }).get('users?_limit=-1')).data
-      this.projectInfo = (await service({ requiresAuth: true }).get(`projects/${this.project}`)).data
-
-          
+      let query2 = `projects?_where[grantable_eq]=true&_limit=-1`;
+      
+      this.payrolls = (await service({ requiresAuth: true }).get(query)).data;
+      this.projects = (await service({ requiresAuth: true }).get(query2)).data;
+      this.users = (
+        await service({ requiresAuth: true }).get("users?_limit=-1")
+      ).data;
     },
     enumerateDaysBetweenDates() {
       var dates = [];
@@ -180,48 +204,89 @@ export default {
       return dates;
     },
     hasPayroll(month) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-      return payroll
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
+      return payroll;
     },
     payrollDetail(month) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-      return payroll
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
+      return payroll;
     },
-    async createPayroll(month, total) {      
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+    async createPayroll(month, total) {
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
 
-      const emitted = moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD')
+      const emitted = moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
+        .endOf("month")
+        .format("YYYY-MM-DD");
 
-      const payroll = { month: m.id, year: y.id, users_permissions_user: this.user, total_base: total, total: total, total_irpf: 0, total_vat: 0, paid: false, emitted: emitted  }
+      const payroll = {
+        month: m.id,
+        year: y.id,
+        users_permissions_user: this.user,
+        total_base: total,
+        total: total,
+        total_irpf: 0,
+        total_vat: 0,
+        paid: false,
+        emitted: emitted,
+      };
 
-      await service({ requiresAuth: true }).post('payrolls', payroll)
+      await service({ requiresAuth: true }).post("payrolls", payroll);
 
-      await this.updatePayrolls()
+      await this.updatePayrolls();
     },
     async payPayroll(month, total) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-      await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, { paid: true, paid_date: payroll.emitted, total_base: total, total: total })
-      await this.updatePayrolls()
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
+      await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, {
+        paid: true,
+        paid_date: payroll.emitted,
+        total_base: total,
+        total: total,
+      });
+      await this.updatePayrolls();
     },
     async deletePayroll(month) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
 
-      await service({ requiresAuth: true }).delete(`payrolls/${payroll.id}`)
-      await this.updatePayrolls()
+      await service({ requiresAuth: true }).delete(`payrolls/${payroll.id}`);
+      await this.updatePayrolls();
     },
-    
+
     async updatePayrolls() {
-      this.payrolls = (await service({ requiresAuth: true }).get(`payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`)).data
-    }
+      this.payrolls = (
+        await service({ requiresAuth: true }).get(
+          `payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`
+        )
+      ).data;
+    },
   },
   filters: {
     formatDate(val) {
