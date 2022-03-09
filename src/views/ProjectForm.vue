@@ -250,6 +250,25 @@
                 >
                 </b-input>
               </b-field>
+
+              <b-field label="Subvencionable" horizontal message="Que s'acull a subvencions">
+                <b-switch v-model="form.grantable"> </b-switch>
+              </b-field>
+
+              <b-field label="Projecte mare" horizontal message="Per agrupar projectes interanuals">
+                <b-autocomplete
+                  v-model="projectSearch"
+                  placeholder="Escriu el nom del projecte..."
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredProjects"
+                  field="name"
+                  @select="projectSelected"
+                  :clearable="true"
+                >
+                </b-autocomplete>
+              </b-field>
+
               <b-field label="Tasques" horizontal v-if="form.id">
                 <b-input
                   placeholder="Nom de la tasca"
@@ -882,8 +901,10 @@ export default {
       incomeTypes: [],
       documentTypes: [],
       dedicationTypes: [],
+      projects: [],
       regions: [],
       clientSearch: "",
+      projectSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",      
       phaseToAdd: "",
@@ -909,6 +930,16 @@ export default {
             .toString()
             .toLowerCase()
             .indexOf(this.clientSearch.toLowerCase()) >= 0
+        );
+      });
+    },
+    filteredProjects() {
+      return this.projects.filter((option) => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.projectSearch.toLowerCase()) >= 0
         );
       });
     },
@@ -1243,6 +1274,7 @@ export default {
                 this.form.region && this.form.region.id
                   ? this.form.region
                   : { id: 0 };
+              
               this.form.phases = this.form.phases.map((p) => {
                 return { ...p, edit: false };
               });
@@ -1381,6 +1413,18 @@ export default {
         .then((r) => {
           this.regions = r.data;
         });
+      service({ requiresAuth: true })
+        .get("projects/basic")
+        .then((r) => {
+          this.projects = r.data;
+          if (this.form.mother && this.form.mother.id) {
+            const mother = this.projects.find(p => p.id === this.form.mother.id)
+            if (mother) {
+              this.projectSearch = mother.name
+            }
+          }
+        });
+        
         
 
     },
@@ -1487,6 +1531,13 @@ export default {
       setTimeout(() => {
         this.clientSearch = "";
       }, 100);
+    },
+    projectSelected(option) {
+      if (option && option.id) {
+        this.form.mother = option.id
+      } else {
+        this.form.mother = null
+      }      
     },
     cooperaSelected(option) {
       delete option.projects;
