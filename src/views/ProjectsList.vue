@@ -32,7 +32,7 @@
           icon="currency-eur"
           :number="(realIncomes - realExpenses).toFixed(2)"
           suffix="€"
-          label="Resultat real"
+          label="Resultat actual"
         />
         <card-widget
           class="tile is-child"

@@ -36,7 +36,7 @@
       <b-table-column label="Hores previstes" field="total_estimated_hours" sortable numeric v-slot="props">
         {{ props.row.total_estimated_hours ? props.row.total_estimated_hours.toFixed(2) : '' }}
       </b-table-column>
-      <b-table-column label="Resultat real" field="total_real_incomes_expenses" sortable numeric v-slot="props">
+      <b-table-column label="Resultat actual" field="total_real_incomes_expenses" sortable numeric v-slot="props">
         {{ formatPrice(props.row.total_real_incomes_expenses) }} €
       </b-table-column>
       <b-table-column label="Resultat previst" field="incomes_expenses" sortable numeric v-slot="props">
@@ -167,7 +167,9 @@ export default {
     },
     async trashConfirm () {
       this.isModalActive = false
-      await service({ requiresAuth: true }).delete(`projects/${this.trashObject.id}`)
+
+      await service({ requiresAuth: true }).put(`projects/${this.trashObject.id}`, { published_at: null })
+      // await service({ requiresAuth: true }).delete(`projects/${this.trashObject.id}`)
       this.projectsData = this.projectsData.filter(p => p.id !== this.trashObject.id)
       this.$buefy.snackbar.open({
         message: 'Esborrat',
