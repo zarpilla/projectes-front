@@ -71,14 +71,14 @@ export default {
             label: 'Despeses'
           },
           {
-            to: '/tresoreria',
-            icon: 'table',
-            label: 'Tresoreria'
-          },
-          {
             to: '/salary',
             icon: 'table',
             label: 'Bestretes'
+          },
+          {
+            to: '/tresoreria',
+            icon: 'table',
+            label: 'Tresoreria'
           }
         ],
         'Consulta dades',

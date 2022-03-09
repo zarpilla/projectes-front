@@ -807,15 +807,15 @@ export default {
       if (phase) {
         phase.edit = true;
       }
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     blurPhaseEdit() {
       this.needsUpdate = true;
       this.blurPhase(null);
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     somethingChanged() {      
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     changeSubPhase(subphase, field, value) {
       if (value && value.toString().includes(",")) {
@@ -830,7 +830,7 @@ export default {
             sumBy(r.expenses, (x) => x.quantity * x.amount),
         };
       });
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     addPhase() {
       this.needsUpdate = true;
@@ -843,12 +843,12 @@ export default {
         total_amount: 0,
       });
       this.phaseToAdd = "";
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     removePhase(i) {
       this.needsUpdate = true;
       this.phases = this.phases.filter((p, j) => i !== j);
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     getClearFormObject() {
       return {
@@ -868,16 +868,16 @@ export default {
     removeSubPhase(phase, subphase, j) {
       this.needsUpdate = true;
       phase.subphases = phase.subphases.filter((s, i) => i !== j);
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     removeSubExpense(phase, subphase, j) {
       this.needsUpdate = true;
       phase.expenses = phase.expenses.filter((s, i) => i !== j);
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     removeExpense(expense, j) {
       this.form.expenses = this.form.expenses.filter((s, i) => i !== j);
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     addExpense(expense) {
       this.form.expenses.push({
@@ -886,17 +886,17 @@ export default {
         amount: 0,
         expense_type: null,
       });
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     addSubPhase(phase) {
       this.needsUpdate = true;
       phase.subphases.push({ concept: "", quantity: 1, amount: 0, assign: false });
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     addSubExpense(phase) {
       this.needsUpdate = true;
       phase.expenses.push({ concept: "", quantity: 1, amount: 0, assign: false });
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     splitSubPhase(phase, subphase, i, j) {
       this.invoicingObject = {
@@ -907,7 +907,7 @@ export default {
         type: "income",
       };
       this.isModalSplitActive = true;
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     splitSubExpense(phase, subphase, i, j) {
       this.invoicingObject = {
@@ -918,7 +918,7 @@ export default {
         type: "expense",
       };
       this.isModalSplitActive = true;
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     setInvoice(type, phase, subphase, i, j) {
       if (this.mode === '') {
@@ -960,7 +960,7 @@ export default {
           subphase.paid = true; // necessary
           // }
           
-          this.$emit('phases-updated', this.phases)
+          this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
         }
       }
       else if (this.mode === 'expenses') {
@@ -982,7 +982,7 @@ export default {
           subphase.assign = !subphase.assign;
           subphase.paid = true; // necessary
 
-          this.$emit('phases-updated', this.phases)
+          this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
         }        
       }
       
@@ -1014,15 +1014,15 @@ export default {
         subphase.diet = invoicing.diet;
       }
       this.isModalActive = false;
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     async modalDelete(activity) {
       this.isModalActive = false;
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     modalCancel() {
       this.isModalActive = false;
-      // this.$emit('phases-updated', this.phases)
+      // this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },    
     async modalSplitSubmit(action) {
       // console.log('action',action)
@@ -1115,15 +1115,15 @@ export default {
           );
         }
       }
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
       this.isModalSplitActive = false;
     },
     async modalSplitDelete(invoicing) {
-      this.$emit('phases-updated', this.phases)
+      this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
       this.isModalSplitActive = false;
     },
     async modalSplitCancel() {
-      // this.$emit('phases-updated', this.phases)
+      // this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
       this.isModalSplitActive = false;
     },
     paidChanged(subphase) {

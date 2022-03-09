@@ -4,6 +4,7 @@
     <section class="section is-main-section">
       <div class="columns">
         <div class="column is-full">
+          <!-- <pre>{{form}}</pre> -->
           <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
             <b-field label="Número" horizontal>
               <b-input v-model="form.code" placeholder="" disabled />
@@ -187,24 +188,6 @@
               </b-autocomplete>
             </b-field>
             <b-field
-              v-if="type == 'emitted-invoices'"
-              label="Clienta *"
-              horizontal
-            >
-              <b-autocomplete
-                v-model="clientSearch"
-                placeholder="Escriu el nom de la clienta..."
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredClients"
-                field="name"
-                @select="clientSelected"
-                :clearable="true"
-                required
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field
               v-if="type == 'received-invoices'"
               label="Proveïdora *"
               horizontal
@@ -254,7 +237,7 @@
               </b-input>
             </b-field>
 
-            <b-field label="Projecte *" horizontal v-if="type !== 'payrolls'">
+            <b-field label="Projectes *" horizontal v-if="type !== 'payrolls'">
               <b-autocomplete
                 v-model="projectSearch"
                 placeholder="Escriu el nom del projecte..."
@@ -264,10 +247,32 @@
                 field="name"
                 @select="projectSelected"
                 :clearable="true"
-                required
               >
               </b-autocomplete>
             </b-field>
+                          <b-field
+                label=""
+                horizontal
+                v-if="form.projects && form.projects.length"
+              >
+                <div class="list">
+                  <ul class="ulist">
+                    <li
+                      v-for="(project, i) in form.projects"
+                      :key="i"
+                      @click="removeProject(project)"
+                      class="tag is-primary"
+                    >
+                      {{ project.name }}
+                      <b-button
+                        
+                        class="no-button"
+                        icon-left="close-circle"
+                      />
+                    </li>
+                  </ul>
+                </div>
+              </b-field>
           </card-component>
 
           <hr />
@@ -278,7 +283,7 @@
                 :key="j"
                 class="subphase line mt-2 mb-2"
               >
-                <b-field grouped>
+                <b-field grouped class="is-full-width">
                   <b-field
                     :label="j == 0 ? 'Concepte' : null"
                     class="subphase-detail-input-large-field"
@@ -551,8 +556,9 @@
           <hr />
 
           <card-component
-            v-if="!isLoading && !isLoadingProject && project"
-            title="DETALL DEL PROJECTE"
+            v-for="(project, i) in form.projects"
+            :key="i"
+            :title="`DETALL DEL PROJECTE - ${project.name}`"
           >
             <div class="project-form">
               <project-phases
@@ -575,7 +581,7 @@
                 botó de 'Document'. Un cop assignat, caldrà guardar la factura.
               </div>
             </div>
-            <hr v-if="shouldSaveProject" />
+            <!-- <hr v-if="shouldSaveProject" />
             <b-field v-if="shouldSaveProject" class="is-pulled-right">
               <b-button
                 type="is-warning"
@@ -585,7 +591,9 @@
                 <b-icon icon="undo" custom-size="default" />
                 Desfés detall de projecte
               </b-button>
-            </b-field>
+            </b-field> -->
+
+            <!-- <pre>{{project.phases}}</pre> -->
           </card-component>
           <hr />
           <b-field>
@@ -851,16 +859,17 @@ export default {
                 this.clientSearch = this.form.contact.name;
                 this.form.contact = this.form.contact.id;
               }
-              if (this.form.project && this.form.project.id) {
-                this.projectSearch = this.form.project.name;
-                this.form.project = this.form.project.id;
-                this.project = (
-                  await service({ requiresAuth: true }).get(
-                    `projects/${this.form.project}`
-                  )
-                ).data;
-                this.projectCopy = JSON.parse(JSON.stringify(this.project));
-              }
+              // if (this.form.project && this.form.project.id) {
+              //   this.projectSearch = this.form.project.name;
+              //   this.form.project = this.form.project.id;
+              //   this.project = (
+              //     await service({ requiresAuth: true }).get(
+              //       `projects/${this.form.project}`
+              //     )
+              //   ).data;
+              //   this.projectCopy = JSON.parse(JSON.stringify(this.project));
+              // }
+
               if (this.form.payment_method && this.form.payment_method.id) {
                 this.methodSearch = this.form.payment_method.name;
                 this.form.payment_method = this.form.payment_method.id;
@@ -871,6 +880,15 @@ export default {
               if (this.form.document_type && this.form.document_type.id) {
                 this.form.document_type = this.form.document_type.id;
               }
+
+              if (this.form.project && this.form.project.id) {
+                // load legacy project
+                this.form.projects = this.form.projects || [];
+                if (this.form.projects.length === 0) {
+                  this.form.projects.push(this.form.project)
+                  this.form.project = null
+                }
+              }              
 
               if (this.type === "payrolls") {
                 this.form.code =
@@ -1026,7 +1044,8 @@ export default {
           if (
             !this.form.emitted ||
             !this.form.contact ||
-            !this.form.project ||
+            !this.form.projects ||
+            !this.form.projects.length ||
             !this.form.serial
           ) {
             this.$buefy.snackbar.open({
@@ -1051,6 +1070,8 @@ export default {
             return;
           }
 
+          this.isLoading = true
+
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,
             this.form
@@ -1059,6 +1080,8 @@ export default {
           if (this.shouldSaveProject) {
             await this.updateProjectPhases(this.form.id);
           }
+
+          this.isLoading = false
 
           this.$buefy.snackbar.open({
             message: "Guardat",
@@ -1074,7 +1097,8 @@ export default {
             (this.form.contact && this.form.contact.id === 0) ||
             !this.form.serial ||
             (this.form.serial && this.form.serial.id === 0) ||
-            !this.form.project
+            !this.form.projects ||
+            !this.form.projects.length
           ) {
             this.$buefy.snackbar.open({
               message:
@@ -1098,6 +1122,9 @@ export default {
             return;
           }
 
+
+          this.isLoading = true
+
           const newProject = await service({ requiresAuth: true }).post(
             this.type,
             this.form
@@ -1106,6 +1133,8 @@ export default {
           if (this.shouldSaveProject) {
             await this.updateProjectPhases(newProject.data.id);
           }
+
+          this.isLoading = false
 
           this.shouldSaveProject = false;
           this.$router.push({
@@ -1123,6 +1152,7 @@ export default {
           // }, 100);
         }
       } catch (err) {
+        console.error(err)
         this.$buefy.snackbar.open({
           message: "Error",
           queue: false,
@@ -1140,18 +1170,60 @@ export default {
       this.form.contact = option;
     },
     async projectSelected(option) {
-      if (!option || !option.id) {
-        this.form.project = null;
+      if (!option) {
+        return
       }
-      this.form.project = option.id;
-      setTimeout(async () => {
+      console.log('projectSelected', option)
+
+      // const project = { id: option.id, name: option.name }
+      
+      this.form.projects = this.form.projects || [];
+
+      this.projectSearch = "";
+
+      if (!this.form.projects.find((c) => c.id === option.id)) {
+        // this.form.projects.push(option);
+
         this.isLoadingProject = true;
-        this.project = (
+        const project = (
           await service({ requiresAuth: true }).get(`projects/${option.id}`)
         ).data;
-        this.projectCopy = this.project;
+
+        this.form.projects.push(project)
+
+        // this.projectCopy = this.project;
         this.isLoadingProject = false;
-      }, 150);
+
+
+      }
+      
+      setTimeout(async () => {
+        this.projectSearch = "";
+
+        // this.isLoadingProject = true;
+        // this.project = (
+        //   await service({ requiresAuth: true }).get(`projects/${option.id}`)
+        // ).data;
+        // this.projectCopy = this.project;
+        // this.isLoadingProject = false;
+
+
+      }, 100);
+
+
+
+      // if (!option || !option.id) {
+      //   this.form.project = null;
+      // }
+      // this.form.project = option.id;
+      // setTimeout(async () => {
+      //   this.isLoadingProject = true;
+      //   this.project = (
+      //     await service({ requiresAuth: true }).get(`projects/${option.id}`)
+      //   ).data;
+      //   this.projectCopy = this.project;
+      //   this.isLoadingProject = false;
+      // }, 150);
     },
     methodSelected(option) {
       this.form.payment_method = option;
@@ -1163,100 +1235,122 @@ export default {
     addLine() {
       this.form.lines.push(this.getNewLine());
     },
-    phasesUpdated(phases) {
+    phasesUpdated(info) {
       this.shouldSaveProject = true;
-      this.project.phases = phases;
+      const project = this.form.projects.find(p => p.id === info.projectId)
+      project.phases = info.phases;
     },
     validateIfProjectPhasesHasDocument() {
       var validateIfProjectPhasesHasDocument = false;
-      if (this.type === "emitted-invoices") {
-        this.project.phases.forEach((ph) => {
-          ph.subphases.forEach((sph) => {
-            if (sph.invoice && sph.invoice.id === this.form.id) {
-              validateIfProjectPhasesHasDocument = true;
-            } else if (sph.assign) {
-              validateIfProjectPhasesHasDocument = true;
-            }
+
+      this.form.projects.forEach(p => {
+
+        if (this.type === "emitted-invoices") {
+          p.phases.forEach((ph) => {
+            ph.subphases.forEach((sph) => {
+              if (sph.invoice && sph.invoice.id === this.form.id) {
+                validateIfProjectPhasesHasDocument = true;
+              } else if (sph.assign) {
+                validateIfProjectPhasesHasDocument = true;
+              }
+            });
           });
-        });
-      } else if (this.type === "received-incomes") {
-        this.project.phases.forEach((ph) => {
-          ph.subphases.forEach((sph) => {
-            if (sph.income && sph.income.id === this.form.id) {
-              validateIfProjectPhasesHasDocument = true;
-            } else if (sph.assign) {
-              validateIfProjectPhasesHasDocument = true;
-            }
+        } else if (this.type === "received-incomes") {
+          p.phases.forEach((ph) => {
+            ph.subphases.forEach((sph) => {
+              if (sph.income && sph.income.id === this.form.id) {
+                validateIfProjectPhasesHasDocument = true;
+              } else if (sph.assign) {
+                validateIfProjectPhasesHasDocument = true;
+              }
+            });
           });
-        });
-      } else if (this.type === "received-invoices") {
-        this.project.phases.forEach((ph) => {
-          ph.expenses.forEach((sph) => {
-            if (sph.invoice && sph.invoice.id === this.form.id) {
-              validateIfProjectPhasesHasDocument = true;
-            } else if (sph.assign) {
-              validateIfProjectPhasesHasDocument = true;
-            }
+        } else if (this.type === "received-invoices") {
+          p.phases.forEach((ph) => {
+            ph.expenses.forEach((sph) => {
+              if (sph.invoice && sph.invoice.id === this.form.id) {
+                validateIfProjectPhasesHasDocument = true;
+              } else if (sph.assign) {
+                validateIfProjectPhasesHasDocument = true;
+              }
+            });
           });
-        });
-      } else if (this.type === "received-expenses") {
-        this.project.phases.forEach((ph) => {
-          ph.expenses.forEach((sph) => {
-            if (sph.expense && sph.expense.id === this.form.id) {
-              validateIfProjectPhasesHasDocument = true;
-            } else if (sph.assign) {
-              validateIfProjectPhasesHasDocument = true;
-            }
+        } else if (this.type === "received-expenses") {
+          p.phases.forEach((ph) => {
+            ph.expenses.forEach((sph) => {
+              if (sph.expense && sph.expense.id === this.form.id) {
+                validateIfProjectPhasesHasDocument = true;
+              } else if (sph.assign) {
+                validateIfProjectPhasesHasDocument = true;
+              }
+            });
           });
-        });
-      }
+        }
+
+      })
+      
       return validateIfProjectPhasesHasDocument;
     },
     async updateProjectPhases(id) {
-      if (this.type === "emitted-invoices") {
-        this.project.phases.forEach((ph) => {
-          ph.subphases.forEach((sph) => {
-            if (sph.assign) {
-              sph.invoice = id;
-            }
+
+      // this.form.projects.forEach(async p => {
+      for (let i = 0; i < this.form.projects.length; i++) {
+        let p = this.form.projects[i]
+        let updateProject = false
+        if (this.type === "emitted-invoices") {
+          p.phases.forEach((ph) => {
+            ph.subphases.forEach((sph) => {
+              if (sph.assign) {
+                sph.invoice = id
+                updateProject = true
+              }
+            });
           });
-        });
-      } else if (this.type === "received-incomes") {
-        this.project.phases.forEach((ph) => {
-          ph.subphases.forEach((sph) => {
-            if (sph.assign) {
-              sph.income = id;
-            }
+        } else if (this.type === "received-incomes") {
+          p.phases.forEach((ph) => {
+            ph.subphases.forEach((sph) => {
+              if (sph.assign) {
+                sph.income = id
+                updateProject = true
+              }
+            });
           });
-        });
-      } else if (this.type === "received-invoices") {
-        this.project.phases.forEach((ph) => {
-          ph.expenses.forEach((sph) => {
-            if (sph.assign) {
-              sph.invoice = id;
-            }
+        } else if (this.type === "received-invoices") {
+          p.phases.forEach((ph) => {
+            ph.expenses.forEach((sph) => {
+              if (sph.assign) {
+                sph.invoice = id
+                updateProject = true
+              }
+            });
           });
-        });
-      } else if (this.type === "received-expenses") {
-        this.project.phases.forEach((ph) => {
-          ph.expenses.forEach((sph) => {
-            if (sph.assign) {
-              sph.expense = id;
-            }
+        } else if (this.type === "received-expenses") {
+          p.phases.forEach((ph) => {
+            ph.expenses.forEach((sph) => {
+              if (sph.assign) {
+                sph.expense = id
+                updateProject = true
+              }
+            });
           });
-        });
+        }
+        if (updateProject || true) {
+          await service({ requiresAuth: true }).put(`projects/${p.id}`, {
+            phases: p.phases,
+          });
+        }
       }
-      await service({ requiresAuth: true }).put(`projects/${this.project.id}`, {
-        phases: this.project.phases,
-      });
     },
-    undoProject() {
-      this.isLoadingProject = true;
-      setTimeout(() => {
-        this.project = this.projectCopy;
-        this.isLoadingProject = false;
-        this.shouldSaveProject();
-      }, 100);
+    // undoProject() {
+    //   this.isLoadingProject = true;
+    //   setTimeout(() => {
+    //     this.project = this.projectCopy;
+    //     this.isLoadingProject = false;
+    //     this.shouldSaveProject();
+    //   }, 100);
+    // },
+    removeProject(option) {
+      this.form.projects = this.form.projects.filter((c) => c.id !== option.id);
     },
   },
 };

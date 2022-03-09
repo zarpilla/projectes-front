@@ -112,8 +112,8 @@ export default {
       this.dedicationObject = item
       this.isModalActive = true
     })
-    EventBus.$on('phases-updated', (phases) => {
-      this.phases = phases
+    EventBus.$on('phases-updated', (info) => {
+      this.phases = info.phases
     })
 
     this.ganttId = 'gantt-' + this.create_UUID()

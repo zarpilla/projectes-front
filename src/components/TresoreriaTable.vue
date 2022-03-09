@@ -616,8 +616,8 @@ export default {
                   moment(),
                 ]);
             const income = {
-              project_name: i.project && i.project.name ? i.project.name : "",
-              project_id: i.project ? i.project.id : 0,
+              project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
+              project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
               type: i.paid ? "Factura cobrada" : "Factura emesa",
               concept: i.code,
               total_amount: i.total ? Math.abs(i.total) : 0,
@@ -640,8 +640,8 @@ export default {
                   moment(),
                 ]);
             const income = {
-              project_name: i.project && i.project.name ? i.project.name : "",
-              project_id: i.project ? i.project.id : 0,
+              project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
+              project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
               type: `${i.paid ? "Ingrés cobrat" : "Ingrés emès"} (${i.document_type.name})`,
               concept: i.code,
               total_amount: i.total ? Math.abs(i.total) : 0,
@@ -665,8 +665,8 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : "",
-              project_id: e.project ? e.project.id : 0,
+              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
               type: e.paid ? "Factura pagada" : "Factura rebuda",
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,
@@ -689,8 +689,8 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : "",
-              project_id: e.project ? e.project.id : 0,
+              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
               type: `${e.paid ? "Despesa pagada" : "Despesa rebuda"} (${e.document_type.name})`,
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,
@@ -713,8 +713,8 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : "",
-              project_id: e.project ? e.project.id : 0,
+              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
               type: "Dieta",
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,
@@ -734,8 +734,8 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : "",
-              project_id: e.project ? e.project.id : 0,
+              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
               type: "Ticket",
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,

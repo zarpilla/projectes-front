@@ -36,7 +36,7 @@
 }
 
 /* */
-.project-form {
+.project-form, .document-form {
   .button.no-button {
     background: none;
     border: 0;
@@ -80,6 +80,9 @@
   } */
   .subphase .field:not(.short-field) {
     width: 35%;
+  }
+  .subphase .field.is-full-width {
+    width: 100%;
   }
   .subphase .field.medium-field {
     width: 23%;

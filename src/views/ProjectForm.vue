@@ -1493,7 +1493,6 @@ export default {
       );
     },    
     updateGantt() {
-      EventBus.$emit("zphases-updated", {});
       this.isUpdating = true;
       this.needsUpdate = false;
       setTimeout(() => {
@@ -1570,10 +1569,8 @@ export default {
       }
       this.updatingGanttTimer = setTimeout(() => {
         this.updatingGantt = false;
-        EventBus.$emit("phases-updated", this.form.phases);
-        // console.log('ganttItemUpdate timeout!!!')
+        EventBus.$emit("phases-updated", { phases: this.form.phases });
       }, 800);
-      // console.log('ganttItemUpdate', item)
     },
     ganttItemDelete(item) {
       const id = item._hours.id;
@@ -1622,11 +1619,11 @@ export default {
         (t) => t.id !== task.id
       );
     },
-    phasesUpdated(phases) {
-      this.form.phases = phases
+    phasesUpdated(info) {
+      this.form.phases = info.phases
     },
-    originalPhasesUpdated(phases) {
-      this.form.original_phases = phases
+    originalPhasesUpdated(info) {
+      this.form.original_phases = info.phases
     },
     closeQuote() {
       this.originalPhasesVisible = true
