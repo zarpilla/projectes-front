@@ -141,8 +141,8 @@
           </span>
           
         </b-table-column>
-        <b-table-column label="Projecte" field="lines" v-slot="props" sortable>
-          {{ props.row.project ? props.row.project.name : "-" }}
+        <b-table-column label="Projecte" field="lines" v-slot="props" sortable>          
+          {{ props.row.projects && props.row.projects.length ? props.row.projects[0].name : (props.row.project ? props.row.project.name : "-" ) }}
         </b-table-column>
         <b-table-column label="Base" field="total_base" v-slot="props" sortable>
           {{ formatPrice(props.row.total_base) }}€
@@ -286,7 +286,7 @@ export default {
           proveidor: e.contact ? e.contact.name : "",
           nif: e.contact ? e.contact.nif : "",
           concepte: e.lines && e.lines.length > 0 ? e.lines[0].concepte : "",
-          projecte: e.project ? e.project.name : "",
+          projecte: e.projects && e.projects.length ? e.projects[0].name : (e.project ? e.project.name : ""),
           base: e.total_base,
           vat: e.total_vat,
           irpf: e.total_irpf,

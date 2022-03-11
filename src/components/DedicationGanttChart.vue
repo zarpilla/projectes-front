@@ -1,10 +1,9 @@
 <template>
   <div>
     <div class="gannt-container" v-if="showGantt">
-      <div class="gantt" :id="ganttId"></div>      
+      <div class="gantt" :id="ganttId"></div>            
     </div>
-    
-  </div>
+  </div>  
 </template>
 
 <script>
@@ -155,8 +154,12 @@ export default {
           }
         }        
       }
-      // const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').toDate();
-      // const endDate = this.project.date_end ? moment(this.project.date_end).add(1, 'year').endOf('year').toDate() : moment().add(3, 'year').endOf('year').toDate();
+
+      // https://docs.dhtmlx.com/gantt/samples/11_resources/10_resource_histogram_workload_percents.html
+      // https://docs.dhtmlx.com/gantt/samples/11_resources/06_assign_multiple_owners.html
+      // https://dhtmlx.com/blog/using-d3-visualize-workload-dhtmlxgantt/
+      
+
       gantt.config.start_date = moment().startOf('year').toDate();
 			gantt.config.end_date = moment(maxEnddate, 'YYYY-MM-DD').add(3, 'monthy').toDate();
       gantt.config.columns = [
