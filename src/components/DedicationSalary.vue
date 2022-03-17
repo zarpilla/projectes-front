@@ -37,6 +37,7 @@
           <div class="column has-text-weight-bold">Treballades</div>
           <div class="column has-text-weight-bold">Teòriques</div>
           <div class="column has-text-weight-bold">Saldo</div>
+          <div class="column has-text-weight-bold">Saldo Acumulat</div>
           <div class="column has-text-weight-bold">Salari</div>
           <div class="column has-text-weight-bold">Nòmina</div>
         </div>
@@ -57,6 +58,9 @@
             <div class="column">
               {{ value.balance.toFixed(2) }} h
             </div>
+            <div class="column">
+              {{ value.balanceTotal.toFixed(2) }} h
+            </div>
             <div class="column">                            
               <span>
                 {{ (value.dailySalary / value.theoricDays).toFixed(2) }} € 
@@ -65,7 +69,7 @@
                 </span>
               </span>
               <br v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
-              <span v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
+              <span class="has-text-danger" v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
                 {{ hasPayroll(key).total_base.toFixed(2) }} € (Nòmina)
               </span>              
             </div>
@@ -225,6 +229,7 @@ export default {
               this.dailyDedications = r.data
               var allDates = this.enumerateDaysBetweenDates()
               var balance = 0
+              var balanceTotal = 0
               var totalWorkedHours = 0
               var dates = []
               var laborableDays = 0
@@ -262,7 +267,7 @@ export default {
 
                 theoricHoursTotal += theoricHours
                 if (!this.months[month]) {
-                  this.months[month] = { theoricHours: 0, theoricDays: 0, worked: 0, balance: 0, theoricRatio: 0, dailySalary: 0 }
+                  this.months[month] = { theoricHours: 0, theoricDays: 0, worked: 0, balance: 0, balanceTotal: 0, theoricRatio: 0, dailySalary: 0 }
                 }
                 this.months[month].theoricHours += theoricHours
 
@@ -277,6 +282,7 @@ export default {
                 
                 this.months[month].worked += workedHours
                 this.months[month].balance = this.months[month].worked - this.months[month].theoricHours
+                // this.months[month].balanceTotal = month > 1 ? this.months[month - 1].balance + this.months[month].worked - this.months[month].theoricHours : this.months[month].worked - this.months[month].theoricHours
 
                 totalWorkedHours += workedHours;
                 balance += workedHours - theoricHours;
@@ -288,6 +294,7 @@ export default {
                   workedHours: workedHours,
                   totalWorkedHours: totalWorkedHours,
                   balance: balance,
+                  balanceTotal: balanceTotal,
                   costByHour: dailyDedication ? dailyDedication.costByHour : 0,
                   costByDay: dailyDedication ? dailyDedication.costByHour*workedHours : 0,
                   error: dailyDedication === null,
@@ -296,7 +303,15 @@ export default {
                   salary += dailyDedication.costByHour*workedHours
                 }
               });
-              this.dates = dates.reverse();              
+              this.dates = dates.reverse()
+              for(var m in this.months) {
+                if (parseInt(m) === 1) {
+                  this.months[m].balanceTotal += this.months[m].balance
+                }
+                else  {
+                  this.months[m].balanceTotal += this.months[parseInt(m) - 1].balanceTotal + this.months[m].balance
+                }
+              }
               this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)              
               this.summary['Total hores laborables teòriques'] = theoricHoursTotal.toFixed(2)
               this.summary['Saldo hores'] = this.dates[0].balance.toFixed(2)
@@ -356,9 +371,9 @@ export default {
         ss_base: dailyDedication.pct_quota ? total * dailyDedication.pct_quota / 100 : dailyDedication.quota,
         ss_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').add(1, 'month').endOf('month').format('YYYY-MM-DD'),  // mes següent vençut
         irpf_base: dailyDedication.pct_irpf ? total * dailyDedication.pct_irpf / 100 : 0,
-        irpf_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(1, 'day').format('YYYY-MM-DD'),
+        irpf_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(20, 'day').format('YYYY-MM-DD'),
         other_base: dailyDedication.pct_other ? total * dailyDedication.pct_other / 100 : 0,
-        other_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(1, 'day').format('YYYY-MM-DD'),
+        other_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(20, 'day').format('YYYY-MM-DD'),
       }
 
       payroll.net_base = parseFloat(payroll.total) - parseFloat(payroll.irpf_base) - parseFloat(payroll.other_base)

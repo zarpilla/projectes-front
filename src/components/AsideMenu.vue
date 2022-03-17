@@ -45,7 +45,7 @@ export default {
 </script>
 <style>
 .menu-list a{
-  padding: 0.35rem 0;
+  padding: 0.3rem 0;
 }
 aside.aside{
     overflow-y: auto;

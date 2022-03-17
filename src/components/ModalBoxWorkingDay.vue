@@ -70,12 +70,14 @@
             <b-field label="Seguretat Social" horizontal>
               <b-radio v-model="form.scheme"
                 name="name"
+                @input="schemeChanged('autonoma')"
                 native-value="autonoma">
                 Treballadora Autònoma
               </b-radio>
               <b-radio v-model="form.scheme"
                   name="name"
-                  native-value="general">
+                  native-value="general"
+                  @input="schemeChanged('general')">
                   Règim General
               </b-radio>
             </b-field>
@@ -112,7 +114,6 @@
                 v-model="form.pct_irpf"
                 placeholder="% IRPF"
                 name="pct_irpf"
-                :disabled="form.scheme === 'autonoma'"
                 @input="fixDecimals('pct_irpf', form.pct_irpf)"
               />
             </b-field>
@@ -122,7 +123,6 @@
                 v-model="form.pct_other"
                 placeholder="% Altres"
                 name="pct_other"
-                :disabled="form.scheme === 'autonoma'"
                 @input="fixDecimals('pct_other', form.pct_other)"                
               />
             </b-field>
@@ -155,7 +155,7 @@ import ModalBox from '@/components/ModalBox'
 import moment from 'moment'
 
 export default {
-  name: 'ModalBoxEstimatedHours',
+  name: 'ModalBoxWorkingDay',
   components: { ModalBox },
   props: {
     isActive: {
@@ -169,6 +169,10 @@ export default {
     users: {
       type: Array,
       default: []
+    },
+    quotes: {
+      type: Object,
+      default: { id: 0 }
     },
   },
   data () {
@@ -192,7 +196,8 @@ export default {
       },      
       trashObject: null,
       isDeleteModalActive: false,
-      userNameSearch: ''
+      userNameSearch: '',
+      initializing: true
     }
   },
   computed: {
@@ -237,6 +242,7 @@ export default {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
+      this.initializing = true
       // console.log('show this.dedicationObject', this.dedicationObject)
       // console.log('show this.users', this.users)
       
@@ -270,6 +276,7 @@ export default {
         this.form.id = 0
       }
 
+      this.initializing = false
     },
     cancel () {
       this.isModalActive = false
@@ -295,6 +302,17 @@ export default {
     fixDecimals(field, value) {
       if (value && value.toString().includes(",")) {
         this.form[field] = value.toString().replace(",", ".");
+      }
+    },
+    schemeChanged(newSchema) {      
+      this.setQuotes(newSchema)
+    },
+    setQuotes(scheme) {      
+      if (this.quotes && this.quotes.id && !this.initializing) {
+        this.form.quota = this.quotes[`${scheme}_quota`]
+        this.form.pct_quota = this.quotes[`${scheme}_pct_quota`]
+        this.form.pct_irpf = this.quotes[`${scheme}_pct_irpf`]
+        this.form.pct_other = this.quotes[`${scheme}_pct_other`]
       }
     }
   }

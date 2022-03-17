@@ -22,7 +22,9 @@
                         </td>
 
                         <td  class='more'>
-                          Pressupost {{ quote.code }}<br />
+                          <span v-if="quote.proforma">Factura proforma </span>
+                          <span v-else>Pressupost </span>
+                          {{ quote.code }}<br />
                           Data: {{ quote.date ? quote.date : quote.updated_at | formatDMYDate }}<br />
                         </td>
                       </tr>
@@ -42,13 +44,13 @@
                           <div v-if="me.phone">{{ me.phone }}</div>
                           <div v-if="me.email">{{ me.email }}</div>
                         </td>
-                        <td>
+                        <td v-if="quote.contact && quote.contact.id">
                           <div class="client">CLIENT</div>
-                          <div v-if="quote.client.name">{{ quote.client.name }}</div>
-                          <div v-if="quote.client.nif">{{ quote.client.nif }}</div>
-                          <div v-if="quote.client.email">{{ quote.client.email }}</div>
-                          <div v-if="quote.client.address">{{ quote.client.address }}<br />{{ quote.client.postcode }} {{ quote.client.city }}</div>
-                          <div v-if="quote.client.phone">{{ quote.client.phone }}</div>
+                          <div v-if="quote.contact.name">{{ quote.contact.name }}</div>
+                          <div v-if="quote.contact.nif">{{ quote.contact.nif }}</div>
+                          <div v-if="quote.contact.email">{{ quote.contact.email }}</div>
+                          <div v-if="quote.contact.address">{{ quote.contact.address }}<br />{{ quote.contact.postcode }} {{ quote.contact.city }}</div>
+                          <div v-if="quote.contact.phone">{{ quote.contact.phone }}</div>
                         </td>
                       </tr>
                     </table>
@@ -184,7 +186,7 @@ export default {
       var element = document.getElementById('quote')
       var opt = {
         margin: [0, 0],
-        filename: `pressupost-${this.quote.client.name}-${this.quote.code}`,
+        filename: `pressupost-${this.quote.contact.name}-${this.quote.code}`,
         // image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }

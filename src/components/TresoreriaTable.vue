@@ -677,8 +677,23 @@ export default {
               pdf: e.pdf,
               contact: e.contact && e.contact.name ? e.contact.name : "-",
               to: `/document/${e.id}/received-invoices`
-            };
+            }
             this.treasury.push(expense);
+            if (e.total_irpf) {
+              const expense2 = {
+                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+                type: "IRPF Factura",
+                concept: e.code,
+                total_amount: -1 * Math.abs(e.total_irpf),
+                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
+                date_error: (e.emitted) === null,
+                paid: false,
+                contact: e.contact && e.contact.name ? e.contact.name : "-",
+                to: `/document/${e.id}/received-invoices`
+              };
+              this.treasury.push(expense2);
+            }
           });
           this.receivedExpenses.forEach((e) => {
             const date = e.paid_date
@@ -703,6 +718,21 @@ export default {
               to: `/document/${e.id}/received-expenses`
             };
             this.treasury.push(expense);
+            if (e.total_irpf) {
+              const expense2 = {
+                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+                type: "IRPF Factura",
+                concept: e.code,
+                total_amount: -1 * Math.abs(e.total_irpf),
+                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
+                date_error: (e.emitted) === null,
+                paid: false,
+                contact: e.contact && e.contact.name ? e.contact.name : "-",
+                to: `/document/${e.id}/received-expenses`
+              };
+              this.treasury.push(expense2);
+            }
           });
           this.diets.forEach((e) => {
             const date = e.paid_date
@@ -772,7 +802,7 @@ export default {
               const expense2 = {
                 project_name: '',
                 project_id: 0,
-                type: e.paid ? "IRPF pagat" : "IRPF esperat",
+                type: "IRPF Nòmina",
                 concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
                 total_amount: e.irpf_base || e.other_base ? -1 * Math.abs(e.irpf_base + e.other_base) : 0,
                 date: moment(e.irpf_date, "YYYY-MM-DD"),

@@ -121,8 +121,9 @@
                 editable
               >
               </b-datepicker>
-            </b-field>
+            </b-field>            
             <b-field
+              v-if="type !== 'quotes'"
               :label="
                 type !== 'received-incomes' && type !== 'emitted-invoices'
                   ? 'Pagada'
@@ -133,6 +134,7 @@
               <b-checkbox v-model="form.paid" class="checkbox-inline">
               </b-checkbox>
               <b-datepicker
+                v-if="type !== 'quotes'"
                 v-model="form.paid_date"
                 :show-week-number="false"
                 :locale="'ca-ES'"
@@ -145,18 +147,43 @@
               </b-datepicker>
             </b-field>
 
-            <b-field label="Modificable" horizontal v-if="type !== 'payrolls'">
+            <b-field
+              v-if="type === 'quotes'"
+              label="Acceptat"
+              horizontal
+            >
+              <b-checkbox v-model="form.accepted" class="checkbox-inline">
+              </b-checkbox>
+              <b-datepicker
+                v-model="form.accepted_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Acceptació"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
+
+            <b-field label="Modificable" horizontal v-if="type !== 'payrolls' && type !== 'quotes'">
               <b-switch v-model="form.updatable"> </b-switch>
             </b-field>
 
+            <b-field label="Factura proforma" horizontal v-if="type === 'quotes'">
+              <b-checkbox v-model="form.proforma" class="checkbox-inline">
+              </b-checkbox>
+            </b-field>
+
             <b-field
+              v-if="type !== 'quotes' && type !== 'payrolls'"
               :label="
                 type !== 'received-incomes' && type !== 'emitted-invoices'
                   ? 'Mètode de pagament'
                   : 'Mètode de cobrament'
               "
               horizontal
-              v-if="type !== 'payrolls'"
             >
               <b-select v-model="form.payment_method" placeholder="" required>
                 <option
@@ -170,7 +197,7 @@
             </b-field>
 
             <b-field
-              v-if="type == 'emitted-invoices'"
+              v-if="type == 'emitted-invoices' || type == 'quotes'"
               label="Clienta *"
               horizontal
             >
@@ -236,8 +263,7 @@
               >
               </b-input>
             </b-field>
-
-            <b-field label="Projectes *" horizontal v-if="type !== 'payrolls'">
+            <b-field :label="type === 'quotes' ? 'Projecte *' : 'Projectes *'" horizontal v-if="type !== 'payrolls'">
               <b-autocomplete
                 v-model="projectSearch"
                 placeholder="Escriu el nom del projecte..."
@@ -250,10 +276,10 @@
               >
               </b-autocomplete>
             </b-field>
-                          <b-field
+            <b-field
                 label=""
                 horizontal
-                v-if="form.projects && form.projects.length"
+                v-if="form.projects && form.projects.length && type !== 'quotes'"
               >
                 <div class="list">
                   <ul class="ulist">
@@ -390,7 +416,7 @@
                 <b-field
                   label="Notes"
                   grouped
-                  class="line-notes mb-5"
+                  class="line-notes is-full-width mb-5"
                   :class="line.show ? 'z' : 'is-hidden'"
                 >
                   <b-input
@@ -555,6 +581,8 @@
 
           <hr />
 
+          <div v-if="type !== 'quotes'">
+
           <card-component
             v-for="(project, i) in form.projects"
             :key="i"
@@ -581,21 +609,9 @@
                 botó de 'Document'. Un cop assignat, caldrà guardar la factura.
               </div>
             </div>
-            <!-- <hr v-if="shouldSaveProject" />
-            <b-field v-if="shouldSaveProject" class="is-pulled-right">
-              <b-button
-                type="is-warning"
-                :loading="isLoading"
-                @click="undoProject"
-              >
-                <b-icon icon="undo" custom-size="default" />
-                Desfés detall de projecte
-              </b-button>
-            </b-field> -->
-
-            <!-- <pre>{{project.phases}}</pre> -->
           </card-component>
           <hr />
+          </div>
           <b-field>
             <a
               v-if="form.pdf"
@@ -713,6 +729,8 @@ export default {
         type = "Ingressos rebuts";
       } else if (this.type === "received-expenses") {
         type = "Despeses rebudes";
+      } else if (this.type === "quotes") {
+        type = "Pressupostos";
       } else {
         type = "Factures Rebudes";
       }
@@ -728,6 +746,8 @@ export default {
           return "Nou ingrés";
         } else if (this.type === "received-expenses") {
           return "Nova despesa";
+          } else if (this.type === "quotes") {
+          return "Nou Pressupost";
         } else {
           return "Nova factura";
         }
@@ -881,14 +901,20 @@ export default {
                 this.form.document_type = this.form.document_type.id;
               }
 
-              if (this.form.project && this.form.project.id) {
+              if (this.form.project && this.form.project.id && this.type !== 'quotes') {
                 // load legacy project
                 this.form.projects = this.form.projects || [];
                 if (this.form.projects.length === 0) {
                   this.form.projects.push(this.form.project)
                   this.form.project = null
                 }
-              }              
+              }  else if (this.form.project && this.form.project.id) {
+                this.form.projects = this.form.projects || [];
+                this.form.projects.push({ id: this.form.project.id })                
+                this.projectSearch = this.form.project.name
+                this.form.project = this.form.project.id
+              }
+
 
               if (this.type === "payrolls") {
                 this.form.code =
@@ -1173,57 +1199,37 @@ export default {
       if (!option) {
         return
       }
-      console.log('projectSelected', option)
 
-      // const project = { id: option.id, name: option.name }
-      
       this.form.projects = this.form.projects || [];
 
-      this.projectSearch = "";
-
       if (!this.form.projects.find((c) => c.id === option.id)) {
-        // this.form.projects.push(option);
-
+        
         this.isLoadingProject = true;
         const project = (
           await service({ requiresAuth: true }).get(`projects/${option.id}`)
         ).data;
 
+        if (this.type !== 'quote') {
+          this.form.projects = []
+        }
+
         this.form.projects.push(project)
+
+        if (this.type !== 'quotes') {
+          this.projectSearch = "";
+        }
+        else {
+          this.form.project = option.id;
+        }
 
         // this.projectCopy = this.project;
         this.isLoadingProject = false;
-
-
+      } else {
+        setTimeout(async () => {
+          this.projectSearch = "";
+        }, 100);
       }
       
-      setTimeout(async () => {
-        this.projectSearch = "";
-
-        // this.isLoadingProject = true;
-        // this.project = (
-        //   await service({ requiresAuth: true }).get(`projects/${option.id}`)
-        // ).data;
-        // this.projectCopy = this.project;
-        // this.isLoadingProject = false;
-
-
-      }, 100);
-
-
-
-      // if (!option || !option.id) {
-      //   this.form.project = null;
-      // }
-      // this.form.project = option.id;
-      // setTimeout(async () => {
-      //   this.isLoadingProject = true;
-      //   this.project = (
-      //     await service({ requiresAuth: true }).get(`projects/${option.id}`)
-      //   ).data;
-      //   this.projectCopy = this.project;
-      //   this.isLoadingProject = false;
-      // }, 150);
     },
     methodSelected(option) {
       this.form.payment_method = option;
@@ -1242,7 +1248,9 @@ export default {
     },
     validateIfProjectPhasesHasDocument() {
       var validateIfProjectPhasesHasDocument = false;
-
+      if (this.type === 'quotes') {
+        return true
+      }
       this.form.projects.forEach(p => {
 
         if (this.type === "emitted-invoices") {
@@ -1292,6 +1300,10 @@ export default {
       return validateIfProjectPhasesHasDocument;
     },
     async updateProjectPhases(id) {
+
+      if (this.type === 'quotes') {
+        return
+      }
 
       // this.form.projects.forEach(async p => {
       for (let i = 0; i < this.form.projects.length; i++) {

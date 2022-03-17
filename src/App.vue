@@ -79,6 +79,11 @@ export default {
             to: '/tresoreria',
             icon: 'table',
             label: 'Tresoreria'
+          },
+          {
+            to: '/quotes',
+            icon: 'table',
+            label: 'Pressupostos'
           }
         ],
         'Consulta dades',

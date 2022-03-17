@@ -7,6 +7,7 @@
       @cancel="modalCancel"
       @delete="modalDelete"
       :users="users"
+      :quotes="quotes"
     />
     <b-field label="Modificable" zhorizontal>
       <b-switch v-model="updatable"> </b-switch>
@@ -54,7 +55,8 @@ export default {
       showGantt: false,
       ganttId: '',
       users: [],
-      updatable: false
+      updatable: false,
+      quotes: null
     }
   },
   async mounted () {
@@ -76,9 +78,18 @@ export default {
 
       this.tasks = { data: [] }
 
+      this.getQuotes();
+
       setTimeout(() => {
         this.initializeGannt()
       }, 250)
+    },
+    async getQuotes () {
+      const me = (await service({ requiresAuth: true }).get('me')).data
+      console.log('me!', me)
+      if (me && me.quotes && me.quotes.id) {
+        this.quotes = me.quotes
+      }      
     },
     async initializeGannt () {
 

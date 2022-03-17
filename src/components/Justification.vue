@@ -40,6 +40,12 @@
           </div>
         </div>
       </card-component>
+      <download-excel class="export" :data="dataCSV">
+      <b-button
+      title="Exporta dades"
+      class="export-button"
+      icon-left="file-excel" />
+    </download-excel>
     </div>
   </div>
 </template>
@@ -132,25 +138,18 @@ export default {
             username: this.users.find(
               (u) => u.id === rows[0].users_permissions_user
             ).username,
+            project_id: rows[0].project,
             project: rows[0].project_name,
             payroll: pr ? pr.total : null
             // rows: rows
           };
         })
         .value();
-
-      // const activitiesWithPayrolls = activities.map(a => {
-      //   const pr = this.payrolls.find(p => p.users_permissions_user.id === a.users_permissions_user && p.year.year === a.year && p.month.month === a.month)
-      //   return {
-      //     ...a,
-      //     username: this.users.find(u => u.id === a.users_permissions_user).username,
-      //     // userdata: this.users.find(u => u.id === a.users_permissions_user),
-      //     payroll: pr ? pr.total_base: null
-      //   }
-      // })
       return activities;
-      // return activitiesWithPayrolls;
     },
+    dataCSV () {
+      return this.monthlyActivitiesTotal.map(({ ym, users_permissions_user, ...row }) => row)
+    }
   },
   watch: {
     project: function (newVal, oldVal) {

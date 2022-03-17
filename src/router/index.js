@@ -367,6 +367,18 @@ const routes = [
   },
   {
     meta: {
+      title: 'Pressupostos'
+    },
+    path: '/quotes',
+    name: 'quotes.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/Quotes.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },  
+  {
+    meta: {
       title: 'Contactes'
     },
     path: '/contacts',
