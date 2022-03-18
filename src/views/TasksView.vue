@@ -142,10 +142,10 @@ export default {
     const user = this.users.find(
       (u) => u.username.toLowerCase() === this.userName.toLowerCase()
     );
-    // if (user && user.id) {
-    //   this.userNameSearch = user.username;
-    //   this.filters.user = user.id
-    // }
+    if (user && user.id) {
+      this.userNameSearch = user.username;
+      this.filters.user = user.id
+    }
 
     this.isLoading = false;
   },
