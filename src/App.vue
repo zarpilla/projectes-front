@@ -53,6 +53,11 @@ export default {
             label: 'Persones'
           },
           {
+            to: '/tasks',
+            icon: 'view-column',
+            label: 'Tasques'
+          },
+          {
             href: `${process.env.VUE_APP_API_URL || 'http://localhost:1337'}/admin`,
             icon: 'open-in-new',
             label: 'Strapi'

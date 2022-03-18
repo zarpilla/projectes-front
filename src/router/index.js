@@ -412,6 +412,18 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    meta: {
+      title: 'Tasques'
+    },
+    path: '/tasks',
+    name: 'tasks.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/TasksView.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   }
 ]
 

@@ -101,7 +101,8 @@ export default {
       showGantt: false,
       ganttId: '',
       dedications: [],
-      showSubPhases: false
+      showSubPhases: false,
+      projectTasks: []
     }
   },
   async mounted () {
@@ -115,6 +116,18 @@ export default {
     EventBus.$on('phases-updated', (info) => {
       this.phases = info.phases
     })
+
+
+    let query = "tasks?_limit=-1&_where[archived_eq]=false&_where[due_date_null]=false";
+      
+    if (this.project) {
+      query += "&_where[project_eq]=" + this.project.id;
+    }
+    else {
+      query += "&_where[project_eq]=-1";
+    }
+
+    this.projectTasks = (await service({ requiresAuth: true }).get(query)).data
 
     this.ganttId = 'gantt-' + this.create_UUID()
 
@@ -190,6 +203,17 @@ export default {
           }
         }
       }
+
+      this.projectTasks.forEach((pt, i) => {
+        if (pt.due_date) {
+          const milestone = {id:9999999999 + i, text: pt.name, type:gantt.config.types.milestone, start_date: pt.due_date, readonly: true }
+          this.tasks.data.push(milestone)
+        }
+        // this.tasks.data.push(hoursTask)
+        //         {id:3, text:"Alpha release", type:gantt.config.types.milestone,   parent:1,             start_date:"14-04-2020"}], 
+      });
+
+
       const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').add(-1, 'year').toDate();
       const endDate = this.project.date_end ? moment(this.project.date_end).add(1, 'year').endOf('year').toDate() : moment().add(3, 'year').endOf('year').toDate();
       gantt.config.start_date = initialDate;
@@ -223,7 +247,7 @@ export default {
       }
       gantt.attachEvent("onTaskClick", (id, e) => {
         this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
-        if (this.dedicationObject.type === 'project') {
+        if (this.dedicationObject.type === 'project' || this.dedicationObject.type === 'milestone') {
           return
         }   
         this.isModalActive = true        

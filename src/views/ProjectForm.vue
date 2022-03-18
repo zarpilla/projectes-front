@@ -847,6 +847,14 @@
           >
         </b-field>
       </card-component>
+
+      <card-component v-if="!isLoading" title="TASQUES">        
+        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project="form.id" />
+        <span class="bg-info" v-else
+          >Es necessari guardar el projecte per accedir a les
+          tasques</span
+        >
+      </card-component>
     </section>
   </div>
 </template>
@@ -866,6 +874,7 @@ import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
+import Tasks from "@/components/Tasks";
 
 export default {
   name: "ProjectForm",
@@ -876,7 +885,8 @@ export default {
     ModalBoxInvoicing,
     ModalBoxSplit,
     ProjectGannt2,
-    ProjectPhases
+    ProjectPhases,
+    Tasks
   },
   props: {
     id: {
