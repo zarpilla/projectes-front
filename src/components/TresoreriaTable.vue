@@ -606,6 +606,9 @@ export default {
             contact: "-",
           };
           this.treasury.push(today);
+
+          // vat
+          const vats = []
           // emitted
           this.emitted.forEach((i) => {
             const date = i.paid_date
@@ -630,6 +633,23 @@ export default {
               to: `/document/${i.id}/emitted-invoices`
             };
             this.treasury.push(income);
+            if (i.total_vat) {
+              const vat = {
+                project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
+                project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
+                type: "IVA Repercutit Factura",
+                concept: i.code,
+                total_amount: -1 * Math.abs(i.total_vat),
+                date: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
+                date_error: (i.emitted) === null,
+                real: true,
+                pdf: i.pdf,
+                paid: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
+                contact: i.contact && i.contact.name ? i.contact.name : "?",
+                to: `/document/${i.id}/emitted-invoices`
+              };
+              this.treasury.push(vat);
+            }
           });
           this.receivedIncomes.forEach((i) => {
             const date = i.paid_date
@@ -654,6 +674,23 @@ export default {
               to: `/document/${i.id}/received-incomes`
             };
             this.treasury.push(income);
+            if (i.total_vat) {
+              const vat = {
+                project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
+                project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
+                type: "IVA Repercutit Ingrés",
+                concept: i.code,
+                total_amount: -1 * Math.abs(i.total_vat),
+                date: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
+                date_error: (i.emitted) === null,
+                real: true,
+                pdf: i.pdf,
+                paid: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
+                contact: i.contact && i.contact.name ? i.contact.name : "?",
+                to: `/document/${i.id}/received-incomes`
+              };
+              this.treasury.push(vat);
+            }
           });
           // received
           this.received.forEach((e) => {
@@ -688,11 +725,28 @@ export default {
                 total_amount: -1 * Math.abs(e.total_irpf),
                 date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
                 date_error: (e.emitted) === null,
-                paid: false,
+                paid: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
                 contact: e.contact && e.contact.name ? e.contact.name : "-",
                 to: `/document/${e.id}/received-invoices`
               };
               this.treasury.push(expense2);
+            }
+            if (e.total_vat) {
+              const vat = {
+                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+                type: "IVA Soportat Factura",
+                concept: e.code,
+                total_amount: Math.abs(e.total_vat),
+                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
+                date_error: (e.emitted) === null,
+                real: true,
+                pdf: e.pdf,
+                paid: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
+                contact: e.contact && e.contact.name ? e.contact.name : "?",
+                to: `/document/${e.id}/received-invoices`
+              };
+              this.treasury.push(vat);
             }
           });
           this.receivedExpenses.forEach((e) => {
@@ -732,6 +786,23 @@ export default {
                 to: `/document/${e.id}/received-expenses`
               };
               this.treasury.push(expense2);
+            }
+            if (e.total_vat) {
+              const vat = {
+                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
+                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+                type: "IVA Soportat Factura",
+                concept: e.code,
+                total_amount: Math.abs(e.total_vat),
+                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
+                date_error: (e.emitted) === null,
+                real: true,
+                pdf: e.pdf,
+                paid: e.paid,
+                contact: e.contact && e.contact.name ? e.contact.name : "?",
+                to: `/document/${e.id}/received-invoices`
+              };
+              this.treasury.push(vat);
             }
           });
           this.diets.forEach((e) => {

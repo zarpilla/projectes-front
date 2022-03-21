@@ -4,7 +4,7 @@
       <header class="modal-card-head">
         <p class="modal-card-title">Assignació de documents</p>
       </header>
-      <form @submit.prevent="submit">
+      <form @submit.prevent="submit" v-if="invoicingObject">
         <section class="modal-card-body">
             <b-field label="Factura emesa" horizontal v-if="invoicingObject.type === 'incomes'">
               <b-autocomplete
