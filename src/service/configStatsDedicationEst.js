@@ -14,7 +14,7 @@ const config = {
     }, {
       name: 'project_client',
       expand: false
-    }, {
+    }, {      
       name: 'dedication_type',
       expand: false
     }, {
@@ -30,6 +30,9 @@ const config = {
     rows: [{
       name: 'project_name',
       expand: false
+    }, {
+      name: 'project_year',
+      expand: false    
     }], // Specify a dimension on rows.
     measures: ['Hores reals', 'Hores previstes'],
     schema: {
@@ -45,6 +48,9 @@ const config = {
             type: 'string'
           },
           project_scope: {
+            type: 'string'
+          },
+          project_year: {
             type: 'string'
           },
           username: {
@@ -80,6 +86,9 @@ const config = {
           },
           project_client: {
             caption: 'Clients (TOTS)'
+          },
+          project_year: {
+            caption: 'Any Inici (TOTS)'
           },
           month: {
             caption: 'Mesos (TOTS)'

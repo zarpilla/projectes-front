@@ -87,6 +87,8 @@ export default {
         const projects = r.data.map(p => {
           const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
 
+          console.log('pr.', p)
+
           return {
             project_name: p.name,
             project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
@@ -94,6 +96,7 @@ export default {
             project_leader: p.leader && p.leader.username ? p.leader.username : '-',
             project_scope: p.project_scope && p.project_scope.short_name ? p.project_scope.short_name : '-',
             project_client: p.client && p.client? p.client.name : '-',
+            project_year: p.date_start ? moment(p.date_start, 'YYYY-MM-DD').format('YYYY') : moment(p.created_at, 'YYYY-MM-DD').format('YYYY'),
             total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
             hours: sumBy(p.activities, 'hours'),
             incomes: p.invoice_hours_price ? incomes : p.total_incomes,

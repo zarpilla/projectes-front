@@ -19,6 +19,9 @@ const config = {
     rows: [{
       name: 'project_name',
       expand: false
+    },{
+      name: 'project_year',
+      expand: false
     }], // Specify a dimension on rows.
     measures: ['Num', 'Hores previstes', 'Hores reals', 'Resultat previst', 'Resultat real', 'Ingressos previstos', 'Ingressos reals', 'Despeses previstes', 'Despeses reals', 'Hores previstes €', 'Hores reals €', 'Preu/hora previst', 'Preu/hora real', 'Despeses/hora previst', 'Despeses/hora real'],
     schema: {
@@ -39,9 +42,9 @@ const config = {
           project_scope: {
             type: 'string'
           },
-          // invoice_type: {
-          //   type: 'string'
-          // },
+          project_year: {
+            type: 'number'
+          },
           project_client: {
             type: 'string'
           }
@@ -51,6 +54,9 @@ const config = {
         dimensions: {
           project_state: {
             caption: 'Estats (TOTS)'
+          },
+          project_year: {
+            caption: 'Any Inici (TOTS)'
           },
           project_mother: {
             caption: 'Mare (TOTES)'

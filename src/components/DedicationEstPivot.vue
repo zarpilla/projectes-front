@@ -124,6 +124,7 @@ export default {
                   project_leader: p.leader ? p.leader.username : '-',
                   project_scope: p.project_scope ? p.project_scope.short_name : '-',
                   project_client: p.client ? p.client.name : '-',
+                  project_year: p.date_start ? moment(p.date_start, 'YYYY-MM-DD').format('YYYY') : moment(p.created_at, 'YYYY-MM-DD').format('YYYY'),
                   total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                   hours: a.hours,
                   incomes_expenses: p.incomes_expenses ? p.incomes_expenses : 0,

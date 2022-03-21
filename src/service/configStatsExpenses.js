@@ -23,6 +23,9 @@ const config = {
       name: 'type',
       expand: false
     },{
+      name: 'project_year',
+      expand: false
+    },{
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
@@ -40,6 +43,9 @@ const config = {
             type: 'string'
           },
           project_scope: {
+            type: 'string'
+          },
+          project_year: {
             type: 'string'
           },
           type: {
@@ -66,6 +72,9 @@ const config = {
           },
           project_mother: {
             caption: 'Mare (TOTES)'
+          },
+          project_year: {
+            caption: 'Any Inici (TOTS)'
           },
         },
         // measures: ['Sum']
