@@ -8,6 +8,7 @@
       @delete="modalDelete"
       :users="users"
       :quotes="quotes"
+      :years="years"
     />
     <b-field label="Modificable" zhorizontal>
       <b-switch v-model="updatable"> </b-switch>
@@ -56,7 +57,8 @@ export default {
       ganttId: '',
       users: [],
       updatable: false,
-      quotes: null
+      quotes: null,
+      years: []
     }
   },
   async mounted () {
@@ -97,6 +99,7 @@ export default {
       const users = (await service({ requiresAuth: true }).get('users')).data
       this.users = users
       const dedications = (await service({ requiresAuth: true }).get('daily-dedications?_limit=-1')).data
+      this.years = (await service({ requiresAuth: true }).get('years?_limit=-1')).data
 
       for (let i = 0; i < users.length; i++) {
         const user = users[i]

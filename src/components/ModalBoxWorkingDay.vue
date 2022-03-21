@@ -33,7 +33,7 @@
                 :data="filteredUsers"
                 field="username"
                 @select="option => (form.users_permissions_user = option ? option.id : null)"
-                :clearable="true"
+                :clearable="false"
                 :disabled="true"
               >
               </b-autocomplete>
@@ -58,14 +58,7 @@
               />
             </b-field>
 
-            <b-field label="Cost/hora (€)" horizontal>
-              <b-input
-                v-model="form.costByHour"
-                placeholder="Cost"
-                name="cost"
-                @input="fixDecimals('costByHour', form.costByHour)"
-              />
-            </b-field>
+            
 
             <b-field label="Seguretat Social" horizontal>
               <b-radio v-model="form.scheme"
@@ -127,6 +120,16 @@
               />
             </b-field>
 
+            <b-field label="Cost/hora (€)" horizontal message="Cost soportat per la cooperativa">
+              <b-input
+                v-model="costByHour"
+                placeholder="Cost"
+                name="cost"
+                @input="fixDecimals('costByHour', form.costByHour)"
+                :disabled="true"
+              />
+            </b-field>
+
         </section>
         <footer class="modal-card-foot">
           <button class="button" type="button" @click="cancel">Cancel·la</button>
@@ -173,6 +176,10 @@ export default {
     quotes: {
       type: Object,
       default: { id: 0 }
+    },
+    years: {
+      type: Array,
+      default: []
     },
   },
   data () {
@@ -221,6 +228,12 @@ export default {
       }
 
       return null
+    },
+    costByHour () {      
+      const yyyy = moment(this.form.from).format('YYYY')
+      const year = this.years.find(y => y.year.toString() === yyyy)
+      const hours = year && year.working_hours ? year.working_hours : 1764
+      return parseFloat( ((parseFloat(this.form.monthly_salary) + (this.form.quota ? parseFloat(this.form.quota) : (parseFloat(this.form.pct_quota | 0) * parseFloat(this.form.monthly_salary) / 100) )) * 12 / hours).toFixed(2))
     }
   },
   watch: {
@@ -253,6 +266,7 @@ export default {
         this.form.to = this.dedicationObject._dedication.to ? moment(this.dedicationObject._dedication.to, 'YYYY-MM-DD').toDate() : null
         this.form.costByHour = this.dedicationObject._dedication.costByHour
         this.form.monthly_salary = this.dedicationObject._dedication.monthly_salary
+        this.form.costByHour = this.form.monthly_salary * 12 /1864
         this.form.hours = this.dedicationObject._dedication.hours
         this.form.users_permissions_user = this.dedicationObject._dedication.users_permissions_user ? this.dedicationObject._dedication.users_permissions_user.id : null
         this.userNameSearch = this.dedicationObject._dedication.users_permissions_user ? this.dedicationObject._dedication.users_permissions_user.username : ''
@@ -285,6 +299,7 @@ export default {
     submit () {
       // this.form.id = this.dedicationObject.id
       this.form._dedication = this.dedicationObject._dedication
+      this.form.costByHour = this.costByHour
       this.$emit('submit', this.form)
     },
     trashModal (trashObject) {
@@ -303,6 +318,10 @@ export default {
       if (value && value.toString().includes(",")) {
         this.form[field] = value.toString().replace(",", ".");
       }
+      // console.log('this.field', this.field)
+      // if (this.field === 'monthly_salary') {        
+      //   this.form.costByHour = value * 12 /1864
+      // }
     },
     schemeChanged(newSchema) {      
       this.setQuotes(newSchema)
