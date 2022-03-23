@@ -1210,7 +1210,7 @@ export default {
         ).data;
 
         if (this.type !== 'quote') {
-          this.form.projects = []
+          this.form.projects = this.form.projects || [];
         }
 
         this.form.projects.push(project)
