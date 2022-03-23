@@ -302,12 +302,14 @@ export default {
         })
 
         try {
-          tasksWithDatabaseOrder[si].forEach(sit => {
-            const theTask = this.tasks.find(tk => tk.id === sit.taskId)
-            if (theTask) {
-              theTask.order = sit.order
-            }
-          })
+          if (tasksWithDatabaseOrder.length > si) {
+            tasksWithDatabaseOrder[si].forEach(sit => {
+              const theTask = this.tasks.find(tk => tk.id === sit.taskId)
+              if (theTask) {
+                theTask.order = sit.order
+              }
+            })
+          }          
         }
         catch (e)
         {
