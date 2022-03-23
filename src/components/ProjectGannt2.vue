@@ -33,7 +33,7 @@
     </div>
     <div class="gannt-container" v-if="showGantt">
       <!-- <div v-for="(g, i) in gantts" :key="i" class="gantt" :ref="g"></div> -->
-      <div class="gantt" :id="ganttId" style="height:400px;"></div>
+      <div class="gantt" :id="ganttId"></div>
       <!-- <pre>
         {{ tasks }}
       </pre> -->
