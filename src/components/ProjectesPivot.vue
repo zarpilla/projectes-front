@@ -86,9 +86,6 @@ export default {
       service({ requiresAuth: true }).get(query).then((r) => {
         const projects = r.data.map(p => {
           const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
-
-          console.log('pr.', p)
-
           return {
             project_name: p.name,
             project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
