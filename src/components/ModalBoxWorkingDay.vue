@@ -125,7 +125,6 @@
                 v-model="costByHour"
                 placeholder="Cost"
                 name="cost"
-                @input="fixDecimals('costByHour', form.costByHour)"
                 :disabled="true"
               />
             </b-field>
@@ -332,6 +331,9 @@ export default {
         this.form.pct_quota = this.quotes[`${scheme}_pct_quota`]
         this.form.pct_irpf = this.quotes[`${scheme}_pct_irpf`]
         this.form.pct_other = this.quotes[`${scheme}_pct_other`]
+        const monthly_salary = this.form.monthly_salary
+        this.form.monthly_salary = 0
+        this.form.monthly_salary = monthly_salary
       }
     }
   }
