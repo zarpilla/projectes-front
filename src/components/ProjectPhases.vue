@@ -64,6 +64,7 @@
             <button
               class="button is-small is-danger"
               type="button"
+              :disabled="props.row.subphases.find(s => s.paid) || props.row.expenses.find(s => s.paid)"
               @click.prevent="removePhase(props.index)"
             >
               <b-icon icon="trash-can" size="is-small" />
@@ -198,6 +199,7 @@
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
+                      :disabled="subphase.paid"
                       @click.prevent="removeSubPhase(props.row, subphase, j)"
                     >
                       <b-icon icon="trash-can" size="is-small" />
@@ -452,6 +454,7 @@
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
+                      :disabled="subphase.paid"
                       @click.prevent="removeSubExpense(props.row, subphase, j)"
                     >
                       <b-icon icon="trash-can" size="is-small" />
