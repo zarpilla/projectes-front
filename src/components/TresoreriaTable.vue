@@ -20,12 +20,9 @@
     </download-excel>
 
     <!-- <pre>{{ pivotData }}</pre> -->
-    
-      <card-component
-        title="PREVISIÓ DE TRESORERIA"
-        class="ztile is-child mt-2"
-      >
-        <section class="section">
+
+    <card-component title="PREVISIÓ DE TRESORERIA" class="ztile is-child mt-2">
+      <section class="section">
         <div class="b-table treasury-table">
           <div
             class="
@@ -48,10 +45,13 @@
                   :key="i"
                 >
                   <div class="zth-wrap has-text-right">
-                    <span class="is-relative" v-if="column.month !== '00' && column.month !== '99'">
+                    <span
+                      class="is-relative"
+                      v-if="column.month !== '00' && column.month !== '99'"
+                    >
                       {{ column.month }} / {{ column.year }}
                     </span>
-                    <span class="is-relative" v-if="column.month == '00'">                      
+                    <span class="is-relative" v-if="column.month == '00'">
                       TOTAL {{ column.year }}
                       <b-icon
                         class="has-text-danger"
@@ -61,7 +61,7 @@
                       </b-icon>
                     </span>
                     <span class="is-relative" v-if="column.month == '99'">
-                      SENSE DATA 
+                      SENSE DATA
                       <b-icon
                         class="has-text-danger"
                         icon="alert-circle"
@@ -73,7 +73,6 @@
                 </th>
               </thead>
               <tbody>
-                
                 <tr>
                   <td class="has-text-weight-bold">Cobraments</td>
                   <td class="has-text-right"></td>
@@ -124,21 +123,90 @@
             </table>
           </div>
         </div>
-        </section>
-      </card-component>
-      <download-excel
-        class="export view-button"
-        :data="treasuryData"
-        v-if="treasuryData && treasuryData.length"
-      >
-        <b-button
-          title="Exporta dades"
-          class="zview-button"
-          :type="'is-disabled'"
-          icon-left="file-excel"
-        />
-      </download-excel>
-    
+      </section>
+    </card-component>
+
+    <card-component
+      title="IVA"
+      class="ztile is-child mt-2"
+      v-if="
+        me &&
+        me.options &&
+        me.options.deductible_vat_pct &&
+        me.options.deductible_vat_pct > 0
+      "
+    >
+      <div class="columns">
+        <div class="column">
+          <b-field label="Pagat" grouped class="column">
+            <div class="readonly subphase-detail-input">
+              <money-format
+                :value="vat.paid"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Cobrat" grouped class="column">
+            <div class="readonly subphase-detail-input">
+              <money-format
+                :value="vat.received"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Deduïble" grouped class="column">
+            <div class="readonly subphase-detail-input">
+              {{ me.options.deductible_vat_pct }}%
+            </div>
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Saldo" grouped class="column">
+            <money-format
+                :value="(vat.paid - vat.received) * me.options.deductible_vat_pct / 100"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Saldar" grouped class="column">
+            <button class="button is-primary" @click="payVat" :disabled="(vat.paid - vat.received === 0) || payingVat">
+              {{ payingVat ? '...' : 'Saldar'}}</button>
+          </b-field>
+        </div>
+      </div>
+    </card-component>
+
+
+
+    <download-excel
+      class="export view-button"
+      :data="treasuryData"
+      v-if="treasuryData && treasuryData.length"
+    >
+      <b-button
+        title="Exporta dades"
+        class="zview-button"
+        :type="'is-disabled'"
+        icon-left="file-excel"
+      />
+    </download-excel>
 
     <card-component title="MOVIMENTS BANCARIS" class="ztile is-child mt-2">
       <section class="section">
@@ -178,11 +246,7 @@
             </span>
           </b-table-column>
           <b-table-column label="Concepte" field="concept" v-slot="props">
-
-            <router-link
-              v-if="props.row.to"
-              :to="props.row.to"
-            >
+            <router-link v-if="props.row.to" :to="props.row.to">
               <span class="project-name has-text-info">
                 {{ props.row.concept }}
               </span>
@@ -239,12 +303,15 @@ import _ from "lodash";
 import configPivot from "@/service/configStatsTreasury";
 import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
 import CardComponent from "./CardComponent.vue";
+import { mapState } from "vuex";
+import MoneyFormat from "vue-money-format";
 
 export default {
   name: "Tresoreria",
   components: {
     ModalBoxInvoicing,
     CardComponent,
+    MoneyFormat,
   },
   props: {
     titleStack: {
@@ -274,6 +341,9 @@ export default {
       isModalActive: false,
       trashObject: null,
       pivotData: [],
+      vat: { paid: 0, received: 0 },
+      me: null,
+      payingVat: false
     };
   },
   async mounted() {
@@ -320,20 +390,20 @@ export default {
         subtotal = subtotal + ans[i].total_amount;
         ans[i]["subtotal"] = subtotal;
         ansWithSubtotal.push(ans[i]);
-        if (ans[i].month === '12') {
-          const y = ans[i].year
-          const yearValues = ansWithSubtotal.filter(a => a.year === y)
+        if (ans[i].month === "12") {
+          const y = ans[i].year;
+          const yearValues = ansWithSubtotal.filter((a) => a.year === y);
           const yearSummary = {
-            "ym": `${y}00`,
-            "year": y,
-            "month": "00",
-            "valid": true,
-            "maxYm": ans[i].maxYm,
-            "total_amount": _.sumBy(yearValues, 'total_amount'),
-            "total_incomes": _.sumBy(yearValues, 'total_incomes'),
-            "total_expenses": _.sumBy(yearValues, 'total_expenses'),
-            "subtotal": ans[i].subtotal
-          }
+            ym: `${y}00`,
+            year: y,
+            month: "00",
+            valid: true,
+            maxYm: ans[i].maxYm,
+            total_amount: _.sumBy(yearValues, "total_amount"),
+            total_incomes: _.sumBy(yearValues, "total_incomes"),
+            total_expenses: _.sumBy(yearValues, "total_expenses"),
+            subtotal: ans[i].subtotal,
+          };
           ansWithSubtotal.push(yearSummary);
         }
       }
@@ -378,11 +448,14 @@ export default {
         await service({ requiresAuth: true }).get("received-expenses?_limit=-1")
       ).data;
       this.contacts = (
-        await service({ requiresAuth: true }).get("contacts?_limit=-1&_sort=name:ASC")
+        await service({ requiresAuth: true }).get(
+          "contacts?_limit=-1&_sort=name:ASC"
+        )
       ).data;
       this.payrolls = (
         await service({ requiresAuth: true }).get("payrolls?_limit=-1")
       ).data;
+      this.me = (await service({ requiresAuth: true }).get("me")).data;
 
       service({ requiresAuth: true })
         .get("projects?_limit=-1")
@@ -583,7 +656,7 @@ export default {
             const expense = {
               project_name: "-",
               project_id: 0,
-              type: "Entrada manual",
+              type: e.comment === "IVA Saldat" ? e.comment : "Entrada manual",
               concept: e.comment,
               total_amount: e.total,
               date: moment(e.date, "YYYY-MM-DD") || moment(),
@@ -608,7 +681,7 @@ export default {
           this.treasury.push(today);
 
           // vat
-          const vats = []
+          const vats = [];
           // emitted
           this.emitted.forEach((i) => {
             const date = i.paid_date
@@ -619,8 +692,23 @@ export default {
                   moment(),
                 ]);
             const income = {
-              project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
-              project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
+              project_name:
+                i.project && i.project.name
+                  ? i.project.name
+                  : i.projects &&
+                    i.projects.length &&
+                    i.projects[0] &&
+                    i.projects[0].name
+                  ? i.projects[0].name
+                  : "",
+              project_id: i.project
+                ? i.project.id
+                : i.projects &&
+                  i.projects.length &&
+                  i.projects[0] &&
+                  i.projects[0].id
+                ? i.projects[0].id
+                : 0,
               type: i.paid ? "Factura cobrada" : "Factura emesa",
               concept: i.code,
               total_amount: i.total ? Math.abs(i.total) : 0,
@@ -630,25 +718,49 @@ export default {
               pdf: i.pdf,
               paid: i.paid,
               contact: i.contact && i.contact.name ? i.contact.name : "?",
-              to: `/document/${i.id}/emitted-invoices`
+              to: `/document/${i.id}/emitted-invoices`,
             };
             this.treasury.push(income);
             if (i.total_vat) {
-              const vat = {
-                project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
-                project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
-                type: "IVA Repercutit Factura",
-                concept: i.code,
-                total_amount: -1 * Math.abs(i.total_vat),
-                date: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
-                date_error: (i.emitted) === null,
-                real: true,
-                pdf: i.pdf,
-                paid: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
-                contact: i.contact && i.contact.name ? i.contact.name : "?",
-                to: `/document/${i.id}/emitted-invoices`
-              };
-              this.treasury.push(vat);
+              // const vat = {
+              //   project_name:
+              //     i.project && i.project.name
+              //       ? i.project.name
+              //       : i.projects &&
+              //         i.projects.length &&
+              //         i.projects[0] &&
+              //         i.projects[0].name
+              //       ? i.projects[0].name
+              //       : "",
+              //   project_id: i.project
+              //     ? i.project.id
+              //     : i.projects &&
+              //       i.projects.length &&
+              //       i.projects[0] &&
+              //       i.projects[0].id
+              //     ? i.projects[0].id
+              //     : 0,
+              //   type: "IVA Repercutit Factura",
+              //   concept: i.code,
+              //   total_amount: -1 * Math.abs(i.total_vat),
+              //   date: moment(i.emitted, "YYYY-MM-DD")
+              //     .endOf("quarter")
+              //     .add(20, "day"),
+              //   date_error: i.emitted === null,
+              //   real: true,
+              //   pdf: i.pdf,
+              //   paid:
+              //     moment(i.emitted, "YYYY-MM-DD")
+              //       .endOf("quarter")
+              //       .add(20, "day")
+              //       .format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
+              //   contact: i.contact && i.contact.name ? i.contact.name : "?",
+              //   to: `/document/${i.id}/emitted-invoices`,
+              // };
+              // this.treasury.push(vat);
+              if (!i.vat_paid_date) {
+                this.vat.received += i.total_vat;
+              }
             }
           });
           this.receivedIncomes.forEach((i) => {
@@ -660,9 +772,26 @@ export default {
                   moment(),
                 ]);
             const income = {
-              project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
-              project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
-              type: `${i.paid ? "Ingrés cobrat" : "Ingrés emès"} (${i.document_type.name})`,
+              project_name:
+                i.project && i.project.name
+                  ? i.project.name
+                  : i.projects &&
+                    i.projects.length &&
+                    i.projects[0] &&
+                    i.projects[0].name
+                  ? i.projects[0].name
+                  : "",
+              project_id: i.project
+                ? i.project.id
+                : i.projects &&
+                  i.projects.length &&
+                  i.projects[0] &&
+                  i.projects[0].id
+                ? i.projects[0].id
+                : 0,
+              type: `${i.paid ? "Ingrés cobrat" : "Ingrés emès"} (${
+                i.document_type.name
+              })`,
               concept: i.code,
               total_amount: i.total ? Math.abs(i.total) : 0,
               date: date,
@@ -671,25 +800,49 @@ export default {
               pdf: i.pdf,
               paid: i.paid,
               contact: i.contact && i.contact.name ? i.contact.name : "?",
-              to: `/document/${i.id}/received-incomes`
+              to: `/document/${i.id}/received-incomes`,
             };
             this.treasury.push(income);
             if (i.total_vat) {
-              const vat = {
-                project_name: i.project && i.project.name ? i.project.name : (i.projects && i.projects.length && i.projects[0] && i.projects[0].name ? i.projects[0].name : ""),
-                project_id: i.project ? i.project.id : (i.projects && i.projects.length && i.projects[0] && i.projects[0].id ? i.projects[0].id : 0),
-                type: "IVA Repercutit Ingrés",
-                concept: i.code,
-                total_amount: -1 * Math.abs(i.total_vat),
-                date: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
-                date_error: (i.emitted) === null,
-                real: true,
-                pdf: i.pdf,
-                paid: moment(i.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
-                contact: i.contact && i.contact.name ? i.contact.name : "?",
-                to: `/document/${i.id}/received-incomes`
-              };
-              this.treasury.push(vat);
+              // const vat = {
+              //   project_name:
+              //     i.project && i.project.name
+              //       ? i.project.name
+              //       : i.projects &&
+              //         i.projects.length &&
+              //         i.projects[0] &&
+              //         i.projects[0].name
+              //       ? i.projects[0].name
+              //       : "",
+              //   project_id: i.project
+              //     ? i.project.id
+              //     : i.projects &&
+              //       i.projects.length &&
+              //       i.projects[0] &&
+              //       i.projects[0].id
+              //     ? i.projects[0].id
+              //     : 0,
+              //   type: "IVA Repercutit Ingrés",
+              //   concept: i.code,
+              //   total_amount: -1 * Math.abs(i.total_vat),
+              //   date: moment(i.emitted, "YYYY-MM-DD")
+              //     .endOf("quarter")
+              //     .add(20, "day"),
+              //   date_error: i.emitted === null,
+              //   real: true,
+              //   pdf: i.pdf,
+              //   paid:
+              //     moment(i.emitted, "YYYY-MM-DD")
+              //       .endOf("quarter")
+              //       .add(20, "day")
+              //       .format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
+              //   contact: i.contact && i.contact.name ? i.contact.name : "?",
+              //   to: `/document/${i.id}/received-incomes`,
+              // };
+              // this.treasury.push(vat);
+              if (!i.vat_paid_date) {
+                this.vat.received += i.total_vat;
+              }
             }
           });
           // received
@@ -702,8 +855,23 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+              project_name:
+                e.project && e.project.name
+                  ? e.project.name
+                  : e.projects &&
+                    e.projects.length &&
+                    e.projects[0] &&
+                    e.projects[0].name
+                  ? e.projects[0].name
+                  : "",
+              project_id: e.project
+                ? e.project.id
+                : e.projects &&
+                  e.projects.length &&
+                  e.projects[0] &&
+                  e.projects[0].id
+                ? e.projects[0].id
+                : 0,
               type: e.paid ? "Factura pagada" : "Factura rebuda",
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,
@@ -713,40 +881,85 @@ export default {
               real: true,
               pdf: e.pdf,
               contact: e.contact && e.contact.name ? e.contact.name : "-",
-              to: `/document/${e.id}/received-invoices`
-            }
+              to: `/document/${e.id}/received-invoices`,
+            };
             this.treasury.push(expense);
             if (e.total_irpf) {
               const expense2 = {
-                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+                project_name:
+                  e.project && e.project.name
+                    ? e.project.name
+                    : e.projects &&
+                      e.projects.length &&
+                      e.projects[0] &&
+                      e.projects[0].name
+                    ? e.projects[0].name
+                    : "",
+                project_id: e.project
+                  ? e.project.id
+                  : e.projects &&
+                    e.projects.length &&
+                    e.projects[0] &&
+                    e.projects[0].id
+                  ? e.projects[0].id
+                  : 0,
                 type: "IRPF Factura",
                 concept: e.code,
                 total_amount: -1 * Math.abs(e.total_irpf),
-                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
-                date_error: (e.emitted) === null,
-                paid: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
+                date: moment(e.emitted, "YYYY-MM-DD")
+                  .endOf("quarter")
+                  .add(20, "day"),
+                date_error: e.emitted === null,
+                paid:
+                  moment(e.emitted, "YYYY-MM-DD")
+                    .endOf("quarter")
+                    .add(20, "day")
+                    .format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
                 contact: e.contact && e.contact.name ? e.contact.name : "-",
-                to: `/document/${e.id}/received-invoices`
+                to: `/document/${e.id}/received-invoices`,
               };
               this.treasury.push(expense2);
             }
             if (e.total_vat) {
-              const vat = {
-                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
-                type: "IVA Soportat Factura",
-                concept: e.code,
-                total_amount: Math.abs(e.total_vat),
-                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
-                date_error: (e.emitted) === null,
-                real: true,
-                pdf: e.pdf,
-                paid: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day').format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
-                contact: e.contact && e.contact.name ? e.contact.name : "?",
-                to: `/document/${e.id}/received-invoices`
-              };
-              this.treasury.push(vat);
+              // const vat = {
+              //   project_name:
+              //     e.project && e.project.name
+              //       ? e.project.name
+              //       : e.projects &&
+              //         e.projects.length &&
+              //         e.projects[0] &&
+              //         e.projects[0].name
+              //       ? e.projects[0].name
+              //       : "",
+              //   project_id: e.project
+              //     ? e.project.id
+              //     : e.projects &&
+              //       e.projects.length &&
+              //       e.projects[0] &&
+              //       e.projects[0].id
+              //     ? e.projects[0].id
+              //     : 0,
+              //   type: "IVA Soportat Factura",
+              //   concept: e.code,
+              //   total_amount: Math.abs(e.total_vat),
+              //   date: moment(e.emitted, "YYYY-MM-DD")
+              //     .endOf("quarter")
+              //     .add(20, "day"),
+              //   date_error: e.emitted === null,
+              //   real: true,
+              //   pdf: e.pdf,
+              //   paid:
+              //     moment(e.emitted, "YYYY-MM-DD")
+              //       .endOf("quarter")
+              //       .add(20, "day")
+              //       .format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
+              //   contact: e.contact && e.contact.name ? e.contact.name : "?",
+              //   to: `/document/${e.id}/received-invoices`,
+              // };
+              // this.treasury.push(vat);
+              if (!e.vat_paid_date) {
+                this.vat.paid += e.total_vat;
+              }
             }
           });
           this.receivedExpenses.forEach((e) => {
@@ -758,9 +971,26 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
-              type: `${e.paid ? "Despesa pagada" : "Despesa rebuda"} (${e.document_type.name})`,
+              project_name:
+                e.project && e.project.name
+                  ? e.project.name
+                  : e.projects &&
+                    e.projects.length &&
+                    e.projects[0] &&
+                    e.projects[0].name
+                  ? e.projects[0].name
+                  : "",
+              project_id: e.project
+                ? e.project.id
+                : e.projects &&
+                  e.projects.length &&
+                  e.projects[0] &&
+                  e.projects[0].id
+                ? e.projects[0].id
+                : 0,
+              type: `${e.paid ? "Despesa pagada" : "Despesa rebuda"} (${
+                e.document_type.name
+              })`,
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,
               date: date,
@@ -769,40 +999,77 @@ export default {
               real: true,
               pdf: e.pdf,
               contact: e.contact && e.contact.name ? e.contact.name : "-",
-              to: `/document/${e.id}/received-expenses`
+              to: `/document/${e.id}/received-expenses`,
             };
             this.treasury.push(expense);
             if (e.total_irpf) {
               const expense2 = {
-                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+                project_name:
+                  e.project && e.project.name
+                    ? e.project.name
+                    : e.projects &&
+                      e.projects.length &&
+                      e.projects[0] &&
+                      e.projects[0].name
+                    ? e.projects[0].name
+                    : "",
+                project_id: e.project
+                  ? e.project.id
+                  : e.projects &&
+                    e.projects.length &&
+                    e.projects[0] &&
+                    e.projects[0].id
+                  ? e.projects[0].id
+                  : 0,
                 type: "IRPF Factura",
                 concept: e.code,
                 total_amount: -1 * Math.abs(e.total_irpf),
-                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
-                date_error: (e.emitted) === null,
+                date: moment(e.emitted, "YYYY-MM-DD")
+                  .endOf("quarter")
+                  .add(20, "day"),
+                date_error: e.emitted === null,
                 paid: false,
                 contact: e.contact && e.contact.name ? e.contact.name : "-",
-                to: `/document/${e.id}/received-expenses`
+                to: `/document/${e.id}/received-expenses`,
               };
               this.treasury.push(expense2);
             }
             if (e.total_vat) {
-              const vat = {
-                project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-                project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
-                type: "IVA Soportat Factura",
-                concept: e.code,
-                total_amount: Math.abs(e.total_vat),
-                date: moment(e.emitted, "YYYY-MM-DD").endOf('quarter').add(20, 'day'),
-                date_error: (e.emitted) === null,
-                real: true,
-                pdf: e.pdf,
-                paid: e.paid,
-                contact: e.contact && e.contact.name ? e.contact.name : "?",
-                to: `/document/${e.id}/received-invoices`
-              };
-              this.treasury.push(vat);
+              // const vat = {
+              //   project_name:
+              //     e.project && e.project.name
+              //       ? e.project.name
+              //       : e.projects &&
+              //         e.projects.length &&
+              //         e.projects[0] &&
+              //         e.projects[0].name
+              //       ? e.projects[0].name
+              //       : "",
+              //   project_id: e.project
+              //     ? e.project.id
+              //     : e.projects &&
+              //       e.projects.length &&
+              //       e.projects[0] &&
+              //       e.projects[0].id
+              //     ? e.projects[0].id
+              //     : 0,
+              //   type: "IVA Soportat Factura",
+              //   concept: e.code,
+              //   total_amount: Math.abs(e.total_vat),
+              //   date: moment(e.emitted, "YYYY-MM-DD")
+              //     .endOf("quarter")
+              //     .add(20, "day"),
+              //   date_error: e.emitted === null,
+              //   real: true,
+              //   pdf: e.pdf,
+              //   paid: e.paid,
+              //   contact: e.contact && e.contact.name ? e.contact.name : "?",
+              //   to: `/document/${e.id}/received-invoices`,
+              // };
+              // this.treasury.push(vat);
+              if (!e.vat_paid_date) {
+                this.vat.received += e.total_vat;
+              }
             }
           });
           this.diets.forEach((e) => {
@@ -814,8 +1081,23 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+              project_name:
+                e.project && e.project.name
+                  ? e.project.name
+                  : e.projects &&
+                    e.projects.length &&
+                    e.projects[0] &&
+                    e.projects[0].name
+                  ? e.projects[0].name
+                  : "",
+              project_id: e.project
+                ? e.project.id
+                : e.projects &&
+                  e.projects.length &&
+                  e.projects[0] &&
+                  e.projects[0].id
+                ? e.projects[0].id
+                : 0,
               type: "Dieta",
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,
@@ -835,8 +1117,23 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: e.project && e.project.name ? e.project.name : (e.projects && e.projects.length && e.projects[0] && e.projects[0].name ? e.projects[0].name : ""),
-              project_id: e.project ? e.project.id : (e.projects && e.projects.length && e.projects[0] && e.projects[0].id ? e.projects[0].id : 0),
+              project_name:
+                e.project && e.project.name
+                  ? e.project.name
+                  : e.projects &&
+                    e.projects.length &&
+                    e.projects[0] &&
+                    e.projects[0].name
+                  ? e.projects[0].name
+                  : "",
+              project_id: e.project
+                ? e.project.id
+                : e.projects &&
+                  e.projects.length &&
+                  e.projects[0] &&
+                  e.projects[0].id
+                ? e.projects[0].id
+                : 0,
               type: "Ticket",
               concept: e.code,
               total_amount: e.total ? -1 * Math.abs(e.total) : 0,
@@ -856,7 +1153,7 @@ export default {
                   moment(),
                 ]);
             const expense = {
-              project_name: '',
+              project_name: "",
               project_id: 0,
               type: e.paid ? "Nòmina pagada" : "Nòmina esperada",
               concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
@@ -864,39 +1161,51 @@ export default {
               date: moment(e.net_date, "YYYY-MM-DD"),
               date_error: (e.paid_date || e.emitted) === null,
               paid: e.paid,
-              contact: e.users_permissions_user && e.users_permissions_user.username ? e.users_permissions_user.username : '',
-              to: `/document/${e.id}/payrolls`
+              contact:
+                e.users_permissions_user && e.users_permissions_user.username
+                  ? e.users_permissions_user.username
+                  : "",
+              to: `/document/${e.id}/payrolls`,
             };
             this.treasury.push(expense);
 
             if (e.irpf_base || e.other_base) {
               const expense2 = {
-                project_name: '',
+                project_name: "",
                 project_id: 0,
                 type: "IRPF Nòmina",
                 concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
-                total_amount: e.irpf_base || e.other_base ? -1 * Math.abs(e.irpf_base + e.other_base) : 0,
+                total_amount:
+                  e.irpf_base || e.other_base
+                    ? -1 * Math.abs(e.irpf_base + e.other_base)
+                    : 0,
                 date: moment(e.irpf_date, "YYYY-MM-DD"),
-                date_error: (e.irpf_date) === null,
+                date_error: e.irpf_date === null,
                 paid: e.paid,
-                contact: e.users_permissions_user && e.users_permissions_user.username ? e.users_permissions_user.username : '',
-                to: `/document/${e.id}/payrolls`
+                contact:
+                  e.users_permissions_user && e.users_permissions_user.username
+                    ? e.users_permissions_user.username
+                    : "",
+                to: `/document/${e.id}/payrolls`,
               };
               this.treasury.push(expense2);
             }
 
             if (e.ss_base) {
               const expense3 = {
-                project_name: '',
+                project_name: "",
                 project_id: 0,
                 type: e.paid ? "SS pagat" : "SS esperat",
                 concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
                 total_amount: e.ss_base ? -1 * Math.abs(e.ss_base) : 0,
                 date: moment(e.ss_date, "YYYY-MM-DD"),
-                date_error: (e.ss_date) === null,
+                date_error: e.ss_date === null,
                 paid: e.paid,
-                contact: e.users_permissions_user && e.users_permissions_user.username ? e.users_permissions_user.username : '',
-                to: `/document/${e.id}/payrolls`
+                contact:
+                  e.users_permissions_user && e.users_permissions_user.username
+                    ? e.users_permissions_user.username
+                    : "",
+                to: `/document/${e.id}/payrolls`,
               };
               this.treasury.push(expense3);
             }
@@ -907,7 +1216,7 @@ export default {
           this.treasury = this.treasury.map((t) => {
             return { ...t, datef: t.date.format("YYYYMMDD") };
           });
-          
+
           // console.log('this.treasury 2',this.treasury)
 
           const treasuryData = sortBy(this.treasury, "datef");
@@ -1009,6 +1318,14 @@ export default {
     modalCancel() {
       this.isModalActive = false;
     },
+    async payVat() {
+      this.payingVat = true
+      await service({ requiresAuth: true }).post(
+          `emitted-invoices/pay-vat`
+      );
+      this.payingVat = false
+      window.location.reload()
+    }
   },
 };
 </script>
