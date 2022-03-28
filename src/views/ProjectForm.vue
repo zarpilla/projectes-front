@@ -269,9 +269,9 @@
                 </b-autocomplete>
               </b-field>
 
-              <b-field label="Tasques" horizontal v-if="form.id">
+              <b-field label="Funcions" horizontal v-if="form.id">
                 <b-input
-                  placeholder="Nom de la tasca"
+                  placeholder="Nom de la Funció"
                   v-model="newTask"
                   icon-right="plus-circle"
                   icon-right-clickable
