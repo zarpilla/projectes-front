@@ -203,7 +203,7 @@ export default {
   background: #eeeeee;
   color: dimgray;
   padding: 10px 10px;
-  min-height: 200px; /* minimum height */
+  min-height: 80px; /* minimum height */
   position: relative;
   cursor: pointer;
   // font-family: "Varela Round";
@@ -225,6 +225,6 @@ export default {
 .dropbox p {
   font-size: 1em;
   text-align: center;
-  padding: 50px 0;
+  padding: 30px 0;
 }
 </style>

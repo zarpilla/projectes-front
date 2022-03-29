@@ -9,6 +9,7 @@
       :users="users"
       :projects="projects"
       :project="project"
+      :states="states"
     />
     
     <div class="columns">
@@ -79,11 +80,14 @@
                     </span>
                     
                     <span
-                      class="tag is-success mr-1 mb-1"
+                      class="tag zis-success mr-1 mb-1"
                       v-for="user in task.users_permissions_users"
                       :key="user.id"
                       >{{ user.username }}</span
                     >
+                    <span class="tag mr-1 mb-1" v-if="task.checklist.length" :class="task.checklist.length === task.checklist.filter(c => c.done).length ? 'is-success' : 'is-warning'">
+                      {{ task.checklist.filter(c => c.done).length }} / {{ task.checklist.length }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -397,19 +401,12 @@ export default {
     },
     async modalSubmit (task) {
       if (task.id && task.id > 0) {
-        await service({ requiresAuth: true }).put(`tasks/${task.id}`, task);
-        
-        const item = this.tasks.find(t => t.id === task.id)
-        for(var i in task) {
-          if (i !== 'project') {
-            item[i] = task[i]
-          }
-          else {
-            const project = this.projects.find(p => p.id === task[i])
-            item[i] = project
-          }
-        }
-        
+        const updatedTask = (await service({ requiresAuth: true }).put(`tasks/${task.id}`, task)).data;
+        let item = this.tasks.find(t => t.id === task.id)
+        for(var i in updatedTask) {
+          console.log('task i', i)
+          item[i] = updatedTask[i]
+        }        
         item.order++
         this.reOrderCards()
         await this.saveKanbanView()
