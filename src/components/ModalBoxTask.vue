@@ -6,7 +6,7 @@
       </header>
       <form @submit.prevent="submit">
         <section class="modal-card-body">
-            <b-field label="Nom" >
+            <b-field label="Nom">
               <b-input
                 v-model="form.name"
                 placeholder="Nom"
@@ -14,6 +14,28 @@
                 required
               />
             </b-field>
+
+            <b-field label="Documents" style="width:100%">
+            <div class="file-documents columns is-multiline" v-if="form.documents && form.documents.length">
+              <!-- <pre>{{ form.documents }}</pre>   -->
+              <div v-for="(doc, i) in form.documents" :key="i" class="column" :class="form.documents.length > 6 ? 'is-2' : ( form.documents.length > 3 ? 'is-3' : ('is-4') )">
+                <div class="column-doc">
+                  <div @click="removeImage(doc)" class="remove-button">
+                    <b-icon icon="close" size="is-medium" />
+                  </div>
+                  <img v-if="doc.mime.startsWith('image')" :src="apiUrl + doc.url" class="file-document mb-3" />
+                  <div v-else class="mb-3">
+                    <a :href="apiUrl + doc.url" target="_blank">
+                      <b-icon icon="open-in-new"></b-icon>
+                      {{ doc.name }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </b-field>
+            <file-upload :multiple="true" :entity="'task'" :ref-id="form.id" :field="'documents'" :accept="'*/*'" @uploaded="uploaded" v-if="form.id" >
+            </file-upload>
             
             <b-field label="Data límit" class="datepickers" >
               <b-datepicker
@@ -66,11 +88,18 @@
                 :open-on-focus="true"
                 :data="filteredProject"
                 field="name"
-                @select="option => (form.project = option ? option.id : null)"
+                @select="projectSelected(option)"
                 :clearable="!(taskObject && taskObject.project)"
                 :disabled="taskObject && taskObject.project"
               >
               </b-autocomplete>
+            </b-field>
+
+            <b-field label="Tasca" class="has-check" v-if="!isLoading2 && activityTypes && hasActivities">
+              <radio-picker
+                v-model="form.activity_type"
+                :options="activityTypes"
+              ></radio-picker>
             </b-field>
             <b-field
                 label="Descripció"
@@ -82,6 +111,7 @@
                   placeholder="Descripció"
                 />
               </b-field>
+              
         </section>
         <footer class="modal-card-foot">
           <button class="button" type="button" @click="cancel">Cancel·la</button>
@@ -108,11 +138,14 @@ import service from '@/service/index'
 import { mapState } from 'vuex'
 import ModalBox from '@/components/ModalBox'
 import moment from 'moment'
+import RadioPicker from '@/components/RadioPicker'
+import FileUpload from '@/components/FileUpload'
 
 export default {
   name: 'ModalBoxTask',
-  components: { ModalBox },
+  components: { ModalBox, RadioPicker, FileUpload  },
   props: {
+    
     isActive: {
       type: Boolean,
       default: false
@@ -148,7 +181,8 @@ export default {
         task_state: null,
         users_permissions_users: [],
         project: null,
-        archived: null
+        archived: null,
+        activity_type: null
       },
       form0: {
         name: null,
@@ -157,13 +191,17 @@ export default {
         task_state: null,
         users_permissions_users: [],
         project: null,
-        archived: null
+        archived: null,
+        activity_type: null
       },
       trashObject: null,
       isDeleteModalActive: false,
       userNameSearch: '',
       projectSearch: '',
-      initializing: true
+      initializing: true,
+      activity_types: [],
+      activityTypes: {},
+      apiUrl: process.env.VUE_APP_API_URL
     }
   },
   computed: {
@@ -214,6 +252,7 @@ export default {
   methods: {
     show () {
       this.initializing = true
+      // console.log('this.taskObject',this.taskObject)
 
       if (!this.taskObject) {
         return
@@ -225,10 +264,42 @@ export default {
         this.form.id = this.taskObject.id
         
       } else {
+        this.form.id = -1
         // this.form = JSON.parse(JSON.stringify(this.taskObject))
       }
 
       if (this.form.project && this.form.project.name) {
+        // console.log('this.form', this.form)
+
+        this.activity_types = []
+        this.activityTypes = {}
+
+        if (this.form.project.id && !this.form.project.activity_types) {
+          const project = this.projects.find(p => p.id === this.form.project.id)
+          if (project) {
+            this.form.project.activity_types = project.activity_types
+          }          
+        }
+        
+        if (this.form.project.activity_types && this.form.project.activity_types.length) {
+          this.activity_types = this.form.project.activity_types
+          this.hasActivities = false
+          this.isLoading2 = true
+          this.activityTypes = { '0': 'Cap'}
+          this.form.project.activity_types.forEach(a => {
+            this.activityTypes[a.id] = a.name
+            this.hasActivities = true
+          })
+          setTimeout(() => {
+            this.isLoading2 = false
+          }, 100)
+
+          if (this.form.activity_type && this.form.activity_type.id) {
+            this.form.activity_type
+          }
+          
+          
+        }
         this.projectSearch = this.form.project.name
         this.form.project = this.form.project.id
       } else {
@@ -266,8 +337,32 @@ export default {
       this.isModalActive = true
       this.$emit('delete', this.form)
     },
+    projectSelected(option) {
+      if (!option) {
+        return
+      }
+      const project = option | null
+      this.form.project = option ? option.id : null
+
+      this.activity_types = []
+      this.activityTypes = {}
+
+      if (project.activity_types && project.activity_types.length) {
+        this.isLoading2 = true
+        this.hasActivities = false
+        this.activity_types = project.activity_types
+        this.activityTypes = { '0': 'Cap'}
+        project.activity_types.forEach(a => {
+          this.activityTypes[a.id] = a.name
+          this.hasActivities = true
+        })
+        setTimeout(() => {
+            this.isLoading2 = false
+          }, 100)
+      }
+    },
     addUser(user) {
-      console.log('addUser', user)
+      // console.log('addUser', user)
       if (!user) {
         return
       }
@@ -280,12 +375,26 @@ export default {
     },
     removeUser(user) {
       this.form.users_permissions_users = this.form.users_permissions_users.filter(u => u.id !== user.id)
+    },
+    async uploaded(info) {
+      // console.log('uploaded', info)
+
+      if (info.refId && info.refId > 0) {
+        const task = (
+          await service({ requiresAuth: true }).get(`tasks/${info.refId}`)
+        ).data;
+        // console.log('task', task)
+        this.form.documents = task.documents
+      } else {
+        console.log('info', info)
+        this.form.documents = info.documents
+      }
+
+    },
+    removeImage(doc) {
+      this.form.documents = this.form.documents.filter(d => d.id !== doc.id)
     }
-    // fixDecimals(field, value) {
-    //   if (value && value.toString().includes(",")) {
-    //     this.form[field] = value.toString().replace(",", ".");
-    //   }
-    // },    
+    
   }
 }
 </script>
@@ -298,5 +407,27 @@ export default {
 }
 .modal-card-dedication .modal-card-body {
   max-height: calc(100vh - 200px);
+}
+.flex-item{
+  max-width: 30%;
+}
+.column-doc{
+  position: relative
+}
+.column-doc .remove-button .icon {
+  position: absolute;
+  right: -4px;
+  top: -15px;
+  cursor:pointer;
+  border: 1px solid #999;
+  border-radius: 50%;
+  padding: 5px;
+  z-index: 10;
+}
+.column-doc .icon:hover{
+  color: #333;
+}
+.column-doc img{
+  border: 1px solid #eee;
 }
 </style>

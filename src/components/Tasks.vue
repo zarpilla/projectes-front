@@ -10,7 +10,7 @@
       :projects="projects"
       :project="project"
     />
-
+    
     <div class="columns">
       <div class="column is-4" v-for="(state, i) in states" :key="state.id">
         <div class="task-list-content has-background-light card">
@@ -58,9 +58,13 @@
               @dragenter.prevent="onDragEnter($event, state)"
             >
               <div class="card" draggable @dragstart="startDrag($event, task)">
-                <div class="content">
-                  <div class="card-header clickable title is-size-5" @click.prevent="showTask(task)">
+                <div class="content clickable" @click.prevent="showTask(task)">
+                  <div class="card-header title is-size-5">
                     {{ task.name }}
+                  </div>
+                  
+                  <div v-if="task.documents && task.documents.length">
+                    <img v-if="task.documents[0].mime.startsWith('image')" :src="apiUrl + task.documents[0].url" class="mb-3" />
                   </div>
                   <div v-if="task.description">{{ formatDescription(task.description) }}</div>
                   <div
@@ -115,7 +119,7 @@ import ModalBoxTask from "@/components/ModalBoxTask";
 import CardComponent from "@/components/CardComponent";
 import TitleBar from "@/components/TitleBar";
 import HeroBar from "@/components/HeroBar";
-import Tiles from "@/components/Tiles";
+// import Tiles from "@/components/Tiles";
 import service from "@/service/index";
 import moment from "moment";
 import { mapState } from "vuex";
@@ -153,7 +157,8 @@ export default {
       cardOrderViewSorted: [],
       today: moment().format('YYYY-MM-DD'),
       kanbanViewId: null,
-      kanbanViewDb: null
+      kanbanViewDb: null,
+      apiUrl: process.env.VUE_APP_API_URL
     };
   },
   props: {
@@ -387,10 +392,11 @@ export default {
     },
     showTask(task) {
       this.taskObject = task;
+      // console.log('showTask', task)
       this.isModalActive = true;
     },
     async modalSubmit (task) {
-      if (task.id) {
+      if (task.id && task.id > 0) {
         await service({ requiresAuth: true }).put(`tasks/${task.id}`, task);
         
         const item = this.tasks.find(t => t.id === task.id)
@@ -408,6 +414,7 @@ export default {
         this.reOrderCards()
         await this.saveKanbanView()
       } else {
+        console.log('task.documents', task.documents)
         task.archived = false
         task.order = -10
         task = (await service({ requiresAuth: true }).post(`tasks`, task)).data;        
