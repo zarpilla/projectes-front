@@ -1,6 +1,6 @@
 <template>
   <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
-    <div class="modal-card modal-card-dedication">
+    <div class="modal-card modal-card-dedication modal-card-task" >
       <header class="modal-card-head">
         <p class="modal-card-title">Tasca</p>
       </header>
@@ -110,7 +110,7 @@
               :open-on-focus="true"
               :data="filteredProject"
               field="name"
-              @select="projectSelected(option)"
+              @select="(option) => projectSelected(option)"
               :clearable="!(taskObject && taskObject.project)"
               :disabled="taskObject && taskObject.project"
             >
@@ -135,7 +135,7 @@
                   :key="j"
                   class="columns is-multiline is-full mb-2"
                 >
-                  <div class="column is-10">
+                  <div class="column is-11">
                     <b-checkbox v-model="check.done" class="checkbox-inline">
                     </b-checkbox>
                     <b-input class="check-name is-full-input" v-model="check.name" />
@@ -143,9 +143,9 @@
                     {{ check.name }}
                     </span> -->
                   </div>
-                  <div class="column is-2">
+                  <div class="column is-1">
                     <button
-                      class="button is-small is-danger ml-2"
+                      class="button is-small is-danger ml-2 mt-3"
                       type="button"
                       @click.prevent="removePhase(j)"
                     >
@@ -157,7 +157,7 @@
             <form @submit.prevent="addPhase">
               <b-field label="" class="mt-5 mb-5">
                 <b-input
-                  placeholder="Nova subtasca..."
+                  placeholder="Nova subtasca al checklist..."
                   v-model="checklistToAdd"
                   icon-right="plus-circle"
                   icon-right-clickable
@@ -251,7 +251,7 @@ export default {
     states: {
       type: Array,
       default: [],
-    },
+    }
   },
   data() {
     return {
@@ -339,7 +339,7 @@ export default {
   methods: {
     show() {
       this.initializing = true;
-      console.log('this.taskObject',this.taskObject)
+      // console.log('this.taskObject',this.taskObject)
 
       if (!this.taskObject) {
         return;
@@ -358,9 +358,14 @@ export default {
         // this.form = JSON.parse(JSON.stringify(this.taskObject))
       }
 
+      this.isLoading2 = true;
+
       if (this.form.task_state.id) {
         this.form.task_state = this.form.task_state.id;
       }
+
+      this.activity_types = [];
+      this.activityTypes = {};
 
       if (this.form.project && this.form.project.name) {
         // console.log('this.form', this.form)
@@ -389,12 +394,9 @@ export default {
             this.activityTypes[a.id] = a.name;
             this.hasActivities = true;
           });
-          setTimeout(() => {
-            this.isLoading2 = false;
-          }, 100);
-
+          
           if (this.form.activity_type && this.form.activity_type.id) {
-            this.form.activity_type;
+            this.form.activity_type = this.form.activity_type.id;
           }
         }
         this.projectSearch = this.form.project.name;
@@ -409,6 +411,10 @@ export default {
         this.form.due_date = null;
       }
 
+      setTimeout(() => {
+        this.isLoading2 = false;
+      }, 100);
+
       this.initializing = false;
     },
     cancel() {
@@ -419,6 +425,9 @@ export default {
       const form = JSON.parse(JSON.stringify(this.form));
       if (this.form.due_date) {
         form.due_date = moment(this.form.due_date).format("YYYY-MM-DD");
+      }
+      if (this.form.activity_type && !this.form.activity_type.id) {
+        this.form.activity_type = null
       }
       this.$emit("submit", form);
     },

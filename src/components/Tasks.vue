@@ -11,9 +11,9 @@
       :project="project"
       :states="states"
     />
-    
+    <div class="tasks-content" :class="lists.length <= 4 ? 'no-scroll' : 'z'">
     <div class="columns">
-      <div class="column is-4" v-for="(state, i) in states" :key="state.id">
+      <div class="column zis-4" :class="lists.length <= 3 ? 'is-4' : ( lists.length <= 4 ? 'is-3' : 'is-2') " v-for="(state, i) in lists" :key="state.id">
         <div class="task-list-content has-background-light card">
           <div
             class="
@@ -64,8 +64,10 @@
                     {{ task.name }}
                   </div>
                   
-                  <div v-if="task.documents && task.documents.length">
+                  <div v-if="task.documents && task.documents.length" class="task-img">
                     <img v-if="task.documents[0].mime.startsWith('image')" :src="apiUrl + task.documents[0].url" class="mb-3" />
+                    <div class="task-img-overlay">
+                    </div>
                   </div>
                   <div v-if="task.description">{{ formatDescription(task.description) }}</div>
                   <div
@@ -88,6 +90,14 @@
                     <span class="tag mr-1 mb-1" v-if="task.checklist.length" :class="task.checklist.length === task.checklist.filter(c => c.done).length ? 'is-success' : 'is-warning'">
                       {{ task.checklist.filter(c => c.done).length }} / {{ task.checklist.length }}
                     </span>
+                    <span class="tag mr-1 mb-1 is-info" v-if="view === 'state' && task.activity_type && task.activity_type.name">{{
+                      task.activity_type.name
+                    }}                    
+                    </span>
+                    <span class="tag mr-1 mb-1 is-info" v-if="view === 'list'">{{
+                      task.task_state.name
+                    }}                    
+                    </span>
                   </div>
                 </div>
               </div>
@@ -99,7 +109,7 @@
               :style="`height: ${
                 (maxCards -
                   activeTasks.filter(
-                    (t) => t.task_state && t.task_state.id === state.id
+                    (t) => t[listKey] && t[listKey].id === state.id
                   ).length) *
                 180
               }px`"
@@ -112,6 +122,7 @@
             ></div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -174,6 +185,10 @@ export default {
       type: Number,
       default: null,
     },
+    projectInfo: {
+      type: Object,
+      default: null,
+    },
     projects: {
       type: Array,
       default: [],
@@ -182,6 +197,10 @@ export default {
       type: Array,
       default: [],
     },
+    view: {
+      type: String,
+      default: 'list'
+    }
   },
   watch: {
     user: function (newVal, oldVal) {
@@ -190,12 +209,36 @@ export default {
     project: function (newVal, oldVal) {
       this.getData();
     },
+    view: function (newVal, oldVal) {
+      this.getData();
+    },
   },
   computed: {
     titleStack() {
       return ["Projectes", "Tasques"];
     },
     ...mapState(["userName"]),
+    lists() {
+      if (this.view === 'list') {
+        const cap = { id: 0, name: '---' }
+        if (this.projectInfo.activity_types.length > 0) {
+          return _.concat(cap, this.projectInfo.activity_types)
+        } else {
+          return [cap]
+        }        
+      }
+      else {
+        return this.states
+      }
+    },
+    listKey() {
+      if (this.view === 'list') {
+        return 'activity_type'
+      }
+      else {
+        return 'task_state'
+      }
+    },
     filteredUsers() {
       return this.users.filter((option) => {
         return (
@@ -217,10 +260,10 @@ export default {
       });
     },
     maxCardsInState() {
-      const max = this.states.map((s) => 0);
-      this.states.forEach((s, i) => {
+      const max = this.lists.map((s) => 0);
+      this.lists.forEach((s, i) => {
         max[i] = this.activeTasks.filter(
-          (t) => t.task_state && t.task_state.id === s.id
+          (t) => t[this.listKey] && t[this.listKey].id === s.id
         ).length;
       });
       return max;
@@ -229,26 +272,25 @@ export default {
       return _.max(this.maxCardsInState);
     },
     activeTasks() {
-      return this.tasks.filter(t => t.archived === false)
+      return this.tasks.filter(t => t.archived === false).map(t => { return { ...t, activity_type: t.activity_type && t.activity_type.id ? t.activity_type : { id: 0 } } })
     },
     cardOrderView() {
       const cardOrder = [];
-      this.states.forEach((s) => {
+      this.lists.forEach((s) => {
         const tasks = this.activeTasks.filter(
-          (t) => t.task_state && t.task_state.id === s.id
+          (t) => t[this.listKey] && t[this.listKey].id === s.id
         ) // .map((t, i) => { return { ...t, order: t.order != null ? t.order : i*10 }})
         cardOrder.push(tasks);
       });
       return cardOrder;
     },
     kanbanView() {      
-      const cardView = []
+      let cardView = []
       this.cardOrderViewSorted.forEach(state => {
         const tasks = state.map(t => { return { taskId: t.id, order: t.order }})
-        cardView.push(tasks)        
+        cardView = _.concat(tasks, cardView)
       });
-
-      const view = { id: this.kanbanViewId, projectId: this.project | 0, userId: this.user | 0, cardView: cardView, cardViewJSON: JSON.stringify(cardView) }
+      const view = { id: this.kanbanViewId, projectId: this.project | 0, userId: this.user | 0, cardView: cardView, cardViewJSON: JSON.stringify(cardView), view: this.view }
       return view
     }
   },
@@ -269,14 +311,14 @@ export default {
         query += "&_where[project_eq]=" + this.project;
       }
 
-      const tasks = (await service({ requiresAuth: true }).get(query)).data
+      let tasks = (await service({ requiresAuth: true }).get(query)).data
       if (this.user) {
-        this.tasks = tasks.filter(t => t.users_permissions_users && t.users_permissions_users.filter(u => u.id === this.user).length > 0)
+        tasks = tasks.filter(t => t.users_permissions_users && t.users_permissions_users.filter(u => u.id === this.user).length > 0)
       } else {
-        this.tasks = tasks
+        // tasks = tasks
       }
 
-      let kanbanQuery = `kanban-views?_limit=1&_where[projectId_eq]=${this.project ? this.project : 0}&[userId_eq]=${this.user ? this.user : 0}`
+      let kanbanQuery = `kanban-views?_limit=1&_where[projectId_eq]=${this.project ? this.project : 0}&[userId_eq]=${this.user ? this.user : 0}&[view_eq]=${this.view}`
 
       this.kanbanViewDb = (await service({ requiresAuth: true }).get(kanbanQuery)).data
 
@@ -289,42 +331,25 @@ export default {
       let tasksWithDatabaseOrder = []
       if (this.kanbanViewId) {
         try {
-          tasksWithDatabaseOrder = JSON.parse(this.kanbanViewDb[0].cardViewJSON)            
+          tasksWithDatabaseOrder = JSON.parse(this.kanbanViewDb[0].cardViewJSON)   
+          // init tasks order
+          tasksWithDatabaseOrder.forEach(sit => {
+            const theTask = tasks.find(tk => tk.id === sit.taskId)
+            // console.log('theTask', theTask)
+            if (theTask) {
+              theTask.order = sit.order
+            }
+          })
+          this.reOrderCards()
         }
         catch (e)
         {
           console.error('JSON view parse', e)
         }          
       }
-
-      // init tasks order
-      this.states.forEach((s, si) => {
-        const tasksWithDefaultOrder = this.tasks.filter(
-          (t) => t.task_state && t.task_state.id === s.id
-        ).map((t, i) => { return { ...t, order: i*10 }})
-
-        tasksWithDefaultOrder.forEach(t => {
-          const theTask = this.tasks.find(tk => tk.id === t.id)
-          if (theTask) {
-            theTask.order = t.order
-          }
-        })
-
-        try {
-          if (tasksWithDatabaseOrder.length > si) {
-            tasksWithDatabaseOrder[si].forEach(sit => {
-              const theTask = this.tasks.find(tk => tk.id === sit.taskId)
-              if (theTask) {
-                theTask.order = sit.order
-              }
-            })
-          }          
-        }
-        catch (e)
-        {
-          console.error('JSON view parse do not applicable', e)
-        }
-      });
+      
+      // go
+      this.tasks = tasks
 
       this.cardOrderViewSorted = this.cardOrderView.map(c => [])
       this.reOrderCards()
@@ -341,8 +366,13 @@ export default {
       const item = this.tasks.find((item) => item.id == itemID);
       if (!item) {
         return;
-      }      
-      item.task_state = state;      
+      }
+      
+      item[this.listKey] = state;
+      if (item && item.activity_type && !item.activity_type.id) {
+        item.activity_type = null
+      }
+      
       item.order = j + 5
       this.reOrderCards()
       this.dragOver = -1;
@@ -350,17 +380,18 @@ export default {
       try {
         await service({ requiresAuth: true }).put(`tasks/${item.id}`, item);
         await this.saveKanbanView()
+
+        this.$buefy.snackbar.open({
+          message: "Tasca guardada",
+          queue: false,
+        });
       } catch (e) {
+        console.error('e', e)
         this.$buefy.snackbar.open({
           message: "Error",
           queue: false,
         });
       }
-
-      this.$buefy.snackbar.open({
-        message: "Tasca guardada",
-        queue: false,
-      });
       
     },
     onDragEnter(evt, state) {},
@@ -390,7 +421,8 @@ export default {
       }
     },
     addTask(state) {
-      this.taskObject = { task_state: state, project: this.projects.find(p => p.id === this.project), users_permissions_users: this.user ? [this.users.find(u => u.id === this.user)] : [] };
+      const initial = this.view === 'state' ? { activity_type: 0, task_state: state } : { activity_type: state, task_state: this.states[0] }
+      this.taskObject = { ...initial, project: this.projects.find(p => p.id === this.project), users_permissions_users: this.user ? [this.users.find(u => u.id === this.user)] : [] };
       // console.log('this.taskObject', this.taskObject)
       this.isModalActive = true;
     },
@@ -404,7 +436,6 @@ export default {
         const updatedTask = (await service({ requiresAuth: true }).put(`tasks/${task.id}`, task)).data;
         let item = this.tasks.find(t => t.id === task.id)
         for(var i in updatedTask) {
-          console.log('task i', i)
           item[i] = updatedTask[i]
         }        
         item.order++
@@ -419,6 +450,11 @@ export default {
         this.reOrderCards()
         await this.saveKanbanView()
       }
+
+      this.$buefy.snackbar.open({
+        message: "Tasca guardada",
+        queue: false,
+      });
 
       this.isModalActive = false;
       
@@ -534,5 +570,31 @@ export default {
 }
 .clickable{
   cursor: pointer!important;
+}
+.tasks-content{
+  width: auto;
+  overflow-x: scroll;
+  padding: 0.8rem 0;
+}
+.no-scroll{
+  overflow: inherit!important;
+}
+.over-image{
+  background: red;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  z-index: 10;
+}
+.task-img{
+    width: 100%;
+  position: relative;
+}
+.task-img-overlay{
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
 }
 </style>

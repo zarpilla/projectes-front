@@ -6,7 +6,7 @@
         {{ title }}
       </p>
       <a
-        v-if="headerIcon && !closeIcon"
+        v-if="headerIcon"
         href="#"
         class="card-header-icon"
         aria-label="more options"

@@ -1375,8 +1375,6 @@ export default {
     //   }, 100);
     // },
     removeProject(option) {
-      console.log('removeProject option', option)
-      console.log('removeProject p', this.form.projects, this.form.projects.filter((c) => c.id !== option.id))
       this.isLoadingProject = true;
       this.form.projects = this.form.projects.filter((c) => c.id !== option.id);
       setTimeout(async () => {

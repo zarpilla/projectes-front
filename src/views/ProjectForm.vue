@@ -275,7 +275,7 @@
                   v-model="newTask"
                   icon-right="plus-circle"
                   icon-right-clickable
-                  @icon-right-click="addTask"
+                  @icon-right-click="addActivity"
                 >
                 </b-input>
               </b-field>
@@ -293,7 +293,7 @@
                     >
                       {{ activityType.name }}
                       <b-button
-                        @click="removeTask(activityType)"
+                        @click="removeActivity(activityType)"
                         class="no-button"
                         icon-left="close-circle"
                       />
@@ -848,8 +848,9 @@
         </b-field>
       </card-component>
 
-      <card-component v-if="!isLoading" title="TASQUES">        
-        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project="form.id" />
+      <card-component v-if="!isLoading" title="TASQUES" header-icon="view-column" @header-icon-click="toogleTasksView"
+        >        
+        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project-info="form" :project="form.id" :view="tasksView" />
         <span class="bg-info" v-else
           >Es necessari guardar el projecte per accedir a les
           tasques</span
@@ -928,7 +929,8 @@ export default {
       isModalActive: false,
       isModalSplitActive: false,
       newTask: "",
-      originalPhasesVisible: false
+      originalPhasesVisible: false,
+      tasksView: 'list'
     };
   },
   computed: {
@@ -1233,6 +1235,10 @@ export default {
     },
   },
   created() {
+    try {
+      this.tasksView = localStorage.getItem('project-form:tasksView')
+    }
+    catch{}
     this.getData();
   },
   methods: {
@@ -1698,7 +1704,7 @@ export default {
     formatDate(value) {
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
     },
-    async addTask() {
+    async addActivity() {
       if (this.newTask) {
         const resp = await service({ requiresAuth: true }).post(
           `activity-types`,
@@ -1708,7 +1714,22 @@ export default {
         this.newTask = "";
       }
     },
-    removeTask(task) {
+    async removeActivity(task) {
+
+      if (this.form.id) {
+        console.log('task', task)
+        let query = "tasks?_limit=-1&_where[archived_eq]=false";      
+        query += "&_where[project_eq]=" + this.form.id;
+        query += "&_where[activity_type_eq]=" + task.id;        
+        const tasks = (await service({ requiresAuth: true }).get(query)).data
+        if (tasks.length) {
+          this.$buefy.snackbar.open({
+            message: "No es pot eliminar perquè hi ha tasques associades",
+            queue: false,
+          });
+          return
+        }
+      }      
       this.form.activity_types = this.form.activity_types.filter(
         (t) => t.id !== task.id
       );
@@ -1731,6 +1752,13 @@ export default {
           delete sp.id
         })
       })
+    },
+    toogleTasksView() {
+      this.tasksView = this.tasksView === 'list' ? 'state' : 'list'
+      try {
+        localStorage.setItem('project-form:tasksView', this.tasksView)
+      }
+      catch{}
     }
   },
 };

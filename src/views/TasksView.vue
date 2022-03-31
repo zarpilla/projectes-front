@@ -36,7 +36,7 @@
           </b-field>
         </form>
       </card-component>
-      <tasks :projects="projects" :users="users" :user="filters.user" :project="filters.project" />
+      <tasks :projects="projects" :users="users" :user="filters.user" :project="filters.project" view="state" />
     </section>
   </div>
 </template>
