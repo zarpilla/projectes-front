@@ -16,7 +16,7 @@
         </button>
         <button class="button zis-small is-primary mr-1" type="button" @click="changeZoomLevel(+1)">
           <b-icon icon="magnify-plus" size="is-small"/>
-        </button> -->
+        </button> -->        
         <b-select
           v-model="user"
           placeholder="Persona"
@@ -29,6 +29,12 @@
             {{ s.username }}
           </option>
         </b-select>
+        <button class="button zis-small is-primary ml-1" type="button" @click="collapse">
+          {{ collapsed ? 'Obrir detall' : 'Tancar detall' }}
+        </button>
+        <button class="button zis-small is-primary ml-1" type="button" @click="toggleSubphases">
+          {{ showSubPhases ? 'Mostrar només fases' : 'Mostrar subfases' }}
+        </button>
       </b-field>
     </div>
     <div class="gannt-container" v-if="showGantt">
@@ -58,6 +64,10 @@ export default {
   props: {
     project: Object,
     users: Array,
+    // showSubPhases: {
+    //   type: Boolean,
+    //   default: true
+    // }
     // tasks: {
     //   type: Object,
     //   default () {
@@ -102,10 +112,12 @@ export default {
       ganttId: '',
       dedications: [],
       showSubPhases: false,
-      projectTasks: []
+      projectTasks: [],
+      collapsed: false
     }
   },
   async mounted () {
+    this.showSubPhases = !this.me.options.showEstimatedHoursInPhases
     this.dedications = (await service({ requiresAuth: true }).get('daily-dedications?_limit=-1')).data
 
     EventBus.$on('item-clicked', (item) => {
@@ -135,10 +147,7 @@ export default {
       this.showGantt = true
       // console.log('gantt', gantt)
       gantt.clearAll();
-      
-
       this.tasks = { data: [] }
-
       setTimeout(() => {
         this.initializeGannt()
       }, 250)
@@ -159,10 +168,10 @@ export default {
 
       // console.log('initializeGannt!!!')
       
-      // const xtasks = {
+      // this.tasks = {
       //   data: [
       //     { id: 1, text: 'Task #1', start_date: '2020-01-17', duration: 3, progress: 0.6 },
-      //     { id: 2, text: 'Task #2', start_date: '2020-01-20', duration: 3, progress: 0.4 }
+      //     { id: 2, text: 'Task #2', start_date: '2020-01-20', duration: 3, progress: 0.4, parent: 1 }
       //   ],
       //   links: [
       //     { id: 1, source: 1, target: 2, type: '0' }
@@ -176,7 +185,7 @@ export default {
         const phase = this.project.phases[i]
         const task = { id: phase.id, text: phase.name, open: true, type: gantt.config.types.project, _phase: phase }
         let parentId = phase.id
-        if (this.me.options.showEstimatedHoursInPhases && phase.subphases.length) {
+        if (!this.showSubPhases) {
           task._subphase = phase.subphases[0]
         }
         this.tasks.data.push(task)
@@ -187,7 +196,7 @@ export default {
           }
           const unscheduled = !subphase.estimated_hours || subphase.estimated_hours.length === 0
           const subTask = { id: 9999 + subphase.id, text: subphase.concept, parent: phase.id, open: true, unscheduled: unscheduled, type: gantt.config.types.project, _phase: phase, _subphase: subphase }
-          if (!this.me.options.showEstimatedHoursInPhases && phase.subphases.length) {
+          if (this.showSubPhases && phase.subphases.length) {
             this.tasks.data.push(subTask)
             parentId = 9999 + subphase.id
           }          
@@ -209,10 +218,7 @@ export default {
           const milestone = {id:9999999999 + i, text: pt.name, type:gantt.config.types.milestone, start_date: pt.due_date, readonly: true }
           this.tasks.data.push(milestone)
         }
-        // this.tasks.data.push(hoursTask)
-        //         {id:3, text:"Alpha release", type:gantt.config.types.milestone,   parent:1,             start_date:"14-04-2020"}], 
       });
-
 
       const initialDate = this.project.date_start ? moment(this.project.date_start).startOf('year').toDate() : moment().startOf('year').add(-1, 'year').toDate();
       const endDate = this.project.date_end ? moment(this.project.date_end).add(1, 'year').endOf('year').toDate() : moment().add(3, 'year').endOf('year').toDate();
@@ -241,14 +247,18 @@ export default {
         { unit: 'year', step: 1, format: '%Y' },
         { unit: 'month', step: 1, format: '%M' }
       ]
+
       gantt.config.click_drag = {
         callback: this.onDragEnd,
         singleRow: true
       }
       gantt.attachEvent("onTaskClick", (id, e) => {
+        if (e && e.target && (e.target.classList.contains('gantt_open') || e.target.classList.contains('gantt_close'))) {
+          return true
+        }
         this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
         if (this.dedicationObject.type === 'project' || this.dedicationObject.type === 'milestone') {
-          return
+          return true
         }   
         this.isModalActive = true        
         return true;
@@ -308,7 +318,7 @@ export default {
 			  var currentTask = tasksInRow[0];
         
 
-        if (!currentTask.parent && !this.me.options.showEstimatedHoursInPhases) {
+        if (!currentTask.parent && this.showSubPhases) {
           return
         }
 
@@ -322,8 +332,9 @@ export default {
             quantity: currentTask._subphase && currentTask._subphase.quantity ? currentTask._subphase.quantity : 1
           }
         };
-
-        // console.log('metaInfo', metaInfo)
+        if (currentTask.type === 'milestone') {
+          return
+        }
 
 				if (currentTask.type === "project") {
 					// currentTask.render = "split";
@@ -393,44 +404,42 @@ export default {
         gantt.updateTask(currentTask.id)
 
 			} else if (tasksInRow.length === 0) {
-        // last phase
-        console.log('this.tasks.data', this.tasks.data)
-        // const ph = this.project.phases[this.project.phases.length - 1]
-        // const sph = ph.subphases[ph.subphases.length - 1]
-
-        // const metaInfo = {
-        //   _uuid: this.create_UUID(),
-        //   _phase: ph, 
-        //   _subphase: sph, 
-        //   _hours: {
-        //     users_permissions_user: this.user,
-        //     quantity: sph && sph.quantity ? sph.quantity : 1
-        //   }
-        // };
-
-
-        // // TODO never?
-				// taskId = gantt.createTask({
-				// 	text: taskName,
-				// 	start_date: gantt.roundDate(startDate),
-				// 	end_date: gantt.roundDate(endDate)
-				// });
-
-        // taskToAdd = { id: taskId, text: taskName, parent: currentTask.id, open: true, start_date: gantt.roundDate(startDate), end_date: gantt.roundDate(endDate), ...metaInfo }
-
-        // this.tasks.data.push(taskToAdd)
 			}
-      // console.log('taskToAdd', taskToAdd)
       this.dedicationObject = taskToAdd
       this.isModalActive = true
 
-      // console.log('taskId', taskId)
-      // console.log('this.tasks', JSON.parse(JSON.stringify(this.tasks)))
-      
     },
     changeZoomLevel (delta) {
       this.zoom = this.zoom + delta
       // state.update('config.chart.time.zoom', this.zoom)
+    },
+    collapse() {
+      if (!this.collapsed) {
+        gantt.eachTask(function(task2close){
+            if (task2close.$level == 0) { //is a project, not a task
+            	gantt.close(task2close.id);
+            }//endif  
+        });
+      } else {
+        gantt.eachTask(function(task2open){
+            if (task2open.$level == 0) { //is a project, not a task
+            	gantt.open(task2open.id);
+                console.log(task2open.id);
+            }//endif
+        });
+      }
+      this.collapsed = !this.collapsed        
+    },
+    toggleSubphases() {
+      this.showSubPhases = !this.showSubPhases
+      
+      setTimeout(() => {        
+        gantt.clearAll();
+        this.tasks = { data: [] }
+        setTimeout(() => {
+          this.initializeGannt()
+        }, 250)
+      }, 250)
     },
     async trashConfirm () {
       this.isModalActive = false
