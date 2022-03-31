@@ -590,7 +590,7 @@
 
           <hr />
 
-          <div v-if="type !== 'quotes'">
+          <div v-if="type !== 'quotes' && !isLoadingProject">
 
           <card-component
             v-for="(project, i) in form.projects"
@@ -632,7 +632,7 @@
             </a>
           </b-field>
           <b-field v-if="type !== 'payrolls'">
-            <b-button type="is-primary" :loading="isLoading" @click="submit"
+            <b-button type="is-primary" :loading="isLoading" @click="canEditDocument"
               >Guardar</b-button
             >
           </b-field>
@@ -789,7 +789,7 @@ export default {
     },
     total() {
       return this.totalBase + this.totalVat + this.totalIrpf;
-    },
+    },    
   },
   watch: {
     async id(newValue) {
@@ -1236,7 +1236,7 @@ export default {
 
         // this.projectCopy = this.project;
         this.isLoadingProject = false;
-      } else {
+      } else {        
         setTimeout(async () => {
           this.projectSearch = "";
         }, 100);
@@ -1254,6 +1254,7 @@ export default {
       this.form.lines.push(this.getNewLine());
     },
     phasesUpdated(info) {
+      console.log('info', info, this.form.projects)
       this.shouldSaveProject = true;
       const project = this.form.projects.find(p => p.id === info.projectId)
       project.phases = info.phases;
@@ -1374,7 +1375,13 @@ export default {
     //   }, 100);
     // },
     removeProject(option) {
+      console.log('removeProject option', option)
+      console.log('removeProject p', this.form.projects, this.form.projects.filter((c) => c.id !== option.id))
+      this.isLoadingProject = true;
       this.form.projects = this.form.projects.filter((c) => c.id !== option.id);
+      setTimeout(async () => {
+          this.isLoadingProject = false;
+        }, 100);
     },
     editNumber() {
       if (!this.form.code) {
@@ -1384,6 +1391,18 @@ export default {
           message: "Número no editable",
           queue: false,
         });
+      }
+    },
+    canEditDocument() {
+      if (moment(this.form.emitted).format('YYYY-DD-MM') < moment().endOf('quarter').add(20, 'day').format('YYYY-DD-MM'))  {
+        this.$buefy.dialog.confirm({
+            message: 'El document està fora del període d\'edició. Vols guardar igualment?',
+            onConfirm: () => this.submit(),
+            onCancel: () => { return false }
+        })
+      }
+      else {
+         this.submit()
       }
     }
   },
