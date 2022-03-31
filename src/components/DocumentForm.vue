@@ -7,7 +7,16 @@
           <!-- <pre>{{form}}</pre> -->
           <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
             <b-field label="Número" horizontal>
-              <b-input v-model="form.code" placeholder="" disabled />
+              <b-input v-model="form.code" placeholder="" v-if="!numberEditable" :disabled="!numberEditable" 
+                icon-right="pencil-circle"
+                icon-right-clickable
+                @icon-right-click="editNumber"
+                  />
+              <b-input v-model="form.number" placeholder="" v-if="numberEditable"
+                icon-right="pencil-circle"
+                icon-right-clickable
+                @icon-right-click="editNumber"
+                  />
             </b-field>
             <b-field label="Sèrie *" horizontal v-if="type !== 'payrolls'">
               <b-select v-model="form.serial" placeholder="" required>
@@ -686,7 +695,8 @@ export default {
       shouldSaveProject: false,
       documentTypes: [],
       dedications: null,
-      dedication: null
+      dedication: null,
+      numberEditable: false
     };
   },
   computed: {
@@ -1107,6 +1117,7 @@ export default {
             await this.updateProjectPhases(this.form.id);
           }
 
+          this.numberEditable = false
           this.isLoading = false
 
           this.$buefy.snackbar.open({
@@ -1160,6 +1171,7 @@ export default {
             await this.updateProjectPhases(newProject.data.id);
           }
 
+          this.numberEditable = false
           this.isLoading = false
 
           this.shouldSaveProject = false;
@@ -1364,6 +1376,16 @@ export default {
     removeProject(option) {
       this.form.projects = this.form.projects.filter((c) => c.id !== option.id);
     },
+    editNumber() {
+      if (!this.form.code) {
+        this.numberEditable = !this.numberEditable
+      } else {
+        this.$buefy.snackbar.open({
+          message: "Número no editable",
+          queue: false,
+        });
+      }
+    }
   },
 };
 </script>
