@@ -1392,7 +1392,7 @@ export default {
       }
     },
     canEditDocument() {
-      if (moment(this.form.emitted).format('YYYY-DD-MM') < moment().endOf('quarter').add(20, 'day').format('YYYY-DD-MM'))  {
+      if (moment().format('YYYY-DD-MM') > moment(this.form.emitted).endOf('quarter').add(20, 'day').format('YYYY-DD-MM'))  {
         this.$buefy.dialog.confirm({
             message: 'El document està fora del període d\'edició. Vols guardar igualment?',
             onConfirm: () => this.submit(),
