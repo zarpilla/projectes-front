@@ -69,7 +69,7 @@
             (row.type == 'Avui' && 'has-text-info')
         "
       >
-        <b-table-column label="Codi" field="number" v-slot="props" sortable>
+        <b-table-column label="Codi" field="code" v-slot="props" sortable>
           <router-link
             v-if="props.row.id && props.row.type !== 'payrolls'"
             :to="{

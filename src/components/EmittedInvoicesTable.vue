@@ -67,7 +67,7 @@
           (row.type == 'Avui' && 'has-text-info')
       "
     >
-      <b-table-column label="Codi" field="number" v-slot="props" sortable>
+      <b-table-column label="Codi" field="code" v-slot="props" sortable>
         <router-link
           v-if="props.row.id"
           :to="{ name: 'document.edit', params: { id: props.row.id, type: props.row.type } }"
@@ -76,7 +76,7 @@
         </router-link>
         <b v-else>{{ props.row.code }}</b>
       </b-table-column>
-      <b-table-column label="Tipus" field="emitted" v-slot="props" sortable>
+      <b-table-column label="Tipus" field="type" v-slot="props" sortable>
         <span v-if="props.row.type === 'emitted-invoices'">
           Factura
         </span>
