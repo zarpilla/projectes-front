@@ -1028,7 +1028,7 @@ export default {
       ).data;
       this.projects = (
         await service({ requiresAuth: true }).get(
-          "projects/basic?_limit=-1&project_state=1&_sort=name:ASC"
+          "projects/basic?_limit=-1&_sort=name:ASC"
         )
       ).data;
       this.clients = (
