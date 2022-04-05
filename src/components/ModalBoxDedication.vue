@@ -95,6 +95,13 @@
               <radio-picker
                 v-model="form.activity_type"
                 :options="activityTypes"
+                @input="projectChanged"
+              ></radio-picker>
+            </b-field>
+            <b-field label="Tasca" class="has-check" horizontal v-if="!isLoading2 && hasTasks">
+              <radio-picker
+                v-model="form.task"
+                :options="tasksRadio"
               ></radio-picker>
             </b-field>
             <!-- <hr />
@@ -172,6 +179,7 @@ export default {
       isLoading2: false,
       hasDedications: false,
       hasActivities: false,
+      hasTasks: false,
       form: {
         description: null,
         hours: null,
@@ -185,6 +193,7 @@ export default {
       // projects: [],
       dedicationTypes: {},
       activityTypes: {},
+      tasksRadio: {},
       // users: [],
       userNameSearch: '',
       projectNameSearch: '',
@@ -252,6 +261,7 @@ export default {
         this.form.description = this.dedicationObject.description ? this.dedicationObject.description : null
         this.form.date = this.dedicationObject.date ? moment(this.dedicationObject.date, 'YYYY-MM-DD').toDate() : null
         this.form.activity_type = this.dedicationObject.activity_type ? this.dedicationObject.activity_type.id : null
+        this.form.task = this.dedicationObject.task ? this.dedicationObject.task.id : null
         this.form.dedication_type = this.dedicationObject.dedication_type ? this.dedicationObject.dedication_type.id : null
         this.form.hours = this.dedicationObject.hours
         this.form.project = this.dedicationObject.project ? this.dedicationObject.project.id : null
@@ -265,6 +275,7 @@ export default {
         this.form.description = null
         this.form.date = moment().toDate()
         this.form.activity_type = null
+        this.form.task = null
         this.form.dedication_type = null
         this.form.hours = null
         this.form.project = null
@@ -345,10 +356,11 @@ export default {
       clearInterval(this.counterInterval)      
       this.$emit('submit', this.form)
     },
-    projectChanged () {
+    async projectChanged () {
       if (this.form.project) {        
         this.isLoading2 = true
         const project = this.projects.find(p => p.id === this.form.project)        
+
         this.activityTypes = {}
         this.hasActivities = false
         project.activity_types.forEach(a => {
@@ -359,6 +371,22 @@ export default {
           this.form.dedication_type = project.default_dedication_type.id
         } else if (project.default_dedication_type === null && this.form.dedication_type == null){
           this.form.dedication_type = null
+        }
+
+        this.hasTasks = false
+        this.tasksRadio = {}
+        if (project && project.id) {
+          let query = "tasks?_limit=-1&_where[archived_eq]=false";      
+          query += "&_where[project_eq]=" + project.id;
+          let tasks = (await service({ requiresAuth: true }).get(query)).data
+          this.tasksRadio = { '0': 'Cap' }
+          if (this.form.activity_type) {
+            tasks = tasks.filter(t => t.activity_type === null || (t.activity_type && t.activity_type.id.toString() === this.form.activity_type.toString()))
+          }
+          tasks.forEach(t => {            
+            this.tasksRadio[t.id] = t.name
+            this.hasTasks = true
+          })
         }
 
         this.isLoading2 = false

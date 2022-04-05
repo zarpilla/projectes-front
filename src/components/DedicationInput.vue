@@ -180,7 +180,8 @@
             </div>
             <div class="column auxiliar" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="showModal(a)">
               <div>{{ a.dedication_type ? a.dedication_type.name : '' }}</div>
-              <div>{{ a.activity_type ? a.activity_type.name : '' }}</div>
+              <div v-if="a.activity_type && a.activity_type.id">{{ a.activity_type ? a.activity_type.name : '' }}</div>
+              <div v-if="a.task && a.task.id">{{ a.task ? a.task.name : '' }}</div>
             </div>
             <div class="column is-2" :class="{ 'has-text-weight-bold': a.project.name === 'Total' }" @click="trashModal(a)">
               <b-button
