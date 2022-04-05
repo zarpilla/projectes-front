@@ -85,7 +85,7 @@
               name: 'document.edit',
               params: { id: props.row.id, type: props.row.type },
             }"
-          >{{ `${props.row.year.year}-${props.row.month.month}-${props.row.id}` }}
+          >{{ `${props.row.year.year}-${zeroPad(props.row.month.month, 2)}-${props.row.users_permissions_user.username}` }}
 
           </router-link>
           
@@ -296,6 +296,9 @@ export default {
 
       this.isLoading = false;
     },
+    zeroPad(num, places) {
+      return String(num).padStart(places, '0')
+    } 
   },
 };
 </script>

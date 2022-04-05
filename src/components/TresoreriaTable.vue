@@ -1156,7 +1156,7 @@ export default {
               project_name: "",
               project_id: 0,
               type: e.paid ? "Nòmina pagada" : "Nòmina esperada",
-              concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
+              concept: `Nòmina ${e.year.year}-${this.zeroPad(e.month.month, 2)}-${e.users_permissions_user.username}`,
               total_amount: e.net_base ? -1 * Math.abs(e.net_base) : 0,
               date: moment(e.net_date, "YYYY-MM-DD"),
               date_error: (e.paid_date || e.emitted) === null,
@@ -1174,7 +1174,7 @@ export default {
                 project_name: "",
                 project_id: 0,
                 type: "IRPF Nòmina",
-                concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
+                concept: `Nòmina ${e.year.year}-${this.zeroPad(e.month.month, 2)}-${e.users_permissions_user.username}`,
                 total_amount:
                   e.irpf_base || e.other_base
                     ? -1 * Math.abs(e.irpf_base + e.other_base)
@@ -1196,7 +1196,7 @@ export default {
                 project_name: "",
                 project_id: 0,
                 type: e.paid ? "SS pagat" : "SS esperat",
-                concept: `Nòmina ${e.year.year}-${e.month.month}-${e.id}`,
+                concept: `Nòmina ${e.year.year}-${this.zeroPad(e.month.month, 2)}-${e.users_permissions_user.username}`,
                 total_amount: e.ss_base ? -1 * Math.abs(e.ss_base) : 0,
                 date: moment(e.ss_date, "YYYY-MM-DD"),
                 date_error: e.ss_date === null,
@@ -1325,7 +1325,10 @@ export default {
       );
       this.payingVat = false
       window.location.reload()
-    }
+    },
+    zeroPad(num, places) {
+      return String(num).padStart(places, '0')
+    } 
   },
 };
 </script>
