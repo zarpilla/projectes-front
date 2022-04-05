@@ -1,9 +1,42 @@
 <template>
   <div>
     <div class="table-view">
+
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="monthlyActivitiesTotal && monthlyActivitiesTotal.length"
+        v-if="monthlyActivitiesTotal.length || justifications.length"
+      >
+        <div class="columns card-body">          
+          <div class="column has-text-weight-bold">Projecte</div>
+          <div class="column has-text-weight-bold zhas-text-right">Import Justificat</div>
+        </div>
+        <div v-for="(row, i) in summaryByProjectAll" v-bind:key="i"  class="card-body">
+          <div class="columns">          
+            <div class="column">{{ row.project }}</div>
+            <div class="column zhas-text-right">{{ row.cost.toFixed(2)}} €</div>
+          </div>
+        </div>
+      </card-component>
+
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="monthlyActivitiesTotal.length || justifications.length"
+      >
+        <div class="columns card-body">          
+          <div class="column has-text-weight-bold">Persona</div>
+          <div class="column has-text-weight-bold zhas-text-right">Import Justificat</div>
+        </div>
+        <div v-for="(row, i) in summaryByUserAll" v-bind:key="i"  class="card-body">
+          <div class="columns">          
+            <div class="column">{{ row.username }}</div>
+            <div class="column zhas-text-right">{{ row.cost.toFixed(2)}} €</div>
+          </div>
+        </div>
+      </card-component>
+
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="monthlyActivitiesTotal.length || justifications.length"
       >
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Mes</div>
@@ -13,6 +46,7 @@
           <div class="column has-text-weight-bold has-text-right">Hores (€)</div>
           <div class="column has-text-weight-bold has-text-right">Bestreta (€)</div>
           <div class="column has-text-weight-bold has-text-right">% Hores/Bestreta</div>
+          <div class="column has-text-weight-bold has-text-right">Accions</div>
         </div>
         <div v-for="(row, i) in monthlyActivitiesTotal" v-bind:key="i" class="card-body">
           <div class="columns">
@@ -36,6 +70,102 @@
             </div>
             <div class="column has-text-right">
               {{ row.payroll && row.cost ? (100 * row.cost / row.payroll).toFixed(2) : '' }} %
+            </div>
+            <div class="column has-text-right">
+          </div>
+        </div>
+      </div>
+        <div v-for="(row, i) in justifications" v-bind:key="i" class="card-body">
+          <div class="columns">
+            <div class="column">
+              {{ zeroPad(row.month, 2) }}
+            </div>
+            <div class="column">
+              {{ row.users_permissions_user ? row.users_permissions_user.username : '' }}
+            </div>
+            <div class="column">
+              {{ row.project ? row.project.name : '' }}
+            </div>
+            <div class="column has-text-right">
+              {{ row.hours }}
+            </div>
+            <div class="column has-text-right">
+              {{ row.dedication ? (row.hours * row.dedication.costByHour).toFixed(2) : '0' }} €
+            </div>
+            <div class="column has-text-right">
+               {{ row.payroll ? row.payroll.total.toFixed(2) : '0' }} €
+            </div>
+            <div class="column has-text-right">
+              {{ row.payroll && row.payroll.total && row.dedication && row.dedication.costByHour ? (100 * row.dedication.costByHour * row.hours / row.payroll.total).toFixed(2) : '' }} %
+            </div>
+            <div class="column has-text-right">
+              <b-button
+              @click="deleteJustification(row)"
+              title="Esborrar"
+              class="view-button"
+              type="is-danger"
+              icon-left="trash-can" />
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="columns">
+            <div class="column">
+              <b-select
+                v-model="justification.month"
+              >
+                <option
+                  v-for="m in 12"
+                  :key="m"
+                  :value="m"
+                >
+                  {{ zeroPad(m, 2) }}
+                </option>
+              </b-select>
+            </div>
+            <div class="column">
+              <b-select
+                v-model="justification.users_permissions_user"
+              >
+                <option
+                  v-for="u in users"
+                  :key="u.id"
+                  :value="u"
+                >
+                  {{ u.username }}
+                </option>
+              </b-select>
+            </div>
+            <div class="column">
+              <b-select
+                v-model="justification.project"
+              >
+                <option
+                  v-for="u in projects"
+                  :key="u.id"
+                  :value="u"
+                >
+                  {{ u.name }}
+                </option>
+              </b-select>
+            </div>
+            <div class="column has-text-right">
+              <b-input v-model="justification.hours" />
+            </div>
+            <div class="column has-text-right">              
+            </div>
+            <div class="column has-text-right">
+            </div>
+            <div class="column has-text-right">
+            </div>
+            <div class="column has-text-right">
+              <b-button
+              @click="addJustification"
+              title="Afegir"
+              class="view-button"
+              type="is-primary"
+              :disabled="!addJustificationEnabled"
+              icon-left="plus" />              
             </div>
           </div>
         </div>
@@ -62,7 +192,7 @@ import _ from "lodash";
 moment.locale("ca");
 
 export default {
-  name: "DedicationSalary",
+  name: "Justification",
   components: { CardComponent },
   props: {
     project: {
@@ -81,6 +211,9 @@ export default {
       payrolls: [],
       users: [],
       projects: [],
+      justification: {},
+      justifications: [],
+      dedications: []
     };
   },
   computed: {
@@ -106,13 +239,14 @@ export default {
           .forEach((a) => {
             const activity = {
               ...a,
+              real: true,
               project: a.project,
               project_name: p.name,
               users_permissions_user: a.users_permissions_user,
               year: moment(a.date, "YYYY-MM-DD").format("YYYY"),
               month: moment(a.date, "YYYY-MM-DD").format("MM"),
               key:
-                moment(a.date, "YYYY-MM-DD").format("YYYYMM") +
+                'real' + moment(a.date, "YYYY-MM-DD").format("YYYYMM") +
                 "-" +
                 a.users_permissions_user +
                 "-" +
@@ -121,6 +255,25 @@ export default {
             activities.push(activity);
           });
       });
+
+      // this.justifications.forEach((j) => {
+      //   const activity = {
+      //         ...j,
+      //         real: false,
+      //         project: j.project,
+      //         project_name: j.project.name,
+      //         users_permissions_user: j.users_permissions_user.id,
+      //         year: moment(j.year, "YYYY").format("YYYY"),
+      //         month: moment(j.month, "MM").format("MM"),
+      //         key:
+      //           moment(j.year, "YYYY").format("YYYY").toString() + moment(j.month, "MM").format("MM").toString() +
+      //           "-" +
+      //           j.users_permissions_user.id +
+      //           "-" +
+      //           j.project.id,
+      //       };
+      //       activities.push(activity);
+      // })
       return activities;
     },
     monthlyActivitiesTotal() {
@@ -134,6 +287,7 @@ export default {
             hours: _.sumBy(rows, 'hours'),
             year: rows[0].year,
             month: rows[0].month,
+            real: rows[0].real,
             users_permissions_user: rows[0].users_permissions_user,
             username: this.users.find(
               (u) => u.id === rows[0].users_permissions_user
@@ -147,8 +301,88 @@ export default {
         .value();
       return activities;
     },
+    summaryByProject() {
+      const activities = _(this.monthlyActivitiesTotal)
+      .groupBy("project")
+      .map((rows, id) => {      
+        return {
+          project: id,
+          cost: _.sumBy(rows, (r) => r.cost),
+        }
+      })
+      .value();
+      return activities
+    },
+    summaryJustificationsByProject() {
+      const activities = _(this.justifications)
+      .groupBy("project.name")
+      .map((rows, id) => {      
+        return {
+          project: id,
+          cost: _.sumBy(rows, (r) => r.dedication ? r.hours * r.dedication.costByHour : 0),
+        }
+      })
+      .value();
+      return activities
+    },
+    summaryByProjectAll() {
+      const activities = _(_.concat(this.summaryByProject, this.summaryJustificationsByProject))
+      .groupBy("project")
+      .map((rows, id) => {      
+        return {
+          project: id,
+          cost: _.sumBy(rows, (r) => r.cost),
+        }
+      })
+      .value();
+      return activities
+    },
+    summaryByUser() {
+      const activities = _(this.monthlyActivitiesTotal)
+      .groupBy("username")
+      .map((rows, id) => {      
+        return {
+          username: id,
+          cost: _.sumBy(rows, (r) => r.cost),
+        }
+      })
+      .value();
+      return activities
+    },
+    summaryJustificationsByUser() {
+      const activities = _(this.justifications)
+      .groupBy("users_permissions_user.username")
+      .map((rows, id) => {      
+        return {
+          username: id,
+          // hours: _.sumBy(rows, (r) => r.hours),
+          // dedication: rows[0].dedication,
+          // row.hours * row.dedication.costByHour
+          // rows: rows,
+          // dedication: rows && rows.length ? rows[0].dedication : null,
+          cost: _.sumBy(rows, (r) => r.dedication ? r.hours * r.dedication.costByHour : 0),
+        }
+      })
+      .value();
+      return activities
+    },
+    summaryByUserAll() {
+      const activities = _(_.concat(this.summaryByUser, this.summaryJustificationsByUser))
+      .groupBy("username")
+      .map((rows, id) => {      
+        return {
+          username: id,
+          cost: _.sumBy(rows, (r) => r.cost),
+        }
+      })
+      .value();
+      return activities
+    },
     dataCSV () {
       return this.monthlyActivitiesTotal.map(({ ym, users_permissions_user, ...row }) => row)
+    },
+    addJustificationEnabled() {
+      return this.justification.month && this.justification.users_permissions_user && this.justification.project && this.justification.hours && parseInt(this.justification.hours) > 0
     }
   },
   watch: {
@@ -183,6 +417,19 @@ export default {
       
       this.payrolls = (await service({ requiresAuth: true }).get(query)).data;
       this.projects = (await service({ requiresAuth: true }).get(query2)).data;
+
+      const justifications = (await service({ requiresAuth: true }).get(`justifications?year=${this.year}&_limit=-1`)).data;
+      this.dedications = (await service({ requiresAuth: true }).get('daily-dedications?_limit=-1')).data
+
+      justifications.forEach(just => {
+        const date = moment(`${just.year}-${just.month}-01`).format('YYYY-MM-DD')
+        const dedication = this.dedications.find(d => d.users_permissions_user && just.users_permissions_user && d.users_permissions_user.id === just.users_permissions_user.id && d.from <= date && d.to >= date)        
+        just.dedication = dedication
+        const payroll = this.payrolls.find(p => p.users_permissions_user.id === just.users_permissions_user.id && parseInt(p.year.year) === parseInt(just.year) && parseInt(p.month.month) === parseInt(just.month))
+        just.payroll = payroll
+      })
+      this.justifications = justifications
+
       this.users = (
         await service({ requiresAuth: true }).get("users?_limit=-1")
       ).data;
@@ -286,6 +533,34 @@ export default {
         )
       ).data;
     },
+    zeroPad(num, places) {
+      return String(num).padStart(places, '0')
+    },
+    async deleteJustification(row) {
+
+      this.$buefy.dialog.confirm({
+            message: 'Eliminar justificació?',
+            onConfirm: async () => {
+              await service({ requiresAuth: true }).delete(`justifications/${row.id}`)
+              this.$buefy.snackbar.open({
+                message: "Eliminada",
+                queue: false,
+              });
+              this.getActivities();
+            },
+            onCancel: () => { return false }
+        })
+    },
+    async addJustification() {
+      this.justification.year = this.year
+      await service({ requiresAuth: true }).post(`justifications`, this.justification)
+      this.$buefy.snackbar.open({
+        message: "Guardat",
+        queue: false,
+      });
+      this.justification = {}
+      this.getActivities();
+    }
   },
   filters: {
     formatDate(val) {
@@ -310,7 +585,7 @@ export default {
         moment(val).fromNow() +
         ")"
       );
-    },
+    } 
   },
 };
 </script>
