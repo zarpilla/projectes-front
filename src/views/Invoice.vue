@@ -22,9 +22,9 @@
                         </td>
 
                         <td  class='more'>
-                          Factura {{ quote.code }}<br />
-                          Data: {{ quote.emitted ? quote.emitted : quote.updated_at | formatDMYDate }}<br />
-                          <span v-if="quote.paybefore">Venciment: {{ quote.paybefore | formatDMYDate }}</span><br />
+                          {{ texts[locale]['Factura'] }} {{ quote.code }}<br />
+                          {{ texts[locale]['Data:'] }} {{ quote.emitted ? quote.emitted : quote.updated_at | formatDMYDate }}<br />
+                          <span v-if="quote.paybefore">{{ texts[locale]['Venciment:'] }} {{ quote.paybefore | formatDMYDate }}</span><br />
                         </td>
                       </tr>
                     </table>
@@ -36,7 +36,7 @@
                     <table>
                       <tr>
                         <td>
-                          <div class="client">PROVEÏDOR</div>
+                          <div class="client">{{ texts[locale]['PROVEÏDOR'] }}</div>
                           <div v-if="me.name">{{ me.name }}</div>
                           <div v-if="me.nif">{{ me.nif }}</div>
                           <div v-if="me.address">{{ me.address }}<br />{{ me.postcode }} {{ me.city }}</div>
@@ -44,7 +44,7 @@
                           <div v-if="me.email">{{ me.email }}</div>
                         </td>
                         <td>
-                          <div class="client">CLIENT</div>
+                          <div class="client">{{ texts[locale]['CLIENT'] }}</div>
                           <div v-if="quote.contact.name">{{ quote.contact.name }}</div>
                           <div v-if="quote.contact.nif">{{ quote.contact.nif }}</div>
                           <div v-if="quote.contact.email">{{ quote.contact.email }}</div>
@@ -59,12 +59,12 @@
                   <td :colspan="5">
                     <table>
                       <tr class="t-heading">
-                        <td>Concepte</td>
-                        <td v-if="showQuantity">Q.</td>
-                        <td v-if="showQuantity || showVat">Base</td>
-                        <td v-if="showIrpf">IRPF</td>
-                        <td v-if="showVat">IVA</td>
-                        <td>Total</td>
+                        <td>{{ texts[locale]['Concepte'] }}</td>
+                        <td v-if="showQuantity">{{ texts[locale]['Q.'] }}</td>
+                        <td v-if="showQuantity || showVat">{{ texts[locale]['Base'] }}</td>
+                        <td v-if="showIrpf">{{ texts[locale]['IRPF'] }}</td>
+                        <td v-if="showVat">{{ texts[locale]['IVA'] }}</td>
+                        <td>{{ texts[locale]['Total'] }}</td>
                       </tr>
                       <tr class="item" v-for="(line, i) in quote.lines" v-bind:key="line.id" :class="{ last: i == line.length}">
                         <td>{{ line.concept }}
@@ -80,11 +80,11 @@
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
-                          <div>Base imposable: {{ quote.total_base | formatCurrency }}€</div>
-                          <div v-if="quote.total_vat">IVA: {{ quote.total_vat | formatCurrency }}€</div>
-                          <div v-if="quote.total_irpf">IRPF: {{ -1*quote.total_irpf | formatCurrency }}€</div>
+                          <div>{{ texts[locale]['Base imposable:'] }} {{ quote.total_base | formatCurrency }}€</div>
+                          <div v-if="quote.total_vat">{{ texts[locale]['IVA'] }}: {{ quote.total_vat | formatCurrency }}€</div>
+                          <div v-if="quote.total_irpf">{{ texts[locale]['IRPF'] }}: {{ -1*quote.total_irpf | formatCurrency }}€</div>
                           <div class="total-val">
-                          Total: {{ quote.total | formatCurrency }}€
+                          {{ texts[locale]['Total'] }}: {{ quote.total | formatCurrency }}€
                           </div>
                         </td>
                       </tr>
@@ -95,7 +95,7 @@
                   <td :colspan="5">
                      <table>
                       <tr class="t-heading">
-                        <td>Mètode de pagament</td>
+                        <td>{{ texts[locale]['Mètode de pagament'] }}</td>
                       </tr>
                       <tr>
                         <td>
@@ -107,7 +107,7 @@
                 </tr>
               </table>
               <div v-if="quote.comments" class="comments global-comments">
-                <div class="more notes">Notes</div>
+                <div class="more notes">{{ texts[locale]['Notes'] }}</div>
                 <div class="notes-content" v-html="quote.comments.replace(/(?:\r\n|\r|\n)/g, '<br>')"></div>
               </div>
               <div v-if="me.invoice_footer" class="comments global-comments quote-footer">
@@ -154,7 +154,46 @@ export default {
       quote: null,
       me: null,
       baseUrl: process.env.VUE_APP_API_URL || 'http://localhost:1337',
-      imageUrl: null
+      imageUrl: null,
+      locale: 'ca',
+      texts: {
+        ca: {
+          'Factura': 'Factura',
+          'Data:': 'Data:',
+          'Venciment:': 'Venciment:',
+          'PROVEÏDOR': 'PROVEÏDOR',
+          'CLIENT': 'CLIENT',
+          'Concepte': 'Concepte',
+          'Q.': 'Q.',
+          'Base': 'Base',
+          'IVA': 'IVA',
+          'IRPF': 'IRPF',
+          'Total': 'Total',
+          'Total:': 'Total:',
+          'Base imposable:': 'Base imposable:',
+          'Notes': 'Notes',
+          'Total (sense IVA):': 'Total (sense IVA):',
+          'Mètode de pagament': 'Mètode de pagament'
+        },
+        es: {
+          'Factura': 'Factura',
+          'Data:': 'Fecha:',
+          'Venciment:': 'Vencimiento:',
+          'PROVEÏDOR': 'PROVEEDOR',
+          'CLIENT': 'CLIENTE',
+          'Concepte': 'Concepto',
+          'Q.': 'Cant.',
+          'Base': 'Base',
+          'IVA': 'IVA',
+          'IRPF': 'IRPF',
+          'Total': 'Total',
+          'Total:': 'Total:',
+          'Base imposable:': 'Base imponible:',
+          'Notes': 'Notas',
+          'Total (sense IVA):': 'Total (sin IVA):',
+          'Mètode de pagament': 'Métode de pago'
+        }
+      }
     }
   },
   computed: {
@@ -182,6 +221,9 @@ export default {
   },
   created () {
     this.getData()
+    if (this.$route.query.locale) {
+      this.locale = this.$route.query.locale
+    }
   },
   methods: {
     getData () {
@@ -203,7 +245,7 @@ export default {
           })
       }
     },
-    getPDF () {
+    async getPDF () {
       var element = document.getElementById('quote')
       var opt = {
         margin: [0, 0],
@@ -212,7 +254,17 @@ export default {
         html2canvas: { dpi: 300, scale: 4, letterRendering: true },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
       }
-      html2pdf().set(opt).from(element).save()
+      // html2pdf().set(opt).from(element).save(opt)
+
+      const pdf = html2pdf().set(opt).from(element)
+      // await pdf.save(opt.filename, { returnPromise: true })
+
+      pdf.toPdf().get('pdf').then(function (pdf) {
+         window.open(
+          pdf.output('bloburl', "lala.pdf")
+          , "lala.pdf");
+      });
+
     },
     toDataUrl (url, callback) {
       var xhr = new XMLHttpRequest()

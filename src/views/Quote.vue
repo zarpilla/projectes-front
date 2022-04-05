@@ -22,10 +22,10 @@
                         </td>
 
                         <td  class='more'>
-                          <span v-if="quote.proforma">Factura proforma </span>
-                          <span v-else>Pressupost </span>
+                          <span v-if="quote.proforma">{{ texts[locale]['Factura proforma'] }}</span>
+                          <span v-else>{{ texts[locale]['Pressupost'] }} </span>
                           {{ quote.code }}<br />
-                          Data: {{ quote.date ? quote.date : quote.updated_at | formatDMYDate }}<br />
+                          {{ texts[locale]['Data:'] }} {{ quote.date ? quote.date : quote.updated_at | formatDMYDate }}<br />
                         </td>
                       </tr>
                     </table>
@@ -37,20 +37,20 @@
                     <table>
                       <tr>
                         <td>
-                          <div class="client">PROVEÏDOR</div>
+                          <div class="client">{{ texts[locale]['PROVEÏDOR'] }}</div>
                           <div v-if="me.name">{{ me.name }}</div>
                           <div v-if="me.nif">{{ me.nif }}</div>
-                          <div v-if="me.address">{{ me.address }}<br />{{ me.postcode }} {{ me.city }}</div>
+                          <div v-if="me.address">{{ me.address }}<br />{{ me.postcode }} {{ me.city }} {{ me.state ? `(${me.state})` : ''}}</div>
                           <div v-if="me.phone">{{ me.phone }}</div>
                           <div v-if="me.email">{{ me.email }}</div>
                         </td>
                         <td v-if="quote.contact && quote.contact.id">
-                          <div class="client">CLIENT</div>
+                          <div class="client">{{ texts[locale]['CLIENT'] }}</div>
                           <div v-if="quote.contact.name">{{ quote.contact.name }}</div>
-                          <div v-if="quote.contact.nif">{{ quote.contact.nif }}</div>
-                          <div v-if="quote.contact.email">{{ quote.contact.email }}</div>
+                          <div v-if="quote.contact.nif">{{ quote.contact.nif }}</div>                          
                           <div v-if="quote.contact.address">{{ quote.contact.address }}<br />{{ quote.contact.postcode }} {{ quote.contact.city }}</div>
                           <div v-if="quote.contact.phone">{{ quote.contact.phone }}</div>
+                          <div v-if="quote.contact.email">{{ quote.contact.email }}</div>
                         </td>
                       </tr>
                     </table>
@@ -60,11 +60,11 @@
                   <td :colspan="5">
                     <table>
                       <tr class="t-heading">
-                        <td>Concepte</td>
-                        <td v-if="showQuantity">Q.</td>
-                        <td v-if="showQuantity || showVat">Preu</td>
-                        <td v-if="showVat">IVA</td>
-                        <td>Total</td>
+                        <td>{{ texts[locale]['Concepte'] }}</td>
+                        <td v-if="showQuantity">{{ texts[locale]['Q.'] }}</td>
+                        <td v-if="showQuantity || showVat">{{ texts[locale]['Preu'] }}</td>
+                        <td v-if="showVat">{{ texts[locale]['IVA'] }}</td>
+                        <td>{{ texts[locale]['Total'] }}</td>
                       </tr>
                       <tr class="item" v-for="(line, i) in quote.lines" v-bind:key="line.id" :class="{ last: i == line.length}">
                         <td>{{ line.concept }}
@@ -79,10 +79,10 @@
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
-                          <div v-if="showVat">Total (sense IVA): {{ quote.total_base | formatCurrency }}€</div>
-                          <div v-if="showVat">IVA: {{ quote.total_vat | formatCurrency}}€</div>
-                          <div>
-                          Total: {{ quote.total | formatCurrency}}€
+                          <div class="zmt-3" v-if="showVat">{{ texts[locale]['Total (sense IVA):'] }} {{ quote.total_base | formatCurrency }}€</div>
+                          <div v-if="showVat">{{ texts[locale]['IVA'] }}: {{ quote.total_vat | formatCurrency}}€</div>
+                          <div class="mt-3">
+                          {{ texts[locale]['Total'] }} {{ quote.total | formatCurrency}}€
                           </div>
                         </td>
                       </tr>
@@ -138,7 +138,40 @@ export default {
       quote: null,
       me: null,
       baseUrl: process.env.VUE_APP_API_URL || 'http://localhost:1337',
-      imageUrl: null
+      imageUrl: null,
+      locale: 'ca',
+      texts: {
+        ca: {
+          'Factura proforma': 'Factura proforma',
+          'Pressupost': 'Pressupost',
+          'Data:': 'Data:',
+          'PROVEÏDOR': 'PROVEÏDOR',
+          'CLIENT': 'CLIENT',
+          'Concepte': 'Concepte',
+          'Q.': 'Q.',
+          'Preu': 'Preu',
+          'IVA': 'IVA',
+          'Total': 'Total',
+          'Total:': 'Total:',
+          'Notes': 'Notes',
+          'Total (sense IVA):': 'Total (sense IVA):'
+        },
+        es: {
+          'Factura proforma': 'Factura proforma',
+          'Pressupost': 'Presupuesto',
+          'Data:': 'Fecha:',
+          'PROVEÏDOR': 'PROVEEDOR',
+          'CLIENT': 'CLIENTE',
+          'Concepte': 'Concepto',
+          'Q.': 'Cant.',
+          'Preu': 'Precio',
+          'IVA': 'IVA',
+          'Total': 'Total',
+          'Total:': 'Total:',
+          'Notes': 'Notas',
+          'Total (sense IVA):': 'Total (sin IVA):'
+        }
+      }
     }
   },
   computed: {
@@ -160,6 +193,9 @@ export default {
   },
   created () {
     this.getData()
+    if (this.$route.query.locale) {
+      this.locale = this.$route.query.locale
+    }
   },
   methods: {
     getData () {
@@ -182,7 +218,7 @@ export default {
           })
       }
     },
-    getPDF () {
+    async getPDF () {
       var element = document.getElementById('quote')
       var opt = {
         margin: [0, 0],
@@ -191,7 +227,19 @@ export default {
         html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       }
-      html2pdf().set(opt).from(element).save()
+      const pdf = html2pdf().set(opt).from(element)
+      // await pdf.save(opt.filename, { returnPromise: true })
+
+      pdf.toPdf().get('pdf').then(function (pdf) {
+         window.open(
+          pdf.output('bloburl', "lala.pdf")
+          , "lala.pdf");
+      });
+
+      // window.open( pdf.save(opt.filename) , '_blank');
+
+      // html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {        
+      // });
     },
     toDataUrl (url, callback) {
       var xhr = new XMLHttpRequest()
