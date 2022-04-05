@@ -91,7 +91,7 @@
                 :options="dedicationTypes"
               ></radio-picker>
             </b-field>
-            <b-field label="Tasca" class="has-check" horizontal v-if="!isLoading2 && activityTypes && hasActivities">
+            <b-field label="Funció" class="has-check" horizontal v-if="!isLoading2 && activityTypes && hasActivities">
               <radio-picker
                 v-model="form.activity_type"
                 :options="activityTypes"

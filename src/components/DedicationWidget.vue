@@ -39,7 +39,7 @@
       </dedication-circle-chart>
       <dedication-circle-chart title="Projecte" v-if="!isLoading" :activities="activities" :table="'project'" :field="'name'">
       </dedication-circle-chart>
-      <dedication-circle-chart title="Tipus de tasca" v-if="!isLoading" :activities="activities" :table="'activity_type'" :field="'name'">
+      <dedication-circle-chart title="Funció" v-if="!isLoading" :activities="activities" :table="'activity_type'" :field="'name'">
       </dedication-circle-chart>
       <dedication-circle-chart title="Tipus d'activitat" v-if="!isLoading" :activities="activities" :table="'dedication_type'" :field="'name'">
       </dedication-circle-chart>

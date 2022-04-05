@@ -741,6 +741,8 @@ export default {
         type = "Despeses rebudes";
       } else if (this.type === "quotes") {
         type = "Pressupostos";
+      } else if (this.type === "payrolls") {
+        type = "Nòmines i Bestretes";
       } else {
         type = "Factures Rebudes";
       }
@@ -758,6 +760,8 @@ export default {
           return "Nova despesa";
           } else if (this.type === "quotes") {
           return "Nou Pressupost";
+        } else if (this.type === "payrolls") {
+          return "Nova Nòmina o Bestreta";
         } else {
           return "Nova factura";
         }
