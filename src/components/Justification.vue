@@ -239,14 +239,13 @@ export default {
           .forEach((a) => {
             const activity = {
               ...a,
-              real: true,
               project: a.project,
               project_name: p.name,
               users_permissions_user: a.users_permissions_user,
               year: moment(a.date, "YYYY-MM-DD").format("YYYY"),
               month: moment(a.date, "YYYY-MM-DD").format("MM"),
               key:
-                'real' + moment(a.date, "YYYY-MM-DD").format("YYYYMM") +
+                moment(a.date, "YYYY-MM-DD").format("YYYYMM") +
                 "-" +
                 a.users_permissions_user +
                 "-" +
@@ -255,25 +254,6 @@ export default {
             activities.push(activity);
           });
       });
-
-      // this.justifications.forEach((j) => {
-      //   const activity = {
-      //         ...j,
-      //         real: false,
-      //         project: j.project,
-      //         project_name: j.project.name,
-      //         users_permissions_user: j.users_permissions_user.id,
-      //         year: moment(j.year, "YYYY").format("YYYY"),
-      //         month: moment(j.month, "MM").format("MM"),
-      //         key:
-      //           moment(j.year, "YYYY").format("YYYY").toString() + moment(j.month, "MM").format("MM").toString() +
-      //           "-" +
-      //           j.users_permissions_user.id +
-      //           "-" +
-      //           j.project.id,
-      //       };
-      //       activities.push(activity);
-      // })
       return activities;
     },
     monthlyActivitiesTotal() {
@@ -286,8 +266,7 @@ export default {
             cost: _.sumBy(rows, (r) => r.hours * r.cost_by_hour),
             hours: _.sumBy(rows, 'hours'),
             year: rows[0].year,
-            month: rows[0].month,
-            real: rows[0].real,
+            month: rows[0].month,            
             users_permissions_user: rows[0].users_permissions_user,
             username: this.users.find(
               (u) => u.id === rows[0].users_permissions_user
@@ -379,7 +358,9 @@ export default {
       return activities
     },
     dataCSV () {
-      return this.monthlyActivitiesTotal.map(({ ym, users_permissions_user, ...row }) => row)
+      const justifications = this.justifications.map(({ id, project, dedication, payroll, created_at, updated_at, ...row }) => { return { ...row, project_id: project.id, project: project.name, payroll: payroll?.total, username: row.users_permissions_user.username, cost: dedication.costByHour * row.hours  } })
+      const rows = _.concat(this.monthlyActivitiesTotal, justifications)
+      return rows.map(({ ym, users_permissions_user, ...row }) => row)
     },
     addJustificationEnabled() {
       return this.justification.month && this.justification.users_permissions_user && this.justification.project && this.justification.hours && parseInt(this.justification.hours) > 0
