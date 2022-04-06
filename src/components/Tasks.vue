@@ -92,7 +92,7 @@
                     </span>
                     <span class="tag mr-1 mb-1 is-info" v-if="view === 'state' && task.activity_type && task.activity_type.name">{{
                       task.activity_type.name
-                    }}                    
+                    }}
                     </span>
                     <span class="tag mr-1 mb-1 is-info" v-if="view === 'list'">{{
                       task.task_state.name
@@ -442,7 +442,6 @@ export default {
         this.reOrderCards()
         await this.saveKanbanView()
       } else {
-        console.log('task.documents', task.documents)
         task.archived = false
         task.order = -10
         task = (await service({ requiresAuth: true }).post(`tasks`, task)).data;        

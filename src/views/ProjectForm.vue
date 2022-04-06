@@ -849,7 +849,7 @@
       </card-component>
 
       <card-component v-if="!isLoading" title="TASQUES" header-icon="view-column" @header-icon-click="toogleTasksView"
-        >        
+        >
         <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project-info="form" :project="form.id" :view="tasksView" />
         <span class="bg-info" v-else
           >Es necessari guardar el projecte per accedir a les
@@ -930,7 +930,7 @@ export default {
       isModalSplitActive: false,
       newTask: "",
       originalPhasesVisible: false,
-      tasksView: 'list'
+      tasksView: 'state'
     };
   },
   computed: {
@@ -1236,7 +1236,7 @@ export default {
   },
   created() {
     try {
-      this.tasksView = localStorage.getItem('project-form:tasksView')
+      // this.tasksView = localStorage.getItem('project-form:tasksView') || 'state'
     }
     catch{}
     this.getData();
@@ -1430,7 +1430,7 @@ export default {
           this.regions = r.data;
         });
       service({ requiresAuth: true })
-        .get("projects/basic")
+        .get("projects/basic?_limit=-1")
         .then((r) => {
           this.projects = r.data;
           if (this.form.mother && this.form.mother.id) {
@@ -1755,10 +1755,10 @@ export default {
     },
     toogleTasksView() {
       this.tasksView = this.tasksView === 'list' ? 'state' : 'list'
-      try {
-        localStorage.setItem('project-form:tasksView', this.tasksView)
-      }
-      catch{}
+      // try {
+      //   localStorage.setItem('project-form:tasksView', this.tasksView)
+      // }
+      // catch{}
     }
   },
 };
