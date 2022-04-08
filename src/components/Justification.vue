@@ -121,7 +121,7 @@
               {{ row.quantity.toFixed(2) }} €
             </div>
             <div class="column has-text-right">
-              {{ row.dedication.costByHour ? (row.quantity / row.dedication.costByHour).toFixed(2) : 0 }}
+              {{ row.dedication && row.dedication.costByHour ? (row.quantity / row.dedication.costByHour).toFixed(2) : 0 }}
             </div>            
             <div class="column has-text-right">
                {{ row.payroll ? row.payroll.total.toFixed(2) : '0' }} €
@@ -425,7 +425,7 @@ export default {
       return activities
     },
     dataCSV () {
-      const justifications = this.justifications.map(({ id, project, dedication, payroll, created_at, updated_at, ...row }) => { return { ...row, project_id: project.id, project: project.name, payroll: payroll?.total, username: row.users_permissions_user.username, cost: dedication.costByHour * row.hours  } })
+      const justifications = this.justifications.map(({ id, project, dedication, payroll, created_at, updated_at, ...row }) => { return { ...row, project_id: project.id, project: project.name, payroll: payroll?.total, username: row.users_permissions_user.username, cost: row.quantity } })
       const rows = _.concat(this.monthlyActivitiesTotal, justifications)
       return rows.map(({ ym, users_permissions_user, ...row }) => row)
     },
