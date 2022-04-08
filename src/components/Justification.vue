@@ -7,29 +7,60 @@
         v-if="monthlyActivitiesTotal.length || justifications.length"
       >
         <div class="columns card-body">          
-          <div class="column has-text-weight-bold">Projecte</div>
-          <div class="column has-text-weight-bold zhas-text-right">Import Justificat</div>
+          <div class="column is-4 has-text-weight-bold">Projecte</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">Import Justificat</div>
         </div>
-        <div v-for="(row, i) in summaryByProjectAll" v-bind:key="i"  class="card-body">
+        <div v-for="(row, i) in summaryByProjectAll" :key="i"  class="card-body">
           <div class="columns">          
-            <div class="column">{{ row.project }}</div>
-            <div class="column zhas-text-right">{{ row.cost.toFixed(2)}} €</div>
+            <div class="column is-4">{{ row.project }}</div>
+            <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
+          </div>
+        </div>
+        <div class="card-body">
+        <div class="columns">          
+            <div class="column is-4 has-text-weight-bold">TOTAL</div>
+            <div class="column is-2 has-text-weight-bold has-text-right">{{ summaryAll.toFixed(2)}} €</div>
           </div>
         </div>
       </card-component>
+
 
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal.length || justifications.length"
       >
         <div class="columns card-body">          
-          <div class="column has-text-weight-bold">Persona</div>
-          <div class="column has-text-weight-bold zhas-text-right">Import Justificat</div>
+          <div class="column is-4 has-text-weight-bold">Persona</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">Import Justificat</div>
         </div>
-        <div v-for="(row, i) in summaryByUserAll" v-bind:key="i"  class="card-body">
+        <div v-for="(row, i) in summaryByUserAll" :key="i*100"  class="card-body">
           <div class="columns">          
-            <div class="column">{{ row.username }}</div>
-            <div class="column zhas-text-right">{{ row.cost.toFixed(2)}} €</div>
+            <div class="column is-4">{{ row.username }}</div>
+            <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
+          </div>
+        </div>
+      </card-component>
+
+
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="monthlyActivitiesTotal.length || justifications.length"
+      >
+        <div class="columns card-body">          
+          <div class="column is-2 has-text-weight-bold">Persona</div>
+          <div class="column is-2 has-text-weight-bold">Mes</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">Import Justificat</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">Bestreta</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">% Bestreta</div>
+        </div>
+        <div v-for="(row, i) in summaryByUserMonth" :key="i*10000"  class="card-body">
+          <div class="columns">          
+            <div class="column is-2">{{ row.username }}</div>
+            <div class="column is-2">{{ row.month }}</div>
+            <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
+            <div class="column is-2 has-text-right">{{ row.payroll ? row.payroll.total.toFixed(2) : 0  }} €</div>
+            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.cost / row.payroll.total * 100).toFixed(2) : 0  }} %</div>
+            
           </div>
         </div>
       </card-component>
@@ -42,13 +73,13 @@
           <div class="column has-text-weight-bold">Mes</div>
           <div class="column has-text-weight-bold">Persona</div>
           <div class="column has-text-weight-bold">Projecte</div>
-          <div class="column has-text-weight-bold has-text-right">Hores (h)</div>
           <div class="column has-text-weight-bold has-text-right">Hores (€)</div>
+          <div class="column has-text-weight-bold has-text-right">Hores (h)</div>          
           <div class="column has-text-weight-bold has-text-right">Bestreta (€)</div>
           <div class="column has-text-weight-bold has-text-right">% Hores/Bestreta</div>
           <div class="column has-text-weight-bold has-text-right">Accions</div>
         </div>
-        <div v-for="(row, i) in monthlyActivitiesTotal" v-bind:key="i" class="card-body">
+        <div v-for="(row, i) in monthlyActivitiesTotal" :key="i*1000000" class="card-body">
           <div class="columns">
             <div class="column">
               {{ row.month }}
@@ -58,12 +89,12 @@
             </div>
             <div class="column">
               {{ row.project }}
+            </div>            
+            <div class="column has-text-right">
+              {{ row.cost ? row.cost.toFixed(2) : '0' }} €
             </div>
             <div class="column has-text-right">
               {{ row.hours }}
-            </div>
-            <div class="column has-text-right">
-              {{ row.cost ? row.cost.toFixed(2) : '0' }} €
             </div>
             <div class="column has-text-right">
               {{ row.payroll ? row.payroll.toFixed(2) : '0' }} €
@@ -75,7 +106,7 @@
           </div>
         </div>
       </div>
-        <div v-for="(row, i) in justifications" v-bind:key="i" class="card-body">
+        <div v-for="(row, i) in justifications" :key="i*100000000" class="card-body">
           <div class="columns">
             <div class="column">
               {{ zeroPad(row.month, 2) }}
@@ -87,16 +118,16 @@
               {{ row.project ? row.project.name : '' }}
             </div>
             <div class="column has-text-right">
-              {{ row.hours }}
+              {{ row.quantity.toFixed(2) }} €
             </div>
             <div class="column has-text-right">
-              {{ row.dedication ? (row.hours * row.dedication.costByHour).toFixed(2) : '0' }} €
-            </div>
+              {{ row.dedication.costByHour ? (row.quantity / row.dedication.costByHour).toFixed(2) : 0 }}
+            </div>            
             <div class="column has-text-right">
                {{ row.payroll ? row.payroll.total.toFixed(2) : '0' }} €
             </div>
             <div class="column has-text-right">
-              {{ row.payroll && row.payroll.total && row.dedication && row.dedication.costByHour ? (100 * row.dedication.costByHour * row.hours / row.payroll.total).toFixed(2) : '' }} %
+              {{ row.payroll && row.payroll.total && row.dedication && row.dedication.costByHour ? (100 * row.quantity / row.payroll.total).toFixed(2) : '' }} %
             </div>
             <div class="column has-text-right">
               <b-button
@@ -150,7 +181,7 @@
               </b-select>
             </div>
             <div class="column has-text-right">
-              <b-input v-model="justification.hours" />
+              <b-input v-model="justification.quantity" />
             </div>
             <div class="column has-text-right">              
             </div>
@@ -298,7 +329,7 @@ export default {
       .map((rows, id) => {      
         return {
           project: id,
-          cost: _.sumBy(rows, (r) => r.dedication ? r.hours * r.dedication.costByHour : 0),
+          cost: _.sumBy(rows, (r) => r.quantity),
         }
       })
       .value();
@@ -315,6 +346,9 @@ export default {
       })
       .value();
       return activities
+    },
+    summaryAll() {
+      return _.sumBy(this.summaryByProjectAll, 'cost')
     },
     summaryByUser() {
       const activities = _(this.monthlyActivitiesTotal)
@@ -334,16 +368,49 @@ export default {
       .map((rows, id) => {      
         return {
           username: id,
-          // hours: _.sumBy(rows, (r) => r.hours),
-          // dedication: rows[0].dedication,
-          // row.hours * row.dedication.costByHour
-          // rows: rows,
-          // dedication: rows && rows.length ? rows[0].dedication : null,
-          cost: _.sumBy(rows, (r) => r.dedication ? r.hours * r.dedication.costByHour : 0),
+          cost: _.sumBy(rows, 'quantity'),
         }
       })
       .value();
       return activities
+    },
+    summaryByUserMonth() {
+      const activities1 = _(this.monthlyActivitiesTotal)
+      .groupBy(item => `${item.username}_${item.month}`)
+      .map((rows, id) => {      
+        return {
+          username: rows[0].username,
+          month: rows[0].month,
+          cost: _.sumBy(rows, (r) => r.cost),
+        }
+      })
+      .value();
+      // return activities
+      const activities2 = _(this.justifications)
+      .groupBy(item => `${item.users_permissions_user.username}_${item.month}`)
+      .map((rows, id) => {      
+        return {
+          username: rows[0].users_permissions_user.username,
+          month: this.zeroPad(rows[0].month, 2),
+          cost: _.sumBy(rows, (r) => r.quantity),
+        }
+      })
+      .value();
+
+      const activitiesjoin = _.concat(activities1, activities2)
+
+      const activities = _(activitiesjoin)
+      .groupBy(item => `${item.username}_${item.month}`)
+      .map((rows, id) => {      
+        return {
+          username: rows[0].username,
+          month: rows[0].month,
+          cost: _.sumBy(rows, 'cost'),
+          payroll: this.payrolls.find(p => p.users_permissions_user.username === rows[0].username && parseInt(p.year.year) === parseInt(this.year) && parseInt(p.month.month) === parseInt(rows[0].month))
+        }
+      })
+      .value();
+      return _.orderBy(activities, ['username', 'month'])
     },
     summaryByUserAll() {
       const activities = _(_.concat(this.summaryByUser, this.summaryJustificationsByUser))
@@ -363,7 +430,7 @@ export default {
       return rows.map(({ ym, users_permissions_user, ...row }) => row)
     },
     addJustificationEnabled() {
-      return this.justification.month && this.justification.users_permissions_user && this.justification.project && this.justification.hours && parseInt(this.justification.hours) > 0
+      return this.justification.month && this.justification.users_permissions_user && this.justification.project && this.justification.quantity && parseInt(this.justification.quantity) > 0
     }
   },
   watch: {
