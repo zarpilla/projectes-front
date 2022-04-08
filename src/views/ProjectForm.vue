@@ -850,7 +850,7 @@
 
       <card-component v-if="!isLoading" title="TASQUES" header-icon="view-column" @header-icon-click="toogleTasksView"
         >
-        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project-info="form" :project="form.id" :view="tasksView" />
+        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="user ? user.id : null" :project-info="form" :project="form.id" :view="tasksView" />
         <span class="bg-info" v-else
           >Es necessari guardar el projecte per accedir a les
           tasques</span
@@ -935,6 +935,7 @@ export default {
   },
   computed: {
     ...mapState(["me"]),
+    ...mapState(['userName']),
     filteredClients() {
       return this.clients.filter((option) => {
         return (
@@ -1222,6 +1223,11 @@ export default {
     treasuryExpensesDone2() {
       return this.documents.filter((t) => t.multiplier < 0 && t.document.paid);
     },
+    user() {
+      return this.leaders.find(
+        (u) => u.username.toLowerCase() === this.userName.toLowerCase()
+      );
+    }
   },
   watch: {
     id(newValue) {

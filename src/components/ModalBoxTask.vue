@@ -171,7 +171,7 @@
           <b-field
             label="Funció"
             class="has-check"
-            v-if="!isLoading2 && activityTypes && hasActivities"
+            v-if="!isLoading2 && activityTypes && activityTypes['0'] && hasActivities"
           >
             <radio-picker
               v-model="form.activity_type"
@@ -368,37 +368,8 @@ export default {
       this.activityTypes = {};
 
       if (this.form.project && this.form.project.name) {
-        // console.log('this.form', this.form)
+        this.loadActivityTypes()
 
-        this.activity_types = [];
-        this.activityTypes = {};
-
-        if (this.form.project.id && !this.form.project.activity_types) {
-          const project = this.projects.find(
-            (p) => p.id === this.form.project.id
-          );
-          if (project) {
-            this.form.project.activity_types = project.activity_types;
-          }
-        }
-
-        if (
-          this.form.project.activity_types &&
-          this.form.project.activity_types.length
-        ) {
-          this.activity_types = this.form.project.activity_types;
-          this.hasActivities = false;
-          this.isLoading2 = true;
-          this.activityTypes = { 0: "Cap" };
-          this.form.project.activity_types.forEach((a) => {
-            this.activityTypes[a.id] = a.name;
-            this.hasActivities = true;
-          });
-          
-          if (this.form.activity_type && this.form.activity_type.id) {
-            this.form.activity_type = this.form.activity_type.id;
-          }
-        }
         this.projectSearch = this.form.project.name;
         this.form.project = this.form.project.id;
       } else {
@@ -443,29 +414,49 @@ export default {
       this.isModalActive = true;
       this.$emit("delete", this.form);
     },
+    loadActivityTypes() {
+      this.activity_types = [];
+      this.activityTypes = {};
+
+      if (this.form.project.id && !this.form.project.activity_types) {
+        const project = this.projects.find(
+          (p) => p.id === this.form.project.id
+        );
+        if (project) {
+          this.form.project.activity_types = project.activity_types;
+        }
+      }
+
+      if (
+        this.form.project.activity_types &&
+        this.form.project.activity_types.length
+      ) {
+        this.activity_types = this.form.project.activity_types;
+        this.hasActivities = false;
+        this.isLoading2 = true;
+        this.activityTypes = { 0: "Cap" };
+        this.form.project.activity_types.forEach((a) => {
+          this.activityTypes[a.id] = a.name;
+          this.hasActivities = true;
+        });
+        
+        if (this.form.activity_type && this.form.activity_type.id) {
+          this.form.activity_type = this.form.activity_type.id;
+        }
+      }
+    },
     projectSelected(option) {
       if (!option) {
         return;
       }
       const project = option | null;
-      this.form.project = option ? option.id : null;
+      this.form.project = option;
+      this.isLoading2 = true;
+      this.loadActivityTypes();
 
-      this.activity_types = [];
-      this.activityTypes = {};
-
-      if (project.activity_types && project.activity_types.length) {
-        this.isLoading2 = true;
-        this.hasActivities = false;
-        this.activity_types = project.activity_types;
-        this.activityTypes = { 0: "Cap" };
-        project.activity_types.forEach((a) => {
-          this.activityTypes[a.id] = a.name;
-          this.hasActivities = true;
-        });
-        setTimeout(() => {
-          this.isLoading2 = false;
-        }, 100);
-      }
+      setTimeout(() => {
+        this.isLoading2 = false;
+      }, 100);
     },
     addUser(user) {
       // console.log('addUser', user)
