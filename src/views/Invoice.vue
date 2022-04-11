@@ -35,7 +35,7 @@
                   <td :colspan="5">
                     <table>
                       <tr>
-                        <td>
+                        <td class="prov-td">
                           <div class="client">{{ texts[locale]['PROVEÏDOR'] }}</div>
                           <div v-if="me.name">{{ me.name }}</div>
                           <div v-if="me.nif">{{ me.nif }}</div>
@@ -43,7 +43,7 @@
                           <div v-if="me.phone">{{ me.phone }}</div>
                           <div v-if="me.email">{{ me.email }}</div>
                         </td>
-                        <td>
+                        <td class="client-td">
                           <div class="client">{{ texts[locale]['CLIENT'] }}</div>
                           <div v-if="quote.contact.name">{{ quote.contact.name }}</div>
                           <div v-if="quote.contact.nif">{{ quote.contact.nif }}</div>
@@ -192,6 +192,24 @@ export default {
           'Notes': 'Notas',
           'Total (sense IVA):': 'Total (sin IVA):',
           'Mètode de pagament': 'Métode de pago'
+        },
+        es: {
+          'Factura': 'Invoice',
+          'Data:': 'Date:',
+          'Venciment:': 'Expiration:',
+          'PROVEÏDOR': 'PROVIDER',
+          'CLIENT': 'CLIENT',
+          'Concepte': 'Concept',
+          'Q.': 'Q.',
+          'Base': 'Base',
+          'IVA': 'VAT',
+          'IRPF': 'IRPF',
+          'Total': 'Total',
+          'Total:': 'Total:',
+          'Base:': 'Base:',
+          'Notes': 'Notes',
+          'Total (sense IVA):': 'Total (withput VAT):',
+          'Mètode de pagament': 'Payment method'
         }
       }
     }

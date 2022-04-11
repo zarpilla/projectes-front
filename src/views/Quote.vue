@@ -36,7 +36,7 @@
                   <td :colspan="5">
                     <table>
                       <tr>
-                        <td>
+                        <td class="prov-td">
                           <div class="client">{{ texts[locale]['PROVEÏDOR'] }}</div>
                           <div v-if="me.name">{{ me.name }}</div>
                           <div v-if="me.nif">{{ me.nif }}</div>
@@ -44,13 +44,13 @@
                           <div v-if="me.phone">{{ me.phone }}</div>
                           <div v-if="me.email">{{ me.email }}</div>
                         </td>
-                        <td v-if="quote.contact && quote.contact.id">
+                        <td class="client-td" v-if="quote.contact && quote.contact.id">
                           <div class="client">{{ texts[locale]['CLIENT'] }}</div>
                           <div v-if="quote.contact.name">{{ quote.contact.name }}</div>
                           <div v-if="quote.contact.nif">{{ quote.contact.nif }}</div>                          
                           <div v-if="quote.contact.address">{{ quote.contact.address }}<br />{{ quote.contact.postcode }} {{ quote.contact.city }}</div>
                           <div v-if="quote.contact.phone">{{ quote.contact.phone }}</div>
-                          <div v-if="quote.contact.email">{{ quote.contact.email }}</div>
+                          <!-- <div v-if="quote.contact.email">{{ quote.contact.email }}</div> -->
                         </td>
                       </tr>
                     </table>
@@ -82,7 +82,7 @@
                           <div class="zmt-3" v-if="showVat">{{ texts[locale]['Total (sense IVA):'] }} {{ quote.total_base | formatCurrency }}€</div>
                           <div v-if="showVat">{{ texts[locale]['IVA'] }}: {{ quote.total_vat | formatCurrency}}€</div>
                           <div class="mt-3">
-                          {{ texts[locale]['Total'] }} {{ quote.total | formatCurrency}}€
+                          {{ texts[locale]['Total'] }}: {{ quote.total | formatCurrency}}€
                           </div>
                         </td>
                       </tr>
@@ -170,6 +170,21 @@ export default {
           'Total:': 'Total:',
           'Notes': 'Notas',
           'Total (sense IVA):': 'Total (sin IVA):'
+        },
+        en: {
+          'Factura proforma': 'Proforma invoice',
+          'Pressupost': 'Budget',
+          'Data:': 'Date:',
+          'PROVEÏDOR': 'PROVIDER',
+          'CLIENT': 'CLIENT',
+          'Concepte': 'Concept',
+          'Q.': 'Q.',
+          'Preu': 'Price',
+          'IVA': 'VAT',
+          'Total': 'Total',
+          'Total:': 'Total:',
+          'Notes': 'Notes',
+          'Total (sense IVA):': 'Total (without VAT):'
         }
       }
     }
@@ -383,6 +398,10 @@ border: 1px solid #eee;
   margin-top: 5rem;
   padding-top: 0.5rem;
   font-size:13px
+}
+
+.invoice-box .prov-td, .invoice-box .client-td {
+  width:50%
 }
 @media only screen and (max-width: 600px) {
   .invoice-box table tr.top table td {
