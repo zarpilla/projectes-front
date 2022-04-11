@@ -222,7 +222,7 @@ export default {
       if (this.view === 'list') {
         const cap = { id: 0, name: '---' }
         if (this.projectInfo.activity_types.length > 0) {
-          return _.concat(cap, this.projectInfo.activity_types)
+          return _.concat(this.projectInfo.activity_types, cap)
         } else {
           return [cap]
         }        

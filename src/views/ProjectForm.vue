@@ -850,7 +850,7 @@
 
       <card-component v-if="!isLoading" title="TASQUES" header-icon="view-column" @header-icon-click="toogleTasksView"
         >
-        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="user ? user.id : null" :project-info="form" :project="form.id" :view="tasksView" />
+        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project-info="form" :project="form.id" :view="tasksView" />
         <span class="bg-info" v-else
           >Es necessari guardar el projecte per accedir a les
           tasques</span

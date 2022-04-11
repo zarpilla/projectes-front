@@ -171,7 +171,7 @@
           <b-field
             label="Funció"
             class="has-check"
-            v-if="!isLoading2 && activityTypes && activityTypes['0'] && hasActivities"
+            v-if="!isLoading2 && activityTypes && hasActivities"
           >
             <radio-picker
               v-model="form.activity_type"
@@ -434,11 +434,14 @@ export default {
         this.activity_types = this.form.project.activity_types;
         this.hasActivities = false;
         this.isLoading2 = true;
-        this.activityTypes = { 0: "Cap" };
+        this.activityTypes = {};
         this.form.project.activity_types.forEach((a) => {
           this.activityTypes[a.id] = a.name;
           this.hasActivities = true;
         });
+        if (!this.hasActivities) {
+          this.activityTypes = { 0: 'Cap' };
+        }
         
         if (this.form.activity_type && this.form.activity_type.id) {
           this.form.activity_type = this.form.activity_type.id;
