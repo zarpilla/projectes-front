@@ -381,7 +381,7 @@ export default {
           let tasks = (await service({ requiresAuth: true }).get(query)).data
           this.tasksRadio = { '0': 'Cap' }
           if (this.form.activity_type) {
-            tasks = tasks.filter(t => t.activity_type === null || (t.activity_type && t.activity_type.id.toString() === this.form.activity_type.toString()))
+            tasks = tasks.filter(t => t.activity_type === null || (t.activity_type && t.activity_type.id && t.activity_type.id.toString() === this.form.activity_type.toString()))
           }
           tasks.forEach(t => {            
             this.tasksRadio[t.id] = t.name
