@@ -167,15 +167,14 @@
 // @ is an alias to /src
 import * as chartConfig from "@/components/Charts/chart.config";
 import TitleBar from "@/components/TitleBar";
-// import HeroBar from '@/components/HeroBar'
 import Tiles from "@/components/Tiles";
 import CardWidget from "@/components/CardWidget";
 import CardComponent from "@/components/CardComponent";
-// import LineChart from '@/components/Charts/LineChart'
-// import BarChart from '@/components/Charts/BarChart'
 import ProjectsTable from "@/components/ProjectsTable";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
+import { mapState } from 'vuex'
+import moment from 'moment';
 
 export default {
   name: "Home",
@@ -212,6 +211,7 @@ export default {
     };
   },
   computed: {
+    ...mapState(['userName']),
     titleStack() {
       return ["Projectes", "General"];
     },
@@ -314,6 +314,23 @@ export default {
         this.loading = false;
         this.applyProjects();
       });
+
+    service({ requiresAuth: true })
+      .get("tasks?_limit=-1&_where[archived_eq]=false")
+      .then((r) => {
+        const allTasks = r.data;
+        const myTasks = allTasks.filter(t => t.users_permissions_users && t.users_permissions_users.length && t.task_state && t.task_state.id !== 3 && t.users_permissions_users.find(u => u.username === this.userName) && t.due_date && t.due_date <= moment().format('YYYY-MM-DD'))
+        const myChecklists = allTasks.filter(t => t.checklist && t.checklist.length && t.checklist.find(c => c.user && c.user.username === this.userName && c.done === false && c.due_date && c.due_date <= moment().format('YYYY-MM-DD')))
+        if (myTasks.length || myChecklists.length) {
+          this.$buefy.snackbar.open({
+            message: "Atenció, tens tasques amb la data límit superada!",
+            queue: false,
+            indefinite: true
+          });
+        }
+      });
+
+      console.log('userName', this.userName)
   },
   methods: {
     navNewProject() {

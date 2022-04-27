@@ -1,6 +1,6 @@
 <template>
   <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
-    <div class="modal-card modal-card-dedication modal-card-task" >
+    <div class="modal-card modal-card-dedication modal-card-task">
       <header class="modal-card-head">
         <p class="modal-card-title">Tasca</p>
       </header>
@@ -127,46 +127,74 @@
               :options="taskStates"
             ></radio-picker>
           </b-field>
-  
-          <b-field label="Checklist">
-            </b-field>
-            <div
-                  v-for="(check, j) in form.checklist"
-                  :key="j"
-                  class="columns is-multiline is-full mb-2"
-                >
-                  <div class="column is-11">
-                    <b-checkbox v-model="check.done" class="checkbox-inline">
-                    </b-checkbox>
-                    <b-input class="check-name is-full-input" v-model="check.name" />
-                    <!-- <span class="check-name">
-                    {{ check.name }}
-                    </span> -->
-                  </div>
-                  <div class="column is-1">
-                    <button
-                      class="button is-small is-danger ml-2 mt-3"
-                      type="button"
-                      @click.prevent="removePhase(j)"
-                    >
-                      <b-icon icon="trash-can" size="is-small" />
-                    </button>
-                  </div>
-                </div>
 
-            <form @submit.prevent="addPhase">
-              <b-field label="" class="mt-5 mb-5">
-                <b-input
-                  placeholder="Nova subtasca al checklist..."
-                  v-model="checklistToAdd"
-                  icon-right="plus-circle"
-                  icon-right-clickable
-                  @icon-right-click="addPhase"
-                >
-                </b-input>
-              </b-field>
-            </form>
-          
+          <b-field label="Checklist"> </b-field>
+          <div
+            v-for="(check, j) in form.checklist"
+            :key="j"
+            class="columns is-multiline is-full mb-2 zis-flex"
+          >
+            <div class="column is-5 is-flex">
+              <b-checkbox v-model="check.done" class="checkbox-inline">
+              </b-checkbox>
+              <b-input class="check-name is-full" v-model="check.name" />
+            </div>
+            <div class="column is-3">
+              <b-datepicker
+                v-model="check.due_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder=""
+              >
+              </b-datepicker>
+            </div>
+            <div class="column is-2">
+              <b-autocomplete
+                v-model="check.user.username"
+                placeholder="Persona"
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredUsersCheck"
+                field="username"
+                @select="(option) => addUserCheck(option, check)"
+                :clearable="true"
+              >
+              </b-autocomplete>
+            </div>
+            <div class="column is-2">
+              <button
+                class="button is-small is-danger zml-2 mt-1"
+                type="button"
+                title="Elimina"
+                @click.prevent="removePhase(j)"
+              >
+                <b-icon icon="trash-can" size="is-small" />
+              </button>
+              <button
+                class="button is-small is-warning ml-2 mt-1"
+                type="button"
+                @click.prevent="duplicatePhase(j)"
+                title="Duplica"
+              >
+                <b-icon icon="arrow-split-horizontal" size="is-small" />
+              </button>
+            </div>
+          </div>
+
+          <form @submit.prevent="addPhase">
+            <b-field label="" class="mt-5 mb-5">
+              <b-input
+                placeholder="Nova subtasca al checklist..."
+                v-model="checklistToAdd"
+                icon-right="plus-circle"
+                icon-right-clickable
+                @icon-right-click="addPhase"
+              >
+              </b-input>
+            </b-field>
+          </form>
 
           <b-field
             label="Funció"
@@ -251,7 +279,7 @@ export default {
     states: {
       type: Array,
       default: [],
-    }
+    },
   },
   data() {
     return {
@@ -283,6 +311,7 @@ export default {
       trashObject: null,
       isDeleteModalActive: false,
       userNameSearch: "",
+      userNameCheckSearch: "",
       projectSearch: "",
       initializing: true,
       activity_types: [],
@@ -301,6 +330,16 @@ export default {
             .toString()
             .toLowerCase()
             .indexOf(this.userNameSearch.toLowerCase()) >= 0
+        );
+      });
+    },
+    filteredUsersCheck() {
+      return this.users.filter((option) => {
+        return (
+          option.username
+            .toString()
+            .toLowerCase()
+            .indexOf(this.userNameCheckSearch.toLowerCase()) >= 0
         );
       });
     },
@@ -368,7 +407,7 @@ export default {
       this.activityTypes = {};
 
       if (this.form.project && this.form.project.name) {
-        this.loadActivityTypes()
+        this.loadActivityTypes();
 
         this.projectSearch = this.form.project.name;
         this.form.project = this.form.project.id;
@@ -380,6 +419,18 @@ export default {
         this.form.due_date = moment(this.form.due_date, "YYYY-MM-DD").toDate();
       } else {
         this.form.due_date = null;
+      }
+
+      if (this.form.checklist.length) {
+        this.form.checklist = this.form.checklist.map((c) => {
+          return {
+            ...c,
+            due_date: c.due_date
+              ? moment(c.due_date, "YYYY-MM-DD").toDate()
+              : null,
+            user: c.user || "",
+          };
+        });
       }
 
       setTimeout(() => {
@@ -394,11 +445,19 @@ export default {
     },
     submit() {
       const form = JSON.parse(JSON.stringify(this.form));
+
+      form.checklist = form.checklist.map((c) => {
+          return {
+            ...c,
+            user: c.user || null,
+          };
+        });
+
       if (this.form.due_date) {
         form.due_date = moment(this.form.due_date).format("YYYY-MM-DD");
       }
       if (this.form.activity_type && !this.form.activity_type.id) {
-        this.form.activity_type = null
+        this.form.activity_type = null;
       }
       this.$emit("submit", form);
     },
@@ -440,9 +499,9 @@ export default {
           this.hasActivities = true;
         });
         if (!this.hasActivities) {
-          this.activityTypes = { 0: 'Cap' };
+          this.activityTypes = { 0: "Cap" };
         }
-        
+
         if (this.form.activity_type && this.form.activity_type.id) {
           this.form.activity_type = this.form.activity_type.id;
         }
@@ -477,6 +536,25 @@ export default {
         this.userNameSearch = "";
       }, 100);
     },
+    addUserCheck(user, check) {
+      console.log("addUser", user);
+      if (!user) {
+        return;
+      }
+
+      check.user = user;
+      // const existing = check.users.find(
+      //   (u) => u.id === user.id
+      // );
+      // if (!existing) {
+      //   this.check.users.push(user);
+      // }
+
+      this.userNameCheckSearch = "";
+      setTimeout(() => {
+        this.userNameCheckSearch = "";
+      }, 100);
+    },
     removeUser(user) {
       this.form.users_permissions_users =
         this.form.users_permissions_users.filter((u) => u.id !== user.id);
@@ -503,6 +581,8 @@ export default {
       this.form.checklist.push({
         name: this.checklistToAdd,
         done: false,
+        user: '',
+        due_date: null,
       });
       this.checklistToAdd = "";
       // this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
@@ -510,15 +590,21 @@ export default {
     removePhase(i) {
       this.needsUpdate = true;
       this.form.checklist = this.form.checklist.filter((p, j) => i !== j);
-      // this.$emit("phases-updated", {
-      //   phases: this.phases,
-      //   projectId: this.form.id,
-      // });
     },
+    duplicatePhase(i) {
+      const elem = { ...this.form.checklist[i] }
+      delete elem.id
+      this.form.checklist.push(elem)
+    }
   },
 };
 </script>
 <style>
+@media screen and (min-width: 769px) {
+  .modal-card-task {
+    width: 50vw;
+  }
+}
 .modal-card-dedication .field:not(:last-child) {
   margin-bottom: 1rem;
 }
@@ -550,14 +636,18 @@ export default {
 .column-doc img {
   border: 1px solid #eee;
 }
-.check-name{
+.check-name {
   vertical-align: 4px;
   display: inline-block;
 }
-.is-full-input, .is-full-input .input{
+.is-full-input,
+.is-full-input .input {
   width: calc(100% - 50px);
 }
-.xcolumns{
+.check-name.is-full {
+  width: calc(100%);
+}
+.xcolumns {
   width: 100%;
 }
 </style>
