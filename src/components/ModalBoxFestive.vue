@@ -13,6 +13,7 @@
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
                   icon="calendar-today"                  
+                  :editable="true"
                   trap-focus>
               </b-datepicker>
             </b-field>

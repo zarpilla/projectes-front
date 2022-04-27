@@ -39,6 +39,7 @@
                 :first-day-of-week="1"
                 icon="calendar-today"
                 :disabled="filters.lastUpdated"
+                :editable="true"
                 trap-focus>
               </b-datepicker>
             </b-field>
@@ -50,6 +51,7 @@
                 :first-day-of-week="1"
                 icon="calendar-today"
                 :disabled="filters.lastUpdated"
+                :editable="true"
                 trap-focus>
               </b-datepicker>
             </b-field>

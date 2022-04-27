@@ -70,6 +70,7 @@
               :first-day-of-week="1"
               icon="calendar-today"
               trap-focus
+              :editable="true"
             >
             </b-datepicker>
           </b-field>
@@ -147,6 +148,7 @@
                 :first-day-of-week="1"
                 icon="calendar-today"
                 placeholder=""
+                :editable="true"
               >
               </b-datepicker>
             </div>
