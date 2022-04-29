@@ -293,7 +293,7 @@ border: 1px solid #eee;
   padding: 30px;
   font-size: 12px;
   line-height: 24px;
-  font-family: Helvetica, "Nunito", sans-serif, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+  font-family: sans-serif, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
   color: #222;
   background: #fff;
 }
