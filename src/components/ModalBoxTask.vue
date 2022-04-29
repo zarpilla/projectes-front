@@ -154,11 +154,11 @@
             </div>
             <div class="column is-2">
               <b-autocomplete
-                v-model="check.user.username"
+                v-model="check.userSearch"
                 placeholder="Persona"
                 :keep-first="false"
                 :open-on-focus="true"
-                :data="filteredUsersCheck"
+                :data="filteredUsersCheck(check)"
                 field="username"
                 @select="(option) => addUserCheck(option, check)"
                 :clearable="true"
@@ -335,16 +335,7 @@ export default {
         );
       });
     },
-    filteredUsersCheck() {
-      return this.users.filter((option) => {
-        return (
-          option.username
-            .toString()
-            .toLowerCase()
-            .indexOf(this.userNameCheckSearch.toLowerCase()) >= 0
-        );
-      });
-    },
+    
     filteredProject() {
       return this.projects.filter((option) => {
         return (
@@ -378,6 +369,16 @@ export default {
     dedicationObject(newValue) {},
   },
   methods: {
+    filteredUsersCheck(check) {
+      return this.users.filter((option) => {
+        return (
+          option.username
+            .toString()
+            .toLowerCase()
+            .indexOf(check.userSearch.toLowerCase()) >= 0
+        );
+      });
+    },
     show() {
       this.initializing = true;
       // console.log('this.taskObject',this.taskObject)
@@ -431,6 +432,7 @@ export default {
               ? moment(c.due_date, "YYYY-MM-DD").toDate()
               : null,
             user: c.user || "",
+            userSearch: c.user && c.user.username ? c.user.username : ''
           };
         });
       }
