@@ -193,7 +193,7 @@ export default {
           'Total (sense IVA):': 'Total (sin IVA):',
           'Mètode de pagament': 'Métode de pago'
         },
-        es: {
+        en: {
           'Factura': 'Invoice',
           'Data:': 'Date:',
           'Venciment:': 'Expiration:',
