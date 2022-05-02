@@ -62,6 +62,7 @@
                         <td>{{ texts[locale]['Concepte'] }}</td>
                         <td v-if="showQuantity">{{ texts[locale]['Q.'] }}</td>
                         <td v-if="showQuantity || showVat">{{ texts[locale]['Base'] }}</td>
+                        <td>{{ texts[locale]['Base imposable'] }}</td>
                         <td v-if="showIrpf">{{ texts[locale]['IRPF'] }}</td>
                         <td v-if="showVat">{{ texts[locale]['IVA'] }}</td>
                         <td>{{ texts[locale]['Total'] }}</td>
@@ -74,13 +75,14 @@
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
                         <td v-if="showQuantity || showVat">{{ line.base | formatCurrency}}€</td>
+                        <td>{{ line.quantity * line.base | formatCurrency}}€</td>
                         <td v-if="showIrpf">{{ -1 * line.quantity * line.base * line.irpf / 100 | formatCurrency }} ({{ line.irpf }}%)</td>
                         <td v-if="showVat">{{ line.quantity * line.base * line.vat / 100 | formatCurrency }}  ({{ line.vat }}%)</td>
                         <td>{{ line.quantity * line.base - (line.quantity * line.base * line.irpf / 100) + ( line.quantity * line.base * line.vat / 100) | formatCurrency }}€</td>
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
-                          <div>{{ texts[locale]['Base imposable:'] }} {{ quote.total_base | formatCurrency }}€</div>
+                          <div>{{ texts[locale]['Base imposable'] }}: {{ quote.total_base | formatCurrency }}€</div>
                           <div v-if="quote.total_vat">{{ texts[locale]['IVA'] }}: {{ quote.total_vat | formatCurrency }}€</div>
                           <div v-if="quote.total_irpf">{{ texts[locale]['IRPF'] }}: {{ -1*quote.total_irpf | formatCurrency }}€</div>
                           <div class="total-val">
@@ -170,7 +172,7 @@ export default {
           'IRPF': 'IRPF',
           'Total': 'Total',
           'Total:': 'Total:',
-          'Base imposable:': 'Base imposable:',
+          'Base imposable': 'Base imposable',
           'Notes': 'Notes',
           'Total (sense IVA):': 'Total (sense IVA):',
           'Mètode de pagament': 'Mètode de pagament'
@@ -188,7 +190,7 @@ export default {
           'IRPF': 'IRPF',
           'Total': 'Total',
           'Total:': 'Total:',
-          'Base imposable:': 'Base imponible:',
+          'Base imposable': 'Base imponible',
           'Notes': 'Notas',
           'Total (sense IVA):': 'Total (sin IVA):',
           'Mètode de pagament': 'Métode de pago'
@@ -206,6 +208,7 @@ export default {
           'IRPF': 'IRPF',
           'Total': 'Total',
           'Total:': 'Total:',
+          'Base imposable': 'Total base',
           'Base:': 'Base:',
           'Notes': 'Notes',
           'Total (sense IVA):': 'Total (withput VAT):',
