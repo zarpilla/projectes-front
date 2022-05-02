@@ -335,7 +335,7 @@ export default {
         );
       });
     },
-    
+
     filteredProject() {
       return this.projects.filter((option) => {
         return (
@@ -369,14 +369,14 @@ export default {
     dedicationObject(newValue) {},
   },
   methods: {
-    filteredUsersCheck(check) {      
-      const search = check.userSearch || ''
+    filteredUsersCheck(check) {
+      const search = check.userSearch || "";
       return this.users.filter((option) => {
         return (
           option.username
             .toString()
             .toLowerCase()
-            .indexOf((search).toLowerCase()) >= 0
+            .indexOf(search.toLowerCase()) >= 0
         );
       });
     },
@@ -433,7 +433,7 @@ export default {
               ? moment(c.due_date, "YYYY-MM-DD").toDate()
               : null,
             user: c.user || "",
-            userSearch: c.user && c.user.username ? c.user.username : ''
+            userSearch: c.user && c.user.username ? c.user.username : "",
           };
         });
       }
@@ -451,12 +451,14 @@ export default {
     submit() {
       const form = JSON.parse(JSON.stringify(this.form));
 
-      form.checklist = form.checklist.map((c) => {
+      if (form.checklist) {
+        form.checklist = form.checklist.map((c) => {
           return {
             ...c,
             user: c.user || null,
           };
         });
+      }
 
       if (this.form.due_date) {
         form.due_date = moment(this.form.due_date).format("YYYY-MM-DD");
@@ -586,7 +588,7 @@ export default {
       this.form.checklist.push({
         name: this.checklistToAdd,
         done: false,
-        user: '',
+        user: "",
         due_date: null,
       });
       this.checklistToAdd = "";
@@ -597,10 +599,10 @@ export default {
       this.form.checklist = this.form.checklist.filter((p, j) => i !== j);
     },
     duplicatePhase(i) {
-      const elem = { ...this.form.checklist[i] }
-      delete elem.id
-      this.form.checklist.push(elem)
-    }
+      const elem = { ...this.form.checklist[i] };
+      delete elem.id;
+      this.form.checklist.push(elem);
+    },
   },
 };
 </script>
