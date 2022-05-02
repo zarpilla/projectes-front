@@ -369,13 +369,14 @@ export default {
     dedicationObject(newValue) {},
   },
   methods: {
-    filteredUsersCheck(check) {
+    filteredUsersCheck(check) {      
+      const search = check.userSearch || ''
       return this.users.filter((option) => {
         return (
           option.username
             .toString()
             .toLowerCase()
-            .indexOf(check.userSearch.toLowerCase()) >= 0
+            .indexOf((search).toLowerCase()) >= 0
         );
       });
     },
