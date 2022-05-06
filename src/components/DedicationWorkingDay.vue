@@ -151,18 +151,20 @@ export default {
           return
         }
         this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
+
+        console.log('this.dedicationObject',this.dedicationObject)
         if (this.dedicationObject._dedication.users_permissions_user && !this.dedicationObject._dedication.hours) {
           const usersTask = this.tasks.data.filter(d => d._dedication && d._dedication.users_permissions_user.id === this.dedicationObject._dedication.users_permissions_user.id).map(t => { return t._dedication})
           if (usersTask && usersTask.length) {
             const lastTask = _.maxBy(usersTask, function(o) {
               return o.from;
             })
-            if (lastTask) {
-              this.dedicationObject._dedication.from = moment(lastTask.to, 'YYYY-MM-DD').add(1, 'days')
-              this.dedicationObject._dedication.hours = lastTask.hours
-              this.dedicationObject._dedication.costByHour = lastTask.costByHour
-              this.dedicationObject._dedication.monthly_salary = lastTask.monthly_salary
-            }
+            // if (lastTask) {
+            //   this.dedicationObject._dedication.from = moment(lastTask.to, 'YYYY-MM-DD').add(1, 'days')
+            //   this.dedicationObject._dedication.hours = lastTask.hours
+            //   this.dedicationObject._dedication.costByHour = lastTask.costByHour
+            //   this.dedicationObject._dedication.monthly_salary = lastTask.monthly_salary
+            // }
           }
         }
         

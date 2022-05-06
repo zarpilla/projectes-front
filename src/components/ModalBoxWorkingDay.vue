@@ -211,7 +211,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     enabled () {
-      return this.form.hours && this.form.from && this.form.to
+      return this.form.from && this.form.to
     },
     filteredUsers () {
       return this.users.filter(option => {
@@ -257,7 +257,8 @@ export default {
       this.isLoading1 = true
       this.isLoading2 = true
       this.initializing = true
-      // console.log('show this.dedicationObject', this.dedicationObject)
+      
+      console.log('show this.dedicationObject', this.dedicationObject)
       // console.log('show this.users', this.users)
       
       if (this.dedicationObject) {
