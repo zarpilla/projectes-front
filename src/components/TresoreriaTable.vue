@@ -21,7 +21,18 @@
 
     <!-- <pre>{{ pivotData }}</pre> -->
 
-    <card-component title="PREVISIÓ DE TRESORERIA" class="ztile is-child mt-2">
+    <b-loading
+      :is-full-page="true"
+      v-model="isLoading"
+      :can-cancel="false"
+    ></b-loading>
+
+    <card-component
+      title="PREVISIÓ DE TRESORERIA"
+      class="ztile is-child mt-2"
+      header-icon="view-column"
+      @header-icon-click="toogleView"
+    >
       <section class="section">
         <div class="b-table treasury-table">
           <div
@@ -36,7 +47,10 @@
                 <th></th>
                 <th class="has-text-right">
                   <div class="zth-wrap has-text-right">
-                    <span class="is-relative"> Avui </span>
+                    <span class="is-relative" v-if="view === 'today'">
+                      Avui
+                    </span>
+                    <span class="is-relative" v-else> Inici Any </span>
                   </div>
                 </th>
                 <th
@@ -175,25 +189,31 @@
         <div class="column">
           <b-field label="Saldo" grouped class="column">
             <money-format
-                :value="(vat.paid - vat.received) * me.options.deductible_vat_pct / 100"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
+              :value="
+                ((vat.paid - vat.received) * me.options.deductible_vat_pct) /
+                100
+              "
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            >
+            </money-format>
           </b-field>
         </div>
         <div class="column">
           <b-field label="Saldar" grouped class="column">
-            <button class="button is-primary" @click="payVat" :disabled="(vat.paid - vat.received === 0) || payingVat">
-              {{ payingVat ? '...' : 'Saldar'}}</button>
+            <button
+              class="button is-primary"
+              @click="payVat"
+              :disabled="vat.paid - vat.received === 0 || payingVat"
+            >
+              {{ payingVat ? "..." : "Saldar" }}
+            </button>
           </b-field>
         </div>
       </div>
     </card-component>
-
-
 
     <download-excel
       class="export view-button"
@@ -343,7 +363,8 @@ export default {
       pivotData: [],
       vat: { paid: 0, received: 0 },
       me: null,
-      payingVat: false
+      payingVat: false,
+      view: "startOfYear",
     };
   },
   async mounted() {
@@ -351,8 +372,14 @@ export default {
   },
   computed: {
     monthlySummary() {
+      // const fn = (t) => { return this.view === 'today' ? t.datef >= t.datef >= moment().format("YYYYMMDD") : t.datef >= moment().startOf('year').format("YYYYMMDD") }
       const treasuryData = this.treasuryData
-        .filter((t) => t.datef >= moment().format("YYYYMMDD"))
+        // .filter((t) => t.datef >= moment().startOf('year').format("YYYYMMDD"))
+        .filter((t) =>
+          this.view === "today"
+            ? t.datef >= moment().format("YYYYMMDD")
+            : t.datef >= moment().startOf("year").format("YYYYMMDD")
+        )
         .map((t) => {
           return {
             ...t,
@@ -411,7 +438,10 @@ export default {
       return ansWithSubtotal;
     },
     todaySubTotal() {
-      const today = this.treasuryData.find((t) => t.type === "Avui");
+      const today =
+        this.view === "today"
+          ? this.treasuryData.find((t) => t.type === "Avui")
+          : this.treasuryData.find((t) => t.type === "Inici Any");
       return today ? today.subtotal : 0;
     },
   },
@@ -678,7 +708,23 @@ export default {
             paid: null,
             contact: "-",
           };
+
           this.treasury.push(today);
+
+          // today
+          const startOfYear = {
+            project_name: "-",
+            project_id: 0,
+            type: "Inici Any",
+            concept: "-",
+            total_amount: 0,
+            date: moment().startOf("year"),
+            date_error: false,
+            paid: null,
+            contact: "-",
+          };
+
+          this.treasury.push(startOfYear);
 
           // vat
           const vats = [];
@@ -686,11 +732,9 @@ export default {
           this.emitted.forEach((i) => {
             const date = i.paid_date
               ? moment(i.paid_date, "YYYY-MM-DD")
-              : moment.max([
-                  i.paybefore ? moment(i.paybefore, "YYYY-MM-DD") : moment(),
-                  i.emitted ? moment(i.emitted, "YYYY-MM-DD") : moment(),
-                  moment(),
-                ]);
+              : i.paybefore
+              ? moment(i.paybefore, "YYYY-MM-DD")
+              : moment(i.emitted, "YYYY-MM-DD");
             const income = {
               project_name:
                 i.project && i.project.name
@@ -720,6 +764,8 @@ export default {
               contact: i.contact && i.contact.name ? i.contact.name : "?",
               to: `/document/${i.id}/emitted-invoices`,
             };
+
+            // console.log('i.code', i.code, i, income)
             this.treasury.push(income);
             if (i.total_vat) {
               // const vat = {
@@ -766,11 +812,9 @@ export default {
           this.receivedIncomes.forEach((i) => {
             const date = i.paid_date
               ? moment(i.paid_date, "YYYY-MM-DD")
-              : moment.max([
-                  i.paybefore ? moment(i.paybefore, "YYYY-MM-DD") : moment(),
-                  i.emitted ? moment(i.emitted, "YYYY-MM-DD") : moment(),
-                  moment(),
-                ]);
+              : i.paybefore
+              ? moment(i.paybefore, "YYYY-MM-DD")
+              : moment(i.emitted, "YYYY-MM-DD");
             const income = {
               project_name:
                 i.project && i.project.name
@@ -849,11 +893,9 @@ export default {
           this.received.forEach((e) => {
             const date = e.paid_date
               ? moment(e.paid_date, "YYYY-MM-DD")
-              : moment.max([
-                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
-                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
-                  moment(),
-                ]);
+              : e.paybefore
+              ? moment(e.paybefore, "YYYY-MM-DD")
+              : moment(e.emitted, "YYYY-MM-DD");
             const expense = {
               project_name:
                 e.project && e.project.name
@@ -965,11 +1007,9 @@ export default {
           this.receivedExpenses.forEach((e) => {
             const date = e.paid_date
               ? moment(e.paid_date, "YYYY-MM-DD")
-              : moment.max([
-                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
-                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
-                  moment(),
-                ]);
+              : e.paybefore
+              ? moment(e.paybefore, "YYYY-MM-DD")
+              : moment(e.emitted, "YYYY-MM-DD");
             const expense = {
               project_name:
                 e.project && e.project.name
@@ -1075,11 +1115,9 @@ export default {
           this.diets.forEach((e) => {
             const date = e.paid_date
               ? moment(e.paid_date, "YYYY-MM-DD")
-              : moment.max([
-                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
-                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
-                  moment(),
-                ]);
+              : e.paybefore
+              ? moment(e.paybefore, "YYYY-MM-DD")
+              : moment(e.emitted, "YYYY-MM-DD");
             const expense = {
               project_name:
                 e.project && e.project.name
@@ -1111,11 +1149,9 @@ export default {
           this.tickets.forEach((e) => {
             const date = e.paid_date
               ? moment(e.paid_date, "YYYY-MM-DD")
-              : moment.max([
-                  e.paybefore ? moment(e.paybefore, "YYYY-MM-DD") : moment(),
-                  e.emitted ? moment(e.emitted, "YYYY-MM-DD") : moment(),
-                  moment(),
-                ]);
+              : e.paybefore
+              ? moment(e.paybefore, "YYYY-MM-DD")
+              : moment(e.emitted, "YYYY-MM-DD");
             const expense = {
               project_name:
                 e.project && e.project.name
@@ -1156,7 +1192,10 @@ export default {
               project_name: "",
               project_id: 0,
               type: e.paid ? "Nòmina pagada" : "Nòmina esperada",
-              concept: `Nòmina ${e.year.year}-${this.zeroPad(e.month.month, 2)}-${e.users_permissions_user.username}`,
+              concept: `Nòmina ${e.year.year}-${this.zeroPad(
+                e.month.month,
+                2
+              )}-${e.users_permissions_user.username}`,
               total_amount: e.net_base ? -1 * Math.abs(e.net_base) : 0,
               date: moment(e.net_date, "YYYY-MM-DD"),
               date_error: (e.paid_date || e.emitted) === null,
@@ -1174,7 +1213,10 @@ export default {
                 project_name: "",
                 project_id: 0,
                 type: "IRPF Nòmina",
-                concept: `Nòmina ${e.year.year}-${this.zeroPad(e.month.month, 2)}-${e.users_permissions_user.username}`,
+                concept: `Nòmina ${e.year.year}-${this.zeroPad(
+                  e.month.month,
+                  2
+                )}-${e.users_permissions_user.username}`,
                 total_amount:
                   e.irpf_base || e.other_base
                     ? -1 * Math.abs(e.irpf_base + e.other_base)
@@ -1196,7 +1238,10 @@ export default {
                 project_name: "",
                 project_id: 0,
                 type: e.paid ? "SS pagat" : "SS esperat",
-                concept: `Nòmina ${e.year.year}-${this.zeroPad(e.month.month, 2)}-${e.users_permissions_user.username}`,
+                concept: `Nòmina ${e.year.year}-${this.zeroPad(
+                  e.month.month,
+                  2
+                )}-${e.users_permissions_user.username}`,
                 total_amount: e.ss_base ? -1 * Math.abs(e.ss_base) : 0,
                 date: moment(e.ss_date, "YYYY-MM-DD"),
                 date_error: e.ss_date === null,
@@ -1319,16 +1364,18 @@ export default {
       this.isModalActive = false;
     },
     async payVat() {
-      this.payingVat = true
-      await service({ requiresAuth: true }).post(
-          `emitted-invoices/pay-vat`
-      );
-      this.payingVat = false
-      window.location.reload()
+      this.payingVat = true;
+      await service({ requiresAuth: true }).post(`emitted-invoices/pay-vat`);
+      this.payingVat = false;
+      window.location.reload();
     },
     zeroPad(num, places) {
-      return String(num).padStart(places, '0')
-    } 
+      return String(num).padStart(places, "0");
+    },
+    toogleView() {
+      this.view = this.view === "today" ? "startOfYear" : "today";
+      this.getData();
+    },
   },
 };
 </script>
