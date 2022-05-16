@@ -500,7 +500,7 @@ export default {
                   type: "Despesa esperada",
                   concept: e.concept,
                   total_amount: e.total_amount
-                    ? -1 * Math.abs(e.total_amount)
+                    ? -1 * e.total_amount
                     : 0,
                   date: moment(e.date, "YYYY-MM-DD") || moment(),
                   date_error: e.date === null,
@@ -553,7 +553,7 @@ export default {
                   project_id: p.id,
                   type: "Ingrés esperat",
                   concept: i.concept,
-                  total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
+                  total_amount: i.total_amount ? i.total_amount : 0,
                   date: moment(i.date, "YYYY-MM-DD") || moment(),
                   date_error: i.date === null,
                   paid: false,
@@ -595,7 +595,7 @@ export default {
                     type: "Despesa esperada",
                     concept: e.concept,
                     total_amount: e.total_amount
-                      ? -1 * Math.abs(e.total_amount)
+                      ? -1 * (e.total_amount)
                       : 0,
                     date: moment(e.date, "YYYY-MM-DD") || moment(),
                     date_error: e.date === null,
@@ -649,7 +649,7 @@ export default {
                     project_id: p.id,
                     type: "Ingrés esperat",
                     concept: i.concept,
-                    total_amount: i.total_amount ? Math.abs(i.total_amount) : 0,
+                    total_amount: i.total_amount ? (i.total_amount) : 0,
                     date: moment(i.date, "YYYY-MM-DD") || moment(),
                     date_error: i.date === null,
                     paid: false,
@@ -755,7 +755,7 @@ export default {
                 : 0,
               type: i.paid ? "Factura cobrada" : "Factura emesa",
               concept: i.code,
-              total_amount: i.total ? Math.abs(i.total) : 0,
+              total_amount: i.total ? (i.total) : 0,
               date: date,
               date_error: (i.paid_date || i.paybefore || i.emitted) === null,
               real: true,
@@ -837,7 +837,7 @@ export default {
                 i.document_type.name
               })`,
               concept: i.code,
-              total_amount: i.total ? Math.abs(i.total) : 0,
+              total_amount: i.total ? (i.total) : 0,
               date: date,
               date_error: (i.paid_date || i.paybefore || i.emitted) === null,
               real: true,
@@ -916,7 +916,7 @@ export default {
                 : 0,
               type: e.paid ? "Factura pagada" : "Factura rebuda",
               concept: e.code,
-              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              total_amount: e.total ? -1 * (e.total) : 0,
               date: date,
               date_error: false,
               paid: e.paid,
@@ -947,7 +947,7 @@ export default {
                   : 0,
                 type: "IRPF Factura",
                 concept: e.code,
-                total_amount: -1 * Math.abs(e.total_irpf),
+                total_amount: -1 * (e.total_irpf),
                 date: moment(e.emitted, "YYYY-MM-DD")
                   .endOf("quarter")
                   .add(20, "day"),
@@ -1032,7 +1032,7 @@ export default {
                 e.document_type.name
               })`,
               concept: e.code,
-              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              total_amount: e.total ? -1 * (e.total) : 0,
               date: date,
               date_error: false,
               paid: e.paid,
@@ -1063,7 +1063,7 @@ export default {
                   : 0,
                 type: "IRPF Factura",
                 concept: e.code,
-                total_amount: -1 * Math.abs(e.total_irpf),
+                total_amount: -1 * (e.total_irpf),
                 date: moment(e.emitted, "YYYY-MM-DD")
                   .endOf("quarter")
                   .add(20, "day"),
@@ -1138,7 +1138,7 @@ export default {
                 : 0,
               type: "Dieta",
               concept: e.code,
-              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              total_amount: e.total ? -1 * (e.total) : 0,
               date: date,
               date_error: (e.paid_date || e.paybefore || e.emitted) === null,
               paid: e.paid,
@@ -1172,7 +1172,7 @@ export default {
                 : 0,
               type: "Ticket",
               concept: e.code,
-              total_amount: e.total ? -1 * Math.abs(e.total) : 0,
+              total_amount: e.total ? -1 * (e.total) : 0,
               date: date,
               date_error: (e.paid_date || e.emitted) === null,
               paid: e.paid,
@@ -1196,7 +1196,7 @@ export default {
                 e.month.month,
                 2
               )}-${e.users_permissions_user.username}`,
-              total_amount: e.net_base ? -1 * Math.abs(e.net_base) : 0,
+              total_amount: e.net_base ? -1 * (e.net_base) : 0,
               date: moment(e.net_date, "YYYY-MM-DD"),
               date_error: (e.paid_date || e.emitted) === null,
               paid: e.paid,
@@ -1219,7 +1219,7 @@ export default {
                 )}-${e.users_permissions_user.username}`,
                 total_amount:
                   e.irpf_base || e.other_base
-                    ? -1 * Math.abs(e.irpf_base + e.other_base)
+                    ? -1 * (e.irpf_base + e.other_base)
                     : 0,
                 date: moment(e.irpf_date, "YYYY-MM-DD"),
                 date_error: e.irpf_date === null,
@@ -1242,7 +1242,7 @@ export default {
                   e.month.month,
                   2
                 )}-${e.users_permissions_user.username}`,
-                total_amount: e.ss_base ? -1 * Math.abs(e.ss_base) : 0,
+                total_amount: e.ss_base ? -1 * (e.ss_base) : 0,
                 date: moment(e.ss_date, "YYYY-MM-DD"),
                 date_error: e.ss_date === null,
                 paid: e.paid,
