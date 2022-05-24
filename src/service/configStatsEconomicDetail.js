@@ -26,6 +26,9 @@ const config = {
       name: 'year',
       expand: false
     },{
+      name: 'month',
+      expand: false
+    },{
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
@@ -75,6 +78,9 @@ const config = {
           },
           year: {
             caption: 'Any (TOTS)'
+          },
+          month: {
+            caption: 'Mes (TOTS)'
           },
         },
         // measures: ['Sum']
