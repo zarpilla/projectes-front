@@ -282,8 +282,8 @@ export default {
 
       pdf.toPdf().get('pdf').then(function (pdf) {
          window.open(
-          pdf.output('bloburl', "lala.pdf")
-          , "lala.pdf");
+          pdf.output('bloburl', opt.filename)
+          , opt.filename);
       });
 
     },
