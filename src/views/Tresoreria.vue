@@ -69,42 +69,19 @@ export default {
   },
   async mounted () {
     
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval)
-        await this.addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
-        this.isLoading = false
-      }
-    }, 100)
+    // const interval = setInterval(async () => {
+    //   if (window.jQuery) {
+    //     clearInterval(interval)
+    //     await this.addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+    //     await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+    //     await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+    //     await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
+    //     this.isLoading = false
+    //   }
+    // }, 100)
 
   },
   methods: {
-    async addScript (src) {
-      return new Promise((resolve, reject) => {
-        const head = document.head || document.getElementsByTagName('head')[0]
-        const script = document.createElement('script')
-        script.src = src
-        script.addEventListener('load', resolve)
-        script.addEventListener('error', (e) => reject(e))
-        script.addEventListener('abort', (e) => reject(e))
-        head.appendChild(script)
-      })
-    },
-    async addStyle (src) {
-      return new Promise((resolve, reject) => {
-        const head = document.head || document.getElementsByTagName('head')[0]
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = src
-        link.addEventListener('load', resolve)
-        link.addEventListener('error', (e) => reject(e))
-        link.addEventListener('abort', (e) => reject(e))
-        head.appendChild(link)
-      })
-    },
   },
 }
 </script>

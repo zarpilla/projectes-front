@@ -76,6 +76,20 @@ const routes = [
     meta: {
       title: 'Panell Despeses'
     },
+    path: '/stats-economic-detail',
+    name: 'stats.economic-detail',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsEconomicDetail.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: 'Panell Despeses'
+    },
     path: '/stats-despeses',
     name: 'stats.despeses',
     // route level code-splitting
@@ -85,7 +99,7 @@ const routes = [
     meta: {
       requiresAuth: true
     }
-  },
+  },  
   {
     meta: {
       title: 'Panell Previsió Dedicacio'

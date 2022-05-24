@@ -1,12 +1,6 @@
 <template>
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
-    <!-- <hero-bar>
-      Dedicació
-      <router-link slot="right" to="/" class="button">
-        Dashboard
-      </router-link>
-    </hero-bar> -->
     <section class="section is-main-section">
       <card-component title="Filtres">
         <form @submit.prevent="submit2">
@@ -24,67 +18,12 @@
                 {{ s.name }}
               </option>
             </b-select>
-            <!-- <b-field label="Persona">
-              <b-autocomplete
-                v-model="userNameSearch"
-                placeholder="Persona"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredUsers"
-                field="username"
-                @select="(option) => (filters.user = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Projecte">
-              <b-autocomplete
-                v-model="projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="
-                  (option) => (filters.project = option ? option.id : null)
-                "
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field> -->
-            <!-- <b-field label="Inici">
-              <b-datepicker
-                v-model="filters.date1"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Final">
-              <b-datepicker
-                v-model="filters.date2"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Últimes">
-              <b-checkbox v-model="filters.lastUpdated"> </b-checkbox>
-            </b-field> -->
           </b-field>
         </form>
       </card-component>
 
-      <card-component title="Estratègies">
-        <estrategies-pivot :project-state="filters.project_state" v-if="!isLoading" />
+      <card-component title="Projectes">
+        <economic-detail-pivot :project-state="filters.project_state" v-if="!isLoading" />
       </card-component>
     </section>
   </div>
@@ -93,19 +32,17 @@
 <script>
 import TitleBar from '@/components/TitleBar'
 import CardComponent from '@/components/CardComponent'
-import EstrategiesPivot from '@/components/EstrategiesPivot'
+import EconomicDetailPivot from '@/components/EconomicDetailPivot'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'
 
 export default {
-  name: 'StatsDedicacio',
+  name: 'StatsExpenses',
   components: {
-    // HeroBar,
     CardComponent,
     TitleBar,
-    // DedicationWidget,
-    EstrategiesPivot
+    EconomicDetailPivot
   },
   data () {
     return {
@@ -118,7 +55,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Projectes', 'Estratègies']
+      return ['Projectes', 'Detall Ingressos i Despeses']
     }
   },
   async mounted () {

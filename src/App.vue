@@ -119,10 +119,10 @@ export default {
             label: 'Prev./Real Dedicació'
           },
           {
-            to: '/stats-despeses',
+            to: '/stats-economic-detail',
             icon: 'table',
             label: 'Ingressos/Despeses'
-          },
+          },          
           {
             to: '/stats-estrategies',
             icon: 'table',
