@@ -1029,27 +1029,47 @@ export default {
     },    
     async modalSplitSubmit(action) {
       // console.log('action',action)
+
+      var max = 0
+      var divider = 1
+      if (action.action === "x2") {
+        max = 2
+      }
+      else if (action.action === "x3") {
+        max = 3
+      }
+      else if (action.action === "x4") {
+        max = 4
+      }
+      else if (action.action === "x12") {
+        max = 12
+      }
+      if (action.action === "d2") {
+        max = 2
+        divider = 2
+      }
+      else if (action.action === "d3") {
+        max = 3
+        divider = 3
+      }
+      else if (action.action === "d4") {
+        max = 4
+        divider = 4
+      }
+      else if (action.action === "d12") {
+        max = 12
+        divider = 12
+      }
+
       if (action.type === "income") {
-        if (action.action === "x2") {
-          const newIncome = {
-            income_type: action.subphase.income_type,
-            concept: action.subphase.concept,
-            amount: action.subphase.amount,
-            quantity: action.subphase.quantity,
-          };
-          this.phases[action.i].subphases.splice(
-            action.j + 1,
-            0,
-            newIncome
-          );
-        } else if (action.action === "x12") {
-          for (let i = 0; i < 12; i++) {
+        if (max > 0) {
+          for (let i = 0; i < max - 1; i++) {
             const newIncome = {
               income_type: action.subphase.income_type,
               concept: action.subphase.concept,
-              amount: action.subphase.amount,
+              amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
-              date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
+              date: action.subphase.date ? moment(action.subphase.date).add(max - i - 1, 'month').toDate() : null
             };
             this.phases[action.i].subphases.splice(
               action.j + 1,
@@ -1057,7 +1077,13 @@ export default {
               newIncome
             );
           }
-        } else if (action.action === "split") {
+          if (divider > 1) {
+            const el = this.phases[action.i].subphases[action.j]
+            el.amount = el.amount / divider
+          }
+        }
+
+        if (action.action === "split") {
           const newIncome = {
             income_type: action.subphase.income_type,
             concept: action.subphase.concept,
@@ -1074,26 +1100,16 @@ export default {
           );
         }
       } else if (action.type === "expense") {
-        if (action.action === "x2") {
-          const newIncome = {
-            expense_type: action.subphase.expense_type,
-            concept: action.subphase.concept,
-            amount: action.subphase.amount,
-            quantity: action.subphase.quantity,
-          };
-          this.phases[action.i].expenses.splice(
-            action.j + 1,
-            0,
-            newIncome
-          );
-        } else if (action.action === "x12") {
-          for (let i = 0; i < 12; i++) {
+
+
+        if (max > 0) {
+          for (let i = 0; i < max - 1; i++) {
             const newIncome = {
               expense_type: action.subphase.expense_type,
               concept: action.subphase.concept,
-              amount: action.subphase.amount,
+              amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
-              date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
+              date: action.subphase.date ? moment(action.subphase.date).add(max - i - 1, 'month').toDate() : null
             };
             this.phases[action.i].expenses.splice(
               action.j + 1,
@@ -1101,7 +1117,41 @@ export default {
               newIncome
             );
           }
-        } else if (action.action === "split") {
+          if (divider > 1) {
+            const el = this.phases[action.i].expenses[action.j]
+            el.amount = el.amount / divider
+          }
+        }
+        
+        // if (action.action === "x2") {
+        //   const newIncome = {
+        //     expense_type: action.subphase.expense_type,
+        //     concept: action.subphase.concept,
+        //     amount: action.subphase.amount,
+        //     quantity: action.subphase.quantity,
+        //   };
+        //   this.phases[action.i].expenses.splice(
+        //     action.j + 1,
+        //     0,
+        //     newIncome
+        //   );
+        // } else if (action.action === "x12") {
+        //   for (let i = 0; i < 12; i++) {
+        //     const newIncome = {
+        //       expense_type: action.subphase.expense_type,
+        //       concept: action.subphase.concept,
+        //       amount: action.subphase.amount,
+        //       quantity: action.subphase.quantity,
+        //       date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
+        //     };
+        //     this.phases[action.i].expenses.splice(
+        //       action.j + 1,
+        //       0,
+        //       newIncome
+        //     );
+        //   }
+        // } else 
+        if (action.action === "split") {
           const newIncome = {
             expense_type: action.subphase.expense_type,
             concept: action.subphase.concept,

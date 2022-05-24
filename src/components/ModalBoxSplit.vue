@@ -93,11 +93,29 @@
           <button class="button is-primary" native-type="submit">
             Separa
           </button>
-          <button class="button is-primary" type="button" @click="x2">
-            x 2
+          <button class="button is-primary" type="button" @click="split('x2')">
+            x2
           </button>
-          <button class="button is-primary" type="button" @click="x12">
-            x 12
+          <button class="button is-primary" type="button" @click="split('x3')">
+            x3
+          </button>
+          <button class="button is-primary" type="button" @click="split('x4')">
+            x4
+          </button>
+          <button class="button is-primary" type="button" @click="split('x12')">
+            x12
+          </button>
+          <button class="button is-primary" type="button" @click="split('d2')">
+            /2
+          </button>
+          <button class="button is-primary" type="button" @click="split('d3')">
+            /3
+          </button>
+          <button class="button is-primary" type="button" @click="split('d4')">
+            /4
+          </button>
+          <button class="button is-primary" type="button" @click="split('d12')">
+            /12
           </button>
         </footer>
       </form>
@@ -185,9 +203,9 @@ export default {
       }
       this.$emit("submit", action);
     },
-    x2() {
+    split(option) {
       const action = {
-        action: 'x2',
+        action: option,
         phase: this.invoicingObject.phase,
         subphase: this.invoicingObject.subphase,
         j: this.invoicingObject.j,
@@ -196,17 +214,28 @@ export default {
       }
       this.$emit("action", action);
     },
-    x12 () {
-      const action = {
-        action: 'x12',
-        phase: this.invoicingObject.phase,
-        subphase: this.invoicingObject.subphase,
-        j: this.invoicingObject.j,
-        i: this.invoicingObject.i,
-        type: this.invoicingObject.type
-      }
-      this.$emit("action", action);
-    },
+    // x2() {
+    //   const action = {
+    //     action: 'x2',
+    //     phase: this.invoicingObject.phase,
+    //     subphase: this.invoicingObject.subphase,
+    //     j: this.invoicingObject.j,
+    //     i: this.invoicingObject.i,
+    //     type: this.invoicingObject.type
+    //   }
+    //   this.$emit("action", action);
+    // },
+    // x12 () {
+    //   const action = {
+    //     action: 'x12',
+    //     phase: this.invoicingObject.phase,
+    //     subphase: this.invoicingObject.subphase,
+    //     j: this.invoicingObject.j,
+    //     i: this.invoicingObject.i,
+    //     type: this.invoicingObject.type
+    //   }
+    //   this.$emit("action", action);
+    // },
     trashCancel() {
       this.isDeleteModalActive = false;
     },
