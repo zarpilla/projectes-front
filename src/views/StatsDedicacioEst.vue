@@ -137,7 +137,7 @@ export default {
         this.isLoading2 = false
       })
       service({ requiresAuth: true }).get('users').then((r) => {
-        this.users = r.data.filter((u) => u.hidden !== true);
+        this.users = r.data.filter((u) => !u.hidden);
         this.users.unshift({ id: 0, username: 'Tots' })
         this.filters.user = 0
         this.isLoading3 = false

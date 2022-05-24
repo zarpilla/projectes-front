@@ -178,8 +178,7 @@ export default {
       // console.log('dedications', this.dedications)
       
       service({ requiresAuth: true }).get('users').then((r) => {
-        this.users = r.data.filter(u => u.username !== 'app')
-        // console.log('this.dedicationObject', this.dedicationObject)
+        this.users = r.data.filter(u => !u.hidden)
         if (this.dedicationObject && this.dedicationObject._hours && this.dedicationObject._hours.users_permissions_user) {
           const user = this.users.find(u => u.username.toLowerCase() === this.dedicationObject._hours.users_permissions_user.username.toLowerCase())
           this.form.users_permissions_user = user

@@ -98,7 +98,7 @@ export default {
     })
 
     service({ requiresAuth: true }).get('users').then((r) => {
-      this.users = r.data.filter(u => u.hidden !== true)
+      this.users = r.data.filter(u => !u.hidden)
       // this.usersList = JSON.parse(JSON.stringify(r.data.filter(u => u.hidden !== true)))
       // this.usersList.unshift({ id: 0, username: 'Totes' })
       // const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
