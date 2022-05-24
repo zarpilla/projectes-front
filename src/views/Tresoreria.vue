@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!isLoading">
+  <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <tresoreria-table />
@@ -66,22 +66,6 @@ export default {
         )
       })
     }
-  },
-  async mounted () {
-    
-    // const interval = setInterval(async () => {
-    //   if (window.jQuery) {
-    //     clearInterval(interval)
-    //     await this.addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-    //     await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-    //     await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-    //     await this.addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
-    //     this.isLoading = false
-    //   }
-    // }, 100)
-
-  },
-  methods: {
-  },
+  }  
 }
 </script>
