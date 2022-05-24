@@ -25,11 +25,7 @@
                 </b-select>
               </b-field>
               <b-field label="Àmbit *" horizontal>
-                <b-select
-                  v-model="form.project_scope.id"
-                  placeholder="Àmbit"
-                  
-                >
+                <b-select v-model="form.project_scope.id" placeholder="Àmbit">
                   <option
                     v-for="(s, index) in project_scopes"
                     :key="index"
@@ -40,11 +36,7 @@
                 </b-select>
               </b-field>
               <b-field label="Coordina *" horizontal>
-                <b-select
-                  v-model="form.leader.id"
-                  placeholder="Coordina"
-                  
-                >
+                <b-select v-model="form.leader.id" placeholder="Coordina">
                   <option
                     v-for="(s, index) in leaders"
                     :key="index"
@@ -160,11 +152,7 @@
                 </div>
               </b-field>
               <b-field label="Àmbit territorial" horizontal>
-                <b-select
-                  v-model="form.region.id"
-                  placeholder="Àmbit"
-                  
-                >
+                <b-select v-model="form.region.id" placeholder="Àmbit">
                   <option
                     v-for="(s, index) in regions"
                     :key="index"
@@ -222,11 +210,14 @@
                 >
                 </b-datepicker>
               </b-field>
-              <b-field v-if="dedicationTypes && dedicationTypes.length" label="Tipus de dedicació" horizontal>
+              <b-field
+                v-if="dedicationTypes && dedicationTypes.length"
+                label="Tipus de dedicació"
+                horizontal
+              >
                 <b-select
                   v-model="form.default_dedication_type.id"
                   placeholder="Tipus de dedicació"
-                  
                 >
                   <option>-- Qualsevol --</option>
                   <option
@@ -251,11 +242,19 @@
                 </b-input>
               </b-field>
 
-              <b-field label="Subvencionable" horizontal message="Que s'acull a subvencions">
+              <b-field
+                label="Justificació nòmines"
+                horizontal
+                message="Que s'acull a subvencions on caldrà justificar part amb nòmines"
+              >
                 <b-switch v-model="form.grantable"> </b-switch>
               </b-field>
 
-              <b-field label="Projecte mare" horizontal message="Per agrupar projectes interanuals">
+              <b-field
+                label="Projecte mare"
+                horizontal
+                message="Per agrupar projectes interanuals"
+              >
                 <b-autocomplete
                   v-model="projectSearch"
                   placeholder="Escriu el nom del projecte..."
@@ -448,7 +447,12 @@
               </b-field>
               <b-field label="Diferència (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
-                  {{ (form.total_estimated_hours - form.total_real_hours).toFixed(2) }} h
+                  {{
+                    (
+                      form.total_estimated_hours - form.total_real_hours
+                    ).toFixed(2)
+                  }}
+                  h
                 </div>
               </b-field>
             </div>
@@ -497,7 +501,12 @@
               <b-field label="Preu/hora previst (€)" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_estimated_hours ? form.total_estimated_hours_price / form.total_estimated_hours : 0"
+                    :value="
+                      form.total_estimated_hours
+                        ? form.total_estimated_hours_price /
+                          form.total_estimated_hours
+                        : 0
+                    "
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -522,8 +531,13 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      (form.total_estimated_hours ? form.total_estimated_hours_price / form.total_estimated_hours : 0) -
-                      (form.total_real_hours ? form.total_real_hours_price / form.total_real_hours : 0)
+                      (form.total_estimated_hours
+                        ? form.total_estimated_hours_price /
+                          form.total_estimated_hours
+                        : 0) -
+                      (form.total_real_hours
+                        ? form.total_real_hours_price / form.total_real_hours
+                        : 0)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -622,23 +636,44 @@
         </div>
       </div>
 
-      <card-component v-if="!isLoading && form && form.original_phases && form.original_phases.length > 0" title="GESTIÓ ECONÒMICA - PRESSUPOST ORIGINAL" :closeIcon="true" :content-visible="originalPhasesVisible">
-        <project-phases :form="form" :project-phases="form.original_phases" v-if="form.original_phases" @phases-updated="originalPhasesUpdated" mode="simple" />        
-      </card-component>      
+      <card-component
+        v-if="
+          !isLoading &&
+          form &&
+          form.original_phases &&
+          form.original_phases.length > 0
+        "
+        title="GESTIÓ ECONÒMICA - PRESSUPOST ORIGINAL"
+        :closeIcon="true"
+        :content-visible="originalPhasesVisible"
+      >
+        <project-phases
+          :form="form"
+          :project-phases="form.original_phases"
+          v-if="form.original_phases"
+          @phases-updated="originalPhasesUpdated"
+          mode="simple"
+        />
+      </card-component>
 
-      <card-component v-if="!isLoading && form && form.phases" title="GESTIÓ ECONÒMICA - FASES I EXECUCIÓ PRESSUPOST" :closeIcon="true" >
-        <project-phases :form="form" :project-phases="form.phases" @phases-updated="phasesUpdated" />
-        <hr v-if="form.phases.length && form.original_phases.length === 0">
+      <card-component
+        v-if="!isLoading && form && form.phases"
+        title="GESTIÓ ECONÒMICA - FASES I EXECUCIÓ PRESSUPOST"
+        :closeIcon="true"
+      >
+        <project-phases
+          :form="form"
+          :project-phases="form.phases"
+          @phases-updated="phasesUpdated"
+        />
+        <hr v-if="form.phases.length && form.original_phases.length === 0" />
         <b-field v-if="form.phases.length && form.original_phases.length === 0">
-
-          <b-button type="is-warning" @click="closeQuote"
-            >
+          <b-button type="is-warning" @click="closeQuote">
             Tancar Pressupost
-            </b-button
-          >
+          </b-button>
         </b-field>
       </card-component>
-            
+
       <card-component
         v-if="documents && documents.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
@@ -848,12 +883,23 @@
         </b-field>
       </card-component>
 
-      <card-component v-if="!isLoading" title="TASQUES" header-icon="view-column" @header-icon-click="toogleTasksView"
-        >
-        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project-info="form" :project="form.id" :view="tasksView" />
+      <card-component
+        v-if="!isLoading"
+        title="TASQUES"
+        header-icon="view-column"
+        @header-icon-click="toogleTasksView"
+      >
+        <tasks
+          v-if="form.id"
+          :projects="projects"
+          :users="leaders"
+          :user="null"
+          :project-info="form"
+          :project="form.id"
+          :view="tasksView"
+        />
         <span class="bg-info" v-else
-          >Es necessari guardar el projecte per accedir a les
-          tasques</span
+          >Es necessari guardar el projecte per accedir a les tasques</span
         >
       </card-component>
     </section>
@@ -887,7 +933,7 @@ export default {
     ModalBoxSplit,
     ProjectGannt2,
     ProjectPhases,
-    Tasks
+    Tasks,
   },
   props: {
     id: {
@@ -901,6 +947,7 @@ export default {
       isUpdating: false,
       needsUpdate: false,
       form: this.getClearFormObject(),
+      dirty: false,
       createdReadable: null,
       isProfileExists: false,
       project_states: [],
@@ -917,7 +964,7 @@ export default {
       clientSearch: "",
       projectSearch: "",
       cooperaSearch: "",
-      strategiesSearch: "",      
+      strategiesSearch: "",
       phaseToAdd: "",
       updatingGantt: false,
       updatingGanttTimer: 0,
@@ -930,12 +977,12 @@ export default {
       isModalSplitActive: false,
       newTask: "",
       originalPhasesVisible: false,
-      tasksView: 'state'
+      tasksView: "state",
     };
   },
   computed: {
     ...mapState(["me"]),
-    ...mapState(['userName']),
+    ...mapState(["userName"]),
     filteredClients() {
       return this.clients.filter((option) => {
         return (
@@ -1104,7 +1151,9 @@ export default {
         this.form.received_incomes.forEach((e) => {
           documents.push({
             docType: "received_income",
-            docTypeDesc: e.document_type ? this.documentTypes.find(t => t.id === e.document_type)?.name : '',
+            docTypeDesc: e.document_type
+              ? this.documentTypes.find((t) => t.id === e.document_type)?.name
+              : "",
             multiplier: 1,
             document: e,
           });
@@ -1114,7 +1163,9 @@ export default {
         this.form.received_expenses.forEach((e) => {
           documents.push({
             docType: "received_expense",
-            docTypeDesc: e.document_type ? this.documentTypes.find(t => t.id === e.document_type)?.name : '',
+            docTypeDesc: e.document_type
+              ? this.documentTypes.find((t) => t.id === e.document_type)?.name
+              : "",
             multiplier: -1,
             document: e,
           });
@@ -1227,7 +1278,7 @@ export default {
       return this.leaders.find(
         (u) => u.username.toLowerCase() === this.userName.toLowerCase()
       );
-    }
+    },
   },
   watch: {
     id(newValue) {
@@ -1235,17 +1286,59 @@ export default {
       if (!newValue || newValue === 0) {
         this.form = this.getClearFormObject();
         this.getAuxiliarData();
+        this.dirty = false;
       } else {
         this.getData();
+        this.dirty = false;
       }
+    },
+    form: {
+      handler(newVal, oldVal) {
+        this.dirty = oldVal.id == newVal.id ? true : false;
+        if (this.dirty) {
+          for (var i in newVal) {
+            // console.log('--------')
+            // console.log(i)
+            // console.log('oldVal i', oldVal[i])
+            // console.log('newVal i', newVal[i])
+            // if (newVal[i] !== oldVal[i]) {
+            //   console.log('oldVal i', oldVal[i])
+            //   console.log('newVal i', newVal[i])
+            // }
+          }
+          // console.log('oldVal', oldVal)
+          // console.log('newVal', newVal)
+        }
+      },
+      deep: true,
     },
   },
   created() {
-    try {
-      // this.tasksView = localStorage.getItem('project-form:tasksView') || 'state'
-    }
-    catch{}
     this.getData();
+  },
+  beforeRouteLeave(to, from, next) {
+    // called when the route that renders this component is about to be navigated away from.
+    // As with `beforeRouteUpdate`, it has access to `this` component instance.
+    if (this.dirty) {
+      this.$buefy.dialog.confirm({
+        message: "Estàs segura que vols marxar? Hi ha canvis sense guardar",
+        onConfirm: () => {
+          next();
+        },
+        onCancel: () => {
+          return false;
+        },
+      });
+
+      // const answer = window.confirm(
+      //   "Estàs segura que vols marxar? Hi ha canvis sense guardar"
+      // );
+      // if (!answer) return false;
+
+      // next()
+    } else {
+      next();
+    }
   },
   methods: {
     getClearFormObject() {
@@ -1258,7 +1351,7 @@ export default {
         leader: { id: 0 },
         phases: [],
         expenses: [],
-        default_dedication_type: { id: 0 }
+        default_dedication_type: { id: 0 },
       };
     },
     getData() {
@@ -1296,7 +1389,7 @@ export default {
                 this.form.region && this.form.region.id
                   ? this.form.region
                   : { id: 0 };
-              
+
               this.form.phases = this.form.phases.map((p) => {
                 return { ...p, edit: false };
               });
@@ -1346,7 +1439,6 @@ export default {
                     return { ...r, expenses: [] };
                   });
                 }
-                
 
                 if (mustUpdate) {
                   // await this.submit()
@@ -1367,7 +1459,7 @@ export default {
               }
 
               if (this.form.default_dedication_type === null) {
-                this.form.default_dedication_type = { id: 0 }
+                this.form.default_dedication_type = { id: 0 };
               }
 
               if (this.form.date_start) {
@@ -1386,6 +1478,10 @@ export default {
               this.getAuxiliarData();
 
               this.isLoading = false;
+
+              setTimeout(() => {
+                this.dirty = false;
+              }, 100);
             } else {
               this.$router.push({ name: "project.new" });
             }
@@ -1440,15 +1536,14 @@ export default {
         .then((r) => {
           this.projects = r.data;
           if (this.form.mother && this.form.mother.id) {
-            const mother = this.projects.find(p => p.id === this.form.mother.id)
+            const mother = this.projects.find(
+              (p) => p.id === this.form.mother.id
+            );
             if (mother) {
-              this.projectSearch = mother.name
+              this.projectSearch = mother.name;
             }
           }
         });
-        
-        
-
     },
     // input(v) {
     //   this.createdReadable = dayjs(v).format("MMM D, YYYY");
@@ -1460,47 +1555,52 @@ export default {
         this.form.structural_expenses_pct = null;
       }
       //console.log('type default_dedication_type', typeof this.form.default_dedication_type, this.form.default_dedication_type)
-      if (this.form.default_dedication_type && typeof this.form.default_dedication_type === 'object' && !this.form.default_dedication_type.id) {
+      if (
+        this.form.default_dedication_type &&
+        typeof this.form.default_dedication_type === "object" &&
+        !this.form.default_dedication_type.id
+      ) {
         this.form.default_dedication_type = null;
       }
 
       if (this.form.region && this.form.region.id === 0) {
-        this.form.region = null
+        this.form.region = null;
       }
-      
 
       try {
+        const stateInvalid = this.form.project_state.id === 0;
+        const scopeInvalid = this.form.project_scope.id === 0;
+        const leaderInvalid = this.form.leader.id === 0;
 
-        const stateInvalid = this.form.project_state.id === 0
-        const scopeInvalid = this.form.project_scope.id === 0
-        const leaderInvalid = this.form.leader.id === 0
-
-        if (!this.form.name || !this.form.date_start || !this.form.date_end 
-          || stateInvalid
-          || scopeInvalid
-          || leaderInvalid
-          ) {
+        if (
+          !this.form.name ||
+          !this.form.date_start ||
+          !this.form.date_end ||
+          stateInvalid ||
+          scopeInvalid ||
+          leaderInvalid
+        ) {
           this.$buefy.snackbar.open({
-            message: "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
+            message:
+              "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
             queue: false,
           });
-          this.isLoading = false
-          return
+          this.isLoading = false;
+          return;
         }
-        
+
         if (this.form.id) {
-          
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
             this.form
           );
+          this.dirty = false;
           this.$buefy.snackbar.open({
             message: "Guardat",
             queue: false,
           });
           this.getData();
         } else {
-
           const newProject = await service({ requiresAuth: true }).post(
             "projects",
             this.form
@@ -1510,7 +1610,7 @@ export default {
             name: "project.edit",
             params: { id: newProject.data.id },
           });
-
+          this.dirty = false;
           this.$buefy.snackbar.open({
             message: "Guardat",
             queue: false,
@@ -1523,9 +1623,15 @@ export default {
           }, 500);
         }
       } catch (err) {
-        // console.error("projects error", err);        
-        const oldProjectData = await service({ requiresAuth: true }).get(`projects?name=${this.form.name}`)
-        if (oldProjectData && oldProjectData.data && oldProjectData.data.length) {
+        // console.error("projects error", err);
+        const oldProjectData = await service({ requiresAuth: true }).get(
+          `projects?name=${this.form.name}`
+        );
+        if (
+          oldProjectData &&
+          oldProjectData.data &&
+          oldProjectData.data.length
+        ) {
           this.$buefy.snackbar.open({
             message: "Error. El projecte ja existeix",
             queue: false,
@@ -1538,8 +1644,6 @@ export default {
         }
         this.isLoading = false;
       }
-
-      
     },
     clientSelected(option) {
       delete option.projects;
@@ -1556,10 +1660,10 @@ export default {
     },
     projectSelected(option) {
       if (option && option.id) {
-        this.form.mother = option.id
+        this.form.mother = option.id;
       } else {
-        this.form.mother = null
-      }      
+        this.form.mother = null;
+      }
     },
     cooperaSelected(option) {
       delete option.projects;
@@ -1597,7 +1701,7 @@ export default {
       this.form.strategies = this.form.strategies.filter(
         (c) => c.id !== option.id
       );
-    },    
+    },
     updateGantt() {
       this.isUpdating = true;
       this.needsUpdate = false;
@@ -1618,17 +1722,14 @@ export default {
 
       var subphase = item._subphase ? item._subphase : null;
       if (!item._subphase) {
-        const phase = this.form.phases
-        .find((p) => p.id === pid)
-        phase.subphases.push({ concept: 'SF', estimated_hours: [] })
-        subphase = phase.subphases[0]        
-      } 
-      
-      const hours = subphase
-        .estimated_hours.find(
-          (h) =>
-            (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid)
-        );
+        const phase = this.form.phases.find((p) => p.id === pid);
+        phase.subphases.push({ concept: "SF", estimated_hours: [] });
+        subphase = phase.subphases[0];
+      }
+
+      const hours = subphase.estimated_hours.find(
+        (h) => (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid)
+      );
       // console.log('hours', hours)
       // console.log('item', item)
       if (hours) {
@@ -1666,8 +1767,7 @@ export default {
           // _subphase: item._subphase,
         };
         // console.log('hour to ush', hour)
-        subphase
-          .estimated_hours.push(hour);
+        subphase.estimated_hours.push(hour);
       }
       this.updatingGantt = true;
       if (this.updatingGanttTimer) {
@@ -1721,51 +1821,50 @@ export default {
       }
     },
     async removeActivity(task) {
-
       if (this.form.id) {
-        console.log('task', task)
-        let query = "tasks?_limit=-1&_where[archived_eq]=false";      
+        console.log("task", task);
+        let query = "tasks?_limit=-1&_where[archived_eq]=false";
         query += "&_where[project_eq]=" + this.form.id;
-        query += "&_where[activity_type_eq]=" + task.id;        
-        const tasks = (await service({ requiresAuth: true }).get(query)).data
+        query += "&_where[activity_type_eq]=" + task.id;
+        const tasks = (await service({ requiresAuth: true }).get(query)).data;
         if (tasks.length) {
           this.$buefy.snackbar.open({
             message: "No es pot eliminar perquè hi ha tasques associades",
             queue: false,
           });
-          return
+          return;
         }
-      }      
+      }
       this.form.activity_types = this.form.activity_types.filter(
         (t) => t.id !== task.id
       );
     },
     phasesUpdated(info) {
-      this.form.phases = info.phases
+      this.form.phases = info.phases;
     },
     originalPhasesUpdated(info) {
-      this.form.original_phases = info.phases
+      this.form.original_phases = info.phases;
     },
     closeQuote() {
-      this.originalPhasesVisible = true
-      this.form.original_phases = this.form.phases
-      this.form.original_phases.forEach(p => {
-        delete p.id
-        p.subphases.forEach(sp => {
-          delete sp.id
-        })
-        p.expenses.forEach(sp => {
-          delete sp.id
-        })
-      })
+      this.originalPhasesVisible = true;
+      this.form.original_phases = this.form.phases;
+      this.form.original_phases.forEach((p) => {
+        delete p.id;
+        p.subphases.forEach((sp) => {
+          delete sp.id;
+        });
+        p.expenses.forEach((sp) => {
+          delete sp.id;
+        });
+      });
     },
     toogleTasksView() {
-      this.tasksView = this.tasksView === 'list' ? 'state' : 'list'
+      this.tasksView = this.tasksView === "list" ? "state" : "list";
       // try {
       //   localStorage.setItem('project-form:tasksView', this.tasksView)
       // }
       // catch{}
-    }
+    },
   },
 };
 </script>
