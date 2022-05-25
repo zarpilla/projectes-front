@@ -199,7 +199,7 @@
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
-                      :disabled="subphase.paid"
+                      :disabled="subphase.paid || ( subphase.estimated_hours && subphase.estimated_hours.length > 0 )"
                       @click.prevent="removeSubPhase(props.row, subphase, j)"
                     >
                       <b-icon icon="trash-can" size="is-small" />
