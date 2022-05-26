@@ -30,9 +30,6 @@ const config = {
     rows: [{
       name: 'project_name',
       expand: false
-    }, {
-      name: 'project_year',
-      expand: false    
     }], // Specify a dimension on rows.
     measures: ['Hores reals', 'Hores previstes'],
     schema: {
