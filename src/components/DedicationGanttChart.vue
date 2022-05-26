@@ -123,12 +123,14 @@ export default {
               });
               const festiveDedication = {
                 project_name: f.festive_type.name,
-                ymw: moment(f.date, "YYYY-MM-DD").format("YYYY-MM") + '-' + moment(f.date, "YYYY-MM-DD").isoWeek(),
+                ymw: moment(f.date, "YYYY-MM-DD").format("YYYY-MM") + '-' + this.view === 'month' ? '01' : moment(f.date, "YYYY-MM-DD").isoWeek(),
                 estimated_hours: dailyHours,
               };
               userDedications.push(festiveDedication);
             }
           });
+
+          console.log('userDedications', userDedications)
 
           const dedicationTotals = _(userDedications)
             .groupBy("ymw")
@@ -140,8 +142,6 @@ export default {
               total: _.sumBy(ymw, "estimated_hours"),
             }))
             .value();
-
-            console.log('dedicationTotals', dedicationTotals)
 
           for (let j = 0; j < dedicationTotals.length; j++) {
             tid++;
@@ -174,7 +174,7 @@ export default {
               start_date: start_date,
               end_date: end_date,
               parent: leader.id,
-              progress: dedication.total / (20 * dailyHours),
+              progress: dedication.total / ( (this.view === 'month' ? 20 : 5) * dailyHours),
               readonly: true,
               _username: leader.username,
               _week: parseInt(dedication.week),
@@ -233,10 +233,7 @@ export default {
         // code of the custom form
       };
 
-      gantt.templates.tooltip_text = (start, end, task) => {
-        console.log('----------------')
-        console.log('this.dedications', this.dedications)
-        console.log('task', task)
+      gantt.templates.tooltip_text = (start, end, task) => {        
         const taskDedications = this.dedications.filter(
           (d) =>
             d.username === task._username &&
