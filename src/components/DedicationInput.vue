@@ -135,9 +135,9 @@
     >
       <template v-slot:day-content="{ day, attributes }">
         <div class="flex flex-col h-full z-10 overflow-hidden">
-          <span class="day-label text-sm text-gray-900" @click="dayClicked(day)">{{ day.day }}</span>
+          <span class="day-label text-sm text-gray-900" @click="dayClicked(day)">{{ day.day }}</span>          
+          <span class="day-sum-label text-sm text-gray-900 week-total" v-if="day && day.weekdayPosition === 7">Setmana: {{ weekSum(day.isoWeeknumber) }}h</span>
           <span class="day-sum-label text-sm text-gray-900" v-if="daySum(attributes)">{{ daySum(attributes) }}h</span>
-          <span class="day-sum-label text-sm text-gray-900" v-if="day && day.weekdayPosition === 7">TOT: {{ weekSum(day.isoWeeknumber) }}h</span>
           <div class="flex-grow overflow-y-auto overflow-x-auto">
             <span
               v-for="attr in attributes"
@@ -800,6 +800,11 @@ export default {
   font-size: 12px;
   color:#999;
   padding-top: 3px;
+}
+.week-total {
+  position: absolute;
+  bottom: 0;
+  right: 4px;
 }
 </style>
 
