@@ -131,7 +131,6 @@
       @update:from-page="pageChange"
       title-position="left"
       is-expanded
-      show-iso-weeknumbers="right"
       v-if="viewType == 'all' || viewType == 'calendar'"
     >
       <template v-slot:day-content="{ day, attributes }">
