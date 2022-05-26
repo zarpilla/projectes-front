@@ -855,7 +855,7 @@
           Guardar i Actualitzar
           <b-icon icon="refresh" size="is-small" />
         </button>
-        <project-gannt2
+        <project-gannt
           v-if="
             !isLoading &&
             !needsUpdate &&
@@ -913,7 +913,7 @@ import CardComponent from "@/components/CardComponent";
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
-import ProjectGannt2 from "@/components/ProjectGannt2.vue";
+import ProjectGannt from "@/components/ProjectGannt.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "vue-money-format";
 import { EventBus } from "@/service/event-bus.js";
@@ -931,7 +931,7 @@ export default {
     MoneyFormat,
     ModalBoxInvoicing,
     ModalBoxSplit,
-    ProjectGannt2,
+    ProjectGannt,
     ProjectPhases,
     Tasks,
   },

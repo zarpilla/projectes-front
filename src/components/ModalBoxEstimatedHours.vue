@@ -179,8 +179,10 @@ export default {
       
       service({ requiresAuth: true }).get('users').then((r) => {
         this.users = r.data.filter(u => !u.hidden)
-        if (this.dedicationObject && this.dedicationObject._hours && this.dedicationObject._hours.users_permissions_user) {
-          const user = this.users.find(u => u.username.toLowerCase() === this.dedicationObject._hours.users_permissions_user.username.toLowerCase())
+        const allUsers = r.data
+        // console.log('this.dedicationObject._hours.users_permissions_user', this.dedicationObject)
+        if (this.dedicationObject && this.dedicationObject._hours && this.dedicationObject._hours.users_permissions_user && this.dedicationObject._hours.users_permissions_user.username) {
+          const user = allUsers.find(u => u.username.toLowerCase() === this.dedicationObject._hours.users_permissions_user.username.toLowerCase())
           this.form.users_permissions_user = user
           const today = moment().format('YYYY-MM-DD')
           const dedication = this.dedications.find(d => d.users_permissions_user && d.users_permissions_user.id === user.id && d.from <= today && d.to >= today)
@@ -189,7 +191,7 @@ export default {
           }
           return
         }
-        const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+        const user = allUsers.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
         if (user && user.id && this.form.users_permissions_user === null) {          
           this.form.users_permissions_user = user
           const today = moment().format('YYYY-MM-DD')

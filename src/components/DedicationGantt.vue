@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="project-stats"></div>
-    <DedicationGanttChart :leaders="leaders" :dedications="pivotData" :festives="festives" v-if="!isLoading"></DedicationGanttChart>    
+    <dedication-gantt-chart :leaders="leaders" :view="view" :dedications="pivotData" :festives="festives" v-if="!isLoading"></dedication-gantt-chart>    
     <download-excel :data="pivotData">
       <b-button
         title="Exporta dades"
@@ -36,13 +36,9 @@ export default {
       type: Number,
       default: 0
     },
-    year: {
-      type: Number,
-      default: 0
-    },
-    month: {
-      type: Number,
-      default: 0
+    view: {
+      type: String,
+      default: 'month'
     }
   },
   data () {
@@ -61,17 +57,15 @@ export default {
       leaders: [],
       pivotData: [],
       isLoading: true,
-      festives: []
+      festives: [],
+      year: parseInt(moment().format('YYYY'))
     }
   },
   watch: {
     projectState: function (newVal, oldVal) {
       this.getActivities()
     },
-    year: function (newVal, oldVal) {
-      this.getActivities()
-    },
-    month: function (newVal, oldVal) {
+    view: function (newVal, oldVal) {
       this.getActivities()
     }
   },
@@ -109,7 +103,6 @@ export default {
         const projects = r.data.forEach(p => {
           if (p.activities) {
             // legacy ?
-            // console.log('legacy 1', p)
             p.activities.forEach(a => {
               if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) >= this.year)) && (this.month === 0 || (this.month > 0 && a.date && parseInt(moment(a.date).format('MM')) === this.month))) {
                 const activity = {
@@ -139,9 +132,10 @@ export default {
                 ph.subphases.forEach(sph => {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {
                     sph.estimated_hours.forEach(h => {
-                      // console.log('sph.estimated_hours', p.name, h)
-                      const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
-                      // console.log('sph diff', p.name, mdiff)
+                      const diff = moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD')))
+                      const mdiff = this.view === 'month' ? Math.round(diff.asMonths()) : Math.round(diff.asWeeks())
+                      
+                      // console.log('sph diff week', p.name, mdiff, h.to, h.from)
                       for (var i = 0; i < mdiff; i++) {
                         const activity = {
                           project_name: p.name,
@@ -153,8 +147,9 @@ export default {
                           total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                           total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
                           count: 1,
-                          month: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('MM'),
-                          year: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY'),
+                          week: this.view === 'month' ? 1 : moment(h.from, 'YYYY-MM-DD').add(i, this.view).isoWeek(),
+                          month: moment(h.from, 'YYYY-MM-DD').add(i, this.view).format('MM'),
+                          year: moment(h.from, 'YYYY-MM-DD').add(i, this.view).format('YYYY'),
                           day: 0,
                           date: '-',
                           hours: 0,

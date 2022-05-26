@@ -26,12 +26,22 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field label="Vista">
+              <b-select
+                v-model="filters.view"
+                placeholder="Estat"
+                required
+              >
+                <option value="month">Mensual</option>
+                <option value="week">Setmanal</option>
+              </b-select>
+            </b-field>
           </b-field>
         </form>
       </card-component>
 
       <card-component title="Projectes">        
-        <dedication-gantt :project-state="filters.project_state" :year="filters.year" :month="filters.month" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
+        <dedication-gantt :project-state="filters.project_state" :view="filters.view" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
       </card-component>
     </section>
   </div>
@@ -63,7 +73,8 @@ export default {
       filters: {
         project_state: null,
         year: null,
-        month: null
+        month: null,
+        view: 'month'
       },
       project_states: [],
       years: [],
