@@ -131,12 +131,14 @@
       @update:from-page="pageChange"
       title-position="left"
       is-expanded
+      show-iso-weeknumbers="right"
       v-if="viewType == 'all' || viewType == 'calendar'"
     >
       <template v-slot:day-content="{ day, attributes }">
         <div class="flex flex-col h-full z-10 overflow-hidden">
           <span class="day-label text-sm text-gray-900" @click="dayClicked(day)">{{ day.day }}</span>
           <span class="day-sum-label text-sm text-gray-900" v-if="daySum(attributes)">{{ daySum(attributes) }}h</span>
+          <span class="day-sum-label text-sm text-gray-900" v-if="day && day.weekdayPosition === 7">TOT: {{ weekSum(day.isoWeeknumber) }}h</span>
           <div class="flex-grow overflow-y-auto overflow-x-auto">
             <span
               v-for="attr in attributes"
@@ -156,6 +158,9 @@
         </div>
       </template>
     </v-calendar>
+
+    <!-- <week-calendar :events="events"></week-calendar> -->
+    
 
     <div class="table-view" v-if="viewType == 'all' || viewType == 'table'">
       <card-component class="has-table has-mobile-sort-spaced" v-for="(d, i) in distinctDaysObj" v-bind:key="i">
@@ -202,6 +207,7 @@ import service from '@/service/index'
 import uniq from 'lodash/uniq'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
+import sum from 'lodash/sum'
 import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import CardComponent from '@/components/CardComponent'
@@ -210,6 +216,7 @@ import * as chartConfig from '@/components/Charts/chart.config'
 import ModalBoxDedication from '@/components/ModalBoxDedication'
 import ModalBoxFestive from '@/components/ModalBoxFestive'
 import { mapState } from 'vuex'
+// import WeekCalendar from "./week-calendar.vue"
 
 moment.locale('ca')
 
@@ -292,7 +299,12 @@ export default {
       counterDisplayTimeInHours: '',
       counterInterval: 0,
       updateCounterCount: 0,
-      festiveTypes: []
+      festiveTypes: [],
+      events: {
+                "2022-05-27": [
+            { title: "Rehearsal", url: "http://www.google.com" }
+        ]
+      }
     }
   },
   computed: {
@@ -658,6 +670,11 @@ export default {
         return false
       }
       return sumBy(attributes.map(a => { return { hours: a.customData ? a.customData.hours : 0 } }), 'hours').toFixed(2)
+    },
+    weekSum (weekNumber) {
+      const weekActivities = this.attributes.filter(a => moment(a.dates, 'YYYY-MM-DD').isoWeek() == weekNumber && a.customData && a.customData.hours).map(a => { return { ...a, weekNumber: moment(a.dates, 'YYYY-MM-DD').isoWeek() } })
+      const weeksum = sumBy(weekActivities, a => a.customData.hours)
+      return weeksum.toFixed(2)
     },
     async counterContinue (info) {
       if (info) {
