@@ -659,7 +659,7 @@
         v-if="!isLoading && form && form.phases"
         :title="!form.original_phases || (form.original_phases && form.original_phases.length === 0) ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST' : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
         :closeIcon="true"
-        :content-visible="true"
+        :content-visible="form.original_phases && form.original_phases.length === 0"
       >
         <project-phases
           :form="form"

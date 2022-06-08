@@ -10,9 +10,6 @@
       :quotes="quotes"
       :years="years"
     />
-    <b-field label="Modificable" zhorizontal>
-      <b-switch v-model="updatable"> </b-switch>
-    </b-field>
     <div class="gannt-container" v-if="showGantt">
       <div class="gantt" :id="ganttId"></div>      
     </div>
@@ -22,7 +19,7 @@
       Fent click sobre el nom de la persona o en cadascun dels períodes ja definits (blau) es pot editar el període, les hores diaries de treball, el salari i el cost hora.
       <br><br>
       <b-icon icon="help-circle-outline" custom-size="default" />
-      <b>Per què cal marcar abans la casella de modificable?</b><br>
+      <b>Atenció</b><br>
       Modificar les jornades laborals o els salaris o els costos laborals de períodes passats pot afectar a les bestretes i sobretot, als costos dels projectes amb hores dedicades, per això cal que estiguis segura del que vas a fer.
 
     </div>
@@ -55,8 +52,7 @@ export default {
       tasks: {},
       showGantt: false,
       ganttId: '',
-      users: [],
-      updatable: false,
+      users: [],      
       quotes: null,
       years: []
     }
@@ -146,13 +142,9 @@ export default {
         // code of the custom form
       }
       
-      gantt.attachEvent("onTaskClick", (id, e) => {
-        if (!this.updatable) {
-          return
-        }
+      gantt.attachEvent("onTaskClick", (id, e) => {        
         this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
 
-        console.log('this.dedicationObject',this.dedicationObject)
         if (this.dedicationObject._dedication.users_permissions_user && !this.dedicationObject._dedication.hours) {
           const usersTask = this.tasks.data.filter(d => d._dedication && d._dedication.users_permissions_user.id === this.dedicationObject._dedication.users_permissions_user.id).map(t => { return t._dedication})
           if (usersTask && usersTask.length) {
@@ -188,8 +180,26 @@ export default {
       return uuid
     },
     async modalSubmit (activity) {
+      
+      if ( moment(activity.from).format('YYYY-MM-DD') < moment().format('YYYY-MM-DD')) {
+        this.$buefy.dialog.confirm({
+            message: 'Estàs a punt de modificar períodes anteriors que poden modificar les bestretes ja pagades. Estàs segura?',
+            onConfirm: async () => {
+              await this.updateActivity(activity)
+            },
+            onCancel: () => { return false }
+        })
+      }
+      else {
+        await this.updateActivity(activity)
+      }
+    },
+    async updateActivity (activity) {
       this.updating = true
-      // console.log('activity', activity)
+
+      console.log('activity', activity)
+
+      
 
       if (activity.id) {
         const activityObject = activity

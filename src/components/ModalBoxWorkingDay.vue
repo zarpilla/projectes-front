@@ -257,10 +257,7 @@ export default {
       this.isLoading1 = true
       this.isLoading2 = true
       this.initializing = true
-      
-      console.log('show this.dedicationObject', this.dedicationObject)
-      // console.log('show this.users', this.users)
-      
+            
       if (this.dedicationObject) {
         // this.form = this.dedicationObject._dedication
         this.form.id = this.dedicationObject._dedication.id
