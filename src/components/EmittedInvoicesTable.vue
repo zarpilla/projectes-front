@@ -154,9 +154,21 @@ export default {
       default: () => [],
     },
     year: {
-      type: Object,
+      type: Number,
       default: null,
     },
+    month: {
+      type: Number,
+      default: null,
+    },
+    contact: {
+      type: Number,
+      default: null,
+    },
+    documentType: {
+      type: Number,
+      default: null,
+    }
   },
   computed: {
     total_base() {
@@ -194,6 +206,15 @@ export default {
     year: function (newVal, oldVal) {
       this.getData();
     },
+    month: function (newVal, oldVal) {
+      this.getData();
+    },
+    contact: function (newVal, oldVal) {
+      this.getData();
+    },
+    documentType: function (newVal, oldVal) {
+      this.getData();
+    },
   },
   async mounted() {
     this.getData();
@@ -218,11 +239,17 @@ export default {
       if (!this.year) {
         return;
       }
-      const from = moment(this.year).startOf("year").format("YYYY-MM-DD");
-      const to = moment(this.year).endOf("year").format("YYYY-MM-DD");
+      const from = moment(this.year, 'YYYY').startOf("year").format("YYYY-MM-DD");
+      const to = moment(this.year, 'YYYY').endOf("year").format("YYYY-MM-DD");
+
+      const from2 = this.month ? moment(`${this.year}-${this.month}`, 'YYYY-M').startOf("month").format("YYYY-MM-DD") : from;
+      const to2 = this.month ? moment(`${this.year}-${this.month}`, 'YYYY-M').endOf("month").format("YYYY-MM-DD") : to;
+
+      const contactQuery = this.contact ? `&[contact_eq]=${this.contact}` : '';      
+
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices?_limit=-1&_where[emitted_gte]=${from}&[emitted_lte]=${to}`
+          `emitted-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}`
         )
       ).data;
 
@@ -230,9 +257,10 @@ export default {
         return { ...element, type: 'emitted-invoices' };
       });
 
+      const typeQuery = this.documentType !== 0 ? `&[document_type_eq]=${this.documentType}` : '';
       let incomes = (
         await service({ requiresAuth: true }).get(
-          `received-incomes?_limit=-1&_where[emitted_gte]=${from}&[emitted_lte]=${to}`
+          `received-incomes?_limit=-1&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${typeQuery}`
         )
       ).data;
 

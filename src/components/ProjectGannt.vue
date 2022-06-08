@@ -342,6 +342,15 @@ export default {
       gantt.attachEvent(
         "onAfterTaskUpdate",
         (id, item) => {
+
+          console.log('onAfterTaskUpdate', item, this.project)
+          if (moment(item.start_date).format('YYYYMMDD') < moment(this.project.date_start).format('YYYYMMDD') || moment(item.end_date).format('YYYYMMDD') > moment(this.project.date_end).format('YYYYMMDD')) {
+            
+            this.$buefy.snackbar.open({
+              message: "Atenció, planificació fora del període del projecte",
+              queue: false,
+            });
+          }
           //any custom logic here
           // this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
           // this.isModalActive = true
