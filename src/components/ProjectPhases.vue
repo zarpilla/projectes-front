@@ -64,9 +64,10 @@
             <button
               class="button is-small is-danger"
               type="button"
-              :disabled="props.row.subphases.find(s => s.paid) || props.row.expenses.find(s => s.paid)"
+              :disabled="( props.row.subphases.find(s => s.paid && mode !== 'simple') || props.row.expenses.find(s => s.paid && mode !== 'simple') ) || ( mode === 'simple' && props.row.subphases.find(s => s.estimated_hours && s.estimated_hours.length > 0) )"
               @click.prevent="removePhase(props.index)"
             >
+
               <b-icon icon="trash-can" size="is-small" />
             </button>
           </b-table-column>
@@ -199,7 +200,7 @@
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
-                      :disabled="subphase.paid || ( subphase.estimated_hours && subphase.estimated_hours.length > 0 )"
+                      :disabled="(subphase.paid && mode !== 'simple' ) || ( mode === 'simple' && subphase.estimated_hours && subphase.estimated_hours.length > 0 )"
                       @click.prevent="removeSubPhase(props.row, subphase, j)"
                     >
                       <b-icon icon="trash-can" size="is-small" />
@@ -605,7 +606,7 @@
           </template>
         </b-table>
 
-        <form @submit.prevent="addPhase" v-if="mode === ''">
+        <form @submit.prevent="addPhase" v-if="mode === '' || mode === 'simple'">
           <b-field label="Nova Fase" class="mt-5">
             <b-input
               placeholder="Nom de la fase..."

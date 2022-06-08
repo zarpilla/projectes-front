@@ -643,30 +643,31 @@
           form.original_phases &&
           form.original_phases.length > 0
         "
-        title="GESTIÓ ECONÒMICA - PRESSUPOST ORIGINAL"
+        title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
         :closeIcon="true"
-        :content-visible="originalPhasesVisible"
+        :content-visible="true"
       >
         <project-phases
           :form="form"
-          :project-phases="form.original_phases"
-          v-if="form.original_phases"
+          :project-phases="form.original_phases"          
           @phases-updated="originalPhasesUpdated"
           mode="simple"
         />
       </card-component>
-
+      
       <card-component
         v-if="!isLoading && form && form.phases"
-        title="GESTIÓ ECONÒMICA - FASES I EXECUCIÓ PRESSUPOST"
+        :title="!form.original_phases || (form.original_phases && form.original_phases.length === 0) ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST' : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
         :closeIcon="true"
+        :content-visible="true"
       >
         <project-phases
           :form="form"
           :project-phases="form.phases"
           @phases-updated="phasesUpdated"
-        />
-        <hr v-if="form.phases.length && form.original_phases.length === 0" />
+          :content-visible="false"
+        />        
+        <hr v-if="form.phases.length && (!form.original_phases || form.original_phases.length === 0)" />
         <b-field v-if="form.phases.length && form.original_phases.length === 0">
           <b-button type="is-warning" @click="closeQuote">
             Tancar Pressupost
@@ -678,6 +679,7 @@
         v-if="documents && documents.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
         class="ztile is-child mt-2"
+        :content-visible="true"
       >
         <b-table :data="documents">
           <b-table-column
@@ -860,9 +862,9 @@
             !isLoading &&
             !needsUpdate &&
             form.id &&
-            form.phases &&
-            form.phases.length &&
-            form.phases[0].id
+            form.original_phases &&
+            form.original_phases.length &&
+            form.original_phases[0].id
           "
           class="left-container"
           :project="form"
@@ -872,7 +874,7 @@
           @gantt-item-delete="ganttItemDelete"
         />
         <span class="bg-info" v-else
-          >Es necessari tenir fases i guardar el projecte per accedir a la
+          >Es necessari tenir fases i guardar el projecte amb un pressupost tancat per accedir a la
           planificació</span
         >
         <hr />
@@ -1067,34 +1069,7 @@ export default {
         return "fade";
       }
       return "x";
-    },
-    totalAmount() {
-      var i = 0;
-      this.form.phases.forEach((p) => {
-        i += sumBy(p.subphases, (x) => x.quantity * x.amount);
-      });
-      var e = 0;
-      this.form.phases.forEach((p) => {
-        e += sumBy(p.expenses, (x) => x.quantity * x.amount);
-      });
-      return i - e;
-    },
-    totalExpenses() {
-      return sumBy(this.form.expenses, (x) => x.quantity * x.amount);
-    },
-    executedIncomes() {
-      return (
-        sumBy(this.form.emitted_invoices, (x) => x.total_base) +
-        sumBy(this.form.received_grants, (x) => x.total_base)
-      );
-    },
-    executedExpenses() {
-      return (
-        sumBy(this.form.received_invoices, (x) => x.total_base) +
-        sumBy(this.form.tickets, (x) => x.total_base) +
-        sumBy(this.form.diets, (x) => x.total_base)
-      );
-    },
+    },    
     documents() {
       const documents = [];
       if (this.form.emitted_invoices) {
@@ -1350,6 +1325,7 @@ export default {
         region: { id: 0 },
         leader: { id: 0 },
         phases: [],
+        original_phases: [],
         expenses: [],
         default_dedication_type: { id: 0 },
       };
@@ -1722,7 +1698,7 @@ export default {
 
       var subphase = item._subphase ? item._subphase : null;
       if (!item._subphase) {
-        const phase = this.form.phases.find((p) => p.id === pid);
+        const phase = this.form.original_phases.find((p) => p.id === pid);
         phase.subphases.push({ concept: "SF", estimated_hours: [] });
         subphase = phase.subphases[0];
       }
@@ -1775,16 +1751,16 @@ export default {
       }
       this.updatingGanttTimer = setTimeout(() => {
         this.updatingGantt = false;
-        EventBus.$emit("phases-updated", { phases: this.form.phases });
+        EventBus.$emit("phases-updated", { phases: this.form.original_phases });
       }, 800);
     },
     ganttItemDelete(item) {
       const id = item._hours.id;
       const pid = item._phase.id;
       const sid = item._subphase.id;
-      this.form.phases
+      this.form.original_phases
         .find((p) => p.id === pid)
-        .subphases.find((s) => s.id === sid).estimated_hours = this.form.phases
+        .subphases.find((s) => s.id === sid).estimated_hours = this.form.original_phases
         .find((p) => p.id === pid)
         .subphases.find((s) => s.id === sid)
         .estimated_hours.filter((h) => h.id !== id);
@@ -1840,14 +1816,16 @@ export default {
       );
     },
     phasesUpdated(info) {
+      console.log('phasesUpdated info', info)
       this.form.phases = info.phases;
     },
     originalPhasesUpdated(info) {
+      console.log('originalPhasesUpdated info', info)
       this.form.original_phases = info.phases;
     },
     closeQuote() {
       this.originalPhasesVisible = true;
-      this.form.original_phases = this.form.phases;
+      this.form.original_phases = JSON.parse(JSON.stringify(this.form.phases));
       this.form.original_phases.forEach((p) => {
         delete p.id;
         p.subphases.forEach((sp) => {

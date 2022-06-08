@@ -141,8 +141,8 @@ export default {
               }
             })
           }
-          if (p.phases && p.phases.length > 0) {
-            p.phases.forEach(ph => {
+          if (p.original_phases && p.original_phases.length > 0) {
+            p.original_phases.forEach(ph => {
               if (ph.subphases && ph.subphases.length > 0) {
                 ph.subphases.forEach(sph => {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {

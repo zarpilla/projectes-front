@@ -329,8 +329,6 @@ export default {
           });
         }
       });
-
-      console.log('userName', this.userName)
   },
   methods: {
     navNewProject() {

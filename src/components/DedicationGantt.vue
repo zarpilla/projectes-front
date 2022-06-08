@@ -126,8 +126,8 @@ export default {
               }
             })
           }
-          if (p.phases && p.phases.length > 0) {
-            p.phases.forEach(ph => {
+          if (p.original_phases && p.original_phases.length > 0) {
+            p.original_phases.forEach(ph => {
               if (ph.subphases && ph.subphases.length > 0) {
                 ph.subphases.forEach(sph => {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {
@@ -198,17 +198,8 @@ export default {
             })
           }
         })
-        // console.log('projects', projects)
-        // console.log('activities', activities)
         this.projects = projects
-
-        
-
-        // this.pivotData = Object.freeze(activities)
-        this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'project_name'], ['asc', 'asc', 'asc']))        
-
-        // this.distinctUsers = uniq(map(this.projects, 'username'))
-
+        this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'project_name'], ['asc', 'asc', 'asc']))   
         this.isLoading = false
       })
     }

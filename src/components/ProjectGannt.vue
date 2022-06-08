@@ -179,8 +179,8 @@ export default {
       // console.log('initializeGannt', this.project)
       this.tasks = { data: [] };
       let minDate = moment().format("YYYY-MM-DD");
-      for (let i = 0; i < this.project.phases.length; i++) {
-        const phase = this.project.phases[i];
+      for (let i = 0; i < this.project.original_phases.length; i++) {
+        const phase = this.project.original_phases[i];
         const task = {
           id: phase.id,
           text: phase.name,
@@ -245,18 +245,20 @@ export default {
         }
       }
 
-      this.projectTasks.forEach((pt, i) => {
-        if (pt.due_date) {
-          const milestone = {
-            id: 9999999999 + i,
-            text: pt.name,
-            type: gantt.config.types.milestone,
-            start_date: pt.due_date,
-            readonly: true,
-          };
-          this.tasks.data.push(milestone);
-        }
-      });
+      if (this.me.options.showTasksInGantt) {
+        this.projectTasks.forEach((pt, i) => {
+          if (pt.due_date) {
+            const milestone = {
+              id: 9999999999 + i,
+              text: pt.name,
+              type: gantt.config.types.milestone,
+              start_date: pt.due_date,
+              readonly: true,
+            };
+            this.tasks.data.push(milestone);
+          }
+        });
+      }
 
       const initialDate = this.project.date_start
         ? moment(this.project.date_start).startOf("year").toDate()
@@ -474,8 +476,8 @@ export default {
           this.tasks.data.push(taskToAdd);
         }
       } else if (tasksInRow.length > 1) {
-        const ph = this.project.phases[this.project.phases.length - 1];
-        const sph = ph.subphases[ph.subphases.length - 1];
+        const ph = this.project.original_phases[this.project.original_phases.length - 1];
+        // const sph = ph.subphases[ph.subphases.length - 1];
         // console.log('sph', sph)
         var projects = tasksInRow.filter((t) => t.type === "project");
         currentTask = projects[projects.length - 1];

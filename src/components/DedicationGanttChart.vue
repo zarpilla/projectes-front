@@ -130,8 +130,6 @@ export default {
             }
           });
 
-          console.log('userDedications', userDedications)
-
           const dedicationTotals = _(userDedications)
             .groupBy("ymw")
             .map((ymw, id) => ({
