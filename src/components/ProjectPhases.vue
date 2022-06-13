@@ -952,11 +952,6 @@ export default {
         );
 
         if ( (!subphase.invoice || !subphase.invoice.id) && (!subphase.grant || !subphase.grant.id) && (!subphase.income || !subphase.income.id)) {
-          this.phases.forEach(p => {
-            p.subphases.forEach(s => {
-              s.assign = false
-            })
-          })
           
           // if (!subphase.invoice || !subphase.invoice.id) {
           subphase.paid = false; // necessary
@@ -976,12 +971,7 @@ export default {
         );
         
         if ( (!subphase.invoice || !subphase.invoice.id) && (!subphase.ticket || !subphase.ticket.id) && (!subphase.grant || !subphase.grant.id) && (!subphase.diet || !subphase.diet.id) && (!subphase.expense || !subphase.expense.id) ) {
-          this.phases.forEach(p => {
-            p.expenses.forEach(s => {
-              s.assign = false
-            })
-          })
-        
+          
           subphase.paid = false; // necessary
           subphase.assign = !subphase.assign;
           subphase.paid = true; // necessary

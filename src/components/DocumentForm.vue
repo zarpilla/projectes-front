@@ -775,19 +775,19 @@ export default {
     },
     totalBase() {
       return sumBy(this.form.lines, (l) => {
-        return l.quantity * l.base * (1 - l.discount / 100);
+        return l.quantity * l.base * (1 - (l.discount || 0) / 100);
       });
     },
     totalVat() {
       return sumBy(this.form.lines, (l) => {
-        return (l.quantity * l.base * (1 - l.discount / 100) * l.vat) / 100;
+        return (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.vat) / 100;
       });
     },
     totalIrpf() {
       return (
         -1 *
         sumBy(this.form.lines, (l) => {
-          return (l.quantity * l.base * (1 - l.discount / 100) * l.irpf) / 100;
+          return (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.irpf) / 100;
         })
       );
     },
