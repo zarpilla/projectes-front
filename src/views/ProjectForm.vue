@@ -268,25 +268,32 @@
                 </b-autocomplete>
               </b-field>
 
-              <b-field label="Funcions" horizontal v-if="form.id">
-                <b-input
-                  placeholder="Nom de la Funció"
-                  v-model="newTask"
+              <b-field label="Funcions" horizontal>
+
+                <b-autocomplete
+                  v-model="activityTypeSearch"
+                  placeholder="Escriu el nom de la funció..."
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredActivityTypes"
+                  field="name"
+                  @select="activityTypeSelected"
+                  :clearable="false"
                   icon-right="plus-circle"
                   icon-right-clickable
                   @icon-right-click="addActivity"
                 >
-                </b-input>
+                </b-autocomplete>
               </b-field>
               <b-field
                 label=""
                 horizontal
-                v-if="form.activity_types && form.activity_types.length"
+                v-if="form.global_activity_types && form.global_activity_types.length"
               >
                 <div class="list">
                   <ul class="ulist">
                     <li
-                      v-for="(activityType, i) in form.activity_types"
+                      v-for="(activityType, i) in form.global_activity_types"
                       :key="i"
                       class="tag is-primary"
                     >
@@ -962,9 +969,11 @@ export default {
       documentTypes: [],
       dedicationTypes: [],
       projects: [],
+      activityTypes: [],
       regions: [],
       clientSearch: "",
       projectSearch: "",
+      activityTypeSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",
       phaseToAdd: "",
@@ -1002,6 +1011,16 @@ export default {
             .toString()
             .toLowerCase()
             .indexOf(this.projectSearch.toLowerCase()) >= 0
+        );
+      });
+    },
+    filteredActivityTypes() {
+      return this.activityTypes.filter((option) => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.activityTypeSearch.toLowerCase()) >= 0
         );
       });
     },
@@ -1508,6 +1527,16 @@ export default {
           this.regions = r.data;
         });
       service({ requiresAuth: true })
+        .get("activity-types")
+        .then((r) => {
+          this.activityTypes = r.data;
+          const globalActivityTypes = this.activityTypes.filter(a => a.global === true)
+          if (this.$route.params.id === "0") {
+            this.form.global_activity_types = globalActivityTypes
+          }
+        });
+        
+      service({ requiresAuth: true })
         .get("projects/basic?_limit=-1")
         .then((r) => {
           this.projects = r.data;
@@ -1640,6 +1669,16 @@ export default {
       } else {
         this.form.mother = null;
       }
+    },
+    activityTypeSelected(option) {
+      this.form.global_activity_types = this.form.global_activity_types || [];
+      if (!this.form.global_activity_types.find((c) => c.id === option.id)) {
+        this.form.global_activity_types.push(option);
+      }
+      this.activityTypeSearch = "";
+      setTimeout(() => {
+        this.activityTypeSearch = "";
+      }, 100);
     },
     cooperaSelected(option) {
       delete option.projects;
@@ -1787,13 +1826,13 @@ export default {
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
     },
     async addActivity() {
-      if (this.newTask) {
+      if (this.activityTypeSearch) {
         const resp = await service({ requiresAuth: true }).post(
           `activity-types`,
-          { name: this.newTask }
+          { name: this.activityTypeSearch }
         );
-        this.form.activity_types.push(resp.data);
-        this.newTask = "";
+        this.form.global_activity_types.push(resp.data);
+        this.activityTypeSearch = "";
       }
     },
     async removeActivity(task) {
@@ -1811,7 +1850,7 @@ export default {
           return;
         }
       }
-      this.form.activity_types = this.form.activity_types.filter(
+      this.form.global_activity_types = this.form.global_activity_types.filter(
         (t) => t.id !== task.id
       );
     },

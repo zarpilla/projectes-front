@@ -355,7 +355,7 @@ export default {
 
         this.activityTypes = {}
         this.hasActivities = false
-        project.activity_types.forEach(a => {
+        project.global_activity_types.forEach(a => {
           this.activityTypes[a.id] = a.name
           this.hasActivities = true
         })

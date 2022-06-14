@@ -484,24 +484,24 @@ export default {
       this.activity_types = [];
       this.activityTypes = {};
 
-      if (this.form.project.id && !this.form.project.activity_types) {
+      if (this.form.project.id && !this.form.project.global_activity_types) {
         const project = this.projects.find(
           (p) => p.id === this.form.project.id
         );
         if (project) {
-          this.form.project.activity_types = project.activity_types;
+          this.form.project.global_activity_types = project.global_activity_types;
         }
       }
 
       if (
-        this.form.project.activity_types &&
-        this.form.project.activity_types.length
+        this.form.project.global_activity_types &&
+        this.form.project.global_activity_types.length
       ) {
-        this.activity_types = this.form.project.activity_types;
+        this.activity_types = this.form.project.global_activity_types;
         this.hasActivities = false;
         this.isLoading2 = true;
         this.activityTypes = {};
-        this.form.project.activity_types.forEach((a) => {
+        this.form.project.global_activity_types.forEach((a) => {
           this.activityTypes[a.id] = a.name;
           this.hasActivities = true;
         });
