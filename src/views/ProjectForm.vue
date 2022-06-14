@@ -1507,7 +1507,7 @@ export default {
           this.clients = r.data;
         });
       service({ requiresAuth: true })
-        .get("strategies")
+        .get("strategies?_limit=-1")
         .then((r) => {
           this.strategies = r.data;
         });
@@ -1527,7 +1527,7 @@ export default {
           this.regions = r.data;
         });
       service({ requiresAuth: true })
-        .get("activity-types")
+        .get("activity-types?_limit=-1")
         .then((r) => {
           this.activityTypes = r.data;
           const globalActivityTypes = this.activityTypes.filter(a => a.global === true)
