@@ -560,6 +560,8 @@ export default {
       if (activity) {
         activity.counter = null
         this.dedicationObject = activity
+      } else {
+        this.dedicationObject = null
       }
       this.isModalEditActive = true
     },    
