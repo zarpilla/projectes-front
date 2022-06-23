@@ -282,6 +282,10 @@ export default {
       type: Array,
       default: [],
     },
+    user: {
+      type: Object,
+      default: null,
+    },
   },
   data() {
     return {
@@ -455,7 +459,7 @@ export default {
         form.checklist = form.checklist.map((c) => {
           return {
             ...c,
-            user: c.user || null,
+            user: c.user || null
           };
         });
       }
@@ -544,19 +548,11 @@ export default {
       }, 100);
     },
     addUserCheck(user, check) {
-      console.log("addUser", user);
       if (!user) {
         return;
       }
 
       check.user = user;
-      // const existing = check.users.find(
-      //   (u) => u.id === user.id
-      // );
-      // if (!existing) {
-      //   this.check.users.push(user);
-      // }
-
       this.userNameCheckSearch = "";
       setTimeout(() => {
         this.userNameCheckSearch = "";
@@ -590,6 +586,8 @@ export default {
         done: false,
         user: "",
         due_date: null,
+        created: this.user,
+        created_date: new Date()
       });
       this.checklistToAdd = "";
       // this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })

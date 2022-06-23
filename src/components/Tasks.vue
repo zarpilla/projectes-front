@@ -7,6 +7,7 @@
       @cancel="modalCancel"
       @delete="modalDelete"
       :users="users"
+      :user="user"
       :projects="projects"
       :project="project"
       :states="states"
@@ -442,6 +443,7 @@ export default {
         this.reOrderCards()
         await this.saveKanbanView()
       } else {
+        task.created = this.user
         task.archived = false
         task.order = -10
         task = (await service({ requiresAuth: true }).post(`tasks`, task)).data;        
