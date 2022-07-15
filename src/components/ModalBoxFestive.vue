@@ -168,7 +168,7 @@ export default {
         this.userNameSearch = this.festiveObject.users_permissions_user ? this.festiveObject.users_permissions_user.username : ''
         this.form.id = this.festiveObject.id
       } else {
-        this.form.date = moment().toDate()
+        this.form.date = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD').toDate()
         this.form.endDate = null
         this.form.festive_type = this.festiveTypes[0].id
         this.form.users_permissions_user = null
@@ -209,7 +209,7 @@ export default {
         })
       }
       else if (this.form.endDate) {
-        const diff = moment(this.form.endDate).diff(this.form.date, 'days') + 2
+        const diff = moment(this.form.endDate).diff(this.form.date, 'days') + 1
         this.$buefy.dialog.confirm({
             message: `Atenció, estàs a punt de crear ${diff} festius. Vols continuar?`,
             onConfirm: async () => {

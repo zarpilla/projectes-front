@@ -705,10 +705,13 @@ export default {
         if (festive.id) {
           await service({ requiresAuth: true }).put(`festives/${festive.id}`, festive2)
         } else {
-          const diff = festive.endDate ? moment(festive.endDate).diff(festive.date, 'days') + 2 : 1
+          const diff = festive.endDate ? moment(festive.endDate).diff(festive.date, 'days') + 1 : 1
           for(let i = 0; i < diff; i++) {
-            festive2.date = moment(festive.date).add(i, 'days') .format('YYYY-MM-DD')
-            await service({ requiresAuth: true }).post('festives', festive2)
+            const day = moment(festive.date).add(i, 'days').day()
+            if (day !== 6 && day !== 0) {
+              festive2.date = moment(festive.date).add(i, 'days') .format('YYYY-MM-DD')
+              await service({ requiresAuth: true }).post('festives', festive2)
+            }
           }
         }
       } catch (err) {
