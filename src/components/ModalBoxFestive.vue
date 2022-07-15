@@ -190,7 +190,6 @@ export default {
     },
     submit () {   
       const festiveType = this.festiveTypes.find(f => f.id == this.form.festive_type)
-      console.log('festiveType', festiveType)
       if (festiveType.personal && this.form.users_permissions_user === null) {
         this.$buefy.snackbar.open({
           message: 'Ha d\'haver una persona als festius personals',
