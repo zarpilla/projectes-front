@@ -114,6 +114,7 @@
               v-if="
                 type !== 'received-incomes' &&
                 type !== 'received-expenses' &&
+                type !== 'received-invoices' &&
                 type !== 'payrolls'
               "
             >
