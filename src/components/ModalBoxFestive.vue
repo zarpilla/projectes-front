@@ -17,6 +17,17 @@
                   trap-focus>
               </b-datepicker>
             </b-field>
+            <b-field label="Data Final" horizontal message="Només és necessaria per dies consecutius">
+              <b-datepicker
+                  v-model="form.endDate"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"                  
+                  :editable="true"
+                  trap-focus>
+              </b-datepicker>
+            </b-field>
             <b-field label="Persona" horizontal>
               <b-autocomplete
                 v-model="userNameSearch"
@@ -93,6 +104,7 @@ export default {
       hasTypes: false,
       form: {
         date: null,
+        endDate: null,
         festive_type: null,
         users_permissions_user: null,
       },
@@ -150,12 +162,14 @@ export default {
 
       if (this.festiveObject) {
         this.form.date = this.festiveObject.date ? moment(this.festiveObject.date, 'YYYY-MM-DD').toDate() : null
+        this.form.endDate = null
         this.form.festive_type = this.festiveObject.festive_type ? this.festiveObject.festive_type.id : null
         this.form.users_permissions_user = this.festiveObject.users_permissions_user ? this.festiveObject.users_permissions_user.id : null
         this.userNameSearch = this.festiveObject.users_permissions_user ? this.festiveObject.users_permissions_user.username : ''
         this.form.id = this.festiveObject.id
       } else {
         this.form.date = moment().toDate()
+        this.form.endDate = null
         this.form.festive_type = this.festiveTypes[0].id
         this.form.users_permissions_user = null
         this.userNameSearch = ''
@@ -176,6 +190,7 @@ export default {
     },
     submit () {   
       const festiveType = this.festiveTypes.find(f => f.id == this.form.festive_type)
+      console.log('festiveType', festiveType)
       if (festiveType.personal && this.form.users_permissions_user === null) {
         this.$buefy.snackbar.open({
           message: 'Ha d\'haver una persona als festius personals',
@@ -184,8 +199,24 @@ export default {
       }
       else if (festiveType.personal === false && this.form.users_permissions_user !== null) {
         this.$buefy.snackbar.open({
-          message: 'No pot haver una persona en els festius globals',
+          message: 'Has de marcar un tipus de festiu',
           queue: false
+        })
+      }
+      else if (this.form.endDate && moment(this.form.date).isAfter(this.form.endDate)) {
+        this.$buefy.snackbar.open({
+          message: 'La data final ha de ser més gran que la inicial',
+          queue: false
+        })
+      }
+      else if (this.form.endDate) {
+        const diff = moment(this.form.endDate).diff(this.form.date, 'days') + 2
+        this.$buefy.dialog.confirm({
+            message: `Atenció, estàs a punt de crear ${diff} festius. Vols continuar?`,
+            onConfirm: async () => {
+              this.$emit('submit', this.form)
+            },
+            onCancel: () => { return false }
         })
       }
       else {

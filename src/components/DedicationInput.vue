@@ -697,7 +697,6 @@ export default {
       }
     },
     async modalFestiveSubmit(festive) {
-      
       const festive2 = { ...festive }
       festive2.date = moment(festive.date).format('YYYY-MM-DD')
       this.isModalFestiveActive = false
@@ -706,7 +705,11 @@ export default {
         if (festive.id) {
           await service({ requiresAuth: true }).put(`festives/${festive.id}`, festive2)
         } else {
-          await service({ requiresAuth: true }).post('festives', festive2)
+          const diff = festive.endDate ? moment(festive.endDate).diff(festive.date, 'days') + 2 : 1
+          for(let i = 0; i < diff; i++) {
+            festive2.date = moment(festive.date).add(i, 'days') .format('YYYY-MM-DD')
+            await service({ requiresAuth: true }).post('festives', festive2)
+          }
         }
       } catch (err) {
         console.error('activities error', err)
