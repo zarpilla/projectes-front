@@ -15,6 +15,12 @@
                 @input="fixDecimals('quantity', form.quantity)"
               />
             </b-field>
+            <b-field label="" horizontal v-if="form.quantity_type">
+              <radio-picker
+              v-model="form.quantity_type"
+              :options="{ 'total': 'Total', 'week': 'Setmanals', 'month': 'Mensuals'}"
+            ></radio-picker>
+            </b-field>
             <b-field label="Persona" horizontal>
               <b-select
                 v-model="form.users_permissions_user"
@@ -71,11 +77,12 @@
 import service from '@/service/index'
 import { mapState } from 'vuex'
 import ModalBox from '@/components/ModalBox'
+import RadioPicker from '@/components/RadioPicker'
 import moment from 'moment'
 
 export default {
   name: 'ModalBoxEstimatedHours',
-  components: { ModalBox },
+  components: { ModalBox, RadioPicker },
   props: {
     isActive: {
       type: Boolean,
@@ -101,7 +108,8 @@ export default {
         comment: null,
         quantity: null,
         users_permissions_user: null,
-        amount: null
+        amount: null,
+        quantity_type: null
       },
       users: [],
       userNameSearch: '',
@@ -163,6 +171,7 @@ export default {
         this.form.comment = this.dedicationObject._hours.comment ? this.dedicationObject._hours.comment : null
         this.form.quantity = this.dedicationObject._hours.quantity
         this.form.amount = this.dedicationObject._hours.amount
+        this.form.quantity_type = this.dedicationObject._hours.quantity_type || 'total'
         // console.log('this.dedicationObject.users_permissions_user', this.dedicationObject.users_permissions_user)
         this.form.users_permissions_user = null // this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user : null
         // this.form.id = this.dedicationObject._hours.id
@@ -171,11 +180,11 @@ export default {
       } else {
         this.form.comment = null
         this.form.quantity = null
+        this.form.quantity_type = 'total'
         this.form.users_permissions_user = null
         this.userNameSearch = ''
         this.form.id = 0
       }
-      // console.log('dedications', this.dedications)
       
       service({ requiresAuth: true }).get('users').then((r) => {
         this.users = r.data.filter(u => !u.hidden)
@@ -218,6 +227,7 @@ export default {
       this.form._subphase = this.dedicationObject._subphase
 
       this.form._hours.quantity = this.form.quantity
+      this.form._hours.quantity_type = this.form.quantity_type
       this.form._hours.amount = this.form.amount
       this.form._hours.total_amount = this.form.amount * this.form.quantity
       this.form._hours.comment = this.form.comment

@@ -63,7 +63,7 @@ export default {
     this.initializeAll();    
   },
   beforeDestroy() {
-    console.log('beforeDestroy')
+    // console.log('beforeDestroy')
     gantt.detachEvent("onTaskClick");
     gantt.clearAll()
     // gantt.detachEvent("onBeforeLightbox");
@@ -196,10 +196,6 @@ export default {
     },
     async updateActivity (activity) {
       this.updating = true
-
-      console.log('activity', activity)
-
-      
 
       if (activity.id) {
         const activityObject = activity

@@ -133,9 +133,23 @@ export default {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {
                     sph.estimated_hours.forEach(h => {
                       const diff = moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD')))
-                      const mdiff = this.view === 'month' ? Math.round(diff.asMonths()) : Math.round(diff.asWeeks())
-                      
-                      // console.log('sph diff week', p.name, mdiff, h.to, h.from)
+                      let mdiff = this.view === 'month' ? Math.round(diff.asMonths()) : Math.round(diff.asWeeks())                      
+                      let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0
+
+                      if (h.quantity_type === 'month' && this.view === 'month') {
+                        estimated_hours = h.quantity
+                      }
+                      else if (h.quantity_type === 'month' && this.view === 'week') {
+                        estimated_hours = h.quantity / (52 / 12)
+                      }
+                      else if (h.quantity_type === 'week' && this.view === 'week') {
+                        // ok
+                        estimated_hours = h.quantity
+                      }
+                      else if (h.quantity_type === 'week' && this.view === 'month') {
+                        estimated_hours = h.quantity * (52 / 12)
+                      }
+
                       for (var i = 0; i < mdiff; i++) {
                         const activity = {
                           project_name: p.name,
@@ -147,13 +161,13 @@ export default {
                           total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                           total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
                           count: 1,
-                          week: this.view === 'month' ? 1 : moment(h.from, 'YYYY-MM-DD').add(i, this.view).isoWeek(),
+                          week: this.view === 'month' ? 1 : moment(h.from, 'YYYY-MM-DD').add(i, this.view).isoWeek() + 1,
                           month: moment(h.from, 'YYYY-MM-DD').add(i, this.view).format('MM'),
                           year: moment(h.from, 'YYYY-MM-DD').add(i, this.view).format('YYYY'),
                           day: 0,
                           date: '-',
                           hours: 0,
-                          estimated_hours: h.quantity && mdiff > 0 ? h.quantity / mdiff : 0,
+                          estimated_hours: estimated_hours,
                           dedication_type: '-',
                           username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-'
                         }
@@ -169,7 +183,7 @@ export default {
           } else if (p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
               // legacy ?
-              // console.log('legacy 2', p)
+              console.log('legacy 2', p)
               // console.log('a.users_permissions_user', a.users_permissions_user)
               // console.log('this.month', this.month)
               // console.log('a.month', a.month)

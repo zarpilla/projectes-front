@@ -1759,6 +1759,7 @@ export default {
         const months = moment(to2).diff(item.start_date, "months") + 1;
         hours.monthly_quantity = item._hours.quantity * months;
         hours.quantity = item._hours.quantity;
+        hours.quantity_type = item._hours.quantity_type;
         hours.users_permissions_user = item._hours.users_permissions_user;
         hours.amount = item._hours.amount;
         hours.total_amount = item.total_amount;
@@ -1773,15 +1774,13 @@ export default {
                 .format("YYYY-MM-DD"),
           monthly_quantity: null,
           quantity: item._hours.quantity,
+          quantity_type: item._hours.quantity_type,
           users_permissions_user: item._hours.users_permissions_user,
           amount: item._hours.amount,
           total_amount: item._hours.total_amount,
           _uuid: item._uuid,
-          // _hours: item._hours,
-          // _phase: item._phase,
-          // _subphase: item._subphase,
         };
-        // console.log('hour to ush', hour)
+        // console.log('hour to push', hour)
         subphase.estimated_hours.push(hour);
       }
       this.updatingGantt = true;

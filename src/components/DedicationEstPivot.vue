@@ -150,6 +150,15 @@ export default {
                       // console.log('sph.estimated_hours', p.name, h)
                       const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
                       // console.log('sph diff', p.name, mdiff)
+                      let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0
+
+                      if (h.quantity_type === 'month') {
+                        estimated_hours = h.quantity
+                      }
+                      else if (h.quantity_type === 'week') {
+                        estimated_hours = h.quantity * (52 / 12)
+                      }
+
                       for (var i = 0; i < mdiff; i++) {
                         const year = moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY')
 
@@ -170,7 +179,7 @@ export default {
                             day: 0,
                             date: '-',
                             hours: 0,
-                            estimated_hours: h.quantity && mdiff > 0 ? h.quantity / mdiff : 0,
+                            estimated_hours: estimated_hours,
                             username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
                             dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
                           }
