@@ -223,6 +223,23 @@
                 required
               >
               </b-autocomplete>
+              <div class="is-flex">
+                <b-button
+                  class="view-button is-warning mb-3"
+                  @click="navNew"
+                  icon-left="plus"
+                  title="Nou Contacte"
+                >
+                </b-button>
+                <b-button
+                  class="view-button is-warning mb-3 ml-3"
+                  @click="refreshClients"
+                  icon-left="refresh"
+                  title="Refrescar Contactes"
+                >
+                </b-button>
+              </div>
+              
             </b-field>
             <b-field
               v-if="type == 'received-invoices'"
@@ -240,6 +257,22 @@
                 :clearable="true"
               >
               </b-autocomplete>
+              <div class="is-flex">
+                <b-button
+                  class="view-button is-warning mb-3"
+                  @click="navNew"
+                  icon-left="plus"
+                  title="Nou Contacte"
+                >
+                </b-button>
+                <b-button
+                  class="view-button is-warning mb-3 ml-3"
+                  @click="refreshClients"
+                  icon-left="refresh"
+                  title="Refrescar Contactes"
+                >
+                </b-button>
+              </div>
             </b-field>
             <b-field
               v-if="type == 'received-incomes' || type == 'received-expenses'"
@@ -258,6 +291,22 @@
                 required
               >
               </b-autocomplete>
+              <div class="is-flex">
+                <b-button
+                  class="view-button is-warning mb-3"
+                  @click="navNew"
+                  icon-left="plus"
+                  title="Nou Contacte"
+                >
+                </b-button>
+                <b-button
+                  class="view-button is-warning mb-3 ml-3"
+                  @click="refreshClients"
+                  icon-left="refresh"
+                  title="Refrescar Contactes"
+                >
+                </b-button>
+              </div>
             </b-field>
 
             <b-field
@@ -1069,6 +1118,13 @@ export default {
       //     this.clients = r.data;
       //   });
     },
+    async refreshClients() {
+      this.clients = (
+        await service({ requiresAuth: true }).get(
+          "contacts?_limit=-1&_sort=name:ASC"
+        )
+      ).data;
+    },
     changeLine(line, field, value) {
       if (value && value.toString().includes(",")) {
         line[field] = value.toString().replace(",", ".");
@@ -1407,7 +1463,11 @@ export default {
       else {
          this.submit()
       }
-    }
+    },
+    navNew() {
+      let routeData = this.$router.resolve({ name: 'contacts.edit' });
+      window.open(routeData.href, '_blank');
+    },    
   },
 };
 </script>
