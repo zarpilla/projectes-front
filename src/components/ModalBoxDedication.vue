@@ -189,7 +189,8 @@ export default {
         users_permissions_user: null,
         dedication_type: null,
         activity_type: null,
-        counter: null
+        counter: null,
+        uid_ical: null
       },
       // projects: [],
       dedicationTypes: {},
@@ -267,6 +268,7 @@ export default {
         this.form.hours = this.dedicationObject.hours
         this.form.project = this.dedicationObject.project ? this.dedicationObject.project.id : null
         this.form.users_permissions_user = this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user.id : null
+        this.form.uid_ical = this.dedicationObject.uid_ical
         this.form.id = this.dedicationObject.id
         this.userNameSearch = this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user.username : ''
         this.projectNameSearch = this.dedicationObject.project ? this.dedicationObject.project.name : ''
@@ -280,6 +282,7 @@ export default {
         this.form.dedication_type = null
         this.form.hours = null
         this.form.project = null
+        this.form.uid_ical = null
         this.form.users_permissions_user = null
         this.userNameSearch = ''
         this.projectNameSearch = ''

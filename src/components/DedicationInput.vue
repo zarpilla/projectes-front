@@ -38,10 +38,10 @@
               icon-left="file-excel" />
             </download-csv> -->
           </div>
-          <div class="column is-4 has-text-weight-bold">
+          <div class="column is-3 has-text-weight-bold">
             {{ superTotal }} h
           </div>
-          <div class="column is-4 has-text-right">
+          <div class="column is-5 has-text-right">
             <b-button
               @click="viewType = 'all'"
               title="Vista completa"
@@ -82,6 +82,13 @@
               :type="colorType == 'project' ? 'is-primary' : 'is-disabled'"
               icon-left="wrench" />
             <span class="separator"></span>
+            <b-button
+              title="Importar des de calendari *.ics"
+              @click="navImport"
+              class="view-button is-warning"
+              :disabled="!user"
+              :loading="isLoadingImport"
+              icon-left="download" />
             <b-button
               title="Afegir festiu"
               @click="showModalFestive(null)"
@@ -152,6 +159,9 @@
               <span v-if="attr.customData && attr.customData.type === 'festive'" @click="showModalFestive(attr.customData.a)">
                 {{ attr.customData.project }} - {{ attr.customData.username }} {{ attr.customData.hours ? `- ${attr.customData.hours}h` : '' }}
               </span>
+              <span v-if="attr.customData && attr.customData.type === 'ical'" @click="showModalICal(attr)">
+                {{ attr.customData.project }} - {{ attr.customData.username }} {{ attr.customData.hours ? `- ${attr.customData.hours}h` : '' }}
+              </span>
             </span>
           </div>
         </div>
@@ -215,6 +225,9 @@ import * as chartConfig from '@/components/Charts/chart.config'
 import ModalBoxDedication from '@/components/ModalBoxDedication'
 import ModalBoxFestive from '@/components/ModalBoxFestive'
 import { mapState } from 'vuex'
+import ical from 'node-ical';
+
+window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
 
 moment.locale('ca')
@@ -299,11 +312,14 @@ export default {
       counterInterval: 0,
       updateCounterCount: 0,
       festiveTypes: [],
-      events: {
+      zevents: {
                 "2022-05-27": [
             { title: "Rehearsal", url: "http://www.google.com" }
         ]
-      }
+      },
+      icalEvents: [],
+      isLoadingImport: false,
+      icalVisible: true
     }
   },
   computed: {
@@ -338,8 +354,7 @@ export default {
     }
   },
   watch: {
-    user: function (newVal, oldVal) {
-      // console.log('user newVal', newVal)
+    user: function (newVal, oldVal) {      
       this.getActivities()
     },
     date1: function (newVal, oldVal) {
@@ -556,6 +571,8 @@ export default {
       return chartConfig.chartDataColors[n]
     },
     showModal (activity) {
+      // console.log('activity', activity)
+
       this.counterClicked = false
       if (activity) {
         activity.counter = null
@@ -566,7 +583,6 @@ export default {
       this.isModalEditActive = true
     },    
     showModalFestive (festive) {
-      console.log('festive', festive)
       if ((festive && festive.festive_type && festive.festive_type.personal === true) || festive === null) {
         this.festiveObject = festive
         this.isModalFestiveActive = true
@@ -575,8 +591,22 @@ export default {
           message: 'No es poden editar els festius globals',
           queue: false
         })
+      }      
+    },
+    showModalICal (event) {
+      const project = this.project ? this.projects.find(p => p.id === this.project) : null
+      const activity = { date: event.customData.a.start, hours: event.customData.hours, description: event.customData.a.summary, project: project, uid_ical: event.customData.a.uid }
+
+      // console.log('activity', activity)
+
+      this.counterClicked = false
+      if (activity) {
+        activity.counter = null
+        this.dedicationObject = activity
+      } else {
+        this.dedicationObject = null
       }
-      
+      this.isModalEditActive = true
     },
     async showModalCounter() {
       if (this.counter === null) {
@@ -592,7 +622,6 @@ export default {
       this.isModalEditActive = true
     },
     async modalSubmit (activity) {
-      // console.log('activity', activity)
       if (activity.counter) {
         await service({ requiresAuth: true }).delete(`time-counters/${activity.counter.id}`)
         this.counter = null
@@ -618,7 +647,10 @@ export default {
         })
       }
 
-      this.getActivities()
+      await this.getActivities()
+      if (this.icalVisible) {
+        await this.navImport()
+      }
 
       this.$buefy.snackbar.open({
         message: 'Guardat',
@@ -743,6 +775,53 @@ export default {
         })
       }
     },
+    async navImport() {
+      if (this.user) {
+        const user = this.users.find(u => u.id === this.user)
+        if (!user.ical || !user.ical.startsWith('http')) {
+          this.$buefy.toast.open({
+            message: `La usuària no te un calendari de tipus iCal definit. Contacta amb l'administradora per fer servir aquesta funcionalitat`,
+            type: 'is-danger'
+          })
+          return
+        } else {
+            this.isLoadingImport = true
+            this.icalVisible = true
+            const icalData = (await service({ requiresAuth: true }).get(`activities/import-calendar/${this.user}`)).data
+            const events = await ical.async.parseICS(icalData.ical);
+            for (let e in events) {
+              const event = events[e]
+              if (moment(event.start).isAfter(moment(this.date1)) && moment(event.end).isBefore(moment(this.date2))) {
+                this.icalEvents.push(event)
+                const attr = this.attributes.find(a => a.customData && a.customData.type === 'activity' && a.customData.a && a.customData.a.uid_ical === event.uid)
+                // console.log('attr', attr)
+                if (!attr) {
+                  this.attributes.push({
+                    key: event.uid,
+                    customData: {                    
+                      bg_project: '#17191E',
+                      class: 'tag',
+                      project: event.summary,
+                      username: user.username,
+                      hours: moment(event.end).diff(moment(event.start), 'minutes') / 60,
+                      type: 'ical',
+                      a: event,
+                    },
+                    dates: event.start
+                  }) 
+                }
+                
+              }
+              // console.log('events', event)
+            }
+            // console.log('icalEvents', this.icalEvents)
+            // icalEvents
+            // const events
+            
+            this.isLoadingImport = false
+        }      
+      }
+    }
   },
   filters: {
     formatDate (val) {
