@@ -411,7 +411,7 @@ export default {
       },
       icalEvents: [],
       isLoadingImport: false,
-      icalVisible: true,
+      icalVisible: false,
     };
   },
   computed: {
