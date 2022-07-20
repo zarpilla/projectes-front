@@ -692,8 +692,6 @@
         </b-field>
       </card-component>
 
-      <pre>{{ form.phases }}</pre>
-
       <card-component
         v-if="documents && documents.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
@@ -1401,55 +1399,55 @@ export default {
                 return { ...p, edit: false };
               });
               if (this.form.phases.length === 0) {
-                // create first phase
-                const phase = { name: "F1", subphases: [], expenses: [] };
-                let mustUpdate = false;
-                if (this.form.incomes.length > 0) {
-                  mustUpdate = true;
-                  for (let i = 0; i < this.form.incomes.length; i++) {
-                    const income = this.form.incomes[i];
-                    if (income.client && !income.client.id) {
-                      delete income.client;
-                    }
-                    delete income.id;
-                    phase.subphases.push(income);
-                  }
-                } else {
-                  phase.subphases.push({ concept: "SF1" });
-                }
-                this.form.phases.push(phase);
-                this.form.incomes = [];
+                // // create first phase
+                // const phase = { name: "F1", subphases: [], expenses: [] };
+                // let mustUpdate = false;
+                // if (this.form.incomes.length > 0) {
+                //   mustUpdate = true;
+                //   for (let i = 0; i < this.form.incomes.length; i++) {
+                //     const income = this.form.incomes[i];
+                //     if (income.client && !income.client.id) {
+                //       delete income.client;
+                //     }
+                //     delete income.id;
+                //     phase.subphases.push(income);
+                //   }
+                // } else {
+                //   phase.subphases.push({ concept: "SF1" });
+                // }
+                // this.form.phases.push(phase);
+                // this.form.incomes = [];
 
-                if (this.form.estimated_hours.length > 0) {
-                  mustUpdate = true;
-                  this.form.phases[0].subphases[0].estimated_hours =
-                    this.form.estimated_hours;
-                  this.form.phases[0].subphases[0].estimated_hours.forEach(
-                    (e) => {
-                      delete e.id;
-                    }
-                  );
-                  this.form.estimated_hours = [];
-                }
+                // if (this.form.estimated_hours.length > 0) {
+                //   mustUpdate = true;
+                //   this.form.phases[0].subphases[0].estimated_hours =
+                //     this.form.estimated_hours;
+                //   this.form.phases[0].subphases[0].estimated_hours.forEach(
+                //     (e) => {
+                //       delete e.id;
+                //     }
+                //   );
+                //   this.form.esti
 
-                if (this.form.expenses.length > 0) {
-                  for (let i = 0; i < this.form.expenses.length; i++) {
-                    const expense = this.form.expenses[i];
-                    delete expense.id;
-                  }
-                  mustUpdate = true;
-                  this.form.phases[0].expenses = this.form.expenses;
-                  this.form.expenses = [];
-                  // this.form.phases = this.form.phases.map(r => { return { ...r, total_amount: sumBy(r.subphases, x => x.quantity * x.amount) - sumBy(r.expenses, x => x.quantity * x.amount) } })
-                } else {
-                  this.form.phases = this.form.phases.map((r) => {
-                    return { ...r, expenses: [] };
-                  });
-                }
+                // if (this.form.expenses.length > 0) {
+                //   for (let i = 0; i < this.form.expenses.length; i++) {
+                //     const expense = this.form.expenses[i];
+                //     delete expense.id;
+                //   }
+                //   mustUpdate = true;
+                //   this.form.phases[0].expenses = this.form.expenses;
+                //   this.form.expenses = [];
+                //   // this.form.phases = this.form.phases.map(r => { return { ...r, total_amount: sumBy(r.subphases, x => x.quantity * x.amount) - sumBy(r.expenses, x => x.quantity * x.amount) } })
+                // } else {
+                //   this.form.phases = this.form.phases.map((r) => {
+                //     return { ...r, expenses: [] };
+                //   });
+                // }mated_hours = [];
+                // }
 
-                if (mustUpdate) {
-                  // await this.submit()
-                }
+                // if (mustUpdate) {
+                //   // await this.submit()
+                // }
               } else if (this.form.expenses.length > 0) {
                 for (let i = 0; i < this.form.expenses.length; i++) {
                   const expense = this.form.expenses[i];
