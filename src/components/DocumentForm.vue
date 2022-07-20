@@ -865,7 +865,7 @@ export default {
         id: null,
         number: null,
         serial: { id: 0 },
-        emitted: new Date(),
+        emitted: this.type === 'emitted-invoices' || this.type === 'received-incomes' ? new Date() : null,
         paybefore: null,
         contact: { id: 0 },
         lines: [this.getNewLine()],
@@ -913,7 +913,7 @@ export default {
                 });
               }
 
-              this.form = r.data;
+              this.form = r.data;              
               this.form.emitted = moment(
                 this.form.emitted,
                 "YYYY-MM-DD"
@@ -1453,7 +1453,8 @@ export default {
       }
     },
     canEditDocument() {
-      if (moment().format('YYYY-DD-MM') > moment(this.form.emitted).endOf('quarter').add(20, 'day').format('YYYY-DD-MM'))  {
+      if (moment().isAfter(moment(this.form.emitted).endOf('quarter').add(20, 'day')))  {
+      // if (moment().format('YYYY-DD-MM') > moment(this.form.emitted).endOf('quarter').add(20, 'day').format('YYYY-DD-MM'))  {
         this.$buefy.dialog.confirm({
             message: 'El document està fora del període d\'edició. Vols guardar igualment?',
             onConfirm: () => this.submit(),
