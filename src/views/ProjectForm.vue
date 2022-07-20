@@ -646,6 +646,7 @@
       <card-component
         v-if="
           !isLoading &&
+          phasesVisible &&
           form &&
           form.original_phases &&
           form.original_phases.length > 0
@@ -660,10 +661,20 @@
           @phases-updated="originalPhasesUpdated"
           mode="simple"
         />
+        <hr v-if="form.original_phases.length && (!form.phases || form.phases.length === 0)" />
+        <b-field v-if="form.original_phases.length && form.phases.length === 0">
+          <b-button type="is-warning" @click="closeQuoteFromOriginal">
+            Tancar Pressupost
+          </b-button>
+        </b-field>
+
       </card-component>
+
+      <!-- <pre>{{ form.original_phases }}</pre>
+      <pre>{{ form.phases }}</pre> -->
       
       <card-component
-        v-if="!isLoading && form && form.phases"
+        v-if="!isLoading && phasesVisible && form && form.phases"
         :title="!form.original_phases || (form.original_phases && form.original_phases.length === 0) ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST' : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
         :closeIcon="true"
         :content-visible="true"
@@ -671,8 +682,7 @@
         <project-phases
           :form="form"
           :project-phases="form.phases"
-          @phases-updated="phasesUpdated"
-          :content-visible="false"
+          @phases-updated="phasesUpdated"          
         />        
         <hr v-if="form.phases.length && (!form.original_phases || form.original_phases.length === 0)" />
         <b-field v-if="form.phases.length && form.original_phases.length === 0">
@@ -681,6 +691,8 @@
           </b-button>
         </b-field>
       </card-component>
+
+      <pre>{{ form.phases }}</pre>
 
       <card-component
         v-if="documents && documents.length && !isLoading"
@@ -987,7 +999,7 @@ export default {
       isModalActive: false,
       isModalSplitActive: false,
       newTask: "",
-      originalPhasesVisible: false,
+      phasesVisible: true,
       tasksView: "state",
     };
   },
@@ -1854,7 +1866,7 @@ export default {
       );
     },
     phasesUpdated(info) {
-      console.log('phasesUpdated info', info)
+      console.log('phasesUpdated info', info, this.form.phases)
       this.form.phases = info.phases;
     },
     originalPhasesUpdated(info) {
@@ -1862,7 +1874,7 @@ export default {
       this.form.original_phases = info.phases;
     },
     closeQuote() {
-      this.originalPhasesVisible = true;
+      this.phasesVisible = false;
       this.form.original_phases = JSON.parse(JSON.stringify(this.form.phases));
       this.form.original_phases.forEach((p) => {
         delete p.id;
@@ -1873,6 +1885,27 @@ export default {
           delete sp.id;
         });
       });
+      this.phasesVisible = true;
+    },
+    closeQuoteFromOriginal() {
+      this.phasesVisible = false;      
+      const phases = JSON.parse(JSON.stringify(this.form.original_phases));
+      phases.forEach((p) => {
+        p.edit = false
+        p.opened = true
+        delete p.id;
+        p.subphases.forEach((sp) => {
+          delete sp.id;
+        });
+        p.expenses.forEach((sp) => {
+          delete sp.id;
+        });
+      });
+      this.form.phases = phases;
+      setTimeout(() => {
+        this.phasesVisible = true;
+      }, 200)
+      
     },
     toogleTasksView() {
       this.tasksView = this.tasksView === "list" ? "state" : "list";
