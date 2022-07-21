@@ -323,7 +323,48 @@
             class="tile is-child summary-card"
           >
             <div class="columns">
-              <b-field label="Ingressos previstos (€)" class="column">
+              <b-field label="Resultat previst" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="form.incomes_expenses"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Resultat executat" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="form.total_real_incomes_expenses"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="
+                      form.incomes_expenses - form.total_real_incomes_expenses
+                    "
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+            </div>
+
+            <div class="columns">
+              <b-field label="Ingressos previstos" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_incomes"
@@ -335,7 +376,7 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Ingressos executats (€)" class="column">
+              <b-field label="Ingressos executats" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_real_incomes"
@@ -347,7 +388,7 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Diferència (€)" class="column">
+              <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_incomes - form.total_real_incomes"
@@ -362,7 +403,46 @@
             </div>
 
             <div class="columns">
-              <b-field label="Despeses previstes (€)" class="column">
+              <b-field label="Despeses pr. totals" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="form.total_expenses + form.total_estimated_hours_price"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Despeses ex. totals" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="form.total_real_expenses + form.total_real_hours_price"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="form.total_expenses + form.total_estimated_hours_price - form.total_real_expenses - form.total_real_hours_price"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+            </div>
+
+            <div class="columns">
+              <b-field label="Despeses pr. factures" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_expenses"
@@ -374,7 +454,7 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Despeses executades (€)" class="column">
+              <b-field label="Despeses ex. factures" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_real_expenses"
@@ -386,7 +466,7 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Diferència (€)" class="column">
+              <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_expenses - form.total_real_expenses"
@@ -401,10 +481,10 @@
             </div>
 
             <div class="columns">
-              <b-field label="Resultat previst (€)" class="column">
+              <b-field label="Hores previstes" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.incomes_expenses"
+                    :value="form.total_estimated_hours_price"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -413,10 +493,10 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Resultat executat (€)" class="column">
+              <b-field label="Hores executades" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_real_incomes_expenses"
+                    :value="form.total_real_hours_price"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -425,11 +505,12 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Diferència (€)" class="column">
+              <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      form.incomes_expenses - form.total_real_incomes_expenses
+                      form.total_estimated_hours_price -
+                      form.total_real_hours_price
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -463,49 +544,9 @@
                 </div>
               </b-field>
             </div>
+
             <div class="columns">
-              <b-field label="Hores previstes (€)" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="form.total_estimated_hours_price"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Hores executades (€)" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="form.total_real_hours_price"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència (€)" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      form.total_estimated_hours_price -
-                      form.total_real_hours_price
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-            </div>
-            <div class="columns">
-              <b-field label="Preu/hora previst (€)" class="column">
+              <b-field label="Preu/hora previst" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
@@ -522,7 +563,7 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Preu/hora executat (€)" class="column">
+              <b-field label="Preu/hora executat" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_real_hours_price / form.total_real_hours"
@@ -534,7 +575,7 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Diferència (€)" class="column">
+              <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
