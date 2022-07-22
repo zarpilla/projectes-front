@@ -32,7 +32,7 @@ const config = {
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Ingressos previstos', 'Ingressos reals', 'Despeses previstes', 'Despeses reals', 'Resultat previst', 'Resultat real'],
+    measures: ['Resultat prev', 'Resultat exec', 'Ingressos prev', 'Ingressos exec', 'Despeses prev', 'Despeses exec', 'Hores prev', 'Hores exec'],
     schema: {
       model: {
         fields: {
@@ -85,33 +85,70 @@ const config = {
         },
         // measures: ['Sum']
         measures: {
-          'Ingressos previstos': {
+          'Ingressos prev': {
             field: 'income_esti',
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          'Despeses previstes': {
+          'Despeses prev': {
             field: 'expense_esti',
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          'Ingressos reals': {
+          'Ingressos exec': {
             field: 'income_real',
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          'Despeses reals': {
+          'Despeses exec': {
             field: 'expense_real',
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          'Resultat previst': {
+          'zzzzResultat pp.': {
             field: 'total_amount_esti',
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          'Resultat real': {
+          'Resultat exec': {
             field: 'total_amount_real',
+            // aggregate: 'sum',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var income_real = dataItem.income_real || 0
+              var expense_real = dataItem.expense_real || 0
+              var total_real_hours_price = dataItem.total_real_hours_price || 0
+              state.incomes_real = (state.incomes_real || 0) + income_real
+              state.expenses_real = (state.expenses_real || 0) + expense_real + total_real_hours_price
+            },
+            result: function (state) {
+              return state.incomes_real + state.expenses_real
+            },
+            format: '{0:n2} €'
+          },
+          'Resultat prev': {
+            field: 'total_amount_esti',
+            // aggregate: 'sum',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var income_esti = dataItem.income_esti || 0
+              var expense_esti = dataItem.expense_esti || 0
+              var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
+              state.incomes = (state.incomes || 0) + income_esti
+              state.expenses = (state.expenses || 0) + expense_esti + total_estimated_hours_price
+            },
+            result: function (state) {
+              return state.incomes + state.expenses
+            },
+            format: '{0:n2} €'
+          },
+          'Hores prev': {
+            field: 'total_estimated_hours_price',
+            aggregate: 'sum',
+            format: '{0:n2} €'
+          },
+          'Hores exec': {
+            field: 'total_real_hours_price',
             aggregate: 'sum',
             format: '{0:n2} €'
           }
