@@ -106,7 +106,7 @@ const config = {
             format: '{0:n2} €'
           },
           'Despeses tot prev': {
-            field: 'total_amount_real',
+            field: 'type',
             // aggregate: 'sum',
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem
@@ -122,7 +122,7 @@ const config = {
             format: '{0:n2} €'
           },
           'Despeses tot exec': {
-            field: 'total_amount_real',
+            field: 'type',
             // aggregate: 'sum',
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem

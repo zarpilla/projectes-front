@@ -746,6 +746,14 @@
             sortable
             v-slot="props"
           >
+            {{ props.row.multiplier > 0 ? 'Ingrés' : 'Despesa' }}
+          </b-table-column>
+          <b-table-column
+            label="Subtipus"
+            field="docTypeDesc"
+            sortable
+            v-slot="props"
+          >
             {{ props.row.docTypeDesc }}
           </b-table-column>
           <b-table-column
@@ -1230,10 +1238,17 @@ export default {
                 multiplier: 1,
               });
             }
-            if (income.grant) {
+            else if (income.grant) {
               documents.push({
                 docType: "received_grants",
                 id: income.grant.id,
+                multiplier: 1,
+              });
+            }
+            else if (income.income) {
+              documents.push({
+                docType: "received_income",
+                id: income.income.id,
                 multiplier: 1,
               });
             }
@@ -1248,17 +1263,24 @@ export default {
                 multiplier: -1,
               });
             }
-            if (expense.ticket) {
+            else if (expense.ticket) {
               documents.push({
                 docType: "tickets",
                 id: expense.ticket.id,
                 multiplier: -1,
               });
             }
-            if (expense.diet) {
+            else if (expense.diet) {
               documents.push({
                 docType: "diets",
                 id: expense.diet.id,
+                multiplier: -1,
+              });
+            }
+            else if (expense.expense) {
+              documents.push({
+                docType: "received_expense",
+                id: expense.expense.id,
                 multiplier: -1,
               });
             }
