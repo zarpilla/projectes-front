@@ -255,8 +255,8 @@
                         me.options.treasury &&
                         subphase.grant &&
                         subphase.grant.id
-                      "
-                      :title="`Document ${subphase.grant.code}`"
+                      "                      
+                      :title="`${subphase.grant.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
                         setInvoice(
@@ -277,8 +277,8 @@
                         me.options.treasury &&
                         subphase.income &&
                         subphase.income.id
-                      "
-                      :title="`Document ${subphase.income.code}`"
+                      "                      
+                      :title="`${subphase.income.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
                         setInvoice(
@@ -487,8 +487,8 @@
                         me.options.treasury &&
                         subphase.invoice &&
                         subphase.invoice.id
-                      "
-                      :title="`${subphase.invoice.code}`"
+                      "                      
+                      :title="`${subphase.invoice.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
                         setInvoice(
@@ -508,8 +508,8 @@
                         me.options.treasury &&
                         subphase.ticket &&
                         subphase.ticket.id
-                      "
-                      :title="`${subphase.ticket.code}`"
+                      "                      
+                      :title="`${subphase.ticket.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
                         setInvoice(
@@ -530,7 +530,7 @@
                         subphase.diet &&
                         subphase.diet.id
                       "
-                      :title="`${subphase.diet.code}`"
+                      :title="`${subphase.diet.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
                         setInvoice(
@@ -551,7 +551,7 @@
                         subphase.expense &&
                         subphase.expense.id
                       "
-                      :title="`${subphase.expense.code}`"
+                      :title="`${subphase.expense.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
                         setInvoice(
