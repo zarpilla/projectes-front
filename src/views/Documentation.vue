@@ -12,6 +12,7 @@
               <li><a href="/stats/docum/03.hores-saldo.mkv" target="_blank">Saldo d'hores</a></li>
               <li><a href="/stats/docum/04.informacio-economica.mkv" target="_blank">Entrada d'informació econòmica</a></li>
               <li><a href="/stats/docum/05.tresoreria.mkv" target="_blank">Tresoreria</a></li>
+              <li><a href="/stats/docum/06.tasques.mp4" target="_blank">Tasques</a></li>
           </ul>
       </card-component>
     </section>
