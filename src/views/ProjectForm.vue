@@ -1,4 +1,4 @@
-<template>
+res executade<template>
   <div class="project-form">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
@@ -269,7 +269,6 @@
               </b-field>
 
               <b-field label="Funcions" horizontal>
-
                 <b-autocomplete
                   v-model="activityTypeSearch"
                   placeholder="Escriu el nom de la funció..."
@@ -288,7 +287,10 @@
               <b-field
                 label=""
                 horizontal
-                v-if="form.global_activity_types && form.global_activity_types.length"
+                v-if="
+                  form.global_activity_types &&
+                  form.global_activity_types.length
+                "
               >
                 <div class="list">
                   <ul class="ulist">
@@ -406,7 +408,9 @@
               <b-field label="Despeses pr. totals" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_expenses + form.total_estimated_hours_price"
+                    :value="
+                      form.total_expenses + form.total_estimated_hours_price
+                    "
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -418,7 +422,9 @@
               <b-field label="Despeses ex. totals" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_real_expenses + form.total_real_hours_price"
+                    :value="
+                      form.total_real_expenses + form.total_real_hours_price
+                    "
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -430,7 +436,12 @@
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_expenses + form.total_estimated_hours_price - form.total_real_expenses - form.total_real_hours_price"
+                    :value="
+                      form.total_expenses +
+                      form.total_estimated_hours_price -
+                      form.total_real_expenses -
+                      form.total_real_hours_price
+                    "
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -546,7 +557,7 @@
             </div>
 
             <div class="columns">
-              <b-field label="Preu/hora previst" class="column">
+              <b-field label="Cost/hora previst" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
@@ -563,7 +574,7 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Preu/hora executat" class="column">
+              <b-field label="Cost/hora executat" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="form.total_real_hours_price / form.total_real_hours"
@@ -585,6 +596,63 @@
                         : 0) -
                       (form.total_real_hours
                         ? form.total_real_hours_price / form.total_real_hours
+                        : 0)
+                    "
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+            </div>
+            <div class="columns">
+              <b-field label="Preu/hora previst" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="
+                      form.total_estimated_hours
+                        ? (form.total_incomes - form.total_expenses) /
+                          form.total_estimated_hours
+                        : 0
+                    "
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Preu/hora executat" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="
+                      form.total_real_hours
+                        ? (form.total_real_incomes - form.total_real_expenses) /
+                          form.total_real_hours
+                        : 0
+                    "
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="
+                      (form.total_estimated_hours
+                        ? (form.total_incomes - form.total_expenses) /
+                          form.total_estimated_hours
+                        : 0) -
+                      (form.total_real_hours
+                        ? (form.total_real_incomes - form.total_real_expenses) /
+                          form.total_real_hours
                         : 0)
                     "
                     :locale="'es'"
@@ -698,34 +766,48 @@
       >
         <project-phases
           :form="form"
-          :project-phases="form.original_phases"          
+          :project-phases="form.original_phases"
           @phases-updated="originalPhasesUpdated"
           mode="simple"
         />
-        <hr v-if="form.original_phases.length && (!form.phases || form.phases.length === 0)" />
+        <hr
+          v-if="
+            form.original_phases.length &&
+            (!form.phases || form.phases.length === 0)
+          "
+        />
         <b-field v-if="form.original_phases.length && form.phases.length === 0">
           <b-button type="is-warning" @click="closeQuoteFromOriginal">
             Tancar Pressupost
           </b-button>
         </b-field>
-
       </card-component>
 
       <!-- <pre>{{ form.original_phases }}</pre>
       <pre>{{ form.phases }}</pre> -->
-      
+
       <card-component
         v-if="!isLoading && phasesVisible && form && form.phases"
-        :title="!form.original_phases || (form.original_phases && form.original_phases.length === 0) ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST' : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
+        :title="
+          !form.original_phases ||
+          (form.original_phases && form.original_phases.length === 0)
+            ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST'
+            : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'
+        "
         :closeIcon="true"
         :content-visible="true"
       >
         <project-phases
           :form="form"
           :project-phases="form.phases"
-          @phases-updated="phasesUpdated"          
-        />        
-        <hr v-if="form.phases.length && (!form.original_phases || form.original_phases.length === 0)" />
+          @phases-updated="phasesUpdated"
+        />
+        <hr
+          v-if="
+            form.phases.length &&
+            (!form.original_phases || form.original_phases.length === 0)
+          "
+        />
         <b-field v-if="form.phases.length && form.original_phases.length === 0">
           <b-button type="is-warning" @click="closeQuote">
             Tancar Pressupost
@@ -746,7 +828,7 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.multiplier > 0 ? 'Ingrés' : 'Despesa' }}
+            {{ props.row.multiplier > 0 ? "Ingrés" : "Despesa" }}
           </b-table-column>
           <b-table-column
             label="Subtipus"
@@ -940,8 +1022,8 @@
           @gantt-item-delete="ganttItemDelete"
         />
         <span class="bg-info" v-else
-          >Es necessari tenir fases i guardar el projecte amb un pressupost tancat per accedir a la
-          planificació</span
+          >Es necessari tenir fases i guardar el projecte amb un pressupost
+          tancat per accedir a la planificació</span
         >
         <hr />
         <b-field>
@@ -1147,7 +1229,7 @@ export default {
         return "fade";
       }
       return "x";
-    },    
+    },
     documents() {
       const documents = [];
       if (this.form.emitted_invoices) {
@@ -1237,15 +1319,13 @@ export default {
                 id: income.invoice.id,
                 multiplier: 1,
               });
-            }
-            else if (income.grant) {
+            } else if (income.grant) {
               documents.push({
                 docType: "received_grants",
                 id: income.grant.id,
                 multiplier: 1,
               });
-            }
-            else if (income.income) {
+            } else if (income.income) {
               documents.push({
                 docType: "received_income",
                 id: income.income.id,
@@ -1262,22 +1342,19 @@ export default {
                 id: expense.invoice.id,
                 multiplier: -1,
               });
-            }
-            else if (expense.ticket) {
+            } else if (expense.ticket) {
               documents.push({
                 docType: "tickets",
                 id: expense.ticket.id,
                 multiplier: -1,
               });
-            }
-            else if (expense.diet) {
+            } else if (expense.diet) {
               documents.push({
                 docType: "diets",
                 id: expense.diet.id,
                 multiplier: -1,
               });
-            }
-            else if (expense.expense) {
+            } else if (expense.expense) {
               documents.push({
                 docType: "received_expense",
                 id: expense.expense.id,
@@ -1480,7 +1557,6 @@ export default {
                 // }
                 // this.form.phases.push(phase);
                 // this.form.incomes = [];
-
                 // if (this.form.estimated_hours.length > 0) {
                 //   mustUpdate = true;
                 //   this.form.phases[0].subphases[0].estimated_hours =
@@ -1491,7 +1567,6 @@ export default {
                 //     }
                 //   );
                 //   this.form.esti
-
                 // if (this.form.expenses.length > 0) {
                 //   for (let i = 0; i < this.form.expenses.length; i++) {
                 //     const expense = this.form.expenses[i];
@@ -1507,7 +1582,6 @@ export default {
                 //   });
                 // }mated_hours = [];
                 // }
-
                 // if (mustUpdate) {
                 //   // await this.submit()
                 // }
@@ -1603,12 +1677,14 @@ export default {
         .get("activity-types?_limit=-1")
         .then((r) => {
           this.activityTypes = r.data;
-          const globalActivityTypes = this.activityTypes.filter(a => a.global === true)
+          const globalActivityTypes = this.activityTypes.filter(
+            (a) => a.global === true
+          );
           if (this.$route.params.id === "0") {
-            this.form.global_activity_types = globalActivityTypes
+            this.form.global_activity_types = globalActivityTypes;
           }
         });
-        
+
       service({ requiresAuth: true })
         .get("projects/basic?_limit=-1")
         .then((r) => {
@@ -1871,10 +1947,11 @@ export default {
       const sid = item._subphase.id;
       this.form.original_phases
         .find((p) => p.id === pid)
-        .subphases.find((s) => s.id === sid).estimated_hours = this.form.original_phases
-        .find((p) => p.id === pid)
-        .subphases.find((s) => s.id === sid)
-        .estimated_hours.filter((h) => h.id !== id);
+        .subphases.find((s) => s.id === sid).estimated_hours =
+        this.form.original_phases
+          .find((p) => p.id === pid)
+          .subphases.find((s) => s.id === sid)
+          .estimated_hours.filter((h) => h.id !== id);
     },
     sumByFn(arr, field) {
       return sumBy(arr, field);
@@ -1927,11 +2004,11 @@ export default {
       );
     },
     phasesUpdated(info) {
-      console.log('phasesUpdated info', info, this.form.phases)
+      console.log("phasesUpdated info", info, this.form.phases);
       this.form.phases = info.phases;
     },
     originalPhasesUpdated(info) {
-      console.log('originalPhasesUpdated info', info)
+      console.log("originalPhasesUpdated info", info);
       this.form.original_phases = info.phases;
     },
     closeQuote() {
@@ -1949,11 +2026,11 @@ export default {
       this.phasesVisible = true;
     },
     closeQuoteFromOriginal() {
-      this.phasesVisible = false;      
+      this.phasesVisible = false;
       const phases = JSON.parse(JSON.stringify(this.form.original_phases));
       phases.forEach((p) => {
-        p.edit = false
-        p.opened = true
+        p.edit = false;
+        p.opened = true;
         delete p.id;
         p.subphases.forEach((sp) => {
           delete sp.id;
@@ -1965,8 +2042,7 @@ export default {
       this.form.phases = phases;
       setTimeout(() => {
         this.phasesVisible = true;
-      }, 200)
-      
+      }, 200);
     },
     toogleTasksView() {
       this.tasksView = this.tasksView === "list" ? "state" : "list";
