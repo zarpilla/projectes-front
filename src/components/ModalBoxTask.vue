@@ -429,6 +429,10 @@ export default {
         this.form.due_date = null;
       }
 
+      if (!this.form.checklist) {
+        this.form.checklist = []
+      }
+
       if (this.form.checklist.length) {
         this.form.checklist = this.form.checklist.map((c) => {
           return {
