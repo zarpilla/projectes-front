@@ -1322,7 +1322,7 @@ export default {
     },
     validateIfProjectPhasesHasDocument() {
       var validateIfProjectPhasesHasDocument = false;
-      if (this.type === 'quotes') {
+      if (this.type === 'quotes' || (this.type === 'received-expenses' && !this.form.paid)) {
         return true
       }
       this.form.projects.forEach(p => {

@@ -133,6 +133,9 @@
       <b-table-column label="Total" field="total" v-slot="props" sortable>
         {{ formatPrice(props.row.total) }} €
       </b-table-column>
+      <b-table-column label="Cobrada" field="total" v-slot="props" sortable>
+        {{ props.row.paid ? 'Sí' : 'No' }}
+      </b-table-column>
     </b-table>
   </section>
 </template>
