@@ -139,8 +139,8 @@ export default {
     this.filters.date1 = moment().clone().startOf('month').toDate()
     this.filters.date2 = moment().clone().endOf('month').toDate()
     service({ requiresAuth: true }).get('projects/basic?_limit=-1').then((r) => {
-      this.projects = r.data.filter(p => p.project_state !== 2)
-      this.projectsList = JSON.parse(JSON.stringify(r.data.filter(p => p.project_state !== 2)))
+      this.projects = r.data // .filter(p => p.project_state !== 2)
+      this.projectsList = JSON.parse(JSON.stringify(r.data)) //.filter(p => p.project_state !== 2)))
       this.projectsList.unshift({ id: 0, name: 'Tots' })
     })
     service({ requiresAuth: true }).get('dedication-types').then((r) => {

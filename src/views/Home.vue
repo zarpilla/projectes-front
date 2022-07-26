@@ -38,7 +38,7 @@
           class="tile is-child"
           type="is-info"
           icon="currency-eur"
-          :number="balance.toFixed(2)"
+          :number="(balance ? balance : 0).toFixed(2)"
           suffix="€"
           label="Resultat previst"
         />

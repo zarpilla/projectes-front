@@ -223,7 +223,8 @@ export default {
       })
     },
     filteredProjects () {
-      return this.projects.filter(option => {
+      const projects = this.form.id ? this.projects : this.projects.filter(p => p.project_state && p.project_state.id !== 2)
+      return projects.filter(option => {
         return (
           option.name
             .toString()
