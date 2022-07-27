@@ -135,7 +135,7 @@
 
 <script>
 import ModalBox from "@/components/ModalBox";
-import MoneyFormat from "vue-money-format";
+import MoneyFormat from "@/components/MoneyFormat.vue";
 
 export default {
   name: "ModalBoxInvoicing",

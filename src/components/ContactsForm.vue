@@ -87,7 +87,7 @@ import dayjs from "dayjs";
 import TitleBar from "@/components/TitleBar";
 import CardComponent from "@/components/CardComponent";
 import service from "@/service/index";
-import MoneyFormat from "vue-money-format";
+import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import moment from "moment";

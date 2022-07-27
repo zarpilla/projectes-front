@@ -1065,7 +1065,7 @@ import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
 import ProjectGannt from "@/components/ProjectGannt.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
-import MoneyFormat from "vue-money-format";
+import MoneyFormat from "@/components/MoneyFormat.vue";
 import { EventBus } from "@/service/event-bus.js";
 import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";

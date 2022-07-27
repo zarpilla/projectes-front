@@ -324,7 +324,7 @@ import configPivot from "@/service/configStatsTreasury";
 import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
 import CardComponent from "./CardComponent.vue";
 import { mapState } from "vuex";
-import MoneyFormat from "vue-money-format";
+import MoneyFormat from "@/components/MoneyFormat.vue";
 
 export default {
   name: "Tresoreria",
