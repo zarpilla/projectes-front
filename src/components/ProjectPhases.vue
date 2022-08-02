@@ -422,7 +422,7 @@
                   </b-field>
                   <b-field
                     :label="j == 0 ? 'Data previsió pag.' : null"
-                    v-if="me.options && me.options.treasury && mode !== 'simple'"
+                    v-if="me.options && me.options.treasury"
                     class="date-field"
                   >
                     <b-datepicker
@@ -894,12 +894,13 @@ export default {
     },
     addSubPhase(phase) {
       this.needsUpdate = true;
-      phase.subphases.push({ concept: "", quantity: 1, amount: 0, assign: false });
+      console.log('this.form', this.form)
+      phase.subphases.push({ concept: "", quantity: 1, amount: 0, assign: false, date: this.form.date_end ? this.form.date_end: null  });
       this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     addSubExpense(phase) {
       this.needsUpdate = true;
-      phase.expenses.push({ concept: "", quantity: 1, amount: 0, assign: false });
+      phase.expenses.push({ concept: "", quantity: 1, amount: 0, assign: false, date: this.form.date_end ? this.form.date_end: null });
       this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     splitSubPhase(phase, subphase, i, j) {
