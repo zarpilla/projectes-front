@@ -276,6 +276,9 @@ export default {
           width: "300",
         },
       ];
+
+      gantt.config.scroll_size = 30;
+
       gantt.plugins({ click_drag: true, tooltip: true });
 
       gantt.templates.tooltip_text = (start, end, task) => {

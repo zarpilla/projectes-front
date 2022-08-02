@@ -127,6 +127,8 @@ export default {
       gantt.config.columns = [
 		    { name: "text", label: "Jornada", tree: true, width: '150', resize: true },
       ]
+
+      gantt.config.scroll_size = 30;
       
       gantt.config.xml_date = '%Y-%m-%d'
       gantt.config.duration_unit = 'month'

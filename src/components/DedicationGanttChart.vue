@@ -203,6 +203,9 @@ export default {
           resize: true,
         },
       ];
+
+      gantt.config.scroll_size = 30;
+      
       // gantt.plugins({ click_drag: true })
       // gantt.config.readonly = true
       // gantt.config.editable_property = "editable";
