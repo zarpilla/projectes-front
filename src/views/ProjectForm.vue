@@ -946,8 +946,8 @@ res executade<template>
           >
             {{
               props.row.docType === "income"
-                ? "Cobrament esperat"
-                : "Pagament esperat"
+                ? props.row.document && props.row.document.paid ? "Cobrament" : "Cobrament esperat"
+                : props.row.document && props.row.document.paid ? "Pagament" : "Pagament esperat"
             }}
           </b-table-column>
           <b-table-column
@@ -1370,7 +1370,7 @@ export default {
       const documents = [];
       this.form.phases.forEach((ph) => {
         ph.subphases.forEach((income) => {
-          if (!income.paid) {
+          if (!income.paid || true) {
             documents.push({
               docType: "income",
               document: income,
@@ -1379,7 +1379,7 @@ export default {
           }
         });
         ph.expenses.forEach((expense) => {
-          if (!expense.paid) {
+          if (!expense.paid || true) {
             documents.push({
               docType: "expense",
               document: expense,
@@ -1539,52 +1539,7 @@ export default {
                 return { ...p, edit: false };
               });
               if (this.form.phases.length === 0) {
-                // // create first phase
-                // const phase = { name: "F1", subphases: [], expenses: [] };
-                // let mustUpdate = false;
-                // if (this.form.incomes.length > 0) {
-                //   mustUpdate = true;
-                //   for (let i = 0; i < this.form.incomes.length; i++) {
-                //     const income = this.form.incomes[i];
-                //     if (income.client && !income.client.id) {
-                //       delete income.client;
-                //     }
-                //     delete income.id;
-                //     phase.subphases.push(income);
-                //   }
-                // } else {
-                //   phase.subphases.push({ concept: "SF1" });
-                // }
-                // this.form.phases.push(phase);
-                // this.form.incomes = [];
-                // if (this.form.estimated_hours.length > 0) {
-                //   mustUpdate = true;
-                //   this.form.phases[0].subphases[0].estimated_hours =
-                //     this.form.estimated_hours;
-                //   this.form.phases[0].subphases[0].estimated_hours.forEach(
-                //     (e) => {
-                //       delete e.id;
-                //     }
-                //   );
-                //   this.form.esti
-                // if (this.form.expenses.length > 0) {
-                //   for (let i = 0; i < this.form.expenses.length; i++) {
-                //     const expense = this.form.expenses[i];
-                //     delete expense.id;
-                //   }
-                //   mustUpdate = true;
-                //   this.form.phases[0].expenses = this.form.expenses;
-                //   this.form.expenses = [];
-                //   // this.form.phases = this.form.phases.map(r => { return { ...r, total_amount: sumBy(r.subphases, x => x.quantity * x.amount) - sumBy(r.expenses, x => x.quantity * x.amount) } })
-                // } else {
-                //   this.form.phases = this.form.phases.map((r) => {
-                //     return { ...r, expenses: [] };
-                //   });
-                // }mated_hours = [];
-                // }
-                // if (mustUpdate) {
-                //   // await this.submit()
-                // }
+
               } else if (this.form.expenses.length > 0) {
                 for (let i = 0; i < this.form.expenses.length; i++) {
                   const expense = this.form.expenses[i];
@@ -1599,6 +1554,13 @@ export default {
                   return { ...r, expenses: r.expenses || [] };
                 });
               }
+
+              // legacy, add original_phases dates
+              // if (this.form.phases && this.form.original_phases && this.form.phases.length && this.form.phases.length === this.form.original_phases.length) {
+              //   this.form.phases.forEach(p => {
+              //     p.subphases.forEach(sp => {
+              //   })
+              // }
 
               if (this.form.default_dedication_type === null) {
                 this.form.default_dedication_type = { id: 0 };
@@ -2017,9 +1979,11 @@ export default {
       this.form.original_phases.forEach((p) => {
         delete p.id;
         p.subphases.forEach((sp) => {
+          sp.date = moment(sp.date).format('YYYY-MM-DD')
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
+          sp.date = moment(sp.date).format('YYYY-MM-DD')
           delete sp.id;
         });
       });
@@ -2033,9 +1997,11 @@ export default {
         p.opened = true;
         delete p.id;
         p.subphases.forEach((sp) => {
+          sp.date = moment(sp.date).format('YYYY-MM-DD')
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
+          sp.date = moment(sp.date).format('YYYY-MM-DD')
           delete sp.id;
         });
       });

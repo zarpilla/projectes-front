@@ -167,7 +167,7 @@
                   </b-field>
                   <b-field
                     :label="j == 0 ? 'Data previsió pag.' : null"
-                    v-if="me.options && me.options.treasury && mode !== 'simple'"
+                    v-if="me.options && me.options.treasury"
                     class="date-field"
                   >
                     <b-datepicker
