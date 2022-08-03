@@ -133,22 +133,30 @@ export default {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {
                     sph.estimated_hours.forEach(h => {
                       const diff = moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD')))
-                      let mdiff = this.view === 'month' ? Math.round(diff.asMonths()) : Math.round(diff.asWeeks())                      
+                      // let mdiff = this.view === 'month' ? Math.round(diff.asDays()) : Math.round(diff.asWeeks())                      
+                      let mdiff = Math.round(diff.asDays())
                       let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0
 
-                      if (h.quantity_type === 'month' && this.view === 'month') {
-                        estimated_hours = h.quantity
+                      if (h.quantity_type === 'month') {
+                        estimated_hours = h.quantity / 30
                       }
-                      else if (h.quantity_type === 'month' && this.view === 'week') {
-                        estimated_hours = h.quantity / (52 / 12)
+                      if (h.quantity_type === 'week') {
+                        estimated_hours = h.quantity / 7
                       }
-                      else if (h.quantity_type === 'week' && this.view === 'week') {
-                        // ok
-                        estimated_hours = h.quantity
-                      }
-                      else if (h.quantity_type === 'week' && this.view === 'month') {
-                        estimated_hours = h.quantity * (52 / 12)
-                      }
+
+                      // if (h.quantity_type === 'month' && this.view === 'month') {
+                      //   estimated_hours = h.quantity
+                      // }
+                      // else if (h.quantity_type === 'month' && this.view === 'week') {
+                      //   estimated_hours = h.quantity / (52 / 12)
+                      // }
+                      // else if (h.quantity_type === 'week' && this.view === 'week') {
+                      //   // ok
+                      //   estimated_hours = h.quantity
+                      // }
+                      // else if (h.quantity_type === 'week' && this.view === 'month') {
+                      //   estimated_hours = h.quantity // * (52 / 12)
+                      // }
 
                       for (var i = 0; i < mdiff; i++) {
                         const activity = {
@@ -161,9 +169,11 @@ export default {
                           total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                           total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
                           count: 1,
-                          week: this.view === 'month' ? 1 : moment(h.from, 'YYYY-MM-DD').add(i, this.view).isoWeek() + 1,
-                          month: moment(h.from, 'YYYY-MM-DD').add(i, this.view).format('MM'),
-                          year: moment(h.from, 'YYYY-MM-DD').add(i, this.view).format('YYYY'),
+                          from: moment(h.from, 'YYYY-MM-DD').add(i, 'day').format('YYYY-MM-DD'),
+                          to: moment(h.from, 'YYYY-MM-DD').add(i + 1, 'day').format('YYYY-MM-DD'),
+                          week: moment(h.from, 'YYYY-MM-DD').add(i, 'day').isoWeek() + 1,
+                          month: moment(h.from, 'YYYY-MM-DD').add(i, 'day').format('MM'),
+                          year: moment(h.from, 'YYYY-MM-DD').add(i, 'day').format('YYYY'),
                           day: 0,
                           date: '-',
                           hours: 0,
@@ -183,7 +193,7 @@ export default {
           } else if (p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
               // legacy ?
-              console.log('legacy 2', p)
+              // console.log('legacy 2', p)
               // console.log('a.users_permissions_user', a.users_permissions_user)
               // console.log('this.month', this.month)
               // console.log('a.month', a.month)

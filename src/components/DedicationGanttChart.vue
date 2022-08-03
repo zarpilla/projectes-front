@@ -94,13 +94,15 @@ export default {
             parent: 0,
             readonly: true,
           };
-
+          // const ymw = this.view === 'week' ? `${d.year}-${d.month}-${d.week}` : `${d.year}-${d.month}-01`
           const userDedications = this.dedications
             .filter((d) => d.username === leader.username && d.estimated_hours)
             .map((d) => {
+              const ymw = this.view === 'week' ? `${d.year}-01-${d.week}` : `${d.year}-${d.month}-01`
               return {
                 ...d,
-                ymw: `${d.year}-${d.month}-${d.week}` //moment(`${d.year}-${d.month}-${d.week}`, "YYYYMMDD")
+                // ymw: `${d.year}-${d.month}-${d.week}` //moment(`${d.year}-${d.month}-${d.week}`, "YYYYMMDD")
+                ymw: ymw                
               };
             });
 
@@ -121,9 +123,14 @@ export default {
                   dailyHours = dd.hours;
                 }
               });
+
+              // const ymwf = this.view === 'week' ? `${d.year}-${d.month}-${d.week}` : `${d.year}-${d.month}`
+
+              const ymw = this.view === 'week' ? `${moment(f.date, "YYYY-MM-DD").format("YYYY")}-01-${moment(f.date, "YYYY-MM-DD").isoWeek()}` : `${moment(f.date, "YYYY-MM-DD").format("YYYY")}-${moment(f.date, "YYYY-MM-DD").format("MM")}-01`
+
               const festiveDedication = {
                 project_name: f.festive_type.name,
-                ymw: moment(f.date, "YYYY-MM-DD").format("YYYY-MM") + '-' + this.view === 'month' ? '01' : moment(f.date, "YYYY-MM-DD").isoWeek(),
+                ymw: ymw, // moment(f.date, "YYYY-MM-DD").format("YYYY-MM") + '-' + this.view === 'month' ? '01' : moment(f.date, "YYYY-MM-DD").isoWeek(),
                 estimated_hours: dailyHours,
               };
               userDedications.push(festiveDedication);
@@ -138,12 +145,14 @@ export default {
               month: id.substring(5, 7),
               week: id.substring(8, 10),
               total: _.sumBy(ymw, "estimated_hours"),
+              // rows: ymw
             }))
             .value();
 
           for (let j = 0; j < dedicationTotals.length; j++) {
             tid++;
             const dedication = dedicationTotals[j];
+            // const ymw = `${d.year}-${d.month}-${d.week}`
             var start_date = moment(`${dedication.year}-${this.view === 'month' ? dedication.month : '01' }-01`, 'YYYY-MM-DD')
 
             if (this.view === 'week') {
@@ -168,14 +177,14 @@ export default {
 
             const hoursTask = {
               id: tid,
-              text: `${dedication.total.toFixed(2)}h`,
+              text: `${dedication.total.toFixed(2)}h`,// (${dedication.year}-${dedication.month}-${dedication.week})`,
               start_date: start_date,
               end_date: end_date,
               parent: leader.id,
               progress: dedication.total / ( (this.view === 'month' ? 20 : 5) * dailyHours),
               readonly: true,
               _username: leader.username,
-              _week: parseInt(dedication.week),
+              _week: dedication.week,
               _month: dedication.month,
               _year: dedication.year,
               // open: true
@@ -235,12 +244,18 @@ export default {
       };
 
       gantt.templates.tooltip_text = (start, end, task) => {        
+        let out = "";
+
+        // out += `<pre>${task._year } - ${task._month } - ${task._week }</pre>`;
+        // return out
+
         const taskDedications = this.dedications.filter(
           (d) =>
             d.username === task._username &&
-            d.year === task._year &&
-            d.month === task._month &&
-            d.week === task._week
+            parseInt(d.year) === parseInt(task._year) &&
+            parseInt(d.month) === parseInt((this.view === 'week' ? d.month : task._month)) &&
+            parseInt(d.week) === parseInt((this.view === 'week' ? task._week : d.week))
+            // moment(d.from, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(d.from, 'YYYY-MM-DD').isBefore(moment(task.end_date))
         );
 
         const taskDedicationsByProject = _(taskDedications)
@@ -251,7 +266,7 @@ export default {
           }))
           .value();
 
-        let out = "";
+        //let out = "";
         taskDedicationsByProject.forEach((td) => {
           if (td.estimated_hours) {
             out += `<b>${td.project_name}:</b> ${td.estimated_hours.toFixed(
@@ -268,9 +283,10 @@ export default {
             f.users_permissions_user === null
           ) {
             if (
-              moment(f.date, "YYYY-MM-DD").format("YYYY") == task._year &&
-              moment(f.date, "YYYY-MM-DD").format("MM") == task._month &&
-              moment(f.date, "YYYY-MM-DD").isoWeek() == task._week
+              parseInt(moment(f.date, "YYYY-MM-DD").format("YYYY")) === parseInt(task._year) &&
+              parseInt(moment(f.date, "YYYY-MM-DD").format("MM")) == parseInt(this.view === 'week' ? moment(f.date, "YYYY-MM-DD").format("MM") : task._month) &&
+              parseInt(moment(f.date, "YYYY-MM-DD").isoWeek()) == parseInt(this.view === 'week' ? task._week : moment(f.date, "YYYY-MM-DD").isoWeek())
+              // moment(f.date, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(f.date, 'YYYY-MM-DD').isBefore(moment(task.end_date))
             ) {
               let dailyHours = 8;
               const taskUser = this.leaders.find(
