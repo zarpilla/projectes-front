@@ -173,7 +173,7 @@ export default {
                           to: moment(h.from, 'YYYY-MM-DD').add(i + 1, 'day').format('YYYY-MM-DD'),
                           week: moment(h.from, 'YYYY-MM-DD').add(i, 'day').isoWeek() + 1,
                           month: moment(h.from, 'YYYY-MM-DD').add(i, 'day').format('MM'),
-                          year: moment(h.from, 'YYYY-MM-DD').add(i, 'day').format('YYYY'),
+                          year: moment(h.from, 'YYYY-MM-DD').add(i, 'day').isoWeekYear(),
                           day: 0,
                           date: '-',
                           hours: 0,

@@ -126,7 +126,7 @@ export default {
 
               // const ymwf = this.view === 'week' ? `${d.year}-${d.month}-${d.week}` : `${d.year}-${d.month}`
 
-              const ymw = this.view === 'week' ? `${moment(f.date, "YYYY-MM-DD").format("YYYY")}-01-${moment(f.date, "YYYY-MM-DD").isoWeek()}` : `${moment(f.date, "YYYY-MM-DD").format("YYYY")}-${moment(f.date, "YYYY-MM-DD").format("MM")}-01`
+              const ymw = this.view === 'week' ? `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-01-${moment(f.date, "YYYY-MM-DD").isoWeek()}` : `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-${moment(f.date, "YYYY-MM-DD").format("MM")}-01`
 
               const festiveDedication = {
                 project_name: f.festive_type.name,
@@ -283,7 +283,7 @@ export default {
             f.users_permissions_user === null
           ) {
             if (
-              parseInt(moment(f.date, "YYYY-MM-DD").format("YYYY")) === parseInt(task._year) &&
+              parseInt(moment(f.date, "YYYY-MM-DD").isoWeekYear()) === parseInt(task._year) &&
               parseInt(moment(f.date, "YYYY-MM-DD").format("MM")) == parseInt(this.view === 'week' ? moment(f.date, "YYYY-MM-DD").format("MM") : task._month) &&
               parseInt(moment(f.date, "YYYY-MM-DD").isoWeek()) == parseInt(this.view === 'week' ? task._week : moment(f.date, "YYYY-MM-DD").isoWeek())
               // moment(f.date, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(f.date, 'YYYY-MM-DD').isBefore(moment(task.end_date))
