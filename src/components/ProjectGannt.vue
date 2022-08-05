@@ -266,6 +266,7 @@ export default {
       const endDate = this.project.date_end
         ? moment(this.project.date_end).add(1, "year").endOf("year").toDate()
         : moment().add(3, "year").endOf("year").toDate();
+
       gantt.config.start_date = initialDate;
       gantt.config.end_date = endDate;
       gantt.config.columns = [
@@ -373,33 +374,15 @@ export default {
         },
         { id: "onAfterTaskUpdate" }
       );
-
-      // gantt.attachEvent("onBeforeLightbox", (id) => {
-      //   console.log('id, e', id)
-      //     return false;
-      // }, {id: "onBeforeLightbox"});
-
       gantt.showLightbox = function (id) {
         // code of the custom form
       };
 
       gantt.init(this.ganttId);
-      // gantt.parse(this.$props.tasks)
-
-      // console.log('initializeGannt tasks', this.tasks)
-
       gantt.parse(this.tasks);
 
-      // setTimeout(() => {
-      //   gantt.refreshData();
-      // }, 500)
     },
-    // updateFirstRow () {
-    //   state.update(`config.list.rows.${GSTC.api.GSTCID('0')}`, (row) => {
-    //     row.label = 'Changed dynamically'
-    //     return row
-    //   })
-    // },
+    
     onDragEnd(
       startPoint,
       endPoint,
