@@ -577,7 +577,7 @@ res executade<template>
               <b-field label="Cost/hora executat" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_real_hours_price / form.total_real_hours"
+                    :value="form.total_real_hours ? form.total_real_hours_price / form.total_real_hours : 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
