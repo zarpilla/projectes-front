@@ -29,7 +29,7 @@
       </b-table-column>
       <b-table-column label="Àmbit" field="project_scope.name" sortable v-slot="props">
         {{ props.row.project_scope ? props.row.project_scope.name : '' }}
-      </b-table-column>
+      </b-table-column>      
       <b-table-column label="Hores dedicades" field="total_real_hours" sortable numeric v-slot="props">
         {{ props.row.total_real_hours ? props.row.total_real_hours.toFixed(2) : '' }}
       </b-table-column>
@@ -44,6 +44,9 @@
       </b-table-column>
       <b-table-column label="Estat" v-slot="props" sortable field="project_state.name">
         {{ props.row.project_state ? props.row.project_state.name : '' }}
+      </b-table-column>
+      <b-table-column label="Clienta" field="clients.name" sortable v-slot="props">
+        {{ props.row.clients && props.row.clients.length ? props.row.clients[0].name : '' }}
       </b-table-column>
       <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
         <div class="buttons is-right">
