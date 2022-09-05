@@ -6,6 +6,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     /* User */
+    user: null,
     userName: null,
     userEmail: null,
     userAvatar: null,
@@ -33,6 +34,9 @@ export default new Vuex.Store({
     /* User */
     user (state, payload) {
       // console.log('payload', payload)
+      if (payload.user) {
+        state.user = payload.user
+      }
       if (payload.name) {
         state.userName = payload.name
       }

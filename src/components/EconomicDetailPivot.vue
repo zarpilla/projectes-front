@@ -18,12 +18,42 @@
         month: 'month',
         paid: 'paid',
         row_type: 'row_type',
-        income_esti: 'income_esti',
-        income_real: 'income_real',
-        expense_esti: 'expense_esti',
-        expense_real: 'expense_real',
-        total_estimated_hours_price: 'total_estimated_hours_price',
-        total_real_hours_price: 'total_real_hours_price',
+        income_esti: {
+          field: 'income_esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        income_real: {
+          field: 'income_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        expense_esti: {
+          field: 'income_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        expense_real: {
+          field: 'income_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        total_estimated_hours_price: {
+          field: 'total_estimated_hours_price',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        total_real_hours_price: {
+          field: 'total_real_hours_price',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
       }"
       name="detall-ingressos-despeses"
     >
@@ -31,10 +61,87 @@
         title="Exporta dades"
         class="export-button"
         icon-left="file-excel"
+        label="Descarrega detall"
       />
     </download-excel>
+    <download-excel
+      class="export"
+      :data="pivotDataGroupped"
+      :fields="{
+        id: 'id',
+        project_name: 'project_name',        
+        'Resultat prev': {
+          field: 'esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Resultat exec': {
+          field: 'real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Ingressos prev': {
+          field: 'income_esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Ingressos exec': {
+          field: 'income_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses tot prev': {
+          field: 'total_expense_esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses tot exec': {
+          field: 'total_expense_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses prev': {
+          field: 'expense_esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses exec': {
+          field: 'expense_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Hores prev': {
+          field: 'total_estimated_hours_price',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Hores exec': {
+          field: 'total_real_hours_price',
+          callback: (value) => {
+            return excelFormat(value);
+          }          
+        }
+      }"
+      name="detall-ingressos-despeses"
+    >
+      <b-button
+        title="Exporta dades"
+        class="export-button"
+        icon-left="file-excel"
+        label="Descarrega totals per projecte"
+      />
+    </download-excel>    
     <!-- <pre>
-      {{ pivotData }}
+      {{ pivotDataGroupped }}
     </pre> -->
   </div>
 </template>
@@ -46,6 +153,9 @@ import sortBy from "lodash/sortBy";
 import omit from "lodash/omit";
 import moment from "moment";
 import configPivot from "@/service/configStatsEconomicDetail";
+import { mapState } from "vuex";
+import { format } from "@/helpers/excelFormatter";
+import _ from "lodash";
 
 moment.locale("ca");
 
@@ -64,6 +174,30 @@ export default {
     date2: {
       type: Date,
       default: null,
+    },
+  },
+  computed: {
+    ...mapState(["userName", "user"]),
+    pivotDataGroupped() {
+      return _(this.pivotData)
+        .groupBy("id")
+        .map((rows, id) => ({
+          id: id,
+          project_name: rows[0].project_name,          
+          esti: (_.sumBy(rows, "income_esti") || 0) + (_.sumBy(rows, "expense_esti") || 0) + (_.sumBy(rows, "total_estimated_hours_price") || 0),
+          real: (_.sumBy(rows, "income_real") || 0) + (_.sumBy(rows, "expense_real") || 0) + (_.sumBy(rows, "total_real_hours_price") || 0),
+          income_esti: _.sumBy(rows, "income_esti") || 0,
+          income_real: _.sumBy(rows, "income_real") || 0,
+          total_expense_esti: (_.sumBy(rows, "expense_esti") || 0) + (_.sumBy(rows, "total_estimated_hours_price") || 0),
+          total_expense_real: (_.sumBy(rows, "expense_real") || 0) + (_.sumBy(rows, "total_real_hours_price") || 0),
+          expense_esti: _.sumBy(rows, "expense_esti") || 0,
+          expense_real: _.sumBy(rows, "expense_real") || 0,
+          total_estimated_hours_price:
+            _.sumBy(rows, "total_estimated_hours_price") || 0,
+          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
+
+        }))
+        .value();
     },
   },
   data() {
@@ -123,6 +257,9 @@ export default {
       window.jQuery("#project-despeses").empty();
       window.jQuery("#project-despeses").kendoPivotGrid(configPivot);
       this.isLoading = false;
+    },
+    excelFormat(value) {
+      return format(this.user, value);
     },
   },
   filters: {

@@ -181,11 +181,11 @@ export default {
       try {
         const me = await service({ requiresAuth: true })
         .get("users/me")
-
         if (me && me.data && me.data.username) {
           const user = JSON.parse(localStorage.getItem('user'))      
           user['jwt'] = localStorage.getItem('jwt')
           this.$store.commit('user', {
+            user: user,
             name: user.username,
             jwt: sessionStorage.getItem('jwt')
           })
