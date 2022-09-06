@@ -112,7 +112,7 @@ export default {
       view: "month",
       projectTasks: [],
       collapsed: false,
-      taskToAddId: 0
+      taskToAddId: 0,
     };
   },
   async mounted() {
@@ -179,6 +179,7 @@ export default {
       // console.log('initializeGannt', this.project)
       this.tasks = { data: [] };
       let minDate = moment().format("YYYY-MM-DD");
+      let maxDate = moment().format("YYYY-MM-DD");
       for (let i = 0; i < this.project.original_phases.length; i++) {
         const phase = this.project.original_phases[i];
         const task = {
@@ -221,14 +222,22 @@ export default {
               hours.users_permissions_user
                 ? hours.users_permissions_user.username
                 : ""
-            } - ${hours.quantity}h${(hours.quantity_type && hours.quantity_type == 'week' ? '/setmana' : (hours.quantity_type && hours.quantity_type == 'month' ? '/mes' : '' ))}`;
+            } - ${hours.quantity}h${
+              hours.quantity_type && hours.quantity_type == "week"
+                ? "/setmana"
+                : hours.quantity_type && hours.quantity_type == "month"
+                ? "/mes"
+                : ""
+            }`;
 
             if (hours.from && hours.to) {
               const hoursTask = {
                 id: 99999999 + (hours.id ? hours.id : 9999999999 + k),
                 text: hoursName,
                 start_date: hours.from,
-                end_date: moment(hours.to, 'YYYY-MM-DD').add(1, 'day').format('YYYY-MM-DD'),
+                end_date: moment(hours.to, "YYYY-MM-DD")
+                  .add(1, "day")
+                  .format("YYYY-MM-DD"),
                 parent: parentId,
                 open: true,
                 _hours: hours,
@@ -236,9 +245,12 @@ export default {
                 _subphase: subphase,
               };
 
-              this.tasks.data.push(hoursTask);
+              this.tasks.data.push(hoursTask);              
               if (minDate > hours.from) {
                 minDate = hours.from;
+              }
+              if (maxDate < hours.to) {
+                maxDate = hours.to;
               }
             }
           }
@@ -267,8 +279,19 @@ export default {
         ? moment(this.project.date_end).add(1, "year").endOf("year").toDate()
         : moment().add(3, "year").endOf("year").toDate();
 
-      gantt.config.start_date = initialDate;
-      gantt.config.end_date = endDate;
+        console.log('initialDate', initialDate)
+        console.log('minDate', minDate)
+
+      if (moment(initialDate).isBefore(moment(minDate))) {
+        minDate = initialDate
+      }
+      if (moment(endDate).isAfter(moment(maxDate))) {
+        maxDate = endDate
+      }
+
+      gantt.config.start_date = minDate;
+      gantt.config.end_date = maxDate;
+      
       gantt.config.columns = [
         {
           name: "text",
@@ -346,10 +369,13 @@ export default {
       gantt.attachEvent(
         "onAfterTaskUpdate",
         (id, item) => {
-
           // console.log('onAfterTaskUpdate', item, this.project)
-          if (moment(item.start_date).format('YYYYMMDD') < moment(this.project.date_start).format('YYYYMMDD') || moment(item.end_date).format('YYYYMMDD') > moment(this.project.date_end).format('YYYYMMDD')) {
-            
+          if (
+            moment(item.start_date).format("YYYYMMDD") <
+              moment(this.project.date_start).format("YYYYMMDD") ||
+            moment(item.end_date).format("YYYYMMDD") >
+              moment(this.project.date_end).format("YYYYMMDD")
+          ) {
             this.$buefy.snackbar.open({
               message: "Atenció, planificació fora del període del projecte",
               queue: false,
@@ -380,9 +406,8 @@ export default {
 
       gantt.init(this.ganttId);
       gantt.parse(this.tasks);
-
     },
-    
+
     onDragEnd(
       startPoint,
       endPoint,
@@ -408,7 +433,7 @@ export default {
           _subphase: currentTask._subphase,
           _hours: {
             users_permissions_user: this.user,
-            quantity_type: 'total',
+            quantity_type: "total",
             quantity:
               currentTask._subphase && currentTask._subphase.quantity
                 ? currentTask._subphase.quantity
@@ -472,7 +497,8 @@ export default {
           this.tasks.data.push(taskToAdd);
         }
       } else if (tasksInRow.length > 1) {
-        const ph = this.project.original_phases[this.project.original_phases.length - 1];
+        const ph =
+          this.project.original_phases[this.project.original_phases.length - 1];
         // const sph = ph.subphases[ph.subphases.length - 1];
         // console.log('sph', sph)
         var projects = tasksInRow.filter((t) => t.type === "project");
@@ -588,7 +614,13 @@ export default {
         activity.users_permissions_user
           ? activity.users_permissions_user.username
           : ""
-      } - ${activity.quantity}h${(activity.quantity_type && activity.quantity_type == 'week' ? '/setmana' : (activity.quantity_type && activity.quantity_type == 'month' ? '/mes' : '' ))}`;
+      } - ${activity.quantity}h${
+        activity.quantity_type && activity.quantity_type == "week"
+          ? "/setmana"
+          : activity.quantity_type && activity.quantity_type == "month"
+          ? "/mes"
+          : ""
+      }`;
       gantt.getTask(activity.id).text = taskName;
       gantt.updateTask(activity.id);
 
@@ -616,7 +648,7 @@ export default {
       // console.log('this.tasks.data', this.tasks.data)
       if (this.taskToAddId) {
         gantt.deleteTask(this.taskToAddId);
-      }      
+      }
       this.isModalActive = false;
     },
     trashCancel() {
