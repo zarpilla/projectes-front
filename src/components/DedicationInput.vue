@@ -26,6 +26,12 @@
       @cancel="modalFestiveCancel"
       @delete="modalFestiveDelete"
     />
+    <modal-box-move-project
+      :is-active="isModalMoveToProject"
+      :projects="projects"
+      @submit="modalMoveToProjectSubmit"
+      @cancel="modalMoveToProjectCancel"
+    />
     <card-component class="has-table has-mobile-sort-spaced">
       <div class="card-body is-total">
         <div class="columns">
@@ -93,6 +99,14 @@
               :disabled="!user"
               :loading="isLoadingImport"
               icon-left="download"
+            />
+            <b-button
+              title="Moure hores entre projectes"
+              @click="showModalMoveToProject"
+              class="view-button is-warning"
+              :disabled="!project"
+              :loading="isLoadingMove"
+              icon-left="swap-horizontal"
             />
             <b-button
               title="Afegir festiu"
@@ -312,6 +326,7 @@ import TimeCounter from "@/components/TimeCounter";
 import * as chartConfig from "@/components/Charts/chart.config";
 import ModalBoxDedication from "@/components/ModalBoxDedication";
 import ModalBoxFestive from "@/components/ModalBoxFestive";
+import ModalBoxMoveProject from "@/components/ModalBoxMoveProject";
 import { mapState } from "vuex";
 import ical from "node-ical";
 
@@ -328,6 +343,7 @@ export default {
     ModalBoxDedication,
     TimeCounter,
     ModalBoxFestive,
+    ModalBoxMoveProject,
   },
   props: {
     user: {
@@ -366,6 +382,7 @@ export default {
       dedicationObject: null,
       festiveObject: null,
       isModalFestiveActive: false,
+      isModalMoveToProject: false,
       trashObject: null,
       activities: [],
       activitiesJSON: [],
@@ -412,6 +429,7 @@ export default {
       icalEvents: [],
       isLoadingImport: false,
       icalVisible: false,
+      isLoadingMove: false
     };
   },
   computed: {
@@ -644,7 +662,6 @@ export default {
 
           this.getCounters();
 
-
           if (this.icalEvents.length && this.icalVisible) {
             this.showICalEvents();
           }
@@ -789,6 +806,9 @@ export default {
           queue: false,
         });
       }
+    },
+    showModalMoveToProject() {
+      this.isModalMoveToProject = true;
     },
     showModalICal(event) {
       const project = this.project
@@ -1020,6 +1040,33 @@ export default {
         });
       }
     },
+    async modalMoveToProjectSubmit(data) {
+      console.log("modalMoveToProjectSubmit", data.project);
+      this.isModalMoveToProject = false;
+      this.isLoadingMove = true;
+      const movedata = {
+        user: this.user,
+        from: this.project,
+        to: data.project,
+        start: moment(this.date1).format('YYYY-MM-DD'),
+        end: moment(this.date2).format('YYYY-MM-DD'),
+      };
+      const moveResponse = (
+        await service({ requiresAuth: true }).post(`activities/move`, movedata)
+      ).data;
+
+      this.isLoadingMove = false;      
+      this.$buefy.snackbar.open({
+        message: "Actualitzat!",
+        queue: false,
+      });
+      this.getActivities();
+
+      
+    },
+    async modalMoveToProjectCancel() {
+      this.isModalMoveToProject = false;
+    },
     async importFromCalendar() {
       if (this.user) {
         const user = this.users.find((u) => u.id === this.user);
@@ -1030,7 +1077,7 @@ export default {
           });
           return;
         } else if (this.icalEvents.length) {
-          this.icalVisible = true
+          this.icalVisible = true;
           this.showICalEvents();
         } else {
           this.isLoadingImport = true;
@@ -1043,9 +1090,10 @@ export default {
           if (icalEvents.ical && icalEvents.ical.length) {
             this.icalEvents = icalEvents.ical;
             this.showICalEvents();
-            
+
             this.$buefy.snackbar.open({
-              message: "Atenció. Has d'assignar projectes a les hores del calendari",
+              message:
+                "Atenció. Has d'assignar projectes a les hores del calendari",
               queue: false,
             });
 
@@ -1061,7 +1109,7 @@ export default {
     },
     showICalEvents() {
       if (!this.user) {
-        return
+        return;
       }
       const user = this.users.find((u) => u.id === this.user);
       this.icalEvents.forEach((event) => {
@@ -1245,13 +1293,19 @@ export default {
 .custom-calendar .vc-title {
   margin-left: 1rem;
 }
-.tag-blink{
-    animation: blink 5s infinite;
+.tag-blink {
+  animation: blink 5s infinite;
 }
 @keyframes blink {
-  0% {background-color: #17191E;}
-  50% {background-color: #aaa;}
-  
-  100% {background-color: #17191E;}
+  0% {
+    background-color: #17191e;
+  }
+  50% {
+    background-color: #aaa;
+  }
+
+  100% {
+    background-color: #17191e;
+  }
 }
 </style>
