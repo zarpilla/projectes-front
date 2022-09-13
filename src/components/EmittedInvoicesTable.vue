@@ -34,8 +34,9 @@
         suffix="€"
       />
     </tiles>
+    <!-- <pre>{{emittedCSV}}</pre> -->
 
-    <download-excel class="export" :data="emittedCSV">
+    <download-excel class="export" :data="emittedCSV" name="ingressos">
       <b-button
         title="Exporta dades"
         class="export-button mb-3"
@@ -277,10 +278,12 @@ export default {
       this.emittedCSV = this.emitted.map((e) => {
         return {
           num: e.code,
-          data: e.date,
+          tipus: e.type == 'emitted-invoices' ? 'Factura' : e.document_type.name,
+          data: e.emitted,
           proveidor: e.contact ? e.contact.name : "",
-          nif: e.contact ? e.contact.nif : "",
-          concepte: e.lines && e.lines.length > 0 ? e.lines[0].concepte : "-",
+          nif_proveidor: e.contact ? e.contact.nif : "",
+          adr_proveidor: e.contact ? e.contact.address + ' ' + e.contact.postcode +  ' ' + e.contact.city + ' ' + ( e.contact.state ? '(' + e.contact.state + ') ' : 0) +  e.contact.country : '',
+          concepte: e.lines && e.lines.length > 0 ? e.lines[0].concept : "-",
           projecte: e.projects && e.projects.length ? e.projects[0].name : (e.project ? e.project.name : ""),
           base: e.total_base,
           vat: e.total_vat,
