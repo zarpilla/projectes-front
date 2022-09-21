@@ -44,7 +44,7 @@
                 </option>
               </b-select>
             </b-field>
-            <b-field label="Contacte">
+            <b-field label="Contacte" class="is-narrow">
               <b-select
                 v-model="filters.contact"                
               >
@@ -57,10 +57,23 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field label="Projecte" class="is-narrow">
+              <b-select
+                v-model="filters.project"                
+              >
+                <option
+                  v-for="(c, i) in projects"
+                  :key="i"
+                  :value="c.id"
+                >
+                  {{ c.name }}
+                </option>
+              </b-select>
+            </b-field>
           </b-field>
         </form>
       </card-component>
-      <emitted-invoices-table :year="filters.year" :month="filters.month" :contact="filters.contact" :document-type="filters.documentType" />
+      <emitted-invoices-table :year="filters.year" :month="filters.month" :contact="filters.contact" :document-type="filters.documentType" :project="filters.project" />
     </section>
   </div>
 </template>
@@ -89,11 +102,13 @@ export default {
         year: null,
         month: 0,
         contact: 0,
-        documentType: 0
+        documentType: 0,
+        project: 0
       },
       years: [],
       months: [],
       contacts: [],
+      projects: [],
       documentTypes: [],
       treasury: [],
       treasuryData: []
@@ -119,6 +134,10 @@ export default {
     this.contacts = data
     this.contacts.unshift({ id: 0, name: 'Tots' })    
 
+    var { data } = await service({ requiresAuth: true }).get('projects/basic?_sort=name&_limit=-1');    
+    this.projects = data
+    this.projects.unshift({ id: 0, name: 'Tots' })    
+
     var { data } = await service({ requiresAuth: true }).get('document-types?type=income&_limit=-1');
     this.documentTypes = data
     this.documentTypes.unshift({ id: -1, name: 'Factura' })
@@ -132,3 +151,8 @@ export default {
   }
 }
 </script>
+<style scoped>
+.is-narrow .control {
+  max-width: 350px;
+}
+</style>

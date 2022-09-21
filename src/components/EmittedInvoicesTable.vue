@@ -120,7 +120,7 @@
         }}
       </b-table-column>
       <b-table-column label="Projecte" field="lines" v-slot="props" sortable>
-        {{ props.row.projects && props.row.projects.length ? props.row.projects[0].name : (props.row.project ? props.row.project.name : "-" ) }}
+        <span v-for="project in props.row.projects" :key="project.id">{{project.name}}&nbsp;</span>        
       </b-table-column>
       <b-table-column label="Base" field="total_base" v-slot="props" sortable>
         {{ formatPrice(props.row.total_base) }} €
@@ -169,6 +169,10 @@ export default {
       type: Number,
       default: null,
     },
+    project: {
+      type: Number,
+      default: null,
+    },    
     documentType: {
       type: Number,
       default: null,
@@ -216,6 +220,9 @@ export default {
     contact: function (newVal, oldVal) {
       this.getData();
     },
+    project: function (newVal, oldVal) {
+      this.getData();
+    },
     documentType: function (newVal, oldVal) {
       this.getData();
     },
@@ -250,10 +257,11 @@ export default {
       const to2 = this.month ? moment(`${this.year}-${this.month}`, 'YYYY-M').endOf("month").format("YYYY-MM-DD") : to;
 
       const contactQuery = this.contact ? `&[contact_eq]=${this.contact}` : '';      
+      const projectQuery = this.project ? `&[projects_eq]=${this.project}` : '';
 
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}`
+          `emitted-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${projectQuery}`
         )
       ).data;
 
@@ -264,7 +272,7 @@ export default {
       const typeQuery = this.documentType !== 0 ? `&[document_type_eq]=${this.documentType}` : '';
       let incomes = (
         await service({ requiresAuth: true }).get(
-          `received-incomes?_limit=-1&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${typeQuery}`
+          `received-incomes?_limit=-1&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${typeQuery}${projectQuery}`
         )
       ).data;
 
