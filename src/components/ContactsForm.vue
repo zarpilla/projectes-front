@@ -9,8 +9,8 @@
               <b-field label="Raó Social *" horizontal>
                 <b-input v-model="form.name" placeholder="Raó Social del contacte" required />
               </b-field>
-              <b-field label="NIF" horizontal>
-                <b-input v-model="form.nif" />
+              <b-field label="NIF *" horizontal>
+                <b-input v-model="form.nif" required />
               </b-field>
               <b-field label="Forma jurídica" horizontal>
                 <b-select v-model="form.legal_form" placeholder="">
@@ -40,14 +40,14 @@
               <b-field label="Email" horizontal>
                 <b-input v-model="form.email" />
               </b-field>
-              <b-field label="Adreça" horizontal>
-                <b-input v-model="form.address" />
+              <b-field label="Adreça *" horizontal>
+                <b-input v-model="form.address" required />
               </b-field>
-              <b-field label="Població" horizontal>
-                <b-input v-model="form.city" />
+              <b-field label="Població *" horizontal>
+                <b-input v-model="form.city" required />
               </b-field>
-              <b-field label="CP" horizontal>
-                <b-input v-model="form.postcode" />
+              <b-field label="CP *" horizontal>
+                <b-input v-model="form.postcode" required/>
               </b-field>
               <b-field label="Provincia" horizontal>
                 <b-input v-model="form.state" />
@@ -222,11 +222,15 @@ export default {
         if (this.form.id) {
 
           if (
-            !this.form.name
+            !this.form.name ||
+            !this.form.nif ||
+            !this.form.address ||
+            !this.form.city ||
+            !this.form.postcode
           ) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Raó social és obligatòria",
+                "Error. Falten alguns camps obligatòris",
               queue: false,
             });
             this.isLoading = false;
@@ -245,11 +249,15 @@ export default {
         } else {
           console.log("this.form", this.form);
           if (
-            !this.form.name
+            !this.form.name ||
+            !this.form.nif ||
+            !this.form.address ||
+            !this.form.city ||
+            !this.form.postcode
           ) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Raó social és obligatòria",
+              "Error. Falten alguns camps obligatòris",
               queue: false,
             });
             this.isLoading = false;
