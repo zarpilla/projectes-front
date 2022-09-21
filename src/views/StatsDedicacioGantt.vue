@@ -83,7 +83,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Previsió dedicació']
+      return ['Dedicació', 'Previsió dedicació / Jornades']
     }
   },
   async mounted () {

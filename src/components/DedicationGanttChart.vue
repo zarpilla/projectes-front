@@ -1,8 +1,16 @@
 <template>
   <div>
     <div class="gannt-container" v-if="showGantt">
-      <div class="gantt" :id="ganttId"></div>
+      <div class="gantt gantt-dedication" :id="ganttId"></div>
     </div>
+    <div class="help">
+      <b-icon icon="circle" class="has-text-warning" custom-size="default" />
+      <b>Ocupada menys del 95%</b><br />
+      <b-icon icon="circle" class="has-text-danger" custom-size="default" />
+      <b>Ocupada més del 105%</b><br />
+      <b-icon icon="circle" class="has-text-success" custom-size="default" />
+      <b>Ocupada entre el 95 i el 105%</b><br />
+    </div>      
   </div>
 </template>
 
@@ -175,18 +183,24 @@ export default {
               }
             });
 
+            const progress = dailyHours ? dedication.total / ( (this.view === 'month' ? 20 : 5) * dailyHours) : 0;
+            const progressText = dailyHours ? (progress * 100).toFixed(0) : '';
+
             const hoursTask = {
               id: tid,
-              text: `${dedication.total.toFixed(2)}h`,// (${dedication.year}-${dedication.month}-${dedication.week})`,
+              text: `${dedication.total.toFixed(2)}h (${progressText}%)`,// (${dedication.year}-${dedication.month}-${dedication.week})`,
               start_date: start_date,
               end_date: end_date,
               parent: leader.id,
-              progress: dedication.total / ( (this.view === 'month' ? 20 : 5) * dailyHours),
+              progress: progress,
               readonly: true,
               _username: leader.username,
               _week: dedication.week,
               _month: dedication.month,
               _year: dedication.year,
+              _dedication_total: dedication.total,
+              _total_hours: ( (this.view === 'month' ? 20 : 5) * dailyHours)
+
               // open: true
             };            
             // console.log('hoursTask', hoursTask)
@@ -212,6 +226,19 @@ export default {
           resize: true,
         },
       ];
+
+      gantt.templates.task_class  = (start, end, task) => {
+        console.log('task class', task)
+        if (task.progress < 0.95) {
+            return "has-background-warning has-text-black";
+        }
+        else if (task.progress > 1.05) {
+            return "has-background-danger";
+        }
+        else {
+            return "has-background-success";
+        }
+};
 
       gantt.config.scroll_size = 30;
       
@@ -323,6 +350,14 @@ export default {
           }
         });
 
+        out += `<br><b>Hores període</b>: ${task._total_hours}`
+        if (task._total_hours - task._dedication_total > 0) {
+          out += `<br><b>Falten</b>: ${(task._total_hours - task._dedication_total).toFixed(2)}`
+        } else {
+          out += `<br><b>Sobren</b>: ${(task._dedication_total - task._total_hours).toFixed(2)}`
+        }
+        
+
         return out;
       };
 
@@ -374,5 +409,15 @@ export default {
 .gantt_task_line.gantt_project,
 .gantt_task_line {
   border-radius: 30px;
+}
+
+.gantt-dedication .gantt_task_line.has-background-warning {
+  background-color: #ffdd57 !important;
+}
+.gantt-dedication .gantt_task_line.has-background-danger .gantt_task_progress{
+  background-color: #f14668 !important;
+}
+.gantt-dedication .gantt_task_content {
+  color: #222;
 }
 </style>
