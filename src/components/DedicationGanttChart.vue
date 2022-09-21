@@ -349,11 +349,11 @@ export default {
           }
         });
 
-        out += `<br><b>Hores període</b>: ${task._total_hours}`
+        out += `<br><b>Hores període</b>: ${task._total_hours.toFixed(2)}h`
         if (task._total_hours - task._dedication_total > 0) {
-          out += `<br><b>Falten</b>: ${(task._total_hours - task._dedication_total).toFixed(2)}`
+          out += `<br><b>Falten</b>: ${(task._total_hours - task._dedication_total).toFixed(2)}h`
         } else {
-          out += `<br><b>Sobren</b>: ${(task._dedication_total - task._total_hours).toFixed(2)}`
+          out += `<br><b>Sobren</b>: ${(task._dedication_total - task._total_hours).toFixed(2)}h`
         }
         
 
