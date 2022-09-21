@@ -932,6 +932,44 @@ res executade<template>
         </b-table>
       </card-component>
 
+      <card-component v-if="!isLoading && !isUpdating" title="PLANIFICACIÓ">
+        <button
+          v-if="needsUpdate"
+          class="button is-small is-danger ml-2"
+          type="button"
+          @click.prevent="updateGantt"
+        >
+          Guardar i Actualitzar
+          <b-icon icon="refresh" size="is-small" />
+        </button>
+        <project-gannt
+          v-if="
+            !isLoading &&
+            !needsUpdate &&
+            form.id &&
+            form.original_phases &&
+            form.original_phases.length &&
+            form.original_phases[0].id
+          "
+          class="left-container"
+          :project="form"
+          :users="leaders"
+          :tasks="{}"
+          @gantt-item-update="ganttItemUpdate"
+          @gantt-item-delete="ganttItemDelete"
+        />
+        <span class="bg-info" v-else
+          >Es necessari tenir fases i guardar el projecte amb un pressupost
+          tancat per accedir a la planificació</span
+        >
+        <hr />
+        <b-field>
+          <b-button type="is-primary" :loading="isLoading" @click="submit"
+            >Guardar</b-button
+          >
+        </b-field>
+      </card-component>
+
       <card-component
         v-if="treasury && treasury.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
@@ -993,45 +1031,7 @@ res executade<template>
             }}
           </b-table-column>
         </b-table>
-      </card-component>
-
-      <card-component v-if="!isLoading && !isUpdating" title="PLANIFICACIÓ">
-        <button
-          v-if="needsUpdate"
-          class="button is-small is-danger ml-2"
-          type="button"
-          @click.prevent="updateGantt"
-        >
-          Guardar i Actualitzar
-          <b-icon icon="refresh" size="is-small" />
-        </button>
-        <project-gannt
-          v-if="
-            !isLoading &&
-            !needsUpdate &&
-            form.id &&
-            form.original_phases &&
-            form.original_phases.length &&
-            form.original_phases[0].id
-          "
-          class="left-container"
-          :project="form"
-          :users="leaders"
-          :tasks="{}"
-          @gantt-item-update="ganttItemUpdate"
-          @gantt-item-delete="ganttItemDelete"
-        />
-        <span class="bg-info" v-else
-          >Es necessari tenir fases i guardar el projecte amb un pressupost
-          tancat per accedir a la planificació</span
-        >
-        <hr />
-        <b-field>
-          <b-button type="is-primary" :loading="isLoading" @click="submit"
-            >Guardar</b-button
-          >
-        </b-field>
-      </card-component>
+      </card-component>      
 
       <card-component
         v-if="!isLoading"
