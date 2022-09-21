@@ -314,6 +314,7 @@ export default {
       this.emittedCSV = this.emitted.map((e) => {
         return {
           num: e.code,
+          num_document_proveidor: e.contact_invoice_number ? e.contact_invoice_number : '',
           tipus: e.type == 'received-invoices' ? 'Factura' : ( e.type === 'received-expenses' ? e.document_type.name : 'Nómina' ),
           data: e.emitted,
           proveidor: e.contact ? e.contact.name : "",
