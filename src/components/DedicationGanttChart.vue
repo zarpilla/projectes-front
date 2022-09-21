@@ -10,7 +10,7 @@
       <b>Ocupada més del 105%</b><br />
       <b-icon icon="circle" class="has-text-success" custom-size="default" />
       <b>Ocupada entre el 95 i el 105%</b><br />
-    </div>      
+    </div>
   </div>
 </template>
 
@@ -106,11 +106,14 @@ export default {
           const userDedications = this.dedications
             .filter((d) => d.username === leader.username && d.estimated_hours)
             .map((d) => {
-              const ymw = this.view === 'week' ? `${d.year}-01-${d.week}` : `${d.year}-${d.month}-01`
+              const ymw =
+                this.view === "week"
+                  ? `${d.year}-01-${d.week}`
+                  : `${d.year}-${d.month}-01`;
               return {
                 ...d,
                 // ymw: `${d.year}-${d.month}-${d.week}` //moment(`${d.year}-${d.month}-${d.week}`, "YYYYMMDD")
-                ymw: ymw                
+                ymw: ymw,
               };
             });
 
@@ -134,7 +137,16 @@ export default {
 
               // const ymwf = this.view === 'week' ? `${d.year}-${d.month}-${d.week}` : `${d.year}-${d.month}`
 
-              const ymw = this.view === 'week' ? `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-01-${moment(f.date, "YYYY-MM-DD").isoWeek()}` : `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-${moment(f.date, "YYYY-MM-DD").format("MM")}-01`
+              const ymw =
+                this.view === "week"
+                  ? `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-01-${moment(
+                      f.date,
+                      "YYYY-MM-DD"
+                    ).isoWeek()}`
+                  : `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-${moment(
+                      f.date,
+                      "YYYY-MM-DD"
+                    ).format("MM")}-01`;
 
               const festiveDedication = {
                 project_name: f.festive_type.name,
@@ -161,16 +173,25 @@ export default {
             tid++;
             const dedication = dedicationTotals[j];
             // const ymw = `${d.year}-${d.month}-${d.week}`
-            var start_date = moment(`${dedication.year}-${this.view === 'month' ? dedication.month : '01' }-01`, 'YYYY-MM-DD')
+            var start_date = moment(
+              `${dedication.year}-${
+                this.view === "month" ? dedication.month : "01"
+              }-01`,
+              "YYYY-MM-DD"
+            );
 
-            if (this.view === 'week') {
-              start_date = start_date.startOf('week').add(parseInt(dedication.week) - 1, 'weeks').format('YYYY-MM-DD');
+            if (this.view === "week") {
+              start_date = start_date
+                .startOf("week")
+                .add(parseInt(dedication.week) - 1, "weeks")
+                .format("YYYY-MM-DD");
             } else {
-              start_date = start_date.format('YYYY-MM-DD');
+              start_date = start_date.format("YYYY-MM-DD");
             }
-            
+
             const end_date = moment(start_date, "YYYY-MM-DD")
-              .endOf(this.view).add(1, 'day')
+              .endOf(this.view)
+              .add(1, "day")
               .format("YYYY-MM-DD");
             if (end_date > maxEnddate) {
               maxEnddate = end_date;
@@ -183,12 +204,15 @@ export default {
               }
             });
 
-            const progress = dailyHours ? dedication.total / ( (this.view === 'month' ? 20 : 5) * dailyHours) : 0;
-            const progressText = dailyHours ? (progress * 100).toFixed(0) : '';
+            const progress = dailyHours
+              ? dedication.total /
+                ((this.view === "month" ? 20 : 5) * dailyHours)
+              : 0;
+            const progressText = dailyHours ? (progress * 100).toFixed(0) : "";
 
             const hoursTask = {
               id: tid,
-              text: `${dedication.total.toFixed(2)}h (${progressText}%)`,// (${dedication.year}-${dedication.month}-${dedication.week})`,
+              text: `${dedication.total.toFixed(2)}h (${progressText}%)`, // (${dedication.year}-${dedication.month}-${dedication.week})`,
               start_date: start_date,
               end_date: end_date,
               parent: leader.id,
@@ -199,10 +223,10 @@ export default {
               _month: dedication.month,
               _year: dedication.year,
               _dedication_total: dedication.total,
-              _total_hours: ( (this.view === 'month' ? 20 : 5) * dailyHours)
+              _total_hours: (this.view === "month" ? 20 : 5) * dailyHours,
 
               // open: true
-            };            
+            };
             // console.log('hoursTask', hoursTask)
             this.tasks.data.push(hoursTask);
           }
@@ -227,20 +251,18 @@ export default {
         },
       ];
 
-      gantt.templates.task_class  = (start, end, task) => {
+      gantt.templates.task_class = (start, end, task) => {
         if (task.progress < 0.95) {
-            return "has-background-warning has-text-black";
+          return "has-background-warning has-text-black";
+        } else if (task.progress > 1.05) {
+          return "has-background-danger";
+        } else {
+          return "has-background-success";
         }
-        else if (task.progress > 1.05) {
-            return "has-background-danger";
-        }
-        else {
-            return "has-background-success";
-        }
-};
+      };
 
       gantt.config.scroll_size = 30;
-      
+
       // gantt.plugins({ click_drag: true })
       // gantt.config.readonly = true
       // gantt.config.editable_property = "editable";
@@ -263,13 +285,15 @@ export default {
         });
       }
 
+      gantt.config.min_column_width = 100;
+
       gantt.plugins({ tooltip: true });
 
       gantt.showLightbox = function (id) {
         // code of the custom form
       };
 
-      gantt.templates.tooltip_text = (start, end, task) => {        
+      gantt.templates.tooltip_text = (start, end, task) => {
         let out = "";
 
         // out += `<pre>${task._year } - ${task._month } - ${task._week }</pre>`;
@@ -279,9 +303,11 @@ export default {
           (d) =>
             d.username === task._username &&
             parseInt(d.year) === parseInt(task._year) &&
-            parseInt(d.month) === parseInt((this.view === 'week' ? d.month : task._month)) &&
-            parseInt(d.week) === parseInt((this.view === 'week' ? task._week : d.week))
-            // moment(d.from, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(d.from, 'YYYY-MM-DD').isBefore(moment(task.end_date))
+            parseInt(d.month) ===
+              parseInt(this.view === "week" ? d.month : task._month) &&
+            parseInt(d.week) ===
+              parseInt(this.view === "week" ? task._week : d.week)
+          // moment(d.from, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(d.from, 'YYYY-MM-DD').isBefore(moment(task.end_date))
         );
 
         const taskDedicationsByProject = _(taskDedications)
@@ -309,9 +335,20 @@ export default {
             f.users_permissions_user === null
           ) {
             if (
-              parseInt(moment(f.date, "YYYY-MM-DD").isoWeekYear()) === parseInt(task._year) &&
-              parseInt(moment(f.date, "YYYY-MM-DD").format("MM")) == parseInt(this.view === 'week' ? moment(f.date, "YYYY-MM-DD").format("MM") : task._month) &&
-              parseInt(moment(f.date, "YYYY-MM-DD").isoWeek()) == parseInt(this.view === 'week' ? task._week : moment(f.date, "YYYY-MM-DD").isoWeek())
+              parseInt(moment(f.date, "YYYY-MM-DD").isoWeekYear()) ===
+                parseInt(task._year) &&
+              parseInt(moment(f.date, "YYYY-MM-DD").format("MM")) ==
+                parseInt(
+                  this.view === "week"
+                    ? moment(f.date, "YYYY-MM-DD").format("MM")
+                    : task._month
+                ) &&
+              parseInt(moment(f.date, "YYYY-MM-DD").isoWeek()) ==
+                parseInt(
+                  this.view === "week"
+                    ? task._week
+                    : moment(f.date, "YYYY-MM-DD").isoWeek()
+                )
               // moment(f.date, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(f.date, 'YYYY-MM-DD').isBefore(moment(task.end_date))
             ) {
               let dailyHours = 8;
@@ -349,13 +386,20 @@ export default {
           }
         });
 
-        out += `<br><b>Hores període</b>: ${task._total_hours.toFixed(2)}h`
-        if (task._total_hours - task._dedication_total > 0) {
-          out += `<br><b>Falten</b>: ${(task._total_hours - task._dedication_total).toFixed(2)}h`
-        } else {
-          out += `<br><b>Sobren</b>: ${(task._dedication_total - task._total_hours).toFixed(2)}h`
+        if (task._total_hours) {
+          out += `<br><b>Hores període</b>: ${task._total_hours.toFixed(2)}h`;
+          if (task._dedication_total) {
+            if (task._total_hours - task._dedication_total > 0) {
+              out += `<br><b>Falten</b>: ${(
+                task._total_hours - task._dedication_total
+              ).toFixed(2)}h`;
+            } else {
+              out += `<br><b>Sobren</b>: ${(
+                task._dedication_total - task._total_hours
+              ).toFixed(2)}h`;
+            }
+          }
         }
-        
 
         return out;
       };
@@ -413,7 +457,7 @@ export default {
 .gantt-dedication .gantt_task_line.has-background-warning {
   background-color: #ffdd57 !important;
 }
-.gantt-dedication .gantt_task_line.has-background-danger .gantt_task_progress{
+.gantt-dedication .gantt_task_line.has-background-danger .gantt_task_progress {
   background-color: #f14668 !important;
 }
 .gantt-dedication .gantt_task_content {
