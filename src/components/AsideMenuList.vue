@@ -30,6 +30,7 @@ export default {
   methods: {
     menuClick (item) {
       this.$emit('menu-click', item)
+      this.$emit('menu-click', item)
     }
   }
 }

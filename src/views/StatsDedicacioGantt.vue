@@ -40,7 +40,7 @@
         </form>
       </card-component>
 
-      <card-component title="Projectes">        
+      <card-component title="Dedicació">        
         <dedication-gantt :project-state="filters.project_state" :view="filters.view" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
       </card-component>
     </section>

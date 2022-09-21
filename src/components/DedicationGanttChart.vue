@@ -228,7 +228,6 @@ export default {
       ];
 
       gantt.templates.task_class  = (start, end, task) => {
-        console.log('task class', task)
         if (task.progress < 0.95) {
             return "has-background-warning has-text-black";
         }

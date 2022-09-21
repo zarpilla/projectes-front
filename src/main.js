@@ -15,6 +15,9 @@ import './registerServiceWorker'
 /* Vue. Main component */
 import App from './App.vue'
 
+/* Menu */
+import menu from "@/service/menu";
+
 /* Progress bar */
 import KProgress from 'k-progress'
 
@@ -36,8 +39,10 @@ Vue.component('downloadCsv', JsonCSV)
 
 Vue.component('kk-progress', KProgress)
 
+
+
 /* Default title tag */
-const defaultDocumentTitle = 'Projectes'
+const defaultDocumentTitle = 'Projectes Coop'
 
 window.$ = window.jQuery = require('jquery')
 
@@ -50,10 +55,22 @@ router.beforeEach((to, from, next)  => {
 })
 router.afterEach(to => {
   store.commit('asideMobileStateToggle', false)
+
   if (to.meta && to.meta.title) {
     document.title = `${to.meta.title} — ${defaultDocumentTitle}`
   } else {
     document.title = defaultDocumentTitle
+  }
+
+  for(var m in menu) {
+    if (typeof(menu[m]) === 'object') {
+      for(var m2 in menu[m]) {
+        const item = menu[m][m2]
+        if (to.path === item.to) {
+          document.title = `${item.label} — ${defaultDocumentTitle}`
+        }
+      }
+    }
   }
 })
 

@@ -1071,7 +1071,6 @@ export default {
             }
           });
       } else {
-        console.log("series", this.series);
         const serie = this.series.find(
           (s) => s.name === moment().format("YYYY")
         );

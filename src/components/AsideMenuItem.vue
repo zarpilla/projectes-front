@@ -5,7 +5,7 @@
       v-bind="item"
       exact-active-class="is-active"
       :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown }"
-      @click="menuClick"
+      @click.native="menuClick"
     >
       <b-icon
         v-if="item.icon"
