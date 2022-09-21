@@ -173,6 +173,7 @@ import CardComponent from "@/components/CardComponent";
 import ProjectsTable from "@/components/ProjectsTable";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
+import sortBy from "lodash/sortBy";
 import { mapState } from 'vuex'
 import moment from 'moment';
 
@@ -308,9 +309,9 @@ export default {
     service({ requiresAuth: true })
       .get(query)
       .then((r) => {
-        this.projects = r.data.filter(
+        this.projects = sortBy(r.data.filter(
           (p) => p.project_state !== null && p.project_state.id === 1
-        );
+        ), 'name');
         this.loading = false;
         this.applyProjects();
       });

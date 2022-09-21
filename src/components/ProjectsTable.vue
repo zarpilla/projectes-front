@@ -24,7 +24,7 @@
           </span>
           </router-link>
       </b-table-column>
-      <b-table-column label="Coordina" field="leader" sortable v-slot="props">
+      <b-table-column label="Coordina" field="leader.username" sortable v-slot="props">
         {{ props.row.leader ? props.row.leader.username : '' }}
       </b-table-column>
       <b-table-column label="Àmbit" field="project_scope.name" sortable v-slot="props">
@@ -45,9 +45,14 @@
       <b-table-column label="Estat" v-slot="props" sortable field="project_state.name">
         {{ props.row.project_state ? props.row.project_state.name : '' }}
       </b-table-column>
-      <b-table-column label="Clienta" field="clients.name" sortable v-slot="props">
+      <b-table-column label="Clienta" field="clients.name" v-slot="props">
         {{ props.row.clients && props.row.clients.length ? props.row.clients[0].name : '' }}
       </b-table-column>
+      <b-table-column label="Modificat" field="updated_at" sortable v-slot="props" date>
+        <span :title="props.row.updated_at | formatDateTime">{{ props.row.updated_at | formatDate }}</span>
+      </b-table-column>
+
+      
       <b-table-column custom-key="actions" cell-class="is-actions-cell" v-slot="props">
         <div class="buttons is-right">
           <!-- <router-link :to="{name:'project.edit', params: {id: props.row.id}}" class="button is-small is-primary">
@@ -82,9 +87,7 @@
 <script>
 import ModalBox from '@/components/ModalBox'
 import service from '@/service/index'
-// import moment from 'moment'
-// import sumBy from 'lodash/sumBy'
-// import defaultProjectState from '@/service/projectState'
+import moment from 'moment'
 
 export default {
   name: 'ProjectsTable',
@@ -185,6 +188,16 @@ export default {
     formatPrice (value) {
       const val = (value / 1).toFixed(2).replace('.', ',')
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    }
+  },
+  filters: {
+    formatDateTime (val) {
+      if (!val) { return '-' }
+      return moment(val).format('DD/MM/YYYY HH:mm')
+    },
+    formatDate (val) {
+      if (!val) { return '-' }
+      return moment(val).format('DD/MM/YYYY')
     }
   }
 }
