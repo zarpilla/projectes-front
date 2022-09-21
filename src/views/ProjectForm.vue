@@ -1026,9 +1026,9 @@ res executade<template>
             sortable
             v-slot="props"
           >
-            {{
-              props.row.document.date ? formatDate(props.row.document.date) : ""
-            }}
+            <span v-if="props.row.document && props.row.document.date">{{props.row.document.date ? formatDate(props.row.document.date) : ""}}</span>
+            <span v-else-if="props.row.document && props.row.document.invoice && props.row.document.invoice.emitted">{{ props.row.document.invoice.emitted }}</span>
+            <span v-else-if="props.row.document && props.row.document.expense && props.row.document.expense.emitted">{{ props.row.document.expense.emitted }}</span>            
           </b-table-column>
         </b-table>
       </card-component>      
