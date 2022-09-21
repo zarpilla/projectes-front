@@ -7,16 +7,23 @@
           <!-- <pre>{{form}}</pre> -->
           <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
             <b-field label="Número" horizontal>
-              <b-input v-model="form.code" placeholder="" v-if="!numberEditable" :disabled="!numberEditable" 
+              <b-input
+                v-model="form.code"
+                placeholder=""
+                v-if="!numberEditable"
+                :disabled="!numberEditable"
                 icon-right="pencil-circle"
                 icon-right-clickable
                 @icon-right-click="editNumber"
-                  />
-              <b-input v-model="form.number" placeholder="" v-if="numberEditable"
+              />
+              <b-input
+                v-model="form.number"
+                placeholder=""
+                v-if="numberEditable"
                 icon-right="pencil-circle"
                 icon-right-clickable
                 @icon-right-click="editNumber"
-                  />
+              />
             </b-field>
             <b-field label="Sèrie *" horizontal v-if="type !== 'payrolls'">
               <b-select v-model="form.serial" placeholder="" required>
@@ -131,7 +138,7 @@
                 editable
               >
               </b-datepicker>
-            </b-field>            
+            </b-field>
             <b-field
               v-if="type !== 'quotes'"
               :label="
@@ -157,11 +164,7 @@
               </b-datepicker>
             </b-field>
 
-            <b-field
-              v-if="type === 'quotes'"
-              label="Acceptat"
-              horizontal
-            >
+            <b-field v-if="type === 'quotes'" label="Acceptat" horizontal>
               <b-checkbox v-model="form.accepted" class="checkbox-inline">
               </b-checkbox>
               <b-datepicker
@@ -177,11 +180,19 @@
               </b-datepicker>
             </b-field>
 
-            <b-field label="Modificable" horizontal v-if="type !== 'payrolls' && type !== 'quotes'">
+            <b-field
+              label="Modificable"
+              horizontal
+              v-if="type !== 'payrolls' && type !== 'quotes'"
+            >
               <b-switch v-model="form.updatable"> </b-switch>
             </b-field>
 
-            <b-field label="Factura proforma" horizontal v-if="type === 'quotes'">
+            <b-field
+              label="Factura proforma"
+              horizontal
+              v-if="type === 'quotes'"
+            >
               <b-checkbox v-model="form.proforma" class="checkbox-inline">
               </b-checkbox>
             </b-field>
@@ -239,7 +250,6 @@
                 >
                 </b-button>
               </div>
-              
             </b-field>
             <b-field
               v-if="type == 'received-invoices'"
@@ -322,7 +332,11 @@
               >
               </b-input>
             </b-field>
-            <b-field :label="type === 'quotes' ? 'Projecte *' : 'Projectes *'" horizontal v-if="type !== 'payrolls'">
+            <b-field
+              :label="type === 'quotes' ? 'Projecte *' : 'Projectes *'"
+              horizontal
+              v-if="type !== 'payrolls'"
+            >
               <b-autocomplete
                 v-model="projectSearch"
                 placeholder="Escriu el nom del projecte..."
@@ -336,28 +350,24 @@
               </b-autocomplete>
             </b-field>
             <b-field
-                label=""
-                horizontal
-                v-if="form.projects && form.projects.length && type !== 'quotes'"
-              >
-                <div class="list">
-                  <ul class="ulist">
-                    <li
-                      v-for="(project, i) in form.projects"
-                      :key="i"
-                      @click="removeProject(project)"
-                      class="tag is-primary"
-                    >
-                      {{ project.name }}
-                      <b-button
-                        
-                        class="no-button"
-                        icon-left="close-circle"
-                      />
-                    </li>
-                  </ul>
-                </div>
-              </b-field>
+              label=""
+              horizontal
+              v-if="form.projects && form.projects.length && type !== 'quotes'"
+            >
+              <div class="list">
+                <ul class="ulist">
+                  <li
+                    v-for="(project, i) in form.projects"
+                    :key="i"
+                    @click="removeProject(project)"
+                    class="tag is-primary"
+                  >
+                    {{ project.name }}
+                    <b-button class="no-button" icon-left="close-circle" />
+                  </li>
+                </ul>
+              </div>
+            </b-field>
           </card-component>
 
           <hr />
@@ -549,11 +559,13 @@
               />
             </b-field>
           </card-component>
-          <card-component v-if="type === 'payrolls' && dedication" title="DETALL">
-
+          <card-component
+            v-if="type === 'payrolls' && dedication"
+            title="DETALL"
+          >
             <b-field label="Salari base" horizontal>
               <b-input v-model="form.total_base" placeholder="" disabled />
-            
+
               <!-- <b-datepicker
                 v-model="form.net_date"
                 :show-week-number="false"
@@ -566,7 +578,11 @@
               </b-datepicker> -->
             </b-field>
 
-            <b-field v-if="form.irpf_base" :label="`IRPF a càrrec de la treballadora (${dedication.pct_irpf}%)`" horizontal>
+            <b-field
+              v-if="form.irpf_base"
+              :label="`IRPF a càrrec de la treballadora (${dedication.pct_irpf}%)`"
+              horizontal
+            >
               <b-input v-model="form.irpf_base" placeholder="" disabled />
 
               <b-datepicker
@@ -581,8 +597,11 @@
               </b-datepicker>
             </b-field>
 
-
-            <b-field v-if="form.other_base" :label="`Altres a càrrec de la treballadora (${dedication.pct_other}%)`" horizontal>
+            <b-field
+              v-if="form.other_base"
+              :label="`Altres a càrrec de la treballadora (${dedication.pct_other}%)`"
+              horizontal
+            >
               <b-input v-model="form.other_base" placeholder="" disabled />
 
               <b-datepicker
@@ -597,8 +616,10 @@
               </b-datepicker>
             </b-field>
 
-
-            <b-field :label="`Salari net a percebre per la treballadora`" horizontal>
+            <b-field
+              :label="`Salari net a percebre per la treballadora`"
+              horizontal
+            >
               <b-input v-model="form.net_base" placeholder="" disabled />
 
               <b-datepicker
@@ -613,8 +634,13 @@
               </b-datepicker>
             </b-field>
 
-
-            <b-field v-if="form.ss_base" :label="`SS a càrrec de la cooperativa ${dedication.pct_quota ? '(' + dedication.pct_quota + '%)' : ''}`" horizontal>
+            <b-field
+              v-if="form.ss_base"
+              :label="`SS a càrrec de la cooperativa ${
+                dedication.pct_quota ? '(' + dedication.pct_quota + '%)' : ''
+              }`"
+              horizontal
+            >
               <b-input v-model="form.ss_base" placeholder="" disabled />
 
               <b-datepicker
@@ -629,17 +655,16 @@
               </b-datepicker>
             </b-field>
 
-
             <b-field v-if="form.ss_base" label="Despesa total" horizontal>
               <b-input v-model="form.total" placeholder="" disabled />
-
             </b-field>
-
-
           </card-component>
 
           <b-field v-if="type === 'received-expenses'">
-            <b-button type="is-primary" :loading="isLoading" @click="canEditDocument"
+            <b-button
+              type="is-primary"
+              :loading="isLoading"
+              @click="canEditDocument"
               >Guardar</b-button
             >
           </b-field>
@@ -647,35 +672,35 @@
           <hr />
 
           <div v-if="type !== 'quotes' && !isLoadingProject">
+            <card-component
+              v-for="(project, i) in form.projects"
+              :key="i"
+              :title="`DETALL DEL PROJECTE - ${project.name}`"
+            >
+              <div class="project-form">
+                <project-phases
+                  :form="project"
+                  :project-phases="project.phases"
+                  @phases-updated="phasesUpdated"
+                  :mode="
+                    type === 'emitted-invoices' || type === 'received-incomes'
+                      ? 'incomes'
+                      : 'expenses'
+                  "
+                />
+                <div class="helper">
+                  <b-icon icon="help-circle" />
 
-          <card-component
-            v-for="(project, i) in form.projects"
-            :key="i"
-            :title="`DETALL DEL PROJECTE - ${project.name}`"
-          >
-            <div class="project-form">
-              <project-phases
-                :form="project"
-                :project-phases="project.phases"
-                @phases-updated="phasesUpdated"
-                :mode="
-                  type === 'emitted-invoices' || type === 'received-incomes'
-                    ? 'incomes'
-                    : 'expenses'
-                "
-              />
-              <div class="helper">
-                <b-icon icon="help-circle" />
-
-                Cal assignar el document (factura, tiquet, dieta...) a una línia
-                de pressupost del projecte. Si la línia no existís, es pot crear
-                en aquest moment o també es pot desdoblar alguna existent. Per
-                assignar-lo, cal marcar la casella de 'Facturat' i clicar al
-                botó de 'Document'. Un cop assignat, caldrà guardar la factura.
+                  Cal assignar el document (factura, tiquet, dieta...) a una
+                  línia de pressupost del projecte. Si la línia no existís, es
+                  pot crear en aquest moment o també es pot desdoblar alguna
+                  existent. Per assignar-lo, cal marcar la casella de 'Facturat'
+                  i clicar al botó de 'Document'. Un cop assignat, caldrà
+                  guardar la factura.
+                </div>
               </div>
-            </div>
-          </card-component>
-          <hr />
+            </card-component>
+            <hr />
           </div>
           <b-field>
             <a
@@ -687,8 +712,13 @@
               Visualitzar PDF
             </a>
           </b-field>
-          <b-field v-if="type !== 'payrolls' && form.projects && form.projects.length">
-            <b-button type="is-primary" :loading="isLoading" @click="canEditDocument"
+          <b-field
+            v-if="type !== 'payrolls' && form.projects && form.projects.length"
+          >
+            <b-button
+              type="is-primary"
+              :loading="isLoading"
+              @click="canEditDocument"
               >Guardar</b-button
             >
           </b-field>
@@ -753,7 +783,7 @@ export default {
       documentTypes: [],
       dedications: null,
       dedication: null,
-      numberEditable: false
+      numberEditable: false,
     };
   },
   computed: {
@@ -815,7 +845,7 @@ export default {
           return "Nou ingrés";
         } else if (this.type === "received-expenses") {
           return "Nova despesa";
-          } else if (this.type === "quotes") {
+        } else if (this.type === "quotes") {
           return "Nou Pressupost";
         } else if (this.type === "payrolls") {
           return "Nova Nòmina o Bestreta";
@@ -837,20 +867,24 @@ export default {
     },
     totalVat() {
       return sumBy(this.form.lines, (l) => {
-        return (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.vat) / 100;
+        return (
+          (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.vat) / 100
+        );
       });
     },
     totalIrpf() {
       return (
         -1 *
         sumBy(this.form.lines, (l) => {
-          return (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.irpf) / 100;
+          return (
+            (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.irpf) / 100
+          );
         })
       );
     },
     total() {
       return this.totalBase + this.totalVat + this.totalIrpf;
-    },    
+    },
   },
   watch: {
     async id(newValue) {
@@ -872,7 +906,10 @@ export default {
         id: null,
         number: null,
         serial: { id: 0 },
-        emitted: this.type === 'emitted-invoices' || this.type === 'received-incomes' ? new Date() : null,
+        emitted:
+          this.type === "emitted-invoices" || this.type === "received-incomes"
+            ? new Date()
+            : null,
         paybefore: null,
         contact: { id: 0 },
         lines: [this.getNewLine()],
@@ -920,7 +957,7 @@ export default {
                 });
               }
 
-              this.form = r.data;              
+              this.form = r.data;
               this.form.emitted = moment(
                 this.form.emitted,
                 "YYYY-MM-DD"
@@ -972,20 +1009,23 @@ export default {
                 this.form.document_type = this.form.document_type.id;
               }
 
-              if (this.form.project && this.form.project.id && this.type !== 'quotes') {
+              if (
+                this.form.project &&
+                this.form.project.id &&
+                this.type !== "quotes"
+              ) {
                 // load legacy project
                 this.form.projects = this.form.projects || [];
                 if (this.form.projects.length === 0) {
-                  this.form.projects.push(this.form.project)
-                  this.form.project = null
+                  this.form.projects.push(this.form.project);
+                  this.form.project = null;
                 }
-              }  else if (this.form.project && this.form.project.id) {
+              } else if (this.form.project && this.form.project.id) {
                 this.form.projects = this.form.projects || [];
-                this.form.projects.push({ id: this.form.project.id })                
-                this.projectSearch = this.form.project.name
-                this.form.project = this.form.project.id
+                this.form.projects.push({ id: this.form.project.id });
+                this.projectSearch = this.form.project.name;
+                this.form.project = this.form.project.id;
               }
-
 
               if (this.type === "payrolls") {
                 this.form.code =
@@ -1005,13 +1045,24 @@ export default {
                     d.to >= moment(this.form.emitted).format("YYYY-MM-DD")
                 );
 
-                this.form.net_date = moment(this.form.net_date, "YYYY-MM-DD").toDate()
-                this.form.irpf_date = moment(this.form.irpf_date, "YYYY-MM-DD").toDate()
-                this.form.ss_date = moment(this.form.ss_date, "YYYY-MM-DD").toDate()
-                this.form.other_date = moment(this.form.other_date, "YYYY-MM-DD").toDate()
+                this.form.net_date = moment(
+                  this.form.net_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+                this.form.irpf_date = moment(
+                  this.form.irpf_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+                this.form.ss_date = moment(
+                  this.form.ss_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+                this.form.other_date = moment(
+                  this.form.other_date,
+                  "YYYY-MM-DD"
+                ).toDate();
 
-                this.form.total = this.form.total_base + this.form.ss_base
-
+                this.form.total = this.form.total_base + this.form.ss_base;
               }
 
               this.isLoading = false;
@@ -1020,10 +1071,12 @@ export default {
             }
           });
       } else {
-        console.log('series', this.series)
-        const serie = this.series.find(s => s.name === moment().format('YYYY') )
+        console.log("series", this.series);
+        const serie = this.series.find(
+          (s) => s.name === moment().format("YYYY")
+        );
         if (serie) {
-          this.form.serial = serie.id
+          this.form.serial = serie.id;
         }
 
         this.isLoading = false;
@@ -1037,11 +1090,22 @@ export default {
       this.paymentMethods = (
         await service({ requiresAuth: true }).get("payment-methods")
       ).data;
-      this.projects = (
+      const projects = (
         await service({ requiresAuth: true }).get(
           "projects/basic?_limit=-1&_sort=name:ASC"
         )
       ).data;
+
+      this.projects = this.form.id
+        ? projects
+        : projects
+            .filter((p) => p.project_state && p.project_state.id !== 2)
+            .filter(
+              (p) =>
+                p.mother === null ||
+                (p.mother !== null && p.mother.id && p.mother.id !== p.id)
+            );
+
       this.clients = (
         await service({ requiresAuth: true }).get(
           "contacts?_limit=-1&_sort=name:ASC"
@@ -1124,7 +1188,7 @@ export default {
             return;
           }
 
-          this.isLoading = true
+          this.isLoading = true;
 
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,
@@ -1135,8 +1199,8 @@ export default {
             await this.updateProjectPhases(this.form.id);
           }
 
-          this.numberEditable = false
-          this.isLoading = false
+          this.numberEditable = false;
+          this.isLoading = false;
 
           this.$buefy.snackbar.open({
             message: "Guardat",
@@ -1177,8 +1241,7 @@ export default {
             return;
           }
 
-
-          this.isLoading = true
+          this.isLoading = true;
 
           const newProject = await service({ requiresAuth: true }).post(
             this.type,
@@ -1189,8 +1252,8 @@ export default {
             await this.updateProjectPhases(newProject.data.id);
           }
 
-          this.numberEditable = false
-          this.isLoading = false
+          this.numberEditable = false;
+          this.isLoading = false;
 
           this.shouldSaveProject = false;
           this.$router.push({
@@ -1208,7 +1271,7 @@ export default {
           // }, 100);
         }
       } catch (err) {
-        console.error(err)
+        console.error(err);
         this.$buefy.snackbar.open({
           message: "Error",
           queue: false,
@@ -1227,39 +1290,36 @@ export default {
     },
     async projectSelected(option) {
       if (!option) {
-        return
+        return;
       }
 
       this.form.projects = this.form.projects || [];
 
       if (!this.form.projects.find((c) => c.id === option.id)) {
-        
         this.isLoadingProject = true;
         const project = (
           await service({ requiresAuth: true }).get(`projects/${option.id}`)
         ).data;
 
-        if (this.type !== 'quote') {
+        if (this.type !== "quote") {
           this.form.projects = this.form.projects || [];
         }
 
-        this.form.projects.push(project)
+        this.form.projects.push(project);
 
-        if (this.type !== 'quotes') {
+        if (this.type !== "quotes") {
           this.projectSearch = "";
-        }
-        else {
+        } else {
           this.form.project = option.id;
         }
 
         // this.projectCopy = this.project;
         this.isLoadingProject = false;
-      } else {        
+      } else {
         setTimeout(async () => {
           this.projectSearch = "";
         }, 100);
       }
-      
     },
     methodSelected(option) {
       this.form.payment_method = option;
@@ -1272,18 +1332,20 @@ export default {
       this.form.lines.push(this.getNewLine());
     },
     phasesUpdated(info) {
-      console.log('info', info, this.form.projects)
+      console.log("info", info, this.form.projects);
       this.shouldSaveProject = true;
-      const project = this.form.projects.find(p => p.id === info.projectId)
+      const project = this.form.projects.find((p) => p.id === info.projectId);
       project.phases = info.phases;
     },
     validateIfProjectPhasesHasDocument() {
       var validateIfProjectPhasesHasDocument = false;
-      if (this.type === 'quotes' || (this.type === 'received-expenses' && !this.form.paid)) {
-        return true
+      if (
+        this.type === "quotes" ||
+        (this.type === "received-expenses" && !this.form.paid)
+      ) {
+        return true;
       }
-      this.form.projects.forEach(p => {
-
+      this.form.projects.forEach((p) => {
         if (this.type === "emitted-invoices") {
           p.phases.forEach((ph) => {
             ph.subphases.forEach((sph) => {
@@ -1325,27 +1387,25 @@ export default {
             });
           });
         }
+      });
 
-      })
-      
       return validateIfProjectPhasesHasDocument;
     },
     async updateProjectPhases(id) {
-
-      if (this.type === 'quotes') {
-        return
+      if (this.type === "quotes") {
+        return;
       }
 
       // this.form.projects.forEach(async p => {
       for (let i = 0; i < this.form.projects.length; i++) {
-        let p = this.form.projects[i]
-        let updateProject = false
+        let p = this.form.projects[i];
+        let updateProject = false;
         if (this.type === "emitted-invoices") {
           p.phases.forEach((ph) => {
             ph.subphases.forEach((sph) => {
               if (sph.assign) {
-                sph.invoice = id
-                updateProject = true
+                sph.invoice = id;
+                updateProject = true;
               }
             });
           });
@@ -1353,8 +1413,8 @@ export default {
           p.phases.forEach((ph) => {
             ph.subphases.forEach((sph) => {
               if (sph.assign) {
-                sph.income = id
-                updateProject = true
+                sph.income = id;
+                updateProject = true;
               }
             });
           });
@@ -1362,8 +1422,8 @@ export default {
           p.phases.forEach((ph) => {
             ph.expenses.forEach((sph) => {
               if (sph.assign) {
-                sph.invoice = id
-                updateProject = true
+                sph.invoice = id;
+                updateProject = true;
               }
             });
           });
@@ -1371,8 +1431,8 @@ export default {
           p.phases.forEach((ph) => {
             ph.expenses.forEach((sph) => {
               if (sph.assign) {
-                sph.expense = id
-                updateProject = true
+                sph.expense = id;
+                updateProject = true;
               }
             });
           });
@@ -1396,12 +1456,12 @@ export default {
       this.isLoadingProject = true;
       this.form.projects = this.form.projects.filter((c) => c.id !== option.id);
       setTimeout(async () => {
-          this.isLoadingProject = false;
-        }, 100);
+        this.isLoadingProject = false;
+      }, 100);
     },
     editNumber() {
       if (!this.form.code) {
-        this.numberEditable = !this.numberEditable
+        this.numberEditable = !this.numberEditable;
       } else {
         this.$buefy.snackbar.open({
           message: "Número no editable",
@@ -1410,22 +1470,28 @@ export default {
       }
     },
     canEditDocument() {
-      if (moment().isAfter(moment(this.form.emitted).endOf('quarter').add(20, 'day')))  {
-      // if (moment().format('YYYY-DD-MM') > moment(this.form.emitted).endOf('quarter').add(20, 'day').format('YYYY-DD-MM'))  {
+      if (
+        moment().isAfter(
+          moment(this.form.emitted).endOf("quarter").add(20, "day")
+        )
+      ) {
+        // if (moment().format('YYYY-DD-MM') > moment(this.form.emitted).endOf('quarter').add(20, 'day').format('YYYY-DD-MM'))  {
         this.$buefy.dialog.confirm({
-            message: 'El document està fora del període d\'edició. Vols guardar igualment?',
-            onConfirm: () => this.submit(),
-            onCancel: () => { return false }
-        })
-      }
-      else {
-         this.submit()
+          message:
+            "El document està fora del període d'edició. Vols guardar igualment?",
+          onConfirm: () => this.submit(),
+          onCancel: () => {
+            return false;
+          },
+        });
+      } else {
+        this.submit();
       }
     },
     navNew() {
-      let routeData = this.$router.resolve({ name: 'contacts.edit' });
-      window.open(routeData.href, '_blank');
-    },    
+      let routeData = this.$router.resolve({ name: "contacts.edit" });
+      window.open(routeData.href, "_blank");
+    },
   },
 };
 </script>
