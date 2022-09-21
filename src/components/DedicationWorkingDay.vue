@@ -195,6 +195,10 @@ export default {
         singleRow: true,
       };
 
+      gantt.templates.task_class = (start, end, task) => {
+        return "";
+      };
+
       gantt.init(this.ganttId);
 
       gantt.parse(this.tasks);

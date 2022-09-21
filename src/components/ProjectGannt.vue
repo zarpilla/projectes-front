@@ -336,6 +336,10 @@ export default {
         });
       }
 
+      gantt.templates.task_class = (start, end, task) => {        
+          return "";
+      };
+
       gantt.config.click_drag = {
         callback: this.onDragEnd,
         singleRow: true,
