@@ -25,6 +25,7 @@
               <b-select
                 v-model="form.users_permissions_user"
                 placeholder="Persona"
+                @change.native="onUserChange($event)"
               >
                 <option
                   v-for="(s, index) in users"
@@ -250,6 +251,13 @@ export default {
     fixDecimals(field, value) {
       if (value && value.toString().includes(",")) {
         this.form[field] = value.toString().replace(",", ".");
+      }
+    },
+    onUserChange(event) {
+      const today = moment().format('YYYY-MM-DD')
+      const dedication = this.dedications.find(d => d.users_permissions_user && d.users_permissions_user.id === this.form.users_permissions_user.id && d.from <= today && d.to >= today)
+      if (dedication) {
+        this.form.amount = dedication.costByHour
       }
     }
   }
