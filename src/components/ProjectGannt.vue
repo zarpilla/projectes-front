@@ -279,8 +279,8 @@ export default {
         ? moment(this.project.date_end).add(1, "year").endOf("year").toDate()
         : moment().add(3, "year").endOf("year").toDate();
 
-        console.log('initialDate', initialDate)
-        console.log('minDate', minDate)
+        // console.log('initialDate', initialDate)
+        // console.log('minDate', minDate)
 
       if (moment(initialDate).isBefore(moment(minDate))) {
         minDate = initialDate
