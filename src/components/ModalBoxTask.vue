@@ -576,7 +576,7 @@ export default {
         // console.log('task', task)
         this.form.documents = task.documents;
       } else {
-        console.log("info", info);
+        // console.log("info", info);
         this.form.documents = info.documents;
       }
     },

@@ -79,7 +79,6 @@
                 </option>
               </b-select>
             </b-field>
-
             <b-field label="Emissió *" horizontal>
               <b-datepicker
                 v-model="form.emitted"
@@ -368,6 +367,54 @@
                 </ul>
               </div>
             </b-field>
+
+            <b-field horizontal label="Adjunts" style="width: 100%">
+              <div
+                class="file-documents columns is-multiline"
+                v-if="form.documents && form.documents.length"
+              >
+                <!-- <pre>{{ form.documents }}</pre>   -->
+                <div
+                  v-for="(doc, i) in form.documents"
+                  :key="i"
+                  class="column"
+                  :class="
+                    form.documents.length > 6
+                      ? 'is-2'
+                      : form.documents.length > 3
+                      ? 'is-3'
+                      : 'is-4'
+                  "
+                >
+                  <div class="column-doc">
+                    <div @click="removeImage(doc)" class="remove-button clickable">
+                      <b-icon icon="close" size="is-medium" />
+                    </div>
+                    <img
+                      v-if="doc.mime.startsWith('image')"
+                      :src="apiUrl + doc.url"
+                      class="file-document mb-3"
+                    />
+                    <div v-else class="mb-3">
+                      <a :href="apiUrl + doc.url" target="_blank">
+                        <b-icon icon="open-in-new"></b-icon>
+                        {{ doc.name }}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </b-field>
+            <file-upload
+              :multiple="true"
+              :entity="entity"
+              :ref-id="form.id"
+              :field="'documents'"
+              :accept="'*/*'"
+              @uploaded="uploaded"
+              v-if="form.id"
+            >
+            </file-upload>
           </card-component>
 
           <hr />
@@ -452,6 +499,23 @@
                       @input="changeLine(line, 'irpf', line.irpf)"
                     >
                     </b-input>
+                  </b-field>
+                  <b-field
+                    v-if="form.document_type == '4'"
+                    :label="j == 0 ? 'Data' : null"
+                    class="medium-field"
+                  >
+                    <b-datepicker
+                      v-model="line.date"
+                      :show-week-number="false"
+                      :locale="'ca-ES'"
+                      :first-day-of-week="1"
+                      icon="calendar-today"
+                      placeholder="Data"
+                      trap-focus
+                      editable
+                    >
+                    </b-datepicker>
                   </b-field>
                   <b-field
                     :label="j == 0 ? 'Accions' : null"
@@ -743,6 +807,7 @@ import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
+import FileUpload from "@/components/FileUpload";
 
 export default {
   name: "DocumentForm",
@@ -753,6 +818,7 @@ export default {
     ModalBoxInvoicing,
     ModalBoxSplit,
     ProjectPhases,
+    FileUpload
   },
   props: {
     id: {
@@ -784,6 +850,7 @@ export default {
       dedications: null,
       dedication: null,
       numberEditable: false,
+      apiUrl: process.env.VUE_APP_API_URL,
     };
   },
   computed: {
@@ -834,6 +901,17 @@ export default {
         type = "Factures Rebudes";
       }
       return ["Facturació", type, this.formCardTitle];
+    },
+    entity() {      
+      if (this.type === "emitted-invoices") {
+        return "emitted-invoice";
+      } else if (this.type === "received-incomes") {
+        return "received-income";
+      } else if (this.type === "received-expenses") {
+        return "received-expense";
+      } else if (this.type === "received-invoices") {
+        return "received-invoice";
+      }
     },
     formCardTitle() {
       if (this.isProfileExists) {
@@ -914,6 +992,8 @@ export default {
         contact: { id: 0 },
         lines: [this.getNewLine()],
         updatable: true,
+        documents: [],
+        document_type: 0
       };
     },
     getNewLine() {
@@ -926,6 +1006,7 @@ export default {
         irpf: 0,
         comments: "",
         show: false,
+        date: new Date()
       };
     },
     async getData() {
@@ -954,6 +1035,7 @@ export default {
               if (r.data.lines) {
                 r.data.lines.forEach((l) => {
                   l.show = l.show || false;
+                  l.date = l.date ? moment(l.date,  "YYYY-MM-DD").toDate() : null;
                 });
               }
 
@@ -1490,6 +1572,22 @@ export default {
     navNew() {
       let routeData = this.$router.resolve({ name: "contacts.edit" });
       window.open(routeData.href, "_blank");
+    },
+    async uploaded(info) {
+      // console.log('uploaded', info)
+
+      if (info.refId && info.refId > 0) {
+        const task = (
+          await service({ requiresAuth: true }).get(`${this.type}/${info.refId}`)
+        ).data;
+        // console.log('task', task)
+        this.form.documents = task.documents;
+      } else {
+        this.form.documents = info.documents;
+      }
+    },
+    removeImage(doc) {
+      this.form.documents = this.form.documents.filter((d) => d.id !== doc.id);
     },
   },
 };
