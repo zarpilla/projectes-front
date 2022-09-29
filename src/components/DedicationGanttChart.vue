@@ -5,11 +5,13 @@
     </div>
     <div class="help">
       <b-icon icon="circle" class="has-text-warning" custom-size="default" />
-      <b>Ocupada menys del 95%</b><br />
+      <b>Ocupada menys del 85%</b><br />
+      <b-icon icon="circle" class="has-text-blue" custom-size="default" />
+      <b>Ocupada entre el 85 i el 98%</b><br />
       <b-icon icon="circle" class="has-text-danger" custom-size="default" />
-      <b>Ocupada més del 105%</b><br />
+      <b>Ocupada més del 102%</b><br />
       <b-icon icon="circle" class="has-text-success" custom-size="default" />
-      <b>Ocupada entre el 95 i el 105%</b><br />
+      <b>Ocupada entre el 98 i el 102%</b><br />
     </div>
   </div>
 </template>
@@ -252,12 +254,14 @@ export default {
       ];
 
       gantt.templates.task_class = (start, end, task) => {
-        if (task.progress < 0.95) {
+        if (task.progress < 0.85) {
           return "has-background-warning has-text-black";
-        } else if (task.progress > 1.05) {
+        } else if (task.progress > 1.01) {
           return "has-background-danger";
+        } else if (task.progress > 0.98 && task.progress < 1.01) {
+          return "has-background-success";        
         } else {
-          return "has-background-success";
+          return "z";
         }
       };
 
@@ -462,5 +466,17 @@ export default {
 }
 .gantt-dedication .gantt_task_content {
   color: #222;
+}
+
+.gantt-dedication .gantt_task_line.has-background-warning .gantt_task_progress {
+  background-color: #eecc46 !important;
+}
+
+.gantt-dedication .gantt_task_line.has-background-success .gantt_task_progress {
+  background-color: #67b764 !important;
+}
+
+.has-text-blue {
+  color: #299cb4!important;
 }
 </style>
