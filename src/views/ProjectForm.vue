@@ -248,6 +248,14 @@ res executade<template>
                 message="Que s'acull a subvencions on caldrà justificar part amb nòmines"
               >
                 <b-switch v-model="form.grantable"> </b-switch>
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_amount"
+                  placeholder="Import a justificar"
+                  @input="changeValue('grantable_amount', form.grantable_amount)"
+                >
+                </b-input>
               </b-field>
 
               <b-field
@@ -1591,6 +1599,9 @@ export default {
             }
           });
       } else {
+
+        this.form.date_start = new Date();
+        this.form.date_end = moment().endOf('year').toDate();
         this.getAuxiliarData();
       }
     },
@@ -1609,6 +1620,9 @@ export default {
         .get("users?_limit=-1")
         .then((r) => {
           this.leaders = r.data.filter((u) => u.hidden !== true);
+          if (this.$route.params.id === '0' && !this.form.leader.id) {            
+            this.form.leader = { id: this.user.id }
+          }
         });
       service({ requiresAuth: true })
         .get("contacts?_limit=-1&_sort=name:ASC")
@@ -2012,10 +2026,11 @@ export default {
     },
     toogleTasksView() {
       this.tasksView = this.tasksView === "list" ? "state" : "list";
-      // try {
-      //   localStorage.setItem('project-form:tasksView', this.tasksView)
-      // }
-      // catch{}
+    },
+    changeValue(field, value) {
+      if (value && value.toString().includes(",")) {
+        this.form[field] = value.toString().replace(",", ".");
+      }
     },
   },
 };
