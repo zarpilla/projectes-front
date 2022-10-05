@@ -8,22 +8,24 @@
       >
         <div class="columns card-body">          
           <div class="column is-4 has-text-weight-bold">Projecte</div>
-          <div class="column is-2 has-text-weight-bold has-text-right">Import Justificat</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">Import a justificar</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">Import justificat</div>
         </div>
         <div v-for="(row, i) in summaryByProjectAll" :key="i"  class="card-body">
           <div class="columns">          
             <div class="column is-4">{{ row.project }}</div>
+            <div class="column is-2 has-text-right">{{ row.grantable_amount ? row.grantable_amount.toFixed(2) + ' €': null }}</div>
             <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
           </div>
         </div>
         <div class="card-body">
         <div class="columns">          
             <div class="column is-4 has-text-weight-bold">TOTAL</div>
+            <div class="column is-2 has-text-weight-bold has-text-right">{{ summaryAllGrantable ? summaryAllGrantable.toFixed(2) : null}} €</div>
             <div class="column is-2 has-text-weight-bold has-text-right">{{ summaryAll.toFixed(2)}} €</div>
           </div>
         </div>
       </card-component>
-
 
       <card-component
         class="has-table has-mobile-sort-spaced"
@@ -272,6 +274,7 @@ export default {
               ...a,
               project: a.project,
               project_name: p.name,
+              grantable_amount: p.grantable_amount,
               users_permissions_user: a.users_permissions_user,
               year: moment(a.date, "YYYY-MM-DD").format("YYYY"),
               month: moment(a.date, "YYYY-MM-DD").format("MM"),
@@ -304,7 +307,8 @@ export default {
             ).username,
             project_id: rows[0].project,
             project: rows[0].project_name,
-            payroll: pr ? pr.total : null
+            payroll: pr ? pr.total : null,
+            grantable_amount: rows[0].grantable_amount,
             // rows: rows
           };
         })
@@ -318,6 +322,7 @@ export default {
         return {
           project: id,
           cost: _.sumBy(rows, (r) => r.cost),
+          grantable_amount: rows[0].grantable_amount,
         }
       })
       .value();
@@ -342,6 +347,7 @@ export default {
         return {
           project: id,
           cost: _.sumBy(rows, (r) => r.cost),
+          grantable_amount: rows[0].grantable_amount,
         }
       })
       .value();
@@ -349,6 +355,9 @@ export default {
     },
     summaryAll() {
       return _.sumBy(this.summaryByProjectAll, 'cost')
+    },
+    summaryAllGrantable() {
+      return _.sumBy(this.summaryByProjectAll, 'grantable_amount')
     },
     summaryByUser() {
       const activities = _(this.monthlyActivitiesTotal)
