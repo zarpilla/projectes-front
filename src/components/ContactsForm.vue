@@ -43,12 +43,12 @@
               <b-field label="Adreça *" horizontal>
                 <b-input v-model="form.address" required />
               </b-field>
-              <b-field label="Població *" horizontal>
-                <b-input v-model="form.city" required />
-              </b-field>
               <b-field label="CP *" horizontal>
                 <b-input v-model="form.postcode" required/>
               </b-field>
+              <b-field label="Població *" horizontal>
+                <b-input v-model="form.city" required />
+              </b-field>              
               <b-field label="Provincia" horizontal>
                 <b-input v-model="form.state" />
               </b-field>
