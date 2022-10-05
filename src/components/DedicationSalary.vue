@@ -254,11 +254,16 @@ export default {
                   (a) => a.date === date
                 );
                 const festive = festives.find((f) => f.date === date);
+
+                if (festive) {
+                  console.log('festive', festive)
+                }
                 const theoricHours =
-                  !festive && dailyDedication && day !== 0 && day !== 6
+                  (!festive || ( festive && festive.users_permissions_user && festive.users_permissions_user.id)) && dailyDedication && day !== 0 && day !== 6
                     ? dailyDedication.hours
-                    : 0;                
-                const workedHours = sumBy(activities, "hours");
+                    : 0;
+                    
+                const workedHours = sumBy(activities, "hours") + ( ( festive && festive.users_permissions_user && festive.users_permissions_user.id) ? theoricHours : 0);
                 const dateDescription = festive
                   ? festive.festive_type
                     ? festive.festive_type.name
@@ -271,7 +276,7 @@ export default {
                 }
                 this.months[month].theoricHours += theoricHours
 
-                if (!festive && dailyDedication && day !== 0 && day !== 6) {
+                if ((!festive || ( festive && festive.users_permissions_user && festive.users_permissions_user.id)) && dailyDedication && day !== 0 && day !== 6) {
                   laborableDays++
                   this.months[month].theoricDays += 1
                 }
