@@ -255,9 +255,6 @@ export default {
                 );
                 const festive = festives.find((f) => f.date === date);
 
-                if (festive) {
-                  console.log('festive', festive)
-                }
                 const theoricHours =
                   (!festive || ( festive && festive.users_permissions_user && festive.users_permissions_user.id)) && dailyDedication && day !== 0 && day !== 6
                     ? dailyDedication.hours
