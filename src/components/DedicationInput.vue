@@ -174,7 +174,7 @@
           >
           <span
             class="day-sum-label text-sm text-gray-900 week-total"
-            v-if="day && day.weekdayPosition === 7"
+            v-if="day && ( day.weekdayPosition === 7 || day.dayFromEnd === 1)"
             >Setmana: {{ weekSum(day.isoWeeknumber) }}h</span
           >
           <span
