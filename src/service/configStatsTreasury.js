@@ -38,7 +38,7 @@ const config = {
       cube: {
         dimensions: {
           year: {
-            caption: 'Any (TOTS)'
+            caption: 'Anys (TOTS)'
           },
           month: {
             caption: 'Mesos (TOTS)'
