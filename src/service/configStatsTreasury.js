@@ -4,14 +4,23 @@ const config = {
   dataSource: {
     // data: pivotedProjects,
     columns: [{
+      name: 'year',
+      expand: false
+    },{
       name: 'month',
-      expand: true
+      expand: false
     }], // Specify a dimension on columns.
     rows: [{
       name: 'year',
       expand: true
+    },{
+      name: 'month',
+      expand: false
+    },{
+      name: 'project_name',
+      expand: false
     }], // Specify a dimension on rows.
-    measures: ['Balanç', 'Ingressos', 'Despeses', 'Saldo'],
+    measures: ['Resultat', 'Cobraments', 'Pagaments'],
     schema: {
       model: {
         fields: {
@@ -21,8 +30,8 @@ const config = {
           month: {
             type: 'string'
           },
-          valid: {
-            type: 'bool'
+          total_amount: {
+            type: 'number'
           }
         }
       },
@@ -33,26 +42,24 @@ const config = {
           },
           month: {
             caption: 'Mesos (TOTS)'
+          },
+          project_name: {
+            caption: 'Projectes (TOTS)'
           }
         },
         measures: {          
-          'Balanç': {
+          'Resultat': {
             field: 'total_amount',
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          Ingressos: {
+          Cobraments: {
             field: 'total_incomes',
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          Despeses: {
+          Pagaments: {
             field: 'total_expenses',
-            aggregate: 'sum',
-            format: '{0:n2} €'
-          },
-          Saldo: {
-            field: 'subtotal',
             aggregate: 'sum',
             format: '{0:n2} €'
           }
@@ -68,7 +75,7 @@ const config = {
     //     }
     // },
   },
-  height: '90vh',
+  height: '80vh',
   dataBound: function(e) {
     this.columnsHeader.find("#treasury-pivot table colgroup col:last-child").css({width:0});
     this.content.find("#treasury-pivot table colgroup col:last-child").css({width:0});

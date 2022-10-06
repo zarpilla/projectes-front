@@ -19,7 +19,7 @@
       />
     </download-excel>
 
-    <!-- <pre>{{ pivotData }}</pre> -->
+    <!-- <pre>{{ treasuryData }}</pre> -->
 
     <b-loading
       :is-full-page="true"
@@ -215,6 +215,13 @@
       </div>
     </card-component>
 
+    <card-component
+      title="PER PROJECTE"
+      class="ztile is-child mt-2"
+    >
+      <div id="project-stats"></div>
+    </card-component>
+
     <download-excel
       class="export view-button"
       :data="treasuryData"
@@ -325,6 +332,7 @@ import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
 import CardComponent from "./CardComponent.vue";
 import { mapState } from "vuex";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import { addScript, addStyle } from "@/helpers/addScript";
 
 export default {
   name: "Tresoreria",
@@ -361,6 +369,7 @@ export default {
       isModalActive: false,
       trashObject: null,
       pivotData: [],
+      pivotData2: [],
       vat: { paid: 0, received: 0 },
       me: null,
       payingVat: false,
@@ -368,7 +377,33 @@ export default {
     };
   },
   async mounted() {
-    this.getData();
+    const interval = setInterval(async () => {
+      if (window.jQuery) {
+        clearInterval(interval);
+        await addScript(
+          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+            "/vendor/kendo/kendo.all.min.js",
+          "kendo-all-min-js"
+        );
+        await addStyle(
+          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+            "/vendor/kendo/kendo.common.min.css",
+          "kendo-common-min-css"
+        );
+        await addStyle(
+          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+            "/vendor/kendo/kendo.custom.css",
+          "kendo-custom-css"
+        );
+        await addStyle(
+          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+            "/vendor/kendo/custom.css",
+          "custom-css"
+        );
+        this.isLoading = false;
+        this.getData();
+      }
+    }, 100);
   },
   computed: {
     monthlySummary() {
@@ -389,6 +424,9 @@ export default {
           };
         });
       return treasuryData;
+    },
+    monthlySummaryForPivot() {
+      return this.monthlySummary.map(s => { return { ...s, project_name: s.project_name !== '-' ? s.project_name : s.type, total_incomes: s.total_amount > 0 ? s.total_amount : 0, total_expenses: s.total_amount < 0 ? s.total_amount : 0 }});
     },
     monthlySummaryTotal() {
       const ans = _(this.monthlySummary)
@@ -499,9 +537,7 @@ export default {
                   project_id: p.id,
                   type: "Despesa esperada",
                   concept: e.concept,
-                  total_amount: e.total_amount
-                    ? -1 * e.total_amount
-                    : 0,
+                  total_amount: e.total_amount ? -1 * e.total_amount : 0,
                   date: moment(e.date, "YYYY-MM-DD") || moment(),
                   date_error: e.date === null,
                   paid: false,
@@ -594,9 +630,7 @@ export default {
                     project_id: p.id,
                     type: "Despesa esperada",
                     concept: e.concept,
-                    total_amount: e.total_amount
-                      ? -1 * (e.total_amount)
-                      : 0,
+                    total_amount: e.total_amount ? -1 * e.total_amount : 0,
                     date: moment(e.date, "YYYY-MM-DD") || moment(),
                     date_error: e.date === null,
                     paid: false,
@@ -649,7 +683,7 @@ export default {
                     project_id: p.id,
                     type: "Ingrés esperat",
                     concept: i.concept,
-                    total_amount: i.total_amount ? (i.total_amount) : 0,
+                    total_amount: i.total_amount ? i.total_amount : 0,
                     date: moment(i.date, "YYYY-MM-DD") || moment(),
                     date_error: i.date === null,
                     paid: false,
@@ -755,7 +789,7 @@ export default {
                 : 0,
               type: i.paid ? "Factura cobrada" : "Factura emesa",
               concept: i.code,
-              total_amount: i.total ? (i.total) : 0,
+              total_amount: i.total ? i.total : 0,
               date: date,
               date_error: (i.paid_date || i.paybefore || i.emitted) === null,
               real: true,
@@ -768,42 +802,6 @@ export default {
             // console.log('i.code', i.code, i, income)
             this.treasury.push(income);
             if (i.total_vat) {
-              // const vat = {
-              //   project_name:
-              //     i.project && i.project.name
-              //       ? i.project.name
-              //       : i.projects &&
-              //         i.projects.length &&
-              //         i.projects[0] &&
-              //         i.projects[0].name
-              //       ? i.projects[0].name
-              //       : "",
-              //   project_id: i.project
-              //     ? i.project.id
-              //     : i.projects &&
-              //       i.projects.length &&
-              //       i.projects[0] &&
-              //       i.projects[0].id
-              //     ? i.projects[0].id
-              //     : 0,
-              //   type: "IVA Repercutit Factura",
-              //   concept: i.code,
-              //   total_amount: -1 * Math.abs(i.total_vat),
-              //   date: moment(i.emitted, "YYYY-MM-DD")
-              //     .endOf("quarter")
-              //     .add(20, "day"),
-              //   date_error: i.emitted === null,
-              //   real: true,
-              //   pdf: i.pdf,
-              //   paid:
-              //     moment(i.emitted, "YYYY-MM-DD")
-              //       .endOf("quarter")
-              //       .add(20, "day")
-              //       .format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
-              //   contact: i.contact && i.contact.name ? i.contact.name : "?",
-              //   to: `/document/${i.id}/emitted-invoices`,
-              // };
-              // this.treasury.push(vat);
               if (!i.vat_paid_date) {
                 this.vat.received += i.total_vat;
               }
@@ -837,7 +835,7 @@ export default {
                 i.document_type.name
               })`,
               concept: i.code,
-              total_amount: i.total ? (i.total) : 0,
+              total_amount: i.total ? i.total : 0,
               date: date,
               date_error: (i.paid_date || i.paybefore || i.emitted) === null,
               real: true,
@@ -848,42 +846,6 @@ export default {
             };
             this.treasury.push(income);
             if (i.total_vat) {
-              // const vat = {
-              //   project_name:
-              //     i.project && i.project.name
-              //       ? i.project.name
-              //       : i.projects &&
-              //         i.projects.length &&
-              //         i.projects[0] &&
-              //         i.projects[0].name
-              //       ? i.projects[0].name
-              //       : "",
-              //   project_id: i.project
-              //     ? i.project.id
-              //     : i.projects &&
-              //       i.projects.length &&
-              //       i.projects[0] &&
-              //       i.projects[0].id
-              //     ? i.projects[0].id
-              //     : 0,
-              //   type: "IVA Repercutit Ingrés",
-              //   concept: i.code,
-              //   total_amount: -1 * Math.abs(i.total_vat),
-              //   date: moment(i.emitted, "YYYY-MM-DD")
-              //     .endOf("quarter")
-              //     .add(20, "day"),
-              //   date_error: i.emitted === null,
-              //   real: true,
-              //   pdf: i.pdf,
-              //   paid:
-              //     moment(i.emitted, "YYYY-MM-DD")
-              //       .endOf("quarter")
-              //       .add(20, "day")
-              //       .format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
-              //   contact: i.contact && i.contact.name ? i.contact.name : "?",
-              //   to: `/document/${i.id}/received-incomes`,
-              // };
-              // this.treasury.push(vat);
               if (!i.vat_paid_date) {
                 this.vat.received += i.total_vat;
               }
@@ -916,7 +878,7 @@ export default {
                 : 0,
               type: e.paid ? "Factura pagada" : "Factura rebuda",
               concept: e.code,
-              total_amount: e.total ? -1 * (e.total) : 0,
+              total_amount: e.total ? -1 * e.total : 0,
               date: date,
               date_error: false,
               paid: e.paid,
@@ -947,7 +909,7 @@ export default {
                   : 0,
                 type: "IRPF Factura",
                 concept: e.code,
-                total_amount: -1 * (e.total_irpf),
+                total_amount: -1 * e.total_irpf,
                 date: moment(e.emitted, "YYYY-MM-DD")
                   .endOf("quarter")
                   .add(20, "day"),
@@ -963,42 +925,6 @@ export default {
               this.treasury.push(expense2);
             }
             if (e.total_vat) {
-              // const vat = {
-              //   project_name:
-              //     e.project && e.project.name
-              //       ? e.project.name
-              //       : e.projects &&
-              //         e.projects.length &&
-              //         e.projects[0] &&
-              //         e.projects[0].name
-              //       ? e.projects[0].name
-              //       : "",
-              //   project_id: e.project
-              //     ? e.project.id
-              //     : e.projects &&
-              //       e.projects.length &&
-              //       e.projects[0] &&
-              //       e.projects[0].id
-              //     ? e.projects[0].id
-              //     : 0,
-              //   type: "IVA Soportat Factura",
-              //   concept: e.code,
-              //   total_amount: Math.abs(e.total_vat),
-              //   date: moment(e.emitted, "YYYY-MM-DD")
-              //     .endOf("quarter")
-              //     .add(20, "day"),
-              //   date_error: e.emitted === null,
-              //   real: true,
-              //   pdf: e.pdf,
-              //   paid:
-              //     moment(e.emitted, "YYYY-MM-DD")
-              //       .endOf("quarter")
-              //       .add(20, "day")
-              //       .format("YYYY-MM-DD") < moment().format("YYYY-MM-DD"),
-              //   contact: e.contact && e.contact.name ? e.contact.name : "?",
-              //   to: `/document/${e.id}/received-invoices`,
-              // };
-              // this.treasury.push(vat);
               if (!e.vat_paid_date) {
                 this.vat.paid += e.total_vat;
               }
@@ -1032,7 +958,7 @@ export default {
                 e.document_type.name
               })`,
               concept: e.code,
-              total_amount: e.total ? -1 * (e.total) : 0,
+              total_amount: e.total ? -1 * e.total : 0,
               date: date,
               date_error: false,
               paid: e.paid,
@@ -1063,7 +989,7 @@ export default {
                   : 0,
                 type: "IRPF Factura",
                 concept: e.code,
-                total_amount: -1 * (e.total_irpf),
+                total_amount: -1 * e.total_irpf,
                 date: moment(e.emitted, "YYYY-MM-DD")
                   .endOf("quarter")
                   .add(20, "day"),
@@ -1075,37 +1001,6 @@ export default {
               this.treasury.push(expense2);
             }
             if (e.total_vat) {
-              // const vat = {
-              //   project_name:
-              //     e.project && e.project.name
-              //       ? e.project.name
-              //       : e.projects &&
-              //         e.projects.length &&
-              //         e.projects[0] &&
-              //         e.projects[0].name
-              //       ? e.projects[0].name
-              //       : "",
-              //   project_id: e.project
-              //     ? e.project.id
-              //     : e.projects &&
-              //       e.projects.length &&
-              //       e.projects[0] &&
-              //       e.projects[0].id
-              //     ? e.projects[0].id
-              //     : 0,
-              //   type: "IVA Soportat Factura",
-              //   concept: e.code,
-              //   total_amount: Math.abs(e.total_vat),
-              //   date: moment(e.emitted, "YYYY-MM-DD")
-              //     .endOf("quarter")
-              //     .add(20, "day"),
-              //   date_error: e.emitted === null,
-              //   real: true,
-              //   pdf: e.pdf,
-              //   paid: e.paid,
-              //   contact: e.contact && e.contact.name ? e.contact.name : "?",
-              //   to: `/document/${e.id}/received-invoices`,
-              // };
               // this.treasury.push(vat);
               if (!e.vat_paid_date) {
                 this.vat.received += e.total_vat;
@@ -1138,7 +1033,7 @@ export default {
                 : 0,
               type: "Dieta",
               concept: e.code,
-              total_amount: e.total ? -1 * (e.total) : 0,
+              total_amount: e.total ? -1 * e.total : 0,
               date: date,
               date_error: (e.paid_date || e.paybefore || e.emitted) === null,
               paid: e.paid,
@@ -1172,7 +1067,7 @@ export default {
                 : 0,
               type: "Ticket",
               concept: e.code,
-              total_amount: e.total ? -1 * (e.total) : 0,
+              total_amount: e.total ? -1 * e.total : 0,
               date: date,
               date_error: (e.paid_date || e.emitted) === null,
               paid: e.paid,
@@ -1196,7 +1091,7 @@ export default {
                 e.month.month,
                 2
               )}-${e.users_permissions_user.username}`,
-              total_amount: e.net_base ? -1 * (e.net_base) : 0,
+              total_amount: e.net_base ? -1 * e.net_base : 0,
               date: moment(e.net_date, "YYYY-MM-DD"),
               date_error: (e.paid_date || e.emitted) === null,
               paid: e.paid,
@@ -1242,7 +1137,7 @@ export default {
                   e.month.month,
                   2
                 )}-${e.users_permissions_user.username}`,
-                total_amount: e.ss_base ? -1 * (e.ss_base) : 0,
+                total_amount: e.ss_base ? -1 * e.ss_base : 0,
                 date: moment(e.ss_date, "YYYY-MM-DD"),
                 date_error: e.ss_date === null,
                 paid: e.paid,
@@ -1279,10 +1174,11 @@ export default {
           }
 
           this.pivotData = Object.freeze(this.monthlySummaryTotal);
-          // configPivot.dataSource.data = this.pivotData;
-          // window.jQuery("#treasury-pivot").empty();
-          // window.jQuery("#treasury-pivot").kendoPivotGrid(configPivot);
-          // console.log('this.treasury 3',this.treasuryData)
+          this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
+
+          configPivot.dataSource.data = this.pivotData2;
+          window.jQuery("#project-stats").empty();
+          window.jQuery("#project-stats").kendoPivotGrid(configPivot);
         });
 
       this.isLoading = false;
