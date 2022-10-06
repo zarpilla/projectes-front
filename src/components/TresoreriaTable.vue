@@ -19,7 +19,7 @@
       />
     </download-excel>
 
-    <!-- <pre>{{ treasuryData }}</pre> -->
+    <!-- <pre>{{ monthlySummaryForPivot }}</pre> -->
 
     <b-loading
       :is-full-page="true"
@@ -426,7 +426,7 @@ export default {
       return treasuryData;
     },
     monthlySummaryForPivot() {
-      return this.monthlySummary.map(s => { return { ...s, project_name: s.project_name !== '-' ? s.project_name : s.type, total_incomes: s.total_amount > 0 ? s.total_amount : 0, total_expenses: s.total_amount < 0 ? s.total_amount : 0 }});
+      return this.monthlySummary.map(s => { return { ...s, project_name: s.project_name !== '-' && s.project_name !== '' ? s.project_name : s.type, total_incomes: s.total_amount > 0 ? s.total_amount : 0, total_expenses: s.total_amount < 0 ? s.total_amount : 0 }});
     },
     monthlySummaryTotal() {
       const ans = _(this.monthlySummary)
