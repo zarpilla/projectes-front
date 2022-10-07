@@ -2,6 +2,13 @@
   <div>
     <div class="table-view">      
 
+      <b-loading
+        :is-full-page="true"
+        v-if="user"
+        v-model="isLoading"
+        :can-cancel="false"
+      ></b-loading>
+
       <div class="alert" v-if="warn">
         <b-icon icon="alert-circle"></b-icon>
         Atenció, abans de consultar les nòmines cal definir la <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de tot l'any.
@@ -77,9 +84,12 @@
               <div class="is-flex">
                 <b-button v-if="!hasPayroll(key)" @click="createPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2) )" class="is-warning" icon="edit">Crear</b-button>
                 <b-button v-if="hasPayroll(key) && !payrollDetail(key).paid" @click="payPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2))" class="is-primary mr-3" :disabled="(value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)" icon="edit">Pagar</b-button>
-                <b-button v-if="hasPayroll(key)" @click="deletePayroll(key)" class="is-danger zml-3">
+                <b-button v-if="hasPayroll(key)" @click="deletePayroll(key)" class="is-danger mr-3">
                   <b-icon icon="trash-can" size="is-small"/>
-                </b-button>                
+                </b-button>
+                <b-button v-if="hasPayroll(key)" @click="viewPayroll(key)" class="is-primary mr-3">
+                  <b-icon icon="eye" size="is-small"/>
+                </b-button>
               </div>
               
             </div>
@@ -384,6 +394,15 @@ export default {
       await service({ requiresAuth: true }).post('payrolls', payroll)
 
       await this.updatePayrolls()
+    },
+    async viewPayroll(month) {
+      if (month) {
+        const m = this.monthsDb.find(m => m.month === parseInt(month))
+        const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+        const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
+        let routeData = this.$router.resolve({ name: "document.edit", params: { id: payroll.id, type: 'payrolls' } });
+        window.open(routeData.href, "_blank");
+      }
     },
     async payPayroll(month, total) {
       const m = this.monthsDb.find(m => m.month === parseInt(month))
