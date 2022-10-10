@@ -368,7 +368,7 @@
               </div>
             </b-field>
 
-            <b-field horizontal label="Adjunts" style="width: 100%">
+            <b-field horizontal label="Adjunts" style="width: 100%" v-if="!editingDocuments">
               <div
                 class="file-documents columns is-multiline"
                 v-if="form.documents && form.documents.length"
@@ -851,6 +851,7 @@ export default {
       dedication: null,
       numberEditable: false,
       apiUrl: process.env.VUE_APP_API_URL,
+      editingDocuments: false
     };
   },
   computed: {
@@ -1574,20 +1575,23 @@ export default {
       window.open(routeData.href, "_blank");
     },
     async uploaded(info) {
+      this.editingDocuments = true
       // console.log('uploaded', info)
-
       if (info.refId && info.refId > 0) {
-        const task = (
+        const document = (
           await service({ requiresAuth: true }).get(`${this.type}/${info.refId}`)
         ).data;
-        // console.log('task', task)
-        this.form.documents = task.documents;
+        console.log('document', document)
+        this.form.documents = document.documents;
       } else {
         this.form.documents = info.documents;
       }
+      this.editingDocuments = false
     },
     removeImage(doc) {
+      this.editingDocuments = true
       this.form.documents = this.form.documents.filter((d) => d.id !== doc.id);
+      setTimeout(() => this.editingDocuments = false, 100)
     },
   },
 };
