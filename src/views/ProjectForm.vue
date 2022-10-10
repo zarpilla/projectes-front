@@ -5,7 +5,7 @@ res executade<template>
       <div class="columns">
         <div class="column is-two-thirds">
           <card-component :title="formCardTitle" class="tile is-child">
-            <form @submit.prevent="submit" v-if="!isLoading">
+            <form @submit.prevent="submitAndContinue" v-if="!isLoading">
               <b-field label="Codi *" horizontal>
                 <b-input v-model="form.name" placeholder="Codi" required />
               </b-field>
@@ -253,7 +253,9 @@ res executade<template>
                   type="numeric"
                   v-model="form.grantable_amount"
                   placeholder="Import a justificar"
-                  @input="changeValue('grantable_amount', form.grantable_amount)"
+                  @input="
+                    changeValue('grantable_amount', form.grantable_amount)
+                  "
                 >
                 </b-input>
               </b-field>
@@ -318,11 +320,24 @@ res executade<template>
                 </div>
               </b-field>
               <hr />
-              <b-field horizontal>
-                <b-button type="is-primary" :loading="isLoading" @click="submit"
-                  >Guardar</b-button
-                >
-              </b-field>
+              <div class="is-flex">
+                <b-field horizontal>
+                  <b-button
+                    type="is-primary"
+                    :loading="isLoading"
+                    @click="submitAndContinue"
+                    >Guardar</b-button
+                  >
+                </b-field>
+                <b-field horizontal>
+                  <b-button
+                    type="is-primary"
+                    :loading="isLoading"
+                    @click="submitAndExit"
+                    >Guardar i sortir</b-button
+                  >
+                </b-field>
+              </div>
             </form>
           </card-component>
         </div>
@@ -585,7 +600,11 @@ res executade<template>
               <b-field label="Cost/hora executat" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_real_hours ? form.total_real_hours_price / form.total_real_hours : 0"
+                    :value="
+                      form.total_real_hours
+                        ? form.total_real_hours_price / form.total_real_hours
+                        : 0
+                    "
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -971,11 +990,24 @@ res executade<template>
           tancat per accedir a la planificació</span
         >
         <hr />
-        <b-field>
-          <b-button type="is-primary" :loading="isLoading" @click="submit"
-            >Guardar</b-button
-          >
-        </b-field>
+        <div class="is-flex">
+          <b-field horizontal>
+            <b-button
+              type="is-primary"
+              :loading="isLoading"
+              @click="submitAndContinue"
+              >Guardar</b-button
+            >
+          </b-field>
+          <b-field horizontal>
+            <b-button
+              type="is-primary"
+              :loading="isLoading"
+              @click="submitAndExit"
+              >Guardar i sortir</b-button
+            >
+          </b-field>
+        </div>
       </card-component>
 
       <card-component
@@ -992,8 +1024,12 @@ res executade<template>
           >
             {{
               props.row.docType === "income"
-                ? props.row.document && props.row.document.paid ? "Cobrament" : "Cobrament esperat"
-                : props.row.document && props.row.document.paid ? "Pagament" : "Pagament esperat"
+                ? props.row.document && props.row.document.paid
+                  ? "Cobrament"
+                  : "Cobrament esperat"
+                : props.row.document && props.row.document.paid
+                ? "Pagament"
+                : "Pagament esperat"
             }}
           </b-table-column>
           <b-table-column
@@ -1034,12 +1070,28 @@ res executade<template>
             sortable
             v-slot="props"
           >
-            <span v-if="props.row.document && props.row.document.date">{{props.row.document.date ? formatDate(props.row.document.date) : ""}}</span>
-            <span v-else-if="props.row.document && props.row.document.invoice && props.row.document.invoice.emitted">{{ props.row.document.invoice.emitted }}</span>
-            <span v-else-if="props.row.document && props.row.document.expense && props.row.document.expense.emitted">{{ props.row.document.expense.emitted }}</span>            
+            <span v-if="props.row.document && props.row.document.date">{{
+              props.row.document.date ? formatDate(props.row.document.date) : ""
+            }}</span>
+            <span
+              v-else-if="
+                props.row.document &&
+                props.row.document.invoice &&
+                props.row.document.invoice.emitted
+              "
+              >{{ props.row.document.invoice.emitted }}</span
+            >
+            <span
+              v-else-if="
+                props.row.document &&
+                props.row.document.expense &&
+                props.row.document.expense.emitted
+              "
+              >{{ props.row.document.expense.emitted }}</span
+            >
           </b-table-column>
         </b-table>
-      </card-component>      
+      </card-component>
 
       <card-component
         v-if="!isLoading"
@@ -1547,7 +1599,6 @@ export default {
                 return { ...p, edit: false };
               });
               if (this.form.phases.length === 0) {
-
               } else if (this.form.expenses.length > 0) {
                 for (let i = 0; i < this.form.expenses.length; i++) {
                   const expense = this.form.expenses[i];
@@ -1599,9 +1650,8 @@ export default {
             }
           });
       } else {
-
         this.form.date_start = new Date();
-        this.form.date_end = moment().endOf('year').toDate();
+        this.form.date_end = moment().endOf("year").toDate();
         this.getAuxiliarData();
       }
     },
@@ -1620,8 +1670,8 @@ export default {
         .get("users?_limit=-1")
         .then((r) => {
           this.leaders = r.data.filter((u) => u.hidden !== true);
-          if (this.$route.params.id === '0' && !this.form.leader.id) {            
-            this.form.leader = { id: this.user.id }
+          if (this.$route.params.id === "0" && !this.form.leader.id) {
+            this.form.leader = { id: this.user.id };
           }
         });
       service({ requiresAuth: true })
@@ -1678,7 +1728,13 @@ export default {
     // input(v) {
     //   this.createdReadable = dayjs(v).format("MMM D, YYYY");
     // },
-    async submit() {
+    async submitAndExit() {
+      this.submit('exit')
+    },
+    async submitAndContinue() {
+      this.submit('continue')
+    },
+    async submit(action) {
       this.isLoading = true;
 
       if (!this.form.structural_expenses_pct) {
@@ -1729,17 +1785,31 @@ export default {
             message: "Guardat",
             queue: false,
           });
-          this.getData();
+
+          if (action === "continue") {
+            this.getData();
+          } else {
+            this.$router.push({
+              name: "projectes.view",
+            });
+          }
         } else {
           const newProject = await service({ requiresAuth: true }).post(
             "projects",
             this.form
           );
-          // console.log('newProject', newProject.data)
-          this.$router.push({
-            name: "project.edit",
-            params: { id: newProject.data.id },
-          });
+
+          if (action === "continue") {
+            this.$router.push({
+              name: "project.edit",
+              params: { id: newProject.data.id },
+            });
+          } else {
+            this.$router.push({
+              name: "projectes.view",
+            });
+          }
+
           this.dirty = false;
           this.$buefy.snackbar.open({
             message: "Guardat",
@@ -1750,7 +1820,7 @@ export default {
 
           setTimeout(() => {
             this.isLoading = false;
-          }, 500);
+          }, 250);
         }
       } catch (err) {
         // console.error("projects error", err);
@@ -1993,11 +2063,11 @@ export default {
       this.form.original_phases.forEach((p) => {
         delete p.id;
         p.subphases.forEach((sp) => {
-          sp.date = moment(sp.date).format('YYYY-MM-DD')
+          sp.date = moment(sp.date).format("YYYY-MM-DD");
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
-          sp.date = moment(sp.date).format('YYYY-MM-DD')
+          sp.date = moment(sp.date).format("YYYY-MM-DD");
           delete sp.id;
         });
       });
@@ -2011,11 +2081,11 @@ export default {
         p.opened = true;
         delete p.id;
         p.subphases.forEach((sp) => {
-          sp.date = moment(sp.date).format('YYYY-MM-DD')
+          sp.date = moment(sp.date).format("YYYY-MM-DD");
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
-          sp.date = moment(sp.date).format('YYYY-MM-DD')
+          sp.date = moment(sp.date).format("YYYY-MM-DD");
           delete sp.id;
         });
       });

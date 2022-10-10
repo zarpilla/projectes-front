@@ -407,9 +407,11 @@ export default {
       gantt.showLightbox = function (id) {
         // code of the custom form
       };
-
-      gantt.init(this.ganttId);
-      gantt.parse(this.tasks);
+      
+      if (document.getElementById(this.ganttId)) {
+        gantt.init(this.ganttId);
+        gantt.parse(this.tasks);
+      }
     },
 
     onDragEnd(

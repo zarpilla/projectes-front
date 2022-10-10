@@ -174,8 +174,8 @@ import ProjectsTable from "@/components/ProjectsTable";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
-import { mapState } from 'vuex'
-import moment from 'moment';
+import { mapState } from "vuex";
+import moment from "moment";
 
 export default {
   name: "Home",
@@ -212,7 +212,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(["userName"]),
     titleStack() {
       return ["Projectes", "General"];
     },
@@ -230,7 +230,7 @@ export default {
           leader: p.leader && p.leader.id ? p.leader.username : "",
           date_start: p.date_start,
           date_end: p.date_end,
-          mother: p.mother ? p.mother.name : '',
+          mother: p.mother ? p.mother.name : "",
           estimated_hours: p.total_estimated_hours
             ? p.total_estimated_hours.toString().replace(".", ",")
             : "",
@@ -271,10 +271,13 @@ export default {
   mounted() {
     this.fillChartData();
 
-    this.$buefy.snackbar.open({
-      message: "Benvinguda",
-      queue: false,
-    });
+    if (!localStorage.getItem("welcome")) {
+      this.$buefy.snackbar.open({
+        message: "Benvinguda",
+        queue: false,
+      });
+      localStorage.setItem("welcome", "true");
+    }
 
     service({ requiresAuth: true })
       .get("project-states")
@@ -309,9 +312,12 @@ export default {
     service({ requiresAuth: true })
       .get(query)
       .then((r) => {
-        this.projects = sortBy(r.data.filter(
-          (p) => p.project_state !== null && p.project_state.id === 1
-        ), 'name');
+        this.projects = sortBy(
+          r.data.filter(
+            (p) => p.project_state !== null && p.project_state.id === 1
+          ),
+          "name"
+        );
         this.loading = false;
         this.applyProjects();
       });
@@ -320,13 +326,36 @@ export default {
       .get("tasks?_limit=-1&_where[archived_eq]=false")
       .then((r) => {
         const allTasks = r.data;
-        const myTasks = allTasks.filter(t => t.users_permissions_users && t.users_permissions_users.length && t.task_state && t.task_state.id !== 3 && t.users_permissions_users.find(u => u.username === this.userName) && t.due_date && t.due_date <= moment().format('YYYY-MM-DD'))
-        const myChecklists = allTasks.filter(t => t.checklist && t.checklist.length && t.checklist.find(c => c.user && c.user.username === this.userName && c.done === false && c.due_date && c.due_date <= moment().format('YYYY-MM-DD')))
+        const myTasks = allTasks.filter(
+          (t) =>
+            t.users_permissions_users &&
+            t.users_permissions_users.length &&
+            t.task_state &&
+            t.task_state.id !== 3 &&
+            t.users_permissions_users.find(
+              (u) => u.username === this.userName
+            ) &&
+            t.due_date &&
+            t.due_date <= moment().format("YYYY-MM-DD")
+        );
+        const myChecklists = allTasks.filter(
+          (t) =>
+            t.checklist &&
+            t.checklist.length &&
+            t.checklist.find(
+              (c) =>
+                c.user &&
+                c.user.username === this.userName &&
+                c.done === false &&
+                c.due_date &&
+                c.due_date <= moment().format("YYYY-MM-DD")
+            )
+        );
         if (myTasks.length || myChecklists.length) {
           this.$buefy.snackbar.open({
             message: "Atenció, tens tasques amb la data límit superada!",
             queue: false,
-            indefinite: true
+            indefinite: true,
           });
         }
       });
