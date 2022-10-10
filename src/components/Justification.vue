@@ -7,22 +7,25 @@
         v-if="monthlyActivitiesTotal.length || justifications.length"
       >
         <div class="columns card-body">          
-          <div class="column is-4 has-text-weight-bold">Projecte</div>
-          <div class="column is-2 has-text-weight-bold has-text-right">Import a justificar</div>
+          <div class="column is-4 has-text-weight-bold">Projecte</div>          
           <div class="column is-2 has-text-weight-bold has-text-right">Import justificat</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">Import a justificar</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">%</div>
         </div>
         <div v-for="(row, i) in summaryByProjectAll" :key="i"  class="card-body">
           <div class="columns">          
-            <div class="column is-4">{{ row.project }}</div>
-            <div class="column is-2 has-text-right">{{ row.grantable_amount ? row.grantable_amount.toFixed(2) + ' €': null }}</div>
+            <div class="column is-4">{{ row.project }}</div>            
             <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
+            <div class="column is-2 has-text-right">{{ row.grantable_amount ? row.grantable_amount.toFixed(2) + ' €': null }}</div>
+            <div class="column is-2 has-text-right">{{ row.grantable_amount ? (row.cost / row.grantable_amount * 100).toFixed(2) + ' %' : ''}}</div>            
           </div>
         </div>
         <div class="card-body">
         <div class="columns">          
             <div class="column is-4 has-text-weight-bold">TOTAL</div>
-            <div class="column is-2 has-text-weight-bold has-text-right">{{ summaryAllGrantable ? summaryAllGrantable.toFixed(2) : null}} €</div>
             <div class="column is-2 has-text-weight-bold has-text-right">{{ summaryAll.toFixed(2)}} €</div>
+            <div class="column is-2 has-text-weight-bold has-text-right">{{ summaryAllGrantable ? summaryAllGrantable.toFixed(2) : null}} €</div>            
+            <div class="column is-2 has-text-right"></div>            
           </div>
         </div>
       </card-component>
