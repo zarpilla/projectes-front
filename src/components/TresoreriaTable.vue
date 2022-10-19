@@ -321,7 +321,7 @@
               <b-icon icon="cash-multiple" size="is-small" />
             </button>
             <button
-              v-if="props.row.type === 'Entrada manual'"
+              v-if="props.row.type === 'Operació de tresoreria'"
               class="button is-small is-danger"
               type="button"
               @click.prevent="trashManual(props.row.treasury_id)"
