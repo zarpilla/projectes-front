@@ -247,8 +247,9 @@ const getTreasuryData = async (filter) => {
   
   treasuries.forEach(e => {
     const expense = {
-      project_name: "-",
-      project_id: 0,
+      project_name: e.project?.name,
+      project_id: e.project?.id,
+      treasury_id: e.id,
       type: e.comment === "IVA Saldat" ? e.comment : "Entrada manual",
       concept: e.comment,
       total_amount: e.total,
@@ -669,7 +670,7 @@ const getTreasuryData = async (filter) => {
       subtotal
     });
   }
-  return treasuryDataX;
+  return { treasury: treasuryDataX, projects };
 };
 
 export default getTreasuryData;

@@ -1022,15 +1022,21 @@ res executade<template>
             sortable
             v-slot="props"
           >
-            {{
-              props.row.docType === "income"
-                ? props.row.document && props.row.document.paid
-                  ? "Cobrament"
-                  : "Cobrament esperat"
-                : props.row.document && props.row.document.paid
-                ? "Pagament"
-                : "Pagament esperat"
-            }}
+          <span v-if="props.row.docType === 'income' && props.row.document && props.row.document.paid">
+            Cobrament
+          </span>
+          <span v-else-if="props.row.docType === 'income'">
+            Cobrament esperat
+          </span>
+          <span v-else-if="props.row.docType === 'expense' && props.row.document && props.row.document.paid">
+            Pagament
+          </span>
+          <span v-else-if="props.row.docType === 'expense'">
+            Pagament esperat
+          </span>
+          <span v-else-if="props.row.docType === 'treasury'">
+            Entrada manual tresoreria
+          </span>
           </b-table-column>
           <b-table-column
             label="Concepte"
@@ -1046,7 +1052,8 @@ res executade<template>
                 ? props.row.document.expense_type.name + " - "
                 : ""
             }}
-            {{ props.row.document.concept }}
+            <span v-if="props.row.document.concept">{{props.row.document.concept}}</span>
+            <span v-if="props.row.document.comment">{{props.row.document.comment}}</span>
           </b-table-column>
           <b-table-column
             label="Import"
@@ -1448,6 +1455,17 @@ export default {
           }
         });
       });
+      if (this.form.treasury_annotations) {
+        this.form.treasury_annotations.forEach(t => {
+          console.log('t', t)
+          documents.push({
+              docType: "treasury",
+              document: { ...t, total_amount: t.total },
+              concept: t.concept,
+              multiplier: 1,
+            });
+        })
+      }
       return documents;
       // return sortBy(documents, "document.emitted");
     },

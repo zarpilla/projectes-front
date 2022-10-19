@@ -232,6 +232,15 @@
       />
     </download-excel>
 
+    <card-component title="ANOTACIONS MANUALS" class="ztile is-child mt-2">
+      <section class="section">
+        <treasury-annotation-input
+          :projects="projects"
+          @annotation="getData"
+        ></treasury-annotation-input>
+      </section>
+    </card-component>
+
     <card-component title="MOVIMENTS BANCARIS" class="ztile is-child mt-2">
       <section class="section">
         <b-table
@@ -311,6 +320,15 @@
             >
               <b-icon icon="cash-multiple" size="is-small" />
             </button>
+            <button
+              v-if="props.row.type === 'Entrada manual'"
+              class="button is-small is-danger"
+              type="button"
+              @click.prevent="trashManual(props.row.treasury_id)"
+              title="Eliminar"
+            >
+              <b-icon icon="delete" size="is-small" />
+            </button>
           </b-table-column>
         </b-table>
       </section>
@@ -329,6 +347,7 @@ import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
 import CardComponent from "./CardComponent.vue";
 import { mapState } from "vuex";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 
@@ -338,6 +357,7 @@ export default {
     ModalBoxInvoicing,
     CardComponent,
     MoneyFormat,
+    TreasuryAnnotationInput,
   },
   props: {
     titleStack: {
@@ -501,12 +521,15 @@ export default {
         )
       ).data;
 
-      let filter = ''
+      let filter = "";
       if (this.$route.query.filter) {
-        filter = this.$route.query.filter
+        filter = this.$route.query.filter;
       }
 
-      this.treasuryData = await getTreasuryData(filter);
+      const treasuryData = await getTreasuryData(filter);
+
+      this.treasuryData = treasuryData.treasury;
+      this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
       this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
 
@@ -521,6 +544,27 @@ export default {
     },
     formatDate(value) {
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+    },
+    async trashManual(treasuryId) {
+      this.$buefy.dialog.confirm({
+        message: "Estàs segura d'eliminar l'entrada?",
+        onConfirm: async () => {
+          await this.submitDeleteManual(treasuryId);
+        },
+        onCancel: () => {
+          return false;
+        },
+      });
+    },
+    async submitDeleteManual(treasuryId) {
+      await service({ requiresAuth: true }).delete(`treasuries/${treasuryId}`);
+
+      this.$buefy.snackbar.open({
+        message: "Eliminada",
+        queue: false,
+      });
+
+      this.getData();
     },
     trashModal(trashObject) {
       // console.log('trashObject', trashObject)
