@@ -250,7 +250,7 @@ const getTreasuryData = async (filter) => {
       project_name: e.project?.name,
       project_id: e.project?.id,
       treasury_id: e.id,
-      type: e.comment === "IVA Saldat" ? e.comment : "Entrada manual",
+      type: e.comment === "IVA Saldat" ? e.comment : "Operació de tresoreria",
       concept: e.comment,
       total_amount: e.total,
       date: moment(e.date, "YYYY-MM-DD") || moment(),

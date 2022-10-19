@@ -232,7 +232,7 @@
       />
     </download-excel>
 
-    <card-component title="ANOTACIONS MANUALS" class="ztile is-child mt-2">
+    <card-component title="OPERACIONS DE TRESORERIA" class="ztile is-child mt-2">
       <section class="section">
         <treasury-annotation-input
           :projects="projects"

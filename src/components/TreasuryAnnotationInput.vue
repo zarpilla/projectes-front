@@ -44,7 +44,6 @@
         >Guardar</b-button
       >
     </b-field>
-    <pre>{{ form }}</pre>
   </div>
 </template>
 

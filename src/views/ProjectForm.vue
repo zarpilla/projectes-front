@@ -1035,7 +1035,7 @@ res executade<template>
             Pagament esperat
           </span>
           <span v-else-if="props.row.docType === 'treasury'">
-            Entrada manual tresoreria
+            Operació de tresoreria
           </span>
           </b-table-column>
           <b-table-column
