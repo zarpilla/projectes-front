@@ -165,6 +165,9 @@
         <b-table-column label="Pagada" field="total" v-slot="props" sortable>
           {{ props.row.paid ? "Sí" : "No" }}
         </b-table-column>
+        <b-table-column label="Assig." title="Assignada a línia de projecte" field="total" v-slot="props" sortable>
+          {{ assignedToProject(props.row) ? "Sí" : "No" }}          
+        </b-table-column>
       </b-table>
     </section>
   </div>
@@ -385,6 +388,39 @@ export default {
     zeroPad(num, places) {
       return String(num).padStart(places, "0");
     },
+    assignedToProject(invoice) {
+      let assigned = false
+      if (invoice.projects) {        
+        for(let i = 0; i < invoice.projects.length; i++) {
+          const project = invoice.projects[i]
+          if (invoice.type === "received-invoices") {
+            if (project.phases) {              
+              const invoiceAssigned = project.phases.find(p => p.expenses && p.expenses.find(e => e.invoice && e.invoice.id === invoice.id))
+              assigned = invoiceAssigned !== undefined            
+            }
+          }
+          else if (invoice.type === "emitted-invoices") {
+            if (project.phases) {
+              const invoiceAssigned = project.phases.find(p => p.subphases && p.subphases.find(e => e.invoice && e.invoice.id === invoice.id))
+              assigned = invoiceAssigned !== undefined            
+            }
+          }
+          else if (invoice.type === "received-expenses") {
+            if (project.phases) {
+              const invoiceAssigned = project.phases.find(p => p.expenses && p.expenses.find(e => e.expense && e.expense.id === invoice.id))
+              assigned = invoiceAssigned !== undefined              
+            }
+          }
+          else if (invoice.type === "received-incomes") {
+            if (project.phases) {
+              const invoiceAssigned = project.phases.find(p => p.subphases && p.subphases.find(e => e.income && e.income.id === invoice.id))
+              assigned = invoiceAssigned !== undefined            
+            }
+          }
+        }
+      }
+      return assigned
+    }
   },
 };
 </script>
