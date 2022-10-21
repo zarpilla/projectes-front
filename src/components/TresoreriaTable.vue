@@ -221,8 +221,8 @@
 
     <download-excel
       class="export view-button"
-      :data="treasuryData"
-      v-if="treasuryData && treasuryData.length"
+      :data="treasuryDataDesc"
+      v-if="treasuryDataDesc && treasuryDataDesc.length"
     >
       <b-button
         title="Exporta dades"
@@ -247,7 +247,7 @@
           :loading="isLoading"
           :paginated="false"
           :striped="false"
-          :data="treasuryData"
+          :data="treasuryDataDesc"
           :row-class="
             (row, index) =>
               (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
@@ -510,6 +510,9 @@ export default {
           : this.treasuryData.find((t) => t.type === "Inici Any");
       return today ? today.subtotal : 0;
     },
+    treasuryDataDesc() {
+      return _.reverse(this.treasuryData)
+    }
   },
   methods: {
     async getData() {
@@ -526,9 +529,9 @@ export default {
         filter = this.$route.query.filter;
       }
 
-      const treasuryData = await getTreasuryData(filter);
-
+      const treasuryData = await getTreasuryData(filter);      
       this.treasuryData = treasuryData.treasury;
+      console.log('this.treasuryData', this.treasuryData)
       this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
       this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
