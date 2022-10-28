@@ -369,7 +369,9 @@ export default {
               : e.type === "received-expenses"
               ? e.document_type.name
               : "Nómina",
-          data: e.emitted,
+          data: this.formatDate(e.emitted),
+          venciment: this.formatDate(e.paybefore),
+          cobrada: this.formatDate(e.paid_date),
           proveidor: e.contact ? e.contact.name : "",
           proveidor_nif: e.contact ? e.contact.nif : "",
           proveidor_adreça: e.contact ? e.contact.address : "",

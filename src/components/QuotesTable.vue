@@ -208,7 +208,7 @@ export default {
       this.emittedCSV = this.emitted.map((e) => {
         return {
           num: e.code,
-          data: e.date,
+          data: this.formatDate(e.date),
           proveidor: e.contact ? e.contact.name : "",
           nif: e.contact ? e.contact.nif : "",
           concepte: e.lines && e.lines.length > 0 ? e.lines[0].concepte : "-",

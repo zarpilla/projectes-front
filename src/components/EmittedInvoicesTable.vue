@@ -287,7 +287,9 @@ export default {
         return {
           num: e.code,
           tipus: e.type == 'emitted-invoices' ? 'Factura' : e.document_type.name,
-          data: e.emitted,
+          data: this.formatDate(e.emitted),
+          venciment: this.formatDate(e.paybefore),
+          cobrada: this.formatDate(e.paid_date),
           proveidor: e.contact ? e.contact.name : "",
           proveidor_nif: e.contact ? e.contact.nif : "",
           proveidor_adreça: e.contact ? e.contact.address : "",
