@@ -726,10 +726,17 @@
 
           <b-field v-if="type === 'received-expenses'">
             <b-button
+            class="mr-3"
               type="is-primary"
               :loading="isLoading"
-              @click="canEditDocument"
+              @click="canEditDocument(false)"
               >Guardar</b-button
+            >
+            <b-button
+              type="is-primary"
+              :loading="isLoading"
+              @click="canEditDocument(true)"
+              >Guardar i sortir</b-button
             >
           </b-field>
 
@@ -780,10 +787,18 @@
             v-if="type !== 'payrolls' && form.projects && form.projects.length"
           >
             <b-button
+              class="mr-3"
               type="is-primary"
               :loading="isLoading"
-              @click="canEditDocument"
+              @click="canEditDocument(false)"
               >Guardar</b-button
+            >
+
+            <b-button
+              type="is-primary"
+              :loading="isLoading"
+              @click="canEditDocument(true)"
+              >Guardar i sortir</b-button
             >
           </b-field>
         </div>
@@ -1236,7 +1251,7 @@ export default {
     input(v) {
       this.createdReadable = dayjs(v).format("MMM D, YYYY");
     },
-    async submit() {
+    async submit(exit) {
       this.isLoading = true;
 
       try {
@@ -1288,8 +1303,17 @@ export default {
             message: "Guardat",
             queue: false,
           });
-          this.shouldSaveProject = false;
-          this.getData();
+
+          if (exit) {
+            const routeName = this.type === 'emitted-invoices' || this.type === 'received-incomes' ? 'emitted.invoices.view' : "received.invoices.view"            
+            this.$router.push({
+              name: routeName
+            });
+          } else {
+            this.shouldSaveProject = false;
+            this.getData();
+          }
+          
         } else {
           // console.log("this.form", this.form);
           if (
@@ -1338,19 +1362,28 @@ export default {
           this.isLoading = false;
 
           this.shouldSaveProject = false;
-          this.$router.push({
-            name: `document.edit`,
-            params: { id: newProject.data.id, type: this.type },
-          });
+          // this.$router.push({
+          //   name: `document.edit`,
+          //   params: { id: newProject.data.id, type: this.type },
+          // });
 
           this.$buefy.snackbar.open({
             message: "Guardat",
             queue: false,
           });
 
-          // setTimeout(() => {
-          //   this.isLoading = false;
-          // }, 100);
+          if (exit) {
+            const routeName = this.type === 'emitted-invoices' || this.type === 'received-incomes' ? 'emitted.invoices.view' : "received.invoices.view"            
+            this.$router.push({
+              name: routeName
+            });
+          } else {
+            this.$router.push({
+              name: `document.edit`,
+              params: { id: newProject.data.id, type: this.type },
+            });
+          }
+
         }
       } catch (err) {
         console.error(err);
@@ -1551,7 +1584,7 @@ export default {
         });
       }
     },
-    canEditDocument() {
+    canEditDocument(exit) {
       if (
         moment().isAfter(
           moment(this.form.emitted).endOf("quarter").add(20, "day")
@@ -1561,13 +1594,13 @@ export default {
         this.$buefy.dialog.confirm({
           message:
             "El document està fora del període d'edició. Vols guardar igualment?",
-          onConfirm: () => this.submit(),
+          onConfirm: () => this.submit(exit),
           onCancel: () => {
             return false;
           },
         });
       } else {
-        this.submit();
+        this.submit(exit);
       }
     },
     navNew() {

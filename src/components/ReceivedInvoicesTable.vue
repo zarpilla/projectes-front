@@ -162,11 +162,11 @@
         <b-table-column label="Total" field="total" v-slot="props" sortable>
           {{ formatPrice(props.row.total) }}€
         </b-table-column>
-        <b-table-column label="Pagada" field="total" v-slot="props" sortable>
-          {{ props.row.paid ? "Sí" : "No" }}
+        <b-table-column label="Pagada" field="paid_date" v-slot="props" sortable>
+          {{ props.row.paid_date ? formatDate(props.row.paid_date) : "No" }}
         </b-table-column>
-        <b-table-column label="Assig." title="Assignada a línia de projecte" field="total" v-slot="props" sortable>
-          {{ assignedToProject(props.row) ? "Sí" : "No" }}          
+        <b-table-column label="Assig." title="Assignada a línia de projecte" field="assigned" v-slot="props" sortable>
+          {{ props.row.assigned }}          
         </b-table-column>
       </b-table>
     </section>
@@ -347,7 +347,15 @@ export default {
       }
 
       const emitted = _.concat(invoices, expenses, payrolls);
-      this.emitted = emitted;
+
+      const emittedWithInfo = emitted.map(e => {
+        return { 
+          ...e,
+          assigned: this.assignedToProject(e) ? "Sí" : "No"
+        }
+      })
+
+      this.emitted = emittedWithInfo;
 
       this.emittedCSV = this.emitted.map((e) => {
         return {
