@@ -335,7 +335,19 @@ const routes = [
     meta: {
       title: 'Factura'
     },
-    path: '/invoice/:id',
+    path: '/invoice/:id/:type',
+    name: 'invoice.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/Invoice.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: 'Document'
+    },
+    path: '/pdf/:id/:type',
     name: 'invoice.view',
     component: () => import(/* webpackChunkName: "quote" */ '../views/Invoice.vue'),
     props: true,

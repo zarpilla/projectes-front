@@ -774,14 +774,29 @@
             <hr />
           </div>
           <b-field>
-            <a
+            <!-- <a
               v-if="form.pdf"
               :href="form.pdf"
               class="button is-warning"
               target="_blank"
             >
-              Visualitzar PDF
-            </a>
+              Visualitza PDF
+            </a> -->
+            <router-link
+              v-if="form.id"
+              :to="{ name: 'invoice.view', params: { id: form.id, type: type } }"
+              class="button is-warning"
+              >
+              Visualitza PDF
+            </router-link>
+            <!-- <a
+              v-if="form.id"
+              :href="`${appPath}pdf/${form.id}/${type}`"
+              class="button is-warning"
+              target="_blank"
+            >
+              Visualitza PDF
+            </a> -->
           </b-field>
           <b-field
             v-if="type !== 'payrolls' && form.projects && form.projects.length"
@@ -847,6 +862,7 @@ export default {
   },
   data() {
     return {
+      appPath: process.env.VUE_APP_PATH,
       isProfileExists: false,
       isLoading: false,
       isLoadingProject: false,

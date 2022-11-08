@@ -22,9 +22,10 @@
                         </td>
 
                         <td  class='more'>
-                          {{ texts[locale]['Factura'] }} {{ quote.code }}<br />
+                          {{ texts[locale][type]['documentName'] }} {{ quote.code }}<br />
                           {{ texts[locale]['Data:'] }} {{ quote.emitted ? quote.emitted : quote.updated_at | formatDMYDate }}<br />
-                          <span v-if="quote.paybefore">{{ texts[locale]['Venciment:'] }} {{ quote.paybefore | formatDMYDate }}</span><br />
+                          <div v-if="quote.paybefore">{{ texts[locale]['Venciment:'] }} {{ quote.paybefore | formatDMYDate }}</div>
+                          <div v-if="quote.paid && quote.paid_date && type === 'received-expenses'">{{ texts[locale]['Pagada:'] }} {{ quote.paid_date | formatDMYDate }}</div>
                         </td>
                       </tr>
                     </table>
@@ -36,7 +37,7 @@
                     <table>
                       <tr>
                         <td class="prov-td">
-                          <div class="client">{{ texts[locale]['PROVEÏDOR'] }}</div>
+                          <div class="client">{{ texts[locale][type]['PROVEÏDOR'] }}</div>
                           <div v-if="me.name">{{ me.name }}</div>
                           <div v-if="me.nif">{{ me.nif }}</div>
                           <div v-if="me.address">{{ me.address }}<br />{{ me.postcode }} {{ me.city }}</div>
@@ -44,7 +45,7 @@
                           <div v-if="me.email">{{ me.email }}</div>
                         </td>
                         <td class="client-td">
-                          <div class="client">{{ texts[locale]['CLIENT'] }}</div>
+                          <div class="client">{{ texts[locale][type]['CLIENT'] }}</div>
                           <div v-if="quote.contact.name">{{ quote.contact.name }}</div>
                           <div v-if="quote.contact.nif">{{ quote.contact.nif }}</div>
                           <div v-if="quote.contact.email">{{ quote.contact.email }}</div>
@@ -112,7 +113,7 @@
                 <div class="more notes">{{ texts[locale]['Notes'] }}</div>
                 <div class="notes-content" v-html="quote.comments.replace(/(?:\r\n|\r|\n)/g, '<br>')"></div>
               </div>
-              <div v-if="me.invoice_footer" class="comments global-comments quote-footer">
+              <div v-if="me.invoice_footer && type === 'emitted-invoices'" class="comments global-comments quote-footer">
                 <span v-html="me.invoice_footer.replace(/(?:\r\n|\r|\n)/g, '<br>')"></span>
               </div>
             </div>
@@ -148,6 +149,10 @@ export default {
     id: {
       type: [String, Number],
       default: null
+    },
+    type: {
+      type: String,
+      default: null
     }
   },
   data () {
@@ -175,7 +180,33 @@ export default {
           'Base imposable': 'Base imposable',
           'Notes': 'Notes',
           'Total (sense IVA):': 'Total (sense IVA):',
-          'Mètode de pagament': 'Mètode de pagament'
+          'Mètode de pagament': 'Mètode de pagament',
+          'Pagada:': 'Pagada:',
+          'emitted-invoices': {
+            'documentName': 'Factura',
+            'PROVEÏDOR': 'PROVEÏDOR',
+            'CLIENT': 'CLIENT'
+          },
+          'received-incomes':{
+            'documentName': 'Ingrés',
+            'PROVEÏDOR': 'PROVEÏDOR',
+            'CLIENT': 'CLIENT'
+          },
+          'received-expenses': {
+            'documentName': 'Despesa',
+            'PROVEÏDOR': 'CLIENT',
+            'CLIENT': 'PROVEÏDOR'
+          },
+          'received-invoices': {
+            'documentName': 'Factura',
+            'PROVEÏDOR': 'CLIENT',
+            'CLIENT': 'PROVEÏDOR'
+          },          
+          'quotes': {
+            'documentName': 'Pressupost',
+            'PROVEÏDOR': 'PROVEÏDOR',
+            'CLIENT': 'CLIENT'
+          }
         },
         es: {
           'Factura': 'Factura',
@@ -193,7 +224,33 @@ export default {
           'Base imposable': 'Base imponible',
           'Notes': 'Notas',
           'Total (sense IVA):': 'Total (sin IVA):',
-          'Mètode de pagament': 'Métode de pago'
+          'Mètode de pagament': 'Métode de pago',
+          'Pagada:': 'Pagada:',
+          'emitted-invoices': {
+            'documentName': 'Factura',
+            'PROVEÏDOR': 'PROVEÏDOR',
+            'CLIENT': 'CLIENT'
+          },
+          'received-incomes':{
+            'documentName': 'Ingreso',
+            'PROVEÏDOR': 'PROVEEDOR',
+            'CLIENT': 'CLIENTE'
+          },
+          'received-expenses': {
+            'documentName': 'Despesa',
+            'PROVEÏDOR': 'CLIENTE',
+            'CLIENT': 'PROVEEDOR'
+          },
+          'received-invoices': {
+            'documentName': 'Factura',
+            'PROVEÏDOR': 'CLIENTE',
+            'CLIENT': 'PROVEEDOR'
+          },
+          'quotes': {
+            'documentName': 'Factura',
+            'PROVEÏDOR': 'PROVEÏDOR',
+            'CLIENT': 'CLIENT'
+          },
         },
         en: {
           'Factura': 'Invoice',
@@ -212,14 +269,40 @@ export default {
           'Base:': 'Base:',
           'Notes': 'Notes',
           'Total (sense IVA):': 'Total (withput VAT):',
-          'Mètode de pagament': 'Payment method'
+          'Mètode de pagament': 'Payment method',
+          'Pagada:': 'Paid:',
+          'emitted-invoices': {
+            'documentName': 'Factura',
+            'PROVEÏDOR': 'PROVIDER',
+            'CLIENT': 'CLIENT'
+          },
+          'received-incomes':{
+            'documentName': 'Income',
+            'PROVEÏDOR': 'PROVIDER',
+            'CLIENT': 'CLIENT'
+          },
+          'received-expenses': {
+            'documentName': 'Despesa',
+            'PROVEÏDOR': 'CLIENT',
+            'CLIENT': 'PROVIDER'
+          },
+          'received-invoices': {
+            'documentName': 'Invoice',
+            'PROVEÏDOR': 'CLIENT',
+            'CLIENT': 'PROVIDER'
+          },
+          'quotes': {
+            'documentName': 'Factura',
+            'PROVEÏDOR': 'PROVIDER',
+            'CLIENT': 'CLIENT'
+          },
         }
       }
     }
   },
   computed: {
     titleStack () {
-      return ['Facturació', 'Factures emeses']
+      return ['Facturació', this.type === 'emitted-invoices' ? 'Factures emeses' : 'Despeses']
     },
     heroTitle () {
       return this.quote ? this.quote.code : ''
@@ -250,7 +333,7 @@ export default {
     getData () {
       if (this.$route.params.id) {
         service({ requiresAuth: true })
-          .get(`emitted-invoices/${this.$route.params.id}`)
+          .get(`${this.$route.params.type}/${this.$route.params.id}`)
           .then((r) => {
             this.quote = r.data
             console.log('this.invoice', this.quote)
@@ -270,21 +353,27 @@ export default {
       var element = document.getElementById('quote')
       var opt = {
         margin: [0, 0],
-        filename: `factura-${this.quote.contact.name}-${this.quote.code}`,
+        filename: `${this.quote.code}-${this.quote.contact.name}`,
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { dpi: 300, scale: 4, letterRendering: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        jsPDF: { unit: 'pt', format: 'letter', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       }
       // html2pdf().set(opt).from(element).save(opt)
 
-      const pdf = html2pdf().set(opt).from(element)
-      // await pdf.save(opt.filename, { returnPromise: true })
+      // const pdf = html2pdf().set(opt).from(element)
+      // // await pdf.save(opt.filename, { returnPromise: true })
 
-      pdf.toPdf().get('pdf').then(function (pdf) {
-         window.open(
-          pdf.output('bloburl', opt.filename)
-          , opt.filename);
-      });
+      // pdf.toPdf().get('pdf').then(function (pdf) {
+      //   setTimeout(() => {
+      //     window.open(
+      //     pdf.output('bloburl', opt.filename)
+      //     , opt.filename);
+      //   }, 200)
+         
+      // });
+
+      html2pdf().from(element).set(opt).toPdf().get('pdf').then(function (pdfObject) {}).save();
 
     },
     toDataUrl (url, callback) {
@@ -322,6 +411,7 @@ background: #fff;
 .invoice-box {
   max-width: 800px;
   margin: 30px;
+  margin-bottom: 100px;
   padding: 0px;
   font-size: 12px;
   line-height: 24px;
