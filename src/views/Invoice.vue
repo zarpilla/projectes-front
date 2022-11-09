@@ -22,7 +22,9 @@
                         </td>
 
                         <td  class='more'>
-                          {{ texts[locale][type]['documentName'] }} {{ quote.code }}<br />
+                          <span v-if="['received-invoices', 'emitted-invoices', 'quotes'].includes(type)">{{ texts[locale][type]['documentName'] }}</span> 
+                          <span v-else>{{ quote.document_type.name }}</span> 
+                          {{ quote.code }}<br />
                           {{ texts[locale]['Data:'] }} {{ quote.emitted ? quote.emitted : quote.updated_at | formatDMYDate }}<br />
                           <div v-if="quote.paybefore">{{ texts[locale]['Venciment:'] }} {{ quote.paybefore | formatDMYDate }}</div>
                           <div v-if="quote.paid && quote.paid_date && type === 'received-expenses'">{{ texts[locale]['Pagada:'] }} {{ quote.paid_date | formatDMYDate }}</div>
