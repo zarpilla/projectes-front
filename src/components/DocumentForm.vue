@@ -799,7 +799,7 @@
             </a> -->
           </b-field>
           <b-field
-            v-if="type !== 'payrolls' && form.projects && form.projects.length"
+            v-if="type !== 'payrolls' && ((form.projects && form.projects.length) || form.projects)"
           >
             <b-button
               class="mr-3"
