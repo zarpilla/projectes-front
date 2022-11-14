@@ -427,6 +427,23 @@
               >
                 <b-field grouped class="is-full-width">
                   <b-field
+                    v-if="form.document_type == '4'"
+                    :label="j == 0 ? 'Data' : null"
+                    class="medium-field"
+                  >
+                    <b-datepicker
+                      v-model="line.date"
+                      :show-week-number="false"
+                      :locale="'ca-ES'"
+                      :first-day-of-week="1"
+                      icon="calendar-today"
+                      placeholder="Data"
+                      trap-focus
+                      editable
+                    >
+                    </b-datepicker>
+                  </b-field>                  
+                  <b-field
                     :label="j == 0 ? 'Concepte' : null"
                     class="subphase-detail-input-large-field"
                   >
@@ -437,7 +454,7 @@
                       class="subphase-detail-input subphase-detail-input-large"
                     >
                     </b-input>
-                  </b-field>
+                  </b-field>                  
                   <b-field
                     :label="j == 0 ? 'Quantitat' : null"
                     class="medium-field"
@@ -499,23 +516,6 @@
                       @input="changeLine(line, 'irpf', line.irpf)"
                     >
                     </b-input>
-                  </b-field>
-                  <b-field
-                    v-if="form.document_type == '4'"
-                    :label="j == 0 ? 'Data' : null"
-                    class="medium-field"
-                  >
-                    <b-datepicker
-                      v-model="line.date"
-                      :show-week-number="false"
-                      :locale="'ca-ES'"
-                      :first-day-of-week="1"
-                      icon="calendar-today"
-                      placeholder="Data"
-                      trap-focus
-                      editable
-                    >
-                    </b-datepicker>
                   </b-field>
                   <b-field
                     :label="j == 0 ? 'Accions' : null"

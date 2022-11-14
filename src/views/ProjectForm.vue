@@ -1017,6 +1017,32 @@ res executade<template>
       >
         <b-table :data="treasury">
           <b-table-column
+            label="Data"
+            field="document.date"
+            sortable
+            v-slot="props"
+          >
+            <span v-if="props.row.document && props.row.document.date">{{
+              props.row.document.date ? formatDate(props.row.document.date) : ""
+            }}</span>
+            <span
+              v-else-if="
+                props.row.document &&
+                props.row.document.invoice &&
+                props.row.document.invoice.emitted
+              "
+              >{{ formatDate(props.row.document.invoice.emitted) }}</span
+            >
+            <span
+              v-else-if="
+                props.row.document &&
+                props.row.document.expense &&
+                props.row.document.expense.emitted
+              "
+              >{{ formatDate(props.row.document.expense.emitted) }}</span
+            >
+          </b-table-column>          
+          <b-table-column
             label="Tipus"
             field="docTypeDesc"
             sortable
@@ -1070,32 +1096,6 @@ res executade<template>
               :hide-subunits="false"
             >
             </money-format>
-          </b-table-column>
-          <b-table-column
-            label="Data"
-            field="document.date"
-            sortable
-            v-slot="props"
-          >
-            <span v-if="props.row.document && props.row.document.date">{{
-              props.row.document.date ? formatDate(props.row.document.date) : ""
-            }}</span>
-            <span
-              v-else-if="
-                props.row.document &&
-                props.row.document.invoice &&
-                props.row.document.invoice.emitted
-              "
-              >{{ props.row.document.invoice.emitted }}</span
-            >
-            <span
-              v-else-if="
-                props.row.document &&
-                props.row.document.expense &&
-                props.row.document.expense.emitted
-              "
-              >{{ props.row.document.expense.emitted }}</span
-            >
           </b-table-column>
         </b-table>
       </card-component>

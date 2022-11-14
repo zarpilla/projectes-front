@@ -25,7 +25,7 @@
                           <span v-if="['received-invoices', 'emitted-invoices', 'quotes'].includes(type)">{{ texts[locale][type]['documentName'] }}</span> 
                           <span v-else>{{ quote.document_type.name }}</span> 
                           {{ quote.code }}<br />
-                          {{ texts[locale]['Data:'] }} {{ quote.emitted ? quote.emitted : quote.updated_at | formatDMYDate }}<br />
+                          {{ texts[locale]['Data'] }}: {{ quote.emitted ? quote.emitted : quote.updated_at | formatDMYDate }}<br />
                           <div v-if="quote.paybefore">{{ texts[locale]['Venciment:'] }} {{ quote.paybefore | formatDMYDate }}</div>
                           <div v-if="quote.paid && quote.paid_date && type === 'received-expenses'">{{ texts[locale]['Pagada:'] }} {{ quote.paid_date | formatDMYDate }}</div>
                         </td>
@@ -62,7 +62,8 @@
                   <td :colspan="5">
                     <table>
                       <tr class="t-heading">
-                        <td>{{ texts[locale]['Concepte'] }}</td>
+                        <td v-if="showDate">{{ texts[locale]['Data'] }}</td>
+                        <td class="has-text-left">{{ texts[locale]['Concepte'] }}</td>
                         <td v-if="showQuantity">{{ texts[locale]['Q.'] }}</td>
                         <td v-if="showQuantity || showVat">{{ texts[locale]['Base'] }}</td>
                         <td>{{ texts[locale]['Base imposable'] }}</td>
@@ -71,7 +72,8 @@
                         <td>{{ texts[locale]['Total'] }}</td>
                       </tr>
                       <tr class="item" v-for="(line, i) in quote.lines" v-bind:key="line.id" :class="{ last: i == line.length}">
-                        <td>{{ line.concept }}
+                        <td v-if="showDate">{{ line.date | formatDMYDate }}</td>
+                        <td class="has-text-left">{{ line.concept }}
                           <div v-if="line.comments" class="comments">
                             <span v-html="line.comments.replace(/(?:\r\n|\r|\n)/g, '<br>')"></span>
                           </div>
@@ -168,7 +170,7 @@ export default {
       texts: {
         ca: {
           'Factura': 'Factura',
-          'Data:': 'Data:',
+          'Data': 'Data',
           'Venciment:': 'Venciment:',
           'PROVEÏDOR': 'PROVEÏDOR',
           'CLIENT': 'CLIENT',
@@ -212,7 +214,7 @@ export default {
         },
         es: {
           'Factura': 'Factura',
-          'Data:': 'Fecha:',
+          'Data': 'Fecha',
           'Venciment:': 'Vencimiento:',
           'PROVEÏDOR': 'PROVEEDOR',
           'CLIENT': 'CLIENTE',
@@ -256,7 +258,7 @@ export default {
         },
         en: {
           'Factura': 'Invoice',
-          'Data:': 'Date:',
+          'Data': 'Date',
           'Venciment:': 'Expiration:',
           'PROVEÏDOR': 'PROVIDER',
           'CLIENT': 'CLIENT',
@@ -308,6 +310,9 @@ export default {
     },
     heroTitle () {
       return this.quote ? this.quote.code : ''
+    },    
+    showDate () {
+      return this.quote.lines.filter(l => l.date).length > 0
     },
     showQuantity () {
       return this.quote.lines.find(l => l.quantity > 1) !== undefined
