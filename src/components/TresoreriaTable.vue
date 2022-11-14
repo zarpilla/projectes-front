@@ -530,8 +530,7 @@ export default {
       }
 
       const treasuryData = await getTreasuryData(filter);      
-      this.treasuryData = treasuryData.treasury;
-      console.log('this.treasuryData', this.treasuryData)
+      this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});
       this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
       this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);

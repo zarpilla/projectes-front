@@ -17,6 +17,9 @@ const config = {
       name: 'month',
       expand: false
     },{
+      name: 'executat',
+      expand: false
+    },{
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
@@ -28,6 +31,9 @@ const config = {
             type: 'string'
           },
           month: {
+            type: 'string'
+          },
+          executat: {
             type: 'string'
           },
           total_amount: {
@@ -42,6 +48,9 @@ const config = {
           },
           month: {
             caption: 'Mesos (TOTS)'
+          },
+          executat: {
+            caption: 'Executat (TOTS)'
           },
           project_name: {
             caption: 'Projectes (TOTS)'
