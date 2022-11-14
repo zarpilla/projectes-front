@@ -75,7 +75,7 @@ const config = {
     //     }
     // },
   },
-  height: '80vh',
+  height: '50vh',
   dataBound: function(e) {
     this.columnsHeader.find("#treasury-pivot table colgroup col:last-child").css({width:0});
     this.content.find("#treasury-pivot table colgroup col:last-child").css({width:0});
