@@ -17,8 +17,21 @@
               </b-select>
             </b-field>
             <b-field label="Mes">
-              <b-select v-model="filters.month">
+              <b-select v-model="filters.month" :disabled="filters.quarter > 0">
                 <option v-for="(m, i) in months" :key="i" :value="m.month">
+                  {{ m.name }}
+                </option>
+              </b-select>
+            </b-field>
+            <b-field label="Trimestre">
+              <b-select
+                v-model="filters.quarter"                
+              >
+                <option
+                  v-for="(m, i) in quarters"
+                  :key="i"
+                  :value="m.value"
+                >
                   {{ m.name }}
                 </option>
               </b-select>
@@ -51,6 +64,7 @@
       <received-invoices-table
         :year="filters.year"
         :month="filters.month"
+        :quarter="filters.quarter" 
         :contact="filters.contact"
         :document-type="filters.documentType"
         :project="filters.project"
@@ -80,12 +94,14 @@ export default {
       filters: {
         year: null,
         month: 0,
+        quarter: 0,
         contact: 0,
         documentType: 0,
         project: 0,
       },
       years: [],
       months: [],
+      quarters: [{ name: 'Tots', value: 0 },{name: 'T1', value: 1},{name: 'T2', value: 2},{name: 'T3', value: 3},{name: 'T4', value: 4}],
       contacts: [],
       projects: [],
       documentTypes: [],

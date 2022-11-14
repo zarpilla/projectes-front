@@ -165,6 +165,10 @@ export default {
       type: Number,
       default: null,
     },
+    quarter: {
+      type: Number,
+      default: null,
+    },
     contact: {
       type: Number,
       default: null,
@@ -217,6 +221,9 @@ export default {
     month: function (newVal, oldVal) {
       this.getData();
     },
+    quarter: function (newVal, oldVal) {
+      this.getData();
+    },
     contact: function (newVal, oldVal) {
       this.getData();
     },
@@ -256,12 +263,15 @@ export default {
       const from2 = this.month ? moment(`${this.year}-${this.month}`, 'YYYY-M').startOf("month").format("YYYY-MM-DD") : from;
       const to2 = this.month ? moment(`${this.year}-${this.month}`, 'YYYY-M').endOf("month").format("YYYY-MM-DD") : to;
 
+      const from3 = this.quarter ? moment(`${this.year}`, 'YYYY').quarter(this.quarter).startOf("quarter").format("YYYY-MM-DD") : from2;
+      const to3 = this.quarter ? moment(`${this.year}`, 'YYYY').quarter(this.quarter).endOf("quarter").format("YYYY-MM-DD") : to2;
+
       const contactQuery = this.contact ? `&[contact_eq]=${this.contact}` : '';      
       const projectQuery = this.project ? `&[projects_eq]=${this.project}` : '';
 
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${projectQuery}`
+          `emitted-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}`
         )
       ).data;
 
@@ -272,7 +282,7 @@ export default {
       const typeQuery = this.documentType !== 0 ? `&[document_type_eq]=${this.documentType}` : '';
       let incomes = (
         await service({ requiresAuth: true }).get(
-          `received-incomes?_limit=-1&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${typeQuery}${projectQuery}`
+          `received-incomes?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}`
         )
       ).data;
 

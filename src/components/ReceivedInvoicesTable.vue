@@ -162,11 +162,22 @@
         <b-table-column label="Total" field="total" v-slot="props" sortable>
           {{ formatPrice(props.row.total) }}€
         </b-table-column>
-        <b-table-column label="Pagada" field="paid_date" v-slot="props" sortable>
+        <b-table-column
+          label="Pagada"
+          field="paid_date"
+          v-slot="props"
+          sortable
+        >
           {{ props.row.paid_date ? formatDate(props.row.paid_date) : "No" }}
         </b-table-column>
-        <b-table-column label="Assig." title="Assignada a línia de projecte" field="assigned" v-slot="props" sortable>
-          {{ props.row.assigned }}          
+        <b-table-column
+          label="Assig."
+          title="Assignada a línia de projecte"
+          field="assigned"
+          v-slot="props"
+          sortable
+        >
+          {{ props.row.assigned }}
         </b-table-column>
       </b-table>
     </section>
@@ -194,6 +205,10 @@ export default {
       default: null,
     },
     month: {
+      type: Number,
+      default: null,
+    },
+    quarter: {
       type: Number,
       default: null,
     },
@@ -233,6 +248,9 @@ export default {
       this.getData();
     },
     month: function (newVal, oldVal) {
+      this.getData();
+    },
+    quarter: function (newVal, oldVal) {
       this.getData();
     },
     contact: function (newVal, oldVal) {
@@ -299,6 +317,19 @@ export default {
             .format("YYYY-MM-DD")
         : to;
 
+      const from3 = this.quarter
+        ? moment(`${this.year}`, "YYYY")
+            .quarter(this.quarter)
+            .startOf("quarter")
+            .format("YYYY-MM-DD")
+        : from2;
+      const to3 = this.quarter
+        ? moment(`${this.year}`, "YYYY")
+            .quarter(this.quarter)
+            .endOf("quarter")
+            .format("YYYY-MM-DD")
+        : to2;
+
       const contactQuery = this.contact ? `&[contact_eq]=${this.contact}` : "";
       const contactQueryPayrolls = this.contact
         ? `&[users_permissions_user_eq]=-1`
@@ -310,7 +341,7 @@ export default {
         await service({ requiresAuth: true }).get(
           `received-invoices?_limit=${
             this.documentType === 0 || this.documentType === -1 ? -1 : 0
-          }&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${projectQuery}`
+          }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}`
         )
       ).data;
 
@@ -324,7 +355,7 @@ export default {
           : "";
       let expenses = (
         await service({ requiresAuth: true }).get(
-          `received-expenses?_limit=-1&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}${contactQuery}${typeQuery}${projectQuery}`
+          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}`
         )
       ).data;
 
@@ -338,22 +369,22 @@ export default {
           await service({ requiresAuth: true }).get(
             `payrolls?_limit=${
               this.documentType === 0 || this.documentType === -2 ? -1 : 0
-            }&_where[emitted_gte]=${from2}&[emitted_lte]=${to2}&[paid_eq]=true${contactQueryPayrolls}`
+            }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}&[paid_eq]=true${contactQueryPayrolls}`
           )
         ).data;
         payrolls = payrolls.map((element) => {
           return { ...element, type: "payrolls", total_base: element.total };
-        });      
+        });
       }
 
       const emitted = _.concat(invoices, expenses, payrolls);
 
-      const emittedWithInfo = emitted.map(e => {
-        return { 
+      const emittedWithInfo = emitted.map((e) => {
+        return {
           ...e,
-          assigned: this.assignedToProject(e) ? "Sí" : "No"
-        }
-      })
+          assigned: this.assignedToProject(e) ? "Sí" : "No",
+        };
+      });
 
       this.emitted = emittedWithInfo;
 
@@ -399,38 +430,59 @@ export default {
       return String(num).padStart(places, "0");
     },
     assignedToProject(invoice) {
-      let assigned = false
-      if (invoice.projects) {        
-        for(let i = 0; i < invoice.projects.length; i++) {
-          const project = invoice.projects[i]
+      let assigned = false;
+      if (invoice.projects) {
+        for (let i = 0; i < invoice.projects.length; i++) {
+          const project = invoice.projects[i];
           if (invoice.type === "received-invoices") {
-            if (project.phases) {              
-              const invoiceAssigned = project.phases.find(p => p.expenses && p.expenses.find(e => e.invoice && e.invoice.id === invoice.id))
-              assigned = invoiceAssigned !== undefined            
-            }
-          }
-          else if (invoice.type === "emitted-invoices") {
             if (project.phases) {
-              const invoiceAssigned = project.phases.find(p => p.subphases && p.subphases.find(e => e.invoice && e.invoice.id === invoice.id))
-              assigned = invoiceAssigned !== undefined            
+              const invoiceAssigned = project.phases.find(
+                (p) =>
+                  p.expenses &&
+                  p.expenses.find(
+                    (e) => e.invoice && e.invoice.id === invoice.id
+                  )
+              );
+              assigned = invoiceAssigned !== undefined;
             }
-          }
-          else if (invoice.type === "received-expenses") {
+          } else if (invoice.type === "emitted-invoices") {
             if (project.phases) {
-              const invoiceAssigned = project.phases.find(p => p.expenses && p.expenses.find(e => e.expense && e.expense.id === invoice.id))
-              assigned = invoiceAssigned !== undefined              
+              const invoiceAssigned = project.phases.find(
+                (p) =>
+                  p.subphases &&
+                  p.subphases.find(
+                    (e) => e.invoice && e.invoice.id === invoice.id
+                  )
+              );
+              assigned = invoiceAssigned !== undefined;
             }
-          }
-          else if (invoice.type === "received-incomes") {
+          } else if (invoice.type === "received-expenses") {
             if (project.phases) {
-              const invoiceAssigned = project.phases.find(p => p.subphases && p.subphases.find(e => e.income && e.income.id === invoice.id))
-              assigned = invoiceAssigned !== undefined            
+              const invoiceAssigned = project.phases.find(
+                (p) =>
+                  p.expenses &&
+                  p.expenses.find(
+                    (e) => e.expense && e.expense.id === invoice.id
+                  )
+              );
+              assigned = invoiceAssigned !== undefined;
+            }
+          } else if (invoice.type === "received-incomes") {
+            if (project.phases) {
+              const invoiceAssigned = project.phases.find(
+                (p) =>
+                  p.subphases &&
+                  p.subphases.find(
+                    (e) => e.income && e.income.id === invoice.id
+                  )
+              );
+              assigned = invoiceAssigned !== undefined;
             }
           }
         }
       }
-      return assigned
-    }
+      return assigned;
+    },
   },
 };
 </script>
