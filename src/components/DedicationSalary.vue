@@ -178,7 +178,7 @@ export default {
       this.payrolls = []
       
       const from = moment(this.year, "YYYY").startOf("year").format("YYYY-MM-DD");
-      const to = moment().endOf("year").format("YYYY-MM-DD");
+      const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
 
       let query = `activities/total-by-day?_where[date_gte]=${from}&[date_lte]=${to}`;
       if (this.user) {
