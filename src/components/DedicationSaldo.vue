@@ -234,13 +234,13 @@ export default {
       var dates = [];
       var currDate = moment(this.year, "YYYY").startOf("year");
       const endOfYear = moment(this.year, "YYYY").endOf("year");
-      var lastDate =
-        endOfYear.diff(moment()) < 0
-          ? moment(this.year, "YYYY").endOf("year")
-          : moment();
+      // var lastDate =
+      //   endOfYear.diff(moment()) < 0
+      //     ? moment(this.year, "YYYY").endOf("year")
+      //     : moment();
       // var lastDate = moment()
       dates.push(currDate.clone().toDate());
-      while (currDate.add(1, "days").diff(lastDate) < 0) {
+      while (currDate.add(1, "days").diff(endOfYear) < 0) {
         dates.push(currDate.clone().toDate());
       }
       return dates;
