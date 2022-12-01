@@ -63,8 +63,8 @@
             <div class="column is-2">{{ row.username }}</div>
             <div class="column is-2">{{ row.month }}</div>
             <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
-            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.net_base ? (row.payroll.net_base + (row.payroll.ss_base || 0)).toFixed(2) : 0  }} €</div>
-            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.cost / (row.payroll.net_base + (row.payroll.ss_base || 0)) * 100).toFixed(2) : 0  }} %</div>
+            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.payroll.total).toFixed(2) : 0  }} €<span v-if="!(row.payroll && row.payroll.total)">!</span></div>
+            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.cost / (row.payroll.total) * 100).toFixed(2) : 0  }} %</div>
           </div>
         </div>
       </card-component>
