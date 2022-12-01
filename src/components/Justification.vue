@@ -63,7 +63,14 @@
             <div class="column is-2">{{ row.username }}</div>
             <div class="column is-2">{{ row.month }}</div>
             <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
-            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.payroll.total).toFixed(2) : 0  }} €<span v-if="!(row.payroll && row.payroll.total)">!</span></div>
+            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.payroll.total).toFixed(2) : 0  }} € <b-icon
+              v-if="!(row.payroll && row.payroll.total)"
+              class="has-text-warning"
+              icon="alert-circle"
+              title="Sense bestreta pagada"
+              size="is-small"
+            >
+            </b-icon></div>
             <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.cost / (row.payroll.total) * 100).toFixed(2) : 0  }} %</div>
           </div>
         </div>
@@ -98,7 +105,7 @@
               {{ row.cost ? row.cost.toFixed(2) : '0' }} €
             </div>
             <div class="column has-text-right">
-              {{ row.hours }}
+              {{ row.hours.toFixed(2) }}
             </div>
             <div class="column has-text-right">
               {{ row.payroll ? row.payroll.toFixed(2) : '0' }} €
