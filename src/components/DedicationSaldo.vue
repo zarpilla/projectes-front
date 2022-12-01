@@ -131,7 +131,7 @@ export default {
         .format("YYYY-MM-DD");
       const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
 
-      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
+      let query = `activities/total-by-day?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
         query = `${query}&[users_permissions_user.id]=${this.user}`;
       } else {

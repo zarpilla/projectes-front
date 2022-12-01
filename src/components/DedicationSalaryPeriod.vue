@@ -135,7 +135,7 @@ export default {
       const from = moment().add(-1*this.months, 'months').format("YYYY-MM-DD");
       const to = moment().format("YYYY-MM-DD");
 
-      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
+      let query = `activities/total-by-day?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
         query = `${query}&[users_permissions_user.id]=${this.user}`;
       } else {
