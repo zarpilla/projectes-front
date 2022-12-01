@@ -63,13 +63,12 @@
             <div class="column is-2">{{ row.username }}</div>
             <div class="column is-2">{{ row.month }}</div>
             <div class="column is-2 has-text-right">{{ row.cost.toFixed(2)}} €</div>
-            <div class="column is-2 has-text-right">{{ row.payroll ? row.payroll.total.toFixed(2) : 0  }} €</div>
-            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.cost / row.payroll.total * 100).toFixed(2) : 0  }} %</div>
-            
+            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.net_base ? (row.payroll.net_base + (row.payroll.ss_base || 0)).toFixed(2) : 0  }} €</div>
+            <div class="column is-2 has-text-right">{{ row.payroll && row.payroll.total ? (row.cost / (row.payroll.net_base + (row.payroll.ss_base || 0)) * 100).toFixed(2) : 0  }} %</div>
           </div>
         </div>
       </card-component>
-
+      
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal.length || justifications.length"
@@ -447,9 +446,11 @@ export default {
   },
   watch: {
     project: function (newVal, oldVal) {
+      console.log('getActivities')
       this.getActivities();
     },
     year: function (newVal, oldVal) {
+      console.log('getActivities')
       this.getActivities();
     },
   },
@@ -458,6 +459,7 @@ export default {
   },
   methods: {
     async getActivities() {
+      console.log('getActivities')
       this.isLoading = true;
 
       if (!this.year) {

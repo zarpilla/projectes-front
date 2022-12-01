@@ -389,7 +389,7 @@ export default {
       }
 
       payroll.net_base = parseFloat(payroll.total) - parseFloat(payroll.irpf_base) - parseFloat(payroll.other_base)
-      payroll.total = parseFloat(payroll.total) + parseFloat(payroll.ss_base)
+      payroll.total = parseFloat(payroll.total) + parseFloat(payroll.ss_base || 0)
 
       await service({ requiresAuth: true }).post('payrolls', payroll)
 
