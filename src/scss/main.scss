@@ -147,6 +147,20 @@
 
 /* documents */
 
+div.readonly-fake {
+  width: auto;
+  border: 0px solid #F5F5F5;
+  background: #F5F5F5;
+  color: #777;
+  border-radius: 4px;
+  padding-bottom: calc(0.5em - 1px);
+  padding-left: calc(0.75em - 1px);
+  padding-right: calc(0.75em - 1px);
+  padding-top: calc(0.5em - 1px);
+  max-width: 100%;
+  width: 100%;
+}
+
 .document-form .line .field.medium-field {
   width: 10%;
 }

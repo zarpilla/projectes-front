@@ -99,9 +99,9 @@ export default {
       const dedications = (
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
       ).data;
-      // this.years = (
-      //   await service({ requiresAuth: true }).get("years?_limit=-1")
-      // ).data;
+      this.years = (
+        await service({ requiresAuth: true }).get("years?_limit=-1")
+      ).data;
 
       var minStartDate = moment().format("YYYY-MM-DD");
 

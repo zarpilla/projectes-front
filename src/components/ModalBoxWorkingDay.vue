@@ -122,13 +122,16 @@
               />
             </b-field>
 
-            <b-field label="Cost/hora (€)" horizontal message="Cost soportat per la cooperativa">
-              <b-input
-                v-model="costByHour"
+            <b-field label="Cost/hora (€)" horizontal message="Cost soportat per la cooperativa" v-if="!isLoading1">              
+              <div class="readonly-fake">
+                {{ form.costByHour.toFixed(2)}}
+              </div>
+              <!-- <b-input
+                v-model="form.costByHour"
                 placeholder="Cost"
                 name="cost"
                 :disabled="true"
-              />
+              /> -->
             </b-field>
 
         </section>
@@ -230,11 +233,8 @@ export default {
 
       return null
     },
-    costByHour () {      
-      const yyyy = moment(this.form.from).format('YYYY')
-      const year = this.years.find(y => y.year.toString() === yyyy)
-      const hours = year && year.working_hours ? year.working_hours : 1764
-      return parseFloat( ((parseFloat(this.form.monthly_salary) + (this.form.quota ? parseFloat(this.form.quota) : (parseFloat(this.form.pct_quota | 0) * parseFloat(this.form.monthly_salary) / 100) )) * 12 / hours).toFixed(2))
+    costByHourDisplay () {
+      return this.form.costByHour.toFixed(2)
     }
   },
   watch: {
@@ -253,6 +253,17 @@ export default {
     }
   },
   methods: {
+    calcCostByHour () {      
+      const yyyy = moment(this.form.from).format('YYYY')
+      // const year = this.years.find(y => y.year.toString() === yyyy)
+      const hours = 1764 // year && year.working_hours ? year.working_hours : 1764
+      const quota = this.form.quota ? this.form.quota : 0
+      const pct_quota = this.form.pct_quota ? this.form.pct_quota * this.form.monthly_salary / 100 : 0
+      const monthly = this.form.monthly_salary + quota + pct_quota
+      const costByHour = monthly * 12 / hours
+      this.form.costByHour = costByHour
+      return costByHour // .toFixed(2)
+    },
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
@@ -289,7 +300,9 @@ export default {
         this.form.id = 0
       }
 
+      this.form.costByHour = this.calcCostByHour()
       this.initializing = false
+      this.isLoading1 = false
     },
     cancel () {
       this.isModalActive = false
@@ -317,6 +330,9 @@ export default {
       if (value && value.toString().includes(",")) {
         this.form[field] = value.toString().replace(",", ".");
       }
+      this.form.costByHour = this.calcCostByHour()
+      // this.isLoading1 = true
+      //setTimeout(() => this.isLoading1 = false, 50)
       // console.log('this.field', this.field)
       // if (this.field === 'monthly_salary') {        
       //   this.form.costByHour = value * 12 /1864
@@ -334,6 +350,7 @@ export default {
         const monthly_salary = this.form.monthly_salary
         this.form.monthly_salary = 0
         this.form.monthly_salary = monthly_salary
+        this.form.costByHour = this.calcCostByHour()
       }
     }
   }
