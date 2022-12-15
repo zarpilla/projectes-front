@@ -278,6 +278,20 @@ res executade<template>
                 </b-autocomplete>
               </b-field>
 
+              <b-field v-if="form.children" label="Projectes fills" horizontal>
+                <div>
+                  <div v-for="child in form.children.children" :key="child.id">
+                    <router-link
+                      :to="{ name: 'project.edit', params: { id: child.id } }"
+                    >
+                      <span class="project-name has-text-info">
+                        {{ child.name }}
+                      </span>
+                    </router-link>
+                  </div>
+                </div>
+              </b-field>
+
               <b-field label="Funcions" horizontal>
                 <b-autocomplete
                   v-model="activityTypeSearch"
@@ -814,7 +828,7 @@ res executade<template>
       <pre>{{ form.phases }}</pre> -->
 
       <card-component
-        v-if="!isLoading && phasesVisible && form && form.phases"
+        v-if="!isLoading && phasesVisible && form && form.phases && !form.children"
         :title="
           !form.original_phases ||
           (form.original_phases && form.original_phases.length === 0)
@@ -841,7 +855,7 @@ res executade<template>
           </b-button>
         </b-field>
       </card-component>
-
+      <!-- <pre>{{documents}}</pre> -->
       <card-component
         v-if="documents && documents.length && !isLoading"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
@@ -959,7 +973,7 @@ res executade<template>
         </b-table>
       </card-component>
 
-      <card-component v-if="!isLoading && !isUpdating" title="PLANIFICACIÓ">
+      <card-component v-if="!isLoading && !isUpdating && !form.children" title="PLANIFICACIÓ">
         <button
           v-if="needsUpdate"
           class="button is-small is-danger ml-2"
@@ -1041,28 +1055,40 @@ res executade<template>
               "
               >{{ formatDate(props.row.document.expense.emitted) }}</span
             >
-          </b-table-column>          
+          </b-table-column>
           <b-table-column
             label="Tipus"
             field="docTypeDesc"
             sortable
             v-slot="props"
           >
-          <span v-if="props.row.docType === 'income' && props.row.document && props.row.document.paid">
-            Cobrament
-          </span>
-          <span v-else-if="props.row.docType === 'income'">
-            Cobrament esperat
-          </span>
-          <span v-else-if="props.row.docType === 'expense' && props.row.document && props.row.document.paid">
-            Pagament
-          </span>
-          <span v-else-if="props.row.docType === 'expense'">
-            Pagament esperat
-          </span>
-          <span v-else-if="props.row.docType === 'treasury'">
-            Operació de tresoreria
-          </span>
+            <span
+              v-if="
+                props.row.docType === 'income' &&
+                props.row.document &&
+                props.row.document.paid
+              "
+            >
+              Cobrament
+            </span>
+            <span v-else-if="props.row.docType === 'income'">
+              Cobrament esperat
+            </span>
+            <span
+              v-else-if="
+                props.row.docType === 'expense' &&
+                props.row.document &&
+                props.row.document.paid
+              "
+            >
+              Pagament
+            </span>
+            <span v-else-if="props.row.docType === 'expense'">
+              Pagament esperat
+            </span>
+            <span v-else-if="props.row.docType === 'treasury'">
+              Operació de tresoreria
+            </span>
           </b-table-column>
           <b-table-column
             label="Concepte"
@@ -1078,8 +1104,12 @@ res executade<template>
                 ? props.row.document.expense_type.name + " - "
                 : ""
             }}
-            <span v-if="props.row.document.concept">{{props.row.document.concept}}</span>
-            <span v-if="props.row.document.comment">{{props.row.document.comment}}</span>
+            <span v-if="props.row.document.concept">{{
+              props.row.document.concept
+            }}</span>
+            <span v-if="props.row.document.comment">{{
+              props.row.document.comment
+            }}</span>
           </b-table-column>
           <b-table-column
             label="Import"
@@ -1101,7 +1131,7 @@ res executade<template>
       </card-component>
 
       <card-component
-        v-if="!isLoading"
+        v-if="!isLoading && !form.children"
         title="TASQUES"
         header-icon="view-column"
         @header-icon-click="toogleTasksView"
@@ -1456,15 +1486,14 @@ export default {
         });
       });
       if (this.form.treasury_annotations) {
-        this.form.treasury_annotations.forEach(t => {
-          console.log('t', t)
+        this.form.treasury_annotations.forEach((t) => {
           documents.push({
-              docType: "treasury",
-              document: { ...t, total_amount: t.total },
-              concept: t.concept,
-              multiplier: 1,
-            });
-        })
+            docType: "treasury",
+            document: { ...t, total_amount: t.total },
+            concept: t.concept,
+            multiplier: 1,
+          });
+        });
       }
       return documents;
       // return sortBy(documents, "document.emitted");
@@ -1613,6 +1642,61 @@ export default {
                   ? this.form.region
                   : { id: 0 };
 
+              if (
+                this.form.mother &&
+                this.form.mother.id &&
+                this.form.mother.id === r.data.id
+              ) {
+                const childrenData = (
+                  await service({ requiresAuth: true }).get(
+                    `projects/${this.$route.params.id}/children`
+                  )
+                ).data;
+                this.form.incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.total_incomes = childrenData.totals.total_incomes;
+                this.form.total_real_incomes =
+                  childrenData.totals.total_real_incomes;
+                this.form.total_expenses = childrenData.totals.total_expenses;
+                this.form.total_estimated_hours_price =
+                  childrenData.totals.total_estimated_hours_price;
+                this.form.total_real_expenses =
+                  childrenData.totals.total_real_expenses;
+                this.form.total_real_hours_price =
+                  childrenData.totals.total_real_hours_price;
+                this.form.total_estimated_hours =
+                  childrenData.totals.total_estimated_hours;
+                this.form.total_real_hours =
+                  childrenData.totals.total_real_hours;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.emitted_invoices =
+                  childrenData.totals.emitted_invoices;
+                this.form.received_grants = childrenData.totals.received_grants;
+                this.form.received_invoices =
+                  childrenData.totals.received_invoices;
+                this.form.tickets = childrenData.totals.tickets;
+                this.form.diets = childrenData.totals.diets;
+                this.form.received_incomes =
+                  childrenData.totals.received_incomes;
+                this.form.received_expenses =
+                  childrenData.totals.received_expenses;
+
+                this.form.children = childrenData;
+              }
+
               this.form.phases = this.form.phases.map((p) => {
                 return { ...p, edit: false };
               });
@@ -1747,10 +1831,10 @@ export default {
     //   this.createdReadable = dayjs(v).format("MMM D, YYYY");
     // },
     async submitAndExit() {
-      this.submit('exit')
+      this.submit("exit");
     },
     async submitAndContinue() {
-      this.submit('continue')
+      this.submit("continue");
     },
     async submit(action) {
       this.isLoading = true;

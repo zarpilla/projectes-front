@@ -22,7 +22,7 @@
           <span class="project-name has-text-info">
             {{ props.row.name }}
           </span>
-          </router-link>
+        </router-link>
       </b-table-column>
       <b-table-column label="Coordina" field="leader.username" sortable v-slot="props">
         {{ props.row.leader ? props.row.leader.username : '' }}

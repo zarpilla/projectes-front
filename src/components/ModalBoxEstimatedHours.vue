@@ -41,6 +41,7 @@
                 v-model="form.amount"
                 placeholder="Cost/hora (€)"
                 name="hours"
+                disabled
                 @input="fixDecimals('amount', form.amount)"
               />
             </b-field>

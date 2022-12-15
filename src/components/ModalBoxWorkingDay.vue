@@ -124,7 +124,7 @@
 
             <b-field label="Cost/hora (€)" horizontal message="Cost soportat per la cooperativa" v-if="!isLoading1">              
               <div class="readonly-fake">
-                {{ form.costByHour.toFixed(2)}}
+                {{ form.costByHour ? form.costByHour.toFixed(2) : ''}}
               </div>
               <!-- <b-input
                 v-model="form.costByHour"
@@ -255,8 +255,8 @@ export default {
   methods: {
     calcCostByHour () {      
       const yyyy = moment(this.form.from).format('YYYY')
-      // const year = this.years.find(y => y.year.toString() === yyyy)
-      const hours = 1764 // year && year.working_hours ? year.working_hours : 1764
+      const year = this.years.find(y => y.year.toString() === yyyy)
+      const hours = year && year.working_hours ? year.working_hours : 1764
       const quota = this.form.quota ? this.form.quota : 0
       const pct_quota = this.form.pct_quota ? this.form.pct_quota * this.form.monthly_salary / 100 : 0
       const monthly = this.form.monthly_salary + quota + pct_quota

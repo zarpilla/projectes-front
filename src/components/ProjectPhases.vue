@@ -80,7 +80,7 @@
                 :key="j"
                 class="subphase mt-2 mb-2"
               >
-                <b-field grouped>                  
+                <b-field grouped>
                   <b-field
                     v-if="
                       (incomeTypes && incomeTypes.length) ||
@@ -165,8 +165,32 @@
                       </money-format>
                     </div>
                   </b-field>
+
+                
+                
+                <!-- </b-field>
+                <b-field horizontal class="b-field-row-2"> -->
+
                   <b-field
-                    :label="j == 0 ? 'Data previsió pag.' : null"
+                    :label="j == 0 ? 'Previsió fac.' : null"
+                    v-if="me.options && me.options.treasury"
+                    class="date-field"
+                  >
+                    <b-datepicker
+                      v-model="subphase.date_estimate_document"
+                      :show-week-number="false"
+                      :locale="'ca-ES'"
+                      :first-day-of-week="1"
+                      icon="calendar-today"
+                      placeholder="Data pagament"
+                      @input="input;somethingChanged()"
+                      trap-focus
+                      editable                      
+                    >
+                    </b-datepicker>
+                  </b-field>
+                  <b-field
+                    :label="j == 0 ? 'Previsió pag.' : null"
                     v-if="me.options && me.options.treasury"
                     class="date-field"
                   >
@@ -183,6 +207,7 @@
                     >
                     </b-datepicker>
                   </b-field>
+
                   <b-field
                     :label="j == 0 ? 'Accions' : null"
                     class="medium-field"
@@ -213,7 +238,8 @@
                     >
                       <b-icon icon="plus-circle" size="is-small" />
                     </button>
-                  </b-field>
+                  </b-field>  
+
                   <b-field
                     :label="j == 0 ? 'Facturat' : null"
                     v-if="me.options && me.options.treasury && mode !== 'simple'"
@@ -420,8 +446,32 @@
                       </money-format>
                     </div>
                   </b-field>
+
+                  
+
+                <!-- </b-field>
+                <b-field grouped class="b-field-row-2"> -->
+
                   <b-field
-                    :label="j == 0 ? 'Data previsió pag.' : null"
+                    :label="j == 0 ? 'Previsió fac.' : null"
+                    v-if="me.options && me.options.treasury"
+                    class="date-field"
+                  >
+                    <b-datepicker
+                      v-model="subphase.date_estimate_document"
+                      :show-week-number="false"
+                      :locale="'ca-ES'"
+                      :first-day-of-week="1"
+                      icon="calendar-today"
+                      placeholder="Data pagament"
+                      @input="input;somethingChanged()"
+                      trap-focus
+                      editable
+                    >
+                    </b-datepicker>
+                  </b-field>
+                  <b-field
+                    :label="j == 0 ? 'Previsió pag.' : null"
                     v-if="me.options && me.options.treasury"
                     class="date-field"
                   >
@@ -438,6 +488,7 @@
                     >
                     </b-datepicker>
                   </b-field>
+
                   <b-field
                     :label="j == 0 ? 'Accions' : null"
                     class="medium-field"
@@ -469,6 +520,8 @@
                       <b-icon icon="plus-circle" size="is-small" />
                     </button>
                   </b-field>
+
+
                   <b-field
                     :label="j == 0 ? 'Facturat' : null"
                     v-if="me.options && me.options.treasury && mode !== 'simple'"
@@ -791,12 +844,18 @@ export default {
         if (s.date) {
           s.date = moment(s.date, "YYYY-MM-DD").toDate();
         }
+        if (s.date_estimate_document) {
+          s.date_estimate_document = moment(s.date_estimate_document, "YYYY-MM-DD").toDate();
+        }        
       });
       p.expenses.forEach((s) => {
         s.assign = false
         s['assign'] = false
         if (s.date) {
           s.date = moment(s.date, "YYYY-MM-DD").toDate();
+        }
+        if (s.date_estimate_document) {
+          s.date_estimate_document = moment(s.date_estimate_document, "YYYY-MM-DD").toDate();
         }
       });
     });
@@ -1191,4 +1250,5 @@ export default {
 .warning-tag {
   padding-left: 0.5rem;
 }
+
 </style>

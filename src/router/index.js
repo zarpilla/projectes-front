@@ -450,6 +450,18 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    meta: {
+      title: 'Recàlcul'
+    },
+    path: '/recalculate',
+    name: 'projects.recalculate',
+    component: () => import(/* webpackChunkName: "project" */ '../views/Recalculate.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   }
 ]
 
