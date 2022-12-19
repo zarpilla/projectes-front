@@ -18,13 +18,13 @@
             <div class="column">
               <div class="projects-bars">
                 <div>
-                  {{ 'Total' }}: {{ hoursTotal }}h
+                  {{ 'Total' }}: {{ hoursTotal.toFixed(2) }}h
                 </div>
                 <kk-progress :color="'#bbb'" :percent="100" :line-height="16" />
               </div>
               <div v-for="(p, i) in distinctDataObj" v-bind:key="i" class="projects-bars">
                 <div>
-                  {{ p.name ? p.name : 'Sense assignar' }}: {{ p.hours }}h
+                  {{ p.name ? p.name : 'Sense assignar' }}: {{ p.hours.toFixed(2) }}h
                 </div>
                 <kk-progress v-if="!isLoading" :color="getChartColor(i)" :percent="p.pct" :line-height="16" />
               </div>
