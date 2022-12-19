@@ -46,6 +46,32 @@ res executade<template>
                   </option>
                 </b-select>
               </b-field>
+              <b-field label="Inici *" horizontal>
+                <b-datepicker
+                  v-model="form.date_start"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data inici"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+              <b-field label="Final *" horizontal>
+                <b-datepicker
+                  v-model="form.date_end"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data final"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
               <b-field label="Clientes" horizontal>
                 <b-autocomplete
                   v-model="clientSearch"
@@ -81,6 +107,31 @@ res executade<template>
                   </ul>
                 </div>
               </b-field>
+
+              <b-field
+                label="Descripció"
+                message="Descripció o notes sobre el projecte"
+                horizontal
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.description"
+                  placeholder="Descripció"
+                />
+              </b-field>
+
+              <b-field
+                label="Propòsit"
+                message="Propòsit del projecte"
+                horizontal
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.purpose"
+                  placeholder="Propòsit"
+                />
+              </b-field>
+              <hr />
               <b-field label="Intercooperació" horizontal>
                 <b-autocomplete
                   v-model="cooperaSearch"
@@ -162,54 +213,7 @@ res executade<template>
                   </option>
                 </b-select>
               </b-field>
-              <b-field
-                label="Descripció"
-                message="Descripció o notes sobre el projecte"
-                horizontal
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.description"
-                  placeholder="Descripció"
-                />
-              </b-field>
-              <b-field
-                label="Propòsit"
-                message="Propòsit del projecte"
-                horizontal
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.purpose"
-                  placeholder="Propòsit"
-                />
-              </b-field>
-              <b-field label="Inici *" horizontal>
-                <b-datepicker
-                  v-model="form.date_start"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data inici"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
-              </b-field>
-              <b-field label="Final *" horizontal>
-                <b-datepicker
-                  v-model="form.date_end"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data final"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
-              </b-field>
+              <hr />
               <b-field
                 v-if="dedicationTypes && dedicationTypes.length"
                 label="Tipus de dedicació"
@@ -241,25 +245,6 @@ res executade<template>
                 >
                 </b-input>
               </b-field>
-
-              <b-field
-                label="Justificació nòmines"
-                horizontal
-                message="Que s'acull a subvencions on caldrà justificar part amb nòmines"
-              >
-                <b-switch v-model="form.grantable"> </b-switch>
-                <b-input
-                  v-if="form.grantable"
-                  type="numeric"
-                  v-model="form.grantable_amount"
-                  placeholder="Import a justificar"
-                  @input="
-                    changeValue('grantable_amount', form.grantable_amount)
-                  "
-                >
-                </b-input>
-              </b-field>
-
               <b-field
                 label="Projecte mare"
                 horizontal
@@ -291,7 +276,7 @@ res executade<template>
                   </div>
                 </div>
               </b-field>
-
+              <hr />
               <b-field label="Funcions" horizontal>
                 <b-autocomplete
                   v-model="activityTypeSearch"
@@ -333,6 +318,140 @@ res executade<template>
                   </ul>
                 </div>
               </b-field>
+              <hr />
+              <b-field
+                label="Subvencions"
+                horizontal
+                message="Que s'acull a subvencions que caldrà justificar"
+              >
+                <b-switch v-model="form.grantable"> </b-switch>
+              </b-field>
+              <b-field
+                label="Import a justificar amb nòmines"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_amount"
+                  placeholder="Import a justificar amb nòmines"
+                  @input="
+                    changeValue('grantable_amount', form.grantable_amount)
+                  "
+                >
+                </b-input>
+              </b-field>
+              <b-field
+                label="Import a justificar total"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_amount_total"
+                  placeholder="Import a justificar total"
+                  @input="
+                    changeValue(
+                      'grantable_amount_total',
+                      form.grantable_amount_total
+                    )
+                  "
+                >
+                </b-input>
+              </b-field>
+              <b-field
+                label="Necessita intercooperació"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-checkbox
+                  v-model="form.grantable_intercooperation"
+                  class="checkbox-inline"
+                >
+                </b-checkbox>
+              </b-field>
+              <b-field
+                label="Data sol·licitut"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-datepicker
+                  v-model="form.grantable_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data sol·licitut"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+
+              <hr />
+              <b-field
+                label="Despesa Indirecta (%)"
+                horizontal
+                v-if="me.options && me.options.structuralExpenses"
+              >
+                <b-input
+                  type="numeric"
+                  v-model="form.structural_expenses_pct"
+                  placeholder="Percentatge de despeses d'estructura"
+                >
+                </b-input>
+              </b-field>
+              <hr />
+              <b-field horizontal label="Documents">
+                <div
+                  class="file-documents columns is-multiline"
+                  v-if="form.documents && form.documents.length"
+                >
+                  <!-- <pre>{{ form.documents }}</pre>   -->
+                  <div
+                    v-for="(doc, i) in form.documents"
+                    :key="i"
+                    class="column"
+                    :class="
+                      form.documents.length > 6
+                        ? 'is-2'
+                        : form.documents.length > 3
+                        ? 'is-3'
+                        : 'is-4'
+                    "
+                  >
+                    <div class="column-doc">
+                      <div @click="removeImage(doc)" class="remove-button">
+                        <b-icon icon="close" size="is-medium" />
+                      </div>
+                      <img
+                        v-if="doc.mime.startsWith('image')"
+                        :src="apiUrl + doc.url"
+                        class="file-document mb-3"
+                      />
+                      <div v-else class="mb-3">
+                        <a :href="apiUrl + doc.url" target="_blank">
+                          <b-icon icon="open-in-new"></b-icon>
+                          {{ doc.name }}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </b-field>
+
+              <file-upload
+                :multiple="true"
+                entity="project"
+                :ref-id="form.id"
+                :field="'documents'"
+                :accept="'*/*'"
+                @uploaded="uploaded"
+                v-if="form.id"
+              >
+              </file-upload>
               <hr />
               <div class="is-flex">
                 <b-field horizontal>
@@ -828,7 +947,9 @@ res executade<template>
       <pre>{{ form.phases }}</pre> -->
 
       <card-component
-        v-if="!isLoading && phasesVisible && form && form.phases && !form.children"
+        v-if="
+          !isLoading && phasesVisible && form && form.phases && !form.children
+        "
         :title="
           !form.original_phases ||
           (form.original_phases && form.original_phases.length === 0)
@@ -973,7 +1094,10 @@ res executade<template>
         </b-table>
       </card-component>
 
-      <card-component v-if="!isLoading && !isUpdating && !form.children" title="PLANIFICACIÓ">
+      <card-component
+        v-if="!isLoading && !isUpdating && !form.children"
+        title="PLANIFICACIÓ"
+      >
         <button
           v-if="needsUpdate"
           class="button is-small is-danger ml-2"
@@ -1169,6 +1293,7 @@ import { mapState } from "vuex";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
 import Tasks from "@/components/Tasks";
+import FileUpload from "@/components/FileUpload";
 
 export default {
   name: "ProjectForm",
@@ -1181,6 +1306,7 @@ export default {
     ProjectGannt,
     ProjectPhases,
     Tasks,
+    FileUpload,
   },
   props: {
     id: {
@@ -1227,6 +1353,7 @@ export default {
       newTask: "",
       phasesVisible: true,
       tasksView: "state",
+      apiUrl: process.env.VUE_APP_API_URL,
     };
   },
   computed: {
@@ -1739,6 +1866,12 @@ export default {
                   "YYYY-MM-DD"
                 ).toDate();
               }
+              if (this.form.grantable_date) {
+                this.form.grantable_date = moment(
+                  this.form.grantable_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
 
               this.getAuxiliarData();
 
@@ -2203,6 +2336,23 @@ export default {
       if (value && value.toString().includes(",")) {
         this.form[field] = value.toString().replace(",", ".");
       }
+    },
+    async uploaded(info) {
+      // console.log('uploaded', info)
+
+      if (info.refId && info.refId > 0) {
+        const project = (
+          await service({ requiresAuth: true }).get(`projects/${info.refId}`)
+        ).data;
+        // console.log('task', task)
+        this.form.documents = project.documents;
+      } else {
+        // console.log("info", info);
+        this.form.documents = info.documents;
+      }
+    },
+    removeImage(doc) {
+      this.form.documents = this.form.documents.filter((d) => d.id !== doc.id);
     },
   },
 };

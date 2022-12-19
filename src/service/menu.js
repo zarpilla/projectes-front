@@ -116,6 +116,11 @@ const menu = [
         to: '/justifications',
         icon: 'table',
         label: 'Justificacions'
+      },
+      {
+        to: '/grants',
+        icon: 'table',
+        label: 'Subvencions'
       }
     ],
     'Ajuda',

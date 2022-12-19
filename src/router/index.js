@@ -321,6 +321,17 @@ const routes = [
   },
   {
     meta: {
+      title: 'Subvencions'
+    },
+    path: '/grants',
+    name: 'subvencions',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Grants.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Pressupost'
     },
     path: '/quote/:id',
@@ -336,7 +347,7 @@ const routes = [
       title: 'Factura'
     },
     path: '/invoice/:id/:type',
-    name: 'invoice.view',
+    name: 'invoice.old.view',
     component: () => import(/* webpackChunkName: "quote" */ '../views/Invoice.vue'),
     props: true,
     meta: {

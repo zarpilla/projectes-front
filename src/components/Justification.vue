@@ -602,11 +602,9 @@ export default {
   },
   watch: {
     project: function (newVal, oldVal) {
-      console.log("getActivities");
       this.getActivities();
     },
     year: function (newVal, oldVal) {
-      console.log("getActivities");
       this.getActivities();
     },
   },
@@ -615,7 +613,6 @@ export default {
   },
   methods: {
     async getActivities() {
-      console.log("getActivities");
       this.isLoading = true;
 
       if (!this.year) {

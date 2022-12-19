@@ -5,19 +5,6 @@
       <card-component title="Filtres">
         <form @submit.prevent="submit2">
           <b-field horizontal>
-            <!-- <b-field label="Projecte">
-              <b-autocomplete
-                v-model="projectSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="option => (filters.project = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field> -->
             <b-field label="Any">
               <b-select
                 v-model="filters.year"
