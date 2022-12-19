@@ -66,6 +66,83 @@
     </download-excel>
     <download-excel
       class="export"
+      :data="pivotDataYearGroupped"
+      :fields="{
+        id: 'id',
+        project_name: 'project_name',        
+        year: 'year',
+        'Resultat prev': {
+          field: 'esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Resultat exec': {
+          field: 'real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Ingressos prev': {
+          field: 'income_esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Ingressos exec': {
+          field: 'income_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses tot prev': {
+          field: 'total_expense_esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses tot exec': {
+          field: 'total_expense_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses prev': {
+          field: 'expense_esti',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Despeses exec': {
+          field: 'expense_real',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Hores prev': {
+          field: 'total_estimated_hours_price',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        'Hores exec': {
+          field: 'total_real_hours_price',
+          callback: (value) => {
+            return excelFormat(value);
+          }          
+        }
+      }"
+      name="totals-any-ingressos-despeses"
+    >
+      <b-button
+        title="Exporta dades"
+        class="export-button"
+        icon-left="file-excel"
+        label="Descarrega totals per any i projecte"
+      />
+    </download-excel>
+    <download-excel
+      class="export"
       :data="pivotDataGroupped"
       :fields="{
         id: 'id',
@@ -131,7 +208,7 @@
           }          
         }
       }"
-      name="detall-ingressos-despeses"
+      name="totals-ingressos-despeses"
     >
       <b-button
         title="Exporta dades"
@@ -139,7 +216,7 @@
         icon-left="file-excel"
         label="Descarrega totals per projecte"
       />
-    </download-excel>    
+    </download-excel>
     <!-- <pre>
       {{ pivotDataGroupped }}
     </pre> -->
@@ -183,6 +260,28 @@ export default {
         .groupBy("id")
         .map((rows, id) => ({
           id: id,
+          project_name: rows[0].project_name,          
+          esti: (_.sumBy(rows, "income_esti") || 0) + (_.sumBy(rows, "expense_esti") || 0) + (_.sumBy(rows, "total_estimated_hours_price") || 0),
+          real: (_.sumBy(rows, "income_real") || 0) + (_.sumBy(rows, "expense_real") || 0) + (_.sumBy(rows, "total_real_hours_price") || 0),
+          income_esti: _.sumBy(rows, "income_esti") || 0,
+          income_real: _.sumBy(rows, "income_real") || 0,
+          total_expense_esti: (_.sumBy(rows, "expense_esti") || 0) + (_.sumBy(rows, "total_estimated_hours_price") || 0),
+          total_expense_real: (_.sumBy(rows, "expense_real") || 0) + (_.sumBy(rows, "total_real_hours_price") || 0),
+          expense_esti: _.sumBy(rows, "expense_esti") || 0,
+          expense_real: _.sumBy(rows, "expense_real") || 0,
+          total_estimated_hours_price:
+            _.sumBy(rows, "total_estimated_hours_price") || 0,
+          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
+
+        }))
+        .value();
+    },
+    pivotDataYearGroupped() {
+      return _(this.pivotData.map(p => { return { ...p, py: `${p.id}.${p.year}` } }))
+        .groupBy("py")
+        .map((rows, py) => ({
+          id: py.split('.')[0],
+          year: py.split('.')[1],
           project_name: rows[0].project_name,          
           esti: (_.sumBy(rows, "income_esti") || 0) + (_.sumBy(rows, "expense_esti") || 0) + (_.sumBy(rows, "total_estimated_hours_price") || 0),
           real: (_.sumBy(rows, "income_real") || 0) + (_.sumBy(rows, "expense_real") || 0) + (_.sumBy(rows, "total_real_hours_price") || 0),
