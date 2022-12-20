@@ -206,7 +206,9 @@ export default {
                                 !f.users_permissions_user)
                           );
 
-                          if (![0, 6].includes(day.day()) && !festive) {
+                          const weekendCount = (h.quantity_type === "month" || h.quantity_type === "week")
+
+                          if ((![0, 6].includes(day.day()) && !festive && weekendCount) || !weekendCount) {
                             const activity = {
                               project_name: p.name,
                               project_leader: p.leader
