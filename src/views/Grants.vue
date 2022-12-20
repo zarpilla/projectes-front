@@ -12,7 +12,6 @@
         title="SUBVENCIONS"
         class="has-table has-mobile-sort-spaced"
       >
-        <!-- <grants :project_state="filters.project_state" :projects="projects" /> -->
         <b-table :striped="true" :data="projects">
           <b-table-column label="Nom" field="name" sortable v-slot="props">
             <router-link
@@ -50,6 +49,14 @@
             v-slot="props"
           >
             {{ props.row.grantable_amount_total }}
+          </b-table-column>
+          <b-table-column
+            label="Estat"
+            field="project_state"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.project_state ? props.row.project_state.name : "" }}
           </b-table-column>
         </b-table>
       </card-component>

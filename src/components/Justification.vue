@@ -19,21 +19,35 @@
           <div class="columns">
             <div class="column is-4">{{ row.project }}</div>
             <div class="column is-2 has-text-right">
-              {{ row.cost.toFixed(2) }} €
+              <money-format
+                :value="row.cost"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
             <div class="column is-2 has-text-right">
-              {{
-                row.grantable_amount
-                  ? row.grantable_amount.toFixed(2) + " €"
-                  : null
-              }}
+              <money-format
+                :value="row.grantable_amount ? row.grantable_amount : 0"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
             <div class="column is-2 has-text-right">
-              {{
-                row.grantable_amount
-                  ? ((row.cost / row.grantable_amount) * 100).toFixed(2) + " %"
-                  : ""
-              }}
+              <money-format
+                :value="row.grantable_amount ? row.cost / row.grantable_amount * 100 : 0"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+                currency="%"
+              >
+              </money-format>
             </div>
           </div>
         </div>
@@ -41,11 +55,24 @@
           <div class="columns">
             <div class="column is-4 has-text-weight-bold">TOTAL</div>
             <div class="column is-2 has-text-weight-bold has-text-right">
-              {{ summaryAll.toFixed(2) }} €
+              <money-format
+                :value="summaryAll"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
             <div class="column is-2 has-text-weight-bold has-text-right">
-              {{ summaryAllGrantable ? summaryAllGrantable.toFixed(2) : null }}
-              €
+              <money-format
+                :value="summaryAllGrantable"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
             <div class="column is-2 has-text-right"></div>
           </div>
@@ -70,7 +97,14 @@
           <div class="columns">
             <div class="column is-4">{{ row.username }}</div>
             <div class="column is-2 has-text-right">
-              {{ row.cost.toFixed(2) }} €
+              <money-format
+                :value="row.cost"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
           </div>
         </div>
@@ -102,15 +136,25 @@
             <div class="column is-2">{{ row.username }}</div>
             <div class="column is-2">{{ row.month }}</div>
             <div class="column is-2 has-text-right">
-              {{ row.cost.toFixed(2) }} €
+              <money-format
+                :value="row.cost"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
             <div class="column is-2 has-text-right">
-              {{
-                row.payroll && row.payroll.total
-                  ? row.payroll.total.toFixed(2)
-                  : 0
-              }}
-              €
+              <money-format
+                :value="row.payroll && row.payroll.total ? row.payroll.total
+                  : 0"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
               <b-icon
                 v-if="!(row.payroll && row.payroll.total)"
                 class="has-text-warning"
@@ -121,12 +165,16 @@
               </b-icon>
             </div>
             <div class="column is-2 has-text-right">
-              {{
-                row.payroll && row.payroll.total
-                  ? ((row.cost / row.payroll.total) * 100).toFixed(2)
-                  : 0
-              }}
-              %
+              <money-format
+                :value="row.payroll && row.payroll.total ? row.cost / row.payroll.total * 100
+                  : 0"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+                currency="%"
+              >
+              </money-format>
             </div>
           </div>
         </div>
@@ -170,21 +218,47 @@
               {{ row.project }}
             </div>
             <div class="column has-text-right">
-              {{ row.cost ? row.cost.toFixed(2) : "0" }} €
+              <money-format
+                :value="row.cost"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
             <div class="column has-text-right">
-              {{ row.hours.toFixed(2) }}
+              <money-format
+                :value="row.hours"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+                currency="h"
+              >
+              </money-format>
             </div>
             <div class="column has-text-right">
-              {{ row.payroll ? row.payroll.toFixed(2) : "0" }} €
+              <money-format
+                :value="row.payroll"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
             </div>
             <div class="column has-text-right">
-              {{
-                row.payroll && row.cost
-                  ? ((100 * row.cost) / row.payroll).toFixed(2)
-                  : ""
-              }}
-              %
+              <money-format
+                :value="row.payroll && row.cost ? (100 * row.cost) / row.payroll
+                  : 0"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+                currency="%"
+              >
+              </money-format>
             </div>
             <div class="column has-text-right"></div>
           </div>
@@ -336,12 +410,13 @@ import CardComponent from "@/components/CardComponent";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from "vuex";
+import MoneyFormat from "@/components/MoneyFormat.vue";
 
 moment.locale("ca");
 
 export default {
   name: "Justification",
-  components: { CardComponent },
+  components: { CardComponent, MoneyFormat },
   props: {
     project: {
       type: Number,

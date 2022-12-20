@@ -1,5 +1,5 @@
 <template>
-    <div class="money_format">{{ formatPrice(value) }} €</div>
+    <div class="money_format">{{ formatPrice(value) }} <template v-if="currency">{{ currency }}</template><template v-else>€</template></div>
 </template>
 
 <script>
@@ -24,6 +24,10 @@ export default {
     },
     hideSubunits: {
       type: Boolean,
+      default: false
+    },
+    currency: {
+      type: String,
       default: false
     }
   },
