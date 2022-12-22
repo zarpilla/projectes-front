@@ -182,7 +182,7 @@
                       :locale="'ca-ES'"
                       :first-day-of-week="1"
                       icon="calendar-today"
-                      placeholder="Data pagament"
+                      placeholder="Data factura"
                       @input="input;somethingChanged()"
                       trap-focus
                       editable                      
@@ -463,7 +463,7 @@
                       :locale="'ca-ES'"
                       :first-day-of-week="1"
                       icon="calendar-today"
-                      placeholder="Data pagament"
+                      placeholder="Data factura"
                       @input="input;somethingChanged()"
                       trap-focus
                       editable
