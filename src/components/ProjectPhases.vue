@@ -213,7 +213,6 @@
                     class="medium-field"
                   >
                     <button
-                      v-if="mode !== 'simple'"
                       class="button is-small is-primary ml-2"
                       type="button"
                       @click.prevent="
@@ -494,7 +493,6 @@
                     class="medium-field"
                   >
                     <button
-                      v-if="mode !== 'simple'"
                       class="button is-small is-primary ml-2"
                       type="button"
                       @click.prevent="
