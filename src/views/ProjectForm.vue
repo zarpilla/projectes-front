@@ -373,7 +373,7 @@ res executade<template>
                 </b-checkbox>
               </b-field>
               <b-field
-                label="Data sol·licitut"
+                label="Data sol·licitud"
                 v-if="form.grantable"
                 horizontal
               >
@@ -383,7 +383,7 @@ res executade<template>
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
                   icon="calendar-today"
-                  placeholder="Data sol·licitut"
+                  placeholder="Data sol·licitud"
                   trap-focus
                   editable
                 >
@@ -465,7 +465,7 @@ res executade<template>
                 <b-field horizontal>
                   <b-button
                     type="is-primary"
-                    :loading="isLoading"
+                    :loading="isLoading && form.id"
                     @click="submitAndExit"
                     >Guardar i sortir</b-button
                   >
@@ -928,6 +928,7 @@ res executade<template>
           :form="form"
           :project-phases="form.original_phases"
           @phases-updated="originalPhasesUpdated"
+          @phases-copy="originalPhasesCopy"          
           mode="simple"
         />
         <hr
@@ -1153,6 +1154,7 @@ res executade<template>
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
+      
         <b-table :data="treasury">
           <b-table-column
             label="Data"
@@ -1988,6 +1990,10 @@ export default {
         this.form.region = null;
       }
 
+      if (this.form.mother && (this.form.mother.id === 0 || !this.form.mother.id)) {
+        this.form.mother = null;
+      }
+
       try {
         const stateInvalid = this.form.project_state.id === 0;
         const scopeInvalid = this.form.project_scope.id === 0;
@@ -2292,6 +2298,30 @@ export default {
       console.log("originalPhasesUpdated info", info);
       this.form.original_phases = info.phases;
     },
+    originalPhasesCopy(info) {
+      this.phasesVisible = false;
+      const phases = JSON.parse(JSON.stringify(this.form.original_phases));
+      const phase = phases.find((p, i) => i === info.index)
+      delete phase.id
+      phase.name = `${phase.name} - còpia`
+      phase.subphases.forEach((sp) => {
+        sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : this.form.date_end;
+        sp.date_estimate_document = sp.date_estimate_document ? moment(sp.date_estimate_document).format("YYYY-MM-DD") : this.form.date_end;
+        delete sp.id;
+        delete sp.estimated_hours;
+        delete sp.total_estimated_hours;
+      });
+      phase.expenses.forEach((sp) => {
+        sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : this.form.date_end;
+        sp.date_estimate_document = sp.date_estimate_document ? moment(sp.date_estimate_document).format("YYYY-MM-DD") : this.form.date_end;
+        delete sp.id;
+        delete sp.estimated_hours;
+        delete sp.total_estimated_hours;
+      });
+      this.form.phases.push(phase)
+      setTimeout(() => this.phasesVisible = true, 100)      
+    },
+    
     closeQuote() {
       this.phasesVisible = false;
       this.form.original_phases = JSON.parse(JSON.stringify(this.form.phases));
@@ -2299,10 +2329,12 @@ export default {
         delete p.id;
         p.subphases.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
+          sp.date_estimate_document = moment(sp.date_estimate_document).format("YYYY-MM-DD");          
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
+          sp.date_estimate_document = moment(sp.date_estimate_document).format("YYYY-MM-DD");
           delete sp.id;
         });
       });
@@ -2317,10 +2349,12 @@ export default {
         delete p.id;
         p.subphases.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
+          sp.date_estimate_document = moment(sp.date_estimate_document).format("YYYY-MM-DD");
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
+          
           delete sp.id;
         });
       });

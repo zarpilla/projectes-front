@@ -57,18 +57,28 @@
           <b-table-column
             v-if="mode === '' || mode === 'simple'"
             field="name"
-            label="Esborrar"
+            label=""
             width="150"
             v-slot="props"
           >
             <button
               class="button is-small is-danger"
               type="button"
+              title="Esborrar"
               :disabled="( props.row.subphases.find(s => s.paid && mode !== 'simple') || props.row.expenses.find(s => s.paid && mode !== 'simple') ) || ( mode === 'simple' && props.row.subphases.find(s => s.estimated_hours && s.estimated_hours.length > 0) )"
               @click.prevent="removePhase(props.index)"
             >
 
               <b-icon icon="trash-can" size="is-small" />
+            </button>
+            <button
+              v-if="mode === 'simple'"
+              class="button is-small is-danger ml-1"
+              type="button"
+              title="Copiar fase a execució"
+              @click.prevent="copyPhase(props.index)"
+            >
+              <b-icon icon="content-duplicate" size="is-small" />
             </button>
           </b-table-column>
           <template #detail="props">
@@ -910,6 +920,9 @@ export default {
       this.needsUpdate = true;
       this.phases = this.phases.filter((p, j) => i !== j);
       this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
+    },
+    copyPhase(i) {
+      this.$emit('phases-copy', { index: i })
     },
     getClearFormObject() {
       return {
