@@ -27,7 +27,7 @@ export default {
       default: false
     },
     currency: {
-      type: String,
+      type: Boolean,
       default: false
     }
   },
