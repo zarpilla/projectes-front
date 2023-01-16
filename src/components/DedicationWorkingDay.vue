@@ -27,6 +27,67 @@
       projectes amb hores dedicades, per això cal que estiguis segura del que
       vas a fer.
     </div>
+
+    <card-component
+      class="has-table has-mobile-sort-spaced mt-5"
+      v-if="true"
+      title="Crear Bestretes"
+    >
+      <b-field horizontal>
+        <b-field label="Any">
+          <b-select v-model="filters.year" required>
+            <option v-for="(year, index) in years" :key="index" :value="year">
+              {{ year.year }}
+            </option>
+          </b-select>
+        </b-field>
+        <b-field label="Crear bestretes">
+          <b-button
+            type="is-primary mb-5"
+            :loading="isLoading"
+            @click="createAll"
+            :disabled="!filters.year || !filters.year.id"
+            >Crear</b-button
+          >
+        </b-field>
+      </b-field>
+    </card-component>
+    <div class="help mb-3">
+      <b-icon icon="help-circle-outline" custom-size="default" />
+      <b>Informació</b><br />
+      Amb aquest component pots crear les bestretes per tot l'any de totes les persones que tinguin definida la jornada
+    </div>
+    <card-component v-if="summary && summary.length">
+      <div class="columns card-body">
+        <div class="column has-text-weight-bold">Persona</div>
+        <div class="column has-text-weight-bold">
+          Bestretes creades
+        </div>
+        <div class="column has-text-weight-bold">
+          Bestretes existents
+        </div>
+        <div class="column has-text-weight-bold">
+          Bestretes totals
+        </div>
+      </div>
+      <div v-for="info in summary" v-bind:key="info.user" class="card-body">
+        <div class="columns">
+          <div class="column">
+            {{ info.username }}
+          </div>
+          <div class="column">
+            {{ info.created }}
+          </div>
+          <div class="column">
+            {{ info.existing }}
+          </div>
+          <div class="column">
+            {{ info.created + info.existing }}
+            <b-icon icon="alert-circle" custom-size="default" v-if="info.created + info.existing !== 12" />
+          </div>
+        </div>
+      </div>
+    </card-component>
   </div>
 </template>
 
@@ -39,11 +100,12 @@ import { gantt } from "dhtmlx-gantt";
 import moment from "moment";
 import service from "@/service/index";
 import _ from "lodash";
+import CardComponent from "@/components/CardComponent";
 
 // main component
 export default {
   name: "DedicationWorkingDay",
-  components: { ModalBoxWorkingDay },
+  components: { ModalBoxWorkingDay, CardComponent },
   computed: {
     ...mapState(["userName"]),
     ...mapState(["me"]),
@@ -58,6 +120,10 @@ export default {
       users: [],
       quotes: null,
       years: [],
+      filters: {
+        year: null,
+      },
+      summary: []
     };
   },
   async mounted() {
@@ -168,7 +234,7 @@ export default {
         { unit: "month", step: 1, format: "%M" },
       ];
 
-      gantt.config.start_date = moment(minStartDate, 'YYYY-MM-DD').toDate();
+      gantt.config.start_date = moment(minStartDate, "YYYY-MM-DD").toDate();
       gantt.config.end_date = moment().add(2, "year").endOf("year").toDate();
 
       gantt.showLightbox = function (id) {
@@ -408,6 +474,7 @@ export default {
         await this.updateActivity(activity);
       }
     },
+
     async updateActivity(activity) {
       this.updating = true;
 
@@ -525,6 +592,18 @@ export default {
     },
     trashCancel() {
       this.isModalActive = false;
+    },
+
+    async createAll() {
+      this.summary = (
+        await service({ requiresAuth: true }).post(
+          `payrolls/create-all?year=${this.filters.year.year}`
+        )
+      ).data.userPayrollsInfo;
+      this.$buefy.snackbar.open({
+        message: "Bestretes creades",
+        queue: false,
+      });
     },
   },
 };

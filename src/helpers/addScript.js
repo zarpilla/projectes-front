@@ -6,6 +6,7 @@ const addScript = async (src, id) => {
     }
     const head = document.head || document.getElementsByTagName('head')[0]
     const script = document.createElement('script')
+    script.id = id
     script.src = src
     script.addEventListener('load', resolve)
     script.addEventListener('error', (e) => reject(e))
@@ -23,6 +24,7 @@ const addStyle = async (src, id) => {
     const head = document.head || document.getElementsByTagName('head')[0]
     const link = document.createElement('link')
     link.rel = 'stylesheet'
+    link.id = id
     link.href = src
     link.addEventListener('load', resolve)
     link.addEventListener('error', (e) => reject(e))

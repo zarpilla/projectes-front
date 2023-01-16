@@ -368,7 +368,12 @@
               </div>
             </b-field>
 
-            <b-field horizontal label="Adjunts" style="width: 100%" v-if="!editingDocuments">
+            <b-field
+              horizontal
+              label="Adjunts"
+              style="width: 100%"
+              v-if="!editingDocuments"
+            >
               <div
                 class="file-documents columns is-multiline"
                 v-if="form.documents && form.documents.length"
@@ -387,7 +392,10 @@
                   "
                 >
                   <div class="column-doc">
-                    <div @click="removeImage(doc)" class="remove-button clickable">
+                    <div
+                      @click="removeImage(doc)"
+                      class="remove-button clickable"
+                    >
                       <b-icon icon="close" size="is-medium" />
                     </div>
                     <img
@@ -442,7 +450,7 @@
                       editable
                     >
                     </b-datepicker>
-                  </b-field>                  
+                  </b-field>
                   <b-field
                     :label="j == 0 ? 'Concepte' : null"
                     class="subphase-detail-input-large-field"
@@ -454,7 +462,7 @@
                       class="subphase-detail-input subphase-detail-input-large"
                     >
                     </b-input>
-                  </b-field>                  
+                  </b-field>
                   <b-field
                     :label="j == 0 ? 'Quantitat' : null"
                     class="medium-field"
@@ -628,18 +636,7 @@
             title="DETALL"
           >
             <b-field label="Salari base" horizontal>
-              <b-input v-model="form.total_base" placeholder="" disabled />
-
-              <!-- <b-datepicker
-                v-model="form.net_date"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                placeholder=""
-                disabled
-              >
-              </b-datepicker> -->
+              <b-input v-model="form.total_base" placeholder="" />
             </b-field>
 
             <b-field
@@ -647,7 +644,7 @@
               :label="`IRPF a càrrec de la treballadora (${dedication.pct_irpf}%)`"
               horizontal
             >
-              <b-input v-model="form.irpf_base" placeholder="" disabled />
+              <b-input v-model="form.irpf_base" placeholder="" />
 
               <b-datepicker
                 v-model="form.irpf_date"
@@ -656,7 +653,6 @@
                 :first-day-of-week="1"
                 icon="calendar-today"
                 placeholder=""
-                disabled
               >
               </b-datepicker>
             </b-field>
@@ -666,7 +662,7 @@
               :label="`Altres a càrrec de la treballadora (${dedication.pct_other}%)`"
               horizontal
             >
-              <b-input v-model="form.other_base" placeholder="" disabled />
+              <b-input v-model="form.other_base" placeholder="" />
 
               <b-datepicker
                 v-model="form.irpf_date"
@@ -675,7 +671,6 @@
                 :first-day-of-week="1"
                 icon="calendar-today"
                 placeholder=""
-                disabled
               >
               </b-datepicker>
             </b-field>
@@ -684,7 +679,7 @@
               :label="`Salari net a percebre per la treballadora`"
               horizontal
             >
-              <b-input v-model="form.net_base" placeholder="" disabled />
+              <b-input v-model="form.net_base" placeholder="" />
 
               <b-datepicker
                 v-model="form.net_date"
@@ -693,7 +688,6 @@
                 :first-day-of-week="1"
                 icon="calendar-today"
                 placeholder=""
-                disabled
               >
               </b-datepicker>
             </b-field>
@@ -705,7 +699,7 @@
               }`"
               horizontal
             >
-              <b-input v-model="form.ss_base" placeholder="" disabled />
+              <b-input v-model="form.ss_base" placeholder="" />
 
               <b-datepicker
                 v-model="form.ss_date"
@@ -714,19 +708,18 @@
                 :first-day-of-week="1"
                 icon="calendar-today"
                 placeholder=""
-                disabled
               >
               </b-datepicker>
             </b-field>
 
             <b-field v-if="form.ss_base" label="Despesa total" horizontal>
-              <b-input v-model="form.total" placeholder="" disabled />
+              <b-input v-model="form.total" placeholder="" />
             </b-field>
           </card-component>
 
           <b-field v-if="type === 'received-expenses'">
             <b-button
-            class="mr-3"
+              class="mr-3"
               type="is-primary"
               :loading="isLoading"
               @click="canEditDocument(false)"
@@ -784,9 +777,12 @@
             </a> -->
             <router-link
               v-if="form.id"
-              :to="{ name: 'invoice.view', params: { id: form.id, type: type } }"
+              :to="{
+                name: 'invoice.view',
+                params: { id: form.id, type: type },
+              }"
               class="button is-warning"
-              >
+            >
               Visualitza PDF
             </router-link>
             <!-- <a
@@ -799,7 +795,11 @@
             </a> -->
           </b-field>
           <b-field
-            v-if="type !== 'payrolls' && ((form.projects && form.projects.length) || form.projects)"
+            v-if="
+              (type !== 'payrolls' &&
+                ((form.projects && form.projects.length) || form.projects)) ||
+              type === 'payrolls'
+            "
           >
             <b-button
               class="mr-3"
@@ -847,7 +847,7 @@ export default {
     ModalBoxInvoicing,
     ModalBoxSplit,
     ProjectPhases,
-    FileUpload
+    FileUpload,
   },
   props: {
     id: {
@@ -881,7 +881,7 @@ export default {
       dedication: null,
       numberEditable: false,
       apiUrl: process.env.VUE_APP_API_URL,
-      editingDocuments: false
+      editingDocuments: false,
     };
   },
   computed: {
@@ -933,7 +933,7 @@ export default {
       }
       return ["Facturació", type, this.formCardTitle];
     },
-    entity() {      
+    entity() {
       if (this.type === "emitted-invoices") {
         return "emitted-invoice";
       } else if (this.type === "received-incomes") {
@@ -1024,7 +1024,7 @@ export default {
         lines: [this.getNewLine()],
         updatable: true,
         documents: [],
-        document_type: 0
+        document_type: 0,
       };
     },
     getNewLine() {
@@ -1037,7 +1037,7 @@ export default {
         irpf: 0,
         comments: "",
         show: false,
-        date: new Date()
+        date: new Date(),
       };
     },
     async getData() {
@@ -1066,7 +1066,9 @@ export default {
               if (r.data.lines) {
                 r.data.lines.forEach((l) => {
                   l.show = l.show || false;
-                  l.date = l.date ? moment(l.date,  "YYYY-MM-DD").toDate() : null;
+                  l.date = l.date
+                    ? moment(l.date, "YYYY-MM-DD").toDate()
+                    : null;
                 });
               }
 
@@ -1269,15 +1271,18 @@ export default {
     async submit(exit) {
       this.isLoading = true;
 
-      try {
-        if (this.form.id) {
-          if (
-            !this.form.emitted ||
+      const isInvalid =
+        (this.type !== "payrolls" &&
+          (!this.form.emitted ||
             !this.form.contact ||
             !this.form.projects ||
             !this.form.projects.length ||
-            !this.form.serial
-          ) {
+            !this.form.serial)) ||
+        (this.type === "payrolls" && !this.form.emitted);
+
+      try {
+        if (this.form.id) {
+          if (isInvalid) {
             this.$buefy.snackbar.open({
               message:
                 "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
@@ -1287,10 +1292,10 @@ export default {
             return;
           }
 
-          const assignedToProjectPhase =
+          const assignedToProjectPhase = this.type !== "payrolls" &&
             this.validateIfProjectPhasesHasDocument();
 
-          if (!assignedToProjectPhase) {
+          if (this.type !== "payrolls" && !assignedToProjectPhase) {
             this.$buefy.snackbar.open({
               message:
                 "Error. La factura no està assignada a cap línea del projecte",
@@ -1307,7 +1312,7 @@ export default {
             this.form
           );
 
-          if (this.shouldSaveProject) {
+          if (this.shouldSaveProject && this.type !== "payrolls") {
             await this.updateProjectPhases(this.form.id);
           }
 
@@ -1320,15 +1325,18 @@ export default {
           });
 
           if (exit) {
-            const routeName = this.type === 'emitted-invoices' || this.type === 'received-incomes' ? 'emitted.invoices.view' : "received.invoices.view"            
+            const routeName =
+              this.type === "emitted-invoices" ||
+              this.type === "received-incomes"
+                ? "emitted.invoices.view"
+                : "received.invoices.view";
             this.$router.push({
-              name: routeName
+              name: routeName,
             });
           } else {
             this.shouldSaveProject = false;
             this.getData();
           }
-          
         } else {
           // console.log("this.form", this.form);
           if (
@@ -1388,9 +1396,13 @@ export default {
           });
 
           if (exit) {
-            const routeName = this.type === 'emitted-invoices' || this.type === 'received-incomes' ? 'emitted.invoices.view' : "received.invoices.view"            
+            const routeName =
+              this.type === "emitted-invoices" ||
+              this.type === "received-incomes"
+                ? "emitted.invoices.view"
+                : "received.invoices.view";
             this.$router.push({
-              name: routeName
+              name: routeName,
             });
           } else {
             this.$router.push({
@@ -1398,7 +1410,6 @@ export default {
               params: { id: newProject.data.id, type: this.type },
             });
           }
-
         }
       } catch (err) {
         console.error(err);
@@ -1623,23 +1634,25 @@ export default {
       window.open(routeData.href, "_blank");
     },
     async uploaded(info) {
-      this.editingDocuments = true
+      this.editingDocuments = true;
       // console.log('uploaded', info)
       if (info.refId && info.refId > 0) {
         const document = (
-          await service({ requiresAuth: true }).get(`${this.type}/${info.refId}`)
+          await service({ requiresAuth: true }).get(
+            `${this.type}/${info.refId}`
+          )
         ).data;
-        console.log('document', document)
+        console.log("document", document);
         this.form.documents = document.documents;
       } else {
         this.form.documents = info.documents;
       }
-      this.editingDocuments = false
+      this.editingDocuments = false;
     },
     removeImage(doc) {
-      this.editingDocuments = true
+      this.editingDocuments = true;
       this.form.documents = this.form.documents.filter((d) => d.id !== doc.id);
-      setTimeout(() => this.editingDocuments = false, 100)
+      setTimeout(() => (this.editingDocuments = false), 100);
     },
   },
 };

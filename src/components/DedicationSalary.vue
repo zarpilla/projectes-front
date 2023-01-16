@@ -1,7 +1,6 @@
 <template>
   <div>
-    <div class="table-view">      
-
+    <div class="table-view">
       <b-loading
         :is-full-page="true"
         v-if="user"
@@ -11,7 +10,9 @@
 
       <div class="alert" v-if="warn">
         <b-icon icon="alert-circle"></b-icon>
-        Atenció, abans de consultar les nòmines cal definir la <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de tot l'any.
+        Atenció, abans de consultar les nòmines cal definir la
+        <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de
+        tot l'any.
       </div>
 
       <card-component
@@ -56,42 +57,88 @@
             <!-- <div class="column">
               {{ value }}
             </div> -->
+            <div class="column">{{ value.worked.toFixed(2) }} h</div>
+            <div class="column">{{ value.theoricHours.toFixed(2) }} h</div>
+            <div class="column">{{ value.balance.toFixed(2) }} h</div>
+            <div class="column">{{ value.balanceTotal.toFixed(2) }} h</div>
             <div class="column">
-              {{ value.worked.toFixed(2) }} h
-            </div>
-            <div class="column">
-              {{ value.theoricHours.toFixed(2) }} h
-            </div>
-            <div class="column">
-              {{ value.balance.toFixed(2) }} h
-            </div>
-            <div class="column">
-              {{ value.balanceTotal.toFixed(2) }} h
-            </div>
-            <div class="column">                            
               <span>
-                {{ (value.dailySalary / value.theoricDays).toFixed(2) }} € 
-                <span v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
-                (Teòric)
+                {{ (value.dailySalary / value.theoricDays).toFixed(2) }} €
+                <span
+                  v-if="
+                    hasPayroll(key) &&
+                    (value.dailySalary / value.theoricDays).toFixed(2) !==
+                      hasPayroll(key).total_base.toFixed(2)
+                  "
+                >
+                  (Teòric)
                 </span>
               </span>
-              <br v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
-              <span class="has-text-danger" v-if="hasPayroll(key) && (value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)">
+              <br
+                v-if="
+                  hasPayroll(key) &&
+                  (value.dailySalary / value.theoricDays).toFixed(2) !==
+                    hasPayroll(key).total_base.toFixed(2)
+                "
+              />
+              <span
+                class="has-text-danger"
+                v-if="
+                  hasPayroll(key) &&
+                  (value.dailySalary / value.theoricDays).toFixed(2) !==
+                    hasPayroll(key).total_base.toFixed(2)
+                "
+              >
                 {{ hasPayroll(key).total_base.toFixed(2) }} € (Nòmina)
-              </span>              
+              </span>
             </div>
             <div class="column">
               <div class="is-flex">
-                <b-button v-if="!hasPayroll(key)" @click="createPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2) )" class="is-warning" icon="edit">Crear</b-button>
-                <b-button v-if="hasPayroll(key) && !payrollDetail(key).paid" @click="payPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2))" class="is-primary mr-3" :disabled="(value.dailySalary / value.theoricDays).toFixed(2) !== hasPayroll(key).total_base.toFixed(2)" icon="edit">Pagar</b-button>
-                <b-button v-if="hasPayroll(key)" @click="deletePayroll(key)" class="is-danger mr-3">
-                  <b-icon icon="trash-can" size="is-small"/>
+                <b-button
+                  v-if="!hasPayroll(key)"
+                  @click="
+                    createPayroll(
+                      key,
+                      (value.dailySalary / value.theoricDays).toFixed(2)
+                    )
+                  "
+                  class="is-warning"
+                  icon="edit"
+                  >Crear</b-button
+                >
+                <b-button
+                  v-if="hasPayroll(key) && !payrollDetail(key).paid"
+                  @click="
+                    payPayroll(
+                      key,
+                      (value.dailySalary / value.theoricDays).toFixed(2)
+                    )
+                  "
+                  class="is-primary mr-3"
+                  icon="edit"
+                  >Pagar</b-button
+                >
+                <b-button
+                  v-if="hasPayroll(key)"
+                  @click="
+                    deletePayroll(
+                      key,
+                      (value.dailySalary / value.theoricDays).toFixed(2) !==
+                        hasPayroll(key).total_base.toFixed(2)
+                    )
+                  "
+                  class="is-danger mr-3"
+                >
+                  <b-icon icon="trash-can" size="is-small" />
                 </b-button>
-                <b-button v-if="hasPayroll(key)" @click="viewPayroll(key)" class="is-primary mr-3">
-                  <b-icon icon="eye" size="is-small"/>
+                <b-button
+                  v-if="hasPayroll(key)"
+                  @click="viewPayroll(key)"
+                  class="is-primary mr-3"
+                >
+                  <b-icon icon="eye" size="is-small" />
                 </b-button>
               </div>
-              
             </div>
           </div>
         </div>
@@ -140,7 +187,7 @@ export default {
       monthsDb: [],
       yearsDb: [],
       payrolls: [],
-      warn: false
+      warn: false,
     };
   },
   computed: {
@@ -153,7 +200,7 @@ export default {
     },
     superTotal() {
       return sumBy(this.activities, "hours");
-    }
+    },
   },
   watch: {
     user: function (newVal, oldVal) {
@@ -174,10 +221,12 @@ export default {
         return;
       }
 
-      this.months = {}
-      this.payrolls = []
-      
-      const from = moment(this.year, "YYYY").startOf("year").format("YYYY-MM-DD");
+      this.months = {};
+      this.payrolls = [];
+
+      const from = moment(this.year, "YYYY")
+        .startOf("year")
+        .format("YYYY-MM-DD");
       const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
 
       let query = `activities/total-by-day?_where[date_gte]=${from}&[date_lte]=${to}`;
@@ -186,17 +235,16 @@ export default {
       } else {
         return;
       }
-    
+
       query = `${query}&_limit=-1`;
-      
 
       // service({ requiresAuth: true })
       //   .get(`payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`)
       //   .then((r) => {
       //     this.payrolls = r.data
       // })
-      await this.updatePayrolls()
-      
+      await this.updatePayrolls();
+
       if (this.monthsDb.length === 0) {
         this.monthsDb = (
           await service({ requiresAuth: true }).get("months")
@@ -207,7 +255,6 @@ export default {
           await service({ requiresAuth: true }).get("years")
         ).data;
       }
-      
 
       service({ requiresAuth: true })
         .get(query)
@@ -220,7 +267,7 @@ export default {
           // festiveTypes.forEach((ft) => {
           //   this.summary[ft.name] = 0;
           // });
-          
+
           const festives = (
             await service({ requiresAuth: true }).get("festives?_limit=-1")
           ).data.filter(
@@ -229,36 +276,36 @@ export default {
               f.users_permissions_user.id === this.user
           );
 
-          this.warn = false          
+          this.warn = false;
 
           service({ requiresAuth: true })
             .get(
               `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
             )
             .then((r) => {
-              this.dailyDedications = r.data
-              var allDates = this.enumerateDaysBetweenDates()
-              var balance = 0
-              var balanceTotal = 0
-              var totalWorkedHours = 0
-              var dates = []
-              var laborableDays = 0
-              var salary = 0
-              var theoricHoursTotal = 0
+              this.dailyDedications = r.data;
+              var allDates = this.enumerateDaysBetweenDates();
+              var balance = 0;
+              var balanceTotal = 0;
+              var totalWorkedHours = 0;
+              var dates = [];
+              var laborableDays = 0;
+              var salary = 0;
+              var theoricHoursTotal = 0;
               allDates.forEach((d) => {
                 // console.log('date', d)
                 const date = moment(d).format("YYYY-MM-DD");
                 const displayDate = moment(d).format("ddd DD-MM-YYYY");
                 const day = moment(d).day();
                 const week = moment(d).week();
-                const month = moment(d).format('M');
+                const month = moment(d).format("M");
                 const dailyDedication = this.dailyDedications.find(
                   (dd) => date >= dd.from && date <= dd.to
                 );
-                
+
                 if (!dailyDedication) {
-                  this.warn = true
-                  console.warn('date!', date)
+                  this.warn = true;
+                  console.warn("date!", date);
                 }
                 const activities = this.activities.filter(
                   (a) => a.date === date
@@ -266,34 +313,69 @@ export default {
                 const festive = festives.find((f) => f.date === date);
 
                 const theoricHours =
-                  (!festive || ( festive && festive.users_permissions_user && festive.users_permissions_user.id)) && dailyDedication && day !== 0 && day !== 6
+                  (!festive ||
+                    (festive &&
+                      festive.users_permissions_user &&
+                      festive.users_permissions_user.id)) &&
+                  dailyDedication &&
+                  day !== 0 &&
+                  day !== 6
                     ? dailyDedication.hours
                     : 0;
-                    
-                const workedHours = sumBy(activities, "hours") + ( ( festive && festive.users_permissions_user && festive.users_permissions_user.id) ? theoricHours : 0);
+
+                const workedHours =
+                  sumBy(activities, "hours") +
+                  (festive &&
+                  festive.users_permissions_user &&
+                  festive.users_permissions_user.id
+                    ? theoricHours
+                    : 0);
                 const dateDescription = festive
                   ? festive.festive_type
                     ? festive.festive_type.name
                     : "FESTIU"
                   : "";
 
-                theoricHoursTotal += theoricHours
+                theoricHoursTotal += theoricHours;
                 if (!this.months[month]) {
-                  this.months[month] = { theoricHours: 0, theoricDays: 0, worked: 0, balance: 0, balanceTotal: 0, theoricRatio: 0, dailySalary: 0 }
+                  this.months[month] = {
+                    theoricHours: 0,
+                    theoricDays: 0,
+                    worked: 0,
+                    balance: 0,
+                    balanceTotal: 0,
+                    theoricRatio: 0,
+                    dailySalary: 0,
+                  };
                 }
-                this.months[month].theoricHours += theoricHours
+                this.months[month].theoricHours += theoricHours;
 
-                if ((!festive || ( festive && festive.users_permissions_user && festive.users_permissions_user.id)) && dailyDedication && day !== 0 && day !== 6) {
-                  laborableDays++
-                  this.months[month].theoricDays += 1
+                if (
+                  (!festive ||
+                    (festive &&
+                      festive.users_permissions_user &&
+                      festive.users_permissions_user.id)) &&
+                  dailyDedication &&
+                  day !== 0 &&
+                  day !== 6
+                ) {
+                  laborableDays++;
+                  this.months[month].theoricDays += 1;
                 }
                 // this.months[month].theoricDays += 1
 
-                this.months[month].theoricRatio = this.months[month].theoricHours / this.months[month].theoricDays / 8
-                this.months[month].dailySalary = (dailyDedication ? dailyDedication.monthly_salary : 0) * this.months[month].theoricRatio * this.months[month].theoricDays
-                
-                this.months[month].worked += workedHours
-                this.months[month].balance = this.months[month].worked - this.months[month].theoricHours
+                this.months[month].theoricRatio =
+                  this.months[month].theoricHours /
+                  this.months[month].theoricDays /
+                  8;
+                this.months[month].dailySalary =
+                  (dailyDedication ? dailyDedication.monthly_salary : 0) *
+                  this.months[month].theoricRatio *
+                  this.months[month].theoricDays;
+
+                this.months[month].worked += workedHours;
+                this.months[month].balance =
+                  this.months[month].worked - this.months[month].theoricHours;
                 // this.months[month].balanceTotal = month > 1 ? this.months[month - 1].balance + this.months[month].worked - this.months[month].theoricHours : this.months[month].worked - this.months[month].theoricHours
 
                 totalWorkedHours += workedHours;
@@ -308,25 +390,30 @@ export default {
                   balance: balance,
                   balanceTotal: balanceTotal,
                   costByHour: dailyDedication ? dailyDedication.costByHour : 0,
-                  costByDay: dailyDedication ? dailyDedication.costByHour*workedHours : 0,
+                  costByDay: dailyDedication
+                    ? dailyDedication.costByHour * workedHours
+                    : 0,
                   error: dailyDedication === null,
                 });
                 if (dailyDedication) {
-                  salary += dailyDedication.costByHour*workedHours
+                  salary += dailyDedication.costByHour * workedHours;
                 }
               });
-              this.dates = dates.reverse()
-              for(var m in this.months) {
+              this.dates = dates.reverse();
+              for (var m in this.months) {
                 if (parseInt(m) === 1) {
-                  this.months[m].balanceTotal += this.months[m].balance
-                }
-                else  {
-                  this.months[m].balanceTotal += this.months[parseInt(m) - 1].balanceTotal + this.months[m].balance
+                  this.months[m].balanceTotal += this.months[m].balance;
+                } else {
+                  this.months[m].balanceTotal +=
+                    this.months[parseInt(m) - 1].balanceTotal +
+                    this.months[m].balance;
                 }
               }
-              this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)              
-              this.summary['Total hores laborables teòriques'] = theoricHoursTotal.toFixed(2)
-              this.summary['Saldo hores'] = this.dates[0].balance.toFixed(2)
+              this.summary["Total hores treballades"] =
+                this.dates[0].totalWorkedHours.toFixed(2);
+              this.summary["Total hores laborables teòriques"] =
+                theoricHoursTotal.toFixed(2);
+              this.summary["Saldo hores"] = this.dates[0].balance.toFixed(2);
               this.isLoading = false;
             });
         });
@@ -347,82 +434,153 @@ export default {
       return dates;
     },
     hasPayroll(month) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-      return payroll
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
+      return payroll;
     },
     payrollDetail(month) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-      return payroll
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
+      return payroll;
     },
-    async createPayroll(month, total) {      
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
+    async createPayroll(month, total) {
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
 
-      const emitted = moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD')
+      const emitted = moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
+        .endOf("month")
+        .format("YYYY-MM-DD");
 
       const dailyDedication = this.dailyDedications.find(
-                  (dd) => emitted >= dd.from && emitted <= dd.to
+        (dd) => emitted >= dd.from && emitted <= dd.to
       );
 
-      const payroll = { 
-        month: m.id, 
-        year: y.id, 
-        users_permissions_user: this.user, 
-        total_base: total, 
-        total: total, 
-        total_irpf: 0, 
-        total_vat: 0, 
-        paid: false, 
+      const payroll = {
+        month: m.id,
+        year: y.id,
+        users_permissions_user: this.user,
+        total_base: total,
+        total: total,
+        total_irpf: 0,
+        total_vat: 0,
+        paid: false,
         emitted: emitted,
         net_base: 0,
         net_date: emitted,
-        ss_base: dailyDedication.pct_quota ? total * dailyDedication.pct_quota / 100 : dailyDedication.quota,
-        ss_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').add(1, 'month').endOf('month').format('YYYY-MM-DD'),  // mes següent vençut
-        irpf_base: dailyDedication.pct_irpf ? total * dailyDedication.pct_irpf / 100 : 0,
-        irpf_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(20, 'day').format('YYYY-MM-DD'),
-        other_base: dailyDedication.pct_other ? total * dailyDedication.pct_other / 100 : 0,
-        other_date: moment(`${y.year}-${m.month}-01`, 'YYYY-MM-DD').endOf('quarter').add(20, 'day').format('YYYY-MM-DD'),
-      }
+        ss_base: dailyDedication.pct_quota
+          ? (total * dailyDedication.pct_quota) / 100
+          : dailyDedication.quota,
+        ss_date: moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
+          .add(1, "month")
+          .endOf("month")
+          .format("YYYY-MM-DD"), // mes següent vençut
+        irpf_base: dailyDedication.pct_irpf
+          ? (total * dailyDedication.pct_irpf) / 100
+          : 0,
+        irpf_date: moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
+          .endOf("quarter")
+          .add(20, "day")
+          .format("YYYY-MM-DD"),
+        other_base: dailyDedication.pct_other
+          ? (total * dailyDedication.pct_other) / 100
+          : 0,
+        other_date: moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
+          .endOf("quarter")
+          .add(20, "day")
+          .format("YYYY-MM-DD"),
+      };
 
-      payroll.net_base = parseFloat(payroll.total) - parseFloat(payroll.irpf_base) - parseFloat(payroll.other_base)
-      payroll.total = parseFloat(payroll.total) + parseFloat(payroll.ss_base || 0)
+      payroll.net_base =
+        parseFloat(payroll.total) -
+        parseFloat(payroll.irpf_base) -
+        parseFloat(payroll.other_base);
+      payroll.total =
+        parseFloat(payroll.total) + parseFloat(payroll.ss_base || 0);
 
-      await service({ requiresAuth: true }).post('payrolls', payroll)
+      await service({ requiresAuth: true }).post("payrolls", payroll);
 
-      await this.updatePayrolls()
+      await this.updatePayrolls();
     },
     async viewPayroll(month) {
       if (month) {
-        const m = this.monthsDb.find(m => m.month === parseInt(month))
-        const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-        const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-        let routeData = this.$router.resolve({ name: "document.edit", params: { id: payroll.id, type: 'payrolls' } });
+        const m = this.monthsDb.find((m) => m.month === parseInt(month));
+        const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+        const payroll = this.payrolls.find(
+          (p) =>
+            p.year.id === y.id &&
+            p.month.id === m.id &&
+            p.users_permissions_user.id === this.user
+        );
+        let routeData = this.$router.resolve({
+          name: "document.edit",
+          params: { id: payroll.id, type: "payrolls" },
+        });
         window.open(routeData.href, "_blank");
       }
     },
     async payPayroll(month, total) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
-      await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, { paid: true, paid_date: payroll.emitted })
-      await this.updatePayrolls()
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
+      await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, {
+        paid: true,
+        paid_date: payroll.emitted,
+      });
+      await this.updatePayrolls();
     },
-    async deletePayroll(month) {
-      const m = this.monthsDb.find(m => m.month === parseInt(month))
-      const y = this.yearsDb.find(y => y.year === parseInt(this.year))
-      const payroll = this.payrolls.find(p => p.year.id === y.id && p.month.id === m.id && p.users_permissions_user.id === this.user)
+    async deletePayroll(month, warn) {
+      if (warn) {
+        this.$buefy.dialog.confirm({
+          message:
+            "La nòmina es va modificar manualment. Estàs segura d'esborrar-la?",
+          onConfirm: () => this.proceedDeletePayroll(month),
+          onCancel: () => {
+            return false;
+          },
+        });
+      } else {
+        this.proceedDeletePayroll(month);
+      }
+    },
 
-      await service({ requiresAuth: true }).delete(`payrolls/${payroll.id}`)
-      await this.updatePayrolls()
+    async proceedDeletePayroll(month) {
+      const m = this.monthsDb.find((m) => m.month === parseInt(month));
+      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const payroll = this.payrolls.find(
+        (p) =>
+          p.year.id === y.id &&
+          p.month.id === m.id &&
+          p.users_permissions_user.id === this.user
+      );
+
+      await service({ requiresAuth: true }).delete(`payrolls/${payroll.id}`);
+      await this.updatePayrolls();
     },
-    
+
     async updatePayrolls() {
-      this.payrolls = (await service({ requiresAuth: true }).get(`payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`)).data
-    }
+      this.payrolls = (
+        await service({ requiresAuth: true }).get(
+          `payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`
+        )
+      ).data;
+    },
   },
   filters: {
     formatDate(val) {
