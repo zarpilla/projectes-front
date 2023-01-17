@@ -679,7 +679,7 @@
               :label="`Salari net a percebre per la treballadora`"
               horizontal
             >
-              <b-input v-model="form.net_base" placeholder="" />
+              <b-input v-model="form.net_base" placeholder="" disabled />
 
               <b-datepicker
                 v-model="form.net_date"
@@ -713,7 +713,7 @@
             </b-field>
 
             <b-field v-if="form.ss_base" label="Despesa total" horizontal>
-              <b-input v-model="form.total" placeholder="" />
+              <b-input v-model="form.total" placeholder="" disabled />
             </b-field>
           </card-component>
 
