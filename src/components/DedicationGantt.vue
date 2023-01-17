@@ -1,5 +1,10 @@
 <template>
   <div>
+    <b-loading
+        :is-full-page="true"
+        v-model="isLoading"
+        :can-cancel="false"
+      ></b-loading>
     <div id="project-stats"></div>
     <dedication-gantt-chart
       :leaders="leaders"
@@ -98,13 +103,13 @@ export default {
       this.states = (
         await service({ requiresAuth: true }).get("project-states")
       ).data;
-      this.leaders = (await service({ requiresAuth: true }).get("users")).data;
+      this.leaders = (await service({ requiresAuth: true }).get("users")).data //.filter(u => u.username === 'Ariadna');
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1;
-      let query = `projects?_where[project_state_eq]=${projectState}&_limit=-1`;
+      let query = `projects/phases?_where[project_state_eq]=${projectState}&_limit=-1`;
       if (projectState === 0 || projectState === "0") {
-        query = "projects?_limit=-1";
+        query = "projects/phases?_limit=-1";
       }
       const from = moment().startOf("year").format("YYYY-MM-DD");
       this.festives = (
@@ -119,55 +124,55 @@ export default {
           // console.log('r.data', r.data)
           const activities = [];
           const projects = r.data.forEach((p) => {
-            if (p.activities) {
-              // legacy ?
-              p.activities.forEach((a) => {
-                if (
-                  (this.year === 0 ||
-                    (this.year > 0 &&
-                      a.date &&
-                      parseInt(moment(a.date).format("YYYY")) >= this.year)) &&
-                  (this.month === 0 ||
-                    (this.month > 0 &&
-                      a.date &&
-                      parseInt(moment(a.date).format("MM")) === this.month))
-                ) {
-                  const activity = {
-                    project_name: p.name,
-                    project_state: p.project_state ? p.project_state.name : "-",
-                    project_leader: p.leader ? p.leader.username : "-",
-                    project_scope: p.project_scope
-                      ? p.project_scope.short_name
-                      : "-",
-                    project_client: p.client ? p.client.name : "-",
-                    total_estimated_hours: p.total_estimated_hours
-                      ? p.total_estimated_hours
-                      : 0,
-                    hours: a.hours,
-                    incomes_expenses: p.incomes_expenses
-                      ? p.incomes_expenses
-                      : 0,
-                    pricehour:
-                      a.hours && p.incomes_expenses
-                        ? parseFloat((p.incomes_expenses / a.hours).toFixed(2))
-                        : 0,
-                    month: a.date ? moment(a.date).format("MM").toString() : 0,
-                    year: a.date ? moment(a.date).format("YYYY").toString() : 0,
-                    day: a.date ? moment(a.date).format("DD").toString() : 0,
-                    date: a.date
-                      ? moment(a.date).format("YYYY-MM-DD").toString()
-                      : "-",
-                    username: a.users_permissions_user
-                      ? this.leaders.find(
-                          (u) => u.id === a.users_permissions_user
-                        ).username
-                      : "-",
-                    count: 1,
-                  };
-                  activities.push(activity);
-                }
-              });
-            }
+            // if (p.activities) {
+            //   // legacy ?
+            //   p.activities.forEach((a) => {
+            //     if (
+            //       (this.year === 0 ||
+            //         (this.year > 0 &&
+            //           a.date &&
+            //           parseInt(moment(a.date).format("YYYY")) >= this.year)) &&
+            //       (this.month === 0 ||
+            //         (this.month > 0 &&
+            //           a.date &&
+            //           parseInt(moment(a.date).format("MM")) === this.month))
+            //     ) {
+            //       const activity = {
+            //         project_name: p.name,
+            //         project_state: p.project_state ? p.project_state.name : "-",
+            //         project_leader: p.leader ? p.leader.username : "-",
+            //         project_scope: p.project_scope
+            //           ? p.project_scope.short_name
+            //           : "-",
+            //         project_client: p.client ? p.client.name : "-",
+            //         total_estimated_hours: p.total_estimated_hours
+            //           ? p.total_estimated_hours
+            //           : 0,
+            //         hours: a.hours,
+            //         incomes_expenses: p.incomes_expenses
+            //           ? p.incomes_expenses
+            //           : 0,
+            //         pricehour:
+            //           a.hours && p.incomes_expenses
+            //             ? parseFloat((p.incomes_expenses / a.hours).toFixed(2))
+            //             : 0,
+            //         month: a.date ? moment(a.date).format("MM").toString() : 0,
+            //         year: a.date ? moment(a.date).format("YYYY").toString() : 0,
+            //         day: a.date ? moment(a.date).format("DD").toString() : 0,
+            //         date: a.date
+            //           ? moment(a.date).format("YYYY-MM-DD").toString()
+            //           : "-",
+            //         username: a.users_permissions_user
+            //           ? this.leaders.find(
+            //               (u) => u.id === a.users_permissions_user
+            //             ).username
+            //           : "-",
+            //         count: 1,
+            //       };
+            //       activities.push(activity);
+            //     }
+            //   });
+            // }
             if (p.original_phases && p.original_phases.length > 0) {
               p.original_phases.forEach((ph) => {
                 if (ph.subphases && ph.subphases.length > 0) {
@@ -188,7 +193,7 @@ export default {
                           estimated_hours = h.quantity / 30;
                         }
                         if (h.quantity_type === "week") {
-                          estimated_hours = h.quantity / 7;
+                          estimated_hours = h.quantity / 5;
                         }
 
                         for (var i = 0; i < mdiff; i++) {

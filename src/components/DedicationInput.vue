@@ -32,6 +32,26 @@
       @submit="modalMoveToProjectSubmit"
       @cancel="modalMoveToProjectCancel"
     />
+
+    <b-loading
+        :is-full-page="true"
+        v-if="user"
+        v-model="isLoading"
+        :can-cancel="false"
+      ></b-loading>
+      <b-loading
+        :is-full-page="true"
+        v-if="user"
+        v-model="isLoadingImport"
+        :can-cancel="false"
+      ></b-loading>
+      <b-loading
+        :is-full-page="true"
+        v-if="user"
+        v-model="isLoadingMove"
+        :can-cancel="false"
+      ></b-loading>
+      
     <card-component class="has-table has-mobile-sort-spaced">
       <div class="card-body is-total">
         <div class="columns">

@@ -928,7 +928,7 @@ res executade<template>
           :form="form"
           :project-phases="form.original_phases"
           @phases-updated="originalPhasesUpdated"
-          @phases-copy="originalPhasesCopy"          
+          @phases-copy="originalPhasesCopy"
           mode="simple"
         />
         <hr
@@ -1154,7 +1154,6 @@ res executade<template>
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
-      
         <b-table :data="treasury">
           <b-table-column
             label="Data"
@@ -1990,7 +1989,10 @@ export default {
         this.form.region = null;
       }
 
-      if (this.form.mother && (this.form.mother.id === 0 || !this.form.mother.id)) {
+      if (
+        this.form.mother &&
+        (this.form.mother.id === 0 || !this.form.mother.id)
+      ) {
         this.form.mother = null;
       }
 
@@ -2017,9 +2019,10 @@ export default {
         }
 
         if (this.form.id) {
+          const { activities, ...form } = this.form;
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
-            this.form
+            form
           );
           this.dirty = false;
           this.$buefy.snackbar.open({
@@ -2301,27 +2304,35 @@ export default {
     originalPhasesCopy(info) {
       this.phasesVisible = false;
       const phases = JSON.parse(JSON.stringify(this.form.original_phases));
-      const phase = phases.find((p, i) => i === info.index)
-      delete phase.id
-      phase.name = `${phase.name} - còpia`
+      const phase = phases.find((p, i) => i === info.index);
+      delete phase.id;
+      phase.name = `${phase.name} - còpia`;
       phase.subphases.forEach((sp) => {
-        sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : this.form.date_end;
-        sp.date_estimate_document = sp.date_estimate_document ? moment(sp.date_estimate_document).format("YYYY-MM-DD") : this.form.date_end;
+        sp.date = sp.date
+          ? moment(sp.date).format("YYYY-MM-DD")
+          : this.form.date_end;
+        sp.date_estimate_document = sp.date_estimate_document
+          ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
+          : this.form.date_end;
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
       });
       phase.expenses.forEach((sp) => {
-        sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : this.form.date_end;
-        sp.date_estimate_document = sp.date_estimate_document ? moment(sp.date_estimate_document).format("YYYY-MM-DD") : this.form.date_end;
+        sp.date = sp.date
+          ? moment(sp.date).format("YYYY-MM-DD")
+          : this.form.date_end;
+        sp.date_estimate_document = sp.date_estimate_document
+          ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
+          : this.form.date_end;
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
       });
-      this.form.phases.push(phase)
-      setTimeout(() => this.phasesVisible = true, 100)      
+      this.form.phases.push(phase);
+      setTimeout(() => (this.phasesVisible = true), 100);
     },
-    
+
     closeQuote() {
       this.phasesVisible = false;
       this.form.original_phases = JSON.parse(JSON.stringify(this.form.phases));
@@ -2329,12 +2340,16 @@ export default {
         delete p.id;
         p.subphases.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
-          sp.date_estimate_document = moment(sp.date_estimate_document).format("YYYY-MM-DD");          
+          sp.date_estimate_document = moment(sp.date_estimate_document).format(
+            "YYYY-MM-DD"
+          );
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
-          sp.date_estimate_document = moment(sp.date_estimate_document).format("YYYY-MM-DD");
+          sp.date_estimate_document = moment(sp.date_estimate_document).format(
+            "YYYY-MM-DD"
+          );
           delete sp.id;
         });
       });
@@ -2349,12 +2364,14 @@ export default {
         delete p.id;
         p.subphases.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
-          sp.date_estimate_document = moment(sp.date_estimate_document).format("YYYY-MM-DD");
+          sp.date_estimate_document = moment(sp.date_estimate_document).format(
+            "YYYY-MM-DD"
+          );
           delete sp.id;
         });
         p.expenses.forEach((sp) => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
-          
+
           delete sp.id;
         });
       });
