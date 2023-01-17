@@ -212,6 +212,8 @@ export default {
               : 0;
             const progressText = dailyHours ? (progress * 100).toFixed(0) : "";
 
+            console.log('start_date', start_date)
+
             const hoursTask = {
               id: tid,
               text: `${dedication.total.toFixed(2)}h (${progressText}%)`, // (${dedication.year}-${dedication.month}-${dedication.week})`,
@@ -225,7 +227,7 @@ export default {
               _month: dedication.month,
               _year: dedication.year,
               _dedication_total: dedication.total,
-              _total_hours: (this.view === "month" ? 20 : 5) * dailyHours,
+              _total_hours: (this.view === "month" ? this.numberOfWorkingDays(start_date) : 5) * dailyHours,
 
               // open: true
             };
@@ -432,6 +434,20 @@ export default {
       var month_day2 = to_day(gantt.date.add(date, 6, "day"));
       return `${month_day}-${month_day2}`;
     },
+
+    numberOfWorkingDays(day) {
+      let n = 0
+      const initOfMonth = moment(day, 'YYYY-MM-DD')
+      const endOfMonth = initOfMonth.clone().endOf('month')
+      const days = Math.round(moment.duration(endOfMonth.diff(initOfMonth)).asDays())
+      for (var i = 0; i < days; i++) {
+        const day = initOfMonth.add(1, 'day')
+        if (![0, 6].includes(day.day())) {
+          n++;
+        }
+      }
+      return n
+    }
   },
 };
 </script>
