@@ -7,7 +7,7 @@ const zeroPad = (num, places) => {
   return String(num).padStart(places, "0");
 }
 
-const getTreasuryData = async (filter) => {
+const getTreasuryData = async (filter, year) => {
 
   let where = ''
   if (filter === 'approved') {
@@ -282,7 +282,7 @@ const getTreasuryData = async (filter) => {
     type: "Inici Any",
     concept: "-",
     total_amount: 0,
-    date: moment().startOf("year"),
+    date: moment(`${year}-01-01`, 'YYYY-MM-DD').startOf("year"),
     date_error: false,
     paid: null,
     contact: "-"

@@ -425,13 +425,16 @@ export default {
   },
   computed: {
     monthlySummary() {
+
+      const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
+
       // const fn = (t) => { return this.view === 'today' ? t.datef >= t.datef >= moment().format("YYYYMMDD") : t.datef >= moment().startOf('year').format("YYYYMMDD") }
       const treasuryData = this.treasuryData
         // .filter((t) => t.datef >= moment().startOf('year').format("YYYYMMDD"))
         .filter((t) =>
           this.view === "today"
             ? t.datef >= moment().format("YYYYMMDD")
-            : t.datef >= moment().startOf("year").format("YYYYMMDD")
+            : t.datef >= `${year}0101`
         )
         .map((t) => {
           return {
@@ -528,8 +531,8 @@ export default {
       if (this.$route.query.filter) {
         filter = this.$route.query.filter;
       }
-
-      const treasuryData = await getTreasuryData(filter);      
+      const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
+      const treasuryData = await getTreasuryData(filter, year);      
       this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});
       this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
