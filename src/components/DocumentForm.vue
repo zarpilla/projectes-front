@@ -636,7 +636,7 @@
             title="DETALL"
           >
             <b-field label="Salari base" horizontal>
-              <b-input v-model="form.total_base" placeholder="" />
+              <b-input v-model="form.total_base" type="numeric" placeholder="" @input="fixDecimalsPayroll('total_base', form.total_base)" />
             </b-field>
 
             <b-field
@@ -644,7 +644,7 @@
               :label="`IRPF a càrrec de la treballadora (${dedication.pct_irpf}%)`"
               horizontal
             >
-              <b-input v-model="form.irpf_base" placeholder="" />
+              <b-input v-model="form.irpf_base" type="numeric" placeholder="" @input="fixDecimalsPayroll('irpf_base', form.irpf_base)" />
 
               <b-datepicker
                 v-model="form.irpf_date"
@@ -662,7 +662,7 @@
               :label="`Altres a càrrec de la treballadora (${dedication.pct_other}%)`"
               horizontal
             >
-              <b-input v-model="form.other_base" placeholder="" />
+              <b-input v-model="form.other_base" type="numeric" placeholder="" @input="fixDecimalsPayroll('other_base', form.other_base)" />
 
               <b-datepicker
                 v-model="form.irpf_date"
@@ -699,7 +699,7 @@
               }`"
               horizontal
             >
-              <b-input v-model="form.ss_base" placeholder="" />
+              <b-input v-model="form.ss_base" placeholder="" @input="fixDecimalsPayroll('ss_base', form.ss_base)" />
 
               <b-datepicker
                 v-model="form.ss_date"
@@ -1653,6 +1653,16 @@ export default {
       this.editingDocuments = true;
       this.form.documents = this.form.documents.filter((d) => d.id !== doc.id);
       setTimeout(() => (this.editingDocuments = false), 100);
+    },
+    fixDecimals(field, value) {
+      if (value && value.toString().includes(",")) {
+        this.form[field] = value.toString().replace(",", ".");
+      }
+    },
+    fixDecimalsPayroll(field, value) {
+      this.fixDecimals(field, value)      
+      this.form.net_base = ( parseFloat(this.form.total_base) - parseFloat(this.form.irpf_base) - parseFloat(this.form.other_base) ).toFixed(2)
+      this.form.total = (parseFloat(this.form.total_base) + parseFloat(this.form.ss_base)).toFixed(2)
     },
   },
 };
