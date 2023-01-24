@@ -92,7 +92,7 @@ export default {
       }
 
       this.dedicationTypes = (await service({ requiresAuth: true }).get('dedication-types')).data
-      this.activityTypes = (await service({ requiresAuth: true }).get('activity-types?_limit=-1')).data
+      this.activityTypes = (await service({ requiresAuth: true }).get('activity-types/basic?_limit=-1')).data
 
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)

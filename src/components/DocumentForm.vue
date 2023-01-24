@@ -1473,7 +1473,6 @@ export default {
       this.form.lines.push(this.getNewLine());
     },
     phasesUpdated(info) {
-      console.log("info", info, this.form.projects);
       this.shouldSaveProject = true;
       const project = this.form.projects.find((p) => p.id === info.projectId);
       project.phases = info.phases;
