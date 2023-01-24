@@ -480,8 +480,13 @@ res executade<template>
             title="RESUM FINANCER PROJECTE"
             class="tile is-child summary-card"
           >
-            <div class="panel-warning mb-4" v-if="form.dirty">
-              <b-icon icon="alert-circle" class="warning-tag" size="is-small" title="Els totals del projecte s'estan actualitzant en un procés extern. Pot ser que temporalment no siguin correctes. Torna a carregar el projecte en una estona" />              
+            <div class="panel-warning mb-4" v-if="form.dirty || hasBeenDirty">
+              <b-icon v-if="form.dirty" icon="alert-circle mr-2" class="warning-tag" size="is-small" title="" />              
+              <span v-if="form.dirty">Els totals del projecte s'estan actualitzant en un procés extern. Pot ser que temporalment no siguin correctes. Torna a carregar el projecte en una estona</span>              
+              <span v-if="!form.dirty && hasBeenDirty">Recarrega el projecte per veure els totals correctes</span>
+              <button class="button is-warning ml-2" @click.prevent="refresh" v-if="!form.dirty && hasBeenDirty">
+                <b-icon  v-if="!form.dirty && hasBeenDirty" icon="refresh" class="warning-tag clickable" size="is-small" title="" />              
+              </button>              
             </div>
 
             <div class="columns">
@@ -1360,6 +1365,7 @@ export default {
       tasksView: "state",
       apiUrl: process.env.VUE_APP_API_URL,
       dirtyProjectInterval: 0,
+      hasBeenDirty: false,
     };
   },
   computed: {
@@ -1880,6 +1886,8 @@ export default {
               }
 
               this.getAuxiliarData();
+
+              this.handleDirtyProject()
 
               this.isLoading = false;
 
@@ -2411,19 +2419,23 @@ export default {
     removeImage(doc) {
       this.form.documents = this.form.documents.filter((d) => d.id !== doc.id);
     },
-    // handleDirtyProject() {
-    //   if (this.form.dirty) {
-    //     this.dirtyProjectInterval = setInterval(async() => {
-    //       const { data } = await service({ requiresAuth: true }).get(`projects/${this.form.id}/dirty`)
-    //       this.form.dirty = data.dirty
-    //       if (data.dirty === false) {
-    //         clearInterval(this.dirtyProjectInterval)
-    //       }
-    //     }, 10000);
-    //   } else {
-    //     clearInterval(this.dirtyProjectInterval)
-    //   }
-    // },
+    handleDirtyProject() {
+      if (this.form.dirty) {
+        this.hasBeenDirty = true
+        this.dirtyProjectInterval = setInterval(async() => {
+          const { data } = await service({ requiresAuth: true }).get(`projects/${this.form.id}/dirty`)
+          this.form.dirty = data.dirty
+          if (data.dirty === false) {
+            clearInterval(this.dirtyProjectInterval)
+          }
+        }, 10000);
+      } else {
+        clearInterval(this.dirtyProjectInterval)
+      }
+    },
+    refresh() {
+      window.location.reload()
+    }
   },
 };
 </script>
