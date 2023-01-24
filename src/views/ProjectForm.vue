@@ -1887,7 +1887,7 @@ export default {
 
               this.getAuxiliarData();
 
-              this.handleDirtyProject()
+              // this.handleDirtyProject()
 
               this.isLoading = false;
 
