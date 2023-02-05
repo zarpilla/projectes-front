@@ -608,7 +608,7 @@ const getTreasuryData = async (filter, year) => {
     };
     treasury.push(expense);
 
-    if (e.irpf_base || e.other_base) {
+    if (e.irpf_base ) {
       const expense2 = {
         project_name: "",
         project_id: 0,
@@ -617,9 +617,30 @@ const getTreasuryData = async (filter, year) => {
           e.users_permissions_user.username
         }`,
         total_amount:
-          e.irpf_base || e.other_base ? -1 * (e.irpf_base + e.other_base) : 0,
+          e.irpf_base ? -1 * (e.irpf_base) : 0,
         date: moment(e.irpf_date, "YYYY-MM-DD"),
         date_error: e.irpf_date === null,
+        paid: e.paid,
+        contact:
+          e.users_permissions_user && e.users_permissions_user.username
+            ? e.users_permissions_user.username
+            : "",
+        to: `/document/${e.id}/payrolls`
+      };
+      treasury.push(expense2);
+    }
+
+    if (e.other_base) {
+      const expense2 = {
+        project_name: "",
+        project_id: 0,
+        type: "Altres Nòmina",
+        concept: `Nòmina ${e.year.year}-${zeroPad(e.month.month, 2)}-${
+          e.users_permissions_user.username
+        }`,
+        total_amount: e.other_base ? -1 * (e.other_base) : 0,
+        date: moment(e.other_date, "YYYY-MM-DD"),
+        date_error: e.other_date === null,
         paid: e.paid,
         contact:
           e.users_permissions_user && e.users_permissions_user.username

@@ -518,7 +518,7 @@ res executade<template>
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      form.incomes_expenses - form.total_real_incomes_expenses
+                      -1 *(form.incomes_expenses - form.total_real_incomes_expenses)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -558,7 +558,7 @@ res executade<template>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_incomes - form.total_real_incomes"
+                    :value="-1 *(form.total_incomes - form.total_real_incomes)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -602,10 +602,10 @@ res executade<template>
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      form.total_expenses +
+                      -1 *(form.total_expenses +
                       form.total_estimated_hours_price -
                       form.total_real_expenses -
-                      form.total_real_hours_price
+                      form.total_real_hours_price)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -645,7 +645,7 @@ res executade<template>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="form.total_expenses - form.total_real_expenses"
+                    :value="-1 *(form.total_expenses - form.total_real_expenses)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -685,8 +685,8 @@ res executade<template>
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      form.total_estimated_hours_price -
-                      form.total_real_hours_price
+                      -1 *(form.total_estimated_hours_price -
+                      form.total_real_hours_price)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -712,7 +712,7 @@ res executade<template>
               <b-field label="Diferència (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
                   {{
-                    (
+                    -1 *(
                       form.total_estimated_hours - form.total_real_hours
                     ).toFixed(2)
                   }}
@@ -759,11 +759,11 @@ res executade<template>
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      (form.total_estimated_hours
+                      -1 *(form.total_estimated_hours
                         ? form.total_estimated_hours_price /
                           form.total_estimated_hours
                         : 0) -
-                      (form.total_real_hours
+                        -1 *(form.total_real_hours
                         ? form.total_real_hours_price / form.total_real_hours
                         : 0)
                     "
@@ -815,11 +815,11 @@ res executade<template>
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      (form.total_estimated_hours
+                      -1 *(form.total_estimated_hours
                         ? (form.total_incomes - form.total_expenses) /
                           form.total_estimated_hours
                         : 0) -
-                      (form.total_real_hours
+                        -1 *(form.total_real_hours
                         ? (form.total_real_incomes - form.total_real_expenses) /
                           form.total_real_hours
                         : 0)
@@ -868,7 +868,7 @@ res executade<template>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="treasuryExpensesPending - treasuryExpensesDone"
+                    :value="-1 *(treasuryExpensesPending - treasuryExpensesDone)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -907,7 +907,7 @@ res executade<template>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="treasuryIncomesPending - treasuryIncomesDone"
+                    :value="-1 *(treasuryIncomesPending - treasuryIncomesDone)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"

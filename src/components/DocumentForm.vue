@@ -665,7 +665,7 @@
               <b-input v-model="form.other_base" type="numeric" placeholder="" @input="fixDecimalsPayroll('other_base', form.other_base)" />
 
               <b-datepicker
-                v-model="form.irpf_date"
+                v-model="form.other_date"
                 :show-week-number="false"
                 :locale="'ca-ES'"
                 :first-day-of-week="1"

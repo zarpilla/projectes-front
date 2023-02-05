@@ -497,8 +497,8 @@ export default {
           ? (total * dailyDedication.pct_other) / 100
           : 0,
         other_date: moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
-          .endOf("quarter")
-          .add(20, "day")
+          .add(1, "month")
+          .endOf("month")
           .format("YYYY-MM-DD"),
       };
 
