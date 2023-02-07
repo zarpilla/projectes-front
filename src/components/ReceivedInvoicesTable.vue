@@ -168,7 +168,7 @@
           v-slot="props"
           sortable
         >
-          {{ props.row.paid_date ? formatDate(props.row.paid_date) : "No" }}
+          {{ props.row.paid_date ? formatDate(props.row.paid_date) : (props.row.paid ? 'Sí (sense data)' : "No") }}
         </b-table-column>
         <b-table-column
           label="Assig."

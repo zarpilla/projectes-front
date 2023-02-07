@@ -631,7 +631,7 @@ const getTreasuryData = async (filter, year) => {
     }
 
     if (e.other_base) {
-      const expense2 = {
+      const expense4 = {
         project_name: "",
         project_id: 0,
         type: "Altres Nòmina",
@@ -648,7 +648,7 @@ const getTreasuryData = async (filter, year) => {
             : "",
         to: `/document/${e.id}/payrolls`
       };
-      treasury.push(expense2);
+      treasury.push(expense4);
     }
 
     if (e.ss_base) {
