@@ -2031,6 +2031,8 @@ export default {
           return;
         }
 
+        this.form.dirty = false
+
         if (this.form.id) {
           const { activities, ...form } = this.form;
           await service({ requiresAuth: true }).put(
