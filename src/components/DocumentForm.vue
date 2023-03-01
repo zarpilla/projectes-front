@@ -69,7 +69,12 @@
               horizontal
               v-if="type === 'received-expenses'"
             >
-              <b-select v-model="form.document_type" placeholder="" required>
+              <b-select
+                v-model="form.document_type"
+                placeholder=""
+                required
+                @change.native="($event) => calculateIRPF($event)"
+              >
                 <option
                   v-for="(s, index) in documentTypes"
                   :key="index"
@@ -81,6 +86,10 @@
             </b-field>
             <b-field label="Emissió *" horizontal>
               <b-datepicker
+                @input="
+                  input;
+                  calculateIRPF();
+                "
                 v-model="form.emitted"
                 :show-week-number="false"
                 :locale="'ca-ES'"
@@ -287,6 +296,7 @@
               v-if="type == 'received-incomes' || type == 'received-expenses'"
               label="Contacte *"
               horizontal
+              :message="personIrpf ? `IRPF ${personIrpf} %` : ''"
             >
               <b-autocomplete
                 v-model="clientSearch"
@@ -317,7 +327,6 @@
                 </b-button>
               </div>
             </b-field>
-
             <b-field
               v-if="type == 'received-invoices'"
               label="Número factura proveïdora"
@@ -604,11 +613,7 @@
                 </money-format>
               </div>
               <div
-                class="
-                  is-flex is-justify-content-flex-end
-                  has-text-weight-bold
-                  mt-5
-                "
+                class="is-flex is-justify-content-flex-end has-text-weight-bold mt-5"
               >
                 <label>Total </label>
                 <money-format
@@ -636,7 +641,12 @@
             title="DETALL"
           >
             <b-field label="Salari base" horizontal>
-              <b-input v-model="form.total_base" type="numeric" placeholder="" @input="fixDecimalsPayroll('total_base', form.total_base)" />
+              <b-input
+                v-model="form.total_base"
+                type="numeric"
+                placeholder=""
+                @input="fixDecimalsPayroll('total_base', form.total_base)"
+              />
             </b-field>
 
             <b-field
@@ -644,7 +654,12 @@
               :label="`IRPF a càrrec de la treballadora (${dedication.pct_irpf}%)`"
               horizontal
             >
-              <b-input v-model="form.irpf_base" type="numeric" placeholder="" @input="fixDecimalsPayroll('irpf_base', form.irpf_base)" />
+              <b-input
+                v-model="form.irpf_base"
+                type="numeric"
+                placeholder=""
+                @input="fixDecimalsPayroll('irpf_base', form.irpf_base)"
+              />
 
               <b-datepicker
                 v-model="form.irpf_date"
@@ -662,7 +677,12 @@
               :label="`Altres a càrrec de la treballadora (${dedication.pct_other}%)`"
               horizontal
             >
-              <b-input v-model="form.other_base" type="numeric" placeholder="" @input="fixDecimalsPayroll('other_base', form.other_base)" />
+              <b-input
+                v-model="form.other_base"
+                type="numeric"
+                placeholder=""
+                @input="fixDecimalsPayroll('other_base', form.other_base)"
+              />
 
               <b-datepicker
                 v-model="form.other_date"
@@ -699,7 +719,11 @@
               }`"
               horizontal
             >
-              <b-input v-model="form.ss_base" placeholder="" @input="fixDecimalsPayroll('ss_base', form.ss_base)" />
+              <b-input
+                v-model="form.ss_base"
+                placeholder=""
+                @input="fixDecimalsPayroll('ss_base', form.ss_base)"
+              />
 
               <b-datepicker
                 v-model="form.ss_date"
@@ -836,6 +860,7 @@ import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
+import _ from "lodash";
 import FileUpload from "@/components/FileUpload";
 
 export default {
@@ -877,11 +902,14 @@ export default {
       projectCopy: null,
       shouldSaveProject: false,
       documentTypes: [],
-      dedications: null,
+      dedications: [],
+      dedicationsDiets: [],
       dedication: null,
       numberEditable: false,
       apiUrl: process.env.VUE_APP_API_URL,
       editingDocuments: false,
+      personIrpf: 0,
+      quotes: null,
     };
   },
   computed: {
@@ -1021,13 +1049,41 @@ export default {
             : null,
         paybefore: null,
         contact: { id: 0 },
-        lines: [this.getNewLine()],
+        lines: _.concat([], this.getNewLine()),
         updatable: true,
         documents: [],
         document_type: 0,
       };
     },
     getNewLine() {
+      if (this.form && this.form.document_type === 4 && this.personIrpf) {
+        return [
+          {
+            concept: "Dieta sense IRPF",
+            base: this.quotes.diet_amount_without_irpf,
+            quantity: 1,
+            discount: 0,
+            vat: 0,
+            irpf: 0,
+            comments: "",
+            show: false,
+            date: new Date(),
+          },
+          {
+            concept: "Dieta amb IRPF",
+            base:
+              this.quotes.diet_amount_total -
+              this.quotes.diet_amount_without_irpf,
+            quantity: 1,
+            discount: 0,
+            vat: 0,
+            irpf: this.personIrpf,
+            comments: "",
+            show: false,
+            date: new Date(),
+          },
+        ];
+      }
       return {
         concept: "",
         base: 0,
@@ -1102,16 +1158,6 @@ export default {
                 this.clientSearch = this.form.contact.name;
                 this.form.contact = this.form.contact.id;
               }
-              // if (this.form.project && this.form.project.id) {
-              //   this.projectSearch = this.form.project.name;
-              //   this.form.project = this.form.project.id;
-              //   this.project = (
-              //     await service({ requiresAuth: true }).get(
-              //       `projects/${this.form.project}`
-              //     )
-              //   ).data;
-              //   this.projectCopy = JSON.parse(JSON.stringify(this.project));
-              // }
 
               if (this.form.payment_method && this.form.payment_method.id) {
                 this.methodSearch = this.form.payment_method.name;
@@ -1141,6 +1187,8 @@ export default {
                 this.projectSearch = this.form.project.name;
                 this.form.project = this.form.project.id;
               }
+
+              this.calculateIRPF();
 
               if (this.type === "payrolls") {
                 this.form.code =
@@ -1209,6 +1257,12 @@ export default {
           "projects/basic?_limit=-1&_sort=name:ASC"
         )
       ).data;
+
+      const me = (await service({ requiresAuth: true }).get("me")).data;
+      // console.log('me!', me)
+      if (me && me.quotes && me.quotes.id) {
+        this.quotes = me.quotes;
+      }
 
       this.projects = this.form.id
         ? projects
@@ -1292,7 +1346,8 @@ export default {
             return;
           }
 
-          const assignedToProjectPhase = this.type !== "payrolls" &&
+          const assignedToProjectPhase =
+            this.type !== "payrolls" &&
             this.validateIfProjectPhasesHasDocument();
 
           if (this.type !== "payrolls" && !assignedToProjectPhase) {
@@ -1424,10 +1479,44 @@ export default {
       if (!option || !option.id) {
         this.form.contact = null;
       }
-      delete option.projects;
-      delete option.quotes;
-      delete option.projectes;
-      this.form.contact = option;
+      if (option) {
+        delete option.projects;
+        delete option.quotes;
+        delete option.projectes;
+        this.form.contact = option;
+
+        setTimeout(() => {
+          this.calculateIRPF();
+        }, 100);
+      }
+    },
+    async calculateIRPF() {
+      this.personIrpf = 0;
+      if (
+        this.filteredClients.length === 1 &&
+        this.filteredClients[0].users_permissions_user &&
+        this.form.document_type === 4 &&
+        this.form.emitted
+      ) {
+        const user = this.filteredClients[0].users_permissions_user;
+
+        if (user) {
+          this.dedicationsDiets = (
+            await service({ requiresAuth: true }).get(
+              "daily-dedications?_limit=-1&users_permissions_user.id=" + user.id
+            )
+          ).data;
+
+          const dedication = this.dedicationsDiets.find(
+            (d) =>
+              d.from <= moment(this.form.emitted).format("YYYY-MM-DD") &&
+              d.to >= moment(this.form.emitted).format("YYYY-MM-DD")
+          );
+          if (dedication) {
+            this.personIrpf = dedication.pct_irpf;
+          }
+        }
+      }
     },
     async projectSelected(option) {
       if (!option) {
@@ -1470,7 +1559,8 @@ export default {
       this.form.lines = this.form.lines.filter((l, i) => i !== j);
     },
     addLine() {
-      this.form.lines.push(this.getNewLine());
+      this.form.lines = _.concat(this.form.lines, this.getNewLine());
+      // this.form.lines.push(this.getNewLine());
     },
     phasesUpdated(info) {
       this.shouldSaveProject = true;
@@ -1659,9 +1749,15 @@ export default {
       }
     },
     fixDecimalsPayroll(field, value) {
-      this.fixDecimals(field, value)      
-      this.form.net_base = ( parseFloat(this.form.total_base) - parseFloat(this.form.irpf_base) - parseFloat(this.form.other_base) ).toFixed(2)
-      this.form.total = (parseFloat(this.form.total_base) + parseFloat(this.form.ss_base)).toFixed(2)
+      this.fixDecimals(field, value);
+      this.form.net_base = (
+        parseFloat(this.form.total_base) -
+        parseFloat(this.form.irpf_base) -
+        parseFloat(this.form.other_base)
+      ).toFixed(2);
+      this.form.total = (
+        parseFloat(this.form.total_base) + parseFloat(this.form.ss_base)
+      ).toFixed(2);
     },
   },
 };
