@@ -12,6 +12,17 @@
               <b-field label="NIF *" horizontal>
                 <b-input v-model="form.nif" required />
               </b-field>
+              <b-field label="Persona" horizontal message="Si a part de contacte és també treballadora o sòcia de la cooperativa">
+                <b-select v-model="form.users_permissions_user" placeholder="" >
+                  <option
+                    v-for="(s, index) in users"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.username }}
+                  </option>
+                </b-select>
+              </b-field>
               <b-field label="Forma jurídica" horizontal>
                 <b-select v-model="form.legal_form" placeholder="">
                   <option
@@ -92,6 +103,7 @@ import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
+import concat from "lodash/concat";
 
 export default {
   name: "ProjectForm",
@@ -113,7 +125,8 @@ export default {
       series: [],
       form: this.getClearFormObject(),
       legalForms: [],
-      sectors: []
+      sectors: [],
+      users: []
     };
   },
   computed: {
@@ -173,34 +186,14 @@ export default {
               delete this.form.quotes
               delete this.form.projects
               delete this.form.projectes
-              
-              // this.form.emitted = moment(this.form.emitted, 'YYYY-MM-DD').toDate()
-              // if (this.form.paybefore) {
-              //   this.form.paybefore = moment(this.form.paybefore, 'YYYY-MM-DD').toDate()
-              // }
-              // if (this.form.sent_date) {
-              //   this.form.sent_date = moment(this.form.sent_date, 'YYYY-MM-DD').toDate()
-              // }
-              // if (this.form.paid_date) {
-              //   this.form.paid_date = moment(this.form.paid_date, 'YYYY-MM-DD').toDate()
-              // }
-              // if (this.form.serial && this.form.serial.id) {
-              //   this.form.serial = this.form.serial.id
-              // }
-              // if (this.form.contact && this.form.contact.id) {
-              //   this.clientSearch = this.form.contact.name
-              //   this.form.contact = this.form.contact.id
-              // }
-              // if (this.form.project && this.form.project.id) {
-              //   this.projectSearch = this.form.project.name
-              //   this.form.project = this.form.project.id
-              // }
-              // if (this.form.payment_method && this.form.payment_method.id) {
-              //   this.methodSearch = this.form.payment_method.name
-              //   this.form.payment_method = this.form.payment_method.id
-              // }
-              
-              // this.getAuxiliarData();
+
+
+              if (this.form.users_permissions_user && this.form.users_permissions_user.id) {
+                this.form.users_permissions_user = this.form.users_permissions_user.id
+              } else {
+                this.form.users_permissions_user = 0
+              }
+
 
               this.isLoading = false;
             } else {
@@ -214,6 +207,8 @@ export default {
     async getAuxiliarData() {
       this.legalForms = (await service({ requiresAuth: true }).get("legal-forms")).data
       this.sectors = (await service({ requiresAuth: true }).get("sectors")).data
+      const users = (await service({ requiresAuth: true }).get("users")).data
+      this.users = concat({ id: 0, username: '--'}, users)
     },
     async submit() {
       this.isLoading = true;
