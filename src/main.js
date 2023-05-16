@@ -28,7 +28,7 @@ import JsonCSV from 'vue-json-csv'
 import VCalendar from 'v-calendar'
 
 import JsonExcel from "vue-json-excel";
- 
+
 Vue.component("downloadExcel", JsonExcel);
 
 Vue.use(VCalendar, {

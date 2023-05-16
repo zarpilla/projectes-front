@@ -277,6 +277,17 @@ const routes = [
   },
   {
     meta: {
+      title: 'Jornada diària'
+    },
+    path: '/registre-jornades',
+    name: 'jornada',
+    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Jornada.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Resum Hores'
     },
     path: '/dedicacio-summary',

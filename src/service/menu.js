@@ -17,6 +17,11 @@ const menu = [
         icon: 'calendar'
       },
       {
+        to: '/registre-jornades',
+        icon: 'clock',
+        label: 'Registre Jornades'
+      },
+      {
         to: '/working-day',
         icon: 'chart-timeline',
         label: 'Persones'
