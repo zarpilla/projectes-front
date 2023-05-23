@@ -114,6 +114,7 @@ export default {
         const activities = []
         const projects = r.data.forEach(p => {          
           if (p.activities) {
+            console.log('p.activities', p.activities)
             p.activities.forEach(a => {
               if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) 
                 && (this.user === 0 || (this.user > 0 && a.users_permissions_user && a.users_permissions_user.toString() === this.user.toString()))
@@ -135,7 +136,8 @@ export default {
                   date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
                   username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
                   count: 1,
-                  dedication_type: a.dedication_type && this.dedicationTypes.length ? this.dedicationTypes.find(d => d.id === a.dedication_type).name : '-'
+                  dedication_type: a.dedication_type && this.dedicationTypes.length ? this.dedicationTypes.find(d => d.id === a.dedication_type).name : '-',
+                  real_cost: a.cost_by_hour * a.hours
                 }
                 activities.push(activity)
               }
@@ -147,7 +149,6 @@ export default {
                 ph.subphases.forEach(sph => {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {
                     sph.estimated_hours.forEach(h => {
-                      // console.log('sph.estimated_hours', p.name, h)
                       const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
                       // console.log('sph diff', p.name, mdiff)
                       let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0

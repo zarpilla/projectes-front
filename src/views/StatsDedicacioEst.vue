@@ -100,7 +100,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Previsió-Realitat dedicació']
+      return ['Dedicació', 'Previsió/Execució dedicació']
     }
   },
   async mounted () {
