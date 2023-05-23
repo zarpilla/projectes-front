@@ -123,56 +123,7 @@ export default {
         .then((r) => {
           // console.log('r.data', r.data)
           const activities = [];
-          const projects = r.data.forEach((p) => {
-            // if (p.activities) {
-            //   // legacy ?
-            //   p.activities.forEach((a) => {
-            //     if (
-            //       (this.year === 0 ||
-            //         (this.year > 0 &&
-            //           a.date &&
-            //           parseInt(moment(a.date).format("YYYY")) >= this.year)) &&
-            //       (this.month === 0 ||
-            //         (this.month > 0 &&
-            //           a.date &&
-            //           parseInt(moment(a.date).format("MM")) === this.month))
-            //     ) {
-            //       const activity = {
-            //         project_name: p.name,
-            //         project_state: p.project_state ? p.project_state.name : "-",
-            //         project_leader: p.leader ? p.leader.username : "-",
-            //         project_scope: p.project_scope
-            //           ? p.project_scope.short_name
-            //           : "-",
-            //         project_client: p.client ? p.client.name : "-",
-            //         total_estimated_hours: p.total_estimated_hours
-            //           ? p.total_estimated_hours
-            //           : 0,
-            //         hours: a.hours,
-            //         incomes_expenses: p.incomes_expenses
-            //           ? p.incomes_expenses
-            //           : 0,
-            //         pricehour:
-            //           a.hours && p.incomes_expenses
-            //             ? parseFloat((p.incomes_expenses / a.hours).toFixed(2))
-            //             : 0,
-            //         month: a.date ? moment(a.date).format("MM").toString() : 0,
-            //         year: a.date ? moment(a.date).format("YYYY").toString() : 0,
-            //         day: a.date ? moment(a.date).format("DD").toString() : 0,
-            //         date: a.date
-            //           ? moment(a.date).format("YYYY-MM-DD").toString()
-            //           : "-",
-            //         username: a.users_permissions_user
-            //           ? this.leaders.find(
-            //               (u) => u.id === a.users_permissions_user
-            //             ).username
-            //           : "-",
-            //         count: 1,
-            //       };
-            //       activities.push(activity);
-            //     }
-            //   });
-            // }
+          const projects = r.data.forEach((p) => {            
             if (p.original_phases && p.original_phases.length > 0) {
               p.original_phases.forEach((ph) => {
                 if (ph.subphases && ph.subphases.length > 0) {

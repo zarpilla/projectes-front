@@ -130,7 +130,7 @@ export default {
                 f.users_permissions_user.username === leader.username) ||
               f.users_permissions_user === null
             ) {
-              let dailyHours = 8;
+              let dailyHours = 0;
               leader.daily_dedications.forEach((dd) => {
                 if (dd.from <= f.date && dd.to >= f.date) {
                   dailyHours = dd.hours;
@@ -155,7 +155,9 @@ export default {
                 ymw: ymw, // moment(f.date, "YYYY-MM-DD").format("YYYY-MM") + '-' + this.view === 'month' ? '01' : moment(f.date, "YYYY-MM-DD").isoWeek(),
                 estimated_hours: dailyHours,
               };
-              userDedications.push(festiveDedication);
+              if (dailyHours > 0) {
+                userDedications.push(festiveDedication);
+              }              
             }
           });
 
