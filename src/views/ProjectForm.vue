@@ -391,19 +391,6 @@ res executade<template>
               </b-field>
 
               <hr />
-              <b-field
-                label="Despesa Indirecta (%)"
-                horizontal
-                v-if="me.options && me.options.structuralExpenses"
-              >
-                <b-input
-                  type="numeric"
-                  v-model="form.structural_expenses_pct"
-                  placeholder="Percentatge de despeses d'estructura"
-                >
-                </b-input>
-              </b-field>
-              <hr />
               <b-field horizontal label="Documents">
                 <div
                   class="file-documents columns is-multiline"
