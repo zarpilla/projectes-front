@@ -89,6 +89,7 @@ import moment from 'moment'
 import configPivot from '@/service/configStatsDedicationEst'
 import sortBy from 'lodash/sortBy'
 import { format } from "@/helpers/excelFormatter";
+import _ from "lodash";
 
 moment.locale('ca')
 
