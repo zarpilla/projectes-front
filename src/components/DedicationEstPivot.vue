@@ -1,25 +1,94 @@
 <template>
   <div>
     <div id="project-stats"></div>
-    <download-excel :data="pivotData">
+    <download-excel :data="pivotData"
+    
+    :fields="{
+        project_name: 'project_name',
+        project_leader: 'project_leader',
+        project_state: 'project_state',
+        project_scope: 'project_scope',        
+        project_client: 'project_client',        
+        username: 'username',
+        dedication_type: 'dedication_type',
+        date: 'date',
+        year: 'year',
+        month: 'month',
+        day: 'day',
+        hours: 'hours',
+        estimated_hours: {
+          field: 'estimated_hours',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        real_hours: {
+          field: 'hours',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        real_cost: {
+          field: 'real_cost',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+      }"
+      >
       <b-button
         title="Exporta dades"
         class="export-button"
-        icon-left="file-excel"
-      />
+        icon-left="file-excel"        
+      > Descarrega detall
+      </b-button>
+    </download-excel>
+
+    <download-excel :data="pivotDataGroupped"
+    
+    :fields="{
+        project_name: 'project_name',        
+        username: 'username',
+        year: 'year',
+        estimated_hours: {
+          field: 'estimated_hours',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        real_hours: {
+          field: 'hours',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        real_cost: {
+          field: 'real_cost',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+      }"
+      >
+      <b-button
+        title="Exporta dades"
+        class="export-button"
+        icon-left="file-excel"        
+      > Descarrega totals per persona i any
+      </b-button>
     </download-excel>
     <!-- <pre>
-      {{ pivotData }}
+      {{ pivotDataGroupped }}
     </pre> -->
   </div>
 </template>
 
 <script>
 import service from '@/service/index'
-// import sumBy from 'lodash/sumBy'
 import moment from 'moment'
 import configPivot from '@/service/configStatsDedicationEst'
 import sortBy from 'lodash/sortBy'
+import { format } from "@/helpers/excelFormatter";
 
 moment.locale('ca')
 
@@ -88,6 +157,24 @@ export default {
     // console.log('mounted')
     this.getActivities()
   },
+  computed: {
+    pivotDataGroupped() {
+      return _(this.pivotData.map(p => { return { ...p, pyu: `${p.project_name}.${p.username}.${p.year}` } }))
+        .groupBy("pyu")
+        .map((rows, pyu) => ({
+          // id: pyu.split('.')[0],
+          project_name: pyu.split('.')[0],
+          username: pyu.split('.')[1],
+          year: pyu.split('.')[2],
+          estimated_hours: (_.sumBy(rows, "estimated_hours") || 0),
+          hours: (_.sumBy(rows, "hours") || 0) ,
+          real_cost: _.sumBy(rows, "real_cost") || 0,
+          rows: rows
+
+        }))
+        .value();
+    },
+  },
   methods: {
     async getActivities () {
       this.isLoading = true
@@ -126,6 +213,7 @@ export default {
                   project_scope: p.project_scope ? p.project_scope.short_name : '-',
                   project_client: p.client ? p.client.name : '-',
                   project_year: p.date_start ? moment(p.date_start, 'YYYY-MM-DD').format('YYYY') : moment(p.created_at, 'YYYY-MM-DD').format('YYYY'),
+                  // pyu: `${p.name}.${a.date ? moment(a.date).format('YYYY').toString() : 0}.${a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-'}`,
                   total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                   hours: a.hours,
                   incomes_expenses: p.incomes_expenses ? p.incomes_expenses : 0,
@@ -172,6 +260,7 @@ export default {
                             project_scope: p.project_scope ? p.project_scope.short_name : '-',
                             project_scope_name: p.project_scope ? p.project_scope.name : '-',
                             project_client: p.client ? p.client.name : '-',
+                            // pyu: `${p.name}.${moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY')}.${h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-'}`,
                             total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                             total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
                             count: 1,
@@ -182,7 +271,8 @@ export default {
                             hours: 0,
                             estimated_hours: estimated_hours,
                             username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
-                            dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
+                            dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
+                            real_cost: 0
                           }
                           activities.push(activity)
                         }
@@ -205,6 +295,7 @@ export default {
                   project_scope: p.project_scope ? p.project_scope.short_name : '-',
                   project_scope_name: p.project_scope ? p.project_scope.name : '-',
                   project_client: p.client ? p.client.name : '-',
+                  // pyu: `${p.name}.${a.year ? a.year.year.toString() : 0}.${a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-'}`,
                   total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                   total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
                   count: 1,
@@ -232,7 +323,10 @@ export default {
         window.jQuery('#project-stats').kendoPivotGrid(configPivot)
         this.isLoading = false
       })
-    }
+    },
+    excelFormat(value) {
+      return format(this.user, value);
+    },
   },
   filters: {
     formatDate (val) {

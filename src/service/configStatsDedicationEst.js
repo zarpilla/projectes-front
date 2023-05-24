@@ -31,7 +31,7 @@ const config = {
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Hores reals', 'Hores previstes', 'Cost real'],
+    measures: ['Hores previstes', 'Hores reals', 'Cost real'],
     schema: {
       model: {
         fields: {
