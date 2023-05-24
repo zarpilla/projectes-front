@@ -1,6 +1,11 @@
 <template>
   <div>
     <div id="project-stats"></div>
+    <b-loading
+        :is-full-page="true"
+        v-model="isLoading"
+        :can-cancel="false"
+      ></b-loading>
     <download-excel :data="pivotData"
     
     :fields="{
@@ -90,6 +95,7 @@ import configPivot from '@/service/configStatsDedicationEst'
 import sortBy from 'lodash/sortBy'
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
+import { mapState } from "vuex";
 
 moment.locale('ca')
 
@@ -105,13 +111,14 @@ export default {
       type: Number,
       default: 0
     },
-    user: {
+    person: {
       type: Number,
       default: 0
     }
   },
   data () {
     return {
+      isLoading: false,
       projects: [],
       projectsList: [],
       dedicationTypes: [],
@@ -150,7 +157,7 @@ export default {
       // console.log('filter year', newVal)
       this.getActivities()
     },
-    user: function (newVal, oldVal) {
+    person: function (newVal, oldVal) {
       this.getActivities()
     }
   },
@@ -159,6 +166,7 @@ export default {
     this.getActivities()
   },
   computed: {
+    ...mapState(["userName", "user"]),
     pivotDataGroupped() {
       return _(this.pivotData.map(p => { return { ...p, pyu: `${p.project_name}.${p.username}.${p.year}` } }))
         .groupBy("pyu")
@@ -180,7 +188,7 @@ export default {
     async getActivities () {
       this.isLoading = true
 
-      if (this.projectState === null || this.year === null || this.user === null) {
+      if (this.projectState === null || this.year === null || this.person === null) {
         return
       }
 
@@ -202,10 +210,9 @@ export default {
         const activities = []
         const projects = r.data.forEach(p => {          
           if (p.activities) {
-            console.log('p.activities', p.activities)
             p.activities.forEach(a => {
               if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) 
-                && (this.user === 0 || (this.user > 0 && a.users_permissions_user && a.users_permissions_user.toString() === this.user.toString()))
+                && (this.person === 0 || (this.person > 0 && a.users_permissions_user && a.users_permissions_user.toString() === this.person.toString()))
                 ) {
                 const activity = {
                   project_name: p.name,
@@ -253,7 +260,7 @@ export default {
                         const year = moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY')
 
                         if ((year.toString() === this.year.toString() || this.year === 0) && 
-                        (this.user === 0 || (this.user > 0 && h.users_permissions_user && h.users_permissions_user.id.toString() === this.user.toString()))) {
+                        (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id.toString() === this.person.toString()))) {
                           const activity = {
                             project_name: p.name,
                             project_leader: p.leader ? p.leader.username : '-',

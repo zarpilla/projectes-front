@@ -58,8 +58,8 @@
       </card-component>
 
       <card-component title="Projectes">
-        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :user="filters.user" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
-      </card-component>
+        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :person="filters.user" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
+      </card-component>      
     </section>
   </div>
 </template>
