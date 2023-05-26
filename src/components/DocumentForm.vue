@@ -753,6 +753,7 @@
               type="is-primary"
               :loading="isLoading"
               @click="canEditDocument(true)"
+              v-if="form.id"
               >Guardar i sortir</b-button
             >
           </b-field>
@@ -837,6 +838,7 @@
               type="is-primary"
               :loading="isLoading"
               @click="canEditDocument(true)"
+              v-if="form.id"
               >Guardar i sortir</b-button
             >
           </b-field>

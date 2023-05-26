@@ -451,6 +451,7 @@ res executade<template>
                 </b-field>
                 <b-field horizontal>
                   <b-button
+                    v-if="form.id"
                     type="is-primary"
                     :loading="isLoading && form.id"
                     @click="submitAndExit"
@@ -1136,6 +1137,7 @@ res executade<template>
           </b-field>
           <b-field horizontal>
             <b-button
+              v-if="form.id"
               type="is-primary"
               :loading="isLoading"
               @click="submitAndExit"
