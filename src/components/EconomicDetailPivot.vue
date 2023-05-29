@@ -1,6 +1,11 @@
 <template>
   <div>
     <div id="project-despeses"></div>
+    <b-loading
+        :is-full-page="true"
+        v-model="isLoading"
+        :can-cancel="false"
+      ></b-loading>
     <download-excel
       class="export"
       :data="pivotData"
@@ -301,6 +306,7 @@ export default {
   },
   data() {
     return {
+      isLoading: false,
       projects: [],
       projectsList: [],
       dedicationTypes: {},
@@ -318,30 +324,21 @@ export default {
     };
   },
   watch: {
-    // user: function (newVal, oldVal) {
-    //   console.log('user newVal', newVal)
-    //   this.getActivities()
-    // },
-    date1: function (newVal, oldVal) {
-      this.getActivities();
-    },
-    date2: function (newVal, oldVal) {
-      this.getActivities();
-    },
-    // project: function (newVal, oldVal) {
-    //   this.getActivities()
-    // },
     projectState: function (newVal, oldVal) {
+      console.log('projectState', newVal, oldVal)
       this.getActivities();
     },
   },
   mounted() {
-    // console.log('mounted')
+    console.log('mounted')
     this.getActivities();
   },
   methods: {
     async getActivities() {
       this.isLoading = true;
+      if (this.projectState === null) {
+        return
+      }
       const projectState = this.projectState !== null ? this.projectState : 1;
       let query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
       if (projectState === 0 || projectState === "0") {
