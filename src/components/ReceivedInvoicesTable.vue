@@ -2,97 +2,47 @@
   <div>
     <section class="xsection">
       <tiles>
-        <card-widget
-          class="tile is-child"
-          type="is-primary"
-          icon="currency-eur"
-          :number="total_base"
-          suffix="€"
-          label="Base"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-primary"
-          icon="currency-eur"
-          :number="total_vat"
-          label="IVA"
-          suffix="€"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-primary"
-          icon="currency-eur"
-          :number="total_irpf"
-          label="IRPF"
-          suffix="€"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-primary"
-          icon="currency-eur"
-          :number="total_total"
-          label="Total"
-          suffix="€"
-        />
+        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_base" suffix="€"
+          label="Base" />
+        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_vat" label="IVA"
+          suffix="€" />
+        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_irpf" label="IRPF"
+          suffix="€" />
+        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_total" label="Total"
+          suffix="€" />
       </tiles>
       <!-- <pre>{{emitted}}</pre> -->
       <download-excel class="export" :data="emittedCSV" name="despeses">
-        <b-button
-          title="Exporta dades"
-          class="export-button mb-3"
-          icon-left="file-excel"
-        />
+        <b-button title="Exporta dades" class="export-button mb-3" icon-left="file-excel" />
       </download-excel>
-      <b-button
-        class="view-button is-primary mb-3"
-        @click="navNew"
-        icon-left="plus"
-      >
+      <b-button class="view-button is-primary mb-3" @click="navNew" icon-left="plus">
         Nova factura
       </b-button>
-      <b-button
-        class="view-button is-primary mb-3 ml-3"
-        @click="navNewExpense"
-        icon-left="plus"
-      >
+      <b-button class="view-button is-primary mb-3 ml-3" @click="navNewExpense" icon-left="plus">
         Nova despesa
       </b-button>
 
-      <b-table
-        :loading="isLoading"
-        :paginated="false"
-        :striped="false"
-        :data="emitted"
-        :row-class="
-          (row, index) =>
-            (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
-            (row.type == 'Avui' && 'has-text-info')
-        "
-      >
+      <b-table :loading="isLoading" :paginated="false" :striped="false" :data="emitted" :row-class="(row, index) =>
+          (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
+          (row.type == 'Avui' && 'has-text-info')
+        ">
         <b-table-column label="Codi" field="code" v-slot="props" sortable>
-          <router-link
-            v-if="props.row.id && props.row.type !== 'payrolls'"
-            :to="{
-              name: 'document.edit',
-              params: { id: props.row.id, type: props.row.type },
-            }"
-          >
+          <router-link v-if="props.row.id && props.row.type !== 'payrolls'" :to="{
+            name: 'document.edit',
+            params: { id: props.row.id, type: props.row.type },
+          }">
             {{ props.row.code }}
           </router-link>
           <b v-else-if="props.row.code && props.row.type !== 'payrolls'">{{
             props.row.code
           }}</b>
-          <router-link
-            v-else
-            :to="{
-              name: 'document.edit',
-              params: { id: props.row.id, type: props.row.type },
-            }"
-            >{{
-              `${props.row.year.year}-${zeroPad(props.row.month.month, 2)}-${
-                props.row.users_permissions_user.username
-              }`
-            }}
+          <router-link v-else :to="{
+                name: 'document.edit',
+                params: { id: props.row.id, type: props.row.type },
+              }">{{
+      `${props.row.year.year}-${zeroPad(props.row.month.month, 2)}-${props.row.users_permissions_user.username
+        }`
+    }}
           </router-link>
         </b-table-column>
         <b-table-column label="Tipus" field="type" v-slot="props" sortable>
@@ -105,28 +55,13 @@
         <b-table-column label="Data" field="emitted" v-slot="props" sortable>
           {{ formatDate(props.row.emitted) }}
         </b-table-column>
-        <b-table-column
-          label="Venciment"
-          field="paybefore"
-          v-slot="props"
-          sortable
-        >
+        <b-table-column label="Venciment" field="paybefore" v-slot="props" sortable>
           {{ formatDate(props.row.paybefore) }}
         </b-table-column>
-        <b-table-column
-          label="Contacte"
-          field="contact.name"
-          v-slot="props"
-          sortable
-        >
+        <b-table-column label="Contacte" field="contact.name" v-slot="props" sortable>
           {{ props.row.contact ? props.row.contact.name : "-" }}
         </b-table-column>
-        <b-table-column
-          label="NIF Contacte"
-          field="contact.name"
-          v-slot="props"
-          sortable
-        >
+        <b-table-column label="NIF Contacte" field="contact.name" v-slot="props" sortable>
           {{ props.row.contact ? props.row.contact.nif : "-" }}
         </b-table-column>
         <b-table-column label="Concepte" field="lines" v-slot="props" sortable>
@@ -136,16 +71,16 @@
           <span v-else>
             {{
               props.row.lines && props.row.lines.length > 0
-                ? props.row.lines[0].concept
-                : ""
+              ? props.row.lines[0].concept
+              : ""
             }}
           </span>
         </b-table-column>
         <b-table-column label="Projecte" field="lines" v-slot="props" sortable>
           {{
             props.row.projects && props.row.projects.length
-              ? props.row.projects[0].name
-              : props.row.project
+            ? props.row.projects[0].name
+            : props.row.project
               ? props.row.project.name
               : "-"
           }}
@@ -162,27 +97,16 @@
         <b-table-column label="Total" field="total" v-slot="props" sortable>
           {{ formatPrice(props.row.total) }}€
         </b-table-column>
-        <b-table-column
-          label="Pagada"
-          field="paid_date"
-          v-slot="props"
-          sortable
-        >
+        <b-table-column label="Pagada" field="paid_date" v-slot="props" sortable>
           {{
             props.row.paid_date
-              ? formatDate(props.row.paid_date)
-              : props.row.paid
+            ? formatDate(props.row.paid_date)
+            : props.row.paid
               ? "Sí (sense data)"
               : "No"
           }}
         </b-table-column>
-        <b-table-column
-          label="Assig."
-          title="Assignada a línia de projecte"
-          field="assigned"
-          v-slot="props"
-          sortable
-        >
+        <b-table-column label="Assig." title="Assignada a línia de projecte" field="assigned" v-slot="props" sortable>
           {{ props.row.assigned }}
         </b-table-column>
       </b-table>
@@ -314,26 +238,26 @@ export default {
 
       const from2 = this.month
         ? moment(`${this.year}-${this.month}`, "YYYY-M")
-            .startOf("month")
-            .format("YYYY-MM-DD")
+          .startOf("month")
+          .format("YYYY-MM-DD")
         : from;
       const to2 = this.month
         ? moment(`${this.year}-${this.month}`, "YYYY-M")
-            .endOf("month")
-            .format("YYYY-MM-DD")
+          .endOf("month")
+          .format("YYYY-MM-DD")
         : to;
 
       const from3 = this.quarter
         ? moment(`${this.year}`, "YYYY")
-            .quarter(this.quarter)
-            .startOf("quarter")
-            .format("YYYY-MM-DD")
+          .quarter(this.quarter)
+          .startOf("quarter")
+          .format("YYYY-MM-DD")
         : from2;
       const to3 = this.quarter
         ? moment(`${this.year}`, "YYYY")
-            .quarter(this.quarter)
-            .endOf("quarter")
-            .format("YYYY-MM-DD")
+          .quarter(this.quarter)
+          .endOf("quarter")
+          .format("YYYY-MM-DD")
         : to2;
 
       const contactQuery = this.contact ? `&[contact_eq]=${this.contact}` : "";
@@ -345,8 +269,7 @@ export default {
 
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `received-invoices?_limit=${
-            this.documentType === 0 || this.documentType === -1 ? -1 : 0
+          `received-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
           }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}`
         )
       ).data;
@@ -373,8 +296,7 @@ export default {
       if (projectQuery === "") {
         payrolls = (
           await service({ requiresAuth: true }).get(
-            `payrolls?_limit=${
-              this.documentType === 0 || this.documentType === -2 ? -1 : 0
+            `payrolls?_limit=${this.documentType === 0 || this.documentType === -2 ? -1 : 0
             }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}&[paid_eq]=true${contactQueryPayrolls}`
           )
         ).data;
@@ -406,8 +328,8 @@ export default {
             e.type == "received-invoices"
               ? "Factura"
               : e.type === "received-expenses"
-              ? e.document_type.name
-              : "Nómina",
+                ? e.document_type.name
+                : "Nómina",
           data: this.formatDate(e.emitted),
           venciment: this.formatDate(e.paybefore),
           cobrada: this.formatDate(e.paid_date),
@@ -423,8 +345,8 @@ export default {
             e.projects && e.projects.length
               ? e.projects[0].name
               : e.project
-              ? e.project.name
-              : "",
+                ? e.project.name
+                : "",
           base: e.total_base,
           iva: e.total_vat,
           irpf: e.total_irpf,
@@ -438,26 +360,28 @@ export default {
           line_vat: "",
           line_vat_pct: "",
         });
-        e.lines.forEach(line => {
-          let base = (line.base ? line.base : 0) * (line.quantity ? line.quantity : 0);
-          if (line.discount) {
-            base = base * (1 - line.discount / 100.0);
-          }
-          let vat = (base * (line.vat ? line.vat : 0)) / 100.0;
-          let irpf = (base * (line.irpf ? line.irpf : 0)) / 100.0;
-          this.emittedCSV.push({
-            num: e.code,
-            line_concept: line.concept,
-            line_base: line.base,
-            line_date: line.date,
-            line_discount: line.discount,
-            line_quantity: line.quantity,
-            line_irpf: irpf,
-            line_irpf_pct: line.irpf,            
-            line_vat: vat,
-            line_vat_pct: line.vat,
+        if (e.lines && e.lines.length) {
+          e.lines.forEach(line => {
+            let base = (line.base ? line.base : 0) * (line.quantity ? line.quantity : 0);
+            if (line.discount) {
+              base = base * (1 - line.discount / 100.0);
+            }
+            let vat = (base * (line.vat ? line.vat : 0)) / 100.0;
+            let irpf = (base * (line.irpf ? line.irpf : 0)) / 100.0;
+            this.emittedCSV.push({
+              num: e.code,
+              line_concept: line.concept,
+              line_base: line.base,
+              line_date: line.date,
+              line_discount: line.discount,
+              line_quantity: line.quantity,
+              line_irpf: irpf,
+              line_irpf_pct: line.irpf,
+              line_vat: vat,
+              line_vat_pct: line.vat,
+            })
           })
-        })
+        }
       });
 
       // this.emittedCSV = this.emitted.map((e) => {
