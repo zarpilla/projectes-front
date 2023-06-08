@@ -826,7 +826,7 @@ res executade<template>
               <div class="year-total tag mr-1 clickable" :class="allByYearYear == 'TOTS' ? 'is-primary' : 'is-ghost'" @click="allByYearYear = 'TOTS'">
                 TOTAL
               </div>
-              <div v-for="y in allByYear" class="year-total tag is-ghost mr-1 clickable" :class="allByYearYear == y.year ? 'is-primary' : 'is-ghost'" @click="allByYearYear = y.year">
+              <div v-for="y in allByYear.filter(a => a.year !== 'undefined')" class="year-total tag is-ghost mr-1 clickable" :class="allByYearYear == y.year ? 'is-primary' : 'is-ghost'" @click="allByYearYear = y.year">
                 {{ y.year }}
               </div>
             </div>
