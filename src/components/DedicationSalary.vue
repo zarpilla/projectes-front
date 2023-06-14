@@ -21,18 +21,39 @@
       >
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Tipus</div>
-          <div class="column has-text-weight-bold">Hores</div>
+          <div class="column has-text-weight-bold has-text-right">Hores</div>
+          <div class="column has-text-weight-bold has-text-right"></div>
         </div>
         <div v-for="(value, key) in summary" v-bind:key="key" class="card-body">
           <div class="columns">
             <div class="column">
               {{ key }}
             </div>
-            <div class="column">
-              {{ value }}
+            <div class="column has-text-right">
+              {{ value }} h
             </div>
+            <div class="column has-text-right"></div>
           </div>
         </div>
+        <div class="card-body">
+          <div class="columns">
+            <div class="column">
+              Salari total
+            </div>
+            <div class="column has-text-right">
+              <money-format
+                :value="xsalary"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+            <div class="column"></div>
+          </div>
+        </div>
+        
       </card-component>
 
       <card-component
@@ -154,12 +175,13 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent";
+import MoneyFormat from "@/components/MoneyFormat.vue";
 
 moment.locale("ca");
 
 export default {
   name: "DedicationSalary",
-  components: { CardComponent },
+  components: { CardComponent, MoneyFormat },
   props: {
     user: {
       type: Number,
@@ -200,6 +222,14 @@ export default {
     },
     superTotal() {
       return sumBy(this.activities, "hours");
+    },
+    xsalary() {
+      const sal = []
+      for (var i in this.months) {
+        const m = this.months[i]
+        sal.push(m)
+      }
+      return sumBy(sal, (s) => s.dailySalary / s.theoricDays);
     },
   },
   watch: {

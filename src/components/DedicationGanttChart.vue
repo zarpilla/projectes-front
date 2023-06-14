@@ -214,8 +214,6 @@ export default {
               : 0;
             const progressText = dailyHours ? (progress * 100).toFixed(0) : "";
 
-            console.log('start_date', start_date)
-
             const hoursTask = {
               id: tid,
               text: `${dedication.total.toFixed(2)}h (${progressText}%)`, // (${dedication.year}-${dedication.month}-${dedication.week})`,
