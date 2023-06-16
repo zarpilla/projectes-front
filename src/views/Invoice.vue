@@ -127,6 +127,7 @@
           <button class="button is-primary" @click="getPDF">
             Descarrega PDF
           </button>
+
         </div>
       </div>
     </section>
@@ -343,7 +344,6 @@ export default {
           .get(`${this.$route.params.type}/${this.$route.params.id}`)
           .then((r) => {
             this.quote = r.data
-            console.log('this.invoice', this.quote)
           })
         service({ requiresAuth: true })
           .get('me')

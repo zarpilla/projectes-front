@@ -391,28 +391,15 @@
             <hr />
           </div>
           <b-field>
-            <!-- <a
-              v-if="form.pdf"
-              :href="form.pdf"
-              class="button is-warning"
-              target="_blank"
-            >
+            <button class="button is-warning" type="button" @click="getPDF" v-if="form.id">
               Visualitza PDF
-            </a> -->
-            <router-link v-if=" form.id " :to="{
+            </button>
+            <!-- <router-link v-if=" form.id " :to="{
                 name: 'invoice.view',
                   params: { id: form.id, type: type },
               }" class="button is-warning">
               Visualitza PDF
-            </router-link>
-            <!-- <a
-              v-if="form.id"
-              :href="`${appPath}pdf/${form.id}/${type}`"
-              class="button is-warning"
-              target="_blank"
-            >
-              Visualitza PDF
-            </a> -->
+            </router-link> -->
           </b-field>
           <b-field v-if="
             (type !== 'payrolls' &&
@@ -572,6 +559,8 @@ export default {
         return "received-expense";
       } else if (this.type === "received-invoices") {
         return "received-invoice";
+      } else if (this.type === "quotes") {
+        return "quote";
       }
     },
     formCardTitle() {
@@ -1378,6 +1367,14 @@ export default {
         parseFloat(this.form.total_base) + parseFloat(this.form.ss_base)
       ).toFixed(2);
     },
+    async getPDF() {
+      const pdf = (
+          await service({ requiresAuth: true }).get(
+            `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
+          )
+        ).data;
+      window.open(this.apiUrl + pdf.url)
+    }
   },
 };
 </script>
