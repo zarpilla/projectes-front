@@ -891,7 +891,7 @@ export default {
       }
 
 
-      if (this.type === 'received-incomes' || this.type === 'emitted-invoices') {
+      if (this.type === 'received-incomes' || this.type === 'emitted-invoices' || this.type === 'quotes') {
         const products = (
           await service({ requiresAuth: true }).get(
             "products?_limit=-1&_sort=code:ASC"
