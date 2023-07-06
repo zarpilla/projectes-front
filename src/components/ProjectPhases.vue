@@ -1126,12 +1126,15 @@ export default {
       if (action.type === "income") {
         if (max > 0) {
           for (let i = 0; i < max - 1; i++) {
+            console.log('action.subphase', action.subphase)
             const newIncome = {
               income_type: action.subphase.income_type,
               concept: action.subphase.concept,
               amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
-              date: action.subphase.date ? moment(action.subphase.date).add(max - i - 1, 'month').toDate() : null
+              date: action.subphase.date ? moment(action.subphase.date).add(max - i - 1, 'month').toDate() : null,
+              date_estimate_document: action.subphase.date_estimate_document ? moment(action.subphase.date_estimate_document).add(max - i - 1, 'month').toDate() : null
+              
             };
             this.phases[action.i].subphases.splice(
               action.j + 1,
@@ -1151,6 +1154,8 @@ export default {
             concept: action.subphase.concept,
             amount: action.amount,
             quantity: action.subphase.quantity,
+            date: action.subphase.date,
+            date_estimate_document: action.subphase.date_estimate_document,
           };
           this.phases[action.i].subphases[action.j].amount =
             this.phases[action.i].subphases[action.j].amount -
@@ -1171,7 +1176,8 @@ export default {
               concept: action.subphase.concept,
               amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
-              date: action.subphase.date ? moment(action.subphase.date).add(max - i - 1, 'month').toDate() : null
+              date: action.subphase.date ? moment(action.subphase.date).add(max - i - 1, 'month').toDate() : null,
+              date_estimate_document: action.subphase.date_estimate_document ? moment(action.subphase.date_estimate_document).add(max - i - 1, 'month').toDate() : null,
             };
             this.phases[action.i].expenses.splice(
               action.j + 1,
@@ -1185,40 +1191,14 @@ export default {
           }
         }
         
-        // if (action.action === "x2") {
-        //   const newIncome = {
-        //     expense_type: action.subphase.expense_type,
-        //     concept: action.subphase.concept,
-        //     amount: action.subphase.amount,
-        //     quantity: action.subphase.quantity,
-        //   };
-        //   this.phases[action.i].expenses.splice(
-        //     action.j + 1,
-        //     0,
-        //     newIncome
-        //   );
-        // } else if (action.action === "x12") {
-        //   for (let i = 0; i < 12; i++) {
-        //     const newIncome = {
-        //       expense_type: action.subphase.expense_type,
-        //       concept: action.subphase.concept,
-        //       amount: action.subphase.amount,
-        //       quantity: action.subphase.quantity,
-        //       date: action.subphase.date ? moment(action.subphase.date).add(12 - i, 'month').toDate() : null
-        //     };
-        //     this.phases[action.i].expenses.splice(
-        //       action.j + 1,
-        //       0,
-        //       newIncome
-        //     );
-        //   }
-        // } else 
         if (action.action === "split") {
           const newIncome = {
             expense_type: action.subphase.expense_type,
             concept: action.subphase.concept,
             amount: action.amount,
             quantity: action.subphase.quantity,
+            date: action.subphase.date,
+            date_estimate_document: action.subphase.date_estimate_document,
           };
           this.phases[action.i].expenses[action.j].amount =
             this.phases[action.i].expenses[action.j].amount -
