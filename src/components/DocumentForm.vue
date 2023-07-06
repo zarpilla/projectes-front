@@ -875,7 +875,7 @@ export default {
 
       this.clients = (
         await service({ requiresAuth: true }).get(
-          "contacts?_limit=-1&_sort=name:ASC"
+          "contacts/basic?_limit=-1&_sort=name:ASC"
         )
       ).data;
       const typeFilter =
@@ -904,7 +904,7 @@ export default {
     async refreshClients() {
       this.clients = (
         await service({ requiresAuth: true }).get(
-          "contacts?_limit=-1&_sort=name:ASC"
+          "contacts/basic?_limit=-1&_sort=name:ASC"
         )
       ).data;
     },

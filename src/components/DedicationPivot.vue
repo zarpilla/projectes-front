@@ -83,7 +83,7 @@ export default {
       this.scopes = (await service({ requiresAuth: true }).get('project-scopes')).data
       this.states = (await service({ requiresAuth: true }).get('project-states')).data
       this.leaders = (await service({ requiresAuth: true }).get('users')).data
-      this.contacts = (await service({ requiresAuth: true }).get('contacts?_limit=-1&_sort=name:ASC')).data
+      this.contacts = (await service({ requiresAuth: true }).get('contacts/basic?_limit=-1&_sort=name:ASC')).data
 
       const projectState = this.projectState !== null ? this.projectState : 1
       let query = `projects?_where[project_state_eq]=${projectState}&_limit=-1`

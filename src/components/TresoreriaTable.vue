@@ -523,7 +523,7 @@ export default {
 
       this.contacts = (
         await service({ requiresAuth: true }).get(
-          "contacts?_limit=-1&_sort=name:ASC"
+          "contacts/basic?_limit=-1&_sort=name:ASC"
         )
       ).data;
 

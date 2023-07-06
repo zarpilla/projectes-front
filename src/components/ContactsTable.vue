@@ -97,10 +97,10 @@ export default {
       if (this.filters.q) {
         this.contacts = (await service({ requiresAuth: true })
           .get(
-            `contacts?_limit=-1&_sort=name:ASC&_q=${this.filters.q}`
+            `contacts/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}`
           )).data;
       } else {
-        this.contacts = (await service({ requiresAuth: true }).get(`contacts?_limit=-1&_sort=name:ASC`)).data;
+        this.contacts = (await service({ requiresAuth: true }).get(`contacts/basic?_limit=-1&_sort=name:ASC`)).data;
       }
       
       this.contactsCSV = this.contacts

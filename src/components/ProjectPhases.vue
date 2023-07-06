@@ -830,7 +830,7 @@ export default {
         this.incomeTypes = r.data;
     });
     service({ requiresAuth: true })
-        .get("contacts?_limit=-1&_sort=name:ASC")
+        .get("contacts/basic?_limit=-1&_sort=name:ASC")
         .then((r) => {
           this.clients = r.data;
         });

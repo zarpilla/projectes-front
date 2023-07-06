@@ -133,7 +133,7 @@ export default {
       this.months.unshift({ id: 0, month: 0, name: "Tots" });
 
       var { data } = await service({ requiresAuth: true }).get(
-        "contacts?_sort=name&_limit=-1"
+        "contacts/basic?_sort=name&_limit=-1"
       );
       this.contacts = data;
       this.contacts.unshift({ id: 0, name: "Tots" });
