@@ -36,7 +36,47 @@
     </tiles>
     <!-- <pre>{{emittedCSV}}</pre> -->
 
-    <download-excel class="export" :data="emittedCSV" name="ingressos">
+    <download-excel class="export" :data="emittedCSV" 
+    
+    :fields="{
+        num: 'num',
+        tipus: 'tipus',
+        data: 'data',
+        venciment: 'venciment',
+        cobrada: 'cobrada',
+        proveidor: 'proveidor',
+        proveidor_nif: 'proveidor_nif',
+        proveidor_adreça: 'proveidor_adreça',
+        proveidor_cp: 'proveidor_cp',
+        proveidor_ciutat: 'proveidor_ciutat',
+        concepte: 'concepte',
+        projecte: 'projecte',
+        base: {
+          field: 'base',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        iva: {
+          field: 'iva',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        irpf: {
+          field: 'irpf',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        total: {
+          field: 'total',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+      }"
+    name="ingressos">
       <b-button
         title="Exporta dades"
         class="export-button mb-3"
@@ -148,6 +188,8 @@ import sumBy from "lodash/sumBy";
 import Tiles from "@/components/Tiles";
 import CardWidget from "@/components/CardWidget";
 import _ from "lodash";
+import { format } from "@/helpers/excelFormatter";
+import { mapState } from 'vuex'
 
 export default {
   name: "EmittedInvoices",
@@ -195,6 +237,7 @@ export default {
     total_total() {
       return sumBy(this.emitted, "total").toFixed(2);
     },
+    ...mapState(["userName", "user"]),
   },
   data() {
     return {
@@ -331,6 +374,9 @@ export default {
       // });
 
       this.isLoading = false;
+    },
+    excelFormat(value) {
+      return format(this.user, value);
     },
   },
 };

@@ -12,7 +12,85 @@
           suffix="€" />
       </tiles>
       <!-- <pre>{{emitted}}</pre> -->
-      <download-excel class="export" :data="emittedCSV" name="despeses">
+      <download-excel class="export" 
+      :fields="{
+        num: 'num',
+        num_document_proveidor: 'num_document_proveidor',
+        tipus: 'tipus',
+        data: 'data',
+        venciment: 'venciment',
+        cobrada: 'cobrada',
+        proveidor: 'proveidor',
+        proveidor_nif: 'proveidor_nif',
+        proveidor_adreça: 'proveidor_adreça',
+        proveidor_cp: 'proveidor_cp',
+        proveidor_ciutat: 'proveidor_ciutat',
+        concepte: 'concepte',
+        projecte: 'projecte',
+        base: {
+          field: 'base',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        iva: {
+          field: 'iva',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        irpf: {
+          field: 'irpf',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        total: {
+          field: 'total',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        line_concept: 'line_concept',
+        line_base: {
+          field: 'line_base',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        line_date: 'line_date',
+        line_irpf: {
+          field: 'line_irpf',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        line_irpf_pct: {
+          field: 'line_irpf_pct',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        line_quantity: {
+          field: 'line_quantity',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        line_vat: {
+          field: 'line_vat',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+        line_vat_pct: {
+          field: 'line_vat_pct',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
+      }"
+      :data="emittedCSV" name="despeses">
         <b-button title="Exporta dades" class="export-button mb-3" icon-left="file-excel" />
       </download-excel>
       <b-button class="view-button is-primary mb-3" @click="navNew" icon-left="plus">
@@ -121,6 +199,8 @@ import sumBy from "lodash/sumBy";
 import Tiles from "@/components/Tiles";
 import CardWidget from "@/components/CardWidget";
 import _ from "lodash";
+import { format } from "@/helpers/excelFormatter";
+import { mapState } from 'vuex'
 
 export default {
   name: "ReceivedInvoices",
@@ -206,6 +286,7 @@ export default {
     total_total() {
       return sumBy(this.emitted, "total").toFixed(2);
     },
+    ...mapState(["userName", "user"]),
   },
   async mounted() {
     this.getData();
@@ -481,6 +562,9 @@ export default {
         }
       }
       return assigned;
+    },
+    excelFormat(value) {
+      return format(this.user, value);
     },
   },
 };
