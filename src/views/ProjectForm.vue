@@ -1,4 +1,4 @@
-res executade<template>
+<template>
   <div class="project-form">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
@@ -10,265 +10,122 @@ res executade<template>
                 <b-input v-model="form.name" placeholder="Codi" required />
               </b-field>
               <b-field label="Estat *" horizontal>
-                <b-select
-                  v-model="form.project_state.id"
-                  placeholder="Estat"
-                  required
-                >
-                  <option
-                    v-for="(s, index) in project_states"
-                    :key="index"
-                    :value="s.id"
-                  >
+                <b-select v-model="form.project_state.id" placeholder="Estat" required>
+                  <option v-for="(s, index) in project_states" :key="index" :value="s.id">
                     {{ s.name }}
                   </option>
                 </b-select>
               </b-field>
               <b-field label="Àmbit *" horizontal>
                 <b-select v-model="form.project_scope.id" placeholder="Àmbit">
-                  <option
-                    v-for="(s, index) in project_scopes"
-                    :key="index"
-                    :value="s.id"
-                  >
+                  <option v-for="(s, index) in project_scopes" :key="index" :value="s.id">
                     {{ s.name }}
                   </option>
                 </b-select>
               </b-field>
               <b-field label="Coordina *" horizontal>
                 <b-select v-model="form.leader.id" placeholder="Coordina">
-                  <option
-                    v-for="(s, index) in leaders"
-                    :key="index"
-                    :value="s.id"
-                  >
+                  <option v-for="(s, index) in leaders" :key="index" :value="s.id">
                     {{ s.username }}
                   </option>
                 </b-select>
               </b-field>
               <b-field label="Inici *" horizontal>
-                <b-datepicker
-                  v-model="form.date_start"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data inici"
-                  trap-focus
-                  editable
-                >
+                <b-datepicker v-model="form.date_start" :show-week-number="false" :locale="'ca-ES'" :first-day-of-week="1"
+                  icon="calendar-today" placeholder="Data inici" trap-focus editable>
                 </b-datepicker>
               </b-field>
               <b-field label="Final *" horizontal>
-                <b-datepicker
-                  v-model="form.date_end"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data final"
-                  trap-focus
-                  editable
-                >
+                <b-datepicker v-model="form.date_end" :show-week-number="false" :locale="'ca-ES'" :first-day-of-week="1"
+                  icon="calendar-today" placeholder="Data final" trap-focus editable>
                 </b-datepicker>
               </b-field>
               <b-field label="Clientes" horizontal>
-                <b-autocomplete
-                  v-model="clientSearch"
-                  placeholder="Escriu el nom de la clienta..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredClients"
-                  field="name"
-                  @select="clientSelected"
-                  :clearable="true"
-                >
+                <b-autocomplete v-model="clientSearch" placeholder="Escriu el nom de la clienta..." :keep-first="false"
+                  :open-on-focus="true" :data="filteredClients" field="name" @select="clientSelected" :clearable="true">
                 </b-autocomplete>
               </b-field>
-              <b-field
-                label=""
-                horizontal
-                v-if="form.clients && form.clients.length"
-              >
+              <b-field label="" horizontal v-if="form.clients && form.clients.length">
                 <div class="list">
                   <ul class="ulist">
-                    <li
-                      v-for="(client, i) in form.clients"
-                      :key="i"
-                      class="tag is-primary"
-                    >
+                    <li v-for="(client, i) in form.clients" :key="i" class="tag is-primary">
                       {{ client.name }}
-                      <b-button
-                        @click="removeClient(client)"
-                        class="no-button"
-                        icon-left="close-circle"
-                      />
+                      <b-button @click="removeClient(client)" class="no-button" icon-left="close-circle" />
                     </li>
                   </ul>
                 </div>
               </b-field>
 
-              <b-field
-                label="Descripció"
-                message="Descripció o notes sobre el projecte"
-                horizontal
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.description"
-                  placeholder="Descripció"
-                />
+              <b-field label="Descripció" message="Descripció o notes sobre el projecte" horizontal>
+                <b-input type="textarea" v-model="form.description" placeholder="Descripció" />
               </b-field>
 
-              <b-field
-                label="Propòsit"
-                message="Propòsit del projecte"
-                horizontal
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.purpose"
-                  placeholder="Propòsit"
-                />
+              <b-field label="Propòsit" message="Propòsit del projecte" horizontal>
+                <b-input type="textarea" v-model="form.purpose" placeholder="Propòsit" />
               </b-field>
               <hr />
               <b-field label="Intercooperació" horizontal>
-                <b-autocomplete
-                  v-model="cooperaSearch"
-                  placeholder="Escriu el nom..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredCoopera"
-                  field="name"
-                  @select="cooperaSelected"
-                  :clearable="true"
-                >
+                <b-autocomplete v-model="cooperaSearch" placeholder="Escriu el nom..." :keep-first="false"
+                  :open-on-focus="true" :data="filteredCoopera" field="name" @select="cooperaSelected" :clearable="true">
                 </b-autocomplete>
               </b-field>
-              <b-field
-                label=""
-                horizontal
-                v-if="form.intercooperations && form.intercooperations.length"
-              >
+              <b-field label="" horizontal v-if="form.intercooperations && form.intercooperations.length">
                 <div class="list">
                   <ul class="ulist">
-                    <li
-                      v-for="(client, i) in form.intercooperations"
-                      :key="i"
-                      class="tag is-primary"
-                    >
+                    <li v-for="(client, i) in form.intercooperations" :key="i" class="tag is-primary">
                       {{ client.name }}
-                      <b-button
-                        @click="removeCoopera(client)"
-                        class="no-button"
-                        icon-left="close-circle"
-                      />
+                      <b-button @click="removeCoopera(client)" class="no-button" icon-left="close-circle" />
                     </li>
                   </ul>
                 </div>
               </b-field>
               <b-field label="Estratègies" horizontal>
-                <b-autocomplete
-                  v-model="strategiesSearch"
-                  placeholder="Escriu el nom..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredStrategies"
-                  field="code_name"
-                  @select="strategiesSelected"
-                  :clearable="true"
-                >
+                <b-autocomplete v-model="strategiesSearch" placeholder="Escriu el nom..." :keep-first="false"
+                  :open-on-focus="true" :data="filteredStrategies" field="code_name" @select="strategiesSelected"
+                  :clearable="true">
                 </b-autocomplete>
               </b-field>
-              <b-field
-                label=""
-                horizontal
-                v-if="form.strategies && form.strategies.length"
-              >
+              <b-field label="" horizontal v-if="form.strategies && form.strategies.length">
                 <div class="list">
                   <ul class="ulist">
-                    <li
-                      v-for="(client, i) in form.strategies"
-                      :key="i"
-                      class="tag is-primary"
-                    >
+                    <li v-for="(client, i) in form.strategies" :key="i" class="tag is-primary">
                       {{ client.code_name }}
-                      <b-button
-                        @click="removeStrategies(client)"
-                        class="no-button"
-                        icon-left="close-circle"
-                      />
+                      <b-button @click="removeStrategies(client)" class="no-button" icon-left="close-circle" />
                     </li>
                   </ul>
                 </div>
               </b-field>
               <b-field label="Àmbit territorial" horizontal>
                 <b-select v-model="form.region.id" placeholder="Àmbit">
-                  <option
-                    v-for="(s, index) in regions"
-                    :key="index"
-                    :value="s.id"
-                  >
+                  <option v-for="(s, index) in regions" :key="index" :value="s.id">
                     {{ s.name }}
                   </option>
                 </b-select>
               </b-field>
               <hr />
-              <b-field
-                v-if="dedicationTypes && dedicationTypes.length"
-                label="Tipus de dedicació"
-                horizontal
-              >
-                <b-select
-                  v-model="form.default_dedication_type.id"
-                  placeholder="Tipus de dedicació"
-                >
+              <b-field v-if="dedicationTypes && dedicationTypes.length" label="Tipus de dedicació" horizontal>
+                <b-select v-model="form.default_dedication_type.id" placeholder="Tipus de dedicació">
                   <option>-- Qualsevol --</option>
-                  <option
-                    v-for="(s, index) in dedicationTypes"
-                    :key="index"
-                    :value="s.id"
-                  >
+                  <option v-for="(s, index) in dedicationTypes" :key="index" :value="s.id">
                     {{ s.name }}
                   </option>
                 </b-select>
               </b-field>
-              <b-field
-                label="Despesa Indirecta (%)"
-                horizontal
-                v-if="me.options && me.options.structuralExpenses"
-              >
-                <b-input
-                  type="numeric"
-                  v-model="form.structural_expenses_pct"
-                  placeholder="Percentatge de despeses d'estructura"
-                >
+              <b-field label="Despesa Indirecta (%)" horizontal v-if="me.options && me.options.structuralExpenses">
+                <b-input type="numeric" v-model="form.structural_expenses_pct"
+                  placeholder="Percentatge de despeses d'estructura">
                 </b-input>
               </b-field>
-              <b-field
-                label="Projecte mare"
-                horizontal
-                message="Per agrupar projectes interanuals"
-              >
-                <b-autocomplete
-                  v-model="projectSearch"
-                  placeholder="Escriu el nom del projecte..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredProjects"
-                  field="name"
-                  @select="projectSelected"
-                  :clearable="true"
-                >
+              <b-field label="Projecte mare" horizontal message="Per agrupar projectes interanuals">
+                <b-autocomplete v-model="projectSearch" placeholder="Escriu el nom del projecte..." :keep-first="false"
+                  :open-on-focus="true" :data="filteredProjects" field="name" @select="projectSelected" :clearable="true">
                 </b-autocomplete>
               </b-field>
 
               <b-field v-if="form.children" label="Projectes fills" horizontal>
                 <div>
                   <div v-for="child in form.children.children" :key="child.id">
-                    <router-link
-                      :to="{ name: 'project.edit', params: { id: child.id } }"
-                    >
+                    <router-link :to="{ name: 'project.edit', params: { id: child.id } }">
                       <span class="project-name has-text-info">
                         {{ child.name }}
                       </span>
@@ -276,148 +133,77 @@ res executade<template>
                   </div>
                 </div>
               </b-field>
+
+              <b-field label="Periodificació de pressupost" horizontal
+                message="Si es volen periodificar manualment ingressos i despeses entre anys">
+                <b-switch v-model="periodification"> </b-switch>
+              </b-field>
               <hr />
               <b-field label="Funcions" horizontal>
-                <b-autocomplete
-                  v-model="activityTypeSearch"
-                  placeholder="Escriu el nom de la funció..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredActivityTypes"
-                  field="name"
-                  @select="activityTypeSelected"
-                  :clearable="false"
-                  icon-right="plus-circle"
-                  icon-right-clickable
-                  @icon-right-click="addActivity"
-                >
+                <b-autocomplete v-model="activityTypeSearch" placeholder="Escriu el nom de la funció..."
+                  :keep-first="false" :open-on-focus="true" :data="filteredActivityTypes" field="name"
+                  @select="activityTypeSelected" :clearable="false" icon-right="plus-circle" icon-right-clickable
+                  @icon-right-click="addActivity">
                 </b-autocomplete>
               </b-field>
-              <b-field
-                label=""
-                horizontal
-                v-if="
-                  form.global_activity_types &&
-                  form.global_activity_types.length
-                "
-              >
+              <b-field label="" horizontal v-if="form.global_activity_types &&
+                form.global_activity_types.length
+                ">
                 <div class="list">
                   <ul class="ulist">
-                    <li
-                      v-for="(activityType, i) in form.global_activity_types"
-                      :key="i"
-                      class="tag is-primary"
-                    >
+                    <li v-for="(activityType, i) in form.global_activity_types" :key="i" class="tag is-primary">
                       {{ activityType.name }}
-                      <b-button
-                        @click="removeActivity(activityType)"
-                        class="no-button"
-                        icon-left="close-circle"
-                      />
+                      <b-button @click="removeActivity(activityType)" class="no-button" icon-left="close-circle" />
                     </li>
                   </ul>
                 </div>
               </b-field>
               <hr />
-              <b-field
-                label="Subvencions"
-                horizontal
-                message="Que s'acull a subvencions que caldrà justificar"
-              >
+              <b-field label="Subvencions" horizontal message="Que s'acull a subvencions que caldrà justificar">
                 <b-switch v-model="form.grantable"> </b-switch>
               </b-field>
-              <b-field
-                label="Import a justificar amb nòmines"
-                v-if="form.grantable"
-                horizontal
-              >
-                <b-input
-                  v-if="form.grantable"
-                  type="numeric"
-                  v-model="form.grantable_amount"
-                  placeholder="Import a justificar amb nòmines"
-                  @input="
+              <b-field label="Import a justificar amb nòmines" v-if="form.grantable" horizontal>
+                <b-input v-if="form.grantable" type="numeric" v-model="form.grantable_amount"
+                  placeholder="Import a justificar amb nòmines" @input="
                     changeValue('grantable_amount', form.grantable_amount)
-                  "
-                >
+                    ">
                 </b-input>
               </b-field>
-              <b-field
-                label="Import a justificar total"
-                v-if="form.grantable"
-                horizontal
-              >
-                <b-input
-                  v-if="form.grantable"
-                  type="numeric"
-                  v-model="form.grantable_amount_total"
-                  placeholder="Import a justificar total"
-                  @input="
+              <b-field label="Import a justificar total" v-if="form.grantable" horizontal>
+                <b-input v-if="form.grantable" type="numeric" v-model="form.grantable_amount_total"
+                  placeholder="Import a justificar total" @input="
                     changeValue(
                       'grantable_amount_total',
                       form.grantable_amount_total
                     )
-                  "
-                >
+                    ">
                 </b-input>
               </b-field>
-              <b-field
-                label="Necessita intercooperació"
-                v-if="form.grantable"
-                horizontal
-              >
-                <b-checkbox
-                  v-model="form.grantable_intercooperation"
-                  class="checkbox-inline"
-                >
+              <b-field label="Necessita intercooperació" v-if="form.grantable" horizontal>
+                <b-checkbox v-model="form.grantable_intercooperation" class="checkbox-inline">
                 </b-checkbox>
               </b-field>
-              <b-field
-                label="Data sol·licitud"
-                v-if="form.grantable"
-                horizontal
-              >
-                <b-datepicker
-                  v-model="form.grantable_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data sol·licitud"
-                  trap-focus
-                  editable
-                >
+              <b-field label="Data sol·licitud" v-if="form.grantable" horizontal>
+                <b-datepicker v-model="form.grantable_date" :show-week-number="false" :locale="'ca-ES'"
+                  :first-day-of-week="1" icon="calendar-today" placeholder="Data sol·licitud" trap-focus editable>
                 </b-datepicker>
               </b-field>
 
               <hr />
               <b-field horizontal label="Documents">
-                <div
-                  class="file-documents columns is-multiline"
-                  v-if="form.documents && form.documents.length"
-                >
+                <div class="file-documents columns is-multiline" v-if="form.documents && form.documents.length">
                   <!-- <pre>{{ form.documents }}</pre>   -->
-                  <div
-                    v-for="(doc, i) in form.documents"
-                    :key="i"
-                    class="column"
-                    :class="
-                      form.documents.length > 6
-                        ? 'is-2'
-                        : form.documents.length > 3
-                        ? 'is-3'
-                        : 'is-4'
-                    "
-                  >
+                  <div v-for="(doc, i) in form.documents" :key="i" class="column" :class="form.documents.length > 6
+                    ? 'is-2'
+                    : form.documents.length > 3
+                      ? 'is-3'
+                      : 'is-4'
+                    ">
                     <div class="column-doc">
                       <div @click="removeImage(doc)" class="remove-button">
                         <b-icon icon="close" size="is-medium" />
                       </div>
-                      <img
-                        v-if="doc.mime.startsWith('image')"
-                        :src="apiUrl + doc.url"
-                        class="file-document mb-3"
-                      />
+                      <img v-if="doc.mime.startsWith('image')" :src="apiUrl + doc.url" class="file-document mb-3" />
                       <div v-else class="mb-3">
                         <a :href="apiUrl + doc.url" target="_blank">
                           <b-icon icon="open-in-new"></b-icon>
@@ -429,90 +215,54 @@ res executade<template>
                 </div>
               </b-field>
 
-              <file-upload
-                :multiple="true"
-                entity="project"
-                :ref-id="form.id"
-                :field="'documents'"
-                :accept="'*/*'"
-                @uploaded="uploaded"
-                v-if="form.id"
-              >
+              <file-upload :multiple="true" entity="project" :ref-id="form.id" :field="'documents'" :accept="'*/*'"
+                @uploaded="uploaded" v-if="form.id">
               </file-upload>
               <hr />
               <div class="is-flex">
                 <b-field horizontal>
-                  <b-button
-                    type="is-primary"
-                    :loading="isLoading"
-                    @click="submitAndContinue"
-                    >Guardar</b-button
-                  >
+                  <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
                 </b-field>
                 <b-field horizontal>
-                  <b-button
-                    v-if="form.id"
-                    type="is-primary"
-                    :loading="isLoading && form.id"
-                    @click="submitAndExit"
-                    >Guardar i sortir</b-button
-                  >
+                  <b-button v-if="form.id" type="is-primary" :loading="isLoading && form.id"
+                    @click="submitAndExit">Guardar i sortir</b-button>
                 </b-field>
               </div>
             </form>
           </card-component>
         </div>
         <div class="column is-one-third" v-if="!isLoading">
-          <card-component
-            v-if="isProfileExists"
-            title="RESUM FINANCER PROJECTE"
-            class="tile is-child summary-card"
-          >
+          <card-component v-if="isProfileExists" title="RESUM FINANCER PROJECTE" class="tile is-child summary-card">
             <div class="panel-warning mb-4" v-if="form.dirty || hasBeenDirty">
-              <b-icon v-if="form.dirty" icon="alert-circle mr-2" class="warning-tag" size="is-small" title="" />              
-              <span v-if="form.dirty">Els totals del projecte s'estan actualitzant en un procés extern. Pot ser que temporalment no siguin correctes. Torna a carregar el projecte en una estona</span>              
+              <b-icon v-if="form.dirty" icon="alert-circle mr-2" class="warning-tag" size="is-small" title="" />
+              <span v-if="form.dirty">Els totals del projecte s'estan actualitzant en un procés extern. Pot ser que
+                temporalment no siguin correctes. Torna a carregar el projecte en una estona</span>
               <span v-if="!form.dirty && hasBeenDirty">Recarrega el projecte per veure els totals correctes</span>
               <button class="button is-warning ml-2" @click.prevent="refresh" v-if="!form.dirty && hasBeenDirty">
-                <b-icon  v-if="!form.dirty && hasBeenDirty" icon="refresh" class="warning-tag clickable" size="is-small" title="" />              
-              </button>              
+                <b-icon v-if="!form.dirty && hasBeenDirty" icon="refresh" class="warning-tag clickable" size="is-small"
+                  title="" />
+              </button>
             </div>
 
             <div class="columns">
               <b-field label="Resultat previst" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.incomes_expenses"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.incomes_expenses" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Resultat executat" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.total_real_incomes_expenses"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_real_incomes_expenses" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *(totals.incomes_expenses - totals.total_real_incomes_expenses)
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (totals.incomes_expenses - totals.total_real_incomes_expenses)
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
@@ -521,37 +271,22 @@ res executade<template>
             <div class="columns">
               <b-field label="Ingressos previstos" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.total_incomes"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_incomes" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Ingressos executats" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.total_real_incomes"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_real_incomes" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="-1 *(totals.total_incomes - totals.total_real_incomes)"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (totals.total_incomes - totals.total_real_incomes)" :locale="'es'"
+                    :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
@@ -560,46 +295,25 @@ res executade<template>
             <div class="columns">
               <b-field label="Despeses pr. totals" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      totals.total_expenses + totals.total_estimated_hours_price
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_expenses + totals.total_estimated_hours_price
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Despeses ex. totals" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      totals.total_real_expenses + totals.total_real_hours_price
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_real_expenses + totals.total_real_hours_price
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *(totals.total_expenses +
-                      totals.total_estimated_hours_price -
-                      totals.total_real_expenses -
-                      totals.total_real_hours_price)
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (totals.total_expenses +
+                    totals.total_estimated_hours_price -
+                    totals.total_real_expenses -
+                    totals.total_real_hours_price)
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
@@ -608,37 +322,22 @@ res executade<template>
             <div class="columns">
               <b-field label="Despeses pr. factures" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.total_expenses"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_expenses" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Despeses ex. factures" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.total_real_expenses"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_real_expenses" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="-1 *(totals.total_expenses - totals.total_real_expenses)"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (totals.total_expenses - totals.total_real_expenses)" :locale="'es'"
+                    :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
@@ -647,40 +346,23 @@ res executade<template>
             <div class="columns">
               <b-field label="Hores previstes" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.total_estimated_hours_price"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_estimated_hours_price" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Hores executades" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="totals.total_real_hours_price"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_real_hours_price" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *(totals.total_estimated_hours_price -
-                      form.total_real_hours_price)
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (totals.total_estimated_hours_price -
+                    form.total_real_hours_price)
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
@@ -700,7 +382,7 @@ res executade<template>
               <b-field label="Diferència (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
                   {{
-                    -1 *(
+                    -1 * (
                       totals.total_estimated_hours - totals.total_real_hours
                     ).toFixed(2)
                   }}
@@ -712,54 +394,33 @@ res executade<template>
             <div class="columns">
               <b-field label="Cost/hora previst" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      totals.total_estimated_hours
+                  <money-format :value="totals.total_estimated_hours
                         ? totals.total_estimated_hours_price /
-                          totals.total_estimated_hours
+                        totals.total_estimated_hours
                         : 0
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                      " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Cost/hora executat" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      totals.total_real_hours
-                        ? form.total_real_hours_price / form.total_real_hours
-                        : 0
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_real_hours
+                    ? form.total_real_hours_price / form.total_real_hours
+                    : 0
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *(totals.total_estimated_hours
-                        ? totals.total_estimated_hours_price /
-                          totals.total_estimated_hours
-                        : 0) -
-                        -1 *(totals.total_real_hours
-                        ? totals.total_real_hours_price / totals.total_real_hours
-                        : 0)
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (totals.total_estimated_hours
+                    ? totals.total_estimated_hours_price /
+                    totals.total_estimated_hours
+                    : 0) -
+                    -1 * (totals.total_real_hours
+                      ? totals.total_real_hours_price / totals.total_real_hours
+                      : 0)
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
@@ -767,110 +428,74 @@ res executade<template>
             <div class="columns">
               <b-field label="Preu/hora previst" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      totals.total_estimated_hours
-                        ? (totals.total_incomes - totals.total_expenses) /
-                        totals.total_estimated_hours
-                        : 0
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="totals.total_estimated_hours
+                    ? (totals.total_incomes - totals.total_expenses) /
+                    totals.total_estimated_hours
+                    : 0
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Preu/hora executat" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      form.total_real_hours
-                        ? (form.total_real_incomes - form.total_real_expenses) /
-                          form.total_real_hours
-                        : 0
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="form.total_real_hours
+                    ? (form.total_real_incomes - form.total_real_expenses) /
+                    form.total_real_hours
+                    : 0
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *(form.total_estimated_hours
-                        ? (form.total_incomes - form.total_expenses) /
-                          form.total_estimated_hours
-                        : 0) -
-                        -1 *(form.total_real_hours
-                        ? (form.total_real_incomes - form.total_real_expenses) /
-                          form.total_real_hours
-                        : 0)
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (form.total_estimated_hours
+                    ? (form.total_incomes - form.total_expenses) /
+                    form.total_estimated_hours
+                    : 0) -
+                    -1 * (form.total_real_hours
+                      ? (form.total_real_incomes - form.total_real_expenses) /
+                      form.total_real_hours
+                      : 0)
+                    " :locale="'es'" :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
             </div>
-            <hr/>
+            <hr />
             <div class="is-flex">
-              <div class="year-total tag mr-1 clickable" :class="allByYearYear == 'TOTS' ? 'is-primary' : 'is-ghost'" @click="allByYearYear = 'TOTS'">
+              <div class="year-total tag mr-1 clickable" :class="allByYearYear == 'TOTS' ? 'is-primary' : 'is-ghost'"
+                @click="allByYearYear = 'TOTS'">
                 TOTAL
               </div>
-              <div v-for="y in allByYear.filter(a => a.year !== 'undefined')" class="year-total tag is-ghost mr-1 clickable" :class="allByYearYear == y.year ? 'is-primary' : 'is-ghost'" @click="allByYearYear = y.year">
+              <div v-for="y in allByYear.filter(a => a.year !== 'undefined')"
+                class="year-total tag is-ghost mr-1 clickable"
+                :class="allByYearYear == y.year ? 'is-primary' : 'is-ghost'" @click="allByYearYear = y.year">
                 {{ y.year }}
               </div>
             </div>
           </card-component>
 
-          <card-component
-            v-if="isProfileExists"
-            title="RESUM TRESORERIA PROJECTE"
-            class="ztile is-child summary-card mt-4"
-          >
+          <card-component v-if="isProfileExists" title="RESUM TRESORERIA PROJECTE"
+            class="ztile is-child summary-card mt-4">
             <div class="columns">
               <b-field label="Pagaments previstos" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="treasuryExpensesPending"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="treasuryExpensesPending" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Pagaments realitzats" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="treasuryExpensesDone"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="treasuryExpensesDone" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="-1 *(treasuryExpensesPending - treasuryExpensesDone)"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (treasuryExpensesPending - treasuryExpensesDone)" :locale="'es'"
+                    :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
@@ -879,340 +504,261 @@ res executade<template>
             <div class="columns">
               <b-field label="Cobraments previstos" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="treasuryIncomesPending"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="treasuryIncomesPending" :locale="'es'" :currency-code="'EUR'"
+                    :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Cobraments realitzats" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="treasuryIncomesDone"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="treasuryIncomesDone" :locale="'es'" :currency-code="'EUR'" :subunits-value="false"
+                    :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
               <b-field label="Diferència" class="column">
                 <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="-1 *(treasuryIncomesPending - treasuryIncomesDone)"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
+                  <money-format :value="-1 * (treasuryIncomesPending - treasuryIncomesDone)" :locale="'es'"
+                    :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
                   </money-format>
                 </div>
               </b-field>
-            </div>            
-          </card-component>          
+            </div>
+          </card-component>
         </div>
       </div>
 
-      <card-component
-        v-if="
-          !isLoading &&
-          phasesVisible &&
-          form &&
-          form.original_phases &&
-          form.original_phases.length > 0
-        "
-        title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
-        :closeIcon="true"
-        :content-visible="true"
-      >
-        <project-phases
-          :form="form"
-          :project-phases="form.original_phases"
-          @phases-updated="originalPhasesUpdated"
-          @phases-copy="originalPhasesCopy"
-          mode="simple"
-        />
-        <hr
-          v-if="
-            form.original_phases.length &&
-            (!form.phases || form.phases.length === 0)
-          "
-        />
+      <card-component v-if="!isLoading &&
+        phasesVisible &&
+        form &&
+        form.original_phases &&
+        form.original_phases.length > 0
+        " title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL" :closeIcon="true" :content-visible="true">
+        <project-phases :form="form" :project-phases="form.original_phases" @phases-updated="originalPhasesUpdated"
+          @phases-copy="originalPhasesCopy" mode="simple" />
+        <hr v-if="form.original_phases.length &&
+          (!form.phases || form.phases.length === 0)
+          " />
         <b-field v-if="form.original_phases.length && form.phases.length === 0">
           <b-button type="is-warning" @click="closeQuoteFromOriginal">
             Tancar Pressupost
           </b-button>
         </b-field>
+
+
+        <hr />
+        <div class="is-flex">
+          <b-field horizontal>
+            <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
+          </b-field>
+          <b-field horizontal>
+            <b-button v-if="form.id" type="is-primary" :loading="isLoading && form.id" @click="submitAndExit">Guardar i
+              sortir</b-button>
+          </b-field>
+        </div>
+
       </card-component>
 
-      <!-- <pre>{{ form.original_phases }}</pre>
-      <pre>{{ form.phases }}</pre> -->
 
-      <card-component
-        v-if="
-          !isLoading && phasesVisible && form && form.phases && !form.children
-        "
-        :title="
-          !form.original_phases ||
-          (form.original_phases && form.original_phases.length === 0)
-            ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST'
-            : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'
-        "
-        :closeIcon="true"
-        :content-visible="true"
-      >
-        <project-phases
-          :form="form"
-          :project-phases="form.phases"
-          @phases-updated="phasesUpdated"
-        />
-        <hr
-          v-if="
-            form.phases.length &&
-            (!form.original_phases || form.original_phases.length === 0)
-          "
-        />
+      <card-component v-if="!isLoading && phasesVisible && form && form.phases && !form.children
+        " :title="!form.original_phases ||
+    (form.original_phases && form.original_phases.length === 0)
+    ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST'
+    : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'
+    " :closeIcon="true" :content-visible="true">
+        <project-phases :form="form" :project-phases="form.phases" @phases-updated="phasesUpdated" />
+        <hr v-if="form.phases.length &&
+          (!form.original_phases || form.original_phases.length === 0)
+          " />
         <b-field v-if="form.phases.length && form.original_phases.length === 0">
           <b-button type="is-warning" @click="closeQuote">
             Tancar Pressupost
           </b-button>
         </b-field>
+
+        <hr />
+        <div class="is-flex">
+          <b-field horizontal>
+            <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
+          </b-field>
+          <b-field horizontal>
+            <b-button v-if="form.id" type="is-primary" :loading="isLoading && form.id" @click="submitAndExit">Guardar i
+              sortir</b-button>
+          </b-field>
+        </div>
+
       </card-component>
       <!-- <pre>{{documents}}</pre> -->
-      <card-component
-        v-if="documents && documents.length && !isLoading"
-        title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
-        class="ztile is-child mt-2"
-        :content-visible="true"
-      >
+
+      <card-component v-if="!isLoading && periodification" title="PERIODIFICACIÓ DE PRESSUPOST">
+        <div v-for="(y, i) in form.periodification" class="year-total-periodic mb-2 is-flex">
+          <div class="year-label">
+            <label class="label" v-if="i === 0">Any</label>
+            <div class="year mr-4 pt-2">
+              {{ y.year }}
+            </div>
+          </div>
+          <div>
+            <b-field :label="i === 0 ? 'Ingressos' : null" class="mr-4">
+              <b-input :disabled="i === form.periodification.length - 1" v-model="y.incomes"
+                @input="changeLine(y, 'incomes', y.incomes)" />
+            </b-field>
+          </div>
+          <div>
+            <b-field :label="i === 0 ? 'Despeses' : null">
+              <b-input :disabled="i === form.periodification.length - 1" v-model="y.expenses"
+                @input="changeLine(y, 'expenses', y.expenses)" />
+            </b-field>
+          </div>
+
+        </div>
+        <div class="year-total-periodic mb-2 is-flex">
+          <div class="year-label">
+            <div class="year mr-4 pt-2">
+              TOTAL
+            </div>
+          </div>
+          <div>
+            <b-field label="" class="mr-4">
+              <b-input disabled v-model="form.total_incomes" />
+            </b-field>
+          </div>
+          <div>
+            <b-field label="" class="mr-4">
+              <b-input disabled v-model="form.total_expenses" />
+            </b-field>
+          </div>
+        </div>
+
+        <hr />
+        <div class="is-flex">
+          <b-field horizontal>
+            <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
+          </b-field>
+          <b-field horizontal>
+            <b-button v-if="form.id" type="is-primary" :loading="isLoading && form.id" @click="submitAndExit">Guardar i
+              sortir</b-button>
+          </b-field>
+        </div>
+
+      </card-component>
+      <card-component v-if="documents && documents.length && !isLoading"
+        title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES" class="ztile is-child mt-2" :content-visible="true">
         <b-table :data="documents">
-          <b-table-column
-            label="Tipus"
-            field="docTypeDesc"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Tipus" field="docTypeDesc" sortable v-slot="props">
             {{ props.row.multiplier > 0 ? "Ingrés" : "Despesa" }}
           </b-table-column>
-          <b-table-column
-            label="Subtipus"
-            field="docTypeDesc"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Subtipus" field="docTypeDesc" sortable v-slot="props">
             {{ props.row.docTypeDesc }}
           </b-table-column>
-          <b-table-column
-            label="Emés"
-            field="document.emitted"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Emés" field="document.emitted" sortable v-slot="props">
             {{
               props.row.document.emitted
-                ? formatDate(props.row.document.emitted)
-                : ""
+              ? formatDate(props.row.document.emitted)
+              : ""
             }}
           </b-table-column>
-          <b-table-column
-            label="Document"
-            field="document.code"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Document" field="document.code" sortable v-slot="props">
             {{ props.row.document.code }}
           </b-table-column>
-          <b-table-column
-            label="Contacte"
-            field="document.contact"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Contacte" field="document.contact" sortable v-slot="props">
             {{ getContactName(props.row.document) }}
           </b-table-column>
-          <b-table-column
-            label="Import"
-            field="document.total_base"
-            sortable
-            numeric
-            v-slot="props"
-            class="has-text-right"
-          >
-            <money-format
-              :value="props.row.document.total_base * props.row.multiplier"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
+          <b-table-column label="Import" field="document.total_base" sortable numeric v-slot="props"
+            class="has-text-right">
+            <money-format :value="props.row.document.total_base * props.row.multiplier" :locale="'es'"
+              :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
             </money-format>
           </b-table-column>
-          <b-table-column
-            label="Pagat"
-            field="document.paid"
-            sortable
-            v-slot="props"
-          >
-            <span
-              class="ztag"
-              :class="
-                props.row.document.paid ? 'has-text-primary' : 'has-text-danger'
-              "
-            >
+          <b-table-column label="Pagat" field="document.paid" sortable v-slot="props">
+            <span class="ztag" :class="props.row.document.paid ? 'has-text-primary' : 'has-text-danger'
+              ">
               {{ props.row.document.paid ? "SÍ" : "NO" }}
             </span>
           </b-table-column>
-          <b-table-column
-            label="Data Pagament"
-            field="document.paid_date"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Data Pagament" field="document.paid_date" sortable v-slot="props">
             {{ props.row.document.paid_date }}
           </b-table-column>
           <b-table-column label="Assignat" v-slot="props">
-            <span
-              :class="
-                treasuryDone.find(
-                  (t) =>
-                    t.docType === props.row.docType &&
-                    t.id === props.row.document.id
-                )
-                  ? 'has-text-primary'
-                  : 'has-text-danger'
-              "
-            >
+            <span :class="treasuryDone.find(
+              (t) =>
+                t.docType === props.row.docType &&
+                t.id === props.row.document.id
+            )
+              ? 'has-text-primary'
+              : 'has-text-danger'
+              ">
               {{
                 treasuryDone.find(
                   (t) =>
                     t.docType === props.row.docType &&
                     t.id === props.row.document.id
                 )
-                  ? "SÍ"
-                  : "NO"
+                ? "SÍ"
+                : "NO"
               }}
             </span>
           </b-table-column>
         </b-table>
       </card-component>
 
-      <card-component
-        v-if="!isLoading && !isUpdating && !form.children"
-        title="PLANIFICACIÓ"
-      >
-        <button
-          v-if="needsUpdate"
-          class="button is-small is-danger ml-2"
-          type="button"
-          @click.prevent="updateGantt"
-        >
+      <card-component v-if="!isLoading && !isUpdating && !form.children" title="PLANIFICACIÓ">
+        <button v-if="needsUpdate" class="button is-small is-danger ml-2" type="button" @click.prevent="updateGantt">
           Guardar i Actualitzar
           <b-icon icon="refresh" size="is-small" />
         </button>
-        <project-gannt
-          v-if="
-            !isLoading &&
-            !needsUpdate &&
-            form.id &&
-            form.original_phases &&
-            form.original_phases.length &&
-            form.original_phases[0].id
-          "
-          class="left-container"
-          :project="form"
-          :users="leaders"
-          :tasks="{}"
-          @gantt-item-update="ganttItemUpdate"
-          @gantt-item-delete="ganttItemDelete"
-        />
-        <span class="bg-info" v-else
-          >Es necessari tenir fases i guardar el projecte amb un pressupost
-          tancat per accedir a la planificació</span
-        >
+        <project-gannt v-if="!isLoading &&
+          !needsUpdate &&
+          form.id &&
+          form.original_phases &&
+          form.original_phases.length &&
+          form.original_phases[0].id
+          " class="left-container" :project="form" :users="leaders" :tasks="{}" @gantt-item-update="ganttItemUpdate"
+          @gantt-item-delete="ganttItemDelete" />
+        <span class="bg-info" v-else>Es necessari tenir fases i guardar el projecte amb un pressupost
+          tancat per accedir a la planificació</span>
         <hr />
         <div class="is-flex">
           <b-field horizontal>
-            <b-button
-              type="is-primary"
-              :loading="isLoading"
-              @click="submitAndContinue"
-              >Guardar</b-button
-            >
+            <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
           </b-field>
           <b-field horizontal>
-            <b-button
-              v-if="form.id"
-              type="is-primary"
-              :loading="isLoading"
-              @click="submitAndExit"
-              >Guardar i sortir</b-button
-            >
+            <b-button v-if="form.id" type="is-primary" :loading="isLoading" @click="submitAndExit">Guardar i
+              sortir</b-button>
           </b-field>
         </div>
       </card-component>
 
-      <card-component
-        v-if="treasury && treasury.length && !isLoading"
-        title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
-        class="ztile is-child mt-2"
-      >
+      <card-component v-if="treasury && treasury.length && !isLoading"
+        title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS" class="ztile is-child mt-2">
         <b-table :data="treasury">
-          <b-table-column
-            label="Data"
-            field="document.date"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Data" field="document.date" sortable v-slot="props">
             <span v-if="props.row.document && props.row.document.date">{{
               props.row.document.date ? formatDate(props.row.document.date) : ""
             }}</span>
-            <span
-              v-else-if="
-                props.row.document &&
-                props.row.document.invoice &&
-                props.row.document.invoice.emitted
-              "
-              >{{ formatDate(props.row.document.invoice.emitted) }}</span
-            >
-            <span
-              v-else-if="
-                props.row.document &&
-                props.row.document.expense &&
-                props.row.document.expense.emitted
-              "
-              >{{ formatDate(props.row.document.expense.emitted) }}</span
-            >
+            <span v-else-if="props.row.document &&
+              props.row.document.invoice &&
+              props.row.document.invoice.emitted
+              ">{{ formatDate(props.row.document.invoice.emitted) }}</span>
+            <span v-else-if="props.row.document &&
+              props.row.document.expense &&
+              props.row.document.expense.emitted
+              ">{{ formatDate(props.row.document.expense.emitted) }}</span>
           </b-table-column>
-          <b-table-column
-            label="Tipus"
-            field="docTypeDesc"
-            sortable
-            v-slot="props"
-          >
-            <span
-              v-if="
-                props.row.docType === 'income' &&
-                props.row.document &&
-                props.row.document.paid
-              "
-            >
+          <b-table-column label="Tipus" field="docTypeDesc" sortable v-slot="props">
+            <span v-if="props.row.docType === 'income' &&
+              props.row.document &&
+              props.row.document.paid
+              ">
               Cobrament
             </span>
             <span v-else-if="props.row.docType === 'income'">
               Cobrament esperat
             </span>
-            <span
-              v-else-if="
-                props.row.docType === 'expense' &&
-                props.row.document &&
-                props.row.document.paid
-              "
-            >
+            <span v-else-if="props.row.docType === 'expense' &&
+              props.row.document &&
+              props.row.document.paid
+              ">
               Pagament
             </span>
             <span v-else-if="props.row.docType === 'expense'">
@@ -1222,17 +768,12 @@ res executade<template>
               Operació de tresoreria
             </span>
           </b-table-column>
-          <b-table-column
-            label="Concepte"
-            field="document.concept"
-            sortable
-            v-slot="props"
-          >
+          <b-table-column label="Concepte" field="document.concept" sortable v-slot="props">
             {{
               props.row.docType === "income" && props.row.document.income_type
-                ? props.row.document.income_type.name + " - "
-                : props.row.docType === "expense" &&
-                  props.row.document.expense_type
+              ? props.row.document.income_type.name + " - "
+              : props.row.docType === "expense" &&
+                props.row.document.expense_type
                 ? props.row.document.expense_type.name + " - "
                 : ""
             }}
@@ -1243,43 +784,19 @@ res executade<template>
               props.row.document.comment
             }}</span>
           </b-table-column>
-          <b-table-column
-            label="Import"
-            field="document.total_amount"
-            sortable
-            numeric
-            v-slot="props"
-          >
-            <money-format
-              :value="props.row.document.total_amount * props.row.multiplier"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
+          <b-table-column label="Import" field="document.total_amount" sortable numeric v-slot="props">
+            <money-format :value="props.row.document.total_amount * props.row.multiplier" :locale="'es'"
+              :currency-code="'EUR'" :subunits-value="false" :hide-subunits="false">
             </money-format>
           </b-table-column>
         </b-table>
       </card-component>
 
-      <card-component
-        v-if="!isLoading && !form.children"
-        title="TASQUES"
-        header-icon="view-column"
-        @header-icon-click="toogleTasksView"
-      >
-        <tasks
-          v-if="form.id"
-          :projects="projects"
-          :users="leaders"
-          :user="null"
-          :project-info="form"
-          :project="form.id"
-          :view="tasksView"
-        />
-        <span class="bg-info" v-else
-          >Es necessari guardar el projecte per accedir a les tasques</span
-        >
+      <card-component v-if="!isLoading && !form.children" title="TASQUES" header-icon="view-column"
+        @header-icon-click="toogleTasksView">
+        <tasks v-if="form.id" :projects="projects" :users="leaders" :user="null" :project-info="form" :project="form.id"
+          :view="tasksView" />
+        <span class="bg-info" v-else>Es necessari guardar el projecte per accedir a les tasques</span>
       </card-component>
     </section>
   </div>
@@ -1365,7 +882,8 @@ export default {
       dirtyProjectInterval: 0,
       hasBeenDirty: false,
       allByYear: [],
-      allByYearYear: 'TOTS'
+      allByYearYear: 'TOTS',
+      periodification: false
     };
   },
   computed: {
@@ -1888,6 +1406,10 @@ export default {
                 ).toDate();
               }
 
+              if (this.form.periodification && this.form.periodification.length) {
+                this.periodification = true
+              }
+
               this.getAuxiliarData();
 
               // this.handleDirtyProject()
@@ -1976,16 +1498,19 @@ export default {
             }
           }
         });
-        if (this.$route.params.id) {
-          this.allByYear = []
-          service({ requiresAuth: true })
+      if (this.$route.params.id) {
+        this.allByYear = []
+        service({ requiresAuth: true })
           .get(`projects/${this.$route.params.id}/calculate`)
           .then((r) => {
             if (r.data && r.data.allByYear) {
               this.allByYear = r.data.allByYear;
-            }            
+              if (this.form.periodification.length === 0) {
+                this.form.periodification = this.allByYear.filter(a => a.year !== 'undefined').map(y => { return { year: y.year, incomes: y.total_incomes, expenses: y.total_expenses } })
+              }
+            }
           });
-        }
+      }
     },
     // input(v) {
     //   this.createdReadable = dayjs(v).format("MMM D, YYYY");
@@ -1998,6 +1523,10 @@ export default {
     },
     async submit(action) {
       this.isLoading = true;
+
+      if (!this.periodification) {
+        this.form.periodification = []
+      }
 
       if (!this.form.structural_expenses_pct) {
         this.form.structural_expenses_pct = null;
@@ -2220,9 +1749,9 @@ export default {
         hours.to = item.end_date
           ? moment(item.end_date).add(-1, "day").format("YYYY-MM-DD")
           : moment(item.start_date)
-              .add(1, "month")
-              .add(-1, "day")
-              .format("YYYY-MM-DD");
+            .add(1, "month")
+            .add(-1, "day")
+            .format("YYYY-MM-DD");
         const to2 = moment(hours.to, "YYYY-MM-DD");
         const months = moment(to2).diff(item.start_date, "months") + 1;
         hours.monthly_quantity = item._hours.quantity * months;
@@ -2237,9 +1766,9 @@ export default {
           to: item.end_date
             ? moment(item.end_date).add(-1, "day").format("YYYY-MM-DD")
             : moment(item.start_date)
-                .add(1, "month")
-                .add(-1, "day")
-                .format("YYYY-MM-DD"),
+              .add(1, "month")
+              .add(-1, "day")
+              .format("YYYY-MM-DD"),
           monthly_quantity: null,
           quantity: item._hours.quantity,
           quantity_type: item._hours.quantity_type,
@@ -2417,6 +1946,16 @@ export default {
         this.form[field] = value.toString().replace(",", ".");
       }
     },
+    changeLine(line, field, value) {
+      if (value && value.toString().includes(",")) {
+        line[field] = value.toString().replace(",", ".");
+      }
+      const len = this.form.periodification.length
+      const incomes = sumBy(this.form.periodification.filter((y, i) => i < len - 1), (v) => parseFloat(v.incomes))
+      const expenses = sumBy(this.form.periodification.filter((y, i) => i < len - 1), (v) => parseFloat(v.expenses))
+      this.form.periodification[len - 1].incomes = parseFloat((this.form.total_incomes - incomes).toFixed(2))
+      this.form.periodification[len - 1].expenses = parseFloat((this.form.total_expenses - expenses).toFixed(2))
+    },
     async uploaded(info) {
       // console.log('uploaded', info)
 
@@ -2437,7 +1976,7 @@ export default {
     handleDirtyProject() {
       if (this.form.dirty) {
         this.hasBeenDirty = true
-        this.dirtyProjectInterval = setInterval(async() => {
+        this.dirtyProjectInterval = setInterval(async () => {
           const { data } = await service({ requiresAuth: true }).get(`projects/${this.form.id}/dirty`)
           this.form.dirty = data.dirty
           if (data.dirty === false) {
@@ -2455,4 +1994,7 @@ export default {
 };
 </script>
 <style>
+.year-label {
+  min-width: 100px;
+}
 </style>
