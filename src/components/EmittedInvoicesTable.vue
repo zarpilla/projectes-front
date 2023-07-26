@@ -403,7 +403,7 @@ export default {
           line_vat: "",
           line_vat_pct: "",
         })
-        console.log('e', e.lines)
+        
         if (e.lines && e.lines.length) {
           e.lines.forEach(line => {
             let base = (line.base ? line.base : 0) * (line.quantity ? line.quantity : 0);

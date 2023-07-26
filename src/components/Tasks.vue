@@ -387,7 +387,7 @@ export default {
           queue: false,
         });
       } catch (e) {
-        console.error('e', e)
+        // console.error('e', e)
         this.$buefy.snackbar.open({
           message: "Error",
           queue: false,

@@ -134,7 +134,7 @@
                 </div>
               </b-field>
 
-              <b-field label="Periodificació de pressupost" horizontal
+              <b-field label="Periodificació d'ingressos i despeses" horizontal
                 message="Si es volen periodificar manualment ingressos i despeses entre anys">
                 <b-switch v-model="periodification"> </b-switch>
               </b-field>
@@ -590,7 +590,7 @@
       </card-component>
       <!-- <pre>{{documents}}</pre> -->
 
-      <card-component v-if="!isLoading && periodification" title="PERIODIFICACIÓ DE PRESSUPOST">
+      <card-component v-if="!isLoading && periodification" title="PERIODIFICACIÓ D'INGRESSOS I DESPESES">
         <div v-for="(y, i) in form.periodification" class="year-total-periodic mb-2 is-flex">
           <div class="year-label">
             <label class="label" v-if="i === 0">Any</label>

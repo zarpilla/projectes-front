@@ -371,7 +371,7 @@
             <card-component v-for="( project, i ) in  form.projects " :key=" i "
               :title=" `DETALL DEL PROJECTE - ${project.name}` ">
               <div class="project-form">
-                <project-phases :form=" project " :project-phases=" project.phases " @phases-updated=" phasesUpdated " :mode="
+                <project-phases :form="project" :project-phases=" project.phases " @phases-updated=" phasesUpdated " :mode="
                   type === 'emitted-invoices' || type === 'received-incomes'
                     ? 'incomes'
                     : 'expenses'
@@ -787,6 +787,14 @@ export default {
                 this.form.project = this.form.project.id;
               }
 
+
+              this.form.projects = this.form.projects.map(p => { 
+                const { activities, ...item } = p;
+                return item
+              })
+
+              console.log('this.form.projects', this.form.projects)
+
               this.calculateIRPF();
 
               if (this.type === "payrolls") {
@@ -955,6 +963,12 @@ export default {
           }
 
           this.isLoading = true;
+
+          this.form.projects = this.form.projects.map(p => { 
+            const { activities, ...item } = p;
+            return item
+          } )
+
 
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,

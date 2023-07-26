@@ -964,7 +964,7 @@ export default {
     },
     addSubPhase(phase) {
       this.needsUpdate = true;
-      console.log('this.form', this.form)
+      // console.log('this.form', this.form)
       phase.subphases.push({ concept: "", quantity: 1, amount: 0, assign: false, date: this.form.date_end ? moment(this.form.date_end, 'YYYY-MM-DD').toDate() : null  });
       this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
