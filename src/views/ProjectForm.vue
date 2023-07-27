@@ -599,37 +599,31 @@
             </div>
           </div>
           <div>
-            <b-field :label="i === 0 ? 'Ingressos' : null" class="mr-4">
+            <b-field :label="i === 0 ? '+Ingressos previstos' : null" class="mr-4">
               <b-input :disabled="i === form.periodification.length - 1" v-model="y.incomes"
                 @input="changeLine(y, 'incomes', y.incomes)" />
             </b-field>
           </div>
           <div>
-            <b-field :label="i === 0 ? 'Despeses' : null">
+            <b-field :label="i === 0 ? '+Despeses previstes' : null" class="mr-4">
               <b-input :disabled="i === form.periodification.length - 1" v-model="y.expenses"
                 @input="changeLine(y, 'expenses', y.expenses)" />
             </b-field>
           </div>
-
-        </div>
-        <div class="year-total-periodic mb-2 is-flex">
-          <div class="year-label">
-            <div class="year mr-4 pt-2">
-              TOTAL
-            </div>
-          </div>
           <div>
-            <b-field label="" class="mr-4">
-              <b-input disabled v-model="form.total_incomes" />
+            <b-field :label="i === 0 ? '+Ingressos executats' : null" class="mr-4">
+              <b-input :disabled="i === form.periodification.length - 1" v-model="y.real_incomes"
+                @input="changeLine(y, 'real_incomes', y.real_incomes)" />
             </b-field>
           </div>
           <div>
-            <b-field label="" class="mr-4">
-              <b-input disabled v-model="form.total_expenses" />
+            <b-field :label="i === 0 ? '+Despeses executades' : null">
+              <b-input :disabled="i === form.periodification.length - 1" v-model="y.real_expenses"
+                @input="changeLine(y, 'real_expenses', y.real_expenses)" />
             </b-field>
           </div>
-        </div>
 
+        </div>
         <hr />
         <div class="is-flex">
           <b-field horizontal>
@@ -1506,7 +1500,7 @@ export default {
             if (r.data && r.data.allByYear) {
               this.allByYear = r.data.allByYear;
               if (this.form.periodification.length === 0) {
-                this.form.periodification = this.allByYear.filter(a => a.year !== 'undefined').map(y => { return { year: y.year, incomes: y.total_incomes, expenses: y.total_expenses } })
+                this.form.periodification = this.allByYear.filter(a => a.year !== 'undefined').map(y => { return { year: y.year, incomes: 0, expenses: 0, real_incomes: 0, real_expenses: 0 } })
               }
             }
           });
@@ -1950,11 +1944,6 @@ export default {
       if (value && value.toString().includes(",")) {
         line[field] = value.toString().replace(",", ".");
       }
-      const len = this.form.periodification.length
-      const incomes = sumBy(this.form.periodification.filter((y, i) => i < len - 1), (v) => parseFloat(v.incomes))
-      const expenses = sumBy(this.form.periodification.filter((y, i) => i < len - 1), (v) => parseFloat(v.expenses))
-      this.form.periodification[len - 1].incomes = parseFloat((this.form.total_incomes - incomes).toFixed(2))
-      this.form.periodification[len - 1].expenses = parseFloat((this.form.total_expenses - expenses).toFixed(2))
     },
     async uploaded(info) {
       // console.log('uploaded', info)
