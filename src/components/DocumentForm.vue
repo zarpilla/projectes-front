@@ -50,8 +50,8 @@
             <b-field label="Emissió *" horizontal>
               <b-datepicker @input="input;
               calculateIRPF();
-                              " v-model="form.emitted" :show-week-number="false" :locale="'ca-ES'" :first-day-of-week="1"
-                icon="calendar-today" placeholder="Data Emissió" trap-focus editable>
+                                            " v-model="form.emitted" :show-week-number="false" :locale="'ca-ES'"
+                :first-day-of-week="1" icon="calendar-today" placeholder="Data Emissió" trap-focus editable>
               </b-datepicker>
             </b-field>
 
@@ -60,8 +60,8 @@
                 type !== 'received-expenses' &&
                 type !== 'payrolls'
             ">
-              <b-datepicker v-model=" form.paybefore " :show-week-number=" false " :locale=" 'ca-ES' " :first-day-of-week=" 1 "
-                icon="calendar-today" placeholder="Data Venciment" trap-focus editable>
+              <b-datepicker v-model=" form.paybefore " :show-week-number=" false " :locale=" 'ca-ES' "
+                :first-day-of-week=" 1 " icon="calendar-today" placeholder="Data Venciment" trap-focus editable>
               </b-datepicker>
             </b-field>
             <b-field label="Enviada" horizontal v-if="
@@ -72,8 +72,8 @@
             ">
               <b-checkbox v-model=" form.sent " class="checkbox-inline">
               </b-checkbox>
-              <b-datepicker v-model=" form.sent_date " :show-week-number=" false " :locale=" 'ca-ES' " :first-day-of-week=" 1 "
-                icon="calendar-today" placeholder="Data Enviament" trap-focus editable>
+              <b-datepicker v-model=" form.sent_date " :show-week-number=" false " :locale=" 'ca-ES' "
+                :first-day-of-week=" 1 " icon="calendar-today" placeholder="Data Enviament" trap-focus editable>
               </b-datepicker>
             </b-field>
             <b-field v-if=" type !== 'quotes' " :label="
@@ -83,8 +83,9 @@
             " horizontal>
               <b-checkbox v-model=" form.paid " class="checkbox-inline">
               </b-checkbox>
-              <b-datepicker v-if=" type !== 'quotes' " v-model=" form.paid_date " :show-week-number=" false " :locale=" 'ca-ES' "
-                :first-day-of-week=" 1 " icon="calendar-today" placeholder="Data Pagament" trap-focus editable>
+              <b-datepicker v-if=" type !== 'quotes' " v-model=" form.paid_date " :show-week-number=" false "
+                :locale=" 'ca-ES' " :first-day-of-week=" 1 " icon="calendar-today" placeholder="Data Pagament" trap-focus
+                editable>
               </b-datepicker>
             </b-field>
 
@@ -111,7 +112,7 @@
                 : 'Mètode de cobrament'
             " horizontal>
               <b-select v-model=" form.payment_method " placeholder="" required>
-                <option v-for="( s, index ) in  paymentMethods " :key=" index " :value=" s.id ">
+                <option v-for="(  s, index  ) in   paymentMethods  " :key=" index " :value=" s.id ">
                   {{ s.name }}
                 </option>
               </b-select>
@@ -119,8 +120,8 @@
 
             <b-field v-if=" type == 'emitted-invoices' || type == 'quotes' " label="Clienta *" horizontal>
               <b-autocomplete v-model=" clientSearch " placeholder="Escriu el nom de la clienta..." :keep-first=" false "
-                :open-on-focus=" true " :data=" filteredClients " field="name" @select=" clientSelected " :clearable=" true "
-                required>
+                :open-on-focus=" true " :data=" filteredClients " field="name" @select=" clientSelected "
+                :clearable=" true " required>
               </b-autocomplete>
               <div class="is-flex">
                 <b-button class="view-button is-warning mb-3" @click=" navNew " icon-left="plus" title="Nou Contacte">
@@ -132,7 +133,8 @@
             </b-field>
             <b-field v-if=" type == 'received-invoices' " label="Proveïdora *" horizontal>
               <b-autocomplete v-model=" clientSearch " placeholder="Escriu el nom del contacte..." :keep-first=" false "
-                :open-on-focus=" true " :data=" filteredClients " field="name" @select=" clientSelected " :clearable=" true ">
+                :open-on-focus=" true " :data=" filteredClients " field="name" @select=" clientSelected "
+                :clearable=" true ">
               </b-autocomplete>
               <div class="is-flex">
                 <b-button class="view-button is-warning mb-3" @click=" navNew " icon-left="plus" title="Nou Contacte">
@@ -145,8 +147,8 @@
             <b-field v-if=" type == 'received-incomes' || type == 'received-expenses' " label="Contacte *" horizontal
               :message=" personIrpf ? `IRPF ${personIrpf} %` : '' ">
               <b-autocomplete v-model=" clientSearch " placeholder="Escriu el nom del contacte..." :keep-first=" false "
-                :open-on-focus=" true " :data=" filteredClients " field="name" @select=" clientSelected " :clearable=" true "
-                required>
+                :open-on-focus=" true " :data=" filteredClients " field="name" @select=" clientSelected "
+                :clearable=" true " required>
               </b-autocomplete>
               <div class="is-flex">
                 <b-button class="view-button is-warning mb-3" @click=" navNew " icon-left="plus" title="Nou Contacte">
@@ -163,13 +165,14 @@
             </b-field>
             <b-field :label=" type === 'quotes' ? 'Projecte *' : 'Projectes *' " horizontal v-if=" type !== 'payrolls' ">
               <b-autocomplete v-model=" projectSearch " placeholder="Escriu el nom del projecte..." :keep-first=" false "
-                :open-on-focus=" true " :data=" filteredProjects " field="name" @select=" projectSelected " :clearable=" true ">
+                :open-on-focus=" true " :data=" filteredProjects " field="name" @select=" projectSelected "
+                :clearable=" true ">
               </b-autocomplete>
             </b-field>
             <b-field label="" horizontal v-if=" form.projects && form.projects.length && type !== 'quotes' ">
               <div class="list">
                 <ul class="ulist">
-                  <li v-for="( project, i ) in  form.projects " :key=" i " @click="removeProject(project)"
+                  <li v-for="(  project, i  ) in   form.projects  " :key=" i " @click="removeProject(project)"
                     class="tag is-primary">
                     {{ project.name }}
                     <b-button class="no-button" icon-left="close-circle" />
@@ -181,7 +184,7 @@
             <b-field horizontal label="Adjunts" style="width: 100%" v-if=" !editingDocuments ">
               <div class="file-documents columns is-multiline" v-if=" form.documents && form.documents.length ">
                 <!-- <pre>{{ form.documents }}</pre>   -->
-                <div v-for="( doc, i ) in  form.documents " :key=" i " class="column" :class="
+                <div v-for="(  doc, i  ) in   form.documents  " :key=" i " class="column" :class="
                   form.documents.length > 6
                     ? 'is-2'
                     : form.documents.length > 3
@@ -203,25 +206,25 @@
                 </div>
               </div>
             </b-field>
-            <file-upload :multiple=" true " :entity=" entity " :ref-id=" form.id " :field=" 'documents' " :accept=" '*/*' "
-              @uploaded=" uploaded " v-if=" form.id ">
+            <file-upload :multiple=" true " :entity=" entity " :ref-id=" form.id " :field=" 'documents' "
+              :accept=" '*/*' " @uploaded=" uploaded " v-if=" form.id ">
             </file-upload>
           </card-component>
 
           <hr />
           <card-component title="LINIES" v-if=" form.lines ">
             <ul class="subphases-list">
-              <li v-for="( line, j ) in  form.lines " :key=" j " class="subphase line mt-2 mb-2">
+              <li v-for="(  line, j  ) in   form.lines  " :key=" j " class="subphase line mt-2 mb-2">
                 <b-field grouped class="is-full-width">
                   <b-field v-if=" form.document_type == '4' " :label=" j == 0 ? 'Data' : null " class="medium-field">
-                    <b-datepicker v-model=" line.date " :show-week-number=" false " :locale=" 'ca-ES' " :first-day-of-week=" 1 "
-                      icon="calendar-today" placeholder="Data" trap-focus editable>
+                    <b-datepicker v-model=" line.date " :show-week-number=" false " :locale=" 'ca-ES' "
+                      :first-day-of-week=" 1 " icon="calendar-today" placeholder="Data" trap-focus editable>
                     </b-datepicker>
                   </b-field>
                   <b-field :label=" j == 0 ? 'Concepte' : null " class="subphase-detail-input-large-field">
                     <b-input name="SubFase" placeholder="Concepte..." v-model=" line.concept "
                       class="subphase-detail-input subphase-detail-input-large">
-                    </b-input>                    
+                    </b-input>
                   </b-field>
                   <b-field :label=" j == 0 ? 'Quantitat' : null " class="medium-field">
                     <b-input name="Unitats" placeholder="Quantitat, hores, unitats..." v-model=" line.quantity "
@@ -262,11 +265,12 @@
                     </button>
                   </b-field>
                 </b-field>
-                <b-field grouped class="is-full-width" v-if="products.length > 0">
-                  <b-autocomplete class="is-w-30" v-model=" line.productSearch " placeholder="Escriu el codi del producte..." :keep-first=" false "
-                      :open-on-focus=" true " :data="filteredProducts " field="namecode" @select=" option => productSelected(option, line) " :clearable=" true "
-                      >
-                    </b-autocomplete>
+                <b-field grouped class="is-full-width" v-if=" products.length > 0 ">
+                  <b-autocomplete class="is-w-30" v-model=" line.productSearch "
+                    placeholder="Escriu el codi del producte..." :keep-first=" false " :open-on-focus=" true "
+                    :data=" filteredProducts " field="namecode" @select=" option => productSelected(option, line) "
+                    :clearable=" true ">
+                  </b-autocomplete>
                 </b-field>
                 <b-field label="Notes" grouped class="line-notes is-full-width mb-5"
                   :class=" line.show ? 'z' : 'is-hidden' ">
@@ -319,8 +323,8 @@
               <b-input v-model=" form.irpf_base " type="numeric" placeholder=""
                 @input="fixDecimalsPayroll('irpf_base', form.irpf_base)" />
 
-              <b-datepicker v-model=" form.irpf_date " :show-week-number=" false " :locale=" 'ca-ES' " :first-day-of-week=" 1 "
-                icon="calendar-today" placeholder="">
+              <b-datepicker v-model=" form.irpf_date " :show-week-number=" false " :locale=" 'ca-ES' "
+                :first-day-of-week=" 1 " icon="calendar-today" placeholder="">
               </b-datepicker>
             </b-field>
 
@@ -329,27 +333,27 @@
               <b-input v-model=" form.other_base " type="numeric" placeholder=""
                 @input="fixDecimalsPayroll('other_base', form.other_base)" />
 
-              <b-datepicker v-model=" form.other_date " :show-week-number=" false " :locale=" 'ca-ES' " :first-day-of-week=" 1 "
-                icon="calendar-today" placeholder="">
+              <b-datepicker v-model=" form.other_date " :show-week-number=" false " :locale=" 'ca-ES' "
+                :first-day-of-week=" 1 " icon="calendar-today" placeholder="">
               </b-datepicker>
             </b-field>
 
             <b-field :label=" `Salari net a percebre per la treballadora` " horizontal>
               <b-input v-model=" form.net_base " placeholder="" disabled />
 
-              <b-datepicker v-model=" form.net_date " :show-week-number=" false " :locale=" 'ca-ES' " :first-day-of-week=" 1 "
-                icon="calendar-today" placeholder="">
+              <b-datepicker v-model=" form.net_date " :show-week-number=" false " :locale=" 'ca-ES' "
+                :first-day-of-week=" 1 " icon="calendar-today" placeholder="">
               </b-datepicker>
             </b-field>
 
             <b-field v-if=" form.ss_base " :label="
               `SS a càrrec de la cooperativa ${dedication.pct_quota ? '(' + dedication.pct_quota + '%)' : ''
-              }`
+                }`
             " horizontal>
               <b-input v-model=" form.ss_base " placeholder="" @input="fixDecimalsPayroll('ss_base', form.ss_base)" />
 
-              <b-datepicker v-model=" form.ss_date " :show-week-number=" false " :locale=" 'ca-ES' " :first-day-of-week=" 1 "
-                icon="calendar-today" placeholder="">
+              <b-datepicker v-model=" form.ss_date " :show-week-number=" false " :locale=" 'ca-ES' "
+                :first-day-of-week=" 1 " icon="calendar-today" placeholder="">
               </b-datepicker>
             </b-field>
 
@@ -368,14 +372,15 @@
           <hr />
 
           <div v-if=" type !== 'quotes' && !isLoadingProject ">
-            <card-component v-for="( project, i ) in  form.projects " :key=" i "
+            <card-component v-for="(  project, i  ) in   form.projects  " :key=" i "
               :title=" `DETALL DEL PROJECTE - ${project.name}` ">
               <div class="project-form">
-                <project-phases :form="project" :project-phases=" project.phases " @phases-updated=" phasesUpdated " :mode="
-                  type === 'emitted-invoices' || type === 'received-incomes'
-                    ? 'incomes'
-                    : 'expenses'
-                " />
+                <project-phases :form=" project " :project-phases=" project.phases " @phases-updated=" phasesUpdated "
+                  :mode="
+                    type === 'emitted-invoices' || type === 'received-incomes'
+                      ? 'incomes'
+                      : 'expenses'
+                  " />
                 <div class="helper">
                   <b-icon icon="help-circle" />
 
@@ -391,7 +396,7 @@
             <hr />
           </div>
           <b-field>
-            <button class="button is-warning" type="button" @click="getPDF" v-if="form.id">
+            <button class="button is-warning" type="button" @click=" getPDF " v-if=" form.id ">
               Visualitza PDF
             </button>
             <!-- <router-link v-if=" form.id " :to="{
@@ -525,7 +530,7 @@ export default {
             .toString()
             .toLowerCase()
             .indexOf(this.productSearch.toLowerCase()) >= 0
-            ||
+          ||
           option.code
             .toString()
             .toLowerCase()
@@ -787,13 +792,12 @@ export default {
                 this.form.project = this.form.project.id;
               }
 
-
-              this.form.projects = this.form.projects.map(p => { 
-                const { activities, ...item } = p;
-                return item
-              })
-
-              console.log('this.form.projects', this.form.projects)
+              if (this.form.projects) {
+                this.form.projects = this.form.projects.map(p => {
+                  const { activities, ...item } = p;
+                  return item
+                })
+              }
 
               this.calculateIRPF();
 
@@ -906,7 +910,7 @@ export default {
           )
         ).data;
 
-        this.products = products.map(p => { return { ...p, namecode: `${p.code} - ${p.name}` }})
+        this.products = products.map(p => { return { ...p, namecode: `${p.code} - ${p.name}` } })
       }
     },
     async refreshClients() {
@@ -964,10 +968,10 @@ export default {
 
           this.isLoading = true;
 
-          this.form.projects = this.form.projects.map(p => { 
+          this.form.projects = this.form.projects.map(p => {
             const { activities, ...item } = p;
             return item
-          } )
+          })
 
 
           await service({ requiresAuth: true }).put(
@@ -1383,10 +1387,10 @@ export default {
     },
     async getPDF() {
       const pdf = (
-          await service({ requiresAuth: true }).get(
-            `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
-          )
-        ).data;
+        await service({ requiresAuth: true }).get(
+          `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
+        )
+      ).data;
       window.open(this.apiUrl + pdf.url)
     }
   },
@@ -1405,7 +1409,7 @@ export default {
     margin-left: 0.5rem;
   }
 }
+
 .is-w-30 {
   width: 30%;
-}
-</style>
+}</style>
