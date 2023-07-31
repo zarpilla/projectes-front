@@ -50,7 +50,7 @@
             <b-field label="Emissió *" horizontal>
               <b-datepicker @input="input;
               calculateIRPF();
-                                            " v-model="form.emitted" :show-week-number="false" :locale="'ca-ES'"
+                                                          " v-model="form.emitted" :show-week-number="false" :locale="'ca-ES'"
                 :first-day-of-week="1" icon="calendar-today" placeholder="Data Emissió" trap-focus editable>
               </b-datepicker>
             </b-field>
@@ -112,7 +112,7 @@
                 : 'Mètode de cobrament'
             " horizontal>
               <b-select v-model=" form.payment_method " placeholder="" required>
-                <option v-for="(  s, index  ) in   paymentMethods  " :key=" index " :value=" s.id ">
+                <option v-for="(   s, index   ) in    paymentMethods   " :key=" index " :value=" s.id ">
                   {{ s.name }}
                 </option>
               </b-select>
@@ -172,7 +172,7 @@
             <b-field label="" horizontal v-if=" form.projects && form.projects.length && type !== 'quotes' ">
               <div class="list">
                 <ul class="ulist">
-                  <li v-for="(  project, i  ) in   form.projects  " :key=" i " @click="removeProject(project)"
+                  <li v-for="(   project, i   ) in    form.projects   " :key=" i " @click="removeProject(project)"
                     class="tag is-primary">
                     {{ project.name }}
                     <b-button class="no-button" icon-left="close-circle" />
@@ -184,7 +184,7 @@
             <b-field horizontal label="Adjunts" style="width: 100%" v-if=" !editingDocuments ">
               <div class="file-documents columns is-multiline" v-if=" form.documents && form.documents.length ">
                 <!-- <pre>{{ form.documents }}</pre>   -->
-                <div v-for="(  doc, i  ) in   form.documents  " :key=" i " class="column" :class="
+                <div v-for="(   doc, i   ) in    form.documents   " :key=" i " class="column" :class="
                   form.documents.length > 6
                     ? 'is-2'
                     : form.documents.length > 3
@@ -214,7 +214,7 @@
           <hr />
           <card-component title="LINIES" v-if=" form.lines ">
             <ul class="subphases-list">
-              <li v-for="(  line, j  ) in   form.lines  " :key=" j " class="subphase line mt-2 mb-2">
+              <li v-for="(   line, j   ) in    form.lines   " :key=" j " class="subphase line mt-2 mb-2">
                 <b-field grouped class="is-full-width">
                   <b-field v-if=" form.document_type == '4' " :label=" j == 0 ? 'Data' : null " class="medium-field">
                     <b-datepicker v-model=" line.date " :show-week-number=" false " :locale=" 'ca-ES' "
@@ -372,7 +372,7 @@
           <hr />
 
           <div v-if=" type !== 'quotes' && !isLoadingProject ">
-            <card-component v-for="(  project, i  ) in   form.projects  " :key=" i "
+            <card-component v-for="(   project, i   ) in    form.projects   " :key=" i "
               :title=" `DETALL DEL PROJECTE - ${project.name}` ">
               <div class="project-form">
                 <project-phases :form=" project " :project-phases=" project.phases " @phases-updated=" phasesUpdated "
@@ -1037,6 +1037,13 @@ export default {
             return;
           }
 
+          if (this.form.projects) {
+            this.form.projects = this.form.projects.map(p => {
+              const { activities, ...item } = p;
+              return item
+            })
+          }
+
           this.isLoading = true;
 
           const newProject = await service({ requiresAuth: true }).post(
@@ -1412,4 +1419,5 @@ export default {
 
 .is-w-30 {
   width: 30%;
-}</style>
+}
+</style>
