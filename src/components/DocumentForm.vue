@@ -968,12 +968,13 @@ export default {
 
           this.isLoading = true;
 
-          this.form.projects = this.form.projects.map(p => {
-            const { activities, ...item } = p;
-            return item
-          })
-
-
+          if (this.form.projects) {
+            this.form.projects = this.form.projects.map(p => {
+              const { activities, ...item } = p;
+              return item
+            })
+          }
+          
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,
             this.form
