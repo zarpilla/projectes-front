@@ -44,7 +44,6 @@
         <b-field label="Crear bestretes">
           <b-button
             type="is-primary mb-5"
-            :loading="isLoading"
             @click="createAll"
             :disabled="!filters.year || !filters.year.id"
             >Crear</b-button
@@ -122,6 +121,7 @@ export default {
       years: [],
       filters: {
         year: null,
+        people_year: null
       },
       summary: []
     };
@@ -157,7 +157,7 @@ export default {
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;
       }
-    },
+    },    
     async initializeGannt() {
       this.tasks = { data: [] };
       const users = (await service({ requiresAuth: true }).get("users")).data;
@@ -166,7 +166,7 @@ export default {
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
       ).data;
       this.years = (
-        await service({ requiresAuth: true }).get("years?_limit=-1")
+        await service({ requiresAuth: true }).get("years?_limit=-1&_sort=year:DESC")
       ).data;
 
       var minStartDate = moment().format("YYYY-MM-DD");
@@ -303,146 +303,7 @@ export default {
         return true;
       }
       return;
-      // alert(gantt.roundDate(startDate))
-      // console.log(tasksInRow)
-      // return
-
-      const taskName = `${this.user.username}`;
-      let taskId = 0;
-
-      if (tasksInRow.length === 1) {
-        var currentTask = tasksInRow[0];
-
-        if (!currentTask.parent && this.showSubPhases) {
-          return;
-        }
-
-        var taskToAdd = null;
-        var metaInfo = {
-          _uuid: this.create_UUID(),
-          _phase: currentTask._phase,
-          _subphase: currentTask._subphase,
-          _hours: {
-            users_permissions_user: this.user,
-            quantity_type: "total",
-            quantity:
-              currentTask._subphase && currentTask._subphase.quantity
-                ? currentTask._subphase.quantity
-                : 1,
-          },
-        };
-        if (currentTask.type === "milestone") {
-          return;
-        }
-
-        if (currentTask.type === "project") {
-          // currentTask.render = "split";
-
-          taskId = gantt.addTask(
-            {
-              text: taskName,
-              start_date: gantt.roundDate(startDate),
-              end_date: gantt.roundDate(endDate),
-              ...metaInfo,
-            },
-            currentTask.id
-          );
-
-          taskToAdd = {
-            id: taskId,
-            text: taskName,
-            parent: currentTask.id,
-            open: true,
-            start_date: gantt.roundDate(startDate),
-            end_date: gantt.roundDate(endDate),
-            ...metaInfo,
-          };
-          this.taskToAddId = taskId;
-          this.tasks.data.push(taskToAdd);
-
-          gantt.getTask(currentTask.id).start_date = gantt.roundDate(startDate);
-          gantt.getTask(currentTask.id).end_date = gantt.roundDate(endDate);
-          gantt.getTask(currentTask.id).unscheduled = false;
-          gantt.updateTask(currentTask.id);
-        } else {
-          taskId = gantt.addTask(
-            {
-              text: taskName,
-              start_date: gantt.roundDate(startDate),
-              end_date: gantt.roundDate(endDate),
-              ...metaInfo,
-            },
-            currentTask.parent
-          );
-
-          taskToAdd = {
-            id: taskId,
-            text: taskName,
-            parent: currentTask.parent,
-            open: true,
-            start_date: gantt.roundDate(startDate),
-            end_date: gantt.roundDate(endDate),
-            ...metaInfo,
-          };
-          this.taskToAddId = taskId;
-          this.tasks.data.push(taskToAdd);
-        }
-      } else if (tasksInRow.length > 1) {
-        const ph =
-          this.project.original_phases[this.project.original_phases.length - 1];
-        // const sph = ph.subphases[ph.subphases.length - 1];
-        // console.log('sph', sph)
-        var projects = tasksInRow.filter((t) => t.type === "project");
-        currentTask = projects[projects.length - 1];
-        if (!currentTask) {
-          return;
-        }
-        metaInfo = {
-          _uuid: this.create_UUID(),
-          _phase: currentTask._phase,
-          _subphase: currentTask._subphase,
-          _hours: {
-            users_permissions_user: this.user,
-            quantity:
-              currentTask._subphase && currentTask._subphase.quantity
-                ? currentTask._subphase.quantity
-                : 1,
-          },
-        };
-
-        // console.log('currentTask!!', currentTask)
-        taskId = gantt.addTask(
-          {
-            text: taskName,
-            start_date: gantt.roundDate(startDate),
-            end_date: gantt.roundDate(endDate),
-            ...metaInfo,
-          },
-          currentTask.id
-        );
-
-        taskToAdd = {
-          id: taskId,
-          text: taskName,
-          parent: currentTask.id,
-          open: true,
-          start_date: gantt.roundDate(startDate),
-          end_date: gantt.roundDate(endDate),
-          ...metaInfo,
-        };
-        this.taskToAddId = taskId;
-        this.tasks.data.push(taskToAdd);
-
-        gantt.getTask(currentTask.id).start_date = gantt.roundDate(startDate);
-        gantt.getTask(currentTask.id).end_date = gantt.roundDate(endDate);
-        gantt.getTask(currentTask.id).unscheduled = false;
-        gantt.updateTask(currentTask.id);
-      } else if (tasksInRow.length === 0) {
-      }
-      this.dedicationObject = taskToAdd;
-      this.isModalActive = true;
     },
-
     create_UUID() {
       var dt = new Date().getTime();
       var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(

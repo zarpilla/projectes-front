@@ -427,6 +427,18 @@ const routes = [
   },  
   {
     meta: {
+      title: 'Previsió'
+    },
+    path: '/forecast',
+    name: 'forecast.view',
+    component: () => import(/* webpackChunkName: "quote" */ '../views/Forecast.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },  
+  {
+    meta: {
       title: 'Contactes'
     },
     path: '/contacts',

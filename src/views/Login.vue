@@ -49,7 +49,7 @@
 <script>
 import service from "@/service/index";
 import { mapState } from "vuex";
-import moment from 'moment';
+import { EventBus } from "@/service/event-bus.js";
 
 export default {
   data() {
@@ -87,6 +87,8 @@ export default {
               name: user.username,
               jwt: response.data.jwt,
             });
+
+            EventBus.$emit('login', {})
 
             if (this.$route.params.nextUrl != null) {
               this.$router.push(this.$route.params.nextUrl);

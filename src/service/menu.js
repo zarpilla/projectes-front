@@ -63,7 +63,7 @@ const menu = [
         to: '/quotes',
         icon: 'table',
         label: 'Pressupostos'
-      }
+      }      
     ],
     'Consulta dades',
     [
