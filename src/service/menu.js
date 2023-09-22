@@ -91,12 +91,17 @@ const menu = [
         to: '/stats-previsio-hores',
         icon: 'table',
         label: 'Prev./Real Dedicació'
-      },
+      },          
       {
         to: '/stats-economic-detail',
         icon: 'table',
         label: 'Ingressos/Despeses'
-      },          
+      },
+      {
+        to: '/forecast',
+        icon: 'table',
+        label: 'Previsió Econòmica'
+      },   
       {
         to: '/stats-estrategies',
         icon: 'table',
