@@ -1571,6 +1571,34 @@ export default {
 
         if (this.form.id) {
           const { activities, ...form } = this.form;
+
+          if (form.phases && form.phases.length) {
+            form.phases.forEach(ph => {
+              if (ph && ph.expenses && ph.expenses.length) {
+                ph.expenses.forEach(e => {
+                  if (e.expense && !e.expense.id) {
+                    e.expense = null
+                  }
+                  if (e.invoice && !e.invoice.id) {
+                    e.invoice = null
+                  }
+                })
+              }
+              if (ph && ph.subphases && ph.subphases.length) {
+                ph.subphases.forEach(e => {
+                  if (e.invoice && !e.invoice.id) {
+                    e.invoice = null
+                  }
+                  if (e.income && !e.income.id) {
+                    e.income = null
+                  }
+                })
+              }
+            })
+            
+          }
+          
+
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
             form
