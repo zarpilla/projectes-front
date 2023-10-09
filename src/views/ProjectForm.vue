@@ -738,6 +738,10 @@
               props.row.document.expense &&
               props.row.document.expense.emitted
               ">{{ formatDate(props.row.document.expense.emitted) }}</span>
+            <span v-else-if="props.row.document &&
+              props.row.document.income &&
+              props.row.document.income.emitted
+              ">{{ formatDate(props.row.document.income.emitted) }}</span>
           </b-table-column>
           <b-table-column label="Tipus" field="docTypeDesc" sortable v-slot="props">
             <span v-if="props.row.docType === 'income' &&
@@ -777,6 +781,24 @@
             <span v-if="props.row.document.comment">{{
               props.row.document.comment
             }}</span>
+          </b-table-column>
+          <b-table-column label="Document" v-slot="props">            
+            <span v-if="props.row.document && props.row.document.code">{{
+              props.row.document.code
+            }}</span>
+            <span v-else-if="props.row.document &&
+              props.row.document.invoice &&
+              props.row.document.invoice.code
+              ">{{ props.row.document.invoice.code }}</span>
+            <span v-else-if="props.row.document &&
+              props.row.document.expense &&
+              props.row.document.expense.code
+              ">{{ props.row.document.expense.code }}</span>
+            <span v-else-if="props.row.document &&
+              props.row.document.income &&
+              props.row.document.income.code
+              ">{{ props.row.document.income.code }}</span>
+
           </b-table-column>
           <b-table-column label="Import" field="document.total_amount" sortable numeric v-slot="props">
             <money-format :value="props.row.document.total_amount * props.row.multiplier" :locale="'es'"
