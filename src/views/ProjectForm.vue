@@ -783,21 +783,33 @@
             }}</span>
           </b-table-column>
           <b-table-column label="Document" v-slot="props">            
-            <span v-if="props.row.document && props.row.document.code">{{
-              props.row.document.code
-            }}</span>
-            <span v-else-if="props.row.document &&
-              props.row.document.invoice &&
-              props.row.document.invoice.code
-              ">{{ props.row.document.invoice.code }}</span>
-            <span v-else-if="props.row.document &&
-              props.row.document.expense &&
-              props.row.document.expense.code
-              ">{{ props.row.document.expense.code }}</span>
-            <span v-else-if="props.row.document &&
-              props.row.document.income &&
-              props.row.document.income.code
-              ">{{ props.row.document.income.code }}</span>
+
+            <router-link
+              v-if="props.row.docType === 'income' && props.row.document.income"
+              :to="{ name: 'document.edit', params: { id: props.row.document.income.id, type: 'received-incomes' } }"
+            >
+              {{ props.row.document.income.code }}
+            </router-link>
+            <router-link
+              v-if="props.row.docType === 'income' && props.row.document.invoice"
+              :to="{ name: 'document.edit', params: { id: props.row.document.invoice.id, type: 'emitted-invoices' } }"
+            >
+              {{ props.row.document.income.code }}
+            </router-link>
+
+            <router-link
+              v-if="props.row.docType === 'expense' && props.row.document.expense"
+              :to="{ name: 'document.edit', params: { id: props.row.document.expense.id, type: 'received-expenses' } }"
+            >
+              {{ props.row.document.expense.code }}
+            </router-link>
+
+            <router-link
+              v-if="props.row.docType === 'expense' && props.row.document.invoice"
+              :to="{ name: 'document.edit', params: { id: props.row.document.invoice.id, type: 'received-invoices' } }"
+            >
+              {{ props.row.document.invoice.code }}
+            </router-link>
 
           </b-table-column>
           <b-table-column label="Import" field="document.total_amount" sortable numeric v-slot="props">
