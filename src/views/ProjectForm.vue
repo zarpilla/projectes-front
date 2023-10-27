@@ -590,8 +590,9 @@
       </card-component>
       <!-- <pre>{{documents}}</pre> -->
 
-      <card-component v-if="!isLoading && periodification" title="PERIODIFICACIÓ D'INGRESSOS I DESPESES">
-        <div v-for="(y, i) in form.periodification" class="year-total-periodic mb-2 is-flex">
+
+      <card-component v-if="!isLoading && periodification && form.periodification.length" title="PERIODIFICACIÓ D'INGRESSOS I DESPESES">
+        <div v-for="(y, i) in form.periodification.filter((p, i) => i < form.periodification.length - 1)" class="year-total-periodic mb-2 is-flex">
           <div class="year-label">
             <label class="label" v-if="i === 0">Any</label>
             <div class="year mr-4 pt-2">
@@ -619,6 +620,38 @@
           <div>
             <b-field :label="i === 0 ? '+Despeses executades' : null">
               <b-input :disabled="i === form.periodification.length - 1" v-model="y.real_expenses"
+                @input="changeLine(y, 'real_expenses', y.real_expenses)" />
+            </b-field>
+          </div>
+
+        </div>
+        <div v-for="(y, i) in form.periodification.filter((p, i) => i == form.periodification.length - 1)" class="year-total-periodic mb-2 is-flex">
+          <div class="year-label">
+            <div class="year mr-4 pt-2">
+              {{ y.year }}
+            </div>
+          </div>
+          <div>
+            <b-field class="mr-4">
+              <b-input :disabled="true" v-model="y.incomes"
+                @input="changeLine(y, 'incomes', y.incomes)" />
+            </b-field>
+          </div>
+          <div>
+            <b-field class="mr-4">
+              <b-input :disabled="true" v-model="y.expenses"
+                @input="changeLine(y, 'expenses', y.expenses)" />
+            </b-field>
+          </div>
+          <div>
+            <b-field class="mr-4">
+              <b-input :disabled="true" v-model="y.real_incomes"
+                @input="changeLine(y, 'real_incomes', y.real_incomes)" />
+            </b-field>
+          </div>
+          <div>
+            <b-field>
+              <b-input :disabled="true" v-model="y.real_expenses"
                 @input="changeLine(y, 'real_expenses', y.real_expenses)" />
             </b-field>
           </div>
@@ -794,7 +827,7 @@
               v-if="props.row.docType === 'income' && props.row.document.invoice"
               :to="{ name: 'document.edit', params: { id: props.row.document.invoice.id, type: 'emitted-invoices' } }"
             >
-              {{ props.row.document.income.code }}
+              {{ props.row.document.invoice.code }}
             </router-link>
 
             <router-link
@@ -1436,6 +1469,7 @@ export default {
 
               if (this.form.periodification && this.form.periodification.length) {
                 this.periodification = true
+                this.updatePeriodification()
               }
 
               this.getAuxiliarData();
@@ -1535,6 +1569,14 @@ export default {
               this.allByYear = r.data.allByYear;
               if (this.form.periodification.length === 0) {
                 this.form.periodification = this.allByYear.filter(a => a.year !== 'undefined').map(y => { return { year: y.year, incomes: 0, expenses: 0, real_incomes: 0, real_expenses: 0 } })
+              } else {
+                for(let i = 0; i < this.allByYear.length; i++) {
+                  const year = this.allByYear[i].year
+                  if (!this.form.periodification.find(p => p.year === year)) {
+                    this.form.periodification.push({ year, incomes: 0, expenses: 0, real_incomes: 0, real_expenses: 0})
+                  }
+                }
+
               }
             }
           });
@@ -2005,6 +2047,17 @@ export default {
     changeLine(line, field, value) {
       if (value && value.toString().includes(",")) {
         line[field] = value.toString().replace(",", ".");
+      }
+      this.updatePeriodification()
+    },
+    async updatePeriodification() {
+      if (this.form.periodification && this.form.periodification.length) {
+        const last = this.form.periodification.find((p, i) => i === this.form.periodification.length - 1)
+        const others = this.form.periodification.filter((p, i) => i < this.form.periodification.length - 1)
+        last.incomes = -1 * parseFloat( sumBy(others, (e) => parseFloat(e.incomes ? e.incomes : 0)) )
+        last.expenses = -1 * parseFloat(sumBy(others, (e) => parseFloat(e.expenses ? e.expenses : 0)) )
+        last.real_incomes = -1 * parseFloat(sumBy(others, (e) => parseFloat(e.real_incomes ? e.real_incomes : 0)) )
+        last.real_expenses = -1 * parseFloat(sumBy(others, (e) => parseFloat(e.real_expenses ? e.real_expenses : 0)) )
       }
     },
     async uploaded(info) {
