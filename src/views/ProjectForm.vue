@@ -64,7 +64,7 @@
                 <b-input type="textarea" v-model="form.purpose" placeholder="Propòsit" />
               </b-field>
               <hr />
-              <b-field label="Intercooperació" horizontal>
+              <b-field label="Agrupació" horizontal>
                 <b-autocomplete v-model="cooperaSearch" placeholder="Escriu el nom..." :keep-first="false"
                   :open-on-focus="true" :data="filteredCoopera" field="name" @select="cooperaSelected" :clearable="true">
                 </b-autocomplete>
