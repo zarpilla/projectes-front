@@ -1,50 +1,109 @@
 <template>
   <div>
     <div class="table-view">
-      <card-component class="has-table has-mobile-sort-spaced" v-if="!isLoading">
-        <!-- <pre>{{ activities }}</pre> -->
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="!isLoading"
+      >
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Data</div>
           <div class="column has-text-weight-bold">Entrada</div>
           <div class="column has-text-weight-bold">Sortida</div>
-          <div class="column has-text-weight-bold">Total hores treballades</div>
-          <!-- <div class="column has-text-weight-bold">a</div> -->
+          <div class="column has-text-weight-bold">
+            Hores treballades / teòriques
+          </div>
+          <div class="column has-text-weight-bold"></div>
         </div>
         <div v-for="(a, i) in activities" v-bind:key="i" class="card-body">
-          <div class="columns">
+          <div v-if="a._type !== 'total'" class="columns">
             <div class="column ">
               {{ a.date }}
-              <button class="button is-small is-warning ml-5" type="button" @click="addPeriod(a, i)">
+              <button
+                class="button is-small is-warning ml-5"
+                type="button"
+                @click="addPeriod(a, i)"
+              >
                 <b-icon icon="plus" size="is-small" />
               </button>
             </div>
             <div class="column">
               <div class="is-flex">
-                <b-input class="time-part-input mr-1" placeholder="Hora..." v-model="a.hour_in_h" type="number" min="0"
-                  max="23" @change.native="changeHourIn(a, i)" :disabled="a.id === 0">
+                <b-input
+                  class="time-part-input mr-1"
+                  placeholder="Hora..."
+                  v-model="a.hour_in_h"
+                  type="number"
+                  min="0"
+                  max="23"
+                  @change.native="changeHourIn(a, i)"
+                  :disabled="a.id === 0"
+                >
                 </b-input>
-                <b-input class="time-part-input" placeholder="Minut..." v-model="a.hour_in_m" type="number" min="0"
-                  max="59" @change.native="changeHourIn(a, i)" :disabled="a.id === 0">
+                <b-input
+                  class="time-part-input"
+                  placeholder="Minut..."
+                  v-model="a.hour_in_m"
+                  type="number"
+                  min="0"
+                  max="59"
+                  @change.native="changeHourIn(a, i)"
+                  :disabled="a.id === 0"
+                >
                 </b-input>
-                <button v-if="a.date === todayF" class="button is-small is-success ml-5" type="button"
-                  @click.prevent="hourin(a, i)" title="Entrada"
-                  :disabled="(a.hour_in_h !== null && a.hour_in_m != null) && (a.hour_in_h !== '' && a.hour_in_m != '')">
+                <button
+                  v-if="a.date === todayF"
+                  class="button is-small is-success ml-5"
+                  type="button"
+                  @click.prevent="hourin(a, i)"
+                  title="Entrada"
+                  :disabled="
+                    a.hour_in_h !== null &&
+                      a.hour_in_m != null &&
+                      a.hour_in_h !== '' &&
+                      a.hour_in_m != ''
+                  "
+                >
                   <b-icon icon="arrow-right" size="is-small" />
                 </button>
               </div>
             </div>
             <div class="column">
               <div class="is-flex">
-
-                <b-input class="time-part-input mr-1" placeholder="Hora..." v-model="a.hour_out_h" type="number" min="0"
-                  max="23" @change.native="changeHourOut(a, i)" :disabled="a.id === 0">
+                <b-input
+                  class="time-part-input mr-1"
+                  placeholder="Hora..."
+                  v-model="a.hour_out_h"
+                  type="number"
+                  min="0"
+                  max="23"
+                  @change.native="changeHourOut(a, i)"
+                  :disabled="a.id === 0"
+                >
                 </b-input>
-                <b-input class="time-part-input" placeholder="Minut..." v-model="a.hour_out_m" type="number" min="0"
-                  max="59" @change.native="changeHourOut(a, i)" :disabled="a.id === 0">
+                <b-input
+                  class="time-part-input"
+                  placeholder="Minut..."
+                  v-model="a.hour_out_m"
+                  type="number"
+                  min="0"
+                  max="59"
+                  @change.native="changeHourOut(a, i)"
+                  :disabled="a.id === 0"
+                >
                 </b-input>
-                <button v-if="a.date === todayF" class="button is-small is-danger ml-5" type="button"
-                  @click.prevent="hourout(a, i)" title="Sortida"
-                  :disabled="(a.hour_out_h !== null && a.hour_out_m != null) && (a.hour_out_h !== '' && a.hour_out_m != '')">
+                <button
+                  v-if="a.date === todayF"
+                  class="button is-small is-danger ml-5"
+                  type="button"
+                  @click.prevent="hourout(a, i)"
+                  title="Sortida"
+                  :disabled="
+                    a.hour_out_h !== null &&
+                      a.hour_out_m != null &&
+                      a.hour_out_h !== '' &&
+                      a.hour_out_m != ''
+                  "
+                >
                   <b-icon icon="arrow-left" size="is-small" />
                 </button>
               </div>
@@ -57,9 +116,17 @@
             <div class="column">
               {{ a | formatHourDiff }}
             </div>
-            <!-- <div class="column">
-              {{ a }}
-            </div> -->
+            <div class="column">
+              <button
+                v-if="a.id"
+                class="button is-small is-danger mr-5"
+                type="button"
+                @click.prevent="deleteActivity(a)"
+                title="Esborrar"
+              >
+                <b-icon icon="trash-can" size="is-small" />
+              </button>
+            </div>
             <!-- <div class="column">
               {{ d.theoricHours.toFixed(2) }}
               {{ d.dateDescription ? `- ${d.dateDescription}` : "" }}
@@ -74,6 +141,14 @@
               {{ d.balance.toFixed(2) }}
             </div> -->
           </div>
+          <div class="columns" v-else>
+            <div class="column">
+              <b>TOTAL {{ a.date | formatMonthName }}: </b> {{ monthly.find(m => m.month === a.month) | formatHourMonth }}</div>
+            <div class="column"></div>
+            <div class="column"></div>
+            <div class="column"></div>
+            <div class="column"></div>
+          </div>
         </div>
       </card-component>
     </div>
@@ -85,7 +160,7 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent";
-
+import _ from "lodash";
 
 moment.locale("ca");
 
@@ -95,30 +170,31 @@ export default {
   props: {
     user: {
       type: Number,
-      default: null,
+      default: null
     },
     date1: {
       type: Date,
-      default: null,
+      default: null
     },
     date2: {
       type: Date,
-      default: null,
+      default: null
     },
     project: {
       type: Number,
-      default: null,
+      default: null
     },
     year: {
       type: Number,
-      default: null,
-    },
+      default: null
+    }
   },
   data() {
     return {
       activities: [],
       isLoading: false,
-      updating: false
+      updating: false,
+      
     };
   },
   computed: {
@@ -133,25 +209,52 @@ export default {
       return sumBy(this.activities, "hours");
     },
     todayF() {
-      return moment().format('YYYY-MM-DD')
+      return moment().format("YYYY-MM-DD");
     }
   },
   watch: {
-    user: function (newVal, oldVal) {
+    user: function(newVal, oldVal) {
       this.getWorkDayLogs();
     },
-    date1: function (newVal, oldVal) {
+    date1: function(newVal, oldVal) {
       this.getWorkDayLogs();
     },
-    date2: function (newVal, oldVal) {
+    date2: function(newVal, oldVal) {
       this.getWorkDayLogs();
     },
-    year: function (newVal, oldVal) {
+    year: function(newVal, oldVal) {
       this.getWorkDayLogs();
-    },
+    }
   },
   mounted() {
     this.getWorkDayLogs();
+  },
+  computed: {
+    monthly() {
+      const totals = _(
+        this.activities
+          .filter(a => a._type !== "total" && a.hour_in !== null && a.hour_out)
+          .map(a => {
+            return { ...a, month: (moment(a.date).month() + 1).toString(), m: moment(a.hour_in, "HH:mm:ss").diff(
+            moment(a.hour_out, "HH:mm:ss"),
+            "minutes"
+          ) };
+          })
+      )
+        .groupBy("month")
+        .map((rows, id) => ({
+          month: id,
+          m: _.sumBy(rows, (a) => -1*moment(a.hour_in, "HH:mm:ss").diff(
+            moment(a.hour_out, "HH:mm:ss"),
+            "minutes"
+          )),
+          // rows: rows
+        }))
+        .value();
+
+      return totals
+          ;
+    }
   },
   methods: {
     async getWorkDayLogs() {
@@ -168,7 +271,9 @@ export default {
       const from = moment(this.year, "YYYY")
         .startOf("year")
         .format("YYYY-MM-DD");
-      const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
+      const to = moment(this.year, "YYYY")
+        .endOf("year")
+        .format("YYYY-MM-DD");
 
       let query = `workday-logs?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
@@ -179,130 +284,175 @@ export default {
 
       service({ requiresAuth: true })
         .get(query)
-        .then(async (r) => {
-          const activities = r.data;
-          var allDates = this.enumerateDaysBetweenDates()
-          allDates.forEach((d) => {
+        .then(async r => {
+          const activities = [];
+          var allDates = this.enumerateDaysBetweenDates();
+          allDates.forEach(d => {
             const date = moment(d).format("YYYY-MM-DD");
-            const dailyWorkday = activities.filter(
-              (dd) => date === dd.date
-            );
+            const dailyWorkday = r.data.filter(dd => date === dd.date);
+
+            if (date.endsWith("01")) {
+              activities.push({ _type: "total", date: date, month: (moment(d).month() + 1).toString() });
+            }
+
             if (dailyWorkday.length === 0) {
-              activities.push({ id: 0, date: date, users_permissions_user: this.user, hour_in: null, hour_in_h: null, hour_in_m: null, hour_out: null })
+              activities.push({
+                id: 0,
+                date: date,
+                users_permissions_user: this.user,
+                hour_in: null,
+                hour_in_h: null,
+                hour_in_m: null,
+                hour_out: null
+              });
             } else {
-              dailyWorkday.forEach((w) => {
+              dailyWorkday.forEach(w => {
                 if (w.hour_in) {
-                  w.hour_in_h = w.hour_in.split(':')[0]
-                  w.hour_in_m = w.hour_in.split(':')[1]
+                  w.hour_in_h = w.hour_in.split(":")[0];
+                  w.hour_in_m = w.hour_in.split(":")[1];
                 }
                 if (w.hour_out) {
-                  w.hour_out_h = w.hour_out.split(':')[0]
-                  w.hour_out_m = w.hour_out.split(':')[1]
+                  w.hour_out_h = w.hour_out.split(":")[0];
+                  w.hour_out_m = w.hour_out.split(":")[1];
                 }
-
-                activities.push(w)
-              })
-
+                activities.push(w);
+              });
             }
           });
 
-          this.activities = activities.reverse()
+          this.activities = activities.reverse();
 
           this.isLoading = false;
-
         });
     },
+    deleteActivity(activity, index) {
+      this.$buefy.dialog.confirm({
+        message: "Estàs segura que vols eliminar el registre?",
+        onConfirm: async () => {
+          await service({ requiresAuth: true }).delete(
+            `workday-logs/${activity.id}`
+          );
+          this.getWorkDayLogs();
+        },
+        onCancel: () => {}
+      });
+    },
     addPeriod(activity, index) {
-      const item = { date: activity.date, users_permissions_user: this.user, hour_in: null, hour_in_h: null, hour_in_m: null, hour_out: null }
-      this.saveActivity(item, index, false)
+      const item = {
+        date: activity.date,
+        users_permissions_user: this.user,
+        hour_in: null,
+        hour_in_h: null,
+        hour_in_m: null,
+        hour_out: null
+      };
+      this.saveActivity(item, index, false);
     },
     changeHourIn(activity, i) {
-
       const zeroPad = (num, places) => String(num).padStart(places, "0");
-      if (activity.hour_in_h !== '') {
-        activity.hour_in_h = zeroPad(activity.hour_in_h, 2)
+      if (activity.hour_in_h !== "") {
+        activity.hour_in_h = zeroPad(activity.hour_in_h, 2);
       }
-      if (activity.hour_in_m !== '') {
-        activity.hour_in_m = zeroPad(activity.hour_in_m, 2)
+      if (activity.hour_in_m !== "") {
+        activity.hour_in_m = zeroPad(activity.hour_in_m, 2);
       }
 
-      if (activity.hour_in_h !== '' && activity.hour_in_m !== '') {
-        activity.hour_in = moment().format(`${activity.hour_in_h}:${activity.hour_in_m}:00.000`)
-        this.saveActivity(activity, i, true)
-      } else if (activity.hour_in_h === '' && activity.hour_in_m === '') {
-        activity.hour_in = null
-        this.saveActivity(activity, i, true)
+      if (activity.hour_in_h !== "" && activity.hour_in_m !== "") {
+        activity.hour_in = moment().format(
+          `${activity.hour_in_h}:${activity.hour_in_m}:00.000`
+        );
+        this.saveActivity(activity, i, true);
+      } else if (activity.hour_in_h === "" && activity.hour_in_m === "") {
+        activity.hour_in = null;
+        this.saveActivity(activity, i, true);
       }
     },
     changeHourOut(activity, i) {
-
       const zeroPad = (num, places) => String(num).padStart(places, "0");
-      if (activity.hour_out_h !== '') {
-        activity.hour_out_h = zeroPad(activity.hour_out_h, 2)
+      if (activity.hour_out_h !== "") {
+        activity.hour_out_h = zeroPad(activity.hour_out_h, 2);
       }
-      if (activity.hour_out_m !== '') {
-        activity.hour_out_m = zeroPad(activity.hour_out_m, 2)
-      }
-
-      if (activity.hour_out_h !== '' && activity.hour_out_m !== '') {
-        activity.hour_out = moment().format(`${activity.hour_out_h}:${activity.hour_out_m}:00.000`)
-        this.saveActivity(activity, i, true)
-      } else if (activity.hour_out_h === '' && activity.hour_out_m === '') {
-        activity.hour_out = null
-        this.saveActivity(activity, i, true)
+      if (activity.hour_out_m !== "") {
+        activity.hour_out_m = zeroPad(activity.hour_out_m, 2);
       }
 
+      if (activity.hour_out_h !== "" && activity.hour_out_m !== "") {
+        activity.hour_out = moment().format(
+          `${activity.hour_out_h}:${activity.hour_out_m}:00.000`
+        );
+        this.saveActivity(activity, i, true);
+      } else if (activity.hour_out_h === "" && activity.hour_out_m === "") {
+        activity.hour_out = null;
+        this.saveActivity(activity, i, true);
+      }
     },
     hourin(activity, i) {
       // activity.hour_in = moment().toDate()
-      activity.hour_in_h = moment().format("HH:mm").split(':')[0]
-      activity.hour_in_m = moment().format("HH:mm").split(':')[1]
-      activity.hour_in = moment().format("HH:mm:ss.000")
-      this.saveActivity(activity, i, true)
+      activity.hour_in_h = moment()
+        .format("HH:mm")
+        .split(":")[0];
+      activity.hour_in_m = moment()
+        .format("HH:mm")
+        .split(":")[1];
+      activity.hour_in = moment().format("HH:mm:ss.000");
+      this.saveActivity(activity, i, true);
     },
     hourout(activity, i) {
-      activity.hour_out = moment().toDate()
-      activity.hour_out_h = moment().format("HH:mm").split(':')[0]
-      activity.hour_out_m = moment().format("HH:mm").split(':')[1]
-      activity.hour_out = moment().format("HH:mm:ss.000")
-      this.saveActivity(activity, i, true)
+      activity.hour_out = moment().toDate();
+      activity.hour_out_h = moment()
+        .format("HH:mm")
+        .split(":")[0];
+      activity.hour_out_m = moment()
+        .format("HH:mm")
+        .split(":")[1];
+      activity.hour_out = moment().format("HH:mm:ss.000");
+      this.saveActivity(activity, i, true);
     },
     async saveActivity(activity, i, replace) {
-      this.updating = true
+      this.updating = true;
       try {
-        if (activity.hour_in_h === "undefined" || activity.hour_in_m === "undefined" || activity.hour_out_h === "undefined" || activity.hour_out_h === "undefined") {
-          this.updating = false
-          return
+        if (
+          activity.hour_in_h === "undefined" ||
+          activity.hour_in_m === "undefined" ||
+          activity.hour_out_h === "undefined" ||
+          activity.hour_out_h === "undefined"
+        ) {
+          this.updating = false;
+          return;
         }
         if (activity.id) {
-          await service({ requiresAuth: true }).put(`workday-logs/${activity.id}`, activity);
-          this.updating = false
+          await service({ requiresAuth: true }).put(
+            `workday-logs/${activity.id}`,
+            activity
+          );
+          this.updating = false;
         } else {
-          const db = await service({ requiresAuth: true }).post("workday-logs", activity);
-          activity = db.data
+          const db = await service({ requiresAuth: true }).post(
+            "workday-logs",
+            activity
+          );
+          activity = db.data;
           if (activity.hour_in) {
-            activity.hour_in_h = activity.hour_in.split(':')[0]
-            activity.hour_in_m = activity.hour_in.split(':')[1]
+            activity.hour_in_h = activity.hour_in.split(":")[0];
+            activity.hour_in_m = activity.hour_in.split(":")[1];
           }
           if (activity.hour_out) {
-            activity.hour_out_h = activity.hour_out.split(':')[0]
-            activity.hour_out_m = activity.hour_out.split(':')[1]
+            activity.hour_out_h = activity.hour_out.split(":")[0];
+            activity.hour_out_m = activity.hour_out.split(":")[1];
           }
           if (replace) {
-            this.activities = this.activities.filter((a, j) => j !== i)
+            this.activities = this.activities.filter((a, j) => j !== i);
           }
-          this.activities.splice(i, 0, activity)
-          
-          
-          this.updating = false
+          this.activities.splice(i, 0, activity);
+
+          this.updating = false;
 
           // this.activities[i] = db.data
           // console.log('activity 1', activity)
         }
       } catch {
-        this.updating = false
+        this.updating = false;
       }
-
     },
     enumerateDaysBetweenDates() {
       var dates = [];
@@ -313,7 +463,7 @@ export default {
         dates.push(currDate.clone().toDate());
       }
       return dates;
-    },
+    }
   },
   filters: {
     formatHour(val) {
@@ -322,14 +472,33 @@ export default {
       }
       return moment(val, "HH:mm:ss").format("HH:mm");
     },
+    formatMonthName(dt) {      
+      return moment(dt).format('MMMM').toUpperCase()
+    },
+    formatHourMonth(m) {
+      if (m && m.m) {
+        return `${parseInt(m.m / 60)}h ${m.m - ( parseInt(m.m / 60) * 60)}m`
+      }
+      return '0h'
+    },
     formatHourDiff(activity) {
       if (!activity.hour_in || !activity.hour_out) {
         return "-";
       }
-      const hours = -1 * moment(activity.hour_in, "HH:mm:ss").diff(moment(activity.hour_out, "HH:mm:ss"), 'hours')
-      const minutes = -1 * moment(activity.hour_in, "HH:mm:ss").diff(moment(activity.hour_out, "HH:mm:ss"), 'minutes')
+      const hours =
+        -1 *
+        moment(activity.hour_in, "HH:mm:ss").diff(
+          moment(activity.hour_out, "HH:mm:ss"),
+          "hours"
+        );
+      const minutes =
+        -1 *
+        moment(activity.hour_in, "HH:mm:ss").diff(
+          moment(activity.hour_out, "HH:mm:ss"),
+          "minutes"
+        );
 
-      return `${hours}h ${(minutes - (hours * 60))}m`
+      return `${hours}h ${minutes - hours * 60}m`;
     },
     formatDate(val) {
       if (!val) {
@@ -353,8 +522,8 @@ export default {
         moment(val).fromNow() +
         ")"
       );
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>
@@ -409,7 +578,6 @@ export default {
 .time-part-input {
   max-width: 100px;
   margin-top: -4px;
-
 }
 </style>
 
