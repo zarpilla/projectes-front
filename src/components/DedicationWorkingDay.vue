@@ -54,7 +54,8 @@
     <div class="help mb-3">
       <b-icon icon="help-circle-outline" custom-size="default" />
       <b>Informació</b><br />
-      Amb aquest component pots crear les bestretes per tot l'any de totes les persones que tinguin definida la jornada
+      Amb aquest component pots crear les bestretes per tot l'any de totes les
+      persones que tinguin definida la jornada
     </div>
     <card-component v-if="summary && summary.length">
       <div class="columns card-body">
@@ -82,7 +83,11 @@
           </div>
           <div class="column">
             {{ info.created + info.existing }}
-            <b-icon icon="alert-circle" custom-size="default" v-if="info.created + info.existing !== 12" />
+            <b-icon
+              icon="alert-circle"
+              custom-size="default"
+              v-if="info.created + info.existing !== 12"
+            />
           </div>
         </div>
       </div>
@@ -107,7 +112,7 @@ export default {
   components: { ModalBoxWorkingDay, CardComponent },
   computed: {
     ...mapState(["userName"]),
-    ...mapState(["me"]),
+    ...mapState(["me"])
   },
   data() {
     return {
@@ -157,7 +162,7 @@ export default {
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;
       }
-    },    
+    },
     async initializeGannt() {
       this.tasks = { data: [] };
       const users = (await service({ requiresAuth: true }).get("users")).data;
@@ -166,7 +171,9 @@ export default {
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
       ).data;
       this.years = (
-        await service({ requiresAuth: true }).get("years?_limit=-1&_sort=year:DESC")
+        await service({ requiresAuth: true }).get(
+          "years?_limit=-1&_sort=year:DESC"
+        )
       ).data;
 
       var minStartDate = moment().format("YYYY-MM-DD");
@@ -183,16 +190,16 @@ export default {
             render: "split",
             parent: 0,
             readonly: true,
-            _dedication: { users_permissions_user: user },
+            _dedication: { users_permissions_user: user }
           };
 
           this.tasks.data.push(task);
 
           const userDedications = dedications.filter(
-            (d) => d.users_permissions_user.id === user.id
+            d => d.users_permissions_user.id === user.id
           );
 
-          userDedications.forEach((d) => {
+          userDedications.forEach(d => {
             const from = moment(d.from, "YYYY-MM-DD")
               .endOf(this.view)
               .add(1, "day")
@@ -208,7 +215,7 @@ export default {
               end_date: d.to,
               parent: user.id,
               readonly: true,
-              _dedication: d,
+              _dedication: d
             };
             // console.log('hoursTask', hoursTask)
             this.tasks.data.push(dedicationTask);
@@ -222,8 +229,8 @@ export default {
           label: "Jornada",
           tree: true,
           width: "150",
-          resize: true,
-        },
+          resize: true
+        }
       ];
 
       gantt.config.scroll_size = 30;
@@ -231,13 +238,16 @@ export default {
       gantt.config.duration_unit = "month";
       gantt.config.scales = [
         { unit: "year", step: 1, format: "%Y" },
-        { unit: "month", step: 1, format: "%M" },
+        { unit: "month", step: 1, format: "%M" }
       ];
 
       gantt.config.start_date = moment(minStartDate, "YYYY-MM-DD").toDate();
-      gantt.config.end_date = moment().add(2, "year").endOf("year").toDate();
+      gantt.config.end_date = moment()
+        .add(2, "year")
+        .endOf("year")
+        .toDate();
 
-      gantt.showLightbox = function (id) {
+      gantt.showLightbox = function(id) {
         // code of the custom form
       };
 
@@ -247,7 +257,7 @@ export default {
         "onTaskClick",
         (id, e) => {
           this.dedicationObject = this.tasks.data.find(
-            (t) => t.id.toString() === id.toString()
+            t => t.id.toString() === id.toString()
           );
 
           this.isModalActive = true;
@@ -258,7 +268,7 @@ export default {
 
       gantt.config.click_drag = {
         callback: this.onDragEnd,
-        singleRow: true,
+        singleRow: true
       };
 
       gantt.templates.task_class = (start, end, task) => {
@@ -269,7 +279,9 @@ export default {
 
       gantt.parse(this.tasks);
 
-      var date = moment().startOf("year").toDate();
+      var date = moment()
+        .startOf("year")
+        .toDate();
       var position = gantt.posFromDate(date);
       gantt.scrollTo(position);
 
@@ -288,17 +300,17 @@ export default {
         const userId = tasksInRow[0].id;
 
         this.dedicationObject = this.tasks.data.find(
-          (t) => t.id.toString() === userId.toString()
+          t => t.id.toString() === userId.toString()
         );
 
         this.dedicationObject.start_date = gantt.roundDate(startDate);
         this.dedicationObject.end_date = gantt.roundDate(endDate);
         this.dedicationObject._dedication.from = gantt.roundDate(startDate);
         this.dedicationObject._dedication.to = gantt.roundDate(endDate);
-        this.dedicationObject._dedication.users_permissions_user =
-          this.users.find((u) => u.id.toString() === userId.toString());
+        this.dedicationObject._dedication.users_permissions_user = this.users.find(
+          u => u.id.toString() === userId.toString()
+        );
 
-        console.log("this.dedicationObject", this.dedicationObject);
         this.isModalActive = true;
         return true;
       }
@@ -308,7 +320,7 @@ export default {
       var dt = new Date().getTime();
       var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
         /[xy]/g,
-        function (c) {
+        function(c) {
           var r = (dt + Math.random() * 16) % 16 | 0;
           dt = Math.floor(dt / 16);
           return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
@@ -323,17 +335,35 @@ export default {
       ) {
         this.$buefy.dialog.confirm({
           message:
-            "Estàs a punt de modificar períodes anteriors que poden modificar les bestretes ja pagades. Estàs segura?",
+            "Estàs a punt de modificar períodes anteriors que poden modificar les bestretes ja pagades. Caldràs esborrar i regenerar manualment les bestretes. Estàs segura?",
           onConfirm: async () => {
             await this.updateActivity(activity);
           },
           onCancel: () => {
             return false;
-          },
+          }
         });
       } else {
         await this.updateActivity(activity);
       }
+    },
+
+    payrollsOverlaps(from, to, payrolls) {
+      const overlaps = false
+      const mdiff = Math.round(
+        moment
+          .duration(moment(to, "YYYY-MM-DD").diff(moment(from, "YYYY-MM-DD")))
+          .asMonths()
+      );
+      for (let i = 0; i < mdiff; i++) {
+        const day = moment(from, "YYYY-MM-DD").add(i, "month");
+        const year = day.format("YYYY")
+        const month = day.format("M")
+        if (payrolls.filter(p => p.year.year == year && p.month.month == month).length) {
+          return true
+        }
+      }
+      return true
     },
 
     async updateActivity(activity) {
@@ -354,11 +384,11 @@ export default {
           ).data;
           this.$buefy.snackbar.open({
             message: "Guardat",
-            queue: false,
+            queue: false
           });
 
           const task = this.tasks.data.find(
-            (t) =>
+            t =>
               t._dedication &&
               t._dedication.id &&
               t._dedication.id.toString() === activity.id.toString()
@@ -374,7 +404,7 @@ export default {
           console.error("activities error", err);
           this.$buefy.snackbar.open({
             message: "Error",
-            queue: false,
+            queue: false
           });
         }
       } else {
@@ -386,7 +416,7 @@ export default {
           end_date: activity.to,
           parent: activity.users_permissions_user,
           readonly: true,
-          _dedication: activity,
+          _dedication: activity
         };
 
         try {
@@ -400,20 +430,20 @@ export default {
           this.tasks.data.push(dedicationTask);
           gantt.addTask(dedicationTask);
           const task = this.tasks.data.find(
-            (t) => t.id.toString() === newId.toString()
+            t => t.id.toString() === newId.toString()
           );
           task._dedication = newActivity;
 
           this.$buefy.snackbar.open({
             message: "Guardat",
-            queue: false,
+            queue: false
           });
         } catch (err) {
           console.error("activities error", err);
           this.$buefy.snackbar.open({
             message:
               "Error al guardar. Pot ser que s'estiguin solapant períodes?",
-            queue: false,
+            queue: false
           });
         }
       }
@@ -426,19 +456,19 @@ export default {
       );
 
       const task = this.tasks.data.find(
-        (t) =>
+        t =>
           t._dedication &&
           t._dedication.id &&
           t._dedication.id.toString() === activity.id.toString()
       );
       this.tasks.data = this.tasks.data.filter(
-        (t) => t.id.toString() !== task.id.toString()
+        t => t.id.toString() !== task.id.toString()
       );
       gantt.deleteTask(task.id);
 
       this.$buefy.snackbar.open({
         message: "Esborrat",
-        queue: false,
+        queue: false
       });
 
       this.isModalActive = false;
@@ -463,10 +493,10 @@ export default {
       ).data.userPayrollsInfo;
       this.$buefy.snackbar.open({
         message: "Bestretes creades",
-        queue: false,
+        queue: false
       });
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>

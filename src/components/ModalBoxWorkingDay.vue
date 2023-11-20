@@ -247,6 +247,7 @@ export default {
       userNameSearch: "",
       initializing: true,
       initialCostByHour: null,
+      dirty: false
     };
   },
   computed: {
@@ -288,6 +289,12 @@ export default {
       }
     },
     dedicationObject(newValue) {},
+    form: {
+      handler(newVal, oldVal) {        
+        this.dirty = true;
+      },
+      deep: true
+    }
   },
   methods: {
     calcCostByHour() {
@@ -357,12 +364,17 @@ export default {
       this.form.costByHour = this.calcCostByHour();
       this.initializing = false;
       this.isLoading1 = false;
+      setTimeout(() => this.dirty = false, 100)
     },
     cancel() {
       this.isModalActive = false;
       this.$emit("cancel");
     },
     submit() {
+      if (!this.dirty) {
+        this.cancel()
+        return
+      }
       // this.form.id = this.dedicationObject.id
       this.form._dedication = this.dedicationObject._dedication;
       this.form.costByHour = this.calcCostByHour();
