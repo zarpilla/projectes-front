@@ -90,9 +90,9 @@ export default {
       this.tasks = { data: [] };
       var tid = 999999;
       var minEnddate = moment().format("YYYY-MM-DD");
-      var maxEnddate = moment().format("YYYY-MM-DD");
+      var maxEnddate = moment().format("YYYY-MM-DD");      
       for (let i = 0; i < this.leaders.length; i++) {
-        const leader = this.leaders[i];
+        const leader = this.leaders[i];        
         if (!leader.hidden) {
           const task = {
             id: leader.id,
@@ -160,7 +160,6 @@ export default {
               }              
             }
           });
-
           const dedicationTotals = _(userDedications)
             .groupBy("ymw")
             .map((ymw, id) => ({
@@ -169,11 +168,12 @@ export default {
               month: id.substring(5, 7),
               week: id.substring(8, 10),
               total: _.sumBy(ymw, "estimated_hours"),
+              from: ymw[0].from,
               // rows: ymw
             }))
             .value();
 
-          for (let j = 0; j < dedicationTotals.length; j++) {
+            for (let j = 0; j < dedicationTotals.length; j++) {
             tid++;
             const dedication = dedicationTotals[j];
             // const ymw = `${d.year}-${d.month}-${d.week}`
@@ -184,14 +184,8 @@ export default {
               "YYYY-MM-DD"
             );
 
-            if (this.view === "week") {
-              start_date = start_date
-                .startOf("week")
-                .add(parseInt(dedication.week) - 1, "weeks")
-                .format("YYYY-MM-DD");
-            } else {
-              start_date = start_date.format("YYYY-MM-DD");
-            }
+            var start_date = dedication.from
+
 
             const end_date = moment(start_date, "YYYY-MM-DD")
               .endOf(this.view)

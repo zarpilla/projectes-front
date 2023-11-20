@@ -196,7 +196,7 @@ export default {
                               week:
                                 moment(h.from, "YYYY-MM-DD")
                                   .add(i, "day")
-                                  .isoWeek() + 1,
+                                  .isoWeek() + 0,
                               month: moment(h.from, "YYYY-MM-DD")
                                 .add(i, "day")
                                 .format("MM"),
