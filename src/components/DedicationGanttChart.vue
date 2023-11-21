@@ -184,9 +184,12 @@ export default {
               "YYYY-MM-DD"
             );
 
-            var start_date = dedication.from
-
-
+            if (dedication.from) {
+              start_date = dedication.from
+            } else {
+              start_date = start_date.format("YYYY-MM-DD")
+            }
+            
             const end_date = moment(start_date, "YYYY-MM-DD")
               .endOf(this.view)
               .add(1, "day")
@@ -230,6 +233,8 @@ export default {
           }
         }
       }
+
+      console.log('this.tasks.data', this.tasks.data)
 
       // https://docs.dhtmlx.com/gantt/samples/11_resources/10_resource_histogram_workload_percents.html
       // https://docs.dhtmlx.com/gantt/samples/11_resources/06_assign_multiple_owners.html

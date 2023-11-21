@@ -121,7 +121,6 @@ export default {
       service({ requiresAuth: true })
         .get(query)
         .then((r) => {
-          // console.log('r.data', r.data)
           const activities = [];
           const projects = r.data.forEach((p) => {            
             if (p.original_phases && p.original_phases.length > 0) {
@@ -278,7 +277,7 @@ export default {
               });
             }
           });
-          this.projects = projects;
+          this.projects = projects;          
           this.pivotData = Object.freeze(
             sortBy(
               activities,
