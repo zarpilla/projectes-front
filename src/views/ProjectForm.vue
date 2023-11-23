@@ -233,6 +233,17 @@
                   </option>
                 </b-select>
               </b-field>
+
+              <b-field
+                label="Projecte d'estructura"
+                horizontal
+                message="Si és un projecte estructural de l'organització"
+              >
+                <b-switch v-model="form.structural_expenses"> </b-switch>
+              </b-field>
+
+              
+
               <b-field
                 label="Despesa Indirecta (%)"
                 horizontal
