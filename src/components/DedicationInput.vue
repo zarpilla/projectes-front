@@ -831,15 +831,24 @@ export default {
       this.isModalMoveToProject = true;
     },
     showModalICal(event) {
+
+      let firstWord = ''
+      if (event.customData.a.summary && event.customData.a.summary.toString().includes(' ')) {
+        firstWord = event.customData.a.summary.split(' ')[0]
+      } else if (event.customData.a.summary) {
+        firstWord = event.customData.a.summary
+      }
       const project = this.project
         ? this.projects.find((p) => p.id === this.project)
-        : null;
+        : (firstWord && this.projects.filter((p) => p.name === firstWord).length === 1 ? this.projects.find((p) => p.name === firstWord) : null);
+
       const activity = {
         date: event.customData.a.start,
         hours: event.customData.hours,
         description: event.customData.a.summary,
         project: project,
         uid_ical: event.customData.a.uid,
+        uid_word: firstWord
       };
 
       // console.log('activity', activity)

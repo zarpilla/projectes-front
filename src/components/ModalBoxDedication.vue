@@ -57,7 +57,7 @@
               :open-on-focus="true"
               :data="filteredProjects"
               field="name"
-              @select="(option) => (form.project = option ? option.id : null)"
+              @select="option => (form.project = option ? option.id : null)"
               @input="projectChanged"
               :disabled="form.id > 0"
               :clearable="true"
@@ -73,7 +73,7 @@
               :data="filteredUsers"
               field="username"
               @select="
-                (option) =>
+                option =>
                   (form.users_permissions_user = option ? option.id : null)
               "
               :disabled="counter !== null"
@@ -215,24 +215,24 @@ export default {
   props: {
     isActive: {
       type: Boolean,
-      default: false,
+      default: false
     },
     dedicationObject: {
       type: Object,
-      default: null,
+      default: null
     },
     projects: {
       type: Array,
-      default: [],
+      default: []
     },
     counter: {
       type: Object,
-      default: null,
+      default: null
     },
     users: {
       type: Array,
-      default: [],
-    },
+      default: []
+    }
   },
   data() {
     return {
@@ -251,7 +251,7 @@ export default {
         dedication_type: null,
         activity_type: null,
         counter: null,
-        uid_ical: null,
+        uid_ical: null
       },
       // projects: [],
       dedicationTypes: {},
@@ -265,7 +265,7 @@ export default {
       counterDisplayTime: "",
       counterDisplayStartTime: "",
       counterDisplayTimeInHours: "",
-      counterInterval: 0,
+      counterInterval: 0
     };
   },
   computed: {
@@ -279,7 +279,7 @@ export default {
       );
     },
     filteredUsers() {
-      return this.users.filter((option) => {
+      return this.users.filter(option => {
         return (
           option.username
             .toString()
@@ -293,13 +293,13 @@ export default {
       const projects = this.form.id
         ? this.projects
         : this.projects
-            .filter((p) => p.project_state && p.project_state.id !== 2)
+            .filter(p => p.project_state && p.project_state.id !== 2)
             .filter(
-              (p) =>
+              p =>
                 p.mother === null ||
                 (p.mother !== null && p.mother.id && p.mother.id !== p.id)
             );
-      return projects.filter((option) => {
+      return projects.filter(option => {
         return (
           option.name
             .toString()
@@ -314,7 +314,7 @@ export default {
       }
 
       return null;
-    },
+    }
   },
   watch: {
     isActive(newValue) {
@@ -328,7 +328,7 @@ export default {
     dedicationObject(newValue) {
       // console.log('dedicationObject', newValue)
       // console.log('dedicationObject this', this.dedicationObject)
-    },
+    }
   },
   methods: {
     show() {
@@ -366,7 +366,10 @@ export default {
           : "";
         this.projectNameSearch = this.dedicationObject.project
           ? this.dedicationObject.project.name
+          : this.dedicationObject.uid_word
+          ? this.dedicationObject.uid_word
           : "";
+
         this.form.counter = null;
         this.projectChanged();
       } else {
@@ -399,7 +402,7 @@ export default {
       }
       service({ requiresAuth: true })
         .get("dedication-types")
-        .then((r) => {
+        .then(r => {
           this.hasDedications = false;
           for (var i in r.data) {
             this.dedicationTypes[r.data[i].id] = r.data[i].name;
@@ -409,7 +412,7 @@ export default {
         });
 
       const user = this.users.find(
-        (u) => u.username.toLowerCase() === this.userName.toLowerCase()
+        u => u.username.toLowerCase() === this.userName.toLowerCase()
       );
       if (user && user.id && this.form.users_permissions_user === null) {
         this.userNameSearch = user.username;
@@ -458,11 +461,11 @@ export default {
     async projectChanged() {
       if (this.form.project) {
         this.isLoading2 = true;
-        const project = this.projects.find((p) => p.id === this.form.project);
+        const project = this.projects.find(p => p.id === this.form.project);
 
         this.activityTypes = {};
         this.hasActivities = false;
-        project.global_activity_types.forEach((a) => {
+        project.global_activity_types.forEach(a => {
           this.activityTypes[a.id] = a.name;
           this.hasActivities = true;
         });
@@ -488,7 +491,7 @@ export default {
           this.tasksRadio = { 0: "Cap" };
           if (this.form.activity_type) {
             tasks = tasks.filter(
-              (t) =>
+              t =>
                 t.activity_type === null ||
                 (t.activity_type &&
                   t.activity_type.id &&
@@ -496,7 +499,7 @@ export default {
                     this.form.activity_type.toString())
             );
           }
-          tasks.forEach((t) => {
+          tasks.forEach(t => {
             this.tasksRadio[t.id] = t.name;
             this.hasTasks = true;
           });
@@ -511,7 +514,7 @@ export default {
       this.$emit("counter-continue", {
         counter: this.counter,
         project: this.form.project,
-        description: this.form.description,
+        description: this.form.description
       });
     },
     trashModal(trashObject) {
@@ -532,8 +535,8 @@ export default {
     },
     updateCounter(info) {
       console.log("updateCounter", info);
-    },
-  },
+    }
+  }
 };
 </script>
 <style>
