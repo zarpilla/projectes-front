@@ -15,6 +15,7 @@
       @cancel="modalSplitCancel"
       @delete="modalSplitDelete"
     />
+
         <b-table
           v-if="form && phases"
           :data="phases"
@@ -32,7 +33,7 @@
                 v-model="props.row.name"
                 @input="blurPhaseEdit()"
                 class="phase-detail-input"
-                :disabled="mode !== '' && mode !== 'simple'"
+                :disabled="(mode !== '' && mode !== 'simple') || !editable"
               >
               </b-input>
             </form>
@@ -65,7 +66,7 @@
               class="button is-small is-danger"
               type="button"
               title="Esborrar"
-              :disabled="( props.row.subphases.find(s => s.paid && mode !== 'simple') || props.row.expenses.find(s => s.paid && mode !== 'simple') ) || ( mode === 'simple' && props.row.subphases.find(s => s.estimated_hours && s.estimated_hours.length > 0) )"
+              :disabled="( !editable || props.row.subphases.find(s => s.paid && mode !== 'simple') || props.row.expenses.find(s => s.paid && mode !== 'simple') ) || ( mode === 'simple' && props.row.subphases.find(s => s.estimated_hours && s.estimated_hours.length > 0) )"
               @click.prevent="removePhase(props.index)"
             >
 
@@ -76,6 +77,7 @@
               class="button is-small is-danger ml-1"
               type="button"
               title="Copiar fase a execució"
+              :disabled="!editable"
               @click.prevent="copyPhase(props.index)"
             >
               <b-icon icon="content-duplicate" size="is-small" />
@@ -102,6 +104,7 @@
                     <b-select
                       v-model="subphase.income_type"
                       placeholder="Tipus"
+                      :disabled="!editable"
                     >
                       <option
                         v-for="(s, index) in incomeTypes"
@@ -122,6 +125,7 @@
                       v-model="subphase.concept"
                       class="subphase-detail-input subphase-detail-input-large"
                       @input="somethingChanged()"
+                      :disabled="!editable"
                     >
                     </b-input>
                   </b-field>
@@ -137,6 +141,7 @@
                         changeSubPhase(subphase, 'quantity', subphase.quantity)
                       "
                       class="subphase-detail-input"
+                      :disabled="!editable"
                     >
                     </b-input>
                   </b-field>
@@ -153,6 +158,7 @@
                         )
                       "
                       class="subphase-detail-input"
+                      :disabled="!editable"
                     >
                     </b-input>
                   </b-field>
@@ -196,6 +202,7 @@
                       @input="input;somethingChanged()"
                       trap-focus
                       editable                      
+                      :disabled="!editable"
                     >
                     </b-datepicker>
                   </b-field>
@@ -214,6 +221,7 @@
                       @input="input;somethingChanged()"
                       trap-focus
                       editable                      
+                      :disabled="!editable"
                     >
                     </b-datepicker>
                   </b-field>
@@ -228,13 +236,14 @@
                       @click.prevent="
                         splitSubPhase(props.row, subphase, props.index, j)
                       "
+                      :disabled="!editable"
                     >
                       <b-icon icon="arrow-split-horizontal" size="is-small" />
                     </button>
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
-                      :disabled="(subphase.paid && mode !== 'simple' ) || ( mode === 'simple' && subphase.estimated_hours && subphase.estimated_hours.length > 0 )"
+                      :disabled="!editable || (subphase.paid && mode !== 'simple' ) || ( mode === 'simple' && subphase.estimated_hours && subphase.estimated_hours.length > 0 )"
                       @click.prevent="removeSubPhase(props.row, subphase, j)"
                     >
                       <b-icon icon="trash-can" size="is-small" />
@@ -244,6 +253,7 @@
                       class="button is-small is-primary ml-2"
                       type="button"
                       @click.prevent="addSubPhase(props.row)"
+                      :disabled="!editable"
                     >
                       <b-icon icon="plus-circle" size="is-small" />
                     </button>
@@ -254,7 +264,7 @@
                     v-if="me.options && me.options.treasury && mode !== 'simple'"
                     class="short-field"
                   >
-                    <b-checkbox v-model="subphase.paid" class="checkbox-inline" @input="paidChanged(subphase)">
+                    <b-checkbox v-model="subphase.paid" class="checkbox-inline" @input="paidChanged(subphase)" :disabled="!editable">
                     </b-checkbox>
                   </b-field>
                   <b-field
@@ -271,6 +281,7 @@
                       "
                       :title="`${subphase.invoice.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
+                      :disabled="!editable"
                       @click="
                         setInvoice(
                           'incomes',
@@ -291,6 +302,7 @@
                         subphase.grant &&
                         subphase.grant.id
                       "                      
+                      :disabled="!editable"
                       :title="`${subphase.grant.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
@@ -313,6 +325,7 @@
                         subphase.income &&
                         subphase.income.id
                       "                      
+                      :disabled="!editable"
                       :title="`${subphase.income.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
@@ -337,6 +350,7 @@
                         !subphase.income &&
                         !subphase.grant
                       "
+                      :disabled="!editable"
                       class="tag is-warning invoice-tag clickable"
                       @click="
                         setInvoice(
@@ -361,6 +375,7 @@
                 class="button is-small is-primary"
                 type="button"
                 @click.prevent="addSubPhase(props.row)"
+                :disabled="!editable"
               >
                 <b-icon icon="plus-circle" size="is-small" />
               </button>
@@ -385,6 +400,7 @@
                     <b-select
                       v-model="subphase.expense_type"
                       placeholder="Tipus"
+                      :disabled="!editable"
                     >
                       <option
                         v-for="(s, index) in expenseTypes"
@@ -405,6 +421,7 @@
                       v-model="subphase.concept"
                       class="subphase-detail-input subphase-detail-input-large"
                       @input="somethingChanged()"
+                      :disabled="!editable"
                     >
                     </b-input>
                   </b-field>
@@ -420,6 +437,7 @@
                         changeSubPhase(subphase, 'quantity', subphase.quantity)
                       "
                       class="subphase-detail-input subphase-detail-input-short"
+                      :disabled="!editable"
                     >
                     </b-input>
                   </b-field>
@@ -432,6 +450,7 @@
                         changeSubPhase(subphase, 'amount', subphase.amount)
                       "
                       class="subphase-detail-input subphase-detail-input-short"
+                      :disabled="!editable"
                     >
                     </b-input>
                   </b-field>
@@ -476,6 +495,7 @@
                       @input="input;somethingChanged()"
                       trap-focus
                       editable
+                      :disabled="!editable"
                     >
                     </b-datepicker>
                   </b-field>
@@ -494,6 +514,7 @@
                       @input="input;somethingChanged()"
                       trap-focus
                       editable
+                      :disabled="!editable"
                     >
                     </b-datepicker>
                   </b-field>
@@ -508,13 +529,14 @@
                       @click.prevent="
                         splitSubExpense(props.row, subphase, props.index, j)
                       "
+                      :disabled="!editable"
                     >
                       <b-icon icon="arrow-split-horizontal" size="is-small" />
                     </button>
                     <button
                       class="button is-small is-danger ml-2"
                       type="button"
-                      :disabled="subphase.paid"
+                      :disabled="subphase.paid || !editable"
                       @click.prevent="removeSubExpense(props.row, subphase, j)"
                     >
                       <b-icon icon="trash-can" size="is-small" />
@@ -524,6 +546,7 @@
                       class="button is-small is-primary ml-2"
                       type="button"
                       @click.prevent="addSubExpense(props.row)"
+                      :disabled="!editable"
                     >
                       <b-icon icon="plus-circle" size="is-small" />
                     </button>
@@ -535,7 +558,7 @@
                     v-if="me.options && me.options.treasury && mode !== 'simple'"
                     class="short-field"
                   >
-                    <b-checkbox v-model="subphase.paid" class="checkbox-inline"  @input="paidChanged(subphase)">
+                    <b-checkbox v-model="subphase.paid" class="checkbox-inline"  @input="paidChanged(subphase)" :disabled="!editable">
                     </b-checkbox>
                   </b-field>
                   <b-field
@@ -560,6 +583,7 @@
                           j
                         )
                       "
+                      :disabled="!editable"
                       >F {{ subphase.invoice.code }}
                       <b-icon icon="alert-circle" class="warning-tag" size="is-small" v-if="importWarning(subphase, subphase.invoice)" title="Imports diferents" /></span
                     >
@@ -572,6 +596,7 @@
                       "                      
                       :title="`${subphase.ticket.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
+                      :disabled="!editable"
                       @click="
                         setInvoice(
                           'expenses',
@@ -591,6 +616,7 @@
                         subphase.diet &&
                         subphase.diet.id
                       "
+                      :disabled="!editable"
                       :title="`${subphase.diet.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
@@ -612,6 +638,7 @@
                         subphase.expense &&
                         subphase.expense.id
                       "
+                      :disabled="!editable"
                       :title="`${subphase.expense.total_base} €`"
                       class="tag is-primary invoice-tag clickable"
                       @click="
@@ -636,6 +663,7 @@
                         !subphase.diet && 
                         !subphase.expense
                       "
+                      :disabled="!editable"
                       class="tag is-warning invoice-tag clickable"
                       @click="
                         setInvoice(
@@ -660,6 +688,7 @@
                 class="button is-small is-primary"
                 type="button"
                 @click.prevent="addSubExpense(props.row)"
+                :disabled="!editable"
               >
                 <b-icon icon="plus-circle" size="is-small" />
               </button>
@@ -720,6 +749,10 @@ export default {
     mode: {
       type: String,
       default: '',
+    },
+    editable: {
+      type: Boolean,
+      default: true,
     },
   },
   data() {

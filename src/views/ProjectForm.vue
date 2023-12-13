@@ -132,7 +132,7 @@
                 />
               </b-field>
               <hr />
-              <b-field label="Agrupació" horizontal>
+              <b-field label="Intercooperació" horizontal>
                 <b-autocomplete
                   v-model="cooperaSearch"
                   placeholder="Escriu el nom..."
@@ -381,7 +381,7 @@
                 </b-input>
               </b-field>
               <b-field
-                label="Necessita intercooperació"
+                label="Necessita agrupada"
                 v-if="form.grantable"
                 horizontal
               >
@@ -411,6 +411,9 @@
 
               <hr />
               <b-field horizontal label="Documents">
+                <div class="help">
+                  Per exemple, afegir pressupost total del projecte (sense IVA) o afegir document de concessió o contracte
+                </div>
                 <div
                   class="file-documents columns is-multiline"
                   v-if="form.documents && form.documents.length"
@@ -997,12 +1000,26 @@
         :closeIcon="true"
         :content-visible="true"
       >
+
+      <b-field >
+            <b-button
+              type="is-warning"
+              :loading="isLoading"
+              @click="originalEditable = !originalEditable"
+              >
+              <template v-if="!originalEditable">Modificar pressupost</template>
+              <template v-else>Tancar pressupost</template>              
+              </b-button
+            >
+          </b-field>
+
         <project-phases
           :form="form"
           :project-phases="form.original_phases"
           @phases-updated="originalPhasesUpdated"
           @phases-copy="originalPhasesCopy"
           mode="simple"
+          :editable="originalEditable"
         />
         <hr
           v-if="
@@ -1051,10 +1068,24 @@
         :closeIcon="true"
         :content-visible="true"
       >
+
+      <b-field >
+            <b-button
+              type="is-warning"
+              :loading="isLoading"
+              @click="phasesEditable = !phasesEditable"
+              >
+              <template v-if="!phasesEditable">Modificar pressupost</template>
+              <template v-else>Tancar pressupost</template>              
+              </b-button
+            >
+          </b-field>
+
         <project-phases
           :form="form"
           :project-phases="form.phases"
           @phases-updated="phasesUpdated"
+          :editable="phasesEditable"
         />
         <hr
           v-if="
@@ -1670,7 +1701,9 @@ export default {
       allByYear: [],
       allByYearYear: "TOTS",
       periodification: false,
-      dirtyEnabled: true
+      dirtyEnabled: true,
+      originalEditable: false,
+      phasesEditable: false
     };
   },
   computed: {
