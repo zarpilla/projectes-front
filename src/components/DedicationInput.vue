@@ -114,7 +114,7 @@
             <span class="separator"></span>
             <b-button
               title="Importar des de calendari *.ics"
-              @click="importFromCalendar"
+              @click="importFromCalendar(true)"
               class="view-button is-warning"
               :disabled="!user"
               :loading="isLoadingImport"
@@ -449,7 +449,8 @@ export default {
       icalEvents: [],
       isLoadingImport: false,
       icalVisible: false,
-      isLoadingMove: false
+      isLoadingMove: false,
+      shouldImportFromCalendar: false
     };
   },
   computed: {
@@ -882,6 +883,7 @@ export default {
       this.isModalEditActive = true;
     },
     async modalSubmit(activity) {
+      console.log('activity', activity)
       if (activity.counter) {
         await service({ requiresAuth: true }).delete(
           `time-counters/${activity.counter.id}`
@@ -916,7 +918,7 @@ export default {
 
       await this.getActivities();
       if (this.icalVisible) {
-        await this.importFromCalendar();
+        await this.importFromCalendar(this.shouldImportFromCalendar);
       }
 
       this.$buefy.snackbar.open({
@@ -1096,7 +1098,8 @@ export default {
     async modalMoveToProjectCancel() {
       this.isModalMoveToProject = false;
     },
-    async importFromCalendar() {
+    async importFromCalendar(shouldImportFromCalendar) {
+      this.shouldImportFromCalendar = shouldImportFromCalendar
       if (this.user) {
         const user = this.users.find((u) => u.id === this.user);
         if (!user.ical || !user.ical.startsWith("http")) {
@@ -1120,16 +1123,16 @@ export default {
             this.icalEvents = icalEvents.ical;
             this.showICalEvents();
 
-            this.$buefy.snackbar.open({
-              message:
-                "Atenció. Has d'assignar projectes a les hores del calendari",
-              queue: false,
-            });
+            // this.$buefy.snackbar.open({
+            //   message:
+            //     "Atenció. Has d'assignar projectes a les hores del calendari",
+            //   queue: false,
+            // });
 
-            this.$buefy.toast.open({
-              message: `Atenció. Has d'assignar projectes a les hores del calendari`,
-              type: "is-danger",
-            });
+            // this.$buefy.toast.open({
+            //   message: `Atenció. Has d'assignar projectes a les hores del calendari`,
+            //   type: "is-danger",
+            // });
           }
 
           this.isLoadingImport = false;
@@ -1173,7 +1176,65 @@ export default {
           }
         }
       });
+      var eventsAdded = this.attributes.filter(a => a.customData && a.customData.type === 'ical' )
+      let countFound = 0
+      let countNotFound = 0
+      eventsAdded.forEach(event => {
+        const projectName = event.customData.project.indexOf(' ') >= 0 ? event.customData.project.split(' ')[0] : event.customData.project
+        const project = this.projects.find(p => p.name === projectName)
+        if (project) {
+          countFound++
+        } else {
+          countNotFound++
+        }
+      })
+
+      if (this.shouldImportFromCalendar && countFound > 0) {
+        this.shouldImportFromCalendar = false
+        this.$buefy.dialog.confirm({
+            message: `S'han trobat ${countFound} esdeveniments que crearan hores automáticament i ${countNotFound} que no coincideixen amb cap projecte. Vols continuar amb la creació automàtica de les hores?`,
+            onConfirm: async () => {
+              this.createICalEvents()
+            },
+            onCancel: () => { return false }
+        })
+      }
+      
+
+      // console.log('projects', this.projects)
+      // console.log('icalAdded', icalAdded)
+
     },
+
+    async createICalEvents() {
+      this.isLoadingImport = true;
+      var eventsAdded = this.attributes.filter(a => a.customData && a.customData.type === 'ical' )
+      
+      for await (const event of eventsAdded) {
+      // for (let i = 0; i < eventsAdded.length; i ++) {
+        // const event = eventsAdded[i]
+        const projectName = event.customData.project.indexOf(' ') >= 0 ? event.customData.project.split(' ')[0] : event.customData.project
+        const project = this.projects.find(p => p.name === projectName)
+        if (project) {
+          const eventData = event.customData.a
+          console.log('project found', projectName, event, eventData)          
+          const activity = {
+            activity_type: null,
+            date: eventData.start.substring(0, 10),
+            dedication_type: project.default_dedication_type && project.default_dedication_type.id ? project.default_dedication_type.id : null,
+            hours: moment(eventData.end).diff(moment(eventData.start), "minutes") / 60,
+            project: project.id,
+            users_permissions_user: this.user,
+            uid_ical: eventData.uid
+          }
+          await service({ requiresAuth: true }).post("activities", activity);
+        }        
+      }
+
+      this.getActivities();
+      this.isLoadingImport = false;
+
+    }
   },
   filters: {
     formatDate(val) {
