@@ -1301,6 +1301,47 @@ export default {
             });
           });
         }
+
+        p.phases.forEach((ph) => {
+          if (ph.expenses) {
+            ph.expenses.forEach((sph) => {
+              if (sph.grant !== null && typeof(sph.grant) === 'object' && !sph.grant.id) {
+                sph.grant = null
+              }
+              // if (sph.income !== null && typeof(sph.income) === 'object' && !sph.income.id) {
+              //   sph.income = null
+              // }
+              // if (sph.invoice !== null && typeof(sph.invoice) === 'object' && !sph.income.id) {
+              //   sph.invoice = null
+              // }
+              // if (sph.expense !== null && typeof(sph.expense) === 'object' && !sph.income.id) {
+              //   sph.expense = null
+              // }
+              if (sph.diet !== null && typeof(sph.diet) === 'object' && !sph.diet.id) {
+                sph.diet = null
+              }
+            });
+            ph.subphases.forEach((sph) => {
+              if (sph.grant !== null && typeof(sph.grant) === 'object' && !sph.grant.id) {
+                sph.grant = null
+              }
+              // if (sph.income !== null && typeof(sph.income) === 'object' && !sph.income.id) {
+              //   sph.income = null
+              // }
+              // if (sph.invoice !== null && typeof(sph.invoice) === 'object' && !sph.income.id) {
+              //   sph.invoice = null
+              // }
+              // if (sph.expense !== null && typeof(sph.expense) === 'object' && !sph.income.id) {
+              //   sph.expense = null
+              // }
+              if (sph.diet !== null && typeof(sph.diet) === 'object' && !sph.diet.id) {
+                sph.diet = null
+              }
+            });
+          }
+          
+        })
+
         if (updateProject || true) {
           await service({ requiresAuth: true }).put(`projects/${p.id}`, {
             phases: p.phases,
