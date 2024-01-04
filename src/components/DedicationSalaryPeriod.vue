@@ -146,13 +146,6 @@ export default {
         .get(query)
         .then(async (r) => {
           this.activities = r.data;
-
-          const festiveTypes = (
-            await service({ requiresAuth: true }).get("festive-types?_limit=-1")
-          ).data;
-          // festiveTypes.forEach((ft) => {
-          //   this.summary[ft.name] = 0;
-          // });
           
           const festives = (
             await service({ requiresAuth: true }).get("festives?_limit=-1")

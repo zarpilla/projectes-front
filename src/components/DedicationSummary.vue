@@ -1,12 +1,13 @@
 <template>
   <div>
     <div class="table-view">
-      
       <div class="alert" v-if="warn">
         <b-icon icon="alert-circle"></b-icon>
-        Atenció, abans de consultar el resum d'hores anuals cal definir la <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de tot l'any.
+        Atenció, abans de consultar el resum d'hores anuals cal definir la
+        <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de
+        tot l'any.
       </div>
-      
+
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="!isLoading && !warn"
@@ -26,10 +27,10 @@
               {{ value.hours }}
             </div>
             <div class="column">
-              {{ value.days }} {{ value.max ? `/ ${value.max}` : '' }}
+              {{ value.days }} {{ value.max ? `/ ${value.max}` : "" }}
             </div>
             <div class="column">
-              {{ value.daysCurrent }} {{ value.max ? `/ ${value.max}` : '' }}
+              {{ value.daysCurrent }} {{ value.max ? `/ ${value.max}` : "" }}
             </div>
           </div>
         </div>
@@ -54,24 +55,24 @@ export default {
   props: {
     user: {
       type: Number,
-      default: null,
+      default: null
     },
     date1: {
       type: Date,
-      default: null,
+      default: null
     },
     date2: {
       type: Date,
-      default: null,
+      default: null
     },
     project: {
       type: Number,
-      default: null,
+      default: null
     },
     year: {
       type: Number,
-      default: null,
-    },
+      default: null
+    }
   },
   data() {
     return {
@@ -99,21 +100,21 @@ export default {
     },
     superTotal() {
       return sumBy(this.activities, "hours");
-    },
+    }
   },
   watch: {
-    user: function (newVal, oldVal) {
+    user: function(newVal, oldVal) {
       this.getActivities();
     },
-    date1: function (newVal, oldVal) {
+    date1: function(newVal, oldVal) {
       this.getActivities();
     },
-    date2: function (newVal, oldVal) {
+    date2: function(newVal, oldVal) {
       this.getActivities();
     },
-    year: function (newVal, oldVal) {
+    year: function(newVal, oldVal) {
       this.getActivities();
-    },
+    }
   },
   mounted() {
     this.getActivities();
@@ -131,7 +132,9 @@ export default {
       const from = moment(this.year, "YYYY")
         .startOf("year")
         .format("YYYY-MM-DD");
-      const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
+      const to = moment(this.year, "YYYY")
+        .endOf("year")
+        .format("YYYY-MM-DD");
 
       let query = `activities/total-by-day?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
@@ -142,82 +145,143 @@ export default {
 
       service({ requiresAuth: true })
         .get(query)
-        .then(async (r) => {
+        .then(async r => {
           this.activities = r.data;
 
           const yearDetails = (
-            await service({ requiresAuth: true }).get(`years?_where[year_eq]=${this.year}`)
+            await service({ requiresAuth: true }).get(
+              `years?_where[year_eq]=${this.year}`
+            )
           ).data[0];
-          
+
           const festiveTypes = (
-            await service({ requiresAuth: true }).get('festive-types?_limit=-1')
+            await service({ requiresAuth: true }).get("festive-types?_limit=-1")
           ).data;
-          festiveTypes.forEach((ft) => {
-            this.summary[ft.name] = { hours: 0, days: 0, max: ft.max, daysCurrent: 0 };
+          festiveTypes.forEach(ft => {
+            this.summary[ft.name] = {
+              hours: 0,
+              days: 0,
+              max: ft.max,
+              daysCurrent: 0
+            };
           });
-          
+
           const festives = (
-            await service({ requiresAuth: true }).get(`festives?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`)
+            await service({ requiresAuth: true }).get(
+              `festives?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
+            )
           ).data.filter(
-            (f) =>
+            f =>
               f.users_permissions_user === null ||
               f.users_permissions_user.id === this.user
           );
 
-          const dailyDedications = (await service({ requiresAuth: true })
-            .get(
+          const dailyDedications = (
+            await service({ requiresAuth: true }).get(
               `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
-            )).data
+            )
+          ).data;
 
-          var allDates = this.enumerateDaysBetweenDates()
-          var totalWorkedDays = 0
-          var totalWorkedHours = 0
-          var laborableDays = 0
-          var laborableHours = 0
+          const yearFestives = (
+            await service({ requiresAuth: true }).get(
+              `user-festives?_limit=-1&_where[year.year]=${this.year}&_where[users_permissions_user_null]=true&_where[festive_type_null]=false`
+            )
+          ).data;
+
+          const userFestives = (
+            await service({ requiresAuth: true }).get(
+              `user-festives?_limit=-1&_where[users_permissions_user.id]=${this.user}&_where[year_null]=true&_where[festive_type_null]=false`
+            )
+          ).data;
+
+          const userYearFestives = (
+            await service({ requiresAuth: true }).get(
+              `user-festives?_limit=-1&_where[year.year]=${this.year}&_where[users_permissions_user.id]=${this.user}&_where[festive_type_null]=false`
+            )
+          ).data;
+
+          for (const f of yearFestives) {
+            this.summary[f.festive_type.name].max = f.max;
+          }
+          for (const f of userFestives) {
+            this.summary[f.festive_type.name].max = f.max;
+          }
+          for (const f of userYearFestives) {
+            this.summary[f.festive_type.name].max = f.max;
+          }
+
+          var allDates = this.enumerateDaysBetweenDates();
+          var totalWorkedDays = 0;
+          var totalWorkedHours = 0;
+          var laborableDays = 0;
+          var laborableHours = 0;
           this.warn = false;
-          allDates.forEach((d) => {
+          allDates.forEach(d => {
             const date = moment(d).format("YYYY-MM-DD");
-            const day = moment(d).day()
-            const festive = festives.find((f) => f.date === date && (f.users_permissions_user === null || f.users_permissions_user.id == this.user));
+            const day = moment(d).day();
+            const festive = festives.find(
+              f =>
+                f.date === date &&
+                (f.users_permissions_user === null ||
+                  f.users_permissions_user.id == this.user)
+            );
             const dailyDedication = dailyDedications.find(
-                  (dd) => date >= dd.from && date <= dd.to
+              dd => date >= dd.from && date <= dd.to
             );
             if (!dailyDedication) {
-              this.warn = true
-              console.warn('date!', date)
+              this.warn = true;
+              console.warn("date!", date);
             }
             // const festive = festives.find((f) => f.date === date);
             const theoricHours =
-                  !festive && dailyDedication && day !== 0 && day !== 6
-                    ? dailyDedication.hours
-                    : 0;
-            laborableHours += dailyDedication && day !== 0 && day !== 6
-                    ? dailyDedication.hours
-                    : 0;
-            if (festive && dailyDedication) {              
-              this.summary[festive.festive_type.name].hours += dailyDedication.hours
-              this.summary[festive.festive_type.name].days++
+              !festive && dailyDedication && day !== 0 && day !== 6
+                ? dailyDedication.hours
+                : 0;
+            laborableHours +=
+              dailyDedication && day !== 0 && day !== 6
+                ? dailyDedication.hours
+                : 0;
+            if (festive && dailyDedication) {
+              this.summary[festive.festive_type.name].hours +=
+                dailyDedication.hours;
+              this.summary[festive.festive_type.name].days++;
               if (moment(d).isBefore(moment())) {
-                this.summary[festive.festive_type.name].daysCurrent++
-                console.log('daysCurrent', d, festive.festive_type.name)
+                this.summary[festive.festive_type.name].daysCurrent++;
+                // console.log('daysCurrent', d, festive.festive_type.name)
               }
             }
             if (theoricHours) {
-              totalWorkedDays++
-              totalWorkedHours += theoricHours
+              totalWorkedDays++;
+              totalWorkedHours += theoricHours;
             }
-          })
-          const ratio = totalWorkedHours / totalWorkedDays / 8
+          });
+          const ratio = totalWorkedHours / totalWorkedDays / 8;
 
-          this.summary['Jornada'] = { hours: `${(ratio*8).toFixed(2)} h/dia (${(ratio * 100).toFixed(1)}%)`, days: '' };
+          this.summary["Jornada"] = {
+            hours: `${(ratio * 8).toFixed(2)} h/dia (${(ratio * 100).toFixed(
+              1
+            )}%)`,
+            days: ""
+          };
 
-          this.summary['Laborables (Dl-Dv)'] = { hours: totalWorkedHours.toFixed(2), days: totalWorkedDays}
-          
-          this.summary['Màxim Conveni'] = { hours: (yearDetails.working_hours * ratio).toFixed(2), days: yearDetails.working_hours / 8 };
-          this.summary['Saldo pendent assignar'] = { hours: (totalWorkedHours - yearDetails.working_hours * ratio).toFixed(2), days: totalWorkedDays - yearDetails.working_hours / 8 };
+          this.summary["Laborables (Dl-Dv)"] = {
+            hours: totalWorkedHours.toFixed(2),
+            days: totalWorkedDays
+          };
+
+          this.summary["Màxim Conveni"] = {
+            hours: (yearDetails.working_hours * ratio).toFixed(2),
+            days: yearDetails.working_hours / 8
+          };
+          this.summary["Saldo pendent assignar"] = {
+            hours: (
+              totalWorkedHours -
+              yearDetails.working_hours * ratio
+            ).toFixed(2),
+            days: totalWorkedDays - yearDetails.working_hours / 8
+          };
 
           this.isLoading = false;
-           
         });
     },
     enumerateDaysBetweenDates() {
@@ -225,16 +289,16 @@ export default {
       var currDate = moment(this.year, "YYYY").startOf("year");
       const endOfYear = moment(this.year, "YYYY").endOf("year");
       // var lastDate = endOfYear
-        // endOfYear.diff(moment()) < 0
-        //   ? moment(this.year, "YYYY").endOf("year")
-        //   : moment();
+      // endOfYear.diff(moment()) < 0
+      //   ? moment(this.year, "YYYY").endOf("year")
+      //   : moment();
       // var lastDate = moment()
       dates.push(currDate.clone().toDate());
       while (currDate.add(1, "days").diff(endOfYear) < 0) {
         dates.push(currDate.clone().toDate());
       }
       return dates;
-    },
+    }
   },
   filters: {
     formatDate(val) {
@@ -259,8 +323,8 @@ export default {
         moment(val).fromNow() +
         ")"
       );
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>
