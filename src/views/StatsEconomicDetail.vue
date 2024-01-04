@@ -127,6 +127,8 @@ export default {
         .then(r => {
           this.project_states = r.data;
           this.project_states.unshift({ id: 0, name: "Tots" });
+          const name = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 3).name}`
+          this.project_states.push({ id: -1, name });
           this.filters.project_state = defaultProjectState;
 
           service({ requiresAuth: true })

@@ -419,6 +419,10 @@ export default {
       let query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
       if (projectState === 0 || projectState === "0") {
         query = "projects/economic-detail?_limit=-1";
+      } else if (projectState === -1){
+        query = `projects/economic-detail?_where[project_state_in]=1,3&_limit=-1`;
+      } else {
+        query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
       }
       const yearQ = this.year !== "Tots" ? `&_where[year_eq]=${this.year}` : "";
       const { data } = await service({ requiresAuth: true }).get(query + yearQ);
