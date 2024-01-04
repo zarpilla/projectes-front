@@ -28,6 +28,14 @@
             </div>
             <div class="column">
               {{ value.days }} {{ value.max ? `/ ${value.max}` : "" }}
+              <b-icon
+              v-if="value.max && value.maxIsDefault === false"
+              class="has-text-grey-light"
+              icon="alert-circle"
+              title="Valor personalitzat"
+              size="is-small"
+            >
+            </b-icon>
             </div>
             <div class="column">
               {{ value.daysCurrent }} {{ value.max ? `/ ${value.max}` : "" }}
@@ -162,7 +170,8 @@ export default {
               hours: 0,
               days: 0,
               max: ft.max,
-              daysCurrent: 0
+              daysCurrent: 0,
+              maxIsDefault: true
             };
           });
 
@@ -202,12 +211,15 @@ export default {
 
           for (const f of yearFestives) {
             this.summary[f.festive_type.name].max = f.max;
+            this.summary[f.festive_type.name].maxIsDefault = false;
           }
           for (const f of userFestives) {
             this.summary[f.festive_type.name].max = f.max;
+            this.summary[f.festive_type.name].maxIsDefault = false;
           }
           for (const f of userYearFestives) {
             this.summary[f.festive_type.name].max = f.max;
+            this.summary[f.festive_type.name].maxIsDefault = false;
           }
 
           var allDates = this.enumerateDaysBetweenDates();
