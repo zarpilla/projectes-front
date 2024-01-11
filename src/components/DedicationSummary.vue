@@ -276,22 +276,33 @@ export default {
             days: ""
           };
 
-          this.summary["Laborables (Dl-Dv)"] = {
-            hours: totalWorkedHours.toFixed(2),
+          this.summary["Laborables"] = {
+            hours: totalWorkedHours,
             days: totalWorkedDays
           };
+
+          festiveTypes.forEach(ft => {
+            if (this.summary[ft.name].days < this.summary[ft.name].max) {              
+              const daysToAdd = this.summary[ft.name].max - this.summary[ft.name].days
+              this.summary["Laborables"].hours = this.summary["Laborables"].hours - daysToAdd * ratio * 8
+              this.summary["Laborables"].days = this.summary["Laborables"].days - daysToAdd
+            }              
+          });
+
+          this.summary["Laborables"].hours = this.summary["Laborables"].hours
 
           this.summary["Màxim Conveni"] = {
             hours: (yearDetails.working_hours * ratio).toFixed(2),
             days: yearDetails.working_hours / 8
           };
-          this.summary["Saldo pendent assignar"] = {
-            hours: (
-              totalWorkedHours -
-              yearDetails.working_hours * ratio
-            ).toFixed(2),
-            days: totalWorkedDays - yearDetails.working_hours / 8
+          const label = "Saldo anual d'hores (Laborables - Conveni)"
+          this.summary[label] = {
+            hours: this.summary["Laborables"].hours - yearDetails.working_hours * ratio,           
+            days: this.summary["Laborables"].days - yearDetails.working_hours / 8
           };
+
+          this.summary["Laborables"].hours = this.summary["Laborables"].hours.toFixed(2)
+          this.summary[label].hours = this.summary[label].hours.toFixed(2)
 
           this.isLoading = false;
         });
