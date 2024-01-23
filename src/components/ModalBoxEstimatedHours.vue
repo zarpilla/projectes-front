@@ -188,7 +188,7 @@ export default {
         this.form.id = 0
       }
       
-      service({ requiresAuth: true }).get('users').then((r) => {
+      service({ requiresAuth: true, cached: true }).get('users').then((r) => {
         this.users = r.data.filter(u => !u.hidden)
         const allUsers = r.data
         // console.log('this.dedicationObject._hours.users_permissions_user', this.dedicationObject)

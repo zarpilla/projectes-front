@@ -303,7 +303,7 @@ export default {
       this.isLoading = true;
 
       this.states = (
-        await service({ requiresAuth: true }).get("task-states?_sort=order")
+        await service({ requiresAuth: true, cached: true }).get("task-states?_sort=order")
       ).data;
 
       let query = "tasks?_limit=-1&_where[archived_eq]=false";

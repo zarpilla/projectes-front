@@ -118,7 +118,7 @@ export default {
   },
   async mounted() {
     this.isLoading = true;
-    var { data } = await service({ requiresAuth: true }).get(
+    var { data } = await service({ requiresAuth: true, cached: true }).get(
       "months?_sort=month"
     );
     this.months = data;
@@ -140,14 +140,14 @@ export default {
     this.projects = data;
     this.projects.unshift({ id: 0, name: "Tots" });
 
-    var { data } = await service({ requiresAuth: true }).get(
+    var { data } = await service({ requiresAuth: true, cached: true }).get(
       "document-types?type=income&_limit=-1"
     );
     this.documentTypes = data;
     this.documentTypes.unshift({ id: -1, name: "Factura" });
     this.documentTypes.unshift({ id: 0, name: "Tots" });
 
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("years?_sort=year:DESC")
       .then((r) => {
         this.years = r.data;

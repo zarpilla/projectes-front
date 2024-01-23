@@ -276,7 +276,7 @@ export default {
       queue: false,
     });
 
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("project-states")
       .then((r) => {
         this.project_states = r.data;
@@ -284,7 +284,7 @@ export default {
         // this.filters.project_state = defaultProjectState
       });
 
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("users?_limit=-1")
       .then((r) => {        
         const users = r.data.filter(u => !u.hidden);
@@ -298,7 +298,7 @@ export default {
     //     this.contactsNumber = r.data;
     //   });
 
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("project-scopes?_limit=-1&_sort=code:ASC")
       .then((r) => {
         this.scopes = r.data

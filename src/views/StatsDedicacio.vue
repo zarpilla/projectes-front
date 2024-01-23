@@ -111,7 +111,7 @@ export default {
         this.project_states.unshift({ id: 0, name: 'Tots' })
         this.filters.project_state = defaultProjectState
       })
-      service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
+      service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
         this.years = r.data
         this.years.unshift({ id: 0, year: 0 })
         // this.filters.year = 0

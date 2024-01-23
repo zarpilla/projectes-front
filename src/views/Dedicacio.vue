@@ -156,21 +156,21 @@ export default {
         this.projectsList = JSON.parse(JSON.stringify(r.data)); //.filter(p => p.project_state !== 2)))
         this.projectsList.unshift({ id: 0, name: "Tots" });
       });
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("dedication-types")
       .then((r) => {
         for (var i in r.data) {
           this.dedicationTypes[r.data[i].id] = r.data[i].name;
         }
       });
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("activity-types/basic?_limit=-1")
       .then((r) => {
         for (var i in r.data) {
           this.activityTypes[r.data[i].id] = r.data[i].name;
         }
       });
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("users")
       .then((r) => {
         this.users = r.data.filter((u) => !u.hidden);

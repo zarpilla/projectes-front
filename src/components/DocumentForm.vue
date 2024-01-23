@@ -869,7 +869,7 @@ export default {
         )
       ).data;
 
-      const me = (await service({ requiresAuth: true }).get("me")).data;
+      const me = (await service({ requiresAuth: true, cached: true }).get("me")).data;
       // console.log('me!', me)
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;

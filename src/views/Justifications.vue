@@ -73,7 +73,7 @@ export default {
   mounted () {
     this.isLoading = true
 
-    service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
+    service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
       // console.log('r.data', r.data)
       this.years = r.data
       this.filters.year = this.years[0]
@@ -84,7 +84,7 @@ export default {
       this.projects = r.data
     })
 
-    service({ requiresAuth: true }).get('users').then((r) => {
+    service({ requiresAuth: true, cached: true }).get('users').then((r) => {
       this.users = r.data.filter(u => !u.hidden)
       // this.usersList = JSON.parse(JSON.stringify(r.data.filter(u => u.hidden !== true)))
       // this.usersList.unshift({ id: 0, username: 'Totes' })

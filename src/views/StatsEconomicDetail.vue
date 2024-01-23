@@ -122,7 +122,7 @@ export default {
   },
   methods: {
     getData() {
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
           this.project_states = r.data;
@@ -131,7 +131,7 @@ export default {
           this.project_states.push({ id: -1, name });
           this.filters.project_state = defaultProjectState;
 
-          service({ requiresAuth: true })
+          service({ requiresAuth: true, cached: true })
             .get("years?_sort=year:DESC")
             .then(r => {
               this.years = r.data;

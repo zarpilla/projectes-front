@@ -121,24 +121,9 @@ export default {
   async mounted() {
     this.isLoading = true;
 
-    // this.states = (
-    //   await service({ requiresAuth: true }).get("task-states?_sort=order")
-    // ).data;
-
-    // this.tasks = (await service({ requiresAuth: true }).get("tasks")).data;
-
-    // const cardOrder = []
-    // this.states.forEach(s => {        
-    //     const tasks = this.tasks.filter(t => t.task_state && t.task_state.id === s.id) // .map((t, i) => { return { id: t.id, name: t.name }})
-    //     cardOrder.push(tasks)
-    // })
-    // this.cardOrder = cardOrder
-
-    
-
     this.projects = (await service({ requiresAuth: true }).get("projects/basic?_limit=-1")).data.filter((p) => p.project_state !== 2)
 
-    this.users = (await service({ requiresAuth: true }).get("users?_limit=-1")).data.filter((u) => u.hidden !== true)
+    this.users = (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data.filter((u) => u.hidden !== true)
     const user = this.users.find(
       (u) => u.username.toLowerCase() === this.userName.toLowerCase()
     );

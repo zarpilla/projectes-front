@@ -400,7 +400,7 @@ export default {
           }
         }
       }
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("dedication-types")
         .then(r => {
           this.hasDedications = false;

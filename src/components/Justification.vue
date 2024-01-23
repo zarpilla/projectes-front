@@ -741,7 +741,7 @@ export default {
       this.justifications = justifications;
 
       this.users = (
-        await service({ requiresAuth: true }).get("users?_limit=-1")
+        await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")
       ).data;
     },
     enumerateDaysBetweenDates() {

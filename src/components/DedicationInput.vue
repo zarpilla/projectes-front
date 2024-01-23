@@ -517,9 +517,9 @@ export default {
   async mounted() {
     // console.log('mounted')
     this.getActivities();
-    // this.users = (await service({ requiresAuth: true }).get('users')).data.filter(u => u.hidden !== true)
+    // this.users = (await service({ requiresAuth: true, cached: true }).get('users')).data.filter(u => u.hidden !== true)
     this.festiveTypes = (
-      await service({ requiresAuth: true }).get("festive-types")
+      await service({ requiresAuth: true, cached: true }).get("festive-types?_limit=-1")
     ).data;
   },
   methods: {

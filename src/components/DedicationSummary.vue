@@ -157,13 +157,13 @@ export default {
           this.activities = r.data;
 
           const yearDetails = (
-            await service({ requiresAuth: true }).get(
+            await service({ requiresAuth: true, cached: true }).get(
               `years?_where[year_eq]=${this.year}`
             )
           ).data[0];
 
           const festiveTypes = (
-            await service({ requiresAuth: true }).get("festive-types?_limit=-1")
+            await service({ requiresAuth: true, cached: true }).get("festive-types?_limit=-1")
           ).data;
           festiveTypes.forEach(ft => {
             this.summary[ft.name] = {

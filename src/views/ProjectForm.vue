@@ -2084,7 +2084,7 @@ export default {
     },
     getData() {
       if (!this.me) {
-        service({ requiresAuth: true })
+        service({ requiresAuth: true, cached: true })
           .get("me")
           .then(r => {
             this.me = r.data;
@@ -2251,12 +2251,12 @@ export default {
       }
     },
     async getAuxiliarData() {
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
           this.project_states = r.data;
         });
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("project-scopes")
         .then(r => {
           this.project_scopes = r.data;
@@ -2267,22 +2267,22 @@ export default {
         .then(r => {
           this.clients = r.data;
         });
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("strategies?_limit=-1")
         .then(r => {
           this.strategies = r.data;
         });
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("document-types")
         .then(r => {
           this.documentTypes = r.data;
         });
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("dedication-types")
         .then(r => {
           this.dedicationTypes = r.data;
         });
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("regions")
         .then(r => {
           this.regions = r.data;
@@ -2305,7 +2305,7 @@ export default {
       this.dirtyEnabled = false;
 
       this.leaders = (
-        await service({ requiresAuth: true }).get("users?_limit=-1")
+        await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")
       ).data.filter(u => u.hidden !== true);
 
       if (this.$route.params.id === "0" && !this.form.leader.id) {

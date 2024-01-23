@@ -852,12 +852,12 @@ export default {
       return
     }
     this.isLoading = true
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("expense-types")
       .then((r) => {
         this.expenseTypes = r.data;
       });
-    service({ requiresAuth: true })
+    service({ requiresAuth: true, cached: true })
       .get("income-types")
       .then((r) => {
         this.incomeTypes = r.data;

@@ -74,7 +74,7 @@ export default {
 
       this.scopes = (await service({ requiresAuth: true }).get('project-scopes')).data
       this.states = (await service({ requiresAuth: true }).get('project-states')).data
-      this.leaders = (await service({ requiresAuth: true }).get('users')).data
+      this.leaders = (await service({ requiresAuth: true, cached: true }).get('users')).data
       this.contacts = (await service({ requiresAuth: true }).get('contacts/basic?_limit=-1&_sort=name:ASC')).data
 
       // const from = moment(this.date1).format('YYYY-MM-DD')

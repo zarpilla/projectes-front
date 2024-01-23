@@ -61,19 +61,6 @@ export default {
               jwt: sessionStorage.getItem("jwt")
             });
 
-            // const meOptions = (await service({ requiresAuth: true }).get("me"))
-            //   .data;
-
-            // console.log("meOptions", meOptions);
-
-            // if (meOptions.options.show_forecast) {
-            //   menu[5].push({
-            //     to: "/forecast",
-            //     icon: "table",
-            //     label: "Previsió Económica"
-            //   });
-            // }
-
             this.loaded = true;
 
             if (this.$route.name === "login") {
@@ -86,7 +73,7 @@ export default {
           this.$router.push("/");
         }
       } else {
-        const meOptions = (await service({ requiresAuth: true }).get("me"))
+        const meOptions = (await service({ requiresAuth: true, cached: true }).get("me"))
           .data;
 
         // if (meOptions.options.show_forecast) {

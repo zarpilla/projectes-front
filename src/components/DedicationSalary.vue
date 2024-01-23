@@ -277,12 +277,12 @@ export default {
 
       if (this.monthsDb.length === 0) {
         this.monthsDb = (
-          await service({ requiresAuth: true }).get("months")
+          await service({ requiresAuth: true, cached: true }).get("months")
         ).data;
       }
       if (this.yearsDb.length === 0) {
         this.yearsDb = (
-          await service({ requiresAuth: true }).get("years")
+          await service({ requiresAuth: true, cached: true }).get("years")
         ).data;
       }
 

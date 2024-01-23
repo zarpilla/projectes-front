@@ -101,7 +101,7 @@ export default {
         this.filters.project_state = defaultProjectState
         this.isLoading1 = false
       })
-      service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
+      service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
         this.years = r.data.map(y => { return { ...y, display: y.year } })
         this.years.unshift({ id: 0, year: 0, display: 'Tots' })
         this.filters.year = parseInt(moment().format('YYYY'))

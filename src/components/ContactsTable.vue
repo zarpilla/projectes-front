@@ -85,6 +85,7 @@ export default {
     };
   },  
   async mounted() {
+    console.log('mounted')
     this.getData();
   },
   methods: {
@@ -92,6 +93,7 @@ export default {
       this.$router.push("/contact/0");
     },    
     async getData() {
+      console.log('getData')
       this.isLoading = true;      
 
       if (this.filters.q) {

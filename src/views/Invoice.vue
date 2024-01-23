@@ -345,7 +345,7 @@ export default {
           .then((r) => {
             this.quote = r.data
           })
-        service({ requiresAuth: true })
+        service({ requiresAuth: true, cached: true })
           .get('me')
           .then((r) => {
             this.me = r.data

@@ -2,7 +2,7 @@
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <contacts-table :year="filters.year" />
+      <contacts-table v-if="!isLoading" />
     </section>
   </div>
 </template>
@@ -40,13 +40,7 @@ export default {
       return ['Contactes']
     }
   },
-  mounted () {
-    this.isLoading = true
-    service({ requiresAuth: true }).get('years?_sort=year:DESC').then((r) => {
-      this.years = r.data
-      this.filters.year = this.years.find(y => y.year.toString() === moment().format('YYYY'))
-      this.isLoading = false
-    })
+  mounted () {    
   }
 }
 </script>

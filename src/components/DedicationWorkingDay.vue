@@ -157,7 +157,7 @@ export default {
       }, 250);
     },
     async getQuotes() {
-      const me = (await service({ requiresAuth: true }).get("me")).data;
+      const me = (await service({ requiresAuth: true, cached: true }).get("me")).data;
       // console.log('me!', me)
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;
@@ -165,13 +165,13 @@ export default {
     },
     async initializeGannt() {
       this.tasks = { data: [] };
-      const users = (await service({ requiresAuth: true }).get("users")).data;
+      const users = (await service({ requiresAuth: true, cached: true }).get("users")).data;
       this.users = users;
       const dedications = (
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
       ).data;
       this.years = (
-        await service({ requiresAuth: true }).get(
+        await service({ requiresAuth: true, cached: true }).get(
           "years?_limit=-1&_sort=year:DESC"
         )
       ).data;

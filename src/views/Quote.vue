@@ -221,7 +221,7 @@ export default {
             console.log('quote', r.data)
             this.quote = r.data
           })
-        service({ requiresAuth: true })
+        service({ requiresAuth: true, cached: true })
           .get('me')
           .then((r) => {
             console.log('me', r.data)

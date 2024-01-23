@@ -98,10 +98,10 @@ export default {
       }
 
       this.scopes = (
-        await service({ requiresAuth: true }).get("project-scopes")
+        await service({ requiresAuth: true, cached: true }).get("project-scopes")
       ).data;
       this.states = (
-        await service({ requiresAuth: true }).get("project-states")
+        await service({ requiresAuth: true, cached: true }).get("project-states")
       ).data;
       this.leaders = (await service({ requiresAuth: true }).get("users")).data //.filter(u => u.username === 'Ariadna');
       // const from = moment(this.date1).format('YYYY-MM-DD')

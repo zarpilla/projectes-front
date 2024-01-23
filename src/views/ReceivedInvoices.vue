@@ -122,7 +122,7 @@ export default {
     async getData() {
       this.isLoading = true;
 
-      var { data } = await service({ requiresAuth: true }).get(
+      var { data } = await service({ requiresAuth: true, cached: true }).get(
         "months?_sort=month"
       );
       this.months = data;
@@ -144,7 +144,7 @@ export default {
       this.projects = data;
       this.projects.unshift({ id: 0, name: "Tots" });
 
-      var { data } = await service({ requiresAuth: true }).get(
+      var { data } = await service({ requiresAuth: true, cached: true }).get(
         "document-types?type=expense&_limit=-1"
       );
       this.documentTypes = data;
@@ -152,7 +152,7 @@ export default {
       this.documentTypes.push({ id: -2, name: "Nómina" });
       this.documentTypes.unshift({ id: 0, name: "Tots" });
 
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("years?_sort=year:DESC")
         .then((r) => {
           this.years = r.data;

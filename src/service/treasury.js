@@ -54,7 +54,7 @@ const getTreasuryData = async (filter, year) => {
   const payrolls = (
     await service({ requiresAuth: true }).get("payrolls?_limit=-1")
   ).data;
-  const me = (await service({ requiresAuth: true }).get("me")).data;
+  const me = (await service({ requiresAuth: true, cached: true }).get("me")).data;
 
   const projects = (
     await service({ requiresAuth: true }).get(`projects?_limit=-1${where}`)
