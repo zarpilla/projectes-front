@@ -304,6 +304,9 @@ export default {
           this.summary["Laborables"].hours = this.summary["Laborables"].hours.toFixed(2)
           this.summary[label].hours = this.summary[label].hours.toFixed(2)
 
+
+          this.summary["Treballades"] = { hours: sumBy(this.activities, 'hours') , days: this.activities.filter(a => a.hours > 0).length};
+
           this.isLoading = false;
         });
     },
