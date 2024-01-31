@@ -19,7 +19,7 @@
       />
     </download-excel>
 
-    <!-- <pre>{{ monthlySummaryForPivot }}</pre> -->
+    <!-- <pre>{{ treasuryData }}</pre> -->
 
     <b-loading
       :is-full-page="true"

@@ -5,7 +5,7 @@
       General
     </hero-bar> -->
     <section class="section is-main-section">
-      <tiles>
+      <!-- <tiles>
         <card-widget
           class="tile is-child"
           type="is-primary"
@@ -42,24 +42,7 @@
           suffix="€"
           label="Resultat previst"
         />
-      </tiles>
-      <!-- <card-component
-        title="Performance"
-        icon="finance"
-        header-icon="reload"
-        @header-icon-click="fillChartData"
-      >
-        <div v-if="defaultChart.chartData" class="chart-area">
-          <bar-chart
-            ref="bigChart"
-            style="height: 100%;"
-            chart-id="big-line-chart"
-            :chart-data="defaultChart.chartData"
-            :extra-options="defaultChart.extraOptions"
-          >
-          </bar-chart>
-        </div>
-      </card-component> -->
+      </tiles> -->
 
       <card-component title="FILTRES">
         <form @submit.prevent="submit2">
@@ -129,7 +112,7 @@
 
       <div class="actions is-flex mb-5">
         <b-button
-          class="view-button is-primary"
+          class="zview-button is-primary"
           @click="navNewProject"
           icon-left="plus"
         >
@@ -138,10 +121,13 @@
         <download-excel :data="projectsCSV">
           <b-button
             title="Exporta dades"
-            class="export-button ml-4"
+            class="export-button mt-0 ml-4"
             icon-left="file-excel"
           />
         </download-excel>
+        <div class="projects-number ml-4 mt-2 has-text-weight-bold">
+                {{ projectsNumber }} PROJECTES
+              </div>
       </div>
 
       <b-loading
