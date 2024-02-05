@@ -96,7 +96,7 @@ export default {
   methods: {
     getData () {
       service({ requiresAuth: true }).get('project-states').then((r) => {
-        this.project_states = r.data
+        this.project_states = [...r.data];
         this.project_states.unshift({ id: 0, name: 'Tots' })
         this.filters.project_state = defaultProjectState
         this.isLoading1 = false

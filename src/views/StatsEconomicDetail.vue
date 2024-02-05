@@ -125,7 +125,7 @@ export default {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
-          this.project_states = r.data;
+          this.project_states = [...r.data];
           this.project_states.unshift({ id: 0, name: "Tots" });
           const name = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 3).name}`
           this.project_states.push({ id: -1, name });
@@ -134,7 +134,7 @@ export default {
           service({ requiresAuth: true, cached: true })
             .get("years?_sort=year:DESC")
             .then(r => {
-              this.years = r.data;
+              this.years = [...r.data]/*  */;
               const y = this.years[0].year;
               this.years.unshift({ id: 0, year: parseInt(y) + 1 });
               this.years.unshift({ id: 0, year: parseInt(y) + 2 });

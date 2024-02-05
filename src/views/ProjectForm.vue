@@ -2027,7 +2027,7 @@ export default {
     },
     form: {
       handler(newVal, oldVal) {
-        console.log("handler, ", newVal, oldVal);
+        // console.log("handler, ", newVal, oldVal);
         if (!this.dirtyEnabled) {
           return;
         }
@@ -2254,6 +2254,7 @@ export default {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
+          console.log("project-states", r.data);
           this.project_states = r.data;
         });
       service({ requiresAuth: true, cached: true })
