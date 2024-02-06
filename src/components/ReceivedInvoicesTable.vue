@@ -91,7 +91,7 @@
         },
       }"
       :data="emittedCSV" name="despeses">
-        <b-button title="Exporta dades" class="export-button mb-3" icon-left="file-excel" />
+        <b-button title="Exporta dades" class="export-button mt-0 mb-3" icon-left="file-excel" />
       </download-excel>
       <b-button class="view-button is-primary mb-3" @click="navNew" icon-left="plus">
         Nova factura
@@ -350,7 +350,7 @@ export default {
 
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `received-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
+          `received-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
           }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}`
         )
       ).data;
@@ -365,7 +365,7 @@ export default {
           : "";
       let expenses = (
         await service({ requiresAuth: true }).get(
-          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}`
+          `received-expenses/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}`
         )
       ).data;
 

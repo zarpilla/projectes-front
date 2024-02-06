@@ -893,7 +893,7 @@ export default {
       const typeFilter =
         this.type === "received-incomes" ? "income" : "expense";
       this.documentTypes = (
-        await service({ requiresAuth: true }).get(
+        await service({ requiresAuth: true, cached: true }).get(
           `document-types?_where[type_eq]=${typeFilter}&_limit=-1&_sort=name:ASC`
         )
       ).data;

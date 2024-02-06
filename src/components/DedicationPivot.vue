@@ -4,7 +4,7 @@
     <download-excel class="export" :data="pivotData">
       <b-button
       title="Exporta dades"
-      class="export-button"
+      class="export-button mt-0"
       icon-left="file-excel" />
     </download-excel>
     <!-- <pre>

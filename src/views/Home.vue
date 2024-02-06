@@ -121,7 +121,7 @@
         <download-excel :data="projectsCSV">
           <b-button
             title="Exporta dades"
-            class="export-button mt-0 ml-4"
+            class="export-button mt-0 mt-0 ml-4"
             icon-left="file-excel"
           />
         </download-excel>

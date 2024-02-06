@@ -14,7 +14,7 @@
     >
       <b-button
         title="Exporta dades"
-        class="export-button"
+        class="export-button mt-0"
         icon-left="file-excel"
         label="Descarrega detall"
       />
@@ -27,7 +27,7 @@
     >
       <b-button
         title="Exporta dades"
-        class="export-button"
+        class="export-button mt-0"
         icon-left="file-excel"
         label="Descarrega totals per any i projecte"
       />
@@ -40,7 +40,7 @@
     >
       <b-button
         title="Exporta dades"
-        class="export-button"
+        class="export-button mt-0"
         icon-left="file-excel"
         label="Descarrega totals per projecte"
       />

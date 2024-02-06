@@ -43,7 +43,7 @@
       >
       <b-button
         title="Exporta dades"
-        class="export-button"
+        class="export-button mt-0"
         icon-left="file-excel"        
       > Descarrega detall
       </b-button>
@@ -77,7 +77,7 @@
       >
       <b-button
         title="Exporta dades"
-        class="export-button"
+        class="export-button mt-0"
         icon-left="file-excel"        
       > Descarrega totals per persona i any
       </b-button>

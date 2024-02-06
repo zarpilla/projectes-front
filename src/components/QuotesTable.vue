@@ -38,7 +38,7 @@
     <download-excel class="export" :data="emittedCSV">
       <b-button
         title="Exporta dades"
-        class="export-button mb-3"
+        class="export-button mt-0 mb-3"
         icon-left="file-excel"
       />
     </download-excel>
