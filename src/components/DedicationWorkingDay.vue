@@ -306,7 +306,8 @@ export default {
         this.dedicationObject.start_date = gantt.roundDate(startDate);
         this.dedicationObject.end_date = gantt.roundDate(endDate);
         this.dedicationObject._dedication.from = gantt.roundDate(startDate);
-        this.dedicationObject._dedication.to = gantt.roundDate(endDate);
+        this.dedicationObject._dedication.to = gantt.date.add(gantt.roundDate(endDate), -1, "day");
+        
         this.dedicationObject._dedication.users_permissions_user = this.users.find(
           u => u.id.toString() === userId.toString()
         );
