@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="table-view">
+      <!-- <pre>{{ monthlyActivitiesTotal }}</pre> -->
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal.length || justifications.length"
@@ -40,7 +41,11 @@
             </div>
             <div class="column is-2 has-text-right">
               <money-format
-                :value="row.grantable_amount ? row.cost / row.grantable_amount * 100 : 0"
+                :value="
+                  row.grantable_amount
+                    ? (row.cost / row.grantable_amount) * 100
+                    : 0
+                "
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value="false"
@@ -147,8 +152,9 @@
             </div>
             <div class="column is-2 has-text-right">
               <money-format
-                :value="row.payroll && row.payroll.total ? row.payroll.total
-                  : 0"
+                :value="
+                  row.payroll && row.payroll.total ? row.payroll.total : 0
+                "
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value="false"
@@ -166,8 +172,11 @@
             </div>
             <div class="column is-2 has-text-right">
               <money-format
-                :value="row.payroll && row.payroll.total ? row.cost / row.payroll.total * 100
-                  : 0"
+                :value="
+                  row.payroll && row.payroll.total
+                    ? (row.cost / row.payroll.total) * 100
+                    : 0
+                "
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value="false"
@@ -250,8 +259,9 @@
             </div>
             <div class="column has-text-right">
               <money-format
-                :value="row.payroll && row.cost ? (100 * row.cost) / row.payroll
-                  : 0"
+                :value="
+                  row.payroll && row.cost ? (100 * row.cost) / row.payroll : 0
+                "
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value="false"
@@ -371,22 +381,22 @@
           project: 'project',
           cost: {
             field: 'cost',
-            callback: (value) => {
+            callback: value => {
               return excelFormat(value);
-            },
+            }
           },
           payroll: {
             field: 'payroll',
-            callback: (value) => {
+            callback: value => {
               return excelFormat(value);
-            },
+            }
           },
           grantable_amount: {
             field: 'grantable_amount',
-            callback: (value) => {
+            callback: value => {
               return excelFormat(value);
-            },
-          },
+            }
+          }
         }"
         name="justificacions"
       >
@@ -418,14 +428,14 @@ export default {
   name: "Justification",
   components: { CardComponent, MoneyFormat },
   props: {
-    project: {
-      type: Number,
-      default: null,
+    type: {
+      type: String,
+      default: null
     },
     year: {
       type: Number,
-      default: null,
-    },
+      default: null
+    }
   },
   data() {
     return {
@@ -434,9 +444,10 @@ export default {
       payrolls: [],
       users: [],
       projects: [],
+      estimatedTotals: [],
       justification: {},
       justifications: [],
-      dedications: [],
+      dedications: []
     };
   },
   computed: {
@@ -453,32 +464,56 @@ export default {
         return [];
       }
       const activities = [];
-      this.projects.forEach((p) => {
-        p.activities
-          .filter(
-            (a) =>
-              this.year.toString() ===
-              moment(a.date, "YYYY-MM-DD").format("YYYY")
-          )
-          .forEach((a) => {
-            const activity = {
-              ...a,
-              project: a.project,
-              project_name: p.name,
-              grantable_amount: p.grantable_amount,
-              users_permissions_user: a.users_permissions_user,
-              year: moment(a.date, "YYYY-MM-DD").format("YYYY"),
-              month: moment(a.date, "YYYY-MM-DD").format("MM"),
-              key:
-                moment(a.date, "YYYY-MM-DD").format("YYYYMM") +
-                "-" +
-                a.users_permissions_user +
-                "-" +
-                a.project,
-            };
-            activities.push(activity);
-          });
-      });
+      if (this.type === "Reals") {
+        this.projects.forEach(p => {
+          p.activities
+            .filter(
+              a =>
+                this.year.toString() ===
+                moment(a.date, "YYYY-MM-DD").format("YYYY")
+            )
+            .forEach(a => {
+              const activity = {
+                ...a,
+                project: a.project,
+                project_name: p.name,
+                grantable_amount: p.grantable_amount,
+                users_permissions_user: a.users_permissions_user,
+                year: moment(a.date, "YYYY-MM-DD").format("YYYY"),
+                month: moment(a.date, "YYYY-MM-DD").format("MM"),
+                key:
+                  moment(a.date, "YYYY-MM-DD").format("YYYYMM") +
+                  "-" +
+                  a.users_permissions_user +
+                  "-" +
+                  a.project
+              };
+              activities.push(activity);
+            });
+        });
+      } else {
+        this.estimatedTotals.forEach(t => {
+          const activity = {
+            ...t,
+            project: t.project,
+            project_name: t.project_name,
+            grantable_amount: this.projects.find(p => p.id == t.project)
+              .grantable_amount,
+            users_permissions_user: t.userId,
+            year: moment(t.day, "YYYY-MM-DD").format("YYYY"),
+            month: moment(t.day, "YYYY-MM-DD").format("MM"),
+            hours: t.q,
+            cost_by_hour: t.costByHour,
+            key:
+              moment(t.day, "YYYY-MM-DD").format("YYYYMM") +
+              "-" +
+              t.userId +
+              "-" +
+              t.project
+          };
+          activities.push(activity);
+        });
+      }
       return activities;
     },
     monthlyActivitiesTotal() {
@@ -486,7 +521,7 @@ export default {
         .groupBy("key")
         .map((rows, id) => {
           const pr = this.payrolls.find(
-            (p) =>
+            p =>
               p.users_permissions_user.id.toString() ===
                 rows[0].users_permissions_user.toString() &&
               parseInt(p.year.year) === parseInt(rows[0].year) &&
@@ -494,18 +529,18 @@ export default {
           );
           return {
             ym: id,
-            cost: _.sumBy(rows, (r) => r.hours * r.cost_by_hour),
+            cost: _.sumBy(rows, r => r.hours * r.cost_by_hour),
             hours: _.sumBy(rows, "hours"),
             year: rows[0].year,
             month: rows[0].month,
             users_permissions_user: rows[0].users_permissions_user,
             username: this.users.find(
-              (u) => u.id === rows[0].users_permissions_user
+              u => u.id === rows[0].users_permissions_user
             ).username,
             project_id: rows[0].project,
             project: rows[0].project_name,
             payroll: pr ? pr.total : null,
-            grantable_amount: rows[0].grantable_amount,
+            grantable_amount: rows[0].grantable_amount
             // rows: rows
           };
         })
@@ -518,8 +553,8 @@ export default {
         .map((rows, id) => {
           return {
             project: id,
-            cost: _.sumBy(rows, (r) => r.cost),
-            grantable_amount: rows[0].grantable_amount,
+            cost: _.sumBy(rows, r => r.cost),
+            grantable_amount: rows[0].grantable_amount
           };
         })
         .value();
@@ -531,7 +566,7 @@ export default {
         .map((rows, id) => {
           return {
             project: id,
-            cost: _.sumBy(rows, (r) => r.quantity),
+            cost: _.sumBy(rows, r => r.quantity)
           };
         })
         .value();
@@ -545,12 +580,12 @@ export default {
         .map((rows, id) => {
           return {
             project: id,
-            cost: _.sumBy(rows, (r) => r.cost),
-            grantable_amount: rows[0].grantable_amount,
+            cost: _.sumBy(rows, r => r.cost),
+            grantable_amount: rows[0].grantable_amount
           };
         })
         .value();
-      return activities;
+      return _.orderBy(activities, 'project');
     },
     summaryAll() {
       return _.sumBy(this.summaryByProjectAll, "cost");
@@ -564,7 +599,7 @@ export default {
         .map((rows, id) => {
           return {
             username: id,
-            cost: _.sumBy(rows, (r) => r.cost),
+            cost: _.sumBy(rows, r => r.cost)
           };
         })
         .value();
@@ -576,7 +611,7 @@ export default {
         .map((rows, id) => {
           return {
             username: id,
-            cost: _.sumBy(rows, "quantity"),
+            cost: _.sumBy(rows, "quantity")
           };
         })
         .value();
@@ -584,25 +619,25 @@ export default {
     },
     summaryByUserMonth() {
       const activities1 = _(this.monthlyActivitiesTotal)
-        .groupBy((item) => `${item.username}_${item.month}`)
+        .groupBy(item => `${item.username}_${item.month}`)
         .map((rows, id) => {
           return {
             username: rows[0].username,
             month: rows[0].month,
-            cost: _.sumBy(rows, (r) => r.cost),
+            cost: _.sumBy(rows, r => r.cost)
           };
         })
         .value();
       // return activities
       const activities2 = _(this.justifications)
         .groupBy(
-          (item) => `${item.users_permissions_user.username}_${item.month}`
+          item => `${item.users_permissions_user.username}_${item.month}`
         )
         .map((rows, id) => {
           return {
             username: rows[0].users_permissions_user.username,
             month: this.zeroPad(rows[0].month, 2),
-            cost: _.sumBy(rows, (r) => r.quantity),
+            cost: _.sumBy(rows, r => r.quantity)
           };
         })
         .value();
@@ -610,18 +645,18 @@ export default {
       const activitiesjoin = _.concat(activities1, activities2);
 
       const activities = _(activitiesjoin)
-        .groupBy((item) => `${item.username}_${item.month}`)
+        .groupBy(item => `${item.username}_${item.month}`)
         .map((rows, id) => {
           return {
             username: rows[0].username,
             month: rows[0].month,
             cost: _.sumBy(rows, "cost"),
             payroll: this.payrolls.find(
-              (p) =>
+              p =>
                 p.users_permissions_user.username === rows[0].username &&
                 parseInt(p.year.year) === parseInt(this.year) &&
                 parseInt(p.month.month) === parseInt(rows[0].month)
-            ),
+            )
           };
         })
         .value();
@@ -635,7 +670,7 @@ export default {
         .map((rows, id) => {
           return {
             username: id,
-            cost: _.sumBy(rows, (r) => r.cost),
+            cost: _.sumBy(rows, r => r.cost)
           };
         })
         .value();
@@ -658,7 +693,7 @@ export default {
             project: project.name,
             payroll: payroll?.total,
             username: row.users_permissions_user.username,
-            cost: row.quantity,
+            cost: row.quantity
           };
         }
       );
@@ -673,15 +708,15 @@ export default {
         this.justification.quantity &&
         parseInt(this.justification.quantity) > 0
       );
-    },
+    }
   },
   watch: {
-    project: function (newVal, oldVal) {
+    type: function(newVal, oldVal) {
       this.getActivities();
     },
-    year: function (newVal, oldVal) {
+    year: function(newVal, oldVal) {
       this.getActivities();
-    },
+    }
   },
   mounted() {
     this.getActivities();
@@ -700,29 +735,41 @@ export default {
       const from = moment(this.year, "YYYY")
         .startOf("year")
         .format("YYYY-MM-DD");
-      const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
+      const to = moment(this.year, "YYYY")
+        .endOf("year")
+        .format("YYYY-MM-DD");
 
       let query = `payrolls?_where[paid_date_gte]=${from}&[paid_date_lte]=${to}&_limit=-1`;
       let query2 = `projects?_where[grantable_eq]=true&_limit=-1`;
 
       this.payrolls = (await service({ requiresAuth: true }).get(query)).data;
+
       this.projects = (await service({ requiresAuth: true }).get(query2)).data;
+
+      if (this.type === "Reals") {
+        this.estimatedTotals = (
+          await service({ requiresAuth: true }).get(
+            `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1&year=${this.year}`
+          )
+        ).data;
+      }
 
       const justifications = (
         await service({ requiresAuth: true }).get(
           `justifications?year=${this.year}&_limit=-1`
         )
       ).data;
+
       this.dedications = (
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
       ).data;
 
-      justifications.forEach((just) => {
+      justifications.forEach(just => {
         const date = moment(`${just.year}-${just.month}-01`).format(
           "YYYY-MM-DD"
         );
         const dedication = this.dedications.find(
-          (d) =>
+          d =>
             d.users_permissions_user &&
             just.users_permissions_user &&
             d.users_permissions_user.id === just.users_permissions_user.id &&
@@ -731,7 +778,7 @@ export default {
         );
         just.dedication = dedication;
         const payroll = this.payrolls.find(
-          (p) =>
+          p =>
             p.users_permissions_user.id === just.users_permissions_user.id &&
             parseInt(p.year.year) === parseInt(just.year) &&
             parseInt(p.month.month) === parseInt(just.month)
@@ -741,7 +788,9 @@ export default {
       this.justifications = justifications;
 
       this.users = (
-        await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")
+        await service({ requiresAuth: true, cached: true }).get(
+          "users?_limit=-1"
+        )
       ).data;
     },
     enumerateDaysBetweenDates() {
@@ -771,13 +820,13 @@ export default {
           );
           this.$buefy.snackbar.open({
             message: "Eliminada",
-            queue: false,
+            queue: false
           });
           this.getActivities();
         },
         onCancel: () => {
           return false;
-        },
+        }
       });
     },
     async addJustification() {
@@ -788,14 +837,14 @@ export default {
       );
       this.$buefy.snackbar.open({
         message: "Guardat",
-        queue: false,
+        queue: false
       });
       this.justification = {};
       this.getActivities();
     },
     excelFormat(value) {
       return format(this.user, value);
-    },
+    }
   },
   filters: {
     formatDate(val) {
@@ -820,8 +869,8 @@ export default {
         moment(val).fromNow() +
         ")"
       );
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>
