@@ -23,7 +23,7 @@ const menu = [
       },
       {
         to: '/working-day',
-        icon: 'chart-timeline',
+        icon: 'account-multiple',
         label: 'Persones'
       },
       {
@@ -51,17 +51,17 @@ const menu = [
       },
       {
         to: '/salary',
-        icon: 'table',
+        icon: 'cash-multiple',
         label: 'Bestretes'
       },
       {
         to: '/tresoreria',
-        icon: 'table',
+        icon: 'bank',
         label: 'Tresoreria'
       },
       {
         to: '/quotes',
-        icon: 'table',
+        icon: 'calculator',
         label: 'Pressupostos'
       }      
     ],
@@ -136,10 +136,15 @@ const menu = [
     'Ajuda',
     [
       {
+        to: '/changelog',
+        icon: 'math-log',
+        label: 'Registre de canvis'
+      },
+      {
         to: '/documentacio',
         icon: 'help-circle',
         label: 'Documentació'
-      }
+      }      
     ]
     //,
     // 'About',

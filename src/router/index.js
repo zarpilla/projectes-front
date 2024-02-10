@@ -496,6 +496,18 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    meta: {
+      title: 'Changelog'
+    },
+    path: '/changelog',
+    name: 'changelog',
+    component: () => import(/* webpackChunkName: "changelog" */ '../views/ChangeLog.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   }
 ]
 
