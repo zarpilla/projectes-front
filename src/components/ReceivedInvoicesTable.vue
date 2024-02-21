@@ -350,7 +350,7 @@ export default {
 
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `received-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
+          `received-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
           }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}`
         )
       ).data;
@@ -365,7 +365,7 @@ export default {
           : "";
       let expenses = (
         await service({ requiresAuth: true }).get(
-          `received-expenses/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}`
+          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}`
         )
       ).data;
 
@@ -511,6 +511,8 @@ export default {
     },
     assignedToProject(invoice) {
       let assigned = false;
+
+      console.log("invoice", invoice);
       if (invoice.projects) {
         for (let i = 0; i < invoice.projects.length; i++) {
           const project = invoice.projects[i];
