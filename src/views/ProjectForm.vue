@@ -381,6 +381,44 @@
                 </b-input>
               </b-field>
               <b-field
+                label="% confinançament"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_cofinancing_pct"
+                  placeholder="% confinançament"
+                  @input="
+                    changeValue(
+                      'grantable_cofinancing_pct',
+                      form.grantable_cofinancing_pct
+                    )
+                  "
+                >
+                </b-input>
+              </b-field>
+              <b-field
+                label="% despeses d'estructura"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_estructural_pct"
+                  placeholder="% despeses d'estructura"
+                  @input="
+                    changeValue(
+                      'grantable_estructural_pct',
+                      form.grantable_estructural_pct
+                    )
+                  "
+                >
+                </b-input>
+              </b-field>
+              <b-field
                 label="Necessita agrupada"
                 v-if="form.grantable"
                 horizontal
