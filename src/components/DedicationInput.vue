@@ -531,6 +531,7 @@ export default {
         !this.projects ||
         !this.projects.length
       ) {
+        this.isLoading = false;
         return;
       }
       const from = moment(this.date1).format("YYYY-MM-DD");
