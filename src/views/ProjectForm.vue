@@ -399,10 +399,11 @@
                 >
                 </b-input>
               </b-field>
-              <b-field
-                label="% despeses d'estructura"
+              <!-- <b-field
+                label="Import despeses indirectes"
                 v-if="form.grantable"
                 horizontal
+                message="Que no s'han d'acreditar amb factures"
               >
                 <b-input
                   v-if="form.grantable"
@@ -417,7 +418,7 @@
                   "
                 >
                 </b-input>
-              </b-field>
+              </b-field> -->
               <b-field
                 label="Necessita agrupada"
                 v-if="form.grantable"
