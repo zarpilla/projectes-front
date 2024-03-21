@@ -10,7 +10,7 @@
           <div class="column has-text-weight-bold">Entrada</div>
           <div class="column has-text-weight-bold">Sortida</div>
           <div class="column has-text-weight-bold">
-            Hores treballades / teòriques
+            Hores treballades
           </div>
           <div class="column has-text-weight-bold"></div>
         </div>
@@ -143,7 +143,9 @@
           </div>
           <div class="columns" v-else>
             <div class="column">
-              <b>TOTAL {{ a.date | formatMonthName }}: </b> {{ monthly.find(m => m.month === a.month) | formatHourMonth }}</div>
+              <b>TOTAL {{ a.date | formatMonthName }}: </b>
+              {{ monthly.find(m => m.month === a.month) | formatHourMonth }}
+            </div>
             <div class="column"></div>
             <div class="column"></div>
             <div class="column"></div>
@@ -151,7 +153,79 @@
           </div>
         </div>
       </card-component>
+
+      <div>
+        <button
+          v-if="!isLoading"
+          class="button is-primary mt-5"
+          @click="generatePDF"
+        >
+          Genera PDF
+        </button>
+
+        <button
+          v-if="!isLoading && generatedPDF"
+          class="button is-primary mt-5 ml-3"
+          @click="downloadPDF"
+        >
+          Descarrega PDF
+        </button>
+      </div>
+
+
+      <div v-if="generatedPDF" class="invoice-box-container">
+        <div class="invoice-box" id="pdf">
+          <table>
+            <tr class="bordered-2">
+              <th>PERSONA</th>
+              <td>{{ personName }}</td>
+            </tr>
+            <tr class="bordered-2 pb-4">
+              <th>ANY</th>
+              <td>{{ year }}</td>
+            </tr>
+          </table>
+
+          <table class="mt-4">
+            <tr class="bordered-2">
+              <th>DATA</th>
+              <th>HORES</th>
+            </tr>
+
+            <tr
+              v-for="(a, i) in activities.filter(
+                a => a.hour_in || a._type === 'total'
+              )"
+              v-bind:key="i"
+              :class="{ 'is-total': a._type === 'total' }"
+            >
+              <td>
+                <span class="has-text-weight-bold" v-if="a._type === 'total'"
+                  >TOTAL {{ a.date | formatMonthName }}</span
+                >
+                <span v-else>{{ a.date }}</span>
+              </td>
+              <td>
+                <span class="has-text-weight-bold" v-if="a._type === 'total'">{{
+                  monthly.find(m => m.month === a.month) | formatHourMonth
+                }}</span>
+                <span v-else
+                  >{{ a.hour_in_h }}:{{ a.hour_in_m }} - {{ a.hour_out_h }}:{{
+                    a.hour_out_m
+                  }}
+                  ({{ a | formatHourDiff }})</span
+                >
+              </td>
+            </tr>
+            <tr>
+              <td class="has-text-weight-bold">TOTAL</td>
+              <td class="has-text-weight-bold">{{ superTotal }}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -161,6 +235,7 @@ import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent";
 import _ from "lodash";
+import * as html2pdf from "html3pdf";
 
 moment.locale("ca");
 
@@ -194,24 +269,11 @@ export default {
       activities: [],
       isLoading: false,
       updating: false,
-      
+      generatedPDF: false,
+      users: []
     };
   },
-  computed: {
-    trashObjectName() {
-      if (this.trashObject) {
-        return this.trashObject.name;
-      }
 
-      return null;
-    },
-    superTotal() {
-      return sumBy(this.activities, "hours");
-    },
-    todayF() {
-      return moment().format("YYYY-MM-DD");
-    }
-  },
   watch: {
     user: function(newVal, oldVal) {
       this.getWorkDayLogs();
@@ -230,35 +292,72 @@ export default {
     this.getWorkDayLogs();
   },
   computed: {
+    trashObjectName() {
+      if (this.trashObject) {
+        return this.trashObject.name;
+      }
+
+      return null;
+    },    
+    todayF() {
+      return moment().format("YYYY-MM-DD");
+    },
+    personName() {
+      if (!this.users) {
+        return "";
+      }
+      const user = this.users.find(u => u.id === this.user);
+      if (!user) {
+        return "";
+      }
+      return user.fullname || user.username;
+    },
     monthly() {
       const totals = _(
         this.activities
           .filter(a => a._type !== "total" && a.hour_in !== null && a.hour_out)
           .map(a => {
-            return { ...a, month: (moment(a.date).month() + 1).toString(), m: moment(a.hour_in, "HH:mm:ss").diff(
-            moment(a.hour_out, "HH:mm:ss"),
-            "minutes"
-          ) };
+            return {
+              ...a,
+              month: (moment(a.date).month() + 1).toString(),
+              m: moment(a.hour_in, "HH:mm:ss").diff(
+                moment(a.hour_out, "HH:mm:ss"),
+                "minutes"
+              )
+            };
           })
       )
         .groupBy("month")
         .map((rows, id) => ({
           month: id,
-          m: _.sumBy(rows, (a) => -1*moment(a.hour_in, "HH:mm:ss").diff(
-            moment(a.hour_out, "HH:mm:ss"),
-            "minutes"
-          )),
+          m: _.sumBy(
+            rows,
+            a =>
+              -1 *
+              moment(a.hour_in, "HH:mm:ss").diff(
+                moment(a.hour_out, "HH:mm:ss"),
+                "minutes"
+              )
+          )
           // rows: rows
         }))
         .value();
 
-      return totals
-          ;
-    }
+      return totals;
+    },
+    superTotal() {
+      const totalMinutes = this.monthly.reduce((acc, m) => acc + m.m, 0);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const formattedTime = `${hours}h ${minutes}m`;
+      return formattedTime;
+    },
+    
   },
   methods: {
     async getWorkDayLogs() {
       this.isLoading = true;
+      this.generatedPDF = false;
 
       if (!this.year) {
         return;
@@ -267,6 +366,8 @@ export default {
       if (!this.user) {
         return;
       }
+
+      this.users = (await service({ requiresAuth: true }).get("users")).data;
 
       const from = moment(this.year, "YYYY")
         .startOf("year")
@@ -292,7 +393,11 @@ export default {
             const dailyWorkday = r.data.filter(dd => date === dd.date);
 
             if (date.endsWith("01")) {
-              activities.push({ _type: "total", date: date, month: (moment(d).month() + 1).toString() });
+              activities.push({
+                _type: "total",
+                date: date,
+                month: (moment(d).month() + 1).toString()
+              });
             }
 
             if (dailyWorkday.length === 0) {
@@ -463,6 +568,36 @@ export default {
         dates.push(currDate.clone().toDate());
       }
       return dates;
+    },
+    generatePDF() {
+      this.generatedPDF = true;
+    },
+    downloadPDF() {
+
+      var element = document.getElementById('pdf')
+      var opt = {
+        margin: [0, 0],
+        filename: `hores`,
+        html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      }
+      const pdf = html2pdf().set(opt).from(element)
+
+      console.log('element', element)
+      console.log('pdf', pdf)
+      // await pdf.save(opt.filename, { returnPromise: true })
+
+      pdf.toPdf().get('pdf').then(function (pdf) {
+         window.open(
+          pdf.output('bloburl', "hores.pdf")
+          , "hores.pdf");
+      });
+
+
+      // const pdf = document.getElementById("pdf");
+      // html2pdf()
+      //   .from(pdf)
+      //   .save();
     }
   },
   filters: {
@@ -472,14 +607,16 @@ export default {
       }
       return moment(val, "HH:mm:ss").format("HH:mm");
     },
-    formatMonthName(dt) {      
-      return moment(dt).format('MMMM').toUpperCase()
+    formatMonthName(dt) {
+      return moment(dt)
+        .format("MMMM")
+        .toUpperCase();
     },
     formatHourMonth(m) {
       if (m && m.m) {
-        return `${parseInt(m.m / 60)}h ${m.m - ( parseInt(m.m / 60) * 60)}m`
+        return `${parseInt(m.m / 60)}h ${m.m - parseInt(m.m / 60) * 60}m`;
       }
-      return '0h'
+      return "0h";
     },
     formatHourDiff(activity) {
       if (!activity.hour_in || !activity.hour_out) {
@@ -578,6 +715,39 @@ export default {
 .time-part-input {
   max-width: 100px;
   margin-top: -4px;
+}
+
+.invoice-box-container {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+  border: 1px solid #eee;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 3rem;
+}
+.invoice-box {
+  max-width: 800px;
+  margin: auto;
+  padding: 30px;
+  font-size: 12px;
+  line-height: 24px;
+  font-family: sans-serif, "Helvetica Neue", "Helvetica", Helvetica, Arial,
+    sans-serif;
+  color: #222;
+  background: #fff;
+}
+
+.invoice-box table {
+  width: 100%;
+  line-height: inherit;
+  text-align: left;
+}
+tr.bordered-2 th,
+tr.bordered-2 td {
+  border-bottom: 2px solid #000;
+}
+tr.is-total td {
+  border-bottom: 1px solid #000;
+  border-top: 1px solid #000;
 }
 </style>
 

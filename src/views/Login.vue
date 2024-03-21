@@ -38,8 +38,10 @@
             </button>
           </div>
         </form>
-          <div  class="mt-4">
-            <router-link to="/forgotten-password"> He oblidat la meva clau de pas </router-link>
+        <div class="mt-4">
+          <router-link to="/forgotten-password">
+            He oblidat la meva clau de pas
+          </router-link>
         </div>
       </div>
     </div>
@@ -55,11 +57,11 @@ export default {
   data() {
     return {
       email: "",
-      password: "",
+      password: ""
     };
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(["userName"])
   },
   async mounted() {
     if (this.userName) {
@@ -73,22 +75,40 @@ export default {
         service()
           .post("auth/local", {
             identifier: this.email,
-            password: this.password,
+            password: this.password
           })
-          .then((response) => {
+          .then(response => {
             let is_admin = response.data.user.is_admin;
-            let user = response.data.user
-            delete user.tasks
-            delete user.daily_dedications
+            let user = response.data.user;
+
+            if (!user.confirmed) {
+              // this.$buefy.snackbar.open({
+              //   // indefinite: true,
+              //   zposition: "is-center",
+              //   message:
+              //     "Aquest correu electrònic no està confirmat, siusplau, contacta amb l'administradora per accedir",
+              //   cancelText: "No",
+              //   onAction: e => {}
+              // });
+
+              this.$buefy.toast.open({
+                message: `Aquest correu electrònic no està confirmat, siusplau, contacta amb l'administradora per accedir`,
+                type: "is-danger"
+              });
+              return;
+            }
+
+            delete user.tasks;
+            delete user.daily_dedications;
             localStorage.setItem("user", JSON.stringify(user));
             localStorage.setItem("jwt", response.data.jwt);
             this.$store.commit("user", {
               user: user,
               name: user.username,
-              jwt: response.data.jwt,
+              jwt: response.data.jwt
             });
 
-            EventBus.$emit('login', {})
+            EventBus.$emit("login", {});
 
             if (this.$route.params.nextUrl != null) {
               this.$router.push(this.$route.params.nextUrl);
@@ -100,20 +120,20 @@ export default {
               }
             }
           })
-          .catch((error) => {
+          .catch(error => {
             console.error(error.response);
             this.$buefy.snackbar.open({
               // indefinite: true,
               position: "is-top",
               message: "Correu o clau de pas incorrecta",
               cancelText: "No",
-              onAction: (e) => {
+              onAction: e => {
                 // this.refreshApp()
-              },
+              }
             });
           });
       }
-    },
-  },
+    }
+  }
 };
 </script>

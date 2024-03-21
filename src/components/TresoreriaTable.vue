@@ -141,7 +141,7 @@
     </card-component>
 
     <card-component
-      title="IVA"
+      title="IVA PENDENT DE SALDAR"
       class="ztile is-child mt-2"
       v-if="
         me &&
@@ -527,12 +527,19 @@ export default {
         )
       ).data;
 
+      this.me = (
+        await service({ requiresAuth: true }).get(
+          "me"
+        )
+      ).data;
+
       let filter = "";
       if (this.$route.query.filter) {
         filter = this.$route.query.filter;
       }
       const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
       const treasuryData = await getTreasuryData(filter, year);      
+      this.vat = treasuryData.vat;
       this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});
       this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
