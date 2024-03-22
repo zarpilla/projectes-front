@@ -2,7 +2,7 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <card-component title="20240321">
+      <card-component title="2024.03.21">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
@@ -13,7 +13,7 @@
             <router-link to="/tresoreria">tresoreria</router-link>.
           </div>
           <div class="text mt-2">
-            Camp de factura de proveïdora a
+            Camp de número de factura de proveïdora al llistat de
             <router-link to="/received-invoices">despeses</router-link>.
           </div>
           <div class="text mt-2">
@@ -29,7 +29,7 @@
         </div>
       </card-component>
 
-      <card-component title="20240110">
+      <card-component title="2024.01.10">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
