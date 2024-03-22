@@ -1,6 +1,28 @@
 <template>
   <div>
     <div class="table-view">
+
+
+      <div class="mb-4">
+        <button
+          v-if="!isLoading"
+          class="button is-primary zmt-5"
+          @click="generatePDF"
+          
+        >
+          Genera PDF
+        </button>
+
+        <button
+          v-if="!isLoading && generatedPDF"
+          class="button is-primary zmt-5 ml-3"
+          @click="downloadPDF"
+          
+        >
+          Descarrega PDF
+        </button>
+      </div>
+
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="!isLoading"
@@ -153,24 +175,6 @@
           </div>
         </div>
       </card-component>
-
-      <div>
-        <button
-          v-if="!isLoading"
-          class="button is-primary mt-5"
-          @click="generatePDF"
-        >
-          Genera PDF
-        </button>
-
-        <button
-          v-if="!isLoading && generatedPDF"
-          class="button is-primary mt-5 ml-3"
-          @click="downloadPDF"
-        >
-          Descarrega PDF
-        </button>
-      </div>
 
 
       <div v-if="generatedPDF" class="invoice-box-container">

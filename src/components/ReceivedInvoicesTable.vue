@@ -142,6 +142,10 @@
         <b-table-column label="NIF Contacte" field="contact.name" v-slot="props" sortable>
           {{ props.row.contact ? props.row.contact.nif : "-" }}
         </b-table-column>
+        <b-table-column label="FProv" field="contact.name" v-slot="props" sortable>
+          {{ props.row.contact_invoice_number ? props.row.contact_invoice_number : "" }}
+        </b-table-column>
+
         <b-table-column label="Concepte" field="lines" v-slot="props" sortable>
           <span v-if="props.row.type === 'payrolls'">
             {{ props.row.users_permissions_user.username }}

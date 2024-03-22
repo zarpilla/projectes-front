@@ -822,14 +822,8 @@
               @click="getPDF"
               v-if="form.id"
             >
-              Visualitza PDF
+              Visualitzar PDF
             </button>
-            <!-- <router-link v-if=" form.id " :to="{
-                name: 'invoice.view',
-                  params: { id: form.id, type: type },
-              }" class="button is-warning">
-              Visualitza PDF
-            </router-link> -->
           </b-field>
           <b-field
             v-if="
@@ -853,6 +847,15 @@
               v-if="form.id"
               >Guardar i sortir</b-button
             >
+            <button
+              class="button is-primary ml-3"
+              type="button"
+              @click="sendInvoiceByEmail"
+              v-if="form.id && entity === 'emitted-invoice'"
+              :disabled="!canSendEmail"
+            >
+              Enviar factura per correu i guardar
+            </button>
           </b-field>
         </div>
       </div>
@@ -925,7 +928,9 @@ export default {
       editingDocuments: false,
       personIrpf: 0,
       quotes: null,
-      products: []
+      products: [],
+      pdf: false,
+      contact: null
     };
   },
   computed: {
@@ -1053,6 +1058,16 @@ export default {
     },
     total() {
       return this.totalBase + this.totalVat + this.totalIrpf;
+    },
+    canSendEmail() {
+      const can =
+        this.form.id !== null &&
+        this.form.pdf &&
+        this.form.pdf.startsWith("/uploads/documents/") &&
+        this.form.contact !== null &&
+        this.contact !== null &&
+        this.contact.contact_email !== null;
+      return can;
     }
   },
   watch: {
@@ -1195,6 +1210,7 @@ export default {
                 this.form.serial = this.form.serial.id;
               }
               if (this.form.contact && this.form.contact.id) {
+                this.contact = this.form.contact;
                 this.clientSearch = this.form.contact.name;
                 this.form.contact = this.form.contact.id;
               }
@@ -1919,7 +1935,34 @@ export default {
           `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
         )
       ).data;
+      this.pdf = true;
       window.open(this.apiUrl + pdf.url);
+    },
+    async sendInvoiceByEmail() {
+      this.isLoading = true;
+      try {
+        await service({ requiresAuth: true }).post(
+          `/emitted-invoices/send-email/${this.form.id}`
+        );
+
+        // this.isLoading = false;
+        this.$buefy.snackbar.open({
+          message: "Correu enviat",
+          queue: false
+        });
+
+        this.form.sent_date = new Date();
+        this.form.sent = true;
+
+        this.canEditDocument(false);
+      } catch (err) {
+        console.error(err);
+        this.isLoading = false;
+        this.$buefy.snackbar.open({
+          message: err.msg || "Error a l'enviar correu",
+          queue: false
+        });
+      }
     }
   }
 };

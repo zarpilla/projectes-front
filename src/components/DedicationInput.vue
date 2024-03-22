@@ -34,24 +34,24 @@
     />
 
     <b-loading
-        :is-full-page="true"
-        v-if="user"
-        v-model="isLoading"
-        :can-cancel="false"
-      ></b-loading>
-      <b-loading
-        :is-full-page="true"
-        v-if="user"
-        v-model="isLoadingImport"
-        :can-cancel="false"
-      ></b-loading>
-      <b-loading
-        :is-full-page="true"
-        v-if="user"
-        v-model="isLoadingMove"
-        :can-cancel="false"
-      ></b-loading>
-      
+      :is-full-page="true"
+      v-if="user"
+      v-model="isLoading"
+      :can-cancel="false"
+    ></b-loading>
+    <b-loading
+      :is-full-page="true"
+      v-if="user"
+      v-model="isLoadingImport"
+      :can-cancel="false"
+    ></b-loading>
+    <b-loading
+      :is-full-page="true"
+      v-if="user"
+      v-model="isLoadingMove"
+      :can-cancel="false"
+    ></b-loading>
+
     <card-component class="has-table has-mobile-sort-spaced">
       <div class="card-body is-total">
         <div class="columns">
@@ -194,7 +194,7 @@
           >
           <span
             class="day-sum-label text-sm text-gray-900 week-total"
-            v-if="day && ( day.weekdayPosition === 7 || day.dayFromEnd === 1)"
+            v-if="day && (day.weekdayPosition === 7 || day.dayFromEnd === 1)"
             >Setmana: {{ weekSum(day.isoWeeknumber) }}h</span
           >
           <span
@@ -219,7 +219,7 @@
               :style="{
                 backgroundColor: attr.customData
                   ? attr.customData.bg_project
-                  : 'transparent',
+                  : 'transparent'
               }"
             >
               <span
@@ -263,7 +263,7 @@
           class="card-body"
           :class="{
             'is-total': a.project.name === 'Total',
-            'is-activity': a.project.name !== 'Total',
+            'is-activity': a.project.name !== 'Total'
           }"
         >
           <div class="columns">
@@ -363,35 +363,35 @@ export default {
     ModalBoxDedication,
     TimeCounter,
     ModalBoxFestive,
-    ModalBoxMoveProject,
+    ModalBoxMoveProject
   },
   props: {
     user: {
       type: Number,
-      default: null,
+      default: null
     },
     users: {
-      type: Array,
+      type: Array
     },
     date1: {
       type: Date,
-      default: null,
+      default: null
     },
     date2: {
       type: Date,
-      default: null,
+      default: null
     },
     project: {
       type: Number,
-      default: null,
+      default: null
     },
     last: {
       type: Boolean,
-      default: false,
+      default: false
     },
     projects: {
-      type: Array,
-    },
+      type: Array
+    }
   },
   data() {
     return {
@@ -420,20 +420,20 @@ export default {
       hoursTotal: 0,
       defaultChart: {
         chartData: null,
-        extraOptions: chartConfig.chartOptionsMain,
+        extraOptions: chartConfig.chartOptionsMain
       },
       pieChart: {
         chartData: null,
-        extraOptions: chartConfig.chartOptionsPie,
+        extraOptions: chartConfig.chartOptionsPie
       },
       usersChart: {
         chartData: null,
-        extraOptions: chartConfig.chartOptionsPie,
+        extraOptions: chartConfig.chartOptionsPie
       },
       viewType: "all",
       colorType: "project",
       masks: {
-        weekdays: "WWW",
+        weekdays: "WWW"
       },
       attributes: [],
       counter: null,
@@ -444,7 +444,7 @@ export default {
       updateCounterCount: 0,
       festiveTypes: [],
       zevents: {
-        "2022-05-27": [{ title: "Rehearsal", url: "http://www.google.com" }],
+        "2022-05-27": [{ title: "Rehearsal", url: "http://www.google.com" }]
       },
       icalEvents: [],
       isLoadingImport: false,
@@ -492,34 +492,36 @@ export default {
         " -----" +
         `${hoursDiff}h ${minutesDiff}m  ${secondsDiff}s`
       );
-    },
+    }
   },
   watch: {
-    user: function (newVal, oldVal) {
+    user: function(newVal, oldVal) {
       this.getActivities();
     },
-    date1: function (newVal, oldVal) {
+    date1: function(newVal, oldVal) {
       this.getActivities();
     },
-    date2: function (newVal, oldVal) {
+    date2: function(newVal, oldVal) {
       this.getActivities();
     },
-    project: function (newVal, oldVal) {
+    project: function(newVal, oldVal) {
       this.getActivities();
     },
-    last: function (newVal, oldVal) {
+    last: function(newVal, oldVal) {
       this.getActivities();
     },
-    projects: function (newVal, oldVal) {
+    projects: function(newVal, oldVal) {
       this.getActivities();
-    },
+    }
   },
   async mounted() {
     // console.log('mounted')
     this.getActivities();
     // this.users = (await service({ requiresAuth: true, cached: true }).get('users')).data.filter(u => u.hidden !== true)
     this.festiveTypes = (
-      await service({ requiresAuth: true, cached: true }).get("festive-types?_limit=-1")
+      await service({ requiresAuth: true, cached: true }).get(
+        "festive-types?_limit=-1"
+      )
     ).data;
   },
   methods: {
@@ -541,7 +543,7 @@ export default {
       if (calendar) {
         await calendar.move({
           month: parseInt(moment(this.date1).format("M")),
-          year: parseInt(moment(this.date1).format("YYYY")),
+          year: parseInt(moment(this.date1).format("YYYY"))
         });
       }
       this.moving = false;
@@ -552,7 +554,7 @@ export default {
         await service({ requiresAuth: true }).get(festivesQuery)
       ).data;
       const userFestives = festives.filter(
-        (f) =>
+        f =>
           f.users_permissions_user == null ||
           (f.users_permissions_user &&
             f.users_permissions_user.id === this.user)
@@ -573,32 +575,32 @@ export default {
       query = `${query}&_limit=-1`;
       service({ requiresAuth: true })
         .get(query)
-        .then((r) => {
-          this.activities = r.data.filter((a) => a.project && a.project.id);
+        .then(r => {
+          this.activities = r.data.filter(a => a.project && a.project.id);
           this.hoursTotal = sumBy(this.activities, "hours");
           this.distinctDays = uniq(map(this.activities, "date"));
           this.distinctDays.sort();
           this.distinctDaysObj = orderBy(
-            this.distinctDays.map((d) => {
-              const activities = this.activities.filter((a) => a.date === d);
+            this.distinctDays.map(d => {
+              const activities = this.activities.filter(a => a.date === d);
               const hours = sumBy(activities, "hours");
               activities.unshift({
                 id: "Total",
                 project: { name: "Total" },
-                hours: hours,
+                hours: hours
               });
               return { day: d, activities: activities, hours: hours };
             }),
             ["day"],
             ["desc"]
           );
-          this.distinctTotals = this.distinctDaysObj.map((d) => {
+          this.distinctTotals = this.distinctDaysObj.map(d => {
             return { day: d.day, hours: d.hours };
           });
           this.distinctProjects = uniq(map(this.activities, "project.name"));
-          this.distinctProjectsObj = this.distinctProjects.map((p) => {
+          this.distinctProjectsObj = this.distinctProjects.map(p => {
             const activities = this.activities.filter(
-              (a) => a.project && a.project.name === p
+              a => a.project && a.project.name === p
             );
             const hours = sumBy(activities, "hours");
             return {
@@ -607,15 +609,15 @@ export default {
               pct:
                 this.hoursTotal > 0
                   ? parseFloat(((hours / this.hoursTotal) * 100).toFixed(2))
-                  : 0,
+                  : 0
             };
           });
           this.distinctUsers = uniq(
             map(this.activities, "users_permissions_user.username")
           );
-          this.distinctUsersObj = this.distinctUsers.map((p) => {
+          this.distinctUsersObj = this.distinctUsers.map(p => {
             const activities = this.activities.filter(
-              (a) =>
+              a =>
                 (p &&
                   a.users_permissions_user &&
                   a.users_permissions_user.username === p) ||
@@ -628,7 +630,7 @@ export default {
               pct:
                 this.hoursTotal > 0
                   ? parseFloat(((hours / this.hoursTotal) * 100).toFixed(2))
-                  : 0,
+                  : 0
             };
           });
 
@@ -641,27 +643,27 @@ export default {
                   this.colorType === "user"
                     ? this.getChartColor(
                         this.distinctUsers.findIndex(
-                          (p) => p === a.users_permissions_user.username
+                          p => p === a.users_permissions_user.username
                         )
                       )
                     : this.getChartColor(
                         this.distinctProjects.findIndex(
-                          (p) => a.project && p === a.project.name
+                          p => a.project && p === a.project.name
                         )
                       ),
                 class: "tag zis-primary",
                 project: a.project ? a.project.name : "",
                 username: a.users_permissions_user.username,
                 hours: a.hours,
-                type: "activity",
+                type: "activity"
               },
-              dates: a.date,
+              dates: a.date
             };
           });
           this.attributes.unshift({
             key: "today",
             highlight: "red",
-            dates: new Date(),
+            dates: new Date()
           });
           const len = this.activities.length;
           userFestives.forEach((f, i) => {
@@ -676,9 +678,9 @@ export default {
                   ? f.users_permissions_user.username
                   : "TOTES",
                 hours: 0,
-                type: "festive",
+                type: "festive"
               },
-              dates: f.date,
+              dates: f.date
             });
           });
 
@@ -690,10 +692,10 @@ export default {
 
           this.isLoading = false;
           this.firstTime = true;
-          this.activitiesJSON = this.activities.map((a) => {
+          this.activitiesJSON = this.activities.map(a => {
             const project =
               a.project && a.project.id
-                ? this.projects.find((p) => p.id === a.project.id)
+                ? this.projects.find(p => p.id === a.project.id)
                 : null;
             const client =
               project && project.clients && project.clients.length > 0
@@ -707,7 +709,7 @@ export default {
               description: a.description,
               activity: a.activity_type ? a.activity_type.name : "",
               type: a.dedication_type ? a.dedication_type.name : "",
-              client: client,
+              client: client
             };
           });
         });
@@ -739,7 +741,7 @@ export default {
 
       this.$buefy.snackbar.open({
         message: "Esborrat",
-        queue: false,
+        queue: false
       });
     },
     trashCancel() {
@@ -756,14 +758,14 @@ export default {
           datasets.push({
             label: p,
             backgroundColor: this.getChartColor(j),
-            data: this.distinctDays.map((dd) => {
+            data: this.distinctDays.map(dd => {
               return sumBy(
                 this.activities.filter(
-                  (a) => a.project && a.project.name === p && a.date === dd
+                  a => a.project && a.project.name === p && a.date === dd
                 ),
                 "hours"
               );
-            }),
+            })
           });
         });
         chartData.labels = labels;
@@ -825,7 +827,7 @@ export default {
       } else {
         this.$buefy.snackbar.open({
           message: "No es poden editar els festius globals",
-          queue: false,
+          queue: false
         });
       }
     },
@@ -833,16 +835,21 @@ export default {
       this.isModalMoveToProject = true;
     },
     showModalICal(event) {
-
-      let firstWord = ''
-      if (event.customData.a.summary && event.customData.a.summary.toString().includes(' ')) {
-        firstWord = event.customData.a.summary.split(' ')[0]
+      let firstWord = "";
+      if (
+        event.customData.a.summary &&
+        event.customData.a.summary.toString().includes(" ")
+      ) {
+        firstWord = event.customData.a.summary.split(" ")[0];
       } else if (event.customData.a.summary) {
-        firstWord = event.customData.a.summary
+        firstWord = event.customData.a.summary;
       }
       const project = this.project
-        ? this.projects.find((p) => p.id === this.project)
-        : (firstWord && this.projects.filter((p) => p.name === firstWord).length === 1 ? this.projects.find((p) => p.name === firstWord) : null);
+        ? this.projects.find(p => p.id === this.project)
+        : firstWord &&
+          this.projects.filter(p => p.name === firstWord).length === 1
+        ? this.projects.find(p => p.name === firstWord)
+        : null;
 
       const activity = {
         date: event.customData.a.start,
@@ -866,12 +873,12 @@ export default {
     },
     async showModalCounter() {
       if (this.counter === null) {
-        const userId = this.users.find((u) => u.username === this.userName);
+        const userId = this.users.find(u => u.username === this.userName);
         const counterResp = await service({ requiresAuth: true }).post(
           `time-counters`,
           {
             start: moment().format("YYYY-MM-DD HH:mm:ss"),
-            users_permissions_user: userId,
+            users_permissions_user: userId
           }
         );
         if (counterResp.data && counterResp.data.id) {
@@ -884,7 +891,7 @@ export default {
       this.isModalEditActive = true;
     },
     async modalSubmit(activity) {
-      console.log('activity', activity)
+      console.log("activity", activity);
       if (activity.counter) {
         await service({ requiresAuth: true }).delete(
           `time-counters/${activity.counter.id}`
@@ -913,7 +920,7 @@ export default {
         console.error("activities error", err);
         this.$buefy.snackbar.open({
           message: "Error",
-          queue: false,
+          queue: false
         });
       }
 
@@ -924,7 +931,7 @@ export default {
 
       this.$buefy.snackbar.open({
         message: "Guardat",
-        queue: false,
+        queue: false
       });
     },
     async modalDelete(activity) {
@@ -936,7 +943,7 @@ export default {
         this.getActivities();
         this.$buefy.snackbar.open({
           message: "Esborrat",
-          queue: false,
+          queue: false
         });
       } else if (activity.counter && activity.counter.id) {
         this.counterClicked = false;
@@ -946,7 +953,7 @@ export default {
         this.isModalEditActive = false;
         this.$buefy.snackbar.open({
           message: "Esborrat",
-          queue: false,
+          queue: false
         });
         this.counter = null;
       }
@@ -976,7 +983,7 @@ export default {
         return false;
       }
       return sumBy(
-        attributes.map((a) => {
+        attributes.map(a => {
           return { hours: a.customData ? a.customData.hours : 0 };
         }),
         "hours"
@@ -985,24 +992,26 @@ export default {
     weekSum(weekNumber) {
       const weekActivities = this.attributes
         .filter(
-          (a) =>
+          a =>
             moment(a.dates, "YYYY-MM-DD").isoWeek() == weekNumber &&
             a.customData &&
             a.customData.hours
         )
-        .map((a) => {
+        .map(a => {
           return { ...a, weekNumber: moment(a.dates, "YYYY-MM-DD").isoWeek() };
         });
-      const weeksum = sumBy(weekActivities, (a) => a.customData.hours);
+      const weeksum = sumBy(weekActivities, a => a.customData.hours);
       return weeksum.toFixed(2);
     },
     async counterContinue(info) {
       if (info) {
-        await service({ requiresAuth: true }).put(
-          `time-counters/${this.counter.id}`,
-          { project: info.project, description: info.description }
-        );
-        this.counter.project = this.projects.find((p) => p.id === info.project);
+        await service({
+          requiresAuth: true
+        }).put(`time-counters/${this.counter.id}`, {
+          project: info.project,
+          description: info.description
+        });
+        this.counter.project = this.projects.find(p => p.id === info.project);
         this.counter.description = info.description;
       }
       this.counterClicked = false;
@@ -1034,7 +1043,9 @@ export default {
             ? moment(festive.endDate).diff(festive.date, "days") + 1
             : 1;
           for (let i = 0; i < diff; i++) {
-            const day = moment(festive.date).add(i, "days").day();
+            const day = moment(festive.date)
+              .add(i, "days")
+              .day();
             if (day !== 6 && day !== 0) {
               festive2.date = moment(festive.date)
                 .add(i, "days")
@@ -1047,7 +1058,7 @@ export default {
         console.error("activities error", err);
         this.$buefy.snackbar.open({
           message: "Error",
-          queue: false,
+          queue: false
         });
       }
 
@@ -1055,7 +1066,7 @@ export default {
 
       this.$buefy.snackbar.open({
         message: "Guardat",
-        queue: false,
+        queue: false
       });
     },
     async modalFestiveCancel() {
@@ -1068,7 +1079,7 @@ export default {
         this.getActivities();
         this.$buefy.snackbar.open({
           message: "Esborrat",
-          queue: false,
+          queue: false
         });
       }
     },
@@ -1080,33 +1091,31 @@ export default {
         user: this.user,
         from: this.project,
         to: data.project,
-        start: moment(this.date1).format('YYYY-MM-DD'),
-        end: moment(this.date2).format('YYYY-MM-DD'),
+        start: moment(this.date1).format("YYYY-MM-DD"),
+        end: moment(this.date2).format("YYYY-MM-DD")
       };
       const moveResponse = (
         await service({ requiresAuth: true }).post(`activities/move`, movedata)
       ).data;
 
-      this.isLoadingMove = false;      
+      this.isLoadingMove = false;
       this.$buefy.snackbar.open({
         message: "Actualitzat!",
-        queue: false,
+        queue: false
       });
       this.getActivities();
-
-      
     },
     async modalMoveToProjectCancel() {
       this.isModalMoveToProject = false;
     },
     async importFromCalendar(shouldImportFromCalendar) {
-      this.shouldImportFromCalendar = shouldImportFromCalendar
+      this.shouldImportFromCalendar = shouldImportFromCalendar;
       if (this.user) {
-        const user = this.users.find((u) => u.id === this.user);
+        const user = this.users.find(u => u.id === this.user);
         if (!user.ical || !user.ical.startsWith("http")) {
           this.$buefy.toast.open({
             message: `La usuària no te un calendari de tipus iCal definit. Contacta amb l'administradora per fer servir aquesta funcionalitat`,
-            type: "is-danger",
+            type: "is-danger"
           });
           return;
         } else if (this.icalEvents.length) {
@@ -1144,15 +1153,15 @@ export default {
       if (!this.user) {
         return;
       }
-      const user = this.users.find((u) => u.id === this.user);
-      this.icalEvents.forEach((event) => {
+      const user = this.users.find(u => u.id === this.user);
+      this.icalEvents.forEach(event => {
         if (
           moment(event.start).isAfter(moment(this.date1)) &&
           moment(event.end).isBefore(moment(this.date2))
         ) {
           // filter already used events
           const attr = this.attributes.find(
-            (a) =>
+            a =>
               a.customData &&
               a.customData.type === "activity" &&
               a.customData.a &&
@@ -1170,71 +1179,139 @@ export default {
                 hours:
                   moment(event.end).diff(moment(event.start), "minutes") / 60,
                 type: "ical",
-                a: event,
+                a: event
               },
-              dates: event.start,
+              dates: event.start
             });
           }
         }
       });
-      var eventsAdded = this.attributes.filter(a => a.customData && a.customData.type === 'ical' )
-      let countFound = 0
-      let countNotFound = 0
+      var eventsAdded = this.attributes.filter(
+        a => a.customData && a.customData.type === "ical"
+      );
+      let countFound = 0;
+      let countNotFound = 0;
       eventsAdded.forEach(event => {
-        const projectName = event.customData.project.indexOf(' ') >= 0 ? event.customData.project.split(' ')[0] : event.customData.project
-        const project = this.projects.find(p => p.name === projectName)
+        const projectName =
+          event.customData.project.indexOf(" ") >= 0
+            ? event.customData.project.split(" ")[0]
+            : event.customData.project;
+        const project = this.projects.find(p => p.name === projectName);
         if (project) {
-          countFound++
+          countFound++;
         } else {
-          countNotFound++
+          console.log("project not found", projectName);
+          if (projectName.includes("-")) {
+            const indexOfDash = projectName.indexOf("-");
+            const projectName2 = projectName.substring(indexOfDash + 1);
+            const projects2 = this.projects.filter(
+              p =>
+                p.name.startsWith(projectName2) || p.name.endsWith(projectName2)
+            );
+            if (projects2.length === 1) {
+              console.log("project?", projectName, projects2);
+              countFound++;
+            } else {
+              console.log("project not found", projectName);
+              countNotFound++;
+            }
+          } else {
+            console.log("project not found", projectName);
+            countNotFound++;
+          }
         }
-      })
+      });
 
       if (this.shouldImportFromCalendar && countFound > 0) {
-        this.shouldImportFromCalendar = false
+        this.shouldImportFromCalendar = false;
         this.$buefy.dialog.confirm({
-            message: `S'han trobat ${countFound} esdeveniments que crearan hores automáticament i ${countNotFound} que no coincideixen amb cap projecte. Vols continuar amb la creació automàtica de les hores?`,
-            onConfirm: async () => {
-              this.createICalEvents()
-            },
-            onCancel: () => { return false }
-        })
+          message: `S'han trobat ${countFound} esdeveniments que crearan hores automáticament i ${countNotFound} que no coincideixen amb cap projecte. Vols continuar amb la creació automàtica de les hores?`,
+          onConfirm: async () => {
+            this.createICalEvents();
+          },
+          onCancel: () => {
+            return false;
+          }
+        });
       }
-      
 
       // console.log('projects', this.projects)
       // console.log('icalAdded', icalAdded)
-
     },
 
     async createICalEvents() {
       this.isLoadingImport = true;
-      var eventsAdded = this.attributes.filter(a => a.customData && a.customData.type === 'ical' )
-      
+      var eventsAdded = this.attributes.filter(
+        a => a.customData && a.customData.type === "ical"
+      );
+
       for await (const event of eventsAdded) {
-      // for (let i = 0; i < eventsAdded.length; i ++) {
+        // for (let i = 0; i < eventsAdded.length; i ++) {
         // const event = eventsAdded[i]
-        const projectName = event.customData.project.indexOf(' ') >= 0 ? event.customData.project.split(' ')[0] : event.customData.project
-        const project = this.projects.find(p => p.name === projectName)
+        const projectName =
+          event.customData.project.indexOf(" ") >= 0
+            ? event.customData.project.split(" ")[0]
+            : event.customData.project;
+        const project = this.projects.find(p => p.name === projectName);
         if (project) {
-          const eventData = event.customData.a
-          console.log('project found', projectName, event, eventData)          
+          const eventData = event.customData.a;
+          console.log("project found", projectName, event, eventData);
           const activity = {
             activity_type: null,
             date: eventData.start.substring(0, 10),
-            dedication_type: project.default_dedication_type && project.default_dedication_type.id ? project.default_dedication_type.id : null,
-            hours: moment(eventData.end).diff(moment(eventData.start), "minutes") / 60,
+            dedication_type:
+              project.default_dedication_type &&
+              project.default_dedication_type.id
+                ? project.default_dedication_type.id
+                : null,
+            hours:
+              moment(eventData.end).diff(moment(eventData.start), "minutes") /
+              60,
             project: project.id,
             users_permissions_user: this.user,
             uid_ical: eventData.uid
-          }
+          };
           await service({ requiresAuth: true }).post("activities", activity);
-        }        
+        } else {
+          if (projectName.includes("-")) {
+            const indexOfDash = projectName.indexOf("-");
+            const projectName2 = projectName.substring(indexOfDash + 1);
+            const projects2 = this.projects.filter(
+              p =>
+                p.name.startsWith(projectName2) || p.name.endsWith(projectName2)
+            );
+            if (projects2.length === 1) {
+              console.log("project?", projectName, projects2);
+
+              const eventData = event.customData.a;
+              const activity = {
+                activity_type: null,
+                date: eventData.start.substring(0, 10),
+                dedication_type:
+                  projects2[0].default_dedication_type &&
+                  projects2[0].default_dedication_type.id
+                    ? project.default_dedication_type.id
+                    : null,
+                hours:
+                  moment(eventData.end).diff(
+                    moment(eventData.start),
+                    "minutes"
+                  ) / 60,
+                project: projects2[0].id,
+                users_permissions_user: this.user,
+                uid_ical: eventData.uid
+              };
+              await service({ requiresAuth: true }).post(
+                "activities",
+                activity
+              );
+            }
+          }
+        }
       }
 
       this.getActivities();
       this.isLoadingImport = false;
-
     }
   },
   filters: {
@@ -1260,8 +1337,8 @@ export default {
         moment(val).fromNow() +
         ")"
       );
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>
