@@ -1,19 +1,19 @@
 <template>
   <div>
-    <contacts-form :id="id" />
+    <orders-form :id="id" />
   </div>
 </template>
 
 <script>
 import TitleBar from "@/components/TitleBar";
-import ContactsForm from "@/components/ContactsForm";
+import OrdersForm from "@/components/OrdersForm";
 import { mapState } from "vuex";
 
 export default {
   name: "InvoiceForm",
   components: {    
     TitleBar,
-    ContactsForm
+    OrdersForm
   },
   props: {
     id: {
@@ -27,7 +27,6 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),
   },
 };
 </script>

@@ -135,8 +135,8 @@ export default {
       return ["Contactes", this.formCardTitle];
     },
     formCardTitle() {
-      if (this.isProfileExists) {
-        return this.form.code;
+      if (this.form.id) {
+        return this.form.name;
       } else {
         return "Nou contacte";
       }
@@ -213,6 +213,11 @@ export default {
     async submit() {
       this.isLoading = true;
 
+      if (this.$route.query.user && this.$route.query.user === 'true') {
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me")
+        this.form.owner = me.data.id;
+      }
+
       try {
         if (this.form.id) {
 
@@ -242,7 +247,6 @@ export default {
           });
           this.getData();
         } else {
-          console.log("this.form", this.form);
           if (
             !this.form.name ||
             !this.form.nif ||
@@ -280,30 +284,13 @@ export default {
         }
       } catch (err) {
 
+        console.error(err);
+
         this.$buefy.snackbar.open({
             message: "Error",
             queue: false,
           });
 
-        // console.error("projects error", err);
-        // const oldProjectData = await service({ requiresAuth: true }).get(
-        //   `projects?name=${this.form.name}`
-        // );
-        // if (
-        //   oldProjectData &&
-        //   oldProjectData.data &&
-        //   oldProjectData.data.length
-        // ) {
-        //   this.$buefy.snackbar.open({
-        //     message: "Error. El projecte ja existeix",
-        //     queue: false,
-        //   });
-        // } else {
-        //   this.$buefy.snackbar.open({
-        //     message: "Error",
-        //     queue: false,
-        //   });
-        // }
         this.isLoading = false;
       }
     },

@@ -4,37 +4,38 @@ const menu = [
       {
         to: '/projectes',
         icon: 'table',
-        label: 'Projectes'
+        label: 'Projectes',
+        permission: 'projects'
       },
       {
         to: '/contacts',
         icon: 'account-box',
-        label: 'Contactes'
+        label: 'Contactes',
+        permission: 'projects'
       },
       {
         to: '/dedicacio',
         label: 'Hores dedicades',
-        icon: 'calendar'
+        icon: 'calendar',
+        permission: 'projects'
       },
       {
         to: '/registre-jornades',
         icon: 'clock',
-        label: 'Registre Jornades'
+        label: 'Registre Jornades',
+        permission: 'projects'
       },
       {
         to: '/working-day',
         icon: 'account-multiple',
-        label: 'Persones'
+        label: 'Persones',
+        permission: 'projects'
       },
       {
         to: '/tasks',
         icon: 'view-column',
-        label: 'Tasques'
-      },
-      {
-        href: `${process.env.VUE_APP_API_URL || 'http://localhost:1337'}/admin`,
-        icon: 'open-in-new',
-        label: 'Strapi'
+        label: 'Tasques',
+        permission: 'projects'
       }
     ],
     'Diners',
@@ -42,108 +43,149 @@ const menu = [
       {
         to: '/emitted-invoices',
         icon: 'import',
-        label: 'Ingressos'
+        label: 'Ingressos',
+        permission: 'projects'
       },
       {
         to: '/received-invoices',
         icon: 'export',
-        label: 'Despeses'
+        label: 'Despeses',
+        permission: 'projects'
       },
       {
         to: '/salary',
         icon: 'cash-multiple',
-        label: 'Bestretes'
+        label: 'Bestretes',
+        permission: 'projects'
       },
       {
         to: '/tresoreria',
         icon: 'bank',
-        label: 'Tresoreria'
+        label: 'Tresoreria',
+        permission: 'projects'
       },
       {
         to: '/quotes',
         icon: 'calculator',
-        label: 'Pressupostos'
-      }      
+        label: 'Pressupostos',
+        permission: 'projects'
+      } 
+    ],
+    'COMANDES',
+    [
+      {
+        to: '/user-contacts',
+        icon: 'account-box',
+        label: 'Contactes',
+        permission: 'orders'
+      },
+      {
+        to: '/orders',
+        icon: 'truck',
+        label: 'Comandes',
+        permission: 'orders'
+      }
     ],
     'Consulta dades',
     [
       {
         to: '/stats-projectes',
         icon: 'table',
-        label: 'Projectes'
+        label: 'Projectes',
+        permission: 'projects'
       },
       {
         to: '/dedicacio-charts',
         label: 'Dedicació',
-        icon: 'chart-pie'
+        icon: 'chart-pie',
+        permission: 'projects'
       },
       {
         to: '/stats-dedicacio',
         icon: 'table',
-        label: 'Dedicació'
+        label: 'Dedicació',
+        permission: 'projects'
       },
       {
         to: '/stats-previsio-gantt',
         icon: 'chart-timeline',
-        label: 'Previsió dedicació'
+        label: 'Previsió dedicació',
+        permission: 'projects'
       },
       {
         to: '/stats-previsio-hores',
         icon: 'table',
-        label: 'Prev./Real Dedicació'
+        label: 'Prev./Real Dedicació',
+        permission: 'projects'
       },          
       {
         to: '/stats-economic-detail',
         icon: 'table',
-        label: 'Ingressos/Despeses'
+        label: 'Ingressos/Despeses',
+        permission: 'projects'
       },
       {
         to: '/forecast',
         icon: 'table',
-        label: 'Previsió Econòmica'
+        label: 'Previsió Econòmica',
+        permission: 'projects'
       },   
       {
         to: '/stats-estrategies',
         icon: 'table',
-        label: 'Estratègies'
+        label: 'Estratègies',
+        permission: 'projects'
       },
       {
         to: '/stats-intercoop',
         icon: 'table',
-        label: 'Intercooperació'
+        label: 'Intercooperació',
+        permission: 'projects'
       },
       {
         to: '/dedicacio-saldo',
         icon: 'table',
-        label: 'Saldo hores'
+        label: 'Saldo hores',
+        permission: 'projects'
       },
       {
         to: '/dedicacio-summary',
         icon: 'table',
-        label: 'Hores anuals'
+        label: 'Hores anuals',
+        permission: 'projects'
       },
       {
         to: '/justifications',
         icon: 'table',
-        label: 'Justificacions'
+        label: 'Justificacions',
+        permission: 'projects'
       },
       {
         to: '/grants',
         icon: 'table',
-        label: 'Subvencions'
+        label: 'Subvencions',
+        permission: 'projects'
       }
     ],
-    'Ajuda',
+    'Altres',
     [
+      {
+        href: `${process.env.VUE_APP_API_URL || 'http://localhost:1337'}/admin`,
+        icon: 'open-in-new',
+        label: 'Strapi',
+        permission: 'projects'
+      },
       {
         to: '/changelog',
         icon: 'math-log',
-        label: 'Registre de canvis'
+        label: 'Registre de canvis',
+        permission: 'projects'
       },
       {
         to: '/documentacio',
         icon: 'help-circle',
-        label: 'Documentació'
+        label: 'Documentació',
+        permission: 'projects'
       }      
     ]
     //,

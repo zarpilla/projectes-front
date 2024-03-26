@@ -37,7 +37,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Contactes']
+      return ['Contactes personals']
     }
   },
   mounted () {    

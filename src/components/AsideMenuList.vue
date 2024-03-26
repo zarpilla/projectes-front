@@ -11,6 +11,8 @@
 
 <script>
 import AsideMenuItem from '@/components/AsideMenuItem'
+import { mapState } from "vuex";
+import service from "@/service/index";
 
 export default {
   name: 'AsideMenuList',
@@ -26,6 +28,9 @@ export default {
       type: Array,
       default: () => []
     }
+  },  
+  async mounted() {
+    // const me = await service({ requiresAuth: true, cached: true }).get("me")    
   },
   methods: {
     menuClick (item) {

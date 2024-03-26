@@ -2,14 +2,14 @@
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <contacts-table v-if="!isLoading" />
+      <orders-table v-if="!isLoading" />
     </section>
   </div>
 </template>
 
 <script>
 import TitleBar from '@/components/TitleBar'
-import ContactsTable from '@/components/ContactsTable'
+import OrdersTable from '@/components/OrdersTable'
 import CardComponent from '@/components/CardComponent'
 import service from '@/service/index'
 import { mapState } from 'vuex'
@@ -20,7 +20,7 @@ export default {
   components: {
     CardComponent,
     TitleBar,
-    ContactsTable
+    OrdersTable
     // DedicationSaldo
   },
   data () {
@@ -37,7 +37,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Contactes']
+      return ['Comandes']
     }
   },
   mounted () {    

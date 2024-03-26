@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <nav-bar v-if="userName" />
-    <aside-menu v-if="userName" :menu="menu" />
+    <aside-menu v-if="userName" :menu="menuList" />
     <router-view />
     <footer-bar v-if="userName" />
   </div>
@@ -27,8 +27,6 @@ export default {
   },
   mixins: [update],
   mounted() {
-    console.log("mounted!");
-
     EventBus.$on("login", () => {
       this.loadUserData();
     });
@@ -36,18 +34,33 @@ export default {
   computed: {
     ...mapState(["userName"]),
     menu() {
-      return this.loaded ? menu : [];
+      return this.loaded ? this.menuList : [];
     }
   },
   data() {
     return {
-      loaded: false
+      loaded: false,
+      menuList: []
     };
   },
   async created() {
     this.loadUserData();
   },
   methods: {
+    hasChildrenWithPermissions(items, userPermissions) {
+      return (
+        items.find(item => {
+          if (!item.permission) {
+            return true;
+          }
+          if (item.permission) {
+            if (userPermissions.includes(item.permission)) {
+              return true;
+            }
+          }
+        }) !== undefined
+      );
+    },
     async loadUserData() {
       if (localStorage.getItem("user") && localStorage.getItem("jwt")) {
         try {
@@ -59,6 +72,42 @@ export default {
               user: user,
               name: user.username,
               jwt: sessionStorage.getItem("jwt")
+            });
+
+            const userPermissions = me.data.permissions.map(p => p.permission);
+
+            menu.forEach((element, idx) => {
+              if (typeof element === "string") {
+                if (menu.length > idx + 1) {
+                  const hasPermisssions = this.hasChildrenWithPermissions(
+                    menu[idx + 1],
+                    userPermissions
+                  );
+
+                  if (hasPermisssions) {
+                    this.menuList.push(element);
+                    return;
+                  } else {
+                    return;
+                  }
+                } else {
+                  return;
+                }
+
+              }
+
+              const subElements = [];
+              element.forEach(subElement => {
+                if (!subElement.permission) {
+                  subElements.push(subElement);
+                } else {
+                  if (userPermissions.includes(subElement.permission)) {
+                    subElements.push(subElement);
+                  }
+                }
+              });
+
+              this.menuList.push(subElements);
             });
 
             this.loaded = true;
@@ -73,8 +122,9 @@ export default {
           this.$router.push("/");
         }
       } else {
-        const meOptions = (await service({ requiresAuth: true, cached: true }).get("me"))
-          .data;
+        const meOptions = (
+          await service({ requiresAuth: true, cached: true }).get("me")
+        ).data;
 
         // if (meOptions.options.show_forecast) {
         //   menu[3].push({

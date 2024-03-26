@@ -446,7 +446,45 @@ const routes = [
     component: () => import(/* webpackChunkName: "contact" */ '../views/Contacts.vue'),
     props: true,
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      userContacts: false
+    }
+  },
+  {
+    meta: {
+      title: 'Contactes personals'
+    },
+    path: '/user-contacts',
+    name: 'user-contacts.view',
+    component: () => import(/* webpackChunkName: "contact" */ '../views/ContactsUser.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+      userContacts: true
+    }
+  },
+  {
+    meta: {
+      title: 'Comandes'
+    },
+    path: '/orders',
+    name: 'orders.view',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/Orders.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
+      title: 'Comanda'
+    },
+    path: '/order/:id',
+    name: 'orders.edit',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/OrderForm.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
     }
   },
   {

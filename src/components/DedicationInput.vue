@@ -1105,6 +1105,9 @@ export default {
       });
       this.getActivities();
     },
+    removeAccents(name) {
+      return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    },    
     async modalMoveToProjectCancel() {
       this.isModalMoveToProject = false;
     },
@@ -1196,7 +1199,7 @@ export default {
           event.customData.project.indexOf(" ") >= 0
             ? event.customData.project.split(" ")[0]
             : event.customData.project;
-        const project = this.projects.find(p => p.name === projectName);
+        const project = this.projects.find(p => this.removeAccents(p.name) === this.removeAccents(projectName));
         if (project) {
           countFound++;
         } else {
@@ -1206,8 +1209,8 @@ export default {
             const projectName2 = projectName.substring(indexOfDash + 1);
             const projects2 = this.projects.filter(
               p =>
-                p.name.startsWith(projectName2) || p.name.endsWith(projectName2)
-            );
+              this.removeAccents(p.name).startsWith(this.removeAccents(projectName2)) || this.removeAccents(p.name).endsWith(this.removeAccents(projectName2))
+              );
             if (projects2.length === 1) {
               console.log("project?", projectName, projects2);
               countFound++;
@@ -1245,6 +1248,7 @@ export default {
         a => a.customData && a.customData.type === "ical"
       );
 
+      var created = 0;
       for await (const event of eventsAdded) {
         // for (let i = 0; i < eventsAdded.length; i ++) {
         // const event = eventsAdded[i]
@@ -1252,7 +1256,7 @@ export default {
           event.customData.project.indexOf(" ") >= 0
             ? event.customData.project.split(" ")[0]
             : event.customData.project;
-        const project = this.projects.find(p => p.name === projectName);
+        const project = this.projects.find(p => this.removeAccents(p.name) === this.removeAccents(projectName));
         if (project) {
           const eventData = event.customData.a;
           console.log("project found", projectName, event, eventData);
@@ -1272,13 +1276,19 @@ export default {
             uid_ical: eventData.uid
           };
           await service({ requiresAuth: true }).post("activities", activity);
+
+          created++;
+          this.$buefy.snackbar.open({
+            message: `Dedicació creada (${created})`,
+            queue: false
+          });
         } else {
           if (projectName.includes("-")) {
             const indexOfDash = projectName.indexOf("-");
             const projectName2 = projectName.substring(indexOfDash + 1);
             const projects2 = this.projects.filter(
               p =>
-                p.name.startsWith(projectName2) || p.name.endsWith(projectName2)
+              this.removeAccents(p.name).startsWith(this.removeAccents(projectName2)) || this.removeAccents(p.name).endsWith(this.removeAccents(projectName2))
             );
             if (projects2.length === 1) {
               console.log("project?", projectName, projects2);
@@ -1305,6 +1315,11 @@ export default {
                 "activities",
                 activity
               );
+              created++;
+              this.$buefy.snackbar.open({
+                message: `Dedicació creada (${created})`,
+                queue: false
+              });
             }
           }
         }

@@ -64,6 +64,7 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
+import { mapState } from 'vuex'
 
 export default {
   name: "Tresoreria",
@@ -79,30 +80,42 @@ export default {
       contacts: [],
       contactsCSV: [],
       filters: {
-        q: ''
+        q: '',
+        userContacts: ''
       },
       queryChanged: 0,
     };
   },  
+  computed: {
+    ...mapState(['userName']),    
+    ...mapState(['userId']),    
+  },
   async mounted() {
-    console.log('mounted')
     this.getData();
   },
   methods: {
     navNew() {
-      this.$router.push("/contact/0");
+      const q = this.$route.meta.userContacts ? `?user=true` : '';
+      this.$router.push("/contact/0"+q);
     },    
     async getData() {
-      console.log('getData')
+      
       this.isLoading = true;      
+
+      if (this.$route.meta.userContacts) {
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me")    
+        this.userContacts = `&_where[owner]=${me.data.id}`
+      } else {
+        this.userContacts = '&_where[owner_null]=true'
+      }
 
       if (this.filters.q) {
         this.contacts = (await service({ requiresAuth: true })
           .get(
-            `contacts/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}`
+            `contacts/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${this.userContacts}`
           )).data;
       } else {
-        this.contacts = (await service({ requiresAuth: true }).get(`contacts/basic?_limit=-1&_sort=name:ASC`)).data;
+        this.contacts = (await service({ requiresAuth: true }).get(`contacts/basic?_limit=-1&_sort=name:ASC${this.userContacts}`)).data;
       }
       
       this.contactsCSV = this.contacts
