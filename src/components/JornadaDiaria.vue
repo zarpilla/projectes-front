@@ -1,8 +1,6 @@
 <template>
   <div>
     <div class="table-view">
-
-
       <div class="mb-4">
         <button
           v-if="!isLoading"
@@ -10,17 +8,17 @@
           @click="generatePDF"
           
         >
-          Genera PDF
+        Descarrega PDF
         </button>
 
-        <button
+        <!-- <button
           v-if="!isLoading && generatedPDF"
           class="button is-primary zmt-5 ml-3"
           @click="downloadPDF"
           
         >
           Descarrega PDF
-        </button>
+        </button> -->
       </div>
 
       <card-component
@@ -177,20 +175,26 @@
       </card-component>
 
 
-      <div v-if="generatedPDF" class="invoice-box-container">
+      <div v-if="generatedPDF || true" class="invoice-box-container">
         <div class="invoice-box" id="pdf">
           <table>
-            <tr class="bordered-2">
-              <th>PERSONA</th>
-              <td>{{ personName }}</td>
+            <tr class="is-total bordered-2t">
+              <th colspan="2">REGISTRE DE JORNADES</th>              
             </tr>
-            <tr class="bordered-2 pb-4">
-              <th>ANY</th>
-              <td>{{ year }}</td>
+            <tr class="is-total bordered-2t">
+              <th colspan="2">{{ me.name }} - {{ me.nif }}</th>              
+            </tr>            
+            <tr class="bordered-2t">
+              <th>PERSONA</th>
+              <td>{{ personName }} - {{ personID }}</td>
+            </tr>
+            <tr class="bordered-2t pb-4">
+              <th>PERÍODE</th>
+              <td>{{ months.find(m => m.month === month).name }} {{ year }}</td>
             </tr>
           </table>
 
-          <table class="mt-4">
+          <table class="mt-40">
             <tr class="bordered-2">
               <th>DATA</th>
               <th>HORES</th>
@@ -266,6 +270,14 @@ export default {
     year: {
       type: Number,
       default: null
+    },
+    month: {
+      type: Number,
+      default: null
+    },
+    months: {
+      type: Array,
+      default: []
     }
   },
   data() {
@@ -274,7 +286,8 @@ export default {
       isLoading: false,
       updating: false,
       generatedPDF: false,
-      users: []
+      users: [],
+      me: null
     };
   },
 
@@ -289,6 +302,9 @@ export default {
       this.getWorkDayLogs();
     },
     year: function(newVal, oldVal) {
+      this.getWorkDayLogs();
+    },
+    month: function(newVal, oldVal) {
       this.getWorkDayLogs();
     }
   },
@@ -315,6 +331,16 @@ export default {
         return "";
       }
       return user.fullname || user.username;
+    },
+    personID() {
+      if (!this.users) {
+        return "";
+      }
+      const user = this.users.find(u => u.id === this.user);
+      if (!user) {
+        return "";
+      }
+      return user.identity_number
     },
     monthly() {
       const totals = _(
@@ -373,11 +399,11 @@ export default {
 
       this.users = (await service({ requiresAuth: true }).get("users")).data;
 
-      const from = moment(this.year, "YYYY")
-        .startOf("year")
+      const from = moment(this.year + '-' + this.month, "YYYY-MM")
+        .startOf("month")
         .format("YYYY-MM-DD");
-      const to = moment(this.year, "YYYY")
-        .endOf("year")
+      const to = moment(this.year + '-' + this.month, "YYYY-MM")
+        .endOf("month")
         .format("YYYY-MM-DD");
 
       let query = `workday-logs?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
@@ -433,6 +459,9 @@ export default {
 
           this.isLoading = false;
         });
+
+
+        this.me = (await service({ requiresAuth: true }).get("me")).data;
     },
     deleteActivity(activity, index) {
       this.$buefy.dialog.confirm({
@@ -565,16 +594,22 @@ export default {
     },
     enumerateDaysBetweenDates() {
       var dates = [];
-      var currDate = moment(this.year, "YYYY").startOf("year");
+      var currDate = moment(this.year + '-' + this.month, "YYYY-MM").startOf("month");
+      var endDate = moment(this.year + '-' + this.month, "YYYY-MM").endOf("month");
       // const endOfYear = moment(this.year, "YYYY").endOf("year");
-      dates.push(currDate.clone().toDate());
-      while (currDate.add(1, "days").diff(moment()) < 0) {
+      if (currDate.diff(moment()) < 0) {
+        dates.push(currDate.clone().toDate());
+      }      
+      while (currDate.add(1, "days").diff(endDate) < 0 && currDate.add(1, "days").diff(moment()) < 0) {
         dates.push(currDate.clone().toDate());
       }
       return dates;
     },
     generatePDF() {
       this.generatedPDF = true;
+      setTimeout(() => {
+        this.downloadPDF();
+      }, 100);
     },
     downloadPDF() {
 
@@ -587,14 +622,12 @@ export default {
       }
       const pdf = html2pdf().set(opt).from(element)
 
-      console.log('element', element)
-      console.log('pdf', pdf)
       // await pdf.save(opt.filename, { returnPromise: true })
 
       pdf.toPdf().get('pdf').then(function (pdf) {
          window.open(
-          pdf.output('bloburl', "hores.pdf")
-          , "hores.pdf");
+          pdf.output('bloburl',  "hores.pdf")
+          );
       });
 
 
@@ -745,6 +778,9 @@ export default {
   line-height: inherit;
   text-align: left;
 }
+tr.bordered-2t th, tr.bordered-2t td{
+  border-top: 2px solid #000;
+}
 tr.bordered-2 th,
 tr.bordered-2 td {
   border-bottom: 2px solid #000;
@@ -752,6 +788,9 @@ tr.bordered-2 td {
 tr.is-total td {
   border-bottom: 1px solid #000;
   border-top: 1px solid #000;
+}
+.mt-40{
+  margin-top: 40px;
 }
 </style>
 

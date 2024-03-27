@@ -18,8 +18,9 @@
               >
               </b-autocomplete>
             </b-field>
-            <b-field label="Any">
+            <b-field label="Període">
               <b-select
+              class="mr-2"
                 v-model="filters.year"
                 required
               >
@@ -31,11 +32,24 @@
                   {{ year.year }}
                 </option>
               </b-select>
+            
+              <b-select
+                v-model="filters.month"
+                required
+              >
+                <option
+                  v-for="(month, index) in months"
+                  :key="index"
+                  :value="month"
+                >
+                  {{ month.name }}
+                </option>
+              </b-select>
             </b-field>
           </b-field>
         </form>
       </card-component>
-      <jornada-diaria :user="filters.user" :year="filters.year ? filters.year.year : null" />
+      <jornada-diaria :months="months" :user="filters.user" :year="filters.year ? filters.year.year : null" :month="filters.month ? filters.month.month : null" />
     </section>
   </div>
 </template>
@@ -46,6 +60,7 @@ import CardComponent from '@/components/CardComponent'
 import JornadaDiaria from '@/components/JornadaDiaria'
 import service from '@/service/index'
 import { mapState } from 'vuex'
+import moment from 'moment'
 // import moment from 'moment'
 
 export default {
@@ -60,12 +75,14 @@ export default {
       isLoading: false,
       filters: {
         user: null,
-        year: null
+        year: null,
+        month: null
       },
       users: [],
       usersList: [],
       userNameSearch: '',
-      years: []
+      years: [],
+      months: []
     }
   },
   computed: {
@@ -88,9 +105,15 @@ export default {
     this.isLoading = true
 
     service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-      // console.log('r.data', r.data)
       this.years = r.data
       this.filters.year = this.years[0]
+    })
+
+    service({ requiresAuth: true, cached: true }).get('months?_sort=month:ASC').then((r) => {
+      // console.log('r.data', r.data)
+      this.months = r.data      
+      this.filters.month = this.months.find(m => m.month_number === moment().format('MM'))
+      console.log('this.filters.month', this.filters.month)
     })
 
     service({ requiresAuth: true, cached: true }).get('users').then((r) => {

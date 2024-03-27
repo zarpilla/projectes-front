@@ -421,6 +421,8 @@ export default {
         query = "projects/economic-detail?_limit=-1";
       } else if (projectState === -1){
         query = `projects/economic-detail?_where[project_state_in]=1,3&_limit=-1`;
+      } else if (projectState === -2){
+        query = `projects/economic-detail?_where[project_state_in]=1,2&_limit=-1`;
       } else {
         query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
       }

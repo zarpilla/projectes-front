@@ -129,6 +129,12 @@ export default {
           this.project_states.unshift({ id: 0, name: "Tots" });
           const name = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 3).name}`
           this.project_states.push({ id: -1, name });
+
+          const name2 = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 2).name}`
+          this.project_states.push({ id: -2, name: name2 });
+
+
+
           this.filters.project_state = defaultProjectState;
 
           service({ requiresAuth: true, cached: true })

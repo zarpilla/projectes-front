@@ -57,6 +57,13 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field label="Pagada" class="is-narrow">
+              <b-select v-model="filters.paid">
+                <option v-for="(c, i) in paid" :key="i" :value="c.value">
+                  {{ c.name }}
+                </option>
+              </b-select>
+            </b-field>
           </b-field>
         </form>
       </card-component>
@@ -68,6 +75,7 @@
         :contact="filters.contact"
         :document-type="filters.documentType"
         :project="filters.project"
+        :paid="filters.paid"
       />
     </section>
   </div>
@@ -98,6 +106,7 @@ export default {
         contact: 0,
         documentType: 0,
         project: 0,
+        paid: 0,
       },
       years: [],
       months: [],
@@ -107,6 +116,11 @@ export default {
       documentTypes: [],
       treasury: [],
       treasuryData: [],
+      paid: [
+        { name: "Totes", value: 0 },
+        { name: "Sí", value: 1 },
+        { name: "No", value: 2 },
+      ],
     };
   },
   computed: {

@@ -381,19 +381,19 @@
                 </b-input>
               </b-field>
               <b-field
-                label="% confinançament"
+                label="Import cofinançament"
                 v-if="form.grantable"
                 horizontal
               >
                 <b-input
                   v-if="form.grantable"
                   type="numeric"
-                  v-model="form.grantable_cofinancing_pct"
-                  placeholder="% confinançament"
+                  v-model="form.grantable_cofinancing"
+                  placeholder="Import de cofinançament"
                   @input="
                     changeValue(
-                      'grantable_cofinancing_pct',
-                      form.grantable_cofinancing_pct
+                      'grantable_cofinancing',
+                      form.grantable_cofinancing
                     )
                   "
                 >
@@ -448,20 +448,40 @@
                 </b-datepicker>
               </b-field>
 
+              <b-field
+                label="Data justificació"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-datepicker
+                  v-model="form.justification_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data justificació"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+
               <hr />
               <b-field horizontal label="Documents">
                 <div class="help">
                   Per exemple, afegir pressupost total del projecte (sense IVA) o afegir document de concessió o contracte
                 </div>
+              </b-field>
+              <b-field label=" ">
                 <div
-                  class="file-documents columns is-multiline"
+                  class="file-documents zcolumns is-multiline"
                   v-if="form.documents && form.documents.length"
                 >
                   <!-- <pre>{{ form.documents }}</pre>   -->
                   <div
                     v-for="(doc, i) in form.documents"
                     :key="i"
-                    class="column"
+                    class="zcolumn"
                     :class="
                       form.documents.length > 6
                         ? 'is-2'
@@ -472,7 +492,7 @@
                   >
                     <div class="column-doc">
                       <div @click="removeImage(doc)" class="remove-button">
-                        <b-icon icon="close" size="is-medium" />
+                        <b-icon icon="close" size="is-small" />
                       </div>
                       <img
                         v-if="doc.mime.startsWith('image')"
@@ -2260,6 +2280,12 @@ export default {
                   "YYYY-MM-DD"
                 ).toDate();
               }
+              if (this.form.justification_date) {
+                this.form.justification_date = moment(
+                  this.form.justification_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
 
               if (
                 this.form.periodification &&
@@ -2935,5 +2961,8 @@ export default {
 <style>
 .year-label {
   min-width: 100px;
+}
+.file-documents{
+  margin-left: 17%;
 }
 </style>

@@ -1190,7 +1190,7 @@ export default {
         }
       });
       var eventsAdded = this.attributes.filter(
-        a => a.customData && a.customData.type === "ical"
+        a => a.customData && a.customData.type === "ical" && a.customData.project
       );
       let countFound = 0;
       let countNotFound = 0;
@@ -1245,7 +1245,7 @@ export default {
     async createICalEvents() {
       this.isLoadingImport = true;
       var eventsAdded = this.attributes.filter(
-        a => a.customData && a.customData.type === "ical"
+        a => a.customData && a.customData.type === "ical" && a.customData.project
       );
 
       var created = 0;

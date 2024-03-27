@@ -152,7 +152,7 @@
     >
       <div class="columns">
         <div class="column">
-          <b-field label="Pagat" grouped class="column">
+          <b-field label="Suportat" grouped class="column">
             <div class="readonly subphase-detail-input">
               <money-format
                 :value="vat.paid"
@@ -166,7 +166,7 @@
           </b-field>
         </div>
         <div class="column">
-          <b-field label="Cobrat" grouped class="column">
+          <b-field label="Repercutit" grouped class="column">
             <div class="readonly subphase-detail-input">
               <money-format
                 :value="vat.received"

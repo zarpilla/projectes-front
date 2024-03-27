@@ -38,14 +38,39 @@
               </b-input>
             </form>
           </b-table-column>
-          <b-table-column field="name" label="Total" width="150" v-slot="props">
+          <b-table-column field="name" label="Total" width="200" v-slot="props">
+            <div class="is-flex">
             <div
               class="
                 readonly
-                subphase-detail-input subphase-detail-input-phase-total
+                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total
               "
             >
-              <money-format
+              <money-format class="inline"
+                :value="subTotalIncomes(props.row)"
+                :locale="'es'"
+                currency-code=" "
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+              -
+              <money-format class="inline"
+                :value="subTotalExpenses(props.row)"
+                :locale="'es'"
+                currency-code=" "
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+            <div
+              class="
+                readonly
+                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total
+              "
+            >
+              <money-format class="inline"
                 :value="props.row.total_amount ? props.row.total_amount : 0"
                 :locale="'es'"
                 :currency-code="'EUR'"
@@ -54,6 +79,7 @@
               >
               </money-format>
             </div>
+          </div>
           </b-table-column>
           <b-table-column
             v-if="mode === '' || mode === 'simple'"
@@ -954,6 +980,12 @@ export default {
       this.phases = this.phases.filter((p, j) => i !== j);
       this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
+    subTotalIncomes(phase) {
+      return sumBy(phase.subphases, (x) => x.quantity * x.amount);
+    },
+    subTotalExpenses(phase) {
+      return sumBy(phase.expenses, (x) => x.quantity * x.amount);
+    },
     copyPhase(i) {
       this.$emit('phases-copy', { index: i })
     },
@@ -1270,9 +1302,18 @@ export default {
   },
 };
 </script>
+
 <style>
 .warning-tag {
   padding-left: 0.5rem;
 }
-
+.inline{
+  display: inline;
+}
+.subphase-detail-input-phase-subtotal{
+  min-width: 35%;
+}
+.subphase-detail-input-phase-total{
+  text-align: right;
+}
 </style>

@@ -260,6 +260,10 @@ export default {
     documentType: {
       type: Number,
       default: null,
+    },
+    paid: {
+      type: Number,
+      default: null,
     }
   },
   computed: {
@@ -314,6 +318,9 @@ export default {
     documentType: function (newVal, oldVal) {
       this.getData();
     },
+    paid: function (newVal, oldVal) {
+      this.getData();
+    },
   },
   async mounted() {
     this.getData();
@@ -350,9 +357,11 @@ export default {
       const contactQuery = this.contact ? `&[contact_eq]=${this.contact}` : '';      
       const projectQuery = this.project ? `&[projects_eq]=${this.project}` : '';
 
+      const paidQuery = this.paid === 1 ? `&[paid_date_null]=false` : (this.paid === 2 ? `&[paid_date_null]=true` : '');
+
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}`
+          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}`
         )
       ).data;
 
@@ -363,7 +372,7 @@ export default {
       const typeQuery = this.documentType !== 0 ? `&[document_type_eq]=${this.documentType}` : '';
       let incomes = (
         await service({ requiresAuth: true }).get(
-          `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}`
+          `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}`
         )
       ).data;
 
