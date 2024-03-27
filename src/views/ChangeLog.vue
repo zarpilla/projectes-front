@@ -2,6 +2,34 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.03.27">
+        <div class="item mb-4">          
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Generació de PDFs de
+            <router-link to="/registre-jornades"
+              >registre de jornades</router-link
+            > per mesos.
+          </div>
+          <div class="text mt-2">
+            Filtre de cobrat/pagat a <router-link to="/emitted-invoices">ingressos</router-link> i
+            <router-link to="/received-invoices">despeses</router-link>.
+          </div>
+          <div class="text mt-2">
+            Subtotals per fases al detall de projectes.
+          </div>
+          <div class="text mt-2">
+            Filtre de projectes actius i tancats al <router-link to="/stats-economic-detail">detall d'ingressos i despeses</router-link>.
+          </div>
+          <div class="text mt-2">
+            Afegida data de justificació als projectes subvencionables.
+          </div>
+          <span class="tag is-danger mt-3">Correccions</span>
+          <div class="text mt-2">
+            Solucionat error amb l'importació de calendaris .ics
+          </div>
+        </div>
+      </card-component>
       <card-component title="2024.03.21">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
