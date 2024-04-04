@@ -260,6 +260,12 @@ export default {
             }
           });
       } else {
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me")    
+        this.contacts = (
+                await service({ requiresAuth: true, cached: true }).get(
+                  `contacts/basic?_limit=-1&_where[owner]=${me.data.id}`
+                )
+              ).data;
       }
     },
     normalizeIdsInForm(property) {

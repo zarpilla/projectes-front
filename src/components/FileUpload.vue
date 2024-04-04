@@ -83,6 +83,7 @@ export default {
       uploadFieldName: "photos",
       fileCount: 0,
       fileList: [],
+      realRefId: null,
     };
   },
   props: {
@@ -90,7 +91,8 @@ export default {
     refId: [String,Number],
     field: String,
     multiple: Boolean,
-    accept: String
+    accept: String,
+    preUpload: Function,
   },
   computed: {
     isInitial() {
@@ -107,18 +109,26 @@ export default {
     },
   },
   methods: {
-    addFile(e) {
-      console.log("addFile", e);
+    async addFile(e) {
       let fileList = e.dataTransfer.files;
       if (!fileList) return;
 
       const formData = new FormData();
 
+      this.realRefId = this.refId
+
+      if (this.preUpload) {
+        const resp = await this.preUpload();
+        if (resp && resp.data && resp.data.id) {
+          this.realRefId = resp.data.id          
+        }
+      }
+
       Array.from(Array(fileList.length).keys()).map((x) => {
         formData.append('files', fileList[x], fileList[x].name);
       });
       formData.append('ref', this.entity)
-      formData.append('refId', this.refId)
+      formData.append('refId', this.realRefId)
       formData.append('field', this.field)
 
       this.fileCount = fileList.length;
@@ -132,17 +142,17 @@ export default {
       this.uploadedFiles = [];
       this.uploadError = null;
     },
-    save(formData, fileList) {
+    async save(formData, fileList) {
       // upload data to the server
       this.currentStatus = STATUS_SAVING;
 
 
       service({ requiresAuth: true, multipart: true }).post("upload", formData)
         .then((res) => {
-          console.log(res);
+          console.log("upload", res);
           this.$emit("uploaded", {
             entity: this.entity,
-            refId: this.refId,
+            refId: this.realRefId,
             field: this.field,
             fileList: fileList,
             documents: res.data
@@ -163,12 +173,21 @@ export default {
         });
       
     },
-    filesChange(event, fieldName, fileList) {
+    async filesChange(event, fieldName, fileList) {
       // console.log('(event, fieldName, fileList)', event, fieldName, fileList)
       // handle file changes
       const formData = new FormData();
 
       if (!fileList.length) return;
+
+      this.realRefId = this.refId
+
+      if (this.preUpload) {
+        const resp = await this.preUpload();        
+        if (resp && resp.data && resp.data.id) {
+          this.realRefId = resp.data.id          
+        }
+      }
 
       // append the files to FormData
       Array.from(Array(fileList.length).keys()).map((x) => {
@@ -176,7 +195,7 @@ export default {
       });
 
       formData.append('ref', this.entity)
-      formData.append('refId', this.refId)
+      formData.append('refId', this.realRefId)
       formData.append('field', this.field)
 
       this.fileCount = event.target.files.length;

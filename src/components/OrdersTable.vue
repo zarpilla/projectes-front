@@ -24,7 +24,22 @@
         >
         </b-input>
       </b-field> -->
-  </div>
+    </div>
+
+    <file-upload
+      class="mt-5"
+      :multiple="false"
+      entity="orders-imports"
+      :ref-id="0"
+      :field="'file'"
+      :accept="'.csv'"
+      @uploaded="uploaded"
+      :pre-upload="preUpload"
+    >
+    </file-upload>
+
+    <pre>{{ csv }}</pre>
+
     <!-- <pre>{{orders}}</pre> -->
     <b-table
       :loading="isLoading"
@@ -37,9 +52,9 @@
           v-if="props.row.id"
           :to="{ name: 'orders.edit', params: { id: props.row.id } }"
         >
-            {{ props.row.id.toString().padStart(4, '0') }}
+          {{ props.row.id.toString().padStart(4, "0") }}
         </router-link>
-      </b-table-column>      
+      </b-table-column>
       <b-table-column
         label="Proveïdora"
         field="owner.fullname"
@@ -96,20 +111,25 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.pickup ? props.row.pickup.name : '-' }}
+        {{ props.row.pickup ? props.row.pickup.name : "-" }}
       </b-table-column>
-      <b-table-column
-        label="Estat"
-        field="status"
-        sortable
-        v-slot="props"
-      >
-      <span v-if="props.row.status === 'pending'" class="tag is-warning">PENDENT</span>
-      <span v-else-if="props.row.status === 'invoiced'" class="tag is-success">{{ props.row.status}}</span>
-      <span v-else-if="props.row.status === 'delivered'" class="tag is-success">{{ props.row.status}}</span>
-      <span v-else class="tag is-info">{{ props.row.status}}</span>
-        
+      <b-table-column label="Estat" field="status" sortable v-slot="props">
+        <span v-if="props.row.status === 'pending'" class="tag is-warning"
+          >PENDENT</span
+        >
+        <span
+          v-else-if="props.row.status === 'invoiced'"
+          class="tag is-success"
+          >{{ props.row.status }}</span
+        >
+        <span
+          v-else-if="props.row.status === 'delivered'"
+          class="tag is-success"
+          >{{ props.row.status }}</span
+        >
+        <span v-else class="tag is-info">{{ props.row.status }}</span>
       </b-table-column>
+
       <!-- <b-table-column
         label="Correu"
         field="email"
@@ -126,56 +146,90 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
+import FileUpload from "@/components/FileUpload.vue";
 
 export default {
   name: "Tresoreria",
+  components: {
+    FileUpload
+  },
   props: {
     titleStack: {
       type: Array,
-      default: () => [],
+      default: () => []
     }
   },
   data() {
     return {
-      isLoading: false,      
+      isLoading: false,
       orders: [],
       contactsCSV: [],
       filters: {
-        q: '',
-        userContacts: ''
+        q: "",
+        userContacts: ""
       },
       queryChanged: 0,
+      me: {},
+      csv: ''
     };
-  },  
+  },
   computed: {
-    ...mapState(['userName']),    
-    ...mapState(['userId']),    
+    ...mapState(["userName"]),
+    ...mapState(["userId"])
   },
   async mounted() {
     this.getData();
   },
   methods: {
     navNew() {
-      const q = this.$route.meta.userContacts ? `?user=true` : '';
-      this.$router.push("/order/0"+q);
-    },    
+      const q = this.$route.meta.userContacts ? `?user=true` : "";
+      this.$router.push("/order/0" + q);
+    },
     async getData() {
-      
-      this.isLoading = true;      
+      this.isLoading = true;
 
-      const me = await service({ requiresAuth: true, cached: true }).get("users/me")    
-      if (me.data.permissions.includes('projects')) {
-        this.userFilter = ''
+      const me = await service({ requiresAuth: true, cached: true }).get(
+        "users/me"
+      );
+      this.me = me.data;
+      if (me.data.permissions.includes("projects")) {
+        this.userFilter = "";
       } else {
-        this.userFilter = `&_where[owner]=${me.data.id}`
+        this.userFilter = `&_where[owner]=${me.data.id}`;
       }
 
-      this.orders = (await service({ requiresAuth: true }).get(`orders?_limit=-1&_sort=route_date:ASC${this.userFilter}`)).data;
-      
-      this.contactsCSV = this.orders
+      this.orders = (
+        await service({ requiresAuth: true }).get(
+          `orders?_limit=-1&_sort=route_date:ASC${this.userFilter}`
+        )
+      ).data;
+
+      // await this.preUpload()
+
+      this.contactsCSV = this.orders;
       this.isLoading = false;
     },
+    async preUpload() {
+      return await service({ requiresAuth: true }).post("orders-imports", {
+          users_permissions_user: this.me.id        
+      });
+    },
+    uploaded(e) {
+      console.log("uploaded", e);
+      if (e.fileList && e.fileList[0]) {
+        const file =  e.fileList[0]
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          const text = e.target.result;
+          console.log(text);
+          this.csv = text;
+        };
+
+        reader.readAsText(file);
+      }
+    }
     // queryProjects(q) {
     //   if (this.queryChanged) {
     //     clearTimeout(this.queryChanged);
@@ -185,6 +239,6 @@ export default {
     //     this.getData();
     //   }, 400);
     // },
-  },
+  }
 };
 </script>
