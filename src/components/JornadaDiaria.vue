@@ -182,7 +182,7 @@
               <th colspan="2">REGISTRE DE JORNADES</th>              
             </tr>
             <tr class="is-total bordered-2t">
-              <th colspan="2">{{ me.name }} - {{ me.nif }}</th>              
+              <th colspan="2" v-if="me">{{ me.name }} - {{ me.nif }}</th>              
             </tr>            
             <tr class="bordered-2t">
               <th>PERSONA</th>
@@ -418,6 +418,8 @@ export default {
         .then(async r => {
           const activities = [];
           var allDates = this.enumerateDaysBetweenDates();
+
+          console.log('allDates', allDates)
           allDates.forEach(d => {
             const date = moment(d).format("YYYY-MM-DD");
             const dailyWorkday = r.data.filter(dd => date === dd.date);
@@ -596,11 +598,12 @@ export default {
       var dates = [];
       var currDate = moment(this.year + '-' + this.month, "YYYY-MM").startOf("month");
       var endDate = moment(this.year + '-' + this.month, "YYYY-MM").endOf("month");
-      // const endOfYear = moment(this.year, "YYYY").endOf("year");
       if (currDate.diff(moment()) < 0) {
         dates.push(currDate.clone().toDate());
       }      
-      while (currDate.add(1, "days").diff(endDate) < 0 && currDate.add(1, "days").diff(moment()) < 0) {
+      var currDateAux = currDate.clone()
+      while (currDate.add(1, "days").diff(endDate) < 0 && currDateAux.add(1, "days").diff(moment()) < 0) {
+        currDateAux = currDate.clone()
         dates.push(currDate.clone().toDate());
       }
       return dates;
