@@ -174,22 +174,24 @@
         </div>
       </card-component>
 
-
       <div v-if="generatedPDF || true" class="invoice-box-container">
         <div class="invoice-box" id="pdf">
           <table>
             <tr class="is-total bordered-2t">
-              <th colspan="2">REGISTRE DE JORNADES</th>              
-            </tr>
-            <tr class="is-total bordered-2t">
-              <th colspan="2" v-if="me">{{ me.name }} - {{ me.nif }}</th>              
+              <th colspan="1" width="40%">
+                REGISTRE DE JORNADES<br>
+                {{ me.name }} - {{ me.nif }}
+              </th>              
+              <th colspan="1" style="text-align: right;">
+                <img :src="apiUrl + me.logo.url" style="width:150px;margin-top: 1rem;margin-bottom: 1rem;margin-right: 1rem">
+              </th>              
             </tr>            
             <tr class="bordered-2t">
-              <th>PERSONA</th>
+              <th width="40%">PERSONA</th>
               <td>{{ personName }} - {{ personID }}</td>
             </tr>
             <tr class="bordered-2t pb-4">
-              <th>PERÍODE</th>
+              <th width="40%">PERÍODE</th>
               <td>{{ months.find(m => m.month === month).name }} {{ year }}</td>
             </tr>
           </table>
@@ -287,7 +289,8 @@ export default {
       updating: false,
       generatedPDF: false,
       users: [],
-      me: null
+      me: null,
+      apiUrl: process.env.VUE_APP_API_URL,
     };
   },
 
