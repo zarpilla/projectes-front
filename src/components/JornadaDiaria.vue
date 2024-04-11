@@ -183,7 +183,7 @@
                 {{ me.name }} - {{ me.nif }}
               </th>              
               <th colspan="1" style="text-align: right;">
-                <img :src="apiUrl + me.logo.url" style="width:150px;margin-top: 1rem;margin-bottom: 1rem;margin-right: 1rem">
+                <img v-if="imageUrl" :src="imageUrl" style="width:150px;margin-top: 1rem;margin-bottom: 1rem;margin-right: 1rem">
               </th>              
             </tr>            
             <tr class="bordered-2t">
@@ -291,6 +291,7 @@ export default {
       users: [],
       me: null,
       apiUrl: process.env.VUE_APP_API_URL,
+      imageUrl: null
     };
   },
 
@@ -467,6 +468,31 @@ export default {
 
 
         this.me = (await service({ requiresAuth: true }).get("me")).data;
+
+        if (this.me.logo && this.me.logo.url) {
+          const img = `${this.apiUrl}${this.me.logo.url}`
+            this.toDataUrl(img, (base64) => {
+              this.imageUrl = base64
+            })
+        }
+
+
+    
+
+    },
+    
+    toDataUrl (url, callback) {
+      var xhr = new XMLHttpRequest()
+      xhr.onload = function () {
+        var reader = new FileReader()
+        reader.onloadend = function () {
+          callback(reader.result)
+        }
+        reader.readAsDataURL(xhr.response)
+      }
+      xhr.open('GET', url)
+      xhr.responseType = 'blob'
+      xhr.send()
     },
     deleteActivity(activity, index) {
       this.$buefy.dialog.confirm({
