@@ -2,6 +2,20 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.04.16">
+        <div class="item mb-4">          
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Totals per dia a
+            <router-link to="/registre-jornades"
+              >registre de jornades</router-link
+            >.
+          </div>          
+          <div class="text mt-2">
+            Els ingressos i despeses es guarden amb la seva corresponent prorrata d'IVA al saldar-se.            
+          </div>          
+        </div>
+      </card-component>      
       <card-component title="2024.03.27">
         <div class="item mb-4">          
           <span class="tag is-primary">Novetats</span>
