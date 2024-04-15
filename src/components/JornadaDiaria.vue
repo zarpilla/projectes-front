@@ -30,7 +30,7 @@
           <div class="column has-text-weight-bold">Entrada</div>
           <div class="column has-text-weight-bold">Sortida</div>
           <div class="column has-text-weight-bold">
-            Hores treballades
+            Hores treballades (total)
           </div>
           <div class="column has-text-weight-bold"></div>
         </div>
@@ -135,6 +135,7 @@
             </div>
             <div class="column">
               {{ a | formatHourDiff }}
+              <b>({{ daily.find(d => d.date === a.date) | formatHourMonth }})</b>
             </div>
             <div class="column">
               <button
@@ -379,6 +380,35 @@ export default {
 
       return totals;
     },
+    daily() {
+      const totals = _(
+        this.activities
+          .filter(a => a._type !== "total" && a.hour_in !== null && a.hour_out)
+          .map(a => {
+            return {
+              ...a,
+              day: a.date,
+              m: moment(a.hour_in, "HH:mm:ss").diff(
+                moment(a.hour_out, "HH:mm:ss"),
+                "minutes"
+              )
+            };
+          })
+      )
+        .groupBy("day")
+        .map((rows, id) => ({
+          date: id,
+          m: _.sumBy(
+            rows,
+            a =>
+              a.m
+          )
+          // rows: rows
+        }))
+        .value();
+
+      return totals;
+    },
     superTotal() {
       const totalMinutes = this.monthly.reduce((acc, m) => acc + m.m, 0);
       const hours = Math.floor(totalMinutes / 60);
@@ -423,7 +453,6 @@ export default {
           const activities = [];
           var allDates = this.enumerateDaysBetweenDates();
 
-          console.log('allDates', allDates)
           allDates.forEach(d => {
             const date = moment(d).format("YYYY-MM-DD");
             const dailyWorkday = r.data.filter(dd => date === dd.date);
@@ -681,15 +710,16 @@ export default {
         .format("MMMM")
         .toUpperCase();
     },
-    formatHourMonth(m) {
+    formatHourMonth(m) {      
       if (m && m.m) {
+        m.m = Math.abs(m.m);
         return `${parseInt(m.m / 60)}h ${m.m - parseInt(m.m / 60) * 60}m`;
       }
       return "0h";
     },
     formatHourDiff(activity) {
       if (!activity.hour_in || !activity.hour_out) {
-        return "-";
+        return "0h";
       }
       const hours =
         -1 *
