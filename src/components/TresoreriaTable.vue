@@ -152,6 +152,10 @@
     >
       <div class="columns">
         <div class="column">
+          <b-field label="EXECUTAT" grouped class="column">
+          </b-field>
+        </div>
+        <div class="column">
           <b-field label="Suportat" grouped class="column">
             <div class="readonly subphase-detail-input">
               <money-format
@@ -190,8 +194,7 @@
           <b-field label="Saldo" grouped class="column">
             <money-format
               :value="
-                ((vat.paid - vat.received) * me.options.deductible_vat_pct) /
-                100
+                -1*(vat.received - (vat.paid * me.options.deductible_vat_pct / 100))
               "
               :locale="'es'"
               :currency-code="'EUR'"
@@ -206,11 +209,69 @@
             <button
               class="button is-primary"
               @click="payVat"
-              :disabled="vat.paid - vat.received === 0 || payingVat"
+              :disabled="(vat.paid - (vat.received * me.options.deductible_vat_pct / 100)) === 0 || payingVat"
             >
               {{ payingVat ? "..." : "Saldar" }}
             </button>
           </b-field>
+        </div>
+      </div>
+      
+      <div class="columns">
+        <div class="column">
+          <b-field label="PREVIST" grouped class="column">
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Suportat" grouped class="column">
+            <div class="readonly subphase-detail-input">
+              <money-format
+                :value="vat_expected.paid"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Repercutit" grouped class="column">
+            <div class="readonly subphase-detail-input">
+              <money-format
+                :value="vat_expected.received"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Deduïble" grouped class="column">
+            <div class="readonly subphase-detail-input">
+              {{ me.options.deductible_vat_pct }}%
+            </div>
+          </b-field>
+        </div>
+        <div class="column">
+          <b-field label="Saldo" grouped class="column">
+            <money-format
+              :value="
+                -1*(vat_expected.received - (vat_expected.paid * me.options.deductible_vat_pct / 100))
+              "
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            >
+            </money-format>
+          </b-field>
+        </div>
+        <div class="column">
         </div>
       </div>
     </card-component>
@@ -389,6 +450,7 @@ export default {
       pivotData: [],
       pivotData2: [],
       vat: { paid: 0, received: 0 },
+      vat_expected: { paid: 0, received: 0 },
       me: null,
       payingVat: false,
       view: "startOfYear",
@@ -540,6 +602,7 @@ export default {
       const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
       const treasuryData = await getTreasuryData(filter, year);      
       this.vat = treasuryData.vat;
+      this.vat_expected = treasuryData.vat_expected;
       this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});
       this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);

@@ -6,6 +6,9 @@
         <div class="item mb-4">          
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
+            Previsions de tresoreria d'IVA amb prorata.
+          </div>
+          <div class="text mt-2">
             Totals per dia a
             <router-link to="/registre-jornades"
               >registre de jornades</router-link

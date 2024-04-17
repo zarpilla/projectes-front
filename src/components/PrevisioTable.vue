@@ -210,8 +210,7 @@
           <b-field label="Saldo" grouped class="column">
             <money-format
               :value="
-                ((vat.paid - vat.received) * me.options.deductible_vat_pct) /
-                  100
+                (vat.paid - (vat.received * me.options.deductible_vat_pct / 100))
               "
               :locale="'es'"
               :currency-code="'EUR'"
