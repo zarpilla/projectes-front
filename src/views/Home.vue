@@ -254,7 +254,18 @@ export default {
       return projectsCSV;
     },
   },
-  mounted() {
+  async mounted() {
+
+    const me = await service({ requiresAuth: true, cached: true }).get("users/me");
+    const permissions = me.data.permissions.map(p => p.permission)
+    if (!permissions.includes('projects')) {
+      if (permissions.includes('orders')) {
+        this.$router.push("/orders");
+      } else {
+        return
+      }
+    }
+
     this.fillChartData();
 
     if (!localStorage.getItem("welcome")) {

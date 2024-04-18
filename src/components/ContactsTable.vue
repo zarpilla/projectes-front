@@ -24,7 +24,7 @@
         >
         </b-input>
       </b-field>
-  </div>
+    </div>
     <!-- <pre>{{contacts}}</pre> -->
     <b-table
       :loading="isLoading"
@@ -32,6 +32,20 @@
       :striped="false"
       :data="contacts"
     >
+      <b-table-column
+        label="ID"
+        field="id"
+        sortable
+        v-slot="props"
+        v-if="orders_admin"
+      >
+        <router-link
+          v-if="props.row.id"
+          :to="{ name: 'contacts.edit', params: { id: props.row.id } }"
+        >
+          {{ props.row.id }}
+        </router-link>
+      </b-table-column>
       <b-table-column label="Name" field="name" sortable v-slot="props">
         <router-link
           v-if="props.row.id"
@@ -39,23 +53,16 @@
         >
           {{ props.row.name }}
         </router-link>
-      </b-table-column>      
-      <b-table-column
-        label="NIF"
-        field="nif"
-        sortable
-        v-slot="props"
-      >
+      </b-table-column>
+      <b-table-column label="NIF" field="nif" sortable v-slot="props">
         {{ props.row.nif }}
       </b-table-column>
-      <b-table-column
-        label="Correu"
-        field="email"
-        sortable
-        v-slot="props"
-      >
+      <b-table-column label="Correu" field="email" sortable v-slot="props">
         {{ props.row.email }}
-      </b-table-column>      
+      </b-table-column>
+      <b-table-column label="Contacte de" field="props.row.owner.username" sortable v-slot="props" v-if="orders_admin">
+        {{ props.row.owner && props.row.owner.fullname ? props.row.owner.fullname : "" }}
+      </b-table-column>
     </b-table>
   </section>
 </template>
@@ -64,61 +71,74 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
 export default {
   name: "Tresoreria",
   props: {
     titleStack: {
       type: Array,
-      default: () => [],
+      default: () => []
     }
   },
   data() {
     return {
-      isLoading: false,      
+      isLoading: false,
       contacts: [],
       contactsCSV: [],
       filters: {
-        q: '',
-        userContacts: ''
+        q: "",
+        userContacts: ""
       },
       queryChanged: 0,
+      orders_admin: false
     };
-  },  
+  },
   computed: {
-    ...mapState(['userName']),    
-    ...mapState(['userId']),    
+    ...mapState(["userName"]),
+    ...mapState(["userId"])
   },
   async mounted() {
     this.getData();
   },
   methods: {
     navNew() {
-      const q = this.$route.meta.userContacts ? `?user=true` : '';
-      this.$router.push("/contact/0"+q);
-    },    
+      const q = this.$route.meta.userContacts ? `?user=true` : "";
+      this.$router.push("/contact/0" + q);
+    },
     async getData() {
-      
-      this.isLoading = true;      
+      this.isLoading = true;
 
       if (this.$route.meta.userContacts) {
-        const me = await service({ requiresAuth: true, cached: true }).get("users/me")    
-        this.userContacts = `&_where[owner]=${me.data.id}`
+        const me = await service({ requiresAuth: true, cached: true }).get(
+          "users/me"
+        );
+        const permissions = me.data.permissions.map(p => p.permission);
+        if (permissions.includes("orders_admin")) {
+          this.orders_admin = true;
+          this.userContacts = `&_where[owner_ne]=null`;
+        } else {
+          this.userContacts = `&_where[owner]=${me.data.id}`;
+        }
       } else {
-        this.userContacts = '&_where[owner_null]=true'
+        this.userContacts = "&_where[owner_null]=true";
       }
 
       if (this.filters.q) {
-        this.contacts = (await service({ requiresAuth: true })
-          .get(
+        this.contacts = (
+          await service({ requiresAuth: true }).get(
             `contacts/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${this.userContacts}`
-          )).data;
+          )
+        ).data;
       } else {
-        this.contacts = (await service({ requiresAuth: true }).get(`contacts/basic?_limit=-1&_sort=name:ASC${this.userContacts}`)).data;
+        this.contacts = (
+          await service({ requiresAuth: true }).get(
+            `contacts/basic?_limit=-1&_sort=name:ASC${this.userContacts}`
+          )
+        ).data;
       }
-      
-      this.contactsCSV = this.contacts
+
+      this.contactsCSV = this.contacts;
       this.isLoading = false;
     },
     queryProjects(q) {
@@ -129,7 +149,7 @@ export default {
         this.filters.q = q;
         this.getData();
       }, 400);
-    },
-  },
+    }
+  }
 };
 </script>

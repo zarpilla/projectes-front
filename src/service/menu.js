@@ -86,6 +86,21 @@ const menu = [
         permission: 'orders'
       }
     ],
+    'COMANDES ADM',
+    [
+      {
+        to: '/user-contacts',
+        icon: 'account-box',
+        label: 'Contactes',
+        permission: 'orders_admin'
+      },
+      {
+        to: '/orders',
+        icon: 'truck',
+        label: 'Comandes',
+        permission: 'orders_admin'
+      }
+    ],
     'Consulta dades',
     [
       {

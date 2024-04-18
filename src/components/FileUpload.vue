@@ -22,9 +22,7 @@
           :accept="accept"
           class="input-file"
         />
-        <p v-if="isInitial || isSuccess">
-          Arrossega arxius aquí<br />
-          o fes clic
+        <p v-if="isInitial || isSuccess" v-html="message">
         </p>
         <p v-if="isSaving">Pujant {{ fileCount }} arxius...</p>
       </div>
@@ -93,6 +91,10 @@ export default {
     multiple: Boolean,
     accept: String,
     preUpload: Function,
+    message: {
+      type: String,
+      default: "Arrossega arxius aquí<br /> o fes clic"
+    }
   },
   computed: {
     isInitial() {
@@ -232,7 +234,7 @@ export default {
 .input-file {
   opacity: 0; /* invisible but it's there! */
   width: 100%;
-  height: 200px;
+  height: 100%;
   position: absolute;
   cursor: pointer;
 }
