@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.04.18">
+        <div class="item mb-4">          
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Nou mòdul de comandes i logística.
+          </div>          
+        </div>
+      </card-component> 
       <card-component title="2024.04.16">
         <div class="item mb-4">          
           <span class="tag is-primary">Novetats</span>
