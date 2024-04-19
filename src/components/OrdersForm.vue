@@ -43,6 +43,21 @@
                 </b-select>
               </b-field>
 
+              <b-field label="Data Entrega" horizontal>
+                <b-datepicker                
+                :disabled="!permissions.includes('orders_admin')"
+                  v-model="form.delivery_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+
               <!-- <b-field label="Producte" horizontal :message="form.product ? `Preu: ${products.find(p => p.id === form.product).base}€` : null">
                 <b-select v-model="form.product" placeholder="">
                   <option
@@ -159,9 +174,9 @@
               </b-field>
               <hr>
 
-              <b-field label="Data *" horizontal>
+              <b-field label="Data Comanda*" horizontal>
                 <b-datepicker                
-                :disabled="true"
+                :disabled="!permissions.includes('orders_admin')"
                   v-model="form.route_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -199,7 +214,7 @@
                 </b-select>
               </b-field>
 
-              <b-field label="Unitats *" horizontal>
+              <b-field label="Caixes *" horizontal>
                 <b-input v-model="form.units" type="number" />
               </b-field>
 
@@ -426,6 +441,7 @@ export default {
       return {
         id: null,
         route_date: new Date,
+        delivery_date: null,
         status: 'pending',
         owner: null,
         contact: null,
@@ -459,6 +475,14 @@ export default {
                 this.form.route_date,
                 "YYYY-MM-DD"
               ).toDate();
+
+              if (this.form.delivery_date) {
+                this.form.delivery_date = moment(
+                  this.form.delivery_date,
+                  "YYYY-MM-DD"
+                ).toDate()
+              }
+              
 
               const me = await service({ requiresAuth: true, cached: true }).get("users/me");
               if (!this.permissions.includes("orders_admin") && this.form.owner !== me.data.id) {
@@ -579,6 +603,11 @@ export default {
           "users/me"
         );
         this.form.owner = me.data.id;
+      }
+
+      console.log('this.form', this.form.status, this.form.delivery_date)
+      if (this.form.status === 'delivered' && !this.form.delivery_date) {
+        this.form.delivery_date = new Date().toISOString().split("T")[0]
       }
 
       try {

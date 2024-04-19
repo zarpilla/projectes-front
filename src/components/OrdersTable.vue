@@ -73,6 +73,7 @@
       </file-upload>
     </div>
 
+    <h4>ESTATS</h4>
     <div class="filters">
       <b-button
         class="view-button mb-3 mr-3"
@@ -133,6 +134,31 @@
         @click="statusFilter = 'cancelled'"
       >
         ANUL·LADES
+      </b-button>
+    </div>
+    <h4>RUTES</h4>
+    <div class="filters">
+      <b-button
+        class="view-button mb-3 mr-3"
+        :class="{
+          'is-primary': routeFilter === '',
+          'is-warning': routeFilter !== ''
+        }"
+        @click="routeFilter = ''"
+      >
+        TOTES
+      </b-button>
+      <b-button
+      v-for="route in routes"
+      :key="route.id"
+        class="view-button mb-3 mr-3"
+        :class="{
+          'is-primary': routeFilter === route.name,
+          'is-warning': routeFilter !== route.name
+        }"
+        @click="routeFilter = route.name"
+      >
+        {{ route.name}}
       </b-button>
     </div>
 
@@ -292,6 +318,7 @@ export default {
       csvRecords: [],
       csvErrors: [],
       statusFilter: "",
+      routeFilter: "",
       csvOptions: {
         delimiter: ",",
         columns: true
@@ -309,11 +336,20 @@ export default {
     ...mapState(["userName"]),
     ...mapState(["userId"]),
     theOrders() {
-      return this.orders.filter(o => {
+      const orders =
+      this.orders.filter(o => {
         if (this.statusFilter === "") {
           return true;
         } else {
           return o.status === this.statusFilter;
+        }
+      });
+
+      return orders.filter(o => {
+        if (this.routeFilter === "") {
+          return true;
+        } else {
+          return o.route && o.route.name === this.routeFilter;
         }
       });
     },    
@@ -597,21 +633,27 @@ export default {
         return order;
       }
 
+      console.log("order", order.route);
+      console.log("rates", this.routeRates  );
+
       let rates = this.routeRates.filter(
-        r => (r.route && order.route && r.route.id === order.route) || r.route === null
+        r => (r.route && order.route && r.route.id === order.route.id) || r.route === null
       );
+      console.log("rates 0", rates);
       rates = rates.filter(
         r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
       );
+      console.log("rates 1", rates);
       rates = rates.filter(
         r =>
           (r.delivery_type && order.delivery_type && r.delivery_type.id === order.delivery_type.id) ||
           r.delivery_type === null
       );
+      console.log("rates 2", rates);
       if (rates.length > 1) {
         rates = rates.filter(r => r.route !== null);
       }
-
+      console.log("rates 3", rates);
       if (rates.length === 0) {
         console.warn("no rates!", order);
       } else if (rates.length > 1) {
