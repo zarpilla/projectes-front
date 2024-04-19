@@ -8,14 +8,21 @@
 
     <div class="is-flex">
       <download-excel class="export" :data="theOrders"
-      
+      type="csv"
+      :escapeCsv="false"
+      name="comandes.csv"
       :fields="{
         id: 'id',
         date: 'route_date',
         route: 'route.name',
         owner: 'owner.id',        
-        contact_name: 'contact_name',        
-        contact_address: 'contact_address',        
+        contact_name: 'contact_name',
+        contact_address: {
+          field: 'contact_address',
+          callback: (value) => {
+            return addressFormatted(value);
+          },
+        },
         contact_postcode: 'contact_postcode',
         contact_city: 'contact_city',
         contact_nif: 'contact_nif',
@@ -29,7 +36,12 @@
         refrigerated: 'refrigerated',
         fragile: 'fragile',
         pickup: 'pickup.name',
-        notes: 'comments'
+        notes: {
+          field: 'comments',
+          callback: (value) => {
+            return addressFormatted(value);
+          },
+        },
       }">
         <b-button
           title="Exporta dades"
@@ -304,7 +316,7 @@ export default {
           return o.status === this.statusFilter;
         }
       });
-    }
+    },    
   },
   async created() {
     const me = await service({ requiresAuth: true, cached: true }).get(
@@ -632,7 +644,10 @@ export default {
       if (orderToUpdate >= 0) {
         this.orders[orderToUpdate].id = data.id
       }
-    }
+    },
+    addressFormatted(address) {
+      return '"' + address + '"';
+    },
   }
 };
 </script>
