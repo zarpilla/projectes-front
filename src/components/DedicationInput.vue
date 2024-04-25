@@ -1479,6 +1479,15 @@ export default {
 .tag-blink {
   animation: blink 5s infinite;
 }
+.custom-calendar .vc-highlight {
+  position: absolute;
+  top: -2px;
+  left: 1px;
+}
+.custom-calendar .is-today .day-label{
+  color: #fff
+}
+
 @keyframes blink {
   0% {
     background-color: #17191e;
