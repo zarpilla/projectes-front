@@ -773,6 +773,10 @@ export default {
             r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
           );
         }
+      } else {
+        rates = rates.filter(
+            r => (r.pickup && order.pickup && r.pickup.id === 1) || r.pickup === null
+          );
       }
       
 

@@ -872,11 +872,48 @@ export default {
       this.contacts = concat({ id: 0, name: "--" }, this.contacts);
     },
 
-    assignRouteRate() {
+    async assignRouteRate() {
       if (this.form.route_rate === null) {
         let rates = this.routeRates.filter(
           r => (r.route && r.route.id === this.form.route) || r.route === null
         );
+
+        
+
+        if (this.form.pickup && this.form.pickup.pickup) {
+
+
+          const orders = await service({ requiresAuth: true }).get(
+            `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
+          );
+
+          const pendingOrders = orders.filter(o => o.route.id === this.form.route.id && o.owner.id === this.form.owner.id && o.status === "pending");
+          if (pendingOrders.length > 0) {
+            // We have pending orders for this route and owner
+            // Add your logic here
+            console.log("We have pending orders for this route and owner, applying NO PICKUP", pendingOrders);
+
+            rates = rates.filter(
+              r => (r.pickup && this.form.pickup && r.pickup.id === 1) || r.pickup === null
+            );
+
+          } else {
+            // No pending orders for this route and owner
+            // Add your logic here
+            console.log("No pending orders for this route and owner");
+
+            rates = rates.filter(
+              r => (r.pickup && this.form.pickup && r.pickup.id === this.form.pickup.id) || r.pickup === null
+            );
+          }
+        } else {
+          rates = rates.filter(
+            r => (r.pickup && this.form.pickup && r.pickup.id === 1) || r.pickup === null
+          );
+        }
+
+
+
         rates = rates.filter(
           r =>
             (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null
