@@ -12,7 +12,7 @@
               <b-field label="NIF *" horizontal>
                 <b-input v-model="form.nif" required />
               </b-field>
-              <b-field label="Persona" horizontal message="Si a part de contacte és també treballadora o sòcia de la cooperativa">
+              <b-field label="Persona" horizontal message="Si a part de contacte és també treballadora o sòcia de la cooperativa" v-if="!form.owner">
                 <b-select v-model="form.users_permissions_user" placeholder="" >
                   <option
                     v-for="(s, index) in users"
@@ -78,6 +78,55 @@
               <b-field label="Web" horizontal>
                 <b-input v-model="form.website" />
               </b-field>
+
+              <b-field label="Horari de contacte 1" horizontal v-if="form.owner">
+                <b-field label="">
+                  <b-select v-model="form.time_slot_1_ini" placeholder="" class="mr-3">
+                      <option
+                        v-for="(s, index) in contact_time_slots"
+                        :key="index"
+                        :value="s"
+                      >
+                        {{ s }}
+                      </option>
+                  </b-select>
+
+                  <b-select v-model="form.time_slot_1_end" placeholder="" >
+                      <option
+                        v-for="(s, index) in contact_time_slots"
+                        :key="index"
+                        :value="s"
+                      >
+                        {{ s }}
+                      </option>
+                  </b-select>
+                </b-field>
+              </b-field>
+
+              <b-field label="Horari de contacte 2" horizontal v-if="form.owner">
+                <b-field label="">
+                  <b-select v-model="form.time_slot_2_ini" placeholder="" class="mr-3">
+                      <option
+                        v-for="(s, index) in contact_time_slots"
+                        :key="index"
+                        :value="s"
+                      >
+                        {{ s }}
+                      </option>
+                  </b-select>
+
+                  <b-select v-model="form.time_slot_2_end" placeholder="" >
+                      <option
+                        v-for="(s, index) in contact_time_slots"
+                        :key="index"
+                        :value="s"
+                      >
+                        {{ s }}
+                      </option>
+                  </b-select>
+                </b-field>
+              </b-field>
+
               <hr>
               
               <b-field horizontal>
@@ -126,7 +175,8 @@ export default {
       form: this.getClearFormObject(),
       legalForms: [],
       sectors: [],
-      users: []
+      users: [],
+      contact_time_slots: Array.from({length: 24}, (_, i) => i),
     };
   },
   computed: {

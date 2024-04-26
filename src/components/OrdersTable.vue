@@ -7,48 +7,6 @@
     ></b-loading>
 
     <div class="is-flex">
-      <download-excel class="export" :data="theOrders"
-      type="csv"
-      :escapeCsv="false"
-      name="comandes.csv"
-      :fields="{
-        id: 'id',
-        date: 'route_date',
-        route: 'route.name',
-        owner: 'owner.id',        
-        contact_name: 'contact_name',
-        contact_address: {
-          field: 'contact_address',
-          callback: (value) => {
-            return addressFormatted(value);
-          },
-        },
-        contact_postcode: 'contact_postcode',
-        contact_city: 'contact_city',
-        contact_nif: 'contact_nif',
-        contact_phone: 'contact_phone',
-        contact_time_slot_1_ini: 'contact_time_slot_1_ini',
-        contact_time_slot_1_end: 'contact_time_slot_1_end',
-        contact_time_slot_2_ini: 'contact_time_slot_2_ini',
-        contact_time_slot_2_end: 'contact_time_slot_2_end',
-        units: 'units',
-        kilograms: 'kilograms',
-        refrigerated: 'refrigerated',
-        fragile: 'fragile',
-        pickup: 'pickup.name',
-        notes: {
-          field: 'comments',
-          callback: (value) => {
-            return addressFormatted(value);
-          },
-        },
-      }">
-        <b-button
-          title="Exporta dades"
-          class="export-button mt-0 mb-3"
-          icon-left="file-excel"
-        />
-      </download-excel>
       <b-button
         class="view-button is-primary mb-3"
         @click="navNew"
@@ -68,9 +26,43 @@
         :accept="'.csv'"
         @uploaded="uploaded"
         :pre-upload="preUpload"
-        :message="`Pujar arxiu CSV`"
+        :message="`Crea comandes pujant arxiu CSV separat per comes`"
       >
       </file-upload>
+    </div>
+
+    <div class="is-flex">
+      <download-excel
+        class="export"
+        :data="theOrders"
+        type="csv"
+        :escapeCsv="false"
+        name="comandes.csv"
+        :fields="{
+          id: 'id',
+          date: 'route_date',
+          ...csvFields
+        }"
+      >
+        <b-button
+          title="Descarrega les dades de les teves comandes"
+          class="export-button mt-0 mb-3"
+          icon-left="download"
+        />
+      </download-excel>
+      <download-excel
+      class="export"
+        :data="csvExample"
+        type="csv"
+        :escapeCsv="false"
+        name="exemple-comandes.csv"
+        :fields="csvFields">
+        <b-button
+          title="Descarrega exemple de fitxer CSV de comandes"
+          class="export-button mt-0 mb-3"
+          icon-left="file-delimited"
+        />
+      </download-excel>
     </div>
 
     <h4>ESTATS</h4>
@@ -149,8 +141,8 @@
         TOTES
       </b-button>
       <b-button
-      v-for="route in routes"
-      :key="route.id"
+        v-for="route in routes"
+        :key="route.id"
         class="view-button mb-3 mr-3"
         :class="{
           'is-primary': routeFilter === route.name,
@@ -158,7 +150,7 @@
         }"
         @click="routeFilter = route.name"
       >
-        {{ route.name}}
+        {{ route.name }}
       </b-button>
     </div>
 
@@ -180,7 +172,12 @@
           {{ props.row.id.toString().padStart(4, "0") }}
         </router-link>
         <div v-else>
-          <button class="button is-danger zbutton-small" @click="createCSVOrder(props.row)">NOVA</button>          
+          <button
+            class="button is-danger zbutton-small"
+            @click="createCSVOrder(props.row)"
+          >
+            NOVA
+          </button>
         </div>
       </b-table-column>
       <b-table-column
@@ -203,7 +200,9 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.contact ? props.row.contact.name : props.row.contact_name }}
+        {{
+          props.row.contact ? props.row.contact.name : props.row.contact_name
+        }}
       </b-table-column>
       <b-table-column
         label="Unitats"
@@ -329,7 +328,107 @@ export default {
       users: [],
       deliveryTypes: [],
       pickups: [],
-      routerates: []
+      routerates: [],
+      csvAlias: {
+        route_name: 'route_name',
+        owner_id: 'owner_id',
+        contact_name: 'contact_name',
+        contact_address: 'contact_address',
+        contact_postcode: 'contact_postcode',
+        contact_city: 'contact_city',
+        contact_nif: 'contact_nif',
+        contact_phone: 'contact_phone',
+        contact_time_slot_1_ini: 'contact_time_slot_1_ini',
+        contact_time_slot_1_end: 'contact_time_slot_1_end',
+        contact_time_slot_2_ini: 'contact_time_slot_2_ini',
+        contact_time_slot_2_end: 'contact_time_slot_2_end',
+        units: 'units',
+        kilograms: 'kilograms',
+        refrigerated: 'refrigerated',
+        fragile: 'fragile',
+        pickup: 'pickup.name',
+        provider_order_number: 'provider_order_number',
+        notes: 'notes'
+      },
+      csvFields: {        
+        route_name: 'route_name',
+        owner_id: 'owner_id',
+        contact_name: 'contact_name',
+        contact_address: {
+          field: 'contact_address',
+          callback: (value) => {
+            return this.addressFormatted(value);
+          },
+        },
+        contact_postcode: 'contact_postcode',
+        contact_city: 'contact_city',
+        contact_nif: 'contact_nif',
+        contact_phone: 'contact_phone',
+        contact_time_slot_1_ini: 'contact_time_slot_1_ini',
+        contact_time_slot_1_end: 'contact_time_slot_1_end',
+        contact_time_slot_2_ini: 'contact_time_slot_2_ini',
+        contact_time_slot_2_end: 'contact_time_slot_2_end',
+        units: 'units',
+        kilograms: 'kilograms',
+        refrigerated: 'refrigerated',
+        fragile: 'fragile',
+        // pickup: 'pickup.name',
+        pickup: {
+          field: 'pickup',
+          callback: (value) => {
+            return value && value.name ? value.name : value;
+          },
+        },
+        provider_order_number: 'provider_order_number',
+        notes: {
+          field: 'comments',
+          callback: (value) => {
+            return this.addressFormatted(value);
+          },
+        }
+      },
+      csvExample: [{        
+        route_name: 'RUTA01-DT-MARESME',
+        owner_id: 0,
+        contact_name: 'Joan Garriga',
+        contact_address: 'Carrer de l\'amargura 17',
+        contact_postcode: '08001',
+        contact_city: 'Mataró',
+        contact_nif: '000000001A',
+        contact_phone: '93 123 45 67',
+        contact_time_slot_1_ini: '9',
+        contact_time_slot_1_end: '12',
+        contact_time_slot_2_ini: '16',
+        contact_time_slot_2_end: '18',
+        units: 2,
+        kilograms: 3,
+        refrigerated: '1',
+        fragile: '0',
+        pickup: '0',
+        provider_order_number: '0560605',
+        notes: 'Trucar per telèfon abans de l\'entrega'
+      },
+      {        
+        route_name: 'RUTA02-DC-GIRONAINTERIOR',
+        owner_id: 0,
+        contact_name: 'Anna Garriga',
+        contact_address: 'Carrer de la font, 1',
+        contact_postcode: '17001',
+        contact_city: 'Girona',
+        contact_nif: '000000002A',
+        contact_phone: '93 123 45 67',
+        contact_time_slot_1_ini: '10',
+        contact_time_slot_1_end: '11',
+        contact_time_slot_2_ini: '16',
+        contact_time_slot_2_end: '19',
+        units: 1,
+        kilograms: 1,
+        refrigerated: '0',
+        fragile: '1',
+        pickup: '1',
+        provider_order_number: '2024/0605',
+        notes: 'Recollida en finca'
+      }]
     };
   },
   computed: {
@@ -352,7 +451,7 @@ export default {
           return o.route && o.route.name === this.routeFilter;
         }
       });
-    },    
+    },
   },
   async created() {
     const me = await service({ requiresAuth: true, cached: true }).get(
@@ -379,6 +478,9 @@ export default {
         this.userFilter = "";
       } else {
         this.userFilter = `&_where[owner]=${me.data.id}`;
+        this.csvExample.forEach(element => {
+          element.owner_id = me.data.id;
+        });
       }
       this.orders = (
         await service({ requiresAuth: true }).get(
@@ -398,6 +500,13 @@ export default {
         u.permissions.map(p => p.permission).includes("orders")
       );
 
+      if (me.data.permissions.map(p => p.permission).includes("orders_admin")) {
+        this.csvExample.forEach(element => {
+          element.owner_id = this.users[0].id;
+        });
+      }
+
+
       this.deliveryTypes = (
         await service({ requiresAuth: true }).get(`delivery-types?_limit=-1`)
       ).data;
@@ -411,6 +520,8 @@ export default {
           "route-rates?_limit=-1"
         )
       ).data;
+
+      this.orders = this.orders.map(o => { return { ...o, route_name: o.route.name, owner_id: o.owner.id }});
 
       this.contactsCSV = this.orders;
       this.isLoading = false;
@@ -438,7 +549,7 @@ export default {
         reader.onload = async e => {
           const text = e.target.result;
           this.csv = text;
-          const records = await this.readCSV(text);          
+          const records = await this.readCSV(text);
           await this.importCSV(records);
           this.importing = false;
         };
@@ -453,8 +564,11 @@ export default {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
     },
-    async importCSV(records) {
-      console.log("this.routes", this.routes);
+    async importCSV(records) {      
+      // for (const key in this.csvAlias) {
+      //   const alias = this.csvAlias[key]        
+      // }
+      
       let i = 2;
       this.csvErrors = [];
       for await (const record of records) {
@@ -498,43 +612,43 @@ export default {
           this.csvErrors.push({ line: i, error: "No units" });
           return false;
         }
-        if (!record.route) {
+        if (!record.route_name) {
           this.csvErrors.push({ line: i, error: "No route" });
           return false;
         }
         if (
           !this.routes.find(
-            r => this.removeAccents(r.name) === this.removeAccents(record.route)
+            r => this.removeAccents(r.name) === this.removeAccents(record.route_name)
           )
         ) {
           this.csvErrors.push({
             line: i,
-            error: `Route ${record.route} not found`
+            error: `Route ${record.route_name} not found`
           });
           return false;
         }
         if (
-          !this.users.find(u => u.id.toString() === record.owner.toString())
+          !this.users.find(u => u.id.toString() === record.owner_id.toString())
         ) {
           this.csvErrors.push({
             line: i,
-            error: `User ${record.owner} not found`
+            error: `User ${record.owner_id} not found`
           });
           return false;
         }
-        if (
-          record.pickup &&
-          !this.pickups.find(
-            p =>
-              this.removeAccents(p.name) === this.removeAccents(record.pickup)
-          )
-        ) {
-          this.csvErrors.push({
-            line: i,
-            error: `Pickup ${record.pickup} not found`
-          });
-          return false;
-        }
+        // if (
+        //   record.pickup &&
+        //   !this.pickups.find(
+        //     p =>
+        //       this.removeAccents(p.name) === this.removeAccents(record.pickup)
+        //   )
+        // ) {
+        //   this.csvErrors.push({
+        //     line: i,
+        //     error: `Pickup ${record.pickup} not found`
+        //   });
+        //   return false;
+        // }
 
         i++;
         const order = {
@@ -546,17 +660,17 @@ export default {
           contact_postcode: record.contact_postcode,
           contact_nif: record.contact_nif,
           contact_city: record.contact_city,
-          contact_time_slot_1_ini: record.contact_time_slot_1_ini,
-          contact_time_slot_1_end: record.contact_time_slot_1_end,
-          contact_time_slot_2_ini: record.contact_time_slot_2_ini,
-          contact_time_slot_2_end: record.contact_time_slot_2_end,
+          contact_time_slot_1_ini: record.contact_time_slot_1_ini ?? null,
+          contact_time_slot_1_end: record.contact_time_slot_1_end ?? null,
+          contact_time_slot_2_ini: record.contact_time_slot_2_ini ?? null,
+          contact_time_slot_2_end: record.contact_time_slot_2_end ?? null,
           contact: {
             name: record.contact_name,
             address: record.contact_address,
             phone: record.contact_phone,
             postcode: record.contact_postcode,
             nif: record.contact_nif,
-            city: record.contact_city,            
+            city: record.contact_city,
             time_slot_1_ini: record.contact_time_slot_1_ini,
             time_slot_1_end: record.contact_time_slot_1_end,
             time_slot_2_ini: record.contact_time_slot_2_ini,
@@ -568,28 +682,24 @@ export default {
             record.refrigerated === "1"
               ? this.deliveryTypes.find(d => d.refrigerated)
               : this.deliveryTypes.find(d => !d.refrigerated),
-          pickup: record.pickup
-            ? this.pickups.find(
-                p =>
-                  this.removeAccents(p.name) ===
-                  this.removeAccents(record.pickup)
-              )
-            : this.pickups[0],
+          pickup: record.pickup === "1"
+            ? this.pickups.find(p => p.pickup) : this.pickups.find(p => !p.pickup)
+          ,
           kilograms: parseInt(record.kilograms),
           units: parseInt(record.units),
           notes: record.notes,
           comments: record.notes,
           owner: this.permissions.includes("orders_admin")
-            ? this.users.find(u => u.id.toString() === record.owner.toString())
+            ? this.users.find(u => u.id.toString() === record.owner_id.toString())
             : this.me,
           route: this.routes.find(
-            r => this.removeAccents(r.name) === this.removeAccents(record.route)
+            r => this.removeAccents(r.name) === this.removeAccents(record.route_name)
           ),
           price: null,
           status: "CSV",
           _uuid: this.createUUID()
         };
-        
+
         const orderWithRate = this.assignRouteRate(order);
         this.orders.unshift(orderWithRate);
       }
@@ -640,9 +750,35 @@ export default {
         r => (r.route && order.route && r.route.id === order.route.id) || r.route === null
       );
       console.log("rates 0", rates);
-      rates = rates.filter(
-        r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
-      );
+
+      //check if we have pending orders for this route and owner
+      console.log("order", order, order.pickup);
+      if (order.pickup && order.pickup.pickup) {
+        const pendingOrders = this.orders.filter(o => o.route.id === order.route.id && o.owner.id === order.owner.id && o.status === "pending");
+        if (pendingOrders.length > 0) {
+          // We have pending orders for this route and owner
+          // Add your logic here
+          console.log("We have pending orders for this route and owner, applying NO PICKUP", pendingOrders);
+
+          rates = rates.filter(
+            r => (r.pickup && order.pickup && r.pickup.id === 1) || r.pickup === null
+          );
+
+        } else {
+          // No pending orders for this route and owner
+          // Add your logic here
+          console.log("No pending orders for this route and owner");
+
+          rates = rates.filter(
+            r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
+          );
+        }
+      }
+      
+
+      // rates = rates.filter(
+      //   r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
+      // );
       console.log("rates 1", rates);
       rates = rates.filter(
         r =>
@@ -662,8 +798,8 @@ export default {
       } else {        
         order.route_rate = rates[0];        
       }
-      
-      if (order.kilograms !== null && order.route_rate) {        
+
+      if (order.kilograms !== null && order.route_rate) {
         const rate = order.route_rate;
         if (order.kilograms < 15) {
           order.price = rate.less15;
@@ -672,9 +808,9 @@ export default {
         } else {
           order.price =
             rate.less30 + (order.kilograms - 30) * rate.additional30;
-        }        
+        }
       } else {
-        console.warn("!order", order.kilograms, order.route_rate);  
+        console.warn("!order", order.kilograms, order.route_rate);
       }
 
       return order;
@@ -682,9 +818,33 @@ export default {
     async createCSVOrder(order) {
       const _uuid = order._uuid;
       const { data } = await service({ requiresAuth: true }).post("orders/csv", order);
+
+      if (!order.contact_time_slot_1_ini) {
+        delete order.contact_time_slot_1_ini;
+      }
+      if (!order.contact_time_slot_1_end) {
+        delete order.contact_time_slot_1_end;
+      }
+      if (!order.contact_time_slot_2_ini) {
+        delete order.contact_time_slot_2_ini;
+      }
+      if (!order.contact_time_slot_2_end) {
+        delete order.contact_time_slot_2_end;
+      }
+      if (order.contact && !order.time_slot_1_ini) {
+        delete order.contact.time_slot_1_ini;
+      }
+      if (order.contact && !order.time_slot_1_end) {
+        delete order.contact.time_slot_1_end;
+      }
+      if (order.contact && !order.time_slot_2_ini) {
+        delete order.contact.time_slot_2_ini;
+      }
+
       const orderToUpdate = this.orders.findIndex(o => o._uuid && o._uuid === _uuid)
       if (orderToUpdate >= 0) {
         this.orders[orderToUpdate].id = data.id
+        this.orders[orderToUpdate].status = data.status
       }
     },
     addressFormatted(address) {
@@ -694,9 +854,10 @@ export default {
 };
 </script>
 <style>
-.button.button-small{
+.button.button-small {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   line-height: 20px;
   max-height: 24px;
-}</style>
+}
+</style>

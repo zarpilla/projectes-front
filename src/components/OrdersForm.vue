@@ -6,9 +6,16 @@
         <div class="column is-full">
           <card-component class="tile is-child">
             <form @submit.prevent="submit(false)" v-if="!isLoading">
-              
-              <b-field label="Proveïdora *" horizontal>
-                <b-select v-model="form.owner" placeholder="" @input="changeOwner"">
+              <b-field
+                label="Proveïdora *"
+                horizontal
+                :type="{ 'is-danger': errors['owner'] && submitted }"
+              >
+                <b-select
+                  v-model="form.owner"
+                  placeholder=""
+                  @input="changeOwner"
+                >
                   <option
                     v-for="(s, index) in users"
                     :key="index"
@@ -19,7 +26,12 @@
                 </b-select>
               </b-field>
 
-              <b-field label="Ruta *" horizontal>
+              <b-field
+                label="Ruta *"
+                horizontal
+                :type="{ 'is-danger': errors['route'] && submitted }"
+                message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t’aplicarà la tarifa corresponent. En cas de dubte, consulta’ns"
+              >
                 <b-select v-model="form.route" placeholder="">
                   <option
                     v-for="(s, index) in routes"
@@ -31,8 +43,16 @@
                 </b-select>
               </b-field>
 
-              <b-field label="Estat" horizontal >
-                <b-select v-model="form.status" placeholder="" :disabled="!permissions.includes('orders_admin')">
+              <b-field
+                label="Estat"
+                horizontal
+                message="Estat actual de la comanda"
+              >
+                <b-select
+                  v-model="form.status"
+                  placeholder=""
+                  :disabled="!permissions.includes('orders_admin')"
+                >
                   <option
                     v-for="(s, index) in statuses"
                     :key="index"
@@ -43,9 +63,13 @@
                 </b-select>
               </b-field>
 
-              <b-field label="Data Entrega" horizontal>
-                <b-datepicker                
-                :disabled="!permissions.includes('orders_admin')"
+              <b-field
+                label="Data Entrega"
+                horizontal
+                message="Data en la que la comanda ha estat entregada"
+              >
+                <b-datepicker
+                  :disabled="!permissions.includes('orders_admin')"
                   v-model="form.delivery_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -71,16 +95,25 @@
                 
               </b-field> -->
 
-              <hr>
-              
-              <b-field label="Clienta *" horizontal>
-                <b-select v-model="form.contact" placeholder="" @change.native="onClientaChange($event)">
+              <hr />
+
+              <b-field
+                label="Clienta *"
+                horizontal
+                :type="{ 'is-danger': errors['contact'] && submitted }"
+                message="Dades de la clienta per la entrega"
+              >
+                <b-select
+                  v-model="form.contact"
+                  placeholder=""
+                  @change.native="onClientaChange($event)"
+                >
                   <option
                     v-for="(s, index) in contacts"
                     :key="index"
                     :value="s.id"
                   >
-                  {{ s.id }} - {{ s.name }}
+                    {{ s.id }} - {{ s.name }}
                   </option>
                 </b-select>
 
@@ -125,58 +158,81 @@
                 <b-input v-model="form.contact_phone" />
               </b-field>
 
-              <b-field label="Tram horari 1" horizontal>
+              <b-field
+                label="Tram horari 1"
+                horizontal
+                message="Exemple: De 9 a 13h"
+              >
                 <b-field label="">
-                  <b-select v-model="form.contact_time_slot_1_ini" placeholder="" class="mr-3">
-                      <option
-                        v-for="(s, index) in contact_time_slots"
-                        :key="index"
-                        :value="s"
-                      >
-                        {{ s }}
-                      </option>
+                  <b-select
+                    v-model="form.contact_time_slot_1_ini"
+                    placeholder=""
+                    class="mr-3"
+                  >
+                    <option
+                      v-for="(s, index) in contact_time_slots"
+                      :key="index"
+                      :value="s"
+                    >
+                      {{ s }}
+                    </option>
                   </b-select>
 
-                  <b-select v-model="form.contact_time_slot_1_end" placeholder="" >
-                      <option
-                        v-for="(s, index) in contact_time_slots"
-                        :key="index"
-                        :value="s"
-                      >
-                        {{ s }}
-                      </option>
+                  <b-select
+                    v-model="form.contact_time_slot_1_end"
+                    placeholder=""
+                  >
+                    <option
+                      v-for="(s, index) in contact_time_slots"
+                      :key="index"
+                      :value="s"
+                    >
+                      {{ s }}
+                    </option>
                   </b-select>
                 </b-field>
               </b-field>
 
-              <b-field label="Tram horari 2" horizontal>
+              <b-field label="Tram horari 2" horizontal message="i de 16 a 20h">
                 <b-field label="">
-                  <b-select v-model="form.contact_time_slot_2_ini" placeholder="" class="mr-3">
-                      <option
-                        v-for="(s, index) in contact_time_slots"
-                        :key="index"
-                        :value="s"
-                      >
-                        {{ s }}
-                      </option>
+                  <b-select
+                    v-model="form.contact_time_slot_2_ini"
+                    placeholder=""
+                    class="mr-3"
+                  >
+                    <option
+                      v-for="(s, index) in contact_time_slots"
+                      :key="index"
+                      :value="s"
+                    >
+                      {{ s }}
+                    </option>
                   </b-select>
 
-                  <b-select v-model="form.contact_time_slot_2_end" placeholder="" >
-                      <option
-                        v-for="(s, index) in contact_time_slots"
-                        :key="index"
-                        :value="s"
-                      >
-                        {{ s }}
-                      </option>
+                  <b-select
+                    v-model="form.contact_time_slot_2_end"
+                    placeholder=""
+                  >
+                    <option
+                      v-for="(s, index) in contact_time_slots"
+                      :key="index"
+                      :value="s"
+                    >
+                      {{ s }}
+                    </option>
                   </b-select>
                 </b-field>
               </b-field>
-              <hr>
+              <hr />
 
-              <b-field label="Data Comanda*" horizontal>
-                <b-datepicker                
-                :disabled="!permissions.includes('orders_admin')"
+              <b-field
+                label="Data comanda *"
+                horizontal
+                :type="{ 'is-danger': errors['route_date'] && submitted }"
+                message="Data de creació de la comanda"
+              >
+                <b-datepicker
+                  :disabled="!permissions.includes('orders_admin')"
                   v-model="form.route_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -189,8 +245,12 @@
                 </b-datepicker>
               </b-field>
 
-              
-              <b-field label="Transport *" horizontal>
+              <b-field
+                label="Transport *"
+                horizontal
+                :type="{ 'is-danger': errors['delivery_type'] && submitted }"
+                message="Transport normal o refrigerat"
+              >
                 <b-select v-model="form.delivery_type" placeholder="">
                   <option
                     v-for="(s, index) in deliveryTypes"
@@ -202,7 +262,12 @@
                 </b-select>
               </b-field>
 
-              <b-field label="Entrega *" horizontal>
+              <b-field
+                label="Recollida comanda *"
+                horizontal
+                :type="{ 'is-danger': errors['pickup'] && submitted }"
+                message="Si és el primer cop que ens demanes recollida en finca, contacta’ns abans per validar que hi podem passar"
+              >
                 <b-select v-model="form.pickup" placeholder="">
                   <option
                     v-for="(s, index) in pickups"
@@ -214,47 +279,61 @@
                 </b-select>
               </b-field>
 
-              <b-field label="Caixes *" horizontal>
+              <b-field label="Caixes *" horizontal message="Nombre de caixes"
+              :type="{ 'is-danger': errors['units'] && submitted }"
+              >
                 <b-input v-model="form.units" type="number" />
               </b-field>
 
-              <b-field label="Kilograms *" horizontal>
+              <b-field
+              :type="{ 'is-danger': errors['kilograms'] && submitted }" 
+                label="Kilograms *"
+                horizontal
+                message="Kilograms totals"
+              >
                 <b-input v-model="form.kilograms" type="number" />
               </b-field>
 
 
               <b-field
-                  label="Notes"
-                  horizontal
-                  class="line-notes is-full-width mb-5"
-                >
-                  <b-input
-                    type="textarea"
-                    v-model="form.comments"
-                    placeholder="Notes"
-                  />
-              </b-field>
-
-
-                
-
-              <hr />
-
-                <b-field
-                  label="Tarifa"
-                  horizontal
-                  class="line-notes mb-5"
-                >
-                {{ route_rate ? route_rate.name : 'no trobada' }}
+                label="Fràgil"
+                horizontal
+                message="Si la comanda és fràgil, marca aquesta casella">
+                <b-switch
+                v-model="form.fragile"></b-switch>                
               </b-field>
 
               <b-field
-                  label="Preu"
-                  horizontal
-                  class="line-notes mb-5"
-                >
+                label="Comanda proveïdora"
+                horizontal
+                message="Si al teu ERP té un nom/codi de comanda concret, pots posar-lo aquí"
+              >
+                <b-input v-model="form.provider_order_number" />
+              </b-field>
+
+
+              <b-field
+                label="Notes"
+                horizontal
+                class="line-notes is-full-width mb-5"
+                message="Si hi ha res més a tenir en compte, com si els paquets són de mides poc habituals o hi ha possibilitats d’entrega en un altre lloc proper si hi ha cap incidència..."
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.comments"
+                  placeholder="Notes"
+                />
+              </b-field>
+
+              <hr />
+
+              <b-field label="Tarifa" horizontal class="line-notes mb-5">
+                {{ route_rate ? route_rate.name : "no trobada" }}
+              </b-field>
+
+              <b-field label="Preu" horizontal class="line-notes mb-5">
                 <money-format
-                class="has-text-left"
+                  class="has-text-left"
                   :value="route_price"
                   :locale="'es'"
                   :currency-code="'EUR'"
@@ -267,11 +346,17 @@
               <hr />
 
               <b-field horizontal>
-                <b-button type="is-primary" :loading="isLoading" @click="submit(false)"
+                <b-button
+                  type="is-primary"
+                  :loading="isLoading"
+                  @click="submit(false)"
                   >Guardar</b-button
                 >
 
-                <b-button type="is-primary" :loading="isLoading" @click="submit(true)"
+                <b-button
+                  type="is-primary"
+                  :loading="isLoading"
+                  @click="submit(true)"
                   >Guardar i sortir</b-button
                 >
 
@@ -279,7 +364,11 @@
                   >Sortir</b-button
                 >
 
-                <b-button type="is-danger" :loading="isLoading" @click="deleteOrder" v-if="canCancel"
+                <b-button
+                  type="is-danger"
+                  :loading="isLoading"
+                  @click="deleteOrder"
+                  v-if="canCancel"
                   >Anul·lar Comanda</b-button
                 >
               </b-field>
@@ -320,6 +409,7 @@ export default {
     return {
       isProfileExists: false,
       isLoading: false,
+      submitted: false,
       series: [],
       form: this.getClearFormObject(),
       routes: [],
@@ -329,16 +419,17 @@ export default {
       pickups: [],
       deliveryTypes: [],
       permissions: [],
-      /*
-      "pending",
-      "processed",
-      "delivered",
-      "invoiced"
-      */
-      statuses: [{id: 'pending', name: 'Pendent'}, {id: 'processed', name: 'Processada'}, {id: 'delivered', name: 'Lliurada'}, {id: 'invoiced', name: 'Facturada'}, {id: 'cancelled', name: 'Cancelada'}],
-      
-      contact_time_slots: Array.from({length: 24}, (_, i) => i),
-      routeRates: [],
+
+      statuses: [
+        { id: "pending", name: "Pendent" },
+        { id: "processed", name: "Processada" },
+        { id: "delivered", name: "Lliurada" },
+        { id: "invoiced", name: "Facturada" },
+        { id: "cancelled", name: "Cancelada" }
+      ],
+
+      contact_time_slots: Array.from({ length: 24 }, (_, i) => i),
+      routeRates: []
     };
   },
   computed: {
@@ -348,7 +439,7 @@ export default {
     },
     formCardTitle() {
       if (this.form.id) {
-        return `Comanda #${this.form.id.toString().padStart(4, '0')}`;
+        return `Comanda #${this.form.id.toString().padStart(4, "0")}`;
       } else {
         return "Nova comanda";
       }
@@ -360,64 +451,94 @@ export default {
       return "x";
     },
     canCancel() {
-      return this.form.id && (this.form.status !== 'cancelled' && this.permissions.includes('orders_admin')) || (this.form.status === 'pending' && !this.permissions.includes('orders_admin'));
+      return (
+        (this.form.id &&
+          this.form.status !== "cancelled" &&
+            this.permissions.includes("orders_admin")) ||
+        (this.form.status === "pending" &&
+          !this.permissions.includes("orders_admin"))
+      );
     },
     canChangeRate() {
       // console.log('this.form.status', this.form.status)
-      return ['pending'].includes(this.form.status);
+      return ["pending"].includes(this.form.status);
+    },
+    errors() {
+      return {
+        owner: this.form.owner === null,
+        route: this.form.route === null,
+        contact: this.form.contact === null,
+        delivery_date: this.form.delivery_date === null,
+        delivery_type: this.form.delivery_type === null,
+        pickup: this.form.pickup == null,
+        units: this.form.units === null || this.form.units <= 0,
+        kilograms: this.form.kilograms === null || this.form.kilograms === "" || this.form.kilograms < 0
+      };
     },
     route_rate() {
       if (!this.canChangeRate) {
         return this.form.route_rate;
       }
-      if (!this.routeRates || this.routeRates.length === 0 || !this.form.route || !this.form.pickup || !this.form.delivery_type) {
+      if (
+        !this.routeRates ||
+        this.routeRates.length === 0 ||
+        !this.form.route ||
+        !this.form.pickup ||
+        !this.form.delivery_type
+      ) {
         return null;
       }
-      
-      let rates = this.routeRates.filter(r => (r.route && r.route.id === this.form.route) || r.route === null);
-        rates = rates.filter(r => (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null);
-        rates = rates.filter(r => (r.delivery_type && r.delivery_type.id === this.form.delivery_type) || r.delivery_type === null);
-        if (rates.length > 1) {
-          rates = rates.filter(r => r.route !== null);
-        }
-        if (rates.length === 0) {
-          this.$buefy.snackbar.open({
-              message:
-                "Error. No s'ha trobat cap tarifa per aquesta ruta",
-              queue: false,
-            });
-            return null
-        }
-        else if (rates.length > 1) {
-          this.$buefy.snackbar.open({
-              message:
-                "Error. S'ha trobat més d'una tarifa per aquesta ruta",
-              queue: false,
-            });
 
-          console.warn('rates!!!', rates)
-          this.form.route_rate = rates[0];
-          return rates[0]
-        } else {
-          this.form.route_rate = rates[0];
-          return rates[0]
-        }
+      let rates = this.routeRates.filter(
+        r => (r.route && r.route.id === this.form.route) || r.route === null
+      );
+      rates = rates.filter(
+        r => (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null
+      );
+      rates = rates.filter(
+        r =>
+          (r.delivery_type && r.delivery_type.id === this.form.delivery_type) ||
+          r.delivery_type === null
+      );
+      if (rates.length > 1) {
+        rates = rates.filter(r => r.route !== null);
+      }
+      if (rates.length === 0) {
+        this.$buefy.snackbar.open({
+          message: "Error. No s'ha trobat cap tarifa per aquesta ruta",
+          queue: false
+        });
+        return null;
+      } else if (rates.length > 1) {
+        this.$buefy.snackbar.open({
+          message: "Error. S'ha trobat més d'una tarifa per aquesta ruta",
+          queue: false
+        });
+
+        console.warn("rates!!!", rates);
+        this.form.route_rate = rates[0];
+        return rates[0];
+      } else {
+        this.form.route_rate = rates[0];
+        return rates[0];
+      }
     },
     route_price() {
       if (!this.canChangeRate) {
         return this.form.price;
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
-        const rate = this.route_rate
+        const rate = this.route_rate;
         if (this.form.kilograms < 15) {
           this.form.price = rate.less15;
         } else if (this.form.kilograms < 30) {
           this.form.price = rate.less30;
         } else {
-          this.form.price = rate.less30 + (this.form.kilograms - 30) * rate.additional30;
-        }          
+          this.form.price =
+            rate.less30 + (this.form.kilograms - 30) * rate.additional30;
+        }
       }
-      return this.form.price
+      return this.form.price;
     }
   },
   watch: {
@@ -432,23 +553,29 @@ export default {
     }
   },
   async created() {
-    const me = await service({ requiresAuth: true, cached: true }).get("users/me");
-    this.permissions = me.data.permissions.map(p => p.permission)
+    const me = await service({ requiresAuth: true, cached: true }).get(
+      "users/me"
+    );
+    this.permissions = me.data.permissions.map(p => p.permission);
     this.getData();
   },
   methods: {
     getClearFormObject() {
       return {
         id: null,
-        route_date: new Date,
+        route_date: new Date(),
         delivery_date: null,
-        status: 'pending',
+        status: "pending",
         owner: null,
+        route: null,
         contact: null,
         contact_address: "",
         contact_postcode: "",
         contact_city: "",
-        contact_phone: ""
+        contact_phone: "",
+        delivery_type: null,
+        units: null,
+        kilograms: null
       };
     },
     async getData() {
@@ -469,8 +596,7 @@ export default {
               this.normalizeIdsInForm("contact");
               this.normalizeIdsInForm("pickup");
               this.normalizeIdsInForm("delivery_type");
-             
-              
+
               this.form.route_date = moment(
                 this.form.route_date,
                 "YYYY-MM-DD"
@@ -480,12 +606,17 @@ export default {
                 this.form.delivery_date = moment(
                   this.form.delivery_date,
                   "YYYY-MM-DD"
-                ).toDate()
+                ).toDate();
               }
-              
 
-              const me = await service({ requiresAuth: true, cached: true }).get("users/me");
-              if (!this.permissions.includes("orders_admin") && this.form.owner !== me.data.id) {
+              const me = await service({
+                requiresAuth: true,
+                cached: true
+              }).get("users/me");
+              if (
+                !this.permissions.includes("orders_admin") &&
+                this.form.owner !== me.data.id
+              ) {
                 this.$router.push({ name: "orders.view" });
               }
 
@@ -495,18 +626,22 @@ export default {
 
               this.isLoading = false;
             } else {
-              
             }
           });
       } else {
-        const me = await service({ requiresAuth: true, cached: true }).get("users/me")    
-        this.form.owner = me.data.id;
-        
+        const me = await service({ requiresAuth: true, cached: true }).get(
+          "users/me"
+        );
+        if (!this.permissions.includes("orders_admin")) {
+          this.form.owner = me.data.id;
+        }
+        // this.form.owner = me.data.id;
+
         this.contacts = (
-                await service({ requiresAuth: true, cached: true }).get(
-                  `contacts/basic?_limit=-1&_where[owner]=${me.data.id}`
-                )
-              ).data;
+          await service({ requiresAuth: true, cached: true }).get(
+            `contacts/basic?_limit=-1&_where[owner]=${me.data.id}`
+          )
+        ).data;
       }
     },
     normalizeIdsInForm(property) {
@@ -530,16 +665,21 @@ export default {
         u.permissions.map(p => p.permission).includes("orders")
       );
 
-      const me = await service({ requiresAuth: true, cached: true }).get("users/me");
-      const permissions = me.data.permissions.map(p => p.permission)
-      
+      const me = await service({ requiresAuth: true, cached: true }).get(
+        "users/me"
+      );
+      const permissions = me.data.permissions.map(p => p.permission);
+
       if (!permissions.includes("orders_admin")) {
-        this.users = users.filter(u => u.id == me.data.id);        
+        this.users = users.filter(u => u.id == me.data.id);
       } else {
-        this.users = users
-        this.users = concat({ id: 0, fullname: "--", username: "--" }, this.users);
+        this.users = users;
+        this.users = concat(
+          { id: 0, fullname: "--", username: "--" },
+          this.users
+        );
       }
-      
+
       if (!permissions.includes("orders_admin")) {
         // this.users = this.users.filter(u => u.id == me.data.id);
       }
@@ -559,7 +699,7 @@ export default {
       this.deliveryTypes = (
         await service({ requiresAuth: true, cached: true }).get(
           "delivery-types?_limit=-1"
-      )
+        )
       ).data;
 
       this.routeRates = (
@@ -570,33 +710,29 @@ export default {
     },
     async changeOwner() {
       this.contacts = (
-                await service({ requiresAuth: true, cached: true }).get(
-                  `contacts/basic?_limit=-1&_where[owner]=${this.form.owner}`
-                )
-              ).data;
+        await service({ requiresAuth: true, cached: true }).get(
+          `contacts/basic?_limit=-1&_where[owner]=${this.form.owner}`
+        )
+      ).data;
     },
     async deleteOrder() {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols anul·lar la comanda?",
         onConfirm: async () => {
-          
-          await service({ requiresAuth: true }).put(
-            `orders/${this.form.id}`,
-            { status: 'cancelled' }
-          );
-      this.$router.push({ name: "orders.view" });
-
+          await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
+            status: "cancelled"
+          });
+          this.$router.push({ name: "orders.view" });
         },
         onCancel: () => {}
       });
-
-      
     },
     exit() {
       this.$router.push({ name: "orders.view" });
     },
     async submit(exit) {
       this.isLoading = true;
+      this.submitted = true;
 
       if (this.permissions.includes("orders") && !this.form.owner) {
         const me = await service({ requiresAuth: true, cached: true }).get(
@@ -605,12 +741,13 @@ export default {
         this.form.owner = me.data.id;
       }
 
-      console.log('this.form', this.form.status, this.form.delivery_date)
-      if (this.form.status === 'delivered' && !this.form.delivery_date) {
-        this.form.delivery_date = new Date().toISOString().split("T")[0]
+      console.log("this.form", this.form.status, this.form.delivery_date);
+      if (this.form.status === "delivered" && !this.form.delivery_date) {
+        this.form.delivery_date = new Date().toISOString().split("T")[0];
       }
 
       try {
+        
         if (this.form.id) {
           if (
             !this.form.owner ||
@@ -637,9 +774,10 @@ export default {
           });
 
           if (exit) {
-            this.$router.push({ name: "orders.view" });         
+            this.$router.push({ name: "orders.view" });
           }
 
+          this.submitted = false;
           this.getData();
         } else {
           if (
@@ -676,8 +814,9 @@ export default {
           }, 100);
 
           if (exit) {
-            this.$router.push({ name: "orders.view" });         
+            this.$router.push({ name: "orders.view" });
           }
+          this.submitted = false;
         }
       } catch (err) {
         console.error(err);
@@ -688,8 +827,6 @@ export default {
         });
 
         this.isLoading = false;
-
-        
       }
     },
     clientSelected(option) {
@@ -718,73 +855,112 @@ export default {
       this.form.lines.push(this.getNewLine());
     },
     navNew() {
-      let routeData = this.$router.resolve({ name: "contacts.edit", params: { id: this.form.contact || 0 }, query: { user: true }});
+      let routeData = this.$router.resolve({
+        name: "contacts.edit",
+        params: { id: this.form.contact || 0 },
+        query: { user: true }
+      });
       window.open(routeData.href, "_blank");
     },
     async refreshClients() {
       this.contacts = (
-                await service({ requiresAuth: true, cached: false }).get(
-                  `contacts/basic?_limit=-1&_where[owner]=${this.form.owner}`
-                )
-              ).data;
+        await service({ requiresAuth: true, cached: false }).get(
+          `contacts/basic?_limit=-1&_where[owner]=${this.form.owner}`
+        )
+      ).data;
 
-              this.contacts = concat({ id: 0, name: "--" }, this.contacts);
+      this.contacts = concat({ id: 0, name: "--" }, this.contacts);
     },
 
     assignRouteRate() {
-      
       if (this.form.route_rate === null) {
-        let rates = this.routeRates.filter(r => (r.route && r.route.id === this.form.route) || r.route === null);
-        rates = rates.filter(r => (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null);
-        rates = rates.filter(r => (r.delivery_type && r.delivery_type.id === this.form.delivery_type) || r.delivery_type === null);
+        let rates = this.routeRates.filter(
+          r => (r.route && r.route.id === this.form.route) || r.route === null
+        );
+        rates = rates.filter(
+          r =>
+            (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null
+        );
+        rates = rates.filter(
+          r =>
+            (r.delivery_type &&
+              r.delivery_type.id === this.form.delivery_type) ||
+            r.delivery_type === null
+        );
         if (rates.length > 1) {
           rates = rates.filter(r => r.route !== null);
         }
         if (rates.length === 0) {
           this.$buefy.snackbar.open({
-              message:
-                "Error. No s'ha trobat cap tarifa per aquesta ruta",
-              queue: false,
-            });
-        }
-        else if (rates.length > 1) {
+            message: "Error. No s'ha trobat cap tarifa per aquesta ruta",
+            queue: false
+          });
+        } else if (rates.length > 1) {
           this.$buefy.snackbar.open({
-              message:
-                "Error. S'ha trobat més d'una tarifa per aquesta ruta",
-              queue: false,
-            });
+            message: "Error. S'ha trobat més d'una tarifa per aquesta ruta",
+            queue: false
+          });
 
-          console.warn('rates!!!', rates)
+          console.warn("rates!!!", rates);
 
           this.form.route_rate = rates[0];
         } else {
           this.form.route_rate = rates[0];
         }
-        
-      }      
+      }
     },
     removeContactData() {
-      console.log('removeContactData')
+      console.log("removeContactData");
       this.form.contact_address = "";
       this.form.contact_postcode = "";
       this.form.contact_city = "";
       this.form.contact_phone = "";
+      this.form.contact_time_slot_1_ini = null;
+      this.form.contact_time_slot_1_end = null;
+      this.form.contact_time_slot_2_ini = null;
+      this.form.contact_time_slot_2_end = null;
     },
     onClientaChange(e) {
-      console.log('onClientaChange', e.target.value)
-      // this.form.contact = e.target.value;      
-      const contact = this.contacts.find(c => c.id.toString()  === e.target.value.toString());
-      if (!this.form.contact_address || (this.form.contact_address && this.form.contact_address.trim() === '')) {
-        this.form.contact_address = contact.address;        
+      console.log("onClientaChange", e.target.value);
+      // this.form.contact = e.target.value;
+      const contact = this.contacts.find(
+        c => c.id.toString() === e.target.value.toString()
+      );
+      if (
+        !this.form.contact_address ||
+        (this.form.contact_address && this.form.contact_address.trim() === "")
+      ) {
+        this.form.contact_address = contact.address;
       }
-      if (!this.form.contact_postcode || (this.form.contact_postcode && this.form.contact_postcode.trim() === '')) {
-        this.form.contact_postcode = contact.postcode;        
+      if (
+        !this.form.contact_postcode ||
+        (this.form.contact_postcode && this.form.contact_postcode.trim() === "")
+      ) {
+        this.form.contact_postcode = contact.postcode;
       }
-      if (!this.form.contact_city || (this.form.contact_city && this.form.contact_city.trim() === '')) {
-        this.form.contact_city = contact.city;        
+      if (
+        !this.form.contact_city ||
+        (this.form.contact_city && this.form.contact_city.trim() === "")
+      ) {
+        this.form.contact_city = contact.city;
       }
-      if (!this.form.contact_phone || (this.form.contact_phone && this.form.contact_phone.trim() === '')) {
-        this.form.contact_phone = contact.phone;        
+      if (
+        !this.form.contact_phone ||
+        (this.form.contact_phone && this.form.contact_phone.trim() === "")
+      ) {
+        this.form.contact_phone = contact.phone;
+      }
+      if (!this.form.contact_time_slot_1_ini) {
+        this.form.contact_time_slot_1_ini = contact.time_slot_1_ini;
+      }
+      if (!this.form.contact_time_slot_1_end) {
+        this.form.contact_time_slot_1_end = contact.time_slot_1_end;
+      }
+      if (!this.form.contact_time_slot_2_ini) {
+        this.form.contact_time_slot_2_ini = contact.time_slot_2_ini;
+      }
+      if (!this.form.contact_time_slot_2_end) {
+        this.form.contact_time_slot_2_end = contact.time_slot_2_end;
       }
     }
   }
