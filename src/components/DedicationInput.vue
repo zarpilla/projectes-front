@@ -492,6 +492,11 @@ export default {
         " -----" +
         `${hoursDiff}h ${minutesDiff}m  ${secondsDiff}s`
       );
+    },
+    activeProjects() {
+      return this.projects.filter(
+        p => p.project_state && p.project_state.id === 1
+      );
     }
   },
   watch: {
@@ -1106,8 +1111,11 @@ export default {
       this.getActivities();
     },
     removeAccents(name) {
-      return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    },    
+      return name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    },
     async modalMoveToProjectCancel() {
       this.isModalMoveToProject = false;
     },
@@ -1190,7 +1198,8 @@ export default {
         }
       });
       var eventsAdded = this.attributes.filter(
-        a => a.customData && a.customData.type === "ical" && a.customData.project
+        a =>
+          a.customData && a.customData.type === "ical" && a.customData.project
       );
       let countFound = 0;
       let countNotFound = 0;
@@ -1199,23 +1208,34 @@ export default {
           event.customData.project.indexOf(" ") >= 0
             ? event.customData.project.split(" ")[0]
             : event.customData.project;
-        const project = this.projects.find(p => this.removeAccents(p.name) === this.removeAccents(projectName));
+        const project = this.activeProjects.find(
+          p => this.removeAccents(p.name) === this.removeAccents(projectName)
+        );
         if (project) {
           countFound++;
         } else {
           console.log("project not found", projectName);
           if (projectName.includes("-")) {
             const indexOfDash = projectName.indexOf("-");
-            const projectName2 = projectName.substring(indexOfDash + 1);
-            const projects2 = this.projects.filter(
+            const projectName2 = projectName.substring(indexOfDash + 1) || "";            
+            const projects2 = this.activeProjects.filter(
               p =>
-              this.removeAccents(p.name).startsWith(this.removeAccents(projectName2)) || this.removeAccents(p.name).endsWith(this.removeAccents(projectName2))
-              );
+                (this.removeAccents(p.name).startsWith(
+                  this.removeAccents(projectName2)
+                ) &&
+                  projectName2 !== "") ||
+                (this.removeAccents(p.name).includes(
+                  this.removeAccents(projectName2) 
+                ) && projectName2 !== "") ||
+                (this.removeAccents(p.name).startsWith(
+                  this.removeAccents(projectName)
+                ) && projectName2 === "")
+            );
             if (projects2.length === 1) {
               console.log("project?", projectName, projects2);
               countFound++;
             } else {
-              console.log("project not found", projectName);
+              console.log("project not found", projectName, projects2);
               countNotFound++;
             }
           } else {
@@ -1245,7 +1265,8 @@ export default {
     async createICalEvents() {
       this.isLoadingImport = true;
       var eventsAdded = this.attributes.filter(
-        a => a.customData && a.customData.type === "ical" && a.customData.project
+        a =>
+          a.customData && a.customData.type === "ical" && a.customData.project
       );
 
       var created = 0;
@@ -1254,9 +1275,11 @@ export default {
         // const event = eventsAdded[i]
         const projectName =
           event.customData.project.indexOf(" ") >= 0
-            ? event.customData.project.split(" ")[0]
+            ? event.customData.project.split(" ")[0]/*  */
             : event.customData.project;
-        const project = this.projects.find(p => this.removeAccents(p.name) === this.removeAccents(projectName));
+        const project = this.activeProjects.find(
+          p => this.removeAccents(p.name) === this.removeAccents(projectName)
+        );
         if (project) {
           const eventData = event.customData.a;
           console.log("project found", projectName, event, eventData);
@@ -1286,9 +1309,18 @@ export default {
           if (projectName.includes("-")) {
             const indexOfDash = projectName.indexOf("-");
             const projectName2 = projectName.substring(indexOfDash + 1);
-            const projects2 = this.projects.filter(
+            const projects2 = this.activeProjects.filter(
               p =>
-              this.removeAccents(p.name).startsWith(this.removeAccents(projectName2)) || this.removeAccents(p.name).endsWith(this.removeAccents(projectName2))
+              (this.removeAccents(p.name).startsWith(
+                  this.removeAccents(projectName2)
+                ) &&
+                  projectName2 !== "") ||
+                (this.removeAccents(p.name).includes(
+                  this.removeAccents(projectName2) 
+                ) && projectName2 !== "") ||
+                (this.removeAccents(p.name).startsWith(
+                  this.removeAccents(projectName)
+                ) && projectName2 === "")
             );
             if (projects2.length === 1) {
               console.log("project?", projectName, projects2);
@@ -1484,8 +1516,8 @@ export default {
   top: -2px;
   left: 1px;
 }
-.custom-calendar .is-today .day-label{
-  color: #fff
+.custom-calendar .is-today .day-label {
+  color: #fff;
 }
 
 @keyframes blink {
