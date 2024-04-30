@@ -51,12 +51,13 @@
         />
       </download-excel>
       <download-excel
-      class="export"
+        class="export"
         :data="csvExample"
         type="csv"
         :escapeCsv="false"
         name="exemple-comandes.csv"
-        :fields="csvFields">
+        :fields="csvFields"
+      >
         <b-button
           title="Descarrega exemple de fitxer CSV de comandes"
           class="export-button mt-0 mb-3"
@@ -65,25 +66,16 @@
       </download-excel>
     </div>
 
+    <!-- <pre>{{ theOrders }}</pre> -->
     <h4>ESTATS</h4>
     <div class="filters">
-      <b-button
-        class="view-button mb-3 mr-3"
-        :class="{
-          'is-primary': statusFilter === '',
-          'is-warning': statusFilter !== ''
-        }"
-        @click="statusFilter = ''"
-      >
-        TOTES
-      </b-button>
       <b-button
         class="view-button mb-3 mr-3"
         :class="{
           'is-primary': statusFilter === 'pending',
           'is-warning': statusFilter !== 'pending'
         }"
-        @click="statusFilter = 'pending'"
+        @click="setStatusFilter('pending')"
       >
         PENDENTS
       </b-button>
@@ -93,7 +85,7 @@
           'is-primary': statusFilter === 'processed',
           'is-warning': statusFilter !== 'processed'
         }"
-        @click="statusFilter = 'processed'"
+        @click="setStatusFilter('processed')"
       >
         PROCESSADES
       </b-button>
@@ -103,7 +95,7 @@
           'is-primary': statusFilter === 'delivered',
           'is-warning': statusFilter !== 'delivered'
         }"
-        @click="statusFilter = 'delivered'"
+        @click="setStatusFilter('delivered')"
       >
         LLIURADES
       </b-button>
@@ -113,7 +105,7 @@
           'is-primary': statusFilter === 'invoiced',
           'is-warning': statusFilter !== 'invoiced'
         }"
-        @click="statusFilter = 'invoiced'"
+        @click="setStatusFilter('invoiced')"
       >
         FACTURADES
       </b-button>
@@ -123,9 +115,19 @@
           'is-primary': statusFilter === 'cancelled',
           'is-warning': statusFilter !== 'cancelled'
         }"
-        @click="statusFilter = 'cancelled'"
+        @click="setStatusFilter('cancelled')"
       >
         ANUL·LADES
+      </b-button>
+      <b-button
+        class="view-button mb-3 mr-3"
+        :class="{
+          'is-primary': statusFilter === '',
+          'is-warning': statusFilter !== ''
+        }"
+        @click="setStatusFilter('')"
+      >
+        TOTES
       </b-button>
     </div>
     <h4>RUTES</h4>
@@ -158,11 +160,30 @@
 
     <!-- <pre>{{ theOrders }}</pre> -->
 
+    <div v-if="permissions.includes('orders_admin')" class="mb-3">
+      <h2>CANVIAR ESTAT</h2>
+      <div class="is-flex">
+      <b-select v-model="newState" placeholder="">
+        <option value="pending">PENDENT</option>
+        <option value="processed">PROCESSADA</option>
+        <option value="delivered">LLIURADA</option>
+        <!-- <option value="invoiced">FACTURADA</option> -->
+        <option value="cancelled">ANUL·LADA</option>
+      </b-select>
+      <button
+        class="button is-danger ml-3" :disabled="!newState || !checkedRows.length"
+        @click="setBulkState">CANVIAR ESTAT</button>
+    </div>
+    </div>
+
     <b-table
       :loading="isLoading"
       :paginated="false"
       :striped="false"
       :data="theOrders"
+      :checked-rows.sync="checkedRows"
+      :is-row-checkable="row => true"
+      :checkable="permissions.includes('orders_admin')"
     >
       <b-table-column label="ID" field="id" sortable v-slot="props">
         <router-link
@@ -289,6 +310,7 @@ import { parse } from "csv-parse";
 import { mapState } from "vuex";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import assignRouteRate from "@/service/assignRouteRate";
 
 export default {
   name: "Tresoreria",
@@ -316,7 +338,7 @@ export default {
       csv: "",
       csvRecords: [],
       csvErrors: [],
-      statusFilter: "",
+      statusFilter: "pending",
       routeFilter: "",
       csvOptions: {
         delimiter: ",",
@@ -329,118 +351,126 @@ export default {
       deliveryTypes: [],
       pickups: [],
       routerates: [],
+      checkedRows: [],
+      newState: null,
       csvAlias: {
-        route_name: 'route_name',
-        owner_id: 'owner_id',
-        contact_name: 'contact_name',
-        contact_address: 'contact_address',
-        contact_postcode: 'contact_postcode',
-        contact_city: 'contact_city',
-        contact_nif: 'contact_nif',
-        contact_phone: 'contact_phone',
-        contact_time_slot_1_ini: 'contact_time_slot_1_ini',
-        contact_time_slot_1_end: 'contact_time_slot_1_end',
-        contact_time_slot_2_ini: 'contact_time_slot_2_ini',
-        contact_time_slot_2_end: 'contact_time_slot_2_end',
-        units: 'units',
-        kilograms: 'kilograms',
-        refrigerated: 'refrigerated',
-        fragile: 'fragile',
-        pickup: 'pickup.name',
-        provider_order_number: 'provider_order_number',
-        notes: 'notes'
+        route_name: "route_name",
+        owner_id: "owner_id",
+        contact_name: "contact_name",
+        contact_address: "contact_address",
+        contact_postcode: "contact_postcode",
+        contact_city: "contact_city",
+        contact_nif: "contact_nif",
+        contact_phone: "contact_phone",
+        contact_time_slot_1_ini: "contact_time_slot_1_ini",
+        contact_time_slot_1_end: "contact_time_slot_1_end",
+        contact_time_slot_2_ini: "contact_time_slot_2_ini",
+        contact_time_slot_2_end: "contact_time_slot_2_end",
+        units: "units",
+        kilograms: "kilograms",
+        refrigerated: "refrigerated",
+        fragile: "fragile",
+        pickup: "pickup.name",
+        provider_order_number: "provider_order_number",
+        notes: "notes"
       },
-      csvFields: {        
-        route_name: 'route_name',
-        owner_id: 'owner_id',
-        contact_name: 'contact_name',
+      csvFields: {
+        route_name: "route_name",
+        owner_id: "owner_id",
+        contact_name: "contact_name",
         contact_address: {
-          field: 'contact_address',
-          callback: (value) => {
+          field: "contact_address",
+          callback: value => {
             return this.addressFormatted(value);
-          },
+          }
         },
-        contact_postcode: 'contact_postcode',
-        contact_city: 'contact_city',
-        contact_nif: 'contact_nif',
-        contact_phone: 'contact_phone',
-        contact_time_slot_1_ini: 'contact_time_slot_1_ini',
-        contact_time_slot_1_end: 'contact_time_slot_1_end',
-        contact_time_slot_2_ini: 'contact_time_slot_2_ini',
-        contact_time_slot_2_end: 'contact_time_slot_2_end',
-        units: 'units',
-        kilograms: 'kilograms',
-        refrigerated: 'refrigerated',
-        fragile: 'fragile',
+        contact_postcode: "contact_postcode",
+        contact_city: "contact_city",
+        contact_nif: "contact_nif",
+        contact_phone: "contact_phone",
+        contact_time_slot_1_ini: "contact_time_slot_1_ini",
+        contact_time_slot_1_end: "contact_time_slot_1_end",
+        contact_time_slot_2_ini: "contact_time_slot_2_ini",
+        contact_time_slot_2_end: "contact_time_slot_2_end",
+        units: "units",
+        kilograms: "kilograms",
+        refrigerated: {
+          field: "refrigerated",
+          callback: value => {
+            return value ? 1 : 0;
+          }
+        },
+        fragile: "fragile",
         // pickup: 'pickup.name',
         pickup: {
-          field: 'pickup',
-          callback: (value) => {
-            return value && value.name ? value.name : value;
-          },
+          field: "pickup",
+          callback: value => {
+            return value && value.id && value.pickup ? 1 : 0;
+          }
         },
-        provider_order_number: 'provider_order_number',
+        provider_order_number: "provider_order_number",
         notes: {
-          field: 'comments',
-          callback: (value) => {
+          field: "comments",
+          callback: value => {
             return this.addressFormatted(value);
-          },
+          }
         }
       },
-      csvExample: [{        
-        route_name: 'RUTA01-DT-MARESME',
-        owner_id: 0,
-        contact_name: 'Joan Garriga',
-        contact_address: 'Carrer de l\'amargura 17',
-        contact_postcode: '08001',
-        contact_city: 'Mataró',
-        contact_nif: '000000001A',
-        contact_phone: '93 123 45 67',
-        contact_time_slot_1_ini: '9',
-        contact_time_slot_1_end: '12',
-        contact_time_slot_2_ini: '16',
-        contact_time_slot_2_end: '18',
-        units: 2,
-        kilograms: 3,
-        refrigerated: '1',
-        fragile: '0',
-        pickup: '0',
-        provider_order_number: '0560605',
-        notes: 'Trucar per telèfon abans de l\'entrega'
-      },
-      {        
-        route_name: 'RUTA02-DC-GIRONAINTERIOR',
-        owner_id: 0,
-        contact_name: 'Anna Garriga',
-        contact_address: 'Carrer de la font, 1',
-        contact_postcode: '17001',
-        contact_city: 'Girona',
-        contact_nif: '000000002A',
-        contact_phone: '93 123 45 67',
-        contact_time_slot_1_ini: '10',
-        contact_time_slot_1_end: '11',
-        contact_time_slot_2_ini: '16',
-        contact_time_slot_2_end: '19',
-        units: 1,
-        kilograms: 1,
-        refrigerated: '0',
-        fragile: '1',
-        pickup: '1',
-        provider_order_number: '2024/0605',
-        notes: 'Recollida en finca'
-      }]
+      csvExample: [
+        {
+          route_name: "RUTA01-DT-MARESME",
+          owner_id: 0,
+          contact_name: "Joan Garriga",
+          contact_address: "Carrer de l'amargura 17",
+          contact_postcode: "08001",
+          contact_city: "Mataró",
+          contact_nif: "000000001A",
+          contact_phone: "93 123 45 67",
+          contact_time_slot_1_ini: "9",
+          contact_time_slot_1_end: "12",
+          contact_time_slot_2_ini: "16",
+          contact_time_slot_2_end: "18",
+          units: 2,
+          kilograms: 3,
+          refrigerated: "1",
+          fragile: "0",
+          pickup: "0",
+          provider_order_number: "0560605",
+          notes: "Trucar per telèfon abans de l'entrega"
+        },
+        {
+          route_name: "RUTA02-DC-GIRONAINTERIOR",
+          owner_id: 0,
+          contact_name: "Anna Garriga",
+          contact_address: "Carrer de la font, 1",
+          contact_postcode: "17001",
+          contact_city: "Girona",
+          contact_nif: "000000002A",
+          contact_phone: "93 123 45 67",
+          contact_time_slot_1_ini: "10",
+          contact_time_slot_1_end: "11",
+          contact_time_slot_2_ini: "16",
+          contact_time_slot_2_end: "19",
+          units: 1,
+          kilograms: 1,
+          refrigerated: "0",
+          fragile: "1",
+          pickup: "1",
+          provider_order_number: "2024/0605",
+          notes: "Recollida en finca"
+        }
+      ]
     };
   },
   computed: {
     ...mapState(["userName"]),
     ...mapState(["userId"]),
     theOrders() {
-      const orders =
-      this.orders.filter(o => {
+      const orders = this.orders.filter(o => {
         if (this.statusFilter === "") {
           return true;
         } else {
-          return o.status === this.statusFilter;
+          return o.status === this.statusFilter || o.status === "CSV";
         }
       });
 
@@ -448,10 +478,10 @@ export default {
         if (this.routeFilter === "") {
           return true;
         } else {
-          return o.route && o.route.name === this.routeFilter;
+          return o && o.route && o.route.name === this.routeFilter;
         }
       });
-    },
+    }
   },
   async created() {
     const me = await service({ requiresAuth: true, cached: true }).get(
@@ -463,6 +493,10 @@ export default {
     this.getData();
   },
   methods: {
+    setStatusFilter(status) {
+      this.statusFilter = status;
+      this.checkedRows = [];
+    },
     navNew() {
       const q = this.$route.meta.userContacts ? `?user=true` : "";
       this.$router.push("/order/0" + q);
@@ -506,7 +540,6 @@ export default {
         });
       }
 
-
       this.deliveryTypes = (
         await service({ requiresAuth: true }).get(`delivery-types?_limit=-1`)
       ).data;
@@ -521,7 +554,9 @@ export default {
         )
       ).data;
 
-      this.orders = this.orders.map(o => { return { ...o, route_name: o.route.name, owner_id: o.owner.id }});
+      this.orders = this.orders.map(o => {
+        return { ...o, route_name: o.route.name, owner_id: o.owner.id };
+      });
 
       this.contactsCSV = this.orders;
       this.isLoading = false;
@@ -531,13 +566,13 @@ export default {
         users_permissions_user: this.me.id
       });
     },
-    uploaded(e) {
+    uploaded(e) {      
       console.log("uploaded", e);
       if (e.fileList && e.fileList[0]) {
         const file = e.fileList[0];
         const reader = new FileReader();
 
-        if (file && file.name && !file.name.toLowerCase().endsWith('.csv')) {
+        if (file && file.name && !file.name.toLowerCase().endsWith(".csv")) {
           this.$buefy.snackbar.open({
             message: "Només es poden pujar arxius CSV",
             type: "is-danger"
@@ -564,11 +599,11 @@ export default {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
     },
-    async importCSV(records) {      
+    async importCSV(records) {
       // for (const key in this.csvAlias) {
-      //   const alias = this.csvAlias[key]        
+      //   const alias = this.csvAlias[key]
       // }
-      
+
       let i = 2;
       this.csvErrors = [];
       for await (const record of records) {
@@ -618,7 +653,9 @@ export default {
         }
         if (
           !this.routes.find(
-            r => this.removeAccents(r.name) === this.removeAccents(record.route_name)
+            r =>
+              this.removeAccents(r.name) ===
+              this.removeAccents(record.route_name)
           )
         ) {
           this.csvErrors.push({
@@ -682,26 +719,53 @@ export default {
             record.refrigerated === "1"
               ? this.deliveryTypes.find(d => d.refrigerated)
               : this.deliveryTypes.find(d => !d.refrigerated),
-          pickup: record.pickup === "1"
-            ? this.pickups.find(p => p.pickup) : this.pickups.find(p => !p.pickup)
-          ,
+          pickup:
+            record.pickup === "1"
+              ? this.pickups.find(p => p.pickup)
+              : this.pickups.find(p => !p.pickup),
           kilograms: parseInt(record.kilograms),
           units: parseInt(record.units),
           notes: record.notes,
           comments: record.notes,
           owner: this.permissions.includes("orders_admin")
-            ? this.users.find(u => u.id.toString() === record.owner_id.toString())
+            ? this.users.find(
+                u => u.id.toString() === record.owner_id.toString()
+              )
             : this.me,
           route: this.routes.find(
-            r => this.removeAccents(r.name) === this.removeAccents(record.route_name)
+            r =>
+              this.removeAccents(r.name) ===
+              this.removeAccents(record.route_name)
           ),
           price: null,
           status: "CSV",
           _uuid: this.createUUID()
         };
 
-        const orderWithRate = this.assignRouteRate(order);
+        console.log("assignRouteRate");
+        // console.log("order", order);
+        // console.log("routeRates", this.routeRates);
+        // console.log("orders", this.orders);
+        
+        const orderWithRate = { ...order, route_rate: assignRouteRate(order, this.routeRates, this.orders) };
+        console.log("orderWithRate", orderWithRate);
+        orderWithRate.price = orderWithRate.route_rate.price;
+        
+        if (order.kilograms !== null && orderWithRate.route_rate) {
+          const rate = orderWithRate.route_rate;
+          if (order.kilograms < 15) {
+            orderWithRate.price = rate.less15;
+          } else if (order.kilograms < 30) {
+            orderWithRate.price = rate.less30;
+          } else {
+            orderWithRate.price =
+              rate.less30 + (order.kilograms - 30) * rate.additional30;
+          }
+        } else {
+          // console.warn("!order", order.kilograms, order.route_rate);
+        }
         this.orders.unshift(orderWithRate);
+        // this.orders.unshift(order);
       }
     },
     createUUID() {
@@ -732,96 +796,115 @@ export default {
         }
       });
     },
-    assignRouteRate(order) {
-      if (
-        !this.routeRates ||
-        this.routeRates.length === 0 ||
-        !order.route ||
-        !order.pickup ||
-        !order.delivery_type
-      ) {
-        return order;
-      }
+    // assignRouteRate(order) {
+    //   if (
+    //     !this.routeRates ||
+    //     this.routeRates.length === 0 ||
+    //     !order.route ||
+    //     !order.pickup ||
+    //     !order.delivery_type
+    //   ) {
+    //     return order;
+    //   }
 
-      console.log("order", order.route);
-      console.log("rates", this.routeRates  );
+    //   console.log("order", order.route);
+    //   console.log("rates", this.routeRates);
 
-      let rates = this.routeRates.filter(
-        r => (r.route && order.route && r.route.id === order.route.id) || r.route === null
-      );
-      console.log("rates 0", rates);
+    //   let rates = this.routeRates.filter(
+    //     r =>
+    //       (r.route && order.route && r.route.id === order.route.id) ||
+    //       r.route === null
+    //   );
+    //   console.log("rates 0", rates);
 
-      //check if we have pending orders for this route and owner
-      console.log("order", order, order.pickup);
-      if (order.pickup && order.pickup.pickup) {
-        const pendingOrders = this.orders.filter(o => o.route.id === order.route.id && o.owner.id === order.owner.id && o.status === "pending");
-        if (pendingOrders.length > 0) {
-          // We have pending orders for this route and owner
-          // Add your logic here
-          console.log("We have pending orders for this route and owner, applying NO PICKUP", pendingOrders);
+    //   //check if we have pending orders for this route and owner
+    //   console.log("order", order, order.pickup);
+    //   if (order.pickup && order.pickup.pickup) {
+    //     const pendingOrders = this.orders.filter(
+    //       o =>
+    //         o.route.id === order.route.id &&
+    //         o.owner.id === order.owner.id &&
+    //         o.status === "pending"
+    //     );
+    //     console.log("pendingOrders", pendingOrders);
+    //     if (pendingOrders.length > 0) {
+    //       // We have pending orders for this route and owner
+    //       // Add your logic here
+    //       console.log(
+    //         "We have pending orders for this route and owner, applying NO PICKUP",
+    //         pendingOrders
+    //       );
 
-          rates = rates.filter(
-            r => (r.pickup && order.pickup && r.pickup.id === 1) || r.pickup === null
-          );
+    //       rates = rates.filter(
+    //         r =>
+    //           (r.pickup && order.pickup && r.pickup.id === 1) ||
+    //           r.pickup === null
+    //       );
+    //     } else {
+    //       // No pending orders for this route and owner
+    //       // Add your logic here
+    //       console.log("No pending orders for this route and owner");
 
-        } else {
-          // No pending orders for this route and owner
-          // Add your logic here
-          console.log("No pending orders for this route and owner");
+    //       rates = rates.filter(
+    //         r =>
+    //           (r.pickup && order.pickup && r.pickup.id === order.pickup.id) ||
+    //           r.pickup === null
+    //       );
+    //     }
+    //   } else {
+    //     rates = rates.filter(
+    //       r =>
+    //         (r.pickup && order.pickup && r.pickup.id === 1) || r.pickup === null
+    //     );
+    //   }
 
-          rates = rates.filter(
-            r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
-          );
-        }
-      } else {
-        rates = rates.filter(
-            r => (r.pickup && order.pickup && r.pickup.id === 1) || r.pickup === null
-          );
-      }
-      
+    //   // rates = rates.filter(
+    //   //   r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
+    //   // );
+    //   console.log("rates 1", rates);
+    //   rates = rates.filter(
+    //     r =>
+    //       (r.delivery_type &&
+    //         order.delivery_type &&
+    //         r.delivery_type.id === order.delivery_type.id) ||
+    //       r.delivery_type === null
+    //   );
+    //   console.log("rates 2", rates);
+    //   if (rates.length > 1) {
+    //     rates = rates.filter(r => r.route !== null);
+    //   }
+    //   console.log("rates 3", rates);
+    //   if (rates.length === 0) {
+    //     console.warn("no rates!", order);
+    //   } else if (rates.length > 1) {
+    //     console.warn("several rates!", order);
+    //     order.route_rate = rates[0];
+    //   } else {
+    //     order.route_rate = rates[0];
+    //   }
 
-      // rates = rates.filter(
-      //   r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
-      // );
-      console.log("rates 1", rates);
-      rates = rates.filter(
-        r =>
-          (r.delivery_type && order.delivery_type && r.delivery_type.id === order.delivery_type.id) ||
-          r.delivery_type === null
-      );
-      console.log("rates 2", rates);
-      if (rates.length > 1) {
-        rates = rates.filter(r => r.route !== null);
-      }
-      console.log("rates 3", rates);
-      if (rates.length === 0) {
-        console.warn("no rates!", order);
-      } else if (rates.length > 1) {
-        console.warn("several rates!", order);
-        order.route_rate = rates[0];
-      } else {        
-        order.route_rate = rates[0];        
-      }
+    //   if (order.kilograms !== null && order.route_rate) {
+    //     const rate = order.route_rate;
+    //     if (order.kilograms < 15) {
+    //       order.price = rate.less15;
+    //     } else if (order.kilograms < 30) {
+    //       order.price = rate.less30;
+    //     } else {
+    //       order.price =
+    //         rate.less30 + (order.kilograms - 30) * rate.additional30;
+    //     }
+    //   } else {
+    //     console.warn("!order", order.kilograms, order.route_rate);
+    //   }
 
-      if (order.kilograms !== null && order.route_rate) {
-        const rate = order.route_rate;
-        if (order.kilograms < 15) {
-          order.price = rate.less15;
-        } else if (order.kilograms < 30) {
-          order.price = rate.less30;
-        } else {
-          order.price =
-            rate.less30 + (order.kilograms - 30) * rate.additional30;
-        }
-      } else {
-        console.warn("!order", order.kilograms, order.route_rate);
-      }
-
-      return order;
-    },
+    //   return order;
+    // },
     async createCSVOrder(order) {
       const _uuid = order._uuid;
-      const { data } = await service({ requiresAuth: true }).post("orders/csv", order);
+      const { data } = await service({ requiresAuth: true }).post(
+        "orders/csv",
+        order
+      );
 
       if (!order.contact_time_slot_1_ini) {
         delete order.contact_time_slot_1_ini;
@@ -845,15 +928,28 @@ export default {
         delete order.contact.time_slot_2_ini;
       }
 
-      const orderToUpdate = this.orders.findIndex(o => o._uuid && o._uuid === _uuid)
+      const orderToUpdate = this.orders.findIndex(
+        o => o._uuid && o._uuid === _uuid
+      );
       if (orderToUpdate >= 0) {
-        this.orders[orderToUpdate].id = data.id
-        this.orders[orderToUpdate].status = data.status
+        this.orders[orderToUpdate].id = data.id;
+        this.orders[orderToUpdate].status = data.status;
       }
     },
     addressFormatted(address) {
       return '"' + address + '"';
     },
+    async setBulkState(){
+      this.importing = true;
+      for await (const row of this.checkedRows) {
+        await service({ requiresAuth: true }).put(`orders/${row.id}`, {
+          status: this.newState
+        });
+      }      
+      this.checkedRows = [];      
+      this.importing = false;
+      this.getData();          
+    }
   }
 };
 </script>

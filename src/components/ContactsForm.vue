@@ -22,30 +22,8 @@
                     {{ s.username }}
                   </option>
                 </b-select>
-              </b-field>
-              <b-field label="Forma jurídica" horizontal>
-                <b-select v-model="form.legal_form" placeholder="">
-                  <option
-                    v-for="(s, index) in legalForms"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field>
-              <b-field label="Sector" horizontal>
-                <b-select v-model="form.sector" placeholder="">
-                  <option
-                    v-for="(s, index) in sectors"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field>
-              <b-field label="Telèfon" horizontal>
+              </b-field>              
+              <b-field :label="form.owner ? 'Telèfon *' : 'Telèfon'" horizontal>
                 <b-input v-model="form.phone" />
               </b-field>
               <b-field label="Email" horizontal>
@@ -78,7 +56,28 @@
               <b-field label="Web" horizontal>
                 <b-input v-model="form.website" />
               </b-field>
-
+              <b-field label="Forma jurídica" horizontal>
+                <b-select v-model="form.legal_form" placeholder="">
+                  <option
+                    v-for="(s, index) in legalForms"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
+              <b-field label="Sector" horizontal>
+                <b-select v-model="form.sector" placeholder="">
+                  <option
+                    v-for="(s, index) in sectors"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
               <b-field label="Horari de contacte 1" horizontal v-if="form.owner">
                 <b-field label="">
                   <b-select v-model="form.time_slot_1_ini" placeholder="" class="mr-3">
@@ -222,6 +221,12 @@ export default {
       };
     },
     async getData() {
+
+      if (this.$route.query.user && this.$route.query.user === 'true') {
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me")        
+        this.form.owner = me.data.id;
+      }
+
       await this.getAuxiliarData();
 
       if (this.$route.params.id && this.$route.params.id > 0) {
@@ -263,11 +268,6 @@ export default {
     async submit() {
       this.isLoading = true;
 
-      if (this.$route.query.user && this.$route.query.user === 'true') {
-        const me = await service({ requiresAuth: true, cached: true }).get("users/me")
-        this.form.owner = me.data.id;
-      }
-
       try {
         if (this.form.id) {
 
@@ -275,6 +275,7 @@ export default {
             !this.form.name ||
             !this.form.nif ||
             !this.form.address ||
+            ((!this.form.phone && this.form.owner) || !this.form.owner) ||            
             !this.form.city ||
             !this.form.postcode
           ) {

@@ -3,7 +3,7 @@
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
-        <div class="column is-full">
+        <div class="column is-full">          
           <card-component class="tile is-child">
             <form @submit.prevent="submit(false)" v-if="!isLoading">
               <b-field
@@ -12,6 +12,7 @@
                 :type="{ 'is-danger': errors['owner'] && submitted }"
               >
                 <b-select
+                  :disabled="!canEdit"
                   v-model="form.owner"
                   placeholder=""
                   @input="changeOwner"
@@ -32,7 +33,12 @@
                 :type="{ 'is-danger': errors['route'] && submitted }"
                 message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t’aplicarà la tarifa corresponent. En cas de dubte, consulta’ns"
               >
-                <b-select v-model="form.route" placeholder="">
+                <b-select
+                @input="changeRoute"
+                  v-model="form.route"
+                  placeholder=""
+                  :disabled="!canEdit"
+                >
                   <option
                     v-for="(s, index) in routes"
                     :key="index"
@@ -48,19 +54,21 @@
                 horizontal
                 message="Estat actual de la comanda"
               >
-                <b-select
-                  v-model="form.status"
-                  placeholder=""
-                  :disabled="!permissions.includes('orders_admin')"
-                >
-                  <option
+                <div class="is-flex">
+                  <button
+                    class="button mr-2"
+                    type="button"
                     v-for="(s, index) in statuses"
-                    :key="index"
-                    :value="s.id"
+                    :class="{
+                      'is-warning': form.status === s.id,
+                      'is-outlined': form.status !== s.id
+                    }"
+                    @click="form.status = s.id"
+                    :disabled="!permissions.includes('orders_admin')"
                   >
                     {{ s.name }}
-                  </option>
-                </b-select>
+                  </button>
+                </div>
               </b-field>
 
               <b-field
@@ -82,18 +90,13 @@
                 </b-datepicker>
               </b-field>
 
-              <!-- <b-field label="Producte" horizontal :message="form.product ? `Preu: ${products.find(p => p.id === form.product).base}€` : null">
-                <b-select v-model="form.product" placeholder="">
-                  <option
-                    v-for="(s, index) in products"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-                
-              </b-field> -->
+              <b-field
+                label="Referència proveïdora"
+                horizontal
+                message="Si al teu ERP té un nom/codi de comanda concret, pots posar-lo aquí"
+              >
+                <b-input v-model="form.provider_order_number" />
+              </b-field>
 
               <hr />
 
@@ -101,9 +104,10 @@
                 label="Clienta *"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                message="Dades de la clienta per la entrega"
+                message="Dades de la clienta per l'entrega"
               >
                 <b-select
+                  :disabled="!canEdit"
                   v-model="form.contact"
                   placeholder=""
                   @change.native="onClientaChange($event)"
@@ -119,6 +123,7 @@
 
                 <div class="is-flex">
                   <b-button
+                    :disabled="!canEdit"
                     class="view-button is-warning zmb-3"
                     @click="navNew"
                     icon-left="plus"
@@ -126,6 +131,7 @@
                   >
                   </b-button>
                   <b-button
+                    :disabled="!canEdit"
                     class="view-button is-warning zmb-3 ml-3"
                     @click="refreshClients"
                     icon-left="refresh"
@@ -133,6 +139,7 @@
                   >
                   </b-button>
                   <b-button
+                    :disabled="!canEdit"
                     class="view-button is-warning zmb-3 ml-3"
                     @click="removeContactData"
                     icon-left="close"
@@ -142,20 +149,28 @@
                 </div>
               </b-field>
 
+              <b-field label="Nom" horizontal>
+                <b-input v-model="form.contact_name" :disabled="!canEdit" />
+              </b-field>
+
+              <b-field label="NIF" horizontal>
+                <b-input v-model="form.contact_nif" :disabled="!canEdit" />
+              </b-field>
+
               <b-field label="Adreça" horizontal>
-                <b-input v-model="form.contact_address" />
+                <b-input v-model="form.contact_address" :disabled="!canEdit" />
               </b-field>
 
               <b-field label="CP" horizontal>
-                <b-input v-model="form.contact_postcode" />
+                <b-input v-model="form.contact_postcode" :disabled="!canEdit" />
               </b-field>
 
               <b-field label="Localitat" horizontal>
-                <b-input v-model="form.contact_city" />
+                <b-input v-model="form.contact_city" :disabled="!canEdit" />
               </b-field>
 
               <b-field label="Telèfon" horizontal>
-                <b-input v-model="form.contact_phone" />
+                <b-input v-model="form.contact_phone" :disabled="!canEdit" />
               </b-field>
 
               <b-field
@@ -168,6 +183,7 @@
                     v-model="form.contact_time_slot_1_ini"
                     placeholder=""
                     class="mr-3"
+                    :disabled="!canEdit"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -181,6 +197,7 @@
                   <b-select
                     v-model="form.contact_time_slot_1_end"
                     placeholder=""
+                    :disabled="!canEdit"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -196,6 +213,7 @@
               <b-field label="Tram horari 2" horizontal message="i de 16 a 20h">
                 <b-field label="">
                   <b-select
+                    :disabled="!canEdit"
                     v-model="form.contact_time_slot_2_ini"
                     placeholder=""
                     class="mr-3"
@@ -210,6 +228,7 @@
                   </b-select>
 
                   <b-select
+                    :disabled="!canEdit"
                     v-model="form.contact_time_slot_2_end"
                     placeholder=""
                   >
@@ -251,7 +270,23 @@
                 :type="{ 'is-danger': errors['delivery_type'] && submitted }"
                 message="Transport normal o refrigerat"
               >
-                <b-select v-model="form.delivery_type" placeholder="">
+                <div class="is-flex">
+                  <button
+                    class="button mr-2"
+                    type="button"
+                    v-for="(s, index) in deliveryTypes"
+                    :class="{
+                      'is-warning': form.delivery_type === s.id,
+                      'is-outlined': form.delivery_type !== s.id
+                    }"
+                    @click="form.delivery_type = s.id"
+                    :disabled="!canEdit"
+                  >
+                    {{ s.name }}
+                  </button>
+                </div>
+
+                <!-- <b-select v-model="form.delivery_type" placeholder="">
                   <option
                     v-for="(s, index) in deliveryTypes"
                     :key="index"
@@ -259,7 +294,7 @@
                   >
                     {{ s.name }}
                   </option>
-                </b-select>
+                </b-select> -->
               </b-field>
 
               <b-field
@@ -268,49 +303,59 @@
                 :type="{ 'is-danger': errors['pickup'] && submitted }"
                 message="Si és el primer cop que ens demanes recollida en finca, contacta’ns abans per validar que hi podem passar"
               >
-                <b-select v-model="form.pickup" placeholder="">
-                  <option
+                <div class="is-flex">
+                  <button
+                    class="button mr-2"
+                    type="button"
                     v-for="(s, index) in pickups"
-                    :key="index"
-                    :value="s.id"
+                    :class="{
+                      'is-warning': form.pickup === s.id,
+                      'is-outlined': form.pickup !== s.id
+                    }"
+                    @click="form.pickup = s.id"
+                    :disabled="!canEdit"
                   >
                     {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field>
-
-              <b-field label="Caixes *" horizontal message="Nombre de caixes"
-              :type="{ 'is-danger': errors['units'] && submitted }"
-              >
-                <b-input v-model="form.units" type="number" />
+                  </button>
+                </div>
               </b-field>
 
               <b-field
-              :type="{ 'is-danger': errors['kilograms'] && submitted }" 
+                label="Caixes *"
+                horizontal
+                message="Nombre de caixes"
+                :type="{ 'is-danger': errors['units'] && submitted }"
+              >
+                <b-input
+                  v-model="form.units"
+                  type="number"
+                  :disabled="!canEdit"
+                />
+              </b-field>
+
+              <b-field
+                :type="{ 'is-danger': errors['kilograms'] && submitted }"
                 label="Kilograms *"
                 horizontal
                 message="Kilograms totals"
               >
-                <b-input v-model="form.kilograms" type="number" />
+                <b-input
+                  v-model="form.kilograms"
+                  type="number"
+                  :disabled="!canEdit"
+                />
               </b-field>
-
 
               <b-field
                 label="Fràgil"
                 horizontal
-                message="Si la comanda és fràgil, marca aquesta casella">
-                <b-switch
-                v-model="form.fragile"></b-switch>                
-              </b-field>
-
-              <b-field
-                label="Comanda proveïdora"
-                horizontal
-                message="Si al teu ERP té un nom/codi de comanda concret, pots posar-lo aquí"
+                message="Si la comanda és fràgil, marca aquesta casella"
               >
-                <b-input v-model="form.provider_order_number" />
+                <b-switch
+                  v-model="form.fragile"
+                  :disabled="!canEdit"
+                ></b-switch>
               </b-field>
-
 
               <b-field
                 label="Notes"
@@ -391,6 +436,7 @@ import { mapState } from "vuex";
 import moment from "moment";
 import sortBy, { name } from "lodash/sortBy";
 import concat from "lodash/concat";
+import assignRouteRate from "@/service/assignRouteRate";
 
 export default {
   name: "OrderForm",
@@ -419,7 +465,7 @@ export default {
       pickups: [],
       deliveryTypes: [],
       permissions: [],
-
+      orders: [],
       statuses: [
         { id: "pending", name: "Pendent" },
         { id: "processed", name: "Processada" },
@@ -454,10 +500,14 @@ export default {
       return (
         (this.form.id &&
           this.form.status !== "cancelled" &&
-            this.permissions.includes("orders_admin")) ||
+          this.permissions.includes("orders_admin")) ||
         (this.form.status === "pending" &&
-          !this.permissions.includes("orders_admin"))
+          !this.permissions.includes("orders_admin")) ||
+        !this.form.id
       );
+    },
+    canEdit() {
+      return this.canCancel;
     },
     canChangeRate() {
       // console.log('this.form.status', this.form.status)
@@ -472,13 +522,30 @@ export default {
         delivery_type: this.form.delivery_type === null,
         pickup: this.form.pickup == null,
         units: this.form.units === null || this.form.units <= 0,
-        kilograms: this.form.kilograms === null || this.form.kilograms === "" || this.form.kilograms < 0
+        kilograms:
+          this.form.kilograms === null ||
+          this.form.kilograms === "" ||
+          this.form.kilograms < 0
       };
     },
     route_rate() {
+      console.log("route_rate");
       if (!this.canChangeRate) {
         return this.form.route_rate;
       }
+
+      const v1 = this.form.units || 0;
+      const v2 = this.form.kilograms || 0;
+      const v3 = this.form || 0;
+      const v4 = this.routeRates;
+      const v5 = this.form.route;
+      const v6 = this.form.owner;
+      const v7 = this.orders;
+
+      const rr = assignRouteRate(this.form, this.routeRates, this.orders);
+      console.log("rr", rr);
+      this.form.route_rate = rr;
+      return this.form.route_rate;
       if (
         !this.routeRates ||
         this.routeRates.length === 0 ||
@@ -574,6 +641,7 @@ export default {
         contact_city: "",
         contact_phone: "",
         delivery_type: null,
+        pickup: null,
         units: null,
         kilograms: null
       };
@@ -622,7 +690,15 @@ export default {
 
               await this.refreshClients();
 
-              await this.assignRouteRate();
+              this.orders = (
+                await service({ requiresAuth: true }).get(
+                  `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
+                )
+              ).data;
+
+              console.log("this.orders", this.orders);
+
+              await assignRouteRate(this.form, this.routeRates, this.orders);
 
               this.isLoading = false;
             } else {
@@ -637,11 +713,16 @@ export default {
         }
         // this.form.owner = me.data.id;
 
+        this.form.delivery_type = this.deliveryTypes[0].id;
+        this.form.pickup = this.pickups[0].id;
+
         this.contacts = (
           await service({ requiresAuth: true, cached: true }).get(
             `contacts/basic?_limit=-1&_where[owner]=${me.data.id}`
           )
         ).data;
+
+        // this.contacts.unshift({ id: 0, name: '--' })
       }
     },
     normalizeIdsInForm(property) {
@@ -714,7 +795,18 @@ export default {
           `contacts/basic?_limit=-1&_where[owner]=${this.form.owner}`
         )
       ).data;
+
+      this.changeRoute()
     },
+    async changeRoute() {
+      if (this.form.owner && this.form.route) {
+        this.orders = (
+          await service({ requiresAuth: true }).get(
+            `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
+          )
+        ).data;
+      }
+    },    
     async deleteOrder() {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols anul·lar la comanda?",
@@ -747,7 +839,6 @@ export default {
       }
 
       try {
-        
         if (this.form.id) {
           if (
             !this.form.owner ||
@@ -872,82 +963,95 @@ export default {
       this.contacts = concat({ id: 0, name: "--" }, this.contacts);
     },
 
-    async assignRouteRate() {
-      if (this.form.route_rate === null) {
-        let rates = this.routeRates.filter(
-          r => (r.route && r.route.id === this.form.route) || r.route === null
-        );
+    // async assignRouteRate() {
+    //   if (this.form.route_rate === null) {
+    //     let rates = this.routeRates.filter(
+    //       r => (r.route && r.route.id === this.form.route) || r.route === null
+    //     );
 
-        
+    //     if (this.form.pickup && this.form.pickup.pickup) {
+    //       const orders = await service({ requiresAuth: true }).get(
+    //         `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
+    //       );
 
-        if (this.form.pickup && this.form.pickup.pickup) {
+    //       const pendingOrders = orders.filter(
+    //         o =>
+    //           o.route.id === this.form.route.id &&
+    //           o.owner.id === this.form.owner.id &&
+    //           o.status === "pending"
+    //       );
+    //       console.log("pendingOrders", pendingOrders);
+    //       if (pendingOrders.length > 0) {
+    //         // We have pending orders for this route and owner
+    //         // Add your logic here
+    //         console.log(
+    //           "We have pending orders for this route and owner, applying NO PICKUP",
+    //           pendingOrders
+    //         );
 
+    //         rates = rates.filter(
+    //           r =>
+    //             (r.pickup && this.form.pickup && r.pickup.id === 1) ||
+    //             r.pickup === null
+    //         );
+    //       } else {
+    //         // No pending orders for this route and owner
+    //         // Add your logic here
+    //         console.log("No pending orders for this route and owner");
 
-          const orders = await service({ requiresAuth: true }).get(
-            `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
-          );
+    //         rates = rates.filter(
+    //           r =>
+    //             (r.pickup &&
+    //               this.form.pickup &&
+    //               r.pickup.id === this.form.pickup.id) ||
+    //             r.pickup === null
+    //         );
+    //       }
+    //     } else {
+    //       rates = rates.filter(
+    //         r =>
+    //           (r.pickup && this.form.pickup && r.pickup.id === 1) ||
+    //           r.pickup === null
+    //       );
+    //     }
 
-          const pendingOrders = orders.filter(o => o.route.id === this.form.route.id && o.owner.id === this.form.owner.id && o.status === "pending");
-          if (pendingOrders.length > 0) {
-            // We have pending orders for this route and owner
-            // Add your logic here
-            console.log("We have pending orders for this route and owner, applying NO PICKUP", pendingOrders);
+    //     rates = rates.filter(
+    //       r =>
+    //         (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null
+    //     );
+    //     rates = rates.filter(
+    //       r =>
+    //         (r.delivery_type &&
+    //           r.delivery_type.id === this.form.delivery_type) ||
+    //         r.delivery_type === null
+    //     );
+    //     if (rates.length > 1) {
+    //       rates = rates.filter(r => r.route !== null);
+    //     }
+    //     if (rates.length === 0) {
+    //       this.$buefy.snackbar.open({
+    //         message: "Error. No s'ha trobat cap tarifa per aquesta ruta",
+    //         queue: false
+    //       });
+    //     } else if (rates.length > 1) {
+    //       this.$buefy.snackbar.open({
+    //         message: "Error. S'ha trobat més d'una tarifa per aquesta ruta",
+    //         queue: false
+    //       });
 
-            rates = rates.filter(
-              r => (r.pickup && this.form.pickup && r.pickup.id === 1) || r.pickup === null
-            );
+    //       console.warn("rates!!!", rates);
 
-          } else {
-            // No pending orders for this route and owner
-            // Add your logic here
-            console.log("No pending orders for this route and owner");
-
-            rates = rates.filter(
-              r => (r.pickup && this.form.pickup && r.pickup.id === this.form.pickup.id) || r.pickup === null
-            );
-          }
-        } else {
-          rates = rates.filter(
-            r => (r.pickup && this.form.pickup && r.pickup.id === 1) || r.pickup === null
-          );
-        }
-
-
-
-        rates = rates.filter(
-          r =>
-            (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null
-        );
-        rates = rates.filter(
-          r =>
-            (r.delivery_type &&
-              r.delivery_type.id === this.form.delivery_type) ||
-            r.delivery_type === null
-        );
-        if (rates.length > 1) {
-          rates = rates.filter(r => r.route !== null);
-        }
-        if (rates.length === 0) {
-          this.$buefy.snackbar.open({
-            message: "Error. No s'ha trobat cap tarifa per aquesta ruta",
-            queue: false
-          });
-        } else if (rates.length > 1) {
-          this.$buefy.snackbar.open({
-            message: "Error. S'ha trobat més d'una tarifa per aquesta ruta",
-            queue: false
-          });
-
-          console.warn("rates!!!", rates);
-
-          this.form.route_rate = rates[0];
-        } else {
-          this.form.route_rate = rates[0];
-        }
-      }
-    },
+    //       this.form.route_rate = rates[0];
+    //     } else {
+    //       this.form.route_rate = rates[0];
+    //     }
+    //   }
+    // },
     removeContactData() {
       console.log("removeContactData");
+      this.form.contact = null;
+      this.form.contact_name = "";
+      this.form.contact_nif = "";
       this.form.contact_address = "";
       this.form.contact_postcode = "";
       this.form.contact_city = "";
@@ -957,12 +1061,24 @@ export default {
       this.form.contact_time_slot_2_ini = null;
       this.form.contact_time_slot_2_end = null;
     },
-    onClientaChange(e) {
-      console.log("onClientaChange", e.target.value);
+    async onClientaChange(e) {
+      // console.log("onClientaChange", e.target.value);
       // this.form.contact = e.target.value;
       const contact = this.contacts.find(
         c => c.id.toString() === e.target.value.toString()
       );
+      if (
+        !this.form.contact_name ||
+        (this.form.contact_name && this.form.contact_name.trim() === "")
+      ) {
+        this.form.contact_name = contact.name;
+      }
+      if (
+        !this.form.contact_nif ||
+        (this.form.contact_nif && this.form.contact_nif.trim() === "")
+      ) {
+        this.form.contact_nif = contact.nif;
+      }
       if (
         !this.form.contact_address ||
         (this.form.contact_address && this.form.contact_address.trim() === "")
