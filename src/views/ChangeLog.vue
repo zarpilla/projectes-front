@@ -2,6 +2,20 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.04.30">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Camp "CCC" a l'organització. Camp "NAF" (número d'afiliació a la SS) a les persones. Camp "Despeses indirectes" a la secció de subvencions dels projectes.
+          </div>          
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Check múltiple de canvi de'stat al mòdul de comandes i logística. Algunes correccions i millores.
+          </div>          
+        </div>
+      </card-component> 
       <card-component title="2024.04.18">
         <div class="item mb-4">          
           <span class="tag is-primary">Novetats</span>
