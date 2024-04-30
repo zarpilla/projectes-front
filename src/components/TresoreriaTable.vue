@@ -186,16 +186,14 @@
         <div class="column">
           <b-field label="Deduïble" grouped class="column">
             <div class="readonly subphase-detail-input">
-              {{ me.options.deductible_vat_pct }}%
+              {{ vat.deductible_vat_pct }}%
             </div>
           </b-field>
         </div>
         <div class="column">
           <b-field label="Saldo" grouped class="column">
             <money-format
-              :value="
-                -1*(vat.received - (vat.paid * me.options.deductible_vat_pct / 100))
-              "
+              :value="vat.deductible_vat"
               :locale="'es'"
               :currency-code="'EUR'"
               :subunits-value="false"

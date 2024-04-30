@@ -242,9 +242,7 @@
                 <b-switch v-model="form.structural_expenses"> </b-switch>
               </b-field>
 
-              
-
-              <b-field
+              <!-- <b-field
                 label="Despesa Indirecta (%)"
                 horizontal
                 v-if="me.options && me.options.structuralExpenses"
@@ -255,7 +253,8 @@
                   placeholder="Percentatge de despeses d'estructura"
                 >
                 </b-input>
-              </b-field>
+              </b-field> -->
+
               <b-field
                 label="Projecte mare"
                 horizontal
@@ -669,7 +668,7 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_expenses + totals.total_estimated_hours_price
+                      totals.total_expenses + totals.total_estimated_hours_price + totals.total_expenses_vat
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -683,7 +682,7 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_real_expenses + totals.total_real_hours_price
+                      totals.total_real_expenses + totals.total_real_hours_price + totals.total_real_expenses_vat
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -699,9 +698,11 @@
                     :value="
                       -1 *
                         (totals.total_expenses +
-                          totals.total_estimated_hours_price -
+                          totals.total_estimated_hours_price 
+                          + totals.total_expenses_vat -
                           totals.total_real_expenses -
-                          totals.total_real_hours_price)
+                          totals.total_real_hours_price - 
+                          totals.total_real_expenses_vat)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -743,6 +744,48 @@
                   <money-format
                     :value="
                       -1 * (totals.total_expenses - totals.total_real_expenses)
+                    "
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+            </div>
+
+
+            <div class="columns" v-if="me && me.options && me.options.deductible_vat_pct && me.options.deductible_vat_pct < 100.0">
+              <b-field label="Despeses pr. prorrata" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="totals.total_expenses_vat"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Despeses ex. prorrata" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="totals.total_real_expenses_vat"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
+              <b-field label="Diferència" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="
+                      -1 * (totals.total_expenses_vat - totals.total_real_expenses_vat)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
