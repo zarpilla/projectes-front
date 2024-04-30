@@ -398,6 +398,28 @@
                 >
                 </b-input>
               </b-field>
+
+              <b-field
+                label="Despeses indirectes"
+                v-if="form.grantable"
+                horizontal
+                message="Quantitat de l'import de la subvenció per a cobrir despeses indirectes que no s'han de justificar documentalment (sense assignació de nòmines ni factures)"
+              >
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_structural_expenses"
+                  placeholder="Import de despeses indirectes"
+                  @input="
+                    changeValue(
+                      'grantable_structural_expenses',
+                      form.grantable_structural_expenses
+                    )
+                  "
+                >
+                </b-input>
+              </b-field>
+
               <!-- <b-field
                 label="Import despeses indirectes"
                 v-if="form.grantable"

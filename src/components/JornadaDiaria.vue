@@ -6,9 +6,8 @@
           v-if="!isLoading"
           class="button is-primary zmt-5"
           @click="generatePDF"
-          
         >
-        Descarrega PDF
+          Descarrega PDF
         </button>
 
         <!-- <button
@@ -135,7 +134,9 @@
             </div>
             <div class="column">
               {{ a | formatHourDiff }}
-              <b>({{ daily.find(d => d.date === a.date) | formatHourMonth }})</b>
+              <b
+                >({{ daily.find(d => d.date === a.date) | formatHourMonth }})</b
+              >
             </div>
             <div class="column">
               <button
@@ -180,16 +181,21 @@
           <table>
             <tr class="is-total bordered-2t">
               <th colspan="1" width="40%">
-                REGISTRE DE JORNADES<br>
+                REGISTRE DE JORNADES<br />
                 {{ me.name }} - {{ me.nif }}
-              </th>              
+                <div v-if="me.ccc">C.C.C. {{ me.ccc }}</div>
+              </th>
               <th colspan="1" style="text-align: right;">
-                <img v-if="imageUrl" :src="imageUrl" style="width:150px;margin-top: 1rem;margin-bottom: 1rem;margin-right: 1rem">
-              </th>              
-            </tr>            
+                <img
+                  v-if="imageUrl"
+                  :src="imageUrl"
+                  style="width:150px;margin-top: 1rem;margin-bottom: 1rem;margin-right: 1rem"
+                />
+              </th>
+            </tr>
             <tr class="bordered-2t">
               <th width="40%">PERSONA</th>
-              <td>{{ personName }} - {{ personID }}</td>
+              <td>{{ personName }} <span v-if="personID">- NIF: {{ personID }}</span> <span v-if="personNAF">- NAF: {{ personNAF }}</span></td>
             </tr>
             <tr class="bordered-2t pb-4">
               <th width="40%">PERÍODE</th>
@@ -236,7 +242,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -323,7 +328,7 @@ export default {
       }
 
       return null;
-    },    
+    },
     todayF() {
       return moment().format("YYYY-MM-DD");
     },
@@ -345,7 +350,17 @@ export default {
       if (!user) {
         return "";
       }
-      return user.identity_number
+      return user.identity_number;
+    },
+    personNAF() {
+      if (!this.users) {
+        return "";
+      }
+      const user = this.users.find(u => u.id === this.user);
+      if (!user) {
+        return "";
+      }
+      return user.naf;
     },
     monthly() {
       const totals = _(
@@ -398,11 +413,7 @@ export default {
         .groupBy("day")
         .map((rows, id) => ({
           date: id,
-          m: _.sumBy(
-            rows,
-            a =>
-              a.m
-          )
+          m: _.sumBy(rows, a => a.m)
           // rows: rows
         }))
         .value();
@@ -415,8 +426,7 @@ export default {
       const minutes = totalMinutes % 60;
       const formattedTime = `${hours}h ${minutes}m`;
       return formattedTime;
-    },
-    
+    }
   },
   methods: {
     async getWorkDayLogs() {
@@ -433,10 +443,10 @@ export default {
 
       this.users = (await service({ requiresAuth: true }).get("users")).data;
 
-      const from = moment(this.year + '-' + this.month, "YYYY-MM")
+      const from = moment(this.year + "-" + this.month, "YYYY-MM")
         .startOf("month")
         .format("YYYY-MM-DD");
-      const to = moment(this.year + '-' + this.month, "YYYY-MM")
+      const to = moment(this.year + "-" + this.month, "YYYY-MM")
         .endOf("month")
         .format("YYYY-MM-DD");
 
@@ -495,33 +505,28 @@ export default {
           this.isLoading = false;
         });
 
+      this.me = (await service({ requiresAuth: true }).get("me")).data;
 
-        this.me = (await service({ requiresAuth: true }).get("me")).data;
-
-        if (this.me.logo && this.me.logo.url) {
-          const img = `${this.apiUrl}${this.me.logo.url}`
-            this.toDataUrl(img, (base64) => {
-              this.imageUrl = base64
-            })
-        }
-
-
-    
-
-    },
-    
-    toDataUrl (url, callback) {
-      var xhr = new XMLHttpRequest()
-      xhr.onload = function () {
-        var reader = new FileReader()
-        reader.onloadend = function () {
-          callback(reader.result)
-        }
-        reader.readAsDataURL(xhr.response)
+      if (this.me.logo && this.me.logo.url) {
+        const img = `${this.apiUrl}${this.me.logo.url}`;
+        this.toDataUrl(img, base64 => {
+          this.imageUrl = base64;
+        });
       }
-      xhr.open('GET', url)
-      xhr.responseType = 'blob'
-      xhr.send()
+    },
+
+    toDataUrl(url, callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        var reader = new FileReader();
+        reader.onloadend = function() {
+          callback(reader.result);
+        };
+        reader.readAsDataURL(xhr.response);
+      };
+      xhr.open("GET", url);
+      xhr.responseType = "blob";
+      xhr.send();
     },
     deleteActivity(activity, index) {
       this.$buefy.dialog.confirm({
@@ -654,14 +659,21 @@ export default {
     },
     enumerateDaysBetweenDates() {
       var dates = [];
-      var currDate = moment(this.year + '-' + this.month, "YYYY-MM").startOf("month");
-      var endDate = moment(this.year + '-' + this.month, "YYYY-MM").endOf("month");
+      var currDate = moment(this.year + "-" + this.month, "YYYY-MM").startOf(
+        "month"
+      );
+      var endDate = moment(this.year + "-" + this.month, "YYYY-MM").endOf(
+        "month"
+      );
       if (currDate.diff(moment()) < 0) {
         dates.push(currDate.clone().toDate());
-      }      
-      var currDateAux = currDate.clone()
-      while (currDate.add(1, "days").diff(endDate) < 0 && currDateAux.add(1, "days").diff(moment()) < 0) {
-        currDateAux = currDate.clone()
+      }
+      var currDateAux = currDate.clone();
+      while (
+        currDate.add(1, "days").diff(endDate) < 0 &&
+        currDateAux.add(1, "days").diff(moment()) < 0
+      ) {
+        currDateAux = currDate.clone();
         dates.push(currDate.clone().toDate());
       }
       return dates;
@@ -673,24 +685,25 @@ export default {
       }, 100);
     },
     downloadPDF() {
-
-      var element = document.getElementById('pdf')
+      var element = document.getElementById("pdf");
       var opt = {
         margin: [0, 0],
         filename: `hores`,
         html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      }
-      const pdf = html2pdf().set(opt).from(element)
+        jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+      };
+      const pdf = html2pdf()
+        .set(opt)
+        .from(element);
 
       // await pdf.save(opt.filename, { returnPromise: true })
 
-      pdf.toPdf().get('pdf').then(function (pdf) {
-         window.open(
-          pdf.output('bloburl',  "hores.pdf")
-          );
-      });
-
+      pdf
+        .toPdf()
+        .get("pdf")
+        .then(function(pdf) {
+          window.open(pdf.output("bloburl", "hores.pdf"));
+        });
 
       // const pdf = document.getElementById("pdf");
       // html2pdf()
@@ -710,7 +723,7 @@ export default {
         .format("MMMM")
         .toUpperCase();
     },
-    formatHourMonth(m) {      
+    formatHourMonth(m) {
       if (m && m.m) {
         m.m = Math.abs(m.m);
         return `${parseInt(m.m / 60)}h ${m.m - parseInt(m.m / 60) * 60}m`;
@@ -840,7 +853,8 @@ export default {
   line-height: inherit;
   text-align: left;
 }
-tr.bordered-2t th, tr.bordered-2t td{
+tr.bordered-2t th,
+tr.bordered-2t td {
   border-top: 2px solid #000;
 }
 tr.bordered-2 th,
@@ -851,7 +865,7 @@ tr.is-total td {
   border-bottom: 1px solid #000;
   border-top: 1px solid #000;
 }
-.mt-40{
+.mt-40 {
   margin-top: 40px;
 }
 </style>
