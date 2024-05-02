@@ -8,10 +8,10 @@ const assignRouteRate = (form, routeRates, orders) => {
   console.log("routeRates", routeRates);
   console.log("orders", orders);
 
-  const pickup = form.pickup.id || form.pickup;
-  const route = form.route.id || form.route;
-  const delivery_type = form.delivery_type.id || form.delivery_type;
-  const owner = form.owner.id || form.owner;
+  const pickup = form.pickup && form.pickup.id ? form.pickup.id : form.pickup;
+  const route = form.route && form.route.id ? form.route.id : form.route;
+  const delivery_type = form.delivery_type && form.delivery_type.id ? form.delivery_type.id : form.delivery_type;
+  const owner = form.owner && form.owner.id ? form.owner.id : form.owner;
 
   if (form.route_rate === null || form.status !== "invoiced") {
     let rates = routeRates.filter(
