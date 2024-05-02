@@ -18,6 +18,8 @@ const assignRouteRate = (form, routeRates, orders) => {
       r => (r.route && r.route.id === route) || r.route === null
     );
 
+    console.log("pickup", pickup);
+
     if (pickup === 2) {
       // finca      
 
@@ -56,9 +58,6 @@ const assignRouteRate = (form, routeRates, orders) => {
       );
     }
 
-    rates = rates.filter(
-      r => (r.pickup && r.pickup.id === pickup) || r.pickup === null
-    );
     rates = rates.filter(
       r =>
         (r.delivery_type && r.delivery_type.id === delivery_type) ||
