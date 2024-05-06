@@ -71,6 +71,7 @@ export default {
   data () {
     return {
       distinctData: [],
+      distinctDataLabels: [],
       distinctDataObj: [],
       hoursTotal: 0,
       mainChart: {
@@ -103,6 +104,7 @@ export default {
         const hours = sumBy(activities, 'hours')
         return { name: p, hours: hours, pct: this.hoursTotal > 0 ? parseFloat((hours / this.hoursTotal * 100).toFixed(2)) : 0 }
       }), ['hours'], ['desc'])
+      this.distinctDataLabels = this.distinctDataObj.map(p => p && p.name ? p.name : 'Sense assignar')
       this.fillChartData()
       this.isLoading = false
     },
@@ -114,7 +116,7 @@ export default {
             backgroundColor: this.someChartColors(this.distinctData.length)
           }
         ],
-        labels: this.distinctData
+        labels: this.distinctDataLabels
       }
     },
     someChartColors (n) {
