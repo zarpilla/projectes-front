@@ -6,7 +6,7 @@
         <div class="item mb-4">
           <span class="tag is-danger">Correccions</span>
           <div class="text mt-2">
-            Corregits colors de les <router-link to="/dedicacio-charts">gràfiques de dedicació</router-link>.
+            Corregits colors de les <router-link to="/dedicacio-charts">gràfiques de dedicació</router-link>, que en alguns casos no corresponia amb la llegenda.
           </div>          
         </div>
       </card-component> 
