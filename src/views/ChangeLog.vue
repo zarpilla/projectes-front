@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.05.06">
+        <div class="item mb-4">
+          <span class="tag is-danger">Correccions</span>
+          <div class="text mt-2">
+            Corregits colors de les <router-link to="/dedicacio-charts">gràfiques de dedicació</router-link>.
+          </div>          
+        </div>
+      </card-component> 
       <card-component title="2024.04.30">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
@@ -10,7 +18,6 @@
           </div>          
         </div>
         <div class="item mb-4">
-          <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
             Check múltiple de canvi de'stat al mòdul de comandes i logística. Algunes correccions i millores.
           </div>          
