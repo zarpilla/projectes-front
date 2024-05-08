@@ -249,6 +249,13 @@ export default {
                 this.form.users_permissions_user = 0
               }
 
+              if (this.form.legal_form && this.form.legal_form.id) {
+                this.form.legal_form = this.form.legal_form.id
+              } else {
+                this.form.legal_form = 0
+              }
+              
+
 
               this.isLoading = false;
             } else {
@@ -261,6 +268,7 @@ export default {
     },
     async getAuxiliarData() {
       this.legalForms = (await service({ requiresAuth: true }).get("legal-forms")).data
+      this.legalForms = concat({ id: 0, name: '--'}, this.legalForms)
       this.sectors = (await service({ requiresAuth: true }).get("sectors")).data
       const users = (await service({ requiresAuth: true }).get("users")).data
       this.users = concat({ id: 0, username: '--'}, users)

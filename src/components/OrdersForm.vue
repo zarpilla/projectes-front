@@ -3,8 +3,18 @@
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
-        <div class="column is-full">          
+        <div class="column is-full">
           <card-component class="tile is-child">
+
+            <b-message v-if="firstStatus !== 'pending'"
+            title="Comanda ja procesada" 
+            type="is-warning" >
+            <span v-if="!canEdit">Si hi ha algun canvi d'última hora, contacta si us plau amb La Diligència.</span>
+            <span v-else>Atenció amb els canvis, doncs podria afectar a entregues ja fetes o a factures emeses.</span>
+             
+        </b-message>
+
+
             <form @submit.prevent="submit(false)" v-if="!isLoading">
               <b-field
                 label="Proveïdora *"
@@ -34,7 +44,7 @@
                 message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t’aplicarà la tarifa corresponent. En cas de dubte, consulta’ns"
               >
                 <b-select
-                @input="changeRoute"
+                  @input="changeRoute"
                   v-model="form.route"
                   placeholder=""
                   :disabled="!canEdit"
@@ -72,7 +82,46 @@
               </b-field>
 
               <b-field
-                label="Data Entrega"
+                label="Data comanda *"
+                horizontal
+                :type="{ 'is-danger': errors['route_date'] && submitted }"
+                message="Data de creació de la comanda"
+              >
+                <b-datepicker
+                  :disabled="!permissions.includes('orders_admin')"
+                  v-model="form.route_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+
+              <b-field
+                label="Data estimada d'entrega"
+                horizontal
+                message="Data en la que la comanda s'hauria d'entregar"
+              >
+                <b-datepicker
+                  :disabled="!permissions.includes('orders_admin')"
+                  v-model="form.estimated_delivery_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+
+              <b-field
+                label="Data entrega"
                 horizontal
                 message="Data en la que la comanda ha estat entregada"
               >
@@ -106,7 +155,21 @@
                 :type="{ 'is-danger': errors['contact'] && submitted }"
                 message="Dades de la clienta per l'entrega"
               >
-                <b-select
+                <b-autocomplete
+                  v-model="contactSearch"
+                  placeholder="Clienta"
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredContacts"
+                  field="display"
+                  @select="option => (form.contact = option ? option.id : null)"
+                  @input="contactChanged"
+                  :disabled="!canEdit"
+                  :clearable="true"
+                >
+                </b-autocomplete>
+
+                <!-- <b-select
                   :disabled="!canEdit"
                   v-model="form.contact"
                   placeholder=""
@@ -119,9 +182,9 @@
                   >
                     {{ s.id }} - {{ s.name }}
                   </option>
-                </b-select>
+                </b-select> -->
 
-                <div class="is-flex">
+                <!-- <div class="is-flex">
                   <b-button
                     :disabled="!canEdit"
                     class="view-button is-warning zmb-3"
@@ -146,30 +209,58 @@
                     title="Esborrar dades"
                   >
                   </b-button>
-                </div>
-              </b-field>
+                </div>-->
+              </b-field> 
 
-              <b-field label="Nom" horizontal>
+              <b-field label="Nom *" horizontal
+              :type="{ 'is-danger': errors['contact_name'] && submitted }">
                 <b-input v-model="form.contact_name" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="NIF" horizontal>
+              <b-field label="NIF *" horizontal
+              :type="{ 'is-danger': errors['contact_nif'] && submitted }">
                 <b-input v-model="form.contact_nif" :disabled="!canEdit" />
               </b-field>
+              
+              <b-field
+                label="Forma jurídica *"
+                horizontal
+                :type="{ 'is-danger': errors['contact_legal_form'] && submitted }"
+                message="Per empresa entenem que no és client final sinó restauració, botigues, etc."
+              >
+                <div class="is-flex">
+                  <button
+                    class="button mr-2"
+                    type="button"
+                    v-for="(s, index) in legalForms"
+                    :class="{
+                      'is-warning': form.contact_legal_form === s.id,
+                      'is-outlined': form.contact_legal_form !== s.id
+                    }"
+                    @click="form.contact_legal_form = s.id"
+                    :disabled="!canEdit"
+                  >
+                    {{ s.name }}
+                  </button>
+                </div>
+              </b-field>
 
-              <b-field label="Adreça" horizontal>
+              <b-field label="Adreça *" horizontal 
+              :type="{ 'is-danger': errors['contact_address'] && submitted }">
                 <b-input v-model="form.contact_address" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="CP" horizontal>
+              <b-field label="CP *" horizontal :type="{ 'is-danger': errors['contact_postcode'] && submitted }">
                 <b-input v-model="form.contact_postcode" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="Localitat" horizontal>
+              <b-field label="Localitat *" horizontal
+              :type="{ 'is-danger': errors['contact_city'] && submitted }">
                 <b-input v-model="form.contact_city" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="Telèfon" horizontal>
+              <b-field label="Telèfon *" horizontal
+              :type="{ 'is-danger': errors['contact_phone'] && submitted }">
                 <b-input v-model="form.contact_phone" :disabled="!canEdit" />
               </b-field>
 
@@ -241,28 +332,20 @@
                     </option>
                   </b-select>
                 </b-field>
-              </b-field>
-              <hr />
 
-              <b-field
-                label="Data comanda *"
-                horizontal
-                :type="{ 'is-danger': errors['route_date'] && submitted }"
-                message="Data de creació de la comanda"
-              >
-                <b-datepicker
-                  :disabled="!permissions.includes('orders_admin')"
-                  v-model="form.route_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
+
+              <b-button
+                    :disabled="!canEdit"
+                    class="view-button is-primary zmb-3"
+                    @click="saveClient"                    
+                    title="Guardar "
+                  >Guardar Clienta
+                  </b-button>
+
+
               </b-field>
+
+              <hr />
 
               <b-field
                 label="Transport *"
@@ -285,16 +368,6 @@
                     {{ s.name }}
                   </button>
                 </div>
-
-                <!-- <b-select v-model="form.delivery_type" placeholder="">
-                  <option
-                    v-for="(s, index) in deliveryTypes"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select> -->
               </b-field>
 
               <b-field
@@ -367,6 +440,7 @@
                   type="textarea"
                   v-model="form.comments"
                   placeholder="Notes"
+                  :disabled="!canEdit"
                 />
               </b-field>
 
@@ -466,6 +540,7 @@ export default {
       deliveryTypes: [],
       permissions: [],
       orders: [],
+      firstStatus: "pending",
       statuses: [
         { id: "pending", name: "Pendent" },
         { id: "processed", name: "Processada" },
@@ -473,9 +548,10 @@ export default {
         { id: "invoiced", name: "Facturada" },
         { id: "cancelled", name: "Cancelada" }
       ],
-
+      legalForms: [],
       contact_time_slots: Array.from({ length: 24 }, (_, i) => i),
-      routeRates: []
+      routeRates: [],
+      contactSearch: ""
     };
   },
   computed: {
@@ -522,6 +598,13 @@ export default {
         delivery_type: this.form.delivery_type === null,
         pickup: this.form.pickup == null,
         units: this.form.units === null || this.form.units <= 0,
+        contact_name: this.form.contact_name === null || this.form.contact_name === "",
+        contact_nif: this.form.contact_nif === null || this.form.contact_nif === "",
+        contact_legal_form: this.form.contact_legal_form === null,
+        contact_address: this.form.contact_address === null || this.form.contact_address === "",
+        contact_postcode: this.form.contact_postcode === null || this.form.contact_postcode === "",
+        contact_city: this.form.contact_city === null || this.form.contact_city === "",
+        contact_phone: this.form.contact_phone === null || this.form.contact_phone === "",        
         kilograms:
           this.form.kilograms === null ||
           this.form.kilograms === "" ||
@@ -606,6 +689,21 @@ export default {
         }
       }
       return this.form.price;
+    },
+    filteredContacts() {
+      return this.contacts.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.contactSearch.toLowerCase()) >= 0
+            || 
+            option.id
+            .toString()
+            .toLowerCase()
+            .indexOf(this.contactSearch.toLowerCase()) >= 0
+        );
+      });
     }
   },
   watch: {
@@ -636,10 +734,13 @@ export default {
         owner: null,
         route: null,
         contact: null,
+        contact_name: "",
+        contact_nif: "",
         contact_address: "",
         contact_postcode: "",
         contact_city: "",
         contact_phone: "",
+        contact_legal_form: 1,
         delivery_type: null,
         pickup: null,
         units: null,
@@ -657,6 +758,7 @@ export default {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
               this.form = r.data;
+              this.firstStatus = this.form.status;
 
               this.normalizeIdsInForm("owner");
               this.normalizeIdsInForm("route");
@@ -688,15 +790,22 @@ export default {
                 this.$router.push({ name: "orders.view" });
               }
 
-              await this.refreshClients();
+              await this.refreshClients(this.form.owner);
+
+              const c = this.contacts.find(
+                c => c.id === this.form.contact
+              )
+              this.contactSearch = `${this.form.contact} - ${c.name}`;
+
+              if (this.form.contact_legal_form) {
+                this.form.contact_legal_form = this.form.contact_legal_form.id;
+              }
 
               this.orders = (
                 await service({ requiresAuth: true }).get(
                   `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
                 )
               ).data;
-
-              console.log("this.orders", this.orders);
 
               await assignRouteRate(this.form, this.routeRates, this.orders);
 
@@ -716,11 +825,9 @@ export default {
         this.form.delivery_type = this.deliveryTypes[0].id;
         this.form.pickup = this.pickups[0].id;
 
-        this.contacts = (
-          await service({ requiresAuth: true, cached: true }).get(
-            `contacts/basic?_limit=-1&_where[owner]=${me.data.id}`
-          )
-        ).data;
+        await this.refreshClients(me.data.id);
+        
+        console.log("this.contacts", this.contacts);
 
         // this.contacts.unshift({ id: 0, name: '--' })
       }
@@ -788,15 +895,13 @@ export default {
           "route-rates?_limit=-1"
         )
       ).data;
+
+      this.legalForms = (await service({ requiresAuth: true }).get("legal-forms")).data
     },
     async changeOwner() {
-      this.contacts = (
-        await service({ requiresAuth: true, cached: true }).get(
-          `contacts/basic?_limit=-1&_where[owner]=${this.form.owner}`
-        )
-      ).data;
+      this.refreshClients(this.form.owner);
 
-      this.changeRoute()
+      this.changeRoute();
     },
     async changeRoute() {
       if (this.form.owner && this.form.route) {
@@ -806,7 +911,7 @@ export default {
           )
         ).data;
       }
-    },    
+    },
     async deleteOrder() {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols anul·lar la comanda?",
@@ -929,6 +1034,9 @@ export default {
       // delete option.projectes;
       this.form.contact = option;
     },
+    async contactChanged() {
+      this.onClientaChange(this.form.contact);
+    },
     routeSelected(option) {
       if (!option || !option.id) {
         this.form.route = null;
@@ -945,6 +1053,100 @@ export default {
     addLine() {
       this.form.lines.push(this.getNewLine());
     },
+    async saveClient() {
+      if (this.form.contact) {
+
+        if (
+            !this.form.contact_name ||
+            !this.form.contact_nif ||
+            !this.form.contact_address ||
+            !this.form.contact_phone ||            
+            !this.form.contact_city ||
+            !this.form.contact_postcode
+          ) {
+            this.$buefy.snackbar.open({
+              message:
+                "Error. Falten alguns camps obligatòris",
+              queue: false,
+            });
+            this.isLoading = false;
+            return;
+          }
+
+          await service({ requiresAuth: true }).put(
+            `contacts/${this.form.contact}`,
+            {
+              name: this.form.contact_name,
+              nif: this.form.contact_nif,
+              address: this.form.contact_address,
+              postcode: this.form.contact_postcode,
+              city: this.form.contact_city,
+              phone: this.form.contact_phone,
+              time_slot_1_ini: this.form.contact_time_slot_1_ini,
+              time_slot_1_end: this.form.contact_time_slot_1_end,
+              time_slot_2_ini: this.form.contact_time_slot_2_ini,
+              time_slot_2_end: this.form.contact_time_slot_2_end,             
+              owner: this.form.owner,
+              legal_form: this.form.contact_legal_form
+            }
+          );
+
+          this.$buefy.snackbar.open({
+            message: "Clienta Guardada",
+            queue: false
+          });
+          await this.refreshClients(this.form.owner);
+          this.contactSearch = `${this.form.contact} - ${this.form.contact_name}`;
+          // this.contactSearch = `${this.form.contact_name}`;
+
+      } else {
+        
+        if (
+          !this.form.contact_name ||
+            !this.form.contact_nif ||
+            !this.form.contact_address ||
+            !this.form.contact_phone ||            
+            !this.form.contact_city ||
+            !this.form.contact_postcode
+          ) {
+            this.$buefy.snackbar.open({
+              message:
+              "Error. Falten alguns camps obligatòris",
+              queue: false,
+            });
+            this.isLoading = false;
+            return;
+          }
+
+          const newContact = await service({ requiresAuth: true }).post(
+            'contacts',
+            {
+              name: this.form.contact_name,
+              nif: this.form.contact_nif,
+              address: this.form.contact_address,
+              postcode: this.form.contact_postcode,
+              city: this.form.contact_city,
+              phone: this.form.contact_phone,
+              time_slot_1_ini: this.form.contact_time_slot_1_ini,
+              time_slot_1_end: this.form.contact_time_slot_1_end,
+              time_slot_2_ini: this.form.contact_time_slot_2_ini,
+              time_slot_2_end: this.form.contact_time_slot_2_end,             
+              owner: this.form.owner,
+              legal_form: this.form.contact_legal_form
+            }
+          );
+          this.form.contact = newContact.data.id;
+
+          this.$buefy.snackbar.open({
+            message: "Clienta Guardada",
+            queue: false
+          });
+          await this.refreshClients(this.form.owner);
+          this.contactSearch = `${newContact.data.id} - ${newContact.data.name}`;          
+          this.form.contact_name = newContact.data.name;
+      }
+
+    },
     navNew() {
       let routeData = this.$router.resolve({
         name: "contacts.edit",
@@ -953,100 +1155,19 @@ export default {
       });
       window.open(routeData.href, "_blank");
     },
-    async refreshClients() {
+    async refreshClients(owner) {
       this.contacts = (
         await service({ requiresAuth: true, cached: false }).get(
-          `contacts/basic?_limit=-1&_where[owner]=${this.form.owner}`
+          `contacts/basic?_limit=-1&_where[owner]=${owner}`
         )
-      ).data;
+      ).data.map(c => { return { ...c, display: `${c.id} - ${c.name}`}});;
 
-      this.contacts = concat({ id: 0, name: "--" }, this.contacts);
+      if (!this.contacts.find(c => c.id === 0)) {
+        // this.contacts = concat({ id: 0, name: "--" }, this.contacts);
+      }
+      
     },
 
-    // async assignRouteRate() {
-    //   if (this.form.route_rate === null) {
-    //     let rates = this.routeRates.filter(
-    //       r => (r.route && r.route.id === this.form.route) || r.route === null
-    //     );
-
-    //     if (this.form.pickup && this.form.pickup.pickup) {
-    //       const orders = await service({ requiresAuth: true }).get(
-    //         `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
-    //       );
-
-    //       const pendingOrders = orders.filter(
-    //         o =>
-    //           o.route.id === this.form.route.id &&
-    //           o.owner.id === this.form.owner.id &&
-    //           o.status === "pending"
-    //       );
-    //       console.log("pendingOrders", pendingOrders);
-    //       if (pendingOrders.length > 0) {
-    //         // We have pending orders for this route and owner
-    //         // Add your logic here
-    //         console.log(
-    //           "We have pending orders for this route and owner, applying NO PICKUP",
-    //           pendingOrders
-    //         );
-
-    //         rates = rates.filter(
-    //           r =>
-    //             (r.pickup && this.form.pickup && r.pickup.id === 1) ||
-    //             r.pickup === null
-    //         );
-    //       } else {
-    //         // No pending orders for this route and owner
-    //         // Add your logic here
-    //         console.log("No pending orders for this route and owner");
-
-    //         rates = rates.filter(
-    //           r =>
-    //             (r.pickup &&
-    //               this.form.pickup &&
-    //               r.pickup.id === this.form.pickup.id) ||
-    //             r.pickup === null
-    //         );
-    //       }
-    //     } else {
-    //       rates = rates.filter(
-    //         r =>
-    //           (r.pickup && this.form.pickup && r.pickup.id === 1) ||
-    //           r.pickup === null
-    //       );
-    //     }
-
-    //     rates = rates.filter(
-    //       r =>
-    //         (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null
-    //     );
-    //     rates = rates.filter(
-    //       r =>
-    //         (r.delivery_type &&
-    //           r.delivery_type.id === this.form.delivery_type) ||
-    //         r.delivery_type === null
-    //     );
-    //     if (rates.length > 1) {
-    //       rates = rates.filter(r => r.route !== null);
-    //     }
-    //     if (rates.length === 0) {
-    //       this.$buefy.snackbar.open({
-    //         message: "Error. No s'ha trobat cap tarifa per aquesta ruta",
-    //         queue: false
-    //       });
-    //     } else if (rates.length > 1) {
-    //       this.$buefy.snackbar.open({
-    //         message: "Error. S'ha trobat més d'una tarifa per aquesta ruta",
-    //         queue: false
-    //       });
-
-    //       console.warn("rates!!!", rates);
-
-    //       this.form.route_rate = rates[0];
-    //     } else {
-    //       this.form.route_rate = rates[0];
-    //     }
-    //   }
-    // },
     removeContactData() {
       console.log("removeContactData");
       this.form.contact = null;
@@ -1056,64 +1177,35 @@ export default {
       this.form.contact_postcode = "";
       this.form.contact_city = "";
       this.form.contact_phone = "";
+      this.form.contact_legal_form = null;
       this.form.contact_time_slot_1_ini = null;
       this.form.contact_time_slot_1_end = null;
       this.form.contact_time_slot_2_ini = null;
       this.form.contact_time_slot_2_end = null;
+      this.contactSearch = "";
     },
-    async onClientaChange(e) {
+    async onClientaChange(id) {
       // console.log("onClientaChange", e.target.value);
       // this.form.contact = e.target.value;
-      const contact = this.contacts.find(
-        c => c.id.toString() === e.target.value.toString()
-      );
-      if (
-        !this.form.contact_name ||
-        (this.form.contact_name && this.form.contact_name.trim() === "")
-      ) {
+      if (id) {
+        const contact = this.contacts.find(
+          c => c.id.toString() === id.toString()
+        );
+
         this.form.contact_name = contact.name;
-      }
-      if (
-        !this.form.contact_nif ||
-        (this.form.contact_nif && this.form.contact_nif.trim() === "")
-      ) {
         this.form.contact_nif = contact.nif;
-      }
-      if (
-        !this.form.contact_address ||
-        (this.form.contact_address && this.form.contact_address.trim() === "")
-      ) {
         this.form.contact_address = contact.address;
-      }
-      if (
-        !this.form.contact_postcode ||
-        (this.form.contact_postcode && this.form.contact_postcode.trim() === "")
-      ) {
         this.form.contact_postcode = contact.postcode;
-      }
-      if (
-        !this.form.contact_city ||
-        (this.form.contact_city && this.form.contact_city.trim() === "")
-      ) {
         this.form.contact_city = contact.city;
-      }
-      if (
-        !this.form.contact_phone ||
-        (this.form.contact_phone && this.form.contact_phone.trim() === "")
-      ) {
         this.form.contact_phone = contact.phone;
-      }
-      if (!this.form.contact_time_slot_1_ini) {
+        this.form.contact_legal_form = contact.legal_form ? contact.legal_form.id : 1;
         this.form.contact_time_slot_1_ini = contact.time_slot_1_ini;
-      }
-      if (!this.form.contact_time_slot_1_end) {
         this.form.contact_time_slot_1_end = contact.time_slot_1_end;
-      }
-      if (!this.form.contact_time_slot_2_ini) {
         this.form.contact_time_slot_2_ini = contact.time_slot_2_ini;
-      }
-      if (!this.form.contact_time_slot_2_end) {
         this.form.contact_time_slot_2_end = contact.time_slot_2_end;
+
+      } else {
+        this.removeContactData();
       }
     }
   }

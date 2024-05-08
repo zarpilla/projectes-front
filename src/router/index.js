@@ -452,7 +452,7 @@ const routes = [
   },
   {
     meta: {
-      title: 'Contactes personals'
+      title: 'Clientes'
     },
     path: '/user-contacts',
     name: 'user-contacts.view',

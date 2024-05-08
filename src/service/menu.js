@@ -76,7 +76,7 @@ const menu = [
       {
         to: '/user-contacts',
         icon: 'account-box',
-        label: 'Contactes',
+        label: 'Clientes',
         permission: 'orders'
       },
       {
@@ -91,7 +91,7 @@ const menu = [
       {
         to: '/user-contacts',
         icon: 'account-box',
-        label: 'Contactes',
+        label: 'Clientes',
         permission: 'orders_admin'
       },
       {

@@ -127,7 +127,6 @@ export default {
       usersList: [],
       modalObjectName: '',
       userNameSearch: '',
-      projectNameSearch: '',
       scopes: [],
       states: [],
       leaders: [],

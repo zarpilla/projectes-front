@@ -161,19 +161,40 @@
     <!-- <pre>{{ theOrders }}</pre> -->
 
     <div v-if="permissions.includes('orders_admin')" class="mb-3">
-      <h2>CANVIAR ESTAT</h2>
       <div class="is-flex">
-      <b-select v-model="newState" placeholder="">
-        <option value="pending">PENDENT</option>
-        <option value="processed">PROCESSADA</option>
-        <option value="delivered">LLIURADA</option>
-        <!-- <option value="invoiced">FACTURADA</option> -->
-        <option value="cancelled">ANUL·LADA</option>
-      </b-select>
-      <button
-        class="button is-danger ml-3" :disabled="!newState || !checkedRows.length"
-        @click="setBulkState">CANVIAR ESTAT</button>
+        <div>
+        <h2>CANVIAR ESTAT</h2>
+      <div class="is-flex">
+        <b-select v-model="newState" placeholder="">
+          <option value="pending">PENDENT</option>
+          <option value="processed">PROCESSADA</option>
+          <option value="delivered">LLIURADA</option>
+          <!-- <option value="invoiced">FACTURADA</option> -->
+          <option value="cancelled">ANUL·LADA</option>
+        </b-select>
+        <button
+          class="button is-danger ml-3"
+          :disabled="!newState || !checkedRows.length"
+          @click="setBulkState"
+        >
+          CANVIAR ESTAT
+        </button>
+      </div>
     </div>
+    <div class="ml-6" v-if="'delivered' == statusFilter">
+      <h2 class="pr-2">FACTURAR</h2>
+      <div class="is-flex">        
+        <button
+          class="button is-danger zml-3"
+          :disabled="!checkedRows.length"
+          @click="invoiceOrders"
+        >
+        FACTURAR
+        </button>
+      </div>
+    </div>
+      </div>
+      
     </div>
 
     <b-table
@@ -212,8 +233,29 @@
       <b-table-column label="Ruta" field="route.name" sortable v-slot="props">
         {{ props.row.route.name }}
       </b-table-column>
-      <b-table-column label="Data" field="route_date" sortable v-slot="props">
+      <b-table-column
+        label="Data com."
+        field="route_date"
+        sortable
+        v-slot="props"
+      >
         {{ props.row.route_date }}
+      </b-table-column>
+      <b-table-column
+        label="Data est."
+        field="estimated_delivery_date"
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.estimated_delivery_date }}
+      </b-table-column>
+      <b-table-column
+        label="Data lli."
+        field="delivery_date"
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.delivery_date }}
       </b-table-column>
       <b-table-column
         label="Clienta"
@@ -566,7 +608,7 @@ export default {
         users_permissions_user: this.me.id
       });
     },
-    uploaded(e) {      
+    uploaded(e) {
       console.log("uploaded", e);
       if (e.fileList && e.fileList[0]) {
         const file = e.fileList[0];
@@ -746,11 +788,14 @@ export default {
         // console.log("order", order);
         // console.log("routeRates", this.routeRates);
         // console.log("orders", this.orders);
-        
-        const orderWithRate = { ...order, route_rate: assignRouteRate(order, this.routeRates, this.orders) };
+
+        const orderWithRate = {
+          ...order,
+          route_rate: assignRouteRate(order, this.routeRates, this.orders)
+        };
         console.log("orderWithRate", orderWithRate);
         orderWithRate.price = orderWithRate.route_rate.price;
-        
+
         if (order.kilograms !== null && orderWithRate.route_rate) {
           const rate = orderWithRate.route_rate;
           if (order.kilograms < 15) {
@@ -939,16 +984,22 @@ export default {
     addressFormatted(address) {
       return '"' + address + '"';
     },
-    async setBulkState(){
+    async setBulkState() {
       this.importing = true;
       for await (const row of this.checkedRows) {
         await service({ requiresAuth: true }).put(`orders/${row.id}`, {
           status: this.newState
         });
-      }      
-      this.checkedRows = [];      
+      }
+      this.checkedRows = [];
       this.importing = false;
-      this.getData();          
+      this.getData();
+    },
+    invoiceOrders() {
+      this.$buefy.snackbar.open({
+          message: "Aquesta funcionalitat aviat estarà disponible!",
+          queue: false
+        });
     }
   }
 };
