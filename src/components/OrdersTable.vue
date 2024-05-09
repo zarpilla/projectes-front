@@ -489,7 +489,7 @@ export default {
         {
           route_name: "RUTA02-DC-GIRONAINTERIOR",
           owner_id: 0,
-          estimated_delivery_date: "20240215",
+          estimated_delivery_date: "",
           contact_name: "Queviures Font",
           contact_address: "Carrer de la font, 1",
           contact_postcode: "17001",
@@ -850,111 +850,12 @@ export default {
         }
       });
     },
-    // assignRouteRate(order) {
-    //   if (
-    //     !this.routeRates ||
-    //     this.routeRates.length === 0 ||
-    //     !order.route ||
-    //     !order.pickup ||
-    //     !order.delivery_type
-    //   ) {
-    //     return order;
-    //   }
-
-    //   console.log("order", order.route);
-    //   console.log("rates", this.routeRates);
-
-    //   let rates = this.routeRates.filter(
-    //     r =>
-    //       (r.route && order.route && r.route.id === order.route.id) ||
-    //       r.route === null
-    //   );
-    //   console.log("rates 0", rates);
-
-    //   //check if we have pending orders for this route and owner
-    //   console.log("order", order, order.pickup);
-    //   if (order.pickup && order.pickup.pickup) {
-    //     const pendingOrders = this.orders.filter(
-    //       o =>
-    //         o.route.id === order.route.id &&
-    //         o.owner.id === order.owner.id &&
-    //         o.status === "pending"
-    //     );
-    //     console.log("pendingOrders", pendingOrders);
-    //     if (pendingOrders.length > 0) {
-    //       // We have pending orders for this route and owner
-    //       // Add your logic here
-    //       console.log(
-    //         "We have pending orders for this route and owner, applying NO PICKUP",
-    //         pendingOrders
-    //       );
-
-    //       rates = rates.filter(
-    //         r =>
-    //           (r.pickup && order.pickup && r.pickup.id === 1) ||
-    //           r.pickup === null
-    //       );
-    //     } else {
-    //       // No pending orders for this route and owner
-    //       // Add your logic here
-    //       console.log("No pending orders for this route and owner");
-
-    //       rates = rates.filter(
-    //         r =>
-    //           (r.pickup && order.pickup && r.pickup.id === order.pickup.id) ||
-    //           r.pickup === null
-    //       );
-    //     }
-    //   } else {
-    //     rates = rates.filter(
-    //       r =>
-    //         (r.pickup && order.pickup && r.pickup.id === 1) || r.pickup === null
-    //     );
-    //   }
-
-    //   // rates = rates.filter(
-    //   //   r => (r.pickup && order.pickup && r.pickup.id === order.pickup.id) || r.pickup === null
-    //   // );
-    //   console.log("rates 1", rates);
-    //   rates = rates.filter(
-    //     r =>
-    //       (r.delivery_type &&
-    //         order.delivery_type &&
-    //         r.delivery_type.id === order.delivery_type.id) ||
-    //       r.delivery_type === null
-    //   );
-    //   console.log("rates 2", rates);
-    //   if (rates.length > 1) {
-    //     rates = rates.filter(r => r.route !== null);
-    //   }
-    //   console.log("rates 3", rates);
-    //   if (rates.length === 0) {
-    //     console.warn("no rates!", order);
-    //   } else if (rates.length > 1) {
-    //     console.warn("several rates!", order);
-    //     order.route_rate = rates[0];
-    //   } else {
-    //     order.route_rate = rates[0];
-    //   }
-
-    //   if (order.kilograms !== null && order.route_rate) {
-    //     const rate = order.route_rate;
-    //     if (order.kilograms < 15) {
-    //       order.price = rate.less15;
-    //     } else if (order.kilograms < 30) {
-    //       order.price = rate.less30;
-    //     } else {
-    //       order.price =
-    //         rate.less30 + (order.kilograms - 30) * rate.additional30;
-    //     }
-    //   } else {
-    //     console.warn("!order", order.kilograms, order.route_rate);
-    //   }
-
-    //   return order;
-    // },
     async createCSVOrder(order) {
       const _uuid = order._uuid;
+
+      if (order.estimated_delivery_date === "") {
+        delete order.estimated_delivery_date
+      }
       const { data } = await service({ requiresAuth: true }).post(
         "orders/csv",
         order
@@ -981,7 +882,6 @@ export default {
       if (order.contact && !order.time_slot_2_ini) {
         delete order.contact.time_slot_2_ini;
       }
-
       const orderToUpdate = this.orders.findIndex(
         o => o._uuid && o._uuid === _uuid
       );
