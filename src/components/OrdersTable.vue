@@ -398,12 +398,14 @@ export default {
       csvAlias: {
         route_name: "route_name",
         owner_id: "owner_id",
+        estimated_delivery_date: "estimated_delivery_date",
         contact_name: "contact_name",
         contact_address: "contact_address",
         contact_postcode: "contact_postcode",
         contact_city: "contact_city",
         contact_nif: "contact_nif",
         contact_phone: "contact_phone",
+        contact_legal_form: "contact_legal_form",
         contact_time_slot_1_ini: "contact_time_slot_1_ini",
         contact_time_slot_1_end: "contact_time_slot_1_end",
         contact_time_slot_2_ini: "contact_time_slot_2_ini",
@@ -419,6 +421,7 @@ export default {
       csvFields: {
         route_name: "route_name",
         owner_id: "owner_id",
+        estimated_delivery_date: "estimated_delivery_date",
         contact_name: "contact_name",
         contact_address: {
           field: "contact_address",
@@ -430,10 +433,11 @@ export default {
         contact_city: "contact_city",
         contact_nif: "contact_nif",
         contact_phone: "contact_phone",
+        contact_legal_form: "contact_legal_form",
         contact_time_slot_1_ini: "contact_time_slot_1_ini",
         contact_time_slot_1_end: "contact_time_slot_1_end",
         contact_time_slot_2_ini: "contact_time_slot_2_ini",
-        contact_time_slot_2_end: "contact_time_slot_2_end",
+        contact_time_slot_2_end: "contact_time_slot_2_end",        
         units: "units",
         kilograms: "kilograms",
         refrigerated: {
@@ -462,12 +466,14 @@ export default {
         {
           route_name: "RUTA01-DT-MARESME",
           owner_id: 0,
+          estimated_delivery_date: "20240215",
           contact_name: "Joan Garriga",
           contact_address: "Carrer de l'amargura 17",
           contact_postcode: "08001",
           contact_city: "Mataró",
           contact_nif: "000000001A",
           contact_phone: "93 123 45 67",
+          contact_legal_form: "2",
           contact_time_slot_1_ini: "9",
           contact_time_slot_1_end: "12",
           contact_time_slot_2_ini: "16",
@@ -483,14 +489,16 @@ export default {
         {
           route_name: "RUTA02-DC-GIRONAINTERIOR",
           owner_id: 0,
-          contact_name: "Anna Garriga",
+          estimated_delivery_date: "20240215",
+          contact_name: "Queviures Font",
           contact_address: "Carrer de la font, 1",
           contact_postcode: "17001",
           contact_city: "Girona",
-          contact_nif: "000000002A",
-          contact_phone: "93 123 45 67",
+          contact_nif: "000000002B",
+          contact_phone: "93 123 45 76",
+          contact_legal_form: "1",
           contact_time_slot_1_ini: "10",
-          contact_time_slot_1_end: "11",
+          contact_time_slot_1_end: "15",
           contact_time_slot_2_ini: "16",
           contact_time_slot_2_end: "19",
           units: 1,
@@ -733,12 +741,14 @@ export default {
         const order = {
           id: 0,
           route_date: new Date().toISOString().split("T")[0],
+          estimated_delivery_date: record.estimated_delivery_date ?? null,
           contact_address: record.contact_address,
           contact_name: record.contact_name,
           contact_phone: record.contact_phone,
           contact_postcode: record.contact_postcode,
           contact_nif: record.contact_nif,
           contact_city: record.contact_city,
+          contact_legal_form: record.contact_legal_form,
           contact_time_slot_1_ini: record.contact_time_slot_1_ini ?? null,
           contact_time_slot_1_end: record.contact_time_slot_1_end ?? null,
           contact_time_slot_2_ini: record.contact_time_slot_2_ini ?? null,
@@ -784,7 +794,7 @@ export default {
           _uuid: this.createUUID()
         };
 
-        console.log("assignRouteRate");
+        // console.log("assignRouteRate");
         // console.log("order", order);
         // console.log("routeRates", this.routeRates);
         // console.log("orders", this.orders);
@@ -793,7 +803,6 @@ export default {
           ...order,
           route_rate: assignRouteRate(order, this.routeRates, this.orders)
         };
-        console.log("orderWithRate", orderWithRate);
         orderWithRate.price = orderWithRate.route_rate.price;
 
         if (order.kilograms !== null && orderWithRate.route_rate) {

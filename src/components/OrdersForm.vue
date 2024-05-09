@@ -729,6 +729,7 @@ export default {
       return {
         id: null,
         route_date: new Date(),
+        estimated_delivery_date: new Date(),
         delivery_date: null,
         status: "pending",
         owner: null,
@@ -775,6 +776,13 @@ export default {
               if (this.form.delivery_date) {
                 this.form.delivery_date = moment(
                   this.form.delivery_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
+
+              if (this.form.estimated_delivery_date) {
+                this.form.estimated_delivery_date = moment(
+                  this.form.estimated_delivery_date,
                   "YYYY-MM-DD"
                 ).toDate();
               }
