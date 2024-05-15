@@ -5,15 +5,20 @@
       <div class="columns">
         <div class="column is-full">
           <card-component class="tile is-child">
-
-            <b-message v-if="firstStatus !== 'pending'"
-            title="Comanda ja procesada" 
-            type="is-warning" >
-            <span v-if="!canEdit">Si hi ha algun canvi d'última hora, contacta si us plau amb La Diligència.</span>
-            <span v-else>Atenció amb els canvis, doncs podria afectar a entregues ja fetes o a factures emeses.</span>
-             
-        </b-message>
-
+            <b-message
+              v-if="firstStatus !== 'pending'"
+              title="Comanda ja procesada"
+              type="is-warning"
+            >
+              <span v-if="!canEdit"
+                >Si hi ha algun canvi d'última hora, contacta si us plau amb La
+                Diligència.</span
+              >
+              <span v-else
+                >Atenció amb els canvis, doncs podria afectar a entregues ja
+                fetes o a factures emeses.</span
+              >
+            </b-message>
 
             <form @submit.prevent="submit(false)" v-if="!isLoading">
               <b-field
@@ -210,22 +215,30 @@
                   >
                   </b-button>
                 </div>-->
-              </b-field> 
+              </b-field>
 
-              <b-field label="Nom *" horizontal
-              :type="{ 'is-danger': errors['contact_name'] && submitted }">
+              <b-field
+                label="Nom *"
+                horizontal
+                :type="{ 'is-danger': errors['contact_name'] && submitted }"
+              >
                 <b-input v-model="form.contact_name" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="NIF *" horizontal
-              :type="{ 'is-danger': errors['contact_nif'] && submitted }">
+              <b-field
+                label="NIF *"
+                horizontal
+                :type="{ 'is-danger': errors['contact_nif'] && submitted }"
+              >
                 <b-input v-model="form.contact_nif" :disabled="!canEdit" />
               </b-field>
-              
+
               <b-field
                 label="Forma jurídica *"
                 horizontal
-                :type="{ 'is-danger': errors['contact_legal_form'] && submitted }"
+                :type="{
+                  'is-danger': errors['contact_legal_form'] && submitted
+                }"
                 message="Per empresa entenem que no és client final sinó restauració, botigues, etc."
               >
                 <div class="is-flex">
@@ -245,22 +258,35 @@
                 </div>
               </b-field>
 
-              <b-field label="Adreça *" horizontal 
-              :type="{ 'is-danger': errors['contact_address'] && submitted }">
+              <b-field
+                label="Adreça *"
+                horizontal
+                :type="{ 'is-danger': errors['contact_address'] && submitted }"
+              >
                 <b-input v-model="form.contact_address" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="CP *" horizontal :type="{ 'is-danger': errors['contact_postcode'] && submitted }">
+              <b-field
+                label="CP *"
+                horizontal
+                :type="{ 'is-danger': errors['contact_postcode'] && submitted }"
+              >
                 <b-input v-model="form.contact_postcode" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="Localitat *" horizontal
-              :type="{ 'is-danger': errors['contact_city'] && submitted }">
+              <b-field
+                label="Localitat *"
+                horizontal
+                :type="{ 'is-danger': errors['contact_city'] && submitted }"
+              >
                 <b-input v-model="form.contact_city" :disabled="!canEdit" />
               </b-field>
 
-              <b-field label="Telèfon *" horizontal
-              :type="{ 'is-danger': errors['contact_phone'] && submitted }">
+              <b-field
+                label="Telèfon *"
+                horizontal
+                :type="{ 'is-danger': errors['contact_phone'] && submitted }"
+              >
                 <b-input v-model="form.contact_phone" :disabled="!canEdit" />
               </b-field>
 
@@ -333,16 +359,13 @@
                   </b-select>
                 </b-field>
 
-
-              <b-button
-                    :disabled="!canEdit"
-                    class="view-button is-primary zmb-3"
-                    @click="saveClient"                    
-                    title="Guardar "
+                <b-button
+                  :disabled="!canEdit"
+                  class="view-button is-primary zmb-3"
+                  @click="saveClient"
+                  title="Guardar "
                   >Guardar Clienta
-                  </b-button>
-
-
+                </b-button>
               </b-field>
 
               <hr />
@@ -604,13 +627,21 @@ export default {
         delivery_type: this.form.delivery_type === null,
         pickup: this.form.pickup == null,
         units: this.form.units === null || this.form.units <= 0,
-        contact_name: this.form.contact_name === null || this.form.contact_name === "",
-        contact_nif: this.form.contact_nif === null || this.form.contact_nif === "",
+        contact_name:
+          this.form.contact_name === null || this.form.contact_name === "",
+        contact_nif:
+          this.form.contact_nif === null || this.form.contact_nif === "",
         contact_legal_form: this.form.contact_legal_form === null,
-        contact_address: this.form.contact_address === null || this.form.contact_address === "",
-        contact_postcode: this.form.contact_postcode === null || this.form.contact_postcode === "",
-        contact_city: this.form.contact_city === null || this.form.contact_city === "",
-        contact_phone: this.form.contact_phone === null || this.form.contact_phone === "",        
+        contact_address:
+          this.form.contact_address === null ||
+          this.form.contact_address === "",
+        contact_postcode:
+          this.form.contact_postcode === null ||
+          this.form.contact_postcode === "",
+        contact_city:
+          this.form.contact_city === null || this.form.contact_city === "",
+        contact_phone:
+          this.form.contact_phone === null || this.form.contact_phone === "",
         kilograms:
           this.form.kilograms === null ||
           this.form.kilograms === "" ||
@@ -702,9 +733,8 @@ export default {
           option.name
             .toString()
             .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0
-            || 
-            option.id
+            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
+          option.id
             .toString()
             .toLowerCase()
             .indexOf(this.contactSearch.toLowerCase()) >= 0
@@ -806,9 +836,7 @@ export default {
 
               await this.refreshClients(this.form.owner);
 
-              const c = this.contacts.find(
-                c => c.id === this.form.contact
-              )
+              const c = this.contacts.find(c => c.id === this.form.contact);
               this.contactSearch = `${this.form.contact} - ${c.name}`;
 
               if (this.form.contact_legal_form) {
@@ -840,7 +868,7 @@ export default {
         this.form.pickup = this.pickups[0].id;
 
         await this.refreshClients(me.data.id);
-        
+
         console.log("this.contacts", this.contacts);
 
         // this.contacts.unshift({ id: 0, name: '--' })
@@ -910,7 +938,9 @@ export default {
         )
       ).data;
 
-      this.legalForms = (await service({ requiresAuth: true }).get("legal-forms")).data
+      this.legalForms = (
+        await service({ requiresAuth: true }).get("legal-forms")
+      ).data;
     },
     async changeOwner() {
       this.refreshClients(this.form.owner);
@@ -968,7 +998,8 @@ export default {
           ) {
             this.$buefy.snackbar.open({
               message: "Error. Falten alguns camps obligatòris",
-              queue: false
+              queue: false,
+              type: "is-danger"
             });
             this.isLoading = false;
             return;
@@ -999,7 +1030,8 @@ export default {
           ) {
             this.$buefy.snackbar.open({
               message: "Error. Falten alguns camps obligatòris",
-              queue: false
+              queue: false,
+              type: "is-danger"
             });
             this.isLoading = false;
             return;
@@ -1069,97 +1101,93 @@ export default {
     },
     async saveClient() {
       if (this.form.contact) {
-
-        if (
-            !this.form.contact_name ||
-            !this.form.contact_nif ||
-            !this.form.contact_address ||
-            !this.form.contact_phone ||            
-            !this.form.contact_city ||
-            !this.form.contact_postcode
-          ) {
-            this.$buefy.snackbar.open({
-              message:
-                "Error. Falten alguns camps obligatòris",
-              queue: false,
-            });
-            this.isLoading = false;
-            return;
-          }
-
-          await service({ requiresAuth: true }).put(
-            `contacts/${this.form.contact}`,
-            {
-              name: this.form.contact_name,
-              nif: this.form.contact_nif,
-              address: this.form.contact_address,
-              postcode: this.form.contact_postcode,
-              city: this.form.contact_city,
-              phone: this.form.contact_phone,
-              time_slot_1_ini: this.form.contact_time_slot_1_ini,
-              time_slot_1_end: this.form.contact_time_slot_1_end,
-              time_slot_2_ini: this.form.contact_time_slot_2_ini,
-              time_slot_2_end: this.form.contact_time_slot_2_end,             
-              owner: this.form.owner,
-              legal_form: this.form.contact_legal_form
-            }
-          );
-
-          this.$buefy.snackbar.open({
-            message: "Clienta Guardada",
-            queue: false
-          });
-          await this.refreshClients(this.form.owner);
-          this.contactSearch = `${this.form.contact} - ${this.form.contact_name}`;
-          // this.contactSearch = `${this.form.contact_name}`;
-
-      } else {
-        
         if (
           !this.form.contact_name ||
-            !this.form.contact_nif ||
-            !this.form.contact_address ||
-            !this.form.contact_phone ||            
-            !this.form.contact_city ||
-            !this.form.contact_postcode
-          ) {
-            this.$buefy.snackbar.open({
-              message:
-              "Error. Falten alguns camps obligatòris",
-              queue: false,
-            });
-            this.isLoading = false;
-            return;
-          }
-
-          const newContact = await service({ requiresAuth: true }).post(
-            'contacts',
-            {
-              name: this.form.contact_name,
-              nif: this.form.contact_nif,
-              address: this.form.contact_address,
-              postcode: this.form.contact_postcode,
-              city: this.form.contact_city,
-              phone: this.form.contact_phone,
-              time_slot_1_ini: this.form.contact_time_slot_1_ini,
-              time_slot_1_end: this.form.contact_time_slot_1_end,
-              time_slot_2_ini: this.form.contact_time_slot_2_ini,
-              time_slot_2_end: this.form.contact_time_slot_2_end,             
-              owner: this.form.owner,
-              legal_form: this.form.contact_legal_form
-            }
-          );
-          this.form.contact = newContact.data.id;
-
+          !this.form.contact_nif ||
+          !this.form.contact_address ||
+          !this.form.contact_phone ||
+          !this.form.contact_city ||
+          !this.form.contact_postcode
+        ) {
           this.$buefy.snackbar.open({
-            message: "Clienta Guardada",
-            queue: false
+            message: "Error. Falten alguns camps obligatòris",
+            queue: false,
+            type: "is-danger"
           });
-          await this.refreshClients(this.form.owner);
-          this.contactSearch = `${newContact.data.id} - ${newContact.data.name}`;          
-          this.form.contact_name = newContact.data.name;
-      }
+          this.isLoading = false;
+          return;
+        }
 
+        await service({ requiresAuth: true }).put(
+          `contacts/${this.form.contact}`,
+          {
+            name: this.form.contact_name,
+            nif: this.form.contact_nif,
+            address: this.form.contact_address,
+            postcode: this.form.contact_postcode,
+            city: this.form.contact_city,
+            phone: this.form.contact_phone,
+            time_slot_1_ini: this.form.contact_time_slot_1_ini,
+            time_slot_1_end: this.form.contact_time_slot_1_end,
+            time_slot_2_ini: this.form.contact_time_slot_2_ini,
+            time_slot_2_end: this.form.contact_time_slot_2_end,
+            owner: this.form.owner,
+            legal_form: this.form.contact_legal_form
+          }
+        );
+
+        this.$buefy.snackbar.open({
+          message: "Clienta Guardada",
+          queue: false
+        });
+        await this.refreshClients(this.form.owner);
+        this.contactSearch = `${this.form.contact} - ${this.form.contact_name}`;
+        // this.contactSearch = `${this.form.contact_name}`;
+      } else {
+        if (
+          !this.form.contact_name ||
+          !this.form.contact_nif ||
+          !this.form.contact_address ||
+          !this.form.contact_phone ||
+          !this.form.contact_city ||
+          !this.form.contact_postcode
+        ) {
+          this.$buefy.snackbar.open({
+            message: "Error. Falten alguns camps obligatòris",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        const newContact = await service({ requiresAuth: true }).post(
+          "contacts",
+          {
+            name: this.form.contact_name,
+            nif: this.form.contact_nif,
+            address: this.form.contact_address,
+            postcode: this.form.contact_postcode,
+            city: this.form.contact_city,
+            phone: this.form.contact_phone,
+            time_slot_1_ini: this.form.contact_time_slot_1_ini,
+            time_slot_1_end: this.form.contact_time_slot_1_end,
+            time_slot_2_ini: this.form.contact_time_slot_2_ini,
+            time_slot_2_end: this.form.contact_time_slot_2_end,
+            owner: this.form.owner,
+            legal_form: this.form.contact_legal_form
+          }
+        );
+        this.form.contact = newContact.data.id;
+
+        this.$buefy.snackbar.open({
+          message: "Clienta Guardada",
+          queue: false
+        });
+        await this.refreshClients(this.form.owner);
+        this.contactSearch = `${newContact.data.id} - ${newContact.data.name}`;
+        this.form.contact_name = newContact.data.name;
+      }
     },
     navNew() {
       let routeData = this.$router.resolve({
@@ -1174,12 +1202,13 @@ export default {
         await service({ requiresAuth: true, cached: false }).get(
           `contacts/basic?_limit=-1&_where[owner]=${owner}`
         )
-      ).data.map(c => { return { ...c, display: `${c.id} - ${c.name}`}});;
+      ).data.map(c => {
+        return { ...c, display: `${c.id} - ${c.name}` };
+      });
 
       if (!this.contacts.find(c => c.id === 0)) {
         // this.contacts = concat({ id: 0, name: "--" }, this.contacts);
       }
-      
     },
 
     removeContactData() {
@@ -1212,12 +1241,13 @@ export default {
         this.form.contact_postcode = contact.postcode;
         this.form.contact_city = contact.city;
         this.form.contact_phone = contact.phone;
-        this.form.contact_legal_form = contact.legal_form ? contact.legal_form.id : 1;
+        this.form.contact_legal_form = contact.legal_form
+          ? contact.legal_form.id
+          : 1;
         this.form.contact_time_slot_1_ini = contact.time_slot_1_ini;
         this.form.contact_time_slot_1_end = contact.time_slot_1_end;
         this.form.contact_time_slot_2_ini = contact.time_slot_2_ini;
         this.form.contact_time_slot_2_end = contact.time_slot_2_end;
-
       } else {
         this.removeContactData();
       }
