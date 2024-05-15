@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.05.15">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Possibilitat de visualització de <router-link to="/tresoreria">tresoreria</router-link> per anys.
+          </div>          
+        </div>
+      </card-component> 
       <card-component title="2024.05.06">
         <div class="item mb-4">
           <span class="tag is-danger">Correccions</span>

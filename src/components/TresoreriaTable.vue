@@ -6,6 +6,8 @@
       @submit="modalSubmit"
       @cancel="modalCancel"
     />
+
+    <div class="is-flex">
     <download-excel
       class="export view-button"
       :data="pivotData"
@@ -18,6 +20,11 @@
         icon-left="file-excel"
       />
     </download-excel>
+
+    <button class="button is-primary mr-3" v-for="year in years" :key="year.year" @click="goToYear(year.year)">
+    {{ year.year }}
+    </button>
+    </div>
 
     <!-- <pre>{{ treasuryData }}</pre> -->
 
@@ -597,6 +604,10 @@ export default {
       if (this.$route.query.filter) {
         filter = this.$route.query.filter;
       }
+
+      this.years = await service({ requiresAuth: true, cached: true }).get("years?_sort=year:DESC").then((r) => r.data);
+
+
       const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
       const treasuryData = await getTreasuryData(filter, year);      
       this.vat = treasuryData.vat;
@@ -716,6 +727,10 @@ export default {
     },
     toogleView() {
       this.view = this.view === "today" ? "startOfYear" : "today";
+      this.getData();
+    },
+    goToYear(year) {
+      this.$router.push({ query: { year } });
       this.getData();
     },
   },

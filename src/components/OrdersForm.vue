@@ -578,12 +578,18 @@ export default {
           this.form.status !== "cancelled" &&
           this.permissions.includes("orders_admin")) ||
         (this.form.status === "pending" &&
-          !this.permissions.includes("orders_admin")) ||
-        !this.form.id
+          !this.permissions.includes("orders_admin"))
       );
     },
     canEdit() {
-      return this.canCancel;
+      return (
+        (this.form.id &&
+          this.form.status !== "cancelled" &&
+          this.permissions.includes("orders_admin")) ||
+        (this.form.status === "pending" &&
+          !this.permissions.includes("orders_admin")) ||
+        !this.form.id
+      );
     },
     canChangeRate() {
       // console.log('this.form.status', this.form.status)
