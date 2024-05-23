@@ -191,11 +191,11 @@ export default {
         };
         let parentId = phase.id;
         if (!this.showSubPhases) {
-          task._subphase = phase.subphases[0];
+          task._subphase = phase.incomes[0];
         }
         this.tasks.data.push(task);
-        for (let j = 0; j < phase.subphases.length; j++) {
-          const subphase = phase.subphases[j];
+        for (let j = 0; j < phase.incomes.length; j++) {
+          const subphase = phase.incomes[j];
           if (!subphase.estimated_hours) {
             subphase.estimated_hours = [];
           }
@@ -211,7 +211,7 @@ export default {
             _phase: phase,
             _subphase: subphase,
           };
-          if (this.showSubPhases && phase.subphases.length) {
+          if (this.showSubPhases && phase.incomes.length) {
             this.tasks.data.push(subTask);
             parentId = 9999 + subphase.id;
           }
@@ -505,8 +505,7 @@ export default {
       } else if (tasksInRow.length > 1) {
         const ph =
           this.project.original_phases[this.project.original_phases.length - 1];
-        // const sph = ph.subphases[ph.subphases.length - 1];
-        // console.log('sph', sph)
+        
         var projects = tasksInRow.filter((t) => t.type === "project");
         currentTask = projects[projects.length - 1];
         if (!currentTask) {
