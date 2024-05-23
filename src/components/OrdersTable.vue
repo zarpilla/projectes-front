@@ -32,9 +32,10 @@
     </div>
 
     <div class="is-flex">
+      Exportar comandes:
       <download-excel
         class="export"
-        :data="theOrders"
+        :data="theOrdersChecked"
         type="csv"
         :escapeCsv="false"
         name="comandes.csv"
@@ -46,10 +47,27 @@
       >
         <b-button
           title="Descarrega les dades de les teves comandes"
-          class="export-button mt-0 mb-3"
+          class="export-button mt-0 ml-1 mb-3"
           icon-left="download"
         />
       </download-excel>
+      Ecologística:
+      <download-excel
+        class="export"
+        :data="theOrdersChecked"
+        name="ecologistica.xlsx"
+        :fields="{          
+          ...csvEcologistica
+        }"
+      >
+        <b-button
+          title="Descarrega les dades de les teves comandes en format per a Ecologística"
+          class="export-button mt-0 ml-1 mb-3"
+          icon-left="download"
+        />
+      </download-excel>
+
+      Exemple de fitxer CSV:
       <download-excel
         class="export"
         :data="csvExample"
@@ -60,7 +78,7 @@
       >
         <b-button
           title="Descarrega exemple de fitxer CSV de comandes"
-          class="export-button mt-0 mb-3"
+          class="export-button mt-0 ml-1 mb-3"
           icon-left="file-delimited"
         />
       </download-excel>
@@ -485,6 +503,68 @@ export default {
           }
         }
       },
+      csvEcologistica: {
+        "pickup.address": {
+          field: "contact_address",
+          callback: value => {
+            return "";
+          }
+        },
+        "pickup.address.description": {
+          field: "contact_address",
+          callback: value => {
+            return "";
+          }
+        },
+        "pickup.address.name": {
+          field: "contact_address",
+          callback: value => {
+            return "La Diligència";
+          }
+        },
+        "pickup.address.telephone": {
+          field: "contact_address",
+          callback: value => {
+            return "";
+          }
+        },
+        "pickup.comments": {
+          field: "comments",
+          callback: value => {
+            return "";
+          }
+        },
+        "pickup.timeslot": {
+          field: "comments",
+          callback: value => {
+            return "?";
+          }
+        },
+        "dropoff.address": {
+          field: "contact_address",
+          callback: value => {
+            return this.addressFormatted(value);
+          }
+        },
+        "dropoff.address.description": "contact_legal_form.name",
+        "dropoff.address.name": "contact_name",
+        "dropoff.address.telephone": "contact_phone",
+        "dropoff.comments": {
+          field: "comments",
+          callback: value => {
+            return this.addressFormatted(value);;
+          }
+        },
+        "dropoff.timeslot": {
+          field: "timeslot1",
+          callback: value => {
+            return `${value}`;
+          }
+        },
+        "weight": "kilograms",
+        "packages": "units",
+        "CP": "contact_postcode",
+      },
       csvExample: [
         {
           route_name: "RUTA01-DT-MARESME",
@@ -554,6 +634,9 @@ export default {
           return o && o.route && o.route.name === this.routeFilter;
         }
       });
+    },
+    theOrdersChecked() {
+      return this.checkedRows.length ? this.theOrders.filter(o => this.checkedRows.map(c => c.id).includes(o.id)) : this.theOrders;
     }
   },
   async created() {
@@ -628,7 +711,7 @@ export default {
       ).data;
 
       this.orders = this.orders.map(o => {
-        return { ...o, route_name: o.route.name, owner_id: o.owner.id };
+        return { ...o, route_name: o.route.name, owner_id: o.owner.id, timeslot1: `${o.estimated_delivery_date} ${o.contact_time_slot_1_ini}:00 - ${o.estimated_delivery_date} ${o.contact_time_slot_1_end}:00`, timeslot2: `${o.estimated_delivery_date} ${o.contact_time_slot_2_ini}:00 -${o.estimated_delivery_date} ${o.contact_time_slot_2_end}:00` };
       });
 
       this.contactsCSV = this.orders;
