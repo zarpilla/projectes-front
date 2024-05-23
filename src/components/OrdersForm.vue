@@ -69,9 +69,9 @@
                 horizontal
                 message="Estat actual de la comanda"
               >
-                <div class="is-flex">
+                <div class=" is-flex-desktop ">
                   <button
-                    class="button mr-2"
+                    class="button mr-2 mb-2"
                     type="button"
                     v-for="(s, index) in statuses"
                     :class="{
@@ -502,6 +502,15 @@
                   >Guardar i sortir</b-button
                 >
 
+
+                <b-button
+                  type="is-primary"
+                  :loading="isLoading"
+                  @click="getPDF"
+                  v-if="form.id"
+                  >Albarà (PDF)</b-button
+                >
+
                 <b-button type="is-warning" :loading="isLoading" @click="exit"
                   >Sortir</b-button
                 >
@@ -514,6 +523,8 @@
                   >Anul·lar Comanda</b-button
                 >
               </b-field>
+
+
             </form>
           </card-component>
         </div>
@@ -575,7 +586,8 @@ export default {
       legalForms: [],
       contact_time_slots: Array.from({ length: 24 }, (_, i) => i),
       routeRates: [],
-      contactSearch: ""
+      contactSearch: "",
+      apiUrl: process.env.VUE_APP_API_URL,
     };
   },
   computed: {
@@ -1252,7 +1264,16 @@ export default {
       } else {
         this.removeContactData();
       }
+    },
+    async getPDF() {
+      const pdf = (
+        await service({ requiresAuth: true }).get(
+          `/orders/pdf/${this.form.id}`
+        )
+      ).data;
+      window.open(this.apiUrl + pdf.url);
     }
+    
   }
 };
 </script>
@@ -1282,6 +1303,9 @@ export default {
 }
 .line-notes .control {
   width: 50%;
+}
+@media screen and (max-width: 1024px) {
+  .line-notes .control {width: 100%;}  
 }
 .line-notes textarea {
   width: 100%;

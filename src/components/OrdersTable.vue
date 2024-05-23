@@ -928,12 +928,10 @@ export default {
       this.getData();
     },
     async invoiceOrders() {
-      // this.$buefy.snackbar.open({
-      //     message: "Aquesta funcionalitat aviat estarà disponible!",
-      //     queue: false
-      //   });
       
-      const response = await service({ requiresAuth: true }).post("orders/invoice", {
+      this.importing = true;
+      
+      await service({ requiresAuth: true }).post("orders/invoice", {
         orders: this.checkedRows.map(o => o.id)
       }).catch(error => {
         console.error(error)
@@ -944,6 +942,8 @@ export default {
           });
         }
       });
+
+      this.importing = false;
 
       this.checkedRows = [];
       this.getData();
