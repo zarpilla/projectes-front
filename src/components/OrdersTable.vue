@@ -181,6 +181,7 @@
           <option value="pending">PENDENT</option>
           <option value="processed">PROCESSADA</option>
           <option value="delivered">LLIURADA</option>
+          <option value="distributing">EN REPARTIMENT</option>
           <!-- <option value="invoiced">FACTURADA</option> -->
           <option value="cancelled">ANUL·LADA</option>
         </b-select>
@@ -342,6 +343,16 @@
           v-else-if="props.row.status === 'processed'"
           class="tag is-warning"
           >PROCESSADA</span
+        >
+        <span
+          v-else-if="props.row.status === 'distributing'"
+          class="tag is-info"
+          >EN REPARTIMENT</span
+        >
+        <span
+          v-else-if="props.row.status === 'cancelled'"
+          class="tag is-danger"
+          >ANUL·LADA</span
         >
         <span v-else class="tag is-info">{{ props.row.status }}</span>
       </b-table-column>
