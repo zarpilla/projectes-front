@@ -547,8 +547,8 @@ export default {
             if (project.phases) {
               const invoiceAssigned = project.phases.find(
                 (p) =>
-                  p.subphases &&
-                  p.subphases.find(
+                  p.incomes &&
+                  p.subphaincomesses.find(
                     (e) => e.invoice && e.invoice.id === invoice.id
                   )
               );
@@ -569,8 +569,8 @@ export default {
             if (project.phases) {
               const invoiceAssigned = project.phases.find(
                 (p) =>
-                  p.subphases &&
-                  p.subphases.find(
+                  p.incomes &&
+                  p.incomes.find(
                     (e) => e.income && e.income.id === invoice.id
                   )
               );

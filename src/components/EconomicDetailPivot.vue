@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div id="project-despeses"></div>
+    <div id="project-despeses" class="mb-3"></div>
     <b-loading
       :is-full-page="true"
       v-model="isLoading"
@@ -45,6 +45,8 @@
         label="Descarrega totals per projecte"
       />
     </download-excel>
+
+    <!-- <pre>{{ pivotData }}</pre> -->
     <!-- <pre>
       {{ pivotDataGroupped }}
     </pre> -->
@@ -106,7 +108,9 @@ export default {
             (_.sumBy(rows, "expense_real") || 0) +
             (_.sumBy(rows, "total_real_hours_price") || 0),
           expense_esti: _.sumBy(rows, "expense_esti") || 0,
+          expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
           expense_real: _.sumBy(rows, "expense_real") || 0,
+          expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
           total_estimated_hours_price:
             _.sumBy(rows, "total_estimated_hours_price") || 0,
           total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0
@@ -141,7 +145,9 @@ export default {
             (_.sumBy(rows, "expense_real") || 0) +
             (_.sumBy(rows, "total_real_hours_price") || 0),
           expense_esti: _.sumBy(rows, "expense_esti") || 0,
+          expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
           expense_real: _.sumBy(rows, "expense_real") || 0,
+          expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
           total_estimated_hours_price:
             _.sumBy(rows, "total_estimated_hours_price") || 0,
           total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0
@@ -181,8 +187,20 @@ export default {
             return this.excelFormat(value);
           }
         },
+        expense_esti_vat: {
+          field: "expense_esti_vat",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         expense_real: {
           field: "expense_real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        expense_real_vat: {
+          field: "expense_real_vat",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -259,8 +277,20 @@ export default {
             return this.excelFormat(value);
           }
         },
+        "Despeses prev iva": {
+          field: "expense_esti_vat",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Despeses exec": {
           field: "expense_real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Despeses exec iva": {
+          field: "expense_real_vat",
           callback: value => {
             return this.excelFormat(value);
           }

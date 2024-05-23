@@ -109,10 +109,10 @@
               <b-field
                 label="Data estimada d'entrega"
                 horizontal
-                message="Data en la que la comanda s'hauria d'entregar"
+                message="Data en la que la comanda s'hauria d'entregar per si vols que s'entregui més endavant. Assegura't que coincideix amb el dia de la setmana de la ruta"
               >
                 <b-datepicker
-                  :disabled="!permissions.includes('orders_admin')"
+                  :disabled="!canEdit"
                   v-model="form.estimated_delivery_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -397,7 +397,7 @@
                 label="Recollida comanda *"
                 horizontal
                 :type="{ 'is-danger': errors['pickup'] && submitted }"
-                message="Si és el primer cop que ens demanes recollida en finca, contacta’ns abans per validar que hi podem passar"
+                message="Si és el primer cop que ens demanes recollida en finca, contacta’ns abans per validar que hi podem passar. La recollida en finca té un sobrecost de 7,5€ (normal) o 8€ (refrigerat) per viatge a la finca independentment del nombre de comandes recollides que s'aplicarà a posteriori a la factura"
               >
                 <div class="is-flex">
                   <button
@@ -565,11 +565,12 @@ export default {
       orders: [],
       firstStatus: "pending",
       statuses: [
-        { id: "pending", name: "Pendent" },
-        { id: "processed", name: "Processada" },
-        { id: "delivered", name: "Lliurada" },
-        { id: "invoiced", name: "Facturada" },
-        { id: "cancelled", name: "Cancelada" }
+        { id: "pending", name: "PENDENT" },
+        { id: "processed", name: "PROCESSADA" },
+        { id: "distributing", name: "EN REPARTIMENT" },
+        { id: "delivered", name: "LLIURADA" },
+        { id: "invoiced", name: "FACTURADA" },
+        { id: "cancelled", name: "CANCEL·LADA" }
       ],
       legalForms: [],
       contact_time_slots: Array.from({ length: 24 }, (_, i) => i),

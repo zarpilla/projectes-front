@@ -2009,7 +2009,7 @@ export default {
     treasuryDone() {
       const documents = [];
       this.form.phases.forEach(ph => {
-        ph.subphases.forEach(income => {
+        ph.incomes.forEach(income => {
           if (income.paid) {
             if (income.invoice) {
               documents.push({
@@ -2067,7 +2067,7 @@ export default {
     treasury() {
       const documents = [];
       this.form.phases.forEach(ph => {
-        ph.subphases.forEach(income => {
+        ph.incomes.forEach(income => {
           if (!income.paid || true) {
             documents.push({
               docType: "income",
@@ -2307,21 +2307,13 @@ export default {
                   delete expense.id;
                 }
                 this.form.phases[0].expenses = this.form.expenses;
-                // this.form.phases = this.form.phases.map(r => { return { ...r, total_amount: sumBy(r.subphases, x => x.quantity * x.amount) - sumBy(r.expenses, x => x.quantity * x.amount) } })
                 this.form.expenses = [];
-                // await this.submit()
               } else {
                 this.form.phases = this.form.phases.map(r => {
                   return { ...r, expenses: r.expenses || [] };
                 });
               }
 
-              // legacy, add original_phases dates
-              // if (this.form.phases && this.form.original_phases && this.form.phases.length && this.form.phases.length === this.form.original_phases.length) {
-              //   this.form.phases.forEach(p => {
-              //     p.subphases.forEach(sp => {
-              //   })
-              // }
 
               if (this.form.default_dedication_type === null) {
                 this.form.default_dedication_type = { id: 0 };
@@ -2578,8 +2570,8 @@ export default {
                   }
                 });
               }
-              if (ph && ph.subphases && ph.subphases.length) {
-                ph.subphases.forEach(e => {
+              if (ph && ph.incomes && ph.incomes.length) {
+                ph.incomes.forEach(e => {
                   if (e.invoice && !e.invoice.id) {
                     e.invoice = null;
                   }
@@ -2749,8 +2741,8 @@ export default {
       var subphase = item._subphase ? item._subphase : null;
       if (!item._subphase) {
         const phase = this.form.original_phases.find(p => p.id === pid);
-        phase.subphases.push({ concept: "SF", estimated_hours: [] });
-        subphase = phase.subphases[0];
+        phase.incomes.push({ concept: "SF", estimated_hours: [] });
+        subphase = phase.incomes[0];
       }
 
       const hours = subphase.estimated_hours.find(
@@ -2813,11 +2805,11 @@ export default {
       const sid = item._subphase.id;
       this.form.original_phases
         .find(p => p.id === pid)
-        .subphases.find(
+        .incomes.find(
           s => s.id === sid
         ).estimated_hours = this.form.original_phases
         .find(p => p.id === pid)
-        .subphases.find(s => s.id === sid)
+        .incomes.find(s => s.id === sid)
         .estimated_hours.filter(h => h.id !== id);
     },
     sumByFn(arr, field) {
@@ -2883,7 +2875,7 @@ export default {
       const phase = phases.find((p, i) => i === info.index);
       delete phase.id;
       phase.name = `${phase.name} - còpia`;
-      phase.subphases.forEach(sp => {
+      phase.incomes.forEach(sp => {
         sp.date = sp.date
           ? moment(sp.date).format("YYYY-MM-DD")
           : this.form.date_end;
@@ -2914,7 +2906,7 @@ export default {
       this.form.original_phases = JSON.parse(JSON.stringify(this.form.phases));
       this.form.original_phases.forEach(p => {
         delete p.id;
-        p.subphases.forEach(sp => {
+        p.incomes.forEach(sp => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           sp.date_estimate_document = moment(sp.date_estimate_document).format(
             "YYYY-MM-DD"
@@ -2938,7 +2930,7 @@ export default {
         p.edit = false;
         p.opened = true;
         delete p.id;
-        p.subphases.forEach(sp => {
+        p.incomes.forEach(sp => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           sp.date_estimate_document = moment(sp.date_estimate_document).format(
             "YYYY-MM-DD"

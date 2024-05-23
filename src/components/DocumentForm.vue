@@ -501,7 +501,7 @@
                   >
                     <b-input
                       name="discount"
-                      placeholder="Preu per unitat"
+                      placeholder="Descompte"
                       v-model="line.discount"
                       class="subphase-detail-input"
                       @input="changeLine(line, 'discount', line.discount)"
@@ -1666,7 +1666,7 @@ export default {
       this.form.projects.forEach(p => {
         if (this.type === "emitted-invoices") {
           p.phases.forEach(ph => {
-            ph.subphases.forEach(sph => {
+            ph.incomes.forEach(sph => {
               if (sph.invoice && sph.invoice.id === this.form.id) {
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
@@ -1676,7 +1676,7 @@ export default {
           });
         } else if (this.type === "received-incomes") {
           p.phases.forEach(ph => {
-            ph.subphases.forEach(sph => {
+            ph.incomes.forEach(sph => {
               if (sph.income && sph.income.id === this.form.id) {
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
@@ -1720,7 +1720,7 @@ export default {
         let updateProject = false;
         if (this.type === "emitted-invoices") {
           p.phases.forEach(ph => {
-            ph.subphases.forEach(sph => {
+            ph.incomes.forEach(sph => {
               if (sph.assign) {
                 sph.invoice = id;
                 updateProject = true;
@@ -1729,7 +1729,7 @@ export default {
           });
         } else if (this.type === "received-incomes") {
           p.phases.forEach(ph => {
-            ph.subphases.forEach(sph => {
+            ph.incomes.forEach(sph => {
               if (sph.assign) {
                 sph.income = id;
                 updateProject = true;
@@ -1795,7 +1795,7 @@ export default {
                 sph.diet = null;
               }
             });
-            ph.subphases.forEach(sph => {
+            ph.incomes.forEach(sph => {
               if (
                 sph.grant !== null &&
                 typeof sph.grant === "object" &&

@@ -92,8 +92,20 @@ const config = {
           },
           'Despeses prev': {
             field: 'expense_esti',
-            aggregate: 'sum',
-            format: '{0:n2} €'
+            zaggregate: 'sum',
+            format: '{0:n2} €',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              // var income_esti = dataItem.income_esti || 0
+              var expense_esti = dataItem.expense_esti || 0
+              // var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
+              var expense_esti_vat = dataItem.expense_esti_vat || 0
+              // state.incomes = (state.incomes || 0) + income_esti
+              state.expenses = (state.expenses || 0) + expense_esti + expense_esti_vat
+            },
+            result: function (state) {
+              return state.expenses
+            },
           },
           'Ingressos exec': {
             field: 'income_real',
@@ -102,8 +114,20 @@ const config = {
           },
           'Despeses exec': {
             field: 'expense_real',
-            aggregate: 'sum',
-            format: '{0:n2} €'
+            zaggregate: 'sum',
+            format: '{0:n2} €',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              // var income_esti = dataItem.income_esti || 0
+              var expense_real = dataItem.expense_real || 0
+              // var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
+              var expense_real_vat = dataItem.expense_real_vat || 0
+              // state.incomes = (state.incomes || 0) + income_esti
+              state.expense_real = (state.expense_real || 0) + expense_real + expense_real_vat
+            },
+            result: function (state) {
+              return state.expense_real
+            },
           },
           'Despeses tot prev': {
             field: 'type',
@@ -113,8 +137,9 @@ const config = {
               var income_esti = dataItem.income_esti || 0
               var expense_esti = dataItem.expense_esti || 0
               var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
+              var expense_esti_vat = dataItem.expense_esti_vat || 0
               state.incomes = (state.incomes || 0) + income_esti
-              state.expenses = (state.expenses || 0) + expense_esti + total_estimated_hours_price
+              state.expenses = (state.expenses || 0) + expense_esti + total_estimated_hours_price + expense_esti_vat
             },
             result: function (state) {
               return state.expenses
@@ -129,8 +154,9 @@ const config = {
               var income_real = dataItem.income_real || 0
               var expense_real = dataItem.expense_real || 0
               var total_real_hours_price = dataItem.total_real_hours_price || 0
+              var expense_real_vat = dataItem.expense_real_vat || 0
               state.incomes_real = (state.incomes_real || 0) + income_real
-              state.expenses_real = (state.expenses_real || 0) + expense_real + total_real_hours_price
+              state.expenses_real = (state.expenses_real || 0) + expense_real + total_real_hours_price + expense_real_vat
             },
             result: function (state) {
               return state.expenses_real
@@ -145,8 +171,9 @@ const config = {
               var income_real = dataItem.income_real || 0
               var expense_real = dataItem.expense_real || 0
               var total_real_hours_price = dataItem.total_real_hours_price || 0
+              var expense_real_vat = dataItem.expense_real_vat || 0
               state.incomes_real = (state.incomes_real || 0) + income_real
-              state.expenses_real = (state.expenses_real || 0) + expense_real + total_real_hours_price
+              state.expenses_real = (state.expenses_real || 0) + expense_real + total_real_hours_price + expense_real_vat
             },
             result: function (state) {
               return state.incomes_real + state.expenses_real
@@ -160,9 +187,10 @@ const config = {
               var dataItem = context.dataItem
               var income_esti = dataItem.income_esti || 0
               var expense_esti = dataItem.expense_esti || 0
+              var expense_esti_vat = dataItem.expense_esti_vat || 0
               var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
               state.incomes = (state.incomes || 0) + income_esti
-              state.expenses = (state.expenses || 0) + expense_esti + total_estimated_hours_price
+              state.expenses = (state.expenses || 0) + expense_esti + total_estimated_hours_price + expense_esti_vat
             },
             result: function (state) {
               return state.incomes + state.expenses

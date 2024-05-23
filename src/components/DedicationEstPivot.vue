@@ -240,8 +240,8 @@ export default {
           }
           if (p.original_phases && p.original_phases.length > 0) {
             p.original_phases.forEach(ph => {
-              if (ph.subphases && ph.subphases.length > 0) {
-                ph.subphases.forEach(sph => {
+              if (ph.incomes && ph.incomes.length > 0) {
+                ph.incomes.forEach(sph => {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {
                     sph.estimated_hours.forEach(h => {
                       const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())

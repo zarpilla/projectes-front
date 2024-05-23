@@ -108,8 +108,8 @@ export default {
             var hasOriginal = p.original_phases && p.original_phases.length
             if (hasOriginal) {
               p.original_phases.forEach(ph => {
-                if (ph.subphases) {
-                  ph.subphases.forEach(inc => {         
+                if (ph.incomes) {
+                  ph.incomes.forEach(inc => {         
                     if (inc.quantity && inc.amount) {
                       const row = {
                         project_name: p.name,
@@ -153,8 +153,8 @@ export default {
               })
             }
             p.phases.forEach(ph => {
-              if (ph.subphases) {
-                ph.subphases.forEach(inc => {         
+              if (ph.incomes) {
+                ph.incomes.forEach(inc => {         
                   if ((inc.quantity && inc.amount) || inc.income || inc.invoice) {
                     const row = {
                       project_name: p.name,

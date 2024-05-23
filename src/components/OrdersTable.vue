@@ -72,6 +72,16 @@
       <b-button
         class="view-button mb-3 mr-3"
         :class="{
+          'is-primary': statusFilter === '',
+          'is-warning': statusFilter !== ''
+        }"
+        @click="setStatusFilter('')"
+      >
+        TOTES
+      </b-button>
+      <b-button
+        class="view-button mb-3 mr-3"
+        :class="{
           'is-primary': statusFilter === 'pending',
           'is-warning': statusFilter !== 'pending'
         }"
@@ -89,6 +99,18 @@
       >
         PROCESSADES
       </b-button>
+      <b-button
+        class="view-button mb-3 mr-3"
+        :class="{
+          'is-primary': statusFilter === 'distributing',
+          'is-warning': statusFilter !== 'distributing'
+        }"
+        @click="setStatusFilter('distributing')"
+      >
+        EN REPARTIMENT
+      </b-button>
+      
+
       <b-button
         class="view-button mb-3 mr-3"
         :class="{
@@ -118,16 +140,6 @@
         @click="setStatusFilter('cancelled')"
       >
         ANUL·LADES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3"
-        :class="{
-          'is-primary': statusFilter === '',
-          'is-warning': statusFilter !== ''
-        }"
-        @click="setStatusFilter('')"
-      >
-        TOTES
       </b-button>
     </div>
     <h4>RUTES</h4>
@@ -904,11 +916,28 @@ export default {
       this.importing = false;
       this.getData();
     },
-    invoiceOrders() {
-      this.$buefy.snackbar.open({
-          message: "Aquesta funcionalitat aviat estarà disponible!",
-          queue: false
-        });
+    async invoiceOrders() {
+      // this.$buefy.snackbar.open({
+      //     message: "Aquesta funcionalitat aviat estarà disponible!",
+      //     queue: false
+      //   });
+      
+      const response = await service({ requiresAuth: true }).post("orders/invoice", {
+        orders: this.checkedRows.map(o => o.id)
+      }).catch(error => {
+        console.error(error)
+        if (error && error.data && error.data.message) {
+          this.$buefy.snackbar.open({
+            message: error.data.message,
+            type: "is-danger"
+          });
+        }
+      });
+
+      this.checkedRows = [];
+      this.getData();
+
+      //console.log("response", response);
     }
   }
 };

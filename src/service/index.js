@@ -37,7 +37,7 @@ export default ({ requiresAuth = false, multipart = false, cached = false } = {}
       console.log('Request cancelled', error.message);
       return cache[error.message];
     }
-    return Promise.reject(error);
+    return Promise.reject({ ...error, data: error.response ? error.response.data : null });
   });
 
   return instance;
