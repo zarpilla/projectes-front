@@ -1271,7 +1271,10 @@ export default {
           `/orders/pdf/${this.form.id}`
         )
       ).data;
-      window.open(this.apiUrl + pdf.url);
+      for (const url of pdf.urls) {
+        window.open(this.apiUrl + url);
+      }
+      
     }
     
   }
