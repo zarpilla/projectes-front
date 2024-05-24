@@ -581,7 +581,7 @@ export default {
         { id: "distributing", name: "EN REPARTIMENT" },
         { id: "delivered", name: "LLIURADA" },
         { id: "invoiced", name: "FACTURADA" },
-        { id: "cancelled", name: "CANCEL·LADA" }
+        { id: "cancelled", name: "ANUL·LADA" }
       ],
       legalForms: [],
       contact_time_slots: Array.from({ length: 24 }, (_, i) => i),

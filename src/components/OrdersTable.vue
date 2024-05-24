@@ -51,8 +51,11 @@
           icon-left="download"
         />
       </download-excel>
+      <span v-if="permissions.includes('orders_admin')">
       Ecologística:
+      </span>
       <download-excel
+        v-if="permissions.includes('orders_admin')"
         class="export"
         :data="theOrdersChecked"
         name="ecologistica.xlsx"
@@ -198,9 +201,8 @@
         <b-select v-model="newState" placeholder="">
           <option value="pending">PENDENT</option>
           <option value="processed">PROCESSADA</option>
-          <option value="delivered">LLIURADA</option>
           <option value="distributing">EN REPARTIMENT</option>
-          <!-- <option value="invoiced">FACTURADA</option> -->
+          <option value="delivered">LLIURADA</option>
           <option value="cancelled">ANUL·LADA</option>
         </b-select>
         <button
@@ -346,10 +348,10 @@
         <span v-else>?</span>
       </b-table-column>
       <b-table-column label="Estat" field="status" sortable v-slot="props">
-        <span v-if="props.row.status === 'pending'" class="tag is-warning"
+        <span v-if="props.row.status === 'pending'" class="tag is-warning bg-pending"
           >PENDENT</span
         >
-        <span v-else-if="props.row.status === 'invoiced'" class="tag is-success"
+        <span v-else-if="props.row.status === 'invoiced'" class="tag is-success bg-invoiced"
           >FACTURADA</span
         >
         <span
@@ -364,7 +366,7 @@
         >
         <span
           v-else-if="props.row.status === 'distributing'"
-          class="tag is-info"
+          class="tag is-info bg-distributing"
           >EN REPARTIMENT</span
         >
         <span
@@ -1042,5 +1044,17 @@ export default {
   padding-bottom: 0 !important;
   line-height: 20px;
   max-height: 24px;
+}
+.tag.bg-invoiced{
+  background-color: grey!important;
+  color: white!important;
+}
+.tag.bg-pending{
+  background-color: #c9b460!important;
+  color: white!important;
+}
+.tag.bg-distributing{
+  background-color: #ff7300!important;
+  color: white!important;
 }
 </style>
