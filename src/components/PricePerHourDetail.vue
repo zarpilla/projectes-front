@@ -3,9 +3,9 @@
     <table class="table">
       <thead>
         <th>Projecte</th>
-        <th>Despeses directes (Prev)</th>
-        <th>% Ind. (Prev)</th>
-        <th>Despeses indirectes (Prev.)</th>
+        <th>Despeses directes</th>
+        <th>% Indirectes</th>
+        <th>Despeses indirectes</th>
         <th>Hores productives</th>
         <th>Preu/Hora</th>
       </thead>
@@ -93,8 +93,6 @@
       </tfoot>
     </table>
     
-    <pre>{{ pivotDataYearGroupped }}</pre>
-
     <b-loading
       :is-full-page="true"
       v-model="isLoading"

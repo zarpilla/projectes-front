@@ -46,7 +46,9 @@
       </card-component>
 
       <b-notification aria-close-label="Close notification" type="is-warning is-light">
-        <strong>Nota:</strong> Aquest mòdul és experimental i pot contenir errors
+        <strong>Nota:</strong> Aquest mòdul és experimental i pot contenir errors.
+        <br><br>
+        <strong>Preu per hora:</strong> ( (cost directe + despesa laboral) + (despeses indirectes) + marge ) / hores productives.
       </b-notification>
 
       <card-component title="Projectes">
