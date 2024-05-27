@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.05.27">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Nou mòdul (experimental) per al càlcul del <router-link to="/price-hour">preu/hora</router-link> dels serveis.
+          </div>          
+        </div>
+      </card-component> 
       <card-component title="2024.05.15">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>

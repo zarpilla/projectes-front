@@ -45,11 +45,9 @@
         </form>
       </card-component>
 
-      <div class="notification is-warning">
-        <p>
-          <strong>Nota:</strong> Aquest mòdul és experimental i pot contenir errors
-        </p>
-      </div>
+      <b-notification aria-close-label="Close notification" type="is-warning is-light">
+        <strong>Nota:</strong> Aquest mòdul és experimental i pot contenir errors
+      </b-notification>
 
       <card-component title="Projectes">
         <price-per-hour-detail
