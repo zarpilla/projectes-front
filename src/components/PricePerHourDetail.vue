@@ -10,7 +10,7 @@
         <th>Preu/Hora</th>
       </thead>
       <tbody>
-        <tr v-for="project in pivotDataYearGroupped">
+        <tr v-for="project in pivotDataYearGroupped.filter(g => g.structural_expenses !== true)">
           <td>{{ project.project_name }}</td>
           <td class="has-text-right">
             {{
@@ -84,6 +84,8 @@
         </tr>
       </tfoot>
     </table>
+
+    <pre>{{ pivotDataYearGroupped }}</pre>
 
     
     <b-loading
@@ -216,12 +218,12 @@ export default {
     },
     ExpenseTotal() {
       return _.sumBy(
-        this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true),
+        this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null),
         p => p.expense_esti + p.expense_esti_vat
       );
     },
     EstimatedHousrTotal() {
-      return _.sumBy(this.pivotDataYearGroupped, p => p.total_estimated_hours);
+      return _.sumBy(this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null), p => p.total_estimated_hours);
     },
 
     excelFields1() {
