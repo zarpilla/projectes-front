@@ -104,11 +104,9 @@
 
 <script>
 import service from "@/service/index";
-import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
 import omit from "lodash/omit";
 import moment from "moment";
-import configPivot from "@/service/configStatsEconomicDetail";
 import { mapState } from "vuex";
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
