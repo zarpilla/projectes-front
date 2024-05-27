@@ -11,7 +11,15 @@
       </thead>
       <tbody>
         <tr v-for="project in pivotDataYearGroupped.filter(g => g.structural_expenses !== true)">
-          <td>{{ project.project_name }}</td>
+          <td>
+            <router-link
+              :to="{
+                name: 'project.edit',
+                params: { id: project.id }
+              }"
+              >{{ project.project_name }}</router-link>
+            
+          </td>
           <td class="has-text-right">
             {{
               (
@@ -85,6 +93,8 @@
       </tfoot>
     </table>
     
+    <pre>{{ pivotDataYearGroupped }}</pre>
+
     <b-loading
       :is-full-page="true"
       v-model="isLoading"
@@ -512,9 +522,9 @@ export default {
     year: function(newVal, oldVal) {
       this.getActivities();
     },
-    dataType: function(newVal, oldVal) {
-      this.getActivities();
-    }
+    // dataType: function(newVal, oldVal) {
+    //   this.getActivities();
+    // }
   },
   mounted() {
     console.log("mounted");
