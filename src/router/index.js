@@ -74,7 +74,7 @@ const routes = [
   },
   {
     meta: {
-      title: 'Panell Despeses'
+      title: 'Panell Detall econòmic'
     },
     path: '/stats-economic-detail',
     name: 'stats.economic-detail',
@@ -82,6 +82,17 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "stats" */ '../views/StatsEconomicDetail.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: 'Panell Preu Hora'
+    },
+    path: '/price-hour',
+    name: 'stats.price-hour',    
+    component: () => import(/* webpackChunkName: "stats" */ '../views/PricePerHour.vue'),
     meta: {
       requiresAuth: true
     }

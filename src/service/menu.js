@@ -140,6 +140,12 @@ const menu = [
         permission: 'projects'
       },
       {
+        to: '/price-hour',
+        icon: 'table',
+        label: 'Preu Hora',
+        permission: 'projects'
+      },
+      {
         to: '/forecast',
         icon: 'table',
         label: 'Previsió Econòmica',
