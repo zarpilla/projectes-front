@@ -82,12 +82,12 @@ export default {
       filters: {
         project_state: null,
         year: null,
-        dataType: "Totes",
+        dataType: "Previsió",
         margin: 5
       },
       project_states: [],
       years: [],
-      dataTypes: ["Totes", "Previsió", "Execució"]
+      dataTypes: ["Previsió", "Execució"]
     };
   },
   computed: {

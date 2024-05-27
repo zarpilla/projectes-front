@@ -16,7 +16,7 @@
             {{
               (
                 -1 *
-                (project.total_expense_esti + project.expense_esti_vat)
+                (project[total_expense] + project[expense_vat])
               ).toFixed(2)
             }}
           </td>
@@ -24,7 +24,7 @@
             {{
               (
                 (100 *
-                  (project.total_expense_esti + project.expense_esti_vat)) /
+                  (project[total_expense] + project[expense_vat])) /
                 ExpenseTotal
               ).toFixed(2)
             }}
@@ -33,26 +33,26 @@
             {{
               (
                 -1 *
-                ((project.total_expense_esti + project.expense_esti_vat) /
+                ((project[total_expense] + project[expense_vat]) /
                   ExpenseTotal) *
                 StructuralTotal
               ).toFixed(2)
             }}
           </td>
           <td class="has-text-right">
-            {{ project.total_estimated_hours.toFixed(2) }}
+            {{ project[total_hours].toFixed(2) }}
           </td>
 
           <td class="has-text-right">
             {{
               (
-                ((-1 * (project.total_expense_esti + project.expense_esti_vat) +
+                ((-1 * (project[total_expense] + project[expense_vat]) +
                   -1 *
-                    ((project.total_expense_esti + project.expense_esti_vat) /
+                    ((project[total_expense] + project[expense_vat]) /
                       ExpenseTotal) *
                     StructuralTotal) *
                   (1 + margin / 100)) /
-                project.total_estimated_hours
+                project[total_hours]
               ).toFixed(2)
             }}
           </td>
@@ -69,7 +69,7 @@
             <b>{{ (-1 * StructuralTotal).toFixed(2) }}</b>
           </td>
           <td class="has-text-right">
-            <b>{{ EstimatedHousrTotal.toFixed(2) }}</b>
+            <b>{{ EstimatedHoursTotal.toFixed(2) }}</b>
           </td>
           <!-- (column 2 + column 4) / column 5 -->
           <td class="has-text-right">
@@ -77,16 +77,13 @@
               (
                 ((-1 * ExpenseTotal + -1 * StructuralTotal) *
                   (1 + margin / 100)) /
-                EstimatedHousrTotal
+                EstimatedHoursTotal
               ).toFixed(2)
             }}</b>
           </td>
         </tr>
       </tfoot>
     </table>
-
-    <pre>{{ pivotDataYearGroupped }}</pre>
-
     
     <b-loading
       :is-full-page="true"
@@ -133,6 +130,18 @@ export default {
   },
   computed: {
     ...mapState(["userName", "user"]),
+    total_expense() {
+      return this.dataType === "Previsió"
+        ? 'total_expense_esti' : 'total_expense_real';
+    },
+    expense_vat() {
+      return this.dataType === "Previsió"
+        ? 'expense_esti_vat' : 'expense_real_vat';
+    },
+    total_hours() {
+      return this.dataType === "Previsió"
+        ? 'total_estimated_hours' : 'total_real_hours';
+    },
     pivotDataGroupped() {
       return _(this.pivotData)
         .groupBy("id")
@@ -200,30 +209,31 @@ export default {
           total_estimated_hours_price:
             _.sumBy(rows, "total_estimated_hours_price") || 0,
           total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
-          total_estimated_hours: _.sumBy(rows, "total_estimated_hours") || 0
+          total_estimated_hours: _.sumBy(rows, "total_estimated_hours") || 0,
+          total_real_hours: _.sumBy(rows, "total_real_hours") || 0
         }))
         .value();
     },
     IncomeTotal() {
       return _.sumBy(
         this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true),
-        p => p.expense_esti + p.expense_esti_vat
+        p => p[this.total_expense] + p[this.expense_vat]
       );
     },
     StructuralTotal() {
       return _.sumBy(
         this.pivotDataYearGroupped.filter(p => p.structural_expenses),
-        p => p.expense_esti + p.expense_esti_vat
+        p => p[this.total_expense] + p[this.expense_vat]
       );
     },
     ExpenseTotal() {
       return _.sumBy(
         this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null),
-        p => p.expense_esti + p.expense_esti_vat
+        p => p[this.total_expense] + p[this.expense_vat]
       );
     },
-    EstimatedHousrTotal() {
-      return _.sumBy(this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null), p => p.total_estimated_hours);
+    EstimatedHoursTotal() {
+      return _.sumBy(this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null), p => p[this.total_hours]);
     },
 
     excelFields1() {
