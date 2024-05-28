@@ -10,7 +10,7 @@
         <th>Preu/Hora</th>
       </thead>
       <tbody>
-        <tr v-for="project in pivotDataYearGroupped.filter(g => g.structural_expenses !== true)">
+        <tr v-for="project in pivotDataGroupped.filter(g => g.structural_expenses !== true)">
           <td>
             <router-link
               :to="{
@@ -154,44 +154,7 @@ export default {
         .map((rows, id) => ({
           id: id,
           project_name: rows[0].project_name,
-          esti:
-            (_.sumBy(rows, "income_esti") || 0) +
-            (_.sumBy(rows, "expense_esti") || 0) +
-            (_.sumBy(rows, "total_estimated_hours_price") || 0),
-          real:
-            (_.sumBy(rows, "income_real") || 0) +
-            (_.sumBy(rows, "expense_real") || 0) +
-            (_.sumBy(rows, "total_real_hours_price") || 0),
-          income_esti: _.sumBy(rows, "income_esti") || 0,
-          income_real: _.sumBy(rows, "income_real") || 0,
-          total_expense_esti:
-            (_.sumBy(rows, "expense_esti") || 0) +
-            (_.sumBy(rows, "total_estimated_hours_price") || 0),
-          total_expense_real:
-            (_.sumBy(rows, "expense_real") || 0) +
-            (_.sumBy(rows, "total_real_hours_price") || 0),
-          expense_esti: _.sumBy(rows, "expense_esti") || 0,
-          expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
-          expense_real: _.sumBy(rows, "expense_real") || 0,
-          expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
-          total_estimated_hours_price:
-            _.sumBy(rows, "total_estimated_hours_price") || 0,
-          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0
-        }))
-        .value();
-    },
-    pivotDataYearGroupped() {
-      return _(
-        this.pivotData.map(p => {
-          return { ...p, py: `${p.id}.${p.year}` };
-        })
-      )
-        .groupBy("py")
-        .map((rows, py) => ({
-          id: py.split(".")[0],
-          year: py.split(".")[1],
           structural_expenses: rows[0].structural_expenses,
-          project_name: rows[0].project_name,
           esti:
             (_.sumBy(rows, "income_esti") || 0) +
             (_.sumBy(rows, "expense_esti") || 0) +
@@ -220,26 +183,66 @@ export default {
         }))
         .value();
     },
+    // pivotDataYearGroupped() {
+    //   return _(
+    //     this.pivotData.map(p => {
+    //       return { ...p, py: `${p.id}.${p.year}` };
+    //     })
+    //   )
+    //     .groupBy("py")
+    //     .map((rows, py) => ({
+    //       id: py.split(".")[0],
+    //       year: py.split(".")[1],          
+    //       project_name: rows[0].project_name,
+    //       structural_expenses: rows[0].structural_expenses,
+    //       esti:
+    //         (_.sumBy(rows, "income_esti") || 0) +
+    //         (_.sumBy(rows, "expense_esti") || 0) +
+    //         (_.sumBy(rows, "total_estimated_hours_price") || 0),
+    //       real:
+    //         (_.sumBy(rows, "income_real") || 0) +
+    //         (_.sumBy(rows, "expense_real") || 0) +
+    //         (_.sumBy(rows, "total_real_hours_price") || 0),
+    //       income_esti: _.sumBy(rows, "income_esti") || 0,
+    //       income_real: _.sumBy(rows, "income_real") || 0,
+    //       total_expense_esti:
+    //         (_.sumBy(rows, "expense_esti") || 0) +
+    //         (_.sumBy(rows, "total_estimated_hours_price") || 0),
+    //       total_expense_real:
+    //         (_.sumBy(rows, "expense_real") || 0) +
+    //         (_.sumBy(rows, "total_real_hours_price") || 0),
+    //       expense_esti: _.sumBy(rows, "expense_esti") || 0,
+    //       expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
+    //       expense_real: _.sumBy(rows, "expense_real") || 0,
+    //       expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
+    //       total_estimated_hours_price:
+    //         _.sumBy(rows, "total_estimated_hours_price") || 0,
+    //       total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
+    //       total_estimated_hours: _.sumBy(rows, "total_estimated_hours") || 0,
+    //       total_real_hours: _.sumBy(rows, "total_real_hours") || 0
+    //     }))
+    //     .value();
+    // },
     IncomeTotal() {
       return _.sumBy(
-        this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true),
+        this.pivotDataGroupped.filter(p => p.structural_expenses !== true),
         p => p[this.total_expense] + p[this.expense_vat]
       );
     },
     StructuralTotal() {
       return _.sumBy(
-        this.pivotDataYearGroupped.filter(p => p.structural_expenses),
+        this.pivotDataGroupped.filter(p => p.structural_expenses),
         p => p[this.total_expense] + p[this.expense_vat]
       );
     },
     ExpenseTotal() {
       return _.sumBy(
-        this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null),
+        this.pivotDataGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null),
         p => p[this.total_expense] + p[this.expense_vat]
       );
     },
     EstimatedHoursTotal() {
-      return _.sumBy(this.pivotDataYearGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null), p => p[this.total_hours]);
+      return _.sumBy(this.pivotDataGroupped.filter(p => p.structural_expenses !== true || p.structural_expenses === null), p => p[this.total_hours]);
     },
 
     excelFields1() {

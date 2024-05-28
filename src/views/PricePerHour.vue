@@ -45,10 +45,8 @@
         </form>
       </card-component>
 
-      <b-notification aria-close-label="Close notification" type="is-warning is-light">
-        <strong>Nota:</strong> Aquest mòdul és experimental i pot contenir errors.
-        <br><br>
-        <strong>Preu per hora:</strong> ( (cost directe + despesa laboral) + (despeses indirectes) + marge ) / hores productives.
+      <b-notification aria-close-label="Close notification" type="is-warning is-light">        
+        <strong>Preu per hora:</strong> ( (cost directe + despesa laboral) + (despeses indirectes) + marge ) / (hores productives)
       </b-notification>
 
       <card-component title="Projectes">
@@ -126,7 +124,7 @@ export default {
               const y = this.years[0].year;
               //this.years.unshift({ id: 0, year: parseInt(y) + 1 });
               //this.years.unshift({ id: 0, year: parseInt(y) + 2 });
-              // this.years.unshift({ id: 0, year: "Tots" });
+              this.years.unshift({ id: 0, year: "Tots" });
               this.filters.year = parseInt(y);
 
               this.isLoading = false;
