@@ -2,7 +2,7 @@
   <div class="mt-2">
     <div v-for="(contact, i) in rows" :key="i" class="mb-3 is-flex" label="">
       <b-field
-        :label="i === 0 ? 'Contacte' : null"
+        :label="i === 0 ? 'Entitat' : null"
         style="width: 60%;max-width: 400px;"
         class="mr-3"
       >
@@ -13,7 +13,7 @@
         </b-select>
       </b-field>
       <b-field :label="i === 0 ? 'Import' : null" style="width: 20%">
-        <b-input v-model="contact.amount" type="number" placeholder="Amount" />
+        <b-input v-model="contact.amount" placeholder="Amount" @input="changeValue(contact, 'amount', contact.amount)" />
       </b-field>
       <b-field
         :label="i === 0 ? 'Esborra' : null"
@@ -73,6 +73,12 @@ export default {
     removeContact(i) {
       this.rows = this.rows.filter((row, index) => index !== i);
       this.$emit("updated", this.rows);
+    },
+    changeValue(row, field, value) {
+      if (value && value.toString().includes(",")) {
+        row[field] = value.toString().replace(",", ".");
+        this.$emit("updated", this.rows);
+      }
     }
   }
 };

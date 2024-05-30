@@ -388,36 +388,7 @@
                   placeholder="Número d'expedient de la subvenció"></b-input>                  
               </b-field>
 
-              <b-field v-if="form.grantable" label="Entitat líder" horizontal>
-                <b-autocomplete
-                  v-model="leadersSearch"
-                  placeholder="Escriu el nom del contacte..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredLeaders"
-                  field="name"
-                  @select="leaderSelected"
-                  :clearable="true"
-                >
-                </b-autocomplete>
-                <div class="is-flex">
-                  <b-button
-                    class="view-button is-warning mb-3"
-                    @click="navNew"
-                    icon-left="plus"
-                    title="Nou Contacte"
-                  >
-                  </b-button>
-                  <b-button
-                    class="view-button is-warning mb-3 ml-3"
-                    @click="refreshClients"
-                    icon-left="refresh"
-                    title="Refrescar Contactes"
-                  >
-                  </b-button>
-                </div>
-              </b-field>
-
+              
               <b-field
                 label="Import a justificar amb nòmines"
                 v-if="form.grantable"
@@ -562,9 +533,41 @@
                 </b-checkbox>
               </b-field>
 
+
+              <b-field v-if="form.grantable && form.grantable_intercooperation" label="Entitat líder" horizontal>
+                <b-autocomplete
+                  v-model="leadersSearch"
+                  placeholder="Escriu el nom del contacte..."
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredLeaders"
+                  field="name"
+                  @select="leaderSelected"
+                  :clearable="true"
+                >
+                </b-autocomplete>
+                <div class="is-flex">
+                  <b-button
+                    class="view-button is-warning mb-3"
+                    @click="navNew"
+                    icon-left="plus"
+                    title="Nou Contacte"
+                  >
+                  </b-button>
+                  <b-button
+                    class="view-button is-warning mb-3 ml-3"
+                    @click="refreshClients"
+                    icon-left="refresh"
+                    title="Refrescar Contactes"
+                  >
+                  </b-button>
+                </div>
+              </b-field>
+
+
               <b-field
-                label="Agrupada"
-                v-if="form.grantable"
+                label="Imports"
+                v-if="form.grantable && form.grantable_intercooperation"
                 horizontal
                 >
                 <div class="d-flex">
