@@ -1,6 +1,4 @@
-import service from "@/service/index";
-import moment from "moment";
-import sortBy from "lodash/sortBy";
+import dayjs from "dayjs";
 
 const assignRouteRate = (form, routeRates, orders) => {
   console.log("assignRouteRate!");
@@ -87,4 +85,48 @@ const assignRouteRate = (form, routeRates, orders) => {
   return form.route_rate;
 };
 
-export default assignRouteRate;
+const assignRouteDate = (route) => {
+  let nextDay = dayjs().add(1, "day");
+
+  if (route.monday) {
+    // fins next monday after today
+    nextDay = dayjs()
+      .add(1, "week")
+      .startOf("week")
+      .add(1, "day");
+  }
+  else if (route.tuesday) {
+    nextDay = dayjs()
+      .add(1, "week")
+      .startOf("week")
+      .add(2, "day");
+  } else if (route.wednesday) {
+    nextDay = dayjs()
+      .add(1, "week")
+      .startOf("week")
+      .add(3, "day");
+  } else if (route.thursday) {
+    nextDay = dayjs()
+      .add(1, "week")
+      .startOf("week")
+      .add(4, "day");
+  } else if (route.friday) {
+    nextDay = dayjs()
+      .add(1, "week")
+      .startOf("week")
+      .add(5, "day");
+  } else if (route.saturday) {
+    nextDay = dayjs()
+      .add(1, "week")
+      .startOf("week")
+      .add(6, "day");
+  } else if (route.sunday) {
+    nextDay = dayjs()
+      .add(1, "week")
+      .startOf("week")
+      .add(7, "day");
+  }
+  return nextDay
+}
+
+export { assignRouteRate, assignRouteDate };

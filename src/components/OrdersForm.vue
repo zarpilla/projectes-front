@@ -107,7 +107,7 @@
               </b-field>
 
               <b-field
-                label="Data estimada d'entrega"
+                label="Data prevista d'entrega"
                 horizontal
                 message="Data en la que la comanda s'hauria d'entregar per si vols que s'entregui més endavant. Assegura't que coincideix amb el dia de la setmana de la ruta"
               >
@@ -126,7 +126,7 @@
               </b-field>
 
               <b-field
-                label="Data entrega"
+                label="Data lliurament"
                 horizontal
                 message="Data en la que la comanda ha estat entregada"
               >
@@ -544,7 +544,7 @@ import { mapState } from "vuex";
 import moment from "moment";
 import sortBy, { name } from "lodash/sortBy";
 import concat from "lodash/concat";
-import assignRouteRate from "@/service/assignRouteRate";
+import { assignRouteRate, assignRouteDate } from "@/service/assignRouteRate";
 
 export default {
   name: "OrderForm",
@@ -778,7 +778,7 @@ export default {
       return {
         id: null,
         route_date: new Date(),
-        estimated_delivery_date: new Date(),
+        estimated_delivery_date: null,
         delivery_date: null,
         status: "pending",
         owner: null,
@@ -968,6 +968,11 @@ export default {
           )
         ).data;
       }
+      if (this.form.route) {
+        const route = this.routes.find(r => r.id === this.form.route);
+        let nextDay = assignRouteDate(route)
+        this.form.estimated_delivery_date = nextDay.toDate();
+      }
     },
     async deleteOrder() {
       this.$buefy.dialog.confirm({
@@ -995,12 +1000,65 @@ export default {
         this.form.owner = me.data.id;
       }
 
-      console.log("this.form", this.form.status, this.form.delivery_date);
+      console.log("this.form", this.form);
       if (this.form.status === "delivered" && !this.form.delivery_date) {
         this.form.delivery_date = new Date().toISOString().split("T")[0];
       }
 
       try {
+
+
+        if (this.form.contact_time_slot_1_ini > this.form.contact_time_slot_1_end) {
+          this.$buefy.snackbar.open({
+            message: "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (this.form.contact_time_slot_2_ini && this.form.contact_time_slot_2_ini > this.form.contact_time_slot_2_end) {
+          this.$buefy.snackbar.open({
+            message: "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (this.form.contact_time_slot_1_ini && !this.form.contact_time_slot_1_end) {
+          this.$buefy.snackbar.open({
+            message: "Error. Cal indicar l'hora de finalització del tram horari 1",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (this.form.contact_time_slot_2_ini && this.form.contact_time_slot_2_ini && !this.form.contact_time_slot_1_end) {
+          this.$buefy.snackbar.open({
+            message: "Error. Cal indicar l'hora de finalització del tram horari 2",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        // "Error. El tram horari 1 ha de ser més gran de 3 hores",
+        if (this.form.contact_time_slot_1_end - this.form.contact_time_slot_1_ini < 3 && (this.form.contact_time_slot_2_end && this.form.contact_time_slot_2_end - this.form.contact_time_slot_2_ini < 3)) {            
+          this.$buefy.snackbar.open({
+            message: "Error. El tram horari ha de ser més gran de 3 hores",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
         if (this.form.id) {
           if (
             !this.form.owner ||

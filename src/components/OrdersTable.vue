@@ -237,9 +237,10 @@
       :data="theOrders"
       :checked-rows.sync="checkedRows"
       :is-row-checkable="row => true"
+      :debounce-search="500"
       :checkable="permissions.includes('orders_admin')"
     >
-      <b-table-column label="ID" field="id" sortable v-slot="props">
+      <b-table-column label="ID" field="idx" sortable v-slot="props" searchable>
         <router-link
           v-if="props.row.id"
           :to="{ name: 'orders.edit', params: { id: props.row.id } }"
@@ -259,15 +260,17 @@
         label="Proveïdora"
         field="owner.fullname"
         sortable
+        searchable
         v-slot="props"
       >
         {{ props.row.owner.fullname }}
       </b-table-column>
-      <b-table-column label="Ruta" field="route.name" sortable v-slot="props">
+      <b-table-column label="Ruta" searchable field="route.name" sortable v-slot="props">
         {{ props.row.route.name }}
       </b-table-column>
       <b-table-column
-        label="Data com."
+        label="Creada"
+        searchable
         field="route_date"
         sortable
         v-slot="props"
@@ -275,7 +278,8 @@
         {{ props.row.route_date }}
       </b-table-column>
       <b-table-column
-        label="Data est."
+        label="Prevista"
+        searchable
         field="estimated_delivery_date"
         sortable
         v-slot="props"
@@ -283,7 +287,8 @@
         {{ props.row.estimated_delivery_date }}
       </b-table-column>
       <b-table-column
-        label="Data lli."
+        label="Lliurada"
+        searchable
         field="delivery_date"
         sortable
         v-slot="props"
@@ -292,6 +297,7 @@
       </b-table-column>
       <b-table-column
         label="Clienta"
+        searchable
         field="contact.name"
         sortable
         v-slot="props"
@@ -304,6 +310,7 @@
         label="Unitats"
         field="units"
         sortable
+        searchable
         number
         v-slot="props"
       >
@@ -313,6 +320,7 @@
         label="Kg"
         field="kilograms"
         sortable
+        searchable
         number
         v-slot="props"
       >
@@ -320,6 +328,7 @@
       </b-table-column>
       <b-table-column
         label="Entrega"
+        searchable
         field="delivery_type.name"
         sortable
         v-slot="props"
@@ -328,13 +337,14 @@
       </b-table-column>
       <b-table-column
         label="Recollida"
+        searchable
         field="pickup.name"
         sortable
         v-slot="props"
       >
         {{ props.row.pickup ? props.row.pickup.name : "-" }}
       </b-table-column>
-      <b-table-column label="Preu" field="price" sortable v-slot="props">
+      <b-table-column label="Preu" field="price" sortable searchable v-slot="props">
         <money-format
           v-if="props.row.price"
           class="has-text-left"
@@ -347,7 +357,7 @@
         </money-format>
         <span v-else>?</span>
       </b-table-column>
-      <b-table-column label="Estat" field="status" sortable v-slot="props">
+      <b-table-column label="Estat" field="status" sortable searchable v-slot="props">
         <span v-if="props.row.status === 'pending'" class="tag is-warning bg-pending"
           >PENDENT</span
         >
@@ -395,7 +405,8 @@ import { parse } from "csv-parse";
 import { mapState } from "vuex";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import assignRouteRate from "@/service/assignRouteRate";
+import { assignRouteRate, assignRouteDate } from "@/service/assignRouteRate";
+import moment from "moment";
 
 export default {
   name: "Tresoreria",
@@ -713,7 +724,7 @@ export default {
       ).data;
 
       this.orders = this.orders.map(o => {
-        return { ...o, route_name: o.route.name, owner_id: o.owner.id, timeslot1: `${o.estimated_delivery_date} ${o.contact_time_slot_1_ini}:00 - ${o.estimated_delivery_date} ${o.contact_time_slot_1_end}:00`, timeslot2: `${o.estimated_delivery_date} ${o.contact_time_slot_2_ini}:00 -${o.estimated_delivery_date} ${o.contact_time_slot_2_end}:00` };
+        return { ...o, idx: o.id.toString().padStart(4, '0'), route_name: o.route.name, owner_id: o.owner.id, timeslot1: `${o.estimated_delivery_date} ${o.contact_time_slot_1_ini}:00 - ${o.estimated_delivery_date} ${o.contact_time_slot_1_end}:00`, timeslot2: `${o.estimated_delivery_date} ${o.contact_time_slot_2_ini}:00 -${o.estimated_delivery_date} ${o.contact_time_slot_2_end}:00` };
       });
 
       this.contactsCSV = this.orders;
@@ -809,6 +820,52 @@ export default {
           this.csvErrors.push({ line: i, error: "No route" });
           return false;
         }
+
+        // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
+        if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
+          if (parseInt(record.contact_time_slot_1_ini) >= parseInt(record.contact_time_slot_1_end)) {
+            console.log("record", record.contact_time_slot_1_ini, record.contact_time_slot_1_end);
+            this.csvErrors.push({
+              line: i,
+              error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
+            });
+            return false;
+          }
+        }
+
+        // Cal indicar l'hora de finalització del tram horari 1
+        if (record.contact_time_slot_1_ini && !record.contact_time_slot_1_end) {
+          this.csvErrors.push({
+            line: i,
+            error: `Cal indicar l'hora de finalització del tram horari 1`
+          });
+          return false;
+        }
+
+        // El tram horari ha de ser més gran de 3 hores
+        if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
+          if (parseInt(record.contact_time_slot_1_end) - parseInt(record.contact_time_slot_1_ini < 3)) {
+
+            // comprovar també per al tram 2
+            if (record.contact_time_slot_2_ini && record.contact_time_slot_2_end) {
+              if (parseInt(record.contact_time_slot_2_end) - parseInt(record.contact_time_slot_2_ini < 3)) {
+                this.csvErrors.push({
+                  line: i,
+                  error: `El tram horari ha de ser més gran de 3 hores`
+                });
+                return false;
+              }
+            }else{
+              this.csvErrors.push({
+                line: i,
+                error: `El tram horari ha de ser més gran de 3 hores`
+              });
+              return false;
+            }
+          }
+        }
+
+
         if (
           !this.routes.find(
             r =>
@@ -831,21 +888,13 @@ export default {
           });
           return false;
         }
-        // if (
-        //   record.pickup &&
-        //   !this.pickups.find(
-        //     p =>
-        //       this.removeAccents(p.name) === this.removeAccents(record.pickup)
-        //   )
-        // ) {
-        //   this.csvErrors.push({
-        //     line: i,
-        //     error: `Pickup ${record.pickup} not found`
-        //   });
-        //   return false;
-        // }
-
         i++;
+
+        const route = this.routes.find(
+            r =>
+              this.removeAccents(r.name) ===
+              this.removeAccents(record.route_name)
+          )
         const order = {
           id: 0,
           route_date: new Date().toISOString().split("T")[0],
@@ -892,11 +941,8 @@ export default {
                 u => u.id.toString() === record.owner_id.toString()
               )
             : this.me,
-          route: this.routes.find(
-            r =>
-              this.removeAccents(r.name) ===
-              this.removeAccents(record.route_name)
-          ),
+          route: route,
+          estimated_delivery_date: moment(assignRouteDate(route).toDate()).format("YYYY-MM-DD"),
           price: null,
           status: "CSV",
           _uuid: this.createUUID()
