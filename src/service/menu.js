@@ -84,6 +84,12 @@ const menu = [
         icon: 'truck',
         label: 'Comandes',
         permission: 'orders'
+      },
+      {
+        to: '/provider-invoices',
+        icon: 'cash-multiple',
+        label: 'Factures',
+        permission: 'orders'
       }
     ],
     'COMANDES ADM',

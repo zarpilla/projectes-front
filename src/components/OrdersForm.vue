@@ -487,7 +487,20 @@
 
               <hr />
 
-              <b-field horizontal>
+
+              <b-field horizontal label="Albarà" message="Imprimeix l'albarà i enganxa'n un full a cada caixa. El teu albarà propi posa'l a dins d'una de les caixes">
+                <b-button
+                  type="is-primary"
+                  :loading="isLoading"
+                  @click="getPDF"
+                  v-if="form.id"
+                  >Imprimeix PDF</b-button
+                >
+              </b-field>
+
+              <hr />
+
+              <b-field horizontal label="Accions">
                 <b-button
                   type="is-primary"
                   :loading="isLoading"
@@ -503,13 +516,7 @@
                 >
 
 
-                <b-button
-                  type="is-primary"
-                  :loading="isLoading"
-                  @click="getPDF"
-                  v-if="form.id"
-                  >Albarà (PDF)</b-button
-                >
+                
 
                 <b-button type="is-warning" :loading="isLoading" @click="exit"
                   >Sortir</b-button

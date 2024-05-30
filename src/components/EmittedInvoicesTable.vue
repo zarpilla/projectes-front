@@ -122,6 +122,7 @@
       />
     </download-excel>
     <b-button
+      v-if="!provider"
       class="view-button is-primary mb-3"
       @click="navNew"
       icon-left="plus"
@@ -129,6 +130,7 @@
       Nova factura
     </b-button>
     <b-button
+      v-if="!provider"
       class="view-button is-primary mb-3 ml-3"
       @click="navNewIncome"
       icon-left="plus"
@@ -148,11 +150,16 @@
     >
       <b-table-column label="Codi" field="code" v-slot="props" sortable>
         <router-link
-          v-if="props.row.id"
+          v-if="props.row.id && !provider"
           :to="{ name: 'document.edit', params: { id: props.row.id, type: props.row.type } }"
         >
           {{ props.row.code }}
         </router-link>
+        <a :href="apiUrl + props.row.pdf" target="_blank"
+          v-else-if="props.row.id && provider && props.row.pdf"          
+        >
+          {{ props.row.code }}
+      </a>
         <b v-else>{{ props.row.code }}</b>
       </b-table-column>
       <b-table-column label="Tipus" field="type" v-slot="props" sortable>
@@ -175,6 +182,7 @@
         {{ props.row.paybefore ? formatDate(props.row.paybefore) : "" }}
       </b-table-column>
       <b-table-column
+        v-if="!provider"
         label="Contacte"
         field="contact.name"
         v-slot="props"
@@ -183,6 +191,7 @@
         {{ props.row.contact ? props.row.contact.name : "" }}
       </b-table-column>
       <b-table-column
+        v-if="!provider"
         label="NIF Contacte"
         field="contact.name"
         v-slot="props"
@@ -190,14 +199,14 @@
       >
         {{ props.row.contact ? props.row.contact.nif : null }}
       </b-table-column>
-      <b-table-column label="Concepte" field="lines" v-slot="props" sortable>
+      <b-table-column label="Concepte" field="lines" v-slot="props" sortable v-if="!provider">
         {{
           props.row.lines && props.row.lines.length > 0
             ? props.row.lines[0].concept
             : ""
         }}
       </b-table-column>
-      <b-table-column label="Projecte" field="lines" v-slot="props" sortable>
+      <b-table-column :label="!provider ? 'Projecte' : 'Ruta'" field="lines" v-slot="props" sortable>
         <span v-for="project in props.row.projects" :key="project.id">{{project.name}}&nbsp;</span>        
       </b-table-column>
       <b-table-column label="Base" field="total_base" v-slot="props" sortable>
@@ -206,7 +215,7 @@
       <b-table-column label="IVA" field="total_vat" v-slot="props" sortable>
         {{ formatPrice(props.row.total_vat) }} €
       </b-table-column>
-      <b-table-column label="IRPF" field="total_irpf" v-slot="props" sortable>
+      <b-table-column label="IRPF" v-if="!provider" field="total_irpf" v-slot="props" sortable>
         {{ formatPrice(-1 * props.row.total_irpf) }} €
       </b-table-column>
       <b-table-column label="Total" field="total" v-slot="props" sortable>
@@ -264,7 +273,11 @@ export default {
     paid: {
       type: Number,
       default: null,
-    }
+    },
+    provider: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     total_base() {
@@ -297,6 +310,7 @@ export default {
       receivedGrants: [],
       projectIncomes: [],
       projectExpenses: [],
+      apiUrl: process.env.VUE_APP_API_URL,
     };
   },
   watch: {

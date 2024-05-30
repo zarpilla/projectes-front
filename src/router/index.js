@@ -500,6 +500,18 @@ const routes = [
   },
   {
     meta: {
+      title: 'Fcatures Proveïdora'
+    },
+    path: '/provider-invoices',
+    name: 'provider.invoices',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/EmittedInvoicesProvider.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
       title: 'Contacte'
     },
     path: '/contact/:id',

@@ -52,14 +52,14 @@
         />
       </download-excel>
       <span v-if="permissions.includes('orders_admin')">
-      Ecologística:
+        Ecologística:
       </span>
       <download-excel
         v-if="permissions.includes('orders_admin')"
         class="export"
         :data="theOrdersChecked"
         name="ecologistica.xlsx"
-        :fields="{          
+        :fields="{
           ...csvEcologistica
         }"
       >
@@ -130,7 +130,6 @@
       >
         EN REPARTIMENT
       </b-button>
-      
 
       <b-button
         class="view-button mb-3 mr-3"
@@ -196,38 +195,49 @@
     <div v-if="permissions.includes('orders_admin')" class="mb-3">
       <div class="is-flex">
         <div>
-        <h2>CANVIAR ESTAT</h2>
-      <div class="is-flex">
-        <b-select v-model="newState" placeholder="">
-          <option value="pending">PENDENT</option>
-          <option value="processed">PROCESSADA</option>
-          <option value="distributing">EN REPARTIMENT</option>
-          <option value="delivered">LLIURADA</option>
-          <option value="cancelled">ANUL·LADA</option>
-        </b-select>
-        <button
-          class="button is-danger ml-3"
-          :disabled="!newState || !checkedRows.length"
-          @click="setBulkState"
-        >
-          CANVIAR ESTAT
-        </button>
+          <h2>CANVIAR ESTAT</h2>
+          <div class="is-flex">
+            <b-select v-model="newState" placeholder="">
+              <option value="pending">PENDENT</option>
+              <option value="processed">PROCESSADA</option>
+              <option value="distributing">EN REPARTIMENT</option>
+              <option value="delivered">LLIURADA</option>
+              <option value="cancelled">ANUL·LADA</option>
+            </b-select>
+            <button
+              class="button is-primary ml-3"
+              :disabled="!newState || !checkedRows.length"
+              @click="setBulkState"
+            >
+              CANVIAR ESTAT
+            </button>
+          </div>
+        </div>
+        <div class="ml-6">
+          <h2 class="pr-2">ALBARÀ</h2>
+          <div class="is-flex">
+            <button
+              class="button is-primary zml-3"
+              :disabled="!checkedRows.length"
+              @click="pdfOrders"
+            >
+            Imprimeix PDF
+            </button>
+          </div>
+        </div>
+        <div class="ml-6" v-if="'delivered' == statusFilter">
+          <h2 class="pr-2">FACTURAR</h2>
+          <div class="is-flex">
+            <button
+              class="button is-primary zml-3"
+              :disabled="!checkedRows.length"
+              @click="invoiceOrders"
+            >
+              FACTURAR
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="ml-6" v-if="'delivered' == statusFilter">
-      <h2 class="pr-2">FACTURAR</h2>
-      <div class="is-flex">        
-        <button
-          class="button is-danger zml-3"
-          :disabled="!checkedRows.length"
-          @click="invoiceOrders"
-        >
-        FACTURAR
-        </button>
-      </div>
-    </div>
-      </div>
-      
     </div>
 
     <b-table
@@ -265,7 +275,13 @@
       >
         {{ props.row.owner.fullname }}
       </b-table-column>
-      <b-table-column label="Ruta" searchable field="route.name" sortable v-slot="props">
+      <b-table-column
+        label="Ruta"
+        searchable
+        field="route.name"
+        sortable
+        v-slot="props"
+      >
         {{ props.row.route.name }}
       </b-table-column>
       <b-table-column
@@ -344,7 +360,13 @@
       >
         {{ props.row.pickup ? props.row.pickup.name : "-" }}
       </b-table-column>
-      <b-table-column label="Preu" field="price" sortable searchable v-slot="props">
+      <b-table-column
+        label="Preu"
+        field="price"
+        sortable
+        searchable
+        v-slot="props"
+      >
         <money-format
           v-if="props.row.price"
           class="has-text-left"
@@ -357,11 +379,21 @@
         </money-format>
         <span v-else>?</span>
       </b-table-column>
-      <b-table-column label="Estat" field="status" sortable searchable v-slot="props">
-        <span v-if="props.row.status === 'pending'" class="tag is-warning bg-pending"
+      <b-table-column
+        label="Estat"
+        field="status"
+        sortable
+        searchable
+        v-slot="props"
+      >
+        <span
+          v-if="props.row.status === 'pending'"
+          class="tag is-warning bg-pending"
           >PENDENT</span
         >
-        <span v-else-if="props.row.status === 'invoiced'" class="tag is-success bg-invoiced"
+        <span
+          v-else-if="props.row.status === 'invoiced'"
+          class="tag is-success bg-invoiced"
           >FACTURADA</span
         >
         <span
@@ -379,9 +411,7 @@
           class="tag is-info bg-distributing"
           >EN REPARTIMENT</span
         >
-        <span
-          v-else-if="props.row.status === 'cancelled'"
-          class="tag is-danger"
+        <span v-else-if="props.row.status === 'cancelled'" class="tag is-danger"
           >ANUL·LADA</span
         >
         <span v-else class="tag is-info">{{ props.row.status }}</span>
@@ -491,7 +521,7 @@ export default {
         contact_time_slot_1_ini: "contact_time_slot_1_ini",
         contact_time_slot_1_end: "contact_time_slot_1_end",
         contact_time_slot_2_ini: "contact_time_slot_2_ini",
-        contact_time_slot_2_end: "contact_time_slot_2_end",        
+        contact_time_slot_2_end: "contact_time_slot_2_end",
         units: "units",
         kilograms: "kilograms",
         refrigerated: {
@@ -565,7 +595,7 @@ export default {
         "dropoff.comments": {
           field: "comments",
           callback: value => {
-            return this.addressFormatted(value);;
+            return this.addressFormatted(value);
           }
         },
         "dropoff.timeslot": {
@@ -574,9 +604,9 @@ export default {
             return `${value}`;
           }
         },
-        "weight": "kilograms",
-        "packages": "units",
-        "CP": "contact_postcode",
+        weight: "kilograms",
+        packages: "units",
+        CP: "contact_postcode"
       },
       csvExample: [
         {
@@ -625,7 +655,8 @@ export default {
           provider_order_number: "2024/0605",
           notes: "Recollida en finca"
         }
-      ]
+      ],
+      apiUrl: process.env.VUE_APP_API_URL,
     };
   },
   computed: {
@@ -649,7 +680,11 @@ export default {
       });
     },
     theOrdersChecked() {
-      return this.checkedRows.length ? this.theOrders.filter(o => this.checkedRows.map(c => c.id).includes(o.id)) : this.theOrders;
+      return this.checkedRows.length
+        ? this.theOrders.filter(o =>
+            this.checkedRows.map(c => c.id).includes(o.id)
+          )
+        : this.theOrders;
     }
   },
   async created() {
@@ -724,7 +759,14 @@ export default {
       ).data;
 
       this.orders = this.orders.map(o => {
-        return { ...o, idx: o.id.toString().padStart(4, '0'), route_name: o.route.name, owner_id: o.owner.id, timeslot1: `${o.estimated_delivery_date} ${o.contact_time_slot_1_ini}:00 - ${o.estimated_delivery_date} ${o.contact_time_slot_1_end}:00`, timeslot2: `${o.estimated_delivery_date} ${o.contact_time_slot_2_ini}:00 -${o.estimated_delivery_date} ${o.contact_time_slot_2_end}:00` };
+        return {
+          ...o,
+          idx: o.id.toString().padStart(4, "0"),
+          route_name: o.route.name,
+          owner_id: o.owner.id,
+          timeslot1: `${o.estimated_delivery_date} ${o.contact_time_slot_1_ini}:00 - ${o.estimated_delivery_date} ${o.contact_time_slot_1_end}:00`,
+          timeslot2: `${o.estimated_delivery_date} ${o.contact_time_slot_2_ini}:00 -${o.estimated_delivery_date} ${o.contact_time_slot_2_end}:00`
+        };
       });
 
       this.contactsCSV = this.orders;
@@ -823,8 +865,15 @@ export default {
 
         // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
-          if (parseInt(record.contact_time_slot_1_ini) >= parseInt(record.contact_time_slot_1_end)) {
-            console.log("record", record.contact_time_slot_1_ini, record.contact_time_slot_1_end);
+          if (
+            parseInt(record.contact_time_slot_1_ini) >=
+            parseInt(record.contact_time_slot_1_end)
+          ) {
+            console.log(
+              "record",
+              record.contact_time_slot_1_ini,
+              record.contact_time_slot_1_end
+            );
             this.csvErrors.push({
               line: i,
               error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
@@ -844,18 +893,26 @@ export default {
 
         // El tram horari ha de ser més gran de 3 hores
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
-          if (parseInt(record.contact_time_slot_1_end) - parseInt(record.contact_time_slot_1_ini < 3)) {
-
+          if (
+            parseInt(record.contact_time_slot_1_end) -
+            parseInt(record.contact_time_slot_1_ini < 3)
+          ) {
             // comprovar també per al tram 2
-            if (record.contact_time_slot_2_ini && record.contact_time_slot_2_end) {
-              if (parseInt(record.contact_time_slot_2_end) - parseInt(record.contact_time_slot_2_ini < 3)) {
+            if (
+              record.contact_time_slot_2_ini &&
+              record.contact_time_slot_2_end
+            ) {
+              if (
+                parseInt(record.contact_time_slot_2_end) -
+                parseInt(record.contact_time_slot_2_ini < 3)
+              ) {
                 this.csvErrors.push({
                   line: i,
                   error: `El tram horari ha de ser més gran de 3 hores`
                 });
                 return false;
               }
-            }else{
+            } else {
               this.csvErrors.push({
                 line: i,
                 error: `El tram horari ha de ser més gran de 3 hores`
@@ -864,7 +921,6 @@ export default {
             }
           }
         }
-
 
         if (
           !this.routes.find(
@@ -891,10 +947,9 @@ export default {
         i++;
 
         const route = this.routes.find(
-            r =>
-              this.removeAccents(r.name) ===
-              this.removeAccents(record.route_name)
-          )
+          r =>
+            this.removeAccents(r.name) === this.removeAccents(record.route_name)
+        );
         const order = {
           id: 0,
           route_date: new Date().toISOString().split("T")[0],
@@ -942,7 +997,9 @@ export default {
               )
             : this.me,
           route: route,
-          estimated_delivery_date: moment(assignRouteDate(route).toDate()).format("YYYY-MM-DD"),
+          estimated_delivery_date: moment(
+            assignRouteDate(route).toDate()
+          ).format("YYYY-MM-DD"),
           price: null,
           status: "CSV",
           _uuid: this.createUUID()
@@ -1008,7 +1065,7 @@ export default {
       const _uuid = order._uuid;
 
       if (order.estimated_delivery_date === "") {
-        delete order.estimated_delivery_date
+        delete order.estimated_delivery_date;
       }
       const { data } = await service({ requiresAuth: true }).post(
         "orders/csv",
@@ -1059,25 +1116,61 @@ export default {
       this.getData();
     },
     async invoiceOrders() {
-      
       this.importing = true;
-      
-      await service({ requiresAuth: true }).post("orders/invoice", {
-        orders: this.checkedRows.map(o => o.id)
-      }).catch(error => {
-        console.error(error)
-        if (error && error.data && error.data.message) {
-          this.$buefy.snackbar.open({
-            message: error.data.message,
-            type: "is-danger"
-          });
-        }
-      });
+
+      await service({ requiresAuth: true })
+        .post("orders/invoice", {
+          orders: this.checkedRows.map(o => o.id)
+        })
+        .catch(error => {
+          console.error(error);
+          if (error && error.data && error.data.message) {
+            this.$buefy.snackbar.open({
+              message: error.data.message,
+              type: "is-danger"
+            });
+          }
+        });
 
       this.importing = false;
 
       this.checkedRows = [];
       this.getData();
+
+      //console.log("response", response);
+    },
+    async pdfOrders() {
+      this.importing = true;
+
+      for await (const row of this.checkedRows) {
+        const pdf = (
+          await service({ requiresAuth: true }).get(
+            `/orders/pdf/${row.id}`
+          )
+        ).data;
+        for (const url of pdf.urls) {
+          window.open(this.apiUrl + url);
+        }
+      }
+
+      // await service({ requiresAuth: true })
+      //   .post("orders/pdf", {
+      //     orders: this.checkedRows.map(o => o.id)
+      //   })
+      //   .catch(error => {
+      //     console.error(error);
+      //     if (error && error.data && error.data.message) {
+      //       this.$buefy.snackbar.open({
+      //         message: error.data.message,
+      //         type: "is-danger"
+      //       });
+      //     }
+      //   });
+
+      this.importing = false;
+
+      // this.checkedRows = [];
+      // this.getData();
 
       //console.log("response", response);
     }
@@ -1091,16 +1184,16 @@ export default {
   line-height: 20px;
   max-height: 24px;
 }
-.tag.bg-invoiced{
-  background-color: grey!important;
-  color: white!important;
+.tag.bg-invoiced {
+  background-color: grey !important;
+  color: white !important;
 }
-.tag.bg-pending{
-  background-color: #c9b460!important;
-  color: white!important;
+.tag.bg-pending {
+  background-color: #c9b460 !important;
+  color: white !important;
 }
-.tag.bg-distributing{
-  background-color: #ff7300!important;
-  color: white!important;
+.tag.bg-distributing {
+  background-color: #ff7300 !important;
+  color: white !important;
 }
 </style>

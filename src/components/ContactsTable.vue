@@ -16,14 +16,14 @@
         Nou Contacte
       </b-button>
 
-      <b-field horizontal label="Cercar" class="ml-5 is-full-width">
+      <!-- <b-field horizontal label="Cercar" class="ml-5 is-full-width">
         <b-input
           :value="filters.q"
           @keyup.native="queryProjects($event.target.value)"
           placeholder="Contacte"
         >
         </b-input>
-      </b-field>
+      </b-field> -->
     </div>
     <!-- <pre>{{contacts}}</pre> -->
     <b-table
@@ -36,31 +36,29 @@
         label="ID"
         field="id"
         sortable
-        v-slot="props"
-        v-if="orders_admin"
+        width="80"
+        searchable
+                v-slot="props"
       >
         <router-link
-          v-if="props.row.id"
           :to="{ name: 'contacts.edit', params: { id: props.row.id } }"
         >
           {{ props.row.id }}
         </router-link>
       </b-table-column>
-      <b-table-column label="Name" field="name" sortable v-slot="props">
-        <router-link
-          v-if="props.row.id"
-          :to="{ name: 'contacts.edit', params: { id: props.row.id } }"
-        >
-          {{ props.row.name }}
-        </router-link>
+      <b-table-column label="Nom" searchable field="name" sortable v-slot="props">        
+        {{ props.row.name }}
       </b-table-column>
-      <b-table-column label="NIF" field="nif" sortable v-slot="props">
+      <b-table-column label="NIF" field="nif" searchable sortable v-slot="props">
         {{ props.row.nif }}
       </b-table-column>
-      <b-table-column label="Correu" field="email" sortable v-slot="props">
+      <b-table-column label="Correu" field="email" searchable sortable v-slot="props">
         {{ props.row.email }}
       </b-table-column>
-      <b-table-column label="Contacte de" field="props.row.owner.username" sortable v-slot="props" v-if="orders_admin">
+      <b-table-column label="Telèfon" field="phone" searchable sortable v-slot="props">
+        {{ props.row.phone }}
+      </b-table-column>
+      <b-table-column label="Contacte de" field="props.row.owner.username" searchable sortable v-slot="props" v-if="orders_admin">
         {{ props.row.owner && props.row.owner.fullname ? props.row.owner.fullname : "" }}
       </b-table-column>
     </b-table>
