@@ -86,47 +86,29 @@ const assignRouteRate = (form, routeRates, orders) => {
 };
 
 const assignRouteDate = (route) => {
-  let nextDay = dayjs().add(1, "day");
+  let nextDay = dayjs().add(0, "day");  
+  let warning = "";
+  const todayDayOfWeek = dayjs().day();
+  const routeDayOfWeek = route.monday ? 1 : route.tuesday ? 2 : route.wednesday ? 3 : route.thursday ? 4 : route.friday ? 5 : route.saturday ? 6 : route.sunday ? 7 : 0;
 
-  if (route.monday) {
-    // fins next monday after today
-    nextDay = dayjs()
-      .add(1, "week")
-      .startOf("week")
-      .add(1, "day");
+  if (todayDayOfWeek === routeDayOfWeek) {
+    warning = "Ruta tancada per avui. Se t'assignarà la propera data d'entrega disponible.";
   }
-  else if (route.tuesday) {
-    nextDay = dayjs()
-      .add(1, "week")
-      .startOf("week")
-      .add(2, "day");
-  } else if (route.wednesday) {
-    nextDay = dayjs()
-      .add(1, "week")
-      .startOf("week")
-      .add(3, "day");
-  } else if (route.thursday) {
-    nextDay = dayjs()
-      .add(1, "week")
-      .startOf("week")
-      .add(4, "day");
-  } else if (route.friday) {
-    nextDay = dayjs()
-      .add(1, "week")
-      .startOf("week")
-      .add(5, "day");
-  } else if (route.saturday) {
-    nextDay = dayjs()
-      .add(1, "week")
-      .startOf("week")
-      .add(6, "day");
-  } else if (route.sunday) {
-    nextDay = dayjs()
-      .add(1, "week")
-      .startOf("week")
-      .add(7, "day");
+  let found = false;
+  while (!found) {
+    nextDay = nextDay.add(1, "day");
+    if (routeDayOfWeek === nextDay.day()) {
+      found = true;
+    }
   }
-  return nextDay
+  if (nextDay.isSame(dayjs().add(1, "day"), "day")) {
+    if (dayjs().hour() >= 14) {
+      nextDay = dayjs().add(1, "week").startOf("week").add(1, "day");
+      warning = "Ruta tancada per demà. Se t'assignarà la propera data d'entrega disponible.";
+    }
+  }  
+  
+  return { nextDay, warning };
 }
 
 export { assignRouteRate, assignRouteDate };

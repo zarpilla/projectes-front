@@ -123,7 +123,17 @@
                   editable
                 >
                 </b-datepicker>
+
               </b-field>
+
+
+              <b-message
+              v-if="dateWarningMessage"
+              
+              type="is-warning"
+            >
+              {{ dateWarningMessage }}
+            </b-message>              
 
               <b-field
                 label="Data lliurament"
@@ -158,8 +168,7 @@
                 label="Clienta *"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                message="Dades de la clienta per l'entrega"
-              >
+                message="Dades de la clienta per l'entrega"              >
                 <b-autocomplete
                   v-model="contactSearch"
                   placeholder="Clienta"
@@ -167,8 +176,7 @@
                   :open-on-focus="true"
                   :data="filteredContacts"
                   field="display"
-                  @select="option => (form.contact = option ? option.id : null)"
-                  @input="contactChanged"
+                  @select="contactChanged"                  
                   :disabled="!canEdit"
                   :clearable="true"
                 >
@@ -226,7 +234,7 @@
               </b-field>
 
               <b-field
-                label="NIF *"
+                label="NIF"
                 horizontal
                 :type="{ 'is-danger': errors['contact_nif'] && submitted }"
               >
@@ -307,7 +315,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                      {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
 
@@ -321,7 +329,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
                 </b-field>
@@ -340,7 +348,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
 
@@ -354,7 +362,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
                 </b-field>
@@ -590,11 +598,13 @@ export default {
         { id: "invoiced", name: "FACTURADA" },
         { id: "cancelled", name: "ANUL·LADA" }
       ],
-      legalForms: [],
-      contact_time_slots: Array.from({ length: 24 }, (_, i) => i),
+      legalForms: [],      
+      // array from 0 to 23 with 30 minutes intervals
+      contact_time_slots: Array.from({ length: 48 }, (_, i) => i / 2),
       routeRates: [],
       contactSearch: "",
       apiUrl: process.env.VUE_APP_API_URL,
+      dateWarningMessage: ""
     };
   },
   computed: {
@@ -649,8 +659,8 @@ export default {
         units: this.form.units === null || this.form.units <= 0,
         contact_name:
           this.form.contact_name === null || this.form.contact_name === "",
-        contact_nif:
-          this.form.contact_nif === null || this.form.contact_nif === "",
+        //contact_nif:
+          //this.form.contact_nif === null || this.form.contact_nif === "",
         contact_legal_form: this.form.contact_legal_form === null,
         contact_address:
           this.form.contact_address === null ||
@@ -977,8 +987,18 @@ export default {
       }
       if (this.form.route) {
         const route = this.routes.find(r => r.id === this.form.route);
-        let nextDay = assignRouteDate(route)
+        const routeDate = assignRouteDate(route)
+        const nextDay = routeDate.nextDay
         this.form.estimated_delivery_date = nextDay.toDate();
+        if (routeDate.warning) {          
+          this.dateWarningMessage = routeDate.warning;
+          this.$buefy.toast.open({
+            message: routeDate.warning,
+            type: "is-warning",            
+          });
+        } else {
+          this.dateWarningMessage = "";
+        }
       }
     },
     async deleteOrder() {
@@ -1158,8 +1178,15 @@ export default {
       // delete option.projectes;
       this.form.contact = option;
     },
-    async contactChanged() {
-      this.onClientaChange(this.form.contact);
+    async contactChanged(option) {
+      if (option) {
+        this.form.contact = option.id;
+        this.onClientaChange(option.id);
+      } else {
+        this.form.contact = null;
+      }
+      // this.form.contact = option ? option.id
+      // this.onClientaChange(this.form.contact);
     },
     routeSelected(option) {
       if (!option || !option.id) {
@@ -1181,7 +1208,7 @@ export default {
       if (this.form.contact) {
         if (
           !this.form.contact_name ||
-          !this.form.contact_nif ||
+          // !this.form.contact_nif ||
           !this.form.contact_address ||
           !this.form.contact_phone ||
           !this.form.contact_city ||
@@ -1224,7 +1251,7 @@ export default {
       } else {
         if (
           !this.form.contact_name ||
-          !this.form.contact_nif ||
+          //!this.form.contact_nif ||
           !this.form.contact_address ||
           !this.form.contact_phone ||
           !this.form.contact_city ||

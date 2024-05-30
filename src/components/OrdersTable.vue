@@ -764,13 +764,16 @@ export default {
           idx: o.id.toString().padStart(4, "0"),
           route_name: o.route.name,
           owner_id: o.owner.id,
-          timeslot1: `${o.estimated_delivery_date} ${o.contact_time_slot_1_ini}:00 - ${o.estimated_delivery_date} ${o.contact_time_slot_1_end}:00`,
-          timeslot2: `${o.estimated_delivery_date} ${o.contact_time_slot_2_ini}:00 -${o.estimated_delivery_date} ${o.contact_time_slot_2_end}:00`
+          timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_ini)} - ${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_end)}`,
+          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`
         };
       });
 
       this.contactsCSV = this.orders;
       this.isLoading = false;
+    },
+    formatSlot(s) {
+      return s && s.toString().includes('.') ? s.toString().replace('.5',':30') : `${s}:00`
     },
     async preUpload() {
       return await service({ requiresAuth: true }).post("orders-imports", {
@@ -838,10 +841,10 @@ export default {
           this.csvErrors.push({ line: i, error: "No contact_city" });
           return false;
         }
-        if (!record.contact_nif) {
-          this.csvErrors.push({ line: i, error: "No contact_nif" });
-          return false;
-        }
+        // if (!record.contact_nif) {
+        //   this.csvErrors.push({ line: i, error: "No contact_nif" });
+        //   return false;
+        // }
         // if (!record.contact_time_slot_1_ini) {
         //   this.csvErrors.push({ line: i, error: "No contact_time_slot_1_ini" });
         //   return false;
@@ -950,6 +953,9 @@ export default {
           r =>
             this.removeAccents(r.name) === this.removeAccents(record.route_name)
         );
+
+        const routeDate = assignRouteDate(route)
+
         const order = {
           id: 0,
           route_date: new Date().toISOString().split("T")[0],
@@ -998,12 +1004,23 @@ export default {
             : this.me,
           route: route,
           estimated_delivery_date: moment(
-            assignRouteDate(route).toDate()
+            routeDate.nextDay.toDate()
           ).format("YYYY-MM-DD"),
           price: null,
           status: "CSV",
           _uuid: this.createUUID()
         };
+
+        if (routeDate.warning) {
+          this.$buefy.toast.open({
+            message: routeDate.warning,
+            type: "is-warning",            
+          });
+          // this.$buefy.snackbar.open({
+          //   message: routeDate.warning,
+          //   type: "is-warning"
+          // });
+        }
 
         // console.log("assignRouteRate");
         // console.log("order", order);

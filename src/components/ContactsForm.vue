@@ -13,7 +13,7 @@
                   required
                 />
               </b-field>
-              <b-field label="NIF *" horizontal>
+              <b-field :label="!form.owner ? 'NIF *' : 'NIF'" horizontal>
                 <b-input v-model="form.nif" required />
               </b-field>
               <b-field
@@ -103,7 +103,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
 
@@ -113,7 +113,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
                 </b-field>
@@ -135,7 +135,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
 
@@ -145,7 +145,7 @@
                       :key="index"
                       :value="s"
                     >
-                      {{ s }}
+                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
                     </option>
                   </b-select>
                 </b-field>
@@ -200,7 +200,7 @@ export default {
       legalForms: [],
       sectors: [],
       users: [],
-      contact_time_slots: Array.from({ length: 24 }, (_, i) => i)
+      contact_time_slots: Array.from({ length: 48 }, (_, i) => i / 2),
     };
   },
   computed: {
@@ -310,8 +310,8 @@ export default {
         if (this.form.id) {          
           if (
             !this.form.name ||
-            !this.form.nif ||
             !this.form.address ||
+            (!this.form.nif && !this.form.owner) ||            
             (!this.form.phone && this.form.owner) ||
             !this.form.city ||
             !this.form.postcode
@@ -337,7 +337,8 @@ export default {
         } else {
           if (
             !this.form.name ||
-            !this.form.nif ||
+            (!this.form.nif && !this.form.owner) ||            
+            (!this.form.phone && this.form.owner) ||
             !this.form.address ||
             !this.form.city ||
             !this.form.postcode
