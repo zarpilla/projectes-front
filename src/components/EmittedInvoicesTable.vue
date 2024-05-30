@@ -137,7 +137,8 @@
     >
       Nou ingrés
     </b-button>
-    <b-table
+    <div class="has-scroll">
+    <b-table    
       :loading="isLoading"
       :paginated="false"
       :striped="false"
@@ -148,7 +149,7 @@
           (row.type == 'Avui' && 'has-text-info')
       "
     >
-      <b-table-column label="Codi" field="code" v-slot="props" sortable>
+      <b-table-column label="Codi" field="code" v-slot="props" sticky sortable>
         <router-link
           v-if="props.row.id && !provider"
           :to="{ name: 'document.edit', params: { id: props.row.id, type: props.row.type } }"
@@ -224,7 +225,11 @@
       <b-table-column label="Cobrada" field="paid_date" v-slot="props" sortable>
         {{ props.row.paid_date ? formatDate(props.row.paid_date) : "No" }}
       </b-table-column>
+      <b-table-column label="Prev. cobr." field="estimated_payment" v-slot="props" sortable>
+        {{ props.row.estimated_payment ? formatDate(props.row.estimated_payment) : "-" }}
+      </b-table-column>
     </b-table>
+  </div>
   </section>
 </template>
 
@@ -495,3 +500,8 @@ export default {
   },
 };
 </script>
+<style>
+.has-scroll .table-wrapper{
+  overflow: auto !important;
+}
+</style>

@@ -100,11 +100,12 @@
         Nova despesa
       </b-button>
 
+      <div class="has-scroll">
       <b-table :loading="isLoading" :paginated="false" :striped="false" :data="emitted" :row-class="(row, index) =>
           (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
           (row.type == 'Avui' && 'has-text-info')
         ">
-        <b-table-column label="Codi" field="code" v-slot="props" sortable>
+        <b-table-column label="Codi" field="code" v-slot="props" sortable sticky>
           <router-link v-if="props.row.id && props.row.type !== 'payrolls'" :to="{
             name: 'document.edit',
             params: { id: props.row.id, type: props.row.type },
@@ -192,6 +193,7 @@
           {{ props.row.assigned }}
         </b-table-column>
       </b-table>
+    </div>
     </section>
   </div>
 </template>
@@ -528,7 +530,6 @@ export default {
     assignedToProject(invoice) {
       let assigned = false;
 
-      console.log("invoice", invoice);
       if (invoice.projects) {
         for (let i = 0; i < invoice.projects.length; i++) {
           const project = invoice.projects[i];
@@ -587,3 +588,8 @@ export default {
   },
 };
 </script>
+<style>
+.has-scroll .table-wrapper{
+  overflow: auto !important;
+}
+</style>

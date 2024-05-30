@@ -892,16 +892,11 @@ export default {
         if (!this.permissions.includes("orders_admin")) {
           this.form.owner = me.data.id;
         }
-        // this.form.owner = me.data.id;
 
         this.form.delivery_type = this.deliveryTypes[0].id;
         this.form.pickup = this.pickups[0].id;
 
         await this.refreshClients(me.data.id);
-
-        console.log("this.contacts", this.contacts);
-
-        // this.contacts.unshift({ id: 0, name: '--' })
       }
     },
     normalizeIdsInForm(property) {

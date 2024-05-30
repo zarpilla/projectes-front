@@ -123,6 +123,25 @@
               >
               </b-datepicker>
             </b-field>
+            <b-field label="Previsió cobrament" horizontal
+            v-if="type === 'received-incomes' || type === 'emitted-invoices'"
+            >
+              <b-datepicker
+                @input="
+                  input;
+                  calculateIRPF();
+                "
+                v-model="form.estimated_payment"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data prevista de cobrament"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
             <b-field
               label="Enviada"
               horizontal
@@ -1095,6 +1114,7 @@ export default {
             ? new Date()
             : null,
         paybefore: null,
+        estimated_payment: null,
         contact: { id: 0 },
         lines: _.concat([], this.getNewLine()),
         updatable: true,
@@ -1194,6 +1214,13 @@ export default {
                   "YYYY-MM-DD"
                 ).toDate();
               }
+              if (this.form.estimated_payment) {
+                this.form.estimated_payment = moment(
+                  this.form.estimated_payment,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
+
               if (this.form.sent_date) {
                 this.form.sent_date = moment(
                   this.form.sent_date,
@@ -1667,9 +1694,12 @@ export default {
         if (this.type === "emitted-invoices") {
           p.phases.forEach(ph => {
             ph.incomes.forEach(sph => {
-              if (sph.invoice && sph.invoice.id === this.form.id) {
+              if (sph.invoice && sph.invoice.id === this.form.id) {                
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
+                if (!this.form.estimated_payment && sph.date) {
+                  this.form.estimated_payment = sph.date
+                }
                 validateIfProjectPhasesHasDocument = true;
               }
             });
@@ -1680,6 +1710,9 @@ export default {
               if (sph.income && sph.income.id === this.form.id) {
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
+                if (!this.form.estimated_payment && sph.date) {
+                  this.form.estimated_payment = sph.date
+                }
                 validateIfProjectPhasesHasDocument = true;
               }
             });

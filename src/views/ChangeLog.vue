@@ -9,6 +9,16 @@
             Filtres a la taula de <router-link to="/contacts">contactes</router-link>.
           </div>          
         </div>
+        <div class="item mb-4">
+          <div class="text mt-2">
+            Nous camps per a subvencions a la fitxa de projecte: Número d'expedient, Entitat líder i Agrupada.
+          </div>          
+        </div>
+        <div class="item mb-4">
+          <div class="text mt-2">
+            Data de previsió de cobrament a factures i ingressos
+          </div>          
+        </div>        
       </card-component> 
       <card-component title="2024.05.27">
         <div class="item mb-4">

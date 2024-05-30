@@ -84,6 +84,23 @@
                   :clearable="true"
                 >
                 </b-autocomplete>
+
+                <div class="is-flex">
+                  <b-button
+                    class="view-button is-warning mb-3"
+                    @click="navNew"
+                    icon-left="plus"
+                    title="Nou Contacte"
+                  >
+                  </b-button>
+                  <b-button
+                    class="view-button is-warning mb-3 ml-3"
+                    @click="refreshClients"
+                    icon-left="refresh"
+                    title="Refrescar Contactes"
+                  >
+                  </b-button>
+                </div>
               </b-field>
               <b-field
                 label=""
@@ -144,6 +161,22 @@
                   :clearable="true"
                 >
                 </b-autocomplete>
+                <div class="is-flex">
+                  <b-button
+                    class="view-button is-warning mb-3"
+                    @click="navNew"
+                    icon-left="plus"
+                    title="Nou Contacte"
+                  >
+                  </b-button>
+                  <b-button
+                    class="view-button is-warning mb-3 ml-3"
+                    @click="refreshClients"
+                    icon-left="refresh"
+                    title="Refrescar Contactes"
+                  >
+                  </b-button>
+                </div>
               </b-field>
               <b-field
                 label=""
@@ -344,6 +377,47 @@
               >
                 <b-switch v-model="form.grantable"> </b-switch>
               </b-field>
+
+              <b-field
+                label="Número d'expedient"
+                horizontal                
+                v-if="form.grantable"
+              >
+                <b-input                  
+                  v-model="form.grantable_reference"
+                  placeholder="Número d'expedient de la subvenció"></b-input>                  
+              </b-field>
+
+              <b-field v-if="form.grantable" label="Entitat líder" horizontal>
+                <b-autocomplete
+                  v-model="leadersSearch"
+                  placeholder="Escriu el nom del contacte..."
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredLeaders"
+                  field="name"
+                  @select="leaderSelected"
+                  :clearable="true"
+                >
+                </b-autocomplete>
+                <div class="is-flex">
+                  <b-button
+                    class="view-button is-warning mb-3"
+                    @click="navNew"
+                    icon-left="plus"
+                    title="Nou Contacte"
+                  >
+                  </b-button>
+                  <b-button
+                    class="view-button is-warning mb-3 ml-3"
+                    @click="refreshClients"
+                    icon-left="refresh"
+                    title="Refrescar Contactes"
+                  >
+                  </b-button>
+                </div>
+              </b-field>
+
               <b-field
                 label="Import a justificar amb nòmines"
                 v-if="form.grantable"
@@ -439,18 +513,7 @@
                   "
                 >
                 </b-input>
-              </b-field> -->
-              <b-field
-                label="Necessita agrupada"
-                v-if="form.grantable"
-                horizontal
-              >
-                <b-checkbox
-                  v-model="form.grantable_intercooperation"
-                  class="checkbox-inline"
-                >
-                </b-checkbox>
-              </b-field>
+              </b-field> -->              
               <b-field
                 label="Data sol·licitud"
                 v-if="form.grantable"
@@ -487,10 +550,39 @@
                 </b-datepicker>
               </b-field>
 
+              <b-field
+                label="Necessita agrupada"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-checkbox
+                  v-model="form.grantable_intercooperation"
+                  class="checkbox-inline"
+                >
+                </b-checkbox>
+              </b-field>
+
+              <b-field
+                label="Agrupada"
+                v-if="form.grantable"
+                horizontal
+                >
+                <div class="d-flex">
+                  <ProjectGrantableContacts
+                  :grantables="form.grantable_contacts"
+                  :contacts="clients"
+                  @updated="updateGrantableContacts"
+                  v-if="form.grantable">
+                </ProjectGrantableContacts>
+                </div>
+                
+              </b-field>
+
               <hr />
               <b-field horizontal label="Documents">
                 <div class="help">
-                  Per exemple, afegir pressupost total del projecte (sense IVA) o afegir document de concessió o contracte
+                  Per exemple, afegir pressupost total del projecte (sense IVA)
+                  o afegir document de concessió o contracte
                 </div>
               </b-field>
               <b-field label=" ">
@@ -690,7 +782,9 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_expenses + totals.total_estimated_hours_price + totals.total_expenses_vat
+                      totals.total_expenses +
+                        totals.total_estimated_hours_price +
+                        totals.total_expenses_vat
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -704,7 +798,9 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_real_expenses + totals.total_real_hours_price + totals.total_real_expenses_vat
+                      totals.total_real_expenses +
+                        totals.total_real_hours_price +
+                        totals.total_real_expenses_vat
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -720,10 +816,10 @@
                     :value="
                       -1 *
                         (totals.total_expenses +
-                          totals.total_estimated_hours_price 
-                          + totals.total_expenses_vat -
+                          totals.total_estimated_hours_price +
+                          totals.total_expenses_vat -
                           totals.total_real_expenses -
-                          totals.total_real_hours_price - 
+                          totals.total_real_hours_price -
                           totals.total_real_expenses_vat)
                     "
                     :locale="'es'"
@@ -777,8 +873,15 @@
               </b-field>
             </div>
 
-
-            <div class="columns" v-if="me && me.options && me.options.deductible_vat_pct && me.options.deductible_vat_pct < 100.0">
+            <div
+              class="columns"
+              v-if="
+                me &&
+                  me.options &&
+                  me.options.deductible_vat_pct &&
+                  me.options.deductible_vat_pct < 100.0
+              "
+            >
               <b-field label="Despeses pr. prorrata" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
@@ -807,7 +910,9 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      -1 * (totals.total_expenses_vat - totals.total_real_expenses_vat)
+                      -1 *
+                        (totals.total_expenses_vat -
+                          totals.total_real_expenses_vat)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -1124,18 +1229,16 @@
         :closeIcon="true"
         :content-visible="true"
       >
-
-      <b-field >
-            <b-button
-              type="is-warning"
-              :loading="isLoading"
-              @click="originalEditable = !originalEditable"
-              >
-              <template v-if="!originalEditable">Modificar pressupost</template>
-              <template v-else>Tancar pressupost</template>              
-              </b-button
-            >
-          </b-field>
+        <b-field>
+          <b-button
+            type="is-warning"
+            :loading="isLoading"
+            @click="originalEditable = !originalEditable"
+          >
+            <template v-if="!originalEditable">Modificar pressupost</template>
+            <template v-else>Tancar pressupost</template>
+          </b-button>
+        </b-field>
 
         <project-phases
           :form="form"
@@ -1192,18 +1295,16 @@
         :closeIcon="true"
         :content-visible="true"
       >
-
-      <b-field >
-            <b-button
-              type="is-warning"
-              :loading="isLoading"
-              @click="phasesEditable = !phasesEditable"
-              >
-              <template v-if="!phasesEditable">Modificar pressupost</template>
-              <template v-else>Tancar pressupost</template>              
-              </b-button
-            >
-          </b-field>
+        <b-field>
+          <b-button
+            type="is-warning"
+            :loading="isLoading"
+            @click="phasesEditable = !phasesEditable"
+          >
+            <template v-if="!phasesEditable">Modificar pressupost</template>
+            <template v-else>Tancar pressupost</template>
+          </b-button>
+        </b-field>
 
         <project-phases
           :form="form"
@@ -1753,6 +1854,7 @@ import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
 import ProjectGannt from "@/components/ProjectGannt.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
+import ProjectGrantableContacts from "@/components/ProjectGrantableContacts.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import { EventBus } from "@/service/event-bus.js";
 import sumBy from "lodash/sumBy";
@@ -1772,6 +1874,7 @@ export default {
     ModalBoxSplit,
     ProjectGannt,
     ProjectPhases,
+    ProjectGrantableContacts,
     Tasks,
     FileUpload
   },
@@ -1803,6 +1906,7 @@ export default {
       activityTypes: [],
       regions: [],
       clientSearch: "",
+      leadersSearch: "",
       projectSearch: "",
       activityTypeSearch: "",
       cooperaSearch: "",
@@ -1827,7 +1931,8 @@ export default {
       periodification: false,
       dirtyEnabled: true,
       originalEditable: false,
-      phasesEditable: false
+      phasesEditable: false,
+      grantable_contacts: [],
     };
   },
   computed: {
@@ -1840,6 +1945,16 @@ export default {
             .toString()
             .toLowerCase()
             .indexOf(this.clientSearch.toLowerCase()) >= 0
+        );
+      });
+    },
+    filteredLeaders() {
+      return this.clients.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.leadersSearch.toLowerCase()) >= 0
         );
       });
     },
@@ -2237,6 +2352,12 @@ export default {
                 this.form.leader && this.form.leader.id
                   ? this.form.leader
                   : { id: 0 };
+
+              if (this.form.grantable_leader) {
+                this.leadersSearch = this.form.grantable_leader.name;
+                this.form.grantable_leader = this.form.grantable_leader.id;
+              }
+
               this.form.region =
                 this.form.region && this.form.region.id
                   ? this.form.region
@@ -2314,7 +2435,6 @@ export default {
                 });
               }
 
-
               if (this.form.default_dedication_type === null) {
                 this.form.default_dedication_type = { id: 0 };
               }
@@ -2352,6 +2472,8 @@ export default {
                 this.updatePeriodification();
               }
 
+              this.grantable_contacts = this.form.grantable_contacts || [];
+
               this.getAuxiliarData();
 
               this.isLoading = false;
@@ -2376,7 +2498,6 @@ export default {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
-          console.log("project-states", r.data);
           this.project_states = r.data;
         });
       service({ requiresAuth: true, cached: true })
@@ -2428,7 +2549,9 @@ export default {
       this.dirtyEnabled = false;
 
       this.leaders = (
-        await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")
+        await service({ requiresAuth: true, cached: true }).get(
+          "users?_limit=-1"
+        )
       ).data.filter(u => u.hidden !== true);
 
       if (this.$route.params.id === "0" && !this.form.leader.id) {
@@ -2531,6 +2654,8 @@ export default {
         this.form.mother = null;
       }
 
+      
+
       try {
         const stateInvalid = this.form.project_state.id === 0;
         const scopeInvalid = this.form.project_scope.id === 0;
@@ -2583,6 +2708,8 @@ export default {
             });
           }
 
+          this.form.grantable_contacts = this.grantable_contacts
+
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
             form
@@ -2602,6 +2729,9 @@ export default {
             });
           }
         } else {
+
+          this.form.grantable_contacts = this.grantable_contacts
+          
           const newProject = await service({ requiresAuth: true }).post(
             "projects",
             this.form
@@ -2665,6 +2795,9 @@ export default {
       setTimeout(() => {
         this.clientSearch = "";
       }, 100);
+    },
+    leaderSelected(option) {
+      this.form.grantable_leader = option ? option.id : null;
     },
     projectSelected(option) {
       if (option && option.id) {
@@ -3011,6 +3144,24 @@ export default {
     },
     refresh() {
       window.location.reload();
+    },
+    navNew() {
+      let routeData = this.$router.resolve({
+        name: "contacts.edit",
+        params: { id: 0 }
+      });
+      window.open(routeData.href, "_blank");
+    },
+    refreshClients() {
+      service({ requiresAuth: true, cached: true })
+        .get("contacts/basic?_limit=-1&_sort=name:ASC")
+        .then(r => {
+          this.clients = r.data;
+        });
+    },
+    updateGrantableContacts(contacts) {
+      this.form.grantable_contacts = contacts;
+
     }
   }
 };
@@ -3019,7 +3170,7 @@ export default {
 .year-label {
   min-width: 100px;
 }
-.file-documents{
+.file-documents {
   margin-left: 17%;
 }
 </style>
