@@ -92,7 +92,7 @@ const assignRouteDate = (route) => {
   const routeDayOfWeek = route.monday ? 1 : route.tuesday ? 2 : route.wednesday ? 3 : route.thursday ? 4 : route.friday ? 5 : route.saturday ? 6 : route.sunday ? 7 : 0;
 
   if (todayDayOfWeek === routeDayOfWeek) {
-    warning = "Ruta tancada per avui. Se t'assignarà la propera data d'entrega disponible.";
+    warning = "Ruta tancada per avui. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
   }
   let found = false;
   while (!found) {
@@ -104,7 +104,7 @@ const assignRouteDate = (route) => {
   if (nextDay.isSame(dayjs().add(1, "day"), "day")) {
     if (dayjs().hour() >= 14) {
       nextDay = dayjs().add(1, "week").startOf("week").add(1, "day");
-      warning = "Ruta tancada per demà. Se t'assignarà la propera data d'entrega disponible.";
+      warning = "Ruta tancada per demà. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
     }
   }  
   
