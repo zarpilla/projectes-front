@@ -1203,47 +1203,95 @@ export default {
       );
       let countFound = 0;
       let countNotFound = 0;
-      eventsAdded.forEach(event => {
+      for (const event of eventsAdded) {
         const projectName =
           event.customData.project.indexOf(" ") >= 0
             ? event.customData.project.split(" ")[0]
             : event.customData.project;
-        const project = this.activeProjects.find(
-          p => this.removeAccents(p.name) === this.removeAccents(projectName)
-        );
-        if (project) {
-          countFound++;
-        } else {
-          console.log("project not found", projectName);
-          if (projectName.includes("-")) {
-            const indexOfDash = projectName.indexOf("-");
-            const projectName2 = projectName.substring(indexOfDash + 1) || "";            
-            const projects2 = this.activeProjects.filter(
+
+        if (projectName.startsWith("[") && projectName.endsWith("]")) {
+          const projectName2 = projectName.substring(1, projectName.length - 1);
+
+          if (
+            this.activeProjects.find(
               p =>
-                (this.removeAccents(p.name).startsWith(
-                  this.removeAccents(projectName2)
-                ) &&
-                  projectName2 !== "") ||
-                (this.removeAccents(p.name).includes(
-                  this.removeAccents(projectName2) 
-                ) && projectName2 !== "") ||
-                (this.removeAccents(p.name).startsWith(
-                  this.removeAccents(projectName)
-                ) && projectName2 === "")
-            );
-            if (projects2.length === 1) {
-              console.log("project?", projectName, projects2);
-              countFound++;
-            } else {
-              console.log("project not found", projectName, projects2);
+                this.removeAccents(p.name) === this.removeAccents(projectName2)
+            )
+          ) {
+            countFound++;
+          } else {
+            const projectParts = projectName2.split("-");
+
+            if (projectParts.length === 0) {
               countNotFound++;
+            } else if (projectParts.length >= 1) {
+              for (const part of projectParts) {
+                console.log("part", part);
+                const found = this.activeProjects.filter(
+                  p => this.removeAccents(p.name) === this.removeAccents(part)
+                );
+                if (found.length === 1) {
+                  countFound++;
+                } else {
+                  const found = this.activeProjects.filter(
+                    p =>
+                      this.removeAccents(p.name).includes(
+                        this.removeAccents(part) + "-"
+                      ) ||
+                      this.removeAccents(p.name).includes(
+                        "-" + this.removeAccents(part)
+                      )
+                  );
+                  if (found.length === 1) {
+                    countFound++;
+                    console.log("project found!", projectName2);
+                  } else {
+                    countNotFound++;
+                  }
+                }
+              }
             }
+          }
+        } else {
+          const project = this.activeProjects.find(
+            p => this.removeAccents(p.name) === this.removeAccents(projectName)
+          );
+          if (project) {
+            countFound++;
           } else {
             console.log("project not found", projectName);
-            countNotFound++;
+            if (projectName.includes("-")) {
+              const indexOfDash = projectName.indexOf("-");
+              const projectName2 = projectName.substring(indexOfDash + 1) || "";
+              const projects2 = this.activeProjects.filter(
+                p =>
+                  (this.removeAccents(p.name).startsWith(
+                    this.removeAccents(projectName2)
+                  ) &&
+                    projectName2 !== "") ||
+                  (this.removeAccents(p.name).includes(
+                    this.removeAccents(projectName2)
+                  ) &&
+                    projectName2 !== "") ||
+                  (this.removeAccents(p.name).startsWith(
+                    this.removeAccents(projectName)
+                  ) &&
+                    projectName2 === "")
+              );
+              if (projects2.length === 1) {
+                console.log("project?", projectName, projects2);
+                countFound++;
+              } else {
+                console.log("project not found", projectName, projects2);
+                countNotFound++;
+              }
+            } else {
+              console.log("project not found", projectName);
+              countNotFound++;
+            }
           }
         }
-      });
+      }
 
       if (this.shouldImportFromCalendar && countFound > 0) {
         this.shouldImportFromCalendar = false;
@@ -1275,83 +1323,158 @@ export default {
         // const event = eventsAdded[i]
         const projectName =
           event.customData.project.indexOf(" ") >= 0
-            ? event.customData.project.split(" ")[0]/*  */
+            ? event.customData.project.split(" ")[0] /*  */
             : event.customData.project;
-        const project = this.activeProjects.find(
-          p => this.removeAccents(p.name) === this.removeAccents(projectName)
-        );
-        if (project) {
-          const eventData = event.customData.a;
-          console.log("project found", projectName, event, eventData);
-          const activity = {
-            activity_type: null,
-            date: eventData.start.substring(0, 10),
-            dedication_type:
+
+        if (projectName.startsWith("[") && projectName.endsWith("]")) {
+          const projectName2 = projectName.substring(1, projectName.length - 1);
+
+          let project = null;
+
+          if (
+            this.activeProjects.find(
+              p =>
+                this.removeAccents(p.name) === this.removeAccents(projectName2)
+            )
+          ) {
+            project = this.activeProjects.find(
+              p =>
+                this.removeAccents(p.name) === this.removeAccents(projectName2)
+            );
+          } else {
+            const projectParts = projectName2.split("-");
+
+            if (projectParts.length === 0) {
+            } else if (projectParts.length >= 1) {
+              for (const part of projectParts) {
+                const found = this.activeProjects.filter(
+                  p => this.removeAccents(p.name) === this.removeAccents(part)
+                );
+                if (found.length === 1) {
+                  project = found[0];
+                } else {
+                  const found = this.activeProjects.filter(
+                    p =>
+                      this.removeAccents(p.name).includes(
+                        this.removeAccents(part) + "-"
+                      ) ||
+                      this.removeAccents(p.name).includes(
+                        "-" + this.removeAccents(part)
+                      )
+                  );
+                  if (found.length === 1) {
+                    project = found[0];
+                  } else {
+                    countNotFound++;
+                  }
+                }
+              }
+            }
+          }
+
+          if (project) {
+            const eventData = event.customData.a;
+            const activity = {
+              activity_type: null,
+              date: eventData.start.substring(0, 10),
+              dedication_type:
               project.default_dedication_type &&
               project.default_dedication_type.id
-                ? project.default_dedication_type.id
-                : null,
-            hours:
-              moment(eventData.end).diff(moment(eventData.start), "minutes") /
-              60,
-            project: project.id,
-            users_permissions_user: this.user,
-            uid_ical: eventData.uid
-          };
-          await service({ requiresAuth: true }).post("activities", activity);
-
-          created++;
-          this.$buefy.snackbar.open({
-            message: `Dedicació creada (${created})`,
-            queue: false
-          });
+                  ? project.default_dedication_type.id
+                  : null,
+              hours:
+                moment(eventData.end).diff(moment(eventData.start), "minutes") /
+                60,
+              project: project.id,
+              users_permissions_user: this.user,
+              uid_ical: eventData.uid
+            };
+            await service({ requiresAuth: true }).post("activities", activity);
+            created++;
+            this.$buefy.snackbar.open({
+              message: `Dedicació creada (${created})`,
+              queue: false
+            });
+          }
         } else {
-          if (projectName.includes("-")) {
-            const indexOfDash = projectName.indexOf("-");
-            const projectName2 = projectName.substring(indexOfDash + 1);
-            const projects2 = this.activeProjects.filter(
-              p =>
-              (this.removeAccents(p.name).startsWith(
-                  this.removeAccents(projectName2)
-                ) &&
-                  projectName2 !== "") ||
-                (this.removeAccents(p.name).includes(
-                  this.removeAccents(projectName2) 
-                ) && projectName2 !== "") ||
-                (this.removeAccents(p.name).startsWith(
-                  this.removeAccents(projectName)
-                ) && projectName2 === "")
-            );
-            if (projects2.length === 1) {
-              console.log("project?", projectName, projects2);
+          const project = this.activeProjects.find(
+            p => this.removeAccents(p.name) === this.removeAccents(projectName)
+          );
+          if (project) {
+            const eventData = event.customData.a;
+            console.log("project found", projectName, event, eventData);
+            const activity = {
+              activity_type: null,
+              date: eventData.start.substring(0, 10),
+              dedication_type:
+                project.default_dedication_type &&
+                project.default_dedication_type.id
+                  ? project.default_dedication_type.id
+                  : null,
+              hours:
+                moment(eventData.end).diff(moment(eventData.start), "minutes") /
+                60,
+              project: project.id,
+              users_permissions_user: this.user,
+              uid_ical: eventData.uid
+            };
+            await service({ requiresAuth: true }).post("activities", activity);
 
-              const eventData = event.customData.a;
-              const activity = {
-                activity_type: null,
-                date: eventData.start.substring(0, 10),
-                dedication_type:
-                  projects2[0].default_dedication_type &&
-                  projects2[0].default_dedication_type.id
-                    ? project.default_dedication_type.id
-                    : null,
-                hours:
-                  moment(eventData.end).diff(
-                    moment(eventData.start),
-                    "minutes"
-                  ) / 60,
-                project: projects2[0].id,
-                users_permissions_user: this.user,
-                uid_ical: eventData.uid
-              };
-              await service({ requiresAuth: true }).post(
-                "activities",
-                activity
+            created++;
+            this.$buefy.snackbar.open({
+              message: `Dedicació creada (${created})`,
+              queue: false
+            });
+          } else {
+            if (projectName.includes("-")) {
+              const indexOfDash = projectName.indexOf("-");
+              const projectName2 = projectName.substring(indexOfDash + 1);
+              const projects2 = this.activeProjects.filter(
+                p =>
+                  (this.removeAccents(p.name).startsWith(
+                    this.removeAccents(projectName2)
+                  ) &&
+                    projectName2 !== "") ||
+                  (this.removeAccents(p.name).includes(
+                    this.removeAccents(projectName2)
+                  ) &&
+                    projectName2 !== "") ||
+                  (this.removeAccents(p.name).startsWith(
+                    this.removeAccents(projectName)
+                  ) &&
+                    projectName2 === "")
               );
-              created++;
-              this.$buefy.snackbar.open({
-                message: `Dedicació creada (${created})`,
-                queue: false
-              });
+              if (projects2.length === 1) {
+                console.log("project?", projectName, projects2);
+
+                const eventData = event.customData.a;
+                const activity = {
+                  activity_type: null,
+                  date: eventData.start.substring(0, 10),
+                  dedication_type:
+                    projects2[0].default_dedication_type &&
+                    projects2[0].default_dedication_type.id
+                      ? project.default_dedication_type.id
+                      : null,
+                  hours:
+                    moment(eventData.end).diff(
+                      moment(eventData.start),
+                      "minutes"
+                    ) / 60,
+                  project: projects2[0].id,
+                  users_permissions_user: this.user,
+                  uid_ical: eventData.uid
+                };
+                await service({ requiresAuth: true }).post(
+                  "activities",
+                  activity
+                );
+                created++;
+                this.$buefy.snackbar.open({
+                  message: `Dedicació creada (${created})`,
+                  queue: false
+                });
+              }
             }
           }
         }

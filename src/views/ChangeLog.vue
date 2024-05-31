@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.05.31">
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Millores en la importació d'hores des de calendaris .ics amb claudàtors.
+          </div>          
+        </div>
+      </card-component> 
       <card-component title="2024.05.30">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
