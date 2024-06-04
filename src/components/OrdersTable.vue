@@ -182,7 +182,7 @@
           'is-primary': routeFilter === route.name,
           'is-warning': routeFilter !== route.name
         }"
-        @click="routeFilter = route.name"
+        @click="setRouteFilter(route.name)"
       >
         {{ route.name }}
       </b-button>
@@ -312,7 +312,7 @@
         {{ props.row.delivery_date }}
       </b-table-column>
       <b-table-column
-        label="Clienta"
+        label="Punt d'entrega"
         searchable
         field="contact.name"
         sortable
@@ -688,6 +688,12 @@ export default {
     }
   },
   async created() {
+    if (localStorage.getItem("OrdersTable.statusFilter")) {
+      this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
+    }
+    if (localStorage.getItem("OrdersTable.routeFilter")) {
+      this.routeFilter = localStorage.getItem("OrdersTable.routeFilter");
+    }
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
     );
@@ -698,7 +704,13 @@ export default {
   },
   methods: {
     setStatusFilter(status) {
+      localStorage.setItem("OrdersTable.statusFilter", status);
       this.statusFilter = status;
+      this.checkedRows = [];
+    },
+    setRouteFilter(route) {
+      localStorage.setItem("OrdersTable.routeFilter", route);
+      this.routeFilter = route;
       this.checkedRows = [];
     },
     navNew() {
@@ -911,14 +923,14 @@ export default {
               ) {
                 this.csvErrors.push({
                   line: i,
-                  error: `El tram horari ha de ser més gran de 3 hores`
+                  error: `El tram horari ha de ser mínim de 3 hores`
                 });
                 return false;
               }
             } else {
               this.csvErrors.push({
                 line: i,
-                error: `El tram horari ha de ser més gran de 3 hores`
+                error: `El tram horari ha de ser mínim de 3 hores`
               });
               return false;
             }

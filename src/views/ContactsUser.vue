@@ -15,6 +15,7 @@ import service from '@/service/index'
 import { mapState } from 'vuex'
 import moment from 'moment'
 
+
 export default {
   name: 'DedicacioSaldo',
   components: {
@@ -31,17 +32,19 @@ export default {
       },
       years: [],
       treasury: [],
-      treasuryData: []
+      treasuryData: [],
+      userContacts: false
     }
   },
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Clientes']
+      return [!this.userContacts ? 'Clientes' : 'Punts d\'entrega']
     }
   },
   mounted () {    
     // read router meta data    
+    this.userContacts = this.$route.meta && this.$route.meta.userContacts ? true : false;
   },
 }
 </script>

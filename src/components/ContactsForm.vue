@@ -32,6 +32,12 @@
                   </option>
                 </b-select>
               </b-field>
+
+              <b-field label="Nom comercial" horizontal>
+                <b-input v-model="form.trade_name" />
+              </b-field>
+              
+
               <b-field :label="form.owner ? 'Telèfon *' : 'Telèfon'" horizontal>
                 <b-input v-model="form.phone" />
               </b-field>

@@ -165,13 +165,13 @@
               <hr />
 
               <b-field
-                label="Clienta *"
+                label="Punt d'entrega"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                message="Dades de la clienta per l'entrega"              >
+                message="Cerca el punt d'entrega si ja existeix, o omple les dades a sota i guarda-la si és nou">
                 <b-autocomplete
                   v-model="contactSearch"
-                  placeholder="Clienta"
+                  placeholder="Punt d'entrega"
                   :keep-first="false"
                   :open-on-focus="true"
                   :data="filteredContacts"
@@ -226,11 +226,18 @@
               </b-field>
 
               <b-field
-                label="Nom *"
+                label="Raó social *"
                 horizontal
                 :type="{ 'is-danger': errors['contact_name'] && submitted }"
               >
                 <b-input v-model="form.contact_name" :disabled="!canEdit" />
+              </b-field>
+
+              <b-field
+                label="Nom comercial"
+                horizontal                
+              >
+                <b-input v-model="form.contact_trade_name" :disabled="!canEdit" />
               </b-field>
 
               <b-field
@@ -367,12 +374,16 @@
                   </b-select>
                 </b-field>
 
+                
+              </b-field>
+
+              <b-field horizontal message="Guarda ara el punt d'entrega si és nou o has fet canvis">
                 <b-button
                   :disabled="!canEdit"
                   class="view-button is-primary zmb-3"
                   @click="saveClient"
                   title="Guardar "
-                  >Guardar Clienta
+                  >Guardar punt d'entrega
                 </b-button>
               </b-field>
 
@@ -658,7 +669,7 @@ export default {
         pickup: this.form.pickup == null,
         units: this.form.units === null || this.form.units <= 0,
         contact_name:
-          this.form.contact_name === null || this.form.contact_name === "",
+          this.form.contact_name === null || this.form.contact_name === "",        
         //contact_nif:
           //this.form.contact_nif === null || this.form.contact_nif === "",
         contact_legal_form: this.form.contact_legal_form === null,
@@ -802,6 +813,7 @@ export default {
         route: null,
         contact: null,
         contact_name: "",
+        contact_trade_name: "",
         contact_nif: "",
         contact_address: "",
         contact_postcode: "",
@@ -1011,6 +1023,42 @@ export default {
     exit() {
       this.$router.push({ name: "orders.view" });
     },
+    validateEstimateDateDayOfWeek() {
+      if (this.form.route && this.form.estimated_delivery_date) {
+        const route = this.routes.find(r => r.id === this.form.route);
+        const dayOfWeek = this.form.estimated_delivery_date.getDay();
+        let error = false
+        if (dayOfWeek === 0 && !route.sunday) {
+          error = "Error. La ruta seleccionada no es fa en diumenge"
+        } else if (dayOfWeek === 1 && !route.monday) {
+          error = "Error. La ruta seleccionada no es fa dilluns"
+        } else if (dayOfWeek === 2 && !route.tuesday) {
+          error = "Error. La ruta seleccionada no es fa dimarts"
+        } else if (dayOfWeek === 3 && !route.wednesday) {
+          error = "Error. La ruta seleccionada no es fa dimecres"
+        } else if (dayOfWeek === 4 && !route.thursday) {
+          error = "Error. La ruta seleccionada no es fa dijous"
+        } else if (dayOfWeek === 5 && !route.friday) {
+          error = "Error. La ruta seleccionada no es fa divendres"
+        } else if (dayOfWeek === 6 && !route.saturday) {
+          error = "Error. La ruta seleccionada no es fa dissabte"
+        }
+
+        if (error) {
+          this.$buefy.snackbar.open({
+            message: error,
+            queue: false,
+            type: "is-danger"
+          });
+          return false;
+        }
+        return true;
+
+      }
+      // console.log('this.route', this.form.route)
+      // console.log('this.form.estimated_delivery_date', this.form.estimated_delivery_date)
+
+    },
     async submit(exit) {
       this.isLoading = true;
       this.submitted = true;
@@ -1029,6 +1077,12 @@ export default {
 
       try {
 
+        const routeValid = this.validateEstimateDateDayOfWeek()
+
+        if (!routeValid) {
+          this.isLoading = false;
+          return
+        }
 
         if (this.form.contact_time_slot_1_ini > this.form.contact_time_slot_1_end) {
           this.$buefy.snackbar.open({
@@ -1073,7 +1127,7 @@ export default {
         // "Error. El tram horari 1 ha de ser més gran de 3 hores",
         if (this.form.contact_time_slot_1_end - this.form.contact_time_slot_1_ini < 3 && (this.form.contact_time_slot_2_end && this.form.contact_time_slot_2_end - this.form.contact_time_slot_2_ini < 3)) {            
           this.$buefy.snackbar.open({
-            message: "Error. El tram horari ha de ser més gran de 3 hores",
+            message: "Error. El tram horari ha de ser mínim de 3 hores",
             queue: false,
             type: "is-danger"
           });
@@ -1222,6 +1276,7 @@ export default {
           `contacts/${this.form.contact}`,
           {
             name: this.form.contact_name,
+            trade_name: this.form.contact_trade_name,
             nif: this.form.contact_nif,
             address: this.form.contact_address,
             postcode: this.form.contact_postcode,
@@ -1237,7 +1292,7 @@ export default {
         );
 
         this.$buefy.snackbar.open({
-          message: "Clienta Guardada",
+          message: "Punt d'entrega guardat",
           queue: false
         });
         await this.refreshClients(this.form.owner);
@@ -1265,6 +1320,7 @@ export default {
           "contacts",
           {
             name: this.form.contact_name,
+            trade_name: this.form.contact_trade_name,
             nif: this.form.contact_nif,
             address: this.form.contact_address,
             postcode: this.form.contact_postcode,
@@ -1281,7 +1337,7 @@ export default {
         this.form.contact = newContact.data.id;
 
         this.$buefy.snackbar.open({
-          message: "Clienta Guardada",
+          message: "Punt d'entrega guardat",
           queue: false
         });
         await this.refreshClients(this.form.owner);
@@ -1315,6 +1371,7 @@ export default {
       console.log("removeContactData");
       this.form.contact = null;
       this.form.contact_name = "";
+      this.form.contact_trade_name = "";
       this.form.contact_nif = "";
       this.form.contact_address = "";
       this.form.contact_postcode = "";
@@ -1336,6 +1393,7 @@ export default {
         );
 
         this.form.contact_name = contact.name;
+        this.form.contact_trade_name = contact.trade_name;
         this.form.contact_nif = contact.nif;
         this.form.contact_address = contact.address;
         this.form.contact_postcode = contact.postcode;
