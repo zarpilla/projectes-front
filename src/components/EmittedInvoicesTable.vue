@@ -225,7 +225,7 @@
       <b-table-column label="Cobrada" field="paid_date" v-slot="props" sortable>
         {{ props.row.paid_date ? formatDate(props.row.paid_date) : "No" }}
       </b-table-column>
-      <b-table-column label="Prev. cobr." field="estimated_payment" v-slot="props" sortable>
+      <b-table-column label="Prev. cobr." v-if="!provider" field="estimated_payment" v-slot="props" sortable>
         {{ props.row.estimated_payment ? formatDate(props.row.estimated_payment) : "-" }}
       </b-table-column>
     </b-table>

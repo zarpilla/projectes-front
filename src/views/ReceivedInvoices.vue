@@ -161,7 +161,7 @@ export default {
       var { data } = await service({ requiresAuth: true, cached: true }).get(
         "document-types?type=expense&_limit=-1"
       );
-      this.documentTypes = data;
+      this.documentTypes = [...data];
       this.documentTypes.unshift({ id: -1, name: "Factura" });
       this.documentTypes.push({ id: -2, name: "Nómina" });
       this.documentTypes.unshift({ id: 0, name: "Tots" });
