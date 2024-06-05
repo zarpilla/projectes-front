@@ -1209,8 +1209,9 @@ export default {
             ? event.customData.project.split(" ")[0]
             : event.customData.project;
 
-        if (projectName.startsWith("[") && projectName.endsWith("]")) {
-          const projectName2 = projectName.substring(1, projectName.length - 1);
+        if (projectName.startsWith("[") && projectName.includes("]")) {
+          const indexOfEnd = projectName.indexOf("]");
+          const projectName2 = projectName.substring(1, indexOfEnd);
 
           if (
             this.activeProjects.find(
@@ -1326,8 +1327,9 @@ export default {
             ? event.customData.project.split(" ")[0] /*  */
             : event.customData.project;
 
-        if (projectName.startsWith("[") && projectName.endsWith("]")) {
-          const projectName2 = projectName.substring(1, projectName.length - 1);
+        if (projectName.startsWith("[") && projectName.includes("]")) {
+          const indexOfEnd = projectName.indexOf("]");
+          const projectName2 = projectName.substring(1, indexOfEnd);
 
           let project = null;
 
@@ -1365,7 +1367,6 @@ export default {
                   if (found.length === 1) {
                     project = found[0];
                   } else {
-                    countNotFound++;
                   }
                 }
               }

@@ -484,6 +484,7 @@ export default {
         owner_id: "owner_id",
         estimated_delivery_date: "estimated_delivery_date",
         contact_name: "contact_name",
+        contact_trade_name: "contact_trade_name",
         contact_address: "contact_address",
         contact_postcode: "contact_postcode",
         contact_city: "contact_city",
@@ -507,6 +508,7 @@ export default {
         owner_id: "owner_id",
         estimated_delivery_date: "estimated_delivery_date",
         contact_name: "contact_name",
+        contact_trade_name: "contact_trade_name",
         contact_address: {
           field: "contact_address",
           callback: value => {
@@ -614,6 +616,7 @@ export default {
           owner_id: 0,
           estimated_delivery_date: "20240215",
           contact_name: "Joan Garriga",
+          contact_trade_name: "Begudes Garriga",
           contact_address: "Carrer de l'amargura 17",
           contact_postcode: "08001",
           contact_city: "Mataró",
@@ -637,6 +640,7 @@ export default {
           owner_id: 0,
           estimated_delivery_date: "",
           contact_name: "Queviures Font",
+          contact_trade_name: "Queviures Maria Font",
           contact_address: "Carrer de la font, 1",
           contact_postcode: "17001",
           contact_city: "Girona",
@@ -974,6 +978,7 @@ export default {
           estimated_delivery_date: record.estimated_delivery_date ?? null,
           contact_address: record.contact_address,
           contact_name: record.contact_name,
+          contact_trade_name: record.contact_trade_name,
           contact_phone: record.contact_phone,
           contact_postcode: record.contact_postcode,
           contact_nif: record.contact_nif,
@@ -985,6 +990,7 @@ export default {
           contact_time_slot_2_end: record.contact_time_slot_2_end ?? null,
           contact: {
             name: record.contact_name,
+            trade_name: record.contact_trade_name,
             address: record.contact_address,
             phone: record.contact_phone,
             postcode: record.contact_postcode,
