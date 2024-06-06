@@ -1167,8 +1167,8 @@ export default {
       const user = this.users.find(u => u.id === this.user);
       this.icalEvents.forEach(event => {
         if (
-          moment(event.start).isAfter(moment(this.date1)) &&
-          moment(event.end).isBefore(moment(this.date2))
+          moment(event.start).isSameOrAfter(moment(this.date1)) &&
+          moment(event.end).isSameOrBefore(moment(this.date2).endOf("day"))
         ) {
           // filter already used events
           const attr = this.attributes.find(

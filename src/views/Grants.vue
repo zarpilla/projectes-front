@@ -8,6 +8,26 @@
         :can-cancel="false"
       ></b-loading>
 
+      <card-component title="Filtres">
+        
+          <b-field horizontal label="Estat projecte">
+            <b-select
+              v-model="filters.project_state"
+              placeholder="Estat"
+              required
+              @input="getData"
+            >
+              <option
+                v-for="(s, index) in project_states"
+                :key="index"
+                :value="s.id"
+              >
+                {{ s.name }}
+              </option>
+            </b-select>
+          </b-field>
+      </card-component>
+
       <card-component
         title="SUBVENCIONS"
         class="has-table has-mobile-sort-spaced"
@@ -35,21 +55,68 @@
             }}
           </b-table-column>
           <b-table-column
-            label="Termini"
+            label="Inici"
+            field="date_start"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.date_start }}
+          </b-table-column>
+          <b-table-column
+            label="Final"
+            field="date_end"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.date_end }}
+          </b-table-column>
+          <b-table-column
+            label="Expedient"
+            field="grantable_reference"
+            sortable
+            v-slot="props"
+          >
+            {{ props.row.grantable_reference }}
+          </b-table-column>
+          <b-table-column
+            label="Import total"
+            field="grantable_amount_total"
+            sortable
+            numeric
+            v-slot="props"
+          >
+            {{ formatPrice(props.row.grantable_amount_total) }}
+          </b-table-column>
+
+          <b-table-column
+            label="Import cofinançament"
+            field="grantable_cofinancing"
+            sortable
+            v-slot="props"
+            numeric
+          >
+            {{ formatPrice(props.row.grantable_cofinancing) }}
+          </b-table-column>
+
+          <b-table-column
+            label="Sol·licitud"
             field="grantable_date"
             sortable
+            date
             v-slot="props"
           >
             {{ props.row.grantable_date }}
           </b-table-column>
           <b-table-column
-            label="Import"
-            field="grantable_amount_total"
+            label="Justificació"
+            field="grantable_date"
+            date
             sortable
             v-slot="props"
           >
-            {{ props.row.grantable_amount_total }}
+            {{ props.row.justification_date }}
           </b-table-column>
+
           <b-table-column
             label="Estat"
             field="project_state"
@@ -77,6 +144,7 @@ import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
 import { mapState } from "vuex";
 import moment from "moment";
+import formatPrice from "@/helpers/format-price";
 
 export default {
   name: "Home",
@@ -84,35 +152,53 @@ export default {
     CardComponent,
     CardWidget,
     Tiles,
-    TitleBar,
+    TitleBar
   },
   data() {
     return {
       loading: false,
       projects: [],
+      filters: {
+        project_state: 1
+      },
+      project_states: []
     };
   },
   computed: {
     ...mapState(["userName"]),
     titleStack() {
       return ["Subvencions"];
-    },
+    }
   },
   async mounted() {
     this.loading = true;
-    const query = `projects/basic?_limit=-1&grantable=true`;
-    const projects = (
-      await service({ requiresAuth: true }).get(query)
-    ).data.filter((p) => p.project_state && p.project_state.id !== 2);
-    this.projects = sortBy(
-      projects.filter(
-        (p) => p.project_state !== null && p.project_state.id === 1
-      ),
-      "name"
-    );
 
+    this.project_states = await service({ requiresAuth: true })
+      .get("project-states")
+      .then(r => r.data);
+    this.project_states.unshift({ id: 0, name: "Tots" });
+
+    this.filters.project_state = 1;
+
+    await this.getData();
     this.loading = false;
   },
-  methods: {},
+  methods: {
+    async getData() {
+      const query = `projects/basic?_limit=-1&grantable=true`;
+      const queryState =
+        this.filters.project_state > 0
+          ? `&project_state=${this.filters.project_state}`
+          : "";
+      const projects = (
+        await service({ requiresAuth: true }).get(query + queryState)
+      ).data;
+
+      this.projects = sortBy(projects, "name");
+    },
+    formatPrice(amount) {
+      return formatPrice(amount);
+    }
+  }
 };
 </script>

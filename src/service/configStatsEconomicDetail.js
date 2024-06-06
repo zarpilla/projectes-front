@@ -16,6 +16,9 @@ const config = {
       name: 'project_mother',
       expand: false
     }, {
+      name: 'grantable',
+      expand: false
+    }, {
       name: 'project_client',
       expand: false
     }], // Specify a dimension on columns.
@@ -75,6 +78,9 @@ const config = {
           },
           project_mother: {
             caption: 'Mare (TOTES)'
+          },
+          grantable: {
+            caption: 'Subvencionable (TOTS)'
           },
           year: {
             caption: 'Any (TOTS)'

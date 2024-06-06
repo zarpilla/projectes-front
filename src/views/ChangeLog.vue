@@ -2,6 +2,20 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.06.06">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Possibilitat de triar a quins estats de projecte es poden assignar hores, no només a actius.
+          </div>
+          <div class="text mt-2">
+            Camp subvencionable a <router-link to="/stats-economic-detail"> taula dinàmica d'ingressos i despeses.</router-link>
+          </div>
+          <div class="text mt-2">
+            Nous camps al <router-link to="/grants"> llistat de subvencions.</router-link>
+          </div>
+        </div>
+      </card-component> 
       <card-component title="2024.05.31">
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
