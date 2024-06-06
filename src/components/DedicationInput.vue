@@ -495,7 +495,7 @@ export default {
     },
     activeProjects() {
       return this.projects.filter(
-        p => p.project_state && p.project_state.id === 1
+        p => p.project_state && p.project_state.can_assign_activities === true
       );
     }
   },

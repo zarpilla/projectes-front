@@ -293,7 +293,7 @@ export default {
       const projects = this.form.id
         ? this.projects
         : this.projects
-            .filter(p => p.project_state && p.project_state.id !== 2)
+            .filter(p => p.project_state && p.project_state.can_assign_activities === true)
             .filter(
               p =>
                 p.mother === null ||
