@@ -231,7 +231,7 @@ export default {
                   date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
                   username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
                   count: 1,
-                  dedication_type: a.dedication_type && this.dedicationTypes.length ? this.dedicationTypes.find(d => d.id === a.dedication_type).name : '-',
+                  dedication_type: a.dedication_type && this.dedicationTypes.length && this.dedicationTypes.find(d => d.id === a.dedication_type) ? this.dedicationTypes.find(d => d.id === a.dedication_type).name : '-',
                   real_cost: a.cost_by_hour * a.hours
                 }
                 activities.push(activity)
@@ -244,8 +244,7 @@ export default {
                 ph.incomes.forEach(sph => {
                   if (sph.estimated_hours && sph.estimated_hours.length > 0) {
                     sph.estimated_hours.forEach(h => {
-                      const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
-                      // console.log('sph diff', p.name, mdiff)
+                      const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())                      
                       let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0
 
                       if (h.quantity_type === 'month') {
@@ -258,6 +257,8 @@ export default {
                       for (var i = 0; i < mdiff; i++) {
                         const year = moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY')
 
+                        const mult = moment(h.from, 'YYYY-MM-DD').add(i, 'M').isBefore(moment()) ? 1 : 0
+                        
                         if ((year.toString() === this.year.toString() || this.year === 0) && 
                         (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id.toString() === this.person.toString()))) {
                           const activity = {
@@ -277,6 +278,8 @@ export default {
                             date: '-',
                             hours: 0,
                             estimated_hours: estimated_hours,
+                            estimated_hours_today: estimated_hours * mult,
+                            
                             username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
                             dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
                             real_cost: 0
@@ -311,7 +314,7 @@ export default {
                   day: 0,
                   date: '-',
                   hours: 0,
-                  estimated_hours: a.quantity ? a.quantity : 0,
+                  estimated_hours: a.quantity ? a.quantity: 0,
                   username: a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-',
                   dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
                 }
