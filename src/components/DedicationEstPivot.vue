@@ -255,9 +255,12 @@ export default {
                       }
 
                       for (var i = 0; i < mdiff; i++) {
-                        const year = moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY')
-
-                        const mult = moment(h.from, 'YYYY-MM-DD').add(i, 'M').isBefore(moment()) ? 1 : 0
+                        const from = moment(h.from, 'YYYY-MM-DD').add(i, 'M')
+                        const year = from.format('YYYY')
+                        const mult = from.isBefore(moment()) ? 1 : 0
+                        const numberOfDaysOfFromMonth = from.daysInMonth()
+                        const numberOfDayOfMonthOfToday = moment().date()
+                        const ratio = from.format('YYYY-MM') === moment().format('YYYY-MM') ? numberOfDayOfMonthOfToday / numberOfDaysOfFromMonth : 1
                         
                         if ((year.toString() === this.year.toString() || this.year === 0) && 
                         (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id.toString() === this.person.toString()))) {
@@ -272,14 +275,13 @@ export default {
                             total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                             total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
                             count: 1,
-                            month: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('MM'),
-                            year: moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY'),
+                            month: from.format('MM'),
+                            year: from.format('YYYY'),
                             day: 0,
                             date: '-',
                             hours: 0,
                             estimated_hours: estimated_hours,
-                            estimated_hours_today: estimated_hours * mult,
-                            
+                            estimated_hours_today: estimated_hours * mult * ratio,                            
                             username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
                             dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
                             real_cost: 0
