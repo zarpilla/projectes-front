@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.06.28">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Canvi de nom, a partir d'ara: <b>ESS</b>TRAPIS
+          </div>
+        </div>
+      </card-component>
       <card-component title="2024.06.11">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
@@ -9,7 +17,7 @@
             Nou camp d'<b>Hores previstes avui</b> a la <router-link to="/stats-previsio-hores">taula dinámica de dedicació</router-link>
           </div>
         </div>
-      </card-component> 
+      </card-component>
       <card-component title="2024.06.06">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>

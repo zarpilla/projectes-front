@@ -72,13 +72,7 @@ const menu = [
       } 
     ],
     'COMANDES',
-    [
-      {
-        to: '/user-contacts',
-        icon: 'account-box',
-        label: 'Punts d\'entrega',
-        permission: 'orders'
-      },
+    [      
       {
         to: '/orders',
         icon: 'truck',
@@ -90,10 +84,34 @@ const menu = [
         icon: 'cash-multiple',
         label: 'Factures',
         permission: 'orders'
+      },
+      {
+        to: '/user-contacts',
+        icon: 'account-box',
+        label: 'Punts d\'entrega',
+        permission: 'orders'
+      },
+      {
+        to: '/city-route',
+        icon: 'city',
+        label: 'Poblacions i rutes',
+        permission: 'orders'
+      },
+      {
+        to: '/contact-us',
+        icon: 'email',
+        label: 'Contacta',
+        permission: 'orders'
       }
     ],
     'COMANDES ADM',
-    [
+    [      
+      {
+        to: '/orders',
+        icon: 'truck',
+        label: 'Comandes',
+        permission: 'orders_admin'
+      },
       {
         to: '/user-contacts',
         icon: 'account-box',
@@ -101,9 +119,9 @@ const menu = [
         permission: 'orders_admin'
       },
       {
-        to: '/orders',
-        icon: 'truck',
-        label: 'Comandes',
+        to: '/city-route',
+        icon: 'city',
+        label: 'Poblacions i rutes',
         permission: 'orders_admin'
       }
     ],

@@ -1,25 +1,21 @@
 <template>
   <div>
-    <document-form :id="id" type="received-invoices" />
+    <contact-us-form />    
   </div>
 </template>
 
 <script>
 import TitleBar from "@/components/TitleBar";
-import DocumentForm from "@/components/DocumentForm";
+import ContactUsForm from "@/components/ContactUsForm";
 import { mapState } from "vuex";
 
 export default {
-  name: "ReceivedInvoiceForm",
+  name: "ContactUs",
   components: {    
     TitleBar,
-    DocumentForm
+    ContactUsForm
   },
-  props: {
-    id: {
-      type: [String, Number],
-      default: null,
-    },
+  props: {    
   },
   data() {
     return {
@@ -27,7 +23,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),    
+    ...mapState(["me"]),
   },
 };
 </script>

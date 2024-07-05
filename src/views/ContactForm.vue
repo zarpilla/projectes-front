@@ -10,7 +10,7 @@ import ContactsForm from "@/components/ContactsForm";
 import { mapState } from "vuex";
 
 export default {
-  name: "InvoiceForm",
+  name: "ContactForm",
   components: {    
     TitleBar,
     ContactsForm

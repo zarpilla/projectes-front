@@ -500,11 +500,35 @@ const routes = [
   },
   {
     meta: {
-      title: 'Fcatures Proveïdora'
+      title: 'Poblacions i rutes'
+    },
+    path: '/city-route',
+    name: 'cityroute.edit',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/CityRoute.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
+      title: 'Factures Proveïdora'
     },
     path: '/provider-invoices',
     name: 'provider.invoices',
     component: () => import(/* webpackChunkName: "orders" */ '../views/EmittedInvoicesProvider.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
+      title: 'Contacta amb nosaltres'
+    },
+    path: '/contact-us',
+    name: 'contact-us',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/ContactUs.vue'),
     props: true,
     meta: {
       requiresAuth: true,

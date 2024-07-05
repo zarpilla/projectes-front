@@ -10,7 +10,7 @@ import DocumentForm from "@/components/DocumentForm";
 import { mapState } from "vuex";
 
 export default {
-  name: "InvoiceForm",
+  name: "EmittedInvoiceForm",
   components: {    
     TitleBar,
     DocumentForm

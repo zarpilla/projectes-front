@@ -10,7 +10,7 @@ import OrdersForm from "@/components/OrdersForm";
 import { mapState } from "vuex";
 
 export default {
-  name: "InvoiceForm",
+  name: "OrderForm",
   components: {    
     TitleBar,
     OrdersForm

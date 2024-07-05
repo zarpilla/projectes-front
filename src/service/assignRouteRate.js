@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
 
 const assignRouteRate = (form, routeRates, orders) => {
-  console.log("assignRouteRate!");
-  console.log("form", form);
-  console.log("routeRates", routeRates);
-  console.log("orders", orders);
+  // console.log("assignRouteRate!");
+  // console.log("form", form);
+  // console.log("routeRates", routeRates);
+  // console.log("orders", orders);
 
   const pickup = form.pickup && form.pickup.id ? form.pickup.id : form.pickup;
   const route = form.route && form.route.id ? form.route.id : form.route;
@@ -16,7 +16,7 @@ const assignRouteRate = (form, routeRates, orders) => {
       r => (r.route && r.route.id === route) || r.route === null
     );
 
-    console.log("pickup", pickup);
+    //console.log("pickup", pickup);
 
     if (pickup === 2) {
       // finca      
@@ -26,7 +26,7 @@ const assignRouteRate = (form, routeRates, orders) => {
         && o.route.id === route
         && o.owner.id === owner
       );
-      console.log("pendingOrders", pendingOrders);
+      //console.log("pendingOrders", pendingOrders);
       if (pendingOrders.length > 0) {
         // We have pending orders for this route and owner
         // Add your logic here
@@ -75,7 +75,7 @@ const assignRouteRate = (form, routeRates, orders) => {
       //   queue: false
       // });
 
-      console.warn("rates!!!", rates);
+      //console.warn("rates!!!", rates);
 
       form.route_rate = rates[0];
     } else {
@@ -111,4 +111,12 @@ const assignRouteDate = (route) => {
   return { nextDay, warning };
 }
 
-export { assignRouteRate, assignRouteDate };
+const checkIfDateIsValidInroute = (route, date) => {
+  const routeDayOfWeek = route.monday ? 1 : route.tuesday ? 2 : route.wednesday ? 3 : route.thursday ? 4 : route.friday ? 5 : route.saturday ? 6 : route.sunday ? 7 : 0;
+  if (routeDayOfWeek === date.day()) {
+    return true;
+  }
+  return false;
+}
+
+export { assignRouteRate, assignRouteDate, checkIfDateIsValidInroute };

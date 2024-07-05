@@ -1,4 +1,4 @@
-# Projectes Coop Front  — Gestió de projectes per a coopertives
+# ESSTRAPIS Front  — Gestió de projectes per a coopertives
 
 - Projectes
 - Planificació
@@ -10,7 +10,7 @@
 - Pressupostos
 
 
-![Projectes Coop](/public/projectescoop.png?raw=true)
+![ESSTRAPIS](/public/projectescoop.png?raw=true)
 ## Build Setup
 
 ```bash

@@ -28,7 +28,7 @@ export default {
     },
     currency: {
       type: String,
-      default: false
+      default: ''
     }
   },
   methods: {

@@ -42,7 +42,7 @@ Vue.component('kk-progress', KProgress)
 
 
 /* Default title tag */
-const defaultDocumentTitle = 'Projectes Coop'
+const defaultDocumentTitle = 'ESSTRAPIS'
 
 window.$ = window.jQuery = require('jquery')
 

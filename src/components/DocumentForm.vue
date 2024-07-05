@@ -834,12 +834,11 @@
             </card-component>
             <hr />
           </div>
-          <b-field>
+          <b-field v-if="form.id">
             <button
               class="button is-warning"
               type="button"
-              @click="getPDF"
-              v-if="form.id"
+              @click="getPDF"              
             >
               Visualitzar PDF
             </button>
