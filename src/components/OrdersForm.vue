@@ -768,12 +768,6 @@ export default {
             .indexOf(this.citySearch.toLowerCase()) >= 0
         );
       });
-    },
-    validCityRoutes() {
-      console.log("validCityRoutes", this.form.contact_city_id);
-      return this.form.contact_city_id ? this.cityRoutes.filter(
-        cr => cr.city && cr.route && cr.city.id && cr.city.id === this.form.contact_city_id
-      ).map(cr => cr.route) : [];
     },    
   },
   watch: {
@@ -1268,6 +1262,7 @@ export default {
       // this.onClientaChange(this.form.contact);
     },
     async citySelected(option) {
+      console.log("citySelected", option);
       if (!option || !option.id) {
         this.form.contact_city = null;
       } else {
@@ -1275,11 +1270,9 @@ export default {
         this.form.contact_city = option.name;
       }      
       
-      this.routes = this.validCityRoutes
-      console.log('this.routes', this.routes)
-      console.log('this.form.route', this.form.route)
+      this.routes = this.validCityRoutes()
       if (this.routes.length > 0) {
-        if (!this.form.route) {
+        if (!this.form.route || this.routes.length === 1 || (this.form.route && !this.routes.find(r => r.id === this.form.route))) {
           this.form.route = this.routes[0].id
           this.changeRoute();
         }        
@@ -1287,6 +1280,11 @@ export default {
         //this.form.route = null
       }
     },
+    validCityRoutes() {
+      return this.form.contact_city_id ? this.cityRoutes.filter(
+        cr => cr.city && cr.route && cr.city.id && cr.city.id === this.form.contact_city_id
+      ).map(cr => cr.route) : [];
+    },    
     routeSelected(option) {
       if (!option || !option.id) {
         this.form.route = null;
@@ -1448,10 +1446,15 @@ export default {
         this.form.contact_address = contact.address;
         this.form.contact_postcode = contact.postcode;
         this.form.contact_city = contact.city;
-        this.citySearch = contact.city;        
+        this.citySearch = contact.city;
+
+        console.log('this.cities', this.cities)
+        console.log('contact.city', contact.city)
         
         if (this.cities.find(c => c.name === contact.city)) {
           this.form.contact_city_id = this.cities.find(c => c.name === contact.city).id;
+
+          console.log('this.form.contact_city_id', this.form.contact_city_id)
           this.citySelected(this.cities.find(c => c.name === contact.city));
         }
         
