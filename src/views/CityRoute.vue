@@ -109,7 +109,7 @@ export default {
         .get("cities?_sort=name")
         .then(r => r.data);
       this.routes = await service({ requiresAuth: true, cached: true })
-        .get("routes")
+        .get("routes?_sort=order&_where[active]=true")
         .then(r => r.data);
       this.cities = cities.map(c => ({ id: c.id, name: c.name, routes: [] }));
       this.cityRoutes = await service({ requiresAuth: true, cached: false })

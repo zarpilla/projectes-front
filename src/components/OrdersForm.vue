@@ -918,11 +918,21 @@ export default {
       }
     },
     async getAuxiliarData() {
-      this.routes = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "routes?_limit=-1"
-        )
-      ).data;
+
+      if (this.$route.params.id && this.$route.params.id > 0) {
+        this.routes = (
+          await service({ requiresAuth: true, cached: true }).get(
+            "routes?_limit=-1&_sort=order:ASC"
+          )
+        ).data;
+      } else {
+        this.routes = (
+          await service({ requiresAuth: true, cached: true }).get(
+            "routes?_limit=-1&_where[active]=true&_sort=order:ASC"
+          )
+        ).data;
+      }
+      
       const users = (
         await service({ requiresAuth: true, cached: true }).get(
           "users?_limit=-1"
@@ -1282,7 +1292,7 @@ export default {
     },
     validCityRoutes() {
       return this.form.contact_city_id ? this.cityRoutes.filter(
-        cr => cr.city && cr.route && cr.city.id && cr.city.id === this.form.contact_city_id
+        cr => cr.city && cr.route && cr.city.id && cr.city.id === this.form.contact_city_id && cr.route.active
       ).map(cr => cr.route) : [];
     },    
     routeSelected(option) {
