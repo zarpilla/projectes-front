@@ -11,7 +11,7 @@
       <section class="section is-main-section">
 
         
-        <b-table :data="cities" :sticky-header="true" height="55vh">
+        <b-table :data="cities" :sticky-header="true" :height="tableHeight">
           <b-table-column field="name" label="">
             <template slot-scope="props">
               {{ props.row.name }}
@@ -78,7 +78,8 @@ export default {
       routes: [],
       cityRoutes: [],
       newCity: "",
-      orders_admin: false
+      orders_admin: false,
+      tableHeight: '60vh'
     };
   },
   computed: {
@@ -95,6 +96,8 @@ export default {
     if (permissions.includes("orders_admin")) {
       this.orders_admin = true;
     }
+    this.tableHeight = window.innerHeight - 400 + 'px';
+
   },
   methods: {
     async getData() {
