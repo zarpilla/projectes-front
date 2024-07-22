@@ -9,24 +9,20 @@
     ></b-loading>
     <card-component :title="formCardTitle" class="tile is-child">
       <section class="section is-main-section">
-        <table class="table">
-          <thead>
-            <tr>
-              <th></th>
-              <th v-for="route in routes" :key="route.id">
-                {{ route.short_name || route.name }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="city in cities" :key="city.id">
-              <td>{{ city.name }}</td>
-              <td v-for="route in routes" :key="route.id">
-                <b-checkbox
-                  v-if="city.routes.includes(route.id)"
+
+        
+        <b-table :data="cities" :sticky-header="true" height="55vh">
+          <b-table-column field="name" label="">
+            <template slot-scope="props">
+              {{ props.row.name }}
+            </template>
+          </b-table-column>
+          <b-table-column v-for="route in routes" :key="route.id" v-slot="props" :label="route.short_name || route.name">
+             <b-checkbox
+                  v-if="props.row.routes.includes(route.id)"
                   :value="true"
                   class="checkbox-inline"
-                  @input="checkCityRoute(false, city, route)"
+                  @input="checkCityRoute(false, props.row.id, route)"
                   :disabled="!orders_admin"
                 >
                 </b-checkbox>
@@ -34,14 +30,13 @@
                   v-else
                   :value="false"
                   class="checkbox-inline"
-                  @input="checkCityRoute(true, city, route)"
+                  @input="checkCityRoute(true, props.row.id, route)"
                   :disabled="!orders_admin"
                 >
-                </b-checkbox>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </b-checkbox> 
+
+          </b-table-column>
+        </b-table>
       </section>
 
       <section class="section is-main-section" v-if="orders_admin">
@@ -126,15 +121,15 @@ export default {
 
       this.isLoading = false;
     },
-    async checkCityRoute(add, city, route) {
+    async checkCityRoute(add, cityId, route) {
       if (add) {
         await service({ requiresAuth: true }).post("city-routes", {
-          city: city.id,
+          city: cityId,
           route: route.id
         });
       } else {
         const cityRoute = this.cityRoutes.find(
-          cr => cr.city.id === city.id && cr.route.id === route.id
+          cr => cr.city.id === cityId && cr.route.id === route.id
         );
         await service({ requiresAuth: true }).delete(
           `city-routes/${cityRoute.id}`
