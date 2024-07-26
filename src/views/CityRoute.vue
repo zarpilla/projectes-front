@@ -66,7 +66,7 @@ import CardComponent from "@/components/CardComponent";
 import service from "@/service/index";
 
 export default {
-  name: "DedicacioSaldo",
+  name: "CityRoute",
   components: {
     CardComponent,
     TitleBar

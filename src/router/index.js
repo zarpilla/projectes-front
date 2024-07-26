@@ -512,6 +512,18 @@ const routes = [
   },
   {
     meta: {
+      title: 'Rutes i dies'
+    },
+    path: '/route-days',
+    name: 'routedays.edit',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/RouteDays.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
       title: 'Factures Proveïdora'
     },
     path: '/provider-invoices',

@@ -98,6 +98,12 @@ const menu = [
         permission: 'orders'
       },
       {
+        to: '/route-days',
+        icon: 'calendar',
+        label: 'Rutes i dies',
+        permission: 'orders'
+      },
+      {
         to: '/contact-us',
         icon: 'email',
         label: 'Contacta',
@@ -122,6 +128,12 @@ const menu = [
         to: '/city-route',
         icon: 'city',
         label: 'Poblacions i rutes',
+        permission: 'orders_admin'
+      },
+      {
+        to: '/route-days',
+        icon: 'calendar',
+        label: 'Rutes i dies',
         permission: 'orders_admin'
       }
     ],
