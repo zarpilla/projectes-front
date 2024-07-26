@@ -192,7 +192,6 @@ export default {
       return moment(date).format(format);
     },
     async checkDateRoute(add, date, route) {
-      console.log('checkDateRoute', add, date, route)
       if (add) {
         await service({ requiresAuth: true }).post("route-festives", {
           date: date,
@@ -200,7 +199,7 @@ export default {
         });
       } else {
         const dateRoute = this.routesFestives.find(
-          cr => cr.date === date && cr.route.id === route.id
+          cr => cr.date === moment(date).format('YYYY-MM-DD') && cr.route.id === route.id
         );
         await service({ requiresAuth: true }).delete(
           `route-festives/${dateRoute.id}`
