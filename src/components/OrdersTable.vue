@@ -16,17 +16,29 @@
       </b-button>
     </div>
 
-    <div>
+    <div class="is-flex">
       <file-upload
-        class="mt-5"
+        class="mt-5 w-50"
         :multiple="false"
         entity="orders-imports"
         :ref-id="0"
         :field="'file'"
         :accept="'.csv'"
-        @uploaded="uploaded"
+        @uploaded="uploaded($event, 'orders')"
         :pre-upload="preUpload"
         :message="`Crea comandes pujant arxiu CSV separat per comes`"
+      >
+      </file-upload>
+      <file-upload
+        class="mt-5 ml-4 w-50"
+        :multiple="false"
+        entity="orders-imports"
+        :ref-id="0"
+        :field="'file'"
+        :accept="'.csv'"
+        @uploaded="uploaded($event, 'contacts')"
+        :pre-upload="preUpload"
+        :message="`Crea punts d'entrega pujant arxiu CSV separat per comes`"
       >
       </file-upload>
     </div>
@@ -70,7 +82,7 @@
         />
       </download-excel>
 
-      Exemple de fitxer CSV:
+      Exemple de fitxer CSV de comandes:      
       <download-excel
         class="export"
         :data="csvExample"
@@ -78,6 +90,22 @@
         :escapeCsv="false"
         name="exemple-comandes.csv"
         :fields="csvFields"
+      >
+        <b-button
+          title="Descarrega exemple de fitxer CSV de comandes"
+          class="export-button mt-0 ml-1 mb-3"
+          icon-left="file-delimited"
+        />
+      </download-excel>
+
+      Exemple de fitxer CSV de punts d'entrega:
+      <download-excel
+        class="export"
+        :data="csvExampleContacts"
+        type="csv"
+        :escapeCsv="false"
+        name="exemple-contactes.csv"
+        :fields="csvFieldsContacts"
       >
         <b-button
           title="Descarrega exemple de fitxer CSV de comandes"
@@ -503,9 +531,30 @@ export default {
         provider_order_number: "provider_order_number",
         notes: "notes"
       },
+
+      csvFieldsContacts: {        
+        owner_id: "owner_id",        
+        contact_name: "contact_name",
+        contact_trade_name: "contact_trade_name",
+        contact_address: {
+          field: "contact_address",
+          callback: value => {
+            return this.addressFormatted(value);
+          }
+        },
+        contact_postcode: "contact_postcode",
+        contact_city: "contact_city",
+        contact_nif: "contact_nif",
+        contact_phone: "contact_phone",
+        contact_legal_form: "contact_legal_form",
+        contact_time_slot_1_ini: "contact_time_slot_1_ini",
+        contact_time_slot_1_end: "contact_time_slot_1_end",
+        contact_time_slot_2_ini: "contact_time_slot_2_ini",
+        contact_time_slot_2_end: "contact_time_slot_2_end",
+      },
       csvFields: {
-        route_name: "route_name",
         owner_id: "owner_id",
+        route_name: "route_name",        
         estimated_delivery_date: "estimated_delivery_date",
         contact_name: "contact_name",
         contact_trade_name: "contact_trade_name",
@@ -660,6 +709,38 @@ export default {
           notes: "Recollida en finca"
         }
       ],
+      csvExampleContacts: [
+        {
+          owner_id: 0,          
+          contact_name: "Joan Garriga",
+          contact_trade_name: "Begudes Garriga",
+          contact_address: "Carrer de l'amargura 17",
+          contact_postcode: "08001",
+          contact_city: "Mataró",
+          contact_nif: "000000001A",
+          contact_phone: "93 123 45 67",
+          contact_legal_form: "2",
+          contact_time_slot_1_ini: "9",
+          contact_time_slot_1_end: "12",
+          contact_time_slot_2_ini: "16",
+          contact_time_slot_2_end: "18",
+        },
+        {
+          owner_id: 0,
+          contact_name: "Queviures Font",
+          contact_trade_name: "Queviures Maria Font",
+          contact_address: "Carrer de la font, 1",
+          contact_postcode: "17001",
+          contact_city: "Girona",
+          contact_nif: "000000002B",
+          contact_phone: "93 123 45 76",
+          contact_legal_form: "1",
+          contact_time_slot_1_ini: "10",
+          contact_time_slot_1_end: "15",
+          contact_time_slot_2_ini: "16",
+          contact_time_slot_2_end: "19",
+        }
+      ],
       apiUrl: process.env.VUE_APP_API_URL,
     };
   },
@@ -735,6 +816,9 @@ export default {
         this.csvExample.forEach(element => {
           element.owner_id = me.data.id;
         });
+        this.csvExampleContacts.forEach(element => {
+          element.owner_id = me.data.id;
+        });
       }
       this.orders = (
         await service({ requiresAuth: true }).get(
@@ -796,7 +880,7 @@ export default {
         users_permissions_user: this.me.id
       });
     },
-    uploaded(e) {
+    uploaded(e, fileType) {
       console.log("uploaded", e);
       if (e.fileList && e.fileList[0]) {
         const file = e.fileList[0];
@@ -815,7 +899,11 @@ export default {
           const text = e.target.result;
           this.csv = text;
           const records = await this.readCSV(text);
-          await this.importCSV(records);
+          if (fileType === "orders") {
+            await this.importCSV(records);
+          } else {
+            await this.importContactsCSV(records);
+          }
           this.importing = false;
         };
 
@@ -837,6 +925,10 @@ export default {
       let i = 2;
       this.csvErrors = [];
       for await (const record of records) {
+        if (!record.route_name) {
+          this.csvErrors.push({ line: i, error: "No route" });
+          return false;
+        }
         if (!record.contact_address) {
           this.csvErrors.push({ line: i, error: "No contact_address" });
           return false;
@@ -877,10 +969,7 @@ export default {
           this.csvErrors.push({ line: i, error: "No units" });
           return false;
         }
-        if (!record.route_name) {
-          this.csvErrors.push({ line: i, error: "No route" });
-          return false;
-        }
+        
 
         // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
@@ -950,7 +1039,7 @@ export default {
         ) {
           this.csvErrors.push({
             line: i,
-            error: `Route ${record.route_name} not found`
+            error: `Ruta ${record.route_name} no trobada`
           });
           return false;
         }
@@ -959,7 +1048,7 @@ export default {
         ) {
           this.csvErrors.push({
             line: i,
-            error: `User ${record.owner_id} not found`
+            error: `Owner ${record.owner_id} no trobat`
           });
           return false;
         }
@@ -1067,6 +1156,145 @@ export default {
         this.orders.unshift(orderWithRate);
         // this.orders.unshift(order);
       }
+    },
+    async importContactsCSV(records) {
+      // for (const key in this.csvAlias) {
+      //   const alias = this.csvAlias[key]
+      // }
+
+      let i = 2;
+      this.csvErrors = [];
+      const contacts = [];
+      for await (const record of records) {        
+        if (!record.contact_address) {
+          this.csvErrors.push({ line: i, error: "No contact_address" });
+          return false;
+        }
+        if (!record.contact_name) {
+          this.csvErrors.push({ line: i, error: "No contact_name" });
+          return false;
+        }
+        if (!record.contact_phone) {
+          this.csvErrors.push({ line: i, error: "No contact_phone" });
+          return false;
+        }
+        if (!record.contact_postcode) {
+          this.csvErrors.push({ line: i, error: "No contact_postcode" });
+          return false;
+        }
+        if (!record.contact_city) {
+          this.csvErrors.push({ line: i, error: "No contact_city" });
+          return false;
+        }
+
+        // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
+        if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
+          if (
+            parseInt(record.contact_time_slot_1_ini) >=
+            parseInt(record.contact_time_slot_1_end)
+          ) {
+            console.log(
+              "record",
+              record.contact_time_slot_1_ini,
+              record.contact_time_slot_1_end
+            );
+            this.csvErrors.push({
+              line: i,
+              error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
+            });
+            return false;
+          }
+        }
+
+        // Cal indicar l'hora de finalització del tram horari 1
+        if (record.contact_time_slot_1_ini && !record.contact_time_slot_1_end) {
+          this.csvErrors.push({
+            line: i,
+            error: `Cal indicar l'hora de finalització del tram horari 1`
+          });
+          return false;
+        }
+
+        // El tram horari ha de ser més gran de 3 hores
+        if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
+          if (
+            parseInt(record.contact_time_slot_1_end) -
+            parseInt(record.contact_time_slot_1_ini < 3)
+          ) {
+            // comprovar també per al tram 2
+            if (
+              record.contact_time_slot_2_ini &&
+              record.contact_time_slot_2_end
+            ) {
+              if (
+                parseInt(record.contact_time_slot_2_end) -
+                parseInt(record.contact_time_slot_2_ini < 3)
+              ) {
+                this.csvErrors.push({
+                  line: i,
+                  error: `El tram horari ha de ser mínim de 3 hores`
+                });
+                return false;
+              }
+            } else {
+              this.csvErrors.push({
+                line: i,
+                error: `El tram horari ha de ser mínim de 3 hores`
+              });
+              return false;
+            }
+          }
+        }
+
+        if (
+          !this.users.find(u => u.id.toString() === record.owner_id.toString())
+        ) {
+          this.csvErrors.push({
+            line: i,
+            error: `Owner ${record.owner_id} no trobat`
+          });
+          return false;
+        }
+        i++;
+
+
+        const contact = {
+          name: record.contact_name,
+            trade_name: record.contact_trade_name,
+            address: record.contact_address,
+            phone: record.contact_phone,
+            postcode: record.contact_postcode,
+            nif: record.contact_nif,
+            city: record.contact_city,
+            time_slot_1_ini: record.contact_time_slot_1_ini,
+            time_slot_1_end: record.contact_time_slot_1_end,
+            time_slot_2_ini: record.contact_time_slot_2_ini,
+            time_slot_2_end: record.contact_time_slot_2_end,
+          owner: this.permissions.includes("orders_admin")
+            ? this.users.find(
+                u => u.id.toString() === record.owner_id.toString()
+              )
+            : this.me,
+        };
+
+        
+        contacts.push(contact);
+      }
+
+      for (const contact of contacts) {
+        const { data } = await service({ requiresAuth: true }).post(
+          "contacts",
+          contact
+        );
+      }
+
+      this.$buefy.snackbar.open({
+        message: `${records.length} contactes importats correctament`,
+        type: "is-success"
+      });
+
+      
+
     },
     createUUID() {
       var dt = new Date().getTime();
@@ -1230,5 +1458,8 @@ export default {
 .tag.bg-distributing {
   background-color: #ff7300 !important;
   color: white !important;
+}
+.w-50{
+  width: 50%;
 }
 </style>
