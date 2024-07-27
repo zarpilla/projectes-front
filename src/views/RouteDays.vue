@@ -8,7 +8,7 @@
       :can-cancel="false"
     ></b-loading>
 
-    <card-component title="Filtres">
+    <!-- <card-component title="Filtres">
 
       <form @submit.prevent="submit2">
         <b-field horizontal>
@@ -23,7 +23,7 @@
       </form>
 
       
-    </card-component>
+    </card-component> -->
 
     
     <div class="notification help mt-4">
@@ -234,7 +234,7 @@ export default {
         return dates;
       }
       var currDate = moment(this.filters.year.year, "YYYY").startOf("year");
-      const endOfYear = moment(this.filters.year.year, "YYYY").endOf("year");
+      const endOfYear = moment(this.filters.year.year, "YYYY").add(1, "year").endOf("year");
 
       dates.push(currDate.clone().toDate());
       while (currDate.add(1, "days").diff(endOfYear) < 0) {
