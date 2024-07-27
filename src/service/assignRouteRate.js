@@ -111,11 +111,36 @@ const assignRouteDate = (route) => {
   return { nextDay, warning };
 }
 
-const checkIfDateIsValidInroute = (route, date) => {
-  const routeDayOfWeek = route.monday ? 1 : route.tuesday ? 2 : route.wednesday ? 3 : route.thursday ? 4 : route.friday ? 5 : route.saturday ? 6 : route.sunday ? 7 : 0;
-  if (routeDayOfWeek === date.day()) {
+const checkIfDateIsValidInroute = (route, date, routeFestives) => {
+  if (routeFestives.map(f => f.date).includes(date.format("YYYY-MM-DD"))) {
+    return false;
+  }
+  const routeDayOfWeek = [] 
+  if (route.monday) {
+    routeDayOfWeek.push(1);
+  }
+  if (route.tuesday) {
+    routeDayOfWeek.push(2);
+  }
+  if (route.wednesday) {
+    routeDayOfWeek.push(3);
+  }
+  if (route.thursday) {
+    routeDayOfWeek.push(4);
+  }
+  if (route.friday) {
+    routeDayOfWeek.push(5);
+  }
+  if (route.saturday) {
+    routeDayOfWeek.push(6);
+  }
+  if (route.sunday) {
+    routeDayOfWeek.push(7);
+  }
+  if (routeDayOfWeek.includes(date.day())) {
     return true;
   }
+
   return false;
 }
 

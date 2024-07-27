@@ -308,7 +308,7 @@
               <b-field
                 label="Data prevista d'entrega"
                 horizontal
-                message="Data en la que la comanda s'hauria d'entregar per si vols que s'entregui més endavant. Assegura't que coincideix amb el dia de la setmana de la ruta"
+                message="Si prefereixis que s'entregui més endavant, tria una data del calendari."
               >
                 <b-datepicker
                   :disabled="!canEdit"
@@ -811,7 +811,8 @@ export default {
         delivery_type: null,
         pickup: null,
         units: null,
-        kilograms: null
+        kilograms: null,
+        routeFestives: [],
       };
     },
     async getData() {
@@ -996,6 +997,10 @@ export default {
       this.cityRoutes = (
         await service({ requiresAuth: true }).get("city-routes?_limit=-1")
       ).data;
+
+      this.routeFestives = (
+        await service({ requiresAuth: true }).get("route-festives?_limit=-1")
+      ).data;
     },
     async changeOwner() {
       this.refreshClients(this.form.owner);
@@ -1033,7 +1038,7 @@ export default {
     },
     async checkEstimatedDeliveryDate() {
       const route = this.routes.find(r => r.id === this.form.route);
-      const valid = checkIfDateIsValidInroute(route, moment(this.form.estimated_delivery_date))
+      const valid = checkIfDateIsValidInroute(route, moment(this.form.estimated_delivery_date), this.routeFestives)
       if (!valid) {
         this.dateWarningMessage = "Atenció! La data de lliurament no és vàlida per la ruta seleccionada"
       } else {
