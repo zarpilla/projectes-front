@@ -157,6 +157,18 @@
                 </b-field>
               </b-field>
 
+              <b-field
+                  label="Notes"
+                  horizontal
+                  class="line-notes is-full-width mb-5"
+                >
+                  <b-input
+                    type="textarea"
+                    v-model="form.notes"
+                    placeholder="Notes, observacions, comentaris... "
+                  />
+                </b-field>
+
               <hr />
 
               <b-field horizontal>

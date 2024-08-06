@@ -229,6 +229,19 @@
                 
               </b-field>
 
+              <b-field
+                  label="Notes"
+                  horizontal
+                  class="line-notes is-full-width mb-5"
+                  message="Per exemple, 'si està tancat, deixar a la peruqueria del costat' o 'trucar 15 min abans i vindrà a obrir'. "
+                >
+                  <b-input
+                    type="textarea"
+                    v-model="form.contact_notes"
+                    placeholder="Comentaris sobre el punt d'entrega"
+                  />
+                </b-field>
+
               <b-field horizontal message="Guarda ara el punt d'entrega si és nou o has fet canvis">
                 <b-button
                   :disabled="!canEdit"
@@ -804,6 +817,7 @@ export default {
         contact_nif: "",
         contact_address: "",
         contact_postcode: "",
+        contact_notes: "",
         contact_city: "",
         contact_city_id: null,
         contact_phone: "",
@@ -1343,6 +1357,7 @@ export default {
             nif: this.form.contact_nif,
             address: this.form.contact_address,
             postcode: this.form.contact_postcode,
+            notes: this.form.contact_notes,
             city: this.form.contact_city,
             phone: this.form.contact_phone,
             time_slot_1_ini: this.form.contact_time_slot_1_ini,
@@ -1387,6 +1402,7 @@ export default {
             nif: this.form.contact_nif,
             address: this.form.contact_address,
             postcode: this.form.contact_postcode,
+            notes: this.form.contact_notes,
             city: this.form.contact_city,
             phone: this.form.contact_phone,
             time_slot_1_ini: this.form.contact_time_slot_1_ini,
@@ -1438,6 +1454,7 @@ export default {
       this.form.contact_nif = "";
       this.form.contact_address = "";
       this.form.contact_postcode = "";
+      this.form.contact_notes = "";
       this.form.contact_city = "";
       this.form.contact_phone = "";
       this.form.contact_legal_form = null;
@@ -1460,6 +1477,7 @@ export default {
         this.form.contact_nif = contact.nif;
         this.form.contact_address = contact.address;
         this.form.contact_postcode = contact.postcode;
+        this.form.contact_notes = contact.notes;
         this.form.contact_city = contact.city;
         this.citySearch = contact.city;
 
