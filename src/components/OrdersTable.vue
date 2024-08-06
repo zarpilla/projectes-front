@@ -50,7 +50,7 @@
         :data="theOrdersChecked"
         type="csv"
         :escapeCsv="false"
-        name="comandes.csv"
+        :name="comandesCSVName()"
         :fields="{
           id: 'id',
           date: 'route_date',
@@ -741,7 +741,7 @@ export default {
           contact_time_slot_2_end: "19",
         }
       ],
-      apiUrl: process.env.VUE_APP_API_URL,
+      apiUrl: process.env.VUE_APP_API_URL
     };
   },
   computed: {
@@ -1416,27 +1416,11 @@ export default {
         }
       }
 
-      // await service({ requiresAuth: true })
-      //   .post("orders/pdf", {
-      //     orders: this.checkedRows.map(o => o.id)
-      //   })
-      //   .catch(error => {
-      //     console.error(error);
-      //     if (error && error.data && error.data.message) {
-      //       this.$buefy.snackbar.open({
-      //         message: error.data.message,
-      //         type: "is-danger"
-      //       });
-      //     }
-      //   });
-
       this.importing = false;
-
-      // this.checkedRows = [];
-      // this.getData();
-
-      //console.log("response", response);
-    }
+    },
+    comandesCSVName() {
+      return `comandes-${moment().format("YYYYMMDD-HHmmss")}.csv`;
+    },
   }
 };
 </script>
