@@ -17,13 +17,13 @@ const menu = [
         to: '/dedicacio',
         label: 'Hores dedicades',
         icon: 'calendar',
-        permission: 'projects'
+        permission: 'hours'
       },
       {
         to: '/registre-jornades',
         icon: 'clock',
         label: 'Registre Jornades',
-        permission: 'projects'
+        permission: 'hours'
       },
       {
         to: '/working-day',
@@ -149,13 +149,13 @@ const menu = [
         to: '/dedicacio-charts',
         label: 'Dedicació',
         icon: 'chart-pie',
-        permission: 'projects'
+        permission: 'hours'
       },
       {
         to: '/stats-dedicacio',
         icon: 'table',
         label: 'Dedicació',
-        permission: 'projects'
+        permission: 'hours'
       },
       {
         to: '/stats-previsio-gantt',

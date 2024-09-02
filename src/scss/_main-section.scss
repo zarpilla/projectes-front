@@ -1,3 +1,8 @@
 section.section.is-main-section {
   padding-top: $default-padding;
 }
+@media screen and (min-width: 1024px) {
+  .section {
+    padding: 3rem 1.5rem;
+  }
+}

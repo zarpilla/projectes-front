@@ -1656,4 +1656,11 @@ export default {
     background-color: #17191e;
   }
 }
+
+@media (max-width: 768px) {
+  .custom-calendar.vc-container .vc-day {
+    min-width: calc(100% / 7 - 5px);
+  }
+  
+}
 </style>

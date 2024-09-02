@@ -261,6 +261,9 @@ export default {
     if (!permissions.includes('projects')) {
       if (permissions.includes('orders')) {
         this.$router.push("/orders");
+      }
+      else if (!permissions.includes('projects')) {
+        this.$router.push("/dedicacio");
       } else {
         return
       }
