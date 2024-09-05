@@ -105,8 +105,8 @@ export default {
     this.isLoading = true
 
     service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-      this.years = r.data
-      this.filters.year = this.years[0]
+      this.years = r.data      
+      this.filters.year = this.years.find(y => y.year.toString() === moment().format('YYYY').toString()) || this.years[0]
     })
 
     service({ requiresAuth: true, cached: true }).get('months?_sort=month:ASC').then((r) => {

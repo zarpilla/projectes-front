@@ -22,7 +22,7 @@
 
             <form @submit.prevent="submit(false)" v-if="!isLoading">
                <b-field
-                label="Proveïdora *"
+                label="Sòcia *"
                 horizontal
                 :type="{ 'is-danger': errors['owner'] && submitted }"
               >
@@ -42,15 +42,13 @@
                 </b-select>
               </b-field>
 
-              <hr />
-
-
+              <hr>
 
               <b-field
                 label="Punt d'entrega"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                message="Cerca el punt d'entrega si ja existeix, o omple les dades a sota i guarda-la si és nou">
+                message="Cerca el punt d'entrega si ja existeix, o crea un nou punt">
                 <b-autocomplete
                   v-model="contactSearch"
                   placeholder="Punt d'entrega"
@@ -65,47 +63,263 @@
                 </b-autocomplete>
               </b-field>
 
-              <b-field
-                label="Raó social *"
-                horizontal
-                :type="{ 'is-danger': errors['contact_name'] && submitted }"
-              >
-                <b-input v-model="form.contact_name" :disabled="!canEdit" />
-              </b-field>
+              <b-collapse :open="false" aria-id="contentIdForA11y1">
+                <template #trigger="props">
+
+                  <b-field horizontal >
+                    <b-button
+                      :disabled="!canEdit"
+                      class="view-button is-primary mb-3"                  
+                      title="Nou punt d'entrega"
+                      aria-controls="contentIdForA11y1"
+                            :aria-expanded="props.open"
+                      >
+                      <template v-if="props.open">
+                        <span>Amagar punt d'entrega</span>
+                      </template>
+                      <template v-else>
+                        <span v-if="!form.contact">Nou punt d'entrega</span>
+                        <span v-else>Veure punt d'entrega</span>
+                      </template>
+                    </b-button>
+                  </b-field>
+
+                </template>
+                <div class="znotification">                    
+                  <b-field
+                    label="Raó social *"
+                    horizontal
+                    :type="{ 'is-danger': errors['contact_name'] && submitted }"
+                  >
+                    <b-input v-model="form.contact_name" :disabled="!canEdit" />
+                  </b-field>
+
+                  <b-field
+                    label="Nom comercial"
+                    horizontal                
+                  >
+                    <b-input v-model="form.contact_trade_name" :disabled="!canEdit" />
+                  </b-field>
+
+                  <b-field
+                    label="NIF"
+                    horizontal
+                    :type="{ 'is-danger': errors['contact_nif'] && submitted }"
+                  >
+                    <b-input v-model="form.contact_nif" :disabled="!canEdit" />
+                  </b-field>
+
+                  <b-field
+                    label="Forma jurídica *"
+                    horizontal
+                    :type="{
+                      'is-danger': errors['contact_legal_form'] && submitted
+                    }"
+                    message="Per empresa entenem que no és client final sinó restauració, botigues, etc."
+                  >
+                    <div class="is-flex">
+                      <button
+                        class="button mr-2"
+                        type="button"
+                        v-for="(s, index) in legalForms"
+                        :class="{
+                          'is-warning': form.contact_legal_form === s.id,
+                          'is-outlined': form.contact_legal_form !== s.id
+                        }"
+                        @click="form.contact_legal_form = s.id"
+                        :disabled="!canEdit"
+                      >
+                        {{ s.name }}
+                      </button>
+                    </div>
+                  </b-field>
+
+                  <b-field
+                    label="Adreça *"
+                    horizontal
+                    :type="{ 'is-danger': errors['contact_address'] && submitted }"
+                  >
+                    <b-input v-model="form.contact_address" :disabled="!canEdit" />
+                  </b-field>
+
+                  <b-field
+                    label="CP *"
+                    horizontal
+                    :type="{ 'is-danger': errors['contact_postcode'] && submitted }"
+                  >
+                    <b-input v-model="form.contact_postcode" :disabled="!canEdit" />
+                  </b-field> 
+
+
+                  <b-field
+                    label="Població *"
+                    horizontal
+                    :type="{ 'is-danger': errors['contact_city'] && submitted }"
+                    message="Cerca la població d'entrega. Si vols que ens aturem a una població que no apareix aquí, contacta amb La Diligència">
+                    <b-autocomplete
+                      v-model="citySearch"
+                      placeholder="Població d'entrega"
+                      :keep-first="false"
+                      :open-on-focus="true"
+                      :data="filteredCities"
+                      field="name"
+                      @select="citySelected"                  
+                      :disabled="!canEdit"
+                      :clearable="true"
+                    >
+                    </b-autocomplete>
+                  </b-field>
+
+                  <b-field
+                    label="Telèfon *"
+                    horizontal
+                    :type="{ 'is-danger': errors['contact_phone'] && submitted }"
+                  >
+                    <b-input v-model="form.contact_phone" :disabled="!canEdit" />
+                  </b-field>
+
+                  <b-field
+                    label="Tram horari 1"
+                    horizontal
+                    message="Exemple: De 9 a 13h"
+                  >
+                    <b-field label="">
+                      <b-select
+                        v-model="form.contact_time_slot_1_ini"
+                        placeholder=""
+                        class="mr-3"
+                        :disabled="!canEdit"
+                      >
+                        <option
+                          v-for="(s, index) in contact_time_slots"
+                          :key="index"
+                          :value="s"
+                        >
+                          {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                        </option>
+                      </b-select>
+
+                      <b-select
+                        v-model="form.contact_time_slot_1_end"
+                        placeholder=""
+                        :disabled="!canEdit"
+                      >
+                        <option
+                          v-for="(s, index) in contact_time_slots"
+                          :key="index"
+                          :value="s"
+                        >
+                        {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                        </option>
+                      </b-select>
+                    </b-field>
+                  </b-field> 
+
+                  <b-field label="Tram horari 2" horizontal message="i de 16 a 20h">
+                    <b-field label="">
+                      <b-select
+                        :disabled="!canEdit"
+                        v-model="form.contact_time_slot_2_ini"
+                        placeholder=""
+                        class="mr-3"
+                      >
+                        <option
+                          v-for="(s, index) in contact_time_slots"
+                          :key="index"
+                          :value="s"
+                        >
+                        {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                        </option>
+                      </b-select>
+
+                      <b-select
+                        :disabled="!canEdit"
+                        v-model="form.contact_time_slot_2_end"
+                        placeholder=""
+                      >
+                        <option
+                          v-for="(s, index) in contact_time_slots"
+                          :key="index"
+                          :value="s"
+                        >
+                        {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                        </option>
+                      </b-select>
+                    </b-field>
+
+                    
+                  </b-field>
+
+                  <b-field
+                      label="Notes"
+                      horizontal
+                      class="line-notes is-full-width mb-5"
+                      message="Per exemple, 'si està tancat, deixar a la peruqueria del costat' o 'trucar 15 min abans i vindrà a obrir'. "
+                    >
+                      <b-input
+                        type="textarea"
+                        v-model="form.contact_notes"
+                        placeholder="Comentaris sobre el punt d'entrega"
+                      />
+                    </b-field>
+
+                  <b-field horizontal message="Guarda ara el punt d'entrega si és nou o has fet canvis">
+                    <b-button
+                      :disabled="!canEdit"
+                      class="view-button is-primary zmb-3"
+                      @click="saveClient"
+                      title="Guardar "
+                      >Guardar punt d'entrega
+                    </b-button>
+                  </b-field>
+
+                </div>
+            </b-collapse>
+
+              <hr />
+
+
 
               <b-field
-                label="Nom comercial"
-                horizontal                
-              >
-                <b-input v-model="form.contact_trade_name" :disabled="!canEdit" />
-              </b-field>
-
-              <b-field
-                label="NIF"
+                label="Transport *"
                 horizontal
-                :type="{ 'is-danger': errors['contact_nif'] && submitted }"
-              >
-                <b-input v-model="form.contact_nif" :disabled="!canEdit" />
-              </b-field>
-
-              <b-field
-                label="Forma jurídica *"
-                horizontal
-                :type="{
-                  'is-danger': errors['contact_legal_form'] && submitted
-                }"
-                message="Per empresa entenem que no és client final sinó restauració, botigues, etc."
+                :type="{ 'is-danger': errors['delivery_type'] && submitted }"
+                message="Transport normal o refrigerat"
               >
                 <div class="is-flex">
                   <button
                     class="button mr-2"
                     type="button"
-                    v-for="(s, index) in legalForms"
+                    v-for="(s, index) in deliveryTypes"
                     :class="{
-                      'is-warning': form.contact_legal_form === s.id,
-                      'is-outlined': form.contact_legal_form !== s.id
+                      'is-warning': form.delivery_type === s.id,
+                      'is-outlined': form.delivery_type !== s.id
                     }"
-                    @click="form.contact_legal_form = s.id"
+                    @click="form.delivery_type = s.id"
+                    :disabled="!canEdit"
+                  >
+                    {{ s.name }}
+                  </button>
+                </div>
+              </b-field>
+            
+              <b-field
+                label="Recollida comanda *"
+                horizontal
+                :type="{ 'is-danger': errors['pickup'] && submitted }"
+                class="zmessage-alert"
+                :message="pickups.find(p => p.id === form.pickup).message"
+              >
+                <div class="is-flex">
+                  <button
+                    class="button mr-2"
+                    type="button"
+                    v-for="(s, index) in allowedPickups"
+                    :class="{
+                      'is-warning': form.pickup === s.id,
+                      'is-outlined': form.pickup !== s.id
+                    }"
+                    @click="form.pickup = s.id"
                     :disabled="!canEdit"
                   >
                     {{ s.name }}
@@ -114,143 +328,64 @@
               </b-field>
 
               <b-field
-                label="Adreça *"
+                label="Caixes *"
                 horizontal
-                :type="{ 'is-danger': errors['contact_address'] && submitted }"
+                message="Nombre de caixes"
+                :type="{ 'is-danger': errors['units'] && submitted }"
               >
-                <b-input v-model="form.contact_address" :disabled="!canEdit" />
-              </b-field>
-
-              <b-field
-                label="CP *"
-                horizontal
-                :type="{ 'is-danger': errors['contact_postcode'] && submitted }"
-              >
-                <b-input v-model="form.contact_postcode" :disabled="!canEdit" />
-              </b-field> 
-
-
-              <b-field
-                label="Població *"
-                horizontal
-                :type="{ 'is-danger': errors['contact_city'] && submitted }"
-                message="Cerca la població d'entrega. Si vols que ens aturem a una població que no apareix aquí, contacta amb La Diligència">
-                <b-autocomplete
-                  v-model="citySearch"
-                  placeholder="Població d'entrega"
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredCities"
-                  field="name"
-                  @select="citySelected"                  
+                <b-input
+                  v-model="form.units"
+                  type="number"
                   :disabled="!canEdit"
-                  :clearable="true"
-                >
-                </b-autocomplete>
+                />
               </b-field>
 
               <b-field
-                label="Telèfon *"
+                :type="{ 'is-danger': errors['kilograms'] && submitted }"
+                label="Kilograms *"
                 horizontal
-                :type="{ 'is-danger': errors['contact_phone'] && submitted }"
+                message="Kilograms totals"
               >
-                <b-input v-model="form.contact_phone" :disabled="!canEdit" />
-              </b-field>
-
-              <b-field
-                label="Tram horari 1"
-                horizontal
-                message="Exemple: De 9 a 13h"
-              >
-                <b-field label="">
-                  <b-select
-                    v-model="form.contact_time_slot_1_ini"
-                    placeholder=""
-                    class="mr-3"
-                    :disabled="!canEdit"
-                  >
-                    <option
-                      v-for="(s, index) in contact_time_slots"
-                      :key="index"
-                      :value="s"
-                    >
-                      {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
-                    </option>
-                  </b-select>
-
-                  <b-select
-                    v-model="form.contact_time_slot_1_end"
-                    placeholder=""
-                    :disabled="!canEdit"
-                  >
-                    <option
-                      v-for="(s, index) in contact_time_slots"
-                      :key="index"
-                      :value="s"
-                    >
-                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
-                    </option>
-                  </b-select>
-                </b-field>
-              </b-field> 
-
-              <b-field label="Tram horari 2" horizontal message="i de 16 a 20h">
-                <b-field label="">
-                  <b-select
-                    :disabled="!canEdit"
-                    v-model="form.contact_time_slot_2_ini"
-                    placeholder=""
-                    class="mr-3"
-                  >
-                    <option
-                      v-for="(s, index) in contact_time_slots"
-                      :key="index"
-                      :value="s"
-                    >
-                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
-                    </option>
-                  </b-select>
-
-                  <b-select
-                    :disabled="!canEdit"
-                    v-model="form.contact_time_slot_2_end"
-                    placeholder=""
-                  >
-                    <option
-                      v-for="(s, index) in contact_time_slots"
-                      :key="index"
-                      :value="s"
-                    >
-                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
-                    </option>
-                  </b-select>
-                </b-field>
-
-                
-              </b-field>
-
-              <b-field
-                  label="Notes"
-                  horizontal
-                  class="line-notes is-full-width mb-5"
-                  message="Per exemple, 'si està tancat, deixar a la peruqueria del costat' o 'trucar 15 min abans i vindrà a obrir'. "
-                >
-                  <b-input
-                    type="textarea"
-                    v-model="form.contact_notes"
-                    placeholder="Comentaris sobre el punt d'entrega"
-                  />
-                </b-field>
-
-              <b-field horizontal message="Guarda ara el punt d'entrega si és nou o has fet canvis">
-                <b-button
+                <b-input
+                  v-model="form.kilograms"
+                  type="number"
                   :disabled="!canEdit"
-                  class="view-button is-primary zmb-3"
-                  @click="saveClient"
-                  title="Guardar "
-                  >Guardar punt d'entrega
-                </b-button>
+                />
               </b-field>
+
+              <b-field
+                label="Fràgil"
+                horizontal
+                message="Si la comanda és fràgil, marca aquesta casella"
+              >
+                <b-switch
+                  v-model="form.fragile"
+                  :disabled="!canEdit"
+                ></b-switch>
+              </b-field>
+
+              <b-field
+                label="Notes"
+                horizontal
+                class="line-notes is-full-width mb-5"
+                message="Si hi ha res més a tenir en compte, com si els paquets són de mides poc habituals o hi ha possibilitats d’entrega en un altre lloc proper si hi ha cap incidència..."
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.comments"
+                  placeholder="Notes"
+                  :disabled="!canEdit"
+                />
+              </b-field>
+
+              <b-field
+                label="Referència proveïdora"
+                horizontal
+                message="Si al teu ERP té un nom/codi de comanda concret, pots posar-lo aquí"
+              >
+                <b-input v-model="form.provider_order_number" />
+              </b-field>
+
 
               <hr />
 
@@ -366,114 +501,6 @@
                 </b-datepicker>
               </b-field>
 
-              <b-field
-                label="Referència proveïdora"
-                horizontal
-                message="Si al teu ERP té un nom/codi de comanda concret, pots posar-lo aquí"
-              >
-                <b-input v-model="form.provider_order_number" />
-              </b-field>
-
-              <hr />
-
-              <b-field
-                label="Transport *"
-                horizontal
-                :type="{ 'is-danger': errors['delivery_type'] && submitted }"
-                message="Transport normal o refrigerat"
-              >
-                <div class="is-flex">
-                  <button
-                    class="button mr-2"
-                    type="button"
-                    v-for="(s, index) in deliveryTypes"
-                    :class="{
-                      'is-warning': form.delivery_type === s.id,
-                      'is-outlined': form.delivery_type !== s.id
-                    }"
-                    @click="form.delivery_type = s.id"
-                    :disabled="!canEdit"
-                  >
-                    {{ s.name }}
-                  </button>
-                </div>
-              </b-field>
-            
-              <b-field
-                label="Recollida comanda *"
-                horizontal
-                :type="{ 'is-danger': errors['pickup'] && submitted }"
-                message="Si és el primer cop que ens demanes recollida en finca, contacta’ns abans per validar que hi podem passar. La recollida en finca té un sobrecost de 7,5€ (normal) o 8€ (refrigerat) per viatge a la finca independentment del nombre de comandes recollides que s'aplicarà a posteriori a la factura"
-              >
-                <div class="is-flex">
-                  <button
-                    class="button mr-2"
-                    type="button"
-                    v-for="(s, index) in pickups"
-                    :class="{
-                      'is-warning': form.pickup === s.id,
-                      'is-outlined': form.pickup !== s.id
-                    }"
-                    @click="form.pickup = s.id"
-                    :disabled="!canEdit"
-                  >
-                    {{ s.name }}
-                  </button>
-                </div>
-              </b-field>
-
-              <b-field
-                label="Caixes *"
-                horizontal
-                message="Nombre de caixes"
-                :type="{ 'is-danger': errors['units'] && submitted }"
-              >
-                <b-input
-                  v-model="form.units"
-                  type="number"
-                  :disabled="!canEdit"
-                />
-              </b-field>
-
-              <b-field
-                :type="{ 'is-danger': errors['kilograms'] && submitted }"
-                label="Kilograms *"
-                horizontal
-                message="Kilograms totals"
-              >
-                <b-input
-                  v-model="form.kilograms"
-                  type="number"
-                  :disabled="!canEdit"
-                />
-              </b-field>
-
-              <b-field
-                label="Fràgil"
-                horizontal
-                message="Si la comanda és fràgil, marca aquesta casella"
-              >
-                <b-switch
-                  v-model="form.fragile"
-                  :disabled="!canEdit"
-                ></b-switch>
-              </b-field>
-
-              <b-field
-                label="Notes"
-                horizontal
-                class="line-notes is-full-width mb-5"
-                message="Si hi ha res més a tenir en compte, com si els paquets són de mides poc habituals o hi ha possibilitats d’entrega en un altre lloc proper si hi ha cap incidència..."
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.comments"
-                  placeholder="Notes"
-                  :disabled="!canEdit"
-                />
-              </b-field>
-
-              <hr /> 
 
               <b-field label="Tarifa" horizontal class="line-notes mb-5">
                 <span>{{ route_rate ? route_rate.name : "no trobada" }}</span>
@@ -490,8 +517,6 @@
                 >
                 </money-format>
               </b-field>
-
-              <hr />
 
 
               <b-field v-if="form.id" horizontal label="Albarà" message="Imprimeix l'albarà i enganxa'n un full a cada caixa. El teu albarà propi posa'l a dins d'una de les caixes">
@@ -781,7 +806,10 @@ export default {
             .indexOf(this.citySearch.toLowerCase()) >= 0
         );
       });
-    },    
+    }, 
+    allowedPickups() {
+      return this.pickups.filter(p => !p.pickup || p.pickup && p.allowed_users && p.allowed_users.map(u => u.id).includes(this.form.owner));
+    }   
   },
   watch: {
     async id(newValue) {
@@ -1550,5 +1578,11 @@ export default {
 }
 .line-notes textarea {
   width: 100%;
+}
+
+</style>
+<style lang="scss">
+.message-alert .help{
+  color: red;
 }
 </style>

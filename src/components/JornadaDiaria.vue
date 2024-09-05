@@ -31,6 +31,9 @@
           <div class="column has-text-weight-bold">
             Hores treballades (total)
           </div>
+          <div class="column has-text-weight-bold">
+            Projecte
+          </div>
           <div class="column has-text-weight-bold"></div>
         </div>
         <div v-for="(a, i) in activities" v-bind:key="i" class="card-body">
@@ -43,7 +46,7 @@
                 @click="addPeriod(a, i)"
               >
                 <b-icon icon="plus" size="is-small" />
-              </button>
+              </button>              
             </div>
             <div class="column">
               <div class="is-flex">
@@ -139,11 +142,30 @@
               >
             </div>
             <div class="column">
+         
+              <b-autocomplete
+                v-if="a.projectNameSearch !== undefined"
+                v-model="a.projectNameSearch"
+                placeholder="Projecte"
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredProjects(a.projectNameSearch)"
+                field="name"
+                @select="option => (a.project = option ? option.id : null)"
+                @input="projectChanged(a, i)"
+                :disabled="a.id === 0"
+                :clearable="true"                
+              >
+              </b-autocomplete>
+              
+            </div>
+
+            <div class="column">
               <button
                 v-if="a.id"
                 class="button is-small is-danger mr-5"
                 type="button"
-                @click.prevent="deleteActivity(a)"
+                @click.prevent="deleteWorkLog(a)"
                 title="Esborrar"
               >
                 <b-icon icon="trash-can" size="is-small" />
@@ -161,13 +183,14 @@
             </div>
             <div class="column">
               {{ d.balance.toFixed(2) }}
-            </div> -->
+            </div> -->            
           </div>
           <div class="columns" v-else>
             <div class="column">
               <b>TOTAL {{ a.date | formatMonthName }}: </b>
               {{ monthly.find(m => m.month === a.month) | formatHourMonth }}
             </div>
+            <div class="column"></div>
             <div class="column"></div>
             <div class="column"></div>
             <div class="column"></div>
@@ -256,7 +279,7 @@ import * as html2pdf from "html3pdf";
 moment.locale("ca");
 
 export default {
-  name: "DedicationSaldo",
+  name: "JornadaDiaria",
   components: { CardComponent },
   props: {
     user: {
@@ -297,7 +320,8 @@ export default {
       users: [],
       me: null,
       apiUrl: process.env.VUE_APP_API_URL,
-      imageUrl: null
+      imageUrl: null,
+      projects: [],
     };
   },
 
@@ -426,7 +450,7 @@ export default {
       const minutes = totalMinutes % 60;
       const formattedTime = `${hours}h ${minutes}m`;
       return formattedTime;
-    }
+    },    
   },
   methods: {
     async getWorkDayLogs() {
@@ -442,6 +466,12 @@ export default {
       }
 
       this.users = (await service({ requiresAuth: true }).get("users")).data;
+
+      this.projects = (
+        await service({ requiresAuth: true }).get("projects/basic?_limit=-1")
+      ).data;
+
+      console.log('this.projects', this.projects)
 
       const from = moment(this.year + "-" + this.month, "YYYY-MM")
         .startOf("month")
@@ -483,10 +513,15 @@ export default {
                 hour_in: null,
                 hour_in_h: null,
                 hour_in_m: null,
-                hour_out: null
+                hour_out: null,
+                projectNameSearch: '',
+                project: null,
+                activity: null
               });
             } else {
               dailyWorkday.forEach(w => {
+                w.projectNameSearch = ''
+                w.project = w.activity && w.activity.project ? (w.activity.project.id ? w.activity.project.id : w.activity.project): null
                 if (w.hour_in) {
                   w.hour_in_h = w.hour_in.split(":")[0];
                   w.hour_in_m = w.hour_in.split(":")[1];
@@ -494,6 +529,10 @@ export default {
                 if (w.hour_out) {
                   w.hour_out_h = w.hour_out.split(":")[0];
                   w.hour_out_m = w.hour_out.split(":")[1];
+                }
+                if (w.activity && w.activity.project) {
+                  console.log('w.activity', w.activity)
+                  w.projectNameSearch = this.projects.find(p => p.id === w.activity.project).name
                 }
                 activities.push(w);
               });
@@ -528,7 +567,7 @@ export default {
       xhr.responseType = "blob";
       xhr.send();
     },
-    deleteActivity(activity, index) {
+    deleteWorkLog(activity, index) {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols eliminar el registre?",
         onConfirm: async () => {
@@ -547,7 +586,10 @@ export default {
         hour_in: null,
         hour_in_h: null,
         hour_in_m: null,
-        hour_out: null
+        hour_out: null,
+        projectNameSearch: '',
+        project: null,
+        activity: null
       };
       this.saveActivity(item, index, false);
     },
@@ -563,7 +605,7 @@ export default {
       if (activity.hour_in_h !== "" && activity.hour_in_m !== "") {
         activity.hour_in = moment().format(
           `${activity.hour_in_h}:${activity.hour_in_m}:00.000`
-        );
+        );        
         this.saveActivity(activity, i, true);
       } else if (activity.hour_in_h === "" && activity.hour_in_m === "") {
         activity.hour_in = null;
@@ -611,7 +653,7 @@ export default {
       activity.hour_out = moment().format("HH:mm:ss.000");
       this.saveActivity(activity, i, true);
     },
-    async saveActivity(activity, i, replace) {
+    async saveActivity(activity, i, replace, createActivity = true) {
       this.updating = true;
       try {
         if (
@@ -628,6 +670,9 @@ export default {
             `workday-logs/${activity.id}`,
             activity
           );
+          if (createActivity) {
+            this.projectChanged(activity, i)
+          }
           this.updating = false;
         } else {
           const db = await service({ requiresAuth: true }).post(
@@ -635,6 +680,11 @@ export default {
             activity
           );
           activity = db.data;
+
+          activity.projectNameSearch = ''
+          activity.project = null
+          activity.activity = null
+
           if (activity.hour_in) {
             activity.hour_in_h = activity.hour_in.split(":")[0];
             activity.hour_in_m = activity.hour_in.split(":")[1];
@@ -709,6 +759,57 @@ export default {
       // html2pdf()
       //   .from(pdf)
       //   .save();
+    },
+    filteredProjects(projectNameSearch) {      
+      // active & not mother
+      const projects = this.projects
+            .filter(p => p.project_state && p.project_state.can_assign_activities === true)
+            .filter(
+              p =>
+                p.mother === null ||
+                (p.mother !== null && p.mother.id && p.mother.id !== p.id)
+            );
+      return projects.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(projectNameSearch.toLowerCase()) >= 0
+        );
+      });
+    },
+    async projectChanged(activity, i) {      
+      console.log('projectChanged activity', activity)
+      if (activity.project) {
+        const item = {
+          hours: moment(activity.hour_out, "HH:mm:ss").diff(
+            moment(activity.hour_in, "HH:mm:ss"), 'hours', true
+          ),
+          date: activity.date,
+          users_permissions_user: this.user,
+          project: activity.project,
+        }
+        if (activity.activity && activity.activity.id) {
+          await service({ requiresAuth: true }).put(
+            `activities/${activity.activity.id || activity.activity}`,
+            item
+          );          
+        } else {
+          const newActivity = await service({ requiresAuth: true }).post("activities", item);
+          activity.activity = newActivity.data;
+          this.saveActivity(activity, i, true, false);
+        }
+        
+      } else if (activity.activity) {
+        await service({ requiresAuth: true }).delete(
+          `activities/${activity.activity.id || activity.activity}`
+        );
+        activity.activity = null;
+        this.saveActivity(activity, i, true, false);
+      }
+      // if (activity.projectNameSearch === '') {
+      //   activity.project = null
+      // }
     }
   },
   filters: {

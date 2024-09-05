@@ -16,10 +16,22 @@
               <b-field :label="!form.owner ? 'NIF *' : 'NIF'" horizontal>
                 <b-input v-model="form.nif" required />
               </b-field>
+              <b-field label="Tipus de contacte" horizontal>
+                <div class="is-flex">
+                  <div v-for="(contactType, index) in contactTypes" :key="index">
+                    <b-button @click="toogleContactType(contactType.id)" 
+                    :class="{
+                      'is-warning': form.contact_types.includes(contactType.id),
+                      'is-outlined': !form.contact_types.includes(contactType.id)
+                    }"
+                    class="mr-2">{{ contactType.name }}</b-button>
+                  </div>
+                </div>
+              </b-field>
               <b-field
                 label="Persona"
                 horizontal
-                message="Si a part de contacte és també treballadora o sòcia de la cooperativa"
+                message="Si és també treballadora o sòcia de la cooperativa"
                 v-if="!form.owner"
               >
                 <b-select v-model="form.users_permissions_user" placeholder="">
@@ -32,7 +44,6 @@
                   </option>
                 </b-select>
               </b-field>
-
               <b-field label="Nom comercial" horizontal>
                 <b-input v-model="form.trade_name" />
               </b-field>
@@ -65,7 +76,7 @@
               <b-field label="Telèfon de contacte" horizontal>
                 <b-input v-model="form.contact_phone" />
               </b-field>
-              <b-field label="Email de contacte" horizontal>
+              <b-field label="Email de contacte" horizontal message="Per enviar-li factures">
                 <b-input v-model="form.contact_email" />
               </b-field>
               <b-field label="Web" horizontal>
@@ -92,6 +103,22 @@
                     {{ s.name }}
                   </option>
                 </b-select>
+              </b-field>
+              <b-field label="Import aportació sòcia" horizontal>
+                <b-input v-model="form.partner_amount" type="number" />
+              </b-field>
+              <b-field label="Data de seguiment" horizontal>
+                <b-datepicker
+                v-model="form.followup_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data seguiment"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
               </b-field>
               <b-field
                 label="Horari de contacte 1"
@@ -219,6 +246,7 @@ export default {
       sectors: [],
       users: [],
       contact_time_slots: Array.from({ length: 48 }, (_, i) => i / 2),
+      contactTypes: []
     };
   },
   computed: {
@@ -301,6 +329,18 @@ export default {
                 this.form.legal_form = 0;
               }
 
+              this.form.contact_types = this.form.contact_types.map(
+                c => c.id
+              );
+
+              if (this.form.followup_date) {
+                this.form.followup_date = moment(
+                  this.form.followup_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
+              
+
               this.isLoading = false;
             } else {
               this.$router.push({ name: "project.new" });
@@ -320,6 +360,9 @@ export default {
       ).data;
       const users = (await service({ requiresAuth: true }).get("users")).data;
       this.users = concat({ id: 0, username: "--" }, users);
+      this.contactTypes = (
+        await service({ requiresAuth: true }).get("contact-types")
+      ).data;
     },
     async submit() {
       this.isLoading = true;
@@ -425,6 +468,15 @@ export default {
     },
     addLine() {
       this.form.lines.push(this.getNewLine());
+    },
+    toogleContactType(id) {
+      if (this.form.contact_types.includes(id)) {
+        this.form.contact_types = this.form.contact_types.filter(
+          c => c !== id
+        );
+      } else {
+        this.form.contact_types.push(id);
+      }
     }
   }
 };

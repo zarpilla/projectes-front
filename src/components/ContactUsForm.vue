@@ -7,7 +7,7 @@
           <div v-html="config.contact_form_text" />
           <card-component class="tile is-child">
             <form @submit.prevent="submit" v-if="!isLoading">
-              <b-field label="Proveïdora *" horizontal>
+              <b-field label="Sòcia *" horizontal>
                 <b-select v-model="form.user" placeholder="" disabled="true">
                   <option
                     v-for="(s, index) in users"
