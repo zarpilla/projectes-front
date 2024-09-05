@@ -44,7 +44,24 @@
     </div>
 
     <div class="is-flex">
-      Exportar comandes:
+      Exportar per a planificador:
+      <download-excel
+        class="export"
+        :data="theOrdersChecked"
+        type="csv"
+        :escapeCsv="false"
+        :name="comandesRouterCSVName()"
+        :fields="csvFieldsRouter"
+      >
+        <b-button
+          title="Descarrega les dades de les teves comandes"
+          class="export-button mt-0 ml-1 mb-3"
+          icon-left="download"
+        />
+      </download-excel>
+      <span v-if="permissions.includes('orders_admin')">
+        Exportar comandes:
+      </span>
       <download-excel
         class="export"
         :data="theOrdersChecked"
@@ -59,6 +76,21 @@
       >
         <b-button
           title="Descarrega les dades de les teves comandes"
+          class="export-button mt-0 ml-1 mb-3"
+          icon-left="download"
+        />
+      </download-excel>
+      <download-excel
+        v-if="permissions.includes('orders_admin')"
+        class="export"
+        :data="theOrdersChecked"
+        name="ecologistica.xlsx"
+        :fields="{
+          ...csvEcologistica
+        }"
+      >
+        <b-button
+          title="Descarrega les dades de les teves comandes en format per a Ecologística"
           class="export-button mt-0 ml-1 mb-3"
           icon-left="download"
         />
@@ -596,6 +628,50 @@ export default {
             return this.addressFormatted(value);
           }
         }
+      },      
+      csvFieldsRouter: {        
+        "NOM CLIENT": "fullName",
+        "TELEFON": "contact_phone",
+        "ADREÇA": {
+          field: "fullAddress",
+          callback: value => {
+            return this.addressFormatted(value);
+          }
+        },
+        "DETALLS COMANDA": {
+          field: "comments",
+          callback: value => {
+            return this.addressFormatted(value);
+          }
+        },        
+        "HORARIS CLIENT": {
+          field: "timeslot1And2",
+          callback: value => {
+            return this.addressFormatted(value);
+          }
+        },        
+        "CAIXES": "units",
+        "TOTAL KG": "kilograms",
+        "DATA D'ENTREGA": "estimated_delivery_date",        
+        
+        // contact_trade_name: "contact_trade_name",
+        // contact_address: {
+        //   field: "contact_address",
+        //   callback: value => {
+        //     return this.addressFormatted(value);
+        //   }
+        // },
+        // contact_postcode: "contact_postcode",
+        // contact_city: "contact_city",
+        // contact_nif: "contact_nif",
+        
+        // contact_legal_form: "contact_legal_form",
+        // contact_time_slot_1_ini: "contact_time_slot_1_ini",
+        // contact_time_slot_1_end: "contact_time_slot_1_end",
+        // contact_time_slot_2_ini: "contact_time_slot_2_ini",
+        // contact_time_slot_2_end: "contact_time_slot_2_end",
+
+        
       },
       csvEcologistica: {
         "pickup.address": {
@@ -865,7 +941,10 @@ export default {
           route_name: o.route.name,
           owner_id: o.owner.id,
           timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_ini)} - ${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_end)}`,
-          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`
+          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`,
+          fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
+          timeslot1And2: `${this.formatSlot(o.contact_time_slot_1_ini)}-${this.formatSlot(o.contact_time_slot_1_end)} + ${this.formatSlot(o.contact_time_slot_2_ini)}-${this.formatSlot(o.contact_time_slot_2_end)}`,
+          fullName: o.contact_trade_name ||o.contact_name,
         };
       });
 
@@ -1419,6 +1498,9 @@ export default {
       this.importing = false;
     },
     comandesCSVName() {
+      return `orders-${moment().format("YYYYMMDD-HHmmss")}.csv`;
+    },
+    comandesRouterCSVName() {
       return `comandes-${moment().format("YYYYMMDD-HHmmss")}.csv`;
     },
   }
