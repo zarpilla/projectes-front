@@ -571,6 +571,12 @@ export default {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols eliminar el registre?",
         onConfirm: async () => {
+          if (activity.activity) {
+            await service({ requiresAuth: true }).delete(
+              `activities/${activity.activity.id}`
+            );
+          }
+
           await service({ requiresAuth: true }).delete(
             `workday-logs/${activity.id}`
           );
