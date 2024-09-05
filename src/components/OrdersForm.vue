@@ -265,7 +265,7 @@
 
                   <b-field horizontal message="Guarda ara el punt d'entrega si és nou o has fet canvis">
                     <b-button
-                      :disabled="!canEdit"
+                      :disabled="!canEdit || !canEditContact"
                       class="view-button is-primary zmb-3"
                       @click="saveClient"
                       title="Guardar "
@@ -660,6 +660,12 @@ export default {
           !this.permissions.includes("orders_admin"))
       );
     },
+    canEditContact() {
+      return (
+        (this.form.contact && !this.form.contact_multiowner) ||
+        this.permissions.includes('orders_admin')
+      );
+    },
     canEdit() {
       return (
         (this.form.id &&
@@ -1051,9 +1057,9 @@ export default {
     },
     async changeRoute() {
       console.log('changeRoute', this.form.route)
-      if (!this.form.route){
-        console.log('changeRoute 2', this.form.contact_city)
-      }
+      // if (!this.form.route){
+      //   console.log('changeRoute 2', this.form.contact_city)
+      // }
     
       if (this.form.owner && this.form.route) {
         this.orders = (
@@ -1438,7 +1444,8 @@ export default {
             time_slot_2_ini: this.form.contact_time_slot_2_ini,
             time_slot_2_end: this.form.contact_time_slot_2_end,
             owner: this.form.owner,
-            legal_form: this.form.contact_legal_form
+            legal_form: this.form.contact_legal_form,
+            contact_types: [4]
           }
         );
         this.form.contact = newContact.data.id;
@@ -1461,13 +1468,24 @@ export default {
       window.open(routeData.href, "_blank");
     },
     async refreshClients(owner) {
-      this.contacts = (
+      const contacts1 = (
         await service({ requiresAuth: true, cached: false }).get(
           `contacts/basic?_limit=-1&_where[owner]=${owner}`
         )
       ).data.map(c => {
         return { ...c, display: `${c.id} - ${c.name}` };
       });
+
+      const contacts2 = (
+        await service({ requiresAuth: true, cached: false }).get(
+          `contacts/basic?_limit=-1&_where[multiowner]=true`
+        )
+      ).data.map(c => {
+        return { ...c, display: `${c.id} - ${c.name}` };
+      });
+
+      this.contacts = concat(contacts1, contacts2);
+
 
       if (!this.contacts.find(c => c.id === 0)) {
         // this.contacts = concat({ id: 0, name: "--" }, this.contacts);
@@ -1493,7 +1511,7 @@ export default {
       this.contactSearch = "";
     },
     async onClientaChange(id) {      
-      console.log("onClientaChange", id);
+      //console.log("onClientaChange", id);
       // this.form.contact = e.target.value;
       if (id) {
         const contact = this.contacts.find(
@@ -1507,6 +1525,7 @@ export default {
         this.form.contact_postcode = contact.postcode;
         this.form.contact_notes = contact.notes;
         this.form.contact_city = contact.city;
+        this.form.contact_multiowner = contact.multiowner;
         this.citySearch = contact.city;
 
         console.log('this.cities', this.cities)
@@ -1514,8 +1533,6 @@ export default {
         
         if (this.cities.find(c => c.name === contact.city)) {
           this.form.contact_city_id = this.cities.find(c => c.name === contact.city).id;
-
-          console.log('this.form.contact_city_id', this.form.contact_city_id)
           this.citySelected(this.cities.find(c => c.name === contact.city));
         }
         

@@ -16,16 +16,7 @@
         Nou Contacte
       </b-button>
 
-      <!-- <b-field horizontal label="Cercar" class="ml-5 is-full-width">
-        <b-input
-          :value="filters.q"
-          @keyup.native="queryProjects($event.target.value)"
-          placeholder="Contacte"
-        >
-        </b-input>
-      </b-field> -->
     </div>
-    <!-- <pre>{{contacts}}</pre> -->
     <b-table
       :loading="isLoading"
       :paginated="false"
@@ -58,9 +49,12 @@
       <b-table-column label="Telèfon" field="phone" searchable sortable v-slot="props">
         {{ props.row.phone }}
       </b-table-column>
-      <b-table-column label="Contacte de" field="props.row.owner.username" searchable sortable v-slot="props" v-if="orders_admin">
-        {{ props.row.owner && props.row.owner.fullname ? props.row.owner.fullname : "" }}
+      <b-table-column label="Tipus" field="contact_type_display" searchable sortable v-slot="props">
+        {{ props.row.contact_type_display }}
       </b-table-column>
+      <b-table-column label="Contacte de" field="props.row.owner.username" searchable sortable v-slot="props" >
+        {{ props.row.owner && (props.row.owner.fullname || props.row.owner.username) ? ( props.row.multiowner ? "TOTES" : (props.row.owner.fullname || props.row.owner.username)) : "" }}
+      </b-table-column>      
     </b-table>
   </section>
 </template>
@@ -118,6 +112,9 @@ export default {
         } else {
           this.userContacts = `&_where[owner]=${me.data.id}`;
         }
+
+        
+        
       } else {
         this.userContacts = "&_where[owner_null]=true";
       }
@@ -135,6 +132,19 @@ export default {
           )
         ).data;
       }
+
+      const multiownerContacts = this.$route.meta.userContacts ? (await service({ requiresAuth: true }).get(
+          `contacts/basic?_limit=-1&_sort=name:ASC&_where[multiowner]=true`
+        )).data : [];
+
+      this.contacts = this.contacts.concat(multiownerContacts);
+
+      this.contacts = this.contacts.map(contact => {
+        return {
+          ...contact,
+          contact_type_display: contact.contact_types.map(ct => ct.name).join(", ")
+        };
+      });
 
       this.contactsCSV = this.contacts;
       this.isLoading = false;

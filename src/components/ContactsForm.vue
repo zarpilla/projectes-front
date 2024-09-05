@@ -196,12 +196,16 @@
                   />
                 </b-field>
 
-              <hr />
-
-              <b-field horizontal>
-                <b-button type="is-primary" :loading="isLoading" @click="submit"
+              <hr />              
+              <b-field horizontal v-if="!form.multiowner || permissions.includes('orders_admin')">
+                <div class="is-flex">
+                <b-button type="is-primary mr-2" :loading="isLoading" @click="submit"
                   >Guardar</b-button
                 >
+                <b-button type="is-primary" :loading="isLoading" @click="submitExit"
+                  >Guardar i sortir</b-button
+                >
+              </div>
               </b-field>
             </form>
           </card-component>
@@ -246,7 +250,8 @@ export default {
       sectors: [],
       users: [],
       contact_time_slots: Array.from({ length: 48 }, (_, i) => i / 2),
-      contactTypes: []
+      contactTypes: [],
+      permissions: [],
     };
   },
   computed: {
@@ -288,16 +293,22 @@ export default {
         id: null,
         name: null,
         legal_form: null,
-        sector: null
+        sector: null,
+        contact_types: [],
       };
     },
     async getData() {
-      if (this.$route.query.user && this.$route.query.user === "true") {
-        const me = await service({ requiresAuth: true, cached: true }).get(
+
+      const me = await service({ requiresAuth: true, cached: true }).get(
           "users/me"
         );
-        this.form.owner = me.data.id;
+
+      if (this.$route.query.user && this.$route.query.user === "true") {        
+        this.form.owner = me.data.id;        
+        this.form.contact_types = [4];
       }
+
+      this.permissions = me.data.permissions.map(p => p.permission);
 
       await this.getAuxiliarData();
 
@@ -364,6 +375,10 @@ export default {
         await service({ requiresAuth: true }).get("contact-types")
       ).data;
     },
+    async submitExit() {
+      await this.submit();
+      this.$router.push({ name: "contacts.view" });
+    },
     async submit() {
       this.isLoading = true;
 
@@ -384,6 +399,10 @@ export default {
             });
             this.isLoading = false;
             return;
+          }
+
+          if (this.form.owner && this.permissions.includes("orders_admin")) {
+            this.form.multiowner = true;
           }
 
           await service({ requiresAuth: true }).put(
