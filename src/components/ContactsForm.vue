@@ -228,7 +228,7 @@
                     :key="index"
                     :value="s.id"
                   >
-                    {{ s.fullname || s.username }}
+                    {{ s.fullname || s.username }} ({{s.username === "TOTES"? '0' : s.id}})
                   </option>
                 </b-select>
               </b-field>
