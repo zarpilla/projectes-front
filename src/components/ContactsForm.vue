@@ -18,13 +18,23 @@
               </b-field>
               <b-field label="Tipus de contacte" horizontal>
                 <div class="is-flex">
-                  <div v-for="(contactType, index) in contactTypes" :key="index">
-                    <b-button @click="toogleContactType(contactType.id)" 
-                    :class="{
-                      'is-warning': form.contact_types.includes(contactType.id),
-                      'is-outlined': !form.contact_types.includes(contactType.id)
-                    }"
-                    class="mr-2">{{ contactType.name }}</b-button>
+                  <div
+                    v-for="(contactType, index) in contactTypes"
+                    :key="index"
+                  >
+                    <b-button
+                      @click="toogleContactType(contactType.id)"
+                      :class="{
+                        'is-warning': form.contact_types.includes(
+                          contactType.id
+                        ),
+                        'is-outlined': !form.contact_types.includes(
+                          contactType.id
+                        )
+                      }"
+                      class="mr-2"
+                      >{{ contactType.name }}</b-button
+                    >
                   </div>
                 </div>
               </b-field>
@@ -47,7 +57,6 @@
               <b-field label="Nom comercial" horizontal>
                 <b-input v-model="form.trade_name" />
               </b-field>
-              
 
               <b-field :label="form.owner ? 'Telèfon *' : 'Telèfon'" horizontal>
                 <b-input v-model="form.phone" />
@@ -76,7 +85,11 @@
               <b-field label="Telèfon de contacte" horizontal>
                 <b-input v-model="form.contact_phone" />
               </b-field>
-              <b-field label="Email de contacte" horizontal message="Per enviar-li factures">
+              <b-field
+                label="Email de contacte"
+                horizontal
+                message="Per enviar-li factures"
+              >
                 <b-input v-model="form.contact_email" />
               </b-field>
               <b-field label="Web" horizontal>
@@ -109,16 +122,16 @@
               </b-field>
               <b-field label="Data de seguiment" horizontal>
                 <b-datepicker
-                v-model="form.followup_date"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                placeholder="Data seguiment"
-                trap-focus
-                editable
-              >
-              </b-datepicker>
+                  v-model="form.followup_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data seguiment"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
               </b-field>
               <b-field
                 label="Horari de contacte 1"
@@ -136,7 +149,11 @@
                       :key="index"
                       :value="s"
                     >
-                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                      {{
+                        s.toString().includes(".")
+                          ? s.toString().replace(".5", ".30")
+                          : `${s}.00`
+                      }}
                     </option>
                   </b-select>
 
@@ -146,7 +163,11 @@
                       :key="index"
                       :value="s"
                     >
-                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                      {{
+                        s.toString().includes(".")
+                          ? s.toString().replace(".5", ".30")
+                          : `${s}.00`
+                      }}
                     </option>
                   </b-select>
                 </b-field>
@@ -168,7 +189,11 @@
                       :key="index"
                       :value="s"
                     >
-                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                      {{
+                        s.toString().includes(".")
+                          ? s.toString().replace(".5", ".30")
+                          : `${s}.00`
+                      }}
                     </option>
                   </b-select>
 
@@ -178,34 +203,67 @@
                       :key="index"
                       :value="s"
                     >
-                    {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                      {{
+                        s.toString().includes(".")
+                          ? s.toString().replace(".5", ".30")
+                          : `${s}.00`
+                      }}
                     </option>
                   </b-select>
                 </b-field>
               </b-field>
 
               <b-field
-                  label="Notes"
-                  horizontal
-                  class="line-notes is-full-width mb-5"
+                label="Contacte de"
+                horizontal
+                v-if="isOrdersContactAndUserIsOrdersAdmin"
+              >
+                <b-select
+                  v-model="form.owner"
+                  placeholder=""
+                  @input="onOwnerChanged"
                 >
-                  <b-input
-                    type="textarea"
-                    v-model="form.notes"
-                    placeholder="Notes, observacions, comentaris... "
-                  />
-                </b-field>
+                  <option
+                    v-for="(s, index) in usersWithOrdersPermissions"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.fullname || s.username }}
+                  </option>
+                </b-select>
+              </b-field>
 
-              <hr />              
-              <b-field horizontal v-if="!form.multiowner || permissions.includes('orders_admin')">
+              <b-field
+                label="Notes"
+                horizontal
+                class="line-notes is-full-width mb-5"
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.notes"
+                  placeholder="Notes, observacions, comentaris... "
+                />
+              </b-field>
+
+              <hr />
+              <b-field
+                horizontal
+                v-if="!form.multiowner || permissions.includes('orders_admin')"
+              >
                 <div class="is-flex">
-                <b-button type="is-primary mr-2" :loading="isLoading" @click="submit"
-                  >Guardar</b-button
-                >
-                <b-button type="is-primary" :loading="isLoading" @click="submitExit"
-                  >Guardar i sortir</b-button
-                >
-              </div>
+                  <b-button
+                    type="is-primary mr-2"
+                    :loading="isLoading"
+                    @click="submit"
+                    >Guardar</b-button
+                  >
+                  <b-button
+                    type="is-primary"
+                    :loading="isLoading"
+                    @click="submitExit"
+                    >Guardar i sortir</b-button
+                  >
+                </div>
               </b-field>
             </form>
           </card-component>
@@ -249,13 +307,14 @@ export default {
       legalForms: [],
       sectors: [],
       users: [],
+      usersWithOrdersPermissions: [],
       contact_time_slots: Array.from({ length: 48 }, (_, i) => i / 2),
       contactTypes: [],
       permissions: [],
+      me: {}
     };
   },
   computed: {
-    ...mapState(["me"]),
     titleStack() {
       return ["Contactes", this.formCardTitle];
     },
@@ -271,6 +330,11 @@ export default {
         return "fade";
       }
       return "x";
+    },
+    isOrdersContactAndUserIsOrdersAdmin() {
+      return (
+        this.form.owner !== null && this.permissions.includes("orders_admin")
+      );
     }
   },
   watch: {
@@ -294,21 +358,21 @@ export default {
         name: null,
         legal_form: null,
         sector: null,
-        contact_types: [],
+        contact_types: []
       };
     },
     async getData() {
-
       const me = await service({ requiresAuth: true, cached: true }).get(
-          "users/me"
-        );
-
-      if (this.$route.query.user && this.$route.query.user === "true") {        
-        this.form.owner = me.data.id;        
-        this.form.contact_types = [4];
-      }
+        "users/me"
+      );
+      this.me = me.data;
 
       this.permissions = me.data.permissions.map(p => p.permission);
+
+      if (this.$route.query.user && this.$route.query.user === "true") {
+        this.form.owner = me.data.id;
+        this.form.contact_types = [4];
+      }
 
       await this.getAuxiliarData();
 
@@ -340,9 +404,19 @@ export default {
                 this.form.legal_form = 0;
               }
 
-              this.form.contact_types = this.form.contact_types.map(
-                c => c.id
-              );
+              this.form.contact_types = this.form.contact_types.map(c => c.id);
+
+              if (this.form.owner && this.form.owner.id) {
+                this.form.owner = this.form.owner.id;
+              } else {
+                this.form.owner = 0;
+                if (
+                  this.$route.query.user &&
+                  this.$route.query.user === "true"
+                ) {
+                  this.form.owner = me.data.id;
+                }
+              }
 
               if (this.form.followup_date) {
                 this.form.followup_date = moment(
@@ -350,7 +424,6 @@ export default {
                   "YYYY-MM-DD"
                 ).toDate();
               }
-              
 
               this.isLoading = false;
             } else {
@@ -358,7 +431,15 @@ export default {
             }
           });
       } else {
-        // this.getAuxiliarData();
+        if (
+          this.$route.query.user &&
+          this.$route.query.user === "true" &&
+          this.permissions.includes("orders_admin")
+        ) {
+          this.form.multiowner = true;
+        } else {
+          this.form.multiowner = false;
+        }
       }
     },
     async getAuxiliarData() {
@@ -370,6 +451,15 @@ export default {
         await service({ requiresAuth: true }).get("sectors")
       ).data;
       const users = (await service({ requiresAuth: true }).get("users")).data;
+
+      this.usersWithOrdersPermissions = users.filter(u =>
+        u.permissions.map(p => p.permission).includes("orders")
+      );
+      this.usersWithOrdersPermissions = concat(
+        { id: this.me.id, username: "TOTES" },
+        this.usersWithOrdersPermissions
+      );
+
       this.users = concat({ id: 0, username: "--" }, users);
       this.contactTypes = (
         await service({ requiresAuth: true }).get("contact-types")
@@ -377,17 +467,25 @@ export default {
     },
     async submitExit() {
       await this.submit();
-      this.$router.push({ name: "contacts.view" });
+      if (this.permissions.includes("orders")) {
+        this.$router.push({ name: "user-contacts.view" });
+      } else {
+        if (this.form.owner) {
+          this.$router.push({ name: "user-contacts.view" });
+        } else {
+          this.$router.push({ name: "contacts.view" });
+        }
+      }
     },
     async submit() {
       this.isLoading = true;
 
       try {
-        if (this.form.id) {          
+        if (this.form.id) {
           if (
             !this.form.name ||
             !this.form.address ||
-            (!this.form.nif && !this.form.owner) ||            
+            (!this.form.nif && !this.form.owner) ||
             (!this.form.phone && this.form.owner) ||
             !this.form.city ||
             !this.form.postcode
@@ -400,11 +498,6 @@ export default {
             this.isLoading = false;
             return;
           }
-
-          if (this.form.owner && this.permissions.includes("orders_admin")) {
-            this.form.multiowner = true;
-          }
-
           await service({ requiresAuth: true }).put(
             `contacts/${this.form.id}`,
             this.form
@@ -417,7 +510,7 @@ export default {
         } else {
           if (
             !this.form.name ||
-            (!this.form.nif && !this.form.owner) ||            
+            (!this.form.nif && !this.form.owner) ||
             (!this.form.phone && this.form.owner) ||
             !this.form.address ||
             !this.form.city ||
@@ -430,6 +523,17 @@ export default {
             });
             this.isLoading = false;
             return;
+          }
+
+          if (
+            this.$route.query.user &&
+            this.$route.query.user === "true" &&
+            this.permissions.includes("orders_admin") &&
+            this.form.owner === this.me.id
+          ) {
+            this.form.multiowner = true;
+          } else {
+            this.form.multiowner = false;
           }
 
           const newProject = await service({ requiresAuth: true }).post(
@@ -490,11 +594,22 @@ export default {
     },
     toogleContactType(id) {
       if (this.form.contact_types.includes(id)) {
-        this.form.contact_types = this.form.contact_types.filter(
-          c => c !== id
-        );
+        this.form.contact_types = this.form.contact_types.filter(c => c !== id);
       } else {
         this.form.contact_types.push(id);
+      }
+    },
+    onOwnerChanged() {
+      const userWithOrdersPermissions = this.usersWithOrdersPermissions.find(
+        u => u.id === this.form.owner
+      );
+      if (
+        userWithOrdersPermissions &&
+        userWithOrdersPermissions.username !== "TOTES"
+      ) {
+        this.form.multiowner = false;
+      } else {
+        this.form.multiowner = true;
       }
     }
   }

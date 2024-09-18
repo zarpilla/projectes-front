@@ -1122,6 +1122,7 @@ export default {
           });
           return false;
         }
+
         if (
           !this.users.find(u => u.id.toString() === record.owner_id.toString())
         ) {
@@ -1325,16 +1326,28 @@ export default {
           }
         }
 
-        if (
-          !this.users.find(u => u.id.toString() === record.owner_id.toString())
-        ) {
-          this.csvErrors.push({
-            line: i,
-            error: `Owner ${record.owner_id} no trobat`
-          });
-          return false;
+        if (record.owner_id.toString() === "0" && this.permissions.includes("orders_admin")) {
+          record.owner_id = this.me.id;
+          record.multiowner = true
         }
-        i++;
+        else {
+          record.multiowner = false
+          if (!this.permissions.includes("orders_admin")) {
+            record.owner_id = this.me.id;
+          }
+          if (
+            !this.users.find(u => u.id.toString() === record.owner_id.toString())
+          ) {
+            this.csvErrors.push({
+              line: i,
+              error: `Owner ${record.owner_id} no trobat`
+            });
+            return false;
+          }
+          i++;
+
+        }
+      
 
 
         const contact = {
@@ -1349,11 +1362,8 @@ export default {
             time_slot_1_end: record.contact_time_slot_1_end,
             time_slot_2_ini: record.contact_time_slot_2_ini,
             time_slot_2_end: record.contact_time_slot_2_end,
-          owner: this.permissions.includes("orders_admin")
-            ? this.users.find(
-                u => u.id.toString() === record.owner_id.toString()
-              )
-            : this.me,
+            multiowner: record.multiowner,
+            owner: record.owner_id
         };
 
         
