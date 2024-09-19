@@ -304,6 +304,7 @@
               </b-field>
             
               <b-field
+                v-if="pickups && pickups.length > 0"
                 label="Recollida comanda *"
                 horizontal
                 :type="{ 'is-danger': errors['pickup'] && submitted }"
@@ -864,10 +865,10 @@ export default {
       };
     },
     async getData() {
+      this.isLoading = true;
       await this.getAuxiliarData();
 
-      if (this.$route.params.id && this.$route.params.id > 0) {
-        this.isLoading = true;
+      if (this.$route.params.id && this.$route.params.id > 0) {        
         service({ requiresAuth: true })
           .get(`orders/${this.$route.params.id}`)
           .then(async r => {
@@ -943,6 +944,7 @@ export default {
 
               this.isLoading = false;
             } else {
+
             }
           });
       } else {
@@ -957,6 +959,8 @@ export default {
         this.form.pickup = this.pickups[0].id;
 
         await this.refreshClients(me.data.id);
+
+        this.isLoading = false;
       }
     },
     normalizeIdsInForm(property) {
