@@ -10,7 +10,7 @@
     <div class="is-flex">
       
       <button class="button mr-3" v-for="year in years" :key="year.year" @click="goToYear(year.year)"
-      :class="{ 'is-primary': selectedYear == year.year, 'is-white': selectedYear != year.year }"
+      :class="{ 'is-primary': selectedYear == year.year, 'is-outlined': selectedYear != year.year }"
       >
       {{ year.year }}
       </button>
@@ -31,7 +31,7 @@
 
     <div class="is-flex mt-2">
       <button class="button mr-3" v-for="state in projectStates" :key="state.id" @click="toggleState(state)"
-      :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-white': !selectedProjectStates.includes(state.id) }">
+      :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-outlined': !selectedProjectStates.includes(state.id) }">
       {{ state.name }}
       </button>
     </div>

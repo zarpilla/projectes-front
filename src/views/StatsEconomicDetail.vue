@@ -21,7 +21,7 @@
               </b-select> -->
               <div class="is-flex mt-2">
                 <button class="button mr-3" v-for="state in project_states" :key="state.id" @click="toggleState(state)"
-                :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-white': !selectedProjectStates.includes(state.id) }">
+                :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-outlined': !selectedProjectStates.includes(state.id) }">
                 {{ state.name }}
                 </button>
               </div>
