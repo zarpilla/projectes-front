@@ -70,8 +70,8 @@ export default {
   name: "ProjectesPivot",
   components: {},
   props: {
-    projectState: {
-      type: Number,
+    projectStates: {
+      type: Array,
       default: 0
     },
     year: {
@@ -427,7 +427,7 @@ export default {
     };
   },
   watch: {
-    projectState: function(newVal, oldVal) {
+    projectStates: function(newVal, oldVal) {
       this.getActivities();
     },
     year: function(newVal, oldVal) {
@@ -444,17 +444,22 @@ export default {
   methods: {
     async getActivities() {
       this.isLoading = true;
-      const projectState = this.projectState !== null ? this.projectState : 1;
-      let query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
-      if (projectState === 0 || projectState === "0") {
-        query = "projects/economic-detail?_limit=-1";
-      } else if (projectState === -1){
-        query = `projects/economic-detail?_where[project_state_in]=1,3&_limit=-1`;
-      } else if (projectState === -2){
-        query = `projects/economic-detail?_where[project_state_in]=1,2&_limit=-1`;
-      } else {
-        query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
-      }
+
+
+      // projectStates
+      const query = `projects/economic-detail?_where[project_state_in]=${this.projectStates.join(',')}&_limit=-1`;
+
+      // const projectState = this.projectState !== null ? this.projectState : 1;
+      // let query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
+      // if (projectState === 0 || projectState === "0") {
+      //   query = "projects/economic-detail?_limit=-1";
+      // } else if (projectState === -1){
+      //   query = `projects/economic-detail?_where[project_state_in]=1,3&_limit=-1`;
+      // } else if (projectState === -2){
+      //   query = `projects/economic-detail?_where[project_state_in]=1,2&_limit=-1`;
+      // } else {
+      //   query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
+      // }
       const yearQ = this.year !== "Tots" ? `&_where[year_eq]=${this.year}` : "";
       const { data } = await service({ requiresAuth: true }).get(query + yearQ);
       const data2 = data.map(c => {

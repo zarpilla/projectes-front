@@ -8,15 +8,14 @@
       :can-cancel="false"
     ></b-loading>
 
-    <!-- <b-field horizontal label="Estat projecte">
-      <b-select
-        placeholder="Actius i Tancats"
-        @change.native="onStateChanged($event)"
-      >
-        <option value="0">Actius i Tancats</option>
-        <option value="1">Tots (+Sol·licitats)</option>
-      </b-select>
-    </b-field> -->
+    <b-field horizontal label="Estat projecte">
+      <div class="is-flex mt-2">
+        <button class="button mr-3" v-for="state in projectStates" :key="state.id" @click="toggleState(state)"
+        :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-white': !selectedProjectStates.includes(state.id) }">
+        {{ state.name }}
+        </button>
+      </div>
+    </b-field>
 
     <card-component
       title="RESUM PREVISIÓ"
@@ -71,7 +70,12 @@
               <tbody>
 
                 <tr>
-                  <td class="has-text-weight-bold"><h6 class="subtitle has-text-weight-bold">Actius i tancats</h6></td>
+                  <td class="has-text-weight-bold">
+                    <h6 class="subtitle has-text-weight-bold">
+                      Projectes: 
+                      <span>{{ selectedProjectStatesNames }}</span>
+                    </h6>
+                  </td>
                   <td
                     class="has-text-right"
                     v-for="(data, i) in yearlyForecast2"
@@ -80,7 +84,7 @@
                   <span v-if="data.total_expenses" class="has-text-weight-bold">{{ formatPrice(data.total_incomes / data.total_expenses * -100) }} %</span>
                 </td>
                 </tr>
-                <tr>
+                <!-- <tr>
                   <td class="has-text-weight-bold">Cobraments</td>
                   <td
                     class="has-text-right"
@@ -109,7 +113,7 @@
                   >
                     {{ formatPrice(data.total_amount) }} €
                   </td>
-                </tr>
+                </tr> -->
 
                 <tr>
                   <td class="has-text-weight-bold"><h6 class="subtitle has-text-weight-bold">Tots</h6></td>
@@ -293,7 +297,9 @@ export default {
       vat: { paid: 0, received: 0 },
       me: null,
       payingVat: false,
-      view: "startOfYear"
+      view: "startOfYear",
+      projectStates: [],
+      selectedProjectStates: [],
     };
   },
   async mounted() {
@@ -321,11 +327,16 @@ export default {
           "custom-css"
         );
         this.isLoading = false;
-        this.getData();
+        this.getInitialData();
       }
     }, 100);
   },
   computed: {
+    selectedProjectStatesNames() {
+      return this.projectStates
+        .filter(s => this.selectedProjectStates.includes(s.id))
+        .map(s => s.name).join(", ");
+    },
     monthlySummary() {
       const year = this.$route.query.year
         ? this.$route.query.year
@@ -515,15 +526,15 @@ export default {
     yearlyForecast() {
       return this.pivotData.filter(d => d.month == "00");
     },
-    yearlyForecast2() {
-      return this.pivotData2.filter(d => d.month == "00");
-    }
+    // yearlyForecast2() {
+    //   return this.pivotData2.filter(d => d.month == "00");
+    // }
   },
   methods: {
     async onStateChanged() {
       console.log("onStateChanged");
     },
-    async getData() {
+    async getInitialData() {
       this.isLoading = true;
 
       let filter = "";
@@ -533,19 +544,39 @@ export default {
       const year = this.$route.query.year
         ? this.$route.query.year
         : moment().format("YYYY");
-      const treasuryData = await getTreasuryData(filter, year);
+
+      this.projectStates = await service({ requiresAuth: true, cached: true })
+        .get("project-states")
+        .then(r => {
+          return r.data;
+        });
+
+      if (localStorage.getItem("PrevisioTable.selectedProjectStates")) {
+        this.selectedProjectStates = JSON.parse(
+          localStorage.getItem("PrevisioTable.selectedProjectStates")
+        );
+      } else {
+        this.selectedProjectStates = this.projectStates.map(s => s.id);
+      }
+
+      this.getData();
+    },
+    async getData() {
+      this.isLoading = true;
+
+      const treasuryData = await getTreasuryData(this.selectedProjectStates);
       this.treasuryData = treasuryData.treasury.map(d => {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
       });
       this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
 
-      const treasuryData2 = await getTreasuryData("approved", year);
-      this.treasuryData2 = treasuryData2.treasury.map(d => {
-        return { ...d, executat: d.paid ? "SÍ" : "NO" };
-      });
+      // const treasuryData2 = await getTreasuryData("approved", year);
+      // this.treasuryData2 = treasuryData2.treasury.map(d => {
+      //   return { ...d, executat: d.paid ? "SÍ" : "NO" };
+      // });
 
-      this.pivotData2 = Object.freeze(this.monthlySummaryTotal2);
+      // this.pivotData2 = Object.freeze(this.monthlySummaryTotal2);
 
       this.isLoading = false;
     },
@@ -555,7 +586,22 @@ export default {
     },
     formatDate(value) {
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
-    }
+    },
+    toggleState(state) {
+      if (this.selectedProjectStates.includes(state.id)) {
+        this.selectedProjectStates = this.selectedProjectStates.filter(
+          s => s !== state.id
+        );
+      } else {
+        this.selectedProjectStates.push(state.id);
+      }
+      localStorage.setItem(
+        "PrevisioTable.selectedProjectStates",
+        JSON.stringify(this.selectedProjectStates)
+      );
+      this.getData();
+    },
+    
   }
 };
 </script>

@@ -8,22 +8,32 @@
     />
 
     <div class="is-flex">
-    <download-excel
-      class="export view-button"
-      :data="pivotData"
-      v-if="treasuryData && treasuryData.length"
-    >
-      <b-button
-        title="Exporta dades"
-        class="zview-button"
-        :type="'is-disabled'"
-        icon-left="file-excel"
-      />
-    </download-excel>
+      
+      <button class="button mr-3" v-for="year in years" :key="year.year" @click="goToYear(year.year)"
+      :class="{ 'is-primary': selectedYear == year.year, 'is-white': selectedYear != year.year }"
+      >
+      {{ year.year }}
+      </button>
 
-    <button class="button is-primary mr-3" v-for="year in years" :key="year.year" @click="goToYear(year.year)">
-    {{ year.year }}
-    </button>
+      <download-excel
+        class="export view-button ml-auto"
+        :data="pivotData"
+        v-if="treasuryData && treasuryData.length"
+      >
+        <b-button
+          title="Exporta dades"
+          class="zview-button"
+          :type="'is-disabled'"
+          icon-left="file-excel"
+        />
+      </download-excel>
+    </div>
+
+    <div class="is-flex mt-2">
+      <button class="button mr-3" v-for="state in projectStates" :key="state.id" @click="toggleState(state)"
+      :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-white': !selectedProjectStates.includes(state.id) }">
+      {{ state.name }}
+      </button>
     </div>
 
     <!-- <pre>{{ treasuryData }}</pre> -->
@@ -459,6 +469,9 @@ export default {
       me: null,
       payingVat: false,
       view: "startOfYear",
+      projectStates: [],
+      selectedProjectStates: [],
+      selectedYear: null,
     };
   },
   async mounted() {
@@ -486,7 +499,7 @@ export default {
           "custom-css"
         );
         this.isLoading = false;
-        this.getData();
+        this.getInitialData();
       }
     }, 100);
   },
@@ -494,6 +507,8 @@ export default {
     monthlySummary() {
 
       const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
+
+      this.selectedYear = year
 
       // const fn = (t) => { return this.view === 'today' ? t.datef >= t.datef >= moment().format("YYYYMMDD") : t.datef >= moment().startOf('year').format("YYYYMMDD") }
       const treasuryData = this.treasuryData
@@ -588,6 +603,24 @@ export default {
     async getData() {
       this.isLoading = true;
 
+      //const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
+
+      const treasuryData = await getTreasuryData(this.selectedProjectStates);      
+      this.vat = treasuryData.vat;
+      this.vat_expected = treasuryData.vat_expected;
+      this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});
+      this.projects = treasuryData.projects;
+      this.pivotData = Object.freeze(this.monthlySummaryTotal);
+      this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
+
+      configPivot.dataSource.data = this.pivotData2;
+      window.jQuery("#project-stats").empty();
+      window.jQuery("#project-stats").kendoPivotGrid(configPivot);
+      this.isLoading = false;
+    },
+    async getInitialData() {
+      this.isLoading = true;
+
       this.contacts = (
         await service({ requiresAuth: true }).get(
           "contacts/basic?_limit=-1&_sort=name:ASC"
@@ -607,20 +640,15 @@ export default {
 
       this.years = await service({ requiresAuth: true, cached: true }).get("years?_sort=year:DESC").then((r) => r.data);
 
+      this.projectStates = await service({ requiresAuth: true, cached: true }).get("project-states").then((r) => r.data);
 
-      const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
-      const treasuryData = await getTreasuryData(filter, year);      
-      this.vat = treasuryData.vat;
-      this.vat_expected = treasuryData.vat_expected;
-      this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});
-      this.projects = treasuryData.projects;
-      this.pivotData = Object.freeze(this.monthlySummaryTotal);
-      this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
+      if (localStorage.getItem('TresoreriaTable.selectedProjectStates')) {
+        this.selectedProjectStates = JSON.parse(localStorage.getItem('TresoreriaTable.selectedProjectStates'));
+      } else {
+        this.selectedProjectStates = this.projectStates.map((s) => s.id);
+      }
 
-      configPivot.dataSource.data = this.pivotData2;
-      window.jQuery("#project-stats").empty();
-      window.jQuery("#project-stats").kendoPivotGrid(configPivot);
-      this.isLoading = false;
+      this.getData();
     },
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
@@ -733,6 +761,18 @@ export default {
       this.$router.push({ query: { year } });
       this.getData();
     },
+    toggleState(state) {
+      if (this.selectedProjectStates.includes(state.id)) {
+        this.selectedProjectStates = this.selectedProjectStates.filter(
+          (s) => s !== state.id
+        );
+      } else {
+        this.selectedProjectStates.push(state.id);
+      }    
+      localStorage.setItem('TresoreriaTable.selectedProjectStates', JSON.stringify(this.selectedProjectStates))
+
+      this.getData();
+    }
   },
 };
 </script>

@@ -2,6 +2,17 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.09.19">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Filtre múltiple d'estats de projectes a 
+            <router-link to="/stats-economic-detail">Detall d'ingressos i despeses</router-link>, 
+            <router-link to="/tresoreria">Tresoreria</router-link> i
+            <router-link to="/forecast">Previsió Econòmica</router-link>.
+          </div>
+        </div>
+      </card-component>
       <card-component title="2024.09.06">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>

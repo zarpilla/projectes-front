@@ -3,10 +3,10 @@
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <card-component title="Filtres">
-        <form @submit.prevent="submit2">
+        <form @submit.prevent="() => {}">
           <b-field horizontal>
             <b-field label="Estat projecte">
-              <b-select
+              <!-- <b-select
                 v-model="filters.project_state"
                 placeholder="Estat"
                 required
@@ -18,8 +18,16 @@
                 >
                   {{ s.name }}
                 </option>
-              </b-select>
+              </b-select> -->
+              <div class="is-flex mt-2">
+                <button class="button mr-3" v-for="state in project_states" :key="state.id" @click="toggleState(state)"
+                :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-white': !selectedProjectStates.includes(state.id) }">
+                {{ state.name }}
+                </button>
+              </div>
             </b-field>
+          </b-field>
+          <b-field horizontal>
             <b-field label="Any">
               <b-select v-model="filters.year" placeholder="Any">
                 <option
@@ -44,7 +52,7 @@
 
       <card-component title="Projectes">
         <economic-detail-pivot
-          :project-state="filters.project_state" :year="filters.year" :data-type="filters.dataType"
+          :project-states="selectedProjectStates" :year="filters.year" :data-type="filters.dataType"
           v-if="!isLoading"
         />
       </card-component>
@@ -71,13 +79,14 @@ export default {
     return {
       isLoading: true,
       filters: {
-        project_state: null,
+        project_states: [],
         year: null,
         dataType: "Totes"
       },
       project_states: [],
       years: [],
-      dataTypes: ["Totes", "Previsió", "Execució"]
+      dataTypes: ["Totes", "Previsió", "Execució"],
+      selectedProjectStates: []
     };
   },
   computed: {
@@ -126,16 +135,20 @@ export default {
         .get("project-states")
         .then(r => {
           this.project_states = [...r.data];
-          this.project_states.unshift({ id: 0, name: "Tots" });
-          const name = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 3).name}`
-          this.project_states.push({ id: -1, name });
+          //this.project_states.unshift({ id: 0, name: "Tots" });
+          // const name = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 3).name}`
+          // this.project_states.push({ id: -1, name });
 
-          const name2 = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 2).name}`
-          this.project_states.push({ id: -2, name: name2 });
+          // const name2 = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 2).name}`
+          // this.project_states.push({ id: -2, name: name2 });
 
+          if (localStorage.getItem('StatsEconomicDetail.selectedProjectStates')) {
+            this.selectedProjectStates = JSON.parse(localStorage.getItem('StatsEconomicDetail.selectedProjectStates'));
+          } else {
+            this.selectedProjectStates = this.project_states.map(s => s.id);
+          }
 
-
-          this.filters.project_state = defaultProjectState;
+          //this.filters.project_state = defaultProjectState;
 
           service({ requiresAuth: true, cached: true })
             .get("years?_sort=year:DESC")
@@ -150,7 +163,16 @@ export default {
               this.isLoading = false;
             });
         });
-    }
+    },
+    toggleState(state) {
+      if (this.selectedProjectStates.includes(state.id)) {
+        this.selectedProjectStates = this.selectedProjectStates.filter(s => s !== state.id);
+      } else {
+        this.selectedProjectStates.push(state.id);
+      }
+      localStorage.setItem('StatsEconomicDetail.selectedProjectStates', JSON.stringify(this.selectedProjectStates))
+      //this.getData()
+    },
   }
 };
 </script>
