@@ -263,6 +263,12 @@
                     @click="submitExit"
                     >Guardar i sortir</b-button
                   >
+                  <b-button
+                    type="is-danger ml-auto"
+                    :loading="isLoading"
+                    @click="deleteContact"
+                    >Esborrar</b-button
+                  >
                 </div>
               </b-field>
             </form>
@@ -284,6 +290,7 @@ import { mapState } from "vuex";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
+import { ca } from "date-fns/locale";
 
 export default {
   name: "ProjectForm",
@@ -467,6 +474,9 @@ export default {
     },
     async submitExit() {
       await this.submit();
+      this.redirectToView();
+    },
+    redirectToView() {
       if (this.permissions.includes("orders")) {
         this.$router.push({ name: "user-contacts.view" });
       } else {
@@ -611,6 +621,39 @@ export default {
       } else {
         this.form.multiowner = true;
       }
+    },
+    deleteContact() {
+      this.$buefy.dialog.confirm({
+        title: "Esborrar contacte",
+        message: "Vols esborrar aquest contacte?",
+        confirmText: "Esborrar",
+        cancelText: "No",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm: async () => {
+          this.isLoading = true;
+          try {
+            await service({ requiresAuth: true }).delete(
+              `contacts/${this.form.id}`
+            );
+            this.$buefy.snackbar.open({
+              message: "Esborrat",
+              queue: false
+            });
+            this.redirectToView();
+
+          } catch (err) {
+            console.error(err);
+            this.$buefy.snackbar.open({
+              message: "Error. El contacte no s'ha pogut esborrar perquè té dades associades",
+              queue: false,
+              type: "is-danger"
+            });
+            this.isLoading = false;
+          }
+          
+        }
+      });
     }
   }
 };
