@@ -586,6 +586,7 @@ export default {
       },
       csvFields: {
         owner_id: "owner_id",
+        owner_name: "owner.username",
         route_name: "route_name",        
         estimated_delivery_date: "estimated_delivery_date",
         contact_name: "contact_name",
@@ -600,7 +601,7 @@ export default {
         contact_city: "contact_city",
         contact_nif: "contact_nif",
         contact_phone: "contact_phone",
-        contact_legal_form: "contact_legal_form",
+        contact_legal_form: "contact_legal_form.name",
         contact_time_slot_1_ini: "contact_time_slot_1_ini",
         contact_time_slot_1_end: "contact_time_slot_1_end",
         contact_time_slot_2_ini: "contact_time_slot_2_ini",
@@ -653,7 +654,7 @@ export default {
         "CAIXES": "units",
         "TOTAL KG": "kilograms",
         "DATA D'ENTREGA": "estimated_delivery_date",        
-        
+        "PROVEÏDORA": "owner.username",
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
@@ -1152,7 +1153,7 @@ export default {
           contact_postcode: record.contact_postcode,
           contact_nif: record.contact_nif,
           contact_city: record.contact_city,
-          contact_legal_form: record.contact_legal_form,
+          contact_legal_form: record.contact_legal_form.id,
           contact_time_slot_1_ini: record.contact_time_slot_1_ini ?? null,
           contact_time_slot_1_end: record.contact_time_slot_1_end ?? null,
           contact_time_slot_2_ini: record.contact_time_slot_2_ini ?? null,
