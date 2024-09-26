@@ -654,7 +654,7 @@ export default {
         "CAIXES": "units",
         "TOTAL KG": "kilograms",
         "DATA D'ENTREGA": "estimated_delivery_date",        
-        "PROVEÏDORA": "owner.username",
+        "SOCIA": "owner.username",
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
