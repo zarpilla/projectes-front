@@ -1359,10 +1359,10 @@ export default {
             postcode: record.contact_postcode,
             nif: record.contact_nif,
             city: record.contact_city,
-            time_slot_1_ini: record.contact_time_slot_1_ini,
-            time_slot_1_end: record.contact_time_slot_1_end,
-            time_slot_2_ini: record.contact_time_slot_2_ini,
-            time_slot_2_end: record.contact_time_slot_2_end,
+            time_slot_1_ini: record.contact_time_slot_1_ini || null,
+            time_slot_1_end: record.contact_time_slot_1_end || null,
+            time_slot_2_ini: record.contact_time_slot_2_ini || null,
+            time_slot_2_end: record.contact_time_slot_2_end || null,
             multiowner: record.multiowner,
             owner: record.owner_id
         };
