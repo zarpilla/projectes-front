@@ -79,7 +79,7 @@ export default {
       cityRoutes: [],
       newCity: "",
       orders_admin: false,
-      tableHeight: '60vh'
+      tableHeight: '60vh',
     };
   },
   computed: {
@@ -87,15 +87,15 @@ export default {
       return ["Poblacions i rutes"];
     }
   },
-  async mounted() {
-    await this.getData();
+  async mounted() {    
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
     );
-    const permissions = me.data.permissions.map(p => p.permission);
+    const permissions = me.data.permissions.map(p => p.permission);    
     if (permissions.includes("orders_admin")) {
       this.orders_admin = true;
     }
+    await this.getData();
     this.tableHeight = window.innerHeight - 400 + 'px';
 
   },
@@ -123,6 +123,12 @@ export default {
       }
 
       this.isLoading = false;
+    },
+    removeAccents(name) {
+      return name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
     },
     async checkCityRoute(add, cityId, route) {
       if (add) {
@@ -156,6 +162,13 @@ export default {
           onCancel: () => {}
         });
       }
+    },
+    async addCityName(name) {
+      await service({ requiresAuth: true })
+              .post("cities", { name })
+              .then(() => {
+                this.getData();
+              });
     }
   }
 };

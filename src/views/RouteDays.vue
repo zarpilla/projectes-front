@@ -27,7 +27,8 @@
 
     
     <div class="notification help mt-4">
-        Marca o desmarca les rutes per tancar-les o obrir-les per aquell dia. Les rutes amb fons blanc són rutes tancades.
+      <span v-if="orders_admin">Marca o desmarca les rutes per tancar-les o obrir-les per aquell dia. </span>
+        Les rutes amb fons blanc són rutes tancades per aquell dia.
     </div>
     
 

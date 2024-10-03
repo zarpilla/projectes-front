@@ -131,9 +131,21 @@ const menu = [
         permission: 'orders_admin'
       },
       {
+        to: '/city-route-delivery',
+        icon: 'city',
+        label: 'Poblacions i punts',
+        permission: 'orders_admin'
+      },      
+      {
         to: '/route-days',
         icon: 'calendar',
         label: 'Rutes i dies',
+        permission: 'orders_admin'
+      },      
+      {
+        to: '/orders-stats',
+        icon: 'table',
+        label: 'Taula Comandes',
         permission: 'orders_admin'
       }
     ],

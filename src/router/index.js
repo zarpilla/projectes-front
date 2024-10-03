@@ -512,11 +512,35 @@ const routes = [
   },
   {
     meta: {
+      title: 'Poblacions i punts d\'entrega'
+    },
+    path: '/city-route-delivery',
+    name: 'cityroutedelivery.edit',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/CityRouteDelivery.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
       title: 'Rutes i dies'
     },
     path: '/route-days',
     name: 'routedays.edit',
     component: () => import(/* webpackChunkName: "orders" */ '../views/RouteDays.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
+      title: 'Comandes TD'
+    },
+    path: '/orders-stats',
+    name: 'orders.stats',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/StatsOrders.vue'),
     props: true,
     meta: {
       requiresAuth: true,

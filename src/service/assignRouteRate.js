@@ -13,10 +13,8 @@ const assignRouteRate = (form, routeRates, orders) => {
 
   if (form.route_rate === null || form.status !== "invoiced") {
     let rates = routeRates.filter(
-      r => (r.route && r.route.id === route) || r.route === null
+      r => (r.routes && r.routes.length && r.routes.find(rt => rt.id === route)) || r.route === null
     );
-
-    //console.log("pickup", pickup);
 
     if (pickup === 2) {
       // finca      
@@ -62,7 +60,10 @@ const assignRouteRate = (form, routeRates, orders) => {
         r.delivery_type === null
     );
     if (rates.length > 1) {
-      rates = rates.filter(r => r.route !== null);
+      rates = rates.filter(r => r.routes && r.routes.length > 0);
+      if (rates.length === 0) {
+        rates = rates.filter(r => r.routes && r.routes.length === 0);
+      }
     }
     if (rates.length === 0) {
       // this.$buefy.snackbar.open({

@@ -904,7 +904,7 @@ export default {
       ).data;
 
       this.routes = (
-        await service({ requiresAuth: true }).get(`routes?_limit=-1`)
+        await service({ requiresAuth: true }).get(`routes?_limit=-1&_sort=order:ASC`)
       ).data;
 
       this.users = (

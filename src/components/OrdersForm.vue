@@ -716,62 +716,10 @@ export default {
       if (!this.canChangeRate) {
         return this.form.route_rate;
       }
-
-      const v1 = this.form.units || 0;
-      const v2 = this.form.kilograms || 0;
-      const v3 = this.form || 0;
-      const v4 = this.routeRates;
-      const v5 = this.form.route;
-      const v6 = this.form.owner;
-      const v7 = this.orders;
-
       const rr = assignRouteRate(this.form, this.routeRates, this.orders);
       //console.log("rr", rr);
       this.form.route_rate = rr;
-      return this.form.route_rate;
-      if (
-        !this.routeRates ||
-        this.routeRates.length === 0 ||
-        !this.form.route ||
-        !this.form.pickup ||
-        !this.form.delivery_type
-      ) {
-        return null;
-      }
-
-      let rates = this.routeRates.filter(
-        r => (r.route && r.route.id === this.form.route) || r.route === null
-      );
-      rates = rates.filter(
-        r => (r.pickup && r.pickup.id === this.form.pickup) || r.pickup === null
-      );
-      rates = rates.filter(
-        r =>
-          (r.delivery_type && r.delivery_type.id === this.form.delivery_type) ||
-          r.delivery_type === null
-      );
-      if (rates.length > 1) {
-        rates = rates.filter(r => r.route !== null);
-      }
-      if (rates.length === 0) {
-        this.$buefy.snackbar.open({
-          message: "Error. No s'ha trobat cap tarifa per aquesta ruta",
-          queue: false
-        });
-        return null;
-      } else if (rates.length > 1) {
-        this.$buefy.snackbar.open({
-          message: "Error. S'ha trobat més d'una tarifa per aquesta ruta",
-          queue: false
-        });
-
-        console.warn("rates!!!", rates);
-        this.form.route_rate = rates[0];
-        return rates[0];
-      } else {
-        this.form.route_rate = rates[0];
-        return rates[0];
-      }
+      return this.form.route_rate;      
     },
     route_price() {
       if (!this.canChangeRate) {
@@ -1477,7 +1425,7 @@ export default {
           `contacts/basic?_limit=-1&_where[owner]=${owner}`
         )
       ).data.map(c => {
-        return { ...c, display: `${c.id} - ${c.name}` };
+        return { ...c, display: `${c.name} (${c.id})` };
       });
 
       const contacts2 = (
@@ -1485,7 +1433,7 @@ export default {
           `contacts/basic?_limit=-1&_where[multiowner]=true`
         )
       ).data.map(c => {
-        return { ...c, display: `${c.id} - ${c.name}` };
+        return { ...c, display: `${c.name} (${c.id}) - TOTES` };
       });
 
       this.contacts = concat(contacts1, contacts2);
@@ -1531,9 +1479,6 @@ export default {
         this.form.contact_city = contact.city;
         this.form.contact_multiowner = contact.multiowner;
         this.citySearch = contact.city;
-
-        console.log('this.cities', this.cities)
-        console.log('contact.city', contact.city)
         
         if (this.cities.find(c => c.name === contact.city)) {
           this.form.contact_city_id = this.cities.find(c => c.name === contact.city).id;
