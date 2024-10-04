@@ -12,10 +12,12 @@ const config = {
       }, {
         name: 'delivery_type',
         expand: false
+      }, {
+        name: 'route_rate',
+        expand: false
       }
       ], // Specify a dimension on columns.
-    rows: [
-      
+    rows: [      
       {
         name: 'year',
         expand: false
@@ -32,9 +34,6 @@ const config = {
         expand: false
       }, {
         name: 'contact',
-        expand: false
-      }, {
-        name: 'route_rate',
         expand: false
       }
     ], // Specify a dimension on rows.
@@ -64,12 +63,18 @@ const config = {
             type: 'string'
           },
           year: {
-            type: 'number'
+            type: 'string'
           },
           month: {
+            type: 'string'
+          },          
+          price: {
             type: 'number'
           },
-          day: {
+          count: {
+            type: 'number'
+          },
+          kilograms: {
             type: 'number'
           }
         }
@@ -77,31 +82,31 @@ const config = {
       cube: {
         dimensions: {
           owner: {
-            caption: 'Sòcia (TOTES)'
+            caption: 'Sòcia (T)'
           },
           contact: {
-            caption: 'Punt (TOTS)'
+            caption: 'Punt (T)'
           },
           route	: {
-            caption: 'Ruta (TOTES)'
+            caption: 'Ruta (T)'
           },
           route_rate: {
-            caption: 'Tarifa (TOTES)'
+            caption: 'Tarifa (T)'
           },
           status: {
-            caption: 'Estat (TOTS)'
+            caption: 'Estat (T)'
           },
           pickup: {
-            caption: 'Recollida (TOTES)'
+            caption: 'Recollida (T)'
           },
           delivery_type	: {
-            caption: 'Entrega (TOTES)'
+            caption: 'Entrega (T)'
           },
           month: {
-            caption: 'Mesos (TOTS)'
+            caption: 'Mesos (T)'
           },
           year: {
-            caption: 'Anys (TOTS)'
+            caption: 'Anys (T)'
           },
         },
         measures: {
