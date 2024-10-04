@@ -52,9 +52,11 @@
       <b-table-column label="Tipus" field="contact_type_display" searchable sortable v-slot="props">
         {{ props.row.contact_type_display }}
       </b-table-column>
-      <b-table-column label="Contacte de" field="props.row.owner.username" searchable sortable v-slot="props" >
-        {{ props.row.multiowner ? "TOTES" : (props.row.owner && (props.row.owner.fullname || props.row.owner.username) ? ( props.row.multiowner ? "TOTES" : (props.row.owner.fullname || props.row.owner.username)) : "") }}
-      </b-table-column>      
+      <b-table-column label="Contacte de" field="props.row.owner.username" searchable sortable v-slot="props">
+        <span v-if="props.row.multidelivery">MULTIENTREGA</span>
+        <span v-else-if="props.row.multiowner">TOTES</span>        
+        <span v-else-if="props.row.owner && (props.row.owner.fullname || props.row.owner.username)">{{ props.row.owner.fullname || props.row.owner.username }}</span>
+      </b-table-column>
     </b-table>
   </section>
 </template>
@@ -101,6 +103,7 @@ export default {
     async getData() {
       this.isLoading = true;
 
+      var userContacts = false;
       if (this.$route.meta.userContacts) {
         const me = await service({ requiresAuth: true, cached: true }).get(
           "users/me"
@@ -111,9 +114,8 @@ export default {
           this.userContacts = `&_where[owner_ne]=null`;
         } else {
           this.userContacts = `&_where[owner]=${me.data.id}`;
+          userContacts = true;
         }
-
-        
         
       } else {
         this.userContacts = "&_where[owner_null]=true";
@@ -124,20 +126,23 @@ export default {
           await service({ requiresAuth: true }).get(
             `contacts/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${this.userContacts}`
           )
-        ).data;
+        ).data;        
       } else {
         this.contacts = (
           await service({ requiresAuth: true }).get(
             `contacts/basic?_limit=-1&_sort=name:ASC${this.userContacts}`
           )
         ).data;
+
+        if (userContacts) {
+          const multideliveryContacts = (
+            await service({ requiresAuth: true }).get(
+              `contacts/basic?_limit=-1&_sort=name:ASC&_where[multidelivery_eq]=true`
+            )
+          ).data;
+          this.contacts = this.contacts.concat(multideliveryContacts);
+        }
       }
-
-      // const multiownerContacts = this.$route.meta.userContacts ? (await service({ requiresAuth: true }).get(
-      //     `contacts/basic?_limit=-1&_sort=name:ASC&_where[multiowner]=true`
-      //   )).data : [];
-
-      // this.contacts = this.contacts.concat(multiownerContacts);
 
       this.contacts = this.contacts.map(contact => {
         return {

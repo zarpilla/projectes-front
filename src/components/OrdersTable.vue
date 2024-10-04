@@ -44,8 +44,11 @@
     </div>
 
     <div class="is-flex">
+      <span v-if="permissions.includes('orders_admin')">
       Exportar per a planificador:
+      </span> 
       <download-excel
+        v-if="permissions.includes('orders_admin')"
         class="export"
         :data="theOrdersChecked"
         type="csv"
@@ -59,7 +62,7 @@
           icon-left="download"
         />
       </download-excel>
-      <span v-if="permissions.includes('orders_admin')">
+      <span>
         Exportar comandes:
       </span>
       <download-excel
@@ -76,21 +79,6 @@
       >
         <b-button
           title="Descarrega les dades de les teves comandes"
-          class="export-button mt-0 ml-1 mb-3"
-          icon-left="download"
-        />
-      </download-excel>
-      <download-excel
-        v-if="permissions.includes('orders_admin')"
-        class="export"
-        :data="theOrdersChecked"
-        name="ecologistica.xlsx"
-        :fields="{
-          ...csvEcologistica
-        }"
-      >
-        <b-button
-          title="Descarrega les dades de les teves comandes en format per a Ecologística"
           class="export-button mt-0 ml-1 mb-3"
           icon-left="download"
         />
@@ -114,7 +102,9 @@
         />
       </download-excel>
 
+      <span class="ml-auto">
       Exemple de fitxer CSV de comandes:      
+      </span>
       <download-excel
         class="export"
         :data="csvExample"

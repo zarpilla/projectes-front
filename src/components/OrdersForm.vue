@@ -741,10 +741,14 @@ export default {
     filteredContacts() {
       return this.contacts.filter(option => {
         return (
-          option.name
+          option.display
             .toString()
             .toLowerCase()
             .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||          
           option.id
             .toString()
             .toLowerCase()
@@ -1433,7 +1437,8 @@ export default {
           `contacts/basic?_limit=-1&_where[multiowner]=true`
         )
       ).data.map(c => {
-        return { ...c, display: `${c.name} (${c.id}) - TOTES` };
+        const deviliveryLabel = c.multidelivery ? " - MULTIENTREGA" : " - TOTES";
+        return { ...c, display: `${c.name} (${c.id})${deviliveryLabel}` };
       });
 
       this.contacts = concat(contacts1, contacts2);
@@ -1445,7 +1450,6 @@ export default {
     },
 
     removeContactData() {
-      console.log("removeContactData");
       this.form.contact = null;
       this.form.contact_name = "";
       this.form.contact_trade_name = "";
