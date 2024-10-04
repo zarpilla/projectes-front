@@ -20,7 +20,7 @@ const config = {
     rows: [      
       {
         name: 'year',
-        expand: false
+        expand: false,
       },
       {
         name: 'month',
@@ -30,10 +30,14 @@ const config = {
         name: 'owner',
         expand: false
       }, {
-        name: 'route',
+        name: 'contact',
         expand: false
       }, {
-        name: 'contact',
+        name: 'city',
+        expand: false
+      },
+      {
+        name: 'route',
         expand: false
       }
     ], // Specify a dimension on rows.
@@ -66,6 +70,9 @@ const config = {
             type: 'string'
           },
           month: {
+            type: 'string'
+          },
+          city: {
             type: 'string'
           },          
           price: {
@@ -108,6 +115,9 @@ const config = {
           year: {
             caption: 'Anys (T)'
           },
+          city: {
+            caption: 'Població (T)'
+          }
         },
         measures: {
           Comandes: {
@@ -116,7 +126,8 @@ const config = {
           },
           'Preu': {
             field: 'price',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: "{0:n2}"
           },
           'Caixes': {
             field: 'units',
