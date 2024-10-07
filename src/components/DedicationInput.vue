@@ -507,7 +507,6 @@ export default {
       this.getActivities();
     },
     project: function(newVal, oldVal) {
-      console.log("project", newVal);
       this.getActivities();
     },
     last: function(newVal, oldVal) {
