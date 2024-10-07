@@ -114,7 +114,7 @@ export default {
   methods: {
     getActivities () {
       const weekday = format(subDays(new Date(), 7), 'yyyy-MM-dd')
-      service({ requiresAuth: true }).get(`activities?_limit=-1&_where[date_gte]=${weekday}`).then((r) => {
+      service({ requiresAuth: true }).get(`activities/calendar?_limit=-1&_where[date_gte]=${weekday}`).then((r) => {
         this.activities = r.data
       })
     },

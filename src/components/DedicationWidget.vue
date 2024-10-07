@@ -168,9 +168,9 @@ export default {
       }
       const from = moment(this.date1).format('YYYY-MM-DD')
       const to = moment(this.date2).format('YYYY-MM-DD')
-      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`
+      let query = `activities/calendar?_where[date_gte]=${from}&[date_lte]=${to}`
       if (this.last) {
-        query = `activities?_where[updated_at_gte]=${moment().add(-7, 'days').format('YYYY-MM-DD')}`
+        query = `activities/calendar?_where[updated_at_gte]=${moment().add(-7, 'days').format('YYYY-MM-DD')}`
       }
       if (this.user) {
         query = `${query}&[users_permissions_user.id]=${this.user}`

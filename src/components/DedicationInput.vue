@@ -562,9 +562,9 @@ export default {
             f.users_permissions_user.id === this.user)
       );
 
-      let query = `activities?_where[date_gte]=${from}&[date_lte]=${to}`;
+      let query = `activities/calendar?_where[date_gte]=${from}&[date_lte]=${to}`;
       if (this.last) {
-        query = `activities?_where[updated_at_gte]=${moment()
+        query = `activities/calendar?_where[updated_at_gte]=${moment()
           .add(-7, "days")
           .format("YYYY-MM-DD")}`;
       }

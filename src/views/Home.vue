@@ -436,13 +436,6 @@ export default {
       this.dedication = sumBy(this.projects, (p) => {
         return p.total_real_hours ? p.total_real_hours : 0;
       });
-
-      // service({ requiresAuth: true }).get('activities?_limit=-1').then((r) => {
-      //   this.activities = r.data.filter(a => a.project !== null && this.projects.find(p => p.id === a.project.id))
-      //   this.dedication = sumBy(this.activities, p => {
-      //     return p.hours
-      //   })
-      // })
     },
     fillChartData() {
       this.defaultChart.chartData = {
