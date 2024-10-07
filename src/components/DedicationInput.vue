@@ -34,20 +34,17 @@
     />
 
     <b-loading
-      :is-full-page="true"
-      v-if="user"
+      :is-full-page="true"      
       v-model="isLoading"
       :can-cancel="false"
     ></b-loading>
     <b-loading
       :is-full-page="true"
-      v-if="user"
       v-model="isLoadingImport"
       :can-cancel="false"
     ></b-loading>
     <b-loading
       :is-full-page="true"
-      v-if="user"
       v-model="isLoadingMove"
       :can-cancel="false"
     ></b-loading>
@@ -298,7 +295,7 @@
               :class="{ 'has-text-weight-bold': a.project.name === 'Total' }"
               @click="showModal(a)"
             >
-              {{ a.hours.toFixed(2) }} h
+              {{ a.hours ? a.hours.toFixed(2) : 0 }} h
             </div>
             <div
               class="column auxiliar"
