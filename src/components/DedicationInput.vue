@@ -507,6 +507,7 @@ export default {
       this.getActivities();
     },
     project: function(newVal, oldVal) {
+      console.log("project", newVal);
       this.getActivities();
     },
     last: function(newVal, oldVal) {
@@ -528,6 +529,9 @@ export default {
   },
   methods: {
     async getActivities() {
+      if (this.isLoading) {
+        return;
+      }
       this.isLoading = true;
       if (
         !this.date1 ||
