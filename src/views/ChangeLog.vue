@@ -4,6 +4,14 @@
     <section class="section is-main-section">
       <card-component title="2024.09.19">
         <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Millora en la velocitat de càrrega del calendari de <router-link to="/dedicacio">dedicacions.</router-link>
+          </div>
+        </div>
+      </card-component>
+      <card-component title="2024.10.07">
+        <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
             Filtre múltiple d'estats de projectes a 
