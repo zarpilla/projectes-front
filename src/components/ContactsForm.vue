@@ -168,6 +168,8 @@
                       {{
                         s.toString().includes(".")
                           ? s.toString().replace(".5", ".30")
+                          .replace(".25", ".15")
+                          .replace(".75", ".45")
                           : `${s}.00`
                       }}
                     </option>
@@ -194,6 +196,8 @@
                       {{
                         s.toString().includes(".")
                           ? s.toString().replace(".5", ".30")
+                          .replace(".25", ".15")
+                          .replace(".75", ".45")
                           : `${s}.00`
                       }}
                     </option>
@@ -208,6 +212,8 @@
                       {{
                         s.toString().includes(".")
                           ? s.toString().replace(".5", ".30")
+                          .replace(".25", ".15")
+                          .replace(".75", ".45")
                           : `${s}.00`
                       }}
                     </option>
