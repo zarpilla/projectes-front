@@ -1044,13 +1044,12 @@ export default {
         // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
           if (
-            parseInt(record.contact_time_slot_1_ini) >=
-            parseInt(record.contact_time_slot_1_end)
+            parseFloat(record.contact_time_slot_1_ini) >=
+            parseFloat(record.contact_time_slot_1_end)
           ) {
             console.log(
               "record",
-              record.contact_time_slot_1_ini,
-              record.contact_time_slot_1_end
+              record
             );
             this.csvErrors.push({
               line: i,
@@ -1072,8 +1071,8 @@ export default {
         // El tram horari ha de ser més gran de 3 hores
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
           if (
-            parseInt(record.contact_time_slot_1_end) -
-            parseInt(record.contact_time_slot_1_ini < 3)
+            parseFloat(record.contact_time_slot_1_end) -
+            parseFloat(record.contact_time_slot_1_ini < 3)
           ) {
             // comprovar també per al tram 2
             if (
@@ -1081,8 +1080,8 @@ export default {
               record.contact_time_slot_2_end
             ) {
               if (
-                parseInt(record.contact_time_slot_2_end) -
-                parseInt(record.contact_time_slot_2_ini < 3)
+                parseFloat(record.contact_time_slot_2_end) -
+                parseFloat(record.contact_time_slot_2_ini < 3)
               ) {
                 this.csvErrors.push({
                   line: i,
@@ -1261,13 +1260,11 @@ export default {
         // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
           if (
-            parseInt(record.contact_time_slot_1_ini) >=
-            parseInt(record.contact_time_slot_1_end)
+            parseFloat(record.contact_time_slot_1_ini) >=
+            parseFloat(record.contact_time_slot_1_end)
           ) {
             console.log(
-              "record",
-              record.contact_time_slot_1_ini,
-              record.contact_time_slot_1_end
+              "record"
             );
             this.csvErrors.push({
               line: i,
@@ -1289,8 +1286,8 @@ export default {
         // El tram horari ha de ser més gran de 3 hores
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
           if (
-            parseInt(record.contact_time_slot_1_end) -
-            parseInt(record.contact_time_slot_1_ini < 3)
+            parseFloat(record.contact_time_slot_1_end) -
+            parseFloat(record.contact_time_slot_1_ini < 3)
           ) {
             // comprovar també per al tram 2
             if (
@@ -1298,8 +1295,8 @@ export default {
               record.contact_time_slot_2_end
             ) {
               if (
-                parseInt(record.contact_time_slot_2_end) -
-                parseInt(record.contact_time_slot_2_ini < 3)
+                parseFloat(record.contact_time_slot_2_end) -
+                parseFloat(record.contact_time_slot_2_ini < 3)
               ) {
                 this.csvErrors.push({
                   line: i,
@@ -1359,6 +1356,7 @@ export default {
 
         
         contacts.push(contact);
+        i++;
       }
 
       for (const contact of contacts) {

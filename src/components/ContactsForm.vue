@@ -152,6 +152,8 @@
                       {{
                         s.toString().includes(".")
                           ? s.toString().replace(".5", ".30")
+                          .replace(".25", ".15")
+                          .replace(".75", ".45")
                           : `${s}.00`
                       }}
                     </option>
@@ -315,7 +317,7 @@ export default {
       sectors: [],
       users: [],
       usersWithOrdersPermissions: [],
-      contact_time_slots: Array.from({ length: 48 }, (_, i) => i / 2),
+      contact_time_slots: Array.from({ length: 96 }, (_, i) => i / 4),
       contactTypes: [],
       permissions: [],
       me: {}

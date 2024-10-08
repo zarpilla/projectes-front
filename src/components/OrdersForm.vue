@@ -195,7 +195,7 @@
                           :key="index"
                           :value="s"
                         >
-                          {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
+                          {{ s.toString().includes('.') ? s.toString().replace('.5','.30').replace('.25','.15').replace('.75','.45') : `${s}.00` }}
                         </option>
                       </b-select>
 
@@ -624,9 +624,9 @@ export default {
         { id: "invoiced", name: "FACTURADA" },
         { id: "cancelled", name: "ANUL·LADA" }
       ],
-      legalForms: [],      
-      // array from 0 to 23 with 30 minutes intervals
-      contact_time_slots: Array.from({ length: 48 }, (_, i) => i / 2),
+      legalForms: [],
+      // array from 0 to 23 with 15 minutes intervals
+      contact_time_slots: Array.from({ length: 96 }, (_, i) => i / 4),
       routeRates: [],
       contactSearch: "",
       citySearch: "",
