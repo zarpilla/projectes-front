@@ -841,12 +841,12 @@ export default {
     }
   },
   async created() {
-    if (localStorage.getItem("OrdersTable.statusFilter")) {
-      this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
-    }
-    if (localStorage.getItem("OrdersTable.routeFilter")) {
-      this.routeFilter = localStorage.getItem("OrdersTable.routeFilter");
-    }
+    // if (localStorage.getItem("OrdersTable.statusFilter")) {
+    //   this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
+    // }
+    // if (localStorage.getItem("OrdersTable.routeFilter")) {
+    //   this.routeFilter = localStorage.getItem("OrdersTable.routeFilter");
+    // }
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
     );
