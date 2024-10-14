@@ -629,6 +629,18 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    meta: {
+      title: 'Usuàries'
+    },
+    path: '/partners',
+    name: 'partners.list',
+    component: () => import(/* webpackChunkName: "users" */ '../views/Partners.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
   }
 ]
 

@@ -283,6 +283,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    serial: {
+      type: Number,
+      default: null,
+    },
   },
   computed: {
     total_base() {
@@ -340,6 +344,9 @@ export default {
     paid: function (newVal, oldVal) {
       this.getData();
     },
+    serial: function (newVal, oldVal) {
+      this.getData();
+    },
   },
   async mounted() {
     this.getData();
@@ -378,9 +385,11 @@ export default {
 
       const paidQuery = this.paid === 1 ? `&[paid_date_null]=false` : (this.paid === 2 ? `&[paid_date_null]=true` : '');
 
+      const serialQuery = this.serial ? `&[serial_eq]=${this.serial}` : '';
+
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}`
+          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}`
         )
       ).data;
 

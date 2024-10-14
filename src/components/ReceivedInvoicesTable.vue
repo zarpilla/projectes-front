@@ -244,6 +244,10 @@ export default {
       type: Number,
       default: null,
     },
+    serial: {
+      type: Number,
+      default: null,
+    },
   },
   data() {
     return {
@@ -283,6 +287,9 @@ export default {
       this.getData();
     },
     paid: function (newVal, oldVal) {
+      this.getData();
+    },
+    serial: function (newVal, oldVal) {
       this.getData();
     },
   },
@@ -364,10 +371,12 @@ export default {
       const paidQuery = this.paid === 1 ? `&[paid_date_null]=false` : (this.paid === 2 ? `&[paid_date_null]=true` : '');
       const paidQuery2 = this.paid === 1 ? `&[paid_eq]=true` : (this.paid === 2 ? `&[paid_eq]=false` : '');
 
+      const serialQuery = this.serial ? `&[serial_eq]=${this.serial}` : "";
+
       let invoices = (
         await service({ requiresAuth: true }).get(
           `received-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
-          }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}`
+          }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}`
         )
       ).data;
 

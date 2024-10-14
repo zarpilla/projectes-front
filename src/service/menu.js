@@ -141,6 +141,12 @@ const menu = [
         icon: 'calendar',
         label: 'Rutes i dies',
         permission: 'orders_admin'
+      },
+      {
+        to: '/partners',
+        icon: 'account',
+        label: 'Sòcies',
+        permission: 'orders_admin'
       },      
       {
         to: '/orders-stats',

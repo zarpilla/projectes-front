@@ -30,6 +30,13 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field label="Sèrie">
+              <b-select v-model="filters.serial">
+                <option v-for="(m, i) in serials" :key="i" :value="m.id">
+                  {{ m.name }}
+                </option>
+              </b-select>
+            </b-field>
             <b-field label="Tipus">
               <b-select v-model="filters.documentType">
                 <option v-for="(c, i) in documentTypes" :key="i" :value="c.id">
@@ -69,6 +76,7 @@
         :document-type="filters.documentType"
         :project="filters.project"
         :paid="filters.paid"
+        :serial="filters.serial"
       />
     </section>
   </div>
@@ -102,6 +110,7 @@ export default {
         documentType: 0,
         project: 0,
         paid: 0,
+        serial: 0
       },
       years: [],
       months: [],
@@ -112,6 +121,7 @@ export default {
         { name: "T3", value: 3 },
         { name: "T4", value: 4 },
       ],
+      serials: [],
       contacts: [],
       projects: [],
       documentTypes: [],
@@ -134,31 +144,48 @@ export default {
     var { data } = await service({ requiresAuth: true, cached: true }).get(
       "months?_sort=month"
     );
-    this.months = data;
+    this.months = [...data];
     // this.months.push({ id: 0, month: 13, name: 'T1' })
     // this.months.push({ id: 0, month: 14, name: 'T2' })
     // this.months.push({ id: 0, month: 15, name: 'T3' })
     // this.months.push({ id: 0, month: 16, name: 'T4' })
-    this.months.unshift({ id: 0, month: 0, name: "Tots" });
+    if (!this.months.find((c) => c.id === 0)) {
+      this.months.unshift({ id: 0, month: 0, name: "Tots" });
+    }
 
     var { data } = await service({ requiresAuth: true }).get(
       "contacts/basic?_sort=name&_limit=-1"
     );
-    this.contacts = data;
-    this.contacts.unshift({ id: 0, name: "Tots" });
+    this.contacts = [...data];
+    if (!this.contacts.find((c) => c.id === 0)) {
+      this.contacts.unshift({ id: 0, name: "Tots" });
+    }
 
     var { data } = await service({ requiresAuth: true }).get(
       "projects/basic?_sort=name&_limit=-1"
     );
-    this.projects = data;
-    this.projects.unshift({ id: 0, name: "Tots" });
-
+    this.projects = [...data];
+    if (!this.projects.find((c) => c.id === 0)) {
+      this.projects.unshift({ id: 0, name: "Tots" });
+    }
+    
     var { data } = await service({ requiresAuth: true, cached: true }).get(
       "document-types?type=income&_limit=-1"
     );
     this.documentTypes = data;
-    this.documentTypes.unshift({ id: -1, name: "Factura" });
-    this.documentTypes.unshift({ id: 0, name: "Tots" });
+    if (!this.documentTypes.find((c) => c.id === -1)) {
+      this.documentTypes.unshift({ id: -1, name: "Factura" });
+      this.documentTypes.unshift({ id: 0, name: "Tots" });
+    }
+    
+    var { data } = await service({ requiresAuth: true, cached: true }).get(
+      "series?_limit=-1"
+    );
+
+    this.serials = [...data]
+    if (!this.serials.find((c) => c.id === 0)) {
+      this.serials.unshift({ id: 0, name: "Totes" });
+    }
 
     service({ requiresAuth: true, cached: true })
       .get("years?_sort=year:DESC")

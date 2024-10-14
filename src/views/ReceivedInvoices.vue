@@ -36,6 +36,13 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field label="Sèrie">
+              <b-select v-model="filters.serial">
+                <option v-for="(m, i) in serials" :key="i" :value="m.id">
+                  {{ m.name }}
+                </option>
+              </b-select>
+            </b-field>
             <b-field label="Tipus">
               <b-select v-model="filters.documentType">
                 <option v-for="(c, i) in documentTypes" :key="i" :value="c.id">
@@ -76,6 +83,7 @@
         :document-type="filters.documentType"
         :project="filters.project"
         :paid="filters.paid"
+        :serial="filters.serial"
       />
     </section>
   </div>
@@ -90,7 +98,7 @@ import { mapState } from "vuex";
 import moment from "moment";
 
 export default {
-  name: "DedicacioSaldo",
+  name: "ReceivedInvoices",
   components: {
     CardComponent,
     TitleBar,
@@ -107,6 +115,7 @@ export default {
         documentType: 0,
         project: 0,
         paid: 0,
+        serial: 0,
       },
       years: [],
       months: [],
@@ -121,6 +130,7 @@ export default {
         { name: "Sí", value: 1 },
         { name: "No", value: 2 },
       ],
+      serials: []
     };
   },
   computed: {
@@ -165,6 +175,12 @@ export default {
       this.documentTypes.unshift({ id: -1, name: "Factura" });
       this.documentTypes.push({ id: -2, name: "Nómina" });
       this.documentTypes.unshift({ id: 0, name: "Tots" });
+
+      this.serials = await service({ requiresAuth: true, cached: true }).get(
+        "series?_limit=-1"
+      ).then(r => r.data);
+
+      this.serials.unshift({ id: 0, name: "Totes" });
 
       service({ requiresAuth: true, cached: true })
         .get("years?_sort=year:DESC")

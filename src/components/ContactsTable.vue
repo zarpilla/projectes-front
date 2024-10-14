@@ -16,13 +16,53 @@
         Nou Contacte
       </b-button>
 
-    </div>    
-    
+    </div>
     <b-table
       :loading="isLoading"
       :paginated="false"
       :striped="false"
       :data="contacts"
+      v-if="!userContacts"
+    >
+      <b-table-column
+        label="ID"
+        field="id"
+        sortable
+        width="80"
+        searchable
+        v-slot="props"
+      >
+        <router-link
+          :to="{ name: 'contacts.edit', params: { id: props.row.id } }"
+        >
+          {{ props.row.id }}
+        </router-link>
+      </b-table-column>
+      <b-table-column label="Nom" searchable field="name" sortable v-slot="props">        
+        {{ props.row.name }}
+      </b-table-column>
+      <b-table-column label="NIF" field="nif" searchable sortable v-slot="props">
+        {{ props.row.nif }}
+      </b-table-column>      
+      <b-table-column label="Correu" field="email" searchable sortable v-slot="props">
+        {{ props.row.email || '-'}}
+      </b-table-column>
+      <b-table-column label="Telèfon" field="phone" searchable sortable v-slot="props">
+        {{ props.row.phone || '-' }}
+      </b-table-column>
+      <b-table-column label="Població" field="nif" searchable sortable v-slot="props">
+        {{ props.row.city || '-' }}
+      </b-table-column>
+      <b-table-column label="Tipus" field="contact_type_display" searchable sortable v-slot="props">
+        {{ props.row.contact_type_display || '-'}}
+      </b-table-column>
+    </b-table>
+    <b-table
+      :loading="isLoading"
+      :paginated="false"
+      :striped="false"
+      :data="contacts"
+      v-else
     >
       <b-table-column
         label="ID"
@@ -41,25 +81,22 @@
       <b-table-column label="Nom" searchable field="name" sortable v-slot="props">        
         {{ props.row.name }}
       </b-table-column>
-      <b-table-column v-if="!userContacts" label="NIF" field="nif" searchable sortable v-slot="props">
-        {{ props.row.nif }}
-      </b-table-column>      
-      <b-table-column label="Correu" field="email" searchable sortable v-slot="props">
-        {{ props.row.email }}
-      </b-table-column>
-      <b-table-column label="Telèfon" field="phone" searchable sortable v-slot="props">
-        {{ props.row.phone }}
-      </b-table-column>
       <b-table-column v-if="userContacts" label="Població" field="nif" searchable sortable v-slot="props">
-        {{ props.row.city }}
+        {{ props.row.city || '-' }}
       </b-table-column>
       <b-table-column label="Tipus" field="contact_type_display" searchable sortable v-slot="props">
-        {{ props.row.contact_type_display }}
+        {{ props.row.contact_type_display || '-'}}
       </b-table-column>
-      <b-table-column label="Contacte de" field="props.row.owner.username" searchable sortable v-slot="props">
+      <b-table-column label="Sector" field="sector.name" searchable sortable v-slot="props">
+        {{ props.row.sector ? props.row.sector.name : '-'}}
+      </b-table-column>
+      <b-table-column label="Contacte de" field="contact_of_display" searchable sortable v-slot="props">
         <span v-if="props.row.multidelivery">MULTIENTREGA</span>
         <span v-else-if="props.row.multiowner">TOTES</span>        
         <span v-else-if="props.row.owner && (props.row.owner.fullname || props.row.owner.username)">{{ props.row.owner.fullname || props.row.owner.username }}</span>
+      </b-table-column>
+      <b-table-column label="Núm comandes" field="num_orders" searchable sortable v-slot="props">
+        {{ props.row.num_orders || '0'}}
       </b-table-column>
     </b-table>
   </section>
@@ -72,7 +109,7 @@ import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 
 export default {
-  name: "Tresoreria",
+  name: "ContactsTable",
   props: {
     titleStack: {
       type: Array,
@@ -146,6 +183,20 @@ export default {
             )
           ).data;
           this.contacts = this.contacts.concat(multideliveryContacts);
+
+          const contactsWithOrders = 
+            (await service({ requiresAuth: true }).get(
+              `contacts/withorders?_limit=-1&_sort=name:ASC`
+            )).data;
+          for (const contact of contactsWithOrders) {
+            if (this.contacts.find(c => c.id === contact.id)) {
+              this.contacts.num_orders = contact.num_orders;
+            }
+            else {
+              this.contacts.push(contact);
+            }
+          }
+
         }
       }
 
@@ -154,7 +205,8 @@ export default {
       this.contacts = this.contacts.map(contact => {
         return {
           ...contact,
-          contact_type_display: contact.contact_types.map(ct => ct.name).join(", ")
+          contact_type_display: contact.contact_types ? contact.contact_types.map(ct => ct.name).join(", ") : '-',
+          contact_of_display: contact.multidelivery ? 'MULTIENTREGA' : (contact.multiowner ? 'TOTES' : ( contact.owner ? (contact.owner.fullname || contact.owner.username) : '---'))
         };
       });
 
