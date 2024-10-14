@@ -220,7 +220,7 @@
           'is-primary': routeFilter === '',
           'is-warning': routeFilter !== ''
         }"
-        @click="routeFilter = ''"
+        @click="setRouteFilter('')"
       >
         TOTES
       </b-button>
@@ -242,9 +242,9 @@
 
     <!-- <pre>{{ theOrders }}</pre> -->
 
-    <div v-if="permissions.includes('orders_admin')" class="mb-3">
+    <div class="mb-3">
       <div class="is-flex">
-        <div>
+        <div v-if="permissions.includes('orders_admin')">
           <h2>CANVIAR ESTAT</h2>
           <div class="is-flex">
             <b-select v-model="newState" placeholder="">
@@ -263,7 +263,7 @@
             </button>
           </div>
         </div>
-        <div class="ml-6">
+        <div :class="{ 'ml-6': permissions.includes('orders_admin') }">
           <h2 class="pr-2">ALBARÀ</h2>
           <div class="is-flex">
             <button
@@ -275,7 +275,7 @@
             </button>
           </div>
         </div>
-        <div class="ml-6" v-if="'delivered' == statusFilter">
+        <div class="ml-6" v-if="permissions.includes('orders_admin') && 'delivered' == statusFilter">
           <h2 class="pr-2">FACTURAR</h2>
           <div class="is-flex">
             <button
@@ -298,7 +298,7 @@
       :checked-rows.sync="checkedRows"
       :is-row-checkable="row => true"
       :debounce-search="500"
-      :checkable="permissions.includes('orders_admin')"
+      :checkable="true || permissions.includes('orders_admin')"
     >
       <b-table-column label="ID" field="idx" sortable v-slot="props" searchable>
         <router-link
@@ -645,6 +645,7 @@ export default {
         "TOTAL KG": "kilograms",
         "DATA D'ENTREGA": "estimated_delivery_date",        
         "SOCIA": "owner.username",
+        "MAIL": "owner.email",
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
@@ -856,12 +857,12 @@ export default {
   },
   methods: {
     setStatusFilter(status) {
-      localStorage.setItem("OrdersTable.statusFilter", status);
+      //localStorage.setItem("OrdersTable.statusFilter", status);
       this.statusFilter = status;
       this.checkedRows = [];
     },
     setRouteFilter(route) {
-      localStorage.setItem("OrdersTable.routeFilter", route);
+      //localStorage.setItem("OrdersTable.routeFilter", route);
       this.routeFilter = route;
       this.checkedRows = [];
     },
@@ -1483,14 +1484,25 @@ export default {
     async pdfOrders() {
       this.importing = true;
 
-      for await (const row of this.checkedRows) {
-        const pdf = (
-          await service({ requiresAuth: true }).get(
-            `/orders/pdf/${row.id}`
-          )
-        ).data;
-        for (const url of pdf.urls) {
-          window.open(this.apiUrl + url);
+      try {      
+        for await (const row of this.checkedRows) {
+          const pdf = (
+            await service({ requiresAuth: true }).get(
+              `/orders/pdf/${row.id}`
+            )
+          ).data;
+          for (const url of pdf.urls) {
+            window.open(this.apiUrl + url);
+          }
+        }
+      }
+      catch (error) {
+        console.error(error);
+        if (error && error.data && error.data.message) {
+          this.$buefy.snackbar.open({
+            message: error.data.message,
+            type: "is-danger"
+          });
         }
       }
 

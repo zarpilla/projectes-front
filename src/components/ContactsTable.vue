@@ -16,7 +16,8 @@
         Nou Contacte
       </b-button>
 
-    </div>
+    </div>    
+    
     <b-table
       :loading="isLoading"
       :paginated="false"
@@ -40,14 +41,17 @@
       <b-table-column label="Nom" searchable field="name" sortable v-slot="props">        
         {{ props.row.name }}
       </b-table-column>
-      <b-table-column label="NIF" field="nif" searchable sortable v-slot="props">
+      <b-table-column v-if="!userContacts" label="NIF" field="nif" searchable sortable v-slot="props">
         {{ props.row.nif }}
-      </b-table-column>
+      </b-table-column>      
       <b-table-column label="Correu" field="email" searchable sortable v-slot="props">
         {{ props.row.email }}
       </b-table-column>
       <b-table-column label="Telèfon" field="phone" searchable sortable v-slot="props">
         {{ props.row.phone }}
+      </b-table-column>
+      <b-table-column v-if="userContacts" label="Població" field="nif" searchable sortable v-slot="props">
+        {{ props.row.city }}
       </b-table-column>
       <b-table-column label="Tipus" field="contact_type_display" searchable sortable v-slot="props">
         {{ props.row.contact_type_display }}
@@ -85,7 +89,8 @@ export default {
         userContacts: ""
       },
       queryChanged: 0,
-      orders_admin: false
+      orders_admin: false,
+      userContacts: false
     };
   },
   computed: {
@@ -143,6 +148,8 @@ export default {
           this.contacts = this.contacts.concat(multideliveryContacts);
         }
       }
+
+      this.userContacts = this.$route.meta.userContacts;
 
       this.contacts = this.contacts.map(contact => {
         return {
