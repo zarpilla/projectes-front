@@ -13,7 +13,7 @@ const assignRouteRate = (form, routeRates, orders) => {
 
   if (form.route_rate === null || form.status !== "invoiced") {
     let rates = routeRates.filter(
-      r => (r.routes && r.routes.length && r.routes.find(rt => rt.id === route)) || r.route === null
+      r => (r.routes && r.routes.length && r.routes.find(rt => rt.id === route)) || r.routes.length === 0
     );
 
     if (pickup === 2) {
