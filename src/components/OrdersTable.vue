@@ -1485,16 +1485,15 @@ export default {
       this.importing = true;
 
       try {      
-        for await (const row of this.checkedRows) {
-          const pdf = (
-            await service({ requiresAuth: true }).get(
-              `/orders/pdf/${row.id}`
+        const orders = this.checkedRows.map(o => o.id);
+
+        const pdf = (
+            await service({ requiresAuth: true }).post(
+              `/orders/pdf`,
+              { orders }
             )
-          ).data;
-          for (const url of pdf.urls) {
-            window.open(this.apiUrl + url);
-          }
-        }
+          ).data;          
+        window.open(this.apiUrl + pdf.urls);
       }
       catch (error) {
         console.error(error);
