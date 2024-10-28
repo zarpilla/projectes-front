@@ -37,10 +37,10 @@
         >
           {{ props.row.id }}
         </router-link>
-      </b-table-column>
+      </b-table-column>      
       <b-table-column label="Nom" searchable field="name" sortable v-slot="props">        
         {{ props.row.name }}
-      </b-table-column>
+      </b-table-column>      
       <b-table-column label="NIF" field="nif" searchable sortable v-slot="props">
         {{ props.row.nif }}
       </b-table-column>      
@@ -73,10 +73,13 @@
                 v-slot="props"
       >
         <router-link
-          :to="{ name: 'contacts.edit', params: { id: props.row.id } }"
+          :to="{ name: 'contactsuser.edit', params: { id: props.row.id } }"
         >
           {{ props.row.id }}
         </router-link>
+      </b-table-column>
+      <b-table-column label="Nom comercial" searchable field="trade_name" sortable v-slot="props">        
+        {{ props.row.trade_name }}
       </b-table-column>
       <b-table-column label="Nom" searchable field="name" sortable v-slot="props">        
         {{ props.row.name }}
@@ -139,8 +142,12 @@ export default {
   },
   methods: {
     navNew() {
-      const q = this.$route.meta.userContacts ? `?user=true` : "";
-      this.$router.push("/contact/0" + q);
+      if (this.$route.meta.userContacts) {
+        this.$router.push("/contact-user/0");
+        return;
+      } else {
+        this.$router.push("/contact/0");
+      }      
     },
     async getData() {
       this.isLoading = true;

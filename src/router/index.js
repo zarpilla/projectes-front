@@ -584,6 +584,18 @@ const routes = [
   },
   {
     meta: {
+      title: 'Punt d\'entrega'
+    },
+    path: '/contact-user/:id',
+    name: 'contactsuser.edit',
+    component: () => import(/* webpackChunkName: "contact" */ '../views/ContactUserForm.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Documentació'
     },
     path: '/documentacio',
