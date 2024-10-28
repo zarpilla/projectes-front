@@ -65,7 +65,7 @@
                 <b-input v-model="form.email" />
               </b-field>
               <b-field label="Adreça *" horizontal>
-                <b-input v-model="form.address" required />
+                <b-input v-model="form.address" required type="text" />
               </b-field>
               <b-field label="CP *" horizontal>
                 <b-input v-model="form.postcode" required />
