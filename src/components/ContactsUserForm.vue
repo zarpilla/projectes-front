@@ -1,10 +1,10 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
-    <section class="section is-main-section">
+    <title-bar :title-stack="titleStack" v-if="!modal" />
+    <section :class="!modal ? 'section is-main-section' : 'z'">
       <div class="columns">
         <div class="column is-full">
-          <card-component class="tile is-child">
+          <card-component class="tile is-child" :css="!modal ? 'card' : 'z'">
             <form @submit.prevent="submit" v-if="!isLoading">
               <b-field label="Nom comercial *" horizontal>
                 <b-input v-model="form.trade_name" required />
@@ -12,7 +12,7 @@
 
 
               <b-field label="Sector *" horizontal>
-                <div class="is-flex">
+                <div class="is-flex is-flex-wrap-wrap">
                   <div
                     v-for="(sector, index) in sectors"
                     :key="index"
@@ -23,13 +23,12 @@
                         'is-warning': form.sector === sector.id,
                         'is-outlined': form.sector !== sector.id
                       }"
-                      class="mr-2"
+                      class="mr-2 mb-1"
                       >{{ sector.name }}</b-button
                     >
                   </div>
                 </div>
               </b-field>
-
 
               <b-field
                 label="Contacte de *"
@@ -39,6 +38,7 @@
                 <b-select
                   v-model="form.owner"
                   placeholder=""
+                  :disabled="ownerId"
                   @input="onOwnerChanged"
                 >
                   <option
@@ -98,7 +98,7 @@
               <b-field label="Email" horizontal>
                 <b-input v-model="form.email" />
               </b-field>
-              <b-field label="Persona de contacte" horizontal>
+              <!-- <b-field label="Persona de contacte" horizontal>
                 <b-input v-model="form.contact_person" />
               </b-field>
               <b-field label="Telèfon de contacte" horizontal>
@@ -107,14 +107,13 @@
               <b-field
                 label="Email de contacte"
                 horizontal
-                message="Per enviar-li factures"
               >
                 <b-input v-model="form.contact_email" />
-              </b-field>
+              </b-field> -->
               <b-field label="Web" horizontal>
                 <b-input v-model="form.website" />
               </b-field>
-              <b-field label="Forma jurídica" horizontal>
+              <!-- <b-field label="Forma jurídica" horizontal>
                 <b-select v-model="form.legal_form" placeholder="">
                   <option
                     v-for="(s, index) in legalForms"
@@ -124,7 +123,7 @@
                     {{ s.name }}
                   </option>
                 </b-select>
-              </b-field>
+              </b-field> -->
 
               <b-field label="Horari de contacte 1" horizontal>
                 <b-field label="">
@@ -232,9 +231,11 @@
                 horizontal
                 v-if="!form.multiowner || permissions.includes('orders_admin')"
               >
-                <div class="is-flex">
+              
+                <div class="is-flex" v-if="!modal">
                   <b-button
-                    type="is-primary mr-2"
+                    type="is-primary"
+                    class="mr-2"
                     :loading="isLoading"
                     @click="submit"
                     >Guardar</b-button
@@ -246,10 +247,27 @@
                     >Guardar i sortir</b-button
                   >
                   <b-button
-                    type="is-danger ml-auto"
+                    v-if="form.id"
+                    type="is-danger"
+                    class="ml-auto"
                     :loading="isLoading"
                     @click="deleteContact"
                     >Esborrar</b-button
+                  >
+                </div>
+                <div class="is-flex" v-else>
+                  <b-button
+                    class="mr-2"
+                    :loading="isLoading"
+                    @click="emitCancel"
+                    >Cancel·lar</b-button
+                  >
+                  <b-button
+                    type="is-primary"
+                    v-if="canEdit"
+                    :loading="isLoading"                    
+                    @click="submitAndEmitConfirm"
+                    >Guardar</b-button
                   >
                 </div>
               </b-field>
@@ -262,20 +280,15 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
 import TitleBar from "@/components/TitleBar";
 import CardComponent from "@/components/CardComponent";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import sumBy from "lodash/sumBy";
-import { mapState } from "vuex";
 import moment from "moment";
-import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
-import { ca } from "date-fns/locale";
 
 export default {
-  name: "ProjectForm",
+  name: "ContactUsersForm",
   components: {
     CardComponent,
     TitleBar,
@@ -285,6 +298,18 @@ export default {
     id: {
       type: [String, Number],
       default: null
+    },
+    modal: {
+      type: Boolean,
+      default: false
+    },
+    ownerId: {
+      type: Number,
+      default: null
+    },
+    canEdit: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -340,6 +365,7 @@ export default {
   },
   watch: {
     async id(newValue) {
+      console.log('newValue', newValue)
       this.isProfileExists = false;
       if (!newValue || newValue === 0) {
         await this.getAuxiliarData();
@@ -350,6 +376,10 @@ export default {
     }
   },
   created() {
+    console.log('this.ownerId', this.ownerId)
+    if (this.ownerId) {
+      this.form.owner = this.ownerId;
+    }
     this.getData();
   },
   methods: {
@@ -377,10 +407,12 @@ export default {
 
       await this.getAuxiliarData();
 
-      if (this.$route.params.id && this.$route.params.id > 0) {
+      const id = !this.modal && this.$route.params.id && this.$route.params.id > 0 ? this.$route.params.id : (this.id ? this.id : 0);
+
+      if (id > 0) {
         this.isLoading = true;
         service({ requiresAuth: true })
-          .get(`contacts/${this.$route.params.id}`)
+          .get(`contacts/${id}`)
           .then(async r => {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
@@ -425,6 +457,11 @@ export default {
                 ) {
                   this.form.owner = me.data.id;
                 }
+              }
+
+              // citySearch
+              if (this.form.city) {
+                this.citySearch = this.form.city;
               }
 
               if (this.form.followup_date) {
@@ -482,6 +519,9 @@ export default {
       await this.submit();
       this.redirectToView();
     },
+    async submitAndEmitConfirm() {
+      await this.submit();      
+    },
     redirectToView() {
       if (this.permissions.includes("orders")) {
         this.$router.push({ name: "user-contacts.view" });
@@ -529,6 +569,10 @@ export default {
             message: "Guardat",
             queue: false
           });
+          if (this.modal) {            
+            this.$emit('confirm', { id: this.form.id });
+            return
+          }
           this.getData();
         } else {
           if (
@@ -565,6 +609,12 @@ export default {
             this.form
           );
           // console.log('newProject', newProject.data)
+
+          if (this.modal) {            
+            this.$emit('confirm', { id: newProject.data.id });
+            return
+          }
+          
           this.$router.push({
             name: `contactsuser.edit`,
             params: { id: newProject.data.id }
@@ -670,6 +720,9 @@ export default {
     },
     async citySelected(option) {
       this.form.city = option.name;
+    },
+    emitCancel() {
+      this.$emit("cancel");
     }
   }
 };

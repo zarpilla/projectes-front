@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div :class="css">
     <header v-if="title" class="card-header">
       <p class="card-header-title">
         <b-icon v-if="icon" :icon="icon" custom-size="default" />
@@ -53,6 +53,10 @@ export default {
     contentVisible: {
       type: Boolean,
       default: true
+    },
+    css: {
+      type: String,
+      default: 'card'
     }
   },
   data() {

@@ -273,6 +273,7 @@
                   >
                   <b-button
                     type="is-danger ml-auto"
+                    v-if="form.id"
                     :loading="isLoading"
                     @click="deleteContact"
                     >Esborrar</b-button
@@ -301,7 +302,7 @@ import concat from "lodash/concat";
 import { ca } from "date-fns/locale";
 
 export default {
-  name: "ProjectForm",
+  name: "ContactsForm",
   components: {
     CardComponent,
     TitleBar,

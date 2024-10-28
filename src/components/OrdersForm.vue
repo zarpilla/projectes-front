@@ -1,6 +1,15 @@
 <template>
   <div>
     <title-bar :title-stack="titleStack" />
+
+    <modal-box-contact-user
+      :is-active="isModalActive"
+      :id="form.contact || 0"
+      :owner-id="form.owner"
+      :can-edit="(canEdit && !form.contact) || canEditContact"
+      @cancel="isModalActive = false"
+      @confirm="confirmContact"></modal-box-contact-user>
+
     <section class="section is-main-section">
       <div class="columns">
         <div class="column is-full">
@@ -43,7 +52,7 @@
               </b-field>
 
               <hr>
-
+              
               <b-field
                 label="Punt d'entrega"
                 horizontal
@@ -63,222 +72,28 @@
                 </b-autocomplete>
               </b-field>
 
-              <b-collapse :open="false" aria-id="contentIdForA11y1">
-                <template #trigger="props">
-
-                  <b-field horizontal >
-                    <b-button
+              <b-field horizontal v-if="!form.contact && !contactSearch">
+                <b-button              
                       :disabled="!canEdit"
                       class="view-button is-primary mb-3"                  
                       title="Nou punt d'entrega"
-                      aria-controls="contentIdForA11y1"
-                            :aria-expanded="props.open"
+                      @click="isModalActive = true"                      
                       >
-                      <template v-if="props.open">
-                        <span>Amagar punt d'entrega</span>
-                      </template>
-                      <template v-else>
-                        <span v-if="!form.contact">Nou punt d'entrega</span>
-                        <span v-else>Veure punt d'entrega</span>
-                      </template>
+                      Nou punt d'entrega
                     </b-button>
-                  </b-field>
-
-                </template>
-                <div class="znotification">                    
-                  <b-field
-                    label="Raó social *"
-                    horizontal
-                    :type="{ 'is-danger': errors['contact_name'] && submitted }"
-                  >
-                    <b-input v-model="form.contact_name" :disabled="!canEdit" />
-                  </b-field>
-
-                  <b-field
-                    label="Nom comercial"
-                    horizontal                
-                  >
-                    <b-input v-model="form.contact_trade_name" :disabled="!canEdit" />
-                  </b-field>
-
-                  <b-field
-                    label="NIF"
-                    horizontal
-                    :type="{ 'is-danger': errors['contact_nif'] && submitted }"
-                  >
-                    <b-input v-model="form.contact_nif" :disabled="!canEdit" />
-                  </b-field>
-
-                  <b-field
-                    label="Forma jurídica *"
-                    horizontal
-                    :type="{
-                      'is-danger': errors['contact_legal_form'] && submitted
-                    }"
-                    message="Per empresa entenem que no és client final sinó restauració, botigues, etc."
-                  >
-                    <div class="is-flex">
-                      <button
-                        class="button mr-2"
-                        type="button"
-                        v-for="(s, index) in legalForms"
-                        :class="{
-                          'is-warning': form.contact_legal_form === s.id,
-                          'is-outlined': form.contact_legal_form !== s.id
-                        }"
-                        @click="form.contact_legal_form = s.id"
-                        :disabled="!canEdit"
-                      >
-                        {{ s.name }}
-                      </button>
-                    </div>
-                  </b-field>
-
-                  <b-field
-                    label="Adreça *"
-                    horizontal
-                    :type="{ 'is-danger': errors['contact_address'] && submitted }"
-                  >
-                    <b-input v-model="form.contact_address" :disabled="!canEdit" />
-                  </b-field>
-
-                  <b-field
-                    label="CP *"
-                    horizontal
-                    :type="{ 'is-danger': errors['contact_postcode'] && submitted }"
-                  >
-                    <b-input v-model="form.contact_postcode" :disabled="!canEdit" />
-                  </b-field> 
-
-
-                  <b-field
-                    label="Població *"
-                    horizontal
-                    :type="{ 'is-danger': errors['contact_city'] && submitted }"
-                    message="Cerca la població d'entrega. Si vols que ens aturem a una població que no apareix aquí, contacta amb La Diligència">
-                    <b-autocomplete
-                      v-model="citySearch"
-                      placeholder="Població d'entrega"
-                      :keep-first="false"
-                      :open-on-focus="true"
-                      :data="filteredCities"
-                      field="name"
-                      @select="citySelected"                  
+              </b-field>
+              <b-field horizontal v-else-if="form.contact">
+                <b-button              
                       :disabled="!canEdit"
-                      :clearable="true"
-                    >
-                    </b-autocomplete>
-                  </b-field>
-
-                  <b-field
-                    label="Telèfon *"
-                    horizontal
-                    :type="{ 'is-danger': errors['contact_phone'] && submitted }"
-                  >
-                    <b-input v-model="form.contact_phone" :disabled="!canEdit" />
-                  </b-field>
-
-                  <b-field
-                    label="Tram horari 1"
-                    horizontal
-                    message="Exemple: De 9 a 13h"
-                  >
-                    <b-field label="">
-                      <b-select
-                        v-model="form.contact_time_slot_1_ini"
-                        placeholder=""
-                        class="mr-3"
-                        :disabled="!canEdit"
+                      class="view-button is-primary mb-3"                  
+                      title="Nou punt d'entrega"
+                      @click="isModalActive = true"                      
                       >
-                        <option
-                          v-for="(s, index) in contact_time_slots"
-                          :key="index"
-                          :value="s"
-                        >
-                          {{ s.toString().includes('.') ? s.toString().replace('.5','.30').replace('.25','.15').replace('.75','.45') : `${s}.00` }}
-                        </option>
-                      </b-select>
-
-                      <b-select
-                        v-model="form.contact_time_slot_1_end"
-                        placeholder=""
-                        :disabled="!canEdit"
-                      >
-                        <option
-                          v-for="(s, index) in contact_time_slots"
-                          :key="index"
-                          :value="s"
-                        >
-                        {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
-                        </option>
-                      </b-select>
-                    </b-field>
-                  </b-field> 
-
-                  <b-field label="Tram horari 2" horizontal message="i de 16 a 20h">
-                    <b-field label="">
-                      <b-select
-                        :disabled="!canEdit"
-                        v-model="form.contact_time_slot_2_ini"
-                        placeholder=""
-                        class="mr-3"
-                      >
-                        <option
-                          v-for="(s, index) in contact_time_slots"
-                          :key="index"
-                          :value="s"
-                        >
-                        {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
-                        </option>
-                      </b-select>
-
-                      <b-select
-                        :disabled="!canEdit"
-                        v-model="form.contact_time_slot_2_end"
-                        placeholder=""
-                      >
-                        <option
-                          v-for="(s, index) in contact_time_slots"
-                          :key="index"
-                          :value="s"
-                        >
-                        {{ s.toString().includes('.') ? s.toString().replace('.5','.30') : `${s}.00` }}
-                        </option>
-                      </b-select>
-                    </b-field>
-
-                    
-                  </b-field>
-
-                  <b-field
-                      label="Notes"
-                      horizontal
-                      class="line-notes is-full-width mb-5"
-                      message="Per exemple, 'si està tancat, deixar a la peruqueria del costat' o 'trucar 15 min abans i vindrà a obrir'. "
-                    >
-                      <b-input
-                        type="textarea"
-                        v-model="form.contact_notes"
-                        placeholder="Comentaris sobre el punt d'entrega"
-                      />
-                    </b-field>
-
-                  <b-field horizontal message="Guarda ara el punt d'entrega si és nou o has fet canvis">
-                    <b-button
-                      :disabled="!canEdit || !canEditContact"
-                      class="view-button is-primary zmb-3"
-                      @click="saveClient"
-                      title="Guardar "
-                      >Guardar punt d'entrega
+                      Veure punt d'entrega
                     </b-button>
-                  </b-field>
-
-                </div>
-            </b-collapse>
+              </b-field>
 
               <hr />
-
-
 
               <b-field
                 label="Transport *"
@@ -584,13 +399,16 @@ import moment from "moment";
 import sortBy, { name } from "lodash/sortBy";
 import concat from "lodash/concat";
 import { assignRouteRate, assignRouteDate, checkIfDateIsValidInroute } from "@/service/assignRouteRate";
+import ModalBoxContactUser from "@/components/ModalBoxContactUser";
+import { id } from "date-fns/locale";
 
 export default {
   name: "OrdersForm",
   components: {
     CardComponent,
     TitleBar,
-    MoneyFormat
+    MoneyFormat,
+    ModalBoxContactUser
   },
   props: {
     id: {
@@ -631,7 +449,8 @@ export default {
       contactSearch: "",
       citySearch: "",
       apiUrl: process.env.VUE_APP_API_URL,
-      dateWarningMessage: ""
+      dateWarningMessage: "",
+      isModalActive: false
     };
   },
   computed: {
@@ -746,6 +565,10 @@ export default {
             .toLowerCase()
             .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
           option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||          
+          option.trade_name
             .toString()
             .toLowerCase()
             .indexOf(this.contactSearch.toLowerCase()) >= 0 ||          
@@ -869,7 +692,7 @@ export default {
               await this.refreshClients(this.form.owner);
 
               const c = this.contacts.find(c => c.id === this.form.contact);
-              this.contactSearch = `${this.form.contact} - ${c.name}`;
+              this.contactSearch = `${c.trade_name} (${this.form.contact})`;
 
               if (this.cities.find(c => c.name === this.form.contact_city)) {
                 this.citySearch = this.form.contact_city;
@@ -1411,7 +1234,7 @@ export default {
           queue: false
         });
         await this.refreshClients(this.form.owner);
-        this.contactSearch = `${newContact.data.id} - ${newContact.data.name}`;
+        this.contactSearch = `${newContact.data.id} - ${newContact.data.trade_name}`;
         this.form.contact_name = newContact.data.name;
       }
     },
@@ -1429,7 +1252,7 @@ export default {
           `contacts/basic?_limit=-1&_where[owner]=${owner}`
         )
       ).data.map(c => {
-        return { ...c, display: `${c.name} (${c.id})` };
+        return { ...c, display: `${c.trade_name} (${c.id})` };
       });
 
       const contacts2 = (
@@ -1438,7 +1261,7 @@ export default {
         )
       ).data.map(c => {
         const deviliveryLabel = c.multidelivery ? " - MULTIENTREGA" : " - TOTES";
-        return { ...c, display: `${c.name} (${c.id})${deviliveryLabel}` };
+        return { ...c, display: `${c.trade_name} (${c.id})${deviliveryLabel}` };
       });
 
       this.contacts = concat(contacts1, contacts2);
@@ -1511,6 +1334,13 @@ export default {
         window.open(this.apiUrl + url);
       }
       
+    },
+    async confirmContact(msg) {
+      this.isModalActive = false;
+      const contactId = msg.id
+      await this.refreshClients(this.form.owner);
+      const contact = this.contacts.find(c => c.id === contactId);
+      this.contactSearch = `${contactId} - ${contact.trade_name}`;
     }
     
   }
