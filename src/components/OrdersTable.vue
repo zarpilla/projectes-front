@@ -364,12 +364,12 @@
       <b-table-column
         label="Punt d'entrega"
         searchable
-        field="contact.name"
+        field="contact.trade_name"
         sortable
         v-slot="props"
       >
         {{
-          props.row.contact ? props.row.contact.name : props.row.contact_name
+          props.row.contact ? props.row.contact.trade_name : props.row.contact_name
         }}
       </b-table-column>
       <b-table-column
