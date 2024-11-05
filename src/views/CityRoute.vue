@@ -104,14 +104,14 @@ export default {
       this.isLoading = true;
 
       const cities = await service({ requiresAuth: true, cached: false })
-        .get("cities?_sort=name")
+        .get("cities?_sort=name&_limit=-1")
         .then(r => r.data);
       this.routes = await service({ requiresAuth: true, cached: true })
-        .get("routes?_sort=order&_where[active]=true")
+        .get("routes?_sort=order&_where[active]=true&_limit=-1")
         .then(r => r.data);
       this.cities = cities.map(c => ({ id: c.id, name: c.name, routes: [] }));
       this.cityRoutes = await service({ requiresAuth: true, cached: false })
-        .get("city-routes")
+        .get("city-routes?_limit=-1")
         .then(r => r.data);
 
       for (const city of cities) {
