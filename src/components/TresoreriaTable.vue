@@ -596,16 +596,17 @@ export default {
       return today ? today.subtotal : 0;
     },
     treasuryDataDesc() {
-      return _.reverse(this.treasuryData)
+      //return _.reverse(this.treasuryData)
+      const treasuryDataOfYear = this.treasuryData.filter(d => moment(d.datex, 'dd-MM-YYYY').year() == this.selectedYear)
+      return _.reverse(treasuryDataOfYear)
     }
   },
   methods: {
     async getData() {
       this.isLoading = true;
-
-      //const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
-
-      const treasuryData = await getTreasuryData(this.selectedProjectStates);      
+      const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')      
+      this.selectedYear = year
+      const treasuryData = await getTreasuryData(this.selectedProjectStates, this.selectedYear);      
       this.vat = treasuryData.vat;
       this.vat_expected = treasuryData.vat_expected;
       this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});

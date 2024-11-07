@@ -10,7 +10,7 @@
     <section class="section is-main-section">
       <card-component title="Filtres">
         <form @submit.prevent="submit2">
-          <b-field horizontal>
+          <b-field horizontal>            
             <b-field label="Estat projecte">
               <b-select
                 v-model="filters.project_state"
@@ -52,6 +52,9 @@
                   {{ s.username }}
                 </option>
               </b-select>
+            </b-field>
+            <b-field>
+              <b-button type="is-primary mt-x" native-type="submit">Aplicar</b-button>
             </b-field>
           </b-field>
         </form>
@@ -154,5 +157,8 @@ export default {
 .k-pivot-toolbar .k-button{
   background-color: #999!important;
   border-color: #999!important;
+}
+.mt-x{
+  margin-top: 2.0rem;
 }
 </style>

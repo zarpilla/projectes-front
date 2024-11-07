@@ -13,23 +13,24 @@ const config = {
       name: 'project_scope',
       expand: false
     }, {
-      name: 'project_mother',
-      expand: false
-    }, {
       name: 'grantable',
       expand: false
     }, {
       name: 'project_client',
       expand: false
-    }], // Specify a dimension on columns.
-    rows: [{
+    },
+    {
       name: 'row_type',
       expand: false
-    },{
+    }], // Specify a dimension on columns.
+    rows: [{
       name: 'year',
       expand: false
     },{
       name: 'month',
+      expand: false
+    },{
+      name: 'mother',
       expand: false
     },{
       name: 'project_name',
@@ -76,7 +77,7 @@ const config = {
           row_type: {
             caption: 'Tipus (TOTES)'
           },
-          project_mother: {
+          mother: {
             caption: 'Mare (TOTES)'
           },
           grantable: {

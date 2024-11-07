@@ -7,12 +7,12 @@ const zeroPad = (num, places) => {
   return String(num).padStart(places, "0");
 }
 
-const getTreasuryData = async (project_states) => {
+const getTreasuryData = async (project_states, year) => {
 
   project_states = project_states.join(',')
 
   const { data } = (
-    await service({ requiresAuth: true }).get(`treasuries/forecast?_limit=-1&project_states=${project_states}`)
+    await service({ requiresAuth: true }).get(`treasuries/forecast?_limit=-1&project_states=${project_states}&year=${year}`)
   );
 
   return data

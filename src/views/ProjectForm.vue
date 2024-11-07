@@ -593,7 +593,6 @@
                   class="file-documents zcolumns is-multiline"
                   v-if="form.documents && form.documents.length"
                 >
-                  <!-- <pre>{{ form.documents }}</pre>   -->
                   <div
                     v-for="(doc, i) in form.documents"
                     :key="i"
@@ -1216,6 +1215,7 @@
                 </div>
               </b-field>
             </div>
+            
           </card-component>
         </div>
       </div>
@@ -2219,30 +2219,27 @@ export default {
     },
     treasuryIncomesPending() {
       return sumBy(
-        this.documents.filter(t => t.multiplier > 0 && !t.document.paid),
-        "document.total_base"
+        this.treasury.filter(t => t.multiplier > 0 && t.document.paid !== true),
+        "document.total_amount"
       );
     },
     treasuryExpensesPending() {
       return sumBy(
-        this.documents.filter(t => t.multiplier < 0 && !t.document.paid),
-        "document.total_base"
+        this.treasury.filter(t => t.multiplier < 0 && t.document.paid !== true),
+        "document.total_amount"
       );
     },
     treasuryIncomesDone() {
       return sumBy(
-        this.documents.filter(t => t.multiplier > 0 && t.document.paid),
-        "document.total_base"
+        this.treasury.filter(t => t.multiplier > 0 && t.document.paid),
+        "document.total_amount"
       );
     },
     treasuryExpensesDone() {
       return sumBy(
-        this.documents.filter(t => t.multiplier < 0 && t.document.paid),
-        "document.total_base"
+        this.treasury.filter(t => t.multiplier < 0 && t.document.paid),
+        "document.total_amount"
       );
-    },
-    treasuryExpensesDone2() {
-      return this.documents.filter(t => t.multiplier < 0 && t.document.paid);
     },
     user() {
       return this.leaders.find(
@@ -2540,6 +2537,7 @@ export default {
         .then(r => {
           this.projects = r.data;
           if (this.form.mother && this.form.mother.id) {
+            console.log("this.form.mother.id", this.form.mother.id);
             const mother = this.projects.find(
               p => p.id === this.form.mother.id
             );
@@ -2650,14 +2648,9 @@ export default {
         this.form.region = null;
       }
 
-      if (
-        this.form.mother &&
-        (this.form.mother.id === 0 || !this.form.mother.id)
-      ) {
-        this.form.mother = null;
+      if (this.form.mother && this.form.mother.id) {
+        this.form.mother = this.form.mother.id
       }
-
-      
 
       try {
         const stateInvalid = this.form.project_state.id === 0;
@@ -2803,6 +2796,7 @@ export default {
       this.form.grantable_leader = option ? option.id : null;
     },
     projectSelected(option) {
+      console.log('projectSelected', option)
       if (option && option.id) {
         this.form.mother = option.id;
       } else {

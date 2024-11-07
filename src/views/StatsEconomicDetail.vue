@@ -6,28 +6,21 @@
         <form @submit.prevent="() => {}">
           <b-field horizontal>
             <b-field label="Estat projecte">
-              <!-- <b-select
-                v-model="filters.project_state"
-                placeholder="Estat"
-                required
-              >
-                <option
-                  v-for="(s, index) in project_states"
-                  :key="index"
-                  :value="s.id"
-                >
-                  {{ s.name }}
-                </option>
-              </b-select> -->
               <div class="is-flex mt-2">
-                <button class="button mr-3" v-for="state in project_states" :key="state.id" @click="toggleState(state)"
-                :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-outlined': !selectedProjectStates.includes(state.id) }">
-                {{ state.name }}
+                <button
+                  class="button mr-3"
+                  v-for="state in project_states"
+                  :key="state.id"
+                  @click="toggleState(state)"
+                  :class="{
+                    'is-primary': selectedProjectStates.includes(state.id),
+                    'is-outlined': !selectedProjectStates.includes(state.id)
+                  }"
+                >
+                  {{ state.name }}
                 </button>
               </div>
             </b-field>
-          </b-field>
-          <b-field horizontal>
             <b-field label="Any">
               <b-select v-model="filters.year" placeholder="Any">
                 <option
@@ -46,11 +39,14 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field>
+              <b-button type="is-warning mt-x" @click="refreshData">Refrescar</b-button>
+            </b-field>
           </b-field>
         </form>
       </card-component>
 
-      <card-component title="Projectes">
+      <card-component title="Projectes" v-if="show">
         <economic-detail-pivot
           :project-states="selectedProjectStates" :year="filters.year" :data-type="filters.dataType"
           v-if="!isLoading"
@@ -67,6 +63,7 @@ import EconomicDetailPivot from "@/components/EconomicDetailPivot";
 import service from "@/service/index";
 import defaultProjectState from "@/service/projectState";
 import { addScript, addStyle } from "@/helpers/addScript";
+import moment from "moment";
 
 export default {
   name: "StatsExpenses",
@@ -86,7 +83,8 @@ export default {
       project_states: [],
       years: [],
       dataTypes: ["Totes", "Previsió", "Execució"],
-      selectedProjectStates: []
+      selectedProjectStates: [],
+      show: true
     };
   },
   computed: {
@@ -120,7 +118,7 @@ export default {
             "/vendor/kendo/custom.css",
           "custom-css"
         );
-        
+
         this.getData();
       }
     }, 100);
@@ -142,8 +140,12 @@ export default {
           // const name2 = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 2).name}`
           // this.project_states.push({ id: -2, name: name2 });
 
-          if (localStorage.getItem('StatsEconomicDetail.selectedProjectStates')) {
-            this.selectedProjectStates = JSON.parse(localStorage.getItem('StatsEconomicDetail.selectedProjectStates'));
+          if (
+            localStorage.getItem("StatsEconomicDetail.selectedProjectStates")
+          ) {
+            this.selectedProjectStates = JSON.parse(
+              localStorage.getItem("StatsEconomicDetail.selectedProjectStates")
+            );
           } else {
             this.selectedProjectStates = this.project_states.map(s => s.id);
           }
@@ -153,12 +155,15 @@ export default {
           service({ requiresAuth: true, cached: true })
             .get("years?_sort=year:DESC")
             .then(r => {
-              this.years = [...r.data]/*  */;
+              this.years = [...r.data] /*  */;
               const y = this.years[0].year;
               this.years.unshift({ id: 0, year: parseInt(y) + 1 });
               this.years.unshift({ id: 0, year: parseInt(y) + 2 });
               this.years.unshift({ id: 0, year: "Tots" });
-              this.filters.year = "Tots";
+              // this.filters.year = "Tots";
+              this.filters.year = this.years.find(
+                y => y.year.toString() === moment().format("YYYY")
+              ).year;
 
               this.isLoading = false;
             });
@@ -166,13 +171,24 @@ export default {
     },
     toggleState(state) {
       if (this.selectedProjectStates.includes(state.id)) {
-        this.selectedProjectStates = this.selectedProjectStates.filter(s => s !== state.id);
+        this.selectedProjectStates = this.selectedProjectStates.filter(
+          s => s !== state.id
+        );
       } else {
         this.selectedProjectStates.push(state.id);
       }
-      localStorage.setItem('StatsEconomicDetail.selectedProjectStates', JSON.stringify(this.selectedProjectStates))
+      localStorage.setItem(
+        "StatsEconomicDetail.selectedProjectStates",
+        JSON.stringify(this.selectedProjectStates)
+      );
       //this.getData()
     },
+    refreshData() {
+      this.show = false;
+      setTimeout(() => {
+        this.show = true;
+      }, 200);
+    }
   }
 };
 </script>
@@ -189,5 +205,8 @@ export default {
 .k-pivot-toolbar .k-button {
   background-color: #999 !important;
   border-color: #999 !important;
+}
+.mt-x {
+  margin-top: 2.0rem;
 }
 </style>

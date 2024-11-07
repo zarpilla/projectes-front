@@ -564,7 +564,7 @@ export default {
     async getData() {
       this.isLoading = true;
 
-      const treasuryData = await getTreasuryData(this.selectedProjectStates);
+      const treasuryData = await getTreasuryData(this.selectedProjectStates, year);
       this.treasuryData = treasuryData.treasury.map(d => {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
       });

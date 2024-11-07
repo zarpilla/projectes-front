@@ -42,9 +42,9 @@ export default {
   name: "DedicationPivot",
   components: { DedicationGanttChart },
   props: {
-    projectState: {
-      type: Number,
-      default: 0,
+    projectStates: {
+      type: Array[Number],
+      default: [],
     },
     view: {
       type: String,
@@ -71,7 +71,7 @@ export default {
     };
   },
   watch: {
-    projectState: function (newVal, oldVal) {
+    projectStates: function (newVal, oldVal) {
       this.getActivities();
     },
     view: function (newVal, oldVal) {
@@ -89,7 +89,7 @@ export default {
       this.isLoading = true;
 
       if (
-        this.projectState === null ||
+        this.projectStates.length === 0 ||
         this.year === null ||
         this.month === null
       ) {
@@ -103,13 +103,10 @@ export default {
         await service({ requiresAuth: true, cached: true }).get("project-states")
       ).data;
       this.leaders = (await service({ requiresAuth: true }).get("users")).data //.filter(u => u.username === 'Ariadna');
-      // const from = moment(this.date1).format('YYYY-MM-DD')
-      // const to = moment(this.date2).format('YYYY-MM-DD')
-      const projectState = this.projectState !== null ? this.projectState : 1;
-      let query = `projects/phases?_where[project_state]=${projectState}&_limit=-1`;
-      if (projectState === 0 || projectState === "0") {
-        query = "projects/phases?_limit=-1";
-      }
+      
+      const projectStates = this.projectStates.join(',')
+      let query = `projects/phases?_where[project_state_in]=${projectStates}&_limit=-1`;
+      
       const from = moment().startOf("year").format("YYYY-MM-DD");
       this.festives = (
         await service({ requiresAuth: true }).get(

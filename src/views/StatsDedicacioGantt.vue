@@ -12,20 +12,21 @@
         <form @submit.prevent="submit2">
           <b-field horizontal>
             <b-field label="Estat projecte">
-              <b-select
-                v-model="filters.project_state"
-                placeholder="Estat"
-                required
-              >
-                <option
-                  v-for="(s, index) in project_states"
-                  :key="index"
-                  :value="s.id"
+              <div class="is-flex mt-2">
+                <button
+                  class="button mr-3"
+                  v-for="state in project_states"
+                  :key="state.id"
+                  @click="toggleState(state)"
+                  :class="{
+                    'is-primary': selectedProjectStates.includes(state.id),
+                    'is-outlined': !selectedProjectStates.includes(state.id)
+                  }"
                 >
-                  {{ s.name }}
-                </option>
-              </b-select>
-            </b-field>
+                  {{ state.name }}
+                </button>
+              </div>
+            </b-field>            
             <b-field label="Vista">
               <b-select
                 v-model="filters.view"
@@ -41,7 +42,7 @@
       </card-component>
 
       <card-component title="Dedicació">        
-        <dedication-gantt :project-state="filters.project_state" :view="filters.view" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
+        <dedication-gantt :project-states="selectedProjectStates" :view="filters.view" v-if="!isLoading1 && !isLoading3" />
       </card-component>
     </section>
   </div>
@@ -77,8 +78,9 @@ export default {
         view: 'month'
       },
       project_states: [],
-      years: [],
-      months: null
+      //years: [],
+      months: null,
+      selectedProjectStates: []
     }
   },
   computed: {
@@ -97,23 +99,48 @@ export default {
     getData () {
       service({ requiresAuth: true }).get('project-states').then((r) => {
         this.project_states = [...r.data];
-        this.project_states.unshift({ id: 0, name: 'Tots' })
-        this.filters.project_state = defaultProjectState
+        // this.project_states.unshift({ id: 0, name: 'Tots' })
+        // this.filters.project_state = defaultProjectState
+
+        if (localStorage.getItem("StatsDedicacioGantt.selectedProjectStates")) {
+          this.selectedProjectStates = JSON.parse(
+            localStorage.getItem("StatsDedicacioGantt.selectedProjectStates")
+          );
+        } else {
+          this.selectedProjectStates = this.project_states.map(s => s.id);
+        }
+        
         this.isLoading1 = false
       })
-      service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-        this.years = r.data.map(y => { return { ...y, display: y.year } })
-        this.years.unshift({ id: 0, year: 0, display: 'Tots' })
-        this.filters.year = parseInt(moment().format('YYYY'))
-        this.isLoading2 = false
-      })
+      // service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
+      //   this.years = r.data.map(y => { return { ...y, display: y.year } })
+      //   this.years.unshift({ id: 0, year: 0, display: 'Tots' })
+      //   this.filters.year = parseInt(moment().format('YYYY'))
+      //   this.isLoading2 = false
+      // })
       service({ requiresAuth: true }).get('months?_sort=name:DESC').then((r) => {
         this.months = r.data.map(y => { return { ...y, display: `${y.month_number} - ${y.name}` } })
         this.months.unshift({ id: 0, month: 0, display: 'Tots' })
         this.filters.month = 0
         this.isLoading3 = false
       })
-    }
+
+      
+    },
+    toggleState(state) {
+      if (this.selectedProjectStates.includes(state.id)) {
+        this.selectedProjectStates = this.selectedProjectStates.filter(
+          s => s !== state.id
+        );
+      } else {
+        this.selectedProjectStates.push(state.id);
+      }
+      localStorage.setItem(
+        "StatsDedicacioGantt.selectedProjectStates",
+        JSON.stringify(this.selectedProjectStates)
+      );
+      this.getData();
+    },
   }
 }
 </script>

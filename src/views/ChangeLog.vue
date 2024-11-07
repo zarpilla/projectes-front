@@ -4,6 +4,18 @@
     <section class="section is-main-section">
       <card-component title="2024.09.19">
         <div class="item mb-4">
+          <span class="tag is-danger">Correccions</span>
+          <div class="text mt-2">
+            Correcció dels saldos d'inici d'any per anys que no son l'actual a la <router-link to="/tresoreria">taula de tresoreria.</router-link>
+          </div>
+          <span class="tag is-warning mt-2">Millores</span>
+          <div class="text mt-2">
+            Incorporació del camp 'projecte mare' a la taula dinàmica <router-link to="/stats-economic-detail">d'ingressos i despeses.</router-link>
+          </div>
+        </div>
+      </card-component>
+      <card-component title="2024.10.07">
+        <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
             Millora en la velocitat de càrrega del calendari de <router-link to="/dedicacio">dedicacions.</router-link>
