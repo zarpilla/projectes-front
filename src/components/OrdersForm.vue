@@ -250,6 +250,18 @@
               </b-field>
 
               <b-field
+                label="Última milla"
+                horizontal
+                message="En cas de que la comanda passi per última milla, aquesta casella es marcarà automàticament, però també pots marcar-la manualment si ja ho saps"
+                v-if="permissions.includes('orders_admin')"
+              >
+                <b-switch
+                  v-model="form.last_mile"
+                  :disabled="!canEdit"
+                ></b-switch>
+              </b-field>
+
+              <b-field
                 label="Data comanda *"
                 horizontal
                 :type="{ 'is-danger': errors['route_date'] && submitted }"
@@ -437,7 +449,7 @@ export default {
       statuses: [
         { id: "pending", name: "PENDENT" },
         { id: "processed", name: "PROCESSADA" },
-        { id: "distributing", name: "EN REPARTIMENT" },
+        { id: "lastmile", name: "ÚLTIMA MILLA" },        
         { id: "delivered", name: "LLIURADA" },
         { id: "invoiced", name: "FACTURADA" },
         { id: "cancelled", name: "ANUL·LADA" }
@@ -935,7 +947,7 @@ export default {
         this.form.owner = me.data.id;
       }
 
-      console.log("this.form", this.form);
+      //console.log("this.form", this.form);
       if (this.form.status === "delivered" && !this.form.delivery_date) {
         this.form.delivery_date = new Date().toISOString().split("T")[0];
       }
@@ -1093,7 +1105,7 @@ export default {
       this.form.contact = option;
     },
     async contactChanged(option) {
-      console.log("contactChanged", option);
+      //console.log("contactChanged", option);
       if (option) {
         this.form.contact = option.id;
         this.onClientaChange(option.id);
@@ -1104,7 +1116,7 @@ export default {
       // this.onClientaChange(this.form.contact);
     },
     async citySelected(option) {
-      console.log("citySelected", option);
+      //console.log("citySelected", option);
       if (!option || !option.id) {
         this.form.contact_city = null;
       } else {
@@ -1303,6 +1315,7 @@ export default {
         this.form.contact_address = contact.address;
         this.form.contact_postcode = contact.postcode;
         this.form.contact_notes = contact.notes;
+        this.form.contact_phone = contact.phone;
         this.form.contact_city = contact.city;
         this.form.contact_multiowner = contact.multiowner;
         this.citySearch = contact.city;
@@ -1340,7 +1353,10 @@ export default {
       const contactId = msg.id
       await this.refreshClients(this.form.owner);
       const contact = this.contacts.find(c => c.id === contactId);
-      this.contactSearch = `${contactId} - ${contact.trade_name}`;
+      this.contactSearch = `${contactId} - ${contact.trade_name}`;      
+      if (this.canEditContact) {
+        this.onClientaChange(contactId);        
+      }
     }
     
   }

@@ -173,12 +173,12 @@
       <b-button
         class="view-button mb-3 mr-3"
         :class="{
-          'is-primary': statusFilter === 'distributing',
-          'is-warning': statusFilter !== 'distributing'
+          'is-primary': statusFilter === 'lastmile',
+          'is-warning': statusFilter !== 'lastmile'
         }"
-        @click="setStatusFilter('distributing')"
+        @click="setStatusFilter('lastmile')"
       >
-        EN REPARTIMENT
+        ÚLTIMA MILLA
       </b-button>
 
       <b-button
@@ -250,7 +250,7 @@
             <b-select v-model="newState" placeholder="">
               <option value="pending">PENDENT</option>
               <option value="processed">PROCESSADA</option>
-              <option value="distributing">EN REPARTIMENT</option>
+              <option value="lastmile">ÚLTIMA MILLA</option>
               <option value="delivered">LLIURADA</option>
               <option value="cancelled">ANUL·LADA</option>
             </b-select>
@@ -457,9 +457,9 @@
           >PROCESSADA</span
         >
         <span
-          v-else-if="props.row.status === 'distributing'"
+          v-else-if="props.row.status === 'lastmile'"
           class="tag is-info bg-distributing"
-          >EN REPARTIMENT</span
+          >ÚLTIMA MILLA</span
         >
         <span v-else-if="props.row.status === 'cancelled'" class="tag is-danger"
           >ANUL·LADA</span
@@ -622,7 +622,12 @@ export default {
       },      
       csvFieldsRouter: {        
         "NOM CLIENT": "fullName",
-        "TELEFON": "contact_phone",
+        "TELEFON": {
+          field: "contact_phone",
+          callback: value => {
+            return value.replace(/\s/g, "");
+          }
+        },
         "ADREÇA": {
           field: "fullAddress",
           callback: value => {
@@ -935,7 +940,7 @@ export default {
           timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_ini)} - ${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_end)}`,
           timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`,
           fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
-          timeslot1And2: `${this.formatSlot(o.contact_time_slot_1_ini)}-${this.formatSlot(o.contact_time_slot_1_end)} + ${this.formatSlot(o.contact_time_slot_2_ini)}-${this.formatSlot(o.contact_time_slot_2_end)}`,
+          timeslot1And2: `${this.formatSlot2(o.contact_time_slot_1_ini, o.contact_time_slot_1_end, '')}${this.formatSlot2(o.contact_time_slot_2_ini, o.contact_time_slot_2_end, ', ')}`,
           fullName: o.contact_trade_name ||o.contact_name,
         };
       });
@@ -945,6 +950,10 @@ export default {
     },
     formatSlot(s) {
       return s && s.toString().includes('.') ? s.toString().replace('.5',':30') : `${s}:00`
+    },
+    formatSlot2(s1, s2, prefix) {
+      console.log('s1', s1, 's2', s2)
+      return s1 && s2 ? (prefix + (s1.toString().includes('.') ? s1.toString().replace('.5',':30') : `${s1}:00`) + '-' + (s2.toString().includes('.') ? s2.toString().replace('.5',':30') : `${s2}:00`)) : ''
     },
     async preUpload() {
       return await service({ requiresAuth: true }).post("orders-imports", {
@@ -1445,6 +1454,9 @@ export default {
     },
     addressFormatted(address) {
       return '"' + address + '"';
+    },
+    timeSlotsFormatted(slots) {
+      return '"' + slots + '"';
     },
     async setBulkState() {
       this.importing = true;
