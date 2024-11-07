@@ -411,6 +411,15 @@
         {{ props.row.pickup ? props.row.pickup.name : "-" }}
       </b-table-column>
       <b-table-column
+        label="Última milla"
+        searchable
+        field="last_mile_display"
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.last_mile_display }}
+      </b-table-column>
+      <b-table-column
         label="Preu"
         field="price"
         sortable
@@ -942,6 +951,7 @@ export default {
           fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
           timeslot1And2: `${this.formatSlot2(o.contact_time_slot_1_ini, o.contact_time_slot_1_end, '')}${this.formatSlot2(o.contact_time_slot_2_ini, o.contact_time_slot_2_end, ', ')}`,
           fullName: o.contact_trade_name ||o.contact_name,
+          last_mile_display: o.last_mile ? 'Sí' : 'No'
         };
       });
 
