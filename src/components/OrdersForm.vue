@@ -8,7 +8,8 @@
       :owner-id="form.owner"
       :can-edit="(canEdit && !form.contact) || canEditContact"
       @cancel="isModalActive = false"
-      @confirm="confirmContact"></modal-box-contact-user>
+      @confirm="confirmContact"
+    ></modal-box-contact-user>
 
     <section class="section is-main-section">
       <div class="columns">
@@ -30,7 +31,7 @@
             </b-message>
 
             <form @submit.prevent="submit(false)" v-if="!isLoading">
-               <b-field
+              <b-field
                 label="Sòcia *"
                 horizontal
                 :type="{ 'is-danger': errors['owner'] && submitted }"
@@ -51,13 +52,14 @@
                 </b-select>
               </b-field>
 
-              <hr>
-              
+              <hr />
+
               <b-field
                 label="Punt d'entrega"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                message="Cerca el punt d'entrega si ja existeix, o crea un nou punt">
+                message="Cerca el punt d'entrega si ja existeix, o crea un nou punt"
+              >
                 <b-autocomplete
                   v-model="contactSearch"
                   placeholder="Punt d'entrega"
@@ -65,7 +67,7 @@
                   :open-on-focus="true"
                   :data="filteredContacts"
                   field="display"
-                  @select="contactChanged"                  
+                  @select="contactChanged"
                   :disabled="!canEdit"
                   :clearable="true"
                 >
@@ -73,24 +75,24 @@
               </b-field>
 
               <b-field horizontal v-if="!form.contact && !contactSearch">
-                <b-button              
-                      :disabled="!canEdit"
-                      class="view-button is-primary mb-3"                  
-                      title="Nou punt d'entrega"
-                      @click="isModalActive = true"                      
-                      >
-                      Nou punt d'entrega
-                    </b-button>
+                <b-button
+                  :disabled="!canEdit"
+                  class="view-button is-primary mb-3"
+                  title="Nou punt d'entrega"
+                  @click="isModalActive = true"
+                >
+                  Nou punt d'entrega
+                </b-button>
               </b-field>
               <b-field horizontal v-else-if="form.contact">
-                <b-button              
-                      :disabled="!canEdit"
-                      class="view-button is-primary mb-3"                  
-                      title="Nou punt d'entrega"
-                      @click="isModalActive = true"                      
-                      >
-                      Veure punt d'entrega
-                    </b-button>
+                <b-button
+                  :disabled="!canEdit"
+                  class="view-button is-primary mb-3"
+                  title="Nou punt d'entrega"
+                  @click="isModalActive = true"
+                >
+                  Veure punt d'entrega
+                </b-button>
               </b-field>
 
               <hr />
@@ -117,7 +119,7 @@
                   </button>
                 </div>
               </b-field>
-            
+
               <b-field
                 v-if="pickups && pickups.length > 0"
                 label="Recollida comanda *"
@@ -202,6 +204,27 @@
                 <b-input v-model="form.provider_order_number" />
               </b-field>
 
+              <b-field v-if="form.id"
+                label="Incidència"
+                horizontal
+                message="Si hi ha alguna incidència, posa-la aquí"
+              >
+                <b-switch
+                  v-model="form.incidence">
+                </b-switch>
+              </b-field>
+
+              <b-field horizontal v-if="form.incidence"
+              >
+                <b-input type="textarea"  v-model="form.incidence_description" />
+              </b-field>
+
+              <b-field horizontal v-if="form.incidence" message="Marca-ho si la incidència està ja solucionada"
+              >                
+                <b-switch
+                  v-model="form.incidence_solved">
+                </b-switch>
+              </b-field>
 
               <hr />
 
@@ -299,17 +322,11 @@
                   @input="checkEstimatedDeliveryDate"
                 >
                 </b-datepicker>
+              </b-field>
 
-              </b-field> 
-
-
-               <b-message
-              v-if="dateWarningMessage"
-              
-              type="is-warning"
-            >
-              {{ dateWarningMessage }}
-            </b-message>
+              <b-message v-if="dateWarningMessage" type="is-warning">
+                {{ dateWarningMessage }}
+              </b-message>
               <b-field
                 label="Data lliurament"
                 horizontal
@@ -329,35 +346,45 @@
                 </b-datepicker>
               </b-field>
 
-
               <b-field label="Tarifa" horizontal class="line-notes mb-5">
                 <span>{{ route_rate ? route_rate.name : "no trobada" }}</span>
               </b-field>
 
               <b-field label="Preu" horizontal class="line-notes mb-5">
-                <money-format
-                  class="has-text-left"
-                  :value="route_price"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
+                <div class="is-flex">
+                  <money-format
+                    class="has-text-left"
+                    :value="route_price"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                  <button
+                    v-if="permissions.includes('orders_admin')"
+                    class="button is-warning is-small ml-4 mt--6"
+                    type="button"
+                    @click="changeRate"
+                    title="Recalcular preu"
+                  >
+                    <b-icon icon="refresh"></b-icon>
+                  </button>
+                </div>
               </b-field>
 
-
-              <b-field v-if="form.id" horizontal label="Albarà" message="Imprimeix l'albarà i enganxa'n un full a cada caixa. El teu albarà propi posa'l a dins d'una de les caixes">
-                <b-button
-                  type="is-primary"
-                  :loading="isLoading"
-                  @click="getPDF"
-                  
+              <b-field
+                v-if="form.id"
+                horizontal
+                label="Albarà"
+                message="Imprimeix l'albarà i enganxa'n un full a cada caixa. El teu albarà propi posa'l a dins d'una de les caixes"
+              >
+                <b-button type="is-primary" :loading="isLoading" @click="getPDF"
                   >Imprimeix PDF</b-button
                 >
               </b-field>
 
-              <hr />  
+              <hr />
 
               <b-field horizontal label="Accions">
                 <b-button
@@ -374,9 +401,6 @@
                   >Guardar i sortir</b-button
                 >
 
-
-                
-
                 <b-button type="is-warning" :loading="isLoading" @click="exit"
                   >Sortir</b-button
                 >
@@ -389,8 +413,6 @@
                   >Anul·lar Comanda</b-button
                 >
               </b-field>
-
-
             </form>
           </card-component>
         </div>
@@ -410,9 +432,12 @@ import { mapState } from "vuex";
 import moment from "moment";
 import sortBy, { name } from "lodash/sortBy";
 import concat from "lodash/concat";
-import { assignRouteRate, assignRouteDate, checkIfDateIsValidInroute } from "@/service/assignRouteRate";
+import {
+  assignRouteRate,
+  assignRouteDate,
+  checkIfDateIsValidInroute
+} from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser";
-import { id } from "date-fns/locale";
 
 export default {
   name: "OrdersForm",
@@ -449,7 +474,7 @@ export default {
       statuses: [
         { id: "pending", name: "PENDENT" },
         { id: "processed", name: "PROCESSADA" },
-        { id: "lastmile", name: "ÚLTIMA MILLA" },        
+        { id: "lastmile", name: "ÚLTIMA MILLA" },
         { id: "delivered", name: "LLIURADA" },
         { id: "invoiced", name: "FACTURADA" },
         { id: "cancelled", name: "ANUL·LADA" }
@@ -495,7 +520,7 @@ export default {
     canEditContact() {
       return (
         (this.form.contact && !this.form.contact_multiowner) ||
-        this.permissions.includes('orders_admin')
+        this.permissions.includes("orders_admin")
       );
     },
     canEdit() {
@@ -511,7 +536,7 @@ export default {
     canChangeRate() {
       // console.log('this.form.status', this.form.status)
       return ["pending"].includes(this.form.status);
-    },
+    },    
     errors() {
       return {
         owner: this.form.owner === null,
@@ -522,9 +547,9 @@ export default {
         pickup: this.form.pickup == null,
         units: this.form.units === null || this.form.units <= 0,
         contact_name:
-          this.form.contact_name === null || this.form.contact_name === "",        
+          this.form.contact_name === null || this.form.contact_name === "",
         //contact_nif:
-          //this.form.contact_nif === null || this.form.contact_nif === "",
+        //this.form.contact_nif === null || this.form.contact_nif === "",
         contact_legal_form: this.form.contact_legal_form === null,
         contact_address:
           this.form.contact_address === null ||
@@ -548,9 +573,8 @@ export default {
         return this.form.route_rate;
       }
       const rr = assignRouteRate(this.form, this.routeRates, this.orders);
-      //console.log("rr", rr);
       this.form.route_rate = rr;
-      return this.form.route_rate;      
+      return this.form.route_rate;
     },
     route_price() {
       if (!this.canChangeRate) {
@@ -558,17 +582,17 @@ export default {
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
         const rate = this.route_rate;
-        if (this.form.kilograms < 15) {
+        if (Math.abs(this.form.kilograms) < 15) {
           this.form.price = rate.less15;
-        } else if (this.form.kilograms < 30) {
+        } else if (Math.abs(this.form.kilograms) < 30) {
           this.form.price = rate.less30;
         } else {
           this.form.price =
-            rate.less30 + (this.form.kilograms - 30) * rate.additional30;
+            rate.less30 + (Math.abs(this.form.kilograms) - 30) * rate.additional30;
         }
       }
       return this.form.price;
-    },
+    },    
     filteredContacts() {
       return this.contacts.filter(option => {
         return (
@@ -579,11 +603,11 @@ export default {
           option.name
             .toString()
             .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||          
+            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
           option.trade_name
             .toString()
             .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||          
+            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
           option.id
             .toString()
             .toLowerCase()
@@ -600,10 +624,16 @@ export default {
             .indexOf(this.citySearch.toLowerCase()) >= 0
         );
       });
-    }, 
+    },
     allowedPickups() {
-      return this.pickups.filter(p => !p.pickup || p.pickup && p.allowed_users && p.allowed_users.map(u => u.id).includes(this.form.owner));
-    }   
+      return this.pickups.filter(
+        p =>
+          !p.pickup ||
+          (p.pickup &&
+            p.allowed_users &&
+            p.allowed_users.map(u => u.id).includes(this.form.owner))
+      );
+    }
   },
   watch: {
     async id(newValue) {
@@ -648,14 +678,14 @@ export default {
         pickup: null,
         units: null,
         kilograms: null,
-        routeFestives: [],
+        routeFestives: []
       };
     },
     async getData() {
       this.isLoading = true;
       await this.getAuxiliarData();
 
-      if (this.$route.params.id && this.$route.params.id > 0) {        
+      if (this.$route.params.id && this.$route.params.id > 0) {
         service({ requiresAuth: true })
           .get(`orders/${this.$route.params.id}`)
           .then(async r => {
@@ -708,10 +738,13 @@ export default {
 
               if (this.cities.find(c => c.name === this.form.contact_city)) {
                 this.citySearch = this.form.contact_city;
-                this.form.contact_city_id = this.cities.find(c => c.name === this.form.contact_city).id;
-                this.citySelected(this.cities.find(c => c.name === this.form.contact_city));
+                this.form.contact_city_id = this.cities.find(
+                  c => c.name === this.form.contact_city
+                ).id;
+                this.citySelected(
+                  this.cities.find(c => c.name === this.form.contact_city)
+                );
               }
-
 
               if (this.form.contact_legal_form) {
                 this.form.contact_legal_form = this.form.contact_legal_form.id;
@@ -731,7 +764,6 @@ export default {
 
               this.isLoading = false;
             } else {
-
             }
           });
       } else {
@@ -758,7 +790,6 @@ export default {
       }
     },
     async getAuxiliarData() {
-
       if (this.$route.params.id && this.$route.params.id > 0) {
         this.routes = (
           await service({ requiresAuth: true, cached: true }).get(
@@ -772,7 +803,7 @@ export default {
           )
         ).data;
       }
-      
+
       const users = (
         await service({ requiresAuth: true, cached: true }).get(
           "users?_limit=-1"
@@ -828,11 +859,10 @@ export default {
         await service({ requiresAuth: true }).get("legal-forms")
       ).data;
 
-
       this.cities = (
         await service({ requiresAuth: true }).get("cities?_limit=-1&_sort=name")
       ).data;
-      
+
       this.cityRoutes = (
         await service({ requiresAuth: true }).get("city-routes?_limit=-1")
       ).data;
@@ -847,11 +877,11 @@ export default {
       this.changeRoute();
     },
     async changeRoute() {
-      console.log('changeRoute', this.form.route)
+      console.log("changeRoute", this.form.route);
       // if (!this.form.route){
       //   console.log('changeRoute 2', this.form.contact_city)
       // }
-    
+
       if (this.form.owner && this.form.route) {
         this.orders = (
           await service({ requiresAuth: true }).get(
@@ -861,14 +891,14 @@ export default {
       }
       if (this.form.route) {
         const route = this.routes.find(r => r.id === this.form.route);
-        const routeDate = assignRouteDate(route)
-        const nextDay = routeDate.nextDay
+        const routeDate = assignRouteDate(route);
+        const nextDay = routeDate.nextDay;
         this.form.estimated_delivery_date = nextDay.toDate();
-        if (routeDate.warning) {          
+        if (routeDate.warning) {
           this.dateWarningMessage = routeDate.warning;
           this.$buefy.toast.open({
             message: routeDate.warning,
-            type: "is-warning",            
+            type: "is-warning"
           });
         } else {
           this.dateWarningMessage = "";
@@ -877,11 +907,16 @@ export default {
     },
     async checkEstimatedDeliveryDate() {
       const route = this.routes.find(r => r.id === this.form.route);
-      const valid = checkIfDateIsValidInroute(route, moment(this.form.estimated_delivery_date), this.routeFestives)
+      const valid = checkIfDateIsValidInroute(
+        route,
+        moment(this.form.estimated_delivery_date),
+        this.routeFestives
+      );
       if (!valid) {
-        this.dateWarningMessage = "Atenció! La data de lliurament no és vàlida per la ruta seleccionada"
+        this.dateWarningMessage =
+          "Atenció! La data de lliurament no és vàlida per la ruta seleccionada";
       } else {
-        this.dateWarningMessage = ""
+        this.dateWarningMessage = "";
       }
     },
     async deleteOrder() {
@@ -903,22 +938,22 @@ export default {
       if (this.form.route && this.form.estimated_delivery_date) {
         const route = this.routes.find(r => r.id === this.form.route);
         const dayOfWeek = this.form.estimated_delivery_date.getDay();
-        console.log('dayOfWeek', dayOfWeek, route)
-        let error = false
+        //console.log("dayOfWeek", dayOfWeek, route);
+        let error = false;
         if (dayOfWeek === 0 && !route.sunday) {
-          error = "Error. La ruta seleccionada no es fa en diumenge"
+          error = "Error. La ruta seleccionada no es fa en diumenge";
         } else if (dayOfWeek === 1 && !route.monday) {
-          error = "Error. La ruta seleccionada no es fa dilluns"
+          error = "Error. La ruta seleccionada no es fa dilluns";
         } else if (dayOfWeek === 2 && !route.tuesday) {
-          error = "Error. La ruta seleccionada no es fa dimarts"
+          error = "Error. La ruta seleccionada no es fa dimarts";
         } else if (dayOfWeek === 3 && !route.wednesday) {
-          error = "Error. La ruta seleccionada no es fa dimecres"
+          error = "Error. La ruta seleccionada no es fa dimecres";
         } else if (dayOfWeek === 4 && !route.thursday) {
-          error = "Error. La ruta seleccionada no es fa dijous"
+          error = "Error. La ruta seleccionada no es fa dijous";
         } else if (dayOfWeek === 5 && !route.friday) {
-          error = "Error. La ruta seleccionada no es fa divendres"
+          error = "Error. La ruta seleccionada no es fa divendres";
         } else if (dayOfWeek === 6 && !route.saturday) {
-          error = "Error. La ruta seleccionada no es fa dissabte"
+          error = "Error. La ruta seleccionada no es fa dissabte";
         }
 
         if (error) {
@@ -930,11 +965,9 @@ export default {
           return false;
         }
         return true;
-
       }
       // console.log('this.route', this.form.route)
       // console.log('this.form.estimated_delivery_date', this.form.estimated_delivery_date)
-
     },
     async submit(exit) {
       this.isLoading = true;
@@ -953,17 +986,29 @@ export default {
       }
 
       try {
-
-        const routeValid = this.validateEstimateDateDayOfWeek()
+        const routeValid = this.validateEstimateDateDayOfWeek();
 
         if (!routeValid) {
           this.isLoading = false;
-          return
+          return;
         }
 
-        if (this.form.contact_time_slot_1_ini > this.form.contact_time_slot_1_end) {
+        // if (this.form.units <= 0 || this.form.kilograms <= 0) {
+        //   this.$buefy.snackbar.open({
+        //     message: "Error. Els valors de caixes i kilos han de ser positius",
+        //     queue: false,
+        //     type: "is-danger"
+        //   });
+        //   this.isLoading = false;
+        //   return;
+        // }
+
+        if (
+          this.form.contact_time_slot_1_ini > this.form.contact_time_slot_1_end
+        ) {
           this.$buefy.snackbar.open({
-            message: "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+            message:
+              "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
             queue: false,
             type: "is-danger"
           });
@@ -971,9 +1016,13 @@ export default {
           return;
         }
 
-        if (this.form.contact_time_slot_2_ini && this.form.contact_time_slot_2_ini > this.form.contact_time_slot_2_end) {
+        if (
+          this.form.contact_time_slot_2_ini &&
+          this.form.contact_time_slot_2_ini > this.form.contact_time_slot_2_end
+        ) {
           this.$buefy.snackbar.open({
-            message: "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+            message:
+              "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
             queue: false,
             type: "is-danger"
           });
@@ -981,9 +1030,13 @@ export default {
           return;
         }
 
-        if (this.form.contact_time_slot_1_ini && !this.form.contact_time_slot_1_end) {
+        if (
+          this.form.contact_time_slot_1_ini &&
+          !this.form.contact_time_slot_1_end
+        ) {
           this.$buefy.snackbar.open({
-            message: "Error. Cal indicar l'hora de finalització del tram horari 1",
+            message:
+              "Error. Cal indicar l'hora de finalització del tram horari 1",
             queue: false,
             type: "is-danger"
           });
@@ -991,9 +1044,14 @@ export default {
           return;
         }
 
-        if (this.form.contact_time_slot_2_ini && this.form.contact_time_slot_2_ini && !this.form.contact_time_slot_1_end) {
+        if (
+          this.form.contact_time_slot_2_ini &&
+          this.form.contact_time_slot_2_ini &&
+          !this.form.contact_time_slot_1_end
+        ) {
           this.$buefy.snackbar.open({
-            message: "Error. Cal indicar l'hora de finalització del tram horari 2",
+            message:
+              "Error. Cal indicar l'hora de finalització del tram horari 2",
             queue: false,
             type: "is-danger"
           });
@@ -1002,7 +1060,15 @@ export default {
         }
 
         // "Error. El tram horari 1 ha de ser més gran de 3 hores",
-        if (this.form.contact_time_slot_1_end - this.form.contact_time_slot_1_ini < 3 && (this.form.contact_time_slot_2_end && this.form.contact_time_slot_2_end - this.form.contact_time_slot_2_ini < 3)) {            
+        if (
+          this.form.contact_time_slot_1_end -
+            this.form.contact_time_slot_1_ini <
+            3 &&
+          this.form.contact_time_slot_2_end &&
+            this.form.contact_time_slot_2_end -
+              this.form.contact_time_slot_2_ini <
+              3
+        ) {
           this.$buefy.snackbar.open({
             message: "Error. El tram horari ha de ser mínim de 3 hores",
             queue: false,
@@ -1122,23 +1188,36 @@ export default {
       } else {
         this.form.contact_city_id = option.id;
         this.form.contact_city = option.name;
-      }      
-      
-      this.routes = this.validCityRoutes()
+      }
+
+      this.routes = this.validCityRoutes();
       if (this.routes.length > 0) {
-        if (!this.form.route || this.routes.length === 1 || (this.form.route && !this.routes.find(r => r.id === this.form.route))) {
-          this.form.route = this.routes[0].id
+        if (
+          !this.form.route ||
+          this.routes.length === 1 ||
+          (this.form.route && !this.routes.find(r => r.id === this.form.route))
+        ) {
+          this.form.route = this.routes[0].id;
           this.changeRoute();
-        }        
+        }
       } else {
         //this.form.route = null
       }
     },
     validCityRoutes() {
-      return this.form.contact_city_id ? this.cityRoutes.filter(
-        cr => cr.city && cr.route && cr.city.id && cr.city.id === this.form.contact_city_id && cr.route.active
-      ).map(cr => cr.route) : [];
-    },    
+      return this.form.contact_city_id
+        ? this.cityRoutes
+            .filter(
+              cr =>
+                cr.city &&
+                cr.route &&
+                cr.city.id &&
+                cr.city.id === this.form.contact_city_id &&
+                cr.route.active
+            )
+            .map(cr => cr.route)
+        : [];
+    },
     routeSelected(option) {
       if (!option || !option.id) {
         this.form.route = null;
@@ -1272,12 +1351,13 @@ export default {
           `contacts/basic?_limit=-1&_where[multiowner]=true`
         )
       ).data.map(c => {
-        const deviliveryLabel = c.multidelivery ? " - MULTIENTREGA" : " - TOTES";
+        const deviliveryLabel = c.multidelivery
+          ? " - MULTIENTREGA"
+          : " - TOTES";
         return { ...c, display: `${c.trade_name} (${c.id})${deviliveryLabel}` };
       });
 
       this.contacts = concat(contacts1, contacts2);
-
 
       if (!this.contacts.find(c => c.id === 0)) {
         // this.contacts = concat({ id: 0, name: "--" }, this.contacts);
@@ -1301,7 +1381,7 @@ export default {
       this.form.contact_time_slot_2_end = null;
       this.contactSearch = "";
     },
-    async onClientaChange(id) {      
+    async onClientaChange(id) {
       //console.log("onClientaChange", id);
       // this.form.contact = e.target.value;
       if (id) {
@@ -1319,12 +1399,14 @@ export default {
         this.form.contact_city = contact.city;
         this.form.contact_multiowner = contact.multiowner;
         this.citySearch = contact.city;
-        
+
         if (this.cities.find(c => c.name === contact.city)) {
-          this.form.contact_city_id = this.cities.find(c => c.name === contact.city).id;
+          this.form.contact_city_id = this.cities.find(
+            c => c.name === contact.city
+          ).id;
           this.citySelected(this.cities.find(c => c.name === contact.city));
         }
-        
+
         this.form.contact_phone = contact.phone;
         this.form.contact_legal_form = contact.legal_form
           ? contact.legal_form.id
@@ -1332,33 +1414,42 @@ export default {
         this.form.contact_time_slot_1_ini = contact.time_slot_1_ini;
         this.form.contact_time_slot_1_end = contact.time_slot_1_end;
         this.form.contact_time_slot_2_ini = contact.time_slot_2_ini;
-        this.form.contact_time_slot_2_end = contact.time_slot_2_end;        
+        this.form.contact_time_slot_2_end = contact.time_slot_2_end;
       } else {
         this.removeContactData();
       }
     },
     async getPDF() {
       const pdf = (
-        await service({ requiresAuth: true }).get(
-          `/orders/pdf/${this.form.id}`
-        )
+        await service({ requiresAuth: true }).get(`/orders/pdf/${this.form.id}`)
       ).data;
       for (const url of pdf.urls) {
         window.open(this.apiUrl + url);
       }
-      
     },
     async confirmContact(msg) {
       this.isModalActive = false;
-      const contactId = msg.id
+      const contactId = msg.id;
       await this.refreshClients(this.form.owner);
       const contact = this.contacts.find(c => c.id === contactId);
-      this.contactSearch = `${contactId} - ${contact.trade_name}`;      
+      this.contactSearch = `${contactId} - ${contact.trade_name}`;
       if (this.canEditContact) {
-        this.onClientaChange(contactId);        
+        this.onClientaChange(contactId);
       }
-    }
-    
+    },
+    changeRate() {      
+      const rate = assignRouteRate(this.form, this.routeRates, this.orders);
+      this.form.route_rate = rate;      
+      if (Math.abs(this.form.kilograms) < 15) {
+        this.form.price = rate.less15;
+      } else if (Math.abs(this.form.kilograms) < 30) {
+        this.form.price = rate.less30;
+      } else {
+        this.form.price =
+          rate.less30 + (Math.abs(this.form.kilograms) - 30) * rate.additional30;
+      }
+      //return this.form.route_rate;
+    },
   }
 };
 </script>
@@ -1390,15 +1481,19 @@ export default {
   width: 50%;
 }
 @media screen and (max-width: 1024px) {
-  .line-notes .control {width: 100%;}  
+  .line-notes .control {
+    width: 100%;
+  }
 }
 .line-notes textarea {
   width: 100%;
 }
-
 </style>
 <style lang="scss">
-.message-alert .help{
+.message-alert .help {
   color: red;
+}
+.mt--6{
+  margin-top: -6px;
 }
 </style>

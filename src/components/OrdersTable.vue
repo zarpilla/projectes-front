@@ -962,7 +962,6 @@ export default {
       return s && s.toString().includes('.') ? s.toString().replace('.5',':30') : `${s}:00`
     },
     formatSlot2(s1, s2, prefix) {
-      console.log('s1', s1, 's2', s2)
       return s1 && s2 ? (prefix + (s1.toString().includes('.') ? s1.toString().replace('.5',':30') : `${s1}:00`) + '-' + (s2.toString().includes('.') ? s2.toString().replace('.5',':30') : `${s2}:00`)) : ''
     },
     async preUpload() {
@@ -1190,8 +1189,8 @@ export default {
             record.pickup === "1"
               ? this.pickups.find(p => p.pickup)
               : this.pickups.find(p => !p.pickup),
-          kilograms: parseInt(record.kilograms),
-          units: parseInt(record.units),
+          kilograms: Math.abs(parseInt(record.kilograms)),
+          units: Math.abs(parseInt(record.units)),
           notes: record.notes,
           comments: record.notes,
           owner: this.permissions.includes("orders_admin")

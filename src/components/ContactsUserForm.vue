@@ -6,7 +6,7 @@
         <div class="column is-full">
           <card-component class="tile is-child" :css="!modal ? 'card' : 'z'">
             <form @submit.prevent="submit" v-if="!isLoading">
-              <b-field label="Nom comercial *" horizontal>
+              <b-field label="Nom comercial *" horizontal :type="{ 'is-danger': errors['trade_name'] && submitted }">
                 <b-input v-model="form.trade_name" required />
               </b-field>
 
@@ -21,7 +21,8 @@
                       @click="form.sector = sector.id"
                       :class="{
                         'is-warning': form.sector === sector.id,
-                        'is-outlined': form.sector !== sector.id
+                        'is-outlined': form.sector !== sector.id,
+                        'is-danger': errors['sector'] && submitted
                       }"
                       class="mr-2 mb-1"
                       >{{ sector.name }}</b-button
@@ -34,6 +35,7 @@
                 label="Contacte de *"
                 horizontal
                 v-if="isOrdersContactAndUserIsOrdersAdmin"
+                :type="{ 'is-danger': errors['owner'] && submitted }"
               >
                 <b-select
                   v-model="form.owner"
@@ -52,34 +54,36 @@
                   </option>
                 </b-select>
               </b-field>
-
-              <b-field label="Raó Social" horizontal>
-                <b-input
-                  v-model="form.name"
-                  placeholder="Raó Social del contacte"
-                  required
-                />
-              </b-field>
-              <b-field label="NIF" horizontal>
+              <b-field label="NIF *" horizontal :type="{ 'is-danger': errors['nif'] && submitted }">
                 <b-input v-model="form.nif" />
+                <b-button
+                  type="button"
+                  class="button is-warning is-small ml-2"
+                  @click="generateNIF"
+                  title="Generar NIF inventat"
+                  :disabled="form.nif !== ''"
+                  >
+                  <b-icon icon="refresh" />
+                </b-button>
               </b-field>
-              <b-field label="Telèfon *" horizontal>
+              <b-field label="Telèfon *" horizontal :type="{ 'is-danger': errors['phone'] && submitted }">
                 <b-input v-model="form.phone" required />
               </b-field>
-              <b-field label="Adreça *" horizontal>
+              <b-field label="Adreça *" horizontal :type="{ 'is-danger': errors['address'] && submitted }">
                 <b-input v-model="form.address" required type="text" />
               </b-field>
-              <b-field label="CP *" horizontal>
+              <b-field label="CP *" horizontal :type="{ 'is-danger': errors['postcode'] && submitted }">
                 <b-input v-model="form.postcode" required />
               </b-field>
               <b-field
                 label="Població *"
                 horizontal
                 message="Si vols que ens aturem a una població que no apareix aquí, contacta amb La Diligència"
+                :type="{ 'is-danger': errors['city'] && submitted }"
               >
                 <b-autocomplete
                   v-model="citySearch"
-                  placeholder="Població d'entrega"
+                  placeholder="Cerca la població d'entrega"
                   :keep-first="false"
                   :open-on-focus="true"
                   :data="filteredCities"
@@ -94,6 +98,12 @@
               </b-field>
               <b-field label="País" horizontal>
                 <b-input v-model="form.country" />
+              </b-field>
+              <b-field label="Raó Social" horizontal>
+                <b-input
+                  v-model="form.name"                  
+                  required
+                />
               </b-field>
               <b-field label="Email" horizontal>
                 <b-input v-model="form.email" />
@@ -229,7 +239,7 @@
               <hr />
               <b-field
                 horizontal
-                v-if="!form.multiowner || permissions.includes('orders_admin')"
+                v-if="!form.multiowner || permissions.includes('orders_admin') || forceCanEdit"
               >
               
                 <div class="is-flex" v-if="!modal">
@@ -242,12 +252,13 @@
                   >
                   <b-button
                     type="is-primary"
+                    v-if="!form.multiowner || permissions.includes('orders_admin')"
                     :loading="isLoading"
                     @click="submitExit"
                     >Guardar i sortir</b-button
                   >
                   <b-button
-                    v-if="form.id"
+                    v-if="form.id && !form.multiowner || permissions.includes('orders_admin')"
                     type="is-danger"
                     class="ml-auto"
                     :loading="isLoading"
@@ -264,7 +275,7 @@
                   >
                   <b-button
                     type="is-primary"
-                    v-if="canEdit"
+                    v-if="canEdit || forceCanEdit"
                     :loading="isLoading"                    
                     @click="submitAndEmitConfirm"
                     >Guardar</b-button
@@ -327,7 +338,9 @@ export default {
       permissions: [],
       me: {},
       citySearch: "",
-      cities: []
+      cities: [],
+      submitted: false,
+      forceCanEdit: false
     };
   },
   computed: {
@@ -361,11 +374,22 @@ export default {
             .indexOf(this.citySearch.toLowerCase()) >= 0
         );
       });
-    }
+    },
+    errors() {
+      return {
+        trade_name: !this.form.trade_name,
+        nif: !this.form.nif,
+        phone: !this.form.phone,
+        address: !this.form.address,
+        city: !this.form.city,
+        sector: !this.form.sector,
+        postcode: !this.form.postcode,
+        owner: !this.form.owner        
+      };
+    },
   },
   watch: {
     async id(newValue) {
-      console.log('newValue', newValue)
       this.isProfileExists = false;
       if (!newValue || newValue === 0) {
         await this.getAuxiliarData();
@@ -376,7 +400,6 @@ export default {
     }
   },
   created() {
-    console.log('this.ownerId', this.ownerId)
     if (this.ownerId) {
       this.form.owner = this.ownerId;
     }
@@ -389,7 +412,8 @@ export default {
         name: null,
         legal_form: null,
         sector: null,
-        contact_types: [4]
+        contact_types: [4],
+        nif: ''
       };
     },
     async getData() {
@@ -444,7 +468,6 @@ export default {
                 this.form.sector = 0;
               }
 
-
               this.form.contact_types = this.form.contact_types.map(c => c.id);
 
               if (this.form.owner && this.form.owner.id) {
@@ -470,6 +493,16 @@ export default {
                   "YYYY-MM-DD"
                 ).toDate();
               }
+
+              // get orders
+              const contactsWithOrders = 
+                (await service({ requiresAuth: true }).get(
+                  `contacts/withorders?_limit=-1&_sort=name:ASC&contact_id=${this.form.id}`
+                )).data;
+
+              if (contactsWithOrders.length > 0 && contactsWithOrders[0].can_edit === true) {
+                this.forceCanEdit = true                
+              } 
 
               this.isLoading = false;
             } else {
@@ -535,6 +568,7 @@ export default {
     },
     async submit() {
       this.isLoading = true;
+      this.submitted = true;
 
       try {
 
@@ -549,6 +583,7 @@ export default {
             !this.form.address ||
             !this.form.phone ||
             !this.form.city ||
+            !this.form.nif ||
             !this.form.sector ||
             !this.form.postcode ||
             !this.form.owner
@@ -569,6 +604,9 @@ export default {
             message: "Guardat",
             queue: false
           });
+
+          this.submitted = false;
+
           if (this.modal) {            
             this.$emit('confirm', { id: this.form.id });
             return
@@ -580,6 +618,7 @@ export default {
             !this.form.phone ||
             !this.form.address ||
             !this.form.city ||
+            !this.form.nif ||
             !this.form.sector ||
             !this.form.postcode ||
             !this.form.owner
@@ -625,6 +664,8 @@ export default {
             queue: false
           });
 
+          this.submitted = false;
+
           setTimeout(() => {
             this.isLoading = false;
           }, 100);
@@ -638,6 +679,7 @@ export default {
           type: "is-danger"
         });
 
+        this.submitted = false;
         this.isLoading = false;
       }
     },
@@ -723,6 +765,10 @@ export default {
     },
     emitCancel() {
       this.$emit("cancel");
+    },
+    generateNIF() {
+      const nif = Math.floor(Math.random() * 100000000);
+      this.form.nif = 'I-' + nif.toString().padStart(8, "0");
     }
   }
 };
