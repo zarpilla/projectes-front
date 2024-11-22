@@ -239,7 +239,7 @@ export default {
       this.isLoading = false;
     },
     formatSlot2(s1, s2, prefix) {
-      return s1 && s2 ? (prefix + (s1.toString().includes('.') ? s1.toString().replace('.5',':30') : `${s1}:00`) + '-' + (s2.toString().includes('.') ? s2.toString().replace('.5',':30') : `${s2}:00`)) : ''
+      return s1 && s2 ? (prefix + (s1.toString().includes('.') ? s1.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45') : `${s1}:00`) + '-' + (s2.toString().includes('.') ? s2.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45') : `${s2}:00`)) : ''
     },
     queryProjects(q) {
       if (this.queryChanged) {

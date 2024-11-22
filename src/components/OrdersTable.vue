@@ -634,7 +634,7 @@ export default {
         "TELEFON": {
           field: "contact_phone",
           callback: value => {
-            return value.replace(/\s/g, "");
+            return this.phoneFormatted(value)// value.replace(/\s/g, "");
           }
         },
         "ADREÇA": {
@@ -959,10 +959,10 @@ export default {
       this.isLoading = false;
     },
     formatSlot(s) {
-      return s && s.toString().includes('.') ? s.toString().replace('.5',':30') : `${s}:00`
+      return s && s.toString().includes('.') ? s.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45') : `${s}:00`
     },
     formatSlot2(s1, s2, prefix) {
-      return s1 && s2 ? (prefix + (s1.toString().includes('.') ? s1.toString().replace('.5',':30') : `${s1}:00`) + '-' + (s2.toString().includes('.') ? s2.toString().replace('.5',':30') : `${s2}:00`)) : ''
+      return s1 && s2 ? (prefix + (s1.toString().includes('.') ? s1.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45')  : `${s1}:00`) + '-' + (s2.toString().includes('.') ? s2.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45') : `${s2}:00`)) : ''
     },
     async preUpload() {
       return await service({ requiresAuth: true }).post("orders-imports", {
@@ -1463,6 +1463,15 @@ export default {
     },
     addressFormatted(address) {
       return '"' + address + '"';
+    },
+    phoneFormatted(phone) {
+      let ret = phone.replace(/\s/g, "");
+      if (ret.startsWith("+34")) {
+        ret = ret.replace("+34", "34");
+      } else if (!ret.startsWith("34")) {
+        ret = "34" + ret;
+      }
+      return ret;
     },
     timeSlotsFormatted(slots) {
       return '"' + slots + '"';

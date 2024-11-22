@@ -564,7 +564,7 @@ export default {
         kilograms:
           this.form.kilograms === null ||
           this.form.kilograms === "" ||
-          this.form.kilograms < 0
+          this.form.kilograms <= 0
       };
     },
     route_rate() {
@@ -993,15 +993,15 @@ export default {
           return;
         }
 
-        // if (this.form.units <= 0 || this.form.kilograms <= 0) {
-        //   this.$buefy.snackbar.open({
-        //     message: "Error. Els valors de caixes i kilos han de ser positius",
-        //     queue: false,
-        //     type: "is-danger"
-        //   });
-        //   this.isLoading = false;
-        //   return;
-        // }
+        if (this.form.units <= 0 || this.form.kilograms <= 0) {
+          this.$buefy.snackbar.open({
+            message: "Error. Els valors de caixes i kilos han de ser positius",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
 
         if (
           this.form.contact_time_slot_1_ini > this.form.contact_time_slot_1_end

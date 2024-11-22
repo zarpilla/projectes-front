@@ -15,6 +15,10 @@ const config = {
       }, {
         name: 'route_rate',
         expand: false
+      },
+      {
+        name: 'date',
+        expand: false
       }
       ], // Specify a dimension on columns.
     rows: [      
@@ -83,6 +87,9 @@ const config = {
           },
           kilograms: {
             type: 'number'
+          },
+          date: {
+            type: 'string'
           }
         }
       },
@@ -117,6 +124,9 @@ const config = {
           },
           city: {
             caption: 'Població (T)'
+          },
+          date: {
+            caption: 'Dates (T)'
           }
         },
         measures: {

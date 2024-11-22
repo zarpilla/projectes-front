@@ -99,43 +99,8 @@
               <b-field label="País" horizontal>
                 <b-input v-model="form.country" />
               </b-field>
-              <b-field label="Raó Social" horizontal>
-                <b-input
-                  v-model="form.name"                  
-                  required
-                />
-              </b-field>
-              <b-field label="Email" horizontal>
-                <b-input v-model="form.email" />
-              </b-field>
-              <!-- <b-field label="Persona de contacte" horizontal>
-                <b-input v-model="form.contact_person" />
-              </b-field>
-              <b-field label="Telèfon de contacte" horizontal>
-                <b-input v-model="form.contact_phone" />
-              </b-field>
-              <b-field
-                label="Email de contacte"
-                horizontal
-              >
-                <b-input v-model="form.contact_email" />
-              </b-field> -->
-              <b-field label="Web" horizontal>
-                <b-input v-model="form.website" />
-              </b-field>
-              <!-- <b-field label="Forma jurídica" horizontal>
-                <b-select v-model="form.legal_form" placeholder="">
-                  <option
-                    v-for="(s, index) in legalForms"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field> -->
-
-              <b-field label="Horari de contacte 1" horizontal>
+              
+              <b-field label="Horari de contacte 1 *" horizontal>
                 <b-field label="">
                   <b-select
                     v-model="form.time_slot_1_ini"
@@ -179,7 +144,7 @@
                 </b-field>
               </b-field>
 
-              <b-field label="Horari de contacte 2" horizontal>
+              <b-field label="Horari de contacte 2 *" horizontal>
                 <b-field label="">
                   <b-select
                     v-model="form.time_slot_2_ini"
@@ -235,6 +200,42 @@
                   placeholder="Notes, observacions, comentaris... "
                 />
               </b-field>
+
+              <b-field label="Raó Social" horizontal>
+                <b-input
+                  v-model="form.name"                  
+                  required
+                />
+              </b-field>
+              <b-field label="Email" horizontal>
+                <b-input v-model="form.email" />
+              </b-field>
+              <b-field label="Persona de contacte" horizontal>
+                <b-input v-model="form.contact_person" />
+              </b-field>
+              <b-field label="Telèfon de contacte" horizontal>
+                <b-input v-model="form.contact_phone" />
+              </b-field>
+              <!-- <b-field
+                label="Email de contacte"
+                horizontal
+              >
+                <b-input v-model="form.contact_email" />
+              </b-field> -->
+              <b-field label="Web" horizontal>
+                <b-input v-model="form.website" />
+              </b-field>
+              <!-- <b-field label="Forma jurídica" horizontal>
+                <b-select v-model="form.legal_form" placeholder="">
+                  <option
+                    v-for="(s, index) in legalForms"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field> -->
 
               <hr />
               <b-field
