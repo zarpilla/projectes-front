@@ -46,13 +46,21 @@
             </b-autocomplete>
           </b-field>
 
-          <b-field label="Hores" horizontal message="Hores diaries de treball">
+          <b-field label="Hores" horizontal message="Hores diaries de treball (el total de la setmana dividit entre 5)">
             <b-input
               v-model="form.hours"
               placeholder="Hores"
               name="hours"
               required
               @input="fixDecimals('hours', form.hours)"
+            />
+          </b-field>
+
+          <b-field label="Distribució setmanal" horizontal message="Hores diaries de treball durant la setmana (omplir només si les hores no es distrubueixen uniformement de dilluns a divendres). Per exemple: 8,8,0,8,8,0,0">
+            <b-input
+              v-model="form.hoursperday"
+              placeholder="Distribució setmanal d'hores diàries"
+              name="hoursperday"
             />
           </b-field>
 
@@ -346,6 +354,7 @@ export default {
         this.form.pct_quota = this.dedicationObject._dedication.pct_quota;
         this.form.pct_irpf = this.dedicationObject._dedication.pct_irpf;
         this.form.pct_other = this.dedicationObject._dedication.pct_other;
+        this.form.hoursperday = this.dedicationObject._dedication.hoursperday;
       } else {
         this.form.from = null;
         this.form.to = null;
@@ -359,6 +368,7 @@ export default {
         this.form.pct_irpf = 0;
         this.form.pct_other = 0;
         this.form.id = 0;
+        this.form.hoursperday = "";
       }
 
       this.form.costByHour = this.calcCostByHour();
@@ -374,6 +384,13 @@ export default {
       if (!this.dirty) {
         this.cancel()
         return
+      }
+      if (!this.validateHousPerDay()) {
+        this.$buefy.toast.open({
+          message: "La suma de les hores diàries no coincideix amb les hores totals o el format és incorrecte",
+          type: "is-danger",
+        });
+        return;
       }
       // this.form.id = this.dedicationObject.id
       this.form._dedication = this.dedicationObject._dedication;
@@ -419,6 +436,19 @@ export default {
         this.form.costByHour = this.calcCostByHour();
       }
     },
+    validateHousPerDay() {
+      if (!this.form.hoursperday) {
+        return true;
+      }
+      const hoursperday = this.form.hoursperday.split(",");
+      if (hoursperday.length !== 7) {
+        return false;
+      }
+      const sum = hoursperday.reduce((acc, curr) => {
+        return acc + parseInt(curr);
+      }, 0);
+      return sum === this.form.hours * 5;
+    }
   },
 };
 </script>

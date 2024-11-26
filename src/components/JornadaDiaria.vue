@@ -170,20 +170,7 @@
               >
                 <b-icon icon="trash-can" size="is-small" />
               </button>
-            </div>
-            <!-- <div class="column">
-              {{ d.theoricHours.toFixed(2) }}
-              {{ d.dateDescription ? `- ${d.dateDescription}` : "" }}
-            </div>
-            <div class="column">
-              {{ d.workedHours.toFixed(2) }}
-            </div>
-            <div class="column">
-              {{ d.totalWorkedHours.toFixed(2) }}
-            </div>
-            <div class="column">
-              {{ d.balance.toFixed(2) }}
-            </div> -->            
+            </div>   
           </div>
           <div class="columns" v-else>
             <div class="column">

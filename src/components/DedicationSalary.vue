@@ -335,6 +335,8 @@ export default {
                 );
                 const festive = festives.find((f) => f.date === date);
 
+                const startOnMondayDay = day === 0 ? 6 : day - 1;
+
                 const theoricHours =
                   (!festive ||
                     (festive &&
@@ -342,9 +344,10 @@ export default {
                       festive.users_permissions_user.id)) &&
                   dailyDedication &&
                   day !== 0 &&
-                  day !== 6
+                  day !== 6  && !dailyDedication.hoursperday
                     ? dailyDedication.hours
-                    : 0;
+                    : 
+                    (!festive && dailyDedication && dailyDedication.hoursperday ? parseInt(dailyDedication.hoursperday.split(',')[startOnMondayDay]) : 0);
 
                 const workedHours =
                   sumBy(activities, "hours") +

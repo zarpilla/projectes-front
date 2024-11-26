@@ -244,11 +244,16 @@ export default {
               this.warn = true;
               console.warn("date!", date);
             }
-            // const festive = festives.find((f) => f.date === date);
+            
+            const startOnMondayDay = day === 0 ? 6 : day - 1;
+
             const theoricHours =
-              !festive && dailyDedication && day !== 0 && day !== 6
+              !festive && dailyDedication && day !== 0 && day !== 6 && !dailyDedication.hoursperday
                 ? dailyDedication.hours
-                : 0;
+                : 
+                (!festive && dailyDedication && dailyDedication.hoursperday ? parseInt(dailyDedication.hoursperday.split(',')[startOnMondayDay]) :
+                0);
+
             laborableHours +=
               dailyDedication && day !== 0 && day !== 6
                 ? dailyDedication.hours
