@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2024.11.26">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Es permet modificar la distribució setmanal d'hores treballades a les jornades de <router-link to="/working-day">persones.</router-link>
+          </div>
+        </div>
+      </card-component>
       <card-component title="2024.09.19">
         <div class="item mb-4">
           <span class="tag is-danger">Correccions</span>
