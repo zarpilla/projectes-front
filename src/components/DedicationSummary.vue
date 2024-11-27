@@ -251,7 +251,7 @@ export default {
               !festive && dailyDedication && day !== 0 && day !== 6 && !dailyDedication.hoursperday
                 ? dailyDedication.hours
                 : 
-                (!festive && dailyDedication && dailyDedication.hoursperday ? parseInt(dailyDedication.hoursperday.split(',')[startOnMondayDay]) :
+                (!festive && dailyDedication && dailyDedication.hoursperday ? parseFloat(dailyDedication.hoursperday.split(',')[startOnMondayDay]) :
                 0);
 
             laborableHours +=

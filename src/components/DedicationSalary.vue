@@ -347,7 +347,7 @@ export default {
                   day !== 6  && !dailyDedication.hoursperday
                     ? dailyDedication.hours
                     : 
-                    (!festive && dailyDedication && dailyDedication.hoursperday ? parseInt(dailyDedication.hoursperday.split(',')[startOnMondayDay]) : 0);
+                    (!festive && dailyDedication && dailyDedication.hoursperday ? parseFloat(dailyDedication.hoursperday.split(',')[startOnMondayDay]) : 0);
 
                 const workedHours =
                   sumBy(activities, "hours") +

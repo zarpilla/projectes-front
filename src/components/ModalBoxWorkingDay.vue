@@ -445,7 +445,7 @@ export default {
         return false;
       }
       const sum = hoursperday.reduce((acc, curr) => {
-        return acc + parseInt(curr);
+        return acc + parseFloat(curr);
       }, 0);
       return sum === this.form.hours * 5;
     }
