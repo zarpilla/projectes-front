@@ -249,6 +249,7 @@ export default {
         quota: 0,
         pct_irpf: 0,
         pct_other: 0,
+        hoursperday: "",
       },
       trashObject: null,
       isDeleteModalActive: false,
