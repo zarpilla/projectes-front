@@ -1235,9 +1235,9 @@ export default {
               ? this.deliveryTypes.find(d => d.refrigerated)
               : this.deliveryTypes.find(d => !d.refrigerated),
           pickup:
-            record.pickup === "1"
-              ? this.pickups.find(p => p.pickup)
-              : this.pickups.find(p => !p.pickup),
+            record.pickup ?
+              this.pickups.find(p => p.id.toString() === record.pickup.toString())
+              : this.pickups[0],
           kilograms: Math.abs(parseInt(record.kilograms)),
           units: Math.abs(parseInt(record.units)),
           notes: record.notes,
