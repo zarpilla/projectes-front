@@ -496,6 +496,7 @@ import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import { assignRouteRate, assignRouteDate } from "@/service/assignRouteRate";
 import moment from "moment";
+import _ from "lodash";
 
 export default {
   name: "Tresoreria",
@@ -973,18 +974,23 @@ export default {
       console.log("uploaded", e);
       if (e.fileList && e.fileList[0]) {
         const file = e.fileList[0];
-        const reader = new FileReader();
+
+        let continueImport = true;
 
         if (file && file.name && !file.name.toLowerCase().endsWith(".csv")) {
           this.$buefy.snackbar.open({
             message: "Només es poden pujar arxius CSV",
             type: "is-danger"
           });
+          continueImport = false;
           return;
         }
         this.importing = true;
-
+        const reader = new FileReader();
         reader.onload = async e => {
+          if (!continueImport) {
+            return;
+          }
           const text = e.target.result;
           this.csv = text;
           const records = await this.readCSV(text);
@@ -1013,31 +1019,66 @@ export default {
 
       let i = 2;
       this.csvErrors = [];
+
+      if (!records.length) {
+        this.csvErrors.push({ line: 1, error: "No hi ha registres" });
+        return false;
+      }
+
+
+      const owner = this.permissions.includes("orders_admin")
+            ? this.users.find(
+                u => u.id.toString() === records[0].owner_id.toString()
+              )
+            : this.me;
+
+            console.log("owner", owner);
+      const contacts = await this.getContactsForImport(owner.id)
+
+      console.log("contacts", contacts);
+
+
+
       for await (const record of records) {
         if (!record.route_name) {
-          this.csvErrors.push({ line: i, error: "No route" });
+          this.csvErrors.push({ line: i, error: "No hi ha ruta (route_name)" });
           return false;
         }
-        if (!record.contact_address) {
-          this.csvErrors.push({ line: i, error: "No contact_address" });
+        // if (!record.contact_address) {
+        //   this.csvErrors.push({ line: i, error: "No contact_address" });
+        //   return false;
+        // }
+        if (!record.contact_trade_name) {
+          this.csvErrors.push({ line: i, error: "No hi ha nom comercial (contact_trade_name)" });
           return false;
         }
-        if (!record.contact_name) {
-          this.csvErrors.push({ line: i, error: "No contact_name" });
+
+        const contact = contacts.find(
+          c =>
+            this.removeAccents(c.trade_name) ===
+            this.removeAccents(record.contact_trade_name)
+        );
+
+        if (!contact) {
+          this.csvErrors.push({
+            line: i,
+            error: `Punt d'entrega ${record.contact_trade_name} no trobat`
+          });
           return false;
         }
-        if (!record.contact_phone) {
-          this.csvErrors.push({ line: i, error: "No contact_phone" });
-          return false;
-        }
-        if (!record.contact_postcode) {
-          this.csvErrors.push({ line: i, error: "No contact_postcode" });
-          return false;
-        }
-        if (!record.contact_city) {
-          this.csvErrors.push({ line: i, error: "No contact_city" });
-          return false;
-        }
+
+        // if (!record.contact_phone) {
+        //   this.csvErrors.push({ line: i, error: "No contact_phone" });
+        //   return false;
+        // }
+        // if (!record.contact_postcode) {
+        //   this.csvErrors.push({ line: i, error: "No contact_postcode" });
+        //   return false;
+        // }
+        // if (!record.contact_city) {
+        //   this.csvErrors.push({ line: i, error: "No contact_city" });
+        //   return false;
+        // }
         // if (!record.contact_nif) {
         //   this.csvErrors.push({ line: i, error: "No contact_nif" });
         //   return false;
@@ -1050,73 +1091,73 @@ export default {
         //   this.csvErrors.push({ line: i, error: "No contact_time_slot_1_end" });
         //   return false;
         // }
-        if (!record.kilograms) {
-          this.csvErrors.push({ line: i, error: "No kilograms" });
+        if (!record.kilograms || parseInt(record.kilograms) <= 0) {
+          this.csvErrors.push({ line: i, error: "Kilograms incorrectes (kilograms)" });
           return false;
         }
-        if (!record.units) {
-          this.csvErrors.push({ line: i, error: "No units" });
+        if (!record.units || parseInt(record.units) <= 0) {
+          this.csvErrors.push({ line: i, error: "Caixes incorrectes (units)" });
           return false;
         }
         
 
         // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
-        if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
-          if (
-            parseFloat(record.contact_time_slot_1_ini) >=
-            parseFloat(record.contact_time_slot_1_end)
-          ) {
-            console.log(
-              "record",
-              record
-            );
-            this.csvErrors.push({
-              line: i,
-              error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
-            });
-            return false;
-          }
-        }
+        // if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
+        //   if (
+        //     parseFloat(record.contact_time_slot_1_ini) >=
+        //     parseFloat(record.contact_time_slot_1_end)
+        //   ) {
+        //     console.log(
+        //       "record",
+        //       record
+        //     );
+        //     this.csvErrors.push({
+        //       line: i,
+        //       error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
+        //     });
+        //     return false;
+        //   }
+        // }
 
-        // Cal indicar l'hora de finalització del tram horari 1
-        if (record.contact_time_slot_1_ini && !record.contact_time_slot_1_end) {
-          this.csvErrors.push({
-            line: i,
-            error: `Cal indicar l'hora de finalització del tram horari 1`
-          });
-          return false;
-        }
+        // // Cal indicar l'hora de finalització del tram horari 1
+        // if (record.contact_time_slot_1_ini && !record.contact_time_slot_1_end) {
+        //   this.csvErrors.push({
+        //     line: i,
+        //     error: `Cal indicar l'hora de finalització del tram horari 1`
+        //   });
+        //   return false;
+        // }
 
-        // El tram horari ha de ser més gran de 3 hores
-        if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
-          if (
-            parseFloat(record.contact_time_slot_1_end) -
-            parseFloat(record.contact_time_slot_1_ini < 3)
-          ) {
-            // comprovar també per al tram 2
-            if (
-              record.contact_time_slot_2_ini &&
-              record.contact_time_slot_2_end
-            ) {
-              if (
-                parseFloat(record.contact_time_slot_2_end) -
-                parseFloat(record.contact_time_slot_2_ini < 3)
-              ) {
-                this.csvErrors.push({
-                  line: i,
-                  error: `El tram horari ha de ser mínim de 3 hores`
-                });
-                return false;
-              }
-            } else {
-              this.csvErrors.push({
-                line: i,
-                error: `El tram horari ha de ser mínim de 3 hores`
-              });
-              return false;
-            }
-          }
-        }
+        // // El tram horari ha de ser més gran de 3 hores
+        // if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
+        //   if (
+        //     parseFloat(record.contact_time_slot_1_end) -
+        //     parseFloat(record.contact_time_slot_1_ini < 3)
+        //   ) {
+        //     // comprovar també per al tram 2
+        //     if (
+        //       record.contact_time_slot_2_ini &&
+        //       record.contact_time_slot_2_end
+        //     ) {
+        //       if (
+        //         parseFloat(record.contact_time_slot_2_end) -
+        //         parseFloat(record.contact_time_slot_2_ini < 3)
+        //       ) {
+        //         this.csvErrors.push({
+        //           line: i,
+        //           error: `El tram horari ha de ser mínim de 3 hores`
+        //         });
+        //         return false;
+        //       }
+        //     } else {
+        //       this.csvErrors.push({
+        //         line: i,
+        //         error: `El tram horari ha de ser mínim de 3 hores`
+        //       });
+        //       return false;
+        //     }
+        //   }
+        // }
 
         if (
           !this.routes.find(
@@ -1137,7 +1178,7 @@ export default {
         ) {
           this.csvErrors.push({
             line: i,
-            error: `Owner ${record.owner_id} no trobat`
+            error: `Sòcia ${record.owner_id} no trobada`
           });
           return false;
         }
@@ -1148,36 +1189,44 @@ export default {
             this.removeAccents(r.name) === this.removeAccents(record.route_name)
         );
 
+        if (!route) {
+          this.csvErrors.push({
+            line: i,
+            error: `Ruta ${record.route_name} no trobada (route_name)`
+          });
+          return false;
+        }
+
         const routeDate = assignRouteDate(route)
 
         const order = {
           id: 0,
           route_date: new Date().toISOString().split("T")[0],
           estimated_delivery_date: record.estimated_delivery_date ?? null,
-          contact_address: record.contact_address,
-          contact_name: record.contact_name,
-          contact_trade_name: record.contact_trade_name,
-          contact_phone: record.contact_phone,
-          contact_postcode: record.contact_postcode,
-          contact_nif: record.contact_nif,
-          contact_city: record.contact_city,
-          contact_legal_form: record.contact_legal_form.id,
-          contact_time_slot_1_ini: record.contact_time_slot_1_ini ?? null,
-          contact_time_slot_1_end: record.contact_time_slot_1_end ?? null,
-          contact_time_slot_2_ini: record.contact_time_slot_2_ini ?? null,
-          contact_time_slot_2_end: record.contact_time_slot_2_end ?? null,
+          contact_address: contact.address,
+          contact_name: contact.name,
+          contact_trade_name: contact.trade_name,
+          contact_phone: contact.phone,
+          contact_postcode: contact.postcode,
+          contact_nif: contact.nif,
+          contact_city: contact.city,
+          contact_legal_form: contact.legal_form ? contact.legal_form.id : null,
+          contact_time_slot_1_ini: contact.time_slot_1_ini ?? null,
+          contact_time_slot_1_end: contact.time_slot_1_end ?? null,
+          contact_time_slot_2_ini: contact.time_slot_2_ini ?? null,
+          contact_time_slot_2_end: contact.time_slot_2_end ?? null,
           contact: {
-            name: record.contact_name,
-            trade_name: record.contact_trade_name,
-            address: record.contact_address,
-            phone: record.contact_phone,
-            postcode: record.contact_postcode,
-            nif: record.contact_nif,
-            city: record.contact_city,
-            time_slot_1_ini: record.contact_time_slot_1_ini,
-            time_slot_1_end: record.contact_time_slot_1_end,
-            time_slot_2_ini: record.contact_time_slot_2_ini,
-            time_slot_2_end: record.contact_time_slot_2_end
+            name: contact.name,
+            trade_name: contact.trade_name,
+            address: contact.address,
+            phone: contact.phone,
+            postcode: contact.postcode,
+            nif: contact.nif,
+            city: contact.city,
+            time_slot_1_ini: contact.time_slot_1_ini,
+            time_slot_1_end: contact.time_slot_1_end,
+            time_slot_2_ini: contact.time_slot_2_ini,
+            time_slot_2_end: contact.time_slot_2_end
           },
           fragile: record.fragile === "1",
           refrigerated: record.refrigerated === "1",
@@ -1199,9 +1248,10 @@ export default {
               )
             : this.me,
           route: route,
-          estimated_delivery_date: moment(
-            routeDate.nextDay.toDate()
-          ).format("YYYY-MM-DD"),
+          estimated_delivery_date: record.estimated_delivery_date ? moment(record.estimated_delivery_date, 'YYYYMMDD').format("YYYY-MM-DD") :
+            moment(
+              routeDate.nextDay.toDate()
+            ).format("YYYY-MM-DD"),
           price: null,
           status: "CSV",
           _uuid: this.createUUID()
@@ -1231,13 +1281,13 @@ export default {
 
         if (order.kilograms !== null && orderWithRate.route_rate) {
           const rate = orderWithRate.route_rate;
-          if (order.kilograms < 15) {
+          if (Math.abs(order.kilograms) < 15) {
             orderWithRate.price = rate.less15;
-          } else if (order.kilograms < 30) {
+          } else if (Math.abs(order.kilograms) < 30) {
             orderWithRate.price = rate.less30;
           } else {
             orderWithRate.price =
-              rate.less30 + (order.kilograms - 30) * rate.additional30;
+              rate.less30 + (Math.abs(order.kilograms) - 30) * rate.additional30;
           }
         } else {
           // console.warn("!order", order.kilograms, order.route_rate);
@@ -1245,6 +1295,24 @@ export default {
         this.orders.unshift(orderWithRate);
         // this.orders.unshift(order);
       }
+    },
+    async getContactsForImport(owner) {
+
+      const contacts1 = (
+        await service({ requiresAuth: true, cached: false }).get(
+          `contacts/basic?_limit=-1&_where[owner]=${owner}`
+        )
+      ).data
+
+      const contacts2 = (
+        await service({ requiresAuth: true, cached: false }).get(
+          `contacts/basic?_limit=-1&_where[multiowner]=true`
+        )
+      ).data
+
+      const contacts = _.concat(contacts1, contacts2);
+
+      return contacts
     },
     async importContactsCSV(records) {
       // for (const key in this.csvAlias) {

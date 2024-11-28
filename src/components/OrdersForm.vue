@@ -893,7 +893,9 @@ export default {
         const route = this.routes.find(r => r.id === this.form.route);
         const routeDate = assignRouteDate(route);
         const nextDay = routeDate.nextDay;
-        this.form.estimated_delivery_date = nextDay.toDate();
+        if (this.form.status === "pending") {
+          this.form.estimated_delivery_date = nextDay.toDate();
+        }
         if (routeDate.warning) {
           this.dateWarningMessage = routeDate.warning;
           this.$buefy.toast.open({
@@ -906,6 +908,7 @@ export default {
       }
     },
     async checkEstimatedDeliveryDate() {
+      console.log("checkEstimatedDeliveryDate");
       const route = this.routes.find(r => r.id === this.form.route);
       const valid = checkIfDateIsValidInroute(
         route,
