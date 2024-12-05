@@ -1025,6 +1025,8 @@ export default {
         return false;
       }
 
+      console.log("records", records);
+
 
       const owner = this.permissions.includes("orders_admin")
             ? this.users.find(
@@ -1216,6 +1218,7 @@ export default {
           contact_time_slot_2_ini: contact.time_slot_2_ini ?? null,
           contact_time_slot_2_end: contact.time_slot_2_end ?? null,
           contact: {
+            id: contact.id,
             name: contact.name,
             trade_name: contact.trade_name,
             address: contact.address,
