@@ -95,7 +95,7 @@
       <b-table-column label="Horari" field="timeSlot1And2" searchable sortable v-slot="props">
         {{ props.row.timeSlot1And2 || '-'}}
       </b-table-column>
-      <b-table-column label="Contacte de" field="contact_of_display" searchable sortable v-slot="props">
+      <b-table-column v-if="orders_admin" label="Contacte de" field="contact_of_display" searchable sortable v-slot="props">
         <span v-if="props.row.multidelivery">MULTIENTREGA</span>
         <span v-else-if="props.row.multiowner">TOTES</span>        
         <span v-else-if="props.row.owner && (props.row.owner.fullname || props.row.owner.username)">{{ props.row.owner.fullname || props.row.owner.username }}</span>
@@ -230,7 +230,7 @@ export default {
           ...contact,
           contact_type_display: contact.contact_types ? contact.contact_types.map(ct => ct.name).join(", ") : '-',
           contact_of_display: contact.multidelivery ? 'MULTIENTREGA' : (contact.multiowner ? 'TOTES' : ( contact.owner ? (contact.owner.fullname || contact.owner.username) : '---')),
-          timeSlot1And2: `${this.formatSlot2(contact.time_slot_1_ini, contact.time_slot_1_end, '')}${this.formatSlot2(contact.time_slot_2_ini, contact.contact_time_slot_2_end, ', ')}`,
+          timeSlot1And2: `${this.formatSlot2(contact.time_slot_1_ini, contact.time_slot_1_end, '')}${this.formatSlot2(contact.time_slot_2_ini, contact.time_slot_2_end, ', ')}`,
           num_orders: contact.num_orders || 0
         };
       });

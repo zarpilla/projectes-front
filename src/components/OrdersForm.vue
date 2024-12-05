@@ -1342,29 +1342,23 @@ export default {
     },
     async refreshClients(owner) {
       const contacts1 = (
-        await service({ requiresAuth: true, cached: false }).get(
-          `contacts/basic?_limit=-1&_where[owner]=${owner}`
+        await service({ requiresAuth: true, cached: true }).get(
+          `contacts/basic?_limit=-1&_where[owner_gt]=0&_sort=trade_name:ASC`
         )
       ).data.map(c => {
         return { ...c, display: `${c.trade_name} (${c.id})` };
       });
 
-      const contacts2 = (
-        await service({ requiresAuth: true, cached: false }).get(
-          `contacts/basic?_limit=-1&_where[multiowner]=true`
-        )
-      ).data.map(c => {
-        const deviliveryLabel = c.multidelivery
-          ? " - MULTIENTREGA"
-          : " - TOTES";
-        return { ...c, display: `${c.trade_name} (${c.id})${deviliveryLabel}` };
-      });
+      // const contacts2 = (
+      //   await service({ requiresAuth: true, cached: false }).get(
+      //     `contacts/basic?_limit=-1&_where[multiowner]=true`
+      //   )
+      // ).data.map(c => {
+      //   return { ...c, display: `${c.trade_name} (${c.id})${deviliveryLabel}` };
+      // });
 
-      this.contacts = concat(contacts1, contacts2);
+      this.contacts = contacts1;
 
-      if (!this.contacts.find(c => c.id === 0)) {
-        // this.contacts = concat({ id: 0, name: "--" }, this.contacts);
-      }
     },
 
     removeContactData() {

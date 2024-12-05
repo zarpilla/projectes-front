@@ -244,6 +244,14 @@
 
     <div class="mb-3">
       <div class="is-flex">
+        <div class="mr-6">
+          <h2 class="pr-2">NÚM.</h2>
+          <div class="is-flex">
+            <b class="pt-2">
+           {{ checkedRows.length ? checkedRows.length + ' de ' : '' }} {{ theOrders.length}}
+            </b>
+          </div>
+        </div>
         <div v-if="permissions.includes('orders_admin')">
           <h2>CANVIAR ESTAT</h2>
           <div class="is-flex">
@@ -287,17 +295,19 @@
             </button>
           </div>
         </div>
+        
       </div>
     </div>
 
     <b-table
+      ref="table"
       :loading="isLoading"
       :paginated="false"
       :striped="false"
       :data="theOrders"
-      :checked-rows.sync="checkedRows"
+      :checked-rows.sync="checkedRows"      
       :is-row-checkable="row => true"
-      :debounce-search="500"
+      :debounce-search="500"      
       :checkable="true || permissions.includes('orders_admin')"
     >
       <b-table-column label="ID" field="idx" sortable v-slot="props" searchable>
@@ -497,6 +507,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import { assignRouteRate, assignRouteDate } from "@/service/assignRouteRate";
 import moment from "moment";
 import _ from "lodash";
+import { filter } from "lodash";
 
 export default {
   name: "Tresoreria",
@@ -645,7 +656,7 @@ export default {
           }
         },
         "DETALLS COMANDA": {
-          field: "comments",
+          field: "commentsNotes",
           callback: value => {
             return this.addressFormatted(value);
           }
@@ -831,6 +842,10 @@ export default {
     ...mapState(["userName"]),
     ...mapState(["userId"]),
     theOrders() {
+      this.orders = this.orders.map(o => ({
+        ...o,
+        commentsNotes: (o.comments ? o.comments : '') + (o.comments && o.refrigerated ? ' - ' : '') +  (o.refrigerated ? 'REFRIGERAT' : '')
+      }))
       const orders = this.orders.filter(o => {
         if (this.statusFilter === "") {
           return true;
@@ -1613,7 +1628,7 @@ export default {
     },
     comandesRouterCSVName() {
       return `comandes-${moment().format("YYYYMMDD-HHmmss")}.csv`;
-    },
+    },    
   }
 };
 </script>
