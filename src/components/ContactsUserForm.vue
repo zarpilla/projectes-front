@@ -54,7 +54,7 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field label="NIF *" horizontal :type="{ 'is-danger': errors['nif'] && submitted }">
+              <b-field label="NIF *" horizontal :type="{ 'is-danger': errors['nif'] && submitted }" message="Posa un NIF vàlid. Si no el tens, en pots generar un amb el botó de la dreta">
                 <b-input v-model="form.nif" />
                 <b-button
                   type="button"

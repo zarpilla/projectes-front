@@ -548,8 +548,8 @@ export default {
         units: this.form.units === null || this.form.units <= 0,
         contact_name:
           this.form.contact_name === null || this.form.contact_name === "",
-        //contact_nif:
-        //this.form.contact_nif === null || this.form.contact_nif === "",
+        contact_nif:
+          this.form.contact_nif === null || this.form.contact_nif === "",
         contact_legal_form: this.form.contact_legal_form === null,
         contact_address:
           this.form.contact_address === null ||
@@ -1006,6 +1006,8 @@ export default {
           return;
         }
 
+        console.log("this.form!!!", this.form);
+
         if (
           this.form.contact_time_slot_1_ini > this.form.contact_time_slot_1_end
         ) {
@@ -1018,6 +1020,125 @@ export default {
           this.isLoading = false;
           return;
         }
+
+        if (
+          !this.form.contact_trade_name
+        ) {
+          this.$buefy.snackbar.open({
+            message:
+              "Error. No hi ha nom comercial al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (
+          !this.form.contact_city
+        ) {
+          this.$buefy.snackbar.open({
+            message:
+              "Error. No hi ha població al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        // if (
+        //   !this.form.contact_legal_form
+        // ) {
+        //   this.$buefy.snackbar.open({
+        //     message:
+        //       "Error. No hi ha sector al punt d'entrega",
+        //     queue: false,
+        //     type: "is-danger"
+        //   });
+        //   this.isLoading = false;
+        //   return;
+        // }
+
+        if (
+          !this.form.contact_nif
+        ) {
+          this.$buefy.snackbar.open({
+            message:
+              "Error. No hi ha NIF al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (
+          !this.form.contact_phone
+        ) {
+          this.$buefy.snackbar.open({
+            message:
+              "Error. No hi ha telèfon al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (
+          !this.form.contact_address
+        ) {
+          this.$buefy.snackbar.open({
+            message:
+              "Error. No hi ha adreça al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (
+          !this.form.contact_postcode
+        ) {
+          this.$buefy.snackbar.open({
+            message:
+              "Error. No hi ha codi postal al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        if (
+          !this.form.contact_time_slot_1_ini ||
+          !this.form.contact_time_slot_1_end
+        ) {
+          this.$buefy.snackbar.open({
+            message:
+              "Error. No hi ha tots els trams horaris definits al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        // if (
+        //   !this.form.contact_time_slot_2_ini ||
+        //   !this.form.contact_time_slot_2_end
+        // ) {
+        //   this.$buefy.snackbar.open({
+        //     message:
+        //       "Error. No hi ha tots els trams horaris definits al punt d'entrega",
+        //     queue: false,
+        //     type: "is-danger"
+        //   });
+        //   this.isLoading = false;
+        //   return;
+        // }
 
         if (
           this.form.contact_time_slot_2_ini &&
@@ -1241,11 +1362,14 @@ export default {
       if (this.form.contact) {
         if (
           !this.form.contact_name ||
-          // !this.form.contact_nif ||
+          !this.form.contact_nif ||
           !this.form.contact_address ||
           !this.form.contact_phone ||
           !this.form.contact_city ||
-          !this.form.contact_postcode
+          !this.form.contact_postcode ||
+          !this.form.contact_legal_form || 
+          !this.form.contact_time_slot_1_ini ||
+          !this.form.contact_time_slot_1_end
         ) {
           this.$buefy.snackbar.open({
             message: "Error. Falten alguns camps obligatòris",
@@ -1286,11 +1410,12 @@ export default {
       } else {
         if (
           !this.form.contact_name ||
-          //!this.form.contact_nif ||
+          !this.form.contact_nif ||
           !this.form.contact_address ||
           !this.form.contact_phone ||
           !this.form.contact_city ||
-          !this.form.contact_postcode
+          !this.form.contact_postcode ||
+          !this.form.contact_legal_form
         ) {
           this.$buefy.snackbar.open({
             message: "Error. Falten alguns camps obligatòris",
@@ -1342,7 +1467,7 @@ export default {
     },
     async refreshClients(owner) {
       const contacts1 = (
-        await service({ requiresAuth: true, cached: true }).get(
+        await service({ requiresAuth: true, cached: false }).get(
           `contacts/basic?_limit=-1&_where[owner_gt]=0&_sort=trade_name:ASC`
         )
       ).data.map(c => {
@@ -1379,12 +1504,16 @@ export default {
       this.contactSearch = "";
     },
     async onClientaChange(id) {
-      //console.log("onClientaChange", id);
+      console.log("onClientaChange", id);
       // this.form.contact = e.target.value;
       if (id) {
         const contact = this.contacts.find(
           c => c.id.toString() === id.toString()
         );
+
+        this.contactSearch = `${contact.trade_name} (${contact.id})`;
+
+        console.log("onClientaChange contact", contact);
 
         this.form.contact_name = contact.name;
         this.form.contact_trade_name = contact.trade_name;
@@ -1395,6 +1524,7 @@ export default {
         this.form.contact_phone = contact.phone;
         this.form.contact_city = contact.city;
         this.form.contact_multiowner = contact.multiowner;
+        
         this.citySearch = contact.city;
 
         if (this.cities.find(c => c.name === contact.city)) {
@@ -1430,9 +1560,7 @@ export default {
       await this.refreshClients(this.form.owner);
       const contact = this.contacts.find(c => c.id === contactId);
       this.contactSearch = `${contactId} - ${contact.trade_name}`;
-      if (this.canEditContact) {
-        this.onClientaChange(contactId);
-      }
+      this.onClientaChange(contactId);
     },
     changeRate() {      
       const rate = assignRouteRate(this.form, this.routeRates, this.orders);
