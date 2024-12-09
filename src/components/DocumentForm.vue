@@ -582,7 +582,7 @@
                     </button>
                   </b-field>
                 </b-field>
-                <b-field
+                <!-- <b-field
                   grouped
                   class="is-full-width"
                   v-if="products.length > 0"
@@ -599,7 +599,7 @@
                     :clearable="true"
                   >
                   </b-autocomplete>
-                </b-field>
+                </b-field> -->
                 <b-field
                   label="Notes"
                   grouped
@@ -873,7 +873,7 @@
               :disabled="!canSendEmail"
             >
               Enviar factura per correu i guardar
-            </button>
+            </button>            
           </b-field>
         </div>
       </div>
@@ -1080,8 +1080,9 @@ export default {
     canSendEmail() {
       const can =
         this.form.id !== null &&
-        this.form.pdf &&
-        this.form.pdf.startsWith("/uploads/documents/") &&
+        // this.pdf &&
+        //this.form.pdf &&
+        //this.form.pdf.startsWith("/uploads/documents/") &&
         this.form.contact !== null &&
         this.contact !== null &&
         this.contact.contact_email !== null;
@@ -1973,6 +1974,14 @@ export default {
     async sendInvoiceByEmail() {
       this.isLoading = true;
       try {
+
+        const pdf = (
+          await service({ requiresAuth: true }).get(
+            `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
+          )
+        ).data;
+        this.pdf = true;
+        
         await service({ requiresAuth: true }).post(
           `/emitted-invoices/send-email/${this.form.id}`
         );
