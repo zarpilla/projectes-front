@@ -18,9 +18,6 @@ const config = {
     }, {
       name: 'phase',
       expand: false
-    }, {
-      name: 'subphase',
-      expand: false
     },
     {
       name: 'row_type',
@@ -60,7 +57,10 @@ const config = {
           },
           row_type: {
             type: 'string'
-          }
+          },
+          phase: {
+            type: 'string'
+          },
         }
       },
       cube: {
