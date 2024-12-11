@@ -239,8 +239,7 @@
 
               <hr />
               <b-field
-                horizontal
-                v-if="!form.multiowner || permissions.includes('orders_admin') || forceCanEdit"
+                horizontal                
               >
               
                 <div class="is-flex" v-if="!modal">
@@ -252,14 +251,13 @@
                     >Guardar</b-button
                   >
                   <b-button
-                    type="is-primary"
-                    v-if="!form.multiowner || permissions.includes('orders_admin')"
+                    type="is-primary"                    
                     :loading="isLoading"
                     @click="submitExit"
                     >Guardar i sortir</b-button
                   >
                   <b-button
-                    v-if="form.id && !form.multiowner || permissions.includes('orders_admin')"
+                    v-if="me.data && form.id && form.owner === me.data.id || permissions.includes('orders_admin')"
                     type="is-danger"
                     class="ml-auto"
                     :loading="isLoading"
@@ -275,8 +273,7 @@
                     >Cancel·lar</b-button
                   >
                   <b-button
-                    type="is-primary"
-                    v-if="canEdit || forceCanEdit"
+                    type="is-primary"                    
                     :loading="isLoading"                    
                     @click="submitAndEmitConfirm"
                     >Guardar</b-button
