@@ -1504,7 +1504,6 @@ export default {
       this.contactSearch = "";
     },
     async onClientaChange(id) {
-      console.log("onClientaChange", id);
       // this.form.contact = e.target.value;
       if (id) {
         const contact = this.contacts.find(
@@ -1512,8 +1511,6 @@ export default {
         );
 
         this.contactSearch = `${contact.trade_name} (${contact.id})`;
-
-        console.log("onClientaChange contact", contact);
 
         this.form.contact_name = contact.name;
         this.form.contact_trade_name = contact.trade_name;

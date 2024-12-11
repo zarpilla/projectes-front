@@ -16,7 +16,10 @@ const config = {
       name: 'grantable',
       expand: false
     }, {
-      name: 'project_client',
+      name: 'phase',
+      expand: false
+    }, {
+      name: 'subphase',
       expand: false
     },
     {
@@ -88,6 +91,12 @@ const config = {
           },
           month: {
             caption: 'Mes (TOTS)'
+          },
+          phase: {
+            caption: 'Fase (TOTS)'
+          },
+          subphase: {
+            caption: 'Subfase (TOTS)'
           },
         },
         // measures: ['Sum']
