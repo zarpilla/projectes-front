@@ -17,6 +17,10 @@ const config = {
         expand: false
       },
       {
+        name: 'lastmile',
+        expand: false
+      },
+      {
         name: 'date',
         expand: false
       }
@@ -90,7 +94,10 @@ const config = {
           },
           date: {
             type: 'string'
-          }
+          },
+          lastmile: {
+            type: 'string'
+          },
         }
       },
       cube: {
@@ -124,6 +131,9 @@ const config = {
           },
           city: {
             caption: 'Població (T)'
+          },
+          lastmile: {
+            caption: 'Úl.Milla (T)'
           },
           date: {
             caption: 'Dates (T)'
