@@ -1055,7 +1055,6 @@ export default {
       console.log("contacts", contacts);
 
 
-
       for await (const record of records) {
         if (!record.route_name) {
           this.csvErrors.push({ line: i, error: "No hi ha ruta (route_name)" });
@@ -1080,6 +1079,62 @@ export default {
           this.csvErrors.push({
             line: i,
             error: `Punt d'entrega ${record.contact_trade_name} no trobat`
+          });
+          return false;
+        }
+
+        if (!contact.nif) {
+          this.csvErrors.push({
+            line: i,
+            error: `El punt d'entrega ${record.contact_trade_name} no te NIF`
+          });
+          return false;
+        }
+
+        if (!contact.phone) {
+          this.csvErrors.push({
+            line: i,
+            error: `El punt d'entrega ${record.contact_trade_name} no te telèfon`
+          });
+          return false;
+        }
+
+        if (!contact.address) {
+          this.csvErrors.push({
+            line: i,
+            error: `El punt d'entrega ${record.contact_trade_name} no te adreça`
+          });
+          return false;
+        }
+
+        if (!contact.postcode) {
+          this.csvErrors.push({
+            line: i,
+            error: `El punt d'entrega ${record.contact_trade_name} no te codi postal`
+          });
+          return false;
+        }
+
+        if (!contact.city) {
+          this.csvErrors.push({
+            line: i,
+            error: `El punt d'entrega ${record.contact_trade_name} no te població`
+          });
+          return false;
+        }
+
+        if (!contact.time_slot_1_ini || !contact.time_slot_1_end) {
+          this.csvErrors.push({
+            line: i,
+            error: `El punt d'entrega ${record.contact_trade_name} no te horari de contacte`
+          });
+          return false;
+        }
+
+        if (!contact.legal_form) {
+          this.csvErrors.push({
+            line: i,
+            error: `El punt d'entrega ${record.contact_trade_name} no te sector`
           });
           return false;
         }
@@ -1316,19 +1371,26 @@ export default {
     },
     async getContactsForImport(owner) {
 
-      const contacts1 = (
+      const contacts = (
         await service({ requiresAuth: true, cached: false }).get(
-          `contacts/basic?_limit=-1&_where[owner]=${owner}`
+          `contacts/basic?_limit=-1&_where[owner_ne]=null`
         )
       ).data
+      
 
-      const contacts2 = (
-        await service({ requiresAuth: true, cached: false }).get(
-          `contacts/basic?_limit=-1&_where[multiowner]=true`
-        )
-      ).data
+      // const contacts1 = (
+      //   await service({ requiresAuth: true, cached: false }).get(
+      //     `contacts/basic?_limit=-1&_where[owner]=${owner}`
+      //   )
+      // ).data
 
-      const contacts = _.concat(contacts1, contacts2);
+      // const contacts2 = (
+      //   await service({ requiresAuth: true, cached: false }).get(
+      //     `contacts/basic?_limit=-1&_where[multiowner]=true`
+      //   )
+      // ).data
+
+      // const contacts = _.concat(contacts1, contacts2);
 
       return contacts
     },
@@ -1441,8 +1503,6 @@ export default {
 
         }
       
-
-
         const contact = {
           name: record.contact_name,
             trade_name: record.contact_trade_name,
