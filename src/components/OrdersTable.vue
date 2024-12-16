@@ -672,6 +672,7 @@ export default {
         "DATA D'ENTREGA": "estimated_delivery_date",        
         "SOCIA": "owner.username",
         "MAIL": "owner.email",
+        "ID CLIENT": "fullName",
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
