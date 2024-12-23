@@ -488,6 +488,18 @@ const routes = [
   },
   {
     meta: {
+      title: 'Comandes per facturar'
+    },
+    path: '/orders-invoice',
+    name: 'orders-invoice.view',
+    component: () => import(/* webpackChunkName: "orders" */ '../views/OrdersInvoice.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+    }
+  },
+  {
+    meta: {
       title: 'Comanda'
     },
     path: '/order/:id',

@@ -119,6 +119,12 @@ const menu = [
         permission: 'orders_admin'
       },
       {
+        to: '/orders-invoice',
+        icon: 'truck',
+        label: 'Facturar',
+        permission: 'orders_admin'
+      },
+      {
         to: '/user-contacts',
         icon: 'account-box',
         label: 'Punts d\'entrega',

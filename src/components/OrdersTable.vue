@@ -283,7 +283,7 @@
             </button>
           </div>
         </div>
-        <div class="ml-6" v-if="permissions.includes('orders_admin') && 'delivered' == statusFilter">
+        <!-- <div class="ml-6" v-if="permissions.includes('orders_admin') && 'delivered' == statusFilter">
           <h2 class="pr-2">FACTURAR</h2>
           <div class="is-flex">
             <button
@@ -294,7 +294,7 @@
               FACTURAR
             </button>
           </div>
-        </div>
+        </div> -->
         
       </div>
     </div>
@@ -887,8 +887,23 @@ export default {
     this.getData();
   },
   methods: {
-    setStatusFilter(status) {
+    async setStatusFilter(status) {
       //localStorage.setItem("OrdersTable.statusFilter", status);
+
+      if (status !== 'lastmile') {
+        const where = status === "" ? "" : `&_where[status]=${status}`;
+        this.orders = (
+          await service({ requiresAuth: true }).get(
+            `orders?_limit=-1&_sort=route_date:DESC,id:DESC${this.userFilter}${where}`
+          )
+        ).data;
+      } else {
+        this.orders = (
+          await service({ requiresAuth: true }).get(
+            `orders?_limit=-1&_sort=route_date:DESC,id:DESC${this.userFilter}&_where[last_mile]=true`
+          )
+        ).data;
+      }
       this.statusFilter = status;
       this.checkedRows = [];
     },
@@ -919,9 +934,10 @@ export default {
           element.owner_id = me.data.id;
         });
       }
-      this.orders = (
+      const where = `&_where[status]=pending`;
+      this.orders = (        
         await service({ requiresAuth: true }).get(
-          `orders?_limit=-1&_sort=route_date:DESC${this.userFilter},id:DESC`
+          `orders?_limit=-1&_sort=route_date:DESC,id:DESC${this.userFilter}${where}`
         )
       ).data;
 
