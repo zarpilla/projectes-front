@@ -47,6 +47,8 @@
       <span v-if="permissions.includes('orders_admin')">
       Exportar per a planificador:
       </span> 
+
+      <!-- <pre>{{ theOrdersChecked }}</pre> -->
       <download-excel
         v-if="permissions.includes('orders_admin')"
         class="export"
@@ -642,7 +644,7 @@ export default {
         }
       },      
       csvFieldsRouter: {        
-        "NOM CLIENT": "fullName",
+        "NOM CLIENT": "contact_trade_name",
         "TELEFON": {
           field: "contact_phone",
           callback: value => {
@@ -904,6 +906,22 @@ export default {
           )
         ).data;
       }
+
+      this.orders = this.orders.map(o => {
+        return {
+          ...o,
+          idx: o.id.toString().padStart(4, "0"),
+          route_name: o.route.name,
+          owner_id: o.owner.id,
+          timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_ini)} - ${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_end)}`,
+          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`,
+          fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
+          timeslot1And2: `${this.formatSlot2(o.contact_time_slot_1_ini, o.contact_time_slot_1_end, '')}${this.formatSlot2(o.contact_time_slot_2_ini, o.contact_time_slot_2_end, ', ')}`,
+          fullName: o.contact_trade_name ||o.contact_name,
+          last_mile_display: o.last_mile ? 'Sí' : 'No'
+        };
+      });
+      
       this.statusFilter = status;
       this.checkedRows = [];
     },
@@ -972,6 +990,8 @@ export default {
           "route-rates?_limit=-1"
         )
       ).data;
+
+      console.log("this.orders", this.orders);
 
       this.orders = this.orders.map(o => {
         return {
