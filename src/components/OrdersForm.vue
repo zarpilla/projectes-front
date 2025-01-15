@@ -944,28 +944,36 @@ export default {
         //console.log("dayOfWeek", dayOfWeek, route);
         let error = false;
         if (dayOfWeek === 0 && !route.sunday) {
-          error = "Error. La ruta seleccionada no es fa en diumenge";
+          error = "La ruta seleccionada no es fa en diumenge";
         } else if (dayOfWeek === 1 && !route.monday) {
-          error = "Error. La ruta seleccionada no es fa dilluns";
+          error = "La ruta seleccionada no es fa dilluns";
         } else if (dayOfWeek === 2 && !route.tuesday) {
-          error = "Error. La ruta seleccionada no es fa dimarts";
+          error = "La ruta seleccionada no es fa dimarts";
         } else if (dayOfWeek === 3 && !route.wednesday) {
-          error = "Error. La ruta seleccionada no es fa dimecres";
+          error = "La ruta seleccionada no es fa dimecres";
         } else if (dayOfWeek === 4 && !route.thursday) {
-          error = "Error. La ruta seleccionada no es fa dijous";
+          error = "La ruta seleccionada no es fa dijous";
         } else if (dayOfWeek === 5 && !route.friday) {
-          error = "Error. La ruta seleccionada no es fa divendres";
+          error = "La ruta seleccionada no es fa divendres";
         } else if (dayOfWeek === 6 && !route.saturday) {
-          error = "Error. La ruta seleccionada no es fa dissabte";
+          error = "La ruta seleccionada no es fa dissabte";
         }
 
-        if (error) {
+        if (error && !this.permissions.includes("orders_admin")) {
           this.$buefy.snackbar.open({
             message: error,
             queue: false,
             type: "is-danger"
           });
           return false;
+        }
+        else if (error && this.permissions.includes("orders_admin")) {
+          this.$buefy.snackbar.open({
+            message: error,
+            queue: false,
+            type: "is-warning"
+          });
+          return true;
         }
         return true;
       }
