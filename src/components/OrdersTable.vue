@@ -52,8 +52,7 @@
       <download-excel
         v-if="permissions.includes('orders_admin')"
         class="export"
-        :data="theOrdersChecked"
-        type="csv"
+        :data="theOrdersChecked"        
         :escapeCsv="false"
         :name="comandesRouterCSVName()"
         :fields="csvFieldsRouter"
@@ -653,21 +652,21 @@ export default {
         },
         "ADREÇA": {
           field: "fullAddress",
-          callback: value => {
-            return this.addressFormatted(value);
-          }
+          // callback: value => {
+          //   return this.addressFormatted(value);
+          // }
         },
         "DETALLS COMANDA": {
           field: "commentsNotes",
-          callback: value => {
-            return this.addressFormatted(value);
-          }
+          // callback: value => {
+          //   return this.addressFormatted(value);
+          // }
         },        
         "HORARIS CLIENT": {
           field: "timeslot1And2",
-          callback: value => {
-            return this.addressFormatted(value);
-          }
+          // callback: value => {
+          //   return this.addressFormatted(value);
+          // }
         },        
         "CAIXES": "units",
         "TOTAL KG": "kilograms",
@@ -874,12 +873,12 @@ export default {
     }
   },
   async created() {
-    // if (localStorage.getItem("OrdersTable.statusFilter")) {
-    //   this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
-    // }
-    // if (localStorage.getItem("OrdersTable.routeFilter")) {
-    //   this.routeFilter = localStorage.getItem("OrdersTable.routeFilter");
-    // }
+    if (localStorage.getItem("OrdersTable.statusFilter")) {
+      this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
+    }
+    if (localStorage.getItem("OrdersTable.routeFilter")) {
+      this.routeFilter = localStorage.getItem("OrdersTable.routeFilter");
+    }
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
     );
@@ -890,7 +889,7 @@ export default {
   },
   methods: {
     async setStatusFilter(status) {
-      //localStorage.setItem("OrdersTable.statusFilter", status);
+      localStorage.setItem("OrdersTable.statusFilter", status);
 
       if (status !== 'lastmile') {
         const where = status === "" ? "" : `&_where[status]=${status}`;
@@ -926,7 +925,7 @@ export default {
       this.checkedRows = [];
     },
     setRouteFilter(route) {
-      //localStorage.setItem("OrdersTable.routeFilter", route);
+      localStorage.setItem("OrdersTable.routeFilter", route);
       this.routeFilter = route;
       this.checkedRows = [];
     },
@@ -1724,7 +1723,7 @@ export default {
       return `orders-${moment().format("YYYYMMDD-HHmmss")}.csv`;
     },
     comandesRouterCSVName() {
-      return `comandes-${moment().format("YYYYMMDD-HHmmss")}.csv`;
+      return `comandes-${moment().format("YYYYMMDD-HHmmss")}.xlsx`;
     },    
   }
 };
