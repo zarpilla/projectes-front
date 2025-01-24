@@ -18,8 +18,10 @@ const config = {
     }, {
       name: 'phase',
       expand: false
-    },
-    {
+    }, {
+      name: 'subphase',
+      expand: false
+    }, {
       name: 'row_type',
       expand: false
     }], // Specify a dimension on columns.
@@ -59,6 +61,9 @@ const config = {
             type: 'string'
           },
           phase: {
+            type: 'string'
+          },
+          subphase: {
             type: 'string'
           },
         }
