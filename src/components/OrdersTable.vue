@@ -844,10 +844,13 @@ export default {
     ...mapState(["userName"]),
     ...mapState(["userId"]),
     theOrders() {
+      console.log("this.orders", this.orders);
       this.orders = this.orders.map(o => ({
         ...o,
-        commentsNotes: (o.comments ? o.comments : '') + (o.comments && o.refrigerated ? ' - ' : '') +  (o.refrigerated ? 'REFRIGERAT' : '')
+        commentsNotes: (o.contact && o.contact.notes ? o.contact.notes + ' - ' : '') + (o.comments ? o.comments : '') + (o.comments && o.refrigerated ? ' - ' : '') +  (o.refrigerated ? 'REFRIGERAT' : '')
       }))
+
+      console.log("this.orders 2", this.orders);
       const orders = this.orders.filter(o => {
         if (this.statusFilter === "") {
           return true;
