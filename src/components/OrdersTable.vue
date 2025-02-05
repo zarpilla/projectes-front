@@ -862,7 +862,7 @@ export default {
     ...mapState(["userName"]),
     ...mapState(["userId"]),
     theOrders() {
-      console.log("this.orders", this.orders);
+      
       this.orders = this.orders.map(o => ({
         ...o,
         commentsNotes:
@@ -872,7 +872,6 @@ export default {
           (o.refrigerated ? "REFRIGERAT" : "")
       }));
 
-      console.log("this.orders 2", this.orders);
       const orders = this.orders.filter(o => {
         if (this.statusFilter === "") {
           return true;
@@ -960,7 +959,7 @@ export default {
           }
         }
       }
-      
+
       this.orders = (
         await service({ requiresAuth: true }).get(
           `orders?_limit=${this.perPage}&_start=${(this.page - 1) *

@@ -120,6 +120,19 @@
               <b-field label="Import aportació sòcia" horizontal>
                 <b-input v-model="form.partner_amount" type="number" />
               </b-field>
+              <b-field label="Data aportació sòcia" horizontal>
+                <b-datepicker
+                  v-model="form.partner_amount_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data seguiment"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
               <b-field label="Data de seguiment" horizontal>
                 <b-datepicker
                   v-model="form.followup_date"

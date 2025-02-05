@@ -7,14 +7,26 @@
       :data="users"
     >
       <b-table-column
-        label="ID"
+        label="ID Usuària"
         field="id"
         sortable
         width="80"
         searchable
         v-slot="props"
       >
-        {{ props.row.id }}
+      {{ props.row.id }}
+      </b-table-column>      
+      <b-table-column
+        label="Sòcia"
+        searchable
+        field="contact.name"
+        sortable
+        v-slot="props"
+      >
+      <router-link v-if="props.row.contact" :to="{ name: 'contacts.edit', params: { id: props.row.contact.id } }">
+        {{ props.row.contact.name }}
+      </router-link>
+      <span v-else>NO</span>
       </b-table-column>
       <b-table-column
         label="Nom"
@@ -35,7 +47,7 @@
         {{ props.row.fullname }}
       </b-table-column>
       <b-table-column
-        label="Correu"
+        label="Correu accès"
         searchable
         field="email"
         sortable
@@ -53,14 +65,33 @@
         {{ props.row.permissions }}
       </b-table-column>
       <b-table-column
-        label="Proveïdora"
+        label="Permisos"
         searchable
-        field="contact.name"
+        field="permissions"
         sortable
         v-slot="props"
       >
-        {{ props.row.contact ? props.row.contact.name : 'NO' }}
+        {{ props.row.permissions }}
       </b-table-column>
+      <b-table-column
+        label="Import aportació"
+        searchable
+        field="contact.partner_amount"
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.contact && props.row.contact.partner_amount ? props.row.contact.partner_amount + ' €' : '' }}
+      </b-table-column>
+      <b-table-column
+        label="Data aportació"
+        searchable
+        field="contact.partner_amount_date"
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.contact && props.row.contact.partner_amount_date ? props.row.contact.partner_amount_date : '' }}
+      </b-table-column>
+      
       
     </b-table>
   </section>

@@ -29,6 +29,10 @@ export default {
     year: {
       type: Number,
       default: 0
+    },
+    month: {
+      type: Number,
+      default: 0
     }
   },
   data () {
@@ -41,6 +45,9 @@ export default {
     year: function (newVal, oldVal) {
       this.getData()
     },
+    month: function (newVal, oldVal) {
+      this.getData()
+    }
   },
   mounted () {
     // console.log('mounted')
@@ -50,7 +57,8 @@ export default {
     async getData () {
       this.isLoading = true
       const qYear = this.year.id === 0 ? '' : `&year=${this.year.year}`
-      this.orders = (await service({ requiresAuth: true }).get(`orders/infoall?_limit=-1${qYear}`)).data      
+      const qMonth = this.month.id === 0 ? '' : `&month=${this.month.month}`
+      this.orders = (await service({ requiresAuth: true }).get(`orders/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.orders, ['id'], ['asc']))
       configPivot.dataSource.data = this.pivotData
       window.jQuery('#project-stats').empty()
