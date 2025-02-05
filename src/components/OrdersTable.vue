@@ -45,14 +45,14 @@
 
     <div class="is-flex">
       <span v-if="permissions.includes('orders_admin')">
-      Exportar per a planificador:
-      </span> 
+        Exportar per a planificador:
+      </span>
 
       <!-- <pre>{{ theOrdersChecked }}</pre> -->
       <download-excel
         v-if="permissions.includes('orders_admin')"
         class="export"
-        :data="theOrdersChecked"        
+        :data="theOrdersChecked"
         :escapeCsv="false"
         :name="comandesRouterCSVName()"
         :fields="csvFieldsRouter"
@@ -104,7 +104,7 @@
       </download-excel>
 
       <span class="ml-auto">
-      Exemple de fitxer CSV de comandes:      
+        Exemple de fitxer CSV de comandes:
       </span>
       <download-excel
         class="export"
@@ -249,7 +249,8 @@
           <h2 class="pr-2">NÚM.</h2>
           <div class="is-flex">
             <b class="pt-2">
-           {{ checkedRows.length ? checkedRows.length + ' de ' : '' }} {{ theOrders.length}}
+              {{ checkedRows.length ? checkedRows.length + " de " : "" }}
+              {{ total }} (PÀG {{ this.page }}/{{ Math.ceil(total / perPage) }})
             </b>
           </div>
         </div>
@@ -280,7 +281,7 @@
               :disabled="!checkedRows.length"
               @click="pdfOrders"
             >
-            Imprimeix PDF
+              Imprimeix PDF
             </button>
           </div>
         </div>
@@ -296,19 +297,29 @@
             </button>
           </div>
         </div> -->
-        
       </div>
     </div>
 
     <b-table
       ref="table"
       :loading="isLoading"
-      :paginated="false"
+      paginated
+      backend-pagination
+      :total="total"
+      :per-page="perPage"
+      @page-change="onPageChange"
+      backend-filtering
+      @filters-change="onFiltersChange"
+      pagination-position="both"
+      backend-sorting
+      :default-sort-direction="defaultSortOrder"
+      :default-sort="[sortField, sortOrder]"
+      @sort="onSort"
       :striped="false"
       :data="theOrders"
-      :checked-rows.sync="checkedRows"      
+      :checked-rows.sync="checkedRows"
       :is-row-checkable="row => true"
-      :debounce-search="500"      
+      :debounce-search="500"
       :checkable="true || permissions.includes('orders_admin')"
     >
       <b-table-column label="ID" field="idx" sortable v-slot="props" searchable>
@@ -380,7 +391,9 @@
         v-slot="props"
       >
         {{
-          props.row.contact ? props.row.contact.trade_name : props.row.contact_name
+          props.row.contact
+            ? props.row.contact.trade_name
+            : props.row.contact_name
         }}
       </b-table-column>
       <b-table-column
@@ -551,6 +564,13 @@ export default {
       routerates: [],
       checkedRows: [],
       newState: null,
+      total: 0,
+      sortField: "route_date",
+      sortOrder: "DESC",
+      defaultSortOrder: "DESC",
+      page: 1,
+      perPage: 50,
+      filters: {},
       csvAlias: {
         route_name: "route_name",
         owner_id: "owner_id",
@@ -576,8 +596,8 @@ export default {
         notes: "notes"
       },
 
-      csvFieldsContacts: {        
-        owner_id: "owner_id",        
+      csvFieldsContacts: {
+        owner_id: "owner_id",
         contact_name: "contact_name",
         contact_trade_name: "contact_trade_name",
         contact_address: {
@@ -594,12 +614,12 @@ export default {
         contact_time_slot_1_ini: "contact_time_slot_1_ini",
         contact_time_slot_1_end: "contact_time_slot_1_end",
         contact_time_slot_2_ini: "contact_time_slot_2_ini",
-        contact_time_slot_2_end: "contact_time_slot_2_end",
+        contact_time_slot_2_end: "contact_time_slot_2_end"
       },
       csvFields: {
         owner_id: "owner_id",
         owner_name: "owner.username",
-        route_name: "route_name",        
+        route_name: "route_name",
         estimated_delivery_date: "estimated_delivery_date",
         contact_name: "contact_name",
         contact_trade_name: "contact_trade_name",
@@ -641,39 +661,39 @@ export default {
             return this.addressFormatted(value);
           }
         }
-      },      
-      csvFieldsRouter: {        
+      },
+      csvFieldsRouter: {
         "NOM CLIENT": "contact_trade_name",
-        "TELEFON": {
+        TELEFON: {
           field: "contact_phone",
           callback: value => {
-            return this.phoneFormatted(value)// value.replace(/\s/g, "");
+            return this.phoneFormatted(value); // value.replace(/\s/g, "");
           }
         },
-        "ADREÇA": {
-          field: "fullAddress",
+        ADREÇA: {
+          field: "fullAddress"
           // callback: value => {
           //   return this.addressFormatted(value);
           // }
         },
         "DETALLS COMANDA": {
-          field: "commentsNotes",
+          field: "commentsNotes"
           // callback: value => {
           //   return this.addressFormatted(value);
           // }
-        },        
+        },
         "HORARIS CLIENT": {
-          field: "timeslot1And2",
+          field: "timeslot1And2"
           // callback: value => {
           //   return this.addressFormatted(value);
           // }
-        },        
-        "CAIXES": "units",
+        },
+        CAIXES: "units",
         "TOTAL KG": "kilograms",
-        "DATA D'ENTREGA": "estimated_delivery_date",        
-        "SOCIA": "owner.username",
-        "MAIL": "owner.email",
-        "ID CLIENT": "fullName",
+        "DATA D'ENTREGA": "estimated_delivery_date",
+        SOCIA: "owner.username",
+        MAIL: "owner.email",
+        "ID CLIENT": "fullName"
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
@@ -684,14 +704,12 @@ export default {
         // contact_postcode: "contact_postcode",
         // contact_city: "contact_city",
         // contact_nif: "contact_nif",
-        
+
         // contact_legal_form: "contact_legal_form",
         // contact_time_slot_1_ini: "contact_time_slot_1_ini",
         // contact_time_slot_1_end: "contact_time_slot_1_end",
         // contact_time_slot_2_ini: "contact_time_slot_2_ini",
         // contact_time_slot_2_end: "contact_time_slot_2_end",
-
-        
       },
       csvEcologistica: {
         "pickup.address": {
@@ -807,7 +825,7 @@ export default {
       ],
       csvExampleContacts: [
         {
-          owner_id: 0,          
+          owner_id: 0,
           contact_name: "Joan Garriga",
           contact_trade_name: "Begudes Garriga",
           contact_address: "Carrer de l'amargura 17",
@@ -819,7 +837,7 @@ export default {
           contact_time_slot_1_ini: "9",
           contact_time_slot_1_end: "12",
           contact_time_slot_2_ini: "16",
-          contact_time_slot_2_end: "18",
+          contact_time_slot_2_end: "18"
         },
         {
           owner_id: 0,
@@ -834,7 +852,7 @@ export default {
           contact_time_slot_1_ini: "10",
           contact_time_slot_1_end: "15",
           contact_time_slot_2_ini: "16",
-          contact_time_slot_2_end: "19",
+          contact_time_slot_2_end: "19"
         }
       ],
       apiUrl: process.env.VUE_APP_API_URL
@@ -847,8 +865,12 @@ export default {
       console.log("this.orders", this.orders);
       this.orders = this.orders.map(o => ({
         ...o,
-        commentsNotes: (o.contact && o.contact.notes ? o.contact.notes + ' - ' : '') + (o.comments ? o.comments : '') + (o.comments && o.refrigerated ? ' - ' : '') +  (o.refrigerated ? 'REFRIGERAT' : '')
-      }))
+        commentsNotes:
+          (o.contact && o.contact.notes ? o.contact.notes + " - " : "") +
+          (o.comments ? o.comments : "") +
+          (o.comments && o.refrigerated ? " - " : "") +
+          (o.refrigerated ? "REFRIGERAT" : "")
+      }));
 
       console.log("this.orders 2", this.orders);
       const orders = this.orders.filter(o => {
@@ -894,20 +916,65 @@ export default {
     async setStatusFilter(status) {
       localStorage.setItem("OrdersTable.statusFilter", status);
 
-      if (status !== 'lastmile') {
-        const where = status === "" ? "" : `&_where[status]=${status}`;
-        this.orders = (
-          await service({ requiresAuth: true }).get(
-            `orders?_limit=-1&_sort=route_date:DESC,id:DESC${this.userFilter}${where}`
-          )
-        ).data;
-      } else {
-        this.orders = (
-          await service({ requiresAuth: true }).get(
-            `orders?_limit=-1&_sort=route_date:DESC,id:DESC${this.userFilter}&_where[last_mile]=true`
-          )
-        ).data;
+      const where = [];
+      if (status === "") {        
       }
+      else if (status !== "lastmile") {
+        where.push(`_where[status]=${status}`);
+      } else if (status !== "last_mile_display") {        
+      } else {
+        where.push(`_where[last_mile]=true`);
+      }
+
+      for (const key in this.filters) {
+        if (this.filters[key]) {
+          const comparison = key.includes("date") ? '_eq' : '_contains';
+          if (key.includes("date")) {
+
+            if (this.filters[key].length === 4 || this.filters[key].length === 5) {
+              // format YYYY-
+              const start = `${this.filters[key].substring(0, 4)}-01-01`;
+              const end = `${this.filters[key].substring(0, 4)}-12-31`;              
+              where.push(`_where[${key}_gte]=${start}`);
+              where.push(`_where[${key}_lte]=${end}`);
+            }
+            else if (this.filters[key].length === 7 || this.filters[key].length === 8 || this.filters[key].length < 10) {
+              // format YYYY-MM
+              const start = `${this.filters[key].substring(0, 7)}-01`;
+              const month = new Date(this.filters[key].substring(0, 7)).getMonth();
+              const endDayOfMonth = new Date(new Date().getFullYear(), month + 1, 0).getDate();
+              const end = `${this.filters[key].substring(0, 7)}-${endDayOfMonth}`;              
+              where.push(`_where[${key}_gte]=${start}`);
+              where.push(`_where[${key}_lte]=${end}`);
+            }
+            else if (this.filters[key].length === 10) {
+              // format YYYY-MM-DD
+              where.push(`_where[${key}${comparison}]=${this.filters[key]}`);
+            }
+          } else if (key === "idx") {
+            // remove zeros at start
+            const id_contains = this.filters[key].replace(/^0+/, '');
+            where.push(`_where[id_contains]=${id_contains}`);
+          } else {
+            where.push(`_where[${key}${comparison}]=${this.filters[key]}`);
+          }
+        }
+      }
+      
+      this.orders = (
+        await service({ requiresAuth: true }).get(
+          `orders?_limit=${this.perPage}&_start=${(this.page - 1) *
+            this.perPage}&_sort=${this.sortField}:${this.sortOrder}${
+            this.userFilter
+          }&${where.join("&")}`
+        )
+      ).data;
+
+      this.total = (
+        await service({ requiresAuth: true }).get(
+          `orders/count?${this.userFilter}&${where.join("&")}`
+        )
+      ).data;
 
       this.orders = this.orders.map(o => {
         return {
@@ -915,15 +982,31 @@ export default {
           idx: o.id.toString().padStart(4, "0"),
           route_name: o.route.name,
           owner_id: o.owner.id,
-          timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_ini)} - ${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_end)}`,
-          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`,
+          timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(
+            o.contact_time_slot_1_ini
+          )} - ${o.estimated_delivery_date} ${this.formatSlot(
+            o.contact_time_slot_1_end
+          )}`,
+          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(
+            o.contact_time_slot_2_ini
+          )} -${o.estimated_delivery_date} ${this.formatSlot(
+            o.contact_time_slot_2_end
+          )}`,
           fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
-          timeslot1And2: `${this.formatSlot2(o.contact_time_slot_1_ini, o.contact_time_slot_1_end, '')}${this.formatSlot2(o.contact_time_slot_2_ini, o.contact_time_slot_2_end, ', ')}`,
-          fullName: o.contact_trade_name ||o.contact_name,
-          last_mile_display: o.last_mile ? 'Sí' : 'No'
+          timeslot1And2: `${this.formatSlot2(
+            o.contact_time_slot_1_ini,
+            o.contact_time_slot_1_end,
+            ""
+          )}${this.formatSlot2(
+            o.contact_time_slot_2_ini,
+            o.contact_time_slot_2_end,
+            ", "
+          )}`,
+          fullName: o.contact_trade_name || o.contact_name,
+          last_mile_display: o.last_mile ? "Sí" : "No"
         };
       });
-      
+
       this.statusFilter = status;
       this.checkedRows = [];
     },
@@ -954,15 +1037,17 @@ export default {
           element.owner_id = me.data.id;
         });
       }
-      const where = `&_where[status]=pending`;
-      this.orders = (        
-        await service({ requiresAuth: true }).get(
-          `orders?_limit=-1&_sort=route_date:DESC,id:DESC${this.userFilter}${where}`
-        )
-      ).data;
+      // const where = `&_where[status]=pending`;
+      // this.orders = (
+      //   await service({ requiresAuth: true }).get(
+      //     `orders?_limit=-1&_sort=route_date:DESC,id:DESC${this.userFilter}${where}`
+      //   )
+      // ).data;
 
       this.routes = (
-        await service({ requiresAuth: true }).get(`routes?_limit=-1&_sort=order:ASC`)
+        await service({ requiresAuth: true }).get(
+          `routes?_limit=-1&_sort=order:ASC`
+        )
       ).data;
 
       this.users = (
@@ -993,31 +1078,56 @@ export default {
         )
       ).data;
 
-      console.log("this.orders", this.orders);
+      this.setStatusFilter(this.statusFilter);
 
-      this.orders = this.orders.map(o => {
-        return {
-          ...o,
-          idx: o.id.toString().padStart(4, "0"),
-          route_name: o.route.name,
-          owner_id: o.owner.id,
-          timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_ini)} - ${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_end)}`,
-          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`,
-          fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
-          timeslot1And2: `${this.formatSlot2(o.contact_time_slot_1_ini, o.contact_time_slot_1_end, '')}${this.formatSlot2(o.contact_time_slot_2_ini, o.contact_time_slot_2_end, ', ')}`,
-          fullName: o.contact_trade_name ||o.contact_name,
-          last_mile_display: o.last_mile ? 'Sí' : 'No'
-        };
-      });
+      // console.log("this.orders", this.orders);
+
+      // this.orders = this.orders.map(o => {
+      //   return {
+      //     ...o,
+      //     idx: o.id.toString().padStart(4, "0"),
+      //     route_name: o.route.name,
+      //     owner_id: o.owner.id,
+      //     timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_ini)} - ${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_1_end)}`,
+      //     timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_ini)} -${o.estimated_delivery_date} ${this.formatSlot(o.contact_time_slot_2_end)}`,
+      //     fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
+      //     timeslot1And2: `${this.formatSlot2(o.contact_time_slot_1_ini, o.contact_time_slot_1_end, '')}${this.formatSlot2(o.contact_time_slot_2_ini, o.contact_time_slot_2_end, ', ')}`,
+      //     fullName: o.contact_trade_name ||o.contact_name,
+      //     last_mile_display: o.last_mile ? 'Sí' : 'No'
+      //   };
+      // });
 
       this.contactsCSV = this.orders;
       this.isLoading = false;
     },
     formatSlot(s) {
-      return s && s.toString().includes('.') ? s.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45') : `${s}:00`
+      return s && s.toString().includes(".")
+        ? s
+            .toString()
+            .replace(".5", ":30")
+            .replace(".25", ":15")
+            .replace(".75", ":45")
+        : `${s}:00`;
     },
     formatSlot2(s1, s2, prefix) {
-      return s1 && s2 ? (prefix + (s1.toString().includes('.') ? s1.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45')  : `${s1}:00`) + '-' + (s2.toString().includes('.') ? s2.toString().replace('.5',':30').replace('.25',':15') .replace('.75',':45') : `${s2}:00`)) : ''
+      return s1 && s2
+        ? prefix +
+            (s1.toString().includes(".")
+              ? s1
+                  .toString()
+                  .replace(".5", ":30")
+                  .replace(".25", ":15")
+                  .replace(".75", ":45")
+              : `${s1}:00`) +
+            "-" +
+            (s2.toString().includes(".")
+              ? s2
+                  .toString()
+                  .replace(".5", ":30")
+                  .replace(".25", ":15")
+                  .replace(".75", ":45")
+              : `${s2}:00`)
+        : "";
     },
     async preUpload() {
       return await service({ requiresAuth: true }).post("orders-imports", {
@@ -1081,18 +1191,16 @@ export default {
 
       console.log("records", records);
 
-
       const owner = this.permissions.includes("orders_admin")
-            ? this.users.find(
-                u => u.id.toString() === records[0].owner_id.toString()
-              )
-            : this.me;
+        ? this.users.find(
+            u => u.id.toString() === records[0].owner_id.toString()
+          )
+        : this.me;
 
-            console.log("owner", owner);
-      const contacts = await this.getContactsForImport(owner.id)
+      console.log("owner", owner);
+      const contacts = await this.getContactsForImport(owner.id);
 
       console.log("contacts", contacts);
-
 
       for await (const record of records) {
         if (!record.route_name) {
@@ -1104,7 +1212,10 @@ export default {
         //   return false;
         // }
         if (!record.contact_trade_name) {
-          this.csvErrors.push({ line: i, error: "No hi ha nom comercial (contact_trade_name)" });
+          this.csvErrors.push({
+            line: i,
+            error: "No hi ha nom comercial (contact_trade_name)"
+          });
           return false;
         }
 
@@ -1203,14 +1314,16 @@ export default {
         //   return false;
         // }
         if (!record.kilograms || parseInt(record.kilograms) <= 0) {
-          this.csvErrors.push({ line: i, error: "Kilograms incorrectes (kilograms)" });
+          this.csvErrors.push({
+            line: i,
+            error: "Kilograms incorrectes (kilograms)"
+          });
           return false;
         }
         if (!record.units || parseInt(record.units) <= 0) {
           this.csvErrors.push({ line: i, error: "Caixes incorrectes (units)" });
           return false;
         }
-        
 
         // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
         // if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
@@ -1308,7 +1421,7 @@ export default {
           return false;
         }
 
-        const routeDate = assignRouteDate(route)
+        const routeDate = assignRouteDate(route);
 
         const order = {
           id: 0,
@@ -1346,10 +1459,11 @@ export default {
             record.refrigerated === "1"
               ? this.deliveryTypes.find(d => d.refrigerated)
               : this.deliveryTypes.find(d => !d.refrigerated),
-          pickup:
-            record.pickup ?
-              this.pickups.find(p => p.id.toString() === record.pickup.toString())
-              : this.pickups[0],
+          pickup: record.pickup
+            ? this.pickups.find(
+                p => p.id.toString() === record.pickup.toString()
+              )
+            : this.pickups[0],
           kilograms: Math.abs(parseInt(record.kilograms)),
           units: Math.abs(parseInt(record.units)),
           notes: record.notes,
@@ -1360,10 +1474,11 @@ export default {
               )
             : this.me,
           route: route,
-          estimated_delivery_date: record.estimated_delivery_date ? moment(record.estimated_delivery_date, 'YYYYMMDD').format("YYYY-MM-DD") :
-            moment(
-              routeDate.nextDay.toDate()
-            ).format("YYYY-MM-DD"),
+          estimated_delivery_date: record.estimated_delivery_date
+            ? moment(record.estimated_delivery_date, "YYYYMMDD").format(
+                "YYYY-MM-DD"
+              )
+            : moment(routeDate.nextDay.toDate()).format("YYYY-MM-DD"),
           price: null,
           status: "CSV",
           _uuid: this.createUUID()
@@ -1372,7 +1487,7 @@ export default {
         if (routeDate.warning) {
           this.$buefy.toast.open({
             message: routeDate.warning,
-            type: "is-warning",            
+            type: "is-warning"
           });
           // this.$buefy.snackbar.open({
           //   message: routeDate.warning,
@@ -1399,7 +1514,8 @@ export default {
             orderWithRate.price = rate.less30;
           } else {
             orderWithRate.price =
-              rate.less30 + (Math.abs(order.kilograms) - 30) * rate.additional30;
+              rate.less30 +
+              (Math.abs(order.kilograms) - 30) * rate.additional30;
           }
         } else {
           // console.warn("!order", order.kilograms, order.route_rate);
@@ -1409,13 +1525,11 @@ export default {
       }
     },
     async getContactsForImport(owner) {
-
       const contacts = (
         await service({ requiresAuth: true, cached: false }).get(
           `contacts/basic?_limit=-1&_where[owner_ne]=null`
         )
-      ).data
-      
+      ).data;
 
       // const contacts1 = (
       //   await service({ requiresAuth: true, cached: false }).get(
@@ -1431,7 +1545,7 @@ export default {
 
       // const contacts = _.concat(contacts1, contacts2);
 
-      return contacts
+      return contacts;
     },
     async importContactsCSV(records) {
       // for (const key in this.csvAlias) {
@@ -1441,7 +1555,7 @@ export default {
       let i = 2;
       this.csvErrors = [];
       const contacts = [];
-      for await (const record of records) {        
+      for await (const record of records) {
         if (!record.contact_address) {
           this.csvErrors.push({ line: i, error: "No contact_address" });
           return false;
@@ -1469,9 +1583,7 @@ export default {
             parseFloat(record.contact_time_slot_1_ini) >=
             parseFloat(record.contact_time_slot_1_end)
           ) {
-            console.log(
-              "record"
-            );
+            console.log("record");
             this.csvErrors.push({
               line: i,
               error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
@@ -1520,17 +1632,21 @@ export default {
           }
         }
 
-        if (record.owner_id.toString() === "0" && this.permissions.includes("orders_admin")) {
+        if (
+          record.owner_id.toString() === "0" &&
+          this.permissions.includes("orders_admin")
+        ) {
           record.owner_id = this.me.id;
-          record.multiowner = true
-        }
-        else {
-          record.multiowner = false
+          record.multiowner = true;
+        } else {
+          record.multiowner = false;
           if (!this.permissions.includes("orders_admin")) {
             record.owner_id = this.me.id;
           }
           if (
-            !this.users.find(u => u.id.toString() === record.owner_id.toString())
+            !this.users.find(
+              u => u.id.toString() === record.owner_id.toString()
+            )
           ) {
             this.csvErrors.push({
               line: i,
@@ -1539,26 +1655,24 @@ export default {
             return false;
           }
           i++;
-
         }
-      
+
         const contact = {
           name: record.contact_name,
-            trade_name: record.contact_trade_name,
-            address: record.contact_address,
-            phone: record.contact_phone,
-            postcode: record.contact_postcode,
-            nif: record.contact_nif,
-            city: record.contact_city,
-            time_slot_1_ini: record.contact_time_slot_1_ini || null,
-            time_slot_1_end: record.contact_time_slot_1_end || null,
-            time_slot_2_ini: record.contact_time_slot_2_ini || null,
-            time_slot_2_end: record.contact_time_slot_2_end || null,
-            multiowner: record.multiowner,
-            owner: record.owner_id
+          trade_name: record.contact_trade_name,
+          address: record.contact_address,
+          phone: record.contact_phone,
+          postcode: record.contact_postcode,
+          nif: record.contact_nif,
+          city: record.contact_city,
+          time_slot_1_ini: record.contact_time_slot_1_ini || null,
+          time_slot_1_end: record.contact_time_slot_1_end || null,
+          time_slot_2_ini: record.contact_time_slot_2_ini || null,
+          time_slot_2_end: record.contact_time_slot_2_end || null,
+          multiowner: record.multiowner,
+          owner: record.owner_id
         };
 
-        
         contacts.push(contact);
         i++;
       }
@@ -1574,9 +1688,6 @@ export default {
         message: `${records.length} contactes importats correctament`,
         type: "is-success"
       });
-
-      
-
     },
     createUUID() {
       var dt = new Date().getTime();
@@ -1699,18 +1810,14 @@ export default {
     async pdfOrders() {
       this.importing = true;
 
-      try {      
+      try {
         const orders = this.checkedRows.map(o => o.id);
 
         const pdf = (
-            await service({ requiresAuth: true }).post(
-              `/orders/pdf`,
-              { orders }
-            )
-          ).data;          
+          await service({ requiresAuth: true }).post(`/orders/pdf`, { orders })
+        ).data;
         window.open(this.apiUrl + pdf.urls);
-      }
-      catch (error) {
+      } catch (error) {
         console.error(error);
         if (error && error.data && error.data.message) {
           this.$buefy.snackbar.open({
@@ -1727,7 +1834,21 @@ export default {
     },
     comandesRouterCSVName() {
       return `comandes-${moment().format("YYYYMMDD-HHmmss")}.xlsx`;
-    },    
+    },
+    onPageChange(page) {
+      this.page = page;
+      this.setStatusFilter(this.statusFilter);
+    },
+    onSort(field, order) {
+      this.sortField = field;
+      this.sortOrder = order;
+      this.setStatusFilter(this.statusFilter);
+    },
+    onFiltersChange(filters) {
+      console.log("filters", filters);
+      this.filters = filters
+      this.setStatusFilter(this.statusFilter)
+    }
   }
 };
 </script>
@@ -1750,7 +1871,7 @@ export default {
   background-color: #ff7300 !important;
   color: white !important;
 }
-.w-50{
+.w-50 {
   width: 50%;
 }
 </style>
