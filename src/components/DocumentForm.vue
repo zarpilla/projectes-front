@@ -1279,7 +1279,7 @@ export default {
                   if (project.id) {
                     const p = (
                       await service({ requiresAuth: true }).get(
-                        `projects/${project.id}`
+                        `projects/${project.id}/phases`
                       )
                     ).data;
                     project.project_phases = p.project_phases;
@@ -1650,7 +1650,7 @@ export default {
       if (!this.form.projects.find(c => c.id === option.id)) {
         this.isLoadingProject = true;
         const project = (
-          await service({ requiresAuth: true }).get(`projects/${option.id}`)
+          await service({ requiresAuth: true }).get(`projects/${option.id}/phases`)
         ).data;
 
         if (this.type !== "quote") {
@@ -1703,6 +1703,7 @@ export default {
 
       project.project_phases = [ ...info.phases];      
       project.project_phases_info = { deletedPhases: info.deletedPhases || [], deletedIncomes: info.deletedIncomes || [], deletedExpenses: info.deletedExpenses || [], deletedHours: [] };
+      project._project_phases_updated = true;
     },
     validateIfProjectPhasesHasDocument() {
       var validateIfProjectPhasesHasDocument = false;
@@ -1894,7 +1895,8 @@ export default {
         if (updateProject || true) {
           await service({ requiresAuth: true }).put(`projects/${p.id}`, {
             project_phases: p.project_phases,
-            project_phases_info: p.project_phases_info
+            project_phases_info: p.project_phases_info,
+            _project_phases_updated: true
           });
         }
       }

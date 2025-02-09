@@ -378,7 +378,7 @@
             {{ props.row.contact }}
           </b-table-column>
           <b-table-column label="Accions" v-slot="props">
-            <button
+            <!-- <button
               v-if="props.row.expenseId"
               class="button is-small is-danger"
               type="button"
@@ -395,7 +395,7 @@
               title="Marcar com a pagat"
             >
               <b-icon icon="cash-multiple" size="is-small" />
-            </button>
+            </button> -->
             <button
               v-if="props.row.type === 'Operació de tresoreria'"
               class="button is-small is-danger"

@@ -781,7 +781,7 @@
               </b-field>
             </div>
 
-            <div class="columns">
+            <div class="columns" v-if="totals">
               <b-field label="Despeses pr. totals" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
@@ -928,7 +928,7 @@
               </b-field>
             </div>
 
-            <div class="columns">
+            <div class="columns" v-if="totals">
               <b-field label="Hores previstes" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
@@ -974,12 +974,12 @@
             <div class="columns">
               <b-field label="Hores previstes (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
-                  {{ totals.total_estimated_hours.toFixed(2) }} h
+                  {{ totals && totals.total_estimated_hours ? totals.total_estimated_hours.toFixed(2) : '0' }} h
                 </div>
               </b-field>
               <b-field label="Hores executades (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
-                  {{ totals.total_real_hours.toFixed(2) }} h
+                  {{ totals && totals.total_real_hours ? totals.total_real_hours.toFixed(2) : '0' }} h
                 </div>
               </b-field>
               <b-field label="Diferència (h)" class="column">
@@ -1226,8 +1226,7 @@
           !isLoading &&
             phasesVisible &&
             form &&
-            form.project_original_phases &&
-            form.project_original_phases.length > 0
+            form.project_original_phases
         "
         title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
         :closeIcon="true"
@@ -1256,6 +1255,7 @@
           </div>
         </b-field>
 
+        
         <project-phases
           :form="form"
           :project-phases="form.project_original_phases"
@@ -1280,7 +1280,7 @@
           "
         >
           <b-button type="is-warning" @click="closeQuoteFromOriginal">
-            Tancar Pressupost
+            Crear Execució de Pressupost
           </b-button>
         </b-field>
 
@@ -1312,15 +1312,10 @@
             phasesVisible &&
             form &&
             form.project_phases &&
+            form.project_phases.length &&
             !form.children
         "
-        :title="
-          !form.project_original_phases ||
-          (form.project_original_phases &&
-            form.project_original_phases.length === 0)
-            ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST'
-            : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'
-        "
+        :title="'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
         :closeIcon="true"
         :content-visible="true"
       >
@@ -1347,6 +1342,7 @@
           </div>
         </b-field>
 
+        
         <project-phases
           :form="form"
           :project-phases="form.project_phases"
@@ -1369,7 +1365,7 @@
           "
         >
           <b-button type="is-warning" @click="closeQuote">
-            Tancar Pressupost
+            Tancar Pressupost 3
           </b-button>
         </b-field>
 
@@ -2855,7 +2851,7 @@ export default {
           oldProjectData.data.length
         ) {
           this.$buefy.snackbar.open({
-            message: "Error. El projecte ja existeix",
+            message: "S'ha produït un error al guardar el projecte",
             queue: false
           });
         } else {
@@ -2946,7 +2942,7 @@ export default {
       }, 500);
     },
     ganttItemUpdate(item) {
-      console.log('ganttItemUpdate', item)
+      this.form._project_original_phases_updated = true;
       if (!item._hours) {
         return;
       }
@@ -3027,6 +3023,7 @@ export default {
       }, 800);
     },
     ganttItemDelete(item) {
+      this.form._project_original_phases_updated = true;
       const id = item._hours.id;
       const pid = item._phase.id;
       const sid = item._subphase.id;
@@ -3091,6 +3088,7 @@ export default {
       );
     },
     phasesUpdated(info) {
+      this.form._project_phases_updated = true;
       this.form.project_phases = [ ...info.phases];
       if (info.deletedPhases) {
         this.deletedPhases = info.deletedPhases;
@@ -3101,6 +3099,7 @@ export default {
 
     },
     originalPhasesUpdated(info) {
+      this.form._project_original_phases_updated = true;
       this.form.project_original_phases = [ ...info.phases];
       if (info.deletedPhases) {
         this.deletedPhasesOriginal = info.deletedPhases;
@@ -3143,6 +3142,9 @@ export default {
         sp.dirty = true;
       });
       this.form.project_phases.push(phase);
+      this.form.project_phases_info = { deletedPhases: this.deletedPhases, deletedIncomes: this.deletedIncomes, deletedExpenses: this.deletedExpenses, deletedHours: this.deletedHours };
+      this.form._project_phases_updated = true;
+
       setTimeout(() => (this.phasesVisible = true), 100);
     },
 
@@ -3181,8 +3183,10 @@ export default {
       phases.forEach(p => {
         p.edit = false;
         p.opened = true;
+        p.dirty = true;
         delete p.id;
         p.incomes.forEach(sp => {
+          sp.dirty = true;
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           sp.date_estimate_document = moment(sp.date_estimate_document).format(
             "YYYY-MM-DD"
@@ -3190,12 +3194,15 @@ export default {
           delete sp.id;
         });
         p.expenses.forEach(sp => {
+          sp.dirty = true;
           sp.date = moment(sp.date).format("YYYY-MM-DD");
-
           delete sp.id;
         });
       });
       this.form.project_phases = phases;
+      this.form.project_phases_info = { deletedPhases: [], deletedIncomes: [], deletedExpenses: [], deletedHours: [] };
+      this.form._project_phases_updated = true;
+
       setTimeout(() => {
         this.phasesVisible = true;
       }, 200);
