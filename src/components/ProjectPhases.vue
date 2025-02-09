@@ -561,7 +561,7 @@
                   @click.prevent="removeSubExpense(phase, props.row, props.index)"
                 >
                   <b-icon icon="trash-can" size="is-small" />
-                </button>
+                </button>                
                 <button
                   v-if="props.index === phase.expenses.length - 1"
                   class="button is-small is-primary ml-2"

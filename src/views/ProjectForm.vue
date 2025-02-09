@@ -1242,7 +1242,7 @@
             <template v-if="!originalEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
-
+<!-- 
           <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
             <option value="10">10 per pàgina</option>            
             <option value="50">50 per pàgina</option>
@@ -1252,7 +1252,7 @@
 
           <div class="control is-flex">
             <b-switch v-model="isPaginated">Paginat</b-switch>
-          </div>
+          </div> -->
         </b-field>
 
         
@@ -1330,7 +1330,7 @@
             <template v-else>Tancar pressupost</template>
           </b-button>
 
-          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
+          <!-- <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
             <option value="10">10 per pàgina</option>            
             <option value="50">50 per pàgina</option>
             <option value="100">100 per pàgina</option>
@@ -1339,7 +1339,7 @@
 
           <div class="control is-flex">
             <b-switch v-model="isPaginated">Paginat</b-switch>
-          </div>
+          </div> -->
         </b-field>
 
         
@@ -1999,7 +1999,7 @@ export default {
       phasesEditable: false,
       grantable_contacts: [],
       perPage: 10,
-      isPaginated: true,
+      isPaginated: false,
       deletedPhases: [],
       deletedIncomes: [],
       deletedExpenses: [],
