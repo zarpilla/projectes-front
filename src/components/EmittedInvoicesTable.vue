@@ -228,6 +228,9 @@
       <b-table-column label="Prev. cobr." v-if="!provider" field="estimated_payment" v-slot="props" sortable>
         {{ props.row.estimated_payment ? formatDate(props.row.estimated_payment) : "-" }}
       </b-table-column>
+      <b-table-column label="Assig." title="Assignada a línia de projecte" field="assigned" v-slot="props" sortable>
+          {{ props.row.assigned ? "Sí" : "No" }}
+        </b-table-column>
     </b-table>
   </div>
   </section>
@@ -409,7 +412,21 @@ export default {
       });
 
       const emitted = _.concat(invoices, incomes)
-      this.emitted = emitted
+
+
+      const assignedDocuments = ( await service({ requiresAuth: true }).get(
+        `phase-incomes/assigned?_limit=-1`
+      )).data;
+
+      const emittedWithInfo = emitted.map((e) => {
+        return {
+          ...e,
+          // check if the document is assigned to a project, with assignedDocuments
+          assigned: this.assignedToProject(e, assignedDocuments),
+        };
+      });
+
+      this.emitted = emittedWithInfo
       this.emittedCSV = []
       this.emitted.forEach((e) => {
         this.emittedCSV.push({
@@ -505,6 +522,15 @@ export default {
     },
     excelFormat(value) {
       return format(this.user, value);
+    },
+    assignedToProject(invoice, assignedDocuments) {
+      let assigned = false;
+      if (invoice.type === "emitted-invoices") {
+        assigned = assignedDocuments.invoices.includes(invoice.id);
+      } else if (invoice.type === "received-incomes") {
+        assigned = assignedDocuments.incomes.includes(invoice.id);
+      }
+      return assigned;
     },
   },
 };

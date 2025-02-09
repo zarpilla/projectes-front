@@ -16,95 +16,86 @@
       @delete="modalSplitDelete"
     />
 
-    <b-table
-      v-if="form && phases"
-      :data="phases"
-      ref="table"
-      :opened-detailed="[true]"
-      detailed
-      detail-key="opened"
-      :detail-transition="transitionName"
-      :show-detail-icon="false"
+    <div class="columns subphase-detail-title">
+      <div class="column is-8">Fase</div>
+      <div class="column is-1">Ing - Des</div>
+      <div class="column is-1">Total</div>
+      <div class="column is-2">Accions</div>
+    </div>
+
+    <div
+      v-for="(phase, phi) in phases"
+      class="phase-container columns is-multiline"
     >
-      <b-table-column field="name" label="Fase" width="500" v-slot="props">
-        <form @submit.prevent="blurPhaseEdit()">
+      <div class="column is-8">
+        <form @submit.prevent="blurPhaseEdit(phase)">
           <b-input
             placeholder="Nom de la fase..."
-            v-model="props.row.name"
-            @input="blurPhaseEdit()"
+            v-model="phase.name"
+            @input="blurPhaseEdit(phase)"
             class="phase-detail-input"
             :disabled="(mode !== '' && mode !== 'simple') || !editable"
           >
           </b-input>
         </form>
-      </b-table-column>
-      <b-table-column field="name" label="Total" width="200" v-slot="props">
-        <div class="is-flex">
-          <div
-            class="
-                readonly
-                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total
-              "
+      </div>
+      <div class="column is-1">
+        <div
+          class="readonly
+                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total"
+        >
+          <money-format
+            class="inline"
+            :value="subTotalIncomes(phase)"
+            :locale="'es'"
+            currency-code=" "
+            :subunits-value="false"
+            :hide-subunits="false"
           >
-            <money-format
-              class="inline"
-              :value="subTotalIncomes(props.row)"
-              :locale="'es'"
-              currency-code=" "
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-            -
-            <money-format
-              class="inline"
-              :value="subTotalExpenses(props.row)"
-              :locale="'es'"
-              currency-code=" "
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-          </div>
-          <div
-            class="
-                readonly
-                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total
-              "
+          </money-format>
+          -
+          <money-format
+            class="inline"
+            :value="subTotalExpenses(phase)"
+            :locale="'es'"
+            currency-code=" "
+            :subunits-value="false"
+            :hide-subunits="false"
           >
-            <money-format
-              class="inline"
-              :value="props.row.total_amount ? props.row.total_amount : 0"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-          </div>
+          </money-format>
         </div>
-      </b-table-column>
-      <b-table-column
-        v-if="mode === '' || mode === 'simple'"
-        field="name"
-        label=""
-        width="150"
-        v-slot="props"
-      >
+      </div>
+      <div class="column is-1">
+        <div
+          class="readonly
+                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total"
+        >
+          <money-format
+            class="inline"
+            :value="phase.total_amount ? phase.total_amount : 0"
+            :locale="'es'"
+            :currency-code="'EUR'"
+            :subunits-value="false"
+            :hide-subunits="false"
+          >
+          </money-format>
+        </div>
+      </div>
+      <div v-if="mode === '' || mode === 'simple'" class="column is-2">
         <button
           class="button is-small is-danger"
           type="button"
           title="Esborrar"
           :disabled="
             !editable ||
-              props.row.incomes.find(s => s.paid && mode !== 'simple') ||
-              props.row.expenses.find(s => s.paid && mode !== 'simple') ||
+              phase.incomes.find(s => s.paid && mode !== 'simple') ||
+              phase.expenses.find(s => s.paid && mode !== 'simple') ||
               (mode === 'simple' &&
-                props.row.incomes.find(
+                phase.incomes.find(
                   s => s.estimated_hours && s.estimated_hours.length > 0
                 ))
           "
-          @click.prevent="removePhase(props.index)"
+          @click.prevent="removePhase(phi)"
         >
           <b-icon icon="trash-can" size="is-small" />
         </button>
@@ -114,38 +105,34 @@
           type="button"
           title="Copiar fase a execució"
           :disabled="!editable"
-          @click.prevent="copyPhase(props.index)"
+          @click.prevent="copyPhase(phi)"
         >
           <b-icon icon="content-duplicate" size="is-small" />
         </button>
-      </b-table-column>
-      <template #detail="props">
-        <b-field
-          label="Ingressos"
-          horizontal
-          class="has-text-left"
-          v-if="mode !== 'expenses'"
+      </div>
+      <div class="column is-12 subphases-list" v-if="mode !== 'expenses'">
+        <div class="subphase-detail-title">
+          Ingressos
+        </div>
+        <b-table v-if="form && phase.incomes" :data="phase.incomes" ref="table"
+          :paginated="isPaginated && phase.incomes.length > 10"
+          :per-page="perPage"
+          pagination-position="top"
+          :pagination-simple="true"
         >
-        </b-field>
-        <ul class="subphases-list" v-if="mode !== 'expenses'">
-          <li
-            v-for="(subphase, j) in props.row.incomes"
-            :key="j"
-            class="subphase mt-2 mb-2"
-          >
-            <b-field grouped>
-              <b-field
+          <b-table-column field="name" label="Tipus" width="40px" v-slot="props">
+            <b-field
                 v-if="
                   (incomeTypes && incomeTypes.length) ||
                     (expenseTypes && expenseTypes.length)
-                "
-                :label="j == 0 ? 'Tipus' : null"
+                "                
                 class="subphase-detail-input"
               >
                 <b-select
-                  v-model="subphase.income_type"
+                  v-model="props.row.income_type"
                   placeholder="Tipus"
                   :disabled="!editable"
+                  @input="somethingChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in incomeTypes"
@@ -156,53 +143,60 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field
-                :label="j == 0 ? 'Concepte' : null"
+          </b-table-column>
+          <b-table-column field="name" label="Concepte" width="450" v-slot="props">
+            <b-field
+                
                 class="subphase-detail-input-large-field"
               >
                 <b-input
                   name="SubFase"
                   placeholder="Nom de la subfase..."
-                  v-model="subphase.concept"
+                  v-model="props.row.concept"
                   class="subphase-detail-input subphase-detail-input-large"
-                  @input="somethingChanged()"
+                  @input="somethingChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-input>
               </b-field>
+          </b-table-column>
+          <b-table-column field="name" label="Quantitat" width="80" v-slot="props">
               <b-field
-                :label="j == 0 ? 'Quantitat' : null"
                 class="medium-field"
               >
                 <b-input
                   name="Unitats"
                   placeholder="Quantitat, hores, unitats..."
-                  v-model="subphase.quantity"
+                  v-model="props.row.quantity"
                   @input="
-                    changeSubPhase(subphase, 'quantity', subphase.quantity)
+                    changeSubPhase(props.row, 'quantity', props.row.quantity)
                   "
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
                 </b-input>
               </b-field>
-              <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
+          </b-table-column>
+          <b-table-column field="name" label="Preu" width="80" v-slot="props">
+              <b-field class="medium-field">
                 <b-input
                   name="PreuUnitari"
                   placeholder="Preu per unitat"
-                  v-model="subphase.amount"
-                  @input="changeSubPhase(subphase, 'amount', subphase.amount)"
+                  v-model="props.row.amount"
+                  @input="changeSubPhase(props.row, 'amount', props.row.amount)"
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
                 </b-input>
               </b-field>
-              <b-field :label="j == 0 ? 'Total' : null" class="medium-field">
+          </b-table-column>
+          <b-table-column field="name" label="Total" width="80" v-slot="props">
+              <b-field class="medium-field">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      subphase.quantity * subphase.amount
-                        ? subphase.quantity * subphase.amount
+                      props.row.quantity * props.row.amount
+                        ? props.row.quantity * props.row.amount
                         : 0
                     "
                     :locale="'es'"
@@ -213,17 +207,13 @@
                   </money-format>
                 </div>
               </b-field>
-
-              <!-- </b-field>
-                <b-field horizontal class="b-field-row-2"> -->
-
+          </b-table-column>
+          <b-table-column field="name" label="Previsió fac." width="100" v-slot="props">
               <b-field
-                :label="j == 0 ? 'Previsió fac.' : null"
-                v-if="me.options && me.options.treasury"
                 class="date-field"
               >
                 <b-datepicker
-                  v-model="subphase.date_estimate_document"
+                  v-model="props.row.date_estimate_document"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -231,7 +221,7 @@
                   placeholder="Data factura"
                   @input="
                     input;
-                    somethingChanged();
+                    somethingChanged(props.row);
                   "
                   trap-focus
                   editable
@@ -239,13 +229,13 @@
                 >
                 </b-datepicker>
               </b-field>
+          </b-table-column>
+          <b-table-column field="name" label="Previsió pag." width="100" v-slot="props">
               <b-field
-                :label="j == 0 ? 'Previsió pag.' : null"
-                v-if="me.options && me.options.treasury"
                 class="date-field"
               >
                 <b-datepicker
-                  v-model="subphase.date"
+                  v-model="props.row.date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -253,7 +243,7 @@
                   placeholder="Data pagament"
                   @input="
                     input;
-                    somethingChanged();
+                    somethingChanged(props.row);
                   "
                   trap-focus
                   editable
@@ -261,13 +251,14 @@
                 >
                 </b-datepicker>
               </b-field>
-
-              <b-field :label="j == 0 ? 'Accions' : null" class="medium-field">
+          </b-table-column>
+          <b-table-column field="name" label="Accions" width="80" v-slot="props">
+              <b-field class="medium-field">
                 <button
                   class="button is-small is-primary ml-2"
                   type="button"
                   @click.prevent="
-                    splitSubPhase(props.row, subphase, props.index, j)
+                    splitSubPhase(phase, props.row, phi, props.index)
                   "
                   :disabled="!editable"
                 >
@@ -278,41 +269,41 @@
                   type="button"
                   :disabled="
                     !editable ||
-                      (subphase.paid && mode !== 'simple') ||
+                      (props.row.paid && mode !== 'simple') ||
                       (mode === 'simple' &&
-                        subphase.estimated_hours &&
-                        subphase.estimated_hours.length > 0)
+                        props.row.estimated_hours &&
+                        props.row.estimated_hours.length > 0)
                   "
-                  @click.prevent="removeSubPhase(props.row, subphase, j)"
+                  @click.prevent="removeSubPhase(phase, props.row, props.index)"
                 >
                   <b-icon icon="trash-can" size="is-small" />
                 </button>
                 <button
-                  v-if="j === props.row.incomes.length - 1"
+                  v-if="props.index === phase.incomes.length - 1"
                   class="button is-small is-primary ml-2"
                   type="button"
-                  @click.prevent="addSubPhase(props.row)"
+                  @click.prevent="addSubPhase(phase)"
                   :disabled="!editable"
                 >
                   <b-icon icon="plus-circle" size="is-small" />
                 </button>
               </b-field>
-
+          </b-table-column>
+          <b-table-column field="name" label="Facturat" width="30" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
               <b-field
-                :label="j == 0 ? 'Facturat' : null"
-                v-if="me.options && me.options.treasury && mode !== 'simple'"
                 class="short-field"
               >
                 <b-checkbox
-                  v-model="subphase.paid"
+                  v-model="props.row.paid"
                   class="checkbox-inline"
-                  @input="paidChanged(subphase)"
+                  @input="paidChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-checkbox>
               </b-field>
-              <b-field
-                :label="j == 0 ? 'Document' : null"
+          </b-table-column>
+          <b-table-column field="name" label="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">            
+            <b-field
                 v-if="me.options && me.options.treasury && mode !== 'simple'"
                 class="zshort-field"
               >
@@ -320,21 +311,21 @@
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.invoice &&
-                      subphase.invoice.id
+                      props.row.invoice &&
+                      props.row.invoice.id
                   "
-                  :title="`${subphase.invoice.total_base} €`"
+                  :title="`${props.row.invoice.total_base} €`"
                   class="tag is-primary invoice-tag clickable"
                   :disabled="!editable"
                   @click="
-                    setInvoice('incomes', props.row, subphase, props.index, j)
+                    setInvoice('incomes', props.row, props.row, phi, props.index)
                   "
-                  >F {{ subphase.invoice.code }}
+                  >F {{ props.row.invoice.code }}
                   <b-icon
                     icon="alert-circle"
                     class="warning-tag"
                     size="is-small"
-                    v-if="importWarning(subphase, subphase.invoice)"
+                    v-if="importWarning(props.row, props.row.invoice)"
                     title="Imports diferents"
                   />
                 </span>
@@ -342,21 +333,21 @@
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.grant &&
-                      subphase.grant.id
+                      props.row.grant &&
+                      props.row.grant.id
                   "
                   :disabled="!editable"
-                  :title="`${subphase.grant.total_base} €`"
+                  :title="`${props.row.grant.total_base} €`"
                   class="tag is-primary invoice-tag clickable"
                   @click="
-                    setInvoice('incomes', props.row, subphase, props.index, j)
+                    setInvoice('incomes', props.row, props.row, phi, props.index)
                   "
-                  >S {{ subphase.grant.code }}
+                  >S {{ props.row.grant.code }}
                   <b-icon
                     icon="alert-circle"
                     class="warning-tag"
                     size="is-small"
-                    v-if="importWarning(subphase, subphase.grant)"
+                    v-if="importWarning(props.row, props.row.grant)"
                     title="Imports diferents"
                   />
                 </span>
@@ -364,21 +355,21 @@
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.income &&
-                      subphase.income.id
+                      props.row.income &&
+                      props.row.income.id
                   "
                   :disabled="!editable"
-                  :title="`${subphase.income.total_base} €`"
+                  :title="`${props.row.income.total_base} €`"
                   class="tag is-primary invoice-tag clickable"
                   @click="
-                    setInvoice('incomes', props.row, subphase, props.index, j)
+                    setInvoice('incomes', props.row, props.row, phi, props.index)
                   "
-                  >D {{ subphase.income.code }}
+                  >D {{ props.row.income.code }}
                   <b-icon
                     icon="alert-circle"
                     class="warning-tag"
                     size="is-small"
-                    v-if="importWarning(subphase, subphase.income)"
+                    v-if="importWarning(props.row, props.row.income)"
                     title="Imports diferents"
                   />
                 </span>
@@ -386,60 +377,57 @@
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.paid &&
-                      !subphase.invoice &&
-                      !subphase.income &&
-                      !subphase.grant
+                      props.row.paid &&
+                      !props.row.invoice &&
+                      !props.row.income &&
+                      !props.row.grant
                   "
                   :disabled="!editable"
                   class="tag is-warning invoice-tag clickable"
                   @click="
-                    setInvoice('incomes', props.row, subphase, props.index, j)
+                    setInvoice('incomes', props.row, subphase, phi, props.index)
                   "
                   >{{
-                    subphase.assign === true ? "Assignat" : "Document"
+                    props.row.assign === true ? "Assignat" : "Document"
                   }}</span
                 >
               </b-field>
-            </b-field>
-          </li>
-        </ul>
-        <div class="add-subphase mt-2" v-if="props.row.incomes.length === 0">
+          </b-table-column>
+          
+        </b-table>
+        <div class="add-subphase mt-2" v-if="phase.incomes.length === 0">
           <button
             class="button is-small is-primary"
             type="button"
-            @click.prevent="addSubPhase(props.row)"
+            @click.prevent="addSubPhase(phase)"
             :disabled="!editable"
           >
             <b-icon icon="plus-circle" size="is-small" />
           </button>
         </div>
-        <b-field
-          label="Despeses"
-          horizontal
-          class="has-text-left mt-5"
-          v-if="mode !== 'incomes'"
-        >
-        </b-field>
-        <ul class="subphases-list" v-if="mode !== 'incomes'">
-          <li
-            v-for="(subphase, j) in props.row.expenses"
-            :key="j"
-            class="subphase mt-2 mb-2"
-          >
-            <b-field grouped>
-              <b-field
+      </div>
+      <div class="column is-12 subphases-list" v-if="mode !== 'incomes'">
+        <div class="subphase-detail-title">
+          Despeses
+        </div>
+        <b-table v-if="form && phase.expenses" :data="phase.expenses" ref="table"
+        :paginated="isPaginated && phase.expenses.length > 10"
+          :per-page="perPage"
+          pagination-position="top"
+          :pagination-simple="true">
+          <b-table-column field="name" label="Tipus" width="80" v-slot="props">
+            <b-field
                 v-if="
                   (incomeTypes && incomeTypes.length) ||
                     (expenseTypes && expenseTypes.length)
-                "
-                :label="j == 0 ? 'Tipus' : null"
+                "                
                 class="subphase-detail-input"
               >
                 <b-select
-                  v-model="subphase.expense_type"
+                  v-model="props.row.expense_type"
                   placeholder="Tipus"
                   :disabled="!editable"
+                  @input="somethingChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in expenseTypes"
@@ -450,56 +438,57 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field
-                :label="j == 0 ? 'Concepte' : null"
+          </b-table-column>
+          <b-table-column field="name" label="Concepte" width="450" v-slot="props">
+            <b-field                
                 class="subphase-detail-input-large-field"
               >
                 <b-input
                   name="SubFase"
                   placeholder="Nom de la despesa..."
-                  v-model="subphase.concept"
+                  v-model="props.row.concept"
                   class="subphase-detail-input subphase-detail-input-large"
-                  @input="somethingChanged()"
+                  @input="somethingChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-input>
               </b-field>
+          </b-table-column>
+          <b-table-column field="name" label="Quantitat" width="80" v-slot="props">
               <b-field
-                :label="j == 0 ? 'Quantitat' : null"
                 class="medium-field"
               >
                 <b-input
                   name="Unitats"
                   placeholder="Quantitat, hores, unitats..."
-                  v-model="subphase.quantity"
+                  v-model="props.row.quantity"
                   @input="
-                    changeSubPhase(subphase, 'quantity', subphase.quantity)
+                    changeSubPhase(props.row, 'quantity', props.row.quantity)
                   "
-                  class="subphase-detail-input subphase-detail-input-short"
+                  class="subphase-detail-input"
                   :disabled="!editable"
                 >
                 </b-input>
               </b-field>
-              <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
+          </b-table-column>
+          <b-table-column field="name" label="Preu" width="80" v-slot="props">
+              <b-field class="medium-field">
                 <b-input
                   name="PreuUnitari"
                   placeholder="Preu per unitat"
-                  v-model="subphase.amount"
-                  @input="changeSubPhase(subphase, 'amount', subphase.amount)"
-                  class="subphase-detail-input subphase-detail-input-short"
+                  v-model="props.row.amount"
+                  @input="changeSubPhase(props.row, 'amount', props.row.amount)"
+                  class="subphase-detail-input"
                   :disabled="!editable"
                 >
                 </b-input>
               </b-field>
-              <b-field :label="j == 0 ? 'Total' : null" class="medium-field">
-                <div
-                  class="
-                        readonly
-                        subphase-detail-input subphase-detail-input-short
-                      "
-                >
+          </b-table-column>
+          <b-table-column field="name" label="Total" width="80" v-slot="props">
+              <b-field class="medium-field">
+                <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="subphase.quantity * subphase.amount"
+                    :value="props.row.quantity * props.row.amount"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -508,14 +497,13 @@
                   </money-format>
                 </div>
               </b-field>
-
+          </b-table-column>
+          <b-table-column field="name" label="Previsió fac." width="100" v-slot="props">
               <b-field
-                :label="j == 0 ? 'Previsió fac.' : null"
-                v-if="me.options && me.options.treasury"
                 class="date-field"
               >
                 <b-datepicker
-                  v-model="subphase.date_estimate_document"
+                  v-model="props.row.date_estimate_document"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -523,7 +511,7 @@
                   placeholder="Data factura"
                   @input="
                     input;
-                    somethingChanged();
+                    somethingChanged(props.row);
                   "
                   trap-focus
                   editable
@@ -531,13 +519,13 @@
                 >
                 </b-datepicker>
               </b-field>
+          </b-table-column>
+          <b-table-column field="name" label="Previsió pag." width="100" v-slot="props">
               <b-field
-                :label="j == 0 ? 'Previsió pag.' : null"
-                v-if="me.options && me.options.treasury"
                 class="date-field"
               >
                 <b-datepicker
-                  v-model="subphase.date"
+                  v-model="props.row.date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -545,7 +533,7 @@
                   placeholder="Data pagament"
                   @input="
                     input;
-                    somethingChanged();
+                    somethingChanged(props.row);
                   "
                   trap-focus
                   editable
@@ -553,13 +541,14 @@
                 >
                 </b-datepicker>
               </b-field>
-
-              <b-field :label="j == 0 ? 'Accions' : null" class="medium-field">
+          </b-table-column>
+          <b-table-column field="name" label="Accions" width="80" v-slot="props">
+              <b-field class="medium-field">
                 <button
                   class="button is-small is-primary ml-2"
                   type="button"
                   @click.prevent="
-                    splitSubExpense(props.row, subphase, props.index, j)
+                    splitSubExpense(phase, props.row, phi, props.index)
                   "
                   :disabled="!editable"
                 >
@@ -568,159 +557,142 @@
                 <button
                   class="button is-small is-danger ml-2"
                   type="button"
-                  :disabled="subphase.paid || !editable"
-                  @click.prevent="removeSubExpense(props.row, subphase, j)"
+                  :disabled="props.row.paid || !editable"
+                  @click.prevent="removeSubExpense(phase, props.row, props.index)"
                 >
                   <b-icon icon="trash-can" size="is-small" />
                 </button>
                 <button
-                  v-if="j === props.row.expenses.length - 1"
+                  v-if="props.index === phase.expenses.length - 1"
                   class="button is-small is-primary ml-2"
                   type="button"
-                  @click.prevent="addSubExpense(props.row)"
+                  @click.prevent="addSubExpense(phase)"
                   :disabled="!editable"
                 >
                   <b-icon icon="plus-circle" size="is-small" />
                 </button>
               </b-field>
-
+          </b-table-column>
+          <b-table-column field="name" label="Facturat" width="30" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
               <b-field
-                :label="j == 0 ? 'Facturat' : null"
-                v-if="me.options && me.options.treasury && mode !== 'simple'"
                 class="short-field"
               >
                 <b-checkbox
-                  v-model="subphase.paid"
+                  v-model="props.row.paid"
                   class="checkbox-inline"
-                  @input="paidChanged(subphase)"
+                  @input="paidChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-checkbox>
               </b-field>
-              <b-field
-                :label="j == 0 ? 'Document' : null"
+          </b-table-column>
+          <b-table-column field="name" label="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
+            <b-field
                 v-if="me.options && me.options.treasury && mode !== 'simple'"
+                class="zshort-field"
               >
                 <span
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.invoice &&
-                      subphase.invoice.id
+                      props.row.invoice &&
+                      props.row.invoice.id
                   "
-                  :title="`${subphase.invoice.total_base} €`"
+                  :title="`${props.row.invoice.total_base} €`"
                   class="tag is-primary invoice-tag clickable"
-                  @click="
-                    setInvoice('expenses', props.row, subphase, props.index, j)
-                  "
                   :disabled="!editable"
-                  >F {{ subphase.invoice.code }}
+                  @click="
+                    setInvoice('expenses', props.row, props.row, phi, props.index)
+                  "
+                  >F {{ props.row.invoice.code }}
                   <b-icon
                     icon="alert-circle"
                     class="warning-tag"
                     size="is-small"
-                    v-if="importWarning(subphase, subphase.invoice)"
+                    v-if="importWarning(props.row, props.row.invoice)"
                     title="Imports diferents"
-                /></span>
+                  />
+                </span>
                 <span
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.ticket &&
-                      subphase.ticket.id
+                      props.row.grant &&
+                      props.row.grant.id
                   "
-                  :title="`${subphase.ticket.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
                   :disabled="!editable"
+                  :title="`${props.row.grant.total_base} €`"
+                  class="tag is-primary invoice-tag clickable"
                   @click="
-                    setInvoice('expenses', props.row, subphase, props.index, j)
+                    setInvoice('expenses', props.row, props.row, phi, props.index)
                   "
-                  >T {{ subphase.ticket.code }}
+                  >S {{ props.row.grant.code }}
                   <b-icon
                     icon="alert-circle"
                     class="warning-tag"
                     size="is-small"
-                    v-if="importWarning(subphase, subphase.ticket)"
+                    v-if="importWarning(props.row, props.row.grant)"
                     title="Imports diferents"
-                /></span>
+                  />
+                </span>
                 <span
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.diet &&
-                      subphase.diet.id
+                      props.row.expense &&
+                      props.row.expense.id
                   "
                   :disabled="!editable"
-                  :title="`${subphase.diet.total_base} €`"
+                  :title="`${props.row.expense.total_base} €`"
                   class="tag is-primary invoice-tag clickable"
                   @click="
-                    setInvoice('expenses', props.row, subphase, props.index, j)
+                    setInvoice('expenses', props.row, props.row, phi, props.index)
                   "
-                  >D {{ subphase.diet.code }}
+                  >D {{ props.row.expense.code }}
                   <b-icon
                     icon="alert-circle"
                     class="warning-tag"
                     size="is-small"
-                    v-if="importWarning(subphase, subphase.diet)"
+                    v-if="importWarning(props.row, props.row.expense)"
                     title="Imports diferents"
-                /></span>
+                  />
+                </span>
                 <span
                   v-if="
                     me.options &&
                       me.options.treasury &&
-                      subphase.expense &&
-                      subphase.expense.id
-                  "
-                  :disabled="!editable"
-                  :title="`${subphase.expense.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
-                  @click="
-                    setInvoice('expenses', props.row, subphase, props.index, j)
-                  "
-                  >D {{ subphase.expense.code }}
-                  <b-icon
-                    icon="alert-circle"
-                    class="warning-tag"
-                    size="is-small"
-                    v-if="importWarning(subphase, subphase.expense)"
-                    title="Imports diferents"
-                /></span>
-                <span
-                  v-if="
-                    me.options &&
-                      me.options.treasury &&
-                      subphase.paid &&
-                      !subphase.invoice &&
-                      !subphase.ticket &&
-                      !subphase.diet &&
-                      !subphase.expense
+                      props.row.paid &&
+                      !props.row.invoice &&
+                      !props.row.expense &&
+                      !props.row.grant
                   "
                   :disabled="!editable"
                   class="tag is-warning invoice-tag clickable"
                   @click="
-                    setInvoice('expenses', props.row, subphase, props.index, j)
+                    setInvoice('expenses', props.row, subphase, phi, props.index)
                   "
                   >{{
-                    subphase.assign === true ? "Assignat" : "Document"
+                    props.row.assign === true ? "Assignat" : "Document"
                   }}</span
                 >
               </b-field>
-            </b-field>
-          </li>
-        </ul>
-        <div class="add-subphase mt-2" v-if="props.row.expenses.length === 0">
+          </b-table-column>
+        </b-table>
+        <div class="add-subphase mt-2" v-if="phase.expenses.length === 0">
           <button
             class="button is-small is-primary"
             type="button"
-            @click.prevent="addSubExpense(props.row)"
+            @click.prevent="addSubExpense(phase)"
             :disabled="!editable"
           >
             <b-icon icon="plus-circle" size="is-small" />
           </button>
         </div>
-      </template>
-    </b-table>
 
+      </div>
+    </div>
+
+    
     <form @submit.prevent="addPhase" v-if="mode === '' || mode === 'simple'">
       <b-field label="Nova Fase" class="mt-5">
         <b-input
@@ -750,6 +722,8 @@ import { mapState } from "vuex";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
 import RadioPicker from "@/components/RadioPicker";
+import { sub } from "date-fns";
+import { de, is } from "date-fns/locale";
 
 export default {
   name: "ProjectFormPhases",
@@ -777,6 +751,18 @@ export default {
     editable: {
       type: Boolean,
       default: true
+    },
+    hidden: {
+      type: Boolean,
+      default: false
+    },
+    perPage: {
+      type: Number,
+      default: 10
+    },
+    isPaginated: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -785,7 +771,6 @@ export default {
       isLoading: false,
       isUpdating: false,
       needsUpdate: false,
-      // form: this.getClearFormObject(),
       createdReadable: null,
       isProfileExists: false,
       project_states: [],
@@ -829,7 +814,10 @@ export default {
       isModalActive: false,
       isModalSplitActive: false,
       newTask: "",
-      auxDocument: null
+      auxDocument: null,
+      deletedPhases: [],
+      deletedIncomes: [],
+      deletedExpenses: []
     };
   },
   computed: {
@@ -902,7 +890,7 @@ export default {
       .get("contacts/basic?_limit=-1&_sort=name:ASC")
       .then(r => r.data);
 
-    this.phases = this.projectPhases.map(r => {
+    const phases0 = this.projectPhases.map(r => {
       return {
         ...r,
         opened: true,
@@ -911,8 +899,10 @@ export default {
       };
     });
 
-    this.phases.forEach(p => {
+    phases0.forEach(p => {
+      p.dirty = false;
       p.incomes.forEach(s => {
+        s.dirty = false;
         s.assign = false;
         s["assign"] = false;
         if (s.date) {
@@ -929,6 +919,7 @@ export default {
         }
       });
       p.expenses.forEach(s => {
+        s.dirty = false;
         s.assign = false;
         s["assign"] = false;
         if (s.date) {
@@ -945,6 +936,9 @@ export default {
         }
       });
     });
+
+    this.phases = phases0;
+
     // console.log('this.phases', this.phases)
     this.isLoading = false;
   },
@@ -958,26 +952,39 @@ export default {
       }
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
-    blurPhaseEdit() {
+    blurPhaseEdit(phase) {
+      phase.dirty = true;
       this.needsUpdate = true;
       this.blurPhase(null);
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
-    somethingChanged() {
+    somethingChanged(subphase) {
+      subphase.dirty = true;
+      this.needsUpdate = true;
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     changeSubPhase(subphase, field, value) {
+      subphase.dirty = true;
       if (value && value.toString().includes(",")) {
-        subphase[field] = value.toString().replace(",", ".");
+        subphase[field] = value.toString().replace(",", ".");        
       }
       this.phases = this.phases.map(r => {
         return {
@@ -990,7 +997,10 @@ export default {
       });
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     addPhase() {
@@ -1001,20 +1011,28 @@ export default {
         opened: true,
         incomes: [],
         expenses: [],
-        total_amount: 0
+        total_amount: 0,
+        dirty: true
       });
       this.phaseToAdd = "";
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     removePhase(i) {
       this.needsUpdate = true;
-      this.phases = this.phases.filter((p, j) => i !== j);
+      this.deletedPhases.push(this.phases[i].id);
+      this.phases = this.phases.filter((p, j) => i !== j);      
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     subTotalIncomes(phase) {
@@ -1026,54 +1044,31 @@ export default {
     copyPhase(i) {
       this.$emit("phases-copy", { index: i });
     },
-    getClearFormObject() {
-      return {
-        id: null,
-        name: null,
-        project_state: { id: 0 },
-        project_scope: { id: 0 },
-        leader: { id: 0 },
-        phases: [],
-        expenses: [],
-        default_dedication_type: { id: 0 }
-      };
-    },
     input(v) {
       this.createdReadable = dayjs(v).format("MMM D, YYYY");
     },
     removeSubPhase(phase, subphase, j) {
       this.needsUpdate = true;
-      phase.incomes = phase.incomes.filter((s, i) => i !== j);
+      this.deletedIncomes.push(subphase.id);
+      phase.incomes = phase.incomes.filter((s, i) => i !== j);      
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     removeSubExpense(phase, subphase, j) {
       this.needsUpdate = true;
+      this.deletedExpenses.push(subphase.id);
       phase.expenses = phase.expenses.filter((s, i) => i !== j);
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
-      });
-    },
-    removeExpense(expense, j) {
-      this.form.expenses = this.form.expenses.filter((s, i) => i !== j);
-      this.$emit("phases-updated", {
-        phases: this.phases,
-        projectId: this.form.id
-      });
-    },
-    addExpense(expense) {
-      this.form.expenses.push({
-        concept: "",
-        quantity: 1,
-        amount: 0,
-        expense_type: null
-      });
-      this.$emit("phases-updated", {
-        phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     addSubPhase(phase) {
@@ -1089,11 +1084,15 @@ export default {
           : null,
         date: this.form.date_end
           ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
-          : null
+          : null,
+        dirty: true
       });
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     addSubExpense(phase) {
@@ -1108,11 +1107,15 @@ export default {
           : null,
         date: this.form.date_end
           ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
-          : null
+          : null,
+        dirty: true
       });
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     splitSubPhase(phase, subphase, i, j) {
@@ -1126,7 +1129,10 @@ export default {
       this.isModalSplitActive = true;
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     splitSubExpense(phase, subphase, i, j) {
@@ -1140,7 +1146,10 @@ export default {
       this.isModalSplitActive = true;
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     setInvoice(type, phase, subphase, i, j) {
@@ -1164,6 +1173,8 @@ export default {
       } else if (this.mode === "incomes") {
         const phase = this.phases.find((p, idx) => idx === i);
         const subphase = phase.incomes.find((p, idx) => idx === j);
+        phase.dirty = true;
+        subphase.dirty = true;
 
         if (
           (!subphase.invoice || !subphase.invoice.id) &&
@@ -1178,12 +1189,17 @@ export default {
 
           this.$emit("phases-updated", {
             phases: this.phases,
-            projectId: this.form.id
+            projectId: this.form.id,
+            deletedPhases: this.deletedPhases,
+            deletedIncomes: this.deletedIncomes,
+            deletedExpenses: this.deletedExpenses
           });
         }
       } else if (this.mode === "expenses") {
         const phase = this.phases.find((p, idx) => idx === i);
         const subphase = phase.expenses.find((p, idx) => idx === j);
+        phase.dirty = true;
+        subphase.dirty = true;
 
         if (
           (!subphase.invoice || !subphase.invoice.id) &&
@@ -1216,6 +1232,8 @@ export default {
         subphase.invoice = invoicing.emitted;
         subphase.income = invoicing.income;
         subphase.grant = invoicing.grant;
+        subphase.dirty = true;
+
       } else if (this.invoicingObject.type === "expenses") {
         const phase = this.phases.find(
           (p, idx) => idx === this.invoicingObject.i
@@ -1228,18 +1246,26 @@ export default {
         subphase.expense = invoicing.expense;
         subphase.ticket = invoicing.ticket;
         subphase.diet = invoicing.diet;
+        subphase.grant = invoicing.grant;
+        subphase.dirty = true;
       }
       this.isModalActive = false;
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     async modalDelete(activity) {
       this.isModalActive = false;
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
     },
     modalCancel() {
@@ -1292,13 +1318,15 @@ export default {
                 ? moment(action.subphase.date_estimate_document)
                     .add(max - i - 1, "month")
                     .toDate()
-                : null
+                : null,
+              dirty: true
             };
             this.phases[action.i].incomes.splice(action.j + 1, 0, newIncome);
           }
           if (divider > 1) {
             const el = this.phases[action.i].incomes[action.j];
             el.amount = el.amount / divider;
+            el.dirty = true;
           }
         }
 
@@ -1309,11 +1337,13 @@ export default {
             amount: action.amount,
             quantity: action.subphase.quantity,
             date: action.subphase.date,
-            date_estimate_document: action.subphase.date_estimate_document
+            date_estimate_document: action.subphase.date_estimate_document,
+            dirty: true
           };
           this.phases[action.i].incomes[action.j].amount =
             this.phases[action.i].incomes[action.j].amount - action.amount;
           this.phases[action.i].incomes.splice(action.j + 1, 0, newIncome);
+          this.phases[action.i].incomes[action.j].dirty = true;
         }
       } else if (action.type === "expense") {
         if (max > 0) {
@@ -1332,13 +1362,16 @@ export default {
                 ? moment(action.subphase.date_estimate_document)
                     .add(max - i - 1, "month")
                     .toDate()
-                : null
+                : null,
+              dirty: true
             };
             this.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
+
           }
           if (divider > 1) {
             const el = this.phases[action.i].expenses[action.j];
             el.amount = el.amount / divider;
+            el.dirty = true;
           }
         }
 
@@ -1349,23 +1382,31 @@ export default {
             amount: action.amount,
             quantity: action.subphase.quantity,
             date: action.subphase.date,
-            date_estimate_document: action.subphase.date_estimate_document
+            date_estimate_document: action.subphase.date_estimate_document,
+            dirty: true
           };
           this.phases[action.i].expenses[action.j].amount =
             this.phases[action.i].expenses[action.j].amount - action.amount;
           this.phases[action.i].expenses.splice(action.j + 1, 0, newIncome);
+          this.phases[action.i].expenses[action.j].dirty = true;
         }
       }
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
       this.isModalSplitActive = false;
     },
     async modalSplitDelete(invoicing) {
       this.$emit("phases-updated", {
         phases: this.phases,
-        projectId: this.form.id
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
       });
       this.isModalSplitActive = false;
     },
@@ -1381,7 +1422,8 @@ export default {
         subphase.income = null;
         subphase.expense = null;
       }
-      this.somethingChanged();
+      subphase.dirty = true;
+      this.somethingChanged(subphase);
     },
     importWarning(subphase, document) {
       return document
@@ -1404,5 +1446,21 @@ export default {
 }
 .subphase-detail-input-phase-total {
   text-align: right;
+}
+.subphase-detail-input select {
+  min-width: 180px;
+}
+.phase-container{
+  background: #fafafa;
+  border: 2px solid #eee;
+  margin-bottom: 2rem!important;  
+}
+.subphase-detail-title {
+  font-size: 1.0rem!important;
+  font-weight: bold;  
+}
+.phase-container .b-table .table {
+  background: #fafafa;
+
 }
 </style>

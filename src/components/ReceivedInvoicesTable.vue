@@ -190,7 +190,7 @@
           }}
         </b-table-column>
         <b-table-column label="Assig." title="Assignada a línia de projecte" field="assigned" v-slot="props" sortable>
-          {{ props.row.assigned }}
+          {{ props.row.assigned ? "Sí" : "No" }}
         </b-table-column>
       </b-table>
     </div>
@@ -415,10 +415,15 @@ export default {
 
       const emitted = _.concat(invoices, expenses, payrolls);
 
+      const assignedDocuments = ( await service({ requiresAuth: true }).get(
+        `phase-expenses/assigned?_limit=-1`
+      )).data;
+
       const emittedWithInfo = emitted.map((e) => {
         return {
           ...e,
-          assigned: this.assignedToProject(e) ? "Sí" : "No",
+          // check if the document is assigned to a project, with assignedDocuments
+          assigned: this.assignedToProject(e, assignedDocuments),
         };
       });
 
@@ -536,58 +541,12 @@ export default {
     zeroPad(num, places) {
       return String(num).padStart(places, "0");
     },
-    assignedToProject(invoice) {
+    assignedToProject(invoice, assignedDocuments) {
       let assigned = false;
-
-      if (invoice.projects) {
-        for (let i = 0; i < invoice.projects.length; i++) {
-          const project = invoice.projects[i];
-          if (invoice.type === "received-invoices") {
-            if (project.phases) {
-              const invoiceAssigned = project.phases.find(
-                (p) =>
-                  p.expenses &&
-                  p.expenses.find(
-                    (e) => e.invoice && e.invoice.id === invoice.id
-                  )
-              );
-              assigned = invoiceAssigned !== undefined;
-            }
-          } else if (invoice.type === "emitted-invoices") {
-            if (project.phases) {
-              const invoiceAssigned = project.phases.find(
-                (p) =>
-                  p.incomes &&
-                  p.subphaincomesses.find(
-                    (e) => e.invoice && e.invoice.id === invoice.id
-                  )
-              );
-              assigned = invoiceAssigned !== undefined;
-            }
-          } else if (invoice.type === "received-expenses") {
-            if (project.phases) {
-              const invoiceAssigned = project.phases.find(
-                (p) =>
-                  p.expenses &&
-                  p.expenses.find(
-                    (e) => e.expense && e.expense.id === invoice.id
-                  )
-              );
-              assigned = invoiceAssigned !== undefined;
-            }
-          } else if (invoice.type === "received-incomes") {
-            if (project.phases) {
-              const invoiceAssigned = project.phases.find(
-                (p) =>
-                  p.incomes &&
-                  p.incomes.find(
-                    (e) => e.income && e.income.id === invoice.id
-                  )
-              );
-              assigned = invoiceAssigned !== undefined;
-            }
-          }
-        }
+      if (invoice.type === "received-invoices") {
+        assigned = assignedDocuments.invoices.includes(invoice.id);
+      } else if (invoice.type === "received-expenses") {
+        assigned = assignedDocuments.expenses.includes(invoice.id);
       }
       return assigned;
     },

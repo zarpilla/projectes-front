@@ -380,15 +380,15 @@
 
               <b-field
                 label="Número d'expedient"
-                horizontal                
+                horizontal
                 v-if="form.grantable"
               >
-                <b-input                  
+                <b-input
                   v-model="form.grantable_reference"
-                  placeholder="Número d'expedient de la subvenció"></b-input>                  
+                  placeholder="Número d'expedient de la subvenció"
+                ></b-input>
               </b-field>
 
-              
               <b-field
                 label="Import a justificar amb nòmines"
                 v-if="form.grantable"
@@ -484,7 +484,7 @@
                   "
                 >
                 </b-input>
-              </b-field> -->              
+              </b-field> -->
               <b-field
                 label="Data sol·licitud"
                 v-if="form.grantable"
@@ -533,8 +533,11 @@
                 </b-checkbox>
               </b-field>
 
-
-              <b-field v-if="form.grantable && form.grantable_intercooperation" label="Entitat líder" horizontal>
+              <b-field
+                v-if="form.grantable && form.grantable_intercooperation"
+                label="Entitat líder"
+                horizontal
+              >
                 <b-autocomplete
                   v-model="leadersSearch"
                   placeholder="Escriu el nom del contacte..."
@@ -564,21 +567,20 @@
                 </div>
               </b-field>
 
-
               <b-field
                 label="Imports"
                 v-if="form.grantable && form.grantable_intercooperation"
                 horizontal
-                >
+              >
                 <div class="d-flex">
                   <ProjectGrantableContacts
-                  :grantables="form.grantable_contacts"
-                  :contacts="clients"
-                  @updated="updateGrantableContacts"
-                  v-if="form.grantable">
-                </ProjectGrantableContacts>
+                    :grantables="form.grantable_contacts"
+                    :contacts="clients"
+                    @updated="updateGrantableContacts"
+                    v-if="form.grantable"
+                  >
+                  </ProjectGrantableContacts>
                 </div>
-                
               </b-field>
 
               <hr />
@@ -1215,7 +1217,6 @@
                 </div>
               </b-field>
             </div>
-            
           </card-component>
         </div>
       </div>
@@ -1225,8 +1226,8 @@
           !isLoading &&
             phasesVisible &&
             form &&
-            form.original_phases &&
-            form.original_phases.length > 0
+            form.project_original_phases &&
+            form.project_original_phases.length > 0
         "
         title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
         :closeIcon="true"
@@ -1237,27 +1238,47 @@
             type="is-warning"
             :loading="isLoading"
             @click="originalEditable = !originalEditable"
+            class="mr-2"
           >
             <template v-if="!originalEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
+
+          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
+            <option value="10">10 per pàgina</option>            
+            <option value="50">50 per pàgina</option>
+            <option value="100">100 per pàgina</option>
+            <option value="1000">1000 per pàgina</option>
+          </b-select>
+
+          <div class="control is-flex">
+            <b-switch v-model="isPaginated">Paginat</b-switch>
+          </div>
         </b-field>
 
         <project-phases
           :form="form"
-          :project-phases="form.original_phases"
+          :project-phases="form.project_original_phases"
           @phases-updated="originalPhasesUpdated"
           @phases-copy="originalPhasesCopy"
           mode="simple"
           :editable="originalEditable"
+          :per-page="parseInt(perPage)"
+          :is-paginated="isPaginated"
         />
+
         <hr
           v-if="
-            form.original_phases.length &&
-              (!form.phases || form.phases.length === 0)
+            form.project_original_phases.length &&
+              (!form.project_phases || form.project_phases.length === 0)
           "
         />
-        <b-field v-if="form.original_phases.length && form.phases.length === 0">
+        <b-field
+          v-if="
+            form.project_original_phases.length &&
+              form.project_phases.length === 0
+          "
+        >
           <b-button type="is-warning" @click="closeQuoteFromOriginal">
             Tancar Pressupost
           </b-button>
@@ -1287,11 +1308,16 @@
 
       <card-component
         v-if="
-          !isLoading && phasesVisible && form && form.phases && !form.children
+          !isLoading &&
+            phasesVisible &&
+            form &&
+            form.project_phases &&
+            !form.children
         "
         :title="
-          !form.original_phases ||
-          (form.original_phases && form.original_phases.length === 0)
+          !form.project_original_phases ||
+          (form.project_original_phases &&
+            form.project_original_phases.length === 0)
             ? 'GESTIÓ ECONÒMICA - FASES I PRESSUPOST'
             : 'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'
         "
@@ -1303,25 +1329,45 @@
             type="is-warning"
             :loading="isLoading"
             @click="phasesEditable = !phasesEditable"
+            class="mr-2"
           >
             <template v-if="!phasesEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
+
+          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
+            <option value="10">10 per pàgina</option>            
+            <option value="50">50 per pàgina</option>
+            <option value="100">100 per pàgina</option>
+            <option value="1000">1000 per pàgina</option>
+          </b-select>
+
+          <div class="control is-flex">
+            <b-switch v-model="isPaginated">Paginat</b-switch>
+          </div>
         </b-field>
 
         <project-phases
           :form="form"
-          :project-phases="form.phases"
+          :project-phases="form.project_phases"
           @phases-updated="phasesUpdated"
           :editable="phasesEditable"
+          :per-page="parseInt(perPage)"
+          :is-paginated="isPaginated"
         />
         <hr
           v-if="
-            form.phases.length &&
-              (!form.original_phases || form.original_phases.length === 0)
+            form.project_phases.length &&
+              (!form.project_original_phases ||
+                form.project_original_phases.length === 0)
           "
         />
-        <b-field v-if="form.phases.length && form.original_phases.length === 0">
+        <b-field
+          v-if="
+            form.project_phases.length &&
+              form.project_original_phases.length === 0
+          "
+        >
           <b-button type="is-warning" @click="closeQuote">
             Tancar Pressupost
           </b-button>
@@ -1616,9 +1662,9 @@
             !isLoading &&
               !needsUpdate &&
               form.id &&
-              form.original_phases &&
-              form.original_phases.length &&
-              form.original_phases[0].id
+              form.project_original_phases &&
+              form.project_original_phases.length &&
+              form.project_original_phases[0].id
           "
           class="left-container"
           :project="form"
@@ -1658,7 +1704,26 @@
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
-        <b-table :data="treasury">
+
+      <b-field>
+
+        <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
+            <option value="10">10 per pàgina</option>            
+            <option value="50">50 per pàgina</option>
+            <option value="100">100 per pàgina</option>
+            <option value="1000">1000 per pàgina</option>
+          </b-select>
+
+          <div class="control is-flex">
+            <b-switch v-model="isPaginated">Paginat</b-switch>
+          </div>
+      </b-field>
+      
+        <b-table :data="treasury"
+        :per-page="parseInt(perPage)"
+        :paginated="isPaginated"
+        pagination-position="both"
+        >
           <b-table-column
             label="Data"
             field="document.date"
@@ -1866,6 +1931,7 @@ import moment from "moment";
 import sortBy from "lodash/sortBy";
 import Tasks from "@/components/Tasks";
 import FileUpload from "@/components/FileUpload";
+import { ca } from "date-fns/locale";
 
 export default {
   name: "ProjectForm",
@@ -1936,6 +2002,15 @@ export default {
       originalEditable: false,
       phasesEditable: false,
       grantable_contacts: [],
+      perPage: 10,
+      isPaginated: true,
+      deletedPhases: [],
+      deletedIncomes: [],
+      deletedExpenses: [],
+      deletedPhasesOriginal: [],
+      deletedIncomesOriginal: [],
+      deletedExpensesOriginal: [],
+      deletedHoursOriginal: [],
     };
   },
   computed: {
@@ -2126,7 +2201,8 @@ export default {
     },
     treasuryDone() {
       const documents = [];
-      this.form.phases.forEach(ph => {
+      const project_phases = this.form.project_phases || [];
+      project_phases.forEach(ph => {
         ph.incomes.forEach(income => {
           if (income.paid) {
             if (income.invoice) {
@@ -2184,8 +2260,10 @@ export default {
     },
     treasury() {
       const documents = [];
-      this.form.phases.forEach(ph => {
-        ph.incomes.forEach(income => {
+      const project_phases = this.form.project_phases || [];
+      project_phases.forEach(ph => {
+        const incomes = ph.incomes || [];
+        incomes.forEach(income => {
           if (!income.paid || true) {
             documents.push({
               docType: "income",
@@ -2194,7 +2272,8 @@ export default {
             });
           }
         });
-        ph.expenses.forEach(expense => {
+        const expenses = ph.expenses || [];
+        expenses.forEach(expense => {
           if (!expense.paid || true) {
             documents.push({
               docType: "expense",
@@ -2363,6 +2442,30 @@ export default {
                   ? this.form.region
                   : { id: 0 };
 
+              const phases = (
+                await service({ requiresAuth: true }).get(
+                  `project-phases?project=${this.$route.params.id}&_limit=-1`
+                )
+              ).data;
+
+              this.form.project_phases = phases;
+
+              // const original_phases = (
+              //   await service({ requiresAuth: true }).get(
+              //     `project-original-phases?project=${this.$route.params.id}&_limit=-1`
+              //   )
+              // ).data;
+
+              // console.log("original_phases", phases);
+
+              const phases_and_estimated_hours = (
+                await service({ requiresAuth: true }).get(
+                  `project-original-phases-hours?project=${this.$route.params.id}&_limit=-1`
+                )
+              ).data;
+
+              this.form.project_original_phases = phases_and_estimated_hours;
+
               if (
                 this.form.mother &&
                 this.form.mother.id &&
@@ -2416,23 +2519,6 @@ export default {
                   childrenData.totals.received_expenses;
 
                 this.form.children = childrenData;
-              }
-
-              this.form.phases = this.form.phases.map(p => {
-                return { ...p, edit: false };
-              });
-              if (this.form.phases.length === 0) {
-              } else if (this.form.expenses.length > 0) {
-                for (let i = 0; i < this.form.expenses.length; i++) {
-                  const expense = this.form.expenses[i];
-                  delete expense.id;
-                }
-                this.form.phases[0].expenses = this.form.expenses;
-                this.form.expenses = [];
-              } else {
-                this.form.phases = this.form.phases.map(r => {
-                  return { ...r, expenses: r.expenses || [] };
-                });
               }
 
               if (this.form.default_dedication_type === null) {
@@ -2506,7 +2592,7 @@ export default {
           this.project_scopes = r.data;
         });
 
-      service({ requiresAuth: true })
+      service({ requiresAuth: true, cached: true })
         .get("contacts/basic?_limit=-1&_sort=name:ASC")
         .then(r => {
           this.clients = r.data;
@@ -2628,6 +2714,9 @@ export default {
     async submit(action) {
       this.isLoading = true;
 
+      console.log("submit", this.form);
+      console.log('form.project_original_phases', this.form.project_original_phases)
+      
       if (!this.periodification) {
         this.form.periodification = [];
       }
@@ -2649,7 +2738,7 @@ export default {
       }
 
       if (this.form.mother && this.form.mother.id) {
-        this.form.mother = this.form.mother.id
+        this.form.mother = this.form.mother.id;
       }
 
       try {
@@ -2679,8 +2768,8 @@ export default {
         if (this.form.id) {
           const { activities, ...form } = this.form;
 
-          if (form.phases && form.phases.length) {
-            form.phases.forEach(ph => {
+          if (form.project_phases && form.project_phases.length) {
+            form.project_phases.forEach(ph => {
               if (ph && ph.expenses && ph.expenses.length) {
                 ph.expenses.forEach(e => {
                   if (e.expense && !e.expense.id) {
@@ -2704,7 +2793,7 @@ export default {
             });
           }
 
-          this.form.grantable_contacts = this.grantable_contacts
+          this.form.grantable_contacts = this.grantable_contacts;
 
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
@@ -2725,9 +2814,8 @@ export default {
             });
           }
         } else {
+          this.form.grantable_contacts = this.grantable_contacts;
 
-          this.form.grantable_contacts = this.grantable_contacts
-          
           const newProject = await service({ requiresAuth: true }).post(
             "projects",
             this.form
@@ -2796,7 +2884,7 @@ export default {
       this.form.grantable_leader = option ? option.id : null;
     },
     projectSelected(option) {
-      console.log('projectSelected', option)
+      console.log("projectSelected", option);
       if (option && option.id) {
         this.form.mother = option.id;
       } else {
@@ -2858,7 +2946,7 @@ export default {
       }, 500);
     },
     ganttItemUpdate(item) {
-      // console.log('ganttItemUpdate', item)
+      console.log('ganttItemUpdate', item)
       if (!item._hours) {
         return;
       }
@@ -2870,9 +2958,10 @@ export default {
 
       var subphase = item._subphase ? item._subphase : null;
       if (!item._subphase) {
-        const phase = this.form.original_phases.find(p => p.id === pid);
+        const phase = this.form.project_original_phases.find(p => p.id === pid);
         phase.incomes.push({ concept: "SF", estimated_hours: [] });
         subphase = phase.incomes[0];
+        subphase.dirty = true;
       }
 
       const hours = subphase.estimated_hours.find(
@@ -2898,6 +2987,7 @@ export default {
         hours.users_permissions_user = item._hours.users_permissions_user;
         hours.amount = item._hours.amount;
         hours.total_amount = item.total_amount;
+        hours.dirty = true;
       } else if (uuid) {
         const hour = {
           from: moment(item.start_date).format("YYYY-MM-DD"),
@@ -2915,32 +3005,41 @@ export default {
           users_permissions_user: item._hours.users_permissions_user,
           amount: item._hours.amount,
           total_amount: item._hours.total_amount,
-          _uuid: item._uuid
+          _uuid: item._uuid,
+          dirty: true
         };
         // console.log('hour to push', hour)
         subphase.estimated_hours.push(hour);
+        subphase.dirty = true;
       }
       this.updatingGantt = true;
       if (this.updatingGanttTimer) {
         clearTimeout(this.updatingGanttTimer);
       }
+
+      this.form.project_original_phases_info = { deletedPhases: this.deletedPhasesOriginal, deletedIncomes: this.deletedIncomesOriginal, deletedExpenses: this.deletedExpensesOriginal, deletedHours: this.deletedHoursOriginal };
+
       this.updatingGanttTimer = setTimeout(() => {
         this.updatingGantt = false;
-        EventBus.$emit("phases-updated", { phases: this.form.original_phases });
+        // EventBus.$emit("phases-updated", {
+        //   phases: this.form.project_original_phases
+        // });
       }, 800);
     },
     ganttItemDelete(item) {
       const id = item._hours.id;
       const pid = item._phase.id;
       const sid = item._subphase.id;
-      this.form.original_phases
-        .find(p => p.id === pid)
-        .incomes.find(
-          s => s.id === sid
-        ).estimated_hours = this.form.original_phases
-        .find(p => p.id === pid)
-        .incomes.find(s => s.id === sid)
-        .estimated_hours.filter(h => h.id !== id);
+
+      this.deletedHoursOriginal.push(id);
+
+      const phase = this.form.project_original_phases
+      .find(p => p.id === pid)
+
+      const income = phase.incomes.find(s => s.id === sid)
+      income.estimated_hours = income.estimated_hours.filter(h => h.id !== id);
+      
+      this.form.project_original_phases_info = { deletedPhases: this.deletedPhasesOriginal, deletedIncomes: this.deletedIncomesOriginal, deletedExpenses: this.deletedExpensesOriginal, deletedHours: this.deletedHoursOriginal };
     },
     sumByFn(arr, field) {
       return sumBy(arr, field);
@@ -2992,19 +3091,33 @@ export default {
       );
     },
     phasesUpdated(info) {
-      console.log("phasesUpdated info", info, this.form.phases);
-      this.form.phases = info.phases;
+      this.form.project_phases = [ ...info.phases];
+      if (info.deletedPhases) {
+        this.deletedPhases = info.deletedPhases;
+        this.deletedIncomes = info.deletedIncomes;
+        this.deletedExpenses = info.deletedExpenses;
+      }
+      this.form.project_phases_info = { deletedPhases: this.deletedPhases, deletedIncomes: this.deletedIncomes, deletedExpenses: this.deletedExpenses, deletedHours: [] };      
+
     },
     originalPhasesUpdated(info) {
-      console.log("originalPhasesUpdated info", info);
-      this.form.original_phases = info.phases;
+      this.form.project_original_phases = [ ...info.phases];
+      if (info.deletedPhases) {
+        this.deletedPhasesOriginal = info.deletedPhases;
+        this.deletedIncomesOriginal = info.deletedIncomes;
+        this.deletedExpensesOriginal = info.deletedExpenses;
+      }
+      this.form.project_original_phases_info = { deletedPhases: this.deletedPhasesOriginal, deletedIncomes: this.deletedIncomesOriginal, deletedExpenses: this.deletedExpensesOriginal, deletedHours: this.deletedHoursOriginal };
     },
     originalPhasesCopy(info) {
       this.phasesVisible = false;
-      const phases = JSON.parse(JSON.stringify(this.form.original_phases));
+      const phases = JSON.parse(
+        JSON.stringify(this.form.project_original_phases)
+      );
       const phase = phases.find((p, i) => i === info.index);
       delete phase.id;
       phase.name = `${phase.name} - còpia`;
+      phase.dirty = true;
       phase.incomes.forEach(sp => {
         sp.date = sp.date
           ? moment(sp.date).format("YYYY-MM-DD")
@@ -3015,6 +3128,7 @@ export default {
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
+        sp.dirty = true;
       });
       phase.expenses.forEach(sp => {
         sp.date = sp.date
@@ -3026,22 +3140,27 @@ export default {
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
+        sp.dirty = true;
       });
-      this.form.phases.push(phase);
+      this.form.project_phases.push(phase);
       setTimeout(() => (this.phasesVisible = true), 100);
     },
 
     closeQuote() {
       this.phasesVisible = false;
-      this.form.original_phases = JSON.parse(JSON.stringify(this.form.phases));
-      this.form.original_phases.forEach(p => {
+      this.form.project_original_phases = JSON.parse(
+        JSON.stringify(this.form.project_phases)
+      );
+      this.form.project_original_phases.forEach(p => {
         delete p.id;
+        p.dirty = true;
         p.incomes.forEach(sp => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           sp.date_estimate_document = moment(sp.date_estimate_document).format(
             "YYYY-MM-DD"
           );
           delete sp.id;
+          sp.dirty = true;
         });
         p.expenses.forEach(sp => {
           sp.date = moment(sp.date).format("YYYY-MM-DD");
@@ -3049,13 +3168,16 @@ export default {
             "YYYY-MM-DD"
           );
           delete sp.id;
+          sp.dirty = true;
         });
       });
       this.phasesVisible = true;
     },
     closeQuoteFromOriginal() {
       this.phasesVisible = false;
-      const phases = JSON.parse(JSON.stringify(this.form.original_phases));
+      const phases = JSON.parse(
+        JSON.stringify(this.form.project_original_phases)
+      );
       phases.forEach(p => {
         p.edit = false;
         p.opened = true;
@@ -3073,7 +3195,7 @@ export default {
           delete sp.id;
         });
       });
-      this.form.phases = phases;
+      this.form.project_phases = phases;
       setTimeout(() => {
         this.phasesVisible = true;
       }, 200);
@@ -3150,7 +3272,7 @@ export default {
       window.open(routeData.href, "_blank");
     },
     refreshClients() {
-      service({ requiresAuth: true, cached: true })
+      service({ requiresAuth: true, cached: false })
         .get("contacts/basic?_limit=-1&_sort=name:ASC")
         .then(r => {
           this.clients = r.data;
@@ -3158,7 +3280,6 @@ export default {
     },
     updateGrantableContacts(contacts) {
       this.form.grantable_contacts = contacts;
-
     }
   }
 };

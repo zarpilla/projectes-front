@@ -104,10 +104,10 @@ export default {
         // console.log('r.data', r.data)
         const data = []
         r.data.forEach(p => {
-          if (p.phases) {
-            var hasOriginal = p.original_phases && p.original_phases.length
+          if (p.project_phases) {
+            var hasOriginal = p.project_original_phases && p.project_original_phases.length
             if (hasOriginal) {
-              p.original_phases.forEach(ph => {
+              p.project_original_phases.forEach(ph => {
                 if (ph.incomes) {
                   ph.incomes.forEach(inc => {         
                     if (inc.quantity && inc.amount) {
@@ -152,7 +152,7 @@ export default {
                 }
               })
             }
-            p.phases.forEach(ph => {
+            p.project_phases.forEach(ph => {
               if (ph.incomes) {
                 ph.incomes.forEach(inc => {         
                   if ((inc.quantity && inc.amount) || inc.income || inc.invoice) {

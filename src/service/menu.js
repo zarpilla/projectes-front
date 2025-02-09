@@ -205,12 +205,12 @@ const menu = [
         label: 'Preu Hora',
         permission: 'projects'
       },
-      {
-        to: '/forecast',
-        icon: 'table',
-        label: 'Previsió Econòmica',
-        permission: 'projects'
-      },   
+      // {
+      //   to: '/forecast',
+      //   icon: 'table',
+      //   label: 'Previsió Econòmica',
+      //   permission: 'projects'
+      // },   
       {
         to: '/stats-estrategies',
         icon: 'table',

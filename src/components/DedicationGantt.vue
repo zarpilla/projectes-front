@@ -119,8 +119,8 @@ export default {
         .then((r) => {
           const activities = [];
           const projects = r.data.forEach((p) => {            
-            if (p.original_phases && p.original_phases.length > 0) {
-              p.original_phases.forEach((ph) => {
+            if (p.project_original_phases && p.project_original_phases.length > 0) {
+              p.project_original_phases.forEach((ph) => {
                 if (ph.incomes && ph.incomes.length > 0) {
                   ph.incomes.forEach((sph) => {
                     if (sph.estimated_hours && sph.estimated_hours.length > 0) {
