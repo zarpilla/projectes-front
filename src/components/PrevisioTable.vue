@@ -78,7 +78,7 @@
                   </td>
                   <td
                     class="has-text-right"
-                    v-for="(data, i) in yearlyForecast2"
+                    v-for="(data, i) in yearlyForecast"
                     :key="i"
                   >
                   <span v-if="data.total_expenses" class="has-text-weight-bold">{{ formatPrice(data.total_incomes / data.total_expenses * -100) }} %</span>

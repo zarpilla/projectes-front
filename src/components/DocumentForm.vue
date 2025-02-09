@@ -811,8 +811,10 @@
             >
               <div class="project-form">
                 <project-phases
+                  :hidden="true"
                   :form="project"
-                  :project-phases="project.phases"
+                  :project-phases="project.project_phases"                  
+                  :is-paginated="false"
                   @phases-updated="phasesUpdated"
                   :mode="
                     type === 'emitted-invoices' || type === 'received-incomes'
@@ -833,16 +835,8 @@
               </div>
             </card-component>
             <hr />
-          </div>
-          <b-field v-if="form.id">
-            <button
-              class="button is-warning"
-              type="button"
-              @click="getPDF"              
-            >
-              Visualitzar PDF
-            </button>
-          </b-field>
+          </div>          
+            
           <b-field
             v-if="
               (type !== 'payrolls' &&
@@ -859,21 +853,30 @@
             >
 
             <b-button
+              class="mr-3"
               type="is-primary"
               :loading="isLoading"
               @click="canEditDocument(true)"
               v-if="form.id"
               >Guardar i sortir</b-button
             >
-            <button
-              class="button is-primary ml-3"
-              type="button"
+            <b-button
+              class="mr-3"
+              type="is-primary"              
               @click="sendInvoiceByEmail"
               v-if="form.id && entity === 'emitted-invoice'"
               :disabled="!canSendEmail"
             >
-              Enviar factura per correu i guardar
-            </button>            
+              Guardar i Enviar factura per correu
+            </b-button>            
+            <b-button
+              class="mr-3"
+              v-if="form.id"              
+              type="is-primary"
+              @click="getPDF"              
+            >
+              Visualitzar PDF
+            </b-button>
           </b-field>
         </div>
       </div>
@@ -1272,6 +1275,20 @@ export default {
               }
 
               if (this.form.projects) {
+                for await (const project of this.form.projects) {
+                  if (project.id) {
+                    const p = (
+                      await service({ requiresAuth: true }).get(
+                        `projects/${project.id}`
+                      )
+                    ).data;
+                    project.project_phases = p.project_phases;
+                    project.project_phases = project.project_phases.map(pp => {
+                      pp.show = false;
+                      return pp;
+                    });
+                  }
+                }
                 this.form.projects = this.form.projects.map(p => {
                   const { activities, ...item } = p;
                   return item;
@@ -1451,9 +1468,11 @@ export default {
 
           this.isLoading = true;
 
+          const projects = [...this.form.projects]
+
           if (this.form.projects) {
             this.form.projects = this.form.projects.map(p => {
-              const { activities, ...item } = p;
+              const { activities, project_phases, project_original_phases, ...item } = p;
               return item;
             });
           }
@@ -1464,7 +1483,7 @@ export default {
           );
 
           if (this.shouldSaveProject && this.type !== "payrolls") {
-            await this.updateProjectPhases(this.form.id);
+            await this.updateProjectPhases(this.form.id, projects);
           }
 
           this.numberEditable = false;
@@ -1520,6 +1539,7 @@ export default {
             return;
           }
 
+          const projects = [...this.form.projects]
           if (this.form.projects) {
             this.form.projects = this.form.projects.map(p => {
               const { activities, ...item } = p;
@@ -1535,7 +1555,7 @@ export default {
           );
 
           if (this.shouldSaveProject) {
-            await this.updateProjectPhases(newProject.data.id);
+            await this.updateProjectPhases(newProject.data.id, projects);
           }
 
           this.numberEditable = false;
@@ -1680,7 +1700,9 @@ export default {
     phasesUpdated(info) {
       this.shouldSaveProject = true;
       const project = this.form.projects.find(p => p.id === info.projectId);
-      project.phases = info.phases;
+
+      project.project_phases = [ ...info.phases];      
+      project.project_phases_info = { deletedPhases: info.deletedPhases || [], deletedIncomes: info.deletedIncomes || [], deletedExpenses: info.deletedExpenses || [], deletedHours: [] };
     },
     validateIfProjectPhasesHasDocument() {
       var validateIfProjectPhasesHasDocument = false;
@@ -1692,7 +1714,7 @@ export default {
       }
       this.form.projects.forEach(p => {
         if (this.type === "emitted-invoices") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.incomes.forEach(sph => {
               if (sph.invoice && sph.invoice.id === this.form.id) {                
                 validateIfProjectPhasesHasDocument = true;
@@ -1705,7 +1727,7 @@ export default {
             });
           });
         } else if (this.type === "received-incomes") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.incomes.forEach(sph => {
               if (sph.income && sph.income.id === this.form.id) {
                 validateIfProjectPhasesHasDocument = true;
@@ -1718,7 +1740,7 @@ export default {
             });
           });
         } else if (this.type === "received-invoices") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.expenses.forEach(sph => {
               if (sph.invoice && sph.invoice.id === this.form.id) {
                 validateIfProjectPhasesHasDocument = true;
@@ -1728,7 +1750,7 @@ export default {
             });
           });
         } else if (this.type === "received-expenses") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.expenses.forEach(sph => {
               if (sph.expense && sph.expense.id === this.form.id) {
                 validateIfProjectPhasesHasDocument = true;
@@ -1742,17 +1764,17 @@ export default {
 
       return validateIfProjectPhasesHasDocument;
     },
-    async updateProjectPhases(id) {
+    async updateProjectPhases(id, projects) {
       if (this.type === "quotes") {
         return;
       }
 
       // this.form.projects.forEach(async p => {
-      for (let i = 0; i < this.form.projects.length; i++) {
-        let p = this.form.projects[i];
+      for (let i = 0; i < projects.length; i++) {
+        let p = projects[i];
         let updateProject = false;
         if (this.type === "emitted-invoices") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.incomes.forEach(sph => {
               if (sph.assign) {
                 sph.invoice = id;
@@ -1761,7 +1783,7 @@ export default {
             });
           });
         } else if (this.type === "received-incomes") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.incomes.forEach(sph => {
               if (sph.assign) {
                 sph.income = id;
@@ -1770,7 +1792,7 @@ export default {
             });
           });
         } else if (this.type === "received-invoices") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.expenses.forEach(sph => {
               if (sph.assign) {
                 sph.invoice = id;
@@ -1779,7 +1801,7 @@ export default {
             });
           });
         } else if (this.type === "received-expenses") {
-          p.phases.forEach(ph => {
+          p.project_phases.forEach(ph => {
             ph.expenses.forEach(sph => {
               if (sph.assign) {
                 sph.expense = id;
@@ -1789,7 +1811,7 @@ export default {
           });
         }
 
-        p.phases.forEach(ph => {
+        p.project_phases.forEach(ph => {
           if (ph.expenses) {
             ph.expenses.forEach(sph => {
               if (
@@ -1868,9 +1890,11 @@ export default {
           }
         });
 
+        /// temp uncomment
         if (updateProject || true) {
           await service({ requiresAuth: true }).put(`projects/${p.id}`, {
-            phases: p.phases
+            project_phases: p.project_phases,
+            project_phases_info: p.project_phases_info
           });
         }
       }
@@ -1974,6 +1998,8 @@ export default {
     async sendInvoiceByEmail() {
       this.isLoading = true;
       try {
+
+        await this.canEditDocument(false)
 
         const pdf = (
           await service({ requiresAuth: true }).get(

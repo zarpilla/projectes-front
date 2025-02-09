@@ -180,8 +180,8 @@ export default {
       this.tasks = { data: [] };
       let minDate = moment().format("YYYY-MM-DD");
       let maxDate = moment().format("YYYY-MM-DD");
-      for (let i = 0; i < this.project.original_phases.length; i++) {
-        const phase = this.project.original_phases[i];
+      for (let i = 0; i < this.project.project_original_phases.length; i++) {
+        const phase = this.project.project_original_phases[i];
         const task = {
           id: phase.id,
           text: phase.name,
@@ -504,7 +504,7 @@ export default {
         }
       } else if (tasksInRow.length > 1) {
         const ph =
-          this.project.original_phases[this.project.original_phases.length - 1];
+          this.project.project_original_phases[this.project.project_original_phases.length - 1];
         
         var projects = tasksInRow.filter((t) => t.type === "project");
         currentTask = projects[projects.length - 1];

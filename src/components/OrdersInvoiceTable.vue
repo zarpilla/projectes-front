@@ -28,13 +28,18 @@
       :debounce-search="500"
     >
       <b-table-column
-        label="Proveïdora"
+        label="Proveïdora / Sòcia"
         field="owner.fullname"
         sortable
         searchable
         v-slot="props"
       >
+      <router-link v-if="props.row.users_permissions_user" :to="{ name: 'contacts.edit', params: { id: props.row.users_permissions_user.id } }">
+        {{ props.row.owner.fullname }} / {{ props.row.users_permissions_user ? props.row.users_permissions_user.name : '' }}
+      </router-link>
+      <span v-else>
         {{ props.row.owner.fullname }}
+      </span>
       </b-table-column>
       <b-table-column
         label="Mes"
@@ -167,6 +172,22 @@ export default {
         )
       ).data;
 
+      const contacts = (
+        await service({ requiresAuth: true, cached: true }).get(
+          `contacts?_limit=-1&_sort=name:ASC&_where[users_permissions_user_gt]=0`
+        )
+      ).data;
+
+      console.log("contacts", contacts);
+
+      this.orders = this.orders.map(o => {                
+        o.users_permissions_user = contacts.find(c => o.owner && c.users_permissions_user && c.users_permissions_user.id === o.owner.id);
+        console.log("o users_permissions_user", o.users_permissions_user);
+        return o;
+      });
+
+      console.log("this.orders", this.orders);
+
       this.projects = (
         await service({ requiresAuth: true, cached: true }).get(
           `projects/basic?_limit=-1&_sort=name:ASC`
@@ -186,7 +207,8 @@ export default {
           ),
           orders: this.ordersGrouped[k].map(o => o.id),
           count: this.ordersGrouped[k].length,
-          amount: this.ordersGrouped[k].reduce((acc, o) => acc + o.price, 0)
+          amount: this.ordersGrouped[k].reduce((acc, o) => acc + o.price, 0),
+          users_permissions_user: this.ordersGrouped[k][0].users_permissions_user
         };
       });
 
@@ -209,6 +231,11 @@ export default {
             });
           }
         });
+
+        this.$buefy.snackbar.open({
+              message: "Comandes facturades correctament",
+              type: "is-success"
+            });
 
       this.importing = false;
 
