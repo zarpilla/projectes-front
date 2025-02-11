@@ -218,10 +218,10 @@
       <b-button
         class="view-button mb-3 mr-3"
         :class="{
-          'is-primary': routeFilter === '',
-          'is-warning': routeFilter !== ''
+          'is-primary': routeFilter === 0,
+          'is-warning': routeFilter !== 0
         }"
-        @click="setRouteFilter('')"
+        @click="setRouteFilter(0)"
       >
         TOTES
       </b-button>
@@ -230,10 +230,10 @@
         :key="route.id"
         class="view-button mb-3 mr-3"
         :class="{
-          'is-primary': routeFilter === route.name,
-          'is-warning': routeFilter !== route.name
+          'is-primary': routeFilter === route.id,
+          'is-warning': routeFilter !== route.id
         }"
-        @click="setRouteFilter(route.name)"
+        @click="setRouteFilter(route.id)"
       >
         {{ route.name }}
       </b-button>
@@ -550,7 +550,7 @@ export default {
       csvRecords: [],
       csvErrors: [],
       statusFilter: "pending",
-      routeFilter: "",
+      routeFilter: 0,
       csvOptions: {
         delimiter: ",",
         columns: true
@@ -881,10 +881,10 @@ export default {
       });
 
       return orders.filter(o => {
-        if (this.routeFilter === "") {
+        if (this.routeFilter === 0) {
           return true;
         } else {
-          return o && o.route && o.route.name === this.routeFilter;
+          return o && o.route && o.route.name === this.routes.find(r => r.id === this.routeFilter).name;
         }
       });
     },
@@ -900,8 +900,8 @@ export default {
     if (localStorage.getItem("OrdersTable.statusFilter")) {
       this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
     }
-    if (localStorage.getItem("OrdersTable.routeFilter")) {
-      this.routeFilter = localStorage.getItem("OrdersTable.routeFilter");
+    if (localStorage.getItem("OrdersTable.routeFilterId")) {
+      this.routeFilter = parseInt(localStorage.getItem("OrdersTable.routeFilterId"));
     }
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
@@ -960,6 +960,10 @@ export default {
         }
       }
 
+      if (this.routeFilter !== 0) {
+        where.push(`_where[route.id]=${this.routeFilter}`);
+      }
+
       this.orders = (
         await service({ requiresAuth: true }).get(
           `orders?_limit=${this.perPage}&_start=${(this.page - 1) *
@@ -1010,9 +1014,10 @@ export default {
       this.checkedRows = [];
     },
     setRouteFilter(route) {
-      localStorage.setItem("OrdersTable.routeFilter", route);
+      localStorage.setItem("OrdersTable.routeFilterId", route);
       this.routeFilter = route;
       this.checkedRows = [];
+      this.setStatusFilter(this.statusFilter);      
     },
     navNew() {
       const q = this.$route.meta.userContacts ? `?user=true` : "";
