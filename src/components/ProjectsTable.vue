@@ -40,7 +40,7 @@
         {{ formatPrice(props.row.total_real_incomes_expenses) }} €
       </b-table-column>
       <b-table-column label="Resultat previst" field="incomes_expenses" sortable numeric v-slot="props">
-        {{ formatPrice(props.row.incomes_expenses) }}
+        {{ formatPrice(props.row.incomes_expenses) }} €
       </b-table-column>
       <b-table-column label="Estat" v-slot="props" sortable field="project_state.name">
         {{ props.row.project_state ? props.row.project_state.name : '' }}
