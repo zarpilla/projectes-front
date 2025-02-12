@@ -17,9 +17,30 @@
 
       <download-excel
         class="export view-button ml-auto"
-        :data="pivotData"
-        v-if="treasuryData && treasuryData.length"
-      >
+        :data="treasuryDataDesc"
+        v-if="treasuryDataDesc && treasuryDataDesc.length"        
+        name="tresoreria"
+        :fields="{
+          data: 'datex',          
+          import: {
+            field: 'total_amount',
+            callback: (value) => {
+              return excelFormat(value);
+            },
+          },
+          saldo: {
+            field: 'subtotal',
+            callback: (value) => {
+              return excelFormat(value);
+            },
+          },
+          moviment: 'type',
+          concepte: 'concept',
+          projecte: 'project_name',        
+          nomina: 'contact',
+          pagat: 'paid'
+        }"
+        >
         <b-button
           title="Exporta dades"
           class="zview-button"
@@ -426,7 +447,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
-
+import { format } from "@/helpers/excelFormatter";
 export default {
   name: "Tresoreria",
   components: {
@@ -504,6 +525,7 @@ export default {
     }, 100);
   },
   computed: {
+    ...mapState(["userName", "user"]),
     monthlySummary() {
 
       const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
@@ -773,7 +795,10 @@ export default {
       localStorage.setItem('TresoreriaTable.selectedProjectStates', JSON.stringify(this.selectedProjectStates))
 
       this.getData();
-    }
+    },
+    excelFormat(value) {
+      return format(this.user, value);
+    },
   },
 };
 </script>
