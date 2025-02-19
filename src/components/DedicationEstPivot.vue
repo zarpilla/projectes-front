@@ -200,9 +200,9 @@ export default {
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
-      let query = `projects/phases?_where[project_state_in]=${projectState}&_limit=-1`
+      let query = `projects/phases?_where[project_state_in]=${projectState}&_limit=-1&activities=true`
       if (projectState === 0 || projectState === '0') {
-        query = 'projects/phases?_limit=-1'
+        query = 'projects/phases?_limit=-1&activities=true'
       }
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)
