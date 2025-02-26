@@ -29,9 +29,7 @@
             <div class="column">
               {{ key }}
             </div>
-            <div class="column has-text-right">
-              {{ value }} h
-            </div>
+            <div class="column has-text-right">{{ value }} h</div>
             <div class="column has-text-right"></div>
           </div>
         </div>
@@ -53,7 +51,6 @@
             <div class="column"></div>
           </div>
         </div>
-        
       </card-component>
 
       <card-component
@@ -88,8 +85,8 @@
                 <span
                   v-if="
                     hasPayroll(key) &&
-                    (value.dailySalary / value.theoricDays).toFixed(2) !==
-                      hasPayroll(key).total_base.toFixed(2)
+                      (value.dailySalary / value.theoricDays).toFixed(2) !==
+                        hasPayroll(key).total_base.toFixed(2)
                   "
                 >
                   (Teòric)
@@ -98,16 +95,16 @@
               <br
                 v-if="
                   hasPayroll(key) &&
-                  (value.dailySalary / value.theoricDays).toFixed(2) !==
-                    hasPayroll(key).total_base.toFixed(2)
+                    (value.dailySalary / value.theoricDays).toFixed(2) !==
+                      hasPayroll(key).total_base.toFixed(2)
                 "
               />
               <span
                 class="has-text-danger"
                 v-if="
                   hasPayroll(key) &&
-                  (value.dailySalary / value.theoricDays).toFixed(2) !==
-                    hasPayroll(key).total_base.toFixed(2)
+                    (value.dailySalary / value.theoricDays).toFixed(2) !==
+                      hasPayroll(key).total_base.toFixed(2)
                 "
               >
                 {{ hasPayroll(key).total_base.toFixed(2) }} € (Nòmina)
@@ -185,12 +182,12 @@ export default {
   props: {
     user: {
       type: Number,
-      default: null,
+      default: null
     },
     year: {
       type: Number,
-      default: null,
-    },
+      default: null
+    }
   },
   data() {
     return {
@@ -209,7 +206,7 @@ export default {
       monthsDb: [],
       yearsDb: [],
       payrolls: [],
-      warn: false,
+      warn: false
     };
   },
   computed: {
@@ -224,21 +221,21 @@ export default {
       return sumBy(this.activities, "hours");
     },
     xsalary() {
-      const sal = []
+      const sal = [];
       for (var i in this.months) {
-        const m = this.months[i]
-        sal.push(m)
+        const m = this.months[i];
+        sal.push(m);
       }
-      return sumBy(sal, (s) => s.dailySalary / s.theoricDays);
-    },
+      return sumBy(sal, s => s.dailySalary / s.theoricDays);
+    }
   },
   watch: {
-    user: function (newVal, oldVal) {
+    user: function(newVal, oldVal) {
       this.getActivities();
     },
-    year: function (newVal, oldVal) {
+    year: function(newVal, oldVal) {
       this.getActivities();
-    },
+    }
   },
   mounted() {
     this.getActivities();
@@ -257,7 +254,9 @@ export default {
       const from = moment(this.year, "YYYY")
         .startOf("year")
         .format("YYYY-MM-DD");
-      const to = moment(this.year, "YYYY").endOf("year").format("YYYY-MM-DD");
+      const to = moment(this.year, "YYYY")
+        .endOf("year")
+        .format("YYYY-MM-DD");
 
       let query = `activities/total-by-day?_where[date_gte]=${from}&[date_lte]=${to}`;
       if (this.user) {
@@ -288,13 +287,13 @@ export default {
 
       service({ requiresAuth: true })
         .get(query)
-        .then(async (r) => {
+        .then(async r => {
           this.activities = r.data;
 
           const festives = (
             await service({ requiresAuth: true }).get("festives?_limit=-1")
           ).data.filter(
-            (f) =>
+            f =>
               f.users_permissions_user === null ||
               f.users_permissions_user.id === this.user
           );
@@ -305,17 +304,18 @@ export default {
             .get(
               `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
             )
-            .then((r) => {
+            .then(r => {
               this.dailyDedications = r.data;
               var allDates = this.enumerateDaysBetweenDates();
               var balance = 0;
+              var balanceToday = 0;
               var balanceTotal = 0;
               var totalWorkedHours = 0;
               var dates = [];
               var laborableDays = 0;
               var salary = 0;
               var theoricHoursTotal = 0;
-              allDates.forEach((d) => {
+              allDates.forEach(d => {
                 // console.log('date', d)
                 const date = moment(d).format("YYYY-MM-DD");
                 const displayDate = moment(d).format("ddd DD-MM-YYYY");
@@ -323,17 +323,15 @@ export default {
                 const week = moment(d).week();
                 const month = moment(d).format("M");
                 const dailyDedication = this.dailyDedications.find(
-                  (dd) => date >= dd.from && date <= dd.to
+                  dd => date >= dd.from && date <= dd.to
                 );
 
                 if (!dailyDedication) {
                   this.warn = true;
                   console.warn("date!", date);
                 }
-                const activities = this.activities.filter(
-                  (a) => a.date === date
-                );
-                const festive = festives.find((f) => f.date === date);
+                const activities = this.activities.filter(a => a.date === date);
+                const festive = festives.find(f => f.date === date);
 
                 const startOnMondayDay = day === 0 ? 6 : day - 1;
 
@@ -344,10 +342,14 @@ export default {
                       festive.users_permissions_user.id)) &&
                   dailyDedication &&
                   day !== 0 &&
-                  day !== 6  && !dailyDedication.hoursperday
+                  day !== 6 &&
+                  !dailyDedication.hoursperday
                     ? dailyDedication.hours
-                    : 
-                    (!festive && dailyDedication && dailyDedication.hoursperday ? parseFloat(dailyDedication.hoursperday.split(',')[startOnMondayDay]) : 0);
+                    : !festive && dailyDedication && dailyDedication.hoursperday
+                    ? parseFloat(
+                        dailyDedication.hoursperday.split(",")[startOnMondayDay]
+                      )
+                    : 0;
 
                 const workedHours =
                   sumBy(activities, "hours") +
@@ -371,7 +373,7 @@ export default {
                     balance: 0,
                     balanceTotal: 0,
                     theoricRatio: 0,
-                    dailySalary: 0,
+                    dailySalary: 0
                   };
                 }
                 this.months[month].theoricHours += theoricHours;
@@ -406,6 +408,9 @@ export default {
 
                 totalWorkedHours += workedHours;
                 balance += workedHours - theoricHours;
+                if (moment(d).isBefore(moment())) {
+                  balanceToday += workedHours - theoricHours;
+                }
                 dates.push({
                   date: displayDate,
                   dateDescription: dateDescription,
@@ -415,11 +420,12 @@ export default {
                   totalWorkedHours: totalWorkedHours,
                   balance: balance,
                   balanceTotal: balanceTotal,
+                  balanceToday: balanceToday,
                   costByHour: dailyDedication ? dailyDedication.costByHour : 0,
                   costByDay: dailyDedication
                     ? dailyDedication.costByHour * workedHours
                     : 0,
-                  error: dailyDedication === null,
+                  error: dailyDedication === null
                 });
                 if (dailyDedication) {
                   salary += dailyDedication.costByHour * workedHours;
@@ -435,11 +441,18 @@ export default {
                     this.months[m].balance;
                 }
               }
-              this.summary["Total hores treballades"] =
-                this.dates[0].totalWorkedHours.toFixed(2);
-              this.summary["Total hores laborables teòriques"] =
-                theoricHoursTotal.toFixed(2);
-              this.summary["Saldo hores"] = this.dates[0].balance.toFixed(2);
+              this.summary[
+                "Total hores anuals laborables teòriques"
+              ] = theoricHoursTotal.toFixed(2);
+              this.summary[
+                "Total hores treballades"
+              ] = this.dates[0].totalWorkedHours.toFixed(2);
+              this.summary["Saldo hores anual"] = this.dates[0].balance.toFixed(
+                2
+              );
+              this.summary[
+                "Saldo hores avui"
+              ] = this.dates[0].balanceToday.toFixed(2);
               this.isLoading = false;
             });
         });
@@ -460,10 +473,10 @@ export default {
       return dates;
     },
     hasPayroll(month) {
-      const m = this.monthsDb.find((m) => m.month === parseInt(month));
-      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const m = this.monthsDb.find(m => m.month === parseInt(month));
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year));
       const payroll = this.payrolls.find(
-        (p) =>
+        p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
           p.users_permissions_user.id === this.user
@@ -471,10 +484,10 @@ export default {
       return payroll;
     },
     payrollDetail(month) {
-      const m = this.monthsDb.find((m) => m.month === parseInt(month));
-      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const m = this.monthsDb.find(m => m.month === parseInt(month));
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year));
       const payroll = this.payrolls.find(
-        (p) =>
+        p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
           p.users_permissions_user.id === this.user
@@ -482,15 +495,15 @@ export default {
       return payroll;
     },
     async createPayroll(month, total) {
-      const m = this.monthsDb.find((m) => m.month === parseInt(month));
-      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const m = this.monthsDb.find(m => m.month === parseInt(month));
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year));
 
       const emitted = moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
         .endOf("month")
         .format("YYYY-MM-DD");
 
       const dailyDedication = this.dailyDedications.find(
-        (dd) => emitted >= dd.from && emitted <= dd.to
+        dd => emitted >= dd.from && emitted <= dd.to
       );
 
       const payroll = {
@@ -525,7 +538,7 @@ export default {
         other_date: moment(`${y.year}-${m.month}-01`, "YYYY-MM-DD")
           .add(1, "month")
           .endOf("month")
-          .format("YYYY-MM-DD"),
+          .format("YYYY-MM-DD")
       };
 
       payroll.net_base =
@@ -541,33 +554,33 @@ export default {
     },
     async viewPayroll(month) {
       if (month) {
-        const m = this.monthsDb.find((m) => m.month === parseInt(month));
-        const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+        const m = this.monthsDb.find(m => m.month === parseInt(month));
+        const y = this.yearsDb.find(y => y.year === parseInt(this.year));
         const payroll = this.payrolls.find(
-          (p) =>
+          p =>
             p.year.id === y.id &&
             p.month.id === m.id &&
             p.users_permissions_user.id === this.user
         );
         let routeData = this.$router.resolve({
           name: "document.edit",
-          params: { id: payroll.id, type: "payrolls" },
+          params: { id: payroll.id, type: "payrolls" }
         });
         window.open(routeData.href, "_blank");
       }
     },
     async payPayroll(month, total) {
-      const m = this.monthsDb.find((m) => m.month === parseInt(month));
-      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const m = this.monthsDb.find(m => m.month === parseInt(month));
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year));
       const payroll = this.payrolls.find(
-        (p) =>
+        p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
           p.users_permissions_user.id === this.user
       );
       await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, {
         paid: true,
-        paid_date: payroll.emitted,
+        paid_date: payroll.emitted
       });
       await this.updatePayrolls();
     },
@@ -579,7 +592,7 @@ export default {
           onConfirm: () => this.proceedDeletePayroll(month),
           onCancel: () => {
             return false;
-          },
+          }
         });
       } else {
         this.proceedDeletePayroll(month);
@@ -587,10 +600,10 @@ export default {
     },
 
     async proceedDeletePayroll(month) {
-      const m = this.monthsDb.find((m) => m.month === parseInt(month));
-      const y = this.yearsDb.find((y) => y.year === parseInt(this.year));
+      const m = this.monthsDb.find(m => m.month === parseInt(month));
+      const y = this.yearsDb.find(y => y.year === parseInt(this.year));
       const payroll = this.payrolls.find(
-        (p) =>
+        p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
           p.users_permissions_user.id === this.user
@@ -606,7 +619,7 @@ export default {
           `payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`
         )
       ).data;
-    },
+    }
   },
   filters: {
     formatDate(val) {
@@ -631,8 +644,8 @@ export default {
         moment(val).fromNow() +
         ")"
       );
-    },
-  },
+    }
+  }
 };
 </script>
 <style scoped>
@@ -675,4 +688,3 @@ export default {
   margin-left: 0.5rem;
 }
 </style>
-
