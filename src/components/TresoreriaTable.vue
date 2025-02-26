@@ -316,19 +316,6 @@
       <div id="project-stats"></div>
     </card-component>
 
-    <download-excel
-      class="export view-button"
-      :data="treasuryDataDesc"
-      v-if="treasuryDataDesc && treasuryDataDesc.length"
-    >
-      <b-button
-        title="Exporta dades"
-        class="zview-button"
-        :type="'is-disabled'"
-        icon-left="file-excel"
-      />
-    </download-excel>
-
     <card-component title="OPERACIONS DE TRESORERIA" class="ztile is-child mt-2">
       <section class="section">
         <treasury-annotation-input
