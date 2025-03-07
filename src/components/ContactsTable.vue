@@ -385,17 +385,16 @@ export default {
               const cityRoutes = this.cityRoutes.filter(
                 cr => cr.city && cr.city.id === city.id
               );
-              const routes = cityRoutes.map(cr => cr.route.name);
+              const routes = cityRoutes.map(cr => cr.route && cr.route.name);
               this.cities.find(c => c.id === city.id).routes = routes.join(
                 ", "
               );
             }
 
-            console.log("this.cities", this.cities);
           }
         }
 
-        if (!userContacts && this.orders_admin) {
+        if (this.$route.meta.userContacts && this.orders_admin) {
           const contactsWithOrders = (
             await service({ requiresAuth: true }).get(
               `contacts/orders?_limit=-1&_sort=name:ASC`
