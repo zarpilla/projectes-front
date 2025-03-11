@@ -553,7 +553,7 @@ export default {
       routeFilter: 0,
       csvOptions: {
         delimiter: ",",
-        columns: true
+        columns: true,
       },
       importing: false,
       permissions: [],
@@ -1706,6 +1706,9 @@ export default {
       return uuid;
     },
     async readCSV(content) {
+      if (content.substring(0, 10).includes(";")) {
+        this.csvOptions.delimiter = ";";
+      }
       return new Promise(async (resolve, reject) => {
         try {
           parse(content, this.csvOptions, (err, records) => {
