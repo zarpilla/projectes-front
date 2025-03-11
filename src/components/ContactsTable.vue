@@ -318,8 +318,8 @@ export default {
           this.orders_admin = true;
           userContacts = `&_where[owner_ne]=null`;
         } else {
-          this.userContacts = `&_where[owner]=${me.data.id}`;
-          userContacts = true;
+          userContacts = `&_where[owner]=${me.data.id}`;
+          this.userContacts = true;
         }
       } else {
         userContacts = "&_where[owner_null]=true";
@@ -338,7 +338,7 @@ export default {
           )
         ).data;
 
-        if (userContacts) {
+        if (this.userContacts) {
           const multideliveryContacts = (
             await service({ requiresAuth: true }).get(
               `contacts/basic?_limit=-1&_sort=name:ASC&_where[multidelivery_eq]=true`
