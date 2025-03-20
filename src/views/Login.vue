@@ -122,16 +122,22 @@ export default {
           })
           .catch(error => {
             console.error(error.response);
+            if (error.response && error.response.data && error.response.data.message && error.response.data.message.length && error.response.data.message[0].messages && error.response.data.message[0].messages.length) {
+              const message = error.response.data.message[0].messages[0].message.replace("Identifier or password invalid.", "Correu electrònic o clau de pas incorrectes");
+
+              this.$buefy.snackbar.open({
+                // indefinite: true,
+                position: "is-top",
+                message: message,
+            });
+          } else {
             this.$buefy.snackbar.open({
               // indefinite: true,
               position: "is-top",
-              message: "Correu o clau de pas incorrecta",
-              cancelText: "No",
-              onAction: e => {
-                // this.refreshApp()
-              }
-            });
-          });
+              message: "S'ha produït un error en connectar amb ESSTRAPIS.<br>Si us plau, torna a intentar-ho més tard o contacta amb l'administradora",              
+              });            
+          }
+        });            
       }
     }
   }

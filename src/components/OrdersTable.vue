@@ -569,7 +569,7 @@ export default {
       sortOrder: "DESC",
       defaultSortOrder: "DESC",
       page: 1,
-      perPage: 50,
+      perPage: 100,
       filters: {},
       csvAlias: {
         route_name: "route_name",
@@ -916,46 +916,65 @@ export default {
       localStorage.setItem("OrdersTable.statusFilter", status);
 
       const where = [];
+      console.log("status", status);
       if (status === "") {        
       }
       else if (status !== "lastmile") {
         where.push(`_where[status]=${status}`);
-      } else if (status !== "last_mile_display") {        
+      //} else if (status !== "last_mile_display") {        
       } else {
         where.push(`_where[last_mile]=true`);
       }
 
+      console.log("this.filters", this.filters);
+
       for (const key in this.filters) {
         if (this.filters[key]) {
+
+          const value = this.filters[key].trim();
+          if (this.filters[key] === "") {
+            continue;
+          }
           const comparison = key.includes("date") ? '_eq' : '_contains';
           if (key.includes("date")) {
 
-            if (this.filters[key].length === 4 || this.filters[key].length === 5) {
+            if (value.length === 4 || value.length === 5) {
               // format YYYY-
-              const start = `${this.filters[key].substring(0, 4)}-01-01`;
-              const end = `${this.filters[key].substring(0, 4)}-12-31`;              
+              const start = `${value.substring(0, 4)}-01-01`;
+              const end = `$value.substring(0, 4)}-12-31`;              
               where.push(`_where[${key}_gte]=${start}`);
               where.push(`_where[${key}_lte]=${end}`);
             }
-            else if (this.filters[key].length === 7 || this.filters[key].length === 8 || this.filters[key].length < 10) {
+            else if (value.length === 7 || value.length === 8 || value.length < 10) {
               // format YYYY-MM
-              const start = `${this.filters[key].substring(0, 7)}-01`;
-              const month = new Date(this.filters[key].substring(0, 7)).getMonth();
+              const start = `${value.substring(0, 7)}-01`;
+              const month = new Date(value.substring(0, 7)).getMonth();
               const endDayOfMonth = new Date(new Date().getFullYear(), month + 1, 0).getDate();
-              const end = `${this.filters[key].substring(0, 7)}-${endDayOfMonth}`;              
+              const end = `${value.substring(0, 7)}-${endDayOfMonth}`;              
               where.push(`_where[${key}_gte]=${start}`);
               where.push(`_where[${key}_lte]=${end}`);
             }
-            else if (this.filters[key].length === 10) {
+            else if (value.length === 10) {
               // format YYYY-MM-DD
-              where.push(`_where[${key}${comparison}]=${this.filters[key]}`);
+              where.push(`_where[${key}${comparison}]=${value}`);
             }
           } else if (key === "idx") {
             // remove zeros at start
-            const id_contains = this.filters[key].replace(/^0+/, '');
+            const id_contains = value.replace(/^0+/, '');
             where.push(`_where[id_contains]=${id_contains}`);
+          } else if (key === "idx") {
+            // remove zeros at start
+            const id_contains = value.replace(/^0+/, '');
+            where.push(`_where[id_contains]=${id_contains}`);
+          } else if (key === "last_mile_display") {
+            // remove zeros at start
+            if (value.toLowerCase().startsWith("s")) {
+              where.push(`_where[last_mile]=true`);
+            } else {
+              where.push(`_where[last_mile_null]=true`);
+            }
           } else {
-            where.push(`_where[${key}${comparison}]=${this.filters[key]}`);
+            where.push(`_where[${key}${comparison}]=${value}`);
           }
         }
       }
@@ -1609,7 +1628,7 @@ export default {
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
           if (
             parseFloat(record.contact_time_slot_1_end) -
-            parseFloat(record.contact_time_slot_1_ini < 3)
+            parseFloat(record.contact_time_slot_1_ini) < 3
           ) {
             // comprovar també per al tram 2
             if (
@@ -1618,7 +1637,7 @@ export default {
             ) {
               if (
                 parseFloat(record.contact_time_slot_2_end) -
-                parseFloat(record.contact_time_slot_2_ini < 3)
+                parseFloat(record.contact_time_slot_2_ini) < 3
               ) {
                 this.csvErrors.push({
                   line: i,

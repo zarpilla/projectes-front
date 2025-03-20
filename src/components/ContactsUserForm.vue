@@ -6,17 +6,17 @@
         <div class="column is-full">
           <card-component class="tile is-child" :css="!modal ? 'card' : 'z'">
             <form @submit.prevent="submit" v-if="!isLoading">
-              <b-field label="Nom comercial *" horizontal :type="{ 'is-danger': errors['trade_name'] && submitted }">
+              <b-field
+                label="Nom comercial *"
+                horizontal
+                :type="{ 'is-danger': errors['trade_name'] && submitted }"
+              >
                 <b-input v-model="form.trade_name" required />
               </b-field>
 
-
               <b-field label="Sector *" horizontal>
                 <div class="is-flex is-flex-wrap-wrap">
-                  <div
-                    v-for="(sector, index) in sectors"
-                    :key="index"
-                  >
+                  <div v-for="(sector, index) in sectors" :key="index">
                     <b-button
                       @click="form.sector = sector.id"
                       :class="{
@@ -54,7 +54,12 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field label="NIF *" horizontal :type="{ 'is-danger': errors['nif'] && submitted }" message="Posa un NIF vàlid. Si no el tens, en pots generar un amb el botó de la dreta">
+              <b-field
+                label="NIF *"
+                horizontal
+                :type="{ 'is-danger': errors['nif'] && submitted }"
+                message="Posa un NIF vàlid. Si no el tens, en pots generar un amb el botó de la dreta"
+              >
                 <b-input v-model="form.nif" />
                 <b-button
                   type="button"
@@ -62,17 +67,29 @@
                   @click="generateNIF"
                   title="Generar NIF inventat"
                   :disabled="form.nif !== ''"
-                  >
+                >
                   <b-icon icon="refresh" />
                 </b-button>
               </b-field>
-              <b-field label="Telèfon *" horizontal :type="{ 'is-danger': errors['phone'] && submitted }">
+              <b-field
+                label="Telèfon *"
+                horizontal
+                :type="{ 'is-danger': errors['phone'] && submitted }"
+              >
                 <b-input v-model="form.phone" required />
               </b-field>
-              <b-field label="Adreça *" horizontal :type="{ 'is-danger': errors['address'] && submitted }">
+              <b-field
+                label="Adreça *"
+                horizontal
+                :type="{ 'is-danger': errors['address'] && submitted }"
+              >
                 <b-input v-model="form.address" required type="text" />
               </b-field>
-              <b-field label="CP *" horizontal :type="{ 'is-danger': errors['postcode'] && submitted }">
+              <b-field
+                label="CP *"
+                horizontal
+                :type="{ 'is-danger': errors['postcode'] && submitted }"
+              >
                 <b-input v-model="form.postcode" required />
               </b-field>
               <b-field
@@ -99,9 +116,12 @@
               <b-field label="País" horizontal>
                 <b-input v-model="form.country" />
               </b-field>
-              
+
               <b-field label="Horari de contacte 1 *" horizontal>
-                <b-field label="">
+                <b-field label=""
+                :type="{ 'is-danger': errors['time_slot_1_ini'] && submitted }"
+                message="Un dels dos trams horaris ha de ser mínim de 3 hores"
+                >
                   <b-select
                     v-model="form.time_slot_1_ini"
                     placeholder=""
@@ -145,7 +165,8 @@
               </b-field>
 
               <b-field label="Horari de contacte 2 *" horizontal>
-                <b-field label="">
+                <b-field label=""
+                :type="{ 'is-danger': errors['time_slot_2_ini'] && submitted }">
                   <b-select
                     v-model="form.time_slot_2_ini"
                     placeholder=""
@@ -188,7 +209,6 @@
                 </b-field>
               </b-field>
 
-
               <b-field
                 label="Notes"
                 horizontal
@@ -202,10 +222,7 @@
               </b-field>
 
               <b-field label="Raó Social" horizontal>
-                <b-input
-                  v-model="form.name"                  
-                  required
-                />
+                <b-input v-model="form.name" required />
               </b-field>
               <b-field label="Email" horizontal>
                 <b-input v-model="form.email" />
@@ -238,10 +255,7 @@
               </b-field> -->
 
               <hr />
-              <b-field
-                horizontal                
-              >
-              
+              <b-field horizontal>
                 <div class="is-flex" v-if="!modal">
                   <b-button
                     type="is-primary"
@@ -251,13 +265,16 @@
                     >Guardar</b-button
                   >
                   <b-button
-                    type="is-primary"                    
+                    type="is-primary"
                     :loading="isLoading"
                     @click="submitExit"
                     >Guardar i sortir</b-button
                   >
                   <b-button
-                    v-if="me.data && form.id && form.owner === me.data.id || permissions.includes('orders_admin')"
+                    v-if="
+                      (me.data && form.id && form.owner === me.data.id) ||
+                        permissions.includes('orders_admin')
+                    "
                     type="is-danger"
                     class="ml-auto"
                     :loading="isLoading"
@@ -273,8 +290,8 @@
                     >Cancel·lar</b-button
                   >
                   <b-button
-                    type="is-primary"                    
-                    :loading="isLoading"                    
+                    type="is-primary"
+                    :loading="isLoading"
                     @click="submitAndEmitConfirm"
                     >Guardar</b-button
                   >
@@ -338,7 +355,8 @@ export default {
       citySearch: "",
       cities: [],
       submitted: false,
-      forceCanEdit: false
+      forceCanEdit: false,
+      slotErrors: []
     };
   },
   computed: {
@@ -382,9 +400,11 @@ export default {
         city: !this.form.city,
         sector: !this.form.sector,
         postcode: !this.form.postcode,
-        owner: !this.form.owner        
+        owner: !this.form.owner,
+        time_slot_1_ini: this.slotErrors.length > 0,        
+        time_slot_2_ini: this.slotErrors.length > 0,
       };
-    },
+    }
   },
   watch: {
     async id(newValue) {
@@ -411,7 +431,7 @@ export default {
         legal_form: null,
         sector: null,
         contact_types: [4],
-        nif: ''
+        nif: ""
       };
     },
     async getData() {
@@ -424,12 +444,17 @@ export default {
 
       this.form.contact_types = [4];
       if (!this.permissions.includes("orders_admin")) {
-        this.form.owner = me.data.id;        
+        this.form.owner = me.data.id;
       }
 
       await this.getAuxiliarData();
 
-      const id = !this.modal && this.$route.params.id && this.$route.params.id > 0 ? this.$route.params.id : (this.id ? this.id : 0);
+      const id =
+        !this.modal && this.$route.params.id && this.$route.params.id > 0
+          ? this.$route.params.id
+          : this.id
+          ? this.id
+          : 0;
 
       if (id > 0) {
         this.isLoading = true;
@@ -493,14 +518,18 @@ export default {
               }
 
               // get orders
-              const contactsWithOrders = 
-                (await service({ requiresAuth: true }).get(
+              const contactsWithOrders = (
+                await service({ requiresAuth: true }).get(
                   `contacts/withorders?_limit=-1&_sort=name:ASC&contact_id=${this.form.id}`
-                )).data;
+                )
+              ).data;
 
-              if (contactsWithOrders.length > 0 && contactsWithOrders[0].can_edit === true) {
-                this.forceCanEdit = true                
-              } 
+              if (
+                contactsWithOrders.length > 0 &&
+                contactsWithOrders[0].can_edit === true
+              ) {
+                this.forceCanEdit = true;
+              }
 
               this.isLoading = false;
             } else {
@@ -551,7 +580,7 @@ export default {
       this.redirectToView();
     },
     async submitAndEmitConfirm() {
-      await this.submit();      
+      await this.submit();
     },
     redirectToView() {
       if (this.permissions.includes("orders")) {
@@ -569,9 +598,19 @@ export default {
       this.submitted = true;
 
       try {
-
         if (!this.form.name) {
           this.form.name = this.form.trade_name;
+        }
+        this.slotErrors = this.validateTimeSlots();
+        // if any key of this.errors is true, return
+        if (Object.values(this.errors).some(e => e)) {
+          this.$buefy.snackbar.open({
+            message: "Error. Hi ha camps incorrectes",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
         }
 
 
@@ -605,9 +644,9 @@ export default {
 
           this.submitted = false;
 
-          if (this.modal) {            
-            this.$emit('confirm', { id: this.form.id });
-            return
+          if (this.modal) {
+            this.$emit("confirm", { id: this.form.id });
+            return;
           }
           this.getData();
         } else {
@@ -647,11 +686,11 @@ export default {
           );
           // console.log('newProject', newProject.data)
 
-          if (this.modal) {            
-            this.$emit('confirm', { id: newProject.data.id });
-            return
+          if (this.modal) {
+            this.$emit("confirm", { id: newProject.data.id });
+            return;
           }
-          
+
           this.$router.push({
             name: `contactsuser.edit`,
             params: { id: newProject.data.id }
@@ -766,7 +805,71 @@ export default {
     },
     generateNIF() {
       const nif = Math.floor(Math.random() * 100000000);
-      this.form.nif = 'I-' + nif.toString().padStart(8, "0");
+      this.form.nif = "I-" + nif.toString().padStart(8, "0");
+    },
+    validateTimeSlots() {
+      const errors = [];      
+      if (this.form.time_slot_1_ini && this.form.time_slot_1_end) {
+        if (
+          parseFloat(this.form.time_slot_1_ini) >=
+          parseFloat(this.form.time_slot_1_end)
+        ) {
+          
+          errors.push({
+            time_slot_1_ini: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
+          });
+        }
+      }
+
+      // Cal indicar l'hora de finalització del tram horari 1
+      if (this.form.time_slot_1_ini && !this.form.time_slot_1_end) {
+        errors.push({
+          time_slot_1_end: `Cal indicar l'hora de finalització del tram horari 1`
+        });
+      }
+
+      // El tram horari ha de ser més gran de 3 hores
+      if (this.form.time_slot_1_ini && this.form.time_slot_1_end) {
+        if (
+          parseFloat(this.form.time_slot_1_end) -
+          parseFloat(this.form.time_slot_1_ini) < 3
+        ) {
+          // comprovar també per al tram 2
+          if (this.form.time_slot_2_ini && this.form.time_slot_2_end) {
+            if (
+              parseFloat(this.form.time_slot_2_end) -
+              parseFloat(this.form.time_slot_2_ini) < 3
+            ) {
+              errors.push({
+                time_slot_2_ini: `El tram horari ha de ser mínim de 3 hores`
+              });
+            }
+          } else {
+            errors.push({
+              time_slot_1_ini: `El tram horari ha de ser mínim de 3 hores`
+            });
+          }
+        }
+      }
+
+      if (this.form.time_slot_2_ini && this.form.time_slot_2_end) {
+        if (
+          parseFloat(this.form.time_slot_2_ini) >=
+          parseFloat(this.form.time_slot_2_end)
+        ) {
+          errors.push({
+            time_slot_2_ini: `L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització`
+          });
+        }
+      }
+
+      // Cal indicar l'hora de finalització del tram horari 2
+      if (this.form.time_slot_2_ini && !this.form.time_slot_2_end) {
+        errors.push({
+          time_slot_2_end: `Cal indicar l'hora de finalització del tram horari 2`
+        });
+      }
+      return errors;
     }
   }
 };
