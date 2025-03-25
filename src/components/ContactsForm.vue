@@ -127,7 +127,7 @@
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
                   icon="calendar-today"
-                  placeholder="Data seguiment"
+                  placeholder="Data aportació sòcia"
                   trap-focus
                   editable
                 >

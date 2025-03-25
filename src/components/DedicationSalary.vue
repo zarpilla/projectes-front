@@ -258,9 +258,9 @@ export default {
         .endOf("year")
         .format("YYYY-MM-DD");
 
-      let query = `activities/total-by-day?_where[date_gte]=${from}&[date_lte]=${to}`;
+      let query = `activities/total-by-day?_where[date_gte]=${from}&_where[date_lte]=${to}`;
       if (this.user) {
-        query = `${query}&[users_permissions_user.id]=${this.user}`;
+        query = `${query}&_where[users_permissions_user.id]=${this.user}`;
       } else {
         return;
       }
