@@ -900,9 +900,9 @@ export default {
     });
 
     phases0.forEach(p => {
-      p.dirty = false;
+      p.dirty = p.dirty || false;
       p.incomes.forEach(s => {
-        s.dirty = false;
+        s.dirty = s.dirty || false;
         s.assign = false;
         s["assign"] = false;
         if (s.date) {
@@ -919,7 +919,7 @@ export default {
         }
       });
       p.expenses.forEach(s => {
-        s.dirty = false;
+        s.dirty = s.dirty || false;
         s.assign = false;
         s["assign"] = false;
         if (s.date) {

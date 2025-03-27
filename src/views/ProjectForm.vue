@@ -3100,7 +3100,7 @@ export default {
     },
     originalPhasesUpdated(info) {
       this.form._project_original_phases_updated = true;
-      this.form.project_original_phases = [ ...info.phases];
+      this.form.project_original_phases = JSON.parse(JSON.stringify(info.phases));
       if (info.deletedPhases) {
         this.deletedPhasesOriginal = info.deletedPhases;
         this.deletedIncomesOriginal = info.deletedIncomes;
@@ -3109,15 +3109,19 @@ export default {
       this.form.project_original_phases_info = { deletedPhases: this.deletedPhasesOriginal, deletedIncomes: this.deletedIncomesOriginal, deletedExpenses: this.deletedExpensesOriginal, deletedHours: this.deletedHoursOriginal };
     },
     originalPhasesCopy(info) {
+    
       this.phasesVisible = false;
       const phases = JSON.parse(
         JSON.stringify(this.form.project_original_phases)
       );
-      const phase = phases.find((p, i) => i === info.index);
+      const phase = JSON.parse(
+        JSON.stringify(phases.find((p, i) => i === info.index)
+      ));
+      delete phase.__ob__
       delete phase.id;
       phase.name = `${phase.name} - còpia`;
       phase.dirty = true;
-      phase.incomes.forEach(sp => {
+      for (const sp of phase.incomes) {
         sp.date = sp.date
           ? moment(sp.date).format("YYYY-MM-DD")
           : this.form.date_end;
@@ -3127,9 +3131,10 @@ export default {
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
+        delete sp.project_original_phase
         sp.dirty = true;
-      });
-      phase.expenses.forEach(sp => {
+      }
+      for (const sp of phase.expenses) {
         sp.date = sp.date
           ? moment(sp.date).format("YYYY-MM-DD")
           : this.form.date_end;
@@ -3139,9 +3144,11 @@ export default {
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
+        delete sp.project_original_phase
         sp.dirty = true;
-      });
-      this.form.project_phases.push(phase);
+      }      
+      this.form.project_phases.push(JSON.parse(
+        JSON.stringify(phase)));
       this.form.project_phases_info = { deletedPhases: this.deletedPhases, deletedIncomes: this.deletedIncomes, deletedExpenses: this.deletedExpenses, deletedHours: this.deletedHours };
       this.form._project_phases_updated = true;
 
