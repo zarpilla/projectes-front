@@ -229,7 +229,7 @@ export default {
                   year: a.date ? moment(a.date).format('YYYY').toString() : 0,
                   day: a.date ? moment(a.date).format('DD').toString() : 0,
                   date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
-                  username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
+                  username: a.users_permissions_user && this.leaders.find(u => u.id === a.users_permissions_user) ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
                   count: 1,
                   dedication_type: a.dedication_type && this.dedicationTypes.length && this.dedicationTypes.find(d => d.id === a.dedication_type) ? this.dedicationTypes.find(d => d.id === a.dedication_type).name : '-',
                   real_cost: a.cost_by_hour * a.hours
