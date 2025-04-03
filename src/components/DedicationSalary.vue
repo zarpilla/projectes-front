@@ -342,13 +342,8 @@ export default {
                       festive.users_permissions_user.id)) &&
                   dailyDedication &&
                   day !== 0 &&
-                  day !== 6 &&
-                  !dailyDedication.hoursperday
+                  day !== 6                  
                     ? dailyDedication.hours
-                    : !festive && dailyDedication && dailyDedication.hoursperday
-                    ? parseFloat(
-                        dailyDedication.hoursperday.split(",")[startOnMondayDay]
-                      )
                     : 0;
 
                 const workedHours =
