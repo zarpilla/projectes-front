@@ -3207,7 +3207,8 @@ export default {
         });
       });
       this.form.project_phases = phases;
-      this.form.project_phases_info = { deletedPhases: [], deletedIncomes: [], deletedExpenses: [], deletedHours: [] };
+      const previousDeletedPhases = this.form.project_phases_info?.deletedPhases || [];      
+      this.form.project_phases_info = { deletedPhases: previousDeletedPhases, deletedIncomes: [], deletedExpenses: [], deletedHours: [] };
       this.form._project_phases_updated = true;
 
       setTimeout(() => {
