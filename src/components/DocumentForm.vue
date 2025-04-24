@@ -1452,13 +1452,11 @@ export default {
             return;
           }
 
-          console.log("submit 0");
 
           const assignedToProjectPhase =
             this.type !== "payrolls" &&
             this.validateIfProjectPhasesHasDocument();
 
-            console.log("submit 1");
 
           if (this.type !== "payrolls" && !assignedToProjectPhase) {
             this.$buefy.snackbar.open({
@@ -1472,15 +1470,15 @@ export default {
 
           this.isLoading = true;
 
-          if (this.form.projects) {
-            const projects = JSON.parse(JSON.stringify(this.form.projects));
+          // if (this.form.projects) {
+          //   const projects = JSON.parse(JSON.stringify(this.form.projects));
 
-            const mappedProjects = projects.map(p => {
-              const { activities, project_phases, project_original_phases, ...item } = p;
-              return item;
-            });
-            this.form.projects = JSON.parse(JSON.stringify(mappedProjects));
-          }
+          //   const mappedProjects = projects.map(p => {
+          //     const { activities, project_phases, project_original_phases, ...item } = p;
+          //     return item;
+          //   });
+          //   this.form.projects = JSON.parse(JSON.stringify(mappedProjects));
+          // }
 
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,
@@ -1488,6 +1486,7 @@ export default {
           );
 
           if (this.shouldSaveProject && this.type !== "payrolls") {
+            const projects = JSON.parse(JSON.stringify(this.form.projects));
             await this.updateProjectPhases(this.form.id, projects);
           }
 
