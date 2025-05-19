@@ -93,7 +93,6 @@ export default {
                 } else {
                   return;
                 }
-
               }
 
               const subElements = [];
@@ -110,11 +109,26 @@ export default {
               this.menuList.push(subElements);
             });
 
-            this.loaded = true;
-
-            if (this.$route.name === "login") {
-              this.$router.push("projectes");
+            if (userPermissions.includes("orders")) {
+              const pending = (
+                await service({ requiresAuth: true, cached: true }).get(
+                  `emitted-invoices/pending-provider?_limit=-1&_sort=name:ASC`
+                )
+              ).data;
+              if (pending && pending.invoices) {
+                this.$buefy.snackbar.open({
+                  message: "Atenció. Hi ha factures pendents de pagar.",
+                  queue: false,
+                  type: "is-warning"
+                });
+              }
+            } else {
+              if (this.$route.name === "login") {
+                this.$router.push("projectes");
+              }
             }
+
+            this.loaded = true;
           }
         } catch {
           localStorage.removeItem("user");
