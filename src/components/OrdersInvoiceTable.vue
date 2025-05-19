@@ -182,7 +182,6 @@ export default {
 
       this.orders = this.orders.map(o => {                
         o.users_permissions_user = contacts.find(c => o.owner && c.users_permissions_user && c.users_permissions_user.id === o.owner.id);
-        console.log("o users_permissions_user", o.users_permissions_user);
         return o;
       });
 
