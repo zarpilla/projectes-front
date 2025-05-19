@@ -1866,6 +1866,9 @@ export default {
       this.setStatusFilter(this.statusFilter);
     },
     onSort(field, order) {
+      if (field === 'idx') {
+        field = 'id';
+      }
       this.sortField = field;
       this.sortOrder = order;
       this.setStatusFilter(this.statusFilter);
