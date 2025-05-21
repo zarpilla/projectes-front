@@ -445,15 +445,15 @@
       </b-table-column>
       <b-table-column
         label="Preu"
-        field="price"
+        field="finalPrice"
         sortable
         searchable
         v-slot="props"
       >
         <money-format
-          v-if="props.row.price"
+          v-if="props.row.finalPrice"
           class="has-text-left"
-          :value="props.row.price"
+          :value="props.row.finalPrice"
           :locale="'es'"
           :currency-code="'EUR'"
           :subunits-value="false"
@@ -518,7 +518,7 @@ import { parse } from "csv-parse";
 import { mapState } from "vuex";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import { assignRouteRate, assignRouteDate } from "@/service/assignRouteRate";
+import { assignRouteRate, assignRouteDate, calculateRoutePrice } from "@/service/assignRouteRate";
 import moment from "moment";
 import _ from "lodash";
 import { filter } from "lodash";
@@ -1531,15 +1531,7 @@ export default {
 
         if (order.kilograms !== null && orderWithRate.route_rate) {
           const rate = orderWithRate.route_rate;
-          if (Math.abs(order.kilograms) < 15) {
-            orderWithRate.price = rate.less15;
-          } else if (Math.abs(order.kilograms) < 30) {
-            orderWithRate.price = rate.less30;
-          } else {
-            orderWithRate.price =
-              rate.less30 +
-              (Math.abs(order.kilograms) - 30) * rate.additional30;
-          }
+          orderWithRate.price = calculateRoutePrice(rate, order.kilograms);         
         } else {
           // console.warn("!order", order.kilograms, order.route_rate);
         }

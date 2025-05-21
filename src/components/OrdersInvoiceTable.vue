@@ -182,6 +182,7 @@ export default {
 
       this.orders = this.orders.map(o => {                
         o.users_permissions_user = contacts.find(c => o.owner && c.users_permissions_user && c.users_permissions_user.id === o.owner.id);
+        o.price = o.price * (1 - (o.multidelivery_discount || 0) / 100);
         return o;
       });
 

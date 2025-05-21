@@ -346,6 +346,25 @@
                 </b-datepicker>
               </b-field>
 
+              <b-field
+                label="Data facturació"
+                horizontal
+                message="Data en la que la comanda ha estat facturada"
+                v-if="form.emitted_invoice_datetime"
+              >              
+                <b-datetimepicker
+                  :disabled="true"
+                  v-model="form.emitted_invoice_datetime"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data"
+                  trap-focus
+                >
+                </b-datetimepicker>
+              </b-field>
+
               <b-field label="Tarifa" horizontal class="line-notes mb-5">
                 <span>{{ route_rate ? route_rate.name : "no trobada" }}</span>
               </b-field>
@@ -372,6 +391,14 @@
                   </button>
                 </div>
               </b-field>
+
+              <b-field label="Descompte multientrega" horizontal class="mb-5" v-if="form.multidelivery_discount">
+                <b-input
+                  :value="( route_price * ( 1 - form.multidelivery_discount / 100)).toFixed(2) + ' € (' + form.multidelivery_discount + '%)'"
+                  type="text"
+                  :disabled="true"></b-input>
+              </b-field>
+              
 
               <b-field
                 v-if="form.id"
@@ -435,7 +462,8 @@ import concat from "lodash/concat";
 import {
   assignRouteRate,
   assignRouteDate,
-  checkIfDateIsValidInroute
+  checkIfDateIsValidInroute,
+  calculateRoutePrice
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser";
 
@@ -581,15 +609,7 @@ export default {
         return this.form.price;
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
-        const rate = this.route_rate;
-        if (Math.abs(this.form.kilograms) < 15) {
-          this.form.price = rate.less15;
-        } else if (Math.abs(this.form.kilograms) < 30) {
-          this.form.price = rate.less30;
-        } else {
-          this.form.price =
-            rate.less30 + (Math.abs(this.form.kilograms) - 30) * rate.additional30;
-        }
+        this.form.price = calculateRoutePrice(this.route_rate, this.form.kilograms);
       }
       return this.form.price;
     },    
@@ -717,6 +737,12 @@ export default {
                 this.form.estimated_delivery_date = moment(
                   this.form.estimated_delivery_date,
                   "YYYY-MM-DD"
+                ).toDate();
+              }
+              
+              if (this.form.emitted_invoice_datetime) {
+                this.form.emitted_invoice_datetime = moment(
+                  this.form.emitted_invoice_datetime
                 ).toDate();
               }
 
@@ -1227,6 +1253,8 @@ export default {
             return;
           }
 
+          delete this.form.emitted_invoice_datetime;
+
           await service({ requiresAuth: true }).put(
             `orders/${this.form.id}`,
             this.form
@@ -1568,17 +1596,9 @@ export default {
       this.onClientaChange(contactId);
     },
     changeRate() {      
-      const rate = assignRouteRate(this.form, this.routeRates, this.orders);
+      const rate = assignRouteRate(this.form, this.routeRates, this.orders);      
       this.form.route_rate = rate;      
-      if (Math.abs(this.form.kilograms) < 15) {
-        this.form.price = rate.less15;
-      } else if (Math.abs(this.form.kilograms) < 30) {
-        this.form.price = rate.less30;
-      } else {
-        this.form.price =
-          rate.less30 + (Math.abs(this.form.kilograms) - 30) * rate.additional30;
-      }
-      //return this.form.route_rate;
+      this.form.price = calculateRoutePrice(rate, this.form.kilograms);
     },
   }
 };
