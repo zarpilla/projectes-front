@@ -4,6 +4,7 @@
     <aside-menu v-if="userName" :menu="menuList" />
     <router-view />
     <footer-bar v-if="userName" />
+    <modal-box-invoice :is-active="isModalActive" :invoices="invoices" />
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import { mapState } from "vuex";
 import service from "@/service/index";
 import menu from "@/service/menu";
 import { EventBus } from "@/service/event-bus.js";
+import ModalBoxInvoice from "@/components/ModalBoxInvoice";
 
 export default {
   name: "Home",
@@ -26,6 +28,12 @@ export default {
     NavBar
   },
   mixins: [update],
+  components: {
+    NavBar,
+    AsideMenu,
+    FooterBar,
+    ModalBoxInvoice
+  },
   mounted() {
     EventBus.$on("login", () => {
       this.loadUserData();
@@ -40,7 +48,9 @@ export default {
   data() {
     return {
       loaded: false,
-      menuList: []
+      menuList: [],
+      isModalActive: false,
+      invoices: []
     };
   },
   async created() {
@@ -116,11 +126,8 @@ export default {
                 )
               ).data;
               if (pending && pending.invoices) {
-                this.$buefy.snackbar.open({
-                  message: "Atenció. Hi ha factures pendents de pagar.",
-                  queue: false,
-                  type: "is-warning"
-                });
+                this.invoices = pending.invoices;
+                this.isModalActive = true;
               }
             } else {
               if (this.$route.name === "login") {
