@@ -63,16 +63,7 @@
         v-slot="props"
       >
         {{ props.row.permissions }}
-      </b-table-column>
-      <b-table-column
-        label="Permisos"
-        searchable
-        field="permissions"
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.permissions }}
-      </b-table-column>
+      </b-table-column>      
       <b-table-column
         label="Import aportació"
         searchable
@@ -91,8 +82,6 @@
       >
         {{ props.row.contact && props.row.contact.partner_amount_date ? props.row.contact.partner_amount_date : '' }}
       </b-table-column>
-      
-      
     </b-table>
   </section>
 </template>
@@ -154,8 +143,8 @@ export default {
 
           user.contact = this.contacts.find(contact => contact.users_permissions_user && contact.users_permissions_user.id === user.id);
           return user;
-        });
-      
+        })
+        .filter(user => user.permissions === 'Sòcia');
         
       
 

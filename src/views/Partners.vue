@@ -27,7 +27,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Usuàries i Sòcies']
+      return ['Sòcies']
     }
   },
   mounted () {    
