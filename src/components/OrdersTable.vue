@@ -450,6 +450,7 @@
         searchable
         v-slot="props"
       >
+      <div class="is-flex">
         <money-format
           v-if="props.row.finalPrice"
           class="has-text-left"
@@ -461,6 +462,8 @@
         >
         </money-format>
         <span v-else>?</span>
+        <b-icon v-if="props.row.finalPrice !== props.row.price" icon="circle" class="has-text-success" custom-size="default" title="Descompte multientrega" />
+      </div>
       </b-table-column>
       <b-table-column
         label="Estat"
