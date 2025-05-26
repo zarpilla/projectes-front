@@ -125,7 +125,7 @@ export default {
                   `emitted-invoices/pending-provider?_limit=-1&_sort=name:ASC`
                 )
               ).data;
-              if (pending && pending.invoices) {
+              if (pending && pending.invoices && pending.invoices.length > 0) {
                 this.invoices = pending.invoices;
                 this.isModalActive = true;
               }
