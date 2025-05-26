@@ -462,7 +462,8 @@
         >
         </money-format>
         <span v-else>?</span>
-        <b-icon v-if="props.row.finalPrice !== props.row.price" icon="circle" class="has-text-success" custom-size="default" title="Descompte multientrega" />
+        <b-icon v-if="props.row.finalPrice !== props.row.price && props.row.multidelivery_discount" icon="circle" class="has-text-success" custom-size="default" title="Descompte multientrega" />
+        <b-icon v-if="props.row.finalPrice !== props.row.price && !props.row.multidelivery_discount" icon="circle" class="has-text-success" custom-size="default" title="Descompte recollida" />
       </div>
       </b-table-column>
       <b-table-column

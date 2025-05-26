@@ -118,9 +118,12 @@
               </b-field>
 
               <b-field label="Horari de contacte 1 *" horizontal>
-                <b-field label=""
-                :type="{ 'is-danger': errors['time_slot_1_ini'] && submitted }"
-                message="Un dels dos trams horaris ha de ser mínim de 3 hores"
+                <b-field
+                  label=""
+                  :type="{
+                    'is-danger': errors['time_slot_1_ini'] && submitted
+                  }"
+                  message="Un dels dos trams horaris ha de ser mínim de 3 hores"
                 >
                   <b-select
                     v-model="form.time_slot_1_ini"
@@ -165,8 +168,12 @@
               </b-field>
 
               <b-field label="Horari de contacte 2 *" horizontal>
-                <b-field label=""
-                :type="{ 'is-danger': errors['time_slot_2_ini'] && submitted }">
+                <b-field
+                  label=""
+                  :type="{
+                    'is-danger': errors['time_slot_2_ini'] && submitted
+                  }"
+                >
                   <b-select
                     v-model="form.time_slot_2_ini"
                     placeholder=""
@@ -233,27 +240,23 @@
               <b-field label="Telèfon de contacte" horizontal>
                 <b-input v-model="form.contact_phone" />
               </b-field>
-              <!-- <b-field
-                label="Email de contacte"
-                horizontal
-              >
-                <b-input v-model="form.contact_email" />
-              </b-field> -->
               <b-field label="Web" horizontal>
                 <b-input v-model="form.website" />
               </b-field>
-              <!-- <b-field label="Forma jurídica" horizontal>
-                <b-select v-model="form.legal_form" placeholder="">
-                  <option
-                    v-for="(s, index) in legalForms"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field> -->
-
+              <b-field
+                v-if="
+                  (me.data && form.id && form.owner === me.data.id) ||
+                    permissions.includes('orders_admin')
+                "
+                label="% de descompte per punt de recollida"
+                horizontal
+              >
+                <b-input
+                  v-model="form.pickup_discount"
+                  type="numeric"
+                  @input="fixDecimals('pickup_discount', form.pickup_discount)"
+                />
+              </b-field>
               <hr />
               <b-field horizontal>
                 <div class="is-flex" v-if="!modal">
@@ -312,6 +315,7 @@ import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import moment from "moment";
 import concat from "lodash/concat";
+import { pick } from "lodash";
 
 export default {
   name: "ContactUsersForm",
@@ -401,8 +405,8 @@ export default {
         sector: !this.form.sector,
         postcode: !this.form.postcode,
         owner: !this.form.owner,
-        time_slot_1_ini: this.slotErrors.length > 0,        
-        time_slot_2_ini: this.slotErrors.length > 0,
+        time_slot_1_ini: this.slotErrors.length > 0,
+        time_slot_2_ini: this.slotErrors.length > 0
       };
     }
   },
@@ -613,7 +617,6 @@ export default {
           return;
         }
 
-
         if (this.form.id) {
           if (
             !this.form.trade_name ||
@@ -808,13 +811,12 @@ export default {
       this.form.nif = "I-" + nif.toString().padStart(8, "0");
     },
     validateTimeSlots() {
-      const errors = [];      
+      const errors = [];
       if (this.form.time_slot_1_ini && this.form.time_slot_1_end) {
         if (
           parseFloat(this.form.time_slot_1_ini) >=
           parseFloat(this.form.time_slot_1_end)
         ) {
-          
           errors.push({
             time_slot_1_ini: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
           });
@@ -832,13 +834,15 @@ export default {
       if (this.form.time_slot_1_ini && this.form.time_slot_1_end) {
         if (
           parseFloat(this.form.time_slot_1_end) -
-          parseFloat(this.form.time_slot_1_ini) < 3
+            parseFloat(this.form.time_slot_1_ini) <
+          3
         ) {
           // comprovar també per al tram 2
           if (this.form.time_slot_2_ini && this.form.time_slot_2_end) {
             if (
               parseFloat(this.form.time_slot_2_end) -
-              parseFloat(this.form.time_slot_2_ini) < 3
+                parseFloat(this.form.time_slot_2_ini) <
+              3
             ) {
               errors.push({
                 time_slot_2_ini: `El tram horari ha de ser mínim de 3 hores`
@@ -870,6 +874,11 @@ export default {
         });
       }
       return errors;
+    },
+    fixDecimals(field, value) {
+      if (value && value.toString().includes(",")) {
+        this.form[field] = value.toString().replace(",", ".");
+      }
     }
   }
 };

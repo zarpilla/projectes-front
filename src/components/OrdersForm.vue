@@ -392,9 +392,20 @@
                 </div>
               </b-field>
 
-              <b-field label="Descompte multientrega" horizontal class="mb-5" v-if="form.multidelivery_discount">
+              <b-field label="Descompte multientrega / recollida" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount">
                 <b-input
-                  :value="( route_price * ( 1 - form.multidelivery_discount / 100)).toFixed(2) + ' € (' + form.multidelivery_discount + '%)'"
+                  :value="(form.multidelivery_discount || 0) + '%'"
+                  type="text"
+                  :disabled="true"></b-input>
+                <b-input
+                  :value="(form.contact_pickup_discount || 0)	+ '%'"
+                  type="text"
+                  :disabled="true"></b-input>
+              </b-field>
+
+              <b-field label="Preu amb descompte" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount">
+                <b-input
+                  :value="( route_price * ( 1 - form.multidelivery_discount / 100) * ( 1 - form.contact_pickup_discount / 100) ).toFixed(2) + ' €'"
                   type="text"
                   :disabled="true"></b-input>
               </b-field>
@@ -698,7 +709,8 @@ export default {
         pickup: null,
         units: null,
         kilograms: null,
-        routeFestives: []
+        routeFestives: [],
+        contact_pickup_discount: 0,
       };
     },
     async getData() {
@@ -903,11 +915,7 @@ export default {
       this.changeRoute();
     },
     async changeRoute() {
-      console.log("changeRoute", this.form.route);
-      // if (!this.form.route){
-      //   console.log('changeRoute 2', this.form.contact_city)
-      // }
-
+      
       if (this.form.owner && this.form.route) {
         this.orders = (
           await service({ requiresAuth: true }).get(
@@ -1537,6 +1545,7 @@ export default {
       this.form.contact_time_slot_1_end = null;
       this.form.contact_time_slot_2_ini = null;
       this.form.contact_time_slot_2_end = null;
+      this.form.contact_pickup_discount = 0;
       this.contactSearch = "";
     },
     async onClientaChange(id) {
@@ -1557,6 +1566,7 @@ export default {
         this.form.contact_phone = contact.phone;
         this.form.contact_city = contact.city;
         this.form.contact_multiowner = contact.multiowner;
+        this.form.contact_pickup_discount = contact.pickup_discount || 0;
         
         this.citySearch = contact.city;
 
