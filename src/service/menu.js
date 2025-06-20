@@ -262,6 +262,12 @@ const menu = [
         label: 'Registre de canvis',
         permission: 'projects'
       },
+      // {
+      //   to: '/verifactu',
+      //   icon: 'bank',
+      //   label: 'Verifactu',
+      //   permission: 'projects'
+      // },      
       {
         to: '/documentacio',
         icon: 'help-circle',

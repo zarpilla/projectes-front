@@ -1,17 +1,42 @@
 <template>
   <div class="document-form" v-if="!isLoading">
+    <modal-box-emitted-invoices
+      :is-active="isModalActive"
+      :invoice="{ ...form, totalBase, totalVat, totalIrpf, total, toReal }"
+      :series="series"
+      :payment-methods="paymentMethods"
+      :to-real="toReal"
+      @yes="
+        isModalActive = false;
+        !toReal ? sendSubmitEmittedInvoice() : doSetReal();
+      "
+      @cancel="isModalActive = false"
+    ></modal-box-emitted-invoices>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
         <div class="column is-full">
           <!-- <pre>{{form}}</pre> -->
           <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
-            <b-field label="Número" horizontal>
+            <b-field
+              v-if="type === 'emitted-invoices'"
+              label="Estat"
+              horizontal
+            >
+              <div
+                class="tag has-text-weight-bold"
+                :class="form.state === 'draft' ? 'is-warning' : 'is-success'"
+              >
+                {{ form.state === "draft" ? "ESBORRANY" : "VALIDADA" }}
+              </div>
+            </b-field>
+
+            <b-field label="Número" horizontal v-if="form.state !== 'draft'">
               <b-input
                 v-model="form.code"
                 placeholder=""
                 v-if="!numberEditable"
-                :disabled="!numberEditable"
+                :disabled="!numberEditable || emittedInvoiceEditDisabled"
                 icon-right="pencil-circle"
                 icon-right-clickable
                 @icon-right-click="editNumber"
@@ -19,14 +44,20 @@
               <b-input
                 v-model="form.number"
                 placeholder=""
-                v-if="numberEditable"
+                v-if="numberEditable && !emittedInvoiceEditDisabled"
                 icon-right="pencil-circle"
                 icon-right-clickable
                 @icon-right-click="editNumber"
               />
             </b-field>
             <b-field label="Sèrie *" horizontal v-if="type !== 'payrolls'">
-              <b-select v-model="form.serial" placeholder="" required>
+              <b-select
+                v-model="form.serial"
+                placeholder=""
+                required
+                :disabled="emittedInvoiceSerieDisabled"
+                @change.native="$event => calculateMinEmittedDate()"
+              >
                 <option v-for="(s, index) in series" :key="index" :value="s.id">
                   {{ s.name }}
                 </option>
@@ -90,6 +121,7 @@
                   input;
                   calculateIRPF();
                 "
+                :disabled="emittedInvoiceSerieDisabled"
                 v-model="form.emitted"
                 :show-week-number="false"
                 :locale="'ca-ES'"
@@ -98,6 +130,7 @@
                 placeholder="Data Emissió"
                 trap-focus
                 editable
+                :min-date="minEmittedDate"
               >
               </b-datepicker>
             </b-field>
@@ -112,6 +145,7 @@
               "
             >
               <b-datepicker
+                :disabled="emittedInvoiceEditDisabled"
                 v-model="form.paybefore"
                 :show-week-number="false"
                 :locale="'ca-ES'"
@@ -120,11 +154,14 @@
                 placeholder="Data Venciment"
                 trap-focus
                 editable
+                :min-date="minEmittedDate"
               >
               </b-datepicker>
             </b-field>
-            <b-field label="Previsió cobrament" horizontal
-            v-if="type === 'received-incomes' || type === 'emitted-invoices'"
+            <b-field
+              label="Previsió cobrament"
+              horizontal
+              v-if="type === 'received-incomes' || type === 'emitted-invoices'"
             >
               <b-datepicker
                 @input="
@@ -233,7 +270,12 @@
               "
               horizontal
             >
-              <b-select v-model="form.payment_method" placeholder="" required>
+              <b-select
+                v-model="form.payment_method"
+                placeholder=""
+                required
+                :disabled="emittedInvoiceEditDisabled"
+              >
                 <option
                   v-for="(s, index) in paymentMethods"
                   :key="index"
@@ -250,6 +292,7 @@
               horizontal
             >
               <b-autocomplete
+                :disabled="emittedInvoiceEditDisabled"
                 v-model="clientSearch"
                 placeholder="Escriu el nom de la clienta..."
                 :keep-first="false"
@@ -267,6 +310,7 @@
                   @click="navNew"
                   icon-left="plus"
                   title="Nou Contacte"
+                  :disabled="emittedInvoiceEditDisabled"
                 >
                 </b-button>
                 <b-button
@@ -274,6 +318,7 @@
                   @click="refreshClients"
                   icon-left="refresh"
                   title="Refrescar Contactes"
+                  :disabled="emittedInvoiceEditDisabled"
                 >
                 </b-button>
               </div>
@@ -484,6 +529,7 @@
                     class="subphase-detail-input-large-field"
                   >
                     <b-input
+                      :disabled="emittedInvoiceEditDisabled"
                       name="SubFase"
                       placeholder="Concepte..."
                       v-model="line.concept"
@@ -497,6 +543,7 @@
                   >
                     <b-input
                       name="Unitats"
+                      :disabled="emittedInvoiceEditDisabled"
                       placeholder="Quantitat, hores, unitats..."
                       v-model="line.quantity"
                       class="subphase-detail-input"
@@ -507,6 +554,7 @@
                   <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
                     <b-input
                       name="base"
+                      :disabled="emittedInvoiceEditDisabled"
                       placeholder="Preu per unitat"
                       v-model="line.base"
                       class="subphase-detail-input"
@@ -519,6 +567,7 @@
                     class="medium-field"
                   >
                     <b-input
+                      :disabled="emittedInvoiceEditDisabled"
                       name="discount"
                       placeholder="Descompte"
                       v-model="line.discount"
@@ -532,6 +581,7 @@
                     class="medium-field"
                   >
                     <b-input
+                      :disabled="emittedInvoiceEditDisabled"
                       name="vat"
                       placeholder="Preu per unitat"
                       v-model="line.vat"
@@ -545,6 +595,7 @@
                     class="medium-field"
                   >
                     <b-input
+                      :disabled="emittedInvoiceEditDisabled"
                       name="irpf"
                       placeholder="Preu per unitat"
                       v-model="line.irpf"
@@ -569,6 +620,7 @@
                       class="button is-small is-danger ml-2"
                       type="button"
                       @click.prevent="removeLine(line, j)"
+                      :disabled="emittedInvoiceEditDisabled"
                     >
                       <b-icon icon="trash-can" size="is-small" />
                     </button>
@@ -577,6 +629,7 @@
                       class="button is-small is-primary ml-2"
                       type="button"
                       @click.prevent="addLine(line)"
+                      :disabled="emittedInvoiceEditDisabled"
                     >
                       <b-icon icon="plus-circle" size="is-small" />
                     </button>
@@ -608,6 +661,8 @@
                 >
                   <b-input
                     type="textarea"
+                    maxlength="1000"
+                    :disabled="emittedInvoiceEditDisabled"
                     v-model="line.comments"
                     placeholder="Descripció del concepte"
                   />
@@ -670,6 +725,8 @@
                 type="textarea"
                 v-model="form.comments"
                 placeholder="Notes sobre la factura (visible a la factura)"
+                :disabled="emittedInvoiceEditDisabled"
+                :maxlength="1000"
               />
             </b-field>
           </card-component>
@@ -813,7 +870,7 @@
                 <project-phases
                   :hidden="true"
                   :form="project"
-                  :project-phases="project.project_phases"                  
+                  :project-phases="project.project_phases"
                   :is-paginated="false"
                   @phases-updated="phasesUpdated"
                   :mode="
@@ -835,8 +892,8 @@
               </div>
             </card-component>
             <hr />
-          </div>          
-            
+          </div>
+
           <b-field
             v-if="
               (type !== 'payrolls' &&
@@ -860,20 +917,55 @@
               v-if="form.id"
               >Guardar i sortir</b-button
             >
+
             <b-button
               class="mr-3"
-              type="is-primary"              
+              type="is-primary"
+              :loading="isLoading"
+              @click="canEditDraft = true"
+              v-if="
+                form.id &&
+                  entity === 'emitted-invoice' &&
+                  form.state === 'draft'
+              "
+              :disabled="canEditDraft"
+              >Editar dades de l'ESBORRANY</b-button
+            >
+
+            <b-button
+              class="mr-3"
+              type="is-primary"
+              :loading="isLoading"
+              @click="setReal()"
+              v-if="form.id && entity === 'emitted-invoice' && form.state === 'draft'"
+              :disabled="form.state === 'real' || canEditDraft"
+              >Validar i convertir a VALIDADA</b-button
+            >
+
+            <b-button
+              class="mr-3"
+              type="is-primary"
               @click="sendInvoiceByEmail"
               v-if="form.id && entity === 'emitted-invoice'"
               :disabled="!canSendEmail"
             >
-              Guardar i Enviar factura per correu
-            </b-button>            
+              Guardar i enviar factura per correu
+            </b-button>
             <b-button
               class="mr-3"
-              v-if="form.id"              
+              type="is-warning"
+              @click="createRectificativeInvoice()"
+              v-if="form.id && entity === 'emitted-invoice'"
+              :disabled="form.state !== 'real'"
+            >
+              Anul·lar i crear factura rectificativa
+            </b-button>
+            <b-button
+              class="mr-3"
+              v-if="form.id"
               type="is-primary"
-              @click="getPDF"              
+              @click="getPDF"
+              :disabled="form.state !== 'real'"
             >
               Visualitzar PDF
             </b-button>
@@ -888,7 +980,7 @@
 import dayjs from "dayjs";
 import TitleBar from "@/components/TitleBar";
 import CardComponent from "@/components/CardComponent";
-import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
+import ModalBoxEmittedInvoices from "@/components/ModalBoxEmittedInvoices";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
 import ProjectPhases from "@/components/ProjectPhases.vue";
@@ -900,6 +992,7 @@ import moment from "moment";
 import sortBy from "lodash/sortBy";
 import _ from "lodash";
 import FileUpload from "@/components/FileUpload";
+import { min } from "lodash";
 
 export default {
   name: "DocumentForm",
@@ -907,7 +1000,7 @@ export default {
     CardComponent,
     TitleBar,
     MoneyFormat,
-    ModalBoxInvoicing,
+    ModalBoxEmittedInvoices,
     ModalBoxSplit,
     ProjectPhases,
     FileUpload
@@ -951,7 +1044,14 @@ export default {
       quotes: null,
       products: [],
       pdf: false,
-      contact: null
+      contact: null,
+      isModalActive: false,
+      toReal: false,
+      exitAfterSave: false,
+      minEmittedDate: dayjs()
+        .subtract(25, "year")
+        .toDate(),
+      canEditDraft: false
     };
   },
   computed: {
@@ -1090,6 +1190,26 @@ export default {
         this.contact !== null &&
         this.contact.contact_email !== null;
       return can;
+    },
+    emittedInvoiceEditDisabled() {
+      return (
+        (this.type === "emitted-invoices" &&
+          this.form.id &&
+          this.form.code !== "ESBORRANY")  ||
+        (this.type === "emitted-invoices" &&
+          this.form.id &&
+          this.form.code === "ESBORRANY" && !this.canEditDraft)
+      );
+    },
+    emittedInvoiceSerieDisabled() {
+      return (
+        (this.type === "emitted-invoices" &&
+          this.form.id > 0 &&
+          this.form.code !== "ESBORRANY")  ||
+        (this.type === "emitted-invoices" &&
+          this.form.id > 0 &&
+          this.form.code === "ESBORRANY" && !this.canEditDraft)
+      );
     }
   },
   watch: {
@@ -1122,7 +1242,8 @@ export default {
         lines: _.concat([], this.getNewLine()),
         updatable: true,
         documents: [],
-        document_type: 0
+        document_type: 0,
+        state: this.type === "emitted-invoices" ? "draft" : null
       };
     },
     getNewLine() {
@@ -1335,6 +1456,10 @@ export default {
                 this.form.total = this.form.total_base + this.form.ss_base;
               }
 
+              if (this.form.state === "draft") {
+                await this.calculateMinEmittedDate();
+              }
+
               this.isLoading = false;
             } else {
               this.$router.push({ name: "project.new" });
@@ -1346,7 +1471,28 @@ export default {
           this.form.serial = serie.id;
         }
 
+        await this.calculateMinEmittedDate();
+
         this.isLoading = false;
+      }
+    },
+    async calculateMinEmittedDate() {
+      if (this.type === "emitted-invoices") {
+        const serial =
+          this.form.serial && this.form.serial.id
+            ? this.form.serial.id
+            : this.form.serial;
+        const maxDateInvoice = (
+          await service({ requiresAuth: true }).get(
+            `/emitted-invoices/basic?_limit=1&_sort=emitted:DESC&_where[serial_eq]=${serial}&_where[state_eq]=real`
+          )
+        ).data;
+        this.minEmittedDate =
+          maxDateInvoice.length > 0
+            ? dayjs(maxDateInvoice[0].emitted).toDate()
+            : dayjs()
+                .subtract(25, "year")
+                .toDate();
       }
     },
     async getAuxiliarData() {
@@ -1425,11 +1571,10 @@ export default {
         line[field] = value.toString().replace(",", ".");
       }
     },
-    input(v) {
-      this.createdReadable = dayjs(v).format("MMM D, YYYY");
-    },
+    input(v) {},
     async submit(exit) {
       this.isLoading = true;
+      this.canEditDraft = false;
 
       const isInvalid =
         (this.type !== "payrolls" &&
@@ -1452,11 +1597,9 @@ export default {
             return;
           }
 
-
           const assignedToProjectPhase =
             this.type !== "payrolls" &&
             this.validateIfProjectPhasesHasDocument();
-
 
           if (this.type !== "payrolls" && !assignedToProjectPhase) {
             this.$buefy.snackbar.open({
@@ -1518,13 +1661,25 @@ export default {
             !this.form.contact ||
             (this.form.contact && this.form.contact.id === 0) ||
             !this.form.serial ||
-            (this.form.serial && this.form.serial.id === 0) ||
             !this.form.projects ||
             !this.form.projects.length
           ) {
             this.$buefy.snackbar.open({
               message:
                 "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+              queue: false
+            });
+            this.isLoading = false;
+            return;
+          }
+
+          if (
+            !this.form.contact ||
+            (this.form.contact && this.form.contact.id === 0) ||
+            (this.form.contact && !this.form.contact.nif)
+          ) {
+            this.$buefy.snackbar.open({
+              message: "Error. La clienta ha de tenir NIF o CIF",
               queue: false
             });
             this.isLoading = false;
@@ -1543,7 +1698,7 @@ export default {
             return;
           }
 
-          const projects = [...this.form.projects]
+          const projects = [...this.form.projects];
           if (this.form.projects) {
             this.form.projects = this.form.projects.map(p => {
               const { activities, ...item } = p;
@@ -1654,7 +1809,9 @@ export default {
       if (!this.form.projects.find(c => c.id === option.id)) {
         this.isLoadingProject = true;
         const project = (
-          await service({ requiresAuth: true }).get(`projects/${option.id}/phases`)
+          await service({ requiresAuth: true }).get(
+            `projects/${option.id}/phases`
+          )
         ).data;
 
         if (this.type !== "quote") {
@@ -1705,8 +1862,13 @@ export default {
       this.shouldSaveProject = true;
       const project = this.form.projects.find(p => p.id === info.projectId);
 
-      project.project_phases = [ ...info.phases];      
-      project.project_phases_info = { deletedPhases: info.deletedPhases || [], deletedIncomes: info.deletedIncomes || [], deletedExpenses: info.deletedExpenses || [], deletedHours: [] };
+      project.project_phases = [...info.phases];
+      project.project_phases_info = {
+        deletedPhases: info.deletedPhases || [],
+        deletedIncomes: info.deletedIncomes || [],
+        deletedExpenses: info.deletedExpenses || [],
+        deletedHours: []
+      };
       project._project_phases_updated = true;
     },
     validateIfProjectPhasesHasDocument() {
@@ -1721,11 +1883,11 @@ export default {
         if (this.type === "emitted-invoices") {
           p.project_phases.forEach(ph => {
             ph.incomes.forEach(sph => {
-              if (sph.invoice && sph.invoice.id === this.form.id) {                
+              if (sph.invoice && sph.invoice.id === this.form.id) {
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
                 if (!this.form.estimated_payment && sph.date) {
-                  this.form.estimated_payment = sph.date
+                  this.form.estimated_payment = sph.date;
                 }
                 validateIfProjectPhasesHasDocument = true;
               }
@@ -1738,7 +1900,7 @@ export default {
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
                 if (!this.form.estimated_payment && sph.date) {
-                  this.form.estimated_payment = sph.date
+                  this.form.estimated_payment = sph.date;
                 }
                 validateIfProjectPhasesHasDocument = true;
               }
@@ -1931,7 +2093,11 @@ export default {
       }
     },
     canEditDocument(exit) {
-      if (
+      if (this.type === "emitted-invoices" && !this.form.id) {
+        this.exitAfterSave = exit;
+        this.toReal = false;
+        this.isModalActive = true;
+      } else if (
         moment().isAfter(
           moment(this.form.emitted)
             .endOf("quarter")
@@ -1950,6 +2116,29 @@ export default {
       } else {
         this.submit(exit);
       }
+    },
+    async setReal() {
+      this.toReal = true;
+      this.isModalActive = true;
+    },
+    async doSetReal() {
+      const theInvoice = await service({ requiresAuth: true }).put(
+        `${this.type}/${this.form.id}`,
+        {
+          state: "real",
+          code: "ESBORRANY",
+          serial: this.form.serial
+        }
+      );
+      this.form.state = theInvoice.data.state;
+      this.form.code = theInvoice.data.code;
+      this.$buefy.snackbar.open({
+        message: "Factura VALIDADA i emesa",
+        queue: false
+      });
+    },
+    sendSubmitEmittedInvoice() {
+      this.submit(this.exitAfterSave);
     },
     navNew() {
       let routeData = this.$router.resolve({ name: "contacts.edit" });
@@ -2004,8 +2193,7 @@ export default {
     async sendInvoiceByEmail() {
       this.isLoading = true;
       try {
-
-        await this.canEditDocument(false)
+        await this.canEditDocument(false);
 
         const pdf = (
           await service({ requiresAuth: true }).get(
@@ -2013,7 +2201,7 @@ export default {
           )
         ).data;
         this.pdf = true;
-        
+
         await service({ requiresAuth: true }).post(
           `/emitted-invoices/send-email/${this.form.id}`
         );
@@ -2036,6 +2224,27 @@ export default {
           queue: false
         });
       }
+    },
+    createRectificativeInvoice() {
+      const previousForm = JSON.parse(JSON.stringify(this.form));
+      this.form.id = 0;
+      this.form.code = null;
+      this.form.number = null;
+      this.form.emitted = new Date();
+      this.form.serial = null;
+      this.form.sent = false;
+      this.form.sent_date = null;
+      this.form.paid = false;
+      this.form.paid_date = null;
+      this.form.contact = this.contact;
+      this.form.lines = this.form.lines.map(l => {
+        return {
+          ...l,
+          id: 0,
+          quantity: -1 * l.quantity
+        };
+      });
+      this.form.comments = `Rectificativa de la factura ${previousForm.code}`;
     }
   }
 };

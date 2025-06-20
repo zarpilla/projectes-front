@@ -656,6 +656,18 @@ const routes = [
   },
   {
     meta: {
+      title: 'Verifactu'
+    },
+    path: '/verifactu',
+    name: 'VerifactuDeclaration',
+    component: () => import(/* webpackChunkName: "changelog" */ '../views/VerifactuDeclaration.vue'),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: 'Usuàries'
     },
     path: '/partners',
