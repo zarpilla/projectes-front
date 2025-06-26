@@ -6,6 +6,7 @@
       :series="series"
       :payment-methods="paymentMethods"
       :to-real="toReal"
+      :contact="contact"
       @yes="
         isModalActive = false;
         !toReal ? sendSubmitEmittedInvoice() : doSetReal();
@@ -27,7 +28,7 @@
                 class="tag has-text-weight-bold"
                 :class="form.state === 'draft' ? 'is-warning' : 'is-success'"
               >
-                {{ form.state === "draft" ? "ESBORRANY" : "VALIDADA" }}
+                {{ form.state === "draft" ? "ESBORRANY" : "EMESA" }}
               </div>
             </b-field>
 
@@ -937,9 +938,13 @@
               type="is-primary"
               :loading="isLoading"
               @click="setReal()"
-              v-if="form.id && entity === 'emitted-invoice' && form.state === 'draft'"
+              v-if="
+                form.id &&
+                  entity === 'emitted-invoice' &&
+                  form.state === 'draft'
+              "
               :disabled="form.state === 'real' || canEditDraft"
-              >Validar i convertir a VALIDADA</b-button
+              >Emetre factura (convertir a EMESA)</b-button
             >
 
             <b-button
@@ -947,7 +952,7 @@
               type="is-primary"
               @click="sendInvoiceByEmail"
               v-if="form.id && entity === 'emitted-invoice'"
-              :disabled="!canSendEmail"
+              :disabled="!canSendEmail || form.state !== 'real'"
             >
               Guardar i enviar factura per correu
             </b-button>
@@ -965,7 +970,6 @@
               v-if="form.id"
               type="is-primary"
               @click="getPDF"
-              :disabled="form.state !== 'real'"
             >
               Visualitzar PDF
             </b-button>
@@ -1051,7 +1055,9 @@ export default {
       minEmittedDate: dayjs()
         .subtract(25, "year")
         .toDate(),
-      canEditDraft: false
+      canEditDraft: false,
+      options: null,
+      user: null
     };
   },
   computed: {
@@ -1195,20 +1201,22 @@ export default {
       return (
         (this.type === "emitted-invoices" &&
           this.form.id &&
-          this.form.code !== "ESBORRANY")  ||
+          this.form.code !== "ESBORRANY") ||
         (this.type === "emitted-invoices" &&
           this.form.id &&
-          this.form.code === "ESBORRANY" && !this.canEditDraft)
+          this.form.code === "ESBORRANY" &&
+          !this.canEditDraft)
       );
     },
     emittedInvoiceSerieDisabled() {
       return (
         (this.type === "emitted-invoices" &&
           this.form.id > 0 &&
-          this.form.code !== "ESBORRANY")  ||
+          this.form.code !== "ESBORRANY") ||
         (this.type === "emitted-invoices" &&
           this.form.id > 0 &&
-          this.form.code === "ESBORRANY" && !this.canEditDraft)
+          this.form.code === "ESBORRANY" &&
+          !this.canEditDraft)
       );
     }
   },
@@ -1243,7 +1251,9 @@ export default {
         updatable: true,
         documents: [],
         document_type: 0,
-        state: this.type === "emitted-invoices" ? "draft" : null
+        state: this.type === "emitted-invoices" ? "draft" : null,
+        user_last: 0,
+        verifactu: false
       };
     },
     getNewLine() {
@@ -1290,17 +1300,15 @@ export default {
       };
     },
     async getData() {
-      if (!this.me) {
-        service({ requiresAuth: true })
-          .get("me")
-          .then(r => {
-            this.me = r.data;
-            this.$store.commit("me", {
-              me: r.data
-            });
-          });
-      }
+      const user = await service({ requiresAuth: true }).get("/users/me");
+      this.user = user.data;
 
+      const me = await service({ requiresAuth: true }).get("me");
+      this.options = me.data;
+      this.$store.commit("me", {
+              me: me.data
+            });
+      
       this.isLoading = true;
 
       await this.getAuxiliarData();
@@ -1364,6 +1372,22 @@ export default {
                 this.contact = this.form.contact;
                 this.clientSearch = this.form.contact.name;
                 this.form.contact = this.form.contact.id;
+              }
+
+              if (this.form.user_last && this.form.user_last.id) {
+                this.form.user_last = this.form.user_last.id;
+              } else {
+                this.form.user_last = null
+              }
+              if (this.form.user_real && this.form.user_real.id) {
+                this.form.user_real = this.form.user_real.id;
+              } else {
+                this.form.user_real = null
+              }
+              if (this.form.user_draft && this.form.user_draft.id) {
+                this.form.user_draft = this.form.user_draft.id;
+              } else {
+                this.form.user_draft = null
               }
 
               if (this.form.payment_method && this.form.payment_method.id) {
@@ -1573,6 +1597,9 @@ export default {
     },
     input(v) {},
     async submit(exit) {
+
+      console.log("submit", this.form);
+
       this.isLoading = true;
       this.canEditDraft = false;
 
@@ -1586,6 +1613,7 @@ export default {
         (this.type === "payrolls" && !this.form.emitted);
 
       try {
+        this.form.user_last = this.user.id;
         if (this.form.id) {
           if (isInvalid) {
             this.$buefy.snackbar.open({
@@ -1765,6 +1793,7 @@ export default {
         delete option.quotes;
         delete option.projectes;
         this.form.contact = option;
+        this.contact = option;
 
         setTimeout(() => {
           this.calculateIRPF();
@@ -2096,6 +2125,7 @@ export default {
       if (this.type === "emitted-invoices" && !this.form.id) {
         this.exitAfterSave = exit;
         this.toReal = false;
+
         this.isModalActive = true;
       } else if (
         moment().isAfter(
@@ -2127,13 +2157,14 @@ export default {
         {
           state: "real",
           code: "ESBORRANY",
-          serial: this.form.serial
+          serial: this.form.serial,
+          user_last: this.user.id
         }
       );
       this.form.state = theInvoice.data.state;
       this.form.code = theInvoice.data.code;
       this.$buefy.snackbar.open({
-        message: "Factura VALIDADA i emesa",
+        message: "Factura emesa correctament",
         queue: false
       });
     },
@@ -2228,6 +2259,7 @@ export default {
     createRectificativeInvoice() {
       const previousForm = JSON.parse(JSON.stringify(this.form));
       this.form.id = 0;
+      this.form.state = "draft";
       this.form.code = null;
       this.form.number = null;
       this.form.emitted = new Date();
@@ -2237,6 +2269,7 @@ export default {
       this.form.paid = false;
       this.form.paid_date = null;
       this.form.contact = this.contact;
+      this.user_last = this.user.id;
       this.form.lines = this.form.lines.map(l => {
         return {
           ...l,

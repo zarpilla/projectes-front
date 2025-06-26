@@ -34,12 +34,23 @@
         searchable
         v-slot="props"
       >
-      <router-link v-if="props.row.users_permissions_user" :to="{ name: 'contacts.edit', params: { id: props.row.users_permissions_user.id } }">
-        {{ props.row.owner.fullname }} / {{ props.row.users_permissions_user ? props.row.users_permissions_user.name : '' }}
-      </router-link>
-      <span v-else>
-        {{ props.row.owner.fullname }}
-      </span>
+        <router-link
+          v-if="props.row.users_permissions_user"
+          :to="{
+            name: 'contacts.edit',
+            params: { id: props.row.users_permissions_user.id }
+          }"
+        >
+          {{ props.row.owner.fullname }} /
+          {{
+            props.row.users_permissions_user
+              ? props.row.users_permissions_user.name
+              : ""
+          }}
+        </router-link>
+        <span v-else>
+          {{ props.row.owner.fullname }}
+        </span>
       </b-table-column>
       <b-table-column
         label="Mes"
@@ -178,15 +189,20 @@ export default {
         )
       ).data;
 
-      console.log("contacts", contacts);
+      // console.log("contacts", contacts);
 
-      this.orders = this.orders.map(o => {                
-        o.users_permissions_user = contacts.find(c => o.owner && c.users_permissions_user && c.users_permissions_user.id === o.owner.id);
+      this.orders = this.orders.map(o => {
+        o.users_permissions_user = contacts.find(
+          c =>
+            o.owner &&
+            c.users_permissions_user &&
+            c.users_permissions_user.id === o.owner.id
+        );
         o.price = o.price * (1 - (o.multidelivery_discount || 0) / 100);
         return o;
       });
 
-      console.log("this.orders", this.orders);
+      // console.log("this.orders", this.orders);
 
       this.projects = (
         await service({ requiresAuth: true, cached: true }).get(
@@ -208,7 +224,8 @@ export default {
           orders: this.ordersGrouped[k].map(o => o.id),
           count: this.ordersGrouped[k].length,
           amount: this.ordersGrouped[k].reduce((acc, o) => acc + o.price, 0),
-          users_permissions_user: this.ordersGrouped[k][0].users_permissions_user
+          users_permissions_user: this.ordersGrouped[k][0]
+            .users_permissions_user
         };
       });
 
@@ -217,6 +234,8 @@ export default {
     async invoiceOrders(orders) {
       this.importing = true;
 
+      let hasError = false;
+
       await service({ requiresAuth: true })
         .post("orders/invoice", {
           orders: orders,
@@ -224,18 +243,26 @@ export default {
         })
         .catch(error => {
           console.error(error);
+          hasError = true;
           if (error && error.data && error.data.message) {
             this.$buefy.snackbar.open({
               message: error.data.message,
               type: "is-danger"
             });
+          } else {
+            this.$buefy.snackbar.open({
+              message: "Error al facturar les comandes",
+              type: "is-danger"
+            });
           }
         });
 
+      if (!hasError) {
         this.$buefy.snackbar.open({
-              message: "Comandes facturades correctament",
-              type: "is-success"
-            });
+          message: "Comandes facturades correctament",
+          type: "is-success"
+        });
+      }
 
       this.importing = false;
 

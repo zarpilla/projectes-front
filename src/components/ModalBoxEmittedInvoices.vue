@@ -4,14 +4,14 @@
       <header class="modal-card-head">
         <p class="modal-card-title">Esborranys de factures</p>
       </header>
-      <form @submit.prevent="submit" v-if="invoice">
+      <form @submit.prevent="submit" v-if="invoice && contact">
         <section class="modal-card-body">
           <p class="mb-3 has-text-weight-bold" v-if="toReal === false">
             Atenció! Aquesta factura s'emetrà com a <span class="tag is-warning">ESBORRANY</span>, amb les dades següents, que podran ser modificades posteriorment fins
-            que sigui validada.
+            que sigui emesa definitivament.
           </p>
           <p class="mb-3 has-text-weight-bold" v-if="toReal === true">
-            Atenció! Aquesta factura passara a <span class="tag is-primary">VALIDADA</span> i s'emetrà amb les dades següents, que no
+            Atenció! Aquesta factura passara a <span class="tag is-primary">EMESA</span> i s'emetrà amb les dades següents, que no
             podran ser modificades posteriorment.
           </p>
 
@@ -23,16 +23,16 @@
             Data de la factura: {{ invoice.emitted | formatDMYDate }}
           </p>
           <p class="zhas-text-weight-bold">
-            Import base: {{ invoice.totalBase }} €
+            Import base: {{ invoice.totalBase.toFixed(2) }} €
           </p>
           <p class="zhas-text-weight-bold">
-            Import IVA: {{ invoice.totalVat }} €
+            Import IVA: {{ invoice.totalVat.toFixed(2) }} €
           </p>
           <p class="zhas-text-weight-bold">
-            Import IRPF: {{ invoice.totalIrpf }} €
+            Import IRPF: {{ invoice.totalIrpf.toFixed(2) }} €
           </p>
           <p class="zhas-text-weight-bold">
-            Import total amb IVA i IRPF: {{ invoice.total }} €
+            Import total amb IVA i IRPF: {{ invoice.total.toFixed(2) }} €
           </p>
           <p class="zhas-text-weight-bold" v-if="invoice.paybefore">
             Data de venciment: {{ invoice.paybefore | formatDMYDate }}
@@ -44,11 +44,11 @@
           </p>
 
           <p class="mt-3 mb-3 has-text-weight-bold">Dades del client:</p>
-          <p class="zhas-text-weight-bold">Nom: {{ invoice.contact.name }}</p>
-          <p class="zhas-text-weight-bold">NIF: {{ invoice.contact.nif }}</p>
+          <p class="zhas-text-weight-bold">Nom: {{ contact.name }}</p>
+          <p class="zhas-text-weight-bold">NIF: {{ contact.nif }}</p>
 
           <p class="mt-3 mb-3 has-text-weight-bold" v-if="toReal === true">
-            Si us plau, revisa bé les dades de la factura abans de validar-la.
+            Si us plau, revisa bé les dades de la factura abans d'emetre-la.
           </p>
         </section>
         <footer class="modal-card-foot">
@@ -91,7 +91,11 @@ export default {
     toReal: {
       type: Boolean,
       default: false
-    }
+    },
+    contact: {
+      type: Object,
+      default: () => ({})
+    },
   },
   data() {
     return {

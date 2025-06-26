@@ -1216,7 +1216,7 @@ export default {
         return false;
       }
 
-      console.log("records", records);
+      // console.log("records", records);
 
       const owner = this.permissions.includes("orders_admin")
         ? this.users.find(
@@ -1224,10 +1224,10 @@ export default {
           )
         : this.me;
 
-      console.log("owner", owner);
+      // console.log("owner", owner);
       const contacts = await this.getContactsForImport(owner.id);
 
-      console.log("contacts", contacts);
+      // console.log("contacts", contacts);
 
       for await (const record of records) {
         if (!record.route_name) {
