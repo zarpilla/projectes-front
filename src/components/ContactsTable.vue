@@ -116,7 +116,8 @@
     </b-table>
     <b-table
       :loading="isLoading"
-      :paginated="false"
+      :paginated="true"
+      :per-page="50"
       :striped="false"
       :data="contacts"
       v-else
@@ -390,7 +391,6 @@ export default {
                 ", "
               );
             }
-
           }
         }
 

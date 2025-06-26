@@ -245,15 +245,7 @@
 
     <div class="mb-3">
       <div class="is-flex">
-        <div class="mr-6">
-          <h2 class="pr-2">NÚM.</h2>
-          <div class="is-flex">
-            <b class="pt-2">
-              {{ checkedRows.length ? checkedRows.length + " de " : "" }}
-              {{ total }} (PÀG {{ this.page }}/{{ Math.ceil(total / perPage) }})
-            </b>
-          </div>
-        </div>
+        
         <div v-if="permissions.includes('orders_admin')">
           <h2>CANVIAR ESTAT</h2>
           <div class="is-flex">
@@ -283,6 +275,39 @@
             >
               Imprimeix PDF
             </button>
+          </div>
+        </div>
+        <div class="ml-6">
+          <h2 class="pr-2">Núm.</h2>
+          <div class="is-flex">
+            <b class="pt-2">
+              {{ checkedRows.length ? checkedRows.length + " de " : "" }}
+              {{ total }} (PÀG {{ this.page }}/{{ Math.ceil(total / perPage) }})
+            </b>
+          </div>
+        </div>
+        <div class="ml-6">
+          <h2 class="pr-2">Unitats</h2>
+          <div class="is-flex">
+            <b class="pt-2"> 
+              {{ Math.ceil(total / perPage) > 1 && sumUnits > 0 ? '+ de ' : '' }}{{ sumUnits }} 
+            </b>
+          </div>
+        </div>
+        <div class="ml-6">
+          <h2 class="pr-2">Kg</h2>
+          <div class="is-flex">
+            <b class="pt-2"> 
+              {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? '+ de ' : '' }}{{ sumKg }} 
+            </b>
+          </div>
+        </div>
+        <div class="ml-6">
+          <h2 class="pr-2">Preu</h2>
+          <div class="is-flex">
+            <b class="pt-2"> 
+              {{ Math.ceil(total / perPage) > 1 && sumPrice > 0 ? '+ de ' : '' }}{{ sumPrice.toFixed(2) }} €
+            </b>
           </div>
         </div>
         <!-- <div class="ml-6" v-if="permissions.includes('orders_admin') && 'delivered' == statusFilter">
@@ -445,7 +470,7 @@
       </b-table-column>
       <b-table-column
         label="Preu"
-        field="finalPrice"
+        field="price"
         sortable
         searchable
         v-slot="props"
@@ -526,6 +551,7 @@ import { assignRouteRate, assignRouteDate, calculateRoutePrice } from "@/service
 import moment from "moment";
 import _ from "lodash";
 import { filter } from "lodash";
+import { sum } from "lodash";
 
 export default {
   name: "Tresoreria",
@@ -898,7 +924,22 @@ export default {
             this.checkedRows.map(c => c.id).includes(o.id)
           )
         : this.theOrders;
-    }
+    },
+    sumUnits() {
+      return this.checkedRows.length
+        ? _.sumBy(this.checkedRows, "units") || 0
+        : _.sumBy(this.theOrders, "units") || 0;
+    },
+    sumKg() {
+      return this.checkedRows.length
+        ? _.sumBy(this.checkedRows, "kilograms") || 0
+        : _.sumBy(this.theOrders, "kilograms") || 0;
+    },
+    sumPrice() {
+      return this.checkedRows.length
+        ? _.sumBy(this.checkedRows, "finalPrice") || 0
+        : _.sumBy(this.theOrders, "finalPrice") || 0;
+    },
   },
   async created() {
     if (localStorage.getItem("OrdersTable.statusFilter")) {
