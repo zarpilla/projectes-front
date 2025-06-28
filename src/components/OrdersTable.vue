@@ -290,7 +290,7 @@
           <h2 class="pr-2">Unitats</h2>
           <div class="is-flex">
             <b class="pt-2"> 
-              {{ Math.ceil(total / perPage) > 1 && sumUnits > 0 ? '+ de ' : '' }}{{ sumUnits }} 
+              {{ Math.ceil(total / perPage) > 1 && sumUnits > 0 ? '+de ' : '' }}{{ sumUnits }} 
             </b>
           </div>
         </div>
@@ -298,7 +298,7 @@
           <h2 class="pr-2">Kg</h2>
           <div class="is-flex">
             <b class="pt-2"> 
-              {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? '+ de ' : '' }}{{ sumKg }} 
+              {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? '+de ' : '' }}{{ sumKg.toFixed(2) }} 
             </b>
           </div>
         </div>
@@ -306,7 +306,7 @@
           <h2 class="pr-2">Preu</h2>
           <div class="is-flex">
             <b class="pt-2"> 
-              {{ Math.ceil(total / perPage) > 1 && sumPrice > 0 ? '+ de ' : '' }}{{ sumPrice.toFixed(2) }} €
+              {{ Math.ceil(total / perPage) > 1 && sumPrice > 0 ? '+de ' : '' }}{{ sumPrice.toFixed(2) }} €
             </b>
           </div>
         </div>
