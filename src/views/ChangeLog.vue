@@ -2,11 +2,11 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <card-component title="2025.06.18">
+      <card-component title="2025.06.28">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            No es permet l'edició de les factures emeses un cop creades per tal d'adaptar-se a la normativa VERIFACTU.
+            Adaptació a normativa VERIFACTU.
           </div>
           <div class="text mt-2">
             Nova funcionalitat per crear factures rectificatives a partir de factures emeses.
