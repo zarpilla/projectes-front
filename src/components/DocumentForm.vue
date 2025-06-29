@@ -960,10 +960,17 @@
               class="mr-3"
               type="is-warning"
               @click="createRectificativeInvoice()"
-              v-if="form.id && entity === 'emitted-invoice'"
-              :disabled="form.state !== 'real'"
+              v-if="form.id && entity === 'emitted-invoice' && form.state === 'real'"              
             >
               Anul·lar i crear factura rectificativa
+            </b-button>
+            <b-button
+              class="mr-3"
+              type="is-warning"
+              @click="deleteInvoice()"
+              v-if="form.id && entity === 'emitted-invoice' && form.state === 'draft'"
+            >
+              Eliminar esborrany
             </b-button>
             <b-button
               class="mr-3"
@@ -1304,6 +1311,8 @@ export default {
       this.user = user.data;
 
       const me = await service({ requiresAuth: true }).get("me");
+
+      
       this.options = me.data;
       this.$store.commit("me", {
               me: me.data
@@ -1497,11 +1506,18 @@ export default {
 
         await this.calculateMinEmittedDate();
 
+        const verifactu = await service({ requiresAuth: true }).get("verifactu");
+
+        if (verifactu && verifactu.data && (verifactu.data.mode === "test" || verifactu.data.mode === "real") && this.type === "emitted-invoices") {
+          this.form.verifactu = true;
+        }
+
         this.isLoading = false;
       }
     },
     async calculateMinEmittedDate() {
       if (this.type === "emitted-invoices") {
+        console.log("calculateMinEmittedDate");
         const serial =
           this.form.serial && this.form.serial.id
             ? this.form.serial.id
@@ -1517,6 +1533,10 @@ export default {
             : dayjs()
                 .subtract(25, "year")
                 .toDate();
+
+        if (this.form.state === "draft") {
+          this.form.emitted = this.minEmittedDate;
+        }
       }
     },
     async getAuxiliarData() {
@@ -2158,7 +2178,8 @@ export default {
           state: "real",
           code: "ESBORRANY",
           serial: this.form.serial,
-          user_last: this.user.id
+          user_last: this.user.id,
+          emitted: this.form.emitted,
         }
       );
       this.form.state = theInvoice.data.state;
@@ -2278,6 +2299,32 @@ export default {
         };
       });
       this.form.comments = `Rectificativa de la factura ${previousForm.code}`;
+    },
+    deleteInvoice() {
+      this.$buefy.dialog.confirm({
+        message: "Vols esborrar l'esborrany de factura?",
+        onConfirm: async () => {
+          try {
+            await service({ requiresAuth: true }).delete(
+              `${this.type}/${this.form.id}`
+            );
+            this.$buefy.snackbar.open({
+              message: "Factura esborrada",
+              queue: false
+            });
+            this.$router.push({ name: "emitted.invoices.view" });
+          } catch (err) {
+            console.error(err);
+            this.$buefy.snackbar.open({
+              message: "Error a l'esborrar la factura",
+              queue: false
+            });
+          }
+        },
+        onCancel: () => {
+          return false;
+        }
+      });
     }
   }
 };
