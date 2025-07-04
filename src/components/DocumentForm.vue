@@ -1535,7 +1535,7 @@ export default {
                 .toDate();
 
         if (this.form.state === "draft") {
-          this.form.emitted = this.minEmittedDate;
+          // this.form.emitted = this.minEmittedDate;
         }
       }
     },
