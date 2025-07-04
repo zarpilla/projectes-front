@@ -1517,7 +1517,6 @@ export default {
     },
     async calculateMinEmittedDate() {
       if (this.type === "emitted-invoices") {
-        console.log("calculateMinEmittedDate");
         const serial =
           this.form.serial && this.form.serial.id
             ? this.form.serial.id
@@ -1535,7 +1534,9 @@ export default {
                 .toDate();
 
         if (this.form.state === "draft") {
-          // this.form.emitted = this.minEmittedDate;
+          if (moment(this.form.emitted).isBefore(this.minEmittedDate)) {
+            this.form.emitted = this.minEmittedDate;
+          }
         }
       }
     },
