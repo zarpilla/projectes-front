@@ -1661,16 +1661,6 @@ export default {
 
           this.isLoading = true;
 
-          // if (this.form.projects) {
-          //   const projects = JSON.parse(JSON.stringify(this.form.projects));
-
-          //   const mappedProjects = projects.map(p => {
-          //     const { activities, project_phases, project_original_phases, ...item } = p;
-          //     return item;
-          //   });
-          //   this.form.projects = JSON.parse(JSON.stringify(mappedProjects));
-          // }
-
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,
             this.form
@@ -1867,7 +1857,9 @@ export default {
           this.form.projects = this.form.projects || [];
         }
 
-        this.form.projects.push(project);
+        if (!this.form.projects.find(p => p.id === project.id)) {
+          this.form.projects.push(project);
+        }        
 
         if (this.type !== "quotes") {
           this.projectSearch = "";
@@ -2283,8 +2275,17 @@ export default {
       this.form.state = "draft";
       this.form.code = null;
       this.form.number = null;
-      this.form.emitted = new Date();
+      this.form.emitted = moment().toDate();
       this.form.serial = null;
+      this.series = this.series.filter(
+        s => s.rectificative === true
+      );
+      if (this.series.length === 0) {
+        this.$buefy.snackbar.open({
+          message: "No hi ha cap sèrie rectificativa. Si us plau, creeu una sèrie rectificativa des de l'àrea d'administració.",
+          queue: false
+        });
+      }
       this.form.sent = false;
       this.form.sent_date = null;
       this.form.paid = false;
@@ -2299,6 +2300,16 @@ export default {
         };
       });
       this.form.comments = `Rectificativa de la factura ${previousForm.code}`;
+
+      this.form.projects = []
+
+      this.editingDocuments = true;
+
+      setTimeout(() => {
+        this.form.projects = [...previousForm.projects];
+        console.log('this.form.projects', this.form.projects)
+      }, 300);
+      
     },
     deleteInvoice() {
       this.$buefy.dialog.confirm({
