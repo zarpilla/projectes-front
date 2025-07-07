@@ -132,6 +132,7 @@
                 trap-focus
                 editable
                 :min-date="minEmittedDate"
+                :max-date="maxEmittedDate"
               >
               </b-datepicker>
             </b-field>
@@ -1032,6 +1033,7 @@ import sortBy from "lodash/sortBy";
 import _ from "lodash";
 import FileUpload from "@/components/FileUpload";
 import { min } from "lodash";
+import { max } from "lodash";
 
 export default {
   name: "DocumentForm",
@@ -1089,6 +1091,9 @@ export default {
       exitAfterSave: false,
       minEmittedDate: dayjs()
         .subtract(25, "year")
+        .toDate(),
+      maxEmittedDate: dayjs()
+        .add(4, "day")
         .toDate(),
       canEditDraft: false,
       options: null,
@@ -2351,7 +2356,7 @@ export default {
       this.form.code = null;
       this.form.number = null;
       this.form.emitted = moment().toDate();
-      
+
       this.form.sent = false;
       this.form.sent_date = null;
       this.form.paid = false;
