@@ -2219,6 +2219,7 @@ export default {
         message: "Factura emesa correctament",
         queue: false
       });
+      scrollTo(0, 0);
     },
     sendSubmitEmittedInvoice() {
       this.submit(this.exitAfterSave);
@@ -2364,14 +2365,8 @@ export default {
       this.form.contact = this.contact;
       this.user_last = this.user.id;
 
-      // this.form.projects = []
-
-      this.editingDocuments = true;
-
-      // setTimeout(() => {
-      //   this.form.projects = [...previousForm.projects];
-      //   console.log('this.form.projects', this.form.projects)
-      // }, 300);
+      this.editingDocuments = false;
+      this.canEditDraft = true;
 
       setTimeout(() => {
         scrollTo(0, 0);
