@@ -721,12 +721,24 @@
             </div>
             <hr />
 
-            <b-field label="Notes" horizontal>
+            <b-field label="Notes" horizontal message="Visibles a la factura">
               <b-input
                 type="textarea"
                 v-model="form.comments"
-                placeholder="Notes sobre la factura (visible a la factura)"
+                placeholder="Notes"
                 :disabled="emittedInvoiceEditDisabled"
+                :maxlength="1000"
+              />
+            </b-field>
+            <b-field
+              label="Notes internes"
+              horizontal
+              message="No visibles a la factura"
+            >
+              <b-input
+                type="textarea"
+                v-model="form.comments_internal"
+                placeholder="Notes internes"
                 :maxlength="1000"
               />
             </b-field>
@@ -960,15 +972,31 @@
               class="mr-3"
               type="is-warning"
               @click="createRectificativeInvoice()"
-              v-if="form.id && entity === 'emitted-invoice' && form.state === 'real'"              
+              v-if="
+                form.id && entity === 'emitted-invoice' && form.state === 'real'
+              "
             >
               Anul·lar i crear factura rectificativa
             </b-button>
             <b-button
               class="mr-3"
+              type="is-primary"
+              @click="duplicateInvoice()"
+              v-if="
+                form.id && entity === 'emitted-invoice' && form.state === 'real'
+              "
+            >
+              Duplicar factura (com a ESBORRANY)
+            </b-button>
+            <b-button
+              class="mr-3"
               type="is-warning"
               @click="deleteInvoice()"
-              v-if="form.id && entity === 'emitted-invoice' && form.state === 'draft'"
+              v-if="
+                form.id &&
+                  entity === 'emitted-invoice' &&
+                  form.state === 'draft'
+              "
             >
               Eliminar esborrany
             </b-button>
@@ -1312,12 +1340,11 @@ export default {
 
       const me = await service({ requiresAuth: true }).get("me");
 
-      
       this.options = me.data;
       this.$store.commit("me", {
-              me: me.data
-            });
-      
+        me: me.data
+      });
+
       this.isLoading = true;
 
       await this.getAuxiliarData();
@@ -1386,17 +1413,17 @@ export default {
               if (this.form.user_last && this.form.user_last.id) {
                 this.form.user_last = this.form.user_last.id;
               } else {
-                this.form.user_last = null
+                this.form.user_last = null;
               }
               if (this.form.user_real && this.form.user_real.id) {
                 this.form.user_real = this.form.user_real.id;
               } else {
-                this.form.user_real = null
+                this.form.user_real = null;
               }
               if (this.form.user_draft && this.form.user_draft.id) {
                 this.form.user_draft = this.form.user_draft.id;
               } else {
-                this.form.user_draft = null
+                this.form.user_draft = null;
               }
 
               if (this.form.payment_method && this.form.payment_method.id) {
@@ -1506,9 +1533,16 @@ export default {
 
         await this.calculateMinEmittedDate();
 
-        const verifactu = await service({ requiresAuth: true }).get("verifactu");
+        const verifactu = await service({ requiresAuth: true }).get(
+          "verifactu"
+        );
 
-        if (verifactu && verifactu.data && (verifactu.data.mode === "test" || verifactu.data.mode === "real") && this.type === "emitted-invoices") {
+        if (
+          verifactu &&
+          verifactu.data &&
+          (verifactu.data.mode === "test" || verifactu.data.mode === "real") &&
+          this.type === "emitted-invoices"
+        ) {
           this.form.verifactu = true;
         }
 
@@ -1618,7 +1652,6 @@ export default {
     },
     input(v) {},
     async submit(exit) {
-
       console.log("submit", this.form);
 
       this.isLoading = true;
@@ -1860,7 +1893,7 @@ export default {
 
         if (!this.form.projects.find(p => p.id === project.id)) {
           this.form.projects.push(project);
-        }        
+        }
 
         if (this.type !== "quotes") {
           this.projectSearch = "";
@@ -2172,7 +2205,7 @@ export default {
           code: "ESBORRANY",
           serial: this.form.serial,
           user_last: this.user.id,
-          emitted: this.form.emitted,
+          emitted: this.form.emitted
         }
       );
       this.form.state = theInvoice.data.state;
@@ -2278,12 +2311,11 @@ export default {
       this.form.number = null;
       this.form.emitted = moment().toDate();
       this.form.serial = null;
-      this.series = this.series.filter(
-        s => s.rectificative === true
-      );
+      this.series = this.series.filter(s => s.rectificative === true);
       if (this.series.length === 0) {
         this.$buefy.snackbar.open({
-          message: "No hi ha cap sèrie rectificativa. Si us plau, creeu una sèrie rectificativa des de l'àrea d'administració.",
+          message:
+            "No hi ha cap sèrie rectificativa. Si us plau, creeu una sèrie rectificativa des de l'àrea d'administració.",
           queue: false
         });
       }
@@ -2302,15 +2334,43 @@ export default {
       });
       this.form.comments = `Rectificativa de la factura ${previousForm.code}`;
 
-      this.form.projects = []
+      this.form.projects = [];
 
       this.editingDocuments = true;
 
       setTimeout(() => {
         this.form.projects = [...previousForm.projects];
-        console.log('this.form.projects', this.form.projects)
+        console.log("this.form.projects", this.form.projects);
+        scrollTo(0, 0);
       }, 300);
+    },
+    duplicateInvoice() {
+      const previousForm = JSON.parse(JSON.stringify(this.form));
+      this.form.id = 0;
+      this.form.state = "draft";
+      this.form.code = null;
+      this.form.number = null;
+      this.form.emitted = moment().toDate();
       
+      this.form.sent = false;
+      this.form.sent_date = null;
+      this.form.paid = false;
+      this.form.paid_date = null;
+      this.form.contact = this.contact;
+      this.user_last = this.user.id;
+
+      // this.form.projects = []
+
+      this.editingDocuments = true;
+
+      // setTimeout(() => {
+      //   this.form.projects = [...previousForm.projects];
+      //   console.log('this.form.projects', this.form.projects)
+      // }, 300);
+
+      setTimeout(() => {
+        scrollTo(0, 0);
+      }, 300);
     },
     deleteInvoice() {
       this.$buefy.dialog.confirm({
