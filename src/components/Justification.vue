@@ -121,6 +121,7 @@
       >
         <div class="columns card-body">
           <div class="column is-2 has-text-weight-bold">Persona</div>
+          <div class="column is-2 has-text-weight-bold">Any</div>
           <div class="column is-2 has-text-weight-bold">Mes</div>
           <div class="column is-2 has-text-weight-bold has-text-right">
             Import Justificat
@@ -139,6 +140,7 @@
         >
           <div class="columns">
             <div class="column is-2">{{ row.username }}</div>
+            <div class="column is-2">{{ row.year }}</div>
             <div class="column is-2">{{ row.month }}</div>
             <div class="column is-2 has-text-right">
               <money-format
@@ -433,7 +435,7 @@ export default {
       default: null
     },
     year: {
-      type: Number,
+      type: [Number, String],
       default: null
     }
   },
@@ -447,7 +449,8 @@ export default {
       estimatedTotals: [],
       justification: {},
       justifications: [],
-      dedications: []
+      dedications: [],
+      theYear: 0
     };
   },
   computed: {
@@ -469,7 +472,7 @@ export default {
           p.activities
             .filter(
               a =>
-                this.year.toString() ===
+                !this.theYear || this.theYear.toString() ===
                 moment(a.date, "YYYY-MM-DD").format("YYYY")
             )
             .forEach(a => {
@@ -585,7 +588,7 @@ export default {
           };
         })
         .value();
-      return _.orderBy(activities, 'project');
+      return _.orderBy(activities, "project");
     },
     summaryAll() {
       return _.sumBy(this.summaryByProjectAll, "cost");
@@ -624,6 +627,7 @@ export default {
           return {
             username: rows[0].username,
             month: rows[0].month,
+            year: rows[0].year,
             cost: _.sumBy(rows, r => r.cost)
           };
         })
@@ -637,6 +641,7 @@ export default {
           return {
             username: rows[0].users_permissions_user.username,
             month: this.zeroPad(rows[0].month, 2),
+            year: rows[0].year,
             cost: _.sumBy(rows, r => r.quantity)
           };
         })
@@ -650,6 +655,7 @@ export default {
           return {
             username: rows[0].username,
             month: rows[0].month,
+            year: rows[0].year,
             cost: _.sumBy(rows, "cost"),
             payroll: this.payrolls.find(
               p =>
@@ -715,6 +721,11 @@ export default {
       this.getActivities();
     },
     year: function(newVal, oldVal) {
+      if (newVal === "Tots") {
+        this.theYear = 0;
+      } else {
+        this.theYear = parseInt(newVal);
+      }
       this.getActivities();
     }
   },
@@ -732,12 +743,24 @@ export default {
       this.months = {};
       this.payrolls = [];
 
-      const from = moment(this.year, "YYYY")
-        .startOf("year")
-        .format("YYYY-MM-DD");
-      const to = moment(this.year, "YYYY")
-        .endOf("year")
-        .format("YYYY-MM-DD");
+      console.log("Getting activities for year", this.theYear);
+
+      const from = this.theYear
+        ? moment(this.theYear, "YYYY")
+            .startOf("year")
+            .format("YYYY-MM-DD")
+        : moment()
+            .add(-20, "year")
+            .startOf("year")
+            .format("YYYY-MM-DD");
+      const to = this.theYear
+        ? moment(this.theYear, "YYYY")
+            .endOf("year")
+            .format("YYYY-MM-DD")
+        : moment()
+            .add(10, "year")
+            .endOf("year")
+            .format("YYYY-MM-DD");
 
       let query = `payrolls?_where[paid_date_gte]=${from}&[paid_date_lte]=${to}&_limit=-1`;
       let query2 = `projects?_where[grantable_eq]=true&_limit=-1`;
@@ -746,17 +769,21 @@ export default {
 
       this.projects = (await service({ requiresAuth: true }).get(query2)).data;
 
-      if (this.type === "Reals") {
+      if (this.type !== "Reals") {
         this.estimatedTotals = (
           await service({ requiresAuth: true }).get(
-            `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1&year=${this.year}`
+            this.theYear
+              ? `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1&year=${this.theYear}`
+              : `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1`
           )
         ).data;
       }
 
       const justifications = (
         await service({ requiresAuth: true }).get(
-          `justifications?year=${this.year}&_limit=-1`
+          this.theYear
+            ? `justifications?year=${this.theYear}&_limit=-1`
+            : `justifications?_limit=-1`
         )
       ).data;
 
@@ -764,7 +791,7 @@ export default {
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
       ).data;
 
-      justifications.forEach(just => {
+      for (const just of justifications) {
         const date = moment(`${just.year}-${just.month}-01`).format(
           "YYYY-MM-DD"
         );
@@ -784,7 +811,7 @@ export default {
             parseInt(p.month.month) === parseInt(just.month)
         );
         just.payroll = payroll;
-      });
+      }
       this.justifications = justifications;
 
       this.users = (
@@ -793,21 +820,7 @@ export default {
         )
       ).data;
     },
-    enumerateDaysBetweenDates() {
-      var dates = [];
-      var currDate = moment(this.year, "YYYY").startOf("year");
-      const endOfYear = moment(this.year, "YYYY").endOf("year");
-      // var lastDate =
-      //   endOfYear.diff(moment()) < 0
-      //     ? moment(this.year, "YYYY").endOf("year")
-      //     : moment().endOf("year");
-      // var lastDate = moment()
-      dates.push(currDate.clone().toDate());
-      while (currDate.add(1, "days").diff(endOfYear) < 0) {
-        dates.push(currDate.clone().toDate());
-      }
-      return dates;
-    },
+    
     zeroPad(num, places) {
       return String(num).padStart(places, "0");
     },

@@ -15,7 +15,7 @@
                   :key="index"
                   :value="year"
                 >
-                  {{ year.year }}
+                  {{ year.year  }}
                 </option>
               </b-select>
             </b-field>
@@ -24,16 +24,16 @@
               <b-select
                 v-model="filters.type"
                 required
-              >
-                <option
-                  value="Reals"
-                >
-                Reals
-                </option>
+              >                
                 <option
                   value="Previstes"
                 >
                 Previstes
+                </option>
+                <option
+                  value="Reals"
+                >
+                Reals
                 </option>
               </b-select>
             </b-field>
@@ -63,7 +63,7 @@ export default {
     return {
       isLoading: false,
       filters: {
-        type: 'Reals',
+        type: 'Previstes',
         year: null
       },
       projects: [],
@@ -82,8 +82,12 @@ export default {
     this.isLoading = true
 
     service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-      this.years = r.data
-      this.filters.year = this.years[0]
+      const years = r.data
+      // add All option
+      years.unshift({ id: -1, year: 'Tots' })
+      this.filters.year = years[0]
+
+      this.years = years
     })
 
     this.isLoading = false
