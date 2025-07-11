@@ -1017,23 +1017,24 @@
 </template>
 
 <script>
+// External libraries
 import dayjs from "dayjs";
+import moment from "moment";
+import _ from "lodash";
+import sumBy from "lodash/sumBy";
+import { mapState } from "vuex";
+
+// Project components
 import TitleBar from "@/components/TitleBar";
 import CardComponent from "@/components/CardComponent";
 import ModalBoxEmittedInvoices from "@/components/ModalBoxEmittedInvoices";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
-import service from "@/service/index";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import { EventBus } from "@/service/event-bus.js";
-import sumBy from "lodash/sumBy";
-import { mapState } from "vuex";
-import moment from "moment";
-import sortBy from "lodash/sortBy";
-import _ from "lodash";
 import FileUpload from "@/components/FileUpload";
-import { min } from "lodash";
-import { max } from "lodash";
+
+// Services
+import service from "@/service/index";
 
 export default {
   name: "DocumentForm",
@@ -1692,7 +1693,7 @@ export default {
           if (this.type !== "payrolls" && !assignedToProjectPhase) {
             this.$buefy.snackbar.open({
               message:
-                "Error. La factura no està assignada a cap línea del projecte",
+                "Error. La factura no està assignada a cap línia del projecte",
               queue: false
             });
             this.isLoading = false;
@@ -1769,7 +1770,7 @@ export default {
           if (!assignedToProjectPhase) {
             this.$buefy.snackbar.open({
               message:
-                "Error. La factura no està assignada a cap línea del projecte",
+                "Error. La factura no està assignada a cap línia del projecte",
               queue: false
             });
             this.isLoading = false;

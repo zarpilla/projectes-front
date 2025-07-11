@@ -1910,24 +1910,27 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
+// External libraries
+import sumBy from "lodash/sumBy";
+import sortBy from "lodash/sortBy";
+import { mapState } from "vuex";
+import moment from "moment";
+
+// Project components
 import TitleBar from "@/components/TitleBar";
 import CardComponent from "@/components/CardComponent";
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
-import service from "@/service/index";
 import ProjectGannt from "@/components/ProjectGannt.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import ProjectGrantableContacts from "@/components/ProjectGrantableContacts.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import { EventBus } from "@/service/event-bus.js";
-import sumBy from "lodash/sumBy";
-import { mapState } from "vuex";
-import moment from "moment";
-import sortBy from "lodash/sortBy";
 import Tasks from "@/components/Tasks";
 import FileUpload from "@/components/FileUpload";
-import { ca } from "date-fns/locale";
+
+// Services
+import service from "@/service/index";
+
 
 export default {
   name: "ProjectForm",
@@ -3017,9 +3020,6 @@ export default {
 
       this.updatingGanttTimer = setTimeout(() => {
         this.updatingGantt = false;
-        // EventBus.$emit("phases-updated", {
-        //   phases: this.form.project_original_phases
-        // });
       }, 800);
     },
     ganttItemDelete(item) {
