@@ -46,7 +46,7 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped>
+<style scoped>
 .money_format {
     text-align: right;
 }

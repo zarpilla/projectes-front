@@ -388,16 +388,16 @@ export default {
   }
 }
 </script>
-<style>
-.modal-card-dedication .field:not(:last-child){
-  margin-bottom: 1.5rem;
-}
-.modal-card-dedication .modal-card-body {
-  max-height: calc(100vh - 200px);
-}
-</style>
 <style scoped>
 .modal-card-body{
   min-height: 150px;
+}
+
+/* Global styles for modal card dedication */
+:global(.modal-card-dedication .field:not(:last-child)){
+  margin-bottom: 1.5rem;
+}
+:global(.modal-card-dedication .modal-card-body) {
+  max-height: calc(100vh - 200px);
 }
 </style>

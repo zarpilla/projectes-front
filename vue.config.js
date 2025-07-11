@@ -13,6 +13,12 @@ module.exports = {
       ]
     }
   },
+
+  css: {
+    extract: {
+      ignoreOrder: true
+    }
+  },
   pwa: {
     workboxOptions: {
         // skipWaiting: true
