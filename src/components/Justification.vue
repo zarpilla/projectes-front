@@ -697,7 +697,7 @@ export default {
             ...row,
             project_id: project.id,
             project: project.name,
-            payroll: payroll?.total,
+            payroll: payroll ? payroll.total : 0,
             username: row.users_permissions_user.username,
             cost: row.quantity
           };

@@ -1393,64 +1393,6 @@ export default {
           return false;
         }
 
-        // L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalitzaci
-        // if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
-        //   if (
-        //     parseFloat(record.contact_time_slot_1_ini) >=
-        //     parseFloat(record.contact_time_slot_1_end)
-        //   ) {
-        //     console.log(
-        //       "record",
-        //       record
-        //     );
-        //     this.csvErrors.push({
-        //       line: i,
-        //       error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
-        //     });
-        //     return false;
-        //   }
-        // }
-
-        // // Cal indicar l'hora de finalització del tram horari 1
-        // if (record.contact_time_slot_1_ini && !record.contact_time_slot_1_end) {
-        //   this.csvErrors.push({
-        //     line: i,
-        //     error: `Cal indicar l'hora de finalització del tram horari 1`
-        //   });
-        //   return false;
-        // }
-
-        // // El tram horari ha de ser més gran de 3 hores
-        // if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
-        //   if (
-        //     parseFloat(record.contact_time_slot_1_end) -
-        //     parseFloat(record.contact_time_slot_1_ini < 3)
-        //   ) {
-        //     // comprovar també per al tram 2
-        //     if (
-        //       record.contact_time_slot_2_ini &&
-        //       record.contact_time_slot_2_end
-        //     ) {
-        //       if (
-        //         parseFloat(record.contact_time_slot_2_end) -
-        //         parseFloat(record.contact_time_slot_2_ini < 3)
-        //       ) {
-        //         this.csvErrors.push({
-        //           line: i,
-        //           error: `El tram horari ha de ser mínim de 3 hores`
-        //         });
-        //         return false;
-        //       }
-        //     } else {
-        //       this.csvErrors.push({
-        //         line: i,
-        //         error: `El tram horari ha de ser mínim de 3 hores`
-        //       });
-        //       return false;
-        //     }
-        //   }
-        // }
-
         if (
           !this.routes.find(
             r =>
@@ -1494,7 +1436,7 @@ export default {
         const order = {
           id: 0,
           route_date: new Date().toISOString().split("T")[0],
-          estimated_delivery_date: record.estimated_delivery_date ?? null,
+          estimated_delivery_date: record.estimated_delivery_date,
           contact_address: contact.address,
           contact_name: contact.name,
           contact_trade_name: contact.trade_name,
@@ -1503,10 +1445,10 @@ export default {
           contact_nif: contact.nif,
           contact_city: contact.city,
           contact_legal_form: contact.legal_form ? contact.legal_form.id : null,
-          contact_time_slot_1_ini: contact.time_slot_1_ini ?? null,
-          contact_time_slot_1_end: contact.time_slot_1_end ?? null,
-          contact_time_slot_2_ini: contact.time_slot_2_ini ?? null,
-          contact_time_slot_2_end: contact.time_slot_2_end ?? null,
+          contact_time_slot_1_ini: contact.time_slot_1_ini,
+          contact_time_slot_1_end: contact.time_slot_1_end,
+          contact_time_slot_2_ini: contact.time_slot_2_ini,
+          contact_time_slot_2_end: contact.time_slot_2_end,
           contact: {
             id: contact.id,
             name: contact.name,

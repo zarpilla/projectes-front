@@ -436,7 +436,7 @@ export default {
             ", "
           )}`,
           num_orders: contact.num_orders || 0,
-          routes: this.cities.find(c => c.name === contact.city)?.routes
+          routes: this.cities.find(c => c.name === contact.city) ? this.cities.find(c => c.name === contact.city).routes : null,
         };
       });
 

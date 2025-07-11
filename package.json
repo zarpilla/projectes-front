@@ -4,9 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "build:gh-pages": "cross-env DEPLOY_ENV=GH_PAGES vue-cli-service build --modern",
-    "deploy:gh-pages": "cross-env NODE_DEBUG=gh-pages gh-pages -d dist -t",
+    "build": "npx --yes browserslist@latest --update-db && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "lintfix": "vue-cli-service lint --fix"
   },
@@ -53,6 +51,7 @@
     "@vue/cli-service": "^4.5.11",
     "@vue/eslint-config-standard": "^5.1.2",
     "babel-eslint": "^10.1.0",
+    "browserslist": "^4.25.1",
     "cross-env": "^7.0.3",
     "eslint": "^6.8.0",
     "eslint-plugin-import": "^2.22.1",

@@ -328,7 +328,7 @@ export default {
       return this.showQuantity && this.showVat ? 5 : (this.showQuantity ? 3 : 4)
     },
     paymentText () {
-      return this.quote?.payment_method?.invoice_text?.replace(/(?:\r\n|\r|\n)/g, '<br>')
+      return this.quote && this.quote.payment_method && this.quote.payment_method.invoice_text ? this.quote.payment_method.invoice_text.replace(/(?:\r\n|\r|\n)/g, '<br>') : ''
     }
   },
   created () {

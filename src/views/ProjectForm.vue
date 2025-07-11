@@ -2176,8 +2176,8 @@ export default {
         this.form.received_incomes.forEach(e => {
           documents.push({
             docType: "received_income",
-            docTypeDesc: e.document_type
-              ? this.documentTypes.find(t => t.id === e.document_type)?.name
+            docTypeDesc: e.document_type && this.documentTypes.find(t => t.id === e.document_type)
+              ? this.documentTypes.find(t => t.id === e.document_type).name
               : "",
             multiplier: 1,
             document: e
@@ -2188,8 +2188,8 @@ export default {
         this.form.received_expenses.forEach(e => {
           documents.push({
             docType: "received_expense",
-            docTypeDesc: e.document_type
-              ? this.documentTypes.find(t => t.id === e.document_type)?.name
+            docTypeDesc: e.document_type && this.documentTypes.find(t => t.id === e.document_type)
+              ? this.documentTypes.find(t => t.id === e.document_type).name
               : "",
             multiplier: -1,
             document: e
@@ -3207,7 +3207,7 @@ export default {
         });
       });
       this.form.project_phases = phases;
-      const previousDeletedPhases = this.form.project_phases_info?.deletedPhases || [];      
+      const previousDeletedPhases = this.form.project_phases_info ? this.form.project_phases_info.deletedPhases : [];      
       this.form.project_phases_info = { deletedPhases: previousDeletedPhases, deletedIncomes: [], deletedExpenses: [], deletedHours: [] };
       this.form._project_phases_updated = true;
 
