@@ -1238,15 +1238,16 @@ export default {
       return can;
     },
     emittedInvoiceEditDisabled() {
-      return (
-        (this.type === "emitted-invoices" &&
-          this.form.id &&
-          this.form.code !== "ESBORRANY") ||
-        (this.type === "emitted-invoices" &&
-          this.form.id &&
-          this.form.code === "ESBORRANY" &&
-          !this.canEditDraft)
-      );
+      return !this.canEditDraft
+      // (
+      //   (this.type === "emitted-invoices" &&
+      //     this.form.id &&
+      //     this.form.code !== "ESBORRANY") ||
+      //   (this.type === "emitted-invoices" &&
+      //     this.form.id &&
+      //     this.form.code === "ESBORRANY" &&
+      //     !this.canEditDraft)
+      // );
     },
     emittedInvoiceSerieDisabled() {
       return (
@@ -2368,7 +2369,9 @@ export default {
       this.editingDocuments = false;
       this.canEditDraft = true;
 
+
       setTimeout(() => {
+        this.canEditDraft = true;
         scrollTo(0, 0);
       }, 300);
     },
