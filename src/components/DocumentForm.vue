@@ -1239,16 +1239,16 @@ export default {
       return can;
     },
     emittedInvoiceEditDisabled() {
-      return !this.canEditDraft
-      // (
-      //   (this.type === "emitted-invoices" &&
-      //     this.form.id &&
-      //     this.form.code !== "ESBORRANY") ||
-      //   (this.type === "emitted-invoices" &&
-      //     this.form.id &&
-      //     this.form.code === "ESBORRANY" &&
-      //     !this.canEditDraft)
-      // );
+      // return this.type === "emitted-invoices" && !this.canEditDraft
+      return (
+        (this.type === "emitted-invoices" &&
+          this.form.id &&
+          this.form.code !== "ESBORRANY") ||
+        (this.type === "emitted-invoices" &&
+          this.form.id &&
+          this.form.code === "ESBORRANY" &&
+          !this.canEditDraft)
+      );
     },
     emittedInvoiceSerieDisabled() {
       return (
