@@ -27,7 +27,7 @@ const assignRouteRate = (form, routeRates, orders) => {
       const pendingOrders = orders.filter(
         o =>
           o.pickup.id === pickup &&
-          o.status === "pending" &&
+          (o.status === "pending" || o.status === "deposited") &&
           o.id !== form.id &&
           o.route.id === route &&
           o.owner.id === owner
@@ -170,7 +170,7 @@ const checkIfDateIsValidInroute = (route, date, routeFestives) => {
   return false;
 };
 
-const calculateRoutePrice = (routeRate, kilos) => {
+const calculateRoutePrice = (routeRate, kilos, pickupLines) => {
   let price = 0;
   if (routeRate && routeRate.ratev2 !== true) {
     if (kilos < 15) {
@@ -208,7 +208,11 @@ const calculateRoutePrice = (routeRate, kilos) => {
       // For more than 60kg, add additional60 per kilo above 60kg
       price = routeRate.from50to60 + (kilos - 60) * routeRate.additional60;
     }
+    if (pickupLines > 0 && routeRate.pickup_point) {
+      price += pickupLines * routeRate.pickup_point;
+    }
   }
+  
   return price;
 };
 

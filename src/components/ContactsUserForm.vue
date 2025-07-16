@@ -244,16 +244,36 @@
                 <b-input v-model="form.website" />
               </b-field>
               <b-field
-                v-if="
-                  (me.data && form.id && form.owner === me.data.id) ||
-                    permissions.includes('orders_admin')
-                "
-                label="% de descompte per punt de recollida"
+                v-if="permissions.includes('orders_admin')"
+                label="Punt de recollida"
+                horizontal
+              >
+                <b-switch v-model="form.pickup_point" :disabled="!permissions.includes('orders_admin')" />
+              </b-field>
+              <b-field
+                label="Usuària ESSTRAPIS"
+                horizontal
+                v-if="permissions.includes('orders_admin') && form.pickup_point"
+              >
+                <b-select v-model="form.users_permissions_user" placeholder="">
+                  <option
+                    v-for="(s, index) in users"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.username }}
+                  </option>
+                </b-select>
+              </b-field>
+              <b-field
+                v-if="permissions.includes('orders_admin')"
+                label="% de descompte per recollida en finca"
                 horizontal
               >
                 <b-input
                   v-model="form.pickup_discount"
                   type="numeric"
+                  :disabled="!permissions.includes('orders_admin')"
                   @input="fixDecimals('pickup_discount', form.pickup_discount)"
                 />
               </b-field>
@@ -268,7 +288,7 @@
                     >Guardar</b-button
                   >
                   <b-button
-                    type="is-primary"
+                    type="is-primary mr-2"
                     :loading="isLoading"
                     @click="submitExit"
                     >Guardar i sortir</b-button
@@ -293,7 +313,7 @@
                     >Cancel·lar</b-button
                   >
                   <b-button
-                    type="is-primary"
+                    type="mr-2 is-primary"
                     :loading="isLoading"
                     @click="submitAndEmitConfirm"
                     >Guardar</b-button

@@ -3,7 +3,7 @@
   "version": "1.5.1",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service serve",
     "build": "npx --yes browserslist@latest --update-db && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "lintfix": "vue-cli-service lint --fix"

@@ -1,44 +1,47 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import Login from '../views/Login.vue'
+import Vue from "vue";
+import VueRouter from "vue-router";
+import Home from "../views/Home.vue";
+import Login from "../views/Login.vue";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes = [
   {
     // Document title tag
     // We combine it with defaultDocumentTitle set in `src/main.js` on router.afterEach hook
     meta: {
-      title: 'Accedeix'
+      title: "Accedeix"
     },
-    path: '/',
-    name: 'login',
+    path: "/",
+    name: "login",
     component: Login
   },
   {
     meta: {
-      title: 'Recuperar clau de pas'
+      title: "Recuperar clau de pas"
     },
-    path: '/forgotten-password',
-    name: 'forgotten.password',
-    component: () => import(/* webpackChunkName: "login" */ '../views/ForgottenPassword.vue'),
+    path: "/forgotten-password",
+    name: "forgotten.password",
+    component: () =>
+      import(/* webpackChunkName: "login" */ "../views/ForgottenPassword.vue")
   },
   {
     meta: {
-      title: 'Canviar clau de pas'
+      title: "Canviar clau de pas"
     },
-    path: '/reset-password',
-    name: 'reset.password',
-    component: () => import(/* webpackChunkName: "login" */ '../views/ResetPassword.vue'),
+    path: "/reset-password",
+    name: "reset.password",
+    component: () =>
+      import(/* webpackChunkName: "login" */ "../views/ResetPassword.vue")
   },
   {
     meta: {
-      title: 'Projectes'
+      title: "Projectes"
     },
-    path: '/projectes',
-    name: 'projectes.view',
-    component: () => import(/* webpackChunkName: "stats" */ '../views/Home.vue'),
+    path: "/projectes",
+    name: "projectes.view",
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/Home.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -46,135 +49,149 @@ const routes = [
   },
   {
     meta: {
-      title: 'Panell Projectes'
+      title: "Panell Projectes"
     },
-    path: '/stats-projectes',
-    name: 'stats.projectes',
+    path: "/stats-projectes",
+    name: "stats.projectes",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsProjectes.vue'),
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/StatsProjectes.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Panell Dedicacio'
+      title: "Panell Dedicacio"
     },
-    path: '/stats-dedicacio',
-    name: 'stats.dedicacio',
+    path: "/stats-dedicacio",
+    name: "stats.dedicacio",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsDedicacio.vue'),
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/StatsDedicacio.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Panell Detall econòmic'
+      title: "Panell Detall econòmic"
     },
-    path: '/stats-economic-detail',
-    name: 'stats.economic-detail',
+    path: "/stats-economic-detail",
+    name: "stats.economic-detail",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsEconomicDetail.vue'),
+    component: () =>
+      import(
+        /* webpackChunkName: "stats" */ "../views/StatsEconomicDetail.vue"
+      ),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Panell Preu Hora'
+      title: "Panell Preu Hora"
     },
-    path: '/price-hour',
-    name: 'stats.price-hour',    
-    component: () => import(/* webpackChunkName: "stats" */ '../views/PricePerHour.vue'),
+    path: "/price-hour",
+    name: "stats.price-hour",
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/PricePerHour.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Panell Despeses'
+      title: "Panell Despeses"
     },
-    path: '/stats-despeses',
-    name: 'stats.despeses',
+    path: "/stats-despeses",
+    name: "stats.despeses",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsExpenses.vue'),
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/StatsExpenses.vue"),
     meta: {
       requiresAuth: true
     }
-  },  
+  },
   {
     meta: {
-      title: 'Panell Previsió Dedicacio'
+      title: "Panell Previsió Dedicacio"
     },
-    path: '/stats-previsio-hores',
-    name: 'stats.previsiohores',
+    path: "/stats-previsio-hores",
+    name: "stats.previsiohores",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsDedicacioEst.vue'),
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/StatsDedicacioEst.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Panell Previsió Dedicacio'
+      title: "Panell Previsió Dedicacio"
     },
-    path: '/stats-previsio-gantt',
-    name: 'stats.previsiogantt',
+    path: "/stats-previsio-gantt",
+    name: "stats.previsiogantt",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsDedicacioGantt.vue'),
+    component: () =>
+      import(
+        /* webpackChunkName: "stats" */ "../views/StatsDedicacioGantt.vue"
+      ),
     meta: {
       requiresAuth: true
     }
   },
-  
+
   {
     meta: {
-      title: 'Panell Estratègies'
+      title: "Panell Estratègies"
     },
-    path: '/stats-estrategies',
-    name: 'stats.estrategies',
+    path: "/stats-estrategies",
+    name: "stats.estrategies",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsEstrategies.vue'),
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/StatsEstrategies.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Panell Intercooperació'
+      title: "Panell Intercooperació"
     },
-    path: '/stats-intercoop',
-    name: 'stats.intercoop',
+    path: "/stats-intercoop",
+    name: "stats.intercoop",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "stats" */ '../views/StatsIntercoop.vue'),
+    component: () =>
+      import(/* webpackChunkName: "stats" */ "../views/StatsIntercoop.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Edita Projecte'
+      title: "Edita Projecte"
     },
-    path: '/project/:id',
-    name: 'project.edit',
-    component: () => import(/* webpackChunkName: "project-form" */ '../views/ProjectForm.vue'),
+    path: "/project/:id",
+    name: "project.edit",
+    component: () =>
+      import(/* webpackChunkName: "project-form" */ "../views/ProjectForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -182,11 +199,14 @@ const routes = [
   },
   {
     meta: {
-      title: 'Edita document'
+      title: "Edita document"
     },
-    path: '/document/:id/:type',
-    name: 'document.edit',
-    component: () => import(/* webpackChunkName: "document-form" */ '../views/EmittedInvoiceForm.vue'),
+    path: "/document/:id/:type",
+    name: "document.edit",
+    component: () =>
+      import(
+        /* webpackChunkName: "document-form" */ "../views/EmittedInvoiceForm.vue"
+      ),
     props: true,
     meta: {
       requiresAuth: true
@@ -194,58 +214,63 @@ const routes = [
   },
   {
     meta: {
-      title: 'Tables'
+      title: "Tables"
     },
-    path: '/tables',
-    name: 'tables',
+    path: "/tables",
+    name: "tables",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "tables" */ '../views/Tables.vue'),
+    component: () =>
+      import(/* webpackChunkName: "tables" */ "../views/Tables.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Forms'
+      title: "Forms"
     },
-    path: '/forms',
-    name: 'forms',
-    component: () => import(/* webpackChunkName: "forms" */ '../views/Forms.vue'),
+    path: "/forms",
+    name: "forms",
+    component: () =>
+      import(/* webpackChunkName: "forms" */ "../views/Forms.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Profile'
+      title: "Profile"
     },
-    path: '/profile',
-    name: 'profile',
-    component: () => import(/* webpackChunkName: "profile" */ '../views/Profile.vue'),
+    path: "/profile",
+    name: "profile",
+    component: () =>
+      import(/* webpackChunkName: "profile" */ "../views/Profile.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'New Client'
+      title: "New Client"
     },
-    path: '/client/new',
-    name: 'client.new',
-    component: () => import(/* webpackChunkName: "client-form" */ '../views/ClientForm.vue'),
+    path: "/client/new",
+    name: "client.new",
+    component: () =>
+      import(/* webpackChunkName: "client-form" */ "../views/ClientForm.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Edit Client'
+      title: "Edit Client"
     },
-    path: '/client/:id',
-    name: 'client.edit',
-    component: () => import(/* webpackChunkName: "client-form" */ '../views/ClientForm.vue'),
+    path: "/client/:id",
+    name: "client.edit",
+    component: () =>
+      import(/* webpackChunkName: "client-form" */ "../views/ClientForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -253,11 +278,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Dedicació'
+      title: "Dedicació"
     },
-    path: '/dedicacio',
-    name: 'dedicacio',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Dedicacio.vue'),
+    path: "/dedicacio",
+    name: "dedicacio",
+    component: () =>
+      import(/* webpackChunkName: "dedicacio" */ "../views/Dedicacio.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -265,11 +291,14 @@ const routes = [
   },
   {
     meta: {
-      title: 'Gràfiques Dedicació'
+      title: "Gràfiques Dedicació"
     },
-    path: '/dedicacio-charts',
-    name: 'dedicacio-charts',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioCharts.vue'),
+    path: "/dedicacio-charts",
+    name: "dedicacio-charts",
+    component: () =>
+      import(
+        /* webpackChunkName: "dedicacio" */ "../views/DedicacioCharts.vue"
+      ),
     props: true,
     meta: {
       requiresAuth: true
@@ -277,88 +306,102 @@ const routes = [
   },
   {
     meta: {
-      title: 'Saldo Projectes'
+      title: "Saldo Projectes"
     },
-    path: '/dedicacio-saldo',
-    name: 'dedicacio-saldo',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioSaldo.vue'),
+    path: "/dedicacio-saldo",
+    name: "dedicacio-saldo",
+    component: () =>
+      import(/* webpackChunkName: "dedicacio" */ "../views/DedicacioSaldo.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Jornada diària'
+      title: "Jornada diària"
     },
-    path: '/registre-jornades',
-    name: 'jornada',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Jornada.vue'),
+    path: "/registre-jornades",
+    name: "jornada",
+    component: () =>
+      import(/* webpackChunkName: "dedicacio" */ "../views/Jornada.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Resum Hores'
+      title: "Resum Hores"
     },
-    path: '/dedicacio-summary',
-    name: 'dedicacio-summary',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioSummary.vue'),
+    path: "/dedicacio-summary",
+    name: "dedicacio-summary",
+    component: () =>
+      import(
+        /* webpackChunkName: "dedicacio" */ "../views/DedicacioSummary.vue"
+      ),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Jornada'
+      title: "Jornada"
     },
-    path: '/working-day',
-    name: 'dedicacio-working-day',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioWorkingDay.vue'),
+    path: "/working-day",
+    name: "dedicacio-working-day",
+    component: () =>
+      import(
+        /* webpackChunkName: "dedicacio" */ "../views/DedicacioWorkingDay.vue"
+      ),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Bestretes'
+      title: "Bestretes"
     },
-    path: '/salary',
-    name: 'dedicacio-salary',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/DedicacioSalary.vue'),
+    path: "/salary",
+    name: "dedicacio-salary",
+    component: () =>
+      import(
+        /* webpackChunkName: "dedicacio" */ "../views/DedicacioSalary.vue"
+      ),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Justificacions'
+      title: "Justificacions"
     },
-    path: '/justifications',
-    name: 'justifications',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Justifications.vue'),
+    path: "/justifications",
+    name: "justifications",
+    component: () =>
+      import(/* webpackChunkName: "dedicacio" */ "../views/Justifications.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Subvencions'
+      title: "Subvencions"
     },
-    path: '/grants',
-    name: 'subvencions',
-    component: () => import(/* webpackChunkName: "dedicacio" */ '../views/Grants.vue'),
+    path: "/grants",
+    name: "subvencions",
+    component: () =>
+      import(/* webpackChunkName: "dedicacio" */ "../views/Grants.vue"),
     meta: {
       requiresAuth: true
     }
   },
   {
     meta: {
-      title: 'Pressupost'
+      title: "Pressupost"
     },
-    path: '/quote/:id',
-    name: 'quote.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/Quote.vue'),
+    path: "/quote/:id",
+    name: "quote.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Quote.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -366,11 +409,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Factura'
+      title: "Factura"
     },
-    path: '/invoice/:id/:type',
-    name: 'invoice.old.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/Invoice.vue'),
+    path: "/invoice/:id/:type",
+    name: "invoice.old.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Invoice.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -378,11 +422,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Document'
+      title: "Document"
     },
-    path: '/pdf/:id/:type',
-    name: 'invoice.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/Invoice.vue'),
+    path: "/pdf/:id/:type",
+    name: "invoice.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Invoice.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -390,11 +435,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Tresoreria'
+      title: "Tresoreria"
     },
-    path: '/tresoreria',
-    name: 'tresoreria.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/Tresoreria.vue'),
+    path: "/tresoreria",
+    name: "tresoreria.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Tresoreria.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -402,11 +448,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Factures emeses'
+      title: "Factures emeses"
     },
-    path: '/emitted-invoices',
-    name: 'emitted.invoices.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/EmittedInvoices.vue'),
+    path: "/emitted-invoices",
+    name: "emitted.invoices.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/EmittedInvoices.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -414,11 +461,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Factures rebudes'
+      title: "Factures rebudes"
     },
-    path: '/received-invoices',
-    name: 'received.invoices.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/ReceivedInvoices.vue'),
+    path: "/received-invoices",
+    name: "received.invoices.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/ReceivedInvoices.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -426,35 +474,38 @@ const routes = [
   },
   {
     meta: {
-      title: 'Pressupostos'
+      title: "Pressupostos"
     },
-    path: '/quotes',
-    name: 'quotes.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/Quotes.vue'),
+    path: "/quotes",
+    name: "quotes.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Quotes.vue"),
     props: true,
     meta: {
       requiresAuth: true
     }
-  },  
+  },
   {
     meta: {
-      title: 'Previsió'
+      title: "Previsió"
     },
-    path: '/forecast',
-    name: 'forecast.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/Forecast.vue'),
+    path: "/forecast",
+    name: "forecast.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Forecast.vue"),
     props: true,
     meta: {
       requiresAuth: true
     }
-  },  
+  },
   {
     meta: {
-      title: 'Contactes'
+      title: "Contactes"
     },
-    path: '/contacts',
-    name: 'contacts.view',
-    component: () => import(/* webpackChunkName: "contact" */ '../views/Contacts.vue'),
+    path: "/contacts",
+    name: "contacts.view",
+    component: () =>
+      import(/* webpackChunkName: "contact" */ "../views/Contacts.vue"),
     props: true,
     meta: {
       requiresAuth: true,
@@ -463,11 +514,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Clientes'
+      title: "Clientes"
     },
-    path: '/user-contacts',
-    name: 'user-contacts.view',
-    component: () => import(/* webpackChunkName: "contact" */ '../views/ContactsUser.vue'),
+    path: "/user-contacts",
+    name: "user-contacts.view",
+    component: () =>
+      import(/* webpackChunkName: "contact" */ "../views/ContactsUser.vue"),
     props: true,
     meta: {
       requiresAuth: true,
@@ -476,119 +528,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Comandes'
+      title: "Comandes"
     },
-    path: '/orders',
-    name: 'orders.view',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/Orders.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Comandes per facturar'
-    },
-    path: '/orders-invoice',
-    name: 'orders-invoice.view',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/OrdersInvoice.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Comanda'
-    },
-    path: '/order/:id',
-    name: 'orders.edit',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/OrderForm.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Poblacions i rutes'
-    },
-    path: '/city-route',
-    name: 'cityroute.edit',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/CityRoute.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Poblacions i punts d\'entrega'
-    },
-    path: '/city-route-delivery',
-    name: 'cityroutedelivery.edit',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/CityRouteDelivery.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Rutes i dies'
-    },
-    path: '/route-days',
-    name: 'routedays.edit',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/RouteDays.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Comandes TD'
-    },
-    path: '/orders-stats',
-    name: 'orders.stats',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/StatsOrders.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Factures Proveïdora'
-    },
-    path: '/provider-invoices',
-    name: 'provider.invoices',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/EmittedInvoicesProvider.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Contacta amb nosaltres'
-    },
-    path: '/contact-us',
-    name: 'contact-us',
-    component: () => import(/* webpackChunkName: "orders" */ '../views/ContactUs.vue'),
-    props: true,
-    meta: {
-      requiresAuth: true,
-    }
-  },
-  {
-    meta: {
-      title: 'Contacte'
-    },
-    path: '/contact/:id',
-    name: 'contacts.edit',
-    component: () => import(/* webpackChunkName: "contact" */ '../views/ContactForm.vue'),
+    path: "/orders",
+    name: "orders.view",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/Orders.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -596,11 +541,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Punt d\'entrega'
+      title: "Comandes per facturar"
     },
-    path: '/contact-user/:id',
-    name: 'contactsuser.edit',
-    component: () => import(/* webpackChunkName: "contact" */ '../views/ContactUserForm.vue'),
+    path: "/orders-invoice",
+    name: "orders-invoice.view",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/OrdersInvoice.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -608,11 +554,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Documentació'
+      title: "Comanda"
     },
-    path: '/documentacio',
-    name: 'documentation.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/Documentation.vue'),
+    path: "/order/:id",
+    name: "orders.edit",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/OrderForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -620,11 +567,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Tasques'
+      title: "Poblacions i rutes"
     },
-    path: '/tasks',
-    name: 'tasks.view',
-    component: () => import(/* webpackChunkName: "quote" */ '../views/TasksView.vue'),
+    path: "/city-route",
+    name: "cityroute.edit",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/CityRoute.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -632,11 +580,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Recàlcul'
+      title: "Poblacions i punts d'entrega"
     },
-    path: '/recalculate',
-    name: 'projects.recalculate',
-    component: () => import(/* webpackChunkName: "project" */ '../views/Recalculate.vue'),
+    path: "/city-route-delivery",
+    name: "cityroutedelivery.edit",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/CityRouteDelivery.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -644,11 +593,12 @@ const routes = [
   },
   {
     meta: {
-      title: 'Changelog'
+      title: "Rutes i dies"
     },
-    path: '/changelog',
-    name: 'changelog',
-    component: () => import(/* webpackChunkName: "changelog" */ '../views/ChangeLog.vue'),
+    path: "/route-days",
+    name: "routedays.edit",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/RouteDays.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -656,11 +606,26 @@ const routes = [
   },
   {
     meta: {
-      title: 'Verifactu'
+      title: "Punts de recollida"
     },
-    path: '/verifactu',
-    name: 'VerifactuDeclaration',
-    component: () => import(/* webpackChunkName: "changelog" */ '../views/VerifactuDeclaration.vue'),
+    path: "/pickup-points",
+    name: "pickup-points.edit",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/PickupPointsOrders.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    meta: {
+      title: "Comandes TD"
+    },
+    path: "/orders-stats",
+    name: "orders.stats",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/StatsOrders.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -668,58 +633,180 @@ const routes = [
   },
   {
     meta: {
-      title: 'Usuàries'
+      title: "Factures Proveïdora"
     },
-    path: '/partners',
-    name: 'partners.list',
-    component: () => import(/* webpackChunkName: "users" */ '../views/Partners.vue'),
+    path: "/provider-invoices",
+    name: "provider.invoices",
+    component: () =>
+      import(
+        /* webpackChunkName: "orders" */ "../views/EmittedInvoicesProvider.vue"
+      ),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Contacta amb nosaltres"
+    },
+    path: "/contact-us",
+    name: "contact-us",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/ContactUs.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Contacte"
+    },
+    path: "/contact/:id",
+    name: "contacts.edit",
+    component: () =>
+      import(/* webpackChunkName: "contact" */ "../views/ContactForm.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Punt d'entrega"
+    },
+    path: "/contact-user/:id",
+    name: "contactsuser.edit",
+    component: () =>
+      import(/* webpackChunkName: "contact" */ "../views/ContactUserForm.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Documentació"
+    },
+    path: "/documentacio",
+    name: "documentation.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Documentation.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Tasques"
+    },
+    path: "/tasks",
+    name: "tasks.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/TasksView.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Recàlcul"
+    },
+    path: "/recalculate",
+    name: "projects.recalculate",
+    component: () =>
+      import(/* webpackChunkName: "project" */ "../views/Recalculate.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Changelog"
+    },
+    path: "/changelog",
+    name: "changelog",
+    component: () =>
+      import(/* webpackChunkName: "changelog" */ "../views/ChangeLog.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Verifactu"
+    },
+    path: "/verifactu",
+    name: "VerifactuDeclaration",
+    component: () =>
+      import(
+        /* webpackChunkName: "changelog" */ "../views/VerifactuDeclaration.vue"
+      ),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
+      title: "Usuàries"
+    },
+    path: "/partners",
+    name: "partners.list",
+    component: () =>
+      import(/* webpackChunkName: "users" */ "../views/Partners.vue"),
     props: true,
     meta: {
       requiresAuth: true
     }
   }
-]
+];
 
 const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
-  scrollBehavior (to, from, savedPosition) {
+  scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
-      return savedPosition
+      return savedPosition;
     } else {
-      return { x: 0, y: 0 }
+      return { x: 0, y: 0 };
     }
-  },
-})
+  }
+});
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (localStorage.getItem('jwt') == null) {
+    if (localStorage.getItem("jwt") == null) {
       next({
-        path: '/',
+        path: "/",
         params: { nextUrl: to.fullPath }
-      })
+      });
     } else {
-      let user = JSON.parse(localStorage.getItem('user'))
+      let user = JSON.parse(localStorage.getItem("user"));
       if (to.matched.some(record => record.meta.is_admin)) {
         if (user.is_admin == 1) {
-          next()
+          next();
         } else {
-          next({ name: 'projectes.view' })
+          next({ name: "projectes.view" });
         }
       } else {
-        next()
+        next();
       }
     }
   } else if (to.matched.some(record => record.meta.guest)) {
-    if (localStorage.getItem('jwt') == null) {
-      next()
+    if (localStorage.getItem("jwt") == null) {
+      next();
     } else {
-      next({ name: 'projectes.view' })
+      next({ name: "projectes.view" });
     }
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;

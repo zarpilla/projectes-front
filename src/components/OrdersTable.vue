@@ -8,15 +8,29 @@
 
     <div class="is-flex">
       <b-button
-        class="view-button is-primary mb-3"
+        class="view-button is-primary mb-3 ml-0 mr-3"
         @click="navNew"
         icon-left="plus"
       >
         Nova Comanda
       </b-button>
+      <b-button
+        class="view-button is-primary mb-3"
+        @click="navNewPickup"
+        icon-left="plus"
+      >
+        Nova Comanda Punt de Recollida
+      </b-button>
+      <b-button
+        class="zview-button is-warning mb-3 ml-auto"
+        @click="showExport = !showExport"
+        icon-left="plus"
+      >
+        Importar comandes amb CSV
+      </b-button>
     </div>
 
-    <div class="is-flex">
+    <div class="is-flex" v-if="showExport">
       <file-upload
         class="mt-5 w-50"
         :multiple="false"
@@ -43,7 +57,7 @@
       </file-upload>
     </div>
 
-    <div class="is-flex">
+    <div class="is-flex mt-4">
       <span v-if="permissions.includes('orders_admin')">
         Exportar per a planificador:
       </span>
@@ -142,7 +156,7 @@
     <h4>ESTATS</h4>
     <div class="filters">
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === '',
           'is-warning': statusFilter !== ''
@@ -160,6 +174,16 @@
         @click="setStatusFilter('pending')"
       >
         PENDENTS
+      </b-button>
+      <b-button
+        class="view-button mb-3 mr-3"
+        :class="{
+          'is-primary': statusFilter === 'deposited',
+          'is-warning': statusFilter !== 'deposited'
+        }"
+        @click="setStatusFilter('deposited')"
+      >
+        DEPOSITADES
       </b-button>
       <b-button
         class="view-button mb-3 mr-3"
@@ -213,10 +237,10 @@
         ANUL·LADES
       </b-button>
     </div>
-    <h4>RUTES</h4>
-    <div class="filters">
+    <h4 v-if="permissions.includes('orders_admin')">RUTES</h4>
+    <div class="filters" v-if="permissions.includes('orders_admin')">
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': routeFilter === 0,
           'is-warning': routeFilter !== 0
@@ -228,7 +252,7 @@
       <b-button
         v-for="route in routes"
         :key="route.id"
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': routeFilter === route.id,
           'is-warning': routeFilter !== route.id
@@ -245,12 +269,12 @@
 
     <div class="mb-3">
       <div class="is-flex">
-        
         <div v-if="permissions.includes('orders_admin')">
           <h2>CANVIAR ESTAT</h2>
           <div class="is-flex">
             <b-select v-model="newState" placeholder="">
               <option value="pending">PENDENT</option>
+              <option value="deposited">DEPOSITADA</option>
               <option value="processed">PROCESSADA</option>
               <option value="lastmile">ÚLTIMA MILLA</option>
               <option value="delivered">LLIURADA</option>
@@ -258,6 +282,22 @@
             </b-select>
             <button
               class="button is-primary ml-3"
+              :disabled="!newState || !checkedRows.length"
+              @click="setBulkState"
+            >
+              CANVIAR ESTAT
+            </button>
+          </div>
+        </div>
+        <div v-else>
+          <h2>CANVIAR ESTAT</h2>
+          <div class="is-flex">
+            <b-select v-model="newState" placeholder="">
+              <option value="pending">PENDENT</option>
+              <option value="deposited">DEPOSITADA</option>
+            </b-select>
+            <button
+              class="button is-primary ml-3 mr-3"
               :disabled="!newState || !checkedRows.length"
               @click="setBulkState"
             >
@@ -289,39 +329,37 @@
         <div class="ml-6">
           <h2 class="pr-2">Unitats</h2>
           <div class="is-flex">
-            <b class="pt-2"> 
-              {{ Math.ceil(total / perPage) > 1 && sumUnits > 0 ? '+de ' : '' }}{{ sumUnits }} 
+            <b class="pt-2">
+              {{ Math.ceil(total / perPage) > 1 && sumUnits > 0 ? "+de " : ""
+              }}{{ sumUnits }}
             </b>
           </div>
         </div>
         <div class="ml-6">
           <h2 class="pr-2">Kg</h2>
           <div class="is-flex">
-            <b class="pt-2"> 
-              {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? '+de ' : '' }}{{ sumKg.toFixed(2) }} 
+            <b class="pt-2">
+              {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? "+de " : ""
+              }}{{ sumKg.toFixed(2) }}
             </b>
           </div>
         </div>
         <div class="ml-6">
           <h2 class="pr-2">Preu</h2>
           <div class="is-flex">
-            <b class="pt-2"> 
-              {{ Math.ceil(total / perPage) > 1 && sumPrice > 0 ? '+de ' : '' }}{{ sumPrice.toFixed(2) }} €
+            <b class="pt-2">
+              {{ Math.ceil(total / perPage) > 1 && sumPrice > 0 ? "+de " : ""
+              }}{{ sumPrice.toFixed(2) }} €
             </b>
           </div>
         </div>
-        <!-- <div class="ml-6" v-if="permissions.includes('orders_admin') && 'delivered' == statusFilter">
-          <h2 class="pr-2">FACTURAR</h2>
-          <div class="is-flex">
-            <button
-              class="button is-primary zml-3"
-              :disabled="!checkedRows.length"
-              @click="invoiceOrders"
-            >
-              FACTURAR
-            </button>
-          </div>
-        </div> -->
+        <div class="ml-auto mt-2">
+          <b-select v-model="perPage" @input="setStatusFilter(statusFilter)" v-if="total > 100">
+            <option value="100">100 per pàg.</option>
+            <option value="200">200 per pàg.</option>
+            <option value="1000">1000 per pàg.</option>
+          </b-select>
+        </div>
       </div>
     </div>
 
@@ -475,21 +513,39 @@
         searchable
         v-slot="props"
       >
-      <div class="is-flex">
-        <money-format
-          v-if="props.row.finalPrice"
-          class="has-text-left"
-          :value="props.row.finalPrice"
-          :locale="'es'"
-          :currency-code="'EUR'"
-          :subunits-value="false"
-          :hide-subunits="false"
-        >
-        </money-format>
-        <span v-else>?</span>
-        <b-icon v-if="props.row.finalPrice !== props.row.price && props.row.multidelivery_discount" icon="circle" class="has-text-success" custom-size="default" title="Descompte multientrega" />
-        <b-icon v-if="props.row.finalPrice !== props.row.price && !props.row.multidelivery_discount" icon="circle" class="has-text-success" custom-size="default" title="Descompte recollida" />
-      </div>
+        <div class="is-flex">
+          <money-format
+            v-if="props.row.finalPrice"
+            class="has-text-left"
+            :value="props.row.finalPrice"
+            :locale="'es'"
+            :currency-code="'EUR'"
+            :subunits-value="false"
+            :hide-subunits="false"
+          >
+          </money-format>
+          <span v-else>?</span>
+          <b-icon
+            v-if="
+              props.row.finalPrice !== props.row.price &&
+                props.row.multidelivery_discount
+            "
+            icon="circle"
+            class="has-text-success"
+            custom-size="default"
+            title="Descompte multientrega"
+          />
+          <b-icon
+            v-if="
+              props.row.finalPrice !== props.row.price &&
+                !props.row.multidelivery_discount
+            "
+            icon="circle"
+            class="has-text-success"
+            custom-size="default"
+            title="Descompte recollida"
+          />
+        </div>
       </b-table-column>
       <b-table-column
         label="Estat"
@@ -502,6 +558,11 @@
           v-if="props.row.status === 'pending'"
           class="tag is-warning bg-pending"
           >PENDENT</span
+        >
+        <span
+          v-else-if="props.row.status === 'deposited'"
+          class="tag is-warning bg-deposited"
+          >DEPOSITADA</span
         >
         <span
           v-else-if="props.row.status === 'invoiced'"
@@ -547,7 +608,11 @@ import { parse } from "csv-parse";
 import { mapState } from "vuex";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import { assignRouteRate, assignRouteDate, calculateRoutePrice } from "@/service/assignRouteRate";
+import {
+  assignRouteRate,
+  assignRouteDate,
+  calculateRoutePrice
+} from "@/service/assignRouteRate";
 import moment from "moment";
 import _ from "lodash";
 import { filter } from "lodash";
@@ -583,7 +648,7 @@ export default {
       routeFilter: 0,
       csvOptions: {
         delimiter: ",",
-        columns: true,
+        columns: true
       },
       importing: false,
       permissions: [],
@@ -885,14 +950,14 @@ export default {
           contact_time_slot_2_end: "19"
         }
       ],
-      apiUrl: process.env.VUE_APP_API_URL
+      apiUrl: process.env.VUE_APP_API_URL,
+      showExport: false,
     };
   },
   computed: {
     ...mapState(["userName"]),
     ...mapState(["userId"]),
     theOrders() {
-      
       this.orders = this.orders.map(o => ({
         ...o,
         commentsNotes:
@@ -914,7 +979,12 @@ export default {
         if (this.routeFilter === 0) {
           return true;
         } else {
-          return o && o.route && o.route.name === this.routes.find(r => r.id === this.routeFilter).name;
+          return (
+            o &&
+            o.route &&
+            o.route.name ===
+              this.routes.find(r => r.id === this.routeFilter).name
+          );
         }
       });
     },
@@ -939,14 +1009,16 @@ export default {
       return this.checkedRows.length
         ? _.sumBy(this.checkedRows, "finalPrice") || 0
         : _.sumBy(this.theOrders, "finalPrice") || 0;
-    },
+    }
   },
   async created() {
     if (localStorage.getItem("OrdersTable.statusFilter")) {
       this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
     }
     if (localStorage.getItem("OrdersTable.routeFilterId")) {
-      this.routeFilter = parseInt(localStorage.getItem("OrdersTable.routeFilterId"));
+      this.routeFilter = parseInt(
+        localStorage.getItem("OrdersTable.routeFilterId")
+      );
     }
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
@@ -962,11 +1034,10 @@ export default {
 
       const where = [];
       console.log("status", status);
-      if (status === "") {        
-      }
-      else if (status !== "lastmile") {
+      if (status === "") {
+      } else if (status !== "lastmile") {
         where.push(`_where[status]=${status}`);
-      //} else if (status !== "last_mile_display") {        
+        //} else if (status !== "last_mile_display") {
       } else {
         where.push(`_where[last_mile]=true`);
       }
@@ -975,41 +1046,45 @@ export default {
 
       for (const key in this.filters) {
         if (this.filters[key]) {
-
           const value = this.filters[key].trim();
           if (this.filters[key] === "") {
             continue;
           }
-          const comparison = key.includes("date") ? '_eq' : '_contains';
+          const comparison = key.includes("date") ? "_eq" : "_contains";
           if (key.includes("date")) {
-
             if (value.length === 4 || value.length === 5) {
               // format YYYY-
               const start = `${value.substring(0, 4)}-01-01`;
-              const end = `$value.substring(0, 4)}-12-31`;              
+              const end = `$value.substring(0, 4)}-12-31`;
               where.push(`_where[${key}_gte]=${start}`);
               where.push(`_where[${key}_lte]=${end}`);
-            }
-            else if (value.length === 7 || value.length === 8 || value.length < 10) {
+            } else if (
+              value.length === 7 ||
+              value.length === 8 ||
+              value.length < 10
+            ) {
               // format YYYY-MM
               const start = `${value.substring(0, 7)}-01`;
               const month = new Date(value.substring(0, 7)).getMonth();
-              const endDayOfMonth = new Date(new Date().getFullYear(), month + 1, 0).getDate();
-              const end = `${value.substring(0, 7)}-${endDayOfMonth}`;              
+              const endDayOfMonth = new Date(
+                new Date().getFullYear(),
+                month + 1,
+                0
+              ).getDate();
+              const end = `${value.substring(0, 7)}-${endDayOfMonth}`;
               where.push(`_where[${key}_gte]=${start}`);
               where.push(`_where[${key}_lte]=${end}`);
-            }
-            else if (value.length === 10) {
+            } else if (value.length === 10) {
               // format YYYY-MM-DD
               where.push(`_where[${key}${comparison}]=${value}`);
             }
           } else if (key === "idx") {
             // remove zeros at start
-            const id_contains = value.replace(/^0+/, '');
+            const id_contains = value.replace(/^0+/, "");
             where.push(`_where[id_contains]=${id_contains}`);
           } else if (key === "idx") {
             // remove zeros at start
-            const id_contains = value.replace(/^0+/, '');
+            const id_contains = value.replace(/^0+/, "");
             where.push(`_where[id_contains]=${id_contains}`);
           } else if (key === "last_mile_display") {
             // remove zeros at start
@@ -1081,11 +1156,14 @@ export default {
       localStorage.setItem("OrdersTable.routeFilterId", route);
       this.routeFilter = route;
       this.checkedRows = [];
-      this.setStatusFilter(this.statusFilter);      
+      this.setStatusFilter(this.statusFilter);
     },
     navNew() {
       const q = this.$route.meta.userContacts ? `?user=true` : "";
       this.$router.push("/order/0" + q);
+    },
+    navNewPickup() {
+      this.$router.push("/order/0?pickup_point=true");
     },
     async getData() {
       this.isLoading = true;
@@ -1518,7 +1596,7 @@ export default {
 
         if (order.kilograms !== null && orderWithRate.route_rate) {
           const rate = orderWithRate.route_rate;
-          orderWithRate.price = calculateRoutePrice(rate, order.kilograms);         
+          orderWithRate.price = calculateRoutePrice(rate, order.kilograms, 0);
         } else {
           // console.warn("!order", order.kilograms, order.route_rate);
         }
@@ -1607,7 +1685,8 @@ export default {
         if (record.contact_time_slot_1_ini && record.contact_time_slot_1_end) {
           if (
             parseFloat(record.contact_time_slot_1_end) -
-            parseFloat(record.contact_time_slot_1_ini) < 3
+              parseFloat(record.contact_time_slot_1_ini) <
+            3
           ) {
             // comprovar també per al tram 2
             if (
@@ -1616,7 +1695,8 @@ export default {
             ) {
               if (
                 parseFloat(record.contact_time_slot_2_end) -
-                parseFloat(record.contact_time_slot_2_ini) < 3
+                  parseFloat(record.contact_time_slot_2_ini) <
+                3
               ) {
                 this.csvErrors.push({
                   line: i,
@@ -1845,8 +1925,8 @@ export default {
       this.setStatusFilter(this.statusFilter);
     },
     onSort(field, order) {
-      if (field === 'idx') {
-        field = 'id';
+      if (field === "idx") {
+        field = "id";
       }
       this.sortField = field;
       this.sortOrder = order;
@@ -1854,8 +1934,8 @@ export default {
     },
     onFiltersChange(filters) {
       console.log("filters", filters);
-      this.filters = filters
-      this.setStatusFilter(this.statusFilter)
+      this.filters = filters;
+      this.setStatusFilter(this.statusFilter);
     }
   }
 };
@@ -1875,11 +1955,18 @@ export default {
   background-color: #c9b460 !important;
   color: white !important;
 }
+.tag.bg-deposited {
+  background-color: green !important;
+  color: white !important;
+}
 .tag.bg-distributing {
   background-color: #ff7300 !important;
   color: white !important;
 }
 .w-50 {
   width: 50%;
+}
+.ml-auto{
+  margin-left: auto;
 }
 </style>

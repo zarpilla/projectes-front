@@ -16,7 +16,7 @@
         <div class="column is-full">
           <card-component class="tile is-child">
             <b-message
-              v-if="firstStatus !== 'pending'"
+              v-if="firstStatus !== 'pending' && firstStatus !== 'deposited'"
               title="Comanda ja procesada"
               type="is-warning"
             >
@@ -55,10 +55,10 @@
               <hr />
 
               <b-field
-                label="Punt d'entrega"
+                :label="isPickupPoint ? 'Punt de recollida *' : 'Punt d’entrega *'"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                message="Cerca el punt d'entrega si ja existeix, o crea un nou punt"
+                :message="!isPickupPoint ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt' : 'Cerca el punt de recollida'"
               >
                 <b-autocomplete
                   v-model="contactSearch"
@@ -74,7 +74,7 @@
                 </b-autocomplete>
               </b-field>
 
-              <b-field horizontal v-if="!form.contact && !contactSearch">
+              <b-field horizontal v-if="!form.contact && !contactSearch && !isPickupPoint">
                 <b-button
                   :disabled="!canEdit"
                   class="view-button is-primary mb-3"
@@ -137,7 +137,7 @@
                       'is-warning': form.pickup === s.id,
                       'is-outlined': form.pickup !== s.id
                     }"
-                    @click="form.pickup = s.id"
+                    @click="form.pickup = s.id; updatePickup()"
                     :disabled="!canEdit"
                   >
                     {{ s.name }}
@@ -145,31 +145,134 @@
                 </div>
               </b-field>
 
-              <b-field
-                label="Caixes *"
-                horizontal
-                message="Nombre de caixes"
-                :type="{ 'is-danger': errors['units'] && submitted }"
-              >
-                <b-input
-                  v-model="form.units"
-                  type="number"
-                  :disabled="!canEdit"
-                />
-              </b-field>
+              <!-- Pickup Point Lines Section -->
+              <div v-if="isPickupPoint" class="mb-3">
+                <b-field
+                  label="Línies *"
+                  horizontal
+                  message="Afegeix les línies amb la informació de cada destinatari"
+                  :type="{ 'is-danger': errors['lines'] && submitted }"
+                >
+                  <div class="is-full-width mt-2">
+                    <div v-for="(line, index) in form.lines" :key="index" class="zbox mb-1">
+                      <div class="columns">
+                        <div class="column is-3 p-2">
+                          <b-field :label="index === 0 ? 'Caixes' : null">
+                            <b-input
+                              v-model="line.units"
+                              type="number"
+                              :disabled="!canEdit"
+                              @input="calculateTotals"
+                            />
+                          </b-field>
+                        </div>
+                        <div class="column is-3 p-2">
+                          <b-field :label="index === 0 ? 'Kilograms' : null">
+                            <b-input
+                              v-model="line.kilograms"
+                              type="number"
+                              :disabled="!canEdit"
+                              @input="calculateTotals"
+                            />
+                          </b-field>
+                        </div>
+                        <div class="column is-3 p-2">
+                          <b-field :label="index === 0 ? 'Nom' : null">
+                            <b-input
+                              v-model="line.name"
+                              :disabled="!canEdit"
+                            />
+                          </b-field>
+                        </div>
+                        <div class="column is-2 p-2">
+                          <b-field :label="index === 0 ? 'NIF' : null">
+                            <b-input
+                              v-model="line.nif"
+                              :disabled="!canEdit"
+                            />
+                          </b-field>
+                        </div>
+                        <div class="column is-1">
+                          <b-field :label="index === 0 ? 'Accions' : null">
+                            <b-button
+                              type="is-danger"
+                              size="is-small"
+                              icon-left="delete"
+                              :disabled="!canEdit"
+                              @click="removeLine(index)"
+                            >
+                            </b-button>
+                          </b-field>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <b-button
+                      v-if="canEdit"
+                      type="is-primary"
+                      icon-left="plus"
+                      @click="addLine"
+                      class="mb-3 mt-3"
+                    >
+                      Afegir línia
+                    </b-button>
+                  </div>
+                </b-field>
 
-              <b-field
-                :type="{ 'is-danger': errors['kilograms'] && submitted }"
-                label="Kilograms *"
-                horizontal
-                message="Kilograms totals"
-              >
-                <b-input
-                  v-model="form.kilograms"
-                  type="number"
-                  :disabled="!canEdit"
-                />
-              </b-field>
+                <!-- Totals calculated from lines -->
+                <b-field
+                  label="Total Caixes"
+                  horizontal
+                  message="Calculat automàticament des de les línies"
+                >
+                  <b-input
+                    :value="form.units"
+                    type="number"
+                    disabled
+                  />
+                </b-field>
+
+                <b-field
+                  label="Total Kilograms"
+                  horizontal
+                  message="Calculat automàticament des de les línies"
+                >
+                  <b-input
+                    :value="form.kilograms"
+                    type="number"
+                    disabled
+                  />
+                </b-field>
+              </div>
+
+              <!-- Regular fields for non-pickup points -->
+              <div v-else>
+                <b-field
+                  label="Caixes *"
+                  horizontal
+                  message="Nombre de caixes"
+                  :type="{ 'is-danger': errors['units'] && submitted }"
+                >
+                  <b-input
+                    v-model="form.units"
+                    type="number"
+                    :disabled="!canEdit"
+                  />
+                </b-field>
+
+                <b-field
+                  :type="{ 'is-danger': errors['kilograms'] && submitted }"
+                  label="Kilograms *"
+                  horizontal
+                  message="Kilograms totals"
+                >
+                  <b-input
+                    v-model="form.kilograms"
+                    type="number"
+                    :disabled="!canEdit"
+                  />
+                </b-field>
+              </div>
 
               <b-field
                 label="Fràgil"
@@ -370,7 +473,7 @@
               </b-field>
 
               <b-field label="Preu" horizontal class="line-notes mb-5">
-                <div class="is-flex">
+                <div class="is-flex mt-1">
                   <money-format
                     class="has-text-left"
                     :value="route_price"
@@ -512,6 +615,7 @@ export default {
       firstStatus: "pending",
       statuses: [
         { id: "pending", name: "PENDENT" },
+        { id: "deposited", name: "DEPOSITADA" },
         { id: "processed", name: "PROCESSADA" },
         { id: "lastmile", name: "ÚLTIMA MILLA" },
         { id: "delivered", name: "LLIURADA" },
@@ -526,7 +630,7 @@ export default {
       citySearch: "",
       apiUrl: process.env.VUE_APP_API_URL,
       dateWarningMessage: "",
-      isModalActive: false
+      isModalActive: false,
     };
   },
   computed: {
@@ -538,7 +642,7 @@ export default {
       if (this.form.id) {
         return `Comanda #${this.form.id.toString().padStart(4, "0")}`;
       } else {
-        return "Nova comanda";
+        return !this.isPickupPoint ? "Nova comanda" : "Nova comanda punt de recollida";
       }
     },
     transitionName() {
@@ -575,16 +679,18 @@ export default {
     canChangeRate() {
       // console.log('this.form.status', this.form.status)
       return ["pending"].includes(this.form.status);
+    },
+    isPickupPoint() {
+      return this.form.pickup_point === true;
     },    
     errors() {
-      return {
+      const baseErrors = {
         owner: this.form.owner === null,
         route: this.form.route === null,
         contact: this.form.contact === null,
         delivery_date: this.form.delivery_date === null,
         delivery_type: this.form.delivery_type === null,
         pickup: this.form.pickup == null,
-        units: this.form.units === null || this.form.units <= 0,
         contact_name:
           this.form.contact_name === null || this.form.contact_name === "",
         contact_nif:
@@ -599,12 +705,26 @@ export default {
         contact_city:
           this.form.contact_city === null || this.form.contact_city === "",
         contact_phone:
-          this.form.contact_phone === null || this.form.contact_phone === "",
-        kilograms:
-          this.form.kilograms === null ||
-          this.form.kilograms === "" ||
-          this.form.kilograms <= 0
+          this.form.contact_phone === null || this.form.contact_phone === ""
       };
+
+      if (this.isPickupPoint) {
+        // For pickup points, validate lines instead of direct units/kilograms
+        baseErrors.lines = !this.form.lines || this.form.lines.length === 0 ||
+          this.form.lines.some(line => 
+            !line.units || line.units <= 0 ||
+            !line.kilograms || line.kilograms <= 0 ||
+            !line.name || line.name.trim() === ""
+          );
+      } else {
+        // For regular orders, validate units and kilograms directly
+        baseErrors.units = this.form.units === null || this.form.units <= 0;
+        baseErrors.kilograms = this.form.kilograms === null ||
+          this.form.kilograms === "" ||
+          this.form.kilograms <= 0;
+      }
+
+      return baseErrors;
     },
     route_rate() {
       //console.log("route_rate");
@@ -620,7 +740,7 @@ export default {
         return this.form.price;
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
-        this.form.price = calculateRoutePrice(this.route_rate, this.form.kilograms);
+        this.form.price = calculateRoutePrice(this.route_rate, this.form.kilograms, this.form.lines ? this.form.lines.length : 0);
       }
       return this.form.price;
     },    
@@ -683,6 +803,15 @@ export default {
     );
     this.permissions = me.data.permissions.map(p => p.permission);
     this.getData();
+
+    // check if url has pickup_point=true
+    if (this.$route.query.pickup_point === "true") {
+      this.isPickupPoint = this.$route.query.pickup_point === "true";
+      this.form.pickup_point = true;
+      this.form.picked_up = false
+    }
+    
+
   },
   methods: {
     getClearFormObject() {
@@ -711,6 +840,8 @@ export default {
         kilograms: null,
         routeFestives: [],
         contact_pickup_discount: 0,
+        pickup_point: false,
+        lines: []
       };
     },
     async getData() {
@@ -927,7 +1058,7 @@ export default {
         const route = this.routes.find(r => r.id === this.form.route);
         const routeDate = assignRouteDate(route);
         const nextDay = routeDate.nextDay;
-        if (this.form.status === "pending") {
+        if (this.form.status === "pending" || this.form.status === "deposited") {
           this.form.estimated_delivery_date = nextDay.toDate();
         }
         if (routeDate.warning) {
@@ -1399,9 +1530,6 @@ export default {
       this.needsUpdate = true;
       this.form.lines = this.form.lines.filter((l, i) => i !== j);
     },
-    addLine() {
-      this.form.lines.push(this.getNewLine());
-    },
     async saveClient() {
       if (this.form.contact) {
         if (
@@ -1518,16 +1646,9 @@ export default {
         return { ...c, display: `${c.trade_name} (${c.id})` };
       });
 
-      // const contacts2 = (
-      //   await service({ requiresAuth: true, cached: false }).get(
-      //     `contacts/basic?_limit=-1&_where[multiowner]=true`
-      //   )
-      // ).data.map(c => {
-      //   return { ...c, display: `${c.trade_name} (${c.id})${deviliveryLabel}` };
-      // });
+      const contactsOrPickups = this.isPickupPoint ? contacts1.filter(c => c.pickup_point) : contacts1;
 
-      this.contacts = contacts1;
-
+      this.contacts = contactsOrPickups;
     },
 
     removeContactData() {
@@ -1608,8 +1729,66 @@ export default {
     changeRate() {      
       const rate = assignRouteRate(this.form, this.routeRates, this.orders);      
       this.form.route_rate = rate;      
-      this.form.price = calculateRoutePrice(rate, this.form.kilograms);
+      this.form.price = calculateRoutePrice(rate, this.form.kilograms, this.form.lines ? this.form.lines.length : 0);
     },
+    updatePickup() {
+      // Find the selected pickup object
+      const selectedPickup = this.allowedPickups.find(p => p.id === this.form.pickup);
+      this.form.pickup_point = selectedPickup && selectedPickup.is_pickup_point || false;
+      
+      // Clear units and kilograms when switching to pickup point
+      if (this.form.pickup_point) {
+        this.form.units = null;
+        this.form.kilograms = null;
+        // Initialize with one empty line if none exist
+        if (!this.form.lines || this.form.lines.length === 0) {
+          this.form.lines = [{
+            units: null,
+            kilograms: null,
+            name: "",
+            nif: ""
+          }];
+        }
+      } else {
+        // Clear lines when switching to regular order
+        this.form.lines = [];
+      }
+    },
+    addLine() {
+      if (!this.form.lines) {
+        this.form.lines = [];
+      }
+      this.form.lines.push({
+        units: null,
+        kilograms: null,
+        name: "",
+        nif: "",
+        picked_up: false
+      });
+    },
+    removeLine(index) {
+      if (this.form.lines && this.form.lines.length > 1) {
+        this.form.lines.splice(index, 1);
+      }
+    },
+    calculateTotals() {
+      if (!this.form.lines || this.form.lines.length === 0) {
+        return { totalUnits: 0, totalKilograms: 0 };
+      }
+      
+      const totalUnits = this.form.lines.reduce((sum, line) => {
+        return sum + (parseFloat(line.units) || 0);
+      }, 0);
+      
+      const totalKilograms = this.form.lines.reduce((sum, line) => {
+        return sum + (parseFloat(line.kilograms) || 0);
+      }, 0);
+
+      this.form.units = totalUnits;
+      this.form.kilograms = totalKilograms;
+      
+      return { totalUnits, totalKilograms };
+    }
   }
 };
 </script>

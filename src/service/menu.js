@@ -92,6 +92,12 @@ const menu = [
         permission: 'orders'
       },
       {
+        to: '/pickup-points',
+        icon: 'package',
+        label: 'Punt de recollida',
+        permission: 'orders'
+      },
+      {
         to: '/city-route',
         icon: 'city',
         label: 'Poblacions i rutes',
@@ -120,7 +126,7 @@ const menu = [
       },
       {
         to: '/orders-invoice',
-        icon: 'truck',
+        icon: 'cash-multiple',
         label: 'Facturar',
         permission: 'orders_admin'
       },
@@ -146,6 +152,12 @@ const menu = [
         to: '/route-days',
         icon: 'calendar',
         label: 'Rutes i dies',
+        permission: 'orders_admin'
+      },
+      {
+        to: '/pickup-points',
+        icon: 'package',
+        label: 'Punts de recollida',
         permission: 'orders_admin'
       },
       {
