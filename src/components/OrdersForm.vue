@@ -87,14 +87,14 @@
               <b-field horizontal v-else-if="form.contact">
                 <b-button
                   :disabled="!canEdit"
-                  class="view-button is-primary mb-3"
+                  class="view-button is-primary mb-3 ml-0"
                   title="Nou punt d'entrega"
                   @click="isModalActive = true"
                 >
-                  Veure punt d'entrega
+                  {{ isPickupPoint ? "Veure punt de recollida" : "Veure punt d'entrega" }}
                 </b-button>
               </b-field>
-
+              
               <hr />
 
               <b-field
@@ -662,7 +662,8 @@ export default {
     },
     canEditContact() {
       return (
-        (this.form.contact && !this.form.contact_multiowner) ||
+        (this.form.contact && !this.form.contact_multiowner && !this.isPickupPoint) 
+        ||
         this.permissions.includes("orders_admin")
       );
     },

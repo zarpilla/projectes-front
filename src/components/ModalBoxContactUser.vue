@@ -7,10 +7,6 @@
       <section class="modal-card-body" v-if="isModalActive">
         <contacts-user-form :id="id" :owner-id="ownerId" :modal="true" @cancel="cancel" @confirm="confirm" :can-edit="canEdit"/>         
       </section>
-      <!-- <footer class="modal-card-foot">
-        <button class="button" type="button" @click="cancel">Cancel·la</button>
-        <button class="button is-danger" @click="confirm">OK</button>
-      </footer> -->
     </div>
   </b-modal>
 </template>
@@ -51,11 +47,9 @@ export default {
   },
   watch: {
     isActive (newValue) {
-      console.log('isActive', newValue)
       this.isModalActive = newValue
     },
     isModalActive (newValue) {
-      console.log('isModalActive', newValue)
       if (!newValue) {
         this.cancel()
       }

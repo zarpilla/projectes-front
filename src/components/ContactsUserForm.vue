@@ -313,6 +313,7 @@
                     >Cancel·lar</b-button
                   >
                   <b-button
+                    v-if="canEdit"
                     type="mr-2 is-primary"
                     :loading="isLoading"
                     @click="submitAndEmitConfirm"
