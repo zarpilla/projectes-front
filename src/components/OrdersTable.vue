@@ -6,7 +6,7 @@
       :can-cancel="false"
     ></b-loading>
 
-    <div class="is-flex">
+    <div class="is-flex is-block-mobile is-flex-wrap-wrap mb-3">
       <b-button
         class="view-button is-primary mb-3 ml-0 mr-3"
         @click="navNew"
@@ -15,14 +15,14 @@
         Nova Comanda
       </b-button>
       <b-button
-        class="view-button is-primary mb-3"
+        class="view-button is-primary mb-3 ml-0"
         @click="navNewPickup"
         icon-left="plus"
       >
         Nova Comanda Punt de Recollida
       </b-button>
       <b-button
-        class="zview-button is-warning mb-3 ml-auto"
+        class="zview-button is-warning mb-3 ml-auto is-hidden-mobile"
         @click="showExport = !showExport"
         icon-left="plus"
       >
@@ -166,7 +166,7 @@
         TOTES
       </b-button>
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === 'pending',
           'is-warning': statusFilter !== 'pending'
@@ -176,7 +176,7 @@
         PENDENTS
       </b-button>
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === 'deposited',
           'is-warning': statusFilter !== 'deposited'
@@ -186,7 +186,7 @@
         DEPOSITADES
       </b-button>
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === 'processed',
           'is-warning': statusFilter !== 'processed'
@@ -196,7 +196,7 @@
         PROCESSADES
       </b-button>
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === 'lastmile',
           'is-warning': statusFilter !== 'lastmile'
@@ -207,7 +207,7 @@
       </b-button>
 
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === 'delivered',
           'is-warning': statusFilter !== 'delivered'
@@ -217,7 +217,7 @@
         LLIURADES
       </b-button>
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === 'invoiced',
           'is-warning': statusFilter !== 'invoiced'
@@ -227,7 +227,7 @@
         FACTURADES
       </b-button>
       <b-button
-        class="view-button mb-3 mr-3"
+        class="view-button mb-3 mr-3 ml-0"
         :class="{
           'is-primary': statusFilter === 'cancelled',
           'is-warning': statusFilter !== 'cancelled'
@@ -268,8 +268,57 @@
     <!-- <pre>{{ theOrders }}</pre> -->
 
     <div class="mb-3">
-      <div class="is-flex">
-        <div v-if="permissions.includes('orders_admin')">
+      <div class="columns is-multiline ml-0 mt-4">
+        
+        <div class="column is-half">
+          <div class="columns is-mobile bg-white-panel">
+            <div class="column">
+              <h2 class="pr-2">Núm.</h2>
+              <div class="is-flex">
+                <b class="pt-2">
+                  {{ checkedRows.length ? checkedRows.length + " de " : "" }}
+                  {{ total }} (PÀG {{ this.page }}/{{
+                    Math.ceil(total / perPage)
+                  }})
+                </b>
+              </div>
+            </div>
+            <div class="column">
+              <h2 class="pr-2">Unitats</h2>
+              <div class="is-flex">
+                <b class="pt-2">
+                  {{
+                    Math.ceil(total / perPage) > 1 && sumUnits > 0
+                      ? "+de "
+                      : ""
+                  }}{{ sumUnits }}
+                </b>
+              </div>
+            </div>
+            <div class="column">
+              <h2 class="pr-2">Kg</h2>
+              <div class="is-flex">
+                <b class="pt-2">
+                  {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? "+de " : ""
+                  }}{{ sumKg.toFixed(2) }}
+                </b>
+              </div>
+            </div>
+            <div class="column">
+              <h2 class="pr-2">Preu</h2>
+              <div class="is-flex">
+                <b class="pt-2">
+                  {{
+                    Math.ceil(total / perPage) > 1 && sumPrice > 0
+                      ? "+de "
+                      : ""
+                  }}{{ sumPrice.toFixed(2) }} €
+                </b>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="permissions.includes('orders_admin')" class="column is-2">
           <h2>CANVIAR ESTAT</h2>
           <div class="is-flex">
             <b-select v-model="newState" placeholder="">
@@ -289,7 +338,7 @@
             </button>
           </div>
         </div>
-        <div v-else>
+        <div v-else class="column is-2">
           <h2>CANVIAR ESTAT</h2>
           <div class="is-flex">
             <b-select v-model="newState" placeholder="">
@@ -305,7 +354,7 @@
             </button>
           </div>
         </div>
-        <div :class="{ 'ml-6': permissions.includes('orders_admin') }">
+        <div class="column is-2">
           <h2 class="pr-2">ALBARÀ</h2>
           <div class="is-flex">
             <button
@@ -317,48 +366,18 @@
             </button>
           </div>
         </div>
-        <div class="ml-6">
-          <h2 class="pr-2">Núm.</h2>
-          <div class="is-flex">
-            <b class="pt-2">
-              {{ checkedRows.length ? checkedRows.length + " de " : "" }}
-              {{ total }} (PÀG {{ this.page }}/{{ Math.ceil(total / perPage) }})
-            </b>
+        <div class="column is-flex">
+          <div class="ml-auto mt-2">
+            <b-select
+              v-model="perPage"
+              @input="setStatusFilter(statusFilter)"
+              v-if="total > 100"
+            >
+              <option value="100">100 per pàg.</option>
+              <option value="200">200 per pàg.</option>
+              <option value="1000">1000 per pàg.</option>
+            </b-select>
           </div>
-        </div>
-        <div class="ml-6">
-          <h2 class="pr-2">Unitats</h2>
-          <div class="is-flex">
-            <b class="pt-2">
-              {{ Math.ceil(total / perPage) > 1 && sumUnits > 0 ? "+de " : ""
-              }}{{ sumUnits }}
-            </b>
-          </div>
-        </div>
-        <div class="ml-6">
-          <h2 class="pr-2">Kg</h2>
-          <div class="is-flex">
-            <b class="pt-2">
-              {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? "+de " : ""
-              }}{{ sumKg.toFixed(2) }}
-            </b>
-          </div>
-        </div>
-        <div class="ml-6">
-          <h2 class="pr-2">Preu</h2>
-          <div class="is-flex">
-            <b class="pt-2">
-              {{ Math.ceil(total / perPage) > 1 && sumPrice > 0 ? "+de " : ""
-              }}{{ sumPrice.toFixed(2) }} €
-            </b>
-          </div>
-        </div>
-        <div class="ml-auto mt-2">
-          <b-select v-model="perPage" @input="setStatusFilter(statusFilter)" v-if="total > 100">
-            <option value="100">100 per pàg.</option>
-            <option value="200">200 per pàg.</option>
-            <option value="1000">1000 per pàg.</option>
-          </b-select>
         </div>
       </div>
     </div>
@@ -951,7 +970,7 @@ export default {
         }
       ],
       apiUrl: process.env.VUE_APP_API_URL,
-      showExport: false,
+      showExport: false
     };
   },
   computed: {
@@ -1966,7 +1985,17 @@ export default {
 .w-50 {
   width: 50%;
 }
-.ml-auto{
+.ml-auto {
   margin-left: auto;
+}
+.mr-mobile-3{
+  @media screen and (max-width: 768px) {
+    margin-right: 1rem!important;    
+  }
+}
+.bg-white-panel{
+  background-color: white !important;
+  border: 1px solid rgb(219, 219, 219) !important;
+  border-radius: 4px;
 }
 </style>
