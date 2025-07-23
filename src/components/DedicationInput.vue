@@ -1089,7 +1089,6 @@ export default {
       }
     },
     async modalMoveToProjectSubmit(data) {
-      console.log("modalMoveToProjectSubmit", data.project);
       this.isModalMoveToProject = false;
       this.isLoadingMove = true;
       const movedata = {
