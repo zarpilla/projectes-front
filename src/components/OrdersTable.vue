@@ -318,43 +318,46 @@
             </div>
           </div>
         </div>
-        <div v-if="permissions.includes('orders_admin')" class="column is-2">
-          <h2>CANVIAR ESTAT</h2>
-          <div class="is-flex">
-            <b-select v-model="newState" placeholder="">
-              <option value="pending">PENDENT</option>
-              <option value="deposited">DEPOSITADA</option>
-              <option value="processed">PROCESSADA</option>
-              <option value="lastmile">ÚLTIMA MILLA</option>
-              <option value="delivered">LLIURADA</option>
-              <option value="cancelled">ANUL·LADA</option>
-            </b-select>
+        <div class="column is-flex is-multiline">
+          
+          <div class="is-flex" v-if="permissions.includes('orders_admin')" >
+            <div>
+              <h2>CANVIAR ESTAT</h2>            
+              <b-select v-model="newState" placeholder="">
+                <option value="pending">PENDENT</option>
+                <option value="deposited">DEPOSITADA</option>
+                <option value="processed">PROCESSADA</option>
+                <option value="lastmile">ÚLTIMA MILLA</option>
+                <option value="delivered">LLIURADA</option>
+                <option value="cancelled">ANUL·LADA</option>
+              </b-select>
+            </div>
             <button
-              class="button is-primary ml-3"
+              class="button is-primary ml-3 mt-5"
+              :disabled="!newState || !checkedRows.length"
+              @click="setBulkState"
+            >
+              CANVIAR ESTAT
+            </button>
+            
+          </div>
+          <div class="is-flex" v-else>
+            <div>
+              <h2>CANVIAR ESTAT</h2>      
+              <b-select v-model="newState" placeholder="">
+                <option value="pending">PENDENT</option>
+                <option value="deposited">DEPOSITADA</option>
+              </b-select>
+            </div>
+            <button
+              class="button is-primary ml-3 mr-3 mt-5"
               :disabled="!newState || !checkedRows.length"
               @click="setBulkState"
             >
               CANVIAR ESTAT
             </button>
           </div>
-        </div>
-        <div v-else class="column is-2">
-          <h2>CANVIAR ESTAT</h2>
-          <div class="is-flex">
-            <b-select v-model="newState" placeholder="">
-              <option value="pending">PENDENT</option>
-              <option value="deposited">DEPOSITADA</option>
-            </b-select>
-            <button
-              class="button is-primary ml-3 mr-3"
-              :disabled="!newState || !checkedRows.length"
-              @click="setBulkState"
-            >
-              CANVIAR ESTAT
-            </button>
-          </div>
-        </div>
-        <div class="column is-2">
+          <div class="ml-5">
           <h2 class="pr-2">ALBARÀ</h2>
           <div class="is-flex">
             <button
@@ -366,6 +369,7 @@
             </button>
           </div>
         </div>
+        </div>        
         <div class="column is-flex">
           <div class="ml-auto mt-2">
             <b-select
