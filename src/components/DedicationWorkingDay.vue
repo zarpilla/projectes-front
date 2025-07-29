@@ -10,6 +10,11 @@
       :quotes="quotes"
       :years="years"
     />
+    <b-loading
+        :is-full-page="true"
+        v-model="loading"
+        :can-cancel="false"
+      ></b-loading>
     <div class="gannt-container" v-if="showGantt">
       <div class="gantt" :id="ganttId"></div>
     </div>
@@ -128,7 +133,8 @@ export default {
         year: null,
         people_year: null
       },
-      summary: []
+      summary: [],
+      loading: false,
     };
   },
   async mounted() {
@@ -368,7 +374,7 @@ export default {
     },
 
     async updateActivity(activity) {
-      this.updating = true;
+      this.loading = true;
 
       if (activity.id) {
         const activityObject = activity;
@@ -420,6 +426,9 @@ export default {
           _dedication: activity
         };
 
+        activity.from = moment(activity.from).format("YYYY-MM-DD");
+        activity.to = moment(activity.to).format("YYYY-MM-DD");
+
         try {
           const newActivity = (
             await service({ requiresAuth: true }).post(
@@ -448,7 +457,7 @@ export default {
           });
         }
       }
-
+      this.loading = false;
       this.isModalActive = false;
     },
     async modalDelete(activity) {
