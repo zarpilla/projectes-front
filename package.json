@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service serve",
-    "build": "npx update-browserslist-db@latest && vue-cli-service build",
+    "build": "npx update-browserslist-db@latest && cross-env NODE_ENV=production vue-cli-service build",
+    "build:dev": "npx update-browserslist-db@latest && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "lintfix": "vue-cli-service lint --fix"
   },
