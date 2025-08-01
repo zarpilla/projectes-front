@@ -23,6 +23,14 @@ const config = {
       {
         name: 'date',
         expand: false
+      },
+      {
+        name: 'multidelivery',
+        expand: false
+      },
+      {
+        name: 'pickup_discount',
+        expand: false
       }
       ], // Specify a dimension on columns.
     rows: [      
@@ -98,6 +106,12 @@ const config = {
           lastmile: {
             type: 'string'
           },
+          multidelivery: {
+            type: 'string'
+          },
+          pickup_discount: {
+            type: 'string'
+          }
         }
       },
       cube: {
@@ -137,6 +151,12 @@ const config = {
           },
           date: {
             caption: 'Dates (T)'
+          },
+          multidelivery: {
+            caption: 'Multientrega (T)'
+          },
+          pickup_discount: {
+            caption: 'Descompte Recollida (T)'
           }
         },
         measures: {

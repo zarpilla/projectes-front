@@ -10,7 +10,12 @@
         contact: 'contact',
         city: 'city',
         units: 'units',
-        kilograms: 'kilograms',
+        kilograms: {
+          field: 'kilograms',
+          callback: (value) => {
+            return this.excelFormat(value);
+          },
+        },
         created_at: 'created_at',
         route: 'route',
         refrigerated: 'refrigerated',
@@ -29,6 +34,8 @@
         date: 'date',
         month: 'month',
         year: 'year',
+        multidelivery: 'multidelivery',
+        pickup_discount: 'pickup_discount'
       }"
       :data="pivotData">
       <b-button
