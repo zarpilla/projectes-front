@@ -1,12 +1,46 @@
 <template>
   <div>
     <div id="project-stats"></div>
-    <download-excel class="export" :data="pivotData">
+    <download-excel class="export" 
+      :fields="{
+        id: 'id',
+        count: 'count',
+        owner: 'owner',
+        contact_id: 'contact_id',
+        contact: 'contact',
+        city: 'city',
+        units: 'units',
+        kilograms: 'kilograms',
+        created_at: 'created_at',
+        route: 'route',
+        refrigerated: 'refrigerated',
+        fragile: 'fragile',
+        route_rate: 'route_rate',
+        price: {
+          field: 'price',
+          callback: (value) => {
+            return this.excelFormat(value);
+          },
+        },
+        pickup: 'pickup',
+        delivery_type: 'delivery_type',
+        status: 'status',
+        lastmile: 'lastmile',
+        date: 'date',
+        month: 'month',
+        year: 'year',
+      }"
+      :data="pivotData">
       <b-button
       title="Exporta dades"
       class="export-button mt-0"
       icon-left="file-excel" />
     </download-excel>
+    <b-loading
+        :is-full-page="true"
+        v-model="isLoading"
+        :can-cancel="false"
+      ></b-loading>
     <!-- <pre>
       {{ pivotData }}
     </pre> -->
@@ -19,6 +53,8 @@ import service from '@/service/index'
 import moment from 'moment'
 import configPivot from '@/service/configStatsOrder'
 import sortBy from 'lodash/sortBy'
+import { format } from '@/helpers/excelFormatter'
+import { mapState } from 'vuex'
 
 moment.locale('ca')
 
@@ -39,7 +75,11 @@ export default {
     return {
       orders: [],
       pivotData: [],
+      isLoading: false
     }
+  },
+  computed: {
+    ...mapState(["userName", "user"]),
   },
   watch: {
     year: function (newVal, oldVal) {
@@ -65,6 +105,9 @@ export default {
       window.jQuery('#project-stats').kendoPivotGrid(configPivot)
       this.isLoading = false
       
+    },
+    excelFormat(value) {
+      return format(this.user, value);
     }
   },
   filters: {

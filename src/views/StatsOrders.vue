@@ -119,7 +119,7 @@ export default {
             this.years.unshift({ id: 0, year: "Tots" });
           }          
           // this.filters.year = 0
-          this.filters.year = this.years[0];
+          this.filters.year = this.years[1];
 
           service({ requiresAuth: true, cached: true })
             .get("months")
@@ -128,8 +128,9 @@ export default {
 
               if (!this.months.find(m => m.id === 0)) {
                 this.months.unshift({ id: 0, month: "Tots" });
-              }              
-              this.filters.month = this.months[0];
+              }
+              const currentMonth = moment().month();
+              this.filters.month = this.months[currentMonth + 1];
               this.isLoading = false;
             });
 
