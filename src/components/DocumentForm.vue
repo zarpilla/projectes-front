@@ -502,10 +502,31 @@
 
           <hr />
           <card-component title="LINIES" v-if="form.lines">
+            <!-- Pagination for large lists -->
+            <div v-if="form.lines.length > 50" class="pagination-controls mb-3">
+              <b-field grouped>
+                <b-field label="Línies" class="ml-auto">
+                  <b-select v-model="linesPerPage" @change="currentPage = 1">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="99999">Totes ({{ form.lines.length }})</option>
+                  </b-select>
+                </b-field>
+                <b-field label="Pàgina" v-if="linesPerPage > 0" class="mzl-auto">
+                  <b-pagination
+                    v-model="currentPage"
+                    :total="form.lines.length"
+                    :per-page="linesPerPage"
+                    size="is-small"
+                  ></b-pagination>
+                </b-field>
+              </b-field>
+            </div>
             <ul class="subphases-list">
               <li
-                v-for="(line, j) in form.lines"
-                :key="j"
+                v-for="(line, j) in paginatedLines"
+                :key="getLineKey(line, j)"
                 class="subphase line mt-2 mb-2"
               >
                 <b-field grouped class="is-full-width">
@@ -549,7 +570,7 @@
                       placeholder="Quantitat, hores, unitats..."
                       v-model="line.quantity"
                       class="subphase-detail-input"
-                      @input="changeLine(line, 'quantity', line.quantity)"
+                      @input="debouncedChangeLine(line, 'quantity', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -560,7 +581,7 @@
                       placeholder="Preu per unitat"
                       v-model="line.base"
                       class="subphase-detail-input"
-                      @input="changeLine(line, 'base', line.base)"
+                      @input="debouncedChangeLine(line, 'base', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -574,7 +595,7 @@
                       placeholder="Descompte"
                       v-model="line.discount"
                       class="subphase-detail-input"
-                      @input="changeLine(line, 'discount', line.discount)"
+                      @input="debouncedChangeLine(line, 'discount', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -588,7 +609,7 @@
                       placeholder="Preu per unitat"
                       v-model="line.vat"
                       class="subphase-detail-input"
-                      @input="changeLine(line, 'vat', line.vat)"
+                      @input="debouncedChangeLine(line, 'vat', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -602,7 +623,7 @@
                       placeholder="Preu per unitat"
                       v-model="line.irpf"
                       class="subphase-detail-input"
-                      @input="changeLine(line, 'irpf', line.irpf)"
+                      @input="debouncedChangeLine(line, 'irpf', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -627,7 +648,7 @@
                       <b-icon icon="trash-can" size="is-small" />
                     </button>
                     <button
-                      v-if="j === form.lines.length - 1"
+                      v-if="isLastLineInPagination(j)"
                       class="button is-small is-primary ml-2"
                       type="button"
                       @click.prevent="addLine(line)"
@@ -671,6 +692,27 @@
                 </b-field>
               </li>
             </ul>
+            <!-- Pagination for large lists -->
+            <div v-if="form.lines.length > 50" class="pagination-controls mt-5 mb-3">
+              <b-field grouped>
+                <b-field label="Línies" class="ml-auto">
+                  <b-select v-model="linesPerPage" @change="currentPage = 1">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="99999">Totes ({{ form.lines.length }})</option>
+                  </b-select>
+                </b-field>
+                <b-field label="Pàgina" v-if="linesPerPage > 0" class="mzl-auto">
+                  <b-pagination
+                    v-model="currentPage"
+                    :total="form.lines.length"
+                    :per-page="linesPerPage"
+                    size="is-small"
+                  ></b-pagination>
+                </b-field>
+              </b-field>
+            </div>
             <hr />
             <div class="summary has-background-white-ter p-4">
               <div class="is-flex is-justify-content-flex-end">
@@ -1098,7 +1140,12 @@ export default {
         .toDate(),
       canEditDraft: false,
       options: null,
-      user: null
+      user: null,
+      // Pagination for large lists
+      linesPerPage: 50,
+      currentPage: 1,
+      // Debouncing for inputs
+      debouncedInputs: new Map(),
     };
   },
   computed: {
@@ -1260,6 +1307,20 @@ export default {
           this.form.code === "ESBORRANY" &&
           !this.canEditDraft)
       );
+    },
+    currentProjectLinesHash() {
+       return JSON.stringify(this.form.projects.map(p => p.project_phases));
+    },
+    currentProjectLinesHashHasChanged() {
+      return this.initialProjectLinesHash !== this.currentProjectLinesHash;
+    },
+    paginatedLines() {
+      if (this.linesPerPage === 0 || this.form.lines.length <= 50) {
+        return this.form.lines;
+      }
+      const start = (this.currentPage - 1) * this.linesPerPage;
+      const end = start + this.linesPerPage;
+      return this.form.lines.slice(start, end);
     }
   },
   watch: {
@@ -1275,6 +1336,13 @@ export default {
   },
   created() {
     this.getData();
+  },
+  beforeDestroy() {
+    // Clean up any pending debounced timeouts
+    this.debouncedInputs.forEach(timeoutId => {
+      clearTimeout(timeoutId);
+    });
+    this.debouncedInputs.clear();
   },
   methods: {
     getClearFormObject() {
@@ -1379,10 +1447,6 @@ export default {
               }
 
               this.form = r.data;
-              this.form.emitted = moment(
-                this.form.emitted,
-                "YYYY-MM-DD"
-              ).toDate();
               if (this.form.paybefore) {
                 this.form.paybefore = moment(
                   this.form.paybefore,
@@ -1656,6 +1720,37 @@ export default {
       if (value && value.toString().includes(",")) {
         line[field] = value.toString().replace(",", ".");
       }
+    },
+    debouncedChangeLine(line, field, value) {
+      // Create a unique key for this line and field combination
+      const lineIndex = this.form.lines.indexOf(line);
+      const key = `${lineIndex}-${field}`;
+      
+      // Clear any existing timeout for this field
+      if (this.debouncedInputs.has(key)) {
+        clearTimeout(this.debouncedInputs.get(key));
+      }
+      
+      // Set new debounced timeout
+      const timeoutId = setTimeout(() => {
+        this.changeLine(line, field, value);
+        this.debouncedInputs.delete(key);
+      }, 300); // 300ms delay
+      
+      this.debouncedInputs.set(key, timeoutId);
+    },
+    getLineKey(line, index) {
+      // Generate a stable key for each line
+      return line.id || `line-${index}`;
+    },
+    isLastLineInPagination(index) {
+      // Check if this is the last line in the current pagination view
+      const isLastInPage = index === this.paginatedLines.length - 1;
+      const isLastOverall = this.linesPerPage === 0 || this.form.lines.length <= 50 
+        ? index === this.form.lines.length - 1
+        : (this.currentPage - 1) * this.linesPerPage + index === this.form.lines.length - 1;
+      
+      return isLastInPage && isLastOverall;
     },
     input(v) {},
     async submit(exit) {
@@ -1934,13 +2029,29 @@ export default {
     },
     removeLine(line, j) {
       this.needsUpdate = true;
-      this.form.lines = this.form.lines.filter((l, i) => i !== j);
+      // Calculate the actual index in the full array
+      const actualIndex = this.linesPerPage > 0 && this.form.lines.length > 50 
+        ? (this.currentPage - 1) * this.linesPerPage + j 
+        : j;
+      
+      this.form.lines.splice(actualIndex, 1);
+      
+      // Adjust current page if we deleted the last item on the page
+      if (this.linesPerPage > 0 && this.paginatedLines.length === 0 && this.currentPage > 1) {
+        this.currentPage--;
+      }
     },
     addLine() {
       this.form.lines = _.concat(this.form.lines, this.getNewLine());
-      // this.form.lines.push(this.getNewLine());
+      
+      // If using pagination, go to the last page to show the new line
+      if (this.linesPerPage > 0 && this.form.lines.length > 50) {
+        const totalPages = Math.ceil(this.form.lines.length / this.linesPerPage);
+        this.currentPage = totalPages;
+      }
     },
     phasesUpdated(info) {
+      console.log("Phases updated:", info);
       this.shouldSaveProject = true;
       const project = this.form.projects.find(p => p.id === info.projectId);
 
@@ -2401,7 +2512,7 @@ export default {
           return false;
         }
       });
-    }
+    },
   }
 };
 </script>
@@ -2421,5 +2532,8 @@ export default {
 
 .is-w-30 {
   width: 30%;
+}
+.ml-auto {
+  margin-left: auto;
 }
 </style>

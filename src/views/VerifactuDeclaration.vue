@@ -47,8 +47,9 @@
             servidor web y que permite a los usuarios conectarse a través de un
             navegador web para realizar sus tareas de facturación y gestión de
             proyectos. Cada entidad que utilizada este software tiene su propia
-            instáncia. Su código fuente consta de tres partes, una parte frontend, una parte
-            backend y una biblioteca de generación de XML para Verifactu. Su código, se encuentra disponible en
+            instáncia. Su código fuente consta de tres partes, una parte
+            frontend, una parte backend y una biblioteca de generación de XML
+            para Verifactu. Su código, se encuentra disponible en
             <a href="https://github.com/zarpilla/projectes" target="_blank"
               >https://github.com/zarpilla/projectes</a
             >
@@ -58,7 +59,7 @@
               target="_blank"
               >https://github.com/zarpilla/projectes-front</a
             >
-            y en 
+            y en
             <a
               href="https://github.com/zarpilla/verifactu-node-lib"
               target="_blank"
@@ -157,25 +158,39 @@
             {{ verifactu.software_location }}
           </div>
         </div>
+
+        <div
+          class="doc-section"
+          style="border:1px solid #aaa; padding:1rem; background:#f9f9f9; margin-top:2rem;"
+        >
+          <strong
+            >Anexo: Software de Código Abierto y Cumplimiento Normativo</strong
+          >
+          <div class="doc-value" style="margin-top:0.5rem;">
+            Este software se distribuye bajo licencia <b>GPLv3</b> como código
+            abierto (<i>Open Source</i>). Cualquier modificación, alteración o
+            redistribución del código sin la debida autorización del autor puede
+            suponer el incumplimiento de la licencia GPLv3 y, además, podría
+            hacer que el sistema deje de cumplir con la normativa VERI*FACTU y
+            la legislación vigente. Se recomienda que cualquier cambio sea
+            revisado y validado por los responsables del proyecto para
+            garantizar el cumplimiento legal y técnico.
+          </div>
+        </div>
       </div>
 
-
       <div class="doc-section mt-4">
-        <b-table :data="verifactuDeclarations" striped >
-          <b-table-column
-            label="Versión"
-            field="version"
-            v-slot="props"
-          >
+        <b-table :data="verifactuDeclarations" striped>
+          <b-table-column label="Versió" field="version" v-slot="props">
             {{ props.row.version }}
           </b-table-column>
-          <b-table-column label="PDF" field="url"  v-slot="props">
+          <b-table-column label="PDF" field="url" v-slot="props">
             <a
               :href="props.row.url"
               target="_blank"
               class="zbutton is-primary is-outlined"
             >
-              Ver PDF
+              Veure PDF
             </a>
           </b-table-column>
         </b-table>
