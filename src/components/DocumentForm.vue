@@ -510,10 +510,16 @@
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
-                    <option value="99999">Totes ({{ form.lines.length }})</option>
+                    <option value="99999"
+                      >Totes ({{ form.lines.length }})</option
+                    >
                   </b-select>
                 </b-field>
-                <b-field label="Pàgina" v-if="linesPerPage > 0" class="mzl-auto">
+                <b-field
+                  label="Pàgina"
+                  v-if="linesPerPage > 0"
+                  class="mzl-auto"
+                >
                   <b-pagination
                     v-model="currentPage"
                     :total="form.lines.length"
@@ -693,17 +699,26 @@
               </li>
             </ul>
             <!-- Pagination for large lists -->
-            <div v-if="form.lines.length > 50" class="pagination-controls mt-5 mb-3">
+            <div
+              v-if="form.lines.length > 50"
+              class="pagination-controls mt-5 mb-3"
+            >
               <b-field grouped>
                 <b-field label="Línies" class="ml-auto">
                   <b-select v-model="linesPerPage" @change="currentPage = 1">
                     <option value="25">25</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
-                    <option value="99999">Totes ({{ form.lines.length }})</option>
+                    <option value="99999"
+                      >Totes ({{ form.lines.length }})</option
+                    >
                   </b-select>
                 </b-field>
-                <b-field label="Pàgina" v-if="linesPerPage > 0" class="mzl-auto">
+                <b-field
+                  label="Pàgina"
+                  v-if="linesPerPage > 0"
+                  class="mzl-auto"
+                >
                   <b-pagination
                     v-model="currentPage"
                     :total="form.lines.length"
@@ -1145,7 +1160,7 @@ export default {
       linesPerPage: 50,
       currentPage: 1,
       // Debouncing for inputs
-      debouncedInputs: new Map(),
+      debouncedInputs: new Map()
     };
   },
   computed: {
@@ -1309,7 +1324,7 @@ export default {
       );
     },
     currentProjectLinesHash() {
-       return JSON.stringify(this.form.projects.map(p => p.project_phases));
+      return JSON.stringify(this.form.projects.map(p => p.project_phases));
     },
     currentProjectLinesHashHasChanged() {
       return this.initialProjectLinesHash !== this.currentProjectLinesHash;
@@ -1725,18 +1740,18 @@ export default {
       // Create a unique key for this line and field combination
       const lineIndex = this.form.lines.indexOf(line);
       const key = `${lineIndex}-${field}`;
-      
+
       // Clear any existing timeout for this field
       if (this.debouncedInputs.has(key)) {
         clearTimeout(this.debouncedInputs.get(key));
       }
-      
+
       // Set new debounced timeout
       const timeoutId = setTimeout(() => {
         this.changeLine(line, field, value);
         this.debouncedInputs.delete(key);
       }, 300); // 300ms delay
-      
+
       this.debouncedInputs.set(key, timeoutId);
     },
     getLineKey(line, index) {
@@ -1746,10 +1761,12 @@ export default {
     isLastLineInPagination(index) {
       // Check if this is the last line in the current pagination view
       const isLastInPage = index === this.paginatedLines.length - 1;
-      const isLastOverall = this.linesPerPage === 0 || this.form.lines.length <= 50 
-        ? index === this.form.lines.length - 1
-        : (this.currentPage - 1) * this.linesPerPage + index === this.form.lines.length - 1;
-      
+      const isLastOverall =
+        this.linesPerPage === 0 || this.form.lines.length <= 50
+          ? index === this.form.lines.length - 1
+          : (this.currentPage - 1) * this.linesPerPage + index ===
+            this.form.lines.length - 1;
+
       return isLastInPage && isLastOverall;
     },
     input(v) {},
@@ -2030,23 +2047,30 @@ export default {
     removeLine(line, j) {
       this.needsUpdate = true;
       // Calculate the actual index in the full array
-      const actualIndex = this.linesPerPage > 0 && this.form.lines.length > 50 
-        ? (this.currentPage - 1) * this.linesPerPage + j 
-        : j;
-      
+      const actualIndex =
+        this.linesPerPage > 0 && this.form.lines.length > 50
+          ? (this.currentPage - 1) * this.linesPerPage + j
+          : j;
+
       this.form.lines.splice(actualIndex, 1);
-      
+
       // Adjust current page if we deleted the last item on the page
-      if (this.linesPerPage > 0 && this.paginatedLines.length === 0 && this.currentPage > 1) {
+      if (
+        this.linesPerPage > 0 &&
+        this.paginatedLines.length === 0 &&
+        this.currentPage > 1
+      ) {
         this.currentPage--;
       }
     },
     addLine() {
       this.form.lines = _.concat(this.form.lines, this.getNewLine());
-      
+
       // If using pagination, go to the last page to show the new line
       if (this.linesPerPage > 0 && this.form.lines.length > 50) {
-        const totalPages = Math.ceil(this.form.lines.length / this.linesPerPage);
+        const totalPages = Math.ceil(
+          this.form.lines.length / this.linesPerPage
+        );
         this.currentPage = totalPages;
       }
     },
@@ -2326,6 +2350,14 @@ export default {
           emitted: this.form.emitted
         }
       );
+
+      const pdf = (
+        await service({ requiresAuth: true }).get(
+          `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
+        )
+      ).data;
+      this.pdf = true;
+
       this.form.state = theInvoice.data.state;
       this.form.code = theInvoice.data.code;
       this.$buefy.snackbar.open({
@@ -2398,6 +2430,8 @@ export default {
           )
         ).data;
         this.pdf = true;
+
+        console.log("pdf", pdf);
 
         await service({ requiresAuth: true }).post(
           `/emitted-invoices/send-email/${this.form.id}`
@@ -2481,7 +2515,6 @@ export default {
       this.editingDocuments = false;
       this.canEditDraft = true;
 
-
       setTimeout(() => {
         this.canEditDraft = true;
         scrollTo(0, 0);
@@ -2512,7 +2545,7 @@ export default {
           return false;
         }
       });
-    },
+    }
   }
 };
 </script>
