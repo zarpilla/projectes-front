@@ -34,7 +34,7 @@
     />
 
     <b-loading
-      :is-full-page="true"      
+      :is-full-page="true"
       v-model="isLoading"
       :can-cancel="false"
     ></b-loading>
@@ -459,7 +459,9 @@ export default {
       return null;
     },
     superTotal() {
-      return this.activities ? sumBy(this.activities, "hours").toFixed(2) : 0;
+      return this.activities && sumBy(this.activities, "hours")
+        ? sumBy(this.activities, "hours").toFixed(2)
+        : 0;
     },
     ...mapState(["me", "userName"]),
     counterTime() {
@@ -582,7 +584,7 @@ export default {
         .get(query)
         .then(r => {
           this.activities = r.data.filter(a => a.project && a.project.id);
-          this.hoursTotal = sumBy(this.activities, "hours");
+          this.hoursTotal = sumBy(this.activities, "hours") || 0;
           this.distinctDays = uniq(map(this.activities, "date"));
           this.distinctDays.sort();
           this.distinctDaysObj = orderBy(
@@ -1378,8 +1380,8 @@ export default {
               activity_type: null,
               date: eventData.start.substring(0, 10),
               dedication_type:
-              project.default_dedication_type &&
-              project.default_dedication_type.id
+                project.default_dedication_type &&
+                project.default_dedication_type.id
                   ? project.default_dedication_type.id
                   : null,
               hours:
@@ -1660,6 +1662,5 @@ export default {
   .custom-calendar.vc-container .vc-day {
     min-width: calc(100% / 7 - 5px);
   }
-  
 }
 </style>
