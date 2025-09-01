@@ -459,7 +459,7 @@ export default {
       return null;
     },
     superTotal() {
-      return sumBy(this.activities, "hours").toFixed(2);
+      return this.activities ? sumBy(this.activities, "hours").toFixed(2) : 0;
     },
     ...mapState(["me", "userName"]),
     counterTime() {

@@ -136,7 +136,7 @@ export default {
       return null
     },
     superTotal () {
-      return sumBy(this.activities, 'hours')
+      return this.activities ? sumBy(this.activities, 'hours') : 0
     }
   },
   watch: {

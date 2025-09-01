@@ -81,11 +81,6 @@ export default {
       viewType: 'all'
     }
   },
-  computed: {
-    superTotal () {
-      return sumBy(this.activities, 'hours')
-    }
-  },
   watch: {
     activities: function (newVal, oldVal) {
       this.getActivities()

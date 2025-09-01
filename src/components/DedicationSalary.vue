@@ -217,9 +217,6 @@ export default {
 
       return null;
     },
-    superTotal() {
-      return sumBy(this.activities, "hours");
-    },
     xsalary() {
       const sal = [];
       for (var i in this.months) {

@@ -106,9 +106,6 @@ export default {
 
       return null;
     },
-    superTotal() {
-      return sumBy(this.activities, "hours");
-    }
   },
   watch: {
     user: function(newVal, oldVal) {
