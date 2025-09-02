@@ -743,8 +743,9 @@ export default {
       if (this.form.kilograms !== null && this.route_rate !== null) {
         this.form.price = calculateRoutePrice(this.route_rate, this.form.kilograms, this.form.lines ? this.form.lines.length : 0);
       }
-      return this.form.price;
-    },    
+      const discountEffectAsOne = ( this.form.multidelivery_discount || 1) / (this.form.multidelivery_discount || 1);
+      return this.form.price * discountEffectAsOne;
+    },
     filteredContacts() {
       return this.contacts.filter(option => {
         return (
@@ -842,7 +843,8 @@ export default {
         routeFestives: [],
         contact_pickup_discount: 0,
         pickup_point: false,
-        lines: []
+        lines: [],
+        multidelivery_discount: 0,
       };
     },
     async getData() {
@@ -1072,9 +1074,9 @@ export default {
           this.dateWarningMessage = "";
         }
       }
+      this.checkMultidelivery();
     },
     async checkEstimatedDeliveryDate() {
-      console.log("checkEstimatedDeliveryDate");
       const route = this.routes.find(r => r.id === this.form.route);
       const valid = checkIfDateIsValidInroute(
         route,
@@ -1087,6 +1089,7 @@ export default {
       } else {
         this.dateWarningMessage = "";
       }
+      this.checkMultidelivery()
     },
     async deleteOrder() {
       this.$buefy.dialog.confirm({
@@ -1707,8 +1710,24 @@ export default {
         this.form.contact_time_slot_1_end = contact.time_slot_1_end;
         this.form.contact_time_slot_2_ini = contact.time_slot_2_ini;
         this.form.contact_time_slot_2_end = contact.time_slot_2_end;
+
+        this.checkMultidelivery();
       } else {
         this.removeContactData();
+      }
+    },
+    async checkMultidelivery() {
+      if (!this.form.contact || !this.form. estimated_delivery_date) {
+        return
+      }
+      const multidelivery = await service({ requiresAuth: true }).post(
+            `orders/check-multidelivery`,
+            { id: this.form.id, contactId: this.form.contact, date: this.form.estimated_delivery_date, ownerId: this.form.owner }
+          );
+      if (multidelivery && multidelivery.data && multidelivery.data.multidelivery_discount) {
+        this.form.multidelivery_discount = multidelivery.data.multidelivery_discount;
+      } else {
+        this.form.multidelivery_discount = 0;
       }
     },
     async getPDF() {
@@ -1728,9 +1747,11 @@ export default {
       this.onClientaChange(contactId);
     },
     changeRate() {      
+      this.form.multidelivery_discount = 0;
       const rate = assignRouteRate(this.form, this.routeRates, this.orders);      
       this.form.route_rate = rate;      
-      this.form.price = calculateRoutePrice(rate, this.form.kilograms, this.form.lines ? this.form.lines.length : 0);
+      this.form.price = calculateRoutePrice(rate, this.form.kilograms, this.form.lines ? this.form.lines.length : 0);      
+      this.checkMultidelivery();      
     },
     updatePickup() {
       // Find the selected pickup object
