@@ -2,10 +2,12 @@
   <div>
     <div class="table-view">
       <!-- <pre>{{ monthlyActivitiesTotal }}</pre> -->
+
+      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Totals per projecte</h3>
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal.length || justifications.length"
-      >
+      >        
         <div class="columns card-body">
           <div class="column is-4 has-text-weight-bold">Projecte</div>
           <div class="column is-2 has-text-weight-bold has-text-right">
@@ -16,7 +18,7 @@
           </div>
           <div class="column is-2 has-text-weight-bold has-text-right">%</div>
         </div>
-        <div v-for="(row, i) in summaryByProjectAll" :key="i" class="card-body">
+        <div v-for="(row, i) in summaryByProjectAll" :key="'proj-' + i" class="card-body">
           <div class="columns">
             <div class="column is-4">{{ row.project }}</div>
             <div class="column is-2 has-text-right">
@@ -84,6 +86,7 @@
         </div>
       </card-component>
 
+      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Totals per persona</h3>
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal.length || justifications.length"
@@ -96,7 +99,7 @@
         </div>
         <div
           v-for="(row, i) in summaryByUserAll"
-          :key="i * 100"
+          :key="'user-' + i"
           class="card-body"
         >
           <div class="columns">
@@ -115,6 +118,7 @@
         </div>
       </card-component>
 
+      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Bestretes per persona i mes</h3>
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal.length || justifications.length"
@@ -135,7 +139,7 @@
         </div>
         <div
           v-for="(row, i) in summaryByUserMonth"
-          :key="i * 10000"
+          :key="'user-month-' + i"
           class="card-body"
         >
           <div class="columns">
@@ -191,11 +195,13 @@
         </div>
       </card-component>
 
+      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Detall de bestretes</h3>
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="monthlyActivitiesTotal.length || justifications.length"
       >
-        <div class="columns card-body">
+        <div class="columns card-body">          
+          <div class="column has-text-weight-bold">Any</div>
           <div class="column has-text-weight-bold">Mes</div>
           <div class="column has-text-weight-bold">Persona</div>
           <div class="column has-text-weight-bold">Projecte</div>
@@ -215,10 +221,13 @@
         </div>
         <div
           v-for="(row, i) in monthlyActivitiesTotal"
-          :key="i * 1000000"
+          :key="'month-activity-' + i"
           class="card-body"
         >
           <div class="columns">
+            <div class="column">
+              {{ row.year }}
+            </div>
             <div class="column">
               {{ row.month }}
             </div>
@@ -276,11 +285,14 @@
           </div>
         </div>
         <div
-          v-for="(row, i) in justifications"
-          :key="i * 100000000"
+          v-for="(row, i) in justifications.filter(j => j.users_permissions_user)"
+          :key="'justification-' + i"
           class="card-body"
         >
           <div class="columns">
+            <div class="column">
+              {{ row.year }}
+            </div>
             <div class="column">
               {{ zeroPad(row.month, 2) }}
             </div>
@@ -332,22 +344,29 @@
         <div class="card-body">
           <div class="columns">
             <div class="column">
+              <b-select v-model="justification.year">
+                <option v-for="y in 5" :key="'year-' + y" :value="(new Date().getFullYear() - y + 1).toString()">
+                  {{ new Date().getFullYear() - y + 1 }}
+                </option>
+              </b-select>
+            </div>
+            <div class="column">
               <b-select v-model="justification.month">
-                <option v-for="m in 12" :key="m" :value="m">
+                <option v-for="m in 12" :key="'month-' + m" :value="m">
                   {{ zeroPad(m, 2) }}
                 </option>
               </b-select>
             </div>
             <div class="column">
               <b-select v-model="justification.users_permissions_user">
-                <option v-for="u in users" :key="u.id" :value="u">
+                <option v-for="u in users" :key="'user-' + u.id" :value="u">
                   {{ u.username }}
                 </option>
               </b-select>
             </div>
             <div class="column">
               <b-select v-model="justification.project">
-                <option v-for="u in projects" :key="u.id" :value="u">
+                <option v-for="u in projects" :key="'project-' + u.id" :value="u">
                   {{ u.name }}
                 </option>
               </b-select>
@@ -371,6 +390,96 @@
           </div>
         </div>
       </card-component>
+
+      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Detall de factures</h3>
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="monthlyActivitiesTotal.length || justifications.length"
+      >
+        <div class="columns card-body">          
+          <div class="column has-text-weight-bold">Any</div>  
+          <div class="column has-text-weight-bold">Projecte</div>
+          <div class="column has-text-weight-bold">Factura</div>
+          <div class="column has-text-weight-bold">Import</div>
+          <div class="column has-text-weight-bold has-text-right">Accions</div>
+        </div>
+        <div
+          v-for="(row, i) in justifications.filter(j => j.emitted_invoice)"
+          :key="'justification-' + i"
+          class="card-body"
+        >
+          <div class="columns">
+            <div class="column">
+              {{ row.year }}
+            </div>  
+            <div class="column">
+              {{ row.project.name }}
+            </div>
+            <div class="column">
+              {{ row.emitted_invoice ? row.emitted_invoice.code : '' }}
+            </div>
+            <div class="column has-text-right">
+              <money-format
+                :value="row.quantity"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+            <div class="column has-text-right">
+              <b-button
+                @click="deleteJustification(row)"
+                title="Esborrar"
+                class="view-button"
+                type="is-danger"
+                icon-left="trash-can"
+              />              
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="columns">
+            <div class="column">
+              <b-select v-model="justificationInvoice.year">
+                <option v-for="y in 5" :key="'year-' + y" :value="(new Date().getFullYear() - y + 1).toString()">
+                  {{ new Date().getFullYear() - y + 1 }}
+                </option>
+              </b-select>
+            </div>
+            <div class="column">
+              <b-select v-model="justificationInvoice.project">
+                <option v-for="u in projects" :key="'project-' + u.id" :value="u">
+                  {{ u.name }}
+                </option>
+              </b-select>
+            </div>
+            <div class="column">
+              <b-select v-model="justificationInvoice.emitted_invoice" :disabled="!justificationInvoice.project || !justificationInvoice.year"
+              @input="onEmittedInvoiceChange">
+                <option v-for="u in invoices" :key="'invoice-' + u.id" :value="u">
+                  {{ u.code }} ({{ u.total_base ? u.total_base.toFixed(2) : '-' }} €)
+                </option>
+              </b-select>
+            </div>
+            <div class="column has-text-right">
+              <b-input v-model="justificationInvoice.quantity" />
+            </div>            
+            <div class="column has-text-right">
+              <b-button
+                @click="addJustificationInvoice"
+                title="Afegir"
+                class="view-button"
+                type="is-primary"
+                :disabled="!addJustificationInvoiceEnabled"
+                icon-left="plus"
+              />
+            </div>
+          </div>
+        </div>
+      </card-component>
+
       <download-excel
         class="export"
         :data="dataCSV"
@@ -448,9 +557,17 @@ export default {
       projects: [],
       estimatedTotals: [],
       justification: {},
+      justificationInvoice: {
+        year: '',
+        month: null,
+        project: null,
+        emitted_invoice: null,
+        quantity: ''
+      },
       justifications: [],
       dedications: [],
-      theYear: 0
+      theYear: 0,
+      invoices: []
     };
   },
   computed: {
@@ -633,7 +750,7 @@ export default {
         })
         .value();
       // return activities
-      const activities2 = _(this.justifications)
+      const activities2 = _(this.justifications.filter(j => j.users_permissions_user))
         .groupBy(
           item => `${item.users_permissions_user.username}_${item.month}`
         )
@@ -683,7 +800,8 @@ export default {
       return activities;
     },
     dataCSV() {
-      const justifications = this.justifications.map(
+      const justifications = this.justifications
+      .map(
         ({
           id,
           project,
@@ -698,7 +816,8 @@ export default {
             project_id: project.id,
             project: project.name,
             payroll: payroll ? payroll.total : 0,
-            username: row.users_permissions_user.username,
+            username: row.users_permissions_user ? row.users_permissions_user.username : '',
+            emitted_invoice: row.emitted_invoice ? row.emitted_invoice.code : '',
             cost: row.quantity
           };
         }
@@ -709,10 +828,20 @@ export default {
     addJustificationEnabled() {
       return (
         this.justification.month &&
+        this.justification.year &&
         this.justification.users_permissions_user &&
         this.justification.project &&
         this.justification.quantity &&
         parseInt(this.justification.quantity) > 0
+      );
+    },
+    addJustificationInvoiceEnabled() {
+      return (
+        this.justificationInvoice.year &&
+        this.justificationInvoice.project &&
+        this.justificationInvoice.emitted_invoice &&
+        this.justificationInvoice.quantity &&
+        parseInt(this.justificationInvoice.quantity) > 0
       );
     }
   },
@@ -791,7 +920,7 @@ export default {
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
       ).data;
 
-      for (const just of justifications) {
+      for (const just of justifications.filter(j => j.users_permissions_user)) {
         const date = moment(`${just.year}-${just.month}-01`).format(
           "YYYY-MM-DD"
         );
@@ -819,6 +948,12 @@ export default {
           "users?_limit=-1"
         )
       ).data;
+
+      this.invoices = (
+        await service({ requiresAuth: true, cached: true }).get(
+          "emitted-invoices?_limit=-1"
+        )
+      ).data;
     },
     
     zeroPad(num, places) {
@@ -843,7 +978,7 @@ export default {
       });
     },
     async addJustification() {
-      this.justification.year = this.year;
+      // this.justification.year = this.year;
       await service({ requiresAuth: true }).post(
         `justifications`,
         this.justification
@@ -855,8 +990,39 @@ export default {
       this.justification = {};
       this.getActivities();
     },
+    async addJustificationInvoice() {
+      console.log('addJustificationInvoice', this.justificationInvoice);
+      // this.justificationInvoice.year = this.year;
+      await service({ requiresAuth: true }).post(
+        `justifications`,
+        this.justificationInvoice
+      );
+      this.$buefy.snackbar.open({
+        message: "Guardat",
+        queue: false
+      });
+      this.justificationInvoice = {
+        year: '',
+        month: null,
+        project: null,
+        emitted_invoice: null,
+        quantity: ''
+      };
+      this.getActivities();
+    },
     excelFormat(value) {
       return format(this.user, value);
+    },
+    onEmittedInvoiceChange() {
+      if (this.justificationInvoice.emitted_invoice && this.justificationInvoice.project) {
+        const inv = this.invoices.find(i => i.id === this.justificationInvoice.emitted_invoice.id);
+        console.log('this.justificationInvoice.emitted_invoice', this.justificationInvoice.emitted_invoice, inv);
+        if (inv) {
+          this.justificationInvoice.quantity = inv.total_base;
+        }
+      } else {
+        this.justificationInvoice.quantity = '';
+      }
     }
   },
   filters: {
