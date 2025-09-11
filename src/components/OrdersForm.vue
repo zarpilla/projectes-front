@@ -495,20 +495,24 @@
                 </div>
               </b-field>
 
-              <b-field label="Descompte multientrega / recollida" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount">
+              <b-field label="Descompte multientrega / recollida / volum" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount || form.volume_discount">
                 <b-input
                   :value="(form.multidelivery_discount || 0) + '%'"
                   type="text"
                   :disabled="true"></b-input>
-                <b-input
-                  :value="(form.contact_pickup_discount || 0)	+ '%'"
+                  <b-input
+                    :value="(form.contact_pickup_discount || 0)	+ '%'"
+                  type="text"
+                  :disabled="true"></b-input>
+                  <b-input
+                    :value="(-1 * form.volume_discount || 0) + ' €'"
                   type="text"
                   :disabled="true"></b-input>
               </b-field>
 
-              <b-field label="Preu amb descompte" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount">
+              <b-field label="Preu amb descompte" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount || form.volume_discount">
                 <b-input
-                  :value="( route_price * ( 1 - form.multidelivery_discount / 100) * ( 1 - form.contact_pickup_discount / 100) ).toFixed(2) + ' €'"
+                  :value="( (route_price + (-1 * form.volume_discount || 0) * ( 1 - form.multidelivery_discount / 100) * ( 1 - form.contact_pickup_discount / 100)) ).toFixed(2) + ' €'"
                   type="text"
                   :disabled="true"></b-input>
               </b-field>

@@ -729,7 +729,29 @@
               </b-field>
             </div>
             <hr />
-            <div class="summary has-background-white-ter p-4">
+            <div class="summary has-background-white-ter p-4">              
+              <div class="is-flex is-justify-content-flex-end" v-if="hasDiscount">
+                <label>Base sense descompte: </label>
+                <money-format
+                  :value="totalBaseWithoutDiscount"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value="false"
+                  :hide-subunits="false"
+                >
+                </money-format>
+              </div>
+              <div class="is-flex is-justify-content-flex-end" v-if="hasDiscount">
+                <label>Descompte: </label>
+                <money-format
+                  :value="totalDiscount"
+                  :locale="'es'"
+                  :currency-code="'EUR'"
+                  :subunits-value="false"
+                  :hide-subunits="false"
+                >
+                </money-format>
+              </div>
               <div class="is-flex is-justify-content-flex-end">
                 <label>Base: </label>
                 <money-format
@@ -1288,6 +1310,17 @@ export default {
     },
     total() {
       return this.totalBase + this.totalVat + this.totalIrpf;
+    },
+    hasDiscount() {
+      return this.form.lines.some(l => l.discount && l.discount > 0);
+    },
+    totalBaseWithoutDiscount() {
+      return sumBy(this.form.lines, l => {
+        return l.quantity * l.base;
+      });
+    },
+    totalDiscount() {
+      return this.totalBaseWithoutDiscount - this.totalBase;
     },
     canSendEmail() {
       const can =

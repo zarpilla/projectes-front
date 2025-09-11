@@ -561,7 +561,16 @@
           <b-icon
             v-if="
               props.row.finalPrice !== props.row.price &&
-                !props.row.multidelivery_discount
+                props.row.volume_discount
+            "
+            icon="circle"
+            class="has-text-success"
+            custom-size="default"
+            title="Descompte volum"
+          />
+          <b-icon
+            v-if="
+              props.row.finalPrice !== props.row.price && props.row.contact_pickup_discount
             "
             icon="circle"
             class="has-text-success"
