@@ -40,7 +40,9 @@
     </div>
     <b-table
       :loading="isLoading"
-      :paginated="false"
+      :paginated="true"
+      :per-page="50"
+      pagination-position="both"
       :striped="false"
       :data="contacts"
       v-if="!userContacts"
@@ -118,6 +120,7 @@
       :loading="isLoading"
       :paginated="true"
       :per-page="50"
+      pagination-position="both"
       :striped="false"
       :data="contacts"
       v-else

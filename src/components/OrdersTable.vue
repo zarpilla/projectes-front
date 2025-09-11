@@ -269,7 +269,6 @@
 
     <div class="mb-3">
       <div class="columns is-multiline ml-0 mt-4">
-        
         <div class="column is-half">
           <div class="columns is-mobile bg-white-panel">
             <div class="column">
@@ -319,10 +318,9 @@
           </div>
         </div>
         <div class="column is-flex is-multiline">
-          
-          <div class="is-flex" v-if="permissions.includes('orders_admin')" >
+          <div class="is-flex" v-if="permissions.includes('orders_admin')">
             <div>
-              <h2>CANVIAR ESTAT</h2>            
+              <h2>CANVIAR ESTAT</h2>
               <b-select v-model="newState" placeholder="">
                 <option value="pending">PENDENT</option>
                 <option value="deposited">DEPOSITADA</option>
@@ -339,11 +337,10 @@
             >
               CANVIAR ESTAT
             </button>
-            
           </div>
           <div class="is-flex" v-else>
             <div>
-              <h2>CANVIAR ESTAT</h2>      
+              <h2>CANVIAR ESTAT</h2>
               <b-select v-model="newState" placeholder="">
                 <option value="pending">PENDENT</option>
                 <option value="deposited">DEPOSITADA</option>
@@ -358,18 +355,18 @@
             </button>
           </div>
           <div class="ml-5">
-          <h2 class="pr-2">ALBARÀ</h2>
-          <div class="is-flex">
-            <button
-              class="button is-primary zml-3"
-              :disabled="!checkedRows.length"
-              @click="pdfOrders"
-            >
-              Imprimeix PDF
-            </button>
+            <h2 class="pr-2">ALBARÀ</h2>
+            <div class="is-flex">
+              <button
+                class="button is-primary zml-3"
+                :disabled="!checkedRows.length"
+                @click="pdfOrders"
+              >
+                Imprimeix PDF
+              </button>
+            </div>
           </div>
         </div>
-        </div>        
         <div class="column is-flex">
           <div class="ml-auto mt-2">
             <b-select
@@ -407,6 +404,7 @@
       :is-row-checkable="row => true"
       :debounce-search="500"
       :checkable="true || permissions.includes('orders_admin')"
+      :row-class="rowClassFn"
     >
       <b-table-column label="ID" field="idx" sortable v-slot="props" searchable>
         <router-link
@@ -570,7 +568,8 @@
           />
           <b-icon
             v-if="
-              props.row.finalPrice !== props.row.price && props.row.contact_pickup_discount
+              props.row.finalPrice !== props.row.price &&
+                props.row.contact_pickup_discount
             "
             icon="circle"
             class="has-text-success"
@@ -1061,6 +1060,21 @@ export default {
     this.getData();
   },
   methods: {
+    rowClassFn(row) {
+      if (!row.estimated_delivery_date) return "";
+      // Parse the date as YYYY-MM-DD or YYYYMMDD
+      const date = moment(row.estimated_delivery_date, [
+        "YYYY-MM-DD",
+        "YYYYMMDD"
+      ]);
+      if (!date.isValid()) return "";
+      const orderWeek = date.isoWeek();
+      const currentWeek = moment().isoWeek();
+      if (orderWeek > currentWeek) {
+        return "future-week-row";
+      }
+      return "";
+    },
     async setStatusFilter(status) {
       localStorage.setItem("OrdersTable.statusFilter", status);
 
@@ -1979,6 +1993,11 @@ export default {
   line-height: 20px;
   max-height: 24px;
 }
+/* Highlight future week orders */
+.future-week-row {
+  background-color: #fafafa !important;
+  opacity: 0.5;
+}
 .tag.bg-invoiced {
   background-color: grey !important;
   color: white !important;
@@ -2001,12 +2020,12 @@ export default {
 .ml-auto {
   margin-left: auto;
 }
-.mr-mobile-3{
+.mr-mobile-3 {
   @media screen and (max-width: 768px) {
-    margin-right: 1rem!important;    
+    margin-right: 1rem !important;
   }
 }
-.bg-white-panel{
+.bg-white-panel {
   background-color: white !important;
   border: 1px solid rgb(219, 219, 219) !important;
   border-radius: 4px;
