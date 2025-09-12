@@ -74,11 +74,7 @@ export default {
         this.isLoading = false
         this.getData()
       }
-    }, 100)
-
-    // setInterval(async () => {
-    //   console.log('kendoPivotGrid', kendoPivotGrid)
-    // }, 300)
+    }, 100)    
   },
   methods: {
     getData () {

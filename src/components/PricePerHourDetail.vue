@@ -549,43 +549,6 @@ export default {
         return omit(c, ["document"]);
       });
       this.pivotData = Object.freeze(sortBy(data2, ["project_name"]));
-
-      // const currentConfigPivot = configPivot;
-
-      // if (this.dataType === "Previsió") {
-      //   currentConfigPivot.dataSource.measures = [
-      //     "Resultat prev",
-      //     "Ingressos prev",
-      //     "Despeses tot prev",
-      //     "Despeses prev",
-      //     "Hores prev"
-      //   ];
-      // } else if (this.dataType === "Execució") {
-      //   currentConfigPivot.dataSource.measures = [
-      //     "Resultat exec",
-      //     "Ingressos exec",
-      //     "Despeses tot exec",
-      //     "Despeses exec",
-      //     "Hores exec"
-      //   ];
-      // } else {
-      //   currentConfigPivot.dataSource.measures = [
-      //     "Resultat prev",
-      //     "Resultat exec",
-      //     "Ingressos prev",
-      //     "Ingressos exec",
-      //     "Despeses tot prev",
-      //     "Despeses tot exec",
-      //     "Despeses prev",
-      //     "Despeses exec",
-      //     "Hores prev",
-      //     "Hores exec"
-      //   ];
-      // }
-
-      // currentConfigPivot.dataSource.data = this.pivotData;
-      // window.jQuery("#project-despeses").empty();
-      // window.jQuery("#project-despeses").kendoPivotGrid(currentConfigPivot);
       this.isLoading = false;
     },
     excelFormat(value) {

@@ -1,5 +1,20 @@
 <template>
   <div>
+    <!-- Pivot Views Component -->
+    <pivot-views
+      :pivot-views="pivotViews"
+      :selected-view-id="selectedViewId"
+      :show-save-modal="showSaveViewModal"
+      :view-name="newViewName"
+      @apply-view="applyPivotView"
+      @apply-default="applyDefaultView"
+      @save-view="showSaveView"
+      @delete-view="deletePivotView"
+      @close-save-modal="showSaveViewModal = false"
+      @confirm-save="saveCurrentView"
+      @update:viewName="newViewName = $event"
+    />
+    
     <div id="project-stats"></div>
     <download-excel class="export" :data="pivotData">
       <b-button
@@ -16,12 +31,15 @@ import sumBy from 'lodash/sumBy'
 import sortBy from 'lodash/sortBy'
 import moment from 'moment'
 import configPivot from '@/service/configStatsProject'
+import PivotViews from '@/components/PivotViews.vue'
+import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
 
 moment.locale('ca')
 
 export default {
   name: 'ProjectesPivot',
-  components: { },
+  components: { PivotViews },
+  mixins: [pivotViewsMixin],
   props: {
     projectState: {
       type: Number,
@@ -43,7 +61,8 @@ export default {
       states: [],
       leaders: [],
       contacts: [],
-      pivotData: []
+      pivotData: [],
+      pivotIdentifier: 'projectes-pivot'
     }
   },
   watch: {
@@ -119,8 +138,7 @@ export default {
         this.projects = r.data
         this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
         configPivot.dataSource.data = this.pivotData
-        window.jQuery('#project-stats').empty()
-        window.jQuery('#project-stats').kendoPivotGrid(configPivot)
+        this.initializePivotWithViews('#project-stats', configPivot)
         // setTimeout(() => {
         //   const b1 = window.jQuery('.k-button[data-name=project_state]')
         //   b1.text(b1.text().replace('project_state', 'Estat'))
@@ -128,6 +146,21 @@ export default {
         // }, 500)
         this.isLoading = false
       })
+    },
+    applyDefaultView() {
+      if (this.pivotGridInstance) {
+        // Reset to default configuration
+        const dataSource = this.pivotGridInstance.dataSource
+        const defaultConfig = configPivot.dataSource
+        
+        dataSource.columns(defaultConfig.columns || [])
+        dataSource.rows(defaultConfig.rows || [])
+        dataSource.measures(defaultConfig.measures || [])
+        // Note: Kendo Pivot Grid doesn't support filters() method
+        // dataSource.filters([])
+        
+        this.selectedViewId = null
+      }
     },
     exportCSV () {
 

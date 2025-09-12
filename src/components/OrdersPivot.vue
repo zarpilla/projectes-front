@@ -1,5 +1,20 @@
 <template>
   <div>
+    <!-- Pivot Views Component -->
+    <pivot-views
+      :pivot-views="pivotViews"
+      :selected-view-id="selectedViewId"
+      :show-save-modal="showSaveViewModal"
+      :view-name="newViewName"
+      @apply-view="applyPivotView"
+      @apply-default="applyDefaultView"
+      @save-view="showSaveView"
+      @delete-view="deletePivotView"
+      @close-save-modal="showSaveViewModal = false"
+      @confirm-save="saveCurrentView"
+      @update:viewName="newViewName = $event"
+    />
+    
     <div id="project-stats"></div>
     <download-excel class="export" 
       :fields="{
@@ -62,12 +77,15 @@ import configPivot from '@/service/configStatsOrder'
 import sortBy from 'lodash/sortBy'
 import { format } from '@/helpers/excelFormatter'
 import { mapState } from 'vuex'
+import PivotViews from '@/components/PivotViews.vue'
+import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
 
 moment.locale('ca')
 
 export default {
   name: 'OrdersPivot',
-  components: { },
+  components: { PivotViews },
+  mixins: [pivotViewsMixin],
   props: {
     year: {
       type: Number,
@@ -82,7 +100,8 @@ export default {
     return {
       orders: [],
       pivotData: [],
-      isLoading: false
+      isLoading: false,
+      pivotIdentifier: 'orders-pivot'
     }
   },
   computed: {
@@ -108,10 +127,24 @@ export default {
       this.orders = (await service({ requiresAuth: true }).get(`orders/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.orders, ['id'], ['asc']))
       configPivot.dataSource.data = this.pivotData
-      window.jQuery('#project-stats').empty()
-      window.jQuery('#project-stats').kendoPivotGrid(configPivot)
+      this.initializePivotWithViews('#project-stats', configPivot)
       this.isLoading = false
       
+    },
+    applyDefaultView() {
+      if (this.pivotGridInstance) {
+        // Reset to default configuration
+        const dataSource = this.pivotGridInstance.dataSource
+        const defaultConfig = configPivot.dataSource
+        
+        dataSource.columns(defaultConfig.columns || [])
+        dataSource.rows(defaultConfig.rows || [])
+        dataSource.measures(defaultConfig.measures || [])
+        // Note: Kendo Pivot Grid doesn't support filters() method
+        // dataSource.filters([])
+        
+        this.selectedViewId = null
+      }
     },
     excelFormat(value) {
       return format(this.user, value);

@@ -2,6 +2,20 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2025.09.12">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Possibilitat de definir vistes personalitzades a les taules dinàmiques.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Millores de rendiment en la visualització de dades d'ingressos i despeses i preus/hora.
+          </div>
+        </div>
+      </card-component>
       <card-component title="2025.08.02">
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>

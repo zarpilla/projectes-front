@@ -313,6 +313,21 @@
     </card-component>
 
     <card-component title="PER PROJECTE" class="ztile is-child mt-2">
+      <!-- Pivot Views Component -->
+      <pivot-views
+        :pivot-views="pivotViews"
+        :selected-view-id="selectedViewId"
+        :show-save-modal="showSaveViewModal"
+        :view-name="newViewName"
+        @apply-view="applyPivotView"
+        @apply-default="applyDefaultView"
+        @save-view="showSaveView"
+        @delete-view="deletePivotView"
+        @close-save-modal="showSaveViewModal = false"
+        @confirm-save="saveCurrentView"
+        @update:viewName="newViewName = $event"
+      />
+      
       <div id="project-stats"></div>
     </card-component>
 
@@ -435,6 +450,9 @@ import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { format } from "@/helpers/excelFormatter";
+import PivotViews from '@/components/PivotViews.vue'
+import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
+
 export default {
   name: "Tresoreria",
   components: {
@@ -442,7 +460,9 @@ export default {
     CardComponent,
     MoneyFormat,
     TreasuryAnnotationInput,
+    PivotViews,
   },
+  mixins: [pivotViewsMixin],
   props: {
     titleStack: {
       type: Array,
@@ -480,6 +500,7 @@ export default {
       projectStates: [],
       selectedProjectStates: [],
       selectedYear: null,
+      pivotIdentifier: 'tresoreria-pivot'
     };
   },
   async mounted() {
@@ -624,8 +645,7 @@ export default {
       this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
 
       configPivot.dataSource.data = this.pivotData2;
-      window.jQuery("#project-stats").empty();
-      window.jQuery("#project-stats").kendoPivotGrid(configPivot);
+      this.initializePivotWithViews("#project-stats", configPivot);
       this.isLoading = false;
     },
     async getInitialData() {
@@ -785,6 +805,21 @@ export default {
     },
     excelFormat(value) {
       return format(this.user, value);
+    },
+    applyDefaultView() {
+      if (this.pivotGridInstance) {
+        // Reset to default configuration
+        const dataSource = this.pivotGridInstance.dataSource
+        const defaultConfig = configPivot.dataSource
+        
+        dataSource.columns(defaultConfig.columns || [])
+        dataSource.rows(defaultConfig.rows || [])
+        dataSource.measures(defaultConfig.measures || [])
+        // Note: Kendo Pivot Grid doesn't support filters() method
+        // dataSource.filters([])
+        
+        this.selectedViewId = null
+      }
     },
   },
 };
