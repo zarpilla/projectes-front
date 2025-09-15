@@ -1076,8 +1076,8 @@
                   <money-format
                     :value="
                       form.total_real_hours
-                        ? (form.total_real_incomes - form.total_real_expenses) /
-                          form.total_real_hours
+                        ? (totals.total_real_incomes - totals.total_real_expenses) /
+                          totals.total_real_hours
                         : 0
                     "
                     :locale="'es'"
@@ -1093,15 +1093,15 @@
                   <money-format
                     :value="
                       -1 *
-                        (form.total_estimated_hours
-                          ? (form.total_incomes - form.total_expenses) /
-                            form.total_estimated_hours
+                        (totals.total_estimated_hours
+                          ? (totals.total_incomes - totals.total_expenses) /
+                            totals.total_estimated_hours
                           : 0) -
                         -1 *
-                          (form.total_real_hours
-                            ? (form.total_real_incomes -
-                                form.total_real_expenses) /
-                              form.total_real_hours
+                          (totals.total_real_hours
+                            ? (totals.total_real_incomes -
+                                totals.total_real_expenses) /
+                              totals.total_real_hours
                             : 0)
                     "
                     :locale="'es'"
