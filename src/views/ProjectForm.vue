@@ -72,6 +72,17 @@
                 >
                 </b-datepicker>
               </b-field>
+              <b-field label="Tipus" horizontal>
+                <b-select v-model="form.project_type.id" placeholder="Tipus">
+                  <option
+                    v-for="(s, index) in project_types"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
               <b-field label="Clientes" horizontal>
                 <b-autocomplete
                   v-model="clientSearch"
@@ -1964,6 +1975,7 @@ export default {
       project_states: [],
       project_scopes: [],
       leaders: [],
+      project_types: [],
       clients: [],
       strategies: [],
       expenseTypes: [],
@@ -2396,7 +2408,8 @@ export default {
         phases: [],
         original_phases: [],
         expenses: [],
-        default_dedication_type: { id: 0 }
+        default_dedication_type: { id: 0 },
+        project_type: { id: 0 }
       };
     },
     getData() {
@@ -2429,6 +2442,11 @@ export default {
               this.form.leader =
                 this.form.leader && this.form.leader.id
                   ? this.form.leader
+                  : { id: 0 };
+
+              this.form.project_type =
+                this.form.project_type && this.form.project_type.id
+                  ? this.form.project_type
                   : { id: 0 };
 
               if (this.form.grantable_leader) {
@@ -2586,9 +2604,14 @@ export default {
           this.project_states = r.data;
         });
       service({ requiresAuth: true, cached: true })
-        .get("project-scopes")
+      .get("project-scopes?_limit=-1")
         .then(r => {
           this.project_scopes = r.data;
+        });
+      service({ requiresAuth: true, cached: true })
+        .get("project-types?_limit=-1")
+        .then(r => {
+          this.project_types = r.data;
         });
 
       service({ requiresAuth: true, cached: true })
@@ -2602,17 +2625,17 @@ export default {
           this.strategies = r.data;
         });
       service({ requiresAuth: true, cached: true })
-        .get("document-types")
+        .get("document-types?_limit=-1")
         .then(r => {
           this.documentTypes = r.data;
         });
       service({ requiresAuth: true, cached: true })
-        .get("dedication-types")
+        .get("dedication-types?_limit=-1")
         .then(r => {
           this.dedicationTypes = r.data;
         });
       service({ requiresAuth: true, cached: true })
-        .get("regions")
+        .get("regions?_limit=-1")
         .then(r => {
           this.regions = r.data;
         });
@@ -2639,6 +2662,12 @@ export default {
           "users?_limit=-1"
         )
       ).data.filter(u => u.hidden !== true);
+
+      this.project_types = (
+        await service({ requiresAuth: true, cached: true }).get(
+          "project-types?_limit=-1"
+        )
+      ).data;
 
       if (this.$route.params.id === "0" && !this.form.leader.id) {
         this.form.leader = { id: this.user.id };
