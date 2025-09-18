@@ -197,11 +197,12 @@
           <span
             class="day-sum-label text-sm text-gray-900"
             v-if="daySum(attributes)"
-            >{{ daySum(attributes) }}h</span
-          >
-          <div class="flex-grow overflow-y-auto overflow-x-auto">
-            <span
-              v-for="attr in attributes"
+            >{{ daySum(attributes) }}h<span v-if="daySumPending(attributes) && daySumPending(attributes) !== daySum(attributes)"> / {{ daySumPending(attributes) }}h</span>
+          </span
+        >
+        <div class="flex-grow overflow-y-auto overflow-x-auto">
+          <span
+            v-for="attr in attributes"
               :key="attr.key"
               class="
                 text-xs
@@ -991,6 +992,23 @@ export default {
       }
       return sumBy(
         attributes.map(a => {
+          return { hours: a.customData && a.customData.pending === undefined ? a.customData.hours : 0 };
+        }),
+        "hours"
+      ).toFixed(2);
+    },
+    daySumPending(attributes) {
+      if (!attributes || (attributes && attributes.length === 0)) {
+        return false;
+      }
+      const pendingAttributes = attributes.filter(a => 
+        a.customData && a.customData.pending === true
+      );
+      if (pendingAttributes.length === 0) {
+        return false;
+      }
+      return sumBy(
+        pendingAttributes.map(a => {
           return { hours: a.customData ? a.customData.hours : 0 };
         }),
         "hours"
@@ -1138,7 +1156,9 @@ export default {
           this.icalVisible = true;
           const icalEvents = (
             await service({ requiresAuth: true }).get(
-              `activities/import-calendar/${this.user}`
+              `activities/import-calendar/${this.user}?from=${moment(this.date1).format(
+                "YYYY-MM-DD"
+              )}&to=${moment(this.date2).add(1, "days").format("YYYY-MM-DD")}`
             )
           ).data;
           if (icalEvents.ical && icalEvents.ical.length) {
@@ -1189,9 +1209,10 @@ export default {
                 project: event.summary,
                 username: user.username,
                 hours:
-                  moment(event.end).diff(moment(event.start), "minutes") / 60,
+                  moment(event.end).diff(moment(event.start), "minutes") / 60,                
                 type: "ical",
-                a: event
+                a: event,
+                pending: true
               },
               dates: event.start
             });
