@@ -2,6 +2,32 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2025.09.18">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Nou camp de tipus de projecte a la fitxa de projecte.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            La importació de calendaris iCal permet importar esdeveniments recurrents.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-danger">Correccions</span>
+          <div class="text mt-2">
+            Correcció de camps buits a la taula dinàmica d'ingressos i despeses.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-danger">Correccions</span>
+          <div class="text mt-2">
+            Ja no es mostren anys 9999 en projectes amb periodificació, sempre que totes les fases tinguin dates assignades.
+          </div>
+        </div>
+      </card-component>
       <card-component title="2025.09.12">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
