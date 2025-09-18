@@ -51,18 +51,30 @@
               </b-select>
             </b-field>
             <b-field label="Contacte" class="is-narrow">
-              <b-select v-model="filters.contact">
-                <option v-for="(c, i) in contacts" :key="i" :value="c.id">
-                  {{ c.name }}
-                </option>
-              </b-select>
+              <b-autocomplete
+                v-model="contactNameSearch"
+                placeholder="Contacte"
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredContacts"
+                field="name"
+                @select="option => (filters.contact = option ? option.id : 0)"
+                :clearable="true"
+              >
+              </b-autocomplete>
             </b-field>
             <b-field label="Projecte" class="is-narrow">
-              <b-select v-model="filters.project">
-                <option v-for="(c, i) in projects" :key="i" :value="c.id">
-                  {{ c.name }}
-                </option>
-              </b-select>
+              <b-autocomplete
+                v-model="projectNameSearch"
+                placeholder="Projecte"
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredProjects"
+                field="name"
+                @select="option => (filters.project = option ? option.id : 0)"
+                :clearable="true"
+              >
+              </b-autocomplete>
             </b-field>
             <b-field label="Pagada" class="is-narrow">
               <b-select v-model="filters.paid">
@@ -130,7 +142,9 @@ export default {
         { name: "Sí", value: 1 },
         { name: "No", value: 2 },
       ],
-      serials: []
+      serials: [],
+      contactNameSearch: '',
+      projectNameSearch: ''
     };
   },
   computed: {
@@ -138,6 +152,26 @@ export default {
     titleStack() {
       return ["Facturació", "Despeses"];
     },
+    filteredContacts () {
+      return this.contacts.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.contactNameSearch.toLowerCase()) >= 0
+        )
+      })
+    },
+    filteredProjects () {
+      return this.projects.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.projectNameSearch.toLowerCase()) >= 0
+        )
+      })
+    }
   },
   mounted() {
     this.getData();
