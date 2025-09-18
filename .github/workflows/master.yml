@@ -1,9 +1,9 @@
-name: Build and Publish Frontend Docker image (main)
+name: Build and Publish Frontend Docker image (master)
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-push:
