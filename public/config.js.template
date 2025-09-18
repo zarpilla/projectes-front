@@ -1,0 +1,6 @@
+// Runtime configuration - injected by Docker entrypoint
+window.APP_CONFIG = {
+  VUE_APP_API_URL: '${VUE_APP_API_URL}',
+  VUE_APP_RESET_PASSWORD: '${VUE_APP_RESET_PASSWORD}',
+  VUE_APP_PATH: '${VUE_APP_PATH}'
+};

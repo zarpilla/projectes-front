@@ -57,6 +57,7 @@ import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'
 import moment from 'moment'
+import getConfig from '@/config'
 
 export default {
   name: 'StatsDedicacio',
@@ -89,10 +90,12 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        await addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')        
+        const config = getConfig();
+        const basePath = config.VUE_APP_PATH || '';
+        await addScript(basePath + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle(basePath + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle(basePath + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle(basePath + '/vendor/kendo/custom.css', 'custom-css')        
         this.getData()
         setTimeout(() => {
           this.isLoading = false

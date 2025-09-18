@@ -33,6 +33,8 @@
 <script>
 
 import service from "@/service/index";
+import getConfig from "@/config";
+
     export default {
         name: 'ForgottenPassword',        
         data() {
@@ -51,10 +53,11 @@ import service from "@/service/index";
                 this.done = false;
                 this.error = false;
                 this.sent = true;
+                const config = getConfig();
                 service()
                 .post("auth/forgot-password", {
                     email: this.email,
-                    url: process.env.VUE_APP_RESET_PASSWORD,
+                    url: config.VUE_APP_RESET_PASSWORD,
                 })                
                 .then((res) => {
                     this.done = true

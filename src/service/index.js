@@ -1,10 +1,12 @@
 import axios from 'axios'
+import getConfig from '@/config'
 
 const cache = {}
 
 export default ({ requiresAuth = false, multipart = false, cached = false } = {}) => {
+  const config = getConfig()
   const options = {}
-  options.baseURL = process.env.VUE_APP_API_URL || 'http://localhost:1337'
+  options.baseURL = config.VUE_APP_API_URL || 'http://localhost:1337'
 
   if (requiresAuth) {
     const jwt = localStorage.getItem('jwt')

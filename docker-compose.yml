@@ -1,0 +1,22 @@
+
+# For local development, use the build context below.
+# For production, comment out the build section and uncomment the image line to pull from Docker Hub.
+version: '3.8'
+services:
+  esstrapis-front:
+    # Uncomment for production:
+    # image: ${DOCKERHUB_USERNAME}/esstrapis-front:latest
+    # Comment out build for production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+      - VUE_APP_API_URL=${VUE_APP_API_URL:-http://localhost:1337}
+      - VUE_APP_RESET_PASSWORD=${VUE_APP_RESET_PASSWORD:-http://localhost:8080/#/reset-password}
+      - VUE_APP_PATH=${VUE_APP_PATH:-http://localhost:8080/}
+    env_file:
+      - .env
+    restart: unless-stopped
