@@ -512,7 +512,7 @@
 
               <b-field label="Preu amb descompte" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount || form.volume_discount">
                 <b-input
-                  :value="( (route_price + (-1 * form.volume_discount || 0) * ( 1 - form.multidelivery_discount / 100) * ( 1 - form.contact_pickup_discount / 100)) ).toFixed(2) + ' €'"
+                  :value="( (route_price + (-1 * form.volume_discount || 0)) * ( 1 - form.multidelivery_discount / 100) * ( 1 - form.contact_pickup_discount / 100) ).toFixed(2) + ' €'"
                   type="text"
                   :disabled="true"></b-input>
               </b-field>
