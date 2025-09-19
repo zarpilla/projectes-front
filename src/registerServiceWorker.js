@@ -6,7 +6,7 @@ if (process.env.NODE_ENV === 'production') {
   console.log('Registering service worker at:', `${process.env.BASE_URL}service-worker.js`)
   register(`${process.env.BASE_URL}service-worker.js`, {
     ready () {
-      console.log('ESSTRAPIS v.1.0.2')
+      console.log('ESSTRAPIS v.1.0.3 - DEBUG VERSION')
       console.log(
         'App is being served from cache by a service worker.\n' +
         'For more details, visit https://goo.gl/AFskqB'
