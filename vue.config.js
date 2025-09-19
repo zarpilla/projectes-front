@@ -1,16 +1,15 @@
 module.exports = {
-  publicPath: process.env.DEPLOY_ENV === 'GH_PAGES'
-    ? '/esstrapis/'
-    : process.env.NODE_ENV === 'production' && process.env.VUE_APP_DOCKER 
-      ? '/' 
-      : '/stats',
+  publicPath:
+    process.env.DEPLOY_ENV === "GH_PAGES"
+      ? "/esstrapis/"
+      : process.env.VUE_APP_PATH,
 
   configureWebpack: {
     module: {
       rules: [
         {
           test: /\.postcss$/,
-          use: [ 'postcss-loader' ]
+          use: ["postcss-loader"]
         }
       ]
     }
@@ -23,7 +22,7 @@ module.exports = {
   },
   pwa: {
     workboxOptions: {
-        // skipWaiting: true
+      // skipWaiting: true
     }
   }
-}
+};

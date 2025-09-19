@@ -1,0 +1,29 @@
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Handle static assets first
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Handle the app path dynamically
+    location ${VUE_APP_BASE_PATH} {
+        alias /usr/share/nginx/html/;
+        try_files $uri $uri/ @fallback;
+    }
+
+    # Fallback for Vue Router SPA
+    location @fallback {
+        rewrite ^.*$ /index.html last;
+    }
+
+    # Root redirect if needed
+    location = / {
+        return 301 ${VUE_APP_BASE_PATH};
+    }
+}

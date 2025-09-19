@@ -15,8 +15,8 @@ services:
     environment:
       - NODE_ENV=production
       - VUE_APP_API_URL=${VUE_APP_API_URL:-http://localhost:1337}
-      - VUE_APP_RESET_PASSWORD=${VUE_APP_RESET_PASSWORD:-http://localhost:8080/#/reset-password}
-      - VUE_APP_PATH=${VUE_APP_PATH:-http://localhost:8080/}
+      - VUE_APP_RESET_PASSWORD=${VUE_APP_RESET_PASSWORD:-http://localhost:8080/stats/#/reset-password}
+      - VUE_APP_PATH=${VUE_APP_PATH:-/stats/}
     env_file:
       - .env
     restart: unless-stopped

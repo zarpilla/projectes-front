@@ -28,24 +28,8 @@ RUN apk add --no-cache gettext
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Create a basic nginx configuration for Vue Router
-RUN echo 'server { \
-    listen 80; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    \
-    # Handle static assets first \
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ { \
-        expires 1y; \
-        add_header Cache-Control "public, immutable"; \
-        try_files $uri =404; \
-    } \
-    \
-    # Handle Vue Router (SPA) \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Copy nginx config template
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Copy the startup script and config template
 COPY docker-entrypoint.sh /docker-entrypoint.sh
