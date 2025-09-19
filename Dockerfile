@@ -3,6 +3,11 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+# Accept build arguments
+ARG VUE_APP_PATH=/
+ARG VUE_APP_API_URL=http://localhost:1337
+ARG VUE_APP_RESET_PASSWORD=http://localhost:8080/#/reset-password
+
 WORKDIR /app
 
 # Copy package files
@@ -14,8 +19,13 @@ RUN npm ci --only=production=false
 # Copy source code
 COPY . .
 
-# Build the application
+# Set environment variables for build
 ENV VUE_APP_DOCKER=true
+ENV VUE_APP_PATH=$VUE_APP_PATH
+ENV VUE_APP_API_URL=$VUE_APP_API_URL
+ENV VUE_APP_RESET_PASSWORD=$VUE_APP_RESET_PASSWORD
+
+# Build the application
 RUN npm run build
 
 # Production stage
