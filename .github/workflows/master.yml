@@ -27,4 +27,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          build-args: |
+            VUE_APP_PATH=/stats/
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:latest
