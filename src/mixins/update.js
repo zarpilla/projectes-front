@@ -6,18 +6,26 @@ export default {
     }
   },
   created () {
+    console.log('Update mixin created, setting up swUpdated listener')
     // Listen for our custom event from the SW registration
     document.addEventListener('swUpdated', this.updateAvailable, {
       once: true
     })
 
-    // this.updateAvailable({ detail: '' })
+    // Add manual trigger for testing - remove in production
+    if (process.env.NODE_ENV !== 'production') {
+      window.testUpdateAvailable = () => {
+        console.log('Manually triggering updateAvailable for testing')
+        this.updateAvailable({ detail: { waiting: { postMessage: () => {} } } })
+      }
+    }
 
     // Prevent multiple refreshes
     if (navigator.serviceWorker) {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (this.refreshing) return
         this.refreshing = true
+        console.log('Service worker controller changed, reloading page')
         // Here the actual reload of the page occurs
         window.location.reload()
       })
@@ -25,6 +33,7 @@ export default {
   },
   methods: {
     updateAvailable (event) {
+      console.log('updateAvailable called with event:', event)
       this.registration = event.detail
       this.updateExists = true
       this.$buefy.snackbar.open({

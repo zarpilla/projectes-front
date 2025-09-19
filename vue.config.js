@@ -22,7 +22,10 @@ module.exports = {
   },
   pwa: {
     workboxOptions: {
-      // skipWaiting: true
+      // skipWaiting: true,
+      // Force update check more frequently in Docker environment
+      clientsClaim: true,
+      skipWaiting: false
     }
   }
 };
