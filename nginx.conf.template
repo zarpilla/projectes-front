@@ -4,14 +4,22 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # Service worker should never be cached
-    location ~* service-worker\.js$ {
+    # Handle service worker specifically for /stats/ prefix - must come before other /stats/ rules
+    location = /stats/service-worker.js {
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        try_files /service-worker.js =404;
+    }
+    
+    # Service worker should never be cached - handle direct access
+    location = /service-worker.js {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         add_header Pragma "no-cache";
     }
 
-    # Handle static assets with /stats/ prefix - strip the prefix
+    # Handle static assets with /stats/ prefix - strip the prefix (but exclude service-worker.js)
     location ~* ^/stats/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
         expires 1y;
         add_header Cache-Control "public, immutable";

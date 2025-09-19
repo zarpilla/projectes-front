@@ -3,8 +3,24 @@
 import { register } from 'register-service-worker'
 
 if (process.env.NODE_ENV === 'production') {
-  console.log('Registering service worker at:', `${process.env.BASE_URL}service-worker.js`)
-  register(`${process.env.BASE_URL}service-worker.js`, {
+  const swPath = `${process.env.BASE_URL}service-worker.js`
+  console.log('Registering service worker at:', swPath)
+  console.log('BASE_URL:', process.env.BASE_URL)
+  
+  // First, let's check if the service worker file exists
+  fetch(swPath, { method: 'HEAD' })
+    .then(response => {
+      console.log('Service worker file check - Status:', response.status)
+      console.log('Service worker file check - Headers:', [...response.headers.entries()])
+      if (!response.ok) {
+        console.error('Service worker file not found or not accessible')
+      }
+    })
+    .catch(error => {
+      console.error('Error checking service worker file:', error)
+    })
+  
+  register(swPath, {
     ready () {
       console.log('ESSTRAPIS v.1.0.3 - DEBUG VERSION')
       console.log(
@@ -42,6 +58,18 @@ if (process.env.NODE_ENV === 'production') {
     },
     error (error) {
       console.error('Error during service worker registration:', error)
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      })
+      
+      // Additional debugging - check if the SW file is accessible
+      if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          console.log('Current service worker registrations:', registrations)
+        })
+      }
     }
   })
 }
