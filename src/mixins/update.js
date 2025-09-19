@@ -2,7 +2,8 @@ export default {
   data () {
     return {
       registration: null,
-      updateExists: false
+      updateExists: false,
+      updateCheckInterval: null
     }
   },
   created () {
@@ -20,32 +21,9 @@ export default {
       }
     }
 
-    // Fallback: Check for service worker updates manually if we have an old SW
+    // AGGRESSIVE UPDATE CHECK - Check every 30 seconds for waiting service workers
     if (navigator.serviceWorker) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach(registration => {
-          // If there's a waiting service worker, it means there's an update ready
-          if (registration.waiting) {
-            console.log('Found waiting service worker, triggering update notification')
-            this.updateAvailable({ detail: registration })
-          }
-          
-          // Listen for future updates on existing registrations
-          registration.addEventListener('updatefound', () => {
-            console.log('Update found on existing registration')
-            const newWorker = registration.installing
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                console.log('New worker state:', newWorker.state)
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log('New service worker installed and ready')
-                  this.updateAvailable({ detail: registration })
-                }
-              })
-            }
-          })
-        })
-      })
+      this.startUpdateChecking()
 
       // Prevent multiple refreshes
       navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -57,11 +35,65 @@ export default {
       })
     }
   },
+  beforeDestroy () {
+    if (this.updateCheckInterval) {
+      clearInterval(this.updateCheckInterval)
+    }
+  },
   methods: {
+    startUpdateChecking () {
+      console.log('Starting aggressive update checking every 30 seconds')
+      
+      // Check immediately
+      this.checkForUpdates()
+      
+      // Then check every 30 seconds
+      this.updateCheckInterval = setInterval(() => {
+        this.checkForUpdates()
+      }, 30000)
+    },
+    
+    checkForUpdates () {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+          if (registration.waiting && !this.updateExists) {
+            console.log('FOUND WAITING SERVICE WORKER - triggering update notification')
+            this.updateAvailable({ detail: registration })
+          }
+          
+          // Also check if there's an installing worker that becomes waiting
+          if (registration.installing) {
+            registration.installing.addEventListener('statechange', () => {
+              if (registration.installing.state === 'installed' && navigator.serviceWorker.controller && !this.updateExists) {
+                console.log('Installing worker became installed - triggering update notification')
+                setTimeout(() => {
+                  this.updateAvailable({ detail: registration })
+                }, 1000)
+              }
+            })
+          }
+        })
+      }).catch(error => {
+        console.error('Error checking for service worker updates:', error)
+      })
+    },
+    
     updateAvailable (event) {
       console.log('updateAvailable called with event:', event)
+      if (this.updateExists) {
+        console.log('Update notification already shown, skipping')
+        return
+      }
+      
       this.registration = event.detail
       this.updateExists = true
+      
+      // Clear the interval since we found an update
+      if (this.updateCheckInterval) {
+        clearInterval(this.updateCheckInterval)
+        this.updateCheckInterval = null
+      }
+      
       this.$buefy.snackbar.open({
         indefinite: true,
         message: 'Hi ha una nova versió disponible. L\'aplicació s\'actualitzarà',

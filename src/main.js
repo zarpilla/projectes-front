@@ -12,6 +12,36 @@ import store from './store'
 /* Service Worker */
 import './registerServiceWorker'
 
+// DIRECT SERVICE WORKER UPDATE CHECKER - Independent of Vue components
+if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // Wait a bit for the SW to register, then start checking aggressively
+    setTimeout(() => {
+      console.log('Starting direct SW update checker from main.js')
+      
+      const checkForWaitingSW = () => {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => {
+            if (registration.waiting) {
+              console.log('DIRECT CHECK: Found waiting service worker, dispatching event')
+              document.dispatchEvent(
+                new CustomEvent('swUpdated', { detail: registration })
+              )
+            }
+          })
+        }).catch(error => {
+          console.error('Direct SW check error:', error)
+        })
+      }
+      
+      // Check immediately and then every 20 seconds
+      checkForWaitingSW()
+      setInterval(checkForWaitingSW, 20000)
+      
+    }, 3000) // Wait 3 seconds after page load
+  })
+}
+
 /* Vue. Main component */
 import App from './App.vue'
 
