@@ -26,7 +26,7 @@ if (process.env.NODE_ENV === 'production') {
     },
     updatefound (registration) {
       console.log('New content is downloading.', registration)
-      console.log('Service worker state:', registration.installing?.state)
+      console.log('Service worker state:', registration.installing && registration.installing.state)
     },
     updated (registration) {
       console.log('New content is available; please refresh.')
