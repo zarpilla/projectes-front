@@ -11,6 +11,11 @@ server {
         try_files /$1 =404;
     }
 
+    # Short expires for HTML and PDF files
+    location ~* \.(pdf|html)$ {
+        expires 30s;
+    }
+
     # Handle /stats/ app routes - serve index.html for SPA routing
     location /stats/ {
         try_files $uri $uri/ /index.html;
