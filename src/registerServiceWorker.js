@@ -57,9 +57,17 @@ if (process.env.NODE_ENV === 'production') {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
               console.log('New service worker installed, update available')
+              // Dispatch the update event here as a backup
+              document.dispatchEvent(
+                new CustomEvent('swUpdated', { detail: registration })
+              )
             } else {
               console.log('Service worker installed for the first time')
             }
+          } else if (installingWorker.state === 'redundant') {
+            console.warn('Service worker became redundant - this might indicate an installation failure')
+          } else if (installingWorker.state === 'activated') {
+            console.log('Service worker activated successfully')
           }
         })
       }
@@ -92,4 +100,20 @@ if (process.env.NODE_ENV === 'production') {
       }
     }
   })
+  
+  // Global fallback for old service workers that don't dispatch the event
+  setTimeout(() => {
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+          if (registration.waiting) {
+            console.log('Fallback: Found waiting service worker, dispatching update event')
+            document.dispatchEvent(
+              new CustomEvent('swUpdated', { detail: registration })
+            )
+          }
+        })
+      })
+    }
+  }, 10000) // Check after 10 seconds
 }

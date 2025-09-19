@@ -20,8 +20,34 @@ export default {
       }
     }
 
-    // Prevent multiple refreshes
+    // Fallback: Check for service worker updates manually if we have an old SW
     if (navigator.serviceWorker) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(registration => {
+          // If there's a waiting service worker, it means there's an update ready
+          if (registration.waiting) {
+            console.log('Found waiting service worker, triggering update notification')
+            this.updateAvailable({ detail: registration })
+          }
+          
+          // Listen for future updates on existing registrations
+          registration.addEventListener('updatefound', () => {
+            console.log('Update found on existing registration')
+            const newWorker = registration.installing
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                console.log('New worker state:', newWorker.state)
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New service worker installed and ready')
+                  this.updateAvailable({ detail: registration })
+                }
+              })
+            }
+          })
+        })
+      })
+
+      // Prevent multiple refreshes
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (this.refreshing) return
         this.refreshing = true
