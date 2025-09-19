@@ -562,7 +562,7 @@
                 props.row.volume_discount
             "
             icon="circle"
-            class="has-text-success"
+            class="has-text-grey-light"
             custom-size="default"
             title="Descompte volum"
           />
@@ -572,7 +572,7 @@
                 props.row.contact_pickup_discount
             "
             icon="circle"
-            class="has-text-success"
+            class="has-text-warning"
             custom-size="default"
             title="Descompte recollida"
           />
