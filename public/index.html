@@ -10,6 +10,50 @@
     <!-- Runtime Configuration -->
     <script src="<%= BASE_URL %>config.js"></script>
 
+    <!-- Service Worker Cache Buster - CRITICAL for updates -->
+    <script>
+      (function() {
+        // Only run in production with service worker support
+        if (location.hostname === 'localhost' || !navigator.serviceWorker) return;
+        
+        // Version check - increment this number when deploying updates
+        const EXPECTED_VERSION = '1.0.4';
+        const CURRENT_VERSION = localStorage.getItem('app_version');
+        
+        console.log('Cache buster - Expected:', EXPECTED_VERSION, 'Current:', CURRENT_VERSION);
+        
+        // If version changed, force a hard reload bypassing service worker
+        if (CURRENT_VERSION && CURRENT_VERSION !== EXPECTED_VERSION) {
+          console.log('Version mismatch detected, forcing hard reload');
+          localStorage.setItem('app_version', EXPECTED_VERSION);
+          // Force reload bypassing cache and service worker
+          window.location.reload(true);
+          return;
+        }
+        
+        // Set version if not set
+        if (!CURRENT_VERSION) {
+          localStorage.setItem('app_version', EXPECTED_VERSION);
+        }
+        
+        // Check for waiting service workers and force update
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(registration) {
+            if (registration.waiting) {
+              console.log('Cache buster found waiting SW, forcing skip waiting');
+              registration.waiting.postMessage({type: 'SKIP_WAITING'});
+              // Force reload after a short delay
+              setTimeout(function() {
+                window.location.reload();
+              }, 1000);
+            }
+          });
+        }).catch(function(error) {
+          console.error('Cache buster SW check failed:', error);
+        });
+      })();
+    </script>
+
     <!-- Fonts -->
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">

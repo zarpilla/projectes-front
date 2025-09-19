@@ -26,9 +26,16 @@ server {
         try_files /$1 =404;
     }
 
-    # Short expires for HTML and PDF files
-    location ~* \.(pdf|html)$ {
-        expires 30s;
+    # Force no caching for HTML files - this is critical for service worker updates
+    location ~* \.html$ {
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Last-Modified $date_gmt;
+        add_header ETag "";
+        if_modified_since off;
+        # Add a unique query parameter to force cache busting
+        add_header X-Cache-Bust $msec;
     }
 
     # Handle /stats/ app routes - serve index.html for SPA routing

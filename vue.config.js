@@ -22,10 +22,25 @@ module.exports = {
   },
   pwa: {
     workboxOptions: {
-      // skipWaiting: true,
-      // Force update check more frequently in Docker environment
-      clientsClaim: true,
-      skipWaiting: false
+      skipWaiting: true, // Force immediate updates
+      clientsClaim: true, // Take control immediately
+      // Exclude HTML from precaching to prevent stale HTML serving
+      exclude: [/\.html$/],
+      // Custom runtime caching for HTML with network-first strategy
+      runtimeCaching: [
+        {
+          urlPattern: /\.html$/,
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'html-cache',
+            expiration: {
+              maxAgeSeconds: 60, // 1 minute
+              maxEntries: 10
+            },
+            networkTimeoutSeconds: 3
+          }
+        }
+      ]
     }
   }
 };
