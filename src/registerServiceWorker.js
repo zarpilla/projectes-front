@@ -23,26 +23,46 @@ if (process.env.NODE_ENV === 'production') {
   register(swPath, {
     ready () {
       console.log('ESSTRAPIS v.1.0.3 - DEBUG VERSION')
-      console.log(
-        'App is being served from cache by a service worker.\n' +
-        'For more details, visit https://goo.gl/AFskqB'
-      )
+      console.log('App is being served from cache by a service worker.')
+      console.log('Service worker is ready and controlling this page')
     },
     registered (registration) {
       console.log('Service worker has been registered.', registration)
       
-      // Force check for updates periodically
-      setInterval(() => {
-        console.log('Manually checking for service worker updates...')
-        registration.update()
-      }, 60000) // Check every minute for testing
+      // Wait a bit before starting periodic updates to let the SW finish installing
+      setTimeout(() => {
+        console.log('Starting periodic update checks...')
+        setInterval(() => {
+          console.log('Manually checking for service worker updates...')
+          if (registration && typeof registration.update === 'function') {
+            registration.update().catch(error => {
+              console.warn('Manual update check failed:', error.message)
+            })
+          }
+        }, 60000) // Check every minute for testing
+      }, 5000) // Wait 5 seconds after registration
     },
     cached () {
       console.log('Content has been cached for offline use.')
+      console.log('Service worker is now active and caching content')
     },
     updatefound (registration) {
       console.log('New content is downloading.', registration)
-      console.log('Service worker state:', registration.installing && registration.installing.state)
+      const installingWorker = registration.installing
+      if (installingWorker) {
+        console.log('Service worker state:', installingWorker.state)
+        
+        installingWorker.addEventListener('statechange', () => {
+          console.log('Service worker state changed to:', installingWorker.state)
+          if (installingWorker.state === 'installed') {
+            if (navigator.serviceWorker.controller) {
+              console.log('New service worker installed, update available')
+            } else {
+              console.log('Service worker installed for the first time')
+            }
+          }
+        })
+      }
     },
     updated (registration) {
       console.log('New content is available; please refresh.')
