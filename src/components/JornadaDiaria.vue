@@ -262,6 +262,7 @@ import moment from "moment";
 import CardComponent from "@/components/CardComponent";
 import _ from "lodash";
 import * as html2pdf from "html3pdf";
+import getConfig from '@/config'
 
 moment.locale("ca");
 
@@ -330,6 +331,9 @@ export default {
     }
   },
   mounted() {
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
+    
     this.getWorkDayLogs();
   },
   computed: {

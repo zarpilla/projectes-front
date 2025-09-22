@@ -584,6 +584,7 @@ import {
   calculateRoutePrice
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser";
+import getConfig from '@/config'
 
 export default {
   name: "OrdersForm",
@@ -804,6 +805,9 @@ export default {
     }
   },
   async created() {
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
+
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
     );

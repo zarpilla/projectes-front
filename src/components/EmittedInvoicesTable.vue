@@ -245,6 +245,7 @@ import CardWidget from "@/components/CardWidget";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from 'vuex'
+import getConfig from '@/config'
 
 export default {
   name: "EmittedInvoices",
@@ -352,6 +353,8 @@ export default {
     },
   },
   async mounted() {
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
     this.getData();
   },
   methods: {

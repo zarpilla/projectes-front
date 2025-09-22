@@ -109,10 +109,9 @@ import { parse } from "csv-parse";
 import { mapState } from "vuex";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import { assignRouteRate, assignRouteDate } from "@/service/assignRouteRate";
 import moment from "moment";
 import _ from "lodash";
-import { filter } from "lodash";
+import getConfig from '@/config'
 
 export default {
   name: "Tresoreria",
@@ -161,6 +160,8 @@ export default {
     }
   },
   async created() {
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
     );

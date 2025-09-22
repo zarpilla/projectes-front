@@ -1938,6 +1938,7 @@ import ProjectGrantableContacts from "@/components/ProjectGrantableContacts.vue"
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import Tasks from "@/components/Tasks";
 import FileUpload from "@/components/FileUpload";
+import getConfig from "@/config";
 
 // Services
 import service from "@/service/index";
@@ -2370,6 +2371,8 @@ export default {
     }
   },
   created() {
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
     this.getData();
   },
   beforeRouteLeave(to, from, next) {

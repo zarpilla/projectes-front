@@ -1114,6 +1114,7 @@ import FileUpload from "@/components/FileUpload";
 
 // Services
 import service from "@/service/index";
+import getConfig from '@/config'
 
 export default {
   name: "DocumentForm",
@@ -1182,7 +1183,8 @@ export default {
       linesPerPage: 50,
       currentPage: 1,
       // Debouncing for inputs
-      debouncedInputs: new Map()
+      debouncedInputs: new Map(),
+      apiUrl: ''
     };
   },
   computed: {
@@ -1383,7 +1385,10 @@ export default {
     }
   },
   created() {
-    this.getData();
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
+
+    this.getData();    
   },
   beforeDestroy() {
     // Clean up any pending debounced timeouts

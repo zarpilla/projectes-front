@@ -646,8 +646,7 @@ import {
 } from "@/service/assignRouteRate";
 import moment from "moment";
 import _ from "lodash";
-import { filter } from "lodash";
-import { sum } from "lodash";
+import getConfig from '@/config'
 
 export default {
   name: "Tresoreria",
@@ -1043,6 +1042,9 @@ export default {
     }
   },
   async created() {
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
+
     if (localStorage.getItem("OrdersTable.statusFilter")) {
       this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
     }

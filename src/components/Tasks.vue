@@ -140,6 +140,7 @@ import service from "@/service/index";
 import moment from "moment";
 import { mapState } from "vuex";
 import _ from "lodash";
+import getConfig from '@/config'
 
 moment.locale("ca");
 
@@ -296,6 +297,8 @@ export default {
     }
   },
   async mounted() {
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
     await this.getData();
   },
   methods: {

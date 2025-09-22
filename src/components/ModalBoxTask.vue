@@ -253,6 +253,7 @@ import ModalBox from "@/components/ModalBox";
 import moment from "moment";
 import RadioPicker from "@/components/RadioPicker";
 import FileUpload from "@/components/FileUpload";
+import getConfig from "@/config";
 
 export default {
   name: "ModalBoxTask",
@@ -326,6 +327,10 @@ export default {
       apiUrl: process.env.VUE_APP_API_URL,
       checklistToAdd: "",
     };
+  },
+  created() {    
+    const config = getConfig();
+    this.apiUrl = config.VUE_APP_API_URL;
   },
   computed: {
     ...mapState(["userName"]),
