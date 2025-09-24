@@ -401,22 +401,6 @@
               </b-field>
 
               <b-field
-                label="Import a justificar amb nòmines"
-                v-if="form.grantable"
-                horizontal
-              >
-                <b-input
-                  v-if="form.grantable"
-                  type="numeric"
-                  v-model="form.grantable_amount"
-                  placeholder="Import a justificar amb nòmines"
-                  @input="
-                    changeValue('grantable_amount', form.grantable_amount)
-                  "
-                >
-                </b-input>
-              </b-field>
-              <b-field
                 label="Import a justificar total"
                 v-if="form.grantable"
                 horizontal
@@ -435,28 +419,42 @@
                 >
                 </b-input>
               </b-field>
+
               <b-field
-                label="Import cofinançament"
+                label="Import a justificar amb nòmines"
                 v-if="form.grantable"
                 horizontal
               >
                 <b-input
                   v-if="form.grantable"
                   type="numeric"
-                  v-model="form.grantable_cofinancing"
-                  placeholder="Import de cofinançament"
+                  v-model="form.grantable_amount"
+                  placeholder="Import a justificar amb nòmines"
                   @input="
-                    changeValue(
-                      'grantable_cofinancing',
-                      form.grantable_cofinancing
-                    )
+                    changeValue('grantable_amount', form.grantable_amount)
                   "
                 >
                 </b-input>
               </b-field>
-
               <b-field
-                label="Despeses indirectes"
+                label="Import a justificar amb factures indirectes"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_structural_expenses_justify_invoices"
+                  placeholder="Import a justificar amb factures indirectes"
+                  @input="
+                    changeValue('grantable_structural_expenses_justify_invoices', form.grantable_structural_expenses_justify_invoices)
+                  "
+                >
+                </b-input>
+              </b-field>
+              
+              <b-field
+                label="Despeses indirectes no justificables"
                 v-if="form.grantable"
                 horizontal
                 message="Quantitat de l'import de la subvenció per a cobrir despeses indirectes que no s'han de justificar documentalment (sense assignació de nòmines ni factures)"
@@ -476,6 +474,27 @@
                 </b-input>
               </b-field>
 
+              <hr />
+              <b-field
+                label="Import cofinançament"
+                v-if="form.grantable"
+                horizontal
+              >
+                <b-input
+                  v-if="form.grantable"
+                  type="numeric"
+                  v-model="form.grantable_cofinancing"
+                  placeholder="Import de cofinançament"
+                  @input="
+                    changeValue(
+                      'grantable_cofinancing',
+                      form.grantable_cofinancing
+                    )
+                  "
+                >
+                </b-input>
+              </b-field>
+              
               <!-- <b-field
                 label="Import despeses indirectes"
                 v-if="form.grantable"
@@ -2746,7 +2765,6 @@ export default {
       this.isLoading = true;
 
       console.log("submit", this.form);
-      console.log('form.project_original_phases', this.form.project_original_phases)
       
       if (!this.periodification) {
         this.form.periodification = [];
@@ -2770,6 +2788,19 @@ export default {
 
       if (this.form.mother && this.form.mother.id) {
         this.form.mother = this.form.mother.id;
+      }
+
+      if (this.form.grantable_amount === '') {
+        this.form.grantable_amount = null;
+      }
+      if (this.form.grantable_structural_expenses === '') {
+        this.form.grantable_structural_expenses = null;
+      }
+      if (this.form.grantable_structural_expenses_justify_invoices === '') {
+        this.form.grantable_structural_expenses_justify_invoices = null;
+      }
+      if (this.form.grantable_amount_total === '') {
+        this.form.grantable_amount_total = null;
       }
 
       try {
