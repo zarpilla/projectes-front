@@ -1,7 +1,7 @@
 module.exports = {
   publicPath:
     process.env.DEPLOY_ENV === "GH_PAGES"
-      ? "/esstrapis/"
+      ? "/stats/"
       : process.env.VUE_APP_PATH,
 
   configureWebpack: {

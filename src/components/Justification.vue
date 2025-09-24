@@ -1,12 +1,18 @@
 <template>
   <div>
     <div class="table-view">
-      <!-- <pre>{{ monthlyActivitiesTotal }}</pre> -->
 
-      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Totals per projecte</h3>
+      <!-- <div class="info-help mb-4">
+        <b-icon icon="information" size="is-small" />
+        Desplega les seccions que vulguis consultar
+      </div> -->
+      
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="monthlyActivitiesTotal.length || justifications.length"
+        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        title="Totals per projecte (bestretes)"
+        :close-icon="true"
+        :content-visible="true"
       >        
         <div class="columns card-body">
           <div class="column is-4 has-text-weight-bold">Projecte</div>
@@ -49,7 +55,7 @@
                     : 0
                 "
                 :locale="'es'"
-                :currency-code="'EUR'"
+                :currency-code="'%'"
                 :subunits-value="false"
                 :hide-subunits="false"
                 currency="%"
@@ -86,10 +92,95 @@
         </div>
       </card-component>
 
-      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Totals per persona</h3>
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="monthlyActivitiesTotal.length || justifications.length"
+        v-if="(justifications.length) && view === 'Factures'"
+        title="Totals per projecte (factures)"
+      >
+        <div class="columns card-body">
+          <div class="column is-4 has-text-weight-bold">Projecte</div>
+          <div class="column is-2 has-text-weight-bold has-text-right">
+            Import justificat
+          </div>
+          <div class="column is-2 has-text-weight-bold has-text-right">
+            Import a justificar
+          </div>
+          <div class="column is-2 has-text-weight-bold has-text-right">%</div>
+        </div>
+        <div v-for="(row, i) in summaryByProjectInvoices" :key="'proj-' + i" class="card-body">
+          <div class="columns">
+            <div class="column is-4">{{ row.project }}</div>
+            <div class="column is-2 has-text-right">
+              <money-format
+                :value="row.cost"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+            <div class="column is-2 has-text-right">
+              <money-format
+                :value="row.grantable_amount ? row.grantable_amount : 0"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+            <div class="column is-2 has-text-right">
+              <money-format
+                :value="
+                  row.grantable_amount
+                    ? (row.cost / row.grantable_amount) * 100
+                    : 0
+                "
+                :locale="'es'"
+                :currency-code="'%'"
+                :subunits-value="false"
+                :hide-subunits="false"
+                currency="%"
+              >
+              </money-format>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="columns">
+            <div class="column is-4 has-text-weight-bold">TOTAL</div>
+            <div class="column is-2 has-text-weight-bold has-text-right">
+              <money-format
+                :value="summaryAllInvoices"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+            <div class="column is-2 has-text-weight-bold has-text-right">
+              <money-format
+                :value="summaryAllGrantableInvoices"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
+            <div class="column is-2 has-text-right"></div>
+          </div>
+        </div>
+      </card-component>
+
+      <!-- <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        title="Totals per persona"
+        :close-icon="true"
+        :content-visible="false"
       >
         <div class="columns card-body">
           <div class="column is-4 has-text-weight-bold">Persona</div>
@@ -116,12 +207,14 @@
             </div>
           </div>
         </div>
-      </card-component>
+      </card-component> -->
 
-      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Bestretes per persona i mes</h3>
-      <card-component
+      <!-- <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="monthlyActivitiesTotal.length || justifications.length"
+        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        title="Bestretes per persona i mes"
+        :close-icon="true"
+        :content-visible="false"
       >
         <div class="columns card-body">
           <div class="column is-2 has-text-weight-bold">Persona</div>
@@ -171,7 +264,7 @@
                 v-if="!(row.payroll && row.payroll.total)"
                 class="has-text-warning"
                 icon="alert-circle"
-                title="Sense bestreta pagada"
+                title="Sense bestreta"
                 size="is-small"
               >
               </b-icon>
@@ -184,7 +277,7 @@
                     : 0
                 "
                 :locale="'es'"
-                :currency-code="'EUR'"
+                :currency-code="'%'"
                 :subunits-value="false"
                 :hide-subunits="false"
                 currency="%"
@@ -193,12 +286,12 @@
             </div>
           </div>
         </div>
-      </card-component>
+      </card-component> -->
 
-      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Detall de bestretes</h3>
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="monthlyActivitiesTotal.length || justifications.length"
+        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        title="Bestretes manuals"
       >
         <div class="columns card-body">          
           <div class="column has-text-weight-bold">Any</div>
@@ -219,7 +312,7 @@
           </div>
           <div class="column has-text-weight-bold has-text-right">Accions</div>
         </div>
-        <div
+        <!-- <div
           v-for="(row, i) in monthlyActivitiesTotal"
           :key="'month-activity-' + i"
           class="card-body"
@@ -274,7 +367,7 @@
                   row.payroll && row.cost ? (100 * row.cost) / row.payroll : 0
                 "
                 :locale="'es'"
-                :currency-code="'EUR'"
+                :currency-code="'%'"
                 :subunits-value="false"
                 :hide-subunits="false"
                 currency="%"
@@ -283,7 +376,7 @@
             </div>
             <div class="column has-text-right"></div>
           </div>
-        </div>
+        </div> -->
         <div
           v-for="(row, i) in justifications.filter(j => j.users_permissions_user)"
           :key="'justification-' + i"
@@ -391,16 +484,58 @@
         </div>
       </card-component>
 
-      <h3 class="title is-6" v-if="monthlyActivitiesTotal.length || justifications.length">Detall de factures</h3>
+
+
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="monthlyActivitiesTotal.length || justifications.length"
+        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        title="Detall de bestretes"
+        :close-icon="true"
+        :content-visible="true"
+      >
+      <div class="p-4">
+
+      
+        <!-- Pivot Views Component -->
+        <pivot-views
+          :pivot-views="pivotViews"
+          :selected-view-id="selectedViewId"
+          :show-save-modal="showSaveViewModal"
+          :view-name="newViewName"
+          @apply-view="applyPivotView"
+          @apply-default="applyDefaultView"
+          @save-view="showSaveView"
+          @delete-view="deletePivotView"
+          @close-save-modal="showSaveViewModal = false"
+          @confirm-save="saveCurrentView"
+          @update:viewName="newViewName = $event"
+        />
+        
+        <div id="justification-pivot"></div>
+        
+        <download-excel class="export" :data="pivotData">
+          <b-button
+          title="Exporta dades"
+          class="export-button mt-0"
+          icon-left="file-excel" />
+        </download-excel>
+        </div>
+        
+      </card-component>
+
+
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Factures'"
+        title="Detall de factures"
+        :close-icon="true"
+        :content-visible="true"
       >
         <div class="columns card-body">          
           <div class="column has-text-weight-bold">Any</div>  
           <div class="column has-text-weight-bold">Projecte</div>
           <div class="column has-text-weight-bold">Factura</div>
-          <div class="column has-text-weight-bold">Import</div>
+          <div class="column has-text-weight-bold has-text-right">Import</div>
           <div class="column has-text-weight-bold has-text-right">Accions</div>
         </div>
         <div
@@ -456,7 +591,7 @@
               </b-select>
             </div>
             <div class="column">
-              <b-select v-model="justificationInvoice.emitted_invoice" :disabled="!justificationInvoice.project || !justificationInvoice.year"
+              <b-select v-model="justificationInvoice.emitted_invoice"
               @input="onEmittedInvoiceChange">
                 <option v-for="u in invoices" :key="'invoice-' + u.id" :value="u">
                   {{ u.code }} ({{ u.total_base ? u.total_base.toFixed(2) : '-' }} €)
@@ -532,12 +667,16 @@ import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from "vuex";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import configJustificationPivot from '@/service/configJustificationPivot'
+import PivotViews from '@/components/PivotViews.vue'
+import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
 
 moment.locale("ca");
 
 export default {
   name: "Justification",
-  components: { CardComponent, MoneyFormat },
+  components: { CardComponent, MoneyFormat, PivotViews },
+  mixins: [pivotViewsMixin],
   props: {
     type: {
       type: String,
@@ -545,6 +684,10 @@ export default {
     },
     year: {
       type: [Number, String],
+      default: null
+    },
+    view: {
+      type: String,
       default: null
     }
   },
@@ -567,7 +710,8 @@ export default {
       justifications: [],
       dedications: [],
       theYear: 0,
-      invoices: []
+      invoices: [],
+      pivotIdentifier: 'justification-pivot'
     };
   },
   computed: {
@@ -681,12 +825,26 @@ export default {
       return activities;
     },
     summaryJustificationsByProject() {
-      const activities = _(this.justifications)
+      const activities = _(this.justifications.filter(j => j.users_permissions_user))
         .groupBy("project.name")
         .map((rows, id) => {
           return {
             project: id,
-            cost: _.sumBy(rows, r => r.quantity)
+            cost: _.sumBy(rows, r => r.quantity),
+            
+          };
+        })
+        .value();
+      return activities;
+    },
+    summaryJustificationsInvoicesByProject() {
+      const activities = _(this.justifications.filter(j => j.emitted_invoice))
+        .groupBy("project.name")
+        .map((rows, id) => {
+          return {
+            project: id,
+            cost: _.sumBy(rows, r => r.quantity),
+            grantable_amount: rows[0].project.grantable_structural_expenses_justify_invoices
           };
         })
         .value();
@@ -707,11 +865,32 @@ export default {
         .value();
       return _.orderBy(activities, "project");
     },
+    summaryByProjectInvoices() {
+      const activities = _(
+        this.summaryJustificationsInvoicesByProject
+      )
+        .groupBy("project")
+        .map((rows, id) => {
+          return {
+            project: id,
+            cost: _.sumBy(rows, r => r.cost),
+            grantable_amount: rows[0].grantable_amount
+          };
+        })
+        .value();
+      return _.orderBy(activities, "project");
+    },
     summaryAll() {
       return _.sumBy(this.summaryByProjectAll, "cost");
     },
     summaryAllGrantable() {
       return _.sumBy(this.summaryByProjectAll, "grantable_amount");
+    },
+    summaryAllInvoices() {
+      return _.sumBy(this.summaryByProjectInvoices, "cost");
+    },
+    summaryAllGrantableInvoices() {
+      return _.sumBy(this.summaryByProjectInvoices, "grantable_amount");
     },
     summaryByUser() {
       const activities = _(this.monthlyActivitiesTotal)
@@ -777,7 +956,7 @@ export default {
             payroll: this.payrolls.find(
               p =>
                 p.users_permissions_user.username === rows[0].username &&
-                parseInt(p.year.year) === parseInt(this.year) &&
+                parseInt(p.year.year) === parseInt(rows[0].year) &&
                 parseInt(p.month.month) === parseInt(rows[0].month)
             )
           };
@@ -843,6 +1022,52 @@ export default {
         this.justificationInvoice.quantity &&
         parseInt(this.justificationInvoice.quantity) > 0
       );
+    },
+    pivotData() {
+      // Combine monthlyActivitiesTotal with justifications for pivot table
+      const activities = this.monthlyActivitiesTotal.map(row => ({
+        year: row.year,
+        month: row.month.toString().padStart(2, '0'),
+        username: row.username,
+        project: row.project,
+        cost: row.cost || 0,
+        hours: row.hours || 0,
+        payroll: row.payroll || 0,
+        grantable_amount: row.grantable_amount || 0,
+        count: 1,
+        percentage_bestreta: (row.payroll && row.payroll > 0) ? (row.cost / row.payroll) : 0,
+        type: 'activity'
+      }))
+
+      const justifications = this.justifications
+        .filter(j => j.users_permissions_user)
+        .map(row => {
+          const payroll = this.payrolls.find(
+            p =>
+              p.users_permissions_user.id === row.users_permissions_user.id &&
+              parseInt(p.year.year) === parseInt(row.year) &&
+              parseInt(p.month.month) === parseInt(row.month)
+          )
+          const payrollTotal = payroll ? payroll.total : 0
+          const cost = row.quantity || 0
+          return {
+            year: row.year.toString(),
+            month: row.month.toString().padStart(2, '0'),
+            username: row.users_permissions_user.username,
+            project: row.project ? row.project.name : '',
+            cost: cost,
+            hours: row.dedication && row.dedication.costByHour 
+              ? (row.quantity / row.dedication.costByHour) 
+              : 0,
+            payroll: payrollTotal,
+            grantable_amount: 0, // justifications don't have grantable_amount
+            count: 1,
+            percentage_bestreta: (payrollTotal > 0) ? (cost / payrollTotal) : 0,
+            type: 'justification'
+          }
+        })
+
+      return [...activities, ...justifications]
     }
   },
   watch: {
@@ -856,6 +1081,11 @@ export default {
         this.theYear = parseInt(newVal);
       }
       this.getActivities();
+    },
+    pivotData: function(newVal, oldVal) {
+      this.$nextTick(() => {
+        this.updatePivotTable()
+      })
     }
   },
   mounted() {
@@ -872,26 +1102,28 @@ export default {
       this.months = {};
       this.payrolls = [];
 
-      console.log("Getting activities for year", this.theYear);
-
       const from = this.theYear
         ? moment(this.theYear, "YYYY")
             .startOf("year")
-            .format("YYYY-MM-DD")
+            .format("YYYY")
         : moment()
             .add(-20, "year")
             .startOf("year")
-            .format("YYYY-MM-DD");
+            .format("YYYY");
       const to = this.theYear
         ? moment(this.theYear, "YYYY")
             .endOf("year")
-            .format("YYYY-MM-DD")
+            .format("YYYY")
         : moment()
             .add(10, "year")
             .endOf("year")
-            .format("YYYY-MM-DD");
+            .format("YYYY");
 
-      let query = `payrolls?_where[paid_date_gte]=${from}&[paid_date_lte]=${to}&_limit=-1`;
+      const years = (await service({ requiresAuth: true }).get("years?_limit=-1")).data;
+
+      const yearFrom = years.find(y => parseInt(y.year) === parseInt(from));
+
+      let query = this.theYear ? `payrolls?_where[year]=${yearFrom.id}&_limit=-1` : `payrolls?_limit=-1`;
       let query2 = `projects?_where[grantable_eq]=true&_limit=-1`;
 
       this.payrolls = (await service({ requiresAuth: true }).get(query)).data;
@@ -954,6 +1186,16 @@ export default {
           "emitted-invoices?_limit=-1"
         )
       ).data;
+
+      // Initialize or update pivot table
+      this.$nextTick(() => {
+        if (this.pivotData.length > 0) {
+          configJustificationPivot.dataSource.data = Object.freeze(this.pivotData)
+          this.initializePivotWithViews('#justification-pivot', configJustificationPivot)
+        }
+      })
+      
+      this.isLoading = false;
     },
     
     zeroPad(num, places) {
@@ -978,7 +1220,6 @@ export default {
       });
     },
     async addJustification() {
-      // this.justification.year = this.year;
       await service({ requiresAuth: true }).post(
         `justifications`,
         this.justification
@@ -990,9 +1231,7 @@ export default {
       this.justification = {};
       this.getActivities();
     },
-    async addJustificationInvoice() {
-      console.log('addJustificationInvoice', this.justificationInvoice);
-      // this.justificationInvoice.year = this.year;
+    async addJustificationInvoice() {      
       await service({ requiresAuth: true }).post(
         `justifications`,
         this.justificationInvoice
@@ -1016,12 +1255,30 @@ export default {
     onEmittedInvoiceChange() {
       if (this.justificationInvoice.emitted_invoice && this.justificationInvoice.project) {
         const inv = this.invoices.find(i => i.id === this.justificationInvoice.emitted_invoice.id);
-        console.log('this.justificationInvoice.emitted_invoice', this.justificationInvoice.emitted_invoice, inv);
         if (inv) {
           this.justificationInvoice.quantity = inv.total_base;
         }
       } else {
         this.justificationInvoice.quantity = '';
+      }
+    },
+    applyDefaultView() {
+      if (this.pivotGridInstance) {
+        // Reset to default configuration
+        const dataSource = this.pivotGridInstance.dataSource
+        const defaultConfig = configJustificationPivot.dataSource
+        
+        dataSource.columns(defaultConfig.columns || [])
+        dataSource.rows(defaultConfig.rows || [])
+        dataSource.measures(defaultConfig.measures || [])
+        
+        this.selectedViewId = null
+      }
+    },
+    updatePivotTable() {
+      if (this.pivotGridInstance && this.pivotData.length > 0) {
+        configJustificationPivot.dataSource.data = this.pivotData
+        this.pivotGridInstance.setDataSource(configJustificationPivot.dataSource)
       }
     }
   },
@@ -1090,5 +1347,8 @@ export default {
 }
 .view-button {
   margin-left: 0.5rem;
+}
+.export-button {
+  margin-top: 1rem;
 }
 </style>

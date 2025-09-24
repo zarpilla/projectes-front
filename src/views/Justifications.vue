@@ -37,10 +37,28 @@
                 </option>
               </b-select>
             </b-field>
+
+            <b-field label="Visualització">
+              <b-select
+                v-model="filters.view"
+                required
+              >                
+                <option
+                  value="Bestretes"
+                >
+                Bestretes
+                </option>
+                <option
+                  value="Factures"
+                >
+                Factures
+                </option>
+              </b-select>
+            </b-field>
           </b-field>
         </form>
       </card-component>
-      <justification :type="filters.type" :year="filters.year ? filters.year.year : null" />
+      <justification :type="filters.type" :year="filters.year ? filters.year.year : null" :view="filters.view" />
     </section>
   </div>
 </template>
@@ -51,6 +69,7 @@ import CardComponent from '@/components/CardComponent'
 import Justification from '@/components/Justification'
 import service from '@/service/index'
 import { mapState } from 'vuex'
+import { addScript, addStyle } from '@/helpers/addScript'
 
 export default {
   name: 'Justifications',
@@ -64,12 +83,13 @@ export default {
       isLoading: false,
       filters: {
         type: 'Previstes',
-        year: null
+        year: null,
+        view: 'Bestretes'
       },
       projects: [],
       usersList: [],
       projectSearch: '',
-      years: []
+      years: [],
     }
   },
   computed: {
@@ -78,19 +98,26 @@ export default {
       return ['Justificacions de projectes subvencionables']
     },    
   },
+  
   mounted () {
     this.isLoading = true
 
-    service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-      const years = r.data
-      // add All option
-      years.unshift({ id: -1, year: 'Tots' })
-      this.filters.year = years[0]
+    const interval = setInterval(async () => {
+      if (window.jQuery) {
+        clearInterval(interval)
+        await addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
 
-      this.years = years
-    })
-
-    this.isLoading = false
+        const r = await service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC')
+        const years = r.data
+        years.unshift({ id: -1, year: 'Tots' })
+        this.filters.year = years[0]
+        this.years = years
+        this.isLoading = false        
+      }
+    }, 100)   
   },
   methods: {
   }
