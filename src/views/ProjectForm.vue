@@ -447,12 +447,15 @@
                   v-model="form.grantable_structural_expenses_justify_invoices"
                   placeholder="Import a justificar amb factures indirectes"
                   @input="
-                    changeValue('grantable_structural_expenses_justify_invoices', form.grantable_structural_expenses_justify_invoices)
+                    changeValue(
+                      'grantable_structural_expenses_justify_invoices',
+                      form.grantable_structural_expenses_justify_invoices
+                    )
                   "
                 >
                 </b-input>
               </b-field>
-              
+
               <b-field
                 label="Despeses indirectes no justificables"
                 v-if="form.grantable"
@@ -494,7 +497,7 @@
                 >
                 </b-input>
               </b-field>
-              
+
               <!-- <b-field
                 label="Import despeses indirectes"
                 v-if="form.grantable"
@@ -1004,12 +1007,22 @@
             <div class="columns">
               <b-field label="Hores previstes (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
-                  {{ totals && totals.total_estimated_hours ? totals.total_estimated_hours.toFixed(2) : '0' }} h
+                  {{
+                    totals && totals.total_estimated_hours
+                      ? totals.total_estimated_hours.toFixed(2)
+                      : "0"
+                  }}
+                  h
                 </div>
               </b-field>
               <b-field label="Hores executades (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
-                  {{ totals && totals.total_real_hours ? totals.total_real_hours.toFixed(2) : '0' }} h
+                  {{
+                    totals && totals.total_real_hours
+                      ? totals.total_real_hours.toFixed(2)
+                      : "0"
+                  }}
+                  h
                 </div>
               </b-field>
               <b-field label="Diferència (h)" class="column">
@@ -1106,7 +1119,8 @@
                   <money-format
                     :value="
                       form.total_real_hours
-                        ? (totals.total_real_incomes - totals.total_real_expenses) /
+                        ? (totals.total_real_incomes -
+                            totals.total_real_expenses) /
                           totals.total_real_hours
                         : 0
                     "
@@ -1253,10 +1267,7 @@
 
       <card-component
         v-if="
-          !isLoading &&
-            phasesVisible &&
-            form &&
-            form.project_original_phases
+          !isLoading && phasesVisible && form && form.project_original_phases
         "
         title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
         :closeIcon="true"
@@ -1272,7 +1283,7 @@
             <template v-if="!originalEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
-<!-- 
+          <!-- 
           <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
             <option value="10">10 per pàgina</option>            
             <option value="50">50 per pàgina</option>
@@ -1285,7 +1296,6 @@
           </div> -->
         </b-field>
 
-        
         <project-phases
           :form="form"
           :project-phases="form.project_original_phases"
@@ -1372,7 +1382,6 @@
           </div> -->
         </b-field>
 
-        
         <project-phases
           :form="form"
           :project-phases="form.project_phases"
@@ -1730,11 +1739,9 @@
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
-
-      <b-field>
-
-        <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
-            <option value="10">10 per pàgina</option>            
+        <b-field>
+          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
+            <option value="10">10 per pàgina</option>
             <option value="50">50 per pàgina</option>
             <option value="100">100 per pàgina</option>
             <option value="1000">1000 per pàgina</option>
@@ -1743,12 +1750,13 @@
           <div class="control is-flex">
             <b-switch v-model="isPaginated">Paginat</b-switch>
           </div>
-      </b-field>
-      
-        <b-table :data="treasury"
-        :per-page="parseInt(perPage)"
-        :paginated="isPaginated"
-        pagination-position="both"
+        </b-field>
+
+        <b-table
+          :data="treasury"
+          :per-page="parseInt(perPage)"
+          :paginated="isPaginated"
+          pagination-position="both"
         >
           <b-table-column
             label="Data"
@@ -1962,7 +1970,6 @@ import getConfig from "@/config";
 // Services
 import service from "@/service/index";
 
-
 export default {
   name: "ProjectForm",
   components: {
@@ -2041,7 +2048,7 @@ export default {
       deletedPhasesOriginal: [],
       deletedIncomesOriginal: [],
       deletedExpensesOriginal: [],
-      deletedHoursOriginal: [],
+      deletedHoursOriginal: []
     };
   },
   computed: {
@@ -2208,9 +2215,11 @@ export default {
         this.form.received_incomes.forEach(e => {
           documents.push({
             docType: "received_income",
-            docTypeDesc: e.document_type && this.documentTypes.find(t => t.id === e.document_type)
-              ? this.documentTypes.find(t => t.id === e.document_type).name
-              : "",
+            docTypeDesc:
+              e.document_type &&
+              this.documentTypes.find(t => t.id === e.document_type)
+                ? this.documentTypes.find(t => t.id === e.document_type).name
+                : "",
             multiplier: 1,
             document: e
           });
@@ -2220,9 +2229,11 @@ export default {
         this.form.received_expenses.forEach(e => {
           documents.push({
             docType: "received_expense",
-            docTypeDesc: e.document_type && this.documentTypes.find(t => t.id === e.document_type)
-              ? this.documentTypes.find(t => t.id === e.document_type).name
-              : "",
+            docTypeDesc:
+              e.document_type &&
+              this.documentTypes.find(t => t.id === e.document_type)
+                ? this.documentTypes.find(t => t.id === e.document_type).name
+                : "",
             multiplier: -1,
             document: e
           });
@@ -2471,11 +2482,6 @@ export default {
                   ? this.form.project_type
                   : { id: 0 };
 
-              if (this.form.grantable_leader) {
-                this.leadersSearch = this.form.grantable_leader.name;
-                this.form.grantable_leader = this.form.grantable_leader.id;
-              }
-
               this.form.region =
                 this.form.region && this.form.region.id
                   ? this.form.region
@@ -2626,7 +2632,7 @@ export default {
           this.project_states = r.data;
         });
       service({ requiresAuth: true, cached: true })
-      .get("project-scopes?_limit=-1")
+        .get("project-scopes?_limit=-1")
         .then(r => {
           this.project_scopes = r.data;
         });
@@ -2640,6 +2646,23 @@ export default {
         .get("contacts/basic?_limit=-1&_sort=name:ASC")
         .then(r => {
           this.clients = r.data;
+
+          if (this.form.grantable_leader) {
+            const leaderId = this.form.grantable_leader.id
+              ? this.form.grantable_leader.id
+              : this.form.grantable_leader;
+
+            const leader = this.clients.find(c => c.id === leaderId);
+            if (leader) {
+              this.leadersSearch = leader.name;
+            } else {
+              this.leadersSearch = "";
+            }
+            this.clients.find(c => c.id === leaderId);
+            this.form.grantable_leader = leaderId;
+          } else {
+            this.leadersSearch = "";
+          }
         });
       service({ requiresAuth: true, cached: true })
         .get("strategies?_limit=-1")
@@ -2765,7 +2788,7 @@ export default {
       this.isLoading = true;
 
       console.log("submit", this.form);
-      
+
       if (!this.periodification) {
         this.form.periodification = [];
       }
@@ -2790,16 +2813,16 @@ export default {
         this.form.mother = this.form.mother.id;
       }
 
-      if (this.form.grantable_amount === '') {
+      if (this.form.grantable_amount === "") {
         this.form.grantable_amount = null;
       }
-      if (this.form.grantable_structural_expenses === '') {
+      if (this.form.grantable_structural_expenses === "") {
         this.form.grantable_structural_expenses = null;
       }
-      if (this.form.grantable_structural_expenses_justify_invoices === '') {
+      if (this.form.grantable_structural_expenses_justify_invoices === "") {
         this.form.grantable_structural_expenses_justify_invoices = null;
       }
-      if (this.form.grantable_amount_total === '') {
+      if (this.form.grantable_amount_total === "") {
         this.form.grantable_amount_total = null;
       }
 
@@ -3079,7 +3102,12 @@ export default {
         clearTimeout(this.updatingGanttTimer);
       }
 
-      this.form.project_original_phases_info = { deletedPhases: this.deletedPhasesOriginal, deletedIncomes: this.deletedIncomesOriginal, deletedExpenses: this.deletedExpensesOriginal, deletedHours: this.deletedHoursOriginal };
+      this.form.project_original_phases_info = {
+        deletedPhases: this.deletedPhasesOriginal,
+        deletedIncomes: this.deletedIncomesOriginal,
+        deletedExpenses: this.deletedExpensesOriginal,
+        deletedHours: this.deletedHoursOriginal
+      };
 
       this.updatingGanttTimer = setTimeout(() => {
         this.updatingGantt = false;
@@ -3093,13 +3121,17 @@ export default {
 
       this.deletedHoursOriginal.push(id);
 
-      const phase = this.form.project_original_phases
-      .find(p => p.id === pid)
+      const phase = this.form.project_original_phases.find(p => p.id === pid);
 
-      const income = phase.incomes.find(s => s.id === sid)
+      const income = phase.incomes.find(s => s.id === sid);
       income.estimated_hours = income.estimated_hours.filter(h => h.id !== id);
-      
-      this.form.project_original_phases_info = { deletedPhases: this.deletedPhasesOriginal, deletedIncomes: this.deletedIncomesOriginal, deletedExpenses: this.deletedExpensesOriginal, deletedHours: this.deletedHoursOriginal };
+
+      this.form.project_original_phases_info = {
+        deletedPhases: this.deletedPhasesOriginal,
+        deletedIncomes: this.deletedIncomesOriginal,
+        deletedExpenses: this.deletedExpensesOriginal,
+        deletedHours: this.deletedHoursOriginal
+      };
     },
     sumByFn(arr, field) {
       return sumBy(arr, field);
@@ -3152,35 +3184,45 @@ export default {
     },
     phasesUpdated(info) {
       this.form._project_phases_updated = true;
-      this.form.project_phases = [ ...info.phases];
+      this.form.project_phases = [...info.phases];
       if (info.deletedPhases) {
         this.deletedPhases = info.deletedPhases;
         this.deletedIncomes = info.deletedIncomes;
         this.deletedExpenses = info.deletedExpenses;
       }
-      this.form.project_phases_info = { deletedPhases: this.deletedPhases, deletedIncomes: this.deletedIncomes, deletedExpenses: this.deletedExpenses, deletedHours: [] };      
-
+      this.form.project_phases_info = {
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses,
+        deletedHours: []
+      };
     },
     originalPhasesUpdated(info) {
       this.form._project_original_phases_updated = true;
-      this.form.project_original_phases = JSON.parse(JSON.stringify(info.phases));
+      this.form.project_original_phases = JSON.parse(
+        JSON.stringify(info.phases)
+      );
       if (info.deletedPhases) {
         this.deletedPhasesOriginal = info.deletedPhases;
         this.deletedIncomesOriginal = info.deletedIncomes;
         this.deletedExpensesOriginal = info.deletedExpenses;
       }
-      this.form.project_original_phases_info = { deletedPhases: this.deletedPhasesOriginal, deletedIncomes: this.deletedIncomesOriginal, deletedExpenses: this.deletedExpensesOriginal, deletedHours: this.deletedHoursOriginal };
+      this.form.project_original_phases_info = {
+        deletedPhases: this.deletedPhasesOriginal,
+        deletedIncomes: this.deletedIncomesOriginal,
+        deletedExpenses: this.deletedExpensesOriginal,
+        deletedHours: this.deletedHoursOriginal
+      };
     },
     originalPhasesCopy(info) {
-    
       this.phasesVisible = false;
       const phases = JSON.parse(
         JSON.stringify(this.form.project_original_phases)
       );
       const phase = JSON.parse(
-        JSON.stringify(phases.find((p, i) => i === info.index)
-      ));
-      delete phase.__ob__
+        JSON.stringify(phases.find((p, i) => i === info.index))
+      );
+      delete phase.__ob__;
       delete phase.id;
       phase.name = `${phase.name} - còpia`;
       phase.dirty = true;
@@ -3194,7 +3236,7 @@ export default {
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
-        delete sp.project_original_phase
+        delete sp.project_original_phase;
         sp.dirty = true;
       }
       for (const sp of phase.expenses) {
@@ -3207,12 +3249,16 @@ export default {
         delete sp.id;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
-        delete sp.project_original_phase
+        delete sp.project_original_phase;
         sp.dirty = true;
-      }      
-      this.form.project_phases.push(JSON.parse(
-        JSON.stringify(phase)));
-      this.form.project_phases_info = { deletedPhases: this.deletedPhases, deletedIncomes: this.deletedIncomes, deletedExpenses: this.deletedExpenses, deletedHours: this.deletedHours };
+      }
+      this.form.project_phases.push(JSON.parse(JSON.stringify(phase)));
+      this.form.project_phases_info = {
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses,
+        deletedHours: this.deletedHours
+      };
       this.form._project_phases_updated = true;
 
       setTimeout(() => (this.phasesVisible = true), 100);
@@ -3270,8 +3316,15 @@ export default {
         });
       });
       this.form.project_phases = phases;
-      const previousDeletedPhases = this.form.project_phases_info ? this.form.project_phases_info.deletedPhases : [];      
-      this.form.project_phases_info = { deletedPhases: previousDeletedPhases, deletedIncomes: [], deletedExpenses: [], deletedHours: [] };
+      const previousDeletedPhases = this.form.project_phases_info
+        ? this.form.project_phases_info.deletedPhases
+        : [];
+      this.form.project_phases_info = {
+        deletedPhases: previousDeletedPhases,
+        deletedIncomes: [],
+        deletedExpenses: [],
+        deletedHours: []
+      };
       this.form._project_phases_updated = true;
 
       setTimeout(() => {
