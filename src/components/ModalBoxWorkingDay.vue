@@ -314,7 +314,7 @@ export default {
       const pct_quota = this.form.pct_quota
         ? (this.form.pct_quota * this.form.monthly_salary) / 100
         : 0;
-      const monthly = parseFloat(this.form.monthly_salary) + quota + pct_quota;      
+      const monthly = parseFloat(this.form.monthly_salary) + parseFloat(quota) + parseFloat(pct_quota);
       const costByHour = (monthly * 12) / hours;
       this.form.costByHour = costByHour;
       return costByHour
