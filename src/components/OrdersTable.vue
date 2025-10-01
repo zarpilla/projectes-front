@@ -818,7 +818,10 @@ export default {
         "DATA D'ENTREGA": "estimated_delivery_date",
         SOCIA: "owner.username",
         MAIL: "owner.email",
-        "ID CLIENT": "fullName"
+        "ID CLIENT": "fullName",
+        "DETALLS REPARTIDORES": {
+          field: "notes_delivery"
+        }
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
@@ -994,7 +997,8 @@ export default {
           (o.contact && o.contact.notes ? o.contact.notes + " - " : "") +
           (o.comments ? o.comments : "") +
           (o.comments && o.refrigerated ? " - " : "") +
-          (o.refrigerated ? "REFRIGERAT" : "")
+          (o.refrigerated ? "REFRIGERAT" : ""),
+          notes_delivery: o.contact && o.contact.notes_delivery ? o.contact.notes_delivery : "",
       }));
 
       const orders = this.orders.filter(o => {

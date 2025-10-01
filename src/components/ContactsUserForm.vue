@@ -227,6 +227,17 @@
                   placeholder="Notes, observacions, comentaris... "
                 />
               </b-field>
+              <b-field
+                v-if="permissions.includes('orders_admin')"
+                label="Detalls repartidores"
+                horizontal
+              >
+                <b-input
+                  v-model="form.notes_delivery"
+                  type="textarea"
+                  placeholder="Detalls per a les repartidores, només visible al planner."
+                />
+              </b-field>
 
               <b-field label="Raó Social" horizontal>
                 <b-input v-model="form.name" required />
