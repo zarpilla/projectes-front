@@ -293,7 +293,11 @@ export default {
       const projects = this.form.id
         ? this.projects
         : this.projects
-            .filter(p => p.project_state && p.project_state.can_assign_activities === true)
+            .filter(
+              p =>
+                p.project_state &&
+                p.project_state.can_assign_activities === true
+            )
             .filter(
               p =>
                 p.mother === null ||
@@ -469,17 +473,22 @@ export default {
           this.activityTypes[a.id] = a.name;
           this.hasActivities = true;
         });
-        if (
-          project.default_dedication_type &&
-          project.default_dedication_type.id &&
-          this.form.dedication_type == null
-        ) {
-          this.form.dedication_type = project.default_dedication_type.id;
-        } else if (
-          project.default_dedication_type === null &&
-          this.form.dedication_type == null
-        ) {
-          this.form.dedication_type = null;
+        
+        if (!this.form.id) {
+          if (
+            project.default_dedication_type &&
+            project.default_dedication_type.id &&
+            this.form.dedication_type == null
+          ) {
+            this.form.dedication_type = project.default_dedication_type.id;
+          } else if (
+            project.default_dedication_type === null &&
+            this.form.dedication_type == null
+          ) {
+            this.form.dedication_type = null;
+          } else if (project.default_dedication_type) {
+            this.form.dedication_type = project.default_dedication_type;
+          }
         }
 
         this.hasTasks = false;

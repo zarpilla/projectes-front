@@ -197,12 +197,18 @@
           <span
             class="day-sum-label text-sm text-gray-900"
             v-if="daySum(attributes)"
-            >{{ daySum(attributes) }}h<span v-if="daySumPending(attributes) && daySumPending(attributes) !== daySum(attributes)"> / {{ daySumPending(attributes) }}h</span>
-          </span
-        >
-        <div class="flex-grow overflow-y-auto overflow-x-auto">
-          <span
-            v-for="attr in attributes"
+            >{{ daySum(attributes) }}h<span
+              v-if="
+                daySumPending(attributes) &&
+                  daySumPending(attributes) !== daySum(attributes)
+              "
+            >
+              / {{ daySumPending(attributes) }}h</span
+            >
+          </span>
+          <div class="flex-grow overflow-y-auto overflow-x-auto">
+            <span
+              v-for="attr in attributes"
               :key="attr.key"
               class="
                 text-xs
@@ -992,7 +998,12 @@ export default {
       }
       return sumBy(
         attributes.map(a => {
-          return { hours: a.customData && a.customData.pending === undefined ? a.customData.hours : 0 };
+          return {
+            hours:
+              a.customData && a.customData.pending === undefined
+                ? a.customData.hours
+                : 0
+          };
         }),
         "hours"
       ).toFixed(2);
@@ -1001,8 +1012,8 @@ export default {
       if (!attributes || (attributes && attributes.length === 0)) {
         return false;
       }
-      const pendingAttributes = attributes.filter(a => 
-        a.customData && a.customData.pending === true
+      const pendingAttributes = attributes.filter(
+        a => a.customData && a.customData.pending === true
       );
       if (pendingAttributes.length === 0) {
         return false;
@@ -1156,9 +1167,11 @@ export default {
           this.icalVisible = true;
           const icalEvents = (
             await service({ requiresAuth: true }).get(
-              `activities/import-calendar/${this.user}?from=${moment(this.date1).format(
-                "YYYY-MM-DD"
-              )}&to=${moment(this.date2).add(1, "days").format("YYYY-MM-DD")}`
+              `activities/import-calendar/${this.user}?from=${moment(
+                this.date1
+              ).format("YYYY-MM-DD")}&to=${moment(this.date2)
+                .add(1, "days")
+                .format("YYYY-MM-DD")}`
             )
           ).data;
           if (icalEvents.ical && icalEvents.ical.length) {
@@ -1209,7 +1222,7 @@ export default {
                 project: event.summary,
                 username: user.username,
                 hours:
-                  moment(event.end).diff(moment(event.start), "minutes") / 60,                
+                  moment(event.end).diff(moment(event.start), "minutes") / 60,
                 type: "ical",
                 a: event,
                 pending: true
@@ -1249,7 +1262,6 @@ export default {
               countNotFound++;
             } else if (projectParts.length >= 1) {
               for (const part of projectParts) {
-                console.log("part", part);
                 const found = this.activeProjects.filter(
                   p => this.removeAccents(p.name) === this.removeAccents(part)
                 );
@@ -1396,15 +1408,36 @@ export default {
           }
 
           if (project) {
+            const dedication_type = event.customData.project
+              .toString()
+              .toLowerCase()
+              .includes("[h1]")
+              ? 1
+              : event.customData.project
+                  .toString()
+                  .toLowerCase()
+                  .includes("[h2]")
+              ? 2
+              : event.customData.project
+                  .toString()
+                  .toLowerCase()
+                  .includes("[h3]")
+              ? 3
+              : event.customData.project
+                  .toString()
+                  .toLowerCase()
+                  .includes("[h4]")
+              ? 4
+              : project.default_dedication_type &&
+                project.default_dedication_type.id
+              ? project.default_dedication_type.id
+              : project.default_dedication_type;
+
             const eventData = event.customData.a;
             const activity = {
               activity_type: null,
               date: eventData.start.substring(0, 10),
-              dedication_type:
-                project.default_dedication_type &&
-                project.default_dedication_type.id
-                  ? project.default_dedication_type.id
-                  : null,
+              dedication_type: dedication_type,
               hours:
                 moment(eventData.end).diff(moment(eventData.start), "minutes") /
                 60,
@@ -1426,14 +1459,36 @@ export default {
           if (project) {
             const eventData = event.customData.a;
             console.log("project found", projectName, event, eventData);
+
+            const dedication_type = event.customData.project
+              .toString()
+              .toLowerCase()
+              .includes("[h1]")
+              ? 1
+              : event.customData.project
+                  .toString()
+                  .toLowerCase()
+                  .includes("[h2]")
+              ? 2
+              : event.customData.project
+                  .toString()
+                  .toLowerCase()
+                  .includes("[h3]")
+              ? 3
+              : event.customData.project
+                  .toString()
+                  .toLowerCase()
+                  .includes("[h4]")
+              ? 4
+              : project.default_dedication_type &&
+                project.default_dedication_type.id
+              ? project.default_dedication_type.id
+              : project.default_dedication_type;
+
             const activity = {
               activity_type: null,
               date: eventData.start.substring(0, 10),
-              dedication_type:
-                project.default_dedication_type &&
-                project.default_dedication_type.id
-                  ? project.default_dedication_type.id
-                  : null,
+              dedication_type: dedication_type,
               hours:
                 moment(eventData.end).diff(moment(eventData.start), "minutes") /
                 60,
