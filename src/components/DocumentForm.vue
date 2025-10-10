@@ -729,8 +729,11 @@
               </b-field>
             </div>
             <hr />
-            <div class="summary has-background-white-ter p-4">              
-              <div class="is-flex is-justify-content-flex-end" v-if="hasDiscount">
+            <div class="summary has-background-white-ter p-4">
+              <div
+                class="is-flex is-justify-content-flex-end"
+                v-if="hasDiscount"
+              >
                 <label>Base sense descompte: </label>
                 <money-format
                   :value="totalBaseWithoutDiscount"
@@ -741,7 +744,10 @@
                 >
                 </money-format>
               </div>
-              <div class="is-flex is-justify-content-flex-end" v-if="hasDiscount">
+              <div
+                class="is-flex is-justify-content-flex-end"
+                v-if="hasDiscount"
+              >
                 <label>Descompte: </label>
                 <money-format
                   :value="totalDiscount"
@@ -1114,7 +1120,7 @@ import FileUpload from "@/components/FileUpload";
 
 // Services
 import service from "@/service/index";
-import getConfig from '@/config'
+import getConfig from "@/config";
 
 export default {
   name: "DocumentForm",
@@ -1184,7 +1190,7 @@ export default {
       currentPage: 1,
       // Debouncing for inputs
       debouncedInputs: new Map(),
-      apiUrl: ''
+      apiUrl: ""
     };
   },
   computed: {
@@ -1388,7 +1394,7 @@ export default {
     const config = getConfig();
     this.apiUrl = config.VUE_APP_API_URL;
 
-    this.getData();    
+    this.getData();
   },
   beforeDestroy() {
     // Clean up any pending debounced timeouts
@@ -1525,6 +1531,14 @@ export default {
                   "YYYY-MM-DD"
                 ).toDate();
               }
+
+              if (this.form.emitted) {
+                this.form.emitted = moment(
+                  this.form.emitted,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
+
               if (this.form.serial && this.form.serial.id) {
                 this.form.serial = this.form.serial.id;
               }
@@ -2312,14 +2326,11 @@ export default {
           }
         });
 
-        /// temp uncomment
-        if (updateProject || true) {
-          await service({ requiresAuth: true }).put(`projects/${p.id}`, {
-            project_phases: p.project_phases,
-            project_phases_info: p.project_phases_info,
-            _project_phases_updated: true
-          });
-        }
+        await service({ requiresAuth: true }).put(`projects/${p.id}`, {
+          project_phases: p.project_phases,
+          project_phases_info: p.project_phases_info,
+          _project_phases_updated: true
+        });
       }
     },
     // undoProject() {
@@ -2331,11 +2342,105 @@ export default {
     //   }, 100);
     // },
     removeProject(option) {
-      this.isLoadingProject = true;
-      this.form.projects = this.form.projects.filter(c => c.id !== option.id);
-      setTimeout(async () => {
-        this.isLoadingProject = false;
-      }, 100);
+      this.$buefy.dialog.confirm({
+        message:
+          "Estàs segura d'eliminar el projecte? Aquesta acció eliminarà també la línia associada al document i guardarà el projecte.",
+        onConfirm: async () => {
+          this.isLoadingProject = true;
+
+          try {
+            // Find the project to be removed
+            const projectToRemove = this.form.projects.find(
+              p => p.id === option.id
+            );
+
+            if (
+              projectToRemove &&
+              projectToRemove.project_phases &&
+              this.form.id
+            ) {
+              // Check each project phase for incomes/expenses that reference this document
+              let deletedIncomes = [];
+              let deletedExpenses = [];
+              projectToRemove.project_phases.forEach(phase => {
+                // Check incomes
+                if (phase.incomes) {
+                  console.log(
+                    "Filtering incomes for phase",
+                    phase.incomes.length
+                  );
+                  deletedIncomes = phase.incomes.filter(income => {
+                    return income.invoice && income.invoice.id === this.form.id;
+                  });
+                  console.log(
+                    "Deleted incomes for phase",
+                    deletedIncomes.length
+                  );
+                  phase.incomes = phase.incomes.filter(income => {
+                    return !(
+                      income.invoice && income.invoice.id === this.form.id
+                    );
+                  });
+                  console.log(
+                    "Remaining incomes for phase",
+                    phase.incomes.length
+                  );
+                }
+
+                // Check expenses
+                if (phase.expenses) {
+                  deletedExpenses = phase.expenses.filter(expense => {
+                    return (
+                      expense.invoice && expense.invoice.id === this.form.id
+                    );
+                  });
+                  phase.expenses = phase.expenses.filter(expense => {
+                    return !(
+                      expense.invoice && expense.invoice.id === this.form.id
+                    );
+                  });
+                }
+              });
+
+              // Mark that project phases have been updated so they get saved
+              this.shouldSaveProject = true;
+              projectToRemove._project_phases_updated = true;
+              projectToRemove.project_phases_info = {
+                deletedPhases: [],
+                deletedIncomes: deletedIncomes.map(i => i.id),
+                deletedExpenses: deletedExpenses.map(e => e.id),
+                ...(projectToRemove.project_phases_info || {})
+              };
+
+              if (deletedIncomes.length > 0 || deletedExpenses.length > 0) {
+                // Save the project with the updated phases
+                await this.updateProjectPhases(this.form.id, [projectToRemove]);
+                this.$buefy.snackbar.open({
+                  message:
+                    "Projecte actualitzat després d'eliminar les línies associades.",
+                  queue: false
+                });
+              }
+            }
+
+            // Remove the project from the form
+            this.form.projects = this.form.projects.filter(
+              c => c.id !== option.id
+            );
+          } catch (err) {
+            console.error(err);
+            this.$buefy.snackbar.open({
+              message: "Error al guardar el projecte",
+              queue: false
+            });
+          } finally {
+            this.isLoadingProject = false;
+          }
+        },
+        onCancel: () => {
+          // Do nothing if cancelled
+        }
+      });
     },
     editNumber() {
       if (!this.form.code) {
@@ -2398,11 +2503,81 @@ export default {
 
       this.form.state = theInvoice.data.state;
       this.form.code = theInvoice.data.code;
+
+      await this.updateDraftLine();
+
       this.$buefy.snackbar.open({
         message: "Factura emesa correctament",
         queue: false
       });
       scrollTo(0, 0);
+      this.getData();
+    },
+    async updateDraftLine() {
+      // Update project phases with correct invoice number
+      let needsProjectUpdate = false;
+      const updatedProjects = [];
+
+      for (const project of this.form.projects) {
+        if (project.project_phases) {
+          let projectNeedsUpdate = false;
+          const updatedProject = JSON.parse(JSON.stringify(project));
+
+          updatedProject.project_phases.forEach(phase => {
+            if (phase.incomes) {
+              phase.incomes.forEach(income => {
+                // Check if this income is linked to the current invoice and has #ESBORRANY# in concept
+                if (
+                  income.invoice &&
+                  income.invoice.id === this.form.id &&
+                  income.concept &&
+                  income.concept.includes("#ESBORRANY#")
+                ) {
+                  // Replace #ESBORRANY# with the actual invoice number
+                  income.concept = income.concept.replace(
+                    "#ESBORRANY#",
+                    "#" + this.form.code + "#"
+                  );
+                  income.dirty = true
+                  projectNeedsUpdate = true;
+                  needsProjectUpdate = true;
+                }
+              });
+            }
+          });
+
+          if (projectNeedsUpdate) {
+            updatedProject._project_phases_updated = true;
+            updatedProject.project_phases_info = {
+              deletedPhases: [],
+              deletedIncomes: [],
+              deletedExpenses: [],
+              deletedHours: [],
+              ...(updatedProject.project_phases_info || {})
+            };
+            updatedProjects.push(updatedProject);
+          }
+        }
+      }
+
+      // Update project phases if needed
+      if (needsProjectUpdate && updatedProjects.length > 0) {
+        try {
+          await this.updateProjectPhases(this.form.id, updatedProjects);
+          // Update local form data with the updated projects
+          updatedProjects.forEach(updatedProject => {
+            const localProject = this.form.projects.find(
+              p => p.id === updatedProject.id
+            );
+            if (localProject) {
+              localProject.project_phases = updatedProject.project_phases;
+            }
+          });
+        } catch (err) {
+          console.error("Error updating project phases:", err);
+          // Continue anyway, don't block the invoice emission
+        }
+      }
     },
     sendSubmitEmittedInvoice() {
       this.submit(this.exitAfterSave);
