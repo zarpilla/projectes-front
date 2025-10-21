@@ -1,5 +1,5 @@
 <template>
-  <li :class="{ 'is-active': isDropdownActive }">
+  <li :class="[item.itemClassName, { 'is-dropdown-active': isDropdownActive }]">
     <component
       :is="componentIs"
       v-bind="item"

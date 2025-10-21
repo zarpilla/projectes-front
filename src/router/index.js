@@ -763,6 +763,19 @@ const routes = [
     props: true,
     meta: {
       requiresAuth: true
+    },
+  },
+  {
+    meta: {
+      title: "Contasol"
+    },
+    path: "/contasol",
+    name: "contasol.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Contasol.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
     }
   }
 ];

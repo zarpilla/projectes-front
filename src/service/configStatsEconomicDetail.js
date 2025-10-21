@@ -1,3 +1,5 @@
+import { months } from "moment"
+
 const config = {
   filterable: true,
   sortable: false,
@@ -55,6 +57,12 @@ const config = {
             type: 'string'
           },
           project_year: {
+            type: 'string'
+          },
+          year: {
+            type: 'string'
+          },
+          month: {
             type: 'string'
           },
           row_type: {

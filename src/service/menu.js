@@ -276,19 +276,26 @@ const menu = [
         icon: 'math-log',
         label: 'Registre de canvis',
         permission: 'projects'
-      },
+      },      
+      {
+        to: '/contasol',
+        icon: 'account-cash',
+        label: 'Contasol',
+        permission: 'projects'
+      } ,
       {
         to: '/verifactu',
         icon: 'bank',
         label: 'Verifactu',
-        permission: 'projects'
+        permission: 'projects',
+        itemClassName: 'mb-6'
       },      
-      {
-        to: '/documentacio',
-        icon: 'help-circle',
-        label: 'Documentació',
-        permission: 'projects'
-      }      
+      // {
+      //   to: '/documentacio',
+      //   icon: 'help-circle',
+      //   label: 'Documentació',
+      //   permission: 'projects'
+      // }     
     ]
     //,
     // 'About',
