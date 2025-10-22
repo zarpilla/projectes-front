@@ -45,6 +45,15 @@
         </div>
       </div>
     </div>
+    <div class="columns mt-5">
+      <div class="column is-one-third is-flex">
+        <div v-for="logo in logos" :key="logo.id" class="mt-5 mr-5 logo-home">
+          <figure class="image">
+            <img :src="logo.url" :alt="logo.name" />
+          </figure>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -52,12 +61,14 @@
 import service from "@/service/index";
 import { mapState } from "vuex";
 import { EventBus } from "@/service/event-bus.js";
+import getConfig from "@/config";
 
 export default {
   data() {
     return {
       email: "",
-      password: ""
+      password: "",
+      logos: []
     };
   },
   computed: {
@@ -66,6 +77,23 @@ export default {
   async mounted() {
     if (this.userName) {
       this.$router.push("projectes");
+    } else {
+      try {
+        const response = await service({ cached: true }).get("logos?_sort=order:ASC");
+        this.logos = response.data;
+
+        const config = getConfig();
+        const apiUrl = config.VUE_APP_API_URL;
+        this.logos = this.logos.map(logo => {
+          return {
+            ...logo,
+            url: logo.logo ? apiUrl + logo.logo.url : ""
+          };
+        });
+      } catch (error) {
+        console.error("Error fetching logos:", error);
+      }
+
     }
   },
   methods: {
@@ -143,3 +171,10 @@ export default {
   }
 };
 </script>
+<style scoped>
+.logo-home img{
+  display: inline-block;
+  height: 100px;
+  width: auto;
+}
+</style>
