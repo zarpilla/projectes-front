@@ -104,26 +104,39 @@ export default {
             parent: 0,
             readonly: true
           };
-          // const ymw = this.view === 'week' ? `${d.year}-${d.month}-${d.week}` : `${d.year}-${d.month}-01`
-          const userDedications = this.dedications
+          
+          // Pre-process all dedications with calculated values for performance
+          const processedDedications = this.dedications
             .filter(d => d.username === leader.username && d.estimated_hours)
             .map(d => {
-              const ymw =
-                this.view === "week"
-                  ? `${d.year}-01-${d.week}`
-                  : `${d.year}-${d.month}-01`;
+              const fromDate = moment(d.from, 'YYYY-MM-DD');
+              const actualYear = fromDate.year();
+              const actualMonth = fromDate.format('MM');
+              const actualWeek = fromDate.isoWeek();
+              
+              const ymw = this.view === "week"
+                ? `${actualYear}-01-${String(actualWeek).padStart(2, '0')}`
+                : `${actualYear}-${actualMonth}-01`;
+              
               return {
                 ...d,
-                // ymw: `${d.year}-${d.month}-${d.week}` //moment(`${d.year}-${d.month}-${d.week}`, "YYYYMMDD")
-                ymw: ymw
+                ymw: ymw,
+                _actualYear: actualYear,
+                _actualMonth: actualMonth,
+                _actualWeek: actualWeek
               };
             });
+
+          const userDedications = processedDedications;
+
+          // console.log(`DEBUG: ${leader.username} has ${userDedications.length} dedications`);
 
           if (userDedications && userDedications.length) {
             this.tasks.data.push(task);
           }
 
-          // add festives
+          // Add festives - optimized version
+          const festiveDedications = [];
           this.festives.forEach(f => {
             if (
               (f.users_permissions_user &&
@@ -137,30 +150,35 @@ export default {
                 }
               });
 
-              // const ymwf = this.view === 'week' ? `${d.year}-${d.month}-${d.week}` : `${d.year}-${d.month}`
-
-              const ymw =
-                this.view === "week"
-                  ? `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-01-${moment(
-                      f.date,
-                      "YYYY-MM-DD"
-                    ).isoWeek()}`
-                  : `${moment(f.date, "YYYY-MM-DD").isoWeekYear()}-${moment(
-                      f.date,
-                      "YYYY-MM-DD"
-                    ).format("MM")}-01`;
-
-              const festiveDedication = {
-                project_name: f.festive_type.name,
-                ymw: ymw, // moment(f.date, "YYYY-MM-DD").format("YYYY-MM") + '-' + this.view === 'month' ? '01' : moment(f.date, "YYYY-MM-DD").isoWeek(),
-                estimated_hours: dailyHours
-              };
               if (dailyHours > 0) {
-                userDedications.push(festiveDedication);
+                // Use the same date-based calculation as regular dedications
+                const festiveDate = moment(f.date, "YYYY-MM-DD");
+                const actualYear = festiveDate.year();
+                const actualMonth = festiveDate.format('MM');
+                const actualWeek = festiveDate.isoWeek();
+
+                const ymw = this.view === "week"
+                  ? `${actualYear}-01-${String(actualWeek).padStart(2, '0')}`
+                  : `${actualYear}-${actualMonth}-01`;
+
+                festiveDedications.push({
+                  project_name: f.festive_type.name,
+                  ymw: ymw,
+                  estimated_hours: dailyHours,
+                  from: f.date,
+                  username: leader.username,
+                  _actualYear: actualYear,
+                  _actualMonth: actualMonth,
+                  _actualWeek: actualWeek
+                });
               }
             }
           });
-          const dedicationTotals = _(userDedications)
+
+          // Merge festive dedications with regular dedications
+          const allDedications = [...userDedications, ...festiveDedications];
+          
+          const dedicationTotals = _(allDedications)
             .groupBy("ymw")
             .map((ymw, id) => ({
               ymw: id,
@@ -169,13 +187,13 @@ export default {
               week: id.substring(8, 10),
               total: _.sumBy(ymw, "estimated_hours"),
               from: ymw[0].from
-              // rows: ymw
             }))
             .value();
 
           for (let j = 0; j < dedicationTotals.length; j++) {
             tid++;
             const dedication = dedicationTotals[j];
+            
             // const ymw = `${d.year}-${d.month}-${d.week}`
             var start_date = moment(
               `${dedication.year}-${
@@ -215,16 +233,18 @@ export default {
             // out += `<pre>${task._year } - ${task._month } - ${task._week }</pre>`;
             // return out
 
-            const taskDedications = this.dedications.filter(
-              d =>
-                d.username === leader.username &&
-                parseInt(d.year) === parseInt(dedication.year) &&
-                parseInt(d.month) ===
-                  parseInt(this.view === "week" ? d.month : dedication.month) &&
-                parseInt(d.week) ===
-                  parseInt(this.view === "week" ? dedication.week : d.week)
-              // moment(d.from, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(d.from, 'YYYY-MM-DD').isBefore(moment(task.end_date))
-            );
+            // Use merged dedications (including festives) for much faster filtering
+            const taskDedications = allDedications.filter(d => {
+              const yearMatch = d._actualYear === parseInt(dedication.year);
+              
+              if (this.view === "week") {
+                const weekMatch = d._actualWeek === parseInt(dedication.week);
+                return yearMatch && weekMatch;
+              } else {
+                const monthMatch = d._actualMonth === dedication.month;
+                return yearMatch && monthMatch;
+              }
+            });
 
             const taskDedicationsByProject = _(taskDedications)
               .groupBy("project_name")
@@ -243,64 +263,8 @@ export default {
               }
             });
 
-            const festiveDedications = [];
-            this.festives.forEach(f => {
-              if (
-                (f.users_permissions_user &&
-                  f.users_permissions_user.username === leader.username) ||
-                f.users_permissions_user === null
-              ) {
-                if (
-                  parseInt(moment(f.date, "YYYY-MM-DD").isoWeekYear()) ===
-                    parseInt(dedication.year) &&
-                  parseInt(moment(f.date, "YYYY-MM-DD").format("MM")) ==
-                    parseInt(
-                      this.view === "week"
-                        ? moment(f.date, "YYYY-MM-DD").format("MM")
-                        : dedication.month
-                    ) &&
-                  parseInt(moment(f.date, "YYYY-MM-DD").isoWeek()) ==
-                    parseInt(
-                      this.view === "week"
-                        ? dedication.week
-                        : moment(f.date, "YYYY-MM-DD").isoWeek()
-                    )
-                  // moment(f.date, 'YYYY-MM-DD').isAfter(moment(task.start_date)) && moment(f.date, 'YYYY-MM-DD').isBefore(moment(task.end_date))
-                ) {
-                  let dailyHours = 8;
-                  const taskUser = this.leaders.find(
-                    l => l.username ===leader.username
-                  );
-                  taskUser.daily_dedications.forEach(dd => {
-                    if (dd.from <= f.date && dd.to >= f.date) {
-                      dailyHours = dd.hours;
-                    }
-                  });
-                  const festiveDedication = {
-                    project_name: f.festive_type.name,
-                    ymw: moment(f.date, "YYYY-MM-DD").format("YYYYMM"),
-                    estimated_hours: dailyHours
-                  };
-                  festiveDedications.push(festiveDedication);
-                }
-              }
-            });
-
-            const festiveDedicationsByProject = _(festiveDedications)
-              .groupBy("project_name")
-              .map((project_name, id) => ({
-                project_name: id,
-                estimated_hours: _.sumBy(project_name, "estimated_hours")
-              }))
-              .value();
-
-            festiveDedicationsByProject.forEach(td => {
-              if (td.estimated_hours) {
-                out += `<b>${td.project_name}:</b> ${td.estimated_hours.toFixed(
-                  2
-                )}h<br>`;
-              }
-            });
+            // Note: Festive dedications are now included in taskDedications above,
+            // so no need for separate festive processing here
 
             const totalHours =
               (this.view === "month"

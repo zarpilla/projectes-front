@@ -53,8 +53,6 @@ import TitleBar from '@/components/TitleBar'
 import CardComponent from '@/components/CardComponent'
 import DedicationGantt from '@/components/DedicationGantt'
 import service from '@/service/index'
-import defaultProjectState from '@/service/projectState'
-import moment from 'moment'
 
 export default {
   name: 'StatsDedicacio',
