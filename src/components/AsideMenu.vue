@@ -16,9 +16,12 @@
         />
       </template>
     </div>
-    <div class="logos">
+    <div class="logos-support" v-if="logos.length">      
+      Amb el suport de:
+    </div>
+    <div class="logos-support logos" v-if="logos.length">      
       <div v-for="logo in logos" :key="logo.id" class="mt-5 mb-5 has-text-centered">
-        <figure class="image is-128x128 is-inline-block">
+        <figure class="image is-190w is-inline-block">
           <img :src="logo.url" :alt="logo.name" />
         </figure>
       </div>
@@ -81,5 +84,12 @@ export default {
 }
 aside.aside{
     overflow-y: auto;
+}
+.logos-support {
+  padding: 0 1rem;
+  color: #bbbbbb;
+}
+.is-190w {
+    width: 100%;
 }
 </style>

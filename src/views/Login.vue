@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="columns">
+    <div class="columns position-relative">
       <div class="column is-one-third">
         <h4 class="subtitle"><b>ESS</b>TRAPIS</h4>
         <h4 class="title mt-5">Accedeix</h4>
@@ -45,13 +45,20 @@
         </div>
       </div>
     </div>
-    <div class="columns mt-5">
-      <div class="column is-one-third is-flex">
-        <div v-for="logo in logos" :key="logo.id" class="mt-5 mr-5 logo-home">
+    <div class="columns logos-support-home" v-if="logos.length">
+      <div class="container">
+      <div class="column zis-flex">
+        <div class="z">
+          Amb el suport de:
+        </div>
+        <div class="is-flex">
+        <div v-for="logo in logos" :key="logo.id" class="mt-2 mr-5 logo-home">
           <figure class="image">
             <img :src="logo.url" :alt="logo.name" />
           </figure>
         </div>
+        </div>
+      </div>
       </div>
     </div>
   </div>
@@ -174,7 +181,19 @@ export default {
 <style scoped>
 .logo-home img{
   display: inline-block;
-  height: 100px;
+  height: 60px;
   width: auto;
+}
+.position-relative {
+  position: relative;
+  min-height: 100vh;
+}
+.logos-support-home {
+  position: fixed;
+  width: 100vw;
+  bottom: 0px;
+  background-color: #262930;
+  left: 0;
+  color: #bbbbbb;
 }
 </style>
