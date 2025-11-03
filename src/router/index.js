@@ -448,6 +448,19 @@ const routes = [
   },
   {
     meta: {
+      title: "IVA"
+    },
+    path: "/vat",
+    name: "vat.view",
+    component: () =>
+      import(/* webpackChunkName: "quote" */ "../views/Vat.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: "Factures emeses"
     },
     path: "/emitted-invoices",

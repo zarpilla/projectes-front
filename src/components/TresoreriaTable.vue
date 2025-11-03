@@ -178,140 +178,6 @@
       </section>
     </card-component>
 
-    <card-component
-      title="IVA PENDENT DE SALDAR"
-      class="ztile is-child mt-2"
-      v-if="
-        me &&
-        me.options &&
-        me.options.deductible_vat_pct &&
-        me.options.deductible_vat_pct > 0
-      "
-    >
-      <div class="columns">
-        <div class="column">
-          <b-field label="EXECUTAT" grouped class="column">
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Suportat" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat.paid"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Repercutit" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat.received"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Deduïble" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              {{ vat.deductible_vat_pct }}%
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldo" grouped class="column">
-            <money-format
-              :value="vat.deductible_vat"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldar" grouped class="column">
-            <button
-              class="button is-primary"
-              @click="payVat"
-              :disabled="(vat.paid - (vat.received * me.options.deductible_vat_pct / 100)) === 0 || payingVat"
-            >
-              {{ payingVat ? "..." : "Saldar" }}
-            </button>
-          </b-field>
-        </div>
-      </div>
-      
-      <div class="columns">
-        <div class="column">
-          <b-field label="PREVIST" grouped class="column">
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Suportat" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat_expected.paid"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Repercutit" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat_expected.received"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Deduïble" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              {{ me.options.deductible_vat_pct }}%
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldo" grouped class="column">
-            <money-format
-              :value="
-                -1*(vat_expected.received - (vat_expected.paid * me.options.deductible_vat_pct / 100))
-              "
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-          </b-field>
-        </div>
-        <div class="column">
-        </div>
-      </div>
-    </card-component>
-
     <card-component title="PER PROJECTE" class="ztile is-child mt-2">
       <!-- Pivot Views Component -->
       <pivot-views
@@ -339,6 +205,8 @@
         ></treasury-annotation-input>
       </section>
     </card-component>
+
+    <pre>{{ treasuryDataDesc }}</pre>
 
     <card-component title="MOVIMENTS BANCARIS" class="ztile is-child mt-2">
       <section class="section">

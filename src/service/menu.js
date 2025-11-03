@@ -62,6 +62,12 @@ const menu = [
         permission: 'projects'
       },
       {
+        to: '/vat',
+        icon: 'bank',
+        label: 'IVA',
+        permission: 'projects'
+      },
+      {
         to: '/tresoreria',
         icon: 'bank',
         label: 'Tresoreria',
