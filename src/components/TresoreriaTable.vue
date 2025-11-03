@@ -206,8 +206,6 @@
       </section>
     </card-component>
 
-    <pre>{{ treasuryDataDesc }}</pre>
-
     <card-component title="MOVIMENTS BANCARIS" class="ztile is-child mt-2">
       <section class="section">
         <b-table
