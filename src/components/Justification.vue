@@ -451,18 +451,30 @@
               </b-select>
             </div>
             <div class="column">
-              <b-select v-model="justification.users_permissions_user">
-                <option v-for="u in users" :key="'user-' + u.id" :value="u">
-                  {{ u.username }}
-                </option>
-              </b-select>
+              <b-autocomplete
+                v-model="userSearch"
+                placeholder="Selecciona una persona..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredUsers"
+                field="username"
+                @select="option => onUserSelect(option)"
+                :clearable="true"
+              >
+              </b-autocomplete>
             </div>
             <div class="column">
-              <b-select v-model="justification.project">
-                <option v-for="u in projects" :key="'project-' + u.id" :value="u">
-                  {{ u.name }}
-                </option>
-              </b-select>
+              <b-autocomplete
+                v-model="projectSearch2"
+                placeholder="Selecciona un projecte..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredProjects2"
+                field="name"
+                @select="option => onProjectSelect2(option)"
+                :clearable="true"
+              >
+              </b-autocomplete>
             </div>
             <div class="column has-text-right">
               <b-input v-model="justification.quantity" />
@@ -584,19 +596,34 @@
               </b-select>
             </div>
             <div class="column">
-              <b-select v-model="justificationInvoice.project">
-                <option v-for="u in projects" :key="'project-' + u.id" :value="u">
-                  {{ u.name }}
-                </option>
-              </b-select>
+              <b-autocomplete
+                v-model="projectSearch"
+                placeholder="Selecciona un projecte..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredProjects"
+                field="name"
+                @select="option => onProjectSelect(option)"
+                :clearable="true"
+              >
+              </b-autocomplete>
             </div>
             <div class="column">
-              <b-select v-model="justificationInvoice.emitted_invoice"
-              @input="onEmittedInvoiceChange">
-                <option v-for="u in invoices" :key="'invoice-' + u.id" :value="u">
-                  {{ u.code }} ({{ u.total_base ? u.total_base.toFixed(2) : '-' }} €)
-                </option>
-              </b-select>
+              <b-autocomplete
+                v-model="invoiceSearch"
+                placeholder="Selecciona una factura..."
+                :keep-first="false"
+                :open-on-focus="true"
+                :data="filteredInvoices"
+                field="code"
+                @select="option => onEmittedInvoiceSelect(option)"
+                :clearable="true"
+              >
+                <template slot-scope="props">
+                  {{ props.option.code }} ({{ props.option.total_base ? props.option.total_base.toFixed(2) : '-' }} €)
+                </template>
+                <template #empty>No hi ha resultats</template>
+              </b-autocomplete>
             </div>
             <div class="column has-text-right">
               <b-input v-model="justificationInvoice.quantity" />
@@ -711,6 +738,10 @@ export default {
       dedications: [],
       theYear: 0,
       invoices: [],
+      invoiceSearch: "",
+      projectSearch: "",
+      projectSearch2: "",
+      userSearch: "",
       pivotIdentifier: 'justification-pivot'
     };
   },
@@ -1023,6 +1054,62 @@ export default {
         parseInt(this.justificationInvoice.quantity) > 0
       );
     },
+    filteredInvoices() {
+      if (!this.invoiceSearch) {
+        return this.invoices;
+      }
+      return this.invoices.filter(option => {
+        return (
+          option.code
+            .toString()
+            .toLowerCase()
+            .indexOf(this.invoiceSearch.toLowerCase()) >= 0 ||
+          (option.total_base && 
+            option.total_base
+              .toString()
+              .indexOf(this.invoiceSearch) >= 0)
+        );
+      });
+    },
+    filteredProjects() {
+      if (!this.projectSearch) {
+        return this.projects;
+      }
+      return this.projects.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.projectSearch.toLowerCase()) >= 0
+        );
+      });
+    },
+    filteredProjects2() {
+      if (!this.projectSearch2) {
+        return this.projects;
+      }
+      return this.projects.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.projectSearch2.toLowerCase()) >= 0
+        );
+      });
+    },
+    filteredUsers() {
+      if (!this.userSearch) {
+        return this.users;
+      }
+      return this.users.filter(option => {
+        return (
+          option.username
+            .toString()
+            .toLowerCase()
+            .indexOf(this.userSearch.toLowerCase()) >= 0
+        );
+      });
+    },
     pivotData() {
       // Combine monthlyActivitiesTotal with justifications for pivot table
       const activities = this.monthlyActivitiesTotal.map(row => ({
@@ -1229,6 +1316,8 @@ export default {
         queue: false
       });
       this.justification = {};
+      this.projectSearch2 = "";
+      this.userSearch = "";
       this.getActivities();
     },
     async addJustificationInvoice() {      
@@ -1247,20 +1336,31 @@ export default {
         emitted_invoice: null,
         quantity: ''
       };
+      this.invoiceSearch = "";
+      this.projectSearch = "";
       this.getActivities();
     },
     excelFormat(value) {
       return format(this.user, value);
     },
-    onEmittedInvoiceChange() {
-      if (this.justificationInvoice.emitted_invoice && this.justificationInvoice.project) {
-        const inv = this.invoices.find(i => i.id === this.justificationInvoice.emitted_invoice.id);
-        if (inv) {
-          this.justificationInvoice.quantity = inv.total_base;
+    onEmittedInvoiceSelect(option) {
+      this.justificationInvoice.emitted_invoice = option;
+      if (option) {
+        if (this.justificationInvoice.project) {
+          this.justificationInvoice.quantity = option.total_base;
         }
       } else {
         this.justificationInvoice.quantity = '';
       }
+    },
+    onProjectSelect(option) {
+      this.justificationInvoice.project = option;
+    },
+    onProjectSelect2(option) {
+      this.justification.project = option;
+    },
+    onUserSelect(option) {
+      this.justification.users_permissions_user = option;
     },
     applyDefaultView() {
       if (this.pivotGridInstance) {
