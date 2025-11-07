@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2025.10.07">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Possibilitat de desactivar àmbits de projecte.
+          </div>
+        </div>
+      </card-component>
       <card-component title="2025.09.18">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>

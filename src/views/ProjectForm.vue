@@ -2618,6 +2618,7 @@ export default {
             }
           });
       } else {
+        this.project_scopes = this.project_scopes.filter(s => !s.disabled)
         this.form.date_start = new Date();
         this.form.date_end = moment()
           .endOf("year")
@@ -2635,6 +2636,11 @@ export default {
         .get("project-scopes?_limit=-1")
         .then(r => {
           this.project_scopes = r.data;
+          if (this.form.project_scope && this.form.project_scope.disabled !== true) {
+            this.project_scopes = this.project_scopes.filter(
+              s => !s.disabled
+            );
+          }
         });
       service({ requiresAuth: true, cached: true })
         .get("project-types?_limit=-1")

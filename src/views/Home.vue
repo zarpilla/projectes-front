@@ -304,8 +304,7 @@ export default {
     service({ requiresAuth: true, cached: true })
       .get("project-scopes?_limit=-1&_sort=code:ASC")
       .then((r) => {
-        this.scopes = r.data;
-        // this.applyProjects();
+        this.scopes = r.data.filter((s) => !s.disabled);
       });
     this.loading = true;
     const query = `projects/basic?_limit=-1&project_state=1`;
