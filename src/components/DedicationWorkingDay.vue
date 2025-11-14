@@ -11,10 +11,10 @@
       :years="years"
     />
     <b-loading
-        :is-full-page="true"
-        v-model="loading"
-        :can-cancel="false"
-      ></b-loading>
+      :is-full-page="true"
+      v-model="loading"
+      :can-cancel="false"
+    ></b-loading>
     <div class="gannt-container" v-if="showGantt">
       <div class="gantt" :id="ganttId"></div>
     </div>
@@ -134,7 +134,7 @@ export default {
         people_year: null
       },
       summary: [],
-      loading: false,
+      loading: false
     };
   },
   async mounted() {
@@ -163,7 +163,8 @@ export default {
       }, 250);
     },
     async getQuotes() {
-      const me = (await service({ requiresAuth: true, cached: true }).get("me")).data;
+      const me = (await service({ requiresAuth: true, cached: true }).get("me"))
+        .data;
       // console.log('me!', me)
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;
@@ -171,7 +172,9 @@ export default {
     },
     async initializeGannt() {
       this.tasks = { data: [] };
-      const users = (await service({ requiresAuth: true, cached: true }).get("users")).data;
+      const users = (
+        await service({ requiresAuth: true, cached: true }).get("users")
+      ).data;
       this.users = users;
       const dedications = (
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
@@ -202,7 +205,9 @@ export default {
           this.tasks.data.push(task);
 
           const userDedications = dedications.filter(
-            d => d.users_permissions_user.id === user.id
+            d =>
+              d.users_permissions_user &&
+              d.users_permissions_user.id === user.id
           );
 
           userDedications.forEach(d => {
@@ -312,8 +317,12 @@ export default {
         this.dedicationObject.start_date = gantt.roundDate(startDate);
         this.dedicationObject.end_date = gantt.roundDate(endDate);
         this.dedicationObject._dedication.from = gantt.roundDate(startDate);
-        this.dedicationObject._dedication.to = gantt.date.add(gantt.roundDate(endDate), -1, "day");
-        
+        this.dedicationObject._dedication.to = gantt.date.add(
+          gantt.roundDate(endDate),
+          -1,
+          "day"
+        );
+
         this.dedicationObject._dedication.users_permissions_user = this.users.find(
           u => u.id.toString() === userId.toString()
         );
@@ -356,7 +365,7 @@ export default {
     },
 
     payrollsOverlaps(from, to, payrolls) {
-      const overlaps = false
+      const overlaps = false;
       const mdiff = Math.round(
         moment
           .duration(moment(to, "YYYY-MM-DD").diff(moment(from, "YYYY-MM-DD")))
@@ -364,13 +373,16 @@ export default {
       );
       for (let i = 0; i < mdiff; i++) {
         const day = moment(from, "YYYY-MM-DD").add(i, "month");
-        const year = day.format("YYYY")
-        const month = day.format("M")
-        if (payrolls.filter(p => p.year.year == year && p.month.month == month).length) {
-          return true
+        const year = day.format("YYYY");
+        const month = day.format("M");
+        if (
+          payrolls.filter(p => p.year.year == year && p.month.month == month)
+            .length
+        ) {
+          return true;
         }
       }
-      return true
+      return true;
     },
 
     async updateActivity(activity) {
