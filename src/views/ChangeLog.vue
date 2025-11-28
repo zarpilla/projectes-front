@@ -2,6 +2,26 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2025.11.28">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Múltiples comptes bancaris
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Justificació de subvencions anual
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-danger">Correccions</span>
+          <div class="text mt-2">
+            Correccions a la importació d'hores a partir de calendaris
+          </div>
+        </div>
+      </card-component>
       <card-component title="2025.10.07">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
@@ -9,7 +29,7 @@
             Possibilitat de desactivar àmbits de projecte.
           </div>
         </div>
-      </card-component>
+      </card-component>      
       <card-component title="2025.09.18">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
