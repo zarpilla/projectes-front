@@ -16,6 +16,12 @@
           </div>
         </div>
         <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Nou formulari per facilitar la introducció de dietes
+          </div>
+        </div>
+        <div class="item mb-4">
           <span class="tag is-danger">Correccions</span>
           <div class="text mt-2">
             Correccions a la importació d'hores a partir de calendaris
