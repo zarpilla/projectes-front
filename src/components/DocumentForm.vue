@@ -13,6 +13,15 @@
       "
       @cancel="isModalActive = false"
     ></modal-box-emitted-invoices>
+    <modal-box-diet
+      :is-active="isDietModalActive"
+      :users="clients"
+      :projects="projects"
+      :quotes="quotes"
+      :current-user="user"
+      @submit="handleDietSubmit"
+      @cancel="handleDietModalCancel"
+    ></modal-box-diet>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
@@ -1114,6 +1123,7 @@ import TitleBar from "@/components/TitleBar";
 import CardComponent from "@/components/CardComponent";
 import ModalBoxEmittedInvoices from "@/components/ModalBoxEmittedInvoices";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
+import ModalBoxDiet from "@/components/ModalBoxDiet";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import FileUpload from "@/components/FileUpload";
@@ -1130,6 +1140,7 @@ export default {
     MoneyFormat,
     ModalBoxEmittedInvoices,
     ModalBoxSplit,
+    ModalBoxDiet,
     ProjectPhases,
     FileUpload
   },
@@ -1174,6 +1185,7 @@ export default {
       pdf: false,
       contact: null,
       isModalActive: false,
+      isDietModalActive: false,
       toReal: false,
       exitAfterSave: false,
       minEmittedDate: dayjs()
@@ -1682,6 +1694,25 @@ export default {
           this.type === "emitted-invoices"
         ) {
           this.form.verifactu = true;
+        }
+
+        // Check if document_type=4 (diet) is specified in query parameters
+        console.log(
+          "this.$route.query.document_type",
+          this.$route.query.document_type
+        );
+        if (
+          this.$route.query.document_type === "4" &&
+          this.type === "received-expenses"
+        ) {
+          this.form.document_type = 4;
+          // Show diet modal after a short delay to ensure component is ready
+          console.log("About to show diet modal...");
+          this.$nextTick(() => {
+            console.log("Setting isDietModalActive to true");
+            this.isDietModalActive = true;
+            console.log("isDietModalActive is now:", this.isDietModalActive);
+          });
         }
 
         this.isLoading = false;
@@ -2538,7 +2569,7 @@ export default {
                     "#ESBORRANY#",
                     "#" + this.form.code + "#"
                   );
-                  income.dirty = true
+                  income.dirty = true;
                   projectNeedsUpdate = true;
                   needsProjectUpdate = true;
                 }
@@ -2581,6 +2612,69 @@ export default {
     },
     sendSubmitEmittedInvoice() {
       this.submit(this.exitAfterSave);
+    },
+    handleDietSubmit(dietData) {
+      // Populate the form with diet data
+      this.isDietModalActive = false;
+
+      // Find the selected user contact
+      const selectedContact = this.clients.find(
+        client =>
+          client.users_permissions_user &&
+          client.users_permissions_user.id === dietData.user
+      );
+
+      if (selectedContact) {
+        this.form.contact = selectedContact.id;
+        this.clientSearch = selectedContact.name;
+        this.contact = selectedContact;
+
+        this.clientSelected(selectedContact)        
+      }
+
+      // Set project
+      if (dietData.project) {
+        this.form.projects = [dietData.project];
+        this.projectSearch = dietData.project.name;
+      }
+
+      // Set emission date
+      this.form.emitted = dietData.date;
+
+      // Create diet lines based on kilometers
+      this.form.lines = [
+        {
+          concept: `${dietData.concept} - sense IRPF`,
+          base: parseFloat(
+            (this.quotes.diet_amount_without_irpf || 0).toFixed(4)
+          ),
+          quantity: dietData.kilometers,
+          discount: 0,
+          vat: 0,
+          irpf: 0,
+          comments: "",
+          show: false,
+          date: dietData.date
+        },
+        {
+          concept: `${dietData.concept} - amb IRPF`,
+          base: parseFloat(
+            (
+              (this.quotes.diet_amount_total || 0) -
+              (this.quotes.diet_amount_without_irpf || 0)
+            ).toFixed(4)
+          ),
+          quantity: dietData.kilometers,
+          discount: 0,
+          vat: 0,
+          irpf: this.personIrpf || 0,
+          comments: "",
+          show: false,
+          date: dietData.date
+        }
+      ];
+
+      // setTimeout(() => this.submit(false), 200);
     },
     navNew() {
       let routeData = this.$router.resolve({ name: "contacts.edit" });

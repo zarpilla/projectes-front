@@ -99,6 +99,9 @@
       <b-button class="view-button is-primary mb-3 ml-3" @click="navNewExpense" icon-left="plus">
         Nova despesa
       </b-button>
+      <b-button class="view-button is-primary mb-3 ml-3" @click="navNewDiet" icon-left="plus">
+        Nova dieta
+      </b-button>
 
       <div class="has-scroll">
       <b-table :loading="isLoading" :paginated="false" :striped="false" :data="emitted" :row-class="(row, index) =>
@@ -317,6 +320,9 @@ export default {
     },
     navNewExpense() {
       this.$router.push("/document/0/received-expenses");
+    },
+    navNewDiet() {
+      this.$router.push("/document/0/received-expenses?document_type=4");
     },
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
