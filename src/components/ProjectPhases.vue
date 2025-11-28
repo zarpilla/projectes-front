@@ -252,6 +252,29 @@
                 </b-datepicker>
               </b-field>
           </b-table-column>
+          <b-table-column field="name" label="Compte" width="100" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1" v-slot="props">
+              <b-field
+                v-if="
+                  bankAccounts && bankAccounts.length > 1
+                "                
+                class="subphase-detail-input subphase-detail-input-short"
+              >
+                <b-select
+                  v-model="props.row.bank_account"
+                  placeholder="Compte"
+                  :disabled="!editable"
+                  @input="somethingChanged(props.row)"
+                >
+                  <option
+                    v-for="(s, index) in bankAccounts"
+                    :key="index"
+                    :value="s"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
+          </b-table-column>
           <b-table-column field="name" label="Accions" width="80" v-slot="props">
               <b-field class="medium-field">
                 <button
@@ -289,7 +312,7 @@
                 </button>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Facturat" width="30" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
+          <b-table-column field="name" label="Fact." title="Facturat" width="30" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
               <b-field
                 class="short-field"
               >
@@ -302,7 +325,7 @@
                 </b-checkbox>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">            
+          <b-table-column field="name" label="Doc" title="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">            
             <b-field
                 v-if="me.options && me.options.treasury && mode !== 'simple'"
                 class="zshort-field"
@@ -542,6 +565,29 @@
                 </b-datepicker>
               </b-field>
           </b-table-column>
+          <b-table-column field="name" label="Compte" width="100" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1" v-slot="props">
+              <b-field
+                v-if="
+                  bankAccounts && bankAccounts.length > 1
+                "                
+                class="subphase-detail-input subphase-detail-input-short"
+              >
+                <b-select
+                  v-model="props.row.bank_account"
+                  placeholder="Compte"
+                  :disabled="!editable"
+                  @input="somethingChanged(props.row)"
+                >
+                  <option
+                    v-for="(s, index) in bankAccounts"
+                    :key="index"
+                    :value="s"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
+          </b-table-column>
           <b-table-column field="name" label="Accions" width="80" v-slot="props">
               <b-field class="medium-field">
                 <button
@@ -573,7 +619,7 @@
                 </button>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Facturat" width="30" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
+          <b-table-column field="name" label="Fact." title="Facturat" width="30" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
               <b-field
                 class="short-field"
               >
@@ -586,7 +632,7 @@
                 </b-checkbox>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
+          <b-table-column field="name" label="Doc." title="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
             <b-field
                 v-if="me.options && me.options.treasury && mode !== 'simple'"
                 class="zshort-field"
@@ -781,6 +827,7 @@ export default {
       expenseTypes: [],
       incomeTypes: [],
       dedicationTypes: [],
+      bankAccounts: [],
       clientSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",
@@ -886,6 +933,17 @@ export default {
       };
     });
 
+    this.bankAccounts = await service({ requiresAuth: true, cached: true })
+      .get("bank-accounts")
+      .then(r => r.data);
+
+    this.bankAccounts = this.bankAccounts.map(r => {
+      return {
+        name: r.name,
+        id: r.id
+      };
+    });
+
     this.clients = await service({ requiresAuth: true })
       .get("contacts/basic?_limit=-1&_sort=name:ASC")
       .then(r => r.data);
@@ -917,6 +975,12 @@ export default {
         if (s.income_type) {
           s.income_type = { id: s.income_type.id, name: s.income_type.name };
         }
+        if (s.bank_account) {
+          s.bank_account = {
+            id: s.bank_account.id,
+            name: s.bank_account.name
+          };
+        }
       });
       p.expenses.forEach(s => {
         s.dirty = s.dirty || false;
@@ -933,6 +997,12 @@ export default {
         }
         if (s.expense_type) {
           s.expense_type = { id: s.expense_type.id, name: s.expense_type.name };
+        }
+        if (s.bank_account) {
+          s.bank_account = {
+            id: s.bank_account.id,
+            name: s.bank_account.name
+          };
         }
       });
     });
@@ -1306,6 +1376,7 @@ export default {
             console.log("action.subphase", action.subphase);
             const newIncome = {
               income_type: action.subphase.income_type,
+              bank_account: action.subphase.bank_account,
               concept: action.subphase.concept,
               amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
@@ -1333,6 +1404,7 @@ export default {
         if (action.action === "split") {
           const newIncome = {
             income_type: action.subphase.income_type,
+            bank_account: action.subphase.bank_account,
             concept: action.subphase.concept,
             amount: action.amount,
             quantity: action.subphase.quantity,
@@ -1350,6 +1422,7 @@ export default {
           for (let i = 0; i < max - 1; i++) {
             const newIncome = {
               expense_type: action.subphase.expense_type,
+              bank_account: action.subphase.bank_account,
               concept: action.subphase.concept,
               amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
@@ -1378,6 +1451,7 @@ export default {
         if (action.action === "split") {
           const newIncome = {
             expense_type: action.subphase.expense_type,
+            bank_account: action.subphase.bank_account,
             concept: action.subphase.concept,
             amount: action.amount,
             quantity: action.subphase.quantity,
@@ -1449,6 +1523,10 @@ export default {
 }
 .subphase-detail-input select {
   min-width: 180px;
+}
+.subphase-detail-input-short select {
+  min-width: 100px;
+  max-width: 100px;
 }
 .phase-container{
   background: #fafafa;

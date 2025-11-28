@@ -8,39 +8,49 @@
     />
 
     <div class="is-flex">
-      
-      <button class="button mr-3" v-for="year in years" :key="year.year" @click="goToYear(year.year)"
-      :class="{ 'is-primary': selectedYear == year.year, 'is-outlined': selectedYear != year.year }"
+      <button
+        class="button mr-3"
+        v-for="year in years"
+        :key="year.year"
+        @click="goToYear(year.year)"
+        :class="{
+          'is-primary': selectedYear == year.year,
+          'is-outlined': selectedYear != year.year
+        }"
       >
-      {{ year.year }}
+        {{ year.year }}
       </button>
 
       <download-excel
         class="export view-button ml-auto"
         :data="treasuryDataDesc"
-        v-if="treasuryDataDesc && treasuryDataDesc.length"        
+        v-if="treasuryDataDesc && treasuryDataDesc.length"
         name="tresoreria"
         :fields="{
-          data: 'datex',          
+          data: 'datex',
           import: {
             field: 'total_amount',
-            callback: (value) => {
-              return excelFormat(value);
-            },
+            callback: (value, row) => {
+              // For balance annotations, show the account balance instead of total_amount
+              if (row.is_balance_annotation && row.account_balance !== undefined) {
+                return `Saldo: ${this.excelFormat(row.account_balance)}`;
+              }
+              return this.excelFormat(value);
+            }
           },
           saldo: {
             field: 'subtotal',
-            callback: (value) => {
+            callback: value => {
               return excelFormat(value);
-            },
+            }
           },
           moviment: 'type',
           concepte: 'concept',
-          projecte: 'project_name',        
+          projecte: 'project_name',
           nomina: 'contact',
           pagat: 'paid'
         }"
-        >
+      >
         <b-button
           title="Exporta dades"
           class="zview-button"
@@ -51,9 +61,32 @@
     </div>
 
     <div class="is-flex mt-2">
-      <button class="button mr-3" v-for="state in projectStates" :key="state.id" @click="toggleState(state)"
-      :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-outlined': !selectedProjectStates.includes(state.id) }">
-      {{ state.name }}
+      <button
+        class="button mr-3"
+        v-for="state in projectStates"
+        :key="state.id"
+        @click="toggleState(state)"
+        :class="{
+          'is-primary': selectedProjectStates.includes(state.id),
+          'is-outlined': !selectedProjectStates.includes(state.id)
+        }"
+      >
+        {{ state.name }}
+      </button>
+    </div>
+
+    <div class="is-flex mt-2" v-if="bankAccounts && bankAccounts.length > 1">
+      <button
+        class="button mr-3"
+        v-for="account in bankAccounts"
+        :key="account.id"
+        @click="toggleBankAccount(account)"
+        :class="{
+          'is-primary': selectedBankAccountIds.includes(account.id),
+          'is-outlined': !selectedBankAccountIds.includes(account.id)
+        }"
+      >
+        {{ account.name }}
       </button>
     </div>
 
@@ -193,12 +226,15 @@
         @confirm-save="saveCurrentView"
         @update:viewName="newViewName = $event"
       />
-      
+
       <div id="project-stats"></div>
     </card-component>
 
-    <card-component title="OPERACIONS DE TRESORERIA" class="ztile is-child mt-2">
-      <section class="section">
+    <card-component
+      title="OPERACIONS DE TRESORERIA"
+      class="ztile is-child mt-2"
+    >
+      <section class="section pt-2 pb-2">
         <treasury-annotation-input
           :projects="projects"
           @annotation="getData"
@@ -216,7 +252,9 @@
           :row-class="
             (row, index) =>
               (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
-              (row.type == 'Avui' && 'has-text-info')
+              (row.type == 'Avui' && 'has-text-info') ||
+              (row.type == 'Inici Any' && 'has-text-info') ||
+              (row.is_balance_annotation && 'has-background-info-light')
           "
         >
           <b-table-column label="Data" field="datex" v-slot="props">
@@ -231,7 +269,14 @@
             </b-icon>
           </b-table-column>
           <b-table-column label="Import" field="total_amount" v-slot="props">
-            {{ formatPrice(props.row.total_amount) }} €
+            <span v-if="props.row.is_balance_annotation">
+              <span class="has-text-weight-bold has-text-info">
+                {{ formatPrice(props.row.account_balance) }} €
+              </span>
+            </span>
+            <span v-else>
+              {{ formatPrice(props.row.total_amount) }} €
+            </span>
           </b-table-column>
           <b-table-column label="Saldo" field="subtotal" v-slot="props">
             {{ formatPrice(props.row.subtotal) }} €
@@ -240,6 +285,12 @@
             <span
               :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'"
             >
+              <b-icon 
+                v-if="props.row.is_balance_annotation" 
+                icon="bank" 
+                size="is-small" 
+                class="mr-1"
+              />
               {{ props.row.type }}
             </span>
           </b-table-column>
@@ -255,7 +306,7 @@
             <router-link
               :to="{
                 name: 'project.edit',
-                params: { id: props.row.project_id },
+                params: { id: props.row.project_id }
               }"
             >
               <span class="project-name has-text-info">
@@ -265,6 +316,14 @@
           </b-table-column>
           <b-table-column label="Contacte" field="contact" v-slot="props">
             {{ props.row.contact }}
+          </b-table-column>
+          <b-table-column
+            label="Compte bancari"
+            field="bank_account"
+            v-slot="props"
+            v-if="bankAccounts && bankAccounts.length > 0"
+          >
+            {{ props.row.bank_account }}
           </b-table-column>
           <b-table-column label="Accions" v-slot="props">
             <!-- <button
@@ -316,8 +375,8 @@ import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { format } from "@/helpers/excelFormatter";
-import PivotViews from '@/components/PivotViews.vue'
-import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
+import PivotViews from "@/components/PivotViews.vue";
+import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 
 export default {
   name: "Tresoreria",
@@ -326,14 +385,14 @@ export default {
     CardComponent,
     MoneyFormat,
     TreasuryAnnotationInput,
-    PivotViews,
+    PivotViews
   },
   mixins: [pivotViewsMixin],
   props: {
     titleStack: {
       type: Array,
-      default: () => [],
-    },
+      default: () => []
+    }
   },
   data() {
     return {
@@ -354,6 +413,7 @@ export default {
       receivedIncomes: [],
       receivedExpenses: [],
       payrolls: [],
+      bankAccounts: [],
       isModalActive: false,
       trashObject: null,
       pivotData: [],
@@ -366,7 +426,8 @@ export default {
       projectStates: [],
       selectedProjectStates: [],
       selectedYear: null,
-      pivotIdentifier: 'tresoreria-pivot'
+      selectedBankAccountIds: [],
+      pivotIdentifier: "tresoreria-pivot"
     };
   },
   async mounted() {
@@ -401,39 +462,44 @@ export default {
   computed: {
     ...mapState(["userName", "user"]),
     monthlySummary() {
+      const year = this.$route.query.year
+        ? this.$route.query.year
+        : moment().format("YYYY");
 
-      const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')
-
-      this.selectedYear = year
+      this.selectedYear = year;
 
       // const fn = (t) => { return this.view === 'today' ? t.datef >= t.datef >= moment().format("YYYYMMDD") : t.datef >= moment().startOf('year').format("YYYYMMDD") }
       const treasuryData = this.treasuryData
         // .filter((t) => t.datef >= moment().startOf('year').format("YYYYMMDD"))
-        .filter((t) =>
+        .filter(t =>
           this.view === "today"
             ? t.datef >= moment().format("YYYYMMDD")
             : t.datef >= `${year}0101`
         )
-        .map((t) => {
+        .map(t => {
           return {
             ...t,
             year: moment(t.datef, "YYYYMMDD").format("YYYY"),
             month: moment(t.datef, "YYYYMMDD").format("MM"),
-            ym: moment(t.datef, "YYYYMMDD").format("YYYYMM"),
+            ym: moment(t.datef, "YYYYMMDD").format("YYYYMM")
           };
         });
       return treasuryData;
     },
     monthlySummaryForPivot() {
-      return this.monthlySummary.map((s) => {
+      return this.monthlySummary.map(s => {
+        // For balance annotations, we don't want to count them as income or expenses
+        const isBalanceAnnotation = s.is_balance_annotation;
+        
         return {
           ...s,
           project_name:
             s.project_name !== "-" && s.project_name !== ""
               ? s.project_name
               : s.type,
-          total_incomes: s.total_amount > 0 ? s.total_amount : 0,
-          total_expenses: s.total_amount < 0 ? s.total_amount : 0,
+          bank_account: s.bank_account || "Sense compte assignat",
+          total_incomes: !isBalanceAnnotation && s.total_amount > 0 ? s.total_amount : 0,
+          total_expenses: !isBalanceAnnotation && s.total_amount < 0 ? s.total_amount : 0
         };
       });
     },
@@ -445,16 +511,16 @@ export default {
           year: !isNaN(id) ? id.substring(0, 4) : "2099",
           month: !isNaN(id) ? id.substring(4, 6) : "99",
           valid: !isNaN(id),
-          maxYm: _.maxBy(this.monthlySummary, (e) => (!isNaN(e.ym) ? e.ym : ""))
+          maxYm: _.maxBy(this.monthlySummary, e => (!isNaN(e.ym) ? e.ym : ""))
             .ym,
-          total_amount: _.sumBy(ym, "total_amount"),
-          total_incomes: _.sumBy(ym, (e) =>
-            e.total_amount > 0 ? e.total_amount : 0
+          total_amount: _.sumBy(ym, e => e.is_balance_annotation ? 0 : e.total_amount),
+          total_incomes: _.sumBy(ym, e =>
+            !e.is_balance_annotation && e.total_amount > 0 ? e.total_amount : 0
           ),
-          total_expenses: _.sumBy(ym, (e) =>
-            e.total_amount < 0 ? e.total_amount : 0
+          total_expenses: _.sumBy(ym, e =>
+            !e.is_balance_annotation && e.total_amount < 0 ? e.total_amount : 0
           ),
-          subtotal: this.todaySubTotal,
+          subtotal: this.todaySubTotal
         }))
         .value();
 
@@ -466,7 +532,7 @@ export default {
         ansWithSubtotal.push(ans[i]);
         if (ans[i].month === "12") {
           const y = ans[i].year;
-          const yearValues = ansWithSubtotal.filter((a) => a.year === y);
+          const yearValues = ansWithSubtotal.filter(a => a.year === y);
           const yearSummary = {
             ym: `${y}00`,
             year: y,
@@ -476,7 +542,7 @@ export default {
             total_amount: _.sumBy(yearValues, "total_amount"),
             total_incomes: _.sumBy(yearValues, "total_incomes"),
             total_expenses: _.sumBy(yearValues, "total_expenses"),
-            subtotal: ans[i].subtotal,
+            subtotal: ans[i].subtotal
           };
           ansWithSubtotal.push(yearSummary);
         }
@@ -485,27 +551,40 @@ export default {
       return ansWithSubtotal;
     },
     todaySubTotal() {
+      // With multiple bank accounts, we have multiple "Today"/"Start of Year" entries
+      // We'll use the subtotal from the first one found, as they should all have the same subtotal
+      // (the running balance is calculated across all accounts)
       const today =
         this.view === "today"
-          ? this.treasuryData.find((t) => t.type === "Avui")
-          : this.treasuryData.find((t) => t.type === "Inici Any");
+          ? this.treasuryData.find(t => t.type === "Avui")
+          : this.treasuryData.find(t => t.type === "Inici Any");
       return today ? today.subtotal : 0;
     },
     treasuryDataDesc() {
       //return _.reverse(this.treasuryData)
-      const treasuryDataOfYear = this.treasuryData.filter(d => moment(d.datex, 'dd-MM-YYYY').year() == this.selectedYear)
-      return _.reverse(treasuryDataOfYear)
+      const treasuryDataOfYear = this.treasuryData.filter(
+        d => moment(d.datex, "dd-MM-YYYY").year() == this.selectedYear
+      );
+      return _.reverse(treasuryDataOfYear);
     }
   },
   methods: {
     async getData() {
       this.isLoading = true;
-      const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')      
-      this.selectedYear = year
-      const treasuryData = await getTreasuryData(this.selectedProjectStates, this.selectedYear);      
+      const year = this.$route.query.year
+        ? this.$route.query.year
+        : moment().format("YYYY");
+      this.selectedYear = year;
+      const treasuryData = await getTreasuryData(
+        this.selectedProjectStates,
+        this.selectedYear,
+        this.selectedBankAccountIds.join(',') // Convert array to comma-separated string
+      );
       this.vat = treasuryData.vat;
       this.vat_expected = treasuryData.vat_expected;
-      this.treasuryData = treasuryData.treasury.map(d => { return { ...d, executat: d.paid ? 'SÍ' : 'NO' }});
+      this.treasuryData = treasuryData.treasury.map(d => {
+        return { ...d, executat: d.paid ? "SÍ" : "NO" };
+      });
       this.projects = treasuryData.projects;
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
       this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
@@ -523,26 +602,35 @@ export default {
         )
       ).data;
 
-      this.me = (
-        await service({ requiresAuth: true }).get(
-          "me"
-        )
-      ).data;
+      this.me = (await service({ requiresAuth: true }).get("me")).data;
 
       let filter = "";
       if (this.$route.query.filter) {
         filter = this.$route.query.filter;
       }
 
-      this.years = await service({ requiresAuth: true, cached: true }).get("years?_sort=year:DESC").then((r) => r.data);
+      this.years = await service({ requiresAuth: true, cached: true })
+        .get("years?_sort=year:DESC")
+        .then(r => r.data);
 
-      this.projectStates = await service({ requiresAuth: true, cached: true }).get("project-states").then((r) => r.data);
+      this.projectStates = await service({ requiresAuth: true, cached: true })
+        .get("project-states")
+        .then(r => r.data);
 
-      if (localStorage.getItem('TresoreriaTable.selectedProjectStates')) {
-        this.selectedProjectStates = JSON.parse(localStorage.getItem('TresoreriaTable.selectedProjectStates'));
+      this.bankAccounts = await service({ requiresAuth: true, cached: true })
+        .get("bank-accounts?_sort=name:ASC")
+        .then(r => r.data);
+
+      if (localStorage.getItem("TresoreriaTable.selectedProjectStates")) {
+        this.selectedProjectStates = JSON.parse(
+          localStorage.getItem("TresoreriaTable.selectedProjectStates")
+        );
       } else {
-        this.selectedProjectStates = this.projectStates.map((s) => s.id);
+        this.selectedProjectStates = this.projectStates.map(s => s.id);
       }
+
+      // Initialize all bank accounts as selected by default
+      this.selectedBankAccountIds = this.bankAccounts.map(ba => ba.id);
 
       this.getData();
     },
@@ -561,7 +649,7 @@ export default {
         },
         onCancel: () => {
           return false;
-        },
+        }
       });
     },
     async submitDeleteManual(treasuryId) {
@@ -569,7 +657,7 @@ export default {
 
       this.$buefy.snackbar.open({
         message: "Eliminada",
-        queue: false,
+        queue: false
       });
 
       this.getData();
@@ -582,25 +670,25 @@ export default {
         ...trashObject,
         type: trashObject.expenseId ? "expenses" : "incomes",
         emitted_invoices: this.emitted.filter(
-          (i) => i.project && i.project.id === trashObject.project_id
+          i => i.project && i.project.id === trashObject.project_id
         ),
         received_invoices: this.received.filter(
-          (i) => i.project && i.project.id === trashObject.project_id
+          i => i.project && i.project.id === trashObject.project_id
         ),
         diets: this.diets.filter(
-          (i) => i.project && i.project.id === trashObject.project_id
+          i => i.project && i.project.id === trashObject.project_id
         ),
         tickets: this.tickets.filter(
-          (i) => i.project && i.project.id === trashObject.project_id
+          i => i.project && i.project.id === trashObject.project_id
         ),
         grants: trashObject.expenseId
           ? this.receivedGrants.filter(
-              (i) => i.project && i.project.id === trashObject.project_id
+              i => i.project && i.project.id === trashObject.project_id
             )
           : this.emittedGrants.filter(
-              (i) => i.project && i.project.id === trashObject.project_id
+              i => i.project && i.project.id === trashObject.project_id
             ),
-        contacts: this.contacts,
+        contacts: this.contacts
       };
 
       // console.log("invoicingObject", invoicingObject);
@@ -636,7 +724,7 @@ export default {
       // this.projectsData = this.projectsData.filter(p => p.id !== this.trashObject.id)
       this.$buefy.snackbar.open({
         message: "Fet",
-        queue: false,
+        queue: false
       });
       this.getData();
     },
@@ -660,12 +748,29 @@ export default {
     toggleState(state) {
       if (this.selectedProjectStates.includes(state.id)) {
         this.selectedProjectStates = this.selectedProjectStates.filter(
-          (s) => s !== state.id
+          s => s !== state.id
         );
       } else {
         this.selectedProjectStates.push(state.id);
-      }    
-      localStorage.setItem('TresoreriaTable.selectedProjectStates', JSON.stringify(this.selectedProjectStates))
+      }
+      localStorage.setItem(
+        "TresoreriaTable.selectedProjectStates",
+        JSON.stringify(this.selectedProjectStates)
+      );
+
+      this.getData();
+    },
+    toggleBankAccount(account) {
+      if (this.selectedBankAccountIds.includes(account.id)) {
+        // Prevent unselecting if it's the only one selected
+        if (this.selectedBankAccountIds.length > 1) {
+          this.selectedBankAccountIds = this.selectedBankAccountIds.filter(
+            id => id !== account.id
+          );
+        }
+      } else {
+        this.selectedBankAccountIds.push(account.id);
+      }
 
       this.getData();
     },
@@ -675,19 +780,19 @@ export default {
     applyDefaultView() {
       if (this.pivotGridInstance) {
         // Reset to default configuration
-        const dataSource = this.pivotGridInstance.dataSource
-        const defaultConfig = configPivot.dataSource
-        
-        dataSource.columns(defaultConfig.columns || [])
-        dataSource.rows(defaultConfig.rows || [])
-        dataSource.measures(defaultConfig.measures || [])
+        const dataSource = this.pivotGridInstance.dataSource;
+        const defaultConfig = configPivot.dataSource;
+
+        dataSource.columns(defaultConfig.columns || []);
+        dataSource.rows(defaultConfig.rows || []);
+        dataSource.measures(defaultConfig.measures || []);
         // Note: Kendo Pivot Grid doesn't support filters() method
         // dataSource.filters([])
-        
-        this.selectedViewId = null
+
+        this.selectedViewId = null;
       }
-    },
-  },
+    }
+  }
 };
 </script>
 <style>

@@ -9,6 +9,9 @@ const config = {
     },{
       name: 'month',
       expand: false
+    },{
+      name: 'bank_account',
+      expand: false
     }], // Specify a dimension on columns.
     rows: [{
       name: 'year',
@@ -36,6 +39,9 @@ const config = {
           executat: {
             type: 'string'
           },
+          bank_account: {
+            type: 'string'
+          },
           total_amount: {
             type: 'number'
           }
@@ -54,6 +60,9 @@ const config = {
           },
           project_name: {
             caption: 'Projectes (TOTS)'
+          },
+          bank_account: {
+            caption: 'Comptes bancaris (TOTS)'
           }
         },
         measures: {          

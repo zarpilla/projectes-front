@@ -257,7 +257,50 @@
                   </option>
                 </b-select>
               </b-field>
+
+              <b-field label="Funcions" horizontal>
+                <b-autocomplete
+                  v-model="activityTypeSearch"
+                  placeholder="Escriu el nom de la funció..."
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredActivityTypes"
+                  field="name"
+                  @select="activityTypeSelected"
+                  :clearable="false"
+                  icon-right="plus-circle"
+                  icon-right-clickable
+                  @icon-right-click="addActivity"
+                >
+                </b-autocomplete>
+              </b-field>
+              <b-field
+                label=""
+                horizontal
+                v-if="
+                  form.global_activity_types &&
+                    form.global_activity_types.length
+                "
+              >
+                <div class="list">
+                  <ul class="ulist">
+                    <li
+                      v-for="(activityType, i) in form.global_activity_types"
+                      :key="i"
+                      class="tag is-primary"
+                    >
+                      {{ activityType.name }}
+                      <b-button
+                        @click="removeActivity(activityType)"
+                        class="no-button"
+                        icon-left="close-circle"
+                      />
+                    </li>
+                  </ul>
+                </div>
+              </b-field>
               <hr />
+              
               <b-field
                 v-if="dedicationTypes && dedicationTypes.length"
                 label="Tipus de dedicació"
@@ -339,48 +382,7 @@
                 <b-switch v-model="periodification"> </b-switch>
               </b-field>
               <hr />
-              <b-field label="Funcions" horizontal>
-                <b-autocomplete
-                  v-model="activityTypeSearch"
-                  placeholder="Escriu el nom de la funció..."
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredActivityTypes"
-                  field="name"
-                  @select="activityTypeSelected"
-                  :clearable="false"
-                  icon-right="plus-circle"
-                  icon-right-clickable
-                  @icon-right-click="addActivity"
-                >
-                </b-autocomplete>
-              </b-field>
-              <b-field
-                label=""
-                horizontal
-                v-if="
-                  form.global_activity_types &&
-                    form.global_activity_types.length
-                "
-              >
-                <div class="list">
-                  <ul class="ulist">
-                    <li
-                      v-for="(activityType, i) in form.global_activity_types"
-                      :key="i"
-                      class="tag is-primary"
-                    >
-                      {{ activityType.name }}
-                      <b-button
-                        @click="removeActivity(activityType)"
-                        class="no-button"
-                        icon-left="close-circle"
-                      />
-                    </li>
-                  </ul>
-                </div>
-              </b-field>
-              <hr />
+              
               <b-field
                 label="Subvencions"
                 horizontal
@@ -400,6 +402,24 @@
                 ></b-input>
               </b-field>
 
+              <!-- HERE THE NEW COMPONENT -->
+              <b-field
+                label="Imports per any"
+                v-if="form.grantable"
+                horizontal
+              >
+                <div class="d-flex">
+                  <ProjectGrantableYears
+                    :grantable-years="form.grantable_years || []"
+                    :years="years"
+                    @updated="updateGrantableYears"
+                    v-if="form.grantable"
+                  >
+                  </ProjectGrantableYears>
+                </div>
+              </b-field>
+
+              <!-- COMMENTED OUT - NOW MANAGED BY ProjectGrantableYears COMPONENT
               <b-field
                 label="Import a justificar total"
                 v-if="form.grantable"
@@ -497,27 +517,8 @@
                 >
                 </b-input>
               </b-field>
+              END COMMENTED OUT SECTION -->
 
-              <!-- <b-field
-                label="Import despeses indirectes"
-                v-if="form.grantable"
-                horizontal
-                message="Que no s'han d'acreditar amb factures"
-              >
-                <b-input
-                  v-if="form.grantable"
-                  type="numeric"
-                  v-model="form.grantable_estructural_pct"
-                  placeholder="% despeses d'estructura"
-                  @input="
-                    changeValue(
-                      'grantable_estructural_pct',
-                      form.grantable_estructural_pct
-                    )
-                  "
-                >
-                </b-input>
-              </b-field> -->
               <b-field
                 label="Data sol·licitud"
                 v-if="form.grantable"
@@ -1965,6 +1966,7 @@ import ProjectGrantableContacts from "@/components/ProjectGrantableContacts.vue"
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import Tasks from "@/components/Tasks";
 import FileUpload from "@/components/FileUpload";
+import ProjectGrantableYears from "@/components/ProjectGrantableYears.vue";
 import getConfig from "@/config";
 
 // Services
@@ -1981,6 +1983,7 @@ export default {
     ProjectGannt,
     ProjectPhases,
     ProjectGrantableContacts,
+    ProjectGrantableYears,
     Tasks,
     FileUpload
   },
@@ -2012,6 +2015,7 @@ export default {
       projects: [],
       activityTypes: [],
       regions: [],
+      years: [],
       clientSearch: "",
       leadersSearch: "",
       projectSearch: "",
@@ -2391,10 +2395,9 @@ export default {
         if (!this.dirtyEnabled) {
           return;
         }
-        this.dirty = oldVal.id == newVal.id ? true : false;
-        if (this.dirty) {
-          for (var i in newVal) {
-          }
+        // Only set dirty if both forms have the same ID (editing existing) and the change isn't initial data loading
+        if (oldVal && newVal && oldVal.id && newVal.id && oldVal.id === newVal.id) {
+          this.dirty = true;
         }
       },
       deep: true
@@ -2442,7 +2445,8 @@ export default {
         original_phases: [],
         expenses: [],
         default_dedication_type: { id: 0 },
-        project_type: { id: 0 }
+        project_type: { id: 0 },
+        grantable_years: []
       };
     },
     getData() {
@@ -2604,6 +2608,11 @@ export default {
               }
 
               this.grantable_contacts = this.form.grantable_contacts || [];
+              
+              // Initialize grantable_years if not present
+              if (!this.form.grantable_years) {
+                this.form.grantable_years = [];
+              }
 
               this.getAuxiliarData();
 
@@ -2689,6 +2698,11 @@ export default {
         .get("regions?_limit=-1")
         .then(r => {
           this.regions = r.data;
+        });
+      service({ requiresAuth: true, cached: true })
+        .get("years?_limit=-1")
+        .then(r => {
+          this.years = r.data;
         });
 
       service({ requiresAuth: true })
@@ -3417,6 +3431,9 @@ export default {
     },
     updateGrantableContacts(contacts) {
       this.form.grantable_contacts = contacts;
+    },
+    updateGrantableYears(years) {
+      this.form.grantable_years = years;
     }
   }
 };
