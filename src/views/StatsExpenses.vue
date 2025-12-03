@@ -65,10 +65,10 @@ export default {
       if (window.jQuery) {
         clearInterval(interval)
         // await this.addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/jquery/jquery.js')
-        await addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + 'vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + 'vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + 'vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + 'vendor/kendo/custom.css', 'custom-css')
+        await addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
         this.isLoading = false
         this.getData()
       }

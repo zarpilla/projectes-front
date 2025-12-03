@@ -308,22 +308,22 @@ export default {
         clearInterval(interval);
         await addScript(
           (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
-            "vendor/kendo/kendo.all.min.js",
+            "/vendor/kendo/kendo.all.min.js",
           "kendo-all-min-js"
         );
         await addStyle(
           (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
-            "vendor/kendo/kendo.common.min.css",
+            "/vendor/kendo/kendo.common.min.css",
           "kendo-common-min-css"
         );
         await addStyle(
           (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
-            "vendor/kendo/kendo.custom.css",
+            "/vendor/kendo/kendo.custom.css",
           "kendo-custom-css"
         );
         await addStyle(
           (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
-            "vendor/kendo/custom.css",
+            "/vendor/kendo/custom.css",
           "custom-css"
         );
         this.isLoading = false;
