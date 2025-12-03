@@ -128,10 +128,10 @@ export default {
         clearInterval(interval)
         const config = getConfig();
         const basePath = config.VUE_APP_PATH || '';
-        await addScript(basePath + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle(basePath + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle(basePath + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle(basePath + '/vendor/kendo/custom.css', 'custom-css')
+        await addScript(basePath + 'vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle(basePath + 'vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle(basePath + 'vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle(basePath + 'vendor/kendo/custom.css', 'custom-css')
         this.isLoading = false
         this.getData()
       }

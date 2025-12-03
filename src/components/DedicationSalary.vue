@@ -339,7 +339,7 @@ export default {
                       festive.users_permissions_user.id)) &&
                   dailyDedication &&
                   day !== 0 &&
-                  day !== 6                  
+                  day !== 6
                     ? dailyDedication.hours
                     : 0;
 
@@ -471,6 +471,7 @@ export default {
         p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
+          p.users_permissions_user &&
           p.users_permissions_user.id === this.user
       );
       return payroll;
@@ -482,6 +483,7 @@ export default {
         p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
+          p.users_permissions_user &&
           p.users_permissions_user.id === this.user
       );
       return payroll;
@@ -552,6 +554,7 @@ export default {
           p =>
             p.year.id === y.id &&
             p.month.id === m.id &&
+            p.users_permissions_user &&
             p.users_permissions_user.id === this.user
         );
         let routeData = this.$router.resolve({
@@ -568,6 +571,7 @@ export default {
         p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
+          p.users_permissions_user &&
           p.users_permissions_user.id === this.user
       );
       await service({ requiresAuth: true }).put(`payrolls/${payroll.id}`, {
@@ -598,6 +602,7 @@ export default {
         p =>
           p.year.id === y.id &&
           p.month.id === m.id &&
+          p.users_permissions_user &&
           p.users_permissions_user.id === this.user
       );
 

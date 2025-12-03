@@ -1,19 +1,21 @@
 <template>
   <div>
     <div class="table-view">
-
       <!-- <div class="info-help mb-4">
         <b-icon icon="information" size="is-small" />
         Desplega les seccions que vulguis consultar
       </div> -->
-      
+
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        v-if="
+          (monthlyActivitiesTotal.length || justifications.length) &&
+            view === 'Bestretes'
+        "
         title="Totals per projecte (bestretes)"
         :close-icon="true"
         :content-visible="true"
-      >        
+      >
         <div class="columns card-body">
           <div class="column is-4 has-text-weight-bold">Projecte</div>
           <div class="column is-2 has-text-weight-bold has-text-right">
@@ -24,7 +26,11 @@
           </div>
           <div class="column is-2 has-text-weight-bold has-text-right">%</div>
         </div>
-        <div v-for="(row, i) in summaryByProjectAll" :key="'proj-' + i" class="card-body">
+        <div
+          v-for="(row, i) in summaryByProjectAll"
+          :key="'proj-' + i"
+          class="card-body"
+        >
           <div class="columns">
             <div class="column is-4">{{ row.project }}</div>
             <div class="column is-2 has-text-right">
@@ -94,7 +100,7 @@
 
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="(justifications.length) && view === 'Factures'"
+        v-if="justifications.length && view === 'Factures'"
         title="Totals per projecte (factures)"
       >
         <div class="columns card-body">
@@ -107,7 +113,11 @@
           </div>
           <div class="column is-2 has-text-weight-bold has-text-right">%</div>
         </div>
-        <div v-for="(row, i) in summaryByProjectInvoices" :key="'proj-' + i" class="card-body">
+        <div
+          v-for="(row, i) in summaryByProjectInvoices"
+          :key="'proj-' + i"
+          class="card-body"
+        >
           <div class="columns">
             <div class="column is-4">{{ row.project }}</div>
             <div class="column is-2 has-text-right">
@@ -175,13 +185,15 @@
         </div>
       </card-component>
 
-
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        v-if="
+          (monthlyActivitiesTotal.length || justifications.length) &&
+            view === 'Bestretes'
+        "
         title="Bestretes manuals"
       >
-        <div class="columns card-body">          
+        <div class="columns card-body">
           <div class="column has-text-weight-bold">Any</div>
           <div class="column has-text-weight-bold">Mes</div>
           <div class="column has-text-weight-bold">Persona</div>
@@ -200,9 +212,11 @@
           </div>
           <div class="column has-text-weight-bold has-text-right">Accions</div>
         </div>
-       
+
         <div
-          v-for="(row, i) in justifications.filter(j => j.users_permissions_user)"
+          v-for="(row, i) in justifications.filter(
+            j => j.users_permissions_user
+          )"
           :key="'justification-' + i"
           class="card-body"
         >
@@ -262,7 +276,11 @@
           <div class="columns">
             <div class="column">
               <b-select v-model="justification.year">
-                <option v-for="y in 5" :key="'year-' + y" :value="(new Date().getFullYear() - y + 1).toString()">
+                <option
+                  v-for="y in 5"
+                  :key="'year-' + y"
+                  :value="(new Date().getFullYear() - y + 1).toString()"
+                >
                   {{ new Date().getFullYear() - y + 1 }}
                 </option>
               </b-select>
@@ -320,55 +338,56 @@
         </div>
       </card-component>
 
-
-
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Bestretes'"
+        v-if="
+          (monthlyActivitiesTotal.length || justifications.length) &&
+            view === 'Bestretes'
+        "
         title="Detall de bestretes"
         :close-icon="true"
         :content-visible="true"
       >
-      <div class="p-4">
+        <div class="p-4">
+          <!-- Pivot Views Component -->
+          <pivot-views
+            :pivot-views="pivotViews"
+            :selected-view-id="selectedViewId"
+            :show-save-modal="showSaveViewModal"
+            :view-name="newViewName"
+            @apply-view="applyPivotView"
+            @apply-default="applyDefaultView"
+            @save-view="showSaveView"
+            @delete-view="deletePivotView"
+            @close-save-modal="showSaveViewModal = false"
+            @confirm-save="saveCurrentView"
+            @update:viewName="newViewName = $event"
+          />
 
-      
-        <!-- Pivot Views Component -->
-        <pivot-views
-          :pivot-views="pivotViews"
-          :selected-view-id="selectedViewId"
-          :show-save-modal="showSaveViewModal"
-          :view-name="newViewName"
-          @apply-view="applyPivotView"
-          @apply-default="applyDefaultView"
-          @save-view="showSaveView"
-          @delete-view="deletePivotView"
-          @close-save-modal="showSaveViewModal = false"
-          @confirm-save="saveCurrentView"
-          @update:viewName="newViewName = $event"
-        />
-        
-        <div id="justification-pivot"></div>
-        
-        <download-excel class="export" :data="pivotData">
-          <b-button
-          title="Exporta dades"
-          class="export-button mt-0"
-          icon-left="file-excel" />
-        </download-excel>
+          <div id="justification-pivot"></div>
+
+          <download-excel class="export" :data="pivotData">
+            <b-button
+              title="Exporta dades"
+              class="export-button mt-0"
+              icon-left="file-excel"
+            />
+          </download-excel>
         </div>
-        
       </card-component>
-
 
       <card-component
         class="has-table has-mobile-sort-spaced"
-        v-if="(monthlyActivitiesTotal.length || justifications.length) && view === 'Factures'"
+        v-if="
+          (monthlyActivitiesTotal.length || justifications.length) &&
+            view === 'Factures'
+        "
         title="Detall de factures"
         :close-icon="true"
         :content-visible="true"
       >
-        <div class="columns card-body">          
-          <div class="column has-text-weight-bold">Any</div>  
+        <div class="columns card-body">
+          <div class="column has-text-weight-bold">Any</div>
           <div class="column has-text-weight-bold">Projecte</div>
           <div class="column has-text-weight-bold">Factura</div>
           <div class="column has-text-weight-bold has-text-right">Import</div>
@@ -382,12 +401,12 @@
           <div class="columns">
             <div class="column">
               {{ row.year }}
-            </div>  
+            </div>
             <div class="column">
               {{ row.project.name }}
             </div>
             <div class="column">
-              {{ row.emitted_invoice ? row.emitted_invoice.code : '' }}
+              {{ row.emitted_invoice ? row.emitted_invoice.code : "" }}
             </div>
             <div class="column has-text-right">
               <money-format
@@ -406,7 +425,7 @@
                 class="view-button"
                 type="is-danger"
                 icon-left="trash-can"
-              />              
+              />
             </div>
           </div>
         </div>
@@ -414,7 +433,11 @@
           <div class="columns">
             <div class="column">
               <b-select v-model="justificationInvoice.year">
-                <option v-for="y in 5" :key="'year-' + y" :value="(new Date().getFullYear() - y + 1).toString()">
+                <option
+                  v-for="y in 5"
+                  :key="'year-' + y"
+                  :value="(new Date().getFullYear() - y + 1).toString()"
+                >
                   {{ new Date().getFullYear() - y + 1 }}
                 </option>
               </b-select>
@@ -444,14 +467,19 @@
                 :clearable="true"
               >
                 <template slot-scope="props">
-                  {{ props.option.code }} ({{ props.option.total_base ? props.option.total_base.toFixed(2) : '-' }} €)
+                  {{ props.option.code }} ({{
+                    props.option.total_base
+                      ? props.option.total_base.toFixed(2)
+                      : "-"
+                  }}
+                  €)
                 </template>
                 <template #empty>No hi ha resultats</template>
               </b-autocomplete>
             </div>
             <div class="column has-text-right">
               <b-input v-model="justificationInvoice.quantity" />
-            </div>            
+            </div>
             <div class="column has-text-right">
               <b-button
                 @click="addJustificationInvoice"
@@ -518,9 +546,9 @@ import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from "vuex";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import configJustificationPivot from '@/service/configJustificationPivot'
-import PivotViews from '@/components/PivotViews.vue'
-import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
+import configJustificationPivot from "@/service/configJustificationPivot";
+import PivotViews from "@/components/PivotViews.vue";
+import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 
 moment.locale("ca");
 
@@ -552,11 +580,11 @@ export default {
       estimatedTotals: [],
       justification: {},
       justificationInvoice: {
-        year: '',
+        year: "",
         month: null,
         project: null,
         emitted_invoice: null,
-        quantity: ''
+        quantity: ""
       },
       justifications: [],
       dedications: [],
@@ -566,7 +594,7 @@ export default {
       projectSearch: "",
       projectSearch2: "",
       userSearch: "",
-      pivotIdentifier: 'justification-pivot'
+      pivotIdentifier: "justification-pivot"
     };
   },
   computed: {
@@ -588,8 +616,9 @@ export default {
           p.activities
             .filter(
               a =>
-                !this.theYear || this.theYear.toString() ===
-                moment(a.date, "YYYY-MM-DD").format("YYYY")
+                !this.theYear ||
+                this.theYear.toString() ===
+                  moment(a.date, "YYYY-MM-DD").format("YYYY")
             )
             .forEach(a => {
               const activityYear = moment(a.date, "YYYY-MM-DD").format("YYYY");
@@ -597,7 +626,11 @@ export default {
                 ...a,
                 project: a.project,
                 project_name: p.name,
-                grantable_amount: this.getGrantableAmountForYear(p, activityYear, 'grantable_amount'),
+                grantable_amount: this.getGrantableAmountForYear(
+                  p,
+                  activityYear,
+                  "grantable_amount"
+                ),
                 users_permissions_user: a.users_permissions_user,
                 year: activityYear,
                 month: moment(a.date, "YYYY-MM-DD").format("MM"),
@@ -619,7 +652,11 @@ export default {
             ...t,
             project: t.project,
             project_name: t.project_name,
-            grantable_amount: this.getGrantableAmountForYear(project, activityYear, 'grantable_amount'),
+            grantable_amount: this.getGrantableAmountForYear(
+              project,
+              activityYear,
+              "grantable_amount"
+            ),
             users_permissions_user: t.userId,
             year: activityYear,
             month: moment(t.day, "YYYY-MM-DD").format("MM"),
@@ -643,6 +680,9 @@ export default {
         .map((rows, id) => {
           const pr = this.payrolls.find(
             p =>
+              p.users_permissions_user &&
+              p.users_permissions_user.id &&
+              rows[0].users_permissions_user &&
               p.users_permissions_user.id.toString() ===
                 rows[0].users_permissions_user.toString() &&
               parseInt(p.year.year) === parseInt(rows[0].year) &&
@@ -682,13 +722,14 @@ export default {
       return activities;
     },
     summaryJustificationsByProject() {
-      const activities = _(this.justifications.filter(j => j.users_permissions_user))
+      const activities = _(
+        this.justifications.filter(j => j.users_permissions_user)
+      )
         .groupBy("project.name")
         .map((rows, id) => {
           return {
             project: id,
-            cost: _.sumBy(rows, r => r.quantity),
-            
+            cost: _.sumBy(rows, r => r.quantity)
           };
         })
         .value();
@@ -696,7 +737,9 @@ export default {
     },
     summaryJustificationsInvoicesByProject() {
       // Get actual invoice justifications grouped by project
-      const invoiceJustifications = _(this.justifications.filter(j => j.emitted_invoice))
+      const invoiceJustifications = _(
+        this.justifications.filter(j => j.emitted_invoice)
+      )
         .groupBy("project.name")
         .map((rows, id) => {
           // Get the project and year to find the correct grantable amount
@@ -705,7 +748,11 @@ export default {
           return {
             project: id,
             cost: _.sumBy(rows, r => r.quantity),
-            grantable_amount: this.getGrantableAmountForYear(project, year, 'grantable_structural_expenses_justify_invoices')
+            grantable_amount: this.getGrantableAmountForYear(
+              project,
+              year,
+              "grantable_structural_expenses_justify_invoices"
+            )
           };
         })
         .value();
@@ -714,12 +761,16 @@ export default {
       const projectsWithGrantableInvoices = this.projects
         .filter(project => {
           // Check if any year has grantable_structural_expenses_justify_invoices > 0
-          const totalGrantable = this.getTotalGrantableAmount(project, 'grantable_structural_expenses_justify_invoices');
+          const totalGrantable = this.getTotalGrantableAmount(
+            project,
+            "grantable_structural_expenses_justify_invoices"
+          );
           console.log(`Project ${project.name}:`, {
             grantable_years: project.grantable_years,
             grantable_years_details: project.grantable_years.map(gy => ({
-              year: typeof gy.year === 'object' ? gy.year.year : gy.year,
-              grantable_structural_expenses_justify_invoices: gy.grantable_structural_expenses_justify_invoices,
+              year: typeof gy.year === "object" ? gy.year.year : gy.year,
+              grantable_structural_expenses_justify_invoices:
+                gy.grantable_structural_expenses_justify_invoices,
               allFields: Object.keys(gy)
             })),
             totalGrantable,
@@ -730,13 +781,22 @@ export default {
         .map(project => ({
           project: project.name,
           cost: 0, // Default to 0 if no justifications yet
-          grantable_amount: this.getTotalGrantableAmount(project, 'grantable_structural_expenses_justify_invoices')
+          grantable_amount: this.getTotalGrantableAmount(
+            project,
+            "grantable_structural_expenses_justify_invoices"
+          )
         }));
-      console.log('projectsWithGrantableInvoices', projectsWithGrantableInvoices);
-      console.log('invoiceJustifications', invoiceJustifications);
+      console.log(
+        "projectsWithGrantableInvoices",
+        projectsWithGrantableInvoices
+      );
+      console.log("invoiceJustifications", invoiceJustifications);
       // Merge both arrays, giving priority to actual justifications
-      const combined = _.concat(projectsWithGrantableInvoices, invoiceJustifications);
-      
+      const combined = _.concat(
+        projectsWithGrantableInvoices,
+        invoiceJustifications
+      );
+
       // Group by project name and sum costs, keeping the grantable_amount
       const activities = _(combined)
         .groupBy("project")
@@ -748,7 +808,7 @@ export default {
           };
         })
         .value();
-      
+
       return activities;
     },
     summaryByProjectAll() {
@@ -767,9 +827,7 @@ export default {
       return _.orderBy(activities, "project");
     },
     summaryByProjectInvoices() {
-      const activities = _(
-        this.summaryJustificationsInvoicesByProject
-      )
+      const activities = _(this.summaryJustificationsInvoicesByProject)
         .groupBy("project")
         .map((rows, id) => {
           return {
@@ -830,7 +888,9 @@ export default {
         })
         .value();
       // return activities
-      const activities2 = _(this.justifications.filter(j => j.users_permissions_user))
+      const activities2 = _(
+        this.justifications.filter(j => j.users_permissions_user)
+      )
         .groupBy(
           item => `${item.users_permissions_user.username}_${item.month}`
         )
@@ -880,8 +940,7 @@ export default {
       return activities;
     },
     dataCSV() {
-      const justifications = this.justifications
-      .map(
+      const justifications = this.justifications.map(
         ({
           id,
           project,
@@ -896,8 +955,12 @@ export default {
             project_id: project.id,
             project: project.name,
             payroll: payroll ? payroll.total : 0,
-            username: row.users_permissions_user ? row.users_permissions_user.username : '',
-            emitted_invoice: row.emitted_invoice ? row.emitted_invoice.code : '',
+            username: row.users_permissions_user
+              ? row.users_permissions_user.username
+              : "",
+            emitted_invoice: row.emitted_invoice
+              ? row.emitted_invoice.code
+              : "",
             cost: row.quantity
           };
         }
@@ -934,10 +997,8 @@ export default {
             .toString()
             .toLowerCase()
             .indexOf(this.invoiceSearch.toLowerCase()) >= 0 ||
-          (option.total_base && 
-            option.total_base
-              .toString()
-              .indexOf(this.invoiceSearch) >= 0)
+          (option.total_base &&
+            option.total_base.toString().indexOf(this.invoiceSearch) >= 0)
         );
       });
     },
@@ -984,7 +1045,7 @@ export default {
       // Combine monthlyActivitiesTotal with justifications for pivot table
       const activities = this.monthlyActivitiesTotal.map(row => ({
         year: row.year,
-        month: row.month.toString().padStart(2, '0'),
+        month: row.month.toString().padStart(2, "0"),
         username: row.username,
         project: row.project,
         cost: row.cost || 0,
@@ -992,15 +1053,17 @@ export default {
         payroll: row.payroll || 0,
         grantable_amount: row.grantable_amount || 0,
         count: 1,
-        percentage_bestreta: (row.payroll && row.payroll > 0) ? (row.cost / row.payroll) : 0,
-        type: 'activity'
-      }))
+        percentage_bestreta:
+          row.payroll && row.payroll > 0 ? row.cost / row.payroll : 0,
+        type: "activity"
+      }));
 
       const justifications = this.justifications
         .filter(j => j.users_permissions_user)
         .map(row => {
           const payroll = this.payrolls.find(
             p =>
+              p.users_permissions_user &&
               p.users_permissions_user.id === row.users_permissions_user.id &&
               parseInt(p.year.year) === parseInt(row.year) &&
               parseInt(p.month.month) === parseInt(row.month)
@@ -1009,22 +1072,23 @@ export default {
           const cost = row.quantity || 0;
           return {
             year: row.year.toString(),
-            month: row.month.toString().padStart(2, '0'),
+            month: row.month.toString().padStart(2, "0"),
             username: row.users_permissions_user.username,
-            project: row.project ? row.project.name : '',
+            project: row.project ? row.project.name : "",
             cost: cost,
-            hours: row.dedication && row.dedication.costByHour 
-              ? (row.quantity / row.dedication.costByHour) 
-              : 0,
+            hours:
+              row.dedication && row.dedication.costByHour
+                ? row.quantity / row.dedication.costByHour
+                : 0,
             payroll: payrollTotal,
             grantable_amount: 0, // justifications don't have grantable_amount
             count: 1,
-            percentage_bestreta: (payrollTotal > 0) ? (cost / payrollTotal) : 0,
-            type: 'justification'
-          }
-        })
+            percentage_bestreta: payrollTotal > 0 ? cost / payrollTotal : 0,
+            type: "justification"
+          };
+        });
 
-      return [...activities, ...justifications]
+      return [...activities, ...justifications];
     }
   },
   watch: {
@@ -1041,8 +1105,8 @@ export default {
     },
     pivotData: function(newVal, oldVal) {
       this.$nextTick(() => {
-        this.updatePivotTable()
-      })
+        this.updatePivotTable();
+      });
     }
   },
   mounted() {
@@ -1050,29 +1114,37 @@ export default {
   },
   methods: {
     // Helper function to get grantable amount for a specific year and field
-    getGrantableAmountForYear(project, year, field = 'grantable_amount') {
-      if (!project || !project.grantable_years || !project.grantable_years.length) {
+    getGrantableAmountForYear(project, year, field = "grantable_amount") {
+      if (
+        !project ||
+        !project.grantable_years ||
+        !project.grantable_years.length
+      ) {
         // Fallback to old structure if grantable_years not available
         return project[field] || 0;
       }
-      
+
       // Find the grantable year data for the specified year
       const grantableYear = project.grantable_years.find(gy => {
         // Handle both cases: year as object or year as ID
-        const gyYear = typeof gy.year === 'object' ? gy.year.year : gy.year;
+        const gyYear = typeof gy.year === "object" ? gy.year.year : gy.year;
         return gyYear.toString() === year.toString();
       });
-      
-      return grantableYear ? (grantableYear[field] || 0) : 0;
+
+      return grantableYear ? grantableYear[field] || 0 : 0;
     },
 
     // Helper function to get total grantable amount for all years
-    getTotalGrantableAmount(project, field = 'grantable_amount') {
-      if (!project || !project.grantable_years || !project.grantable_years.length) {
+    getTotalGrantableAmount(project, field = "grantable_amount") {
+      if (
+        !project ||
+        !project.grantable_years ||
+        !project.grantable_years.length
+      ) {
         // Fallback to old structure
         return project[field] || 0;
       }
-      
+
       return project.grantable_years.reduce((total, gy) => {
         return total + (gy[field] || 0);
       }, 0);
@@ -1104,19 +1176,22 @@ export default {
             .endOf("year")
             .format("YYYY");
 
-      const years = (await service({ requiresAuth: true }).get("years?_limit=-1")).data;
+      const years = (
+        await service({ requiresAuth: true }).get("years?_limit=-1")
+      ).data;
 
       const yearFrom = years.find(y => parseInt(y.year) === parseInt(from));
 
-      let query = this.theYear ? `payrolls?_where[year]=${yearFrom.id}&_limit=-1` : `payrolls?_limit=-1`;
+      let query = this.theYear
+        ? `payrolls?_where[year]=${yearFrom.id}&_limit=-1`
+        : `payrolls?_limit=-1`;
       let query2 = `projects?_where[grantable_eq]=true&_limit=-1`;
 
       this.payrolls = (await service({ requiresAuth: true }).get(query)).data;
 
-      // Get projects with grantable_years populated  
+      // Get projects with grantable_years populated
       this.projects = (await service({ requiresAuth: true }).get(query2)).data;
-      console.log('Projects loaded:', this.projects.length, 'First project grantable_years:', this.projects[0] && this.projects[0].grantable_years);
-
+      
       if (this.type !== "Reals") {
         this.estimatedTotals = (
           await service({ requiresAuth: true }).get(
@@ -1154,6 +1229,8 @@ export default {
         just.dedication = dedication;
         const payroll = this.payrolls.find(
           p =>
+            p.users_permissions_user &&
+            just.users_permissions_user &&
             p.users_permissions_user.id === just.users_permissions_user.id &&
             parseInt(p.year.year) === parseInt(just.year) &&
             parseInt(p.month.month) === parseInt(just.month)
@@ -1177,14 +1254,19 @@ export default {
       // Initialize or update pivot table
       this.$nextTick(() => {
         if (this.pivotData.length > 0) {
-          configJustificationPivot.dataSource.data = Object.freeze(this.pivotData)
-          this.initializePivotWithViews('#justification-pivot', configJustificationPivot)
+          configJustificationPivot.dataSource.data = Object.freeze(
+            this.pivotData
+          );
+          this.initializePivotWithViews(
+            "#justification-pivot",
+            configJustificationPivot
+          );
         }
-      })
-      
+      });
+
       this.isLoading = false;
     },
-    
+
     zeroPad(num, places) {
       return String(num).padStart(places, "0");
     },
@@ -1220,7 +1302,7 @@ export default {
       this.userSearch = "";
       this.getActivities();
     },
-    async addJustificationInvoice() {      
+    async addJustificationInvoice() {
       await service({ requiresAuth: true }).post(
         `justifications`,
         this.justificationInvoice
@@ -1230,11 +1312,11 @@ export default {
         queue: false
       });
       this.justificationInvoice = {
-        year: '',
+        year: "",
         month: null,
         project: null,
         emitted_invoice: null,
-        quantity: ''
+        quantity: ""
       };
       this.invoiceSearch = "";
       this.projectSearch = "";
@@ -1250,7 +1332,7 @@ export default {
           this.justificationInvoice.quantity = option.total_base;
         }
       } else {
-        this.justificationInvoice.quantity = '';
+        this.justificationInvoice.quantity = "";
       }
     },
     onProjectSelect(option) {
@@ -1265,44 +1347,44 @@ export default {
     applyDefaultView() {
       if (this.pivotGridInstance) {
         // Reset to default configuration
-        const dataSource = this.pivotGridInstance.dataSource
-        const defaultConfig = configJustificationPivot.dataSource
-        
-        dataSource.columns(defaultConfig.columns || [])
-        dataSource.rows(defaultConfig.rows || [])
-        dataSource.measures(defaultConfig.measures || [])
-        
-        this.selectedViewId = null
+        const dataSource = this.pivotGridInstance.dataSource;
+        const defaultConfig = configJustificationPivot.dataSource;
+
+        dataSource.columns(defaultConfig.columns || []);
+        dataSource.rows(defaultConfig.rows || []);
+        dataSource.measures(defaultConfig.measures || []);
+
+        this.selectedViewId = null;
       }
     },
     updatePivotTable() {
       if (this.pivotGridInstance && this.pivotData.length > 0) {
         try {
           // Update the current dataSource data instead of setting a new dataSource
-          const currentDataSource = this.pivotGridInstance.dataSource
+          const currentDataSource = this.pivotGridInstance.dataSource;
           if (currentDataSource && currentDataSource.data) {
             // Just update the data array
-            currentDataSource.data(this.pivotData)
+            currentDataSource.data(this.pivotData);
           } else {
             // Fallback: recreate the entire pivot grid if dataSource is not available
-            this.initializePivotWithViews('#justification-pivot', {
+            this.initializePivotWithViews("#justification-pivot", {
               ...configJustificationPivot,
               dataSource: {
                 ...configJustificationPivot.dataSource,
                 data: this.pivotData
               }
-            })
+            });
           }
         } catch (error) {
-          console.error('Error updating pivot table:', error)
+          console.error("Error updating pivot table:", error);
           // Fallback: recreate the entire pivot grid
-          this.initializePivotWithViews('#justification-pivot', {
+          this.initializePivotWithViews("#justification-pivot", {
             ...configJustificationPivot,
             dataSource: {
               ...configJustificationPivot.dataSource,
               data: this.pivotData
             }
-          })
+          });
         }
       }
     }

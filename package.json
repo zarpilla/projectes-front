@@ -44,6 +44,8 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
+    "@babel/plugin-transform-nullish-coalescing-operator": "^7.27.1",
+    "@babel/plugin-transform-optional-chaining": "^7.28.5",
     "@vue/cli-plugin-babel": "^4.5.11",
     "@vue/cli-plugin-eslint": "^4.5.11",
     "@vue/cli-plugin-pwa": "^4.5.11",
