@@ -1442,7 +1442,7 @@ export default {
         return [
           {
             concept: "Dieta sense IRPF",
-            base: this.quotes.diet_amount_without_irpf,
+            base: parseFloat((this.quotes.diet_amount_without_irpf || 0).toFixed(4)),
             quantity: 1,
             discount: 0,
             vat: 0,
@@ -1454,8 +1454,12 @@ export default {
           {
             concept: "Dieta amb IRPF",
             base:
-              this.quotes.diet_amount_total -
-              this.quotes.diet_amount_without_irpf,
+              parseFloat(
+            (
+              (this.quotes.diet_amount_total || 0) -
+              (this.quotes.diet_amount_without_irpf || 0)
+            ).toFixed(4)
+          ),
             quantity: 1,
             discount: 0,
             vat: 0,
@@ -2613,9 +2617,11 @@ export default {
     sendSubmitEmittedInvoice() {
       this.submit(this.exitAfterSave);
     },
-    handleDietSubmit(dietData) {
+    async handleDietSubmit(dietData) {
       // Populate the form with diet data
       this.isDietModalActive = false;
+
+      console.log("Diet data received:", dietData);
 
       // Find the selected user contact
       const selectedContact = this.clients.find(
@@ -2640,6 +2646,9 @@ export default {
 
       // Set emission date
       this.form.emitted = dietData.date;
+
+      // this.personIrpf
+      await this.calculateIRPF();
 
       // Create diet lines based on kilometers
       this.form.lines = [

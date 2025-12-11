@@ -54,7 +54,7 @@
           <b-field label="Concepte" horizontal>
             <b-input
               v-model="form.concept"
-              placeholder="Descriu el motiu de la dieta..."
+              placeholder="Descriu el motiu de la dieta, el dia, el lloc, etc."
               required
               expanded
             >
