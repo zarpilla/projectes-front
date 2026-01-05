@@ -109,6 +109,15 @@
         >
           <b-icon icon="content-duplicate" size="is-small" />
         </button>
+        <button
+          class="button is-small is-warning ml-1"
+          type="button"
+          title="Duplica fase i pressupost"
+          :disabled="!editable"
+          @click.prevent="duplicatePhase(phi)"
+        >
+          <b-icon icon="content-copy" size="is-small" />
+        </button>
       </div>
       <div class="column is-12 subphases-list" v-if="mode !== 'expenses'">
         <div class="subphase-detail-title">
@@ -1113,6 +1122,50 @@ export default {
     },
     copyPhase(i) {
       this.$emit("phases-copy", { index: i });
+    },
+    duplicatePhase(i) {
+      this.needsUpdate = true;
+      const phase = this.phases[i];
+      
+      // Deep clone the phase with its incomes and expenses
+      const duplicatedPhase = {
+        name: `${phase.name} (còpia)`,
+        edit: false,
+        opened: true,
+        incomes: phase.incomes.map(income => ({
+          ...income,
+          id: undefined, // Remove id so it will be created as new
+          paid: false, // Reset paid status
+          invoice: null, // Reset invoice
+          grant: null, // Reset grant
+          income: null, // Reset income
+          dirty: true
+        })),
+        expenses: phase.expenses.map(expense => ({
+          ...expense,
+          id: undefined, // Remove id so it will be created as new
+          paid: false, // Reset paid status
+          invoice: null, // Reset invoice
+          grant: null, // Reset grant
+          expense: null, // Reset expense
+          ticket: null, // Reset ticket
+          diet: null, // Reset diet
+          dirty: true
+        })),
+        total_amount: phase.total_amount,
+        dirty: true
+      };
+      
+      // Insert the duplicated phase right after the original
+      this.phases.splice(i + 1, 0, duplicatedPhase);
+      
+      this.$emit("phases-updated", {
+        phases: this.phases,
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
+      });
     },
     input(v) {
       this.createdReadable = dayjs(v).format("MMM D, YYYY");
