@@ -32,7 +32,7 @@
             field: 'total_amount',
             callback: (value, row) => {
               // For balance annotations, show the account balance instead of total_amount
-              if (row.is_balance_annotation && row.account_balance !== undefined) {
+              if (row && row.is_balance_annotation && row.account_balance !== undefined) {
                 return `Saldo: ${this.excelFormat(row.account_balance)}`;
               }
               return this.excelFormat(value);
