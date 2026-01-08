@@ -81,10 +81,10 @@ const getReppercutedVATData = async () => {
         contasol_codigo: `${doc.code}-VAT${idx+1}`,
         contasol_libro_iva: '', // Sales VAT book
         contasol_fecha: doc.contasol_emitted || (doc.emitted ? moment(doc.emitted,'YYYY-MM-DD').format('DD/MM/YYYY') : ''),
-        contasol_cuenta: doc.contact ? (doc.contact.nif || doc.contact.id) : '',
+        contasol_cuenta: doc.contact_info ? (doc.contact_info.nif || doc.contact_info.id) : (doc.contact ? (doc.contact.nif || doc.contact.id) : ''),
         contasol_factura: doc.code,
-        contasol_nombre: doc.contact ? doc.contact.name : '',
-        contasol_cif: doc.contact ? (doc.contact.nif || '') : '',
+        contasol_nombre: doc.contact_info ? doc.contact_info.name : (doc.contact ? doc.contact.name : ''),
+        contasol_cif: doc.contact_info ? (doc.contact_info.nif || '') : (doc.contact ? (doc.contact.nif || '') : ''),
         contasol_tipo_operacion: '0',
         // Bases & VAT (only first slot used per line; other bases zeroed)
         contasol_base_1: group.base,

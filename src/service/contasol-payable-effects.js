@@ -8,8 +8,8 @@ const getData  = async () => {
     // Basic fields
     invoice.contasol_codigo = invoice.code || `INV-${invoice.id}`;
     invoice.contasol_fecha = invoice.emitted ? moment(invoice.emitted, 'YYYY-MM-DD').format('DD/MM/YYYY') : '';
-    invoice.contasol_cuenta = invoice.contact ? (invoice.contact.nif || invoice.contact.id) : '';
-    invoice.contasol_nombre = invoice.contact ? invoice.contact.name : '';
+    invoice.contasol_cuenta = invoice.contact_info ? (invoice.contact_info.nif || invoice.contact_info.id) : (invoice.contact ? (invoice.contact.nif || invoice.contact.id) : '');
+    invoice.contasol_nombre = invoice.contact_info ? invoice.contact_info.name : (invoice.contact ? invoice.contact.name : '');
     invoice.contasol_concepto = invoice.comments || 'Factura recibida';
     invoice.contasol_numero_factura = invoice.contact_invoice_number || invoice.number || '';
     invoice.contasol_cuenta_cargo = ''; // To be defined based on accounting logic
@@ -29,7 +29,7 @@ const getData  = async () => {
 
     // VAT specific fields
     invoice.contasol_vat_book = ''; // VAT book type for received invoices
-    invoice.contasol_cif = invoice.contact ? (invoice.contact.nif || '') : '';
+    invoice.contasol_cif = invoice.contact_info ? (invoice.contact_info.nif || '') : (invoice.contact ? (invoice.contact.nif || '') : '');
     invoice.contasol_tipo_operacion = ''; // Purchase operation
     invoice.contasol_deducible = '0';
     invoice.contasol_total = invoice.total || 0;
@@ -86,7 +86,7 @@ const getData  = async () => {
     invoice.contasol_porcentaje_deducible = 100;
     invoice.contasol_base_exenta_rectificada = 0;
     invoice.contasol_clave_operacion = '0';
-    invoice.contasol_identificacion_fiscal = invoice.contact ? (invoice.contact.nif || '') : '';
+    invoice.contasol_identificacion_fiscal = invoice.contact_info ? (invoice.contact_info.nif || '') : (invoice.contact ? (invoice.contact.nif || '') : '');
     invoice.contasol_tipo_impuesto = 'IVA';
     invoice.contasol_identificacion_bien = '';
     invoice.contasol_prorrata_definitiva = 0;
@@ -129,7 +129,7 @@ const getData  = async () => {
     // Basic fields
     expense.contasol_codigo = expense.code || `EXP-${expense.id}`;
     expense.contasol_fecha = expense.emitted ? moment(expense.emitted, 'YYYY-MM-DD').format('DD/MM/YYYY') : '';
-    expense.contasol_cuenta = expense.contact ? (expense.contact.nif || expense.contact.id) : '';
+    expense.contasol_cuenta = expense.contact_info ? (expense.contact_info.nif || expense.contact_info.id) : (expense.contact ? (expense.contact.nif || expense.contact.id) : '');
     expense.contasol_nombre = expense.contact ? expense.contact.name : '';
     expense.contasol_concepto = expense.comments || 'Gasto recibido';
     expense.contasol_numero_factura = expense.contact_invoice_number || expense.number || '';
@@ -150,7 +150,7 @@ const getData  = async () => {
 
     // VAT specific fields for expenses
     expense.contasol_vat_book = ''; // VAT book type for received expenses
-    expense.contasol_cif = expense.contact ? (expense.contact.nif || '') : '';
+    expense.contasol_cif = expense.contact_info ? (expense.contact_info.nif || '') : (expense.contact ? (expense.contact.nif || '') : '');
     expense.contasol_tipo_operacion = ''; // Interior: 0 Importación: 1 Intracomunitario: 2 Agricultura, ganadería y pesca: 3
     expense.contasol_deducible = '0';
     expense.contasol_total = expense.total || 0;
@@ -207,7 +207,7 @@ const getData  = async () => {
     expense.contasol_porcentaje_deducible = 100;
     expense.contasol_base_exenta_rectificada = 0;
     expense.contasol_clave_operacion = '';
-    expense.contasol_identificacion_fiscal = expense.contact ? (expense.contact.nif || '') : '';
+    expense.contasol_identificacion_fiscal = expense.contact_info ? (expense.contact_info.nif || '') : (expense.contact ? (expense.contact.nif || '') : '');
     expense.contasol_tipo_impuesto = 'IVA';
     expense.contasol_identificacion_bien = '';
     expense.contasol_prorrata_definitiva = 0;

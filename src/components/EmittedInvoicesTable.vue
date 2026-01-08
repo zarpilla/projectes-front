@@ -189,7 +189,7 @@
         v-slot="props"
         sortable
       >
-        {{ props.row.contact ? props.row.contact.name : "" }}
+        {{ props.row.contact_info ? props.row.contact_info.name : props.row.contact ? props.row.contact.name : "" }}
       </b-table-column>
       <b-table-column
         v-if="!provider"
@@ -198,7 +198,7 @@
         v-slot="props"
         sortable
       >
-        {{ props.row.contact ? props.row.contact.nif : null }}
+        {{ props.row.contact_info ? props.row.contact_info.nif : props.row.contact ? props.row.contact.nif : null }}
       </b-table-column>
       <b-table-column label="Concepte" field="lines" v-slot="props" sortable v-if="!provider">
         {{
@@ -438,11 +438,11 @@ export default {
           data: this.formatDate(e.emitted),
           venciment: this.formatDate(e.paybefore),
           cobrada: this.formatDate(e.paid_date),
-          proveidor: e.contact ? e.contact.name : "",
-          proveidor_nif: e.contact ? e.contact.nif : "",
-          proveidor_adreça: e.contact ? e.contact.address : "",
-          proveidor_cp: e.contact ? e.contact.postcode : "",
-          proveidor_ciutat: e.contact ? e.contact.city : "",
+          proveidor: e.contact_info ? e.contact_info.name : e.contact ? e.contact.name : "",
+          proveidor_nif: e.contact_info ? e.contact_info.nif : e.contact ? e.contact.nif : "",
+          proveidor_adreça: e.contact_info ? e.contact_info.address : e.contact ? e.contact.address : "",
+          proveidor_cp: e.contact_info ? e.contact_info.postcode : e.contact ? e.contact.postcode : "",
+          proveidor_ciutat: e.contact_info ? e.contact_info.city : e.contact ? e.contact.city : "",
           // proveidor_provincia: e.contact ? e.contact.state : "",
           // proveidor_pais: e.contact ? e.contact.country : "",
           concepte: e.lines && e.lines.length > 0 ? e.lines[0].concept : "-",

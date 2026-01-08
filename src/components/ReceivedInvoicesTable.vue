@@ -141,10 +141,10 @@
           {{ formatDate(props.row.paybefore) }}
         </b-table-column>
         <b-table-column label="Contacte" field="contact.name" v-slot="props" sortable>
-          {{ props.row.contact ? props.row.contact.name : "-" }}
+          {{ props.row.contact_info ? props.row.contact_info.name : props.row.contact ? props.row.contact.name : "-" }}
         </b-table-column>
         <b-table-column label="NIF Contacte" field="contact.name" v-slot="props" sortable>
-          {{ props.row.contact ? props.row.contact.nif : "-" }}
+          {{ props.row.contact_info ? props.row.contact_info.nif : props.row.contact ? props.row.contact.nif : "-" }}
         </b-table-column>
         <b-table-column label="FProv" field="contact.name" v-slot="props" sortable>
           {{ props.row.contact_invoice_number ? props.row.contact_invoice_number : "" }}
