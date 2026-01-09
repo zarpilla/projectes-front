@@ -213,13 +213,13 @@ export default {
 
       // grouped by owner and month
       this.ordersGrouped = _.groupBy(this.orders, o => {
-        return o.owner.id + "-" + moment(o.delivery_date).format("YYYY-MM");
+        return o.owner.id + "-" + moment(o.estimated_delivery_date).format("YYYY-MM");
       });
 
       this.ordersGrouped = Object.keys(this.ordersGrouped).map(k => {
         return {
           owner: this.ordersGrouped[k][0].owner,
-          month: moment(this.ordersGrouped[k][0].delivery_date).format(
+          month: moment(this.ordersGrouped[k][0].estimated_delivery_date).format(
             "YYYY-MM"
           ),
           orders: this.ordersGrouped[k].map(o => o.id),
