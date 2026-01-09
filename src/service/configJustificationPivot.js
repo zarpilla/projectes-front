@@ -79,7 +79,26 @@ const config = {
           'Bestreta': {
             field: 'payroll',
             format: '{0:n2} €',
-            aggregate: 'average'
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var payroll = parseFloat(dataItem.payroll) || 0
+              
+              // Track unique person-month combinations to avoid double counting
+              var key = dataItem.username + '-' + dataItem.year + '-' + dataItem.month
+              
+              if (!state.payrollMap) {
+                state.payrollMap = {}
+              }
+              
+              // Only add payroll once per person-month combination
+              if (!state.payrollMap[key]) {
+                state.payrollMap[key] = payroll
+                state.totalPayroll = (state.totalPayroll || 0) + payroll
+              }
+            },
+            result: function (state) {
+              return state.totalPayroll || 0
+            }
           },
           grantable_amount: {
             field: 'grantable_amount',
@@ -99,14 +118,25 @@ const config = {
               var cost = parseFloat(dataItem.cost) || 0
               var payroll = parseFloat(dataItem.payroll) || 0
               
-              // Accumulate cost and payroll for all cases
+              // Track unique person-month combinations to avoid double counting payroll
+              var key = dataItem.username + '-' + dataItem.year + '-' + dataItem.month
+              
+              if (!state.payrollMap) {
+                state.payrollMap = {}
+              }
+              
+              // Always accumulate cost
               state.totalCost = (state.totalCost || 0) + cost
-              state.totalPayroll = (state.totalPayroll || 0) + payroll
-              state.count = (state.count || 0) + 1
+              
+              // Only add payroll once per person-month combination
+              if (!state.payrollMap[key]) {
+                state.payrollMap[key] = payroll
+                state.totalPayroll = (state.totalPayroll || 0) + payroll
+              }
             },
             result: function (state) {
-              // Return cost/payroll ratio (this works for both individual cells and totals)
-              return state.totalPayroll > 0 ? state.totalCost / state.totalPayroll * state.count : 0
+              // Return cost/payroll ratio
+              return state.totalPayroll > 0 ? state.totalCost / state.totalPayroll : 0
             }
           }
         }
