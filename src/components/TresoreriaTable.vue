@@ -90,6 +90,75 @@
       </button>
     </div>
 
+    <!-- Filters Section -->
+    <div class="filters-section mt-4 p-4" style="background-color: #f5f5f5; border-radius: 4px;">
+      <div class="columns">
+        <div class="column is-4">
+          <b-field label="Projecte">
+            <b-autocomplete
+              v-model="projectSearch"
+              placeholder="Filtrar per projecte..."
+              :keep-first="false"
+              :open-on-focus="true"
+              :data="filteredProjects"
+              field="name"
+              @select="projectSelected"
+              :clearable="true"
+            >
+              <template slot="empty">Cap projecte trobat</template>
+            </b-autocomplete>
+          </b-field>
+        </div>
+        <div class="column is-3">
+          <b-field label="Data Inici">
+            <b-datepicker
+              v-model="filterDateStart"
+              :show-week-number="false"
+              :locale="'ca-ES'"
+              :first-day-of-week="1"
+              icon="calendar-today"
+              placeholder="Des de..."
+              trap-focus
+              editable
+              :clearable="true"
+              @input="applyDateFilters"
+            >
+            </b-datepicker>
+          </b-field>
+        </div>
+        <div class="column is-3">
+          <b-field label="Data Final">
+            <b-datepicker
+              v-model="filterDateEnd"
+              :show-week-number="false"
+              :locale="'ca-ES'"
+              :first-day-of-week="1"
+              icon="calendar-today"
+              placeholder="Fins a..."
+              trap-focus
+              editable
+              :clearable="true"
+              @input="applyDateFilters"
+            >
+            </b-datepicker>
+          </b-field>
+        </div>
+        <div class="column is-2 is-flex is-align-items-end">
+          <b-button
+            v-if="selectedProject || filterDateStart || filterDateEnd"
+            @click="clearFilters"
+            type="is-warning"            
+          >
+            Netejar filtres
+          </b-button>
+        </div>
+      </div>
+      <!-- <div class="has-text-grey-light is-size-7 mt-2" v-if="selectedProject">
+        <b-icon icon="filter" size="is-small"></b-icon>
+        Filtrant per projecte: <strong>{{ selectedProject.name }}</strong>
+      </div> -->
+    </div>
+
     <!-- <pre>{{ treasuryData }}</pre> -->
 
     <b-loading
@@ -416,8 +485,6 @@ export default {
       bankAccounts: [],
       isModalActive: false,
       trashObject: null,
-      pivotData: [],
-      pivotData2: [],
       vat: { paid: 0, received: 0 },
       vat_expected: { paid: 0, received: 0 },
       me: null,
@@ -427,7 +494,11 @@ export default {
       selectedProjectStates: [],
       selectedYear: null,
       selectedBankAccountIds: [],
-      pivotIdentifier: "tresoreria-pivot"
+      pivotIdentifier: "tresoreria-pivot",
+      projectSearch: "",
+      selectedProject: null,
+      filterDateStart: null,
+      filterDateEnd: null
     };
   },
   async mounted() {
@@ -459,6 +530,23 @@ export default {
       }
     }, 100);
   },
+  watch: {
+    pivotData2: {
+      handler(newVal) {
+        // Update the pivot table when filter data changes
+        if (this.pivotGridInstance) {
+          try {
+            const dataSource = this.pivotGridInstance.dataSource;
+            dataSource.data(newVal);
+            dataSource.read();
+          } catch (error) {
+            console.error("Error updating pivot data:", error);
+          }
+        }
+      },
+      deep: true
+    }
+  },
   computed: {
     ...mapState(["userName", "user"]),
     monthlySummary() {
@@ -469,21 +557,57 @@ export default {
       this.selectedYear = year;
 
       // const fn = (t) => { return this.view === 'today' ? t.datef >= t.datef >= moment().format("YYYYMMDD") : t.datef >= moment().startOf('year').format("YYYYMMDD") }
-      const treasuryData = this.treasuryData
+      let treasuryData = this.treasuryData
         // .filter((t) => t.datef >= moment().startOf('year').format("YYYYMMDD"))
         .filter(t =>
           this.view === "today"
             ? t.datef >= moment().format("YYYYMMDD")
             : t.datef >= `${year}0101`
-        )
-        .map(t => {
-          return {
-            ...t,
-            year: moment(t.datef, "YYYYMMDD").format("YYYY"),
-            month: moment(t.datef, "YYYYMMDD").format("MM"),
-            ym: moment(t.datef, "YYYYMMDD").format("YYYYMM")
-          };
+        );
+
+      // Apply project filter (exclude balance annotations from filtering)
+      if (this.selectedProject) {
+        treasuryData = treasuryData.filter(t => {
+          // Always include "Inici Any" and "Avui" entries regardless of project filter
+          if (t.type === "Inici Any" || t.type === "Avui" || t.is_balance_annotation) {
+            return true;
+          }
+          return t.project_id === this.selectedProject.id;
         });
+      }
+
+      // Apply date filters (exclude balance annotations from filtering)
+      if (this.filterDateStart) {
+        const startDateFormatted = moment(this.filterDateStart).format("YYYYMMDD");
+        treasuryData = treasuryData.filter(t => {
+          // Always include "Inici Any" entries regardless of date filter
+          if (t.type === "Inici Any" || t.is_balance_annotation) {
+            return true;
+          }
+          return t.datef >= startDateFormatted;
+        });
+      }
+
+      if (this.filterDateEnd) {
+        const endDateFormatted = moment(this.filterDateEnd).format("YYYYMMDD");
+        treasuryData = treasuryData.filter(t => {
+          // Always include "Inici Any" entries regardless of date filter
+          if (t.type === "Inici Any" || t.is_balance_annotation) {
+            return true;
+          }
+          return t.datef <= endDateFormatted;
+        });
+      }
+
+      treasuryData = treasuryData.map(t => {
+        return {
+          ...t,
+          year: moment(t.datef, "YYYYMMDD").format("YYYY"),
+          month: moment(t.datef, "YYYYMMDD").format("MM"),
+          ym: moment(t.datef, "YYYYMMDD").format("YYYYMM")
+        };
+      });
+
       return treasuryData;
     },
     monthlySummaryForPivot() {
@@ -502,6 +626,12 @@ export default {
           total_expenses: !isBalanceAnnotation && s.total_amount < 0 ? s.total_amount : 0
         };
       });
+    },
+    pivotData() {
+      return this.monthlySummaryTotal;
+    },
+    pivotData2() {
+      return this.monthlySummaryForPivot;
     },
     monthlySummaryTotal() {
       const ans = _(this.monthlySummary)
@@ -562,10 +692,59 @@ export default {
     },
     treasuryDataDesc() {
       //return _.reverse(this.treasuryData)
-      const treasuryDataOfYear = this.treasuryData.filter(
+      let treasuryDataOfYear = this.treasuryData.filter(
         d => moment(d.datex, "dd-MM-YYYY").year() == this.selectedYear
       );
+
+      // Apply project filter (exclude balance annotations from filtering)
+      if (this.selectedProject) {
+        treasuryDataOfYear = treasuryDataOfYear.filter(d => {
+          // Always include "Inici Any" and "Avui" entries regardless of project filter
+          if (d.type === "Inici Any" || d.type === "Avui" || d.is_balance_annotation) {
+            return true;
+          }
+          return d.project_id === this.selectedProject.id;
+        });
+      }
+
+      // Apply date filters (exclude balance annotations from filtering)
+      if (this.filterDateStart) {
+        const startDate = moment(this.filterDateStart).format("DD-MM-YYYY");
+        treasuryDataOfYear = treasuryDataOfYear.filter(d => {
+          // Always include "Inici Any" entries regardless of date filter
+          if (d.type === "Inici Any" || d.is_balance_annotation) {
+            return true;
+          }
+          return moment(d.datex, "DD-MM-YYYY").isSameOrAfter(moment(startDate, "DD-MM-YYYY"));
+        });
+      }
+
+      if (this.filterDateEnd) {
+        const endDate = moment(this.filterDateEnd).format("DD-MM-YYYY");
+        treasuryDataOfYear = treasuryDataOfYear.filter(d => {
+          // Always include "Inici Any" entries regardless of date filter
+          if (d.type === "Inici Any" || d.is_balance_annotation) {
+            return true;
+          }
+          return moment(d.datex, "DD-MM-YYYY").isSameOrBefore(moment(endDate, "DD-MM-YYYY"));
+        });
+      }
+
       return _.reverse(treasuryDataOfYear);
+    },
+    filteredProjects() {
+      if (!this.projectSearch) {
+        return this.projects;
+      }
+      return this.projects.filter(option => {
+        return (
+          option.name &&
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.projectSearch.toLowerCase()) >= 0
+        );
+      });
     }
   },
   methods: {
@@ -586,8 +765,6 @@ export default {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
       });
       this.projects = treasuryData.projects;
-      this.pivotData = Object.freeze(this.monthlySummaryTotal);
-      this.pivotData2 = Object.freeze(this.monthlySummaryForPivot);
 
       configPivot.dataSource.data = this.pivotData2;
       this.initializePivotWithViews("#project-stats", configPivot);
@@ -776,6 +953,19 @@ export default {
     },
     excelFormat(value) {
       return format(this.user, value);
+    },
+    projectSelected(option) {
+      this.selectedProject = option;
+    },
+    applyDateFilters() {
+      // Trigger reactivity by updating the computed property
+      this.$forceUpdate();
+    },
+    clearFilters() {
+      this.selectedProject = null;
+      this.projectSearch = "";
+      this.filterDateStart = null;
+      this.filterDateEnd = null;
     },
     applyDefaultView() {
       if (this.pivotGridInstance) {
