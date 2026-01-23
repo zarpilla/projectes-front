@@ -345,7 +345,7 @@
               <b-field
                 label="Projecte mare"
                 horizontal
-                message="Per agrupar projectes interanuals"
+                :message="form.is_mother ? 'Aquest projecte és mare d\'altres projectes i no pot tenir un projecte mare assignat' : 'Per agrupar projectes interanuals'"
               >
                 <b-autocomplete
                   v-model="projectSearch"
@@ -356,20 +356,38 @@
                   field="name"
                   @select="projectSelected"
                   :clearable="true"
+                  :disabled="form.is_mother"
                 >
                 </b-autocomplete>
               </b-field>
 
-              <b-field v-if="form.children" label="Projectes fills" horizontal>
+              <b-field v-if="form.mother && form.mother.id" label="" horizontal>
                 <div>
-                  <div v-for="child in form.children.children" :key="child.id">
-                    <router-link
-                      :to="{ name: 'project.edit', params: { id: child.id } }"
-                    >
-                      <span class="project-name has-text-info">
-                        {{ child.name }}
-                      </span>
-                    </router-link>
+                  <router-link
+                    :to="{ name: 'project.edit', params: { id: form.mother.id } }"
+                  >
+                    <span class="project-name has-text-info ml-1">
+                      {{ form.mother.name }}
+                    </span>
+                  </router-link>
+                </div>
+              </b-field>
+
+              <b-field v-if="form.is_mother" label="Projectes fills" horizontal>
+                <div>
+                  <div v-if="form.children && form.children.children && form.children.children.length > 0">
+                    <div v-for="child in form.children.children" :key="child.id" class="mb-2">
+                      <router-link
+                        :to="{ name: 'project.edit', params: { id: child.id } }"
+                      >
+                        <span class="project-name has-text-info ml-1">
+                          {{ child.name }}
+                        </span>
+                      </router-link>
+                    </div>
+                  </div>
+                  <div v-else class="has-text-grey-light">
+                    Aquest projecte és mare però encara no té projectes fills assignats
                   </div>
                 </div>
               </b-field>
@@ -1274,7 +1292,10 @@
         :closeIcon="true"
         :content-visible="true"
       >
-        <b-field>
+        <b-notification v-if="form.is_mother" type="is-info" :closable="false" class="mb-4">
+          Aquest és un projecte mare. Les fases que es mostren són l'agregació de tots els projectes fills. No es poden editar directament.
+        </b-notification>
+        <b-field v-if="!form.is_mother">
           <b-button
             type="is-warning"
             :loading="isLoading"
@@ -1303,19 +1324,21 @@
           @phases-updated="originalPhasesUpdated"
           @phases-copy="originalPhasesCopy"
           mode="simple"
-          :editable="originalEditable"
+          :editable="originalEditable && !form.is_mother"
           :per-page="parseInt(perPage)"
           :is-paginated="isPaginated"
         />
 
         <hr
           v-if="
+            !form.is_mother &&
             form.project_original_phases.length &&
               (!form.project_phases || form.project_phases.length === 0)
           "
         />
         <b-field
           v-if="
+            !form.is_mother &&
             form.project_original_phases.length &&
               form.project_phases.length === 0
           "
@@ -1360,7 +1383,10 @@
         :closeIcon="true"
         :content-visible="true"
       >
-        <b-field>
+        <b-notification v-if="form.is_mother" type="is-info" :closable="false" class="mb-4">
+          Aquest és un projecte mare. Les fases que es mostren són l'agregació de tots els projectes fills. No es poden editar directament.
+        </b-notification>
+        <b-field v-if="!form.is_mother">
           <b-button
             type="is-warning"
             :loading="isLoading"
@@ -1387,12 +1413,13 @@
           :form="form"
           :project-phases="form.project_phases"
           @phases-updated="phasesUpdated"
-          :editable="phasesEditable"
+          :editable="phasesEditable && !form.is_mother"
           :per-page="parseInt(perPage)"
           :is-paginated="isPaginated"
         />
         <hr
           v-if="
+            !form.is_mother &&
             form.project_phases.length &&
               (!form.project_original_phases ||
                 form.project_original_phases.length === 0)
@@ -1400,6 +1427,7 @@
         />
         <b-field
           v-if="
+            !form.is_mother &&
             form.project_phases.length &&
               form.project_original_phases.length === 0
           "
@@ -2372,9 +2400,11 @@ export default {
       );
     },
     totals() {
-      return this.allByYearYear === "TOTS"
+      const result = this.allByYearYear === "TOTS"
         ? this.form
         : this.allByYear.find(a => a.year === this.allByYearYear);
+      
+      return result;
     }
   },
   watch: {
@@ -2515,20 +2545,18 @@ export default {
 
               this.form.project_original_phases = phases_and_estimated_hours;
 
-              if (
-                this.form.mother &&
-                this.form.mother.id &&
-                this.form.mother.id === r.data.id
-              ) {
+              // Load children data if this project is a mother project
+              if (this.form.is_mother) {
                 const childrenData = (
                   await service({ requiresAuth: true }).get(
                     `projects/${this.$route.params.id}/children`
                   )
                 ).data;
+                
                 this.form.incomes_expenses =
                   childrenData.totals.incomes_expenses;
                 this.form.total_real_incomes_expenses =
-                  childrenData.totals.incomes_expenses;
+                  childrenData.totals.total_real_incomes_expenses;
                 this.form.total_incomes = childrenData.totals.total_incomes;
                 this.form.total_real_incomes =
                   childrenData.totals.total_real_incomes;
@@ -2543,18 +2571,10 @@ export default {
                   childrenData.totals.total_estimated_hours;
                 this.form.total_real_hours =
                   childrenData.totals.total_real_hours;
-                this.form.total_real_incomes_expenses =
-                  childrenData.totals.incomes_expenses;
-                this.form.total_real_incomes_expenses =
-                  childrenData.totals.incomes_expenses;
-                this.form.total_real_incomes_expenses =
-                  childrenData.totals.incomes_expenses;
-                this.form.total_real_incomes_expenses =
-                  childrenData.totals.incomes_expenses;
-                this.form.total_real_incomes_expenses =
-                  childrenData.totals.incomes_expenses;
-                this.form.total_real_incomes_expenses =
-                  childrenData.totals.incomes_expenses;
+                this.form.total_expenses_vat =
+                  childrenData.totals.total_expenses_vat;
+                this.form.total_real_expenses_vat =
+                  childrenData.totals.total_real_expenses_vat;
                 this.form.emitted_invoices =
                   childrenData.totals.emitted_invoices;
                 this.form.received_grants = childrenData.totals.received_grants;
@@ -2566,6 +2586,15 @@ export default {
                   childrenData.totals.received_incomes;
                 this.form.received_expenses =
                   childrenData.totals.received_expenses;
+
+                // Set aggregated phases from children (for display only, not for storage)
+                this.form.project_phases = childrenData.project_phases || [];
+                this.form.project_original_phases = childrenData.project_original_phases || [];
+
+                // Set aggregated allByYear from children
+                if (childrenData.allByYear) {
+                  this.allByYear = childrenData.allByYear;
+                }
 
                 this.form.children = childrenData;
               }
@@ -2751,17 +2780,24 @@ export default {
       }
 
       if (this.$route.params.id) {
-        this.allByYear = [];
+        // For mother projects, allByYear is already loaded from children data
+        // For other projects, we need to calculate it
+        if (!this.form.is_mother) {
+          this.allByYear = [];
+          
+          const calculate = (
+            await service({ requiresAuth: true }).get(
+              `projects/${this.$route.params.id}/calculate`
+            )
+          ).data;
 
-        const calculate = (
-          await service({ requiresAuth: true }).get(
-            `projects/${this.$route.params.id}/calculate`
-          )
-        ).data;
+          if (calculate.allByYear) {
+            this.allByYear = calculate.allByYear;
+          }
+        }
 
-        if (calculate.allByYear) {
-          this.allByYear = calculate.allByYear;
-          //this.dirtyEnabled = false
+        //this.dirtyEnabled = false
+        if (this.allByYear && this.allByYear.length) {
           if (this.form.periodification.length === 0) {
             this.form.periodification = this.allByYear
               .filter(a => a.year !== "undefined")
