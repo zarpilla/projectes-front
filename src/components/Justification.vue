@@ -17,12 +17,15 @@
         :content-visible="true"
       >
         <div class="columns card-body">
-          <div class="column is-4 has-text-weight-bold">Projecte</div>
+          <div class="column is-3 has-text-weight-bold">Projecte</div>          
+          <div class="column is-2 has-text-weight-bold has-text-right">
+            Import a justificar
+          </div>
           <div class="column is-2 has-text-weight-bold has-text-right">
             Import justificat
           </div>
           <div class="column is-2 has-text-weight-bold has-text-right">
-            Import a justificar
+            Pendent
           </div>
           <div class="column is-2 has-text-weight-bold has-text-right">%</div>
         </div>
@@ -32,7 +35,17 @@
           class="card-body"
         >
           <div class="columns">
-            <div class="column is-4">{{ row.project }}</div>
+            <div class="column is-3">{{ row.project }}</div>            
+            <div class="column is-2 has-text-right">
+              <money-format
+                :value="row.grantable_amount ? row.grantable_amount : 0"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
             <div class="column is-2 has-text-right">
               <money-format
                 :value="row.cost"
@@ -45,7 +58,11 @@
             </div>
             <div class="column is-2 has-text-right">
               <money-format
-                :value="row.grantable_amount ? row.grantable_amount : 0"
+                :value="
+                  row.grantable_amount
+                    ? row.grantable_amount - row.cost
+                    : -row.cost
+                "
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value="false"
@@ -72,7 +89,17 @@
         </div>
         <div class="card-body">
           <div class="columns">
-            <div class="column is-4 has-text-weight-bold">TOTAL</div>
+            <div class="column is-3 has-text-weight-bold">TOTAL</div>
+            <div class="column is-2 has-text-weight-bold has-text-right">
+              <money-format
+                :value="summaryAllGrantable"
+                :locale="'es'"
+                :currency-code="'EUR'"
+                :subunits-value="false"
+                :hide-subunits="false"
+              >
+              </money-format>
+            </div>
             <div class="column is-2 has-text-weight-bold has-text-right">
               <money-format
                 :value="summaryAll"
@@ -85,7 +112,7 @@
             </div>
             <div class="column is-2 has-text-weight-bold has-text-right">
               <money-format
-                :value="summaryAllGrantable"
+                :value="summaryAllGrantable - summaryAll"
                 :locale="'es'"
                 :currency-code="'EUR'"
                 :subunits-value="false"
@@ -975,7 +1002,7 @@ export default {
         this.justification.users_permissions_user &&
         this.justification.project &&
         this.justification.quantity &&
-        parseInt(this.justification.quantity) > 0
+        parseInt(this.justification.quantity) !== 0
       );
     },
     addJustificationInvoiceEnabled() {

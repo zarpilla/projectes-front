@@ -17,7 +17,7 @@ const config = {
       name: 'project',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Import justificat', 'Hores', 'Bestreta', '% Bestreta'],
+    measures: ['Import justificat', 'Hores', 'Bestreta', 'Diferència Bestreta-Hores', '% Bestreta'],
     schema: {
       model: {
         fields: {
@@ -109,6 +109,35 @@ const config = {
             field: 'count',
             format: '{0}',
             aggregate: 'sum'
+          },
+          'Diferència Bestreta-Hores': {
+            field: 'cost',
+            format: '{0:n2} €',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var cost = parseFloat(dataItem.cost) || 0
+              var payroll = parseFloat(dataItem.payroll) || 0
+              
+              // Track unique person-month combinations to avoid double counting payroll
+              var key = dataItem.username + '-' + dataItem.year + '-' + dataItem.month
+              
+              if (!state.payrollMap) {
+                state.payrollMap = {}
+              }
+              
+              // Always accumulate cost
+              state.totalCost = (state.totalCost || 0) + cost
+              
+              // Only add payroll once per person-month combination
+              if (!state.payrollMap[key]) {
+                state.payrollMap[key] = payroll
+                state.totalPayroll = (state.totalPayroll || 0) + payroll
+              }
+            },
+            result: function (state) {
+              // Return payroll - cost (bestreta - hores justificades)
+              return (state.totalPayroll || 0) - (state.totalCost || 0)
+            }
           },
           '% Bestreta': {
             field: 'cost',
