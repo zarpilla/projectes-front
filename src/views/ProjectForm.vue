@@ -1292,8 +1292,13 @@
         :closeIcon="true"
         :content-visible="true"
       >
-        <b-notification v-if="form.is_mother" type="is-info" :closable="false" class="mb-4">
+        <b-notification v-if="form.is_mother && !hasLegacyMotherPhases" type="is-info" :closable="false" class="mb-4">
           Aquest és un projecte mare. Les fases que es mostren són l'agregació de tots els projectes fills. No es poden editar directament.
+        </b-notification>
+        <b-notification v-if="form.is_mother && hasLegacyMotherPhases" type="is-warning" :closable="false" class="mb-4">
+          <strong>ATENCIÓ: Dades heretades detectades!</strong><br>
+          Aquest és un projecte mare amb fases pròpies (dades heretades del sistema antic). Els projectes mare només haurien de contenir l'agregació de les fases dels projectes fills.<br>
+          <strong>Si us plau, elimina manualment les fases que pertanyen directament a aquest projecte.</strong> Les fases correctes són només les que provenen dels projectes fills.
         </b-notification>
         <b-field v-if="!form.is_mother">
           <b-button
@@ -1383,8 +1388,13 @@
         :closeIcon="true"
         :content-visible="true"
       >
-        <b-notification v-if="form.is_mother" type="is-info" :closable="false" class="mb-4">
+        <b-notification v-if="form.is_mother && !hasLegacyMotherPhases" type="is-info" :closable="false" class="mb-4">
           Aquest és un projecte mare. Les fases que es mostren són l'agregació de tots els projectes fills. No es poden editar directament.
+        </b-notification>
+        <b-notification v-if="form.is_mother && hasLegacyMotherPhases" type="is-warning" :closable="false" class="mb-4">
+          <strong>ATENCIÓ: Dades heretades detectades!</strong><br>
+          Aquest és un projecte mare amb fases pròpies (dades heretades del sistema antic). Els projectes mare només haurien de contenir l'agregació de les fases dels projectes fills.<br>
+          <strong>Si us plau, elimina manualment les fases que pertanyen directament a aquest projecte.</strong> Les fases correctes són només les que provenen dels projectes fills.
         </b-notification>
         <b-field v-if="!form.is_mother">
           <b-button
@@ -2398,6 +2408,29 @@ export default {
       return this.leaders.find(
         u => u.username.toLowerCase() === this.userName.toLowerCase()
       );
+    },
+    hasLegacyMotherPhases() {
+      // Check if this is a mother project and has its own phases (legacy data)
+      // Mother projects should only have aggregated phases from children
+      if (!this.form.is_mother) {
+        return false;
+      }
+      
+      // Check if there are any original phases that belong directly to this project
+      const hasOwnOriginalPhases = this.form.project_original_phases && 
+        this.form.project_original_phases.length > 0 &&
+        this.form.project_original_phases.some(phase => 
+          phase.project && phase.project.id === this.form.id
+        );
+      
+      // Check if there are any execution phases that belong directly to this project
+      const hasOwnExecutionPhases = this.form.project_phases && 
+        this.form.project_phases.length > 0 &&
+        this.form.project_phases.some(phase => 
+          phase.project && phase.project.id === this.form.id
+        );
+      
+      return hasOwnOriginalPhases || hasOwnExecutionPhases;
     },
     totals() {
       const result = this.allByYearYear === "TOTS"
