@@ -2,6 +2,26 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2025.01.26">
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Millores en projectes mare, per calcular i visualitzar les dades dels projectes fills.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Afegits filtres a tresoreria
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Millores al mòdul de justificacions
+          </div>
+        </div>
+      </card-component>
       <card-component title="2025.11.28">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
