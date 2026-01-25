@@ -1406,9 +1406,18 @@ export default {
 
           delete this.form.emitted_invoice_datetime;
 
+          // Get current user for tracking
+          const currentUser = await service({ requiresAuth: true }).get("users/me");
+          
+          // Add tracking user information
+          const orderData = {
+            ...this.form,
+            _tracking_user: currentUser.data
+          };
+
           await service({ requiresAuth: true }).put(
             `orders/${this.form.id}`,
-            this.form
+            orderData
           );
           this.$buefy.snackbar.open({
             message: "Guardat",
@@ -1438,9 +1447,18 @@ export default {
             return;
           }
 
+          // Get current user for tracking
+          const currentUser = await service({ requiresAuth: true }).get("users/me");
+
+          // Add tracking user information
+          const orderData = {
+            ...this.form,
+            _tracking_user: currentUser.data
+          };
+
           const newOrder = await service({ requiresAuth: true }).post(
             "orders",
-            this.form
+            orderData
           );
           this.$router.push({
             name: `orders.edit`,

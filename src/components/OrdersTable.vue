@@ -153,55 +153,55 @@
     </div>
 
     <!-- <pre>{{ theOrders }}</pre> -->
-    <h4>ESTATS</h4>
+    <h4>ESTATS <small class="has-text-grey-light">(Ctrl+clic per seleccionar múltiples)</small></h4>
     <div class="filters">
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === '',
-          'is-warning': statusFilter !== ''
+          'is-primary': statusFilter.length === 0,
+          'is-warning': statusFilter.length !== 0
         }"
-        @click="setStatusFilter('')"
+        @click="setStatusFilter($event, '')"
       >
         TOTES
       </b-button>
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === 'pending',
-          'is-warning': statusFilter !== 'pending'
+          'is-primary': statusFilter.includes('pending'),
+          'is-warning': !statusFilter.includes('pending')
         }"
-        @click="setStatusFilter('pending')"
+        @click="setStatusFilter($event, 'pending')"
       >
         PENDENTS
       </b-button>
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === 'deposited',
-          'is-warning': statusFilter !== 'deposited'
+          'is-primary': statusFilter.includes('deposited'),
+          'is-warning': !statusFilter.includes('deposited')
         }"
-        @click="setStatusFilter('deposited')"
+        @click="setStatusFilter($event, 'deposited')"
       >
         DEPOSITADES
       </b-button>
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === 'processed',
-          'is-warning': statusFilter !== 'processed'
+          'is-primary': statusFilter.includes('processed'),
+          'is-warning': !statusFilter.includes('processed')
         }"
-        @click="setStatusFilter('processed')"
+        @click="setStatusFilter($event, 'processed')"
       >
         PROCESSADES
       </b-button>
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === 'lastmile',
-          'is-warning': statusFilter !== 'lastmile'
+          'is-primary': statusFilter.includes('lastmile'),
+          'is-warning': !statusFilter.includes('lastmile')
         }"
-        @click="setStatusFilter('lastmile')"
+        @click="setStatusFilter($event, 'lastmile')"
       >
         ÚLTIMA MILLA
       </b-button>
@@ -209,43 +209,43 @@
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === 'delivered',
-          'is-warning': statusFilter !== 'delivered'
+          'is-primary': statusFilter.includes('delivered'),
+          'is-warning': !statusFilter.includes('delivered')
         }"
-        @click="setStatusFilter('delivered')"
+        @click="setStatusFilter($event, 'delivered')"
       >
         LLIURADES
       </b-button>
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === 'invoiced',
-          'is-warning': statusFilter !== 'invoiced'
+          'is-primary': statusFilter.includes('invoiced'),
+          'is-warning': !statusFilter.includes('invoiced')
         }"
-        @click="setStatusFilter('invoiced')"
+        @click="setStatusFilter($event, 'invoiced')"
       >
         FACTURADES
       </b-button>
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter === 'cancelled',
-          'is-warning': statusFilter !== 'cancelled'
+          'is-primary': statusFilter.includes('cancelled'),
+          'is-warning': !statusFilter.includes('cancelled')
         }"
-        @click="setStatusFilter('cancelled')"
+        @click="setStatusFilter($event, 'cancelled')"
       >
         ANUL·LADES
       </b-button>
     </div>
-    <h4 v-if="permissions.includes('orders_admin')">RUTES</h4>
+    <h4 v-if="permissions.includes('orders_admin')">RUTES <small class="has-text-grey-light">(Ctrl+clic per seleccionar múltiples)</small></h4>
     <div class="filters" v-if="permissions.includes('orders_admin')">
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': routeFilter === 0,
-          'is-warning': routeFilter !== 0
+          'is-primary': routeFilter.length === 0,
+          'is-warning': routeFilter.length !== 0
         }"
-        @click="setRouteFilter(0)"
+        @click="setRouteFilter($event, 0)"
       >
         TOTES
       </b-button>
@@ -254,10 +254,10 @@
         :key="route.id"
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': routeFilter === route.id,
-          'is-warning': routeFilter !== route.id
+          'is-primary': routeFilter.includes(route.id),
+          'is-warning': !routeFilter.includes(route.id)
         }"
-        @click="setRouteFilter(route.id)"
+        @click="setRouteFilter($event, route.id)"
       >
         {{ route.name }}
       </b-button>
@@ -371,7 +371,7 @@
           <div class="ml-auto mt-2">
             <b-select
               v-model="perPage"
-              @input="setStatusFilter(statusFilter)"
+              @input="setStatusFilter({ ctrlKey: false, metaKey: false })"
               v-if="total > 100"
             >
               <option value="100">100 per pàg.</option>
@@ -427,6 +427,7 @@
         field="owner.fullname"
         sortable
         searchable
+        cell-class="opacity-50"
         v-slot="props"
       >
         {{ props.row.owner.fullname }}
@@ -438,13 +439,30 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.route.name }}
+        <div v-if="editingRowId === props.row.id">
+          <b-select
+            v-model="editForm.route"
+            placeholder=""
+            size="is-small"
+            @input="updateCalculatedPrice"
+          >
+            <option
+              v-for="r in routes"
+              :key="r.id"
+              :value="r.id"
+            >
+              {{ r.name }}
+            </option>
+          </b-select>
+        </div>
+        <span v-else>{{ props.row.route.name }}</span>
       </b-table-column>
       <b-table-column
         label="Creada"
         searchable
         field="route_date"
         sortable
+        cell-class="opacity-50"
         v-slot="props"
       >
         {{ props.row.route_date }}
@@ -456,7 +474,18 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.estimated_delivery_date }}
+        <div v-if="editingRowId === props.row.id">
+          <b-datepicker
+            v-model="editForm.estimated_delivery_date"
+            :show-week-number="false"
+            :locale="'ca-ES'"
+            placeholder="Selecciona data"
+            icon="calendar-today"
+            size="is-small"
+          >
+          </b-datepicker>
+        </div>
+        <span v-else>{{ props.row.estimated_delivery_date }}</span>
       </b-table-column>
       <b-table-column
         label="Lliurada"
@@ -465,7 +494,18 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.delivery_date }}
+        <div v-if="editingRowId === props.row.id">
+          <b-datepicker
+            v-model="editForm.delivery_date"
+            :show-week-number="false"
+            :locale="'ca-ES'"
+            placeholder="Selecciona data"
+            icon="calendar-today"
+            size="is-small"
+          >
+          </b-datepicker>
+        </div>
+        <span v-else>{{ props.row.delivery_date }}</span>
       </b-table-column>
       <b-table-column
         label="Punt d'entrega"
@@ -474,11 +514,25 @@
         sortable
         v-slot="props"
       >
-        {{
+        <div v-if="editingRowId === props.row.id">
+          <b-autocomplete
+            v-model="contactSearch"
+            placeholder="Punt d'entrega"
+            :keep-first="false"
+            :open-on-focus="true"
+            :data="filteredContacts"
+            field="display"
+            @select="option => editForm.contact = option ? option.id : null"
+            :clearable="true"
+            size="is-small"
+          >
+          </b-autocomplete>
+        </div>
+        <span v-else>{{
           props.row.contact
             ? props.row.contact.trade_name
             : props.row.contact_name
-        }}
+        }}</span>
       </b-table-column>
       <b-table-column
         label="Unitats"
@@ -488,17 +542,32 @@
         number
         v-slot="props"
       >
-        {{ props.row.units }}
+        <div v-if="editingRowId === props.row.id">
+          <b-input
+            v-model="editForm.units"
+            type="number"
+            size="is-small"
+          />
+        </div>
+        <span v-else>{{ props.row.units }}</span>
       </b-table-column>
       <b-table-column
-        label="Kg"
+        label="Kilograms"
         field="kilograms"
         sortable
         searchable
         number
         v-slot="props"
       >
-        {{ props.row.kilograms }}
+        <div v-if="editingRowId === props.row.id">
+          <b-input
+            v-model="editForm.kilograms"
+            type="number"
+            size="is-small"
+            @input="updateCalculatedPrice"
+          />
+        </div>
+        <span v-else>{{ props.row.kilograms }}</span>
       </b-table-column>
       <b-table-column
         label="Entrega"
@@ -507,7 +576,23 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.delivery_type ? props.row.delivery_type.name : "-" }}
+        <div v-if="editingRowId === props.row.id">
+          <b-select
+            v-model="editForm.delivery_type"
+            placeholder=""
+            size="is-small"
+            @input="updateCalculatedPrice"
+          >
+            <option
+              v-for="dt in deliveryTypes"
+              :key="dt.id"
+              :value="dt.id"
+            >
+              {{ dt.name }}
+            </option>
+          </b-select>
+        </div>
+        <span v-else>{{ props.row.delivery_type ? props.row.delivery_type.name : "-" }}</span>
       </b-table-column>
       <b-table-column
         label="Recollida"
@@ -516,25 +601,45 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.pickup ? props.row.pickup.name : "-" }}
-      </b-table-column>
-      <b-table-column
-        label="Última milla"
-        searchable
-        field="last_mile_display"
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.last_mile_display }}
-      </b-table-column>
+        <div v-if="editingRowId === props.row.id">
+          <b-select
+            v-model="editForm.pickup"
+            placeholder=""
+            size="is-small"
+          >
+            <option
+              v-for="p in pickups"
+              :key="p.id"
+              :value="p.id"
+            >
+              {{ p.name }}
+            </option>
+          </b-select>
+        </div>
+        <span v-else>{{ props.row.pickup ? props.row.pickup.name : "-" }}</span>
+      </b-table-column>      
       <b-table-column
         label="Preu"
         field="price"
         sortable
         searchable
+        cell-class="opacity-50"
         v-slot="props"
       >
-        <div class="is-flex">
+        <div v-if="editingRowId === props.row.id" class="is-flex">
+          <money-format
+            v-if="calculatedPrice !== null"
+            class="has-text-left has-text-weight-bold"
+            :value="calculatedPrice"
+            :locale="'es'"
+            :currency-code="'EUR'"
+            :subunits-value="false"
+            :hide-subunits="false"
+          >
+          </money-format>
+          <span v-else>?</span>
+        </div>
+        <div v-else class="is-flex">
           <money-format
             v-if="props.row.finalPrice"
             class="has-text-left"
@@ -583,6 +688,7 @@
         field="status"
         sortable
         searchable
+        cell-class="opacity-100"
         v-slot="props"
       >
         <span
@@ -619,6 +725,41 @@
           >ANUL·LADA</span
         >
         <span v-else class="tag is-info">{{ props.row.status }}</span>
+      </b-table-column>
+
+      <b-table-column
+        label="Accions..."
+        v-slot="props"        
+        centered
+        cell-class="opacity-100"
+        v-if="permissions.includes('orders_admin')"
+      >
+        <div v-if="editingRowId === props.row.id" class="buttons">
+          <b-button
+            size="is-small"
+            type="is-primary"
+            icon-left="content-save"
+            @click.prevent="saveOrder(props.row)"
+          >
+          </b-button>
+          <b-button
+            size="is-small"
+            type="is-light"
+            icon-left="close"
+            @click.prevent="cancelEdit"
+          >
+          </b-button>
+        </div>
+        <div v-else>
+          <b-button
+            v-if="canEditOrder(props.row)"
+            size="is-small"
+            type="is-info"
+            icon-left="pencil"
+            @click.prevent="startEdit(props.row)"
+          >
+          </b-button>
+        </div>
       </b-table-column>
 
       <!-- <b-table-column
@@ -674,8 +815,8 @@ export default {
       csv: "",
       csvRecords: [],
       csvErrors: [],
-      statusFilter: "pending",
-      routeFilter: 0,
+      statusFilter: ["pending"],
+      routeFilter: [],
       csvOptions: {
         delimiter: ",",
         columns: true
@@ -984,7 +1125,13 @@ export default {
         }
       ],
       apiUrl: process.env.VUE_APP_API_URL,
-      showExport: false
+      showExport: false,
+      editingRowId: null,
+      editForm: {},
+      contacts: [],
+      contactSearch: '',
+      calculatedPrice: null,
+      editingOrder: null
     };
   },
   computed: {
@@ -1001,26 +1148,8 @@ export default {
           notes_delivery: o.contact && o.contact.notes_delivery ? o.contact.notes_delivery : "",
       }));
 
-      const orders = this.orders.filter(o => {
-        if (this.statusFilter === "") {
-          return true;
-        } else {
-          return o.status === this.statusFilter || o.status === "CSV";
-        }
-      });
-
-      return orders.filter(o => {
-        if (this.routeFilter === 0) {
-          return true;
-        } else {
-          return (
-            o &&
-            o.route &&
-            o.route.name ===
-              this.routes.find(r => r.id === this.routeFilter).name
-          );
-        }
-      });
+      // Filtering is now done at API level
+      return this.orders;
     },
     theOrdersChecked() {
       return this.checkedRows.length
@@ -1043,6 +1172,48 @@ export default {
       return this.checkedRows.length
         ? _.sumBy(this.checkedRows, "finalPrice") || 0
         : _.sumBy(this.theOrders, "finalPrice") || 0;
+    },
+    filteredContacts() {
+      return this.contacts.filter(option => {
+        const searchLower = this.contactSearch.toLowerCase();
+        return (
+          option.display
+            .toString()
+            .toLowerCase()
+            .indexOf(searchLower) >= 0 ||
+          (option.name &&
+            option.name
+              .toString()
+              .toLowerCase()
+              .indexOf(searchLower) >= 0) ||
+          (option.trade_name &&
+            option.trade_name
+              .toString()
+              .toLowerCase()
+              .indexOf(searchLower) >= 0) ||
+          option.id
+            .toString()
+            .toLowerCase()
+            .indexOf(searchLower) >= 0
+        );
+      });
+    }
+  },
+  watch: {
+    'editForm.route'() {
+      if (this.editingRowId) {
+        this.updateCalculatedPrice();
+      }
+    },
+    'editForm.kilograms'() {
+      if (this.editingRowId) {
+        this.updateCalculatedPrice();
+      }
+    },
+    'editForm.delivery_type'() {
+      if (this.editingRowId) {
+        this.updateCalculatedPrice();
+      }
     }
   },
   async created() {
@@ -1050,13 +1221,34 @@ export default {
     this.apiUrl = config.VUE_APP_API_URL;
 
     if (localStorage.getItem("OrdersTable.statusFilter")) {
-      this.statusFilter = localStorage.getItem("OrdersTable.statusFilter");
+      try {
+        const parsed = JSON.parse(localStorage.getItem("OrdersTable.statusFilter"));
+        this.statusFilter = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        // Handle legacy string format
+        const oldFilter = localStorage.getItem("OrdersTable.statusFilter");
+        this.statusFilter = oldFilter === '' ? [] : [oldFilter];
+      }
     }
     if (localStorage.getItem("OrdersTable.routeFilterId")) {
-      this.routeFilter = parseInt(
-        localStorage.getItem("OrdersTable.routeFilterId")
-      );
+      try {
+        const parsed = JSON.parse(localStorage.getItem("OrdersTable.routeFilterId"));
+        this.routeFilter = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        // Handle legacy single value format
+        const oldFilter = parseInt(localStorage.getItem("OrdersTable.routeFilterId"));
+        this.routeFilter = (!oldFilter || oldFilter === 0) ? [] : [oldFilter];
+      }
     }
+    
+    // Ensure filters are always arrays
+    if (!Array.isArray(this.statusFilter)) {
+      this.statusFilter = [];
+    }
+    if (!Array.isArray(this.routeFilter)) {
+      this.routeFilter = [];
+    }
+    
     const me = await service({ requiresAuth: true, cached: true }).get(
       "users/me"
     );
@@ -1066,6 +1258,125 @@ export default {
     this.getData();
   },
   methods: {
+    canEditOrder(order) {
+      // Similar logic to OrdersForm's canEdit
+      return (
+        (order.id &&
+          order.status !== "cancelled" &&
+          this.permissions.includes("orders_admin")) ||
+        (order.status === "pending" &&
+          !this.permissions.includes("orders_admin"))
+      );
+    },
+    startEdit(order) {
+      this.editingRowId = order.id;
+      this.editingOrder = { ...order };
+      this.editForm = {
+        route: order.route ? order.route.id : null,
+        estimated_delivery_date: order.estimated_delivery_date
+          ? moment(order.estimated_delivery_date, "YYYY-MM-DD").toDate()
+          : null,
+        delivery_date: order.delivery_date
+          ? moment(order.delivery_date, "YYYY-MM-DD").toDate()
+          : null,
+        contact: order.contact ? order.contact.id : null,
+        units: order.units,
+        kilograms: order.kilograms,
+        pickup: order.pickup ? order.pickup.id : null,
+        delivery_type: order.delivery_type ? order.delivery_type.id : null,
+        status: order.status,
+        owner: order.owner ? order.owner.id : null
+      };
+      // Set contactSearch to display the current contact
+      if (order.contact) {
+        this.contactSearch = order.contact.trade_name || order.contact.name;
+      } else {
+        this.contactSearch = "";
+      }
+      // Calculate initial price
+      this.updateCalculatedPrice();
+    },
+    cancelEdit() {
+      this.editingRowId = null;
+      this.editForm = {};
+      this.contactSearch = "";
+      this.calculatedPrice = null;
+      this.editingOrder = null;
+    },
+    updateCalculatedPrice() {
+      if (!this.editForm.route || !this.editForm.kilograms) {
+        this.calculatedPrice = null;
+        return;
+      }
+
+      // Create a temporary form object similar to OrdersForm
+      const selectedRoute = this.routes.find(r => r.id === this.editForm.route);
+      const selectedDeliveryType = this.deliveryTypes.find(dt => dt.id === this.editForm.delivery_type);
+      
+      const tempForm = {
+        ...this.editingOrder,
+        ...this.editForm,
+        route: selectedRoute,
+        delivery_type: selectedDeliveryType,
+        kilograms: parseFloat(this.editForm.kilograms) || 0
+      };
+
+      // Calculate route rate
+      const routeRate = assignRouteRate(tempForm, this.routeRates, this.orders);
+      
+      if (routeRate) {
+        // Calculate price
+        this.calculatedPrice = calculateRoutePrice(routeRate, tempForm.kilograms, 0);
+      } else {
+        this.calculatedPrice = null;
+      }
+    },
+    async saveOrder(order) {
+      this.importing = true;
+      try {
+        // Get current user for tracking
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+        
+        const updateData = {
+          route: this.editForm.route,
+          estimated_delivery_date: this.editForm.estimated_delivery_date
+            ? moment(this.editForm.estimated_delivery_date).format("YYYY-MM-DD")
+            : null,
+          delivery_date: this.editForm.delivery_date
+            ? moment(this.editForm.delivery_date).format("YYYY-MM-DD")
+            : null,
+          contact: this.editForm.contact,
+          units: parseFloat(this.editForm.units) || 0,
+          kilograms: parseFloat(this.editForm.kilograms) || 0,
+          pickup: this.editForm.pickup,
+          delivery_type: this.editForm.delivery_type,
+          price: this.calculatedPrice,
+          _tracking_user: currentUser.data
+        };
+
+        const response = await service({ requiresAuth: true }).put(
+          `orders/${order.id}`,
+          updateData
+        );
+
+        this.cancelEdit();
+        
+        this.$buefy.snackbar.open({
+          message: "Comanda actualitzada correctament",
+          type: "is-success"
+        });
+        
+        // Refresh the data to get the updated order with all relationships
+        await this.setStatusFilter({ ctrlKey: false, metaKey: false });
+      } catch (error) {
+        this.$buefy.snackbar.open({
+          message: error.response?.data?.message || "Error actualitzant la comanda",
+          type: "is-danger"
+        });
+      } finally {
+        this.importing = false;
+      }
+    },
     rowClassFn(row) {
       if (!row.estimated_delivery_date) return "";
       // Parse the date as YYYY-MM-DD or YYYYMMDD
@@ -1081,17 +1392,61 @@ export default {
       }
       return "";
     },
-    async setStatusFilter(status) {
-      localStorage.setItem("OrdersTable.statusFilter", status);
+    async setStatusFilter(event, status) {
+      // Handle Ctrl+Click for multiple selection
+      const isCtrlClick = event.ctrlKey || event.metaKey;
+      
+      // If status is undefined, we're being called from elsewhere (pagination, etc.)
+      // In that case, just refresh with current filters
+      if (status === undefined) {
+        // Keep current filters, just re-fetch
+      } else if (status === '') {
+        // "TOTES" button - clear all filters
+        this.statusFilter = [];
+      } else if (isCtrlClick) {
+        // Ctrl+Click - toggle the status in the array
+        const index = this.statusFilter.indexOf(status);
+        if (index > -1) {
+          // Remove if already selected
+          this.statusFilter.splice(index, 1);
+        } else {
+          // Add if not selected
+          this.statusFilter.push(status);
+        }
+      } else {
+        // Normal click - replace with single selection
+        this.statusFilter = [status];
+      }
+      
+      localStorage.setItem("OrdersTable.statusFilter", JSON.stringify(this.statusFilter));
 
       const where = [];
-      console.log("status", status);
-      if (status === "") {
-      } else if (status !== "lastmile") {
-        where.push(`_where[status]=${status}`);
-        //} else if (status !== "last_mile_display") {
-      } else {
-        where.push(`_where[last_mile]=true`);
+      console.log("statusFilter", this.statusFilter);
+      
+      // Handle multiple status filters using multiple _where parameters for OR
+      if (this.statusFilter.length > 0) {
+        // Check if lastmile is included
+        const hasLastMile = this.statusFilter.includes('lastmile');
+        const regularStatuses = this.statusFilter.filter(s => s !== 'lastmile');
+        
+        if (regularStatuses.length === 1 && !hasLastMile) {
+          // Single regular status - use simple query
+          where.push(`_where[status]=${regularStatuses[0]}`);
+        } else if (regularStatuses.length > 1 && !hasLastMile) {
+          // Multiple regular statuses - use multiple _where[status] for OR
+          regularStatuses.forEach(status => {
+            where.push(`_where[status]=${status}`);
+          });
+        } else if (hasLastMile && regularStatuses.length === 0) {
+          // Only lastmile
+          where.push(`_where[last_mile]=true`);
+        } else if (hasLastMile && regularStatuses.length > 0) {
+          // Mix of lastmile and regular statuses
+          regularStatuses.forEach(status => {
+            where.push(`_where[status]=${status}`);
+          });
+          where.push(`_where[last_mile]=true`);
+        }
       }
 
       console.log("this.filters", this.filters);
@@ -1151,9 +1506,17 @@ export default {
         }
       }
 
-      if (this.routeFilter !== 0) {
-        where.push(`_where[route.id]=${this.routeFilter}`);
+      // For routes: Use multiple _where[route.id] for OR condition
+      if (this.routeFilter.length === 1) {
+        where.push(`_where[route.id]=${this.routeFilter[0]}`);
+      } else if (this.routeFilter.length > 1) {
+        // Multiple route.id parameters should create OR condition
+        this.routeFilter.forEach(routeId => {
+          where.push(`_where[route.id]=${routeId}`);
+        });
       }
+
+      console.log("WHERE CLAUSE:", where.join("&"));
 
       this.orders = (
         await service({ requiresAuth: true }).get(
@@ -1201,14 +1564,33 @@ export default {
         };
       });
 
-      this.statusFilter = status;
       this.checkedRows = [];
     },
-    setRouteFilter(route) {
-      localStorage.setItem("OrdersTable.routeFilterId", route);
-      this.routeFilter = route;
+    setRouteFilter(event, route) {
+      // Handle Ctrl+Click for multiple selection
+      const isCtrlClick = event.ctrlKey || event.metaKey;
+      
+      if (route === 0) {
+        // "TOTES" button - clear all filters
+        this.routeFilter = [];
+      } else if (isCtrlClick) {
+        // Ctrl+Click - toggle the route in the array
+        const index = this.routeFilter.indexOf(route);
+        if (index > -1) {
+          // Remove if already selected
+          this.routeFilter.splice(index, 1);
+        } else {
+          // Add if not selected
+          this.routeFilter.push(route);
+        }
+      } else {
+        // Normal click - replace with single selection
+        this.routeFilter = [route];
+      }
+      
+      localStorage.setItem("OrdersTable.routeFilterId", JSON.stringify(this.routeFilter));
       this.checkedRows = [];
-      this.setStatusFilter(this.statusFilter);
+      this.setStatusFilter({ ctrlKey: false, metaKey: false });
     },
     navNew() {
       const q = this.$route.meta.userContacts ? `?user=true` : "";
@@ -1276,7 +1658,15 @@ export default {
         )
       ).data;
 
-      this.setStatusFilter(this.statusFilter);
+      // Load contacts for autocomplete
+      this.contacts = (
+        await service({ requiresAuth: true }).get(`contacts?_limit=-1`)
+      ).data.map(c => ({
+        ...c,
+        display: `${c.trade_name || c.name} (${c.city || ''}) - ${c.id}`
+      }));
+
+      this.setStatusFilter({ ctrlKey: false, metaKey: false });
 
       // console.log("this.orders", this.orders);
 
@@ -1911,9 +2301,13 @@ export default {
     },
     async setBulkState() {
       this.importing = true;
+      // Get current user for tracking
+      const currentUser = await service({ requiresAuth: true }).get("users/me");
+      
       for await (const row of this.checkedRows) {
         await service({ requiresAuth: true }).put(`orders/${row.id}`, {
-          status: this.newState
+          status: this.newState,
+          _tracking_user: currentUser.data
         });
       }
       this.checkedRows = [];
@@ -1974,7 +2368,7 @@ export default {
     },
     onPageChange(page) {
       this.page = page;
-      this.setStatusFilter(this.statusFilter);
+      this.setStatusFilter({ ctrlKey: false, metaKey: false });
     },
     onSort(field, order) {
       if (field === "idx") {
@@ -1982,12 +2376,12 @@ export default {
       }
       this.sortField = field;
       this.sortOrder = order;
-      this.setStatusFilter(this.statusFilter);
+      this.setStatusFilter({ ctrlKey: false, metaKey: false });
     },
     onFiltersChange(filters) {
       console.log("filters", filters);
       this.filters = filters;
-      this.setStatusFilter(this.statusFilter);
+      this.setStatusFilter({ ctrlKey: false, metaKey: false });
     }
   }
 };
@@ -2001,7 +2395,11 @@ export default {
 }
 /* Highlight future week orders */
 .future-week-row {
-  background-color: #fafafa !important;
+  background-color: #fafafa !important;  
+}
+.future-week-row :not(.opacity-100) a, 
+.future-week-row :not(.opacity-100) span,
+.future-week-row .opacity-50 {
   opacity: 0.5;
 }
 .tag.bg-invoiced {
