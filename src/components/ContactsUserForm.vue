@@ -106,6 +106,7 @@
                   :data="filteredCities"
                   field="name"
                   @select="citySelected"
+                  @input="onCityInput"
                   :clearable="true"
                 >
                 </b-autocomplete>
@@ -428,12 +429,13 @@ export default {
       });
     },
     errors() {
+      const isCityValid = this.form.city && this.cities.some(c => c.name === this.form.city);
       return {
         trade_name: !this.form.trade_name,
         nif: !this.form.nif,
         phone: !this.form.phone,
         address: !this.form.address,
-        city: !this.form.city,
+        city: !this.form.city || !isCityValid,
         sector: !this.form.sector,
         postcode: !this.form.postcode,
         owner: !this.form.owner,
@@ -833,7 +835,26 @@ export default {
       });
     },
     async citySelected(option) {
-      this.form.city = option.name;
+      if (option && option.name) {
+        this.form.city = option.name;
+      } else {
+        this.form.city = null;
+      }
+    },
+    onCityInput(value) {
+      // If the input is cleared or doesn't match any city, clear form.city
+      if (!value) {
+        this.form.city = null;
+      } else {
+        // Check if the typed value matches any city exactly
+        const matchedCity = this.cities.find(c => c.name === value);
+        if (matchedCity) {
+          this.form.city = matchedCity.name;
+        } else {
+          // If no exact match, clear the form value to prevent invalid data
+          this.form.city = null;
+        }
+      }
     },
     emitCancel() {
       this.$emit("cancel");

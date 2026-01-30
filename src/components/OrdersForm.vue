@@ -31,6 +31,7 @@
             </b-message>
 
             <form @submit.prevent="submit(false)" v-if="!isLoading">
+              <!-- BLOC ZERO: Sòcia -->
               <b-field
                 label="Sòcia *"
                 horizontal
@@ -54,6 +55,30 @@
 
               <hr />
 
+              <!-- PRIMER BLOC: A ON VA I QUIN DIA? -->
+              <h3 class="title is-5 mt-4 mb-3">A ON VA I QUIN DIA?</h3>
+              <p class="help mb-4"><strong>Recorda!</strong> Has d'informar les comandes com a límit a les 13h del dia abans.</p>
+
+              <!-- <b-field
+                label="Data comanda *"
+                horizontal
+                :type="{ 'is-danger': errors['route_date'] && submitted }"
+                message="Data de creació de la comanda"
+              >
+                <b-datepicker
+                  :disabled="!permissions.includes('orders_admin')"
+                  v-model="form.route_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field> -->
+
               <b-field
                 :label="isPickupPoint ? 'Punt de recollida *' : 'Punt d’entrega *'"
                 horizontal
@@ -68,6 +93,7 @@
                   :data="filteredContacts"
                   field="display"
                   @select="contactChanged"
+                  @input="onContactInput"
                   :disabled="!canEdit"
                   :clearable="true"
                 >
@@ -94,14 +120,64 @@
                   {{ isPickupPoint ? "Veure punt de recollida" : "Veure punt d'entrega" }}
                 </b-button>
               </b-field>
-              
-              <hr />
 
               <b-field
-                label="Transport *"
+                label="Ruta *"
+                horizontal
+                :type="{ 'is-danger': errors['route'] && submitted }"
+                message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t'aplicarà la tarifa corresponent. En cas de dubte, consulta'ns"
+              >
+                <b-select
+                  @input="changeRoute"
+                  v-model="form.route"
+                  placeholder=""
+                  :disabled="!canEdit"
+                >
+                  <option
+                    v-for="(s, index) in routes"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
+
+              <b-field
+                label="Data prevista d'entrega"
+                horizontal
+                message="Si prefereixis que s'entregui més endavant, tria una data del calendari."
+              >
+                <b-datepicker
+                  :disabled="!canEdit"
+                  v-model="form.estimated_delivery_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data"
+                  trap-focus
+                  editable
+                  @input="checkEstimatedDeliveryDate"
+                >
+                </b-datepicker>
+              </b-field>
+
+              <b-message v-if="dateWarningMessage" type="is-warning">
+                {{ dateWarningMessage }}
+              </b-message>
+              
+              <hr />
+              <hr />
+
+              <!-- SEGON BLOC: QUÈ HEM DE PORTAR? -->
+              <h3 class="title is-5 mt-4 mb-3">QUÈ HEM DE PORTAR?</h3>
+
+              <b-field
+                label="Tipus de servei *"
                 horizontal
                 :type="{ 'is-danger': errors['delivery_type'] && submitted }"
-                message="Transport normal o refrigerat"
+                message="Indica refrigerat si almenys una caixa de la comanda ha d'anar refrigerada"
               >
                 <div class="is-flex">
                   <button
@@ -120,30 +196,7 @@
                 </div>
               </b-field>
 
-              <b-field
-                v-if="pickups && pickups.length > 0"
-                label="Recollida comanda *"
-                horizontal
-                :type="{ 'is-danger': errors['pickup'] && submitted }"
-                class="zmessage-alert"
-                :message="pickups.find(p => p.id === form.pickup).message"
-              >
-                <div class="is-flex">
-                  <button
-                    class="button mr-2"
-                    type="button"
-                    v-for="(s, index) in allowedPickups"
-                    :class="{
-                      'is-warning': form.pickup === s.id,
-                      'is-outlined': form.pickup !== s.id
-                    }"
-                    @click="form.pickup = s.id; updatePickup()"
-                    :disabled="!canEdit"
-                  >
-                    {{ s.name }}
-                  </button>
-                </div>
-              </b-field>
+
 
               <!-- Pickup Point Lines Section -->
               <div v-if="isPickupPoint" class="mb-3">
@@ -248,9 +301,9 @@
               <!-- Regular fields for non-pickup points -->
               <div v-else>
                 <b-field
-                  label="Caixes *"
+                  label="Número de caixes *"
                   horizontal
-                  message="Nombre de caixes"
+                  message="Nombre de caixes que inclou la comanda"
                   :type="{ 'is-danger': errors['units'] && submitted }"
                 >
                   <b-input
@@ -274,6 +327,7 @@
                 </b-field>
               </div>
 
+
               <b-field
                 label="Fràgil"
                 horizontal
@@ -285,8 +339,39 @@
                 ></b-switch>
               </b-field>
 
+             
+
+
+              <hr />
+
+              <h3 class="title is-5 mt-4 mb-3">ON HO DEIXARÀS?</h3>
               <b-field
-                label="Notes"
+                v-if="pickups && pickups.length > 0"
+                label="Recollida comanda *"
+                horizontal
+                :type="{ 'is-danger': errors['pickup'] && submitted }"
+                class="zmessage-alert"
+                :message="form.pickup && pickups.find(p => p.id === form.pickup) ? pickups.find(p => p.id === form.pickup).message : ''"
+              >
+                <div class="is-flex-desktop">
+                  <button
+                    class="button mr-2 mb-2"
+                    type="button"
+                    v-for="(s, index) in allowedPickups"
+                    :class="{
+                      'is-warning': form.pickup === s.id,
+                      'is-outlined': form.pickup !== s.id
+                    }"
+                    @click="form.pickup = s.id; updatePickup()"
+                    :disabled="!canEdit"
+                  >
+                    {{ s.name }}
+                  </button>
+                </div>
+              </b-field>
+
+               <b-field
+                label="Informació important"
                 horizontal
                 class="line-notes is-full-width mb-5"
                 message="Si hi ha res més a tenir en compte, com si els paquets són de mides poc habituals o hi ha possibilitats d’entrega en un altre lloc proper si hi ha cap incidència..."
@@ -299,13 +384,13 @@
                 />
               </b-field>
 
-              <b-field
+              <!-- <b-field
                 label="Referència proveïdora"
                 horizontal
                 message="Si al teu ERP té un nom/codi de comanda concret, pots posar-lo aquí"
               >
                 <b-input v-model="form.provider_order_number" />
-              </b-field>
+              </b-field> -->
 
               <b-field v-if="form.id"
                 label="Incidència"
@@ -329,9 +414,10 @@
                 </b-switch>
               </b-field>
 
+              
               <hr />
 
-              <b-field
+              <!-- <b-field
                 label="Ruta *"
                 horizontal
                 :type="{ 'is-danger': errors['route'] && submitted }"
@@ -351,7 +437,10 @@
                     {{ s.name }}
                   </option>
                 </b-select>
-              </b-field>
+              </b-field> -->
+
+
+              <h3 class="title is-5 mt-4 mb-3">ALTRES DADES</h3>
 
               <b-field
                 label="Estat"
@@ -407,7 +496,7 @@
                 </b-datepicker>
               </b-field>
 
-              <b-field
+              <!-- <b-field
                 label="Data prevista d'entrega"
                 horizontal
                 message="Si prefereixis que s'entregui més endavant, tria una data del calendari."
@@ -425,7 +514,7 @@
                   @input="checkEstimatedDeliveryDate"
                 >
                 </b-datepicker>
-              </b-field>
+              </b-field> -->
 
               <b-message v-if="dateWarningMessage" type="is-warning">
                 {{ dateWarningMessage }}
@@ -434,6 +523,7 @@
                 label="Data lliurament"
                 horizontal
                 message="Data en la que la comanda ha estat entregada"
+                v-if="permissions.includes('orders_admin')"
               >
                 <b-datepicker
                   :disabled="!permissions.includes('orders_admin')"
@@ -516,7 +606,9 @@
                   type="text"
                   :disabled="true"></b-input>
               </b-field>
-              
+
+              <hr />
+              <h3 class="title is-5 mt-4 mb-3">ACCIONS</h3>
 
               <b-field
                 v-if="form.id"
@@ -525,8 +617,64 @@
                 message="Imprimeix l'albarà i enganxa'n un full a cada caixa. El teu albarà propi posa'l a dins d'una de les caixes"
               >
                 <b-button type="is-primary" :loading="isLoading" @click="getPDF"
-                  >Imprimeix PDF</b-button
+                  >Imprimeix albarà</b-button
                 >
+              </b-field>
+
+              <!-- depositar i recollir -->
+
+              <b-field horizontal label="Dipòsit"
+                message="Informa que has dipositat els paquets">
+                <div v-if="form.deposit_date && form.deposit_user">
+                  <p>
+                    <strong>Data:</strong> {{ formatDateTime(form.deposit_date) }}<br/>
+                    <strong>Usuari:</strong> {{ form.deposit_user.username || form.deposit_user.fullname }}
+                  </p>
+                  <b-button
+                    type="is-danger"
+                    size="is-small"
+                    :loading="isLoading"
+                    @click="removeDeposit"
+                    v-if="canEdit"
+                    >Eliminar</b-button
+                  >
+                </div>
+                <div v-else>
+                  <b-button
+                    type="is-info"
+                    :loading="isLoading"
+                    @click="depositOrder"
+                    v-if="canEdit && form.id"
+                    >Dipositar</b-button
+                  >
+                </div>
+              </b-field>
+
+              <b-field horizontal label="Recollida"
+                message="Informa que has recollit els paquets">
+                <div v-if="form.pickup_date && form.pickup_user">
+                  <p>
+                    <strong>Data:</strong> {{ formatDateTime(form.pickup_date) }}<br/>
+                    <strong>Usuari:</strong> {{ form.pickup_user.username || form.pickup_user.fullname }}
+                  </p>
+                  <b-button
+                    type="is-danger"
+                    size="is-small"
+                    :loading="isLoading"
+                    @click="removePickup"
+                    v-if="canEdit"
+                    >Eliminar</b-button
+                  >
+                </div>
+                <div v-else>
+                  <b-button
+                    type="is-info"
+                    :loading="isLoading"
+                    @click="pickupOrder"
+                    v-if="canEdit && form.id"
+                    >Recollir</b-button
+                  >
+                </div>
               </b-field>
 
               <hr />
@@ -690,10 +838,11 @@ export default {
       return this.form.pickup_point === true;
     },    
     errors() {
+      const isContactValid = this.form.contact && this.contacts.some(c => c.id === this.form.contact);
       const baseErrors = {
         owner: this.form.owner === null,
         route: this.form.route === null,
-        contact: this.form.contact === null,
+        contact: !this.form.contact || !isContactValid,
         delivery_date: this.form.delivery_date === null,
         delivery_type: this.form.delivery_type === null,
         pickup: this.form.pickup == null,
@@ -853,6 +1002,10 @@ export default {
         pickup_point: false,
         lines: [],
         multidelivery_discount: 0,
+        deposit_date: null,
+        deposit_user: null,
+        pickup_date: null,
+        pickup_user: null
       };
     },
     async getData() {
@@ -955,7 +1108,6 @@ export default {
         }
 
         this.form.delivery_type = this.deliveryTypes[0].id;
-        this.form.pickup = this.pickups[0].id;
 
         await this.refreshClients(me.data.id);
 
@@ -1393,7 +1545,8 @@ export default {
             !this.form.route ||
             !this.form.contact ||
             !this.form.units ||
-            !this.form.kilograms
+            !this.form.kilograms ||
+            !this.form.pickup
           ) {
             this.$buefy.snackbar.open({
               message: "Error. Falten alguns camps obligatòris",
@@ -1436,7 +1589,8 @@ export default {
             !this.form.route ||
             !this.form.contact ||
             !this.form.units ||
-            !this.form.kilograms
+            !this.form.kilograms ||
+            !this.form.pickup
           ) {
             this.$buefy.snackbar.open({
               message: "Error. Falten alguns camps obligatòris",
@@ -1501,14 +1655,29 @@ export default {
     },
     async contactChanged(option) {
       //console.log("contactChanged", option);
-      if (option) {
+      if (option && option.id) {
         this.form.contact = option.id;
         this.onClientaChange(option.id);
       } else {
         this.form.contact = null;
+        this.removeContactData();
       }
-      // this.form.contact = option ? option.id
-      // this.onClientaChange(this.form.contact);
+    },
+    onContactInput(value) {
+      // If the input is cleared, clear form.contact
+      if (!value) {
+        this.form.contact = null;
+        this.removeContactData();
+      } else {
+        // Check if the typed value matches any contact exactly by display field
+        const matchedContact = this.contacts.find(c => c.display === value);
+        if (matchedContact) {
+          this.form.contact = matchedContact.id;
+        } else {
+          // If no exact match, clear the form value to prevent invalid data
+          this.form.contact = null;
+        }
+      }
     },
     async citySelected(option) {
       //console.log("citySelected", option);
@@ -1836,6 +2005,168 @@ export default {
       this.form.kilograms = totalKilograms;
       
       return { totalUnits, totalKilograms };
+    },
+    formatDateTime(dateTime) {
+      if (!dateTime) return '';
+      return dayjs(dateTime).format('DD/MM/YYYY HH:mm');
+    },
+    async depositOrder() {
+      try {
+        this.isLoading = true;
+        
+        // Save the form first
+        await this.submit(false);
+        
+        // Get current user
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+        
+        // Prepare update data
+        const updateData = {
+          deposit_date: new Date().toISOString(),
+          deposit_user: currentUser.data.id
+        };
+        
+        // If status is pending, change it to deposited
+        if (this.form.status === "pending") {
+          updateData.status = "deposited";
+        }
+        
+        // Update with deposit information
+        const response = await service({ requiresAuth: true }).put(
+          `orders/${this.form.id}`,
+          updateData
+        );
+        
+        this.$buefy.snackbar.open({
+          message: "Comanda depositada correctament",
+          queue: false,
+          type: "is-success"
+        });
+        
+        // Refresh data to show the updated information
+        await this.getData();
+        
+      } catch (err) {
+        console.error(err);
+        this.$buefy.snackbar.open({
+          message: "Error al depositar la comanda",
+          queue: false,
+          type: "is-danger"
+        });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async removeDeposit() {
+      this.$buefy.dialog.confirm({
+        message: "Estàs segura que vols eliminar la informació de dipòsit?",
+        onConfirm: async () => {
+          try {
+            this.isLoading = true;
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              {
+                deposit_date: null,
+                deposit_user: null
+              }
+            );
+            
+            this.$buefy.snackbar.open({
+              message: "Informació de dipòsit eliminada",
+              queue: false,
+              type: "is-success"
+            });
+            
+            await this.getData();
+            
+          } catch (err) {
+            console.error(err);
+            this.$buefy.snackbar.open({
+              message: "Error al eliminar la informació de dipòsit",
+              queue: false,
+              type: "is-danger"
+            });
+          } finally {
+            this.isLoading = false;
+          }
+        }
+      });
+    },
+    async pickupOrder() {
+      try {
+        this.isLoading = true;
+        
+        // Save the form first
+        await this.submit(false);
+        
+        // Get current user
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+        
+        // Update with pickup information
+        const response = await service({ requiresAuth: true }).put(
+          `orders/${this.form.id}`,
+          {
+            pickup_date: new Date().toISOString(),
+            pickup_user: currentUser.data.id
+          }
+        );
+        
+        this.$buefy.snackbar.open({
+          message: "Comanda recollida correctament",
+          queue: false,
+          type: "is-success"
+        });
+        
+        // Refresh data to show the updated information
+        await this.getData();
+        
+      } catch (err) {
+        console.error(err);
+        this.$buefy.snackbar.open({
+          message: "Error al recollir la comanda",
+          queue: false,
+          type: "is-danger"
+        });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async removePickup() {
+      this.$buefy.dialog.confirm({
+        message: "Estàs segura que vols eliminar la informació de recollida?",
+        onConfirm: async () => {
+          try {
+            this.isLoading = true;
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              {
+                pickup_date: null,
+                pickup_user: null
+              }
+            );
+            
+            this.$buefy.snackbar.open({
+              message: "Informació de recollida eliminada",
+              queue: false,
+              type: "is-success"
+            });
+            
+            await this.getData();
+            
+          } catch (err) {
+            console.error(err);
+            this.$buefy.snackbar.open({
+              message: "Error al eliminar la informació de recollida",
+              queue: false,
+              type: "is-danger"
+            });
+          } finally {
+            this.isLoading = false;
+          }
+        }
+      });
     }
   }
 };

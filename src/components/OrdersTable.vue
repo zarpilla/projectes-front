@@ -374,8 +374,8 @@
               @input="setStatusFilter({ ctrlKey: false, metaKey: false })"
               v-if="total > 100"
             >
-              <option value="100">100 per pàg.</option>
-              <option value="200">200 per pàg.</option>
+              <option value="150">150 per pàg.</option>
+              <option value="300">300 per pàg.</option>
               <option value="1000">1000 per pàg.</option>
             </b-select>
           </div>
@@ -384,6 +384,7 @@
     </div>
 
     <b-table
+      class="small-table"
       ref="table"
       :loading="isLoading"
       paginated
@@ -552,7 +553,7 @@
         <span v-else>{{ props.row.units }}</span>
       </b-table-column>
       <b-table-column
-        label="Kilograms"
+        label="Kilos"
         field="kilograms"
         sortable
         searchable
@@ -617,7 +618,26 @@
           </b-select>
         </div>
         <span v-else>{{ props.row.pickup ? props.row.pickup.name : "-" }}</span>
-      </b-table-column>      
+      </b-table-column>
+      <b-table-column
+        label="Ú.milla"
+        searchable
+        field="last_mile_display"
+        sortable
+        v-slot="props"
+      >
+        <div v-if="editingRowId === props.row.id">
+          <b-select
+            v-model="editForm.last_mile"
+            placeholder=""
+            size="is-small"
+          >
+            <option :value="true">Sí</option>
+            <option :value="false">No</option>
+          </b-select>
+        </div>
+        <span v-else>{{ props.row.last_mile_display }}</span>
+      </b-table-column>
       <b-table-column
         label="Preu"
         field="price"
@@ -835,7 +855,7 @@ export default {
       sortOrder: "DESC",
       defaultSortOrder: "DESC",
       page: 1,
-      perPage: 100,
+      perPage: 150,
       filters: {},
       csvAlias: {
         route_name: "route_name",
@@ -1285,7 +1305,8 @@ export default {
         pickup: order.pickup ? order.pickup.id : null,
         delivery_type: order.delivery_type ? order.delivery_type.id : null,
         status: order.status,
-        owner: order.owner ? order.owner.id : null
+        owner: order.owner ? order.owner.id : null,
+        last_mile: order.last_mile || false
       };
       // Set contactSearch to display the current contact
       if (order.contact) {
@@ -1351,6 +1372,7 @@ export default {
           pickup: this.editForm.pickup,
           delivery_type: this.editForm.delivery_type,
           price: this.calculatedPrice,
+          last_mile: this.editForm.last_mile,
           _tracking_user: currentUser.data
         };
 
@@ -2433,5 +2455,8 @@ export default {
   background-color: white !important;
   border: 1px solid rgb(219, 219, 219) !important;
   border-radius: 4px;
+}
+.small-table .table td {
+  padding: 0.25rem 0.25rem;
 }
 </style>
