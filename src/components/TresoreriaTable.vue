@@ -326,7 +326,7 @@
               (row.is_balance_annotation && 'has-background-info-light')
           "
         >
-          <b-table-column label="Data" field="datex" v-slot="props">
+          <b-table-column label="Data" field="datex" sortable searchable v-slot="props">
             {{ props.row.datex }}
             <b-icon
               v-if="props.row.date_error"
@@ -337,7 +337,7 @@
             >
             </b-icon>
           </b-table-column>
-          <b-table-column label="Import" field="total_amount" v-slot="props">
+          <b-table-column label="Import" field="total_amount" sortable searchable v-slot="props">
             <span v-if="props.row.is_balance_annotation">
               <span class="has-text-weight-bold has-text-info">
                 {{ formatPrice(props.row.account_balance) }} €
@@ -347,10 +347,10 @@
               {{ formatPrice(props.row.total_amount) }} €
             </span>
           </b-table-column>
-          <b-table-column label="Saldo" field="subtotal" v-slot="props">
+          <b-table-column label="Saldo" field="subtotal" sortable searchable v-slot="props">
             {{ formatPrice(props.row.subtotal) }} €
           </b-table-column>
-          <b-table-column label="Moviment" field="type" v-slot="props">
+          <b-table-column label="Moviment" field="type" sortable searchable v-slot="props">
             <span
               :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'"
             >
@@ -363,7 +363,7 @@
               {{ props.row.type }}
             </span>
           </b-table-column>
-          <b-table-column label="Concepte" field="concept" v-slot="props">
+          <b-table-column label="Concepte" field="concept" sortable searchable v-slot="props">
             <router-link v-if="props.row.to" :to="props.row.to">
               <span class="project-name has-text-info">
                 {{ props.row.concept }}
@@ -371,7 +371,7 @@
             </router-link>
             <span v-else>{{ props.row.concept }}</span>
           </b-table-column>
-          <b-table-column label="Projecte" field="project_name" v-slot="props">
+          <b-table-column label="Projecte" field="project_name" sortable searchable v-slot="props">
             <router-link
               :to="{
                 name: 'project.edit',
@@ -383,12 +383,14 @@
               </span>
             </router-link>
           </b-table-column>
-          <b-table-column label="Contacte" field="contact" v-slot="props">
+          <b-table-column label="Contacte" field="contact" sortable searchable v-slot="props">
             {{ props.row.contact }}
           </b-table-column>
           <b-table-column
             label="Compte bancari"
             field="bank_account"
+            sortable
+            searchable
             v-slot="props"
             v-if="bankAccounts && bankAccounts.length > 0"
           >
