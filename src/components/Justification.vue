@@ -220,6 +220,12 @@
         "
         title="Bestretes manuals"
       >
+        <div v-if="type !== 'Reals'" class="card-body">
+          <div class="notification is-info">
+            Les bestretes manuals només es poden afegir i visualitzar a la vista "Reals".
+          </div>
+        </div>
+        <template v-else>
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Any</div>
           <div class="column has-text-weight-bold">Mes</div>
@@ -287,6 +293,14 @@
                   : ""
               }}
               %
+              <b-icon
+                v-if="isJustificationExceeding100(row)"
+                icon="alert"
+                type="is-warning"
+                size="is-small"
+                :title="`La suma de percentatges per aquesta persona en aquest mes supera el 100%. S'utilitza l'import de la bestreta (${row.payroll.total.toFixed(2)}€) en lloc de les hores fetes.`"
+                style="cursor: help; margin-left: 4px;"
+              />
             </div>
             <div class="column has-text-right">
               <b-button
@@ -363,6 +377,7 @@
             </div>
           </div>
         </div>
+        </template>
       </card-component>
 
       <card-component
@@ -715,6 +730,9 @@ export default {
               parseInt(p.year.year) === parseInt(rows[0].year) &&
               parseInt(p.month.month) === parseInt(rows[0].month)
           );
+          const user = this.users.find(
+            u => u.id === rows[0].users_permissions_user
+          );
           return {
             ym: id,
             cost: _.sumBy(rows, r => r.hours * r.cost_by_hour),
@@ -722,9 +740,7 @@ export default {
             year: rows[0].year,
             month: rows[0].month,
             users_permissions_user: rows[0].users_permissions_user,
-            username: this.users.find(
-              u => u.id === rows[0].users_permissions_user
-            ).username,
+            username: user ? user.username : "",
             project_id: rows[0].project,
             project: rows[0].project_name,
             payroll: pr ? pr.total : null,
@@ -749,6 +765,10 @@ export default {
       return activities;
     },
     summaryJustificationsByProject() {
+      // Only include manual justifications when viewing "Reals"
+      if (this.type !== "Reals") {
+        return [];
+      }
       const activities = _(
         this.justifications.filter(j => j.users_permissions_user)
       )
@@ -891,6 +911,10 @@ export default {
       return activities;
     },
     summaryJustificationsByUser() {
+      // Only include manual justifications when viewing "Reals"
+      if (this.type !== "Reals") {
+        return [];
+      }
       const activities = _(this.justifications)
         .groupBy("users_permissions_user.username")
         .map((rows, id) => {
@@ -914,22 +938,23 @@ export default {
           };
         })
         .value();
-      // return activities
-      const activities2 = _(
-        this.justifications.filter(j => j.users_permissions_user)
-      )
-        .groupBy(
-          item => `${item.users_permissions_user.username}_${item.month}`
-        )
-        .map((rows, id) => {
-          return {
-            username: rows[0].users_permissions_user.username,
-            month: this.zeroPad(rows[0].month, 2),
-            year: rows[0].year,
-            cost: _.sumBy(rows, r => r.quantity)
-          };
-        })
-        .value();
+      // Only include manual justifications when viewing "Reals"
+      const activities2 =
+        this.type === "Reals"
+          ? _(this.justifications.filter(j => j.users_permissions_user))
+              .groupBy(
+                item => `${item.users_permissions_user.username}_${item.month}`
+              )
+              .map((rows, id) => {
+                return {
+                  username: rows[0].users_permissions_user.username,
+                  month: this.zeroPad(rows[0].month, 2),
+                  year: rows[0].year,
+                  cost: _.sumBy(rows, r => r.quantity)
+                };
+              })
+              .value()
+          : [];
 
       const activitiesjoin = _.concat(activities1, activities2);
 
@@ -967,31 +992,35 @@ export default {
       return activities;
     },
     dataCSV() {
-      const justifications = this.justifications.map(
-        ({
-          id,
-          project,
-          dedication,
-          payroll,
-          created_at,
-          updated_at,
-          ...row
-        }) => {
-          return {
-            ...row,
-            project_id: project.id,
-            project: project.name,
-            payroll: payroll ? payroll.total : 0,
-            username: row.users_permissions_user
-              ? row.users_permissions_user.username
-              : "",
-            emitted_invoice: row.emitted_invoice
-              ? row.emitted_invoice.code
-              : "",
-            cost: row.quantity
-          };
-        }
-      );
+      // Only include manual justifications when viewing "Reals"
+      const justifications =
+        this.type === "Reals"
+          ? this.justifications.map(
+              ({
+                id,
+                project,
+                dedication,
+                payroll,
+                created_at,
+                updated_at,
+                ...row
+              }) => {
+                return {
+                  ...row,
+                  project_id: project.id,
+                  project: project.name,
+                  payroll: payroll ? payroll.total : 0,
+                  username: row.users_permissions_user
+                    ? row.users_permissions_user.username
+                    : "",
+                  emitted_invoice: row.emitted_invoice
+                    ? row.emitted_invoice.code
+                    : "",
+                  cost: row.quantity
+                };
+              }
+            )
+          : [];
       const rows = _.concat(this.monthlyActivitiesTotal, justifications);
       return rows.map(({ ym, users_permissions_user, ...row }) => row);
     },
@@ -1085,37 +1114,80 @@ export default {
         type: "activity"
       }));
 
-      const justifications = this.justifications
-        .filter(j => j.users_permissions_user)
-        .map(row => {
+      // Only include manual justifications when viewing "Reals"
+      const justifications =
+        this.type === "Reals"
+          ? this.justifications
+              .filter(j => j.users_permissions_user)
+              .map(row => {
+                const payroll = this.payrolls.find(
+                  p =>
+                    p.users_permissions_user &&
+                    p.users_permissions_user.id ===
+                      row.users_permissions_user.id &&
+                    parseInt(p.year.year) === parseInt(row.year) &&
+                    parseInt(p.month.month) === parseInt(row.month)
+                );
+                const payrollTotal = payroll ? payroll.total : 0;
+                const cost = row.quantity || 0;
+                return {
+                  year: row.year.toString(),
+                  month: row.month.toString().padStart(2, "0"),
+                  username: row.users_permissions_user.username,
+                  project: row.project ? row.project.name : "",
+                  cost: cost,
+                  hours:
+                    row.dedication && row.dedication.costByHour
+                      ? row.quantity / row.dedication.costByHour
+                      : 0,
+                  payroll: payrollTotal,
+                  grantable_amount: 0, // justifications don't have grantable_amount
+                  count: 1,
+                  percentage_bestreta:
+                    payrollTotal > 0 ? cost / payrollTotal : 0,
+                  type: "justification"
+                };
+              })
+          : [];
+
+      return [...activities, ...justifications];
+    },
+    // Computed property to check justifications that exceed 100% by user/month
+    justificationsExceeding100() {
+      const grouped = _(this.justifications.filter(j => j.users_permissions_user))
+        .groupBy(item => `${item.users_permissions_user.id}_${item.year}_${item.month}`)
+        .map((rows, key) => {
+          const firstRow = rows[0];
           const payroll = this.payrolls.find(
             p =>
               p.users_permissions_user &&
-              p.users_permissions_user.id === row.users_permissions_user.id &&
-              parseInt(p.year.year) === parseInt(row.year) &&
-              parseInt(p.month.month) === parseInt(row.month)
+              p.users_permissions_user.id === firstRow.users_permissions_user.id &&
+              parseInt(p.year.year) === parseInt(firstRow.year) &&
+              parseInt(p.month.month) === parseInt(firstRow.month)
           );
-          const payrollTotal = payroll ? payroll.total : 0;
-          const cost = row.quantity || 0;
+          
+          if (!payroll || !payroll.total) {
+            return null;
+          }
+          
+          const totalPercentage = _.sumBy(rows, row => {
+            return (row.quantity / payroll.total) * 100;
+          });
+          
           return {
-            year: row.year.toString(),
-            month: row.month.toString().padStart(2, "0"),
-            username: row.users_permissions_user.username,
-            project: row.project ? row.project.name : "",
-            cost: cost,
-            hours:
-              row.dedication && row.dedication.costByHour
-                ? row.quantity / row.dedication.costByHour
-                : 0,
-            payroll: payrollTotal,
-            grantable_amount: 0, // justifications don't have grantable_amount
-            count: 1,
-            percentage_bestreta: payrollTotal > 0 ? cost / payrollTotal : 0,
-            type: "justification"
+            key: key,
+            userId: firstRow.users_permissions_user.id,
+            year: firstRow.year,
+            month: firstRow.month,
+            totalPercentage: totalPercentage,
+            exceeds: totalPercentage > 100,
+            payrollTotal: payroll.total
           };
-        });
-
-      return [...activities, ...justifications];
+        })
+        .filter(item => item !== null && item.exceeds)
+        .value();
+      
+      return grouped;
     }
   },
   watch: {
@@ -1176,6 +1248,11 @@ export default {
         return total + (gy[field] || 0);
       }, 0);
     },
+    // Check if a justification row exceeds 100% for its user/month
+    isJustificationExceeding100(row) {
+      const key = `${row.users_permissions_user.id}_${row.year}_${row.month}`;
+      return this.justificationsExceeding100.find(item => item.key === key);
+    },
     async getActivities() {
       this.isLoading = true;
 
@@ -1227,44 +1304,49 @@ export default {
               : `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1`
           )
         ).data;
+        // Clear justifications when viewing "Previstes"
+        this.justifications = [];
+      } else {
+        // Clear estimated totals when viewing "Reals"
+        this.estimatedTotals = [];
+        // Only load justifications when viewing "Reals"
+        const justifications = (
+          await service({ requiresAuth: true }).get(
+            this.theYear
+              ? `justifications?year=${this.theYear}&_limit=-1`
+              : `justifications?_limit=-1`
+          )
+        ).data;
+
+        this.dedications = (
+          await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
+        ).data;
+
+        for (const just of justifications.filter(j => j.users_permissions_user)) {
+          const date = moment(`${just.year}-${just.month}-01`).format(
+            "YYYY-MM-DD"
+          );
+          const dedication = this.dedications.find(
+            d =>
+              d.users_permissions_user &&
+              just.users_permissions_user &&
+              d.users_permissions_user.id === just.users_permissions_user.id &&
+              d.from <= date &&
+              d.to >= date
+          );
+          just.dedication = dedication;
+          const payroll = this.payrolls.find(
+            p =>
+              p.users_permissions_user &&
+              just.users_permissions_user &&
+              p.users_permissions_user.id === just.users_permissions_user.id &&
+              parseInt(p.year.year) === parseInt(just.year) &&
+              parseInt(p.month.month) === parseInt(just.month)
+          );
+          just.payroll = payroll;
+        }
+        this.justifications = justifications;
       }
-
-      const justifications = (
-        await service({ requiresAuth: true }).get(
-          this.theYear
-            ? `justifications?year=${this.theYear}&_limit=-1`
-            : `justifications?_limit=-1`
-        )
-      ).data;
-
-      this.dedications = (
-        await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
-      ).data;
-
-      for (const just of justifications.filter(j => j.users_permissions_user)) {
-        const date = moment(`${just.year}-${just.month}-01`).format(
-          "YYYY-MM-DD"
-        );
-        const dedication = this.dedications.find(
-          d =>
-            d.users_permissions_user &&
-            just.users_permissions_user &&
-            d.users_permissions_user.id === just.users_permissions_user.id &&
-            d.from <= date &&
-            d.to >= date
-        );
-        just.dedication = dedication;
-        const payroll = this.payrolls.find(
-          p =>
-            p.users_permissions_user &&
-            just.users_permissions_user &&
-            p.users_permissions_user.id === just.users_permissions_user.id &&
-            parseInt(p.year.year) === parseInt(just.year) &&
-            parseInt(p.month.month) === parseInt(just.month)
-        );
-        just.payroll = payroll;
-      }
-      this.justifications = justifications;
 
       this.users = (
         await service({ requiresAuth: true, cached: true }).get(
