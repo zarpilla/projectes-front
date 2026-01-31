@@ -103,7 +103,7 @@ const menu = [
       {
         to: '/pickup-points',
         icon: 'package',
-        label: 'Punt de consum',
+        label: 'Punt de recollida',
         permission: 'orders'
       },
       {
@@ -166,7 +166,7 @@ const menu = [
       {
         to: '/pickup-points',
         icon: 'package',
-        label: 'Punts de consum',
+        label: 'Punts de recollida',
         permission: 'orders_admin'
       },
       {

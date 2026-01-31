@@ -80,10 +80,10 @@
               </b-field> -->
 
               <b-field
-                :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
+                :label="isPickupPoint ? 'Punt de recollida *' : 'Punt d’entrega *'"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                :message="!isPickupPoint ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt' : 'Cerca el punt de consum'"
+                :message="!isPickupPoint ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt' : 'Cerca el punt de recollida'"
               >
                 <b-autocomplete
                   v-model="contactSearch"
@@ -117,7 +117,7 @@
                   title="Nou punt d'entrega"
                   @click="isModalActive = true"
                 >
-                  {{ isPickupPoint ? "Veure punt de consum" : "Veure punt d'entrega" }}
+                  {{ isPickupPoint ? "Veure punt de recollida" : "Veure punt d'entrega" }}
                 </b-button>
               </b-field>
 
@@ -793,7 +793,7 @@ export default {
       if (this.form.id) {
         return `Comanda #${this.form.id.toString().padStart(4, "0")}`;
       } else {
-        return !this.isPickupPoint ? "Nova comanda" : "Nova comanda punt de consum";
+        return !this.isPickupPoint ? "Nova comanda" : "Nova comanda punt de recollida";
       }
     },
     transitionName() {
