@@ -16,7 +16,7 @@
       </div>
 
       <card-component
-        class="has-table has-mobile-sort-spaced"
+        class="has-table has-mobile-sort-spaced is-striped"
         v-if="!isLoading && !warn"
       >
         <div class="columns card-body">
@@ -54,7 +54,7 @@
       </card-component>
 
       <card-component
-        class="has-table has-mobile-sort-spaced"
+        class="has-table has-mobile-sort-spaced zis-striped"
         v-if="!isLoading"
       >
         <div class="columns card-body">
@@ -683,5 +683,8 @@ export default {
 }
 .view-button {
   margin-left: 0.5rem;
+}
+.is-striped .card-body:nth-child(2n) {
+  background: #fafafa;
 }
 </style>

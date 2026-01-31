@@ -154,7 +154,7 @@
         <b-table
           :loading="isLoading"
           :paginated="false"
-          :striped="true"
+          :striped="false"
           :data="documentsWithSearchableFields"
           :checked-rows.sync="checkedRows"
           checkable="true"

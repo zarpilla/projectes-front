@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-table :loading="isLoading" :data="ordersData" :paginated="false">
+    <b-table :loading="isLoading" :data="ordersData" :paginated="false" :striped="false">
       <b-table-column label="Comanda" field="id" sortable v-slot="props">
         <router-link
           :to="{ name: 'orders.edit', params: { id: props.row.id } }"

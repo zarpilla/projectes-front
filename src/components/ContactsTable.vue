@@ -1,5 +1,11 @@
 <template>
   <section class="xsection">
+    <modal-box-unify-contacts
+      :is-active="isUnifyModalActive"
+      @cancel="isUnifyModalActive = false"
+      @confirm="onUnifyConfirm"
+    ></modal-box-unify-contacts>
+
     <div class="is-flex">
       <download-excel
         class="export"
@@ -28,7 +34,7 @@
           class="export-button mt-0 mb-3"
           icon-left="file-excel"
         />
-      </download-excel>
+      </download-excel>      
       <b-button
         class="view-button is-primary mb-3"
         @click="navNew"
@@ -36,6 +42,15 @@
       >
         <span v-if="userContacts">Nou punt d'entrega</span>
         <span v-else>Nou Contacte</span>
+      </b-button>
+      <b-button
+        v-if="userContacts"
+        class="view-button is-warning mb-3 ml-2"
+        @click="openUnifyModal"
+        icon-left="call-merge"
+        title="Unificar punts d'entrega"
+      >
+        Unificar punts d'entrega
       </b-button>
     </div>
     <b-table
@@ -221,9 +236,13 @@ import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
+import ModalBoxUnifyContacts from "@/components/ModalBoxUnifyContacts";
 
 export default {
   name: "ContactsTable",
+  components: {
+    ModalBoxUnifyContacts
+  },
   props: {
     titleStack: {
       type: Array,
@@ -233,6 +252,7 @@ export default {
   data() {
     return {
       isLoading: false,
+      isUnifyModalActive: false,
       contacts: [],
       contactsCSV: [],
       filters: {
@@ -308,6 +328,18 @@ export default {
       } else {
         this.$router.push("/contact/0");
       }
+    },
+    openUnifyModal() {
+      this.isUnifyModalActive = true;
+    },
+    onUnifyConfirm(data) {
+      this.$buefy.snackbar.open({
+        message: `S'han unificat els punts d'entrega correctament`,
+        type: 'is-success',
+        queue: false
+      });
+      // Refresh the data
+      this.getData();
     },
     async getData() {
       this.isLoading = true;
@@ -478,3 +510,8 @@ export default {
   }
 };
 </script>
+<style scoped>
+.zb-table >>> tbody tr {
+  border-bottom: 1px solid #eee;
+}
+</style>

@@ -11,7 +11,7 @@
       <section class="section is-main-section">
 
         
-        <b-table :data="cities" :sticky-header="true" :height="tableHeight">
+        <b-table :data="cities" :sticky-header="true" :height="tableHeight" :striped="false">
           <b-table-column field="name" label="">
             <template slot-scope="props">
               {{ props.row.name }}

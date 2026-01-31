@@ -13,8 +13,8 @@
       :loading="isLoading"
       :paginated="paginated"
       :per-page="perPage"
-      :striped="true"
-      :hoverable="true"
+      :striped="false"
+      :hoverable="false"
       :data="projectsData"
     >
       <b-table-column label="Nom" field="name" sortable v-slot="props">

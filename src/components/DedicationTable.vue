@@ -12,8 +12,8 @@
       :loading="isLoading"
       :paginated="paginated"
       :per-page="perPage"
-      :striped="true"
-      :hoverable="true"
+      :striped="false"
+      :hoverable="false"
       default-sort="name"
       :data="activities"
     >

@@ -17,8 +17,8 @@
       >
         <b-table
           :loading="isLoading"
-          :striped="true"
-          :hoverable="true"
+          :striped="false"
+          :hoverable="false"
           :data="projects"
         >
           <b-table-column label="Nom" field="name" sortable v-slot="props">

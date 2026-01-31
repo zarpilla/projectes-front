@@ -32,7 +32,7 @@
         title="SUBVENCIONS"
         class="has-table has-mobile-sort-spaced"
       >
-        <b-table :striped="true" :data="projects">
+        <b-table :striped="false" :data="projects">
           <b-table-column label="Nom" field="name" sortable v-slot="props">
             <router-link
               :to="{ name: 'project.edit', params: { id: props.row.id } }"
