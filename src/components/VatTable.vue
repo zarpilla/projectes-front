@@ -155,40 +155,75 @@
           :loading="isLoading"
           :paginated="false"
           :striped="true"
-          :data="vat.documents"
+          :data="documentsWithSearchableFields"
           :checked-rows.sync="checkedRows"
           checkable="true"
+          ref="documentsTable"
         >
-          <b-table-column label="Codi" field="code" v-slot="props">
+          <b-table-column sortable searchable label="Codi" field="code" v-slot="props">
              <router-link :to="`/document/${props.row.id}/${props.row.type.replace('_', '-')}`">
             {{ props.row.code }}
             </router-link>            
           </b-table-column>
-          <b-table-column label="Tipus" field="type" v-slot="props">            
-            <span v-if="props.row.type === 'emitted-invoices'">Factura emesa</span>
-            <span v-else-if="props.row.type === 'received-invoices'">Factura rebuda</span>
-            <span v-else-if="props.row.type === 'received-incomes'">Ingrés rebut</span>
-            <span v-else-if="props.row.type === 'received-expenses'">Despesa rebuda</span>
-            <span v-else>Desconegut</span>  
+          <b-table-column sortable searchable label="Tipus" field="typeLabel" v-slot="props">            
+            {{ props.row.typeLabel }}
           </b-table-column>
           
           
-          <b-table-column label="Data emissió" field="date" v-slot="props">
+          <b-table-column sortable searchable label="Data emissió" field="date" v-slot="props">
             {{ props.row.date }}
           </b-table-column>
-          <b-table-column label="Any" field="date" v-slot="props">
-            {{ moment(props.row.date, 'YYYY-MM-DD').format("YYYY") }}
+          <b-table-column sortable searchable label="Any" field="year" v-slot="props">
+            {{ props.row.year }}
           </b-table-column>
-          <b-table-column label="Trimestre" field="date" v-slot="props">
-            T{{ moment(props.row.date).format("Q") }}
+          <b-table-column sortable searchable label="Trimestre" field="quarter" v-slot="props">
+            {{ props.row.quarter }}
           </b-table-column>
-          <b-table-column label="Import Base" numeric field="total" v-slot="props" class="has-text-right">
+          <b-table-column sortable searchable label="Import Base" numeric field="total" v-slot="props" class="has-text-right">
             {{ formatPrice(props.row.total) }} €
           </b-table-column>
-          <b-table-column label="Import IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
+          <b-table-column sortable searchable label="Import IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
             {{ formatPrice(props.row.total_vat) }} €
           </b-table-column>
         </b-table>
+        
+        <div class="columns mt-4" v-if="filteredDocuments.length > 0">
+          <div class="column is-offset-6">
+            <b-field label="Total Import Base Suportat" grouped class="column">
+              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
+                {{ formatPrice(totalBaseSuportat) }} €
+              </div>
+            </b-field>
+          </div>
+          <div class="column">
+            <b-field label="Total Import Base Repercutit" grouped class="column">
+              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
+                {{ formatPrice(totalBaseRepercutit) }} €
+              </div>
+            </b-field>
+          </div>
+          <div class="column">
+            <b-field label="Total Import IVA Suportat" grouped class="column">
+              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
+                {{ formatPrice(totalVatSuportat) }} €
+              </div>
+            </b-field>
+          </div>
+          <div class="column">
+            <b-field label="Total Import IVA Repercutit" grouped class="column">
+              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
+                {{ formatPrice(totalVatRepercutit) }} €
+              </div>
+            </b-field>
+          </div>
+          <div class="column">
+            <b-field label="Total Import IVA" grouped class="column">
+              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
+                {{ formatPrice(totalVatDifference) }} €
+              </div>
+            </b-field>
+          </div>
+        </div>
       </section>
     </card-component>
   </div>
@@ -298,6 +333,22 @@ export default {
       const treasuryDataOfYear = this.treasuryData.filter(d => moment(d.datex, 'dd-MM-YYYY').year() == this.selectedYear)
       return _.reverse(treasuryDataOfYear)
     },
+    documentsWithSearchableFields() {
+      if (!this.vat || !this.vat.documents) return [];
+      
+      return this.vat.documents.map(doc => {
+        const typeLabel = this.getTypeLabel(doc.type);
+        const year = moment(doc.date, 'YYYY-MM-DD').format("YYYY");
+        const quarter = `T${moment(doc.date, 'YYYY-MM-DD').format("Q")}`;
+        
+        return {
+          ...doc,
+          typeLabel,
+          year,
+          quarter
+        };
+      });
+    },
     payVatPayload() {
       return {
         emittedInvoices: this.checkedRows.filter(r => r.type === 'emitted-invoices').map(r => r.id),
@@ -306,8 +357,75 @@ export default {
         receivedIncomes: this.checkedRows.filter(r => r.type === 'received-incomes').map(r => r.id),
       }
     },
+    filteredDocuments() {
+      if (this.$refs.documentsTable && this.$refs.documentsTable.visibleData) {
+        return this.$refs.documentsTable.visibleData;
+      }
+      return this.documentsWithSearchableFields || [];
+    },
+    totalBaseSuportat() {
+      return this.filteredDocuments.reduce((sum, doc) => {
+        if (doc.type === 'received-invoices' || doc.type === 'received-expenses') {
+          return sum + (doc.total || 0);
+        }
+        return sum;
+      }, 0);
+    },
+    totalBaseRepercutit() {
+      return this.filteredDocuments.reduce((sum, doc) => {
+        if (doc.type === 'emitted-invoices' || doc.type === 'received-incomes') {
+          return sum + (doc.total || 0);
+        }
+        return sum;
+      }, 0);
+    },
+    totalVatSuportat() {
+      return this.filteredDocuments.reduce((sum, doc) => {
+        if (doc.type === 'received-invoices' || doc.type === 'received-expenses') {
+          return sum + (doc.total_vat || 0);
+        }
+        return sum;
+      }, 0);
+    },
+    totalVatRepercutit() {
+      return this.filteredDocuments.reduce((sum, doc) => {
+        if (doc.type === 'emitted-invoices' || doc.type === 'received-incomes') {
+          return sum + (doc.total_vat || 0);
+        }
+        return sum;
+      }, 0);
+    },
+    totalVatDifference() {
+      return this.totalVatSuportat - this.totalVatRepercutit;
+    },
+    totalBase() {
+      return this.filteredDocuments.reduce((sum, doc) => {
+        const multiplier = doc.type === 'received-invoices' ? -1 : 1;
+        return sum + ((doc.total || 0) * multiplier);
+      }, 0);
+    },
+    totalVat() {
+      return this.filteredDocuments.reduce((sum, doc) => {
+        const multiplier = doc.type === 'received-invoices' ? -1 : 1;
+        return sum + ((doc.total_vat || 0) * multiplier);
+      }, 0);
+    },
   },
   methods: {
+    getTypeLabel(type) {
+      switch(type) {
+        case 'emitted-invoices':
+          return 'Factura emesa';
+        case 'received-invoices':
+          return 'Factura rebuda';
+        case 'received-incomes':
+          return 'Ingrés rebut';
+        case 'received-expenses':
+          return 'Despesa rebuda';
+        default:
+          return 'Desconegut';
+      }
+    },
     async getData() {
       this.isLoading = true;
       const year = this.$route.query.year ? this.$route.query.year : moment().format('YYYY')      

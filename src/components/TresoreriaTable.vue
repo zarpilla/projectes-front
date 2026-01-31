@@ -352,7 +352,7 @@
           </b-table-column>
           <b-table-column label="Moviment" field="type" sortable searchable v-slot="props">
             <span
-              :class="props.row.paid ? 'has-text-success' : 'zhas-text-success'"
+              :class="(props.row.paid && props.row.real) ? 'has-text-success' : 'zhas-text-success'"
             >
               <b-icon 
                 v-if="props.row.is_balance_annotation" 
