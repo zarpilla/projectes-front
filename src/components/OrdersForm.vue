@@ -166,11 +166,9 @@
               <b-message v-if="dateWarningMessage" type="is-warning">
                 {{ dateWarningMessage }}
               </b-message>
-              
-              <hr />
-              <hr />
 
               <!-- SEGON BLOC: QUÈ HEM DE PORTAR? -->
+              <div class="hr"></div>
               <h3 class="title is-5 mt-4 mb-3">QUÈ HEM DE PORTAR?</h3>
 
               <b-field
@@ -606,8 +604,8 @@
                   type="text"
                   :disabled="true"></b-input>
               </b-field>
-
-              <hr />
+              
+              <div class="hr"></div>
               <h3 class="title is-5 mt-4 mb-3">ACCIONS</h3>
 
               <b-field
@@ -2213,5 +2211,9 @@ export default {
 }
 .mt--6{
   margin-top: -6px;
+}
+.hr {
+  border-top: 1px solid whitesmoke;
+  margin: 1rem -1.5rem;
 }
 </style>
