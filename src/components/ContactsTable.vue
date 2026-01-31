@@ -99,7 +99,7 @@
       </b-table-column>
       <b-table-column
         label="Població"
-        field="nif"
+        field="city"
         searchable
         sortable
         v-slot="props"
