@@ -1484,7 +1484,7 @@ export default {
             if (value.length === 4 || value.length === 5) {
               // format YYYY-
               const start = `${value.substring(0, 4)}-01-01`;
-              const end = `$value.substring(0, 4)}-12-31`;
+              const end = `${value.substring(0, 4)}-12-31`;
               where.push(`_where[${key}_gte]=${start}`);
               where.push(`_where[${key}_lte]=${end}`);
             } else if (
