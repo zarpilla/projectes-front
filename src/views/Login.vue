@@ -2,7 +2,9 @@
   <div class="container">
     <div class="columns position-relative">
       <div class="column is-one-third">
-        <h4 class="subtitle"><b>ESS</b>TRAPIS</h4>
+        <h4 class="subtitle">
+          <img class="main-logo" src="@/assets/esstrapis-dark.svg" alt="ESSTRAPIS"  />
+        </h4>
         <h4 class="title mt-5">Accedeix</h4>
         <form>
           <label class="label" for="email">Correu electrònic</label>

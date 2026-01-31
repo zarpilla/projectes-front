@@ -1,7 +1,9 @@
 <template>
   <aside v-show="isAsideVisible" class="aside is-placed-left is-expanded">
     <aside-tools :is-main-menu="true">
-      <span slot="label"> <b>ESS</b>TRAPIS </span>
+      <span slot="label">
+        <img class="main-logo" src="@/assets/esstrapis.svg" alt="ESSTRAPIS"  />
+      </span>
     </aside-tools>
     <div class="menu is-menu-main">
       <template v-for="(menuGroup, index) in menu">
@@ -91,5 +93,9 @@ aside.aside{
 }
 .is-190w {
     width: 100%;
+}
+.main-logo {
+  height: 1.75rem;
+  margin-top: 0.75rem;
 }
 </style>
