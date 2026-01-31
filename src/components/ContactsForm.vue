@@ -254,6 +254,7 @@
                 </b-select>
               </b-field>
 
+
               <b-field
                 label="Notes"
                 horizontal
@@ -265,6 +266,57 @@
                   placeholder="Notes, observacions, comentaris... "
                 />
               </b-field>
+
+              <!-- Collection Points Section - Only for Partners (contact_type = 3) AND Orders Admin -->
+              <div v-if="isOrdersContactAndUserIsOrdersAdmin && isPartner">
+                                
+                <b-field 
+                  label="Afegir punt de recollida en finca" 
+                  horizontal
+                  message="Cerca i selecciona punts de recollida en finca per associar a aquest contacte"
+                >
+                  <b-autocomplete
+                    v-model="collectionPointSearch"
+                    placeholder="Cerca punt de recollida en finca..."
+                    :keep-first="false"
+                    :open-on-focus="true"
+                    :data="filteredCollectionPoints"
+                    field="display"
+                    @select="addCollectionPoint"
+                    :clearable="true"
+                  >
+                  </b-autocomplete>
+                </b-field>
+
+                <b-field 
+                  label="Punts de recollida en finca" 
+                  horizontal
+                  v-if="form.collection_points && form.collection_points.length > 0"
+                >
+                  <div class="tags">
+                    <span 
+                      v-for="cpId in form.collection_points" 
+                      :key="cpId" 
+                      class="tag is-info is-medium"
+                    >
+                      {{ getCollectionPointName(cpId) }}
+                      <button 
+                        class="delete is-small" 
+                        type="button"
+                        @click="removeCollectionPoint(cpId)"
+                      ></button>
+                    </span>
+                  </div>
+                </b-field>
+
+                <b-field 
+                  horizontal
+                  v-if="!form.collection_points || form.collection_points.length === 0"
+                >
+                  <p class="help">No hi ha punts d'entrega associats</p>
+                </b-field>
+              </div>
+
 
               <hr />
               <b-field
@@ -279,7 +331,7 @@
                     >Guardar</b-button
                   >
                   <b-button
-                    type="is-primary"
+                    type="is-primary mr-2"
                     :loading="isLoading"
                     @click="submitExit"
                     >Guardar i sortir</b-button
@@ -340,7 +392,9 @@ export default {
       contact_time_slots: Array.from({ length: 96 }, (_, i) => i / 4),
       contactTypes: [],
       permissions: [],
-      me: {}
+      me: {},
+      collectionPointSearch: "",
+      availableCollectionPoints: []
     };
   },
   computed: {
@@ -364,6 +418,36 @@ export default {
       return (
         this.form.owner !== null && this.permissions.includes("orders_admin")
       );
+    },
+    isPartner() {
+      return (
+        this.form.contact_types && 
+        this.form.contact_types.includes(3)
+      );
+    },
+    filteredCollectionPoints() {
+      return this.availableCollectionPoints.filter(option => {
+        const searchLower = this.collectionPointSearch.toLowerCase();
+        return (
+          option.display
+            .toString()
+            .toLowerCase()
+            .indexOf(searchLower) >= 0 ||
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(searchLower) >= 0 ||
+          (option.trade_name &&
+            option.trade_name
+              .toString()
+              .toLowerCase()
+              .indexOf(searchLower) >= 0) ||
+          option.id
+            .toString()
+            .toLowerCase()
+            .indexOf(searchLower) >= 0
+        );
+      });
     }
   },
   watch: {
@@ -374,6 +458,12 @@ export default {
         this.form = this.getClearFormObject();
       } else {
         this.getData();
+      }
+    },
+    isPartner(newValue) {
+      // Load collection points when contact becomes a partner
+      if (newValue && this.availableCollectionPoints.length === 0) {
+        this.loadCollectionPoints();
       }
     }
   },
@@ -387,7 +477,8 @@ export default {
         name: null,
         legal_form: null,
         sector: null,
-        contact_types: []
+        contact_types: [],
+        collection_points: []
       };
     },
     async getData() {
@@ -447,6 +538,15 @@ export default {
                 }
               }
 
+              // Normalize collection_points to array of IDs
+              if (this.form.collection_points && this.form.collection_points.length > 0) {
+                this.form.collection_points = this.form.collection_points.map(cp => 
+                  typeof cp === 'object' ? cp.id : cp
+                );
+              } else {
+                this.form.collection_points = [];
+              }
+
               if (this.form.followup_date) {
                 this.form.followup_date = moment(
                   this.form.followup_date,
@@ -493,6 +593,12 @@ export default {
       this.contactTypes = (
         await service({ requiresAuth: true }).get("contact-types")
       ).data;
+
+      // Load available collection points for partners (contact_type = 3)
+      // Always load if user is orders_admin, as they can change contact types
+      if (this.permissions.includes("orders_admin") || this.isPartner) {
+        await this.loadCollectionPoints();
+      }
     },
     async submitExit() {
       await this.submit();
@@ -676,6 +782,66 @@ export default {
           
         }
       });
+    },
+    async loadCollectionPoints() {
+      try {
+        const contacts = await service({ requiresAuth: true }).get(
+          `contacts?_limit=-1&owner_gt=0&_sort=trade_name:ASC`
+        );
+        this.availableCollectionPoints = contacts.data
+          .filter(c => c.id !== this.form.id) // Exclude self
+          .map(c => ({
+            ...c,
+            display: `${c.trade_name || c.name} (${c.id})`
+          }));
+      } catch (err) {
+        console.error("Error loading collection points:", err);
+      }
+    },
+    addCollectionPoint(option) {
+      if (!option || !option.id) {
+        // Clear search when selection is cleared
+        this.collectionPointSearch = "";
+        return;
+      }
+      
+      if (!this.form.collection_points) {
+        this.form.collection_points = [];
+      }
+      
+      // Check if already exists
+      const exists = this.form.collection_points.some(cp => 
+        (typeof cp === 'object' ? cp.id : cp) === option.id
+      );
+      
+      if (!exists) {
+        this.form.collection_points.push(option.id);
+        // this.$buefy.snackbar.open({
+        //   message: "Punt d'entrega afegit",
+        //   queue: false,
+        //   type: "is-success"
+        // });
+      } else {
+        this.$buefy.snackbar.open({
+          message: "Aquest punt d'entrega ja està afegit",
+          queue: false,
+          type: "is-warning"
+        });
+      }
+      
+      // Clear search after adding
+      this.$nextTick(() => {
+        this.collectionPointSearch = "";
+      });
+    },
+    removeCollectionPoint(cpId) {
+      this.form.collection_points = this.form.collection_points.filter(
+        cp => (typeof cp === 'object' ? cp.id : cp) !== cpId
+      );
+    },
+    getCollectionPointName(cpId) {
+      const cp = this.availableCollectionPoints.find(c => c.id === cpId);
+      return cp ? `${cp.trade_name || cp.name} (${cp.id})` : `ID: ${cpId}`;
     }
   }
 };

@@ -368,6 +368,31 @@
                 </div>
               </b-field>
 
+              <b-field
+                v-if="collectionPoints && collectionPoints.length > 0"
+                label="Punt de recollida en finca *"
+                horizontal
+                :type="{ 'is-danger': errors['collection_point'] && submitted }"
+                message="Selecciona el punt de recollida concret dins de la finca"
+              >
+                <div class="is-flex-desktop">
+                  <button
+                    class="button mr-2 mb-2"
+                    type="button"
+                    v-for="(cp, index) in collectionPoints"
+                    :key="cp.id"
+                    :class="{
+                      'is-warning': form.collection_point === cp.id,
+                      'is-outlined': form.collection_point !== cp.id
+                    }"
+                    @click="form.collection_point = cp.id"
+                    :disabled="!canEdit"
+                  >
+                    {{ cp.name }}
+                  </button>
+                </div>
+              </b-field>
+
                <b-field
                 label="Informació important"
                 horizontal
@@ -757,6 +782,7 @@ export default {
       products: [],
       users: [],
       contacts: [],
+      sociesContacts: [],
       cities: [],
       cityRoutes: [],
       pickups: [],
@@ -861,6 +887,11 @@ export default {
           this.form.contact_phone === null || this.form.contact_phone === ""
       };
 
+      // Validate collection_point if it's required (when pickup is selected and has collection points available)
+      if (this.collectionPoints && this.collectionPoints.length > 0) {
+        baseErrors.collection_point = !this.form.collection_point;
+      }
+
       if (this.isPickupPoint) {
         // For pickup points, validate lines instead of direct units/kilograms
         baseErrors.lines = !this.form.lines || this.form.lines.length === 0 ||
@@ -931,13 +962,46 @@ export default {
       });
     },
     allowedPickups() {
+      // Find the contact (sòcia) associated with the selected owner (user)
+      const ownerContact = this.sociesContacts.find(c => 
+        c.users_permissions_user && c.users_permissions_user.id === this.form.owner
+      );
+      const hasCollectionPoints = ownerContact && ownerContact.collection_points && ownerContact.collection_points.length > 0;
+      
       return this.pickups.filter(
         p =>
           !p.pickup ||
-          (p.pickup &&
-            p.allowed_users &&
-            p.allowed_users.map(u => u.id).includes(this.form.owner))
+          (p.pickup && hasCollectionPoints)
       );
+    },
+    collectionPoints() {
+      if (!this.form.owner || !this.form.pickup) {
+        return [];
+      }
+      
+      const selectedPickup = this.pickups.find(p => p.id === this.form.pickup);
+      if (!selectedPickup || !selectedPickup.pickup) {
+        return [];
+      }
+      
+      // Find the contact (sòcia) associated with the selected owner (user)
+      const ownerContact = this.sociesContacts.find(c => 
+        c.users_permissions_user && c.users_permissions_user.id === this.form.owner
+      );
+      
+      if (!ownerContact || !ownerContact.collection_points || ownerContact.collection_points.length === 0) {
+        return [];
+      }
+      
+      // Return the collection points for this contact/sòcia
+      // Assuming collection_points might be IDs or objects
+      return ownerContact.collection_points.map(cp => {
+        if (typeof cp === 'object' && cp.id) {
+          return cp;
+        }
+        // If it's just an ID, we need to fetch the pickup details
+        return this.pickups.find(p => p.id === cp) || { id: cp, name: `Punt ${cp}` };
+      });
     }
   },
   watch: {
@@ -993,6 +1057,7 @@ export default {
         contact_legal_form: 1,
         delivery_type: null,
         pickup: null,
+        collection_point: null,
         units: null,
         kilograms: null,
         routeFestives: [],
@@ -1024,6 +1089,7 @@ export default {
               this.normalizeIdsInForm("product");
               this.normalizeIdsInForm("contact");
               this.normalizeIdsInForm("pickup");
+              this.normalizeIdsInForm("collection_point");
               this.normalizeIdsInForm("delivery_type");
 
               this.form.route_date = moment(
@@ -1199,6 +1265,10 @@ export default {
 
       this.routeFestives = (
         await service({ requiresAuth: true }).get("route-festives?_limit=-1")
+      ).data;
+
+      this.sociesContacts = (
+        await service({ requiresAuth: true }).get("contacts?_where[users_permissions_user_gt]=0")
       ).data;
     },
     async changeOwner() {
@@ -1950,6 +2020,11 @@ export default {
       // Find the selected pickup object
       const selectedPickup = this.allowedPickups.find(p => p.id === this.form.pickup);
       this.form.pickup_point = selectedPickup && selectedPickup.is_pickup_point || false;
+      
+      // Clear collection_point if not a pickup point or pickup doesn't have collection points
+      if (!selectedPickup || !selectedPickup.pickup) {
+        this.form.collection_point = null;
+      }
       
       // Clear units and kilograms when switching to pickup point
       if (this.form.pickup_point) {
