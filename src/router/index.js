@@ -619,7 +619,7 @@ const routes = [
   },
   {
     meta: {
-      title: "Punts de recollida"
+      title: "Punts de consum"
     },
     path: "/pickup-points",
     name: "pickup-points.edit",

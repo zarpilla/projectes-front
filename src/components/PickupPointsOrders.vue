@@ -93,7 +93,7 @@
             <p>
               <b-icon icon="emoticon-sad" size="is-large" />
             </p>
-            <p>No hi ha comandes de punt de recollida pendents</p>
+            <p>No hi ha comandes de punt de consum pendents</p>
           </template>
         </div>
       </section>
@@ -164,7 +164,7 @@ export default {
       } catch (error) {
         console.error("Error fetching pickup point orders:", error);
         this.$buefy.toast.open({
-          message: "Error al carregar les comandes de punt de recollida",
+          message: "Error al carregar les comandes de punt de consum",
           type: "is-danger"
         });
       } finally {

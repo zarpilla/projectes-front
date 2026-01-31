@@ -27,7 +27,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ['Comandes', 'Comandes punt de recollida']
+      return ['Comandes', 'Comandes punt de consum']
     }
   }
 }

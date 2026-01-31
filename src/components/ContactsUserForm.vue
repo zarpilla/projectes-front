@@ -257,7 +257,7 @@
               </b-field>
               <b-field
                 v-if="permissions.includes('orders_admin')"
-                label="Punt de recollida"
+                label="Punt de consum"
                 horizontal
               >
                 <b-switch v-model="form.pickup_point" :disabled="!permissions.includes('orders_admin')" />

@@ -19,7 +19,7 @@
         @click="navNewPickup"
         icon-left="plus"
       >
-        Nova Comanda Punt de Recollida
+        Nova Comanda Punt de consum
       </b-button>
       <b-button
         class="zview-button is-warning mb-3 ml-auto is-hidden-mobile"
