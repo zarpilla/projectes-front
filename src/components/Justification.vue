@@ -1398,9 +1398,15 @@ export default {
       });
     },
     async addJustification() {
+      const dataToSubmit = { ...this.justification };
+      if (dataToSubmit.quantity) {
+        // Convert to string, replace comma with dot, then parse as float
+        const quantityStr = dataToSubmit.quantity.toString().replace(",", ".");
+        dataToSubmit.quantity = parseFloat(quantityStr);
+      }
       await service({ requiresAuth: true }).post(
         `justifications`,
-        this.justification
+        dataToSubmit
       );
       this.$buefy.snackbar.open({
         message: "Guardat",
@@ -1412,9 +1418,17 @@ export default {
       this.getActivities();
     },
     async addJustificationInvoice() {
+      // Fix decimals before submitting
+      const dataToSubmit = { ...this.justificationInvoice };
+      if (dataToSubmit.quantity) {
+        // Convert to string, replace comma with dot, then parse as float
+        const quantityStr = dataToSubmit.quantity.toString().replace(",", ".");
+        dataToSubmit.quantity = parseFloat(quantityStr);
+      }
+      
       await service({ requiresAuth: true }).post(
         `justifications`,
-        this.justificationInvoice
+        dataToSubmit
       );
       this.$buefy.snackbar.open({
         message: "Guardat",
@@ -1496,7 +1510,7 @@ export default {
           });
         }
       }
-    }
+    },
   },
   filters: {
     formatDate(val) {
