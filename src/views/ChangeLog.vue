@@ -2,6 +2,20 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <card-component title="2025.02.02">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Nou logo
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Calculs trimestrals d'IVA a tresoreria
+          </div>
+        </div>
+      </card-component>
       <card-component title="2025.01.26">
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
