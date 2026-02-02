@@ -2940,7 +2940,17 @@ export default {
         this.form.dirty = false;
 
         if (this.form.id) {
+          // Clean up grantable_contacts before destructuring
+          console.log('Before filter - this.form.grantable_contacts:', JSON.stringify(this.form.grantable_contacts));
+          this.form.grantable_contacts = (this.form.grantable_contacts || []).filter(gc => {
+            const hasValidContact = gc.contact && gc.contact.id;
+            console.log('Filtering grantable_contact:', gc, 'hasValidContact:', hasValidContact);
+            return hasValidContact;
+          });
+          console.log('After filter - this.form.grantable_contacts:', JSON.stringify(this.form.grantable_contacts));
+
           const { activities, ...form } = this.form;
+          console.log('form.grantable_contacts in PUT:', JSON.stringify(form.grantable_contacts));
 
           if (form.project_phases && form.project_phases.length) {
             form.project_phases.forEach(ph => {
@@ -2967,8 +2977,6 @@ export default {
             });
           }
 
-          this.form.grantable_contacts = this.grantable_contacts;
-
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
             form
@@ -2988,7 +2996,10 @@ export default {
             });
           }
         } else {
-          this.form.grantable_contacts = this.grantable_contacts;
+          // Clean up grantable_contacts before creating new project
+          this.form.grantable_contacts = (this.form.grantable_contacts || []).filter(gc => {
+            return gc.contact && gc.contact.id;
+          });
 
           const newProject = await service({ requiresAuth: true }).post(
             "projects",
