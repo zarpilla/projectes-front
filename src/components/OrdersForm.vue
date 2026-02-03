@@ -80,10 +80,10 @@
               </b-field> -->
 
               <b-field
-                :label="isPickupPoint ? 'Punt de recollida *' : 'Punt d’entrega *'"
+                :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                :message="!isPickupPoint ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt' : 'Cerca el punt de recollida'"
+                :message="!isPickupPoint ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt' : 'Cerca el punt de consum'"
               >
                 <b-autocomplete
                   v-model="contactSearch"
@@ -819,7 +819,7 @@ export default {
       if (this.form.id) {
         return `Comanda #${this.form.id.toString().padStart(4, "0")}`;
       } else {
-        return !this.isPickupPoint ? "Nova comanda" : "Nova comanda punt de recollida";
+        return !this.isPickupPoint ? "Nova comanda" : "Nova comanda punt de consum";
       }
     },
     transitionName() {
@@ -2207,7 +2207,7 @@ export default {
     },
     async removePickup() {
       this.$buefy.dialog.confirm({
-        message: "Estàs segura que vols eliminar la informació de recollida?",
+        message: "Estàs segura que vols eliminar la informació de consum?",
         onConfirm: async () => {
           try {
             this.isLoading = true;
@@ -2221,7 +2221,7 @@ export default {
             );
             
             this.$buefy.snackbar.open({
-              message: "Informació de recollida eliminada",
+              message: "Informació de consum eliminada",
               queue: false,
               type: "is-success"
             });
@@ -2231,7 +2231,7 @@ export default {
           } catch (err) {
             console.error(err);
             this.$buefy.snackbar.open({
-              message: "Error al eliminar la informació de recollida",
+              message: "Error al eliminar la informació de consum",
               queue: false,
               type: "is-danger"
             });

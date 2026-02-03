@@ -257,7 +257,7 @@
               </b-field>
               <b-field
                 v-if="permissions.includes('orders_admin')"
-                label="Punt de recollida"
+                label="Punt de consum"
                 horizontal
               >
                 <b-switch v-model="form.pickup_point" :disabled="!permissions.includes('orders_admin')" />
@@ -266,6 +266,7 @@
                 label="Usuària ESSTRAPIS"
                 horizontal
                 v-if="permissions.includes('orders_admin') && form.pickup_point"
+                message="Usuària assignada per a la gestió de comandes del punt de consum"
               >
                 <b-select v-model="form.users_permissions_user" placeholder="">
                   <option
