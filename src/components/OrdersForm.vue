@@ -416,25 +416,82 @@
               </b-field> -->
 
               <b-field v-if="form.id"
-                label="Incidència"
                 horizontal
-                message="Si hi ha alguna incidència, posa-la aquí"
+                message="Gestiona les incidències d'aquesta comanda"
               >
-                <b-switch
-                  v-model="form.incidence">
-                </b-switch>
-              </b-field>
-
-              <b-field horizontal v-if="form.incidence"
-              >
-                <b-input type="textarea"  v-model="form.incidence_description" />
-              </b-field>
-
-              <b-field horizontal v-if="form.incidence" message="Marca-ho si la incidència està ja solucionada"
-              >                
-                <b-switch
-                  v-model="form.incidence_solved">
-                </b-switch>
+                <template #label>
+                  Incidències
+                  <b-tag v-if="openIncidencesCount > 0" type="is-warning" class="ml-2">
+                    {{ openIncidencesCount }} {{ openIncidencesCount === 1 ? 'oberta' : 'obertes' }}
+                  </b-tag>
+                </template>
+                <div class="is-full-width">
+                  <div v-for="(incidence, index) in form.incidences" :key="incidence.id || `new-${index}`" class="zbox mb-3">
+                    <div class="columns">
+                      <div class="column is-7 p-2">
+                        <b-field :label="index === 0 ? 'Descripció' : null">
+                          <b-input
+                            type="textarea"
+                            v-model="incidence.description"
+                            :disabled="incidence.id"
+                            placeholder="Descripció de la incidència"
+                          />
+                        </b-field>
+                      </div>
+                      <div class="column is-3 p-2">
+                        <b-field :label="index === 0 ? 'Estat' : null">
+                          <b-select
+                            v-model="incidence.state"
+                            :disabled="true"
+                          >
+                            <option value="open">Oberta</option>
+                            <option value="wip">En procés</option>
+                            <option value="closed">Tancada</option>
+                          </b-select>
+                        </b-field>
+                      </div>
+                      <div class="column is-2 p-2">
+                        <b-field :label="index === 0 ? 'Creada / Accions' : null">
+                          <div class="is-flex is-flex-direction-column">
+                            <span v-if="incidence.created_at" class="is-size-7 mb-2">
+                              {{ formatDate(incidence.created_at) }}
+                            </span>
+                            <span v-else class="is-size-7 has-text-grey-light mb-2">Nova</span>
+                            <div class="buttons">
+                              <b-button
+                                v-if="!incidence.id && canEdit"
+                                type="is-danger"
+                                size="is-small"
+                                icon-left="delete"
+                                @click="removeIncidence(index)"
+                              >
+                              </b-button>
+                              <a
+                                v-if="incidence.id"
+                                :href="`/stats/#/incidences?id=${incidence.id}`"
+                                target="_blank"
+                                class="button is-info is-small"
+                                title="Veure incidència"
+                              >
+                                <b-icon icon="eye" size="is-small"></b-icon>
+                              </a>
+                            </div>
+                          </div>
+                        </b-field>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <b-button
+                    v-if="canEdit"
+                    type="is-primary"
+                    icon-left="plus"
+                    @click="addIncidence"
+                    class="mb-3"
+                  >
+                    Afegir incidència
+                  </b-button>
+                </div>
               </b-field>
 
               
@@ -1002,6 +1059,12 @@ export default {
         // If it's just an ID, we need to fetch the pickup details
         return this.pickups.find(p => p.id === cp) || { id: cp, name: `Punt ${cp}` };
       });
+    },
+    openIncidencesCount() {
+      if (!this.form.incidences || !Array.isArray(this.form.incidences)) {
+        return 0;
+      }
+      return this.form.incidences.filter(inc => inc.state !== 'closed').length;
     }
   },
   watch: {
@@ -1068,7 +1131,8 @@ export default {
         deposit_date: null,
         deposit_user: null,
         pickup_date: null,
-        pickup_user: null
+        pickup_user: null,
+        incidences: []
       };
     },
     async getData() {
@@ -1158,6 +1222,11 @@ export default {
               ).data;
 
               await assignRouteRate(this.form, this.routeRates, this.orders);
+
+              // Ensure incidences is always an array
+              if (!this.form.incidences || !Array.isArray(this.form.incidences)) {
+                this.form.incidences = [];
+              }
 
               this.isLoading = false;
             } else {
@@ -2061,6 +2130,24 @@ export default {
         this.form.lines.splice(index, 1);
       }
     },
+    addIncidence() {
+      if (!this.form.incidences) {
+        this.form.incidences = [];
+      }
+      this.form.incidences.push({
+        description: "",
+        state: "open"
+      });
+    },
+    removeIncidence(index) {
+      if (this.form.incidences && this.form.incidences.length > 0) {
+        this.form.incidences.splice(index, 1);
+      }
+    },
+    formatDate(date) {
+      if (!date) return '';
+      return dayjs(date).format('DD/MM/YYYY');
+    },
     calculateTotals() {
       if (!this.form.lines || this.form.lines.length === 0) {
         return { totalUnits: 0, totalKilograms: 0 };
@@ -2290,5 +2377,11 @@ export default {
 .hr {
   border-top: 1px solid whitesmoke;
   margin: 1rem -1.5rem;
+}
+.zbox {
+  padding: 0.75rem;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  background-color: #fafafa;
 }
 </style>

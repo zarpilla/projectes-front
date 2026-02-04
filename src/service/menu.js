@@ -117,6 +117,12 @@ const menu = [
         icon: 'calendar',
         label: 'Rutes i dies',
         permission: 'orders'
+      },  
+      {
+        to: '/incidences',
+        icon: 'alert',
+        label: 'Incidències',
+        permission: 'orders'
       },
       {
         to: '/contact-us',
@@ -173,6 +179,12 @@ const menu = [
         to: '/partners',
         icon: 'account',
         label: 'Sòcies',
+        permission: 'orders_admin'
+      }, 
+      {
+        to: '/incidences',
+        icon: 'alert',
+        label: 'Incidències',
         permission: 'orders_admin'
       },      
       {

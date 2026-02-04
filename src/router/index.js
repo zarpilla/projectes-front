@@ -780,6 +780,19 @@ const routes = [
   },
   {
     meta: {
+      title: "Incidències"
+    },
+    path: "/incidences",
+    name: "incidences.list",
+    component: () =>
+      import(/* webpackChunkName: "users" */ "../views/Incidences.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    },
+  },
+  {
+    meta: {
       title: "Contasol"
     },
     path: "/contasol",
