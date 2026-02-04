@@ -32,7 +32,11 @@
             field: 'total_amount',
             callback: (value, row) => {
               // For balance annotations, show the account balance instead of total_amount
-              if (row && row.is_balance_annotation && row.account_balance !== undefined) {
+              if (
+                row &&
+                row.is_balance_annotation &&
+                row.account_balance !== undefined
+              ) {
                 return `Saldo: ${this.excelFormat(row.account_balance)}`;
               }
               return this.excelFormat(value);
@@ -91,7 +95,10 @@
     </div>
 
     <!-- Filters Section -->
-    <div class="filters-section mt-4 p-4" style="background-color: #f5f5f5; border-radius: 4px;">
+    <div
+      class="filters-section mt-4 p-4"
+      style="background-color: #f5f5f5; border-radius: 4px;"
+    >
       <div class="columns">
         <div class="column is-4">
           <b-field label="Projecte">
@@ -147,7 +154,7 @@
           <b-button
             v-if="selectedProject || filterDateStart || filterDateEnd"
             @click="clearFilters"
-            type="is-warning"            
+            type="is-warning"
           >
             Netejar filtres
           </b-button>
@@ -326,7 +333,13 @@
               (row.is_balance_annotation && 'has-background-info-light')
           "
         >
-          <b-table-column label="Data" field="datex" sortable searchable v-slot="props">
+          <b-table-column
+            label="Data"
+            field="datex"
+            sortable
+            searchable
+            v-slot="props"
+          >
             {{ props.row.datex }}
             <b-icon
               v-if="props.row.date_error"
@@ -337,41 +350,78 @@
             >
             </b-icon>
           </b-table-column>
-          <b-table-column label="Import" field="total_amount" sortable searchable v-slot="props">
+          <b-table-column
+            label="Import"
+            field="total_amount"
+            sortable
+            searchable
+            v-slot="props"
+          >
             <span v-if="props.row.is_balance_annotation">
               <span class="has-text-weight-bold has-text-info">
                 {{ formatPrice(props.row.account_balance) }} €
               </span>
             </span>
-            <span v-else>
-              {{ formatPrice(props.row.total_amount) }} €
-            </span>
+            <span v-else> {{ formatPrice(props.row.total_amount) }} € </span>
           </b-table-column>
-          <b-table-column label="Saldo" field="subtotal" sortable searchable v-slot="props">
+          <b-table-column
+            label="Saldo"
+            field="subtotal"
+            sortable
+            searchable
+            v-slot="props"
+          >
             {{ formatPrice(props.row.subtotal) }} €
           </b-table-column>
-          <b-table-column label="Moviment" field="type" sortable searchable v-slot="props">
+          <b-table-column
+            label="Moviment"
+            field="type"
+            sortable
+            searchable
+            v-slot="props"
+          >
             <span
-              :class="(props.row.paid && props.row.real) ? 'has-text-success' : 'zhas-text-success'"
+              :class="
+                props.row.paid && props.row.real
+                  ? 'has-text-success'
+                  : 'zhas-text-success'
+              "
             >
-              <b-icon 
-                v-if="props.row.is_balance_annotation" 
-                icon="bank" 
-                size="is-small" 
+              <b-icon
+                v-if="props.row.is_balance_annotation"
+                icon="bank"
+                size="is-small"
                 class="mr-1"
               />
               {{ props.row.type }}
             </span>
           </b-table-column>
-          <b-table-column label="Concepte" field="concept" sortable searchable v-slot="props">
-            <router-link v-if="props.row.to" :to="props.row.to">
-              <span class="project-name has-text-info">
-                {{ props.row.concept }}
-              </span>
-            </router-link>
+          <b-table-column
+            label="Concepte"
+            field="concept"
+            sortable
+            searchable
+            v-slot="props"
+          >
+            <template v-if="props.row.to" :to="props.row.to">
+              <router-link v-if="props.row.to" :to="props.row.to">
+                <span class="project-name has-text-info">
+                  {{ props.row.concept }}
+                </span>
+              </router-link>
+              <div v-if="props.row.conceptProject">
+                {{ props.row.conceptProject }}
+              </div>
+            </template>
             <span v-else>{{ props.row.concept }}</span>
           </b-table-column>
-          <b-table-column label="Projecte" field="project_name" sortable searchable v-slot="props">
+          <b-table-column
+            label="Projecte"
+            field="project_name"
+            sortable
+            searchable
+            v-slot="props"
+          >
             <router-link
               :to="{
                 name: 'project.edit',
@@ -383,7 +433,13 @@
               </span>
             </router-link>
           </b-table-column>
-          <b-table-column label="Contacte" field="contact" sortable searchable v-slot="props">
+          <b-table-column
+            label="Contacte"
+            field="contact"
+            sortable
+            searchable
+            v-slot="props"
+          >
             {{ props.row.contact }}
           </b-table-column>
           <b-table-column
@@ -571,7 +627,11 @@ export default {
       if (this.selectedProject) {
         treasuryData = treasuryData.filter(t => {
           // Always include "Inici Any" and "Avui" entries regardless of project filter
-          if (t.type === "Inici Any" || t.type === "Avui" || t.is_balance_annotation) {
+          if (
+            t.type === "Inici Any" ||
+            t.type === "Avui" ||
+            t.is_balance_annotation
+          ) {
             return true;
           }
           return t.project_id === this.selectedProject.id;
@@ -580,7 +640,9 @@ export default {
 
       // Apply date filters (exclude balance annotations from filtering)
       if (this.filterDateStart) {
-        const startDateFormatted = moment(this.filterDateStart).format("YYYYMMDD");
+        const startDateFormatted = moment(this.filterDateStart).format(
+          "YYYYMMDD"
+        );
         treasuryData = treasuryData.filter(t => {
           // Always include "Inici Any" entries regardless of date filter
           if (t.type === "Inici Any" || t.is_balance_annotation) {
@@ -616,7 +678,7 @@ export default {
       return this.monthlySummary.map(s => {
         // For balance annotations, we don't want to count them as income or expenses
         const isBalanceAnnotation = s.is_balance_annotation;
-        
+
         return {
           ...s,
           project_name:
@@ -624,8 +686,10 @@ export default {
               ? s.project_name
               : s.type,
           bank_account: s.bank_account || "Sense compte assignat",
-          total_incomes: !isBalanceAnnotation && s.total_amount > 0 ? s.total_amount : 0,
-          total_expenses: !isBalanceAnnotation && s.total_amount < 0 ? s.total_amount : 0
+          total_incomes:
+            !isBalanceAnnotation && s.total_amount > 0 ? s.total_amount : 0,
+          total_expenses:
+            !isBalanceAnnotation && s.total_amount < 0 ? s.total_amount : 0
         };
       });
     },
@@ -645,7 +709,9 @@ export default {
           valid: !isNaN(id),
           maxYm: _.maxBy(this.monthlySummary, e => (!isNaN(e.ym) ? e.ym : ""))
             .ym,
-          total_amount: _.sumBy(ym, e => e.is_balance_annotation ? 0 : e.total_amount),
+          total_amount: _.sumBy(ym, e =>
+            e.is_balance_annotation ? 0 : e.total_amount
+          ),
           total_incomes: _.sumBy(ym, e =>
             !e.is_balance_annotation && e.total_amount > 0 ? e.total_amount : 0
           ),
@@ -702,7 +768,11 @@ export default {
       if (this.selectedProject) {
         treasuryDataOfYear = treasuryDataOfYear.filter(d => {
           // Always include "Inici Any" and "Avui" entries regardless of project filter
-          if (d.type === "Inici Any" || d.type === "Avui" || d.is_balance_annotation) {
+          if (
+            d.type === "Inici Any" ||
+            d.type === "Avui" ||
+            d.is_balance_annotation
+          ) {
             return true;
           }
           return d.project_id === this.selectedProject.id;
@@ -717,7 +787,9 @@ export default {
           if (d.type === "Inici Any" || d.is_balance_annotation) {
             return true;
           }
-          return moment(d.datex, "DD-MM-YYYY").isSameOrAfter(moment(startDate, "DD-MM-YYYY"));
+          return moment(d.datex, "DD-MM-YYYY").isSameOrAfter(
+            moment(startDate, "DD-MM-YYYY")
+          );
         });
       }
 
@@ -728,7 +800,9 @@ export default {
           if (d.type === "Inici Any" || d.is_balance_annotation) {
             return true;
           }
-          return moment(d.datex, "DD-MM-YYYY").isSameOrBefore(moment(endDate, "DD-MM-YYYY"));
+          return moment(d.datex, "DD-MM-YYYY").isSameOrBefore(
+            moment(endDate, "DD-MM-YYYY")
+          );
         });
       }
 
@@ -759,7 +833,7 @@ export default {
       const treasuryData = await getTreasuryData(
         this.selectedProjectStates,
         this.selectedYear,
-        this.selectedBankAccountIds.join(',') // Convert array to comma-separated string
+        this.selectedBankAccountIds.join(",") // Convert array to comma-separated string
       );
       this.vat = treasuryData.vat;
       this.vat_expected = treasuryData.vat_expected;
