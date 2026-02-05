@@ -415,6 +415,9 @@
                 <b-input v-model="form.provider_order_number" />
               </b-field> -->
 
+              <hr />
+
+              <h3 class="title is-5 mt-4 mb-3">HI HA INCIDÈNCIES?</h3>
               <b-field v-if="form.id"
                 horizontal
                 message="Gestiona les incidències d'aquesta comanda"
@@ -428,7 +431,7 @@
                 <div class="is-full-width">
                   <div v-for="(incidence, index) in form.incidences" :key="incidence.id || `new-${index}`" class="zbox mb-3">
                     <div class="columns">
-                      <div class="column is-7 p-2">
+                      <div class="column is-9 p-2">
                         <b-field :label="index === 0 ? 'Descripció' : null">
                           <b-input
                             type="textarea"
@@ -437,9 +440,7 @@
                             placeholder="Descripció de la incidència"
                           />
                         </b-field>
-                      </div>
-                      <div class="column is-3 p-2">
-                        <b-field :label="index === 0 ? 'Estat' : null">
+                        <b-field :label="index === 0 ? 'Estat' : null" class="mt-3">
                           <b-select
                             v-model="incidence.state"
                             :disabled="true"
