@@ -183,8 +183,14 @@ const menu = [
       }, 
       {
         to: '/incidences',
-        icon: 'alert',
+        icon: 'city',
         label: 'Incidències',
+        permission: 'orders_admin'
+      }, 
+      {
+        to: '/transfers',
+        icon: 'alert',
+        label: 'Transferències',
         permission: 'orders_admin'
       },      
       {

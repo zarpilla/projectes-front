@@ -793,6 +793,19 @@ const routes = [
   },
   {
     meta: {
+      title: "Transferències"
+    },
+    path: "/transfers",
+    name: "transfers.list",
+    component: () =>
+      import(/* webpackChunkName: "users" */ "../views/Transfers.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    },
+  },
+  {
+    meta: {
       title: "Contasol"
     },
     path: "/contasol",

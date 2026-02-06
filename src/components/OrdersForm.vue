@@ -385,7 +385,7 @@
                       'is-warning': form.collection_point === cp.id,
                       'is-outlined': form.collection_point !== cp.id
                     }"
-                    @click="form.collection_point = cp.id"
+                    @click="form.collection_point = cp.id; checkTransferNeeded()"
                     :disabled="!canEdit"
                   >
                     {{ cp.name }}
@@ -556,6 +556,38 @@
                   :disabled="!canEdit"
                 ></b-switch>
               </b-field>
+
+              <b-field
+                label="Transferència"
+                horizontal
+                message="Indica si la comanda necessita una transferència"
+                v-if="permissions.includes('orders_admin')"
+              >
+                <b-switch
+                  v-model="form.transfer"
+                  :disabled="true"
+                ></b-switch>
+              </b-field>
+
+              <b-field
+                label="Origen transferència"
+                horizontal
+                message="Punt de recollida on es deposita la comanda"
+                v-if="permissions.includes('orders_admin') && form.transfer && form.transfer_pickup_origin"
+              >
+                <span>{{ getPickupName(form.transfer_pickup_origin) }}</span>
+              </b-field>
+
+              <b-field
+                label="Destinació transferència"
+                horizontal
+                message="Punt de recollida on es farà la transferència"
+                v-if="permissions.includes('orders_admin') && form.transfer && form.transfer_pickup_destination"
+              >
+                <span>{{ getPickupName(form.transfer_pickup_destination) }}</span>
+              </b-field>
+
+              
 
               <b-field
                 label="Data comanda *"
@@ -754,6 +786,62 @@
                     @click="pickupOrder"
                     v-if="canEdit && form.id"
                     >Recollir</b-button
+                  >
+                </div>
+              </b-field>
+
+              <b-field horizontal label="Inici transferència"
+                message="Informa que has iniciat la transferència"
+                v-if="form.transfer">
+                <div v-if="form.transfer_start_date && form.transfer_start_user">
+                  <p>
+                    <strong>Data:</strong> {{ formatDateTime(form.transfer_start_date) }}<br/>
+                    <strong>Usuari:</strong> {{ form.transfer_start_user.username || form.transfer_start_user.fullname }}
+                  </p>
+                  <b-button
+                    type="is-danger"
+                    size="is-small"
+                    :loading="isLoading"
+                    @click="removeTransferStart"
+                    v-if="canEdit"
+                    >Eliminar</b-button
+                  >
+                </div>
+                <div v-else>
+                  <b-button
+                    type="is-info"
+                    :loading="isLoading"
+                    @click="startTransfer"
+                    v-if="canEdit && form.id"
+                    >Iniciar transferència</b-button
+                  >
+                </div>
+              </b-field>
+
+              <b-field horizontal label="Fi transferència"
+                message="Informa que has finalitzat la transferència"
+                v-if="form.transfer">
+                <div v-if="form.transfer_end_date && form.transfer_end_user">
+                  <p>
+                    <strong>Data:</strong> {{ formatDateTime(form.transfer_end_date) }}<br/>
+                    <strong>Usuari:</strong> {{ form.transfer_end_user.username || form.transfer_end_user.fullname }}
+                  </p>
+                  <b-button
+                    type="is-danger"
+                    size="is-small"
+                    :loading="isLoading"
+                    @click="removeTransferEnd"
+                    v-if="canEdit"
+                    >Eliminar</b-button
+                  >
+                </div>
+                <div v-else>
+                  <b-button
+                    type="is-info"
+                    :loading="isLoading"
+                    @click="endTransfer"
+                    v-if="canEdit && form.id && form.transfer_start_date"
+                    >Finalitzar transferència</b-button
                   >
                 </div>
               </b-field>
@@ -1133,7 +1221,14 @@ export default {
         deposit_user: null,
         pickup_date: null,
         pickup_user: null,
-        incidences: []
+        transfer_start_date: null,
+        transfer_start_user: null,
+        transfer_end_date: null,
+        transfer_end_user: null,
+        transfer_pickup_origin: null,
+        transfer_pickup_destination: null,
+        incidences: [],
+        transfer: false
       };
     },
     async getData() {
@@ -1156,6 +1251,8 @@ export default {
               this.normalizeIdsInForm("pickup");
               this.normalizeIdsInForm("collection_point");
               this.normalizeIdsInForm("delivery_type");
+              this.normalizeIdsInForm("transfer_pickup_origin");
+              this.normalizeIdsInForm("transfer_pickup_destination");
 
               this.form.route_date = moment(
                 this.form.route_date,
@@ -1373,6 +1470,7 @@ export default {
         }
       }
       this.checkMultidelivery();
+      this.checkTransferNeeded();
     },
     async checkEstimatedDeliveryDate() {
       const route = this.routes.find(r => r.id === this.form.route);
@@ -2113,6 +2211,94 @@ export default {
         // Clear lines when switching to regular order
         this.form.lines = [];
       }
+      
+      // Check if transfer is needed
+      this.checkTransferNeeded();
+    },
+    checkTransferNeeded() {
+      // Only check if we have both a route and a pickup selected
+      if (!this.form.route || !this.form.pickup) {
+        return;
+      }
+
+      // Find the selected pickup
+      const selectedPickup = this.pickups.find(p => p.id === this.form.pickup);
+      if (!selectedPickup) {
+        return;
+      }
+
+      // Find the selected route
+      const selectedRoute = this.routes.find(r => r.id === this.form.route);
+      if (!selectedRoute) {
+        return;
+      }
+
+      let pickupCityId = null;
+
+      // Case 1: Pickup where pickup = false (has direct city relation)
+      if (!selectedPickup.pickup && selectedPickup.city) {
+        pickupCityId = typeof selectedPickup.city === 'object' ? selectedPickup.city.id : selectedPickup.city;
+      }
+      // Case 2: Pickup where pickup = true (need to get city from collection_point)
+      else if (selectedPickup.pickup && this.form.collection_point) {
+        // Find the collection point contact
+        const ownerContact = this.sociesContacts.find(c => 
+          c.users_permissions_user && c.users_permissions_user.id === this.form.owner
+        );
+        
+        if (ownerContact && ownerContact.collection_points) {
+          // Find the specific collection point
+          const collectionPoint = ownerContact.collection_points.find(cp => {
+            const cpId = typeof cp === 'object' ? cp.id : cp;
+            return cpId === this.form.collection_point;
+          });
+
+          if (collectionPoint) {
+            // Collection point has city as a string, need to find the city object
+            const cityName = typeof collectionPoint === 'object' ? collectionPoint.city : null;
+            if (cityName) {
+              const cityObj = this.cities.find(c => c.name === cityName);
+              if (cityObj) {
+                pickupCityId = cityObj.id;
+              }
+            }
+          }
+        }
+      }
+
+      // If we couldn't determine the pickup city, can't calculate transfer
+      if (!pickupCityId) {
+        return;
+      }
+
+      // Check if the selected route travels to this city
+      const routeTravelsToCity = this.cityRoutes.some(cr => {
+        const cityId = typeof cr.city === 'object' ? cr.city.id : cr.city;
+        const routeId = typeof cr.route === 'object' ? cr.route.id : cr.route;
+        return cityId === pickupCityId && routeId === this.form.route;
+      });
+
+      // If route does NOT travel to the city, transfer is needed
+      this.form.transfer = !routeTravelsToCity;
+      
+      // Set transfer pickup origin and destination if transfer is needed
+      if (this.form.transfer) {
+        // Transfer origin: the pickup where the order was deposited
+        this.form.transfer_pickup_origin = this.form.pickup;
+        
+        // Transfer destination: the transfer_pickup from the route (where the transfer will go)
+        if (selectedRoute.transfer_pickup) {
+          this.form.transfer_pickup_destination = typeof selectedRoute.transfer_pickup === 'object' 
+            ? selectedRoute.transfer_pickup.id 
+            : selectedRoute.transfer_pickup;
+        } else {
+          this.form.transfer_pickup_destination = null;
+        }
+      } else {
+        // No transfer needed, clear the transfer pickup fields
+        this.form.transfer_pickup_origin = null;
+        this.form.transfer_pickup_destination = null;
+      }
     },
     addLine() {
       if (!this.form.lines) {
@@ -2170,6 +2356,11 @@ export default {
     formatDateTime(dateTime) {
       if (!dateTime) return '';
       return dayjs(dateTime).format('DD/MM/YYYY HH:mm');
+    },
+    getPickupName(pickupId) {
+      if (!pickupId) return '';
+      const pickup = this.pickups.find(p => p.id === pickupId);
+      return pickup ? pickup.name : `Pickup ${pickupId}`;
     },
     async depositOrder() {
       try {
@@ -2320,6 +2511,156 @@ export default {
             console.error(err);
             this.$buefy.snackbar.open({
               message: "Error al eliminar la informació de consum",
+              queue: false,
+              type: "is-danger"
+            });
+          } finally {
+            this.isLoading = false;
+          }
+        }
+      });
+    },
+    async startTransfer() {
+      try {
+        this.isLoading = true;
+        
+        // Save the form first
+        await this.submit(false);
+        
+        // Get current user
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+        
+        // Update with transfer start information
+        await service({ requiresAuth: true }).put(
+          `orders/${this.form.id}`,
+          {
+            transfer_start_date: new Date().toISOString(),
+            transfer_start_user: currentUser.data.id
+          }
+        );
+        
+        this.$buefy.snackbar.open({
+          message: "Transferència iniciada correctament",
+          queue: false,
+          type: "is-success"
+        });
+        
+        // Refresh data to show the updated information
+        await this.getData();
+        
+      } catch (err) {
+        console.error(err);
+        this.$buefy.snackbar.open({
+          message: "Error al iniciar la transferència",
+          queue: false,
+          type: "is-danger"
+        });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async removeTransferStart() {
+      this.$buefy.dialog.confirm({
+        message: "Estàs segura que vols eliminar la informació d'inici de transferència?",
+        onConfirm: async () => {
+          try {
+            this.isLoading = true;
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              {
+                transfer_start_date: null,
+                transfer_start_user: null
+              }
+            );
+            
+            this.$buefy.snackbar.open({
+              message: "Informació d'inici de transferència eliminada",
+              queue: false,
+              type: "is-success"
+            });
+            
+            await this.getData();
+            
+          } catch (err) {
+            console.error(err);
+            this.$buefy.snackbar.open({
+              message: "Error al eliminar la informació d'inici de transferència",
+              queue: false,
+              type: "is-danger"
+            });
+          } finally {
+            this.isLoading = false;
+          }
+        }
+      });
+    },
+    async endTransfer() {
+      try {
+        this.isLoading = true;
+        
+        // Save the form first
+        await this.submit(false);
+        
+        // Get current user
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+        
+        // Update with transfer end information
+        await service({ requiresAuth: true }).put(
+          `orders/${this.form.id}`,
+          {
+            transfer_end_date: new Date().toISOString(),
+            transfer_end_user: currentUser.data.id
+          }
+        );
+        
+        this.$buefy.snackbar.open({
+          message: "Transferència finalitzada correctament",
+          queue: false,
+          type: "is-success"
+        });
+        
+        // Refresh data to show the updated information
+        await this.getData();
+        
+      } catch (err) {
+        console.error(err);
+        this.$buefy.snackbar.open({
+          message: "Error al finalitzar la transferència",
+          queue: false,
+          type: "is-danger"
+        });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async removeTransferEnd() {
+      this.$buefy.dialog.confirm({
+        message: "Estàs segura que vols eliminar la informació de fi de transferència?",
+        onConfirm: async () => {
+          try {
+            this.isLoading = true;
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              {
+                transfer_end_date: null,
+                transfer_end_user: null
+              }
+            );
+            
+            this.$buefy.snackbar.open({
+              message: "Informació de fi de transferència eliminada",
+              queue: false,
+              type: "is-success"
+            });
+            
+            await this.getData();
+            
+          } catch (err) {
+            console.error(err);
+            this.$buefy.snackbar.open({
+              message: "Error al eliminar la informació de fi de transferència",
               queue: false,
               type: "is-danger"
             });
