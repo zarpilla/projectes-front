@@ -1443,7 +1443,6 @@ export default {
       localStorage.setItem("OrdersTable.statusFilter", JSON.stringify(this.statusFilter));
 
       const where = [];
-      console.log("statusFilter", this.statusFilter);
       
       // Handle multiple status filters using multiple _where parameters for OR
       if (this.statusFilter.length > 0) {
@@ -1470,8 +1469,6 @@ export default {
           where.push(`_where[last_mile]=true`);
         }
       }
-
-      console.log("this.filters", this.filters);
 
       for (const key in this.filters) {
         if (this.filters[key]) {
@@ -1537,8 +1534,6 @@ export default {
           where.push(`_where[route.id]=${routeId}`);
         });
       }
-
-      console.log("WHERE CLAUSE:", where.join("&"));
 
       this.orders = (
         await service({ requiresAuth: true }).get(

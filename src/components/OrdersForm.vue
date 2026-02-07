@@ -590,6 +590,11 @@
                 <!-- Show collection order for regular order -->
                 <div v-else-if="form.collection_order">
                   <h3 class="title is-5 mt-4 mb-3">COMANDA DE RECOLLIDA</h3>
+                  
+                  <b-message v-if="isCollectionOrderDateBeforeMainOrder" type="is-warning" class="mb-4">
+                    <strong>Atenció!</strong> La data prevista d'entrega és anterior a la data prevista de recollida.
+                  </b-message>
+                  
                   <b-field
                     horizontal
                     message="Aquesta comanda forma part d'una recollida en finca"
@@ -607,7 +612,7 @@
                           </router-link>
                         </b-table-column>
 
-                        <b-table-column field="estimated_delivery_date" width="150" label="Data prevista" v-slot="props">
+                        <b-table-column field="estimated_delivery_date" width="120" label="Data prevista" v-slot="props">
                           {{ props.row.estimated_delivery_date || '-' }}
                         </b-table-column>
 
@@ -615,14 +620,33 @@
                           {{ (props.row.contact_trade_name || props.row.contact_name) || '-' }}
                         </b-table-column> -->
 
-                        <b-table-column field="route" label="Ruta" width="350" v-slot="props">
+                        <b-table-column field="route" label="Ruta" width="250" v-slot="props">
                           {{ (props.row.route && (props.row.route.short_name || props.row.route.name)) || '-' }}
                         </b-table-column>
 
-                        <b-table-column field="status" label="Estat" width="150" v-slot="props">
+                        <b-table-column field="units" width="120" label="Unitats" v-slot="props">
+                          {{ props.row.units || '-' }}
+                        </b-table-column>
+
+
+                        <b-table-column field="kilograms" width="120" label="Kg" v-slot="props">
+                          {{ props.row.kilograms || '-' }}
+                        </b-table-column>
+
+                        <b-table-column field="status" label="Estat" width="120" v-slot="props">
                           <b-tag v-if="props.row.status" :type="getStatusColor(props.row.status)">
                             {{ getStatusName(props.row.status) }}
                           </b-tag>
+                        </b-table-column>
+
+                        <b-table-column field="finalPrice" label="Preu" width="100" numeric v-slot="props">
+                          <money-format
+                            :value="calculateFinalPrice(props.row)"
+                            :locale="'es'"
+                            :currency-code="'EUR'"
+                            :subunits-value="false"
+                            :hide-subunits="false"
+                          />
                         </b-table-column>
                       </b-table>
                     </div>
@@ -1297,6 +1321,16 @@ export default {
         return 0;
       }
       return this.form.incidences.filter(inc => inc.state !== 'closed').length;
+    },
+    isCollectionOrderDateAfterMainOrder() {
+      if (!this.form.collection_order || !this.form.estimated_delivery_date) {
+        return false;
+      }
+      const collectionDate = this.form.collection_order.estimated_delivery_date;
+      if (!collectionDate) {
+        return false;
+      }
+      return moment(collectionDate).isAfter(moment(this.form.estimated_delivery_date), 'day');
     }
   },
   watch: {
@@ -1394,6 +1428,7 @@ export default {
               this.normalizeIdsInForm("pickup");
               this.normalizeIdsInForm("collection_point");
               this.normalizeIdsInForm("delivery_type");
+              this.normalizeIdsInForm("contact_legal_form");
               this.normalizeIdsInForm("transfer_pickup_origin");
               this.normalizeIdsInForm("transfer_pickup_destination");
 
@@ -1448,8 +1483,16 @@ export default {
                 );
               }
 
-              if (this.form.contact_legal_form) {
-                this.form.contact_legal_form = this.form.contact_legal_form.id;
+              // Ensure contact_legal_form is properly normalized - never an empty object
+              if (this.form.contact_legal_form && typeof this.form.contact_legal_form === 'object') {
+                if (this.form.contact_legal_form.id) {
+                  this.form.contact_legal_form = this.form.contact_legal_form.id;
+                } else {
+                  // Empty object or object without id
+                  this.form.contact_legal_form = 1;
+                }
+              } else if (!this.form.contact_legal_form || this.form.contact_legal_form === 0) {
+                this.form.contact_legal_form = 1;
               }
 
               if (this.form.route && this.form.route.id) {
@@ -1489,11 +1532,31 @@ export default {
       }
     },
     normalizeIdsInForm(property) {
-      if (this.form[property] && this.form[property].id) {
-        this.form[property] = this.form[property].id;
-      } else {
-        this.form[property] = 0;
+      if (this.form[property] && typeof this.form[property] === 'object') {
+        // Check if it's an object with an id property
+        if (this.form[property].id) {
+          this.form[property] = this.form[property].id;
+        } else {
+          // Empty object or object without id - set to null or 0 based on the property
+          this.form[property] = property === 'contact_legal_form' ? 1 : 0;
+        }
+      } else if (!this.form[property]) {
+        // Null or undefined - set to default
+        this.form[property] = property === 'contact_legal_form' ? 1 : 0;
       }
+    },
+    ensureContactLegalFormIsValid(data) {
+      // Helper method to ensure contact_legal_form is never an empty object or invalid
+      if (data.contact_legal_form && typeof data.contact_legal_form === 'object') {
+        if (data.contact_legal_form.id) {
+          data.contact_legal_form = data.contact_legal_form.id;
+        } else {
+          data.contact_legal_form = 1; // Default value
+        }
+      } else if (!data.contact_legal_form || data.contact_legal_form === 0) {
+        data.contact_legal_form = 1; // Default value
+      }
+      return data;
     },
     async getAuxiliarData() {
       if (this.$route.params.id && this.$route.params.id > 0) {
@@ -1938,6 +2001,17 @@ export default {
 
           delete this.form.emitted_invoice_datetime;
 
+          // Normalize contact_legal_form to ensure it's not an empty object
+          if (this.form.contact_legal_form && typeof this.form.contact_legal_form === 'object') {
+            if (this.form.contact_legal_form.id) {
+              this.form.contact_legal_form = this.form.contact_legal_form.id;
+            } else {
+              this.form.contact_legal_form = 1; // Default value
+            }
+          } else if (!this.form.contact_legal_form) {
+            this.form.contact_legal_form = 1; // Default value
+          }
+
           // Get current user for tracking
           const currentUser = await service({ requiresAuth: true }).get("users/me");
           
@@ -1978,6 +2052,17 @@ export default {
             });
             this.isLoading = false;
             return;
+          }
+
+          // Normalize contact_legal_form to ensure it's not an empty object
+          if (this.form.contact_legal_form && typeof this.form.contact_legal_form === 'object') {
+            if (this.form.contact_legal_form.id) {
+              this.form.contact_legal_form = this.form.contact_legal_form.id;
+            } else {
+              this.form.contact_legal_form = 1; // Default value
+            }
+          } else if (!this.form.contact_legal_form) {
+            this.form.contact_legal_form = 1; // Default value
           }
 
           // Get current user for tracking
@@ -2239,7 +2324,7 @@ export default {
       this.form.contact_notes = "";
       this.form.contact_city = "";
       this.form.contact_phone = "";
-      this.form.contact_legal_form = null;
+      this.form.contact_legal_form = 1;
       this.form.contact_time_slot_1_ini = null;
       this.form.contact_time_slot_1_end = null;
       this.form.contact_time_slot_2_ini = null;
@@ -2277,7 +2362,7 @@ export default {
         }
 
         this.form.contact_phone = contact.phone;
-        this.form.contact_legal_form = contact.legal_form
+        this.form.contact_legal_form = contact.legal_form && contact.legal_form.id
           ? contact.legal_form.id
           : 1;
         this.form.contact_time_slot_1_ini = contact.time_slot_1_ini;
@@ -2521,6 +2606,14 @@ export default {
       const pickup = this.pickups.find(p => p.id === pickupId);
       return pickup ? pickup.name : `Pickup ${pickupId}`;
     },
+    calculateFinalPrice(order) {
+      if (!order || !order.price) return 0;
+      let price = order.price || 0;
+      price = price * (1 - (order.multidelivery_discount || 0) / 100);
+      price = price * (1 - (order.contact_pickup_discount || 0) / 100);
+      price = price - (order.volume_discount || 0);
+      return price;
+    },
     async depositOrder() {
       try {
         this.isLoading = true;
@@ -2575,12 +2668,14 @@ export default {
           try {
             this.isLoading = true;
             
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              {
+            const updateData = this.ensureContactLegalFormIsValid({
                 deposit_date: null,
                 deposit_user: null
-              }
+              });
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              updateData
             );
             
             this.$buefy.snackbar.open({
@@ -2650,11 +2745,20 @@ export default {
         // Get current user
         const currentUser = await service({ requiresAuth: true }).get("users/me");
         
+        // Get current order to check its status
+        const orderResponse = await service({ requiresAuth: true }).get(`orders/${orderId}`);
+        const currentOrder = orderResponse.data;
+        
         // Prepare update data
         const updateData = {
           deposit_date: new Date().toISOString(),
           deposit_user: currentUser.data.id
         };
+        
+        // If order is pending, change status to deposited
+        if (currentOrder.status === 'pending') {
+          updateData.status = 'deposited';
+        }
         
         // Update with deposit information
         await service({ requiresAuth: true }).put(
@@ -2670,6 +2774,28 @@ export default {
         
         // Refresh data to show the updated information
         await this.getData();
+        
+        // Check if this is a collection order and if all orders are now deposited
+        if (this.form.is_collection_order && this.form.status === "pending") {
+          const allDeposited = this.form.collection_orders.every(order => order.deposit_date !== null);
+          
+          if (allDeposited) {
+            // Update collection order status to deposited
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              { status: "deposited" }
+            );
+            
+            this.$buefy.snackbar.open({
+              message: "Totes les comandes estan depositades. Comanda de recollida marcada com a depositada.",
+              queue: false,
+              type: "is-success"
+            });
+            
+            // Refresh again to show the updated status
+            await this.getData();
+          }
+        }
         
       } catch (err) {
         console.error(err);
@@ -2720,21 +2846,23 @@ export default {
     },
     async removePickup() {
       this.$buefy.dialog.confirm({
-        message: "Estàs segura que vols eliminar la informació de consum?",
+        message: "Estàs segura que vols eliminar la informació de recollida?",
         onConfirm: async () => {
           try {
             this.isLoading = true;
             
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              {
+            const updateData = this.ensureContactLegalFormIsValid({
                 pickup_date: null,
                 pickup_user: null
-              }
+              });
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              updateData
             );
             
             this.$buefy.snackbar.open({
-              message: "Informació de consum eliminada",
+              message: "Informació de recollida eliminada",
               queue: false,
               type: "is-success"
             });
@@ -2744,7 +2872,7 @@ export default {
           } catch (err) {
             console.error(err);
             this.$buefy.snackbar.open({
-              message: "Error al eliminar la informació de consum",
+              message: "Error al eliminar la informació de recollida",
               queue: false,
               type: "is-danger"
             });
@@ -2800,12 +2928,14 @@ export default {
           try {
             this.isLoading = true;
             
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              {
+            const updateData = this.ensureContactLegalFormIsValid({
                 transfer_start_date: null,
                 transfer_start_user: null
-              }
+              });
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              updateData
             );
             
             this.$buefy.snackbar.open({
@@ -2875,12 +3005,14 @@ export default {
           try {
             this.isLoading = true;
             
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              {
+            const updateData = this.ensureContactLegalFormIsValid({
                 transfer_end_date: null,
                 transfer_end_user: null
-              }
+              });
+            
+            await service({ requiresAuth: true }).put(
+              `orders/${this.form.id}`,
+              updateData
             );
             
             this.$buefy.snackbar.open({

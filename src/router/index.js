@@ -806,6 +806,19 @@ const routes = [
   },
   {
     meta: {
+      title: "Dipòsits"
+    },
+    path: "/deposits",
+    name: "deposits.list",
+    component: () =>
+      import(/* webpackChunkName: "users" */ "../views/Deposits.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    },
+  },
+  {
+    meta: {
       title: "Contasol"
     },
     path: "/contasol",

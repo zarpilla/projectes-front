@@ -89,6 +89,12 @@ const menu = [
       permission: "orders"
     },
     {
+      to: "/deposits",
+      icon: "package-down",
+      label: "Dipòsits",
+      permission: "orders"
+    },
+    {
       to: "/provider-invoices",
       icon: "cash-multiple",
       label: "Factures",
@@ -140,6 +146,12 @@ const menu = [
       permission: "orders_admin"
     },
     {
+      to: "/deposits",
+      icon: "package-down",
+      label: "Dipòsits",
+      permission: "orders_admin"
+    },
+    {
       to: "/user-contacts",
       icon: "account-box",
       label: "Punts d'entrega",
@@ -153,7 +165,7 @@ const menu = [
     },
     {
       to: "/transfers",
-      icon: "warehouse",
+      icon: "swap-horizontal",
       label: "Transferències",
       permission: "orders_admin"
     },
