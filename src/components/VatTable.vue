@@ -185,6 +185,9 @@
           <b-table-column sortable searchable label="Import IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
             {{ formatPrice(props.row.total_vat) }} €
           </b-table-column>
+          <b-table-column sortable searchable label="Deduïble" numeric field="theoretical_deductible_vat_pct" v-slot="props" class="has-text-right">
+            {{ formatPrice(props.row.theoretical_deductible_vat_pct) }}%
+          </b-table-column>          
         </b-table>
         
         <div class="columns mt-4" v-if="filteredDocuments.length > 0">
