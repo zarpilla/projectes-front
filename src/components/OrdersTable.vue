@@ -412,7 +412,7 @@
           v-if="props.row.id"
           :to="{ name: 'orders.edit', params: { id: props.row.id } }"
         >
-          {{ props.row.id.toString().padStart(4, "0") }}
+          {{ props.row.idx }}
         </router-link>
         <div v-else>
           <button
@@ -617,7 +617,7 @@
             </option>
           </b-select>
         </div>
-        <span v-else>{{ props.row.pickup ? props.row.pickup.name : "-" }}</span>
+        <span v-else>{{ props.row.pickup ? props.row.pickup.alias || props.row.pickup.name : "-" }}</span>
       </b-table-column>
       <b-table-column
         label="Ú.milla"
@@ -1558,7 +1558,7 @@ export default {
       this.orders = this.orders.map(o => {
         return {
           ...o,
-          idx: o.id.toString().padStart(4, "0"),
+          idx: o.id.toString().padStart(4, "0") + (o.is_collection_order ? `-R` : ""),
           route_name: o.route.name,
           owner_id: o.owner.id,
           timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(

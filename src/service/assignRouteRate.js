@@ -13,6 +13,7 @@ const assignRouteRate = (form, routeRates, orders) => {
       ? form.delivery_type.id
       : form.delivery_type;
   const owner = form.owner && form.owner.id ? form.owner.id : form.owner;
+  const collection_point = form.collection_point && form.collection_point.id ? form.collection_point.id : form.collection_point;
 
   if (form.route_rate === null || form.status !== "invoiced") {
     let rates = routeRates.filter(
@@ -21,7 +22,13 @@ const assignRouteRate = (form, routeRates, orders) => {
         r.routes.length === 0
     );
 
-    if (pickup === 2) {
+    // If a collection_point is selected, exclude "Pickup" rates (only accept pickup ID 1 or null)
+    if (collection_point) {
+      console.log("Collection point selected, excluding Pickup rates");
+      rates = rates.filter(
+        r => (r.pickup && r.pickup.id === 1) || r.pickup === null
+      );
+    } else if (pickup === 2) {
       // finca
 
       const pendingOrders = orders.filter(

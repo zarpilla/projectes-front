@@ -175,7 +175,7 @@
                 label="Tipus de servei *"
                 horizontal
                 :type="{ 'is-danger': errors['delivery_type'] && submitted }"
-                message="Indica refrigerat si almenys una caixa de la comanda ha d'anar refrigerada"
+                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Indica refrigerat si almenys una caixa de la comanda ha d\'anar refrigerada'"
               >
                 <div class="is-flex">
                   <button
@@ -187,7 +187,7 @@
                       'is-outlined': form.delivery_type !== s.id
                     }"
                     @click="form.delivery_type = s.id"
-                    :disabled="!canEdit"
+                    :disabled="!canEdit || form.is_collection_order"
                   >
                     {{ s.name }}
                   </button>
@@ -301,13 +301,13 @@
                 <b-field
                   label="Número de caixes *"
                   horizontal
-                  message="Nombre de caixes que inclou la comanda"
+                  :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Nombre de caixes que inclou la comanda'"
                   :type="{ 'is-danger': errors['units'] && submitted }"
                 >
                   <b-input
                     v-model="form.units"
                     type="number"
-                    :disabled="!canEdit"
+                    :disabled="!canEdit || form.is_collection_order"
                   />
                 </b-field>
 
@@ -315,12 +315,12 @@
                   :type="{ 'is-danger': errors['kilograms'] && submitted }"
                   label="Kilograms *"
                   horizontal
-                  message="Kilograms totals"
+                  :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Kilograms totals'"
                 >
                   <b-input
                     v-model="form.kilograms"
                     type="number"
-                    :disabled="!canEdit"
+                    :disabled="!canEdit || form.is_collection_order"
                   />
                 </b-field>
               </div>
@@ -329,11 +329,11 @@
               <b-field
                 label="Fràgil"
                 horizontal
-                message="Si la comanda és fràgil, marca aquesta casella"
+                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Si la comanda és fràgil, marca aquesta casella'"
               >
                 <b-switch
                   v-model="form.fragile"
-                  :disabled="!canEdit"
+                  :disabled="!canEdit || form.is_collection_order"
                 ></b-switch>
               </b-field>
 
@@ -349,7 +349,7 @@
                 horizontal
                 :type="{ 'is-danger': errors['pickup'] && submitted }"
                 class="zmessage-alert"
-                :message="form.pickup && pickups.find(p => p.id === form.pickup) ? pickups.find(p => p.id === form.pickup).message : ''"
+                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : (form.pickup && pickups.find(p => p.id === form.pickup) ? pickups.find(p => p.id === form.pickup).message : '')"
               >
                 <div class="is-flex-desktop">
                   <button
@@ -361,7 +361,7 @@
                       'is-outlined': form.pickup !== s.id
                     }"
                     @click="form.pickup = s.id; updatePickup()"
-                    :disabled="!canEdit"
+                    :disabled="!canEdit || form.is_collection_order"
                   >
                     {{ s.name }}
                   </button>
@@ -373,7 +373,7 @@
                 label="Punt de recollida en finca *"
                 horizontal
                 :type="{ 'is-danger': errors['collection_point'] && submitted }"
-                message="Selecciona el punt de recollida concret dins de la finca"
+                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Selecciona el punt de recollida concret dins de la finca'"
               >
                 <div class="is-flex-desktop">
                   <button
@@ -386,7 +386,7 @@
                       'is-outlined': form.collection_point !== cp.id
                     }"
                     @click="form.collection_point = cp.id; checkTransferNeeded()"
-                    :disabled="!canEdit"
+                    :disabled="!canEdit || form.is_collection_order"
                   >
                     {{ cp.name }}
                   </button>
@@ -497,6 +497,140 @@
 
               
               <hr />
+
+              <!-- COLLECTION ORDERS SECTION -->
+              <div v-if="form.id">
+                <!-- Show collection orders for collection order -->
+                <div v-if="form.is_collection_order">
+                  <h3 class="title is-5 mt-4 mb-3">
+                    COMANDES A RECOLLIR ({{ form.collection_orders.length }})
+                  </h3>
+                  <b-field
+                    horizontal
+                    message="Comandes que formen part d'aquesta comanda de recollida"
+                  >
+                    <div class="is-full-width">
+                      <b-table
+                        v-if="form.collection_orders && form.collection_orders.length > 0"
+                        :data="form.collection_orders"
+                        :striped="true"
+                        :hoverable="true"
+                        :mobile-cards="false"
+                      >
+                        <b-table-column field="id" label="Comanda" width="120" v-slot="props">
+                          <router-link :to="`/order/${props.row.id}`">
+                            <strong>#{{ String(props.row.id).padStart(4, '0') }}</strong>
+                          </router-link>
+                        </b-table-column>
+
+                        <b-table-column field="contact" label="Entrega" v-slot="props">
+                          {{ (props.row.contact && props.row.contact.trade_name) || props.row.contact_trade_name || '-' }}
+                        </b-table-column>
+
+                        <b-table-column field="units" label="Caixes" width="100" numeric v-slot="props">
+                          {{ props.row.units || 0 }}
+                        </b-table-column>
+
+                        <b-table-column field="kilograms" label="Kg" width="100" numeric v-slot="props">
+                          {{ props.row.kilograms || 0 }}
+                        </b-table-column>
+
+                        <b-table-column field="status" label="Estat" width="150" v-slot="props">
+                          <b-tag :type="getStatusColor(props.row.status)">
+                            {{ getStatusName(props.row.status) }}
+                          </b-tag>
+                        </b-table-column>
+
+                        <b-table-column label="Dipositat" width="120" v-slot="props">
+                          <div v-if="props.row.deposit_date">
+                            <b-icon icon="check-circle" type="is-success"></b-icon>
+                          </div>
+                          <div v-else>
+                            <b-button
+                              type="is-info"
+                              size="is-small"
+                              @click="depositCollectionOrder(props.row.id)"
+                              :loading="isLoadingDeposit[props.row.id]"
+                            >
+                              Dipositar
+                            </b-button>
+                          </div>
+                        </b-table-column>
+
+                        <b-table-column label="Recollit" width="120" v-slot="props">
+                          <div v-if="props.row.pickup_date">
+                            <b-icon icon="check-circle" type="is-success"></b-icon>
+                          </div>
+                          <div v-else>
+                            <b-button
+                              type="is-info"
+                              size="is-small"
+                              @click="pickupCollectionOrder(props.row.id)"
+                              :loading="isLoadingPickup[props.row.id]"
+                              :disabled="!permissions.includes('orders_admin')"
+                            >
+                              Recollir
+                            </b-button>
+                          </div>
+                        </b-table-column>
+
+                        <template #empty>
+                          <div class="has-text-centered has-text-grey-light p-4">
+                            No hi ha comandes associades encara
+                          </div>
+                        </template>
+                      </b-table>
+                      <div v-else class="has-text-grey-light has-text-centered p-4">
+                        No hi ha comandes associades encara
+                      </div>
+                    </div>
+                  </b-field>
+                </div>
+
+                <!-- Show collection order for regular order -->
+                <div v-else-if="form.collection_order">
+                  <h3 class="title is-5 mt-4 mb-3">COMANDA DE RECOLLIDA</h3>
+                  <b-field
+                    horizontal
+                    message="Aquesta comanda forma part d'una recollida en finca"
+                  >
+                    <div class="is-full-width">
+                      <b-table
+                        :data="[form.collection_order]"
+                        :striped="true"
+                        :hoverable="true"
+                        :mobile-cards="false"
+                      >
+                        <b-table-column field="id" label="Comanda" width="150" v-slot="props">
+                          <router-link :to="`/order/${props.row.id || props.row}`">
+                            <strong>#{{ String(props.row.id || props.row).padStart(4, '0') }}-R</strong>
+                          </router-link>
+                        </b-table-column>
+
+                        <b-table-column field="estimated_delivery_date" width="150" label="Data prevista" v-slot="props">
+                          {{ props.row.estimated_delivery_date || '-' }}
+                        </b-table-column>
+
+                        <!-- <b-table-column field="contact" label="Punt de recollida" v-slot="props">
+                          {{ (props.row.contact_trade_name || props.row.contact_name) || '-' }}
+                        </b-table-column> -->
+
+                        <b-table-column field="route" label="Ruta" width="350" v-slot="props">
+                          {{ (props.row.route && (props.row.route.short_name || props.row.route.name)) || '-' }}
+                        </b-table-column>
+
+                        <b-table-column field="status" label="Estat" width="150" v-slot="props">
+                          <b-tag v-if="props.row.status" :type="getStatusColor(props.row.status)">
+                            {{ getStatusName(props.row.status) }}
+                          </b-tag>
+                        </b-table-column>
+                      </b-table>
+                    </div>
+                  </b-field>
+                </div>
+              </div>
+
+              <hr v-if="form.id && (form.is_collection_order || form.collection_order)" />
 
               <!-- <b-field
                 label="Ruta *"
@@ -724,7 +858,7 @@
               <h3 class="title is-5 mt-4 mb-3">ACCIONS</h3>
 
               <b-field
-                v-if="form.id"
+                v-if="form.id && !form.is_collection_order"
                 horizontal
                 label="Albarà"
                 message="Imprimeix l'albarà i enganxa'n un full a cada caixa. El teu albarà propi posa'l a dins d'una de les caixes"
@@ -736,7 +870,10 @@
 
               <!-- depositar i recollir -->
 
-              <b-field horizontal label="Dipòsit"
+              <b-field 
+                v-if="!form.is_collection_order"
+                horizontal 
+                label="Dipòsit"
                 message="Informa que has dipositat els paquets">
                 <div v-if="form.deposit_date && form.deposit_user">
                   <p>
@@ -763,7 +900,10 @@
                 </div>
               </b-field>
 
-              <b-field horizontal label="Recollida"
+              <b-field 
+                v-if="!form.is_collection_order"
+                horizontal 
+                label="Recollida"
                 message="Informa que has recollit els paquets">
                 <div v-if="form.pickup_date && form.pickup_user">
                   <p>
@@ -954,6 +1094,8 @@ export default {
       apiUrl: process.env.VUE_APP_API_URL,
       dateWarningMessage: "",
       isModalActive: false,
+      isLoadingDeposit: {},
+      isLoadingPickup: {},
     };
   },
   computed: {
@@ -963,7 +1105,8 @@ export default {
     },
     formCardTitle() {
       if (this.form.id) {
-        return `Comanda #${this.form.id.toString().padStart(4, "0")}`;
+        const collection = this.form.is_collection_order ? "-R" : "";
+        return `Comanda #${this.form.id.toString().padStart(4, "0")}${collection}`;
       } else {
         return !this.isPickupPoint ? "Nova comanda" : "Nova comanda punt de consum";
       }
@@ -2335,6 +2478,22 @@ export default {
       if (!date) return '';
       return dayjs(date).format('DD/MM/YYYY');
     },
+    getStatusColor(status) {
+      const statusColors = {
+        'pending': 'is-warning',
+        'deposited': 'is-info',
+        'processed': 'is-primary',
+        'lastmile': 'is-link',
+        'delivered': 'is-success',
+        'invoiced': 'is-dark',
+        'cancelled': 'is-danger'
+      };
+      return statusColors[status] || 'is-light';
+    },
+    getStatusName(status) {
+      const statusObj = this.statuses.find(s => s.id === status);
+      return statusObj ? statusObj.name : status;
+    },
     calculateTotals() {
       if (!this.form.lines || this.form.lines.length === 0) {
         return { totalUnits: 0, totalKilograms: 0 };
@@ -2482,6 +2641,81 @@ export default {
         });
       } finally {
         this.isLoading = false;
+      }
+    },
+    async depositCollectionOrder(orderId) {
+      try {
+        this.$set(this.isLoadingDeposit, orderId, true);
+        
+        // Get current user
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+        
+        // Prepare update data
+        const updateData = {
+          deposit_date: new Date().toISOString(),
+          deposit_user: currentUser.data.id
+        };
+        
+        // Update with deposit information
+        await service({ requiresAuth: true }).put(
+          `orders/${orderId}`,
+          updateData
+        );
+        
+        this.$buefy.snackbar.open({
+          message: "Comanda depositada correctament",
+          queue: false,
+          type: "is-success"
+        });
+        
+        // Refresh data to show the updated information
+        await this.getData();
+        
+      } catch (err) {
+        console.error(err);
+        this.$buefy.snackbar.open({
+          message: "Error al depositar la comanda",
+          queue: false,
+          type: "is-danger"
+        });
+      } finally {
+        this.$set(this.isLoadingDeposit, orderId, false);
+      }
+    },
+    async pickupCollectionOrder(orderId) {
+      try {
+        this.$set(this.isLoadingPickup, orderId, true);
+        
+        // Get current user
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+        
+        // Update with pickup information
+        await service({ requiresAuth: true }).put(
+          `orders/${orderId}`,
+          {
+            pickup_date: new Date().toISOString(),
+            pickup_user: currentUser.data.id
+          }
+        );
+        
+        this.$buefy.snackbar.open({
+          message: "Comanda recollida correctament",
+          queue: false,
+          type: "is-success"
+        });
+        
+        // Refresh data to show the updated information
+        await this.getData();
+        
+      } catch (err) {
+        console.error(err);
+        this.$buefy.snackbar.open({
+          message: "Error al recollir la comanda",
+          queue: false,
+          type: "is-danger"
+        });
+      } finally {
+        this.$set(this.isLoadingPickup, orderId, false);
       }
     },
     async removePickup() {
