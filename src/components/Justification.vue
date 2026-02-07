@@ -220,12 +220,6 @@
         "
         title="Bestretes manuals"
       >
-        <div v-if="type !== 'Reals'" class="card-body">
-          <div class="notification is-info">
-            Les bestretes manuals només es poden afegir i visualitzar a la vista "Reals".
-          </div>
-        </div>
-        <template v-else>
         <div class="columns card-body">
           <div class="column has-text-weight-bold">Any</div>
           <div class="column has-text-weight-bold">Mes</div>
@@ -248,7 +242,7 @@
 
         <div
           v-for="(row, i) in justifications.filter(
-            j => j.users_permissions_user
+            j => j.users_permissions_user && (j.justification_type === justificationTypeEnum || (!j.justification_type && type === 'Reals'))
           )"
           :key="'justification-' + i"
           class="card-body"
@@ -377,7 +371,6 @@
             </div>
           </div>
         </div>
-        </template>
       </card-component>
 
       <card-component
@@ -641,6 +634,10 @@ export default {
   },
   computed: {
     ...mapState(["userName", "user"]),
+    justificationTypeEnum() {
+      // Map view type to enum value
+      return this.type === 'Reals' ? 'real' : 'estimated';
+    },
     trashObjectName() {
       if (this.trashObject) {
         return this.trashObject.name;
@@ -765,12 +762,12 @@ export default {
       return activities;
     },
     summaryJustificationsByProject() {
-      // Only include manual justifications when viewing "Reals"
-      if (this.type !== "Reals") {
-        return [];
-      }
       const activities = _(
-        this.justifications.filter(j => j.users_permissions_user)
+        this.justifications.filter(
+          j => j.users_permissions_user && 
+          (j.justification_type === this.justificationTypeEnum || 
+           (!j.justification_type && this.type === 'Reals'))
+        )
       )
         .groupBy("project.name")
         .map((rows, id) => {
@@ -911,11 +908,13 @@ export default {
       return activities;
     },
     summaryJustificationsByUser() {
-      // Only include manual justifications when viewing "Reals"
-      if (this.type !== "Reals") {
-        return [];
-      }
-      const activities = _(this.justifications)
+      const activities = _(
+        this.justifications.filter(
+          j => j.users_permissions_user && 
+          (j.justification_type === this.justificationTypeEnum || 
+           (!j.justification_type && this.type === 'Reals'))
+        )
+      )
         .groupBy("users_permissions_user.username")
         .map((rows, id) => {
           return {
@@ -938,10 +937,13 @@ export default {
           };
         })
         .value();
-      // Only include manual justifications when viewing "Reals"
-      const activities2 =
-        this.type === "Reals"
-          ? _(this.justifications.filter(j => j.users_permissions_user))
+      const activities2 = _(
+        this.justifications.filter(
+          j => j.users_permissions_user && 
+          (j.justification_type === this.justificationTypeEnum || 
+           (!j.justification_type && this.type === 'Reals'))
+        )
+      )
               .groupBy(
                 item => `${item.users_permissions_user.username}_${item.month}`
               )
@@ -953,8 +955,7 @@ export default {
                   cost: _.sumBy(rows, r => r.quantity)
                 };
               })
-              .value()
-          : [];
+              .value();
 
       const activitiesjoin = _.concat(activities1, activities2);
 
@@ -992,10 +993,12 @@ export default {
       return activities;
     },
     dataCSV() {
-      // Only include manual justifications when viewing "Reals"
-      const justifications =
-        this.type === "Reals"
-          ? this.justifications.map(
+      const justifications = this.justifications
+        .filter(
+          j => j.justification_type === this.justificationTypeEnum || 
+          (!j.justification_type && this.type === 'Reals')
+        )
+        .map(
               ({
                 id,
                 project,
@@ -1019,8 +1022,7 @@ export default {
                   cost: row.quantity
                 };
               }
-            )
-          : [];
+            );
       const rows = _.concat(this.monthlyActivitiesTotal, justifications);
       return rows.map(({ ym, users_permissions_user, ...row }) => row);
     },
@@ -1114,12 +1116,13 @@ export default {
         type: "activity"
       }));
 
-      // Only include manual justifications when viewing "Reals"
-      const justifications =
-        this.type === "Reals"
-          ? this.justifications
-              .filter(j => j.users_permissions_user)
-              .map(row => {
+      const justifications = this.justifications
+        .filter(
+          j => j.users_permissions_user && 
+          (j.justification_type === this.justificationTypeEnum || 
+           (!j.justification_type && this.type === 'Reals'))
+        )
+        .map(row => {
                 const payroll = this.payrolls.find(
                   p =>
                     p.users_permissions_user &&
@@ -1147,14 +1150,19 @@ export default {
                     payrollTotal > 0 ? cost / payrollTotal : 0,
                   type: "justification"
                 };
-              })
-          : [];
+              });
 
       return [...activities, ...justifications];
     },
     // Computed property to check justifications that exceed 100% by user/month
     justificationsExceeding100() {
-      const grouped = _(this.justifications.filter(j => j.users_permissions_user))
+      const grouped = _(
+        this.justifications.filter(
+          j => j.users_permissions_user && 
+          (j.justification_type === this.justificationTypeEnum || 
+           (!j.justification_type && this.type === 'Reals'))
+        )
+      )
         .groupBy(item => `${item.users_permissions_user.id}_${item.year}_${item.month}`)
         .map((rows, key) => {
           const firstRow = rows[0];
@@ -1304,25 +1312,25 @@ export default {
               : `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1`
           )
         ).data;
-        // Clear justifications when viewing "Previstes"
-        this.justifications = [];
       } else {
         // Clear estimated totals when viewing "Reals"
         this.estimatedTotals = [];
-        // Only load justifications when viewing "Reals"
-        const justifications = (
-          await service({ requiresAuth: true }).get(
-            this.theYear
-              ? `justifications?year=${this.theYear}&_limit=-1`
-              : `justifications?_limit=-1`
-          )
-        ).data;
+      }
+      
+      // Load justifications for both Reals and Previstes views
+      const justifications = (
+        await service({ requiresAuth: true }).get(
+          this.theYear
+            ? `justifications?year=${this.theYear}&_limit=-1`
+            : `justifications?_limit=-1`
+        )
+      ).data;
 
-        this.dedications = (
-          await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
-        ).data;
+      this.dedications = (
+        await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
+      ).data;
 
-        for (const just of justifications.filter(j => j.users_permissions_user)) {
+      for (const just of justifications.filter(j => j.users_permissions_user)) {
           const date = moment(`${just.year}-${just.month}-01`).format(
             "YYYY-MM-DD"
           );
@@ -1343,10 +1351,9 @@ export default {
               parseInt(p.year.year) === parseInt(just.year) &&
               parseInt(p.month.month) === parseInt(just.month)
           );
-          just.payroll = payroll;
-        }
-        this.justifications = justifications;
+        just.payroll = payroll;
       }
+      this.justifications = justifications;
 
       this.users = (
         await service({ requiresAuth: true, cached: true }).get(
@@ -1404,6 +1411,8 @@ export default {
         const quantityStr = dataToSubmit.quantity.toString().replace(",", ".");
         dataToSubmit.quantity = parseFloat(quantityStr);
       }
+      // Set justification_type based on current view
+      dataToSubmit.justification_type = this.justificationTypeEnum;
       await service({ requiresAuth: true }).post(
         `justifications`,
         dataToSubmit
