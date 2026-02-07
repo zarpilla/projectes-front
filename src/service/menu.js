@@ -169,7 +169,6 @@ const menu = [
       label: "Transferències",
       permission: "orders_admin"
     },
-    ,
     {
       to: "/city-route",
       icon: "city",
