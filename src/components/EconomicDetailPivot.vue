@@ -109,6 +109,10 @@ export default {
         .map((rows, id) => ({
           id: id,
           project_name: rows[0].project_name,
+          orig:
+            (_.sumBy(rows, "income_orig") || 0) +
+            (_.sumBy(rows, "expense_orig") || 0) +
+            (_.sumBy(rows, "total_original_hours_price") || 0),
           esti:
             (_.sumBy(rows, "income_esti") || 0) +
             (_.sumBy(rows, "expense_esti") || 0) +
@@ -117,18 +121,26 @@ export default {
             (_.sumBy(rows, "income_real") || 0) +
             (_.sumBy(rows, "expense_real") || 0) +
             (_.sumBy(rows, "total_real_hours_price") || 0),
+          income_orig: _.sumBy(rows, "income_orig") || 0,
           income_esti: _.sumBy(rows, "income_esti") || 0,
           income_real: _.sumBy(rows, "income_real") || 0,
+          total_expense_orig:
+            (_.sumBy(rows, "expense_orig") || 0) +
+            (_.sumBy(rows, "total_original_hours_price") || 0),
           total_expense_esti:
             (_.sumBy(rows, "expense_esti") || 0) +
             (_.sumBy(rows, "total_estimated_hours_price") || 0),
           total_expense_real:
             (_.sumBy(rows, "expense_real") || 0) +
             (_.sumBy(rows, "total_real_hours_price") || 0),
+          expense_orig: _.sumBy(rows, "expense_orig") || 0,
+          expense_orig_vat: _.sumBy(rows, "expense_orig_vat") || 0,
           expense_esti: _.sumBy(rows, "expense_esti") || 0,
           expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
           expense_real: _.sumBy(rows, "expense_real") || 0,
           expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
+          total_original_hours_price:
+            _.sumBy(rows, "total_original_hours_price") || 0,
           total_estimated_hours_price:
             _.sumBy(rows, "total_estimated_hours_price") || 0,
           total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0
@@ -146,6 +158,10 @@ export default {
           id: py.split(".")[0],
           year: py.split(".")[1],
           project_name: rows[0].project_name,
+          orig:
+            (_.sumBy(rows, "income_orig") || 0) +
+            (_.sumBy(rows, "expense_orig") || 0) +
+            (_.sumBy(rows, "total_original_hours_price") || 0),
           esti:
             (_.sumBy(rows, "income_esti") || 0) +
             (_.sumBy(rows, "expense_esti") || 0) +
@@ -154,18 +170,26 @@ export default {
             (_.sumBy(rows, "income_real") || 0) +
             (_.sumBy(rows, "expense_real") || 0) +
             (_.sumBy(rows, "total_real_hours_price") || 0),
+          income_orig: _.sumBy(rows, "income_orig") || 0,
           income_esti: _.sumBy(rows, "income_esti") || 0,
           income_real: _.sumBy(rows, "income_real") || 0,
+          total_expense_orig:
+            (_.sumBy(rows, "expense_orig") || 0) +
+            (_.sumBy(rows, "total_original_hours_price") || 0),
           total_expense_esti:
             (_.sumBy(rows, "expense_esti") || 0) +
             (_.sumBy(rows, "total_estimated_hours_price") || 0),
           total_expense_real:
             (_.sumBy(rows, "expense_real") || 0) +
             (_.sumBy(rows, "total_real_hours_price") || 0),
+          expense_orig: _.sumBy(rows, "expense_orig") || 0,
+          expense_orig_vat: _.sumBy(rows, "expense_orig_vat") || 0,
           expense_esti: _.sumBy(rows, "expense_esti") || 0,
           expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
           expense_real: _.sumBy(rows, "expense_real") || 0,
           expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
+          total_original_hours_price:
+            _.sumBy(rows, "total_original_hours_price") || 0,
           total_estimated_hours_price:
             _.sumBy(rows, "total_estimated_hours_price") || 0,
           total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0
@@ -187,6 +211,12 @@ export default {
         month: "month",
         paid: "paid",
         row_type: "row_type",
+        income_orig: {
+          field: "income_orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         income_esti: {
           field: "income_esti",
           callback: value => {
@@ -195,6 +225,18 @@ export default {
         },
         income_real: {
           field: "income_real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        expense_orig: {
+          field: "expense_orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        expense_orig_vat: {
+          field: "expense_orig_vat",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -223,6 +265,12 @@ export default {
             return this.excelFormat(value);
           }
         },
+        total_original_hours_price: {
+          field: "total_original_hours_price",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         total_estimated_hours_price: {
           field: "total_estimated_hours_price",
           callback: value => {
@@ -237,13 +285,23 @@ export default {
         }
       };
       if (this.dataType === 'Previsió') {
+        delete fields.income_orig
         delete fields.income_real
+        delete fields.expense_orig
+        delete fields.expense_orig_vat
         delete fields.expense_real
+        delete fields.expense_real_vat
+        delete fields.total_original_hours_price
         delete fields.total_real_hours_price
       }
       else if (this.dataType === 'Execució') {
+        delete fields.income_orig
         delete fields.income_esti
+        delete fields.expense_orig
+        delete fields.expense_orig_vat
         delete fields.expense_esti
+        delete fields.expense_esti_vat
+        delete fields.total_original_hours_price
         delete fields.total_estimated_hours_price
       }
       return fields
@@ -253,6 +311,12 @@ export default {
         id: "id",
         project_name: "project_name",
         year: "year",
+        "Resultat orig": {
+          field: "orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Resultat prev": {
           field: "esti",
           callback: value => {
@@ -261,6 +325,12 @@ export default {
         },
         "Resultat exec": {
           field: "real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Ingressos orig": {
+          field: "income_orig",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -277,6 +347,12 @@ export default {
             return this.excelFormat(value);
           }
         },
+        "Despeses tot orig": {
+          field: "total_expense_orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Despeses tot prev": {
           field: "total_expense_esti",
           callback: value => {
@@ -285,6 +361,18 @@ export default {
         },
         "Despeses tot exec": {
           field: "total_expense_real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Despeses orig": {
+          field: "expense_orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Despeses orig iva": {
+          field: "expense_orig_vat",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -313,6 +401,12 @@ export default {
             return this.excelFormat(value);
           }
         },
+        "Hores orig": {
+          field: "total_original_hours_price",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Hores prev": {
           field: "total_estimated_hours_price",
           callback: value => {
@@ -328,17 +422,31 @@ export default {
       };
 
       if (this.dataType === 'Previsió') {
+        delete fields["Resultat orig"]
         delete fields["Resultat exec"]
+        delete fields["Ingressos orig"]
         delete fields["Ingressos exec"]
+        delete fields["Despeses tot orig"]
         delete fields["Despeses tot exec"]
+        delete fields["Despeses orig"]
+        delete fields["Despeses orig iva"]
         delete fields["Despeses exec"]
+        delete fields["Despeses exec iva"]
+        delete fields["Hores orig"]
         delete fields["Hores exec"]
       }
       else if (this.dataType === 'Execució') {
+        delete fields["Resultat orig"]
         delete fields["Resultat prev"]
+        delete fields["Ingressos orig"]
         delete fields["Ingressos prev"]
+        delete fields["Despeses tot orig"]
         delete fields["Despeses tot prev"]
+        delete fields["Despeses orig"]
+        delete fields["Despeses orig iva"]
         delete fields["Despeses prev"]
+        delete fields["Despeses prev iva"]
+        delete fields["Hores orig"]
         delete fields["Hores prev"]
       }
       return fields
@@ -347,6 +455,12 @@ export default {
       const fields = {
         id: "id",
         project_name: "project_name",
+        "Resultat orig": {
+          field: "orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Resultat prev": {
           field: "esti",
           callback: value => {
@@ -355,6 +469,12 @@ export default {
         },
         "Resultat exec": {
           field: "real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Ingressos orig": {
+          field: "income_orig",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -371,6 +491,12 @@ export default {
             return this.excelFormat(value);
           }
         },
+        "Despeses tot orig": {
+          field: "total_expense_orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Despeses tot prev": {
           field: "total_expense_esti",
           callback: value => {
@@ -383,6 +509,12 @@ export default {
             return this.excelFormat(value);
           }
         },
+        "Despeses orig": {
+          field: "expense_orig",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Despeses prev": {
           field: "expense_esti",
           callback: value => {
@@ -391,6 +523,12 @@ export default {
         },
         "Despeses exec": {
           field: "expense_real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Hores orig": {
+          field: "total_original_hours_price",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -410,17 +548,27 @@ export default {
       };
 
       if (this.dataType === 'Previsió') {
+        delete fields["Resultat orig"]
         delete fields["Resultat exec"]
+        delete fields["Ingressos orig"]
         delete fields["Ingressos exec"]
+        delete fields["Despeses tot orig"]
         delete fields["Despeses tot exec"]
+        delete fields["Despeses orig"]
         delete fields["Despeses exec"]
+        delete fields["Hores orig"]
         delete fields["Hores exec"]
       }
       else if (this.dataType === 'Execució') {
+        delete fields["Resultat orig"]
         delete fields["Resultat prev"]
+        delete fields["Ingressos orig"]
         delete fields["Ingressos prev"]
+        delete fields["Despeses tot orig"]
         delete fields["Despeses tot prev"]
+        delete fields["Despeses orig"]
         delete fields["Despeses prev"]
+        delete fields["Hores orig"]
         delete fields["Hores prev"]
       }
       return fields
@@ -493,14 +641,19 @@ export default {
         ];
       } else {
         currentConfigPivot.dataSource.measures = [
+          "Resultat orig",
           "Resultat prev",
           "Resultat exec",
+          "Ingressos orig",
           "Ingressos prev",
           "Ingressos exec",
+          "Despeses tot orig",
           "Despeses tot prev",
           "Despeses tot exec",
+          "Despeses orig",
           "Despeses prev",
           "Despeses exec",
+          "Hores orig",
           "Hores prev",
           "Hores exec"
         ];

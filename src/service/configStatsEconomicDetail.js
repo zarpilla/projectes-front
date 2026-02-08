@@ -40,7 +40,7 @@ const config = {
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Resultat prev', 'Resultat exec', 'Ingressos prev', 'Ingressos exec', 'Despeses tot prev', 'Despeses tot exec', 'Despeses prev', 'Despeses exec', 'Hores prev', 'Hores exec'],
+    measures: ['Resultat orig', 'Resultat prev', 'Resultat exec', 'Ingressos orig', 'Ingressos prev', 'Ingressos exec', 'Despeses tot orig', 'Despeses tot prev', 'Despeses tot exec', 'Despeses orig', 'Despeses prev', 'Despeses exec', 'Hores orig', 'Hores prev', 'Hores exec'],
     schema: {
       model: {
         fields: {
@@ -114,10 +114,29 @@ const config = {
         },
         // measures: ['Sum']
         measures: {
+          'Ingressos orig': {
+            field: 'income_orig',
+            aggregate: 'sum',
+            format: '{0:n2} €'
+          },
           'Ingressos prev': {
             field: 'income_esti',
             aggregate: 'sum',
             format: '{0:n2} €'
+          },
+          'Despeses orig': {
+            field: 'expense_orig',
+            format: '{0:n2} €',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var expense_orig = dataItem.expense_orig || 0
+              var total_original_hours_price = dataItem.total_original_hours_price || 0
+              var expense_orig_vat = dataItem.expense_orig_vat || 0
+              state.expenses_orig = (state.expenses_orig || 0) + expense_orig + total_original_hours_price + expense_orig_vat
+            },
+            result: function (state) {
+              return state.expenses_orig
+            },
           },
           'Despeses prev': {
             field: 'expense_esti',
@@ -125,12 +144,10 @@ const config = {
             format: '{0:n2} €',
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem
-              // var income_esti = dataItem.income_esti || 0
               var expense_esti = dataItem.expense_esti || 0
-              // var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
+              var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
               var expense_esti_vat = dataItem.expense_esti_vat || 0
-              // state.incomes = (state.incomes || 0) + income_esti
-              state.expenses = (state.expenses || 0) + expense_esti + expense_esti_vat
+              state.expenses = (state.expenses || 0) + expense_esti + total_estimated_hours_price + expense_esti_vat
             },
             result: function (state) {
               return state.expenses
@@ -147,16 +164,28 @@ const config = {
             format: '{0:n2} €',
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem
-              // var income_esti = dataItem.income_esti || 0
               var expense_real = dataItem.expense_real || 0
-              // var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
+              var total_real_hours_price = dataItem.total_real_hours_price || 0
               var expense_real_vat = dataItem.expense_real_vat || 0
-              // state.incomes = (state.incomes || 0) + income_esti
-              state.expense_real = (state.expense_real || 0) + expense_real + expense_real_vat
+              state.expense_real = (state.expense_real || 0) + expense_real + total_real_hours_price + expense_real_vat
             },
             result: function (state) {
               return state.expense_real
             },
+          },
+          'Despeses tot orig': {
+            field: 'type',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var expense_orig = dataItem.expense_orig || 0
+              var total_original_hours_price = dataItem.total_original_hours_price || 0
+              var expense_orig_vat = dataItem.expense_orig_vat || 0
+              state.expenses_tot_orig = (state.expenses_tot_orig || 0) + expense_orig + total_original_hours_price + expense_orig_vat
+            },
+            result: function (state) {
+              return state.expenses_tot_orig
+            },
+            format: '{0:n2} €'
           },
           'Despeses tot prev': {
             field: 'type',
@@ -209,6 +238,22 @@ const config = {
             },
             format: '{0:n2} €'
           },
+          'Resultat orig': {
+            field: 'type',
+            aggregate: function (value, state, context) {
+              var dataItem = context.dataItem
+              var income_orig = dataItem.income_orig || 0
+              var expense_orig = dataItem.expense_orig || 0
+              var expense_orig_vat = dataItem.expense_orig_vat || 0
+              var total_original_hours_price = dataItem.total_original_hours_price || 0
+              state.incomes_orig = (state.incomes_orig || 0) + income_orig
+              state.expenses_orig = (state.expenses_orig || 0) + expense_orig + total_original_hours_price + expense_orig_vat
+            },
+            result: function (state) {
+              return state.incomes_orig + state.expenses_orig
+            },
+            format: '{0:n2} €'
+          },
           'Resultat prev': {
             field: 'type',
             // aggregate: 'sum',
@@ -224,6 +269,11 @@ const config = {
             result: function (state) {
               return state.incomes + state.expenses
             },
+            format: '{0:n2} €'
+          },
+          'Hores orig': {
+            field: 'total_original_hours_price',
+            aggregate: 'sum',
             format: '{0:n2} €'
           },
           'Hores prev': {

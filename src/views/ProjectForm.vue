@@ -749,11 +749,24 @@
               </button>
             </div>
 
+            <!-- RESULTAT -->
             <div class="columns">
+              <b-field label="Resultat original" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="totals.original_incomes_expenses || 0"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
               <b-field label="Resultat previst" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.incomes_expenses"
+                    :value="totals.estimated_incomes_expenses || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -765,23 +778,7 @@
               <b-field label="Resultat executat" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_real_incomes_expenses"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *
-                        (totals.incomes_expenses -
-                          totals.total_real_incomes_expenses)
-                    "
+                    :value="totals.total_real_incomes_expenses || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -792,11 +789,24 @@
               </b-field>
             </div>
 
+            <!-- INGRESSOS -->
             <div class="columns">
+              <b-field label="Ingressos originals" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="totals.total_original_incomes || 0"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
               <b-field label="Ingressos previstos" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_incomes"
+                    :value="totals.total_estimated_incomes || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -808,21 +818,7 @@
               <b-field label="Ingressos executats" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_real_incomes"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 * (totals.total_incomes - totals.total_real_incomes)
-                    "
+                    :value="totals.total_real_incomes || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -833,14 +829,31 @@
               </b-field>
             </div>
 
+            <!-- DESPESES TOTALS -->
             <div class="columns" v-if="totals">
+              <b-field label="Despeses or. totals" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="
+                      (totals.total_original_expenses || 0) +
+                        (totals.total_original_hours_price || 0) +
+                        (totals.total_original_expenses_vat || 0)
+                    "
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
               <b-field label="Despeses pr. totals" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_expenses +
-                        totals.total_estimated_hours_price +
-                        totals.total_expenses_vat
+                      (totals.total_estimated_expenses || 0) +
+                        (totals.total_estimated_hours_price || 0) +
+                        (totals.total_estimated_expenses_vat || 0)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -854,29 +867,9 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_real_expenses +
-                        totals.total_real_hours_price +
-                        totals.total_real_expenses_vat
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *
-                        (totals.total_expenses +
-                          totals.total_estimated_hours_price +
-                          totals.total_expenses_vat -
-                          totals.total_real_expenses -
-                          totals.total_real_hours_price -
-                          totals.total_real_expenses_vat)
+                      (totals.total_real_expenses || 0) +
+                        (totals.total_real_hours_price || 0) +
+                        (totals.total_real_expenses_vat || 0)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -888,11 +881,24 @@
               </b-field>
             </div>
 
+            <!-- DESPESES FACTURES -->
             <div class="columns">
+              <b-field label="Despeses or. factures" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="totals.total_original_expenses || 0"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
               <b-field label="Despeses pr. factures" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_expenses"
+                    :value="totals.total_estimated_expenses || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -904,21 +910,7 @@
               <b-field label="Despeses ex. factures" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_real_expenses"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 * (totals.total_expenses - totals.total_real_expenses)
-                    "
+                    :value="totals.total_real_expenses || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -929,6 +921,7 @@
               </b-field>
             </div>
 
+            <!-- DESPESES PRORRATA (only if VAT < 100%) -->
             <div
               class="columns"
               v-if="
@@ -938,10 +931,22 @@
                   me.options.deductible_vat_pct < 100.0
               "
             >
+              <b-field label="Despeses or. prorrata" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="totals.total_original_expenses_vat || 0"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
               <b-field label="Despeses pr. prorrata" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_expenses_vat"
+                    :value="totals.total_estimated_expenses_vat || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -953,23 +958,7 @@
               <b-field label="Despeses ex. prorrata" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_real_expenses_vat"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *
-                        (totals.total_expenses_vat -
-                          totals.total_real_expenses_vat)
-                    "
+                    :value="totals.total_real_expenses_vat || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -980,11 +969,24 @@
               </b-field>
             </div>
 
+            <!-- HORES (€) -->
             <div class="columns" v-if="totals">
+              <b-field label="Hores originals" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="totals.total_original_hours_price || 0"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
               <b-field label="Hores previstes" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_estimated_hours_price"
+                    :value="totals.total_estimated_hours_price || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -996,23 +998,7 @@
               <b-field label="Hores executades" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="totals.total_real_hours_price"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *
-                        (totals.total_estimated_hours_price -
-                          form.total_real_hours_price)
-                    "
+                    :value="totals.total_real_hours_price || 0"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -1023,7 +1009,18 @@
               </b-field>
             </div>
 
+            <!-- HORES (h) quantity -->
             <div class="columns">
+              <b-field label="Hores originals (h)" class="column">
+                <div class="readonly subphase-detail-input has-text-right">
+                  {{
+                    totals && totals.total_original_hours
+                      ? totals.total_original_hours.toFixed(2)
+                      : "0"
+                  }}
+                  h
+                </div>
+              </b-field>
               <b-field label="Hores previstes (h)" class="column">
                 <div class="readonly subphase-detail-input has-text-right">
                   {{
@@ -1044,26 +1041,33 @@
                   h
                 </div>
               </b-field>
-              <b-field label="Diferència (h)" class="column">
-                <div class="readonly subphase-detail-input has-text-right">
-                  {{
-                    -1 *
-                      (
-                        totals.total_estimated_hours - totals.total_real_hours
-                      ).toFixed(2)
-                  }}
-                  h
-                </div>
-              </b-field>
             </div>
 
+            <!-- COST/HORA -->
             <div class="columns">
+              <b-field label="Cost/hora original" class="column">
+                <div class="readonly subphase-detail-input">
+                  <money-format
+                    :value="
+                      totals && totals.total_original_hours
+                        ? (totals.total_original_hours_price || 0) /
+                          totals.total_original_hours
+                        : 0
+                    "
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  >
+                  </money-format>
+                </div>
+              </b-field>
               <b-field label="Cost/hora previst" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_estimated_hours
-                        ? totals.total_estimated_hours_price /
+                      totals && totals.total_estimated_hours
+                        ? (totals.total_estimated_hours_price || 0) /
                           totals.total_estimated_hours
                         : 0
                     "
@@ -1079,8 +1083,8 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_real_hours
-                        ? form.total_real_hours_price / form.total_real_hours
+                      totals && totals.total_real_hours
+                        ? (totals.total_real_hours_price || 0) / totals.total_real_hours
                         : 0
                     "
                     :locale="'es'"
@@ -1091,20 +1095,18 @@
                   </money-format>
                 </div>
               </b-field>
-              <b-field label="Diferència" class="column">
+            </div>
+
+            <!-- PREU/HORA -->
+            <div class="columns">
+              <b-field label="Preu/hora original" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      -1 *
-                        (totals.total_estimated_hours
-                          ? totals.total_estimated_hours_price /
-                            totals.total_estimated_hours
-                          : 0) -
-                        -1 *
-                          (totals.total_real_hours
-                            ? totals.total_real_hours_price /
-                              totals.total_real_hours
-                            : 0)
+                      totals && totals.total_original_hours
+                        ? ((totals.total_original_incomes || 0) - (totals.total_original_expenses || 0)) /
+                          totals.total_original_hours
+                        : 0
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -1114,14 +1116,12 @@
                   </money-format>
                 </div>
               </b-field>
-            </div>
-            <div class="columns">
               <b-field label="Preu/hora previst" class="column">
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      totals.total_estimated_hours
-                        ? (totals.total_incomes - totals.total_expenses) /
+                      totals && totals.total_estimated_hours
+                        ? ((totals.total_estimated_incomes || 0) - (totals.total_estimated_expenses || 0)) /
                           totals.total_estimated_hours
                         : 0
                     "
@@ -1137,35 +1137,11 @@
                 <div class="readonly subphase-detail-input">
                   <money-format
                     :value="
-                      form.total_real_hours
-                        ? (totals.total_real_incomes -
-                            totals.total_real_expenses) /
+                      totals && totals.total_real_hours
+                        ? ((totals.total_real_incomes || 0) -
+                            (totals.total_real_expenses || 0)) /
                           totals.total_real_hours
                         : 0
-                    "
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                </div>
-              </b-field>
-              <b-field label="Diferència" class="column">
-                <div class="readonly subphase-detail-input">
-                  <money-format
-                    :value="
-                      -1 *
-                        (totals.total_estimated_hours
-                          ? (totals.total_incomes - totals.total_expenses) /
-                            totals.total_estimated_hours
-                          : 0) -
-                        -1 *
-                          (totals.total_real_hours
-                            ? (totals.total_real_incomes -
-                                totals.total_real_expenses) /
-                              totals.total_real_hours
-                            : 0)
                     "
                     :locale="'es'"
                     :currency-code="'EUR'"
@@ -1187,6 +1163,7 @@
               </div>
               <div
                 v-for="y in allByYear.filter(a => a.year !== 'undefined')"
+                :key="y.year"
                 class="year-total tag is-ghost mr-1 clickable"
                 :class="allByYearYear == y.year ? 'is-primary' : 'is-ghost'"
                 @click="allByYearYear = y.year"
@@ -2077,6 +2054,7 @@ export default {
       hasBeenDirty: false,
       allByYear: [],
       allByYearYear: "TOTS",
+      calculatedTotals: null,
       periodification: false,
       dirtyEnabled: true,
       originalEditable: false,
@@ -2433,8 +2411,10 @@ export default {
       return hasOwnOriginalPhases || hasOwnExecutionPhases;
     },
     totals() {
+      // When showing TOTS (total), use calculatedTotals from calculate endpoint
+      // This ensures totals match the sum of yearly values
       const result = this.allByYearYear === "TOTS"
-        ? this.form
+        ? (this.calculatedTotals || this.form)
         : this.allByYear.find(a => a.year === this.allByYearYear);
       
       return result;
@@ -2628,6 +2608,12 @@ export default {
                 if (childrenData.allByYear) {
                   this.allByYear = childrenData.allByYear;
                 }
+                
+                // Store calculated totals for mother projects
+                // This ensures consistency with yearly values
+                if (childrenData.totals) {
+                  this.calculatedTotals = childrenData.totals;
+                }
 
                 this.form.children = childrenData;
               }
@@ -2816,17 +2802,22 @@ export default {
         // For mother projects, allByYear is already loaded from children data
         // For other projects, we need to calculate it
         if (!this.form.is_mother) {
-          this.allByYear = [];
+          this.allByYear = this.form.allByYear;
           
-          const calculate = (
-            await service({ requiresAuth: true }).get(
-              `projects/${this.$route.params.id}/calculate`
-            )
-          ).data;
+          // const calculate = (
+          //   await service({ requiresAuth: true }).get(
+          //     `projects/${this.$route.params.id}/calculate`
+          //   )
+          // ).data;
 
-          if (calculate.allByYear) {
-            this.allByYear = calculate.allByYear;
-          }
+          // if (calculate.allByYear) {
+          //   this.allByYear = calculate.allByYear;
+          // }
+          
+          // Store calculated totals to ensure consistency with yearly values
+          // if (calculate.totals) {
+          //   this.calculatedTotals = calculate.totals;
+          // }
         }
 
         //this.dirtyEnabled = false

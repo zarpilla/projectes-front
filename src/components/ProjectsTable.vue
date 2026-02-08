@@ -36,11 +36,11 @@
       <b-table-column label="Hores previstes" field="total_estimated_hours" sortable numeric v-slot="props">
         {{ props.row.total_estimated_hours ? props.row.total_estimated_hours.toFixed(2) : '' }}
       </b-table-column>
-      <b-table-column label="Resultat actual" field="total_real_incomes_expenses" sortable numeric v-slot="props">
-        {{ formatPrice(props.row.total_real_incomes_expenses) }} €
+      <b-table-column label="Resultat executat" field="total_real_incomes_expenses" sortable numeric v-slot="props">
+        {{ formatPrice(props.row.total_real_incomes - props.row.total_real_expenses - props.row.total_real_hours_price - props.row.total_real_expenses_vat || 0) }} €
       </b-table-column>
-      <b-table-column label="Resultat previst" field="incomes_expenses" sortable numeric v-slot="props">
-        {{ formatPrice(props.row.incomes_expenses) }} €
+     <b-table-column label="Resultat previst" field="incomes_expenses" sortable numeric v-slot="props">
+        {{ formatPrice(props.row.incomes_expenses || props.row.estimated_incomes_expenses || 0) }} €
       </b-table-column>
       <b-table-column label="Estat" v-slot="props" sortable field="project_state.name">
         {{ props.row.project_state ? props.row.project_state.name : '' }}
