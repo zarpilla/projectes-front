@@ -752,7 +752,13 @@
             <!-- RESULTAT -->
             <div class="columns">
               <b-field label="Resultat original" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="totals.original_incomes_expenses || 0"
+                  :estimated-value="totals.estimated_incomes_expenses || 0"
+                  :executed-value="totals.total_real_incomes_expenses || 0"
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="totals.original_incomes_expenses || 0"
                     :locale="'es'"
@@ -761,10 +767,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Resultat previst" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="totals.original_incomes_expenses || 0"
+                  :estimated-value="totals.estimated_incomes_expenses || 0"
+                  :executed-value="totals.total_real_incomes_expenses || 0"
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="totals.estimated_incomes_expenses || 0"
                     :locale="'es'"
@@ -773,10 +785,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Resultat executat" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="totals.original_incomes_expenses || 0"
+                  :estimated-value="totals.estimated_incomes_expenses || 0"
+                  :executed-value="totals.total_real_incomes_expenses || 0"
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="totals.total_real_incomes_expenses || 0"
                     :locale="'es'"
@@ -785,14 +803,20 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
             <!-- INGRESSOS -->
             <div class="columns">
               <b-field label="Ingressos originals" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="totals.total_original_incomes || 0"
+                  :estimated-value="totals.total_estimated_incomes || 0"
+                  :executed-value="totals.total_real_incomes || 0"
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="totals.total_original_incomes || 0"
                     :locale="'es'"
@@ -801,10 +825,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Ingressos previstos" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="totals.total_original_incomes || 0"
+                  :estimated-value="totals.total_estimated_incomes || 0"
+                  :executed-value="totals.total_real_incomes || 0"
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="totals.total_estimated_incomes || 0"
                     :locale="'es'"
@@ -813,10 +843,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Ingressos executats" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="totals.total_original_incomes || 0"
+                  :estimated-value="totals.total_estimated_incomes || 0"
+                  :executed-value="totals.total_real_incomes || 0"
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="totals.total_real_incomes || 0"
                     :locale="'es'"
@@ -825,14 +861,32 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
             <!-- DESPESES TOTALS -->
             <div class="columns" v-if="totals">
               <b-field label="Despeses or. totals" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="
+                    (totals.total_original_expenses || 0) +
+                      (totals.total_original_hours_price || 0) +
+                      (totals.total_original_expenses_vat || 0)
+                  "
+                  :estimated-value="
+                    (totals.total_estimated_expenses || 0) +
+                      (totals.total_estimated_hours_price || 0) +
+                      (totals.total_estimated_expenses_vat || 0)
+                  "
+                  :executed-value="
+                    (totals.total_real_expenses || 0) +
+                      (totals.total_real_hours_price || 0) +
+                      (totals.total_real_expenses_vat || 0)
+                  "
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="
                       (totals.total_original_expenses || 0) +
@@ -845,10 +899,28 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Despeses pr. totals" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="
+                    (totals.total_original_expenses || 0) +
+                      (totals.total_original_hours_price || 0) +
+                      (totals.total_original_expenses_vat || 0)
+                  "
+                  :estimated-value="
+                    (totals.total_estimated_expenses || 0) +
+                      (totals.total_estimated_hours_price || 0) +
+                      (totals.total_estimated_expenses_vat || 0)
+                  "
+                  :executed-value="
+                    (totals.total_real_expenses || 0) +
+                      (totals.total_real_hours_price || 0) +
+                      (totals.total_real_expenses_vat || 0)
+                  "
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="
                       (totals.total_estimated_expenses || 0) +
@@ -861,10 +933,28 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Despeses ex. totals" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="
+                    (totals.total_original_expenses || 0) +
+                      (totals.total_original_hours_price || 0) +
+                      (totals.total_original_expenses_vat || 0)
+                  "
+                  :estimated-value="
+                    (totals.total_estimated_expenses || 0) +
+                      (totals.total_estimated_hours_price || 0) +
+                      (totals.total_estimated_expenses_vat || 0)
+                  "
+                  :executed-value="
+                    (totals.total_real_expenses || 0) +
+                      (totals.total_real_hours_price || 0) +
+                      (totals.total_real_expenses_vat || 0)
+                  "
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="
                       (totals.total_real_expenses || 0) +
@@ -877,14 +967,20 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
             <!-- DESPESES FACTURES -->
             <div class="columns">
               <b-field label="Despeses or. factures" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="totals.total_original_expenses || 0"
+                  :estimated-value="totals.total_estimated_expenses || 0"
+                  :executed-value="totals.total_real_expenses || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_original_expenses || 0"
                     :locale="'es'"
@@ -893,10 +989,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Despeses pr. factures" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="totals.total_original_expenses || 0"
+                  :estimated-value="totals.total_estimated_expenses || 0"
+                  :executed-value="totals.total_real_expenses || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_estimated_expenses || 0"
                     :locale="'es'"
@@ -905,10 +1007,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Despeses ex. factures" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="totals.total_original_expenses || 0"
+                  :estimated-value="totals.total_estimated_expenses || 0"
+                  :executed-value="totals.total_real_expenses || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_real_expenses || 0"
                     :locale="'es'"
@@ -917,7 +1025,7 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
@@ -932,7 +1040,13 @@
               "
             >
               <b-field label="Despeses or. prorrata" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="totals.total_original_expenses_vat || 0"
+                  :estimated-value="totals.total_estimated_expenses_vat || 0"
+                  :executed-value="totals.total_real_expenses_vat || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_original_expenses_vat || 0"
                     :locale="'es'"
@@ -941,10 +1055,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Despeses pr. prorrata" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="totals.total_original_expenses_vat || 0"
+                  :estimated-value="totals.total_estimated_expenses_vat || 0"
+                  :executed-value="totals.total_real_expenses_vat || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_estimated_expenses_vat || 0"
                     :locale="'es'"
@@ -953,10 +1073,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Despeses ex. prorrata" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="totals.total_original_expenses_vat || 0"
+                  :estimated-value="totals.total_estimated_expenses_vat || 0"
+                  :executed-value="totals.total_real_expenses_vat || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_real_expenses_vat || 0"
                     :locale="'es'"
@@ -965,14 +1091,20 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
             <!-- HORES (€) -->
             <div class="columns" v-if="totals">
               <b-field label="Hores originals" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="totals.total_original_hours_price || 0"
+                  :estimated-value="totals.total_estimated_hours_price || 0"
+                  :executed-value="totals.total_real_hours_price || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_original_hours_price || 0"
                     :locale="'es'"
@@ -981,10 +1113,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Hores previstes" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="totals.total_original_hours_price || 0"
+                  :estimated-value="totals.total_estimated_hours_price || 0"
+                  :executed-value="totals.total_real_hours_price || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_estimated_hours_price || 0"
                     :locale="'es'"
@@ -993,10 +1131,16 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Hores executades" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="totals.total_original_hours_price || 0"
+                  :estimated-value="totals.total_estimated_hours_price || 0"
+                  :executed-value="totals.total_real_hours_price || 0"
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="totals.total_real_hours_price || 0"
                     :locale="'es'"
@@ -1005,48 +1149,98 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
             <!-- HORES (h) quantity -->
             <div class="columns">
               <b-field label="Hores originals (h)" class="column">
-                <div class="readonly subphase-detail-input has-text-right">
-                  {{
-                    totals && totals.total_original_hours
-                      ? totals.total_original_hours.toFixed(2)
-                      : "0"
-                  }}
-                  h
-                </div>
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="totals && totals.total_original_hours ? totals.total_original_hours : 0"
+                  :estimated-value="totals && totals.total_estimated_hours ? totals.total_estimated_hours : 0"
+                  :executed-value="totals && totals.total_real_hours ? totals.total_real_hours : 0"
+                  :positive-is-good="false"
+                  :show-as-currency="false"
+                  unit="h"
+                >
+                  <div class="has-text-right">
+                    {{
+                      totals && totals.total_original_hours
+                        ? totals.total_original_hours.toFixed(2)
+                        : "0"
+                    }}
+                    h
+                  </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Hores previstes (h)" class="column">
-                <div class="readonly subphase-detail-input has-text-right">
-                  {{
-                    totals && totals.total_estimated_hours
-                      ? totals.total_estimated_hours.toFixed(2)
-                      : "0"
-                  }}
-                  h
-                </div>
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="totals && totals.total_original_hours ? totals.total_original_hours : 0"
+                  :estimated-value="totals && totals.total_estimated_hours ? totals.total_estimated_hours : 0"
+                  :executed-value="totals && totals.total_real_hours ? totals.total_real_hours : 0"
+                  :positive-is-good="false"
+                  :show-as-currency="false"
+                  unit="h"
+                >
+                  <div class="has-text-right">
+                    {{
+                      totals && totals.total_estimated_hours
+                        ? totals.total_estimated_hours.toFixed(2)
+                        : "0"
+                    }}
+                    h
+                  </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Hores executades (h)" class="column">
-                <div class="readonly subphase-detail-input has-text-right">
-                  {{
-                    totals && totals.total_real_hours
-                      ? totals.total_real_hours.toFixed(2)
-                      : "0"
-                  }}
-                  h
-                </div>
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="totals && totals.total_original_hours ? totals.total_original_hours : 0"
+                  :estimated-value="totals && totals.total_estimated_hours ? totals.total_estimated_hours : 0"
+                  :executed-value="totals && totals.total_real_hours ? totals.total_real_hours : 0"
+                  :positive-is-good="false"
+                  :show-as-currency="false"
+                  unit="h"
+                >
+                  <div class="has-text-right">
+                    {{
+                      totals && totals.total_real_hours
+                        ? totals.total_real_hours.toFixed(2)
+                        : "0"
+                    }}
+                    h
+                  </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
             <!-- COST/HORA -->
             <div class="columns">
               <b-field label="Cost/hora original" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="
+                    totals && totals.total_original_hours
+                      ? (totals.total_original_hours_price || 0) /
+                        totals.total_original_hours
+                      : 0
+                  "
+                  :estimated-value="
+                    totals && totals.total_estimated_hours
+                      ? (totals.total_estimated_hours_price || 0) /
+                        totals.total_estimated_hours
+                      : 0
+                  "
+                  :executed-value="
+                    totals && totals.total_real_hours
+                      ? (totals.total_real_hours_price || 0) / totals.total_real_hours
+                      : 0
+                  "
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="
                       totals && totals.total_original_hours
@@ -1060,10 +1254,30 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Cost/hora previst" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="
+                    totals && totals.total_original_hours
+                      ? (totals.total_original_hours_price || 0) /
+                        totals.total_original_hours
+                      : 0
+                  "
+                  :estimated-value="
+                    totals && totals.total_estimated_hours
+                      ? (totals.total_estimated_hours_price || 0) /
+                        totals.total_estimated_hours
+                      : 0
+                  "
+                  :executed-value="
+                    totals && totals.total_real_hours
+                      ? (totals.total_real_hours_price || 0) / totals.total_real_hours
+                      : 0
+                  "
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="
                       totals && totals.total_estimated_hours
@@ -1077,10 +1291,30 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Cost/hora executat" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="
+                    totals && totals.total_original_hours
+                      ? (totals.total_original_hours_price || 0) /
+                        totals.total_original_hours
+                      : 0
+                  "
+                  :estimated-value="
+                    totals && totals.total_estimated_hours
+                      ? (totals.total_estimated_hours_price || 0) /
+                        totals.total_estimated_hours
+                      : 0
+                  "
+                  :executed-value="
+                    totals && totals.total_real_hours
+                      ? (totals.total_real_hours_price || 0) / totals.total_real_hours
+                      : 0
+                  "
+                  :positive-is-good="false"
+                >
                   <money-format
                     :value="
                       totals && totals.total_real_hours
@@ -1093,14 +1327,35 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
 
             <!-- PREU/HORA -->
             <div class="columns">
               <b-field label="Preu/hora original" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="1"
+                  :original-value="
+                    totals && totals.total_original_hours
+                      ? ((totals.total_original_incomes || 0) - (totals.total_original_expenses || 0)) /
+                        totals.total_original_hours
+                      : 0
+                  "
+                  :estimated-value="
+                    totals && totals.total_estimated_hours
+                      ? ((totals.total_estimated_incomes || 0) - (totals.total_estimated_expenses || 0)) /
+                        totals.total_estimated_hours
+                      : 0
+                  "
+                  :executed-value="
+                    totals && totals.total_real_hours
+                      ? ((totals.total_real_incomes || 0) - (totals.total_real_expenses || 0)) /
+                        totals.total_real_hours
+                      : 0
+                  "
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="
                       totals && totals.total_original_hours
@@ -1114,10 +1369,31 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Preu/hora previst" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="2"
+                  :original-value="
+                    totals && totals.total_original_hours
+                      ? ((totals.total_original_incomes || 0) - (totals.total_original_expenses || 0)) /
+                        totals.total_original_hours
+                      : 0
+                  "
+                  :estimated-value="
+                    totals && totals.total_estimated_hours
+                      ? ((totals.total_estimated_incomes || 0) - (totals.total_estimated_expenses || 0)) /
+                        totals.total_estimated_hours
+                      : 0
+                  "
+                  :executed-value="
+                    totals && totals.total_real_hours
+                      ? ((totals.total_real_incomes || 0) - (totals.total_real_expenses || 0)) /
+                        totals.total_real_hours
+                      : 0
+                  "
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="
                       totals && totals.total_estimated_hours
@@ -1131,10 +1407,31 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
               <b-field label="Preu/hora executat" class="column">
-                <div class="readonly subphase-detail-input">
+                <financial-diff-tooltip
+                  :column="3"
+                  :original-value="
+                    totals && totals.total_original_hours
+                      ? ((totals.total_original_incomes || 0) - (totals.total_original_expenses || 0)) /
+                        totals.total_original_hours
+                      : 0
+                  "
+                  :estimated-value="
+                    totals && totals.total_estimated_hours
+                      ? ((totals.total_estimated_incomes || 0) - (totals.total_estimated_expenses || 0)) /
+                        totals.total_estimated_hours
+                      : 0
+                  "
+                  :executed-value="
+                    totals && totals.total_real_hours
+                      ? ((totals.total_real_incomes || 0) - (totals.total_real_expenses || 0)) /
+                        totals.total_real_hours
+                      : 0
+                  "
+                  :positive-is-good="true"
+                >
                   <money-format
                     :value="
                       totals && totals.total_real_hours
@@ -1149,7 +1446,7 @@
                     :hide-subunits="false"
                   >
                   </money-format>
-                </div>
+                </financial-diff-tooltip>
               </b-field>
             </div>
             <hr />
@@ -1979,6 +2276,7 @@ import ProjectGannt from "@/components/ProjectGannt.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import ProjectGrantableContacts from "@/components/ProjectGrantableContacts.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import FinancialDiffTooltip from "@/components/FinancialDiffTooltip.vue";
 import Tasks from "@/components/Tasks";
 import FileUpload from "@/components/FileUpload";
 import ProjectGrantableYears from "@/components/ProjectGrantableYears.vue";
@@ -1993,6 +2291,7 @@ export default {
     CardComponent,
     TitleBar,
     MoneyFormat,
+    FinancialDiffTooltip,
     ModalBoxInvoicing,
     ModalBoxSplit,
     ProjectGannt,
