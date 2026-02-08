@@ -5,7 +5,14 @@
       <div class="columns">
         <div class="column is-two-thirds">
           <card-component :title="formCardTitle" class="tile is-child">
-            <form @submit.prevent="submitAndContinue" v-if="!isLoading">
+            <form 
+              @submit.prevent="submitAndContinue" 
+              @focus.capture="enableUserInteraction"
+              @input.capture="enableUserInteraction"
+              @change.capture="enableUserInteraction"
+              v-if="!isLoading" 
+              :key="formKey"
+            >
               <b-field label="Codi *" horizontal>
                 <b-input v-model="form.name" placeholder="Codi" required />
               </b-field>
@@ -691,23 +698,52 @@
               </file-upload>
               <hr />
               <div class="is-flex">
-                <b-field horizontal>
+                <!-- Duplicate mode: single confirm button -->
+                <b-field horizontal v-if="isDuplicating">
                   <b-button
-                    type="is-primary"
+                    type="is-success"
                     :loading="isLoading"
                     @click="submitAndContinue"
-                    >Guardar</b-button
+                    icon-left="content-save"
+                    >Confirmar duplicat</b-button
                   >
-                </b-field>
-                <b-field horizontal>
                   <b-button
-                    v-if="form.id"
-                    type="is-primary"
-                    :loading="isLoading && form.id"
-                    @click="submitAndExit"
-                    >Guardar i sortir</b-button
+                    type="is-light"
+                    @click="cancelDuplicate"
+                    class="ml-2"
+                    icon-left="close"
+                    >Cancel·lar</b-button
                   >
                 </b-field>
+                <!-- Normal mode: regular save buttons -->
+                <template v-if="!isDuplicating">
+                  <b-field horizontal>
+                    <b-button
+                      type="is-primary"
+                      :loading="isLoading"
+                      @click="submitAndContinue"
+                      >Guardar</b-button
+                    >
+                  </b-field>
+                  <b-field horizontal>
+                    <b-button
+                      v-if="form.id"
+                      type="is-primary is-outlined"
+                      :loading="isLoading && form.id"
+                      @click="submitAndExit"
+                      >Guardar i sortir</b-button
+                    >
+                  </b-field>
+                  <b-field horizontal>
+                    <b-button
+                      v-if="form.id"
+                      type="is-primary is-outlined"
+                      :loading="isLoading && form.id"
+                      @click="duplicateProject"
+                      >Duplicar projecte</b-button
+                    >
+                  </b-field>
+                </template>
               </div>
             </form>
           </card-component>
@@ -1576,7 +1612,7 @@
         </b-notification>
         <b-field v-if="!form.is_mother">
           <b-button
-            type="is-warning"
+            type="is-primary is-outlined"
             :loading="isLoading"
             @click="originalEditable = !originalEditable"
             class="mr-2"
@@ -1598,6 +1634,7 @@
         </b-field>
 
         <project-phases
+          :key="'original-' + formKey"
           :form="form"
           :project-phases="form.project_original_phases"
           @phases-updated="originalPhasesUpdated"
@@ -1627,8 +1664,8 @@
           </b-button>
         </b-field>
 
-        <hr />
-        <div class="is-flex">
+        <hr v-if="!isDuplicating" />
+        <div class="is-flex" v-if="!isDuplicating">
           <b-field horizontal>
             <b-button
               type="is-primary"
@@ -1640,7 +1677,7 @@
           <b-field horizontal>
             <b-button
               v-if="form.id"
-              type="is-primary"
+              type="is-primary is-outlined"
               :loading="isLoading && form.id"
               @click="submitAndExit"
               >Guardar i sortir</b-button
@@ -1672,7 +1709,7 @@
         </b-notification>
         <b-field v-if="!form.is_mother">
           <b-button
-            type="is-warning"
+            type="is-primary is-outlined"
             :loading="isLoading"
             @click="phasesEditable = !phasesEditable"
             class="mr-2"
@@ -1694,6 +1731,7 @@
         </b-field>
 
         <project-phases
+          :key="'execution-' + formKey"
           :form="form"
           :project-phases="form.project_phases"
           @phases-updated="phasesUpdated"
@@ -1721,8 +1759,8 @@
           </b-button>
         </b-field>
 
-        <hr />
-        <div class="is-flex">
+        <hr v-if="!isDuplicating" />
+        <div class="is-flex" v-if="!isDuplicating">
           <b-field horizontal>
             <b-button
               type="is-primary"
@@ -1734,7 +1772,7 @@
           <b-field horizontal>
             <b-button
               v-if="form.id"
-              type="is-primary"
+              type="is-primary is-outlined"
               :loading="isLoading && form.id"
               @click="submitAndExit"
               >Guardar i sortir</b-button
@@ -1854,8 +1892,8 @@
             </b-field>
           </div>
         </div>
-        <hr />
-        <div class="is-flex">
+        <hr v-if="!isDuplicating" />
+        <div class="is-flex" v-if="!isDuplicating">
           <b-field horizontal>
             <b-button
               type="is-primary"
@@ -1867,7 +1905,7 @@
           <b-field horizontal>
             <b-button
               v-if="form.id"
-              type="is-primary"
+              type="is-primary is-outlined"
               :loading="isLoading && form.id"
               @click="submitAndExit"
               >Guardar i sortir</b-button
@@ -2025,8 +2063,8 @@
           >Es necessari tenir fases i guardar el projecte amb un pressupost
           tancat per accedir a la planificació</span
         >
-        <hr />
-        <div class="is-flex">
+        <hr v-if="!isDuplicating" />
+        <div class="is-flex" v-if="!isDuplicating">
           <b-field horizontal>
             <b-button
               type="is-primary"
@@ -2038,7 +2076,7 @@
           <b-field horizontal>
             <b-button
               v-if="form.id"
-              type="is-primary"
+              type="is-primary is-outlined"
               :loading="isLoading"
               @click="submitAndExit"
               >Guardar i sortir</b-button
@@ -2367,7 +2405,11 @@ export default {
       deletedPhasesOriginal: [],
       deletedIncomesOriginal: [],
       deletedExpensesOriginal: [],
-      deletedHoursOriginal: []
+      deletedHoursOriginal: [],
+      isDuplicating: false,
+      formKey: 0,
+      isInitialLoad: false,
+      userHasInteracted: false
     };
   },
   computed: {
@@ -2722,19 +2764,22 @@ export default {
   watch: {
     id(newValue) {
       this.isProfileExists = false;
+      this.userHasInteracted = false;
       if (!newValue || newValue === 0) {
+        this.dirtyEnabled = false;
+        this.isInitialLoad = true;
         this.form = this.getClearFormObject();
         this.getAuxiliarData();
-        this.dirty = false;
+        // dirty flag will be reset in getAuxiliarData() after all async operations complete
       } else {
         this.getData();
-        this.dirty = false;
+        // dirty flag will be reset in getAuxiliarData() after all async operations complete
       }
     },
     form: {
       handler(newVal, oldVal) {
-        // console.log("handler, ", newVal, oldVal);
-        if (!this.dirtyEnabled) {
+        // Skip if dirty tracking is disabled, we're in initial load, or user hasn't interacted yet
+        if (!this.dirtyEnabled || this.isInitialLoad || !this.userHasInteracted) {
           return;
         }
         // Only set dirty if both forms have the same ID (editing existing) and the change isn't initial data loading
@@ -2753,7 +2798,7 @@ export default {
   beforeRouteLeave(to, from, next) {
     // called when the route that renders this component is about to be navigated away from.
     // As with `beforeRouteUpdate`, it has access to `this` component instance.
-    if (this.dirty) {
+    if (this.dirty && !this.isInitialLoad && this.userHasInteracted) {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols marxar? Hi ha canvis sense guardar",
         onConfirm: () => {
@@ -2804,6 +2849,10 @@ export default {
       }
       if (this.$route.params.id && this.$route.params.id > 0) {
         this.isLoading = true;
+        // Disable dirty tracking during data loading to prevent false positives
+        this.dirtyEnabled = false;
+        this.isInitialLoad = true;
+        this.userHasInteracted = false; // Reset interaction tracking on data reload
         service({ requiresAuth: true })
           .get("projects/" + this.$route.params.id)
           .then(async r => {
@@ -2965,15 +3014,17 @@ export default {
 
               this.isLoading = false;
 
-              setTimeout(() => {
-                this.dirty = false;
-                console.log("set dirty false");
-              }, 100);
+              // Reset dirty flag AFTER all data is loaded and dirtyEnabled is re-enabled
+              // This is handled in getAuxiliarData() to ensure proper sequencing
             } else {
               this.$router.push({ name: "project.new" });
             }
           });
       } else {
+        // New project - disable dirty tracking during initialization
+        this.dirtyEnabled = false;
+        this.isInitialLoad = true;
+        this.userHasInteracted = false;
         this.project_scopes = this.project_scopes.filter(s => !s.disabled)
         this.form.date_start = new Date();
         this.form.date_end = moment()
@@ -3149,9 +3200,22 @@ export default {
           }
         }
 
-        setTimeout(() => {
-          this.dirtyEnabled = true;
-        }, 100);
+        // Re-enable dirty tracking and reset dirty flag in proper sequence
+        // Use nextTick to ensure all Vue reactivity updates are complete
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.dirty = false;
+            this.dirtyEnabled = true;
+            this.isInitialLoad = false;
+            // userHasInteracted stays false until user actually interacts
+          }, 200);
+        });
+      }
+    },
+    // Called when user interacts with the form for the first time
+    enableUserInteraction() {
+      if (!this.userHasInteracted && !this.isInitialLoad) {
+        this.userHasInteracted = true;
       }
     },
     // input(v) {
@@ -3164,6 +3228,11 @@ export default {
       this.submit("continue");
     },
     async submit(action) {
+      console.log('=== SUBMIT CALLED ===');
+      console.log('action:', action);
+      console.log('this.form.id:', this.form.id);
+      console.log('isDuplicating:', this.isDuplicating);
+      
       this.isLoading = true;
 
       console.log("submit", this.form);
@@ -3227,7 +3296,14 @@ export default {
           return;
         }
 
+        console.log('=== VALIDATION PASSED ===');
+        console.log('Proceeding to save logic...');
+
         this.form.dirty = false;
+
+        console.log('=== CHECKING SAVE PATH ===');
+        console.log('this.form.id:', this.form.id);
+        console.log('Will use:', this.form.id ? 'PUT (update)' : 'POST (create)');
 
         if (this.form.id) {
           // Clean up grantable_contacts before destructuring
@@ -3273,6 +3349,7 @@ export default {
           );
 
           this.dirty = false;
+          this.isDuplicating = false; // Reset duplicate mode after save
           this.$buefy.snackbar.open({
             message: "Guardat",
             queue: false
@@ -3291,10 +3368,213 @@ export default {
             return gc.contact && gc.contact.id;
           });
 
-          const newProject = await service({ requiresAuth: true }).post(
-            "projects",
-            this.form
-          );
+          // Clean up nested objects in phases for POST (same as PUT)
+          if (this.form.project_original_phases && this.form.project_original_phases.length) {
+            this.form.project_original_phases.forEach(ph => {
+              if (ph && ph.expenses && ph.expenses.length) {
+                ph.expenses.forEach(e => {
+                  // Convert expense_type to ID only
+                  if (e.expense_type && typeof e.expense_type === 'object') {
+                    e.expense_type = e.expense_type.id || null;
+                  }
+                  // Clean up references
+                  if (e.expense && !e.expense.id) {
+                    e.expense = null;
+                  }
+                  if (e.invoice && !e.invoice.id) {
+                    e.invoice = null;
+                  }
+                  // Convert bank_account and client to ID only
+                  if (e.bank_account && typeof e.bank_account === 'object') {
+                    e.bank_account = e.bank_account.id || null;
+                  }
+                  if (e.client && typeof e.client === 'object') {
+                    e.client = e.client.id || null;
+                  }
+                });
+              }
+              if (ph && ph.incomes && ph.incomes.length) {
+                ph.incomes.forEach(inc => {
+                  // Convert income_type to ID only
+                  if (inc.income_type && typeof inc.income_type === 'object') {
+                    inc.income_type = inc.income_type.id || null;
+                  }
+                  // Clean up references
+                  if (inc.invoice && !inc.invoice.id) {
+                    inc.invoice = null;
+                  }
+                  if (inc.income && !inc.income.id) {
+                    inc.income = null;
+                  }
+                  // Convert bank_account and client to ID only
+                  if (inc.bank_account && typeof inc.bank_account === 'object') {
+                    inc.bank_account = inc.bank_account.id || null;
+                  }
+                  if (inc.client && typeof inc.client === 'object') {
+                    inc.client = inc.client.id || null;
+                  }
+                  // Convert users_permissions_user in estimated_hours
+                  if (inc.estimated_hours && inc.estimated_hours.length) {
+                    inc.estimated_hours.forEach(hour => {
+                      if (hour.users_permissions_user && typeof hour.users_permissions_user === 'object') {
+                        hour.users_permissions_user = hour.users_permissions_user.id || null;
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          }
+
+          if (this.form.project_phases && this.form.project_phases.length) {
+            this.form.project_phases.forEach(ph => {
+              if (ph && ph.expenses && ph.expenses.length) {
+                ph.expenses.forEach(e => {
+                  // Convert expense_type to ID only
+                  if (e.expense_type && typeof e.expense_type === 'object') {
+                    e.expense_type = e.expense_type.id || null;
+                  }
+                  // Clean up references
+                  if (e.expense && !e.expense.id) {
+                    e.expense = null;
+                  }
+                  if (e.invoice && !e.invoice.id) {
+                    e.invoice = null;
+                  }
+                  // Convert bank_account and client to ID only
+                  if (e.bank_account && typeof e.bank_account === 'object') {
+                    e.bank_account = e.bank_account.id || null;
+                  }
+                  if (e.client && typeof e.client === 'object') {
+                    e.client = e.client.id || null;
+                  }
+                });
+              }
+              if (ph && ph.incomes && ph.incomes.length) {
+                ph.incomes.forEach(inc => {
+                  // Convert income_type to ID only
+                  if (inc.income_type && typeof inc.income_type === 'object') {
+                    inc.income_type = inc.income_type.id || null;
+                  }
+                  // Clean up references
+                  if (inc.invoice && !inc.invoice.id) {
+                    inc.invoice = null;
+                  }
+                  if (inc.income && !inc.income.id) {
+                    inc.income = null;
+                  }
+                  // Convert bank_account and client to ID only
+                  if (inc.bank_account && typeof inc.bank_account === 'object') {
+                    inc.bank_account = inc.bank_account.id || null;
+                  }
+                  if (inc.client && typeof inc.client === 'object') {
+                    inc.client = inc.client.id || null;
+                  }
+                  // Convert users_permissions_user in estimated_hours
+                  if (inc.estimated_hours && inc.estimated_hours.length) {
+                    inc.estimated_hours.forEach(hour => {
+                      if (hour.users_permissions_user && typeof hour.users_permissions_user === 'object') {
+                        hour.users_permissions_user = hour.users_permissions_user.id || null;
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          }
+
+          console.log('=== CLEANED FORM FOR POST ===');
+          if (this.form.project_original_phases && this.form.project_original_phases.length) {
+            this.form.project_original_phases.forEach((ph, idx) => {
+              if (ph.incomes && ph.incomes.length) {
+                ph.incomes.forEach((inc, incIdx) => {
+                  console.log(`Phase ${idx} Income ${incIdx}:`, {
+                    income_type: inc.income_type,
+                    client: inc.client,
+                    bank_account: inc.bank_account
+                  });
+                });
+              }
+              if (ph.expenses && ph.expenses.length) {
+                ph.expenses.forEach((exp, expIdx) => {
+                  console.log(`Phase ${idx} Expense ${expIdx}:`, {
+                    expense_type: exp.expense_type,
+                    client: exp.client,
+                    bank_account: exp.bank_account
+                  });
+                });
+              }
+            });
+          }
+
+          console.log('=== FINAL CHECK BEFORE POST ===');
+          console.log('this.form.id:', this.form.id);
+          console.log('this.form.name:', this.form.name);
+          console.log('this.form.project_original_phases_info:', JSON.stringify(this.form.project_original_phases_info, null, 2));
+          console.log('this.form.project_phases_info:', JSON.stringify(this.form.project_phases_info, null, 2));
+          console.log('this.form.project_original_phases count:', this.form.project_original_phases?.length);
+          console.log('this.form.project_phases count:', this.form.project_phases?.length);
+          
+          if (this.form.project_original_phases && this.form.project_original_phases.length > 0) {
+            const firstPhase = this.form.project_original_phases[0];
+            console.log('First phase sample:');
+            console.log('  - id:', firstPhase.id);
+            console.log('  - name:', firstPhase.name);
+            console.log('  - keys:', Object.keys(firstPhase));
+            console.log('  - has created_at:', firstPhase.hasOwnProperty('created_at'));
+            console.log('  - has updated_at:', firstPhase.hasOwnProperty('updated_at'));
+            
+            if (firstPhase.incomes && firstPhase.incomes.length > 0) {
+              const firstIncome = firstPhase.incomes[0];
+              console.log('  First income sample:');
+              console.log('    - id:', firstIncome.id);
+              console.log('    - income_type:', firstIncome.income_type);
+              console.log('    - client:', firstIncome.client);
+              console.log('    - bank_account:', firstIncome.bank_account);
+              console.log('    - has created_at:', firstIncome.hasOwnProperty('created_at'));
+              
+              if (firstIncome.estimated_hours && firstIncome.estimated_hours.length > 0) {
+                const firstHour = firstIncome.estimated_hours[0];
+                console.log('    First estimated_hour sample:');
+                console.log('      - id:', firstHour.id);
+                console.log('      - users_permissions_user:', firstHour.users_permissions_user);
+                console.log('      - has created_at:', firstHour.hasOwnProperty('created_at'));
+              }
+            }
+            
+            if (firstPhase.expenses && firstPhase.expenses.length > 0) {
+              const firstExpense = firstPhase.expenses[0];
+              console.log('  First expense sample:');
+              console.log('    - id:', firstExpense.id);
+              console.log('    - expense_type:', firstExpense.expense_type);
+              console.log('    - client:', firstExpense.client);
+              console.log('    - bank_account:', firstExpense.bank_account);
+              console.log('    - has created_at:', firstExpense.hasOwnProperty('created_at'));
+            }
+          }
+          console.log('=== END FINAL CHECK ===');
+
+          console.log('About to make POST request to /projects');
+          console.log('Request payload keys:', Object.keys(this.form));
+          console.log('POST URL:', "projects");
+          
+          let newProject;
+          try {
+            newProject = await service({ requiresAuth: true }).post(
+              "projects",
+              this.form
+            );
+            console.log('POST request successful!');
+            console.log('Response:', newProject);
+          } catch (postError) {
+            console.error('POST request failed!');
+            console.error('Error:', postError);
+            console.error('Error response:', postError.response);
+            console.error('Error message:', postError.message);
+            throw postError; // Re-throw to be caught by outer try-catch
+          }
+
+          this.isDuplicating = false; // Reset duplicate mode after save
 
           if (action === "continue") {
             this.$router.push({
@@ -3320,6 +3600,15 @@ export default {
           }, 250);
         }
       } catch (err) {
+        console.error('=== SUBMIT ERROR CAUGHT ===');
+        console.error('Error object:', err);
+        console.error('Error message:', err.message);
+        console.error('Error response:', err.response);
+        console.error('Error response data:', err.response?.data);
+        console.error('Error response status:', err.response?.status);
+        console.error('Error config:', err.config);
+        console.error('=== END ERROR INFO ===');
+        
         // console.error("projects error", err);
         const oldProjectData = await service({ requiresAuth: true }).get(
           `projects?name=${this.form.name}`
@@ -3804,6 +4093,501 @@ export default {
     },
     updateGrantableYears(years) {
       this.form.grantable_years = years;
+    },
+    duplicateProject() {
+      this.$buefy.dialog.confirm({
+        title: 'Duplicar projecte',
+        message: `<p><strong>Es duplicarà el projecte amb:</strong></p>
+          <ul style="margin-left: 20px; margin-top: 10px;">
+            <li>✓ Nom + " (còpia)"</li>
+            <li>✓ Totes les fases originals i d'execució</li>
+            <li>✓ Tots els ingressos i despeses previstos</li>
+            <li>✓ Totes les hores planificades</li>
+            <li>✗ Sense documents adjunts</li>
+            <li>✗ Sense factures ni justificacions</li>
+          </ul>
+          <p style="margin-top: 15px;"><strong>Vols moure totes les dates +1 any o mantenir-les?</strong></p>`,
+        confirmText: 'Moure dates +1 any',
+        cancelText: 'Mantenir dates originals',
+        type: 'is-info',
+        hasIcon: true,
+        onConfirm: () => this.performDuplicate(true),
+        onCancel: () => this.performDuplicate(false)
+      });
+    },
+    performDuplicate(moveDates) {
+      console.log('=== DUPLICATE PROJECT - moveDates:', moveDates);
+      
+      // Create a deep copy of the current form
+      const duplicatedForm = JSON.parse(JSON.stringify(this.form));
+      
+      console.log('Original date_start:', duplicatedForm.date_start);
+      console.log('Original documents count:', duplicatedForm.documents?.length);
+      
+      // Disable dirty checking temporarily
+      this.dirtyEnabled = false;
+      
+      // Reset ID and metadata for new project creation
+      duplicatedForm.id = null;
+      delete duplicatedForm.created_at;
+      delete duplicatedForm.updated_at;
+      delete duplicatedForm.created_by;
+      delete duplicatedForm.updated_by;
+      
+      // Add " (còpia)" to the name
+      duplicatedForm.name = duplicatedForm.name + ' (còpia)';
+      
+      // Helper function to adjust and convert dates
+      const adjustDate = (dateValue) => {
+        if (!dateValue) return null;
+        // Parse the date (handles Date objects, ISO strings, and YYYY-MM-DD strings)
+        const momentDate = moment(dateValue);
+        if (!momentDate.isValid()) {
+          console.warn('Invalid date:', dateValue);
+          return null;
+        }
+        
+        const originalDate = momentDate.format('YYYY-MM-DD');
+        
+        // Add 1 year if moveDates is true
+        if (moveDates) {
+          momentDate.add(1, 'year');
+        }
+        
+        const newDate = momentDate.toDate();
+        console.log(`  adjustDate: ${originalDate} -> ${moment(newDate).format('YYYY-MM-DD')} (moved: ${moveDates})`);
+        
+        // Always return a Date object for datepickers
+        return newDate;
+      };
+      
+      // Adjust main project dates
+      console.log('Adjusting main project dates...');
+      if (duplicatedForm.date_start) {
+        duplicatedForm.date_start = adjustDate(duplicatedForm.date_start);
+      }
+      if (duplicatedForm.date_end) {
+        duplicatedForm.date_end = adjustDate(duplicatedForm.date_end);
+      }
+      if (duplicatedForm.grantable_date) {
+        duplicatedForm.grantable_date = adjustDate(duplicatedForm.grantable_date);
+      }
+      if (duplicatedForm.justification_date) {
+        duplicatedForm.justification_date = adjustDate(duplicatedForm.justification_date);
+      }
+      
+      // Remove all documents - must be array, not undefined
+      duplicatedForm.documents = [];
+      console.log('Documents cleared, count now:', duplicatedForm.documents.length);
+      
+      // Duplicate and adjust project_original_phases (budget phases)
+      if (duplicatedForm.project_original_phases && duplicatedForm.project_original_phases.length) {
+        duplicatedForm.project_original_phases = duplicatedForm.project_original_phases.map(phase => {
+          const newPhase = { ...phase };
+          delete newPhase.id;
+          delete newPhase.project;
+          delete newPhase.created_at;
+          delete newPhase.updated_at;
+          delete newPhase.created_by;
+          delete newPhase.updated_by;
+          newPhase.dirty = true;
+          
+          // Duplicate incomes with planning hours
+          if (newPhase.incomes && newPhase.incomes.length) {
+            newPhase.incomes = newPhase.incomes.map(income => {
+              const newIncome = { ...income };
+              delete newIncome.id;
+              delete newIncome.project_original_phase;
+              delete newIncome.invoice;
+              delete newIncome.grant;
+              delete newIncome.income;
+              delete newIncome.created_at;
+              delete newIncome.updated_at;
+              delete newIncome.created_by;
+              delete newIncome.updated_by;
+              newIncome.dirty = true;
+              newIncome.paid = false;
+              
+              // Adjust dates and convert to Date objects
+              if (newIncome.date) {
+                newIncome.date = adjustDate(newIncome.date);
+              }
+              if (newIncome.date_estimate_document) {
+                newIncome.date_estimate_document = adjustDate(newIncome.date_estimate_document);
+              }
+              
+              // Keep only income_type ID as minimal object (for Vue reactivity)
+              if (newIncome.income_type && typeof newIncome.income_type === 'object') {
+                newIncome.income_type = newIncome.income_type.id ? { id: newIncome.income_type.id } : null;
+              }
+              
+              // Keep only client ID as minimal object
+              if (newIncome.client && typeof newIncome.client === 'object') {
+                newIncome.client = newIncome.client.id ? { id: newIncome.client.id } : null;
+              }
+              
+              // Keep only bank_account ID as minimal object
+              if (newIncome.bank_account && typeof newIncome.bank_account === 'object') {
+                newIncome.bank_account = newIncome.bank_account.id ? { id: newIncome.bank_account.id } : null;
+              }
+              
+              // Duplicate estimated hours (planning)
+              if (newIncome.estimated_hours && newIncome.estimated_hours.length) {
+                newIncome.estimated_hours = newIncome.estimated_hours.map(hour => {
+                  const newHour = { ...hour };
+                  delete newHour.id;
+                  delete newHour._uuid;
+                  delete newHour.phase_income;
+                  delete newHour.created_at;
+                  delete newHour.updated_at;
+                  delete newHour.created_by;
+                  delete newHour.updated_by;
+                  newHour.dirty = true;
+                  
+                  // Keep only user ID as minimal object (for Vue reactivity)
+                  if (newHour.users_permissions_user && typeof newHour.users_permissions_user === 'object') {
+                    newHour.users_permissions_user = newHour.users_permissions_user.id ? { id: newHour.users_permissions_user.id } : null;
+                  }
+                  
+                  // Adjust hour dates and convert to Date objects
+                  if (newHour.from) {
+                    newHour.from = adjustDate(newHour.from);
+                  }
+                  if (newHour.to) {
+                    newHour.to = adjustDate(newHour.to);
+                  }
+                  
+                  return newHour;
+                });
+              } else {
+                newIncome.estimated_hours = [];
+              }
+              
+              return newIncome;
+            });
+          }
+          
+          // Duplicate expenses
+          if (newPhase.expenses && newPhase.expenses.length) {
+            newPhase.expenses = newPhase.expenses.map(expense => {
+              const newExpense = { ...expense };
+              delete newExpense.id;
+              delete newExpense.project_original_phase;
+              delete newExpense.invoice;
+              delete newExpense.ticket;
+              delete newExpense.diet;
+              delete newExpense.expense;
+              delete newExpense.created_at;
+              delete newExpense.updated_at;
+              delete newExpense.created_by;
+              delete newExpense.updated_by;
+              newExpense.dirty = true;
+              newExpense.paid = false;
+              
+              // Keep only expense_type ID as minimal object (for Vue reactivity)
+              if (newExpense.expense_type && typeof newExpense.expense_type === 'object') {
+                newExpense.expense_type = newExpense.expense_type.id ? { id: newExpense.expense_type.id } : null;
+              }
+              
+              // Keep only bank_account ID as minimal object
+              if (newExpense.bank_account && typeof newExpense.bank_account === 'object') {
+                newExpense.bank_account = newExpense.bank_account.id ? { id: newExpense.bank_account.id } : null;
+              }
+              
+              // Adjust dates and convert to Date objects
+              if (newExpense.date) {
+                newExpense.date = adjustDate(newExpense.date);
+              }
+              if (newExpense.date_estimate_document) {
+                newExpense.date_estimate_document = adjustDate(newExpense.date_estimate_document);
+              }
+              
+              return newExpense;
+            });
+          }
+          
+          return newPhase;
+        });
+      }
+      
+      // Duplicate and adjust project_phases (execution phases)
+      if (duplicatedForm.project_phases && duplicatedForm.project_phases.length) {
+        duplicatedForm.project_phases = duplicatedForm.project_phases.map(phase => {
+          const newPhase = { ...phase };
+          delete newPhase.id;
+          delete newPhase.project;
+          delete newPhase.created_at;
+          delete newPhase.updated_at;
+          delete newPhase.created_by;
+          delete newPhase.updated_by;
+          newPhase.dirty = true;
+          
+          // Duplicate incomes
+          if (newPhase.incomes && newPhase.incomes.length) {
+            newPhase.incomes = newPhase.incomes.map(income => {
+              const newIncome = { ...income };
+              delete newIncome.id;
+              delete newIncome.project_phase;
+              delete newIncome.invoice;
+              delete newIncome.grant;
+              delete newIncome.income;
+              delete newIncome.created_at;
+              delete newIncome.updated_at;
+              delete newIncome.created_by;
+              delete newIncome.updated_by;
+              newIncome.dirty = true;
+              newIncome.paid = false;
+              
+              // Keep only income_type ID as minimal object (for Vue reactivity)
+              if (newIncome.income_type && typeof newIncome.income_type === 'object') {
+                newIncome.income_type = newIncome.income_type.id ? { id: newIncome.income_type.id } : null;
+              }
+              
+              // Keep only client ID as minimal object
+              if (newIncome.client && typeof newIncome.client === 'object') {
+                newIncome.client = newIncome.client.id ? { id: newIncome.client.id } : null;
+              }
+              
+              // Keep only bank_account ID as minimal object
+              if (newIncome.bank_account && typeof newIncome.bank_account === 'object') {
+                newIncome.bank_account = newIncome.bank_account.id ? { id: newIncome.bank_account.id } : null;
+              }
+              
+              // Adjust dates and convert to Date objects
+              if (newIncome.date) {
+                newIncome.date = adjustDate(newIncome.date);
+              }
+              if (newIncome.date_estimate_document) {
+                newIncome.date_estimate_document = adjustDate(newIncome.date_estimate_document);
+              }
+              
+              return newIncome;
+            });
+          }
+          
+          // Duplicate expenses
+          if (newPhase.expenses && newPhase.expenses.length) {
+            newPhase.expenses = newPhase.expenses.map(expense => {
+              const newExpense = { ...expense };
+              delete newExpense.id;
+              delete newExpense.project_phase;
+              delete newExpense.invoice;
+              delete newExpense.ticket;
+              delete newExpense.diet;
+              delete newExpense.expense;
+              delete newExpense.created_at;
+              delete newExpense.updated_at;
+              delete newExpense.created_by;
+              delete newExpense.updated_by;
+              newExpense.dirty = true;
+              newExpense.paid = false;
+              
+              // Keep only expense_type ID as minimal object (for Vue reactivity)
+              if (newExpense.expense_type && typeof newExpense.expense_type === 'object') {
+                newExpense.expense_type = newExpense.expense_type.id ? { id: newExpense.expense_type.id } : null;
+              }
+              
+              // Keep only bank_account ID as minimal object
+              if (newExpense.bank_account && typeof newExpense.bank_account === 'object') {
+                newExpense.bank_account = newExpense.bank_account.id ? { id: newExpense.bank_account.id } : null;
+              }
+              
+              // Adjust dates and convert to Date objects
+              if (newExpense.date) {
+                newExpense.date = adjustDate(newExpense.date);
+              }
+              if (newExpense.date_estimate_document) {
+                newExpense.date_estimate_document = adjustDate(newExpense.date_estimate_document);
+              }
+              
+              return newExpense;
+            });
+          }
+          
+          return newPhase;
+        });
+      }
+      
+      // Adjust periodification years if needed
+      if (duplicatedForm.periodification && duplicatedForm.periodification.length && moveDates) {
+        duplicatedForm.periodification = duplicatedForm.periodification.map(p => {
+          return {
+            ...p,
+            year: p.year !== 'undefined' ? (parseInt(p.year) + 1).toString() : p.year
+          };
+        });
+      }
+      
+      // Adjust grantable_years if needed
+      if (duplicatedForm.grantable_years && duplicatedForm.grantable_years.length && moveDates) {
+        duplicatedForm.grantable_years = duplicatedForm.grantable_years.map(gy => {
+          const newGy = { ...gy };
+          delete newGy.id;
+          if (newGy.year) {
+            newGy.year = newGy.year !== 'undefined' ? (parseInt(newGy.year) + 1).toString() : newGy.year;
+          }
+          return newGy;
+        });
+      }
+      
+      // Remove references to other entities that shouldn't be copied
+      delete duplicatedForm.emitted_invoices;
+      delete duplicatedForm.received_grants;
+      delete duplicatedForm.received_invoices;
+      delete duplicatedForm.tickets;
+      delete duplicatedForm.diets;
+      delete duplicatedForm.received_incomes;
+      delete duplicatedForm.received_expenses;
+      delete duplicatedForm.activities;
+      delete duplicatedForm.treasury_annotations;
+      delete duplicatedForm.children;
+      
+      // Clear calculated totals
+      delete duplicatedForm.incomes_expenses;
+      delete duplicatedForm.total_real_incomes_expenses;
+      delete duplicatedForm.total_incomes;
+      delete duplicatedForm.total_real_incomes;
+      delete duplicatedForm.total_expenses;
+      delete duplicatedForm.total_estimated_hours_price;
+      delete duplicatedForm.total_real_expenses;
+      delete duplicatedForm.total_real_hours_price;
+      delete duplicatedForm.total_estimated_hours;
+      delete duplicatedForm.total_real_hours;
+      delete duplicatedForm.total_expenses_vat;
+      delete duplicatedForm.total_real_expenses_vat;
+      delete duplicatedForm.allByYear;
+      
+      // Mark as not existing (new project)
+      this.isProfileExists = false;
+      
+      // Clear deleted arrays
+      this.deletedPhases = [];
+      this.deletedIncomes = [];
+      this.deletedExpenses = [];
+      this.deletedPhasesOriginal = [];
+      this.deletedIncomesOriginal = [];
+      this.deletedExpensesOriginal = [];
+      this.deletedHoursOriginal = [];
+      
+      // Log final state before assignment
+      console.log('=== FINAL DUPLICATED FORM STATE ===');
+      console.log('ID:', duplicatedForm.id);
+      console.log('Name:', duplicatedForm.name);
+      console.log('date_start:', duplicatedForm.date_start);
+      console.log('date_end:', duplicatedForm.date_end);
+      console.log('Documents count:', duplicatedForm.documents?.length);
+      console.log('Original phases count:', duplicatedForm.project_original_phases?.length);
+      console.log('Execution phases count:', duplicatedForm.project_phases?.length);
+      
+      // Log detailed phase structure to debug backend error
+      if (duplicatedForm.project_original_phases?.[0]) {
+        const phase = duplicatedForm.project_original_phases[0];
+        console.log('=== SAMPLE PHASE STRUCTURE ===');
+        console.log('Phase keys:', Object.keys(phase));
+        console.log('Phase ID:', phase.id);
+        console.log('Phase project:', phase.project);
+        console.log('Phase dirty:', phase.dirty);
+        console.log('Phase has created_at:', phase.hasOwnProperty('created_at'));
+        console.log('Phase has updated_at:', phase.hasOwnProperty('updated_at'));
+        
+        if (phase.incomes?.[0]) {
+          const income = phase.incomes[0];
+          console.log('=== SAMPLE INCOME STRUCTURE ===');
+          console.log('Income keys:', Object.keys(income));
+          console.log('Income ID:', income.id);
+          console.log('Income date:', income.date);
+          console.log('Income income_type:', income.income_type);
+          console.log('Income has created_at:', income.hasOwnProperty('created_at'));
+          console.log('Income client:', income.client);
+          console.log('Income bank_account:', income.bank_account);
+          
+          if (income.estimated_hours?.[0]) {
+            const hour = income.estimated_hours[0];
+            console.log('=== SAMPLE ESTIMATED HOUR STRUCTURE ===');
+            console.log('Hour keys:', Object.keys(hour));
+            console.log('Hour ID:', hour.id);
+            console.log('Hour users_permissions_user:', hour.users_permissions_user);
+            console.log('Hour has created_at:', hour.hasOwnProperty('created_at'));
+          }
+        }
+        
+        if (phase.expenses?.[0]) {
+          const expense = phase.expenses[0];
+          console.log('=== SAMPLE EXPENSE STRUCTURE ===');
+          console.log('Expense keys:', Object.keys(expense));
+          console.log('Expense ID:', expense.id);
+          console.log('Expense expense_type:', expense.expense_type);
+          console.log('Expense has created_at:', expense.hasOwnProperty('created_at'));
+        }
+      }
+      
+      // Set the form to the duplicated data
+      this.form = duplicatedForm;
+      
+      // Initialize phase info structures for new project (empty deletions)
+      this.form.project_original_phases_info = {
+        deletedPhases: [],
+        deletedIncomes: [],
+        deletedExpenses: [],
+        deletedHours: []
+      };
+      this.form.project_phases_info = {
+        deletedPhases: [],
+        deletedIncomes: [],
+        deletedExpenses: [],
+        deletedHours: []
+      };
+      
+      console.log('Form assigned. Current form.date_start:', this.form.date_start);
+      console.log('Current form.documents count:', this.form.documents?.length);
+      console.log('Phase info structures initialized with empty arrays');
+      
+      // Enter duplicate mode
+      this.isDuplicating = true;
+      
+      // Increment formKey to force complete re-render of the entire form
+      this.formKey++;
+      
+      console.log('Form key incremented to', this.formKey, '- forcing complete re-render');
+      
+      // Re-enable dirty checking after render
+      this.$nextTick(() => {
+        console.log('After re-render - form state:', {
+          date_start: this.form.date_start,
+          date_end: this.form.date_end,
+          documents_count: this.form.documents?.length
+        });
+      });
+      
+      // Re-enable dirty checking and set dirty
+      setTimeout(() => {
+        this.dirtyEnabled = true;
+        this.userHasInteracted = true; // Duplication counts as user interaction
+        this.dirty = true;
+      }, 100);
+      
+      // Show notification
+      this.$buefy.snackbar.open({
+        message: `Projecte duplicat correctament.${moveDates ? ' Les dates s\'han mogut +1 any.' : ''} Fes clic a "Confirmar duplicat" per guardar.`,
+        duration: 6000,
+        type: 'is-success',
+        queue: false
+      });
+    },
+    cancelDuplicate() {
+      this.$buefy.dialog.confirm({
+        title: 'Cancel·lar duplicació',
+        message: 'Estàs segur/a que vols cancel·lar la duplicació? Es perdran tots els canvis.',
+        confirmText: 'Sí, cancel·lar',
+        cancelText: 'No',
+        type: 'is-danger',
+        hasIcon: true,
+        onConfirm: () => {
+          this.isDuplicating = false;
+          this.userHasInteracted = false; // Reset interaction flag when cancelling
+          this.getData();
+        }
+      });
     }
   }
 };

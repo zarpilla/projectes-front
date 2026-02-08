@@ -23,21 +23,21 @@
           </option>
         </b-select>
         <button
-          class="button zis-small is-primary ml-1"
+          class="button zis-small is-primary is-outlined ml-1"
           type="button"
           @click="collapse"
         >
           {{ collapsed ? "Obrir detall" : "Tancar detall" }}
         </button>
         <button
-          class="button zis-small is-primary ml-1"
+          class="button zis-small is-primary is-outlined ml-1"
           type="button"
           @click="toggleSubphases"
         >
           {{ showSubPhases ? "Mostrar només fases" : "Mostrar subfases" }}
         </button>
         <button
-          class="button zis-small is-primary ml-1"
+          class="button zis-small is-primary is-outlined ml-1"
           type="button"
           @click="toggleView"
         >
