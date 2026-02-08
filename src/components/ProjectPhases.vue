@@ -818,6 +818,22 @@ export default {
     isPaginated: {
       type: Boolean,
       default: true
+    },
+    documentId: {
+      type: [Number, String],
+      default: null
+    },
+    documentType: {
+      type: String,
+      default: null
+    },
+    documentTotal: {
+      type: Number,
+      default: 0
+    },
+    documentTypeName: {
+      type: String,
+      default: ""
     }
   },
   data() {
@@ -913,6 +929,80 @@ export default {
         return "fade";
       }
       return "x";
+    },
+    unassignedDocuments() {
+      // If no documentId, it's a new document (not yet assigned)
+      if (!this.documentId) {
+        return [{
+          type: this.documentTypeName || 'Document',
+          total_base: this.documentTotal || 0
+        }];
+      }
+
+      // Check if the document is assigned to any phase line
+      let isAssigned = false;
+      
+      // Check all phases
+      this.phases.forEach(phase => {
+        // Check incomes for emitted-invoices or received-incomes
+        if (phase.incomes && this.mode === 'incomes') {
+          phase.incomes.forEach(income => {
+            if (this.documentType === 'emitted-invoices' && income.invoice && income.invoice.id === this.documentId) {
+              isAssigned = true;
+            }
+            if (this.documentType === 'received-incomes' && income.income && income.income.id === this.documentId) {
+              isAssigned = true;
+            }
+            if (this.documentType === 'received-grants' && income.grant && income.grant.id === this.documentId) {
+              isAssigned = true;
+            }
+          });
+        }
+        
+        // Check expenses for received-invoices, received-expenses, tickets, diets
+        if (phase.expenses && this.mode === 'expenses') {
+          phase.expenses.forEach(expense => {
+            if (this.documentType === 'received-invoices' && expense.invoice && expense.invoice.id === this.documentId) {
+              isAssigned = true;
+            }
+            if (this.documentType === 'received-expenses' && expense.expense && expense.expense.id === this.documentId) {
+              isAssigned = true;
+            }
+            if (this.documentType === 'tickets' && expense.ticket && expense.ticket.id === this.documentId) {
+              isAssigned = true;
+            }
+            if (this.documentType === 'diets' && expense.diet && expense.diet.id === this.documentId) {
+              isAssigned = true;
+            }
+          });
+        }
+      });
+
+      // If not assigned, return array with document info
+      if (!isAssigned) {
+        return [{
+          type: this.documentTypeName || 'Document',
+          total_base: this.documentTotal || 0
+        }];
+      }
+
+      // If assigned, return empty array
+      return [];
+    }
+  },
+  watch: {
+    documentTotal(newVal, oldVal) {
+      // When document total changes in assignment mode, recalculate warnings
+      // This happens when you change the document line amounts in DocumentForm
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId && newVal !== oldVal) {
+        console.log('documentTotal changed:', {
+          old: oldVal,
+          new: newVal,
+          documentId: this.documentId,
+          mode: this.mode
+        });
+        this.updateWarningFields();
+      }
     }
   },
   async created() {
@@ -1018,6 +1108,12 @@ export default {
 
     this.phases = phases0;
 
+    // Calculate warnings on load only in document assignment mode
+    // In normal project view, we trust the warning field from database
+    if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+      this.updateWarningFields();
+    }
+
     // console.log('this.phases', this.phases)
     this.isLoading = false;
   },
@@ -1052,6 +1148,10 @@ export default {
     somethingChanged(subphase) {
       subphase.dirty = true;
       this.needsUpdate = true;
+      // Update warning fields only in assignment mode
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        this.updateWarningFields();
+      }
       this.$emit("phases-updated", {
         phases: this.phases,
         projectId: this.form.id,
@@ -1074,6 +1174,10 @@ export default {
             sumBy(r.expenses, x => x.quantity * x.amount)
         };
       });
+      // Update warning fields only in assignment mode
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        this.updateWarningFields();
+      }
       this.$emit("phases-updated", {
         phases: this.phases,
         projectId: this.form.id,
@@ -1173,7 +1277,11 @@ export default {
     removeSubPhase(phase, subphase, j) {
       this.needsUpdate = true;
       this.deletedIncomes.push(subphase.id);
-      phase.incomes = phase.incomes.filter((s, i) => i !== j);      
+      phase.incomes = phase.incomes.filter((s, i) => i !== j);
+      // Update warning fields only in assignment mode
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        this.updateWarningFields();
+      }
       this.$emit("phases-updated", {
         phases: this.phases,
         projectId: this.form.id,
@@ -1186,6 +1294,10 @@ export default {
       this.needsUpdate = true;
       this.deletedExpenses.push(subphase.id);
       phase.expenses = phase.expenses.filter((s, i) => i !== j);
+      // Update warning fields only in assignment mode
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        this.updateWarningFields();
+      }
       this.$emit("phases-updated", {
         phases: this.phases,
         projectId: this.form.id,
@@ -1194,14 +1306,49 @@ export default {
         deletedExpenses: this.deletedExpenses
       });
     },
+
     addSubPhase(phase) {
+      // Check if in incomes mode and if there are unassigned documents from parent
+      if (this.mode === 'incomes' && this.unassignedDocuments && this.unassignedDocuments.length > 0) {
+        this.$buefy.dialog.confirm({
+          title: 'Assignar document',
+          message: 'Vols crear una nova línia i associar-li el document automàticament?',
+          confirmText: 'Sí',
+          cancelText: 'No',
+          type: 'is-info',
+          onConfirm: () => {
+            this.createSubPhase(phase, true);
+          },
+          onCancel: () => {
+            this.createSubPhase(phase, false);
+          }
+        });
+        return;
+      }
+      
+      this.createSubPhase(phase, false);
+    },
+    createSubPhase(phase, autoAssign) {
       this.needsUpdate = true;
       // console.log('this.form', this.form)
+      
+      let concept = "";
+      let amount = 0;
+      if (autoAssign && this.unassignedDocuments && this.unassignedDocuments.length > 0) {
+        const nextDoc = this.unassignedDocuments[0];
+        if (nextDoc) {
+          const docAmount = nextDoc.total_base || 0;
+          concept = nextDoc.type;
+          amount = docAmount;
+        }
+      }
+      
       phase.incomes.push({
-        concept: "",
+        concept: concept,
         quantity: 1,
-        amount: 0,
-        assign: false,
+        amount: amount,
+        assign: autoAssign,
+        paid: autoAssign,
         date_estimate_document: this.form.date_end
           ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
           : null,
@@ -1219,12 +1366,46 @@ export default {
       });
     },
     addSubExpense(phase) {
+      // Check if in expenses mode and if there are unassigned documents from parent
+      if (this.mode === 'expenses' && this.unassignedDocuments && this.unassignedDocuments.length > 0) {
+        this.$buefy.dialog.confirm({
+          title: 'Assignar document',
+          message: 'Vols crear una nova línia i associar-li el document automàticament?',
+          confirmText: 'Sí',
+          cancelText: 'No',
+          type: 'is-info',
+          onConfirm: () => {
+            this.createSubExpense(phase, true);
+          },
+          onCancel: () => {
+            this.createSubExpense(phase, false);
+          }
+        });
+        return;
+      }
+      
+      this.createSubExpense(phase, false);
+    },
+    createSubExpense(phase, autoAssign) {
       this.needsUpdate = true;
+      
+      let concept = "";
+      let amount = 0;
+      if (autoAssign && this.unassignedDocuments && this.unassignedDocuments.length > 0) {
+        const nextDoc = this.unassignedDocuments[0];
+        if (nextDoc) {
+          const docAmount = nextDoc.total_base || 0;
+          concept = nextDoc.type;
+          amount = docAmount;
+        }
+      }
+      
       phase.expenses.push({
-        concept: "",
+        concept: concept,
         quantity: 1,
-        amount: 0,
-        assign: false,
+        amount: amount,
+        assign: autoAssign,
+        paid: autoAssign,
         date_estimate_document: this.form.date_end
           ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
           : null,
@@ -1310,6 +1491,10 @@ export default {
           subphase.paid = true; // necessary
           // }
 
+          // Update warning fields after assignment toggle
+          if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+            this.updateWarningFields();
+          }
           this.$emit("phases-updated", {
             phases: this.phases,
             projectId: this.form.id,
@@ -1335,6 +1520,10 @@ export default {
           subphase.assign = !subphase.assign;
           subphase.paid = true; // necessary
 
+          // Update warning fields after assignment toggle
+          if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+            this.updateWarningFields();
+          }
           this.$emit("phases-updated", {
             phases: this.phases,
             projectId: this.form.id
@@ -1373,6 +1562,10 @@ export default {
         subphase.dirty = true;
       }
       this.isModalActive = false;
+      // Update warning fields only in assignment mode
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        this.updateWarningFields();
+      }
       this.$emit("phases-updated", {
         phases: this.phases,
         projectId: this.form.id,
@@ -1525,6 +1718,10 @@ export default {
         deletedIncomes: this.deletedIncomes,
         deletedExpenses: this.deletedExpenses
       });
+      // Update warning fields only in assignment mode
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        this.updateWarningFields();
+      }
       this.isModalSplitActive = false;
     },
     async modalSplitDelete(invoicing) {
@@ -1550,12 +1747,256 @@ export default {
         subphase.expense = null;
       }
       subphase.dirty = true;
+      // Update warning fields only in assignment mode
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        this.updateWarningFields();
+      }
       this.somethingChanged(subphase);
     },
     importWarning(subphase, document) {
+      // In assignment mode, check if line is marked for assignment
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && subphase.assign) {
+        // Use stored warning if available
+        if (subphase.warning !== undefined && subphase.warning !== null) {
+          return subphase.warning;
+        }
+      }
+      
+      // Use the stored warning field from the database
+      if (subphase.warning !== undefined && subphase.warning !== null) {
+        return subphase.warning;
+      }
+      // Fallback to old calculation if warning field not set
       return document
         ? document.total_base !== subphase.quantity * subphase.amount
         : false;
+    },
+    calculateDocumentTotal(documentId, documentType, lineType) {
+      // Sum all lines (incomes or expenses) that reference this document
+      let total = 0;
+      let matchCount = 0;
+      this.phases.forEach((phase, phaseIndex) => {
+        const lines = lineType === 'income' ? phase.incomes : phase.expenses;
+        lines.forEach((line, lineIndex) => {
+          const doc = line[documentType];
+          if (doc && doc.id === documentId) {
+            const lineTotal = (line.quantity || 0) * (line.amount || 0);
+            total += lineTotal;
+            matchCount++;
+          }
+        });
+      });
+      console.log('calculateDocumentTotal - RESULT:', {
+        documentId,
+        documentType,
+        lineType,
+        matchCount,
+        total
+      });
+      return total;
+    },
+    updateWarningFields() {
+      console.log('=== updateWarningFields called ===', {
+        mode: this.mode,
+        documentId: this.documentId,
+        documentTotal: this.documentTotal,
+        documentType: this.documentType
+      });
+      
+      // In assignment mode, we can't calculate warnings accurately because each ProjectPhases
+      // component only sees lines from ONE project, but documents can be split across MULTIPLE projects.
+      // The backend will calculate and store the correct warning when saving.
+      // So in assignment mode, just display the stored warning value from database.
+      if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
+        console.log('=== Assignment mode - skipping warning calculation ===');
+        console.log('Using stored warning values from database');
+        console.log('Backend will recalculate warnings when saving');
+        return;
+      }
+      
+      // When in document assignment mode, calculate warnings based on assigned lines
+      if (this.mode === 'incomes' && this.documentId && this.documentTotal) {
+        // Sum all lines that reference this document (either assign=true OR already linked)
+        let totalAssigned = 0;
+        const matchedLines = [];
+        const allLines = [];
+        
+        this.phases.forEach((phase, phaseIdx) => {
+          phase.incomes.forEach((income, incomeIdx) => {
+            // Log every income line for debugging
+            allLines.push({
+              phaseIdx,
+              incomeIdx,
+              concept: income.concept,
+              quantity: income.quantity,
+              amount: income.amount,
+              assign: income.assign,
+              paid: income.paid,
+              hasInvoice: !!(income.invoice && income.invoice.id),
+              invoiceId: income.invoice?.id,
+              hasGrant: !!(income.grant && income.grant.id),
+              grantId: income.grant?.id,
+              hasIncome: !!(income.income && income.income.id),
+              incomeId: income.income?.id
+            });
+            
+            let isMatched = false;
+            
+            // Check if line is newly assigned
+            if (income.assign) {
+              isMatched = true;
+            }
+            // Check if line already has the document linked
+            else if (this.documentType === 'emitted-invoices' && income.invoice && income.invoice.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-grants' && income.grant && income.grant.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-incomes' && income.income && income.income.id === this.documentId) {
+              isMatched = true;
+            }
+            
+            if (isMatched) {
+              const lineTotal = (income.quantity || 0) * (income.amount || 0);
+              totalAssigned += lineTotal;
+              matchedLines.push({ concept: income.concept, quantity: income.quantity, amount: income.amount, lineTotal });
+            }
+          });
+        });
+        
+        console.log('ALL income lines in phases:', allLines);
+        
+        const diff = Math.abs(this.documentTotal - totalAssigned);
+        const hasWarning = diff > 0.01;
+        
+        console.log('updateWarningFields - assignment mode (incomes):', {
+          documentId: this.documentId,
+          documentType: this.documentType,
+          documentTotal: this.documentTotal,
+          totalAssigned,
+          matchedLines,
+          diff,
+          hasWarning
+        });
+        
+        // Update warning for all matched lines
+        this.phases.forEach(phase => {
+          phase.incomes.forEach(income => {
+            let isMatched = false;
+            
+            if (income.assign) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'emitted-invoices' && income.invoice && income.invoice.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-grants' && income.grant && income.grant.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-incomes' && income.income && income.income.id === this.documentId) {
+              isMatched = true;
+            }
+            
+            if (isMatched && income.warning !== hasWarning) {
+              income.warning = hasWarning;
+              income.dirty = true;
+            }
+          });
+        });
+        return;
+      }
+      
+      if (this.mode === 'expenses' && this.documentId && this.documentTotal) {
+        // Sum all lines that reference this document (either assign=true OR already linked)
+        let totalAssigned = 0;
+        const matchedLines = [];
+        
+        this.phases.forEach(phase => {
+          phase.expenses.forEach(expense => {
+            let isMatched = false;
+            
+            // Check if line is newly assigned
+            if (expense.assign) {
+              isMatched = true;
+            }
+            // Check if line already has the document linked
+            else if (this.documentType === 'received-invoices' && expense.invoice && expense.invoice.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-expenses' && expense.expense && expense.expense.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'tickets' && expense.ticket && expense.ticket.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'diets' && expense.diet && expense.diet.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-grants' && expense.grant && expense.grant.id === this.documentId) {
+              isMatched = true;
+            }
+            
+            if (isMatched) {
+              const lineTotal = (expense.quantity || 0) * (expense.amount || 0);
+              totalAssigned += lineTotal;
+              matchedLines.push({ concept: expense.concept, quantity: expense.quantity, amount: expense.amount, lineTotal });
+            }
+          });
+        });
+        
+        const diff = Math.abs(this.documentTotal - totalAssigned);
+        const hasWarning = diff > 0.01;
+        
+        console.log('updateWarningFields - assignment mode (expenses):', {
+          documentId: this.documentId,
+          documentType: this.documentType,
+          documentTotal: this.documentTotal,
+          totalAssigned,
+          matchedLines,
+          diff,
+          hasWarning
+        });
+        
+        // Update warning for all matched lines
+        this.phases.forEach(phase => {
+          phase.expenses.forEach(expense => {
+            let isMatched = false;
+            
+            if (expense.assign) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-invoices' && expense.invoice && expense.invoice.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-expenses' && expense.expense && expense.expense.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'tickets' && expense.ticket && expense.ticket.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'diets' && expense.diet && expense.diet.id === this.documentId) {
+              isMatched = true;
+            }
+            else if (this.documentType === 'received-grants' && expense.grant && expense.grant.id === this.documentId) {
+              isMatched = true;
+            }
+            
+            if (isMatched && expense.warning !== hasWarning) {
+              expense.warning = hasWarning;
+              expense.dirty = true;
+            }
+          });
+        });
+        return;
+      }
+      
+      // Normal project view mode: Trust the stored warning field from database
+      // Don't recalculate because we only have phases from ONE project here,
+      // but documents might be split across multiple projects
+      console.log('=== updateWarningFields - Normal project view mode ===');
+      console.log('Trusting stored warning fields from database - not recalculating');
+      console.log('=== updateWarningFields completed ===');
     }
   }
 };

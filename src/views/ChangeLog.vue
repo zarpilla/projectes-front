@@ -1,7 +1,28 @@
 <template>
   <div>
     <title-bar :title-stack="titleStack" />
-    <section class="section is-main-section">
+    <section class="section is-main-section column is-half">
+      <card-component title="2025.02.09">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Nou càlcul de previsions a partir de les fases d'execució al resum
+            financer de projectes. Nova columna de pressupost original.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Millores en l'assignació de documents a projectes: Assignació semiautomàtica i millor detecció d'imports mal assignats tenint en compte dcouments assignats a varis projectes.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Assignació de justificacions a previsions.
+          </div>
+        </div>
+      </card-component>
       <card-component title="2025.02.02">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
@@ -20,7 +41,8 @@
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
-            Millores en projectes mare, per calcular i visualitzar les dades dels projectes fills.
+            Millores en projectes mare, per calcular i visualitzar les dades
+            dels projectes fills.
           </div>
         </div>
         <div class="item mb-4">
@@ -69,7 +91,7 @@
             Possibilitat de desactivar àmbits de projecte.
           </div>
         </div>
-      </card-component>      
+      </card-component>
       <card-component title="2025.09.18">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
@@ -80,7 +102,8 @@
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
-            La importació de calendaris iCal permet importar esdeveniments recurrents.
+            La importació de calendaris iCal permet importar esdeveniments
+            recurrents.
           </div>
         </div>
         <div class="item mb-4">
@@ -92,7 +115,8 @@
         <div class="item mb-4">
           <span class="tag is-danger">Correccions</span>
           <div class="text mt-2">
-            Ja no es mostren anys 9999 en projectes amb periodificació, sempre que totes les fases tinguin dates assignades.
+            Ja no es mostren anys 9999 en projectes amb periodificació, sempre
+            que totes les fases tinguin dates assignades.
           </div>
         </div>
       </card-component>
@@ -100,13 +124,15 @@
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Possibilitat de definir vistes personalitzades a les taules dinàmiques.
+            Possibilitat de definir vistes personalitzades a les taules
+            dinàmiques.
           </div>
         </div>
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
-            Millores de rendiment en la visualització de dades d'ingressos i despeses i preus/hora.
+            Millores de rendiment en la visualització de dades d'ingressos i
+            despeses i preus/hora.
           </div>
         </div>
       </card-component>
@@ -114,7 +140,8 @@
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
-            Millores de rendiment en la visualització de factures amb més de 50 línies.
+            Millores de rendiment en la visualització de factures amb més de 50
+            línies.
           </div>
         </div>
       </card-component>
@@ -125,7 +152,8 @@
             Adaptació a normativa VERIFACTU.
           </div>
           <div class="text mt-2">
-            Nova funcionalitat per crear factures rectificatives a partir de factures emeses.
+            Nova funcionalitat per crear factures rectificatives a partir de
+            factures emeses.
           </div>
         </div>
       </card-component>
@@ -141,7 +169,9 @@
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Es permet modificar la distribució setmanal d'hores treballades a les jornades de <router-link to="/working-day">persones.</router-link>
+            Es permet modificar la distribució setmanal d'hores treballades a
+            les jornades de
+            <router-link to="/working-day">persones.</router-link>
           </div>
         </div>
       </card-component>
@@ -149,11 +179,15 @@
         <div class="item mb-4">
           <span class="tag is-danger">Correccions</span>
           <div class="text mt-2">
-            Correcció dels saldos d'inici d'any per anys que no son l'actual a la <router-link to="/tresoreria">taula de tresoreria.</router-link>
+            Correcció dels saldos d'inici d'any per anys que no son l'actual a
+            la <router-link to="/tresoreria">taula de tresoreria.</router-link>
           </div>
           <span class="tag is-warning mt-2">Millores</span>
           <div class="text mt-2">
-            Incorporació del camp 'projecte mare' a la taula dinàmica <router-link to="/stats-economic-detail">d'ingressos i despeses.</router-link>
+            Incorporació del camp 'projecte mare' a la taula dinàmica
+            <router-link to="/stats-economic-detail"
+              >d'ingressos i despeses.</router-link
+            >
           </div>
         </div>
       </card-component>
@@ -161,7 +195,8 @@
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
-            Millora en la velocitat de càrrega del calendari de <router-link to="/dedicacio">dedicacions.</router-link>
+            Millora en la velocitat de càrrega del calendari de
+            <router-link to="/dedicacio">dedicacions.</router-link>
           </div>
         </div>
       </card-component>
@@ -169,9 +204,10 @@
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Filtre múltiple d'estats de projectes a 
-            <router-link to="/stats-economic-detail">Detall d'ingressos i despeses</router-link>, 
-            <router-link to="/tresoreria">Tresoreria</router-link> i
+            Filtre múltiple d'estats de projectes a
+            <router-link to="/stats-economic-detail"
+              >Detall d'ingressos i despeses</router-link
+            >, <router-link to="/tresoreria">Tresoreria</router-link> i
             <router-link to="/forecast">Previsió Econòmica</router-link>.
           </div>
         </div>
@@ -180,10 +216,12 @@
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Es permet l'entrada d'hores dedicades a projectes des del registre de jornades.
+            Es permet l'entrada d'hores dedicades a projectes des del registre
+            de jornades.
           </div>
           <div class="text mt-2">
-            Nous camps de tipus de contacte, import aportació i data de seguiment a la fitxa de contacte.
+            Nous camps de tipus de contacte, import aportació i data de
+            seguiment a la fitxa de contacte.
           </div>
         </div>
         <div class="item mb-4">
@@ -205,7 +243,10 @@
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Nou camp d'<b>Hores previstes avui</b> a la <router-link to="/stats-previsio-hores">taula dinámica de dedicació</router-link>.
+            Nou camp d'<b>Hores previstes avui</b> a la
+            <router-link to="/stats-previsio-hores"
+              >taula dinámica de dedicació</router-link
+            >.
           </div>
         </div>
       </card-component>
@@ -213,89 +254,105 @@
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Possibilitat de triar a quins estats de projecte es poden assignar hores, no només a actius.
+            Possibilitat de triar a quins estats de projecte es poden assignar
+            hores, no només a actius.
           </div>
           <div class="text mt-2">
-            Camp subvencionable a <router-link to="/stats-economic-detail"> taula dinàmica d'ingressos i despeses.</router-link>
+            Camp subvencionable a
+            <router-link to="/stats-economic-detail">
+              taula dinàmica d'ingressos i despeses.</router-link
+            >
           </div>
           <div class="text mt-2">
-            Nous camps al <router-link to="/grants"> llistat de subvencions.</router-link>
+            Nous camps al
+            <router-link to="/grants"> llistat de subvencions.</router-link>
           </div>
         </div>
-      </card-component> 
+      </card-component>
       <card-component title="2024.05.31">
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
-            Millores en la importació d'hores des de calendaris .ics amb claudàtors.
-          </div>          
+            Millores en la importació d'hores des de calendaris .ics amb
+            claudàtors.
+          </div>
         </div>
-      </card-component> 
+      </card-component>
       <card-component title="2024.05.30">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Filtres a la taula de <router-link to="/contacts">contactes</router-link>.
-          </div>          
+            Filtres a la taula de
+            <router-link to="/contacts">contactes</router-link>.
+          </div>
         </div>
         <div class="item mb-4">
           <div class="text mt-2">
-            Nous camps per a subvencions a la fitxa de projecte: Número d'expedient, Entitat líder i Agrupada.
-          </div>          
+            Nous camps per a subvencions a la fitxa de projecte: Número
+            d'expedient, Entitat líder i Agrupada.
+          </div>
         </div>
         <div class="item mb-4">
           <div class="text mt-2">
             Data de previsió de cobrament a factures i ingressos
-          </div>          
-        </div>        
-      </card-component> 
+          </div>
+        </div>
+      </card-component>
       <card-component title="2024.05.27">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Nou mòdul (experimental) per al càlcul del <router-link to="/price-hour">preu/hora</router-link> dels serveis.
-          </div>          
+            Nou mòdul (experimental) per al càlcul del
+            <router-link to="/price-hour">preu/hora</router-link> dels serveis.
+          </div>
         </div>
-      </card-component>       
+      </card-component>
       <card-component title="2024.05.15">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Possibilitat de visualització de <router-link to="/tresoreria">tresoreria</router-link> per anys.
-          </div>          
+            Possibilitat de visualització de
+            <router-link to="/tresoreria">tresoreria</router-link> per anys.
+          </div>
         </div>
-      </card-component> 
+      </card-component>
       <card-component title="2024.05.06">
         <div class="item mb-4">
           <span class="tag is-danger">Correccions</span>
           <div class="text mt-2">
-            Corregits colors de les <router-link to="/dedicacio-charts">gràfiques de dedicació</router-link>, que en alguns casos no corresponia amb la llegenda.
-          </div>          
+            Corregits colors de les
+            <router-link to="/dedicacio-charts"
+              >gràfiques de dedicació</router-link
+            >, que en alguns casos no corresponia amb la llegenda.
+          </div>
         </div>
-      </card-component> 
+      </card-component>
       <card-component title="2024.04.30">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Camp "CCC" a l'organització. Camp "NAF" (número d'afiliació a la SS) a les persones. Camp "Despeses indirectes" a la secció de subvencions dels projectes.
-          </div>          
+            Camp "CCC" a l'organització. Camp "NAF" (número d'afiliació a la SS)
+            a les persones. Camp "Despeses indirectes" a la secció de
+            subvencions dels projectes.
+          </div>
         </div>
         <div class="item mb-4">
           <div class="text mt-2">
-            Check múltiple de canvi de'stat al mòdul de comandes i logística. Algunes correccions i millores.
-          </div>          
+            Check múltiple de canvi de'stat al mòdul de comandes i logística.
+            Algunes correccions i millores.
+          </div>
         </div>
-      </card-component> 
+      </card-component>
       <card-component title="2024.04.18">
-        <div class="item mb-4">          
+        <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
             Nou mòdul de comandes i logística.
-          </div>          
+          </div>
         </div>
-      </card-component> 
+      </card-component>
       <card-component title="2024.04.16">
-        <div class="item mb-4">          
+        <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
             Previsions de tresoreria d'IVA amb prorata.
@@ -305,30 +362,36 @@
             <router-link to="/registre-jornades"
               >registre de jornades</router-link
             >.
-          </div>          
+          </div>
           <div class="text mt-2">
-            Els ingressos i despeses es guarden amb la seva corresponent prorrata d'IVA al saldar-se.            
-          </div>          
+            Els ingressos i despeses es guarden amb la seva corresponent
+            prorrata d'IVA al saldar-se.
+          </div>
         </div>
-      </card-component>      
+      </card-component>
       <card-component title="2024.03.27">
-        <div class="item mb-4">          
+        <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
             Generació de PDFs de
             <router-link to="/registre-jornades"
               >registre de jornades</router-link
-            > per mesos.
+            >
+            per mesos.
           </div>
           <div class="text mt-2">
-            Filtre de cobrat/pagat a <router-link to="/emitted-invoices">ingressos</router-link> i
+            Filtre de cobrat/pagat a
+            <router-link to="/emitted-invoices">ingressos</router-link> i
             <router-link to="/received-invoices">despeses</router-link>.
           </div>
           <div class="text mt-2">
             Subtotals per fases al detall de projectes.
           </div>
           <div class="text mt-2">
-            Filtre de projectes actius i tancats al <router-link to="/stats-economic-detail">detall d'ingressos i despeses</router-link>.
+            Filtre de projectes actius i tancats al
+            <router-link to="/stats-economic-detail"
+              >detall d'ingressos i despeses</router-link
+            >.
           </div>
           <div class="text mt-2">
             Afegida data de justificació als projectes subvencionables.
@@ -361,7 +424,9 @@
           </div>
           <span class="tag is-warning mt-3">Millores</span>
           <div class="text mt-2">
-            Es permet definir un calendari (en format .ical) per a tota l'organització per tal d'importar automàticament dedicacions, a part de tenir calendaris per persona com fins ara.
+            Es permet definir un calendari (en format .ical) per a tota
+            l'organització per tal d'importar automàticament dedicacions, a part
+            de tenir calendaris per persona com fins ara.
           </div>
         </div>
       </card-component>

@@ -2699,6 +2699,87 @@ export default {
       return documents;
       // return sortBy(documents, "document.emitted");
     },
+    unassignedDocuments() {
+      // Get all document IDs that are already assigned to phases
+      const assignedIds = new Set();
+      const project_phases = this.form.project_phases || [];
+      
+      project_phases.forEach(ph => {
+        ph.incomes.forEach(income => {
+          if (income.invoice && income.invoice.id) assignedIds.add(`emitted_invoices_${income.invoice.id}`);
+          if (income.grant && income.grant.id) assignedIds.add(`received_grants_${income.grant.id}`);
+          if (income.income && income.income.id) assignedIds.add(`received_income_${income.income.id}`);
+        });
+        ph.expenses.forEach(expense => {
+          if (expense.invoice && expense.invoice.id) assignedIds.add(`received_invoices_${expense.invoice.id}`);
+          if (expense.ticket && expense.ticket.id) assignedIds.add(`tickets_${expense.ticket.id}`);
+          if (expense.diet && expense.diet.id) assignedIds.add(`diets_${expense.diet.id}`);
+          if (expense.grant && expense.grant.id) assignedIds.add(`received_grants_${expense.grant.id}`);
+          if (expense.expense && expense.expense.id) assignedIds.add(`received_expense_${expense.expense.id}`);
+        });
+      });
+      
+      // Find unassigned documents
+      const unassigned = [];
+      
+      if (this.form.emitted_invoices) {
+        this.form.emitted_invoices.forEach(doc => {
+          if (!assignedIds.has(`emitted_invoices_${doc.id}`)) {
+            unassigned.push({ ...doc, type: 'Factura emesa' });
+          }
+        });
+      }
+      
+      if (this.form.received_grants) {
+        this.form.received_grants.forEach(doc => {
+          if (!assignedIds.has(`received_grants_${doc.id}`)) {
+            unassigned.push({ ...doc, type: 'Subvenció rebuda' });
+          }
+        });
+      }
+      
+      if (this.form.received_incomes) {
+        this.form.received_incomes.forEach(doc => {
+          if (!assignedIds.has(`received_income_${doc.id}`)) {
+            unassigned.push({ ...doc, type: 'Ingrés rebut' });
+          }
+        });
+      }
+      
+      if (this.form.received_invoices) {
+        this.form.received_invoices.forEach(doc => {
+          if (!assignedIds.has(`received_invoices_${doc.id}`)) {
+            unassigned.push({ ...doc, type: 'Factura rebuda' });
+          }
+        });
+      }
+      
+      if (this.form.tickets) {
+        this.form.tickets.forEach(doc => {
+          if (!assignedIds.has(`tickets_${doc.id}`)) {
+            unassigned.push({ ...doc, type: 'Tiquet' });
+          }
+        });
+      }
+      
+      if (this.form.diets) {
+        this.form.diets.forEach(doc => {
+          if (!assignedIds.has(`diets_${doc.id}`)) {
+            unassigned.push({ ...doc, type: 'Dieta' });
+          }
+        });
+      }
+      
+      if (this.form.received_expenses) {
+        this.form.received_expenses.forEach(doc => {
+          if (!assignedIds.has(`received_expense_${doc.id}`)) {
+            unassigned.push({ ...doc, type: 'Despesa rebuda' });
+          }
+        });
+      }
+      
+      return unassigned;
+    },
     treasuryIncomesPending() {
       return sumBy(
         this.treasury.filter(t => t.multiplier > 0 && t.document.paid !== true),

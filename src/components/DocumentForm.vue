@@ -986,6 +986,10 @@
                       ? 'incomes'
                       : 'expenses'
                   "
+                  :document-id="form.id"
+                  :document-type="type"
+                  :document-total="totalBase"
+                  :document-type-name="documentTypeName"
                 />
                 <div class="helper">
                   <b-icon icon="help-circle" />
@@ -1389,6 +1393,20 @@ export default {
       const start = (this.currentPage - 1) * this.linesPerPage;
       const end = start + this.linesPerPage;
       return this.form.lines.slice(start, end);
+    },
+    documentTypeName() {
+      const typeMap = {
+        'emitted-invoices': 'Factura emesa',
+        'received-incomes': 'Ingrés rebut',
+        'received-expenses': 'Despesa rebuda',
+        'received-invoices': 'Factura rebuda',
+        'received-grants': 'Subvenció rebuda',
+        'tickets': 'Tiquet',
+        'diets': 'Dieta',
+        'quotes': 'Pressupost',
+        'payrolls': 'Nòmina'
+      };
+      return typeMap[this.type] || 'Document';
     }
   },
   watch: {
@@ -1399,6 +1417,14 @@ export default {
         this.form = this.getClearFormObject();
       } else {
         this.getData();
+      }
+    },
+    totalBase() {
+      // Recalculate warnings when document total changes
+      if (this.form.id) {
+        this.$nextTick(() => {
+          this.calculateDocumentWarnings();
+        });
       }
     }
   },
@@ -1673,6 +1699,11 @@ export default {
               if (this.form.state === "draft") {
                 await this.calculateMinEmittedDate();
               }
+
+              // Calculate warnings after document data is loaded
+              this.$nextTick(() => {
+                this.calculateDocumentWarnings();
+              });
 
               this.isLoading = false;
             } else {
@@ -2174,6 +2205,121 @@ export default {
         deletedHours: []
       };
       project._project_phases_updated = true;
+      
+      // Calculate warnings for this document across all projects
+      this.calculateDocumentWarnings();
+    },
+    calculateDocumentWarnings() {
+      // Only calculate warnings for saved documents
+      if (!this.form.id) {
+        return;
+      }
+      
+      console.log('=== calculateDocumentWarnings ===', {
+        documentId: this.form.id,
+        documentType: this.type,
+        totalBase: this.totalBase,
+        projectCount: this.form.projects.length
+      });
+      
+      // Sum all phase lines that reference this document across ALL projects
+      let totalAssignedIncomes = 0;
+      let totalAssignedExpenses = 0;
+      const matchedIncomeLines = [];
+      const matchedExpenseLines = [];
+      
+      this.form.projects.forEach(project => {
+        if (!project.project_phases) return;
+        
+        project.project_phases.forEach(phase => {
+          // Check incomes
+          if (phase.incomes) {
+            phase.incomes.forEach(income => {
+              let isMatched = false;
+              
+              // Check if this income line references our document
+              if (this.type === 'emitted-invoices' && income.invoice && income.invoice.id === this.form.id) {
+                isMatched = true;
+              } else if (this.type === 'received-incomes' && income.income && income.income.id === this.form.id) {
+                isMatched = true;
+              } else if (this.type === 'received-grants' && income.grant && income.grant.id === this.form.id) {
+                isMatched = true;
+              }
+              
+              if (isMatched) {
+                const lineTotal = (income.quantity || 0) * (income.amount || 0);
+                totalAssignedIncomes += lineTotal;
+                matchedIncomeLines.push({
+                  projectId: project.id,
+                  phaseId: phase.id,
+                  incomeId: income.id,
+                  concept: income.concept,
+                  lineTotal,
+                  line: income
+                });
+              }
+            });
+          }
+          
+          // Check expenses
+          if (phase.expenses) {
+            phase.expenses.forEach(expense => {
+              let isMatched = false;
+              
+              // Check if this expense line references our document
+              if (this.type === 'received-invoices' && expense.invoice && expense.invoice.id === this.form.id) {
+                isMatched = true;
+              } else if (this.type === 'received-expenses' && expense.expense && expense.expense.id === this.form.id) {
+                isMatched = true;
+              } else if (this.type === 'tickets' && expense.ticket && expense.ticket.id === this.form.id) {
+                isMatched = true;
+              } else if (this.type === 'diets' && expense.diet && expense.diet.id === this.form.id) {
+                isMatched = true;
+              }
+              
+              if (isMatched) {
+                const lineTotal = (expense.quantity || 0) * (expense.amount || 0);
+                totalAssignedExpenses += lineTotal;
+                matchedExpenseLines.push({
+                  projectId: project.id,
+                  phaseId: phase.id,
+                  expenseId: expense.id,
+                  concept: expense.concept,
+                  lineTotal,
+                  line: expense
+                });
+              }
+            });
+          }
+        });
+      });
+      
+      // Determine which total to use based on document type
+      const isIncomeType = ['emitted-invoices', 'received-incomes', 'received-grants'].includes(this.type);
+      const totalAssigned = isIncomeType ? totalAssignedIncomes : totalAssignedExpenses;
+      const matchedLines = isIncomeType ? matchedIncomeLines : matchedExpenseLines;
+      
+      // Calculate if there's a warning (difference > 0.01€)
+      const diff = Math.abs(this.totalBase - totalAssigned);
+      const hasWarning = diff > 0.01;
+      
+      console.log('Document warning calculation:', {
+        documentId: this.form.id,
+        documentType: this.type,
+        totalBase: this.totalBase,
+        totalAssigned,
+        matchedLineCount: matchedLines.length,
+        diff,
+        hasWarning
+      });
+      
+      // Update warning field on all matched lines
+      matchedLines.forEach(match => {
+        if (match.line.warning !== hasWarning) {
+          match.line.warning = hasWarning;
+          match.line.dirty = true;
+        }
+      });
     },
     validateIfProjectPhasesHasDocument() {
       var validateIfProjectPhasesHasDocument = false;
