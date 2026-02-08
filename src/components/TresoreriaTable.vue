@@ -328,9 +328,10 @@
           :row-class="
             (row, index) =>
               (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
-              (row.type == 'Avui' && 'has-text-info') ||
-              (row.type == 'Inici Any' && 'has-text-info') ||
-              (row.is_balance_annotation && 'has-background-info-light')
+              (row.type == 'Avui' && 'has-background-warning-light') ||
+              (row.type == 'Inici Any' && 'has-background-warning-light') ||
+              (row.is_balance_annotation && 'has-background-warning-light') ||
+              (row.is_real_balance_adjustment && 'has-background-warning-light')
           "
         >
           <b-table-column
@@ -358,20 +359,33 @@
             v-slot="props"
           >
             <span v-if="props.row.is_balance_annotation">
-              <span class="has-text-weight-bold has-text-info">
+              <span class="zhas-text-weight-bold zhas-text-info">
                 {{ formatPrice(props.row.account_balance) }} €
+              </span>
+            </span>
+            <span v-else-if="props.row.is_real_balance_adjustment">
+              <span class="zhas-text-weight-bold zhas-text-info">
+                {{ formatPrice(props.row.total_amount) }} €
               </span>
             </span>
             <span v-else> {{ formatPrice(props.row.total_amount) }} € </span>
           </b-table-column>
           <b-table-column
-            label="Saldo"
             field="subtotal"
             sortable
             searchable
-            v-slot="props"
           >
-            {{ formatPrice(props.row.subtotal) }} €
+            <template #header>
+              <span>
+                Saldo
+                <span v-if="isSingleAccountView" class="is-size-7 has-text-grey-light">
+                  ({{ singleAccountName }})
+                </span>
+              </span>
+            </template>
+            <template v-slot="props">
+              {{ formatPrice(displayBalance(props.row)) }} €
+            </template>
           </b-table-column>
           <b-table-column
             label="Moviment"
@@ -390,6 +404,18 @@
               <b-icon
                 v-if="props.row.is_balance_annotation"
                 icon="bank"
+                size="is-small"
+                class="mr-1"
+              />
+              <b-icon
+                v-if="props.row.is_real_balance_adjustment"
+                icon="calculator"
+                size="is-small"
+                class="mr-1"
+              />
+              <b-icon
+                v-if="props.row.type === 'Avui'"
+                icon="calendar-today"
                 size="is-small"
                 class="mr-1"
               />
@@ -472,7 +498,7 @@
               <b-icon icon="cash-multiple" size="is-small" />
             </button> -->
             <button
-              v-if="props.row.type === 'Operació de tresoreria'"
+              v-if="props.row.type === 'Operació de tresoreria' || props.row.type === 'Saldo real ajustat'"
               class="button is-small is-danger"
               type="button"
               @click.prevent="trashManual(props.row.treasury_id)"
@@ -630,7 +656,8 @@ export default {
           if (
             t.type === "Inici Any" ||
             t.type === "Avui" ||
-            t.is_balance_annotation
+            t.is_balance_annotation ||
+            t.is_real_balance_adjustment
           ) {
             return true;
           }
@@ -645,7 +672,7 @@ export default {
         );
         treasuryData = treasuryData.filter(t => {
           // Always include "Inici Any" entries regardless of date filter
-          if (t.type === "Inici Any" || t.is_balance_annotation) {
+          if (t.type === "Inici Any" || t.is_balance_annotation || t.is_real_balance_adjustment) {
             return true;
           }
           return t.datef >= startDateFormatted;
@@ -656,7 +683,7 @@ export default {
         const endDateFormatted = moment(this.filterDateEnd).format("YYYYMMDD");
         treasuryData = treasuryData.filter(t => {
           // Always include "Inici Any" entries regardless of date filter
-          if (t.type === "Inici Any" || t.is_balance_annotation) {
+          if (t.type === "Inici Any" || t.is_balance_annotation || t.is_real_balance_adjustment) {
             return true;
           }
           return t.datef <= endDateFormatted;
@@ -756,7 +783,15 @@ export default {
         this.view === "today"
           ? this.treasuryData.find(t => t.type === "Avui")
           : this.treasuryData.find(t => t.type === "Inici Any");
-      return today ? today.subtotal : 0;
+      
+      if (!today) return 0;
+      
+      // If viewing a single account, show that account's balance
+      if (this.isSingleAccountView && today.account_subtotal !== undefined) {
+        return today.account_subtotal;
+      }
+      
+      return today.subtotal;
     },
     treasuryDataDesc() {
       //return _.reverse(this.treasuryData)
@@ -771,7 +806,8 @@ export default {
           if (
             d.type === "Inici Any" ||
             d.type === "Avui" ||
-            d.is_balance_annotation
+            d.is_balance_annotation ||
+            d.is_real_balance_adjustment
           ) {
             return true;
           }
@@ -784,7 +820,7 @@ export default {
         const startDate = moment(this.filterDateStart).format("DD-MM-YYYY");
         treasuryDataOfYear = treasuryDataOfYear.filter(d => {
           // Always include "Inici Any" entries regardless of date filter
-          if (d.type === "Inici Any" || d.is_balance_annotation) {
+          if (d.type === "Inici Any" || d.is_balance_annotation || d.is_real_balance_adjustment) {
             return true;
           }
           return moment(d.datex, "DD-MM-YYYY").isSameOrAfter(
@@ -797,7 +833,7 @@ export default {
         const endDate = moment(this.filterDateEnd).format("DD-MM-YYYY");
         treasuryDataOfYear = treasuryDataOfYear.filter(d => {
           // Always include "Inici Any" entries regardless of date filter
-          if (d.type === "Inici Any" || d.is_balance_annotation) {
+          if (d.type === "Inici Any" || d.is_balance_annotation || d.is_real_balance_adjustment) {
             return true;
           }
           return moment(d.datex, "DD-MM-YYYY").isSameOrBefore(
@@ -821,6 +857,18 @@ export default {
             .indexOf(this.projectSearch.toLowerCase()) >= 0
         );
       });
+    },
+    isSingleAccountView() {
+      return this.selectedBankAccountIds.length === 1;
+    },
+    singleAccountName() {
+      if (this.isSingleAccountView && this.bankAccounts.length > 0) {
+        const account = this.bankAccounts.find(
+          acc => acc.id === this.selectedBankAccountIds[0]
+        );
+        return account ? account.name : '';
+      }
+      return '';
     }
   },
   methods: {
@@ -890,6 +938,14 @@ export default {
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    },
+    displayBalance(row) {
+      // If viewing a single account, show that account's balance
+      // Otherwise show the global balance across all accounts
+      if (this.isSingleAccountView && row.account_subtotal !== undefined) {
+        return row.account_subtotal;
+      }
+      return row.subtotal;
     },
     formatDate(value) {
       return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");

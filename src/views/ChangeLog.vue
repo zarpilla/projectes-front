@@ -6,6 +6,13 @@
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
+            Possibiltat d'afegir moviments de tresoreria de saldo real per
+            compte bancari.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
             Nou càlcul de previsions a partir de les fases d'execució al resum
             financer de projectes. Nova columna de pressupost original.
           </div>
@@ -13,7 +20,9 @@
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">
-            Millores en l'assignació de documents a projectes: Assignació semiautomàtica i millor detecció d'imports mal assignats tenint en compte dcouments assignats a varis projectes.
+            Millores en l'assignació de documents a projectes: Assignació
+            semiautomàtica i millor detecció d'imports mal assignats tenint en
+            compte documents assignats a varis projectes.
           </div>
         </div>
         <div class="item mb-4">

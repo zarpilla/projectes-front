@@ -61,7 +61,7 @@
         >
       </b-field>
     </div>
-    <!-- <div>
+    <div>
       <h5 class="title is-6">Afegir saldo real</h5>
       <b-field label="" horizontal class="field-no-label" v-if="!summitting">
         <b-field label="Data" horizontal>
@@ -75,15 +75,12 @@
           >
           </b-datepicker>
         </b-field>
-        <b-field label="Saldo real" horizontal>
+        <b-field label="Import" horizontal>
           <b-input
-            v-model="form2.balance"
-            placeholder="Saldo real"
-            @input="fixDecimals('balance', form2.balance)"
+            v-model="form2.total"
+            placeholder="Import"
+            @input="fixDecimals2('total', form2.total)"
           />
-        </b-field>
-        <b-field label="Concepte" horizontal>
-          <b-input v-model="form2.comment" placeholder="Concepte" />
         </b-field>
         <b-field label="Compte bancari" horizontal>
           <b-select
@@ -104,11 +101,11 @@
         <b-button
           type="is-primary"
           @click="submit2"
-          :disabled="!form2.date || !form2.comment || !form2.balance || summitting || !form2.bank_account"
+          :disabled="!form2.date || !form2.total || summitting || !form2.bank_account"
           >Enviar</b-button
         >
       </b-field>
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -138,10 +135,10 @@ export default {
         bank_account: null
       },
       form2: {
-        comment: "",
-        balance: 0,
+        total: 0,
         date: null,
-        bank_account: null
+        bank_account: null,
+        is_real_balance: true
       },
       projectNameSearch: "",
       summitting: false,
@@ -183,6 +180,11 @@ export default {
         this.form[field] = value.toString().replace(",", ".");
       }
     },
+    fixDecimals2(field, value) {
+      if (value && value.toString().includes(",")) {
+        this.form2[field] = value.toString().replace(",", ".");
+      }
+    },
     async submit() {
       this.summitting = true;
       await service({ requiresAuth: true }).post("treasuries", this.form);
@@ -210,10 +212,10 @@ export default {
       await service({ requiresAuth: true }).post("treasuries", this.form2);
 
       this.form2 = {
-        comment: "",
-        balance: 0,
+        total: 0,
         date: null,
-        bank_account: null
+        bank_account: null,
+        is_real_balance: true
       };
 
       this.$buefy.snackbar.open({
