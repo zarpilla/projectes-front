@@ -103,39 +103,44 @@ const assignRouteDate = route => {
   let nextDay = dayjs().add(0, "day");
   let warning = "";
   const todayDayOfWeek = dayjs().day();
-  const routeDayOfWeek = route.monday
-    ? 1
-    : route.tuesday
-    ? 2
-    : route.wednesday
-    ? 3
-    : route.thursday
-    ? 4
-    : route.friday
-    ? 5
-    : route.saturday
-    ? 6
-    : route.sunday
-    ? 7
-    : 0;
+  
+  // Build an array of all valid days for this route
+  const routeDaysOfWeek = [];
+  if (route.monday) routeDaysOfWeek.push(1);
+  if (route.tuesday) routeDaysOfWeek.push(2);
+  if (route.wednesday) routeDaysOfWeek.push(3);
+  if (route.thursday) routeDaysOfWeek.push(4);
+  if (route.friday) routeDaysOfWeek.push(5);
+  if (route.saturday) routeDaysOfWeek.push(6);
+  if (route.sunday) routeDaysOfWeek.push(0); // Sunday is 0 in dayjs
 
-  if (todayDayOfWeek === routeDayOfWeek) {
+  // Check if today is a valid route day
+  if (routeDaysOfWeek.includes(todayDayOfWeek)) {
     warning =
       "Ruta tancada per avui. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
   }
+  
+  // Find the next available day that matches any of the route days
   let found = false;
   while (!found) {
     nextDay = nextDay.add(1, "day");
-    if (routeDayOfWeek === nextDay.day()) {
+    if (routeDaysOfWeek.includes(nextDay.day())) {
       found = true;
     }
   }
+  
+  // Check if it's tomorrow and past 14:00 today
   if (nextDay.isSame(dayjs().add(1, "day"), "day")) {
     if (dayjs().hour() >= 14) {
-      nextDay = dayjs()
-        .add(1, "week")
-        .startOf("week")
-        .add(1, "day");
+      // Find the next valid route day after skipping to next week
+      nextDay = dayjs().add(1, "week").startOf("week");
+      found = false;
+      while (!found) {
+        nextDay = nextDay.add(1, "day");
+        if (routeDaysOfWeek.includes(nextDay.day())) {
+          found = true;
+        }
+      }
       warning =
         "Ruta tancada per demà. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
     }
