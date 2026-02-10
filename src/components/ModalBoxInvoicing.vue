@@ -7,32 +7,52 @@
       <form @submit.prevent="submit" v-if="invoicingObject">
         <section class="modal-card-body">
             <b-field label="Factura emesa" horizontal v-if="invoicingObject.type === 'incomes'">
-              <b-autocomplete
-                v-model="emittedSearch"
-                placeholder="Factura"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredEmitted"
-                field="display"
-                @select="option => (form.emitted = option ? option : null)"
-                :clearable="true"
-                @input="emittedChanged"
-              >
-              </b-autocomplete>
+              <div style="width: 100%">
+                <b-autocomplete
+                  v-model="emittedSearch"
+                  placeholder="Factura"
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredEmitted"
+                  field="display"
+                  @select="option => (form.emitted = option ? option : null)"
+                  :clearable="true"
+                  @input="emittedChanged"
+                >
+                </b-autocomplete>
+                <router-link 
+                  v-if="form.emitted && form.emitted.id && emittedSearch" 
+                  :to="`/document/${form.emitted.id}/emitted-invoices`"
+                  target="_blank"
+                  class="is-size-7 mt-1"
+                >
+                  Veure document →
+                </router-link>
+              </div>
             </b-field>
             <b-field label="Ingrés" horizontal v-if="invoicingObject.type === 'incomes'">
-              <b-autocomplete
-                v-model="incomeSearch"
-                placeholder="Ingrés"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredIncome"
-                field="display"
-                @select="option => (form.income = option ? option : null)"
-                :clearable="true"
-                @input="incomeChanged"
-              >
-              </b-autocomplete>
+              <div style="width: 100%">
+                <b-autocomplete
+                  v-model="incomeSearch"
+                  placeholder="Ingrés"
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredIncome"
+                  field="display"
+                  @select="option => (form.income = option ? option : null)"
+                  :clearable="true"
+                  @input="incomeChanged"
+                >
+                </b-autocomplete>
+                <router-link 
+                  v-if="form.income && form.income.id && incomeSearch" 
+                  :to="`/document/${form.income.id}/received-incomes`"
+                  target="_blank"
+                  class="is-size-7 mt-1"
+                >
+                  Veure document →
+                </router-link>
+              </div>
             </b-field>
             <!-- <b-field label="Subvenció rebuda" horizontal v-if="invoicingObject.type === 'incomes'">
               <b-autocomplete
@@ -49,32 +69,52 @@
               </b-autocomplete>
             </b-field> -->
             <b-field label="Factura rebuda" horizontal v-if="invoicingObject.type === 'expenses'">
-              <b-autocomplete
-                v-model="receivedSearch"
-                placeholder="Factura"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredReceived"
-                field="display"
-                @select="option => (form.received = option ? option : null)"
-                :clearable="true"
-                @input="receivedChanged"
-              >
-              </b-autocomplete>
+              <div style="width: 100%">
+                <b-autocomplete
+                  v-model="receivedSearch"
+                  placeholder="Factura"
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredReceived"
+                  field="display"
+                  @select="option => (form.received = option ? option : null)"
+                  :clearable="true"
+                  @input="receivedChanged"
+                >
+                </b-autocomplete>
+                <router-link 
+                  v-if="form.received && form.received.id && receivedSearch" 
+                  :to="`/document/${form.received.id}/received-invoices`"
+                  target="_blank"
+                  class="is-size-7 mt-1"
+                >
+                  Veure document →
+                </router-link>
+              </div>
             </b-field>
             <b-field label="Despesa rebuda" horizontal v-if="invoicingObject.type === 'expenses'">
-              <b-autocomplete
-                v-model="expenseSearch"
-                placeholder="Despesa"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredExpense"
-                field="display"
-                @select="option => (form.expense = option ? option : null)"
-                :clearable="true"
-                @input="expenseChanged"
-              >
-              </b-autocomplete>
+              <div style="width: 100%">
+                <b-autocomplete
+                  v-model="expenseSearch"
+                  placeholder="Despesa"
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredExpense"
+                  field="display"
+                  @select="option => (form.expense = option ? option : null)"
+                  :clearable="true"
+                  @input="expenseChanged"
+                >
+                </b-autocomplete>
+                <router-link 
+                  v-if="form.expense && form.expense.id && expenseSearch" 
+                  :to="`/document/${form.expense.id}/received-expenses`"
+                  target="_blank"
+                  class="is-size-7 mt-1"
+                >
+                  Veure document →
+                </router-link>
+              </div>
             </b-field>
             <!-- <b-field label="Ticket rebut" horizontal v-if="invoicingObject.type === 'expenses'">
               <b-autocomplete

@@ -1072,13 +1072,12 @@ export default {
           ).toDate();
         }
         if (s.income_type) {
-          s.income_type = { id: s.income_type.id, name: s.income_type.name };
+          const incomeTypeId = typeof s.income_type === 'object' ? s.income_type.id : s.income_type;
+          s.income_type = this.incomeTypes.find(it => it.id === incomeTypeId) || s.income_type;
         }
         if (s.bank_account) {
-          s.bank_account = {
-            id: s.bank_account.id,
-            name: s.bank_account.name
-          };
+          const bankAccountId = typeof s.bank_account === 'object' ? s.bank_account.id : s.bank_account;
+          s.bank_account = this.bankAccounts.find(ba => ba.id === bankAccountId) || s.bank_account;
         }
       });
       p.expenses.forEach(s => {
@@ -1095,13 +1094,12 @@ export default {
           ).toDate();
         }
         if (s.expense_type) {
-          s.expense_type = { id: s.expense_type.id, name: s.expense_type.name };
+          const expenseTypeId = typeof s.expense_type === 'object' ? s.expense_type.id : s.expense_type;
+          s.expense_type = this.expenseTypes.find(et => et.id === expenseTypeId) || s.expense_type;
         }
         if (s.bank_account) {
-          s.bank_account = {
-            id: s.bank_account.id,
-            name: s.bank_account.name
-          };
+          const bankAccountId = typeof s.bank_account === 'object' ? s.bank_account.id : s.bank_account;
+          s.bank_account = this.bankAccounts.find(ba => ba.id === bankAccountId) || s.bank_account;
         }
       });
     });
