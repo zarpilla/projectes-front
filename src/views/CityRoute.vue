@@ -92,7 +92,7 @@ export default {
       "users/me"
     );
     const permissions = me.data.permissions.map(p => p.permission);    
-    if (permissions.includes("orders_admin")) {
+    if (permissions.includes("orders_admin") || permissions.includes("orders_delivery")) {
       this.orders_admin = true;
     }
     await this.getData();

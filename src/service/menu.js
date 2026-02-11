@@ -212,6 +212,45 @@ const menu = [
       permission: "orders_admin"
     }
   ],
+  "COMANDES",
+  [
+    {
+      to: "/orders",
+      icon: "truck",
+      label: "Comandes",
+      permission: "orders_delivery"
+    },
+    {
+      to: "/deposits",
+      icon: "package-down",
+      label: "Dipòsits",
+      permission: "orders_delivery"
+    },
+    {
+      to: "/user-contacts",
+      icon: "account-box",
+      label: "Punts d'entrega",
+      permission: "orders_delivery"
+    },
+    {
+      to: "/incidences",
+      icon: "alert",
+      label: "Incidències",
+      permission: "orders_delivery"
+    },
+    {
+      to: "/transfers",
+      icon: "swap-horizontal",
+      label: "Transferències",
+      permission: "orders_delivery"
+    },
+    {
+      to: "/pickup-points",
+      icon: "package",
+      label: "Punts de consum",
+      permission: "orders_admin"
+    }
+  ],
   "Consulta dades",
   [
     {

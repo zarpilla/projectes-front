@@ -127,7 +127,7 @@ export default {
         const permissions = me.data.permissions.map(p => p.permission);
 
         if (
-          !permissions.includes("orders_admin") &&
+          !(permissions.includes("orders_admin") || permissions.includes("orders_delivery")) &&
           permissions.includes("orders")
         ) {
           const response = await service({ requiresAuth: true }).get(

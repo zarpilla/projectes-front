@@ -34,19 +34,13 @@
         <div class="column is-half">
           <div class="columns is-mobile bg-white-panel">
             <div class="column">
-              <h2>Total comandes</h2>
-              <div class="has-text-weight-bold is-size-4">
-                {{ total }}
-              </div>
-            </div>
-            <div class="column">
               <h2>Pendents</h2>
               <div class="has-text-weight-bold is-size-4">
                 {{ pendingCount }}
               </div>
             </div>
             <div class="column">
-              <h2>Avui</h2>
+              <h2>Dipositades avui</h2>
               <div class="has-text-weight-bold is-size-4">
                 {{ todayCount }}
               </div>
@@ -124,6 +118,16 @@
         width="110"
       >
         {{ formatDate(props.row.estimated_delivery_date) }}
+      </b-table-column>
+
+      <b-table-column
+        label="Punt d'entrega"
+        field="contact.trade_name"
+        sortable
+        v-slot="props"
+        width="110"
+      >
+        {{ props.row.contact ? props.row.contact.trade_name : '-' }}
       </b-table-column>
 
       <b-table-column
@@ -231,7 +235,7 @@ export default {
     );
     this.permissions = me.data.permissions.map(p => p.permission);
     this.currentUserId = me.data.id;
-    this.isAdmin = this.permissions.includes('orders_admin');
+    this.isAdmin = (this.permissions.includes('orders_admin') || this.permissions.includes('orders_delivery'));
     
     this.loadData();
   },
@@ -254,7 +258,7 @@ export default {
         // Apply status filter
         if (this.statusFilter === 'pending') {
           params['status'] = 'pending';
-        } else if (this.statusFilter === 'today') {
+        } else if (this.statusFilter === 'deposited') {
           // Get today's date range
           const today = moment().startOf('day').toISOString();
           const tomorrow = moment().add(1, 'day').startOf('day').toISOString();
@@ -267,18 +271,7 @@ export default {
 
         const response = await service({ requiresAuth: true }).get("orders", { params });
         this.orders = response.data;
-
-        // Get total count with same filters
-        const countParams = { ...params };
-        delete countParams._limit;
-        delete countParams._start;
-        delete countParams._sort;
-        
-        const countResponse = await service({ requiresAuth: true }).get(
-          "orders/count",
-          { params: countParams }
-        );
-        this.total = countResponse.data;
+        this.total = response.data.length;
 
         // Get counts for different statuses
         await this.loadStatusCounts();
@@ -294,7 +287,9 @@ export default {
     },
     async loadStatusCounts() {
       try {
-        const baseParams = {};
+        const baseParams = {
+          '_where[is_collection_order_null]': true
+        };
         
         // Filter based on permission
         if (!this.isAdmin) {

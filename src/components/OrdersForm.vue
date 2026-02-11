@@ -66,7 +66,7 @@
                 message="Data de creació de la comanda"
               >
                 <b-datepicker
-                  :disabled="!permissions.includes('orders_admin')"
+                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
                   v-model="form.route_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -567,7 +567,7 @@
                               size="is-small"
                               @click="pickupCollectionOrder(props.row.id)"
                               :loading="isLoadingPickup[props.row.id]"
-                              :disabled="!permissions.includes('orders_admin')"
+                              :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
                             >
                               Recollir
                             </b-button>
@@ -696,7 +696,7 @@
                       'is-outlined': form.status !== s.id
                     }"
                     @click="form.status = s.id"
-                    :disabled="!permissions.includes('orders_admin')"
+                    :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
                   >
                     {{ s.name }}
                   </button>
@@ -707,7 +707,7 @@
                 label="Última milla"
                 horizontal
                 message="En cas de que la comanda passi per última milla, aquesta casella es marcarà automàticament, però també pots marcar-la manualment si ja ho saps"
-                v-if="permissions.includes('orders_admin')"
+                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
               >
                 <b-switch
                   v-model="form.last_mile"
@@ -719,7 +719,7 @@
                 label="Transferència"
                 horizontal
                 message="Indica si la comanda necessita una transferència"
-                v-if="permissions.includes('orders_admin')"
+                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
               >
                 <b-switch
                   v-model="form.transfer"
@@ -731,7 +731,7 @@
                 label="Origen transferència"
                 horizontal
                 message="Punt de recollida on es deposita la comanda"
-                v-if="permissions.includes('orders_admin') && form.transfer && form.transfer_pickup_origin"
+                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && form.transfer && form.transfer_pickup_origin"
               >
                 <span>{{ getPickupName(form.transfer_pickup_origin) }}</span>
               </b-field>
@@ -740,7 +740,7 @@
                 label="Destinació transferència"
                 horizontal
                 message="Punt de recollida on es farà la transferència"
-                v-if="permissions.includes('orders_admin') && form.transfer && form.transfer_pickup_destination"
+                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && form.transfer && form.transfer_pickup_destination"
               >
                 <span>{{ getPickupName(form.transfer_pickup_destination) }}</span>
               </b-field>
@@ -754,7 +754,7 @@
                 message="Data de creació de la comanda"
               >
                 <b-datepicker
-                  :disabled="!permissions.includes('orders_admin')"
+                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
                   v-model="form.route_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -794,10 +794,10 @@
                 label="Data lliurament"
                 horizontal
                 message="Data en la que la comanda ha estat entregada"
-                v-if="permissions.includes('orders_admin')"
+                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
               >
                 <b-datepicker
-                  :disabled="!permissions.includes('orders_admin')"
+                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
                   v-model="form.delivery_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -845,7 +845,7 @@
                   >
                   </money-format>
                   <button
-                    v-if="permissions.includes('orders_admin')"
+                    v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                     class="button is-warning is-small ml-4 mt--6"
                     type="button"
                     @click="changeRate"
@@ -1145,25 +1145,25 @@ export default {
       return (
         (this.form.id &&
           this.form.status !== "cancelled" &&
-          this.permissions.includes("orders_admin")) ||
+          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
         (this.form.status === "pending" &&
-          !this.permissions.includes("orders_admin"))
+          !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")))
       );
     },
     canEditContact() {
       return (
         (this.form.contact && !this.form.contact_multiowner && !this.isPickupPoint) 
         ||
-        this.permissions.includes("orders_admin")
+        (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
       );
     },
     canEdit() {
       return (
         (this.form.id &&
           this.form.status !== "cancelled" &&
-          this.permissions.includes("orders_admin")) ||
+          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
         (this.form.status === "pending" &&
-          !this.permissions.includes("orders_admin")) ||
+          !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
         !this.form.id
       );
     },
@@ -1462,7 +1462,7 @@ export default {
                 cached: true
               }).get("users/me");
               if (
-                !this.permissions.includes("orders_admin") &&
+                !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")) &&
                 this.form.owner !== me.data.id
               ) {
                 this.$router.push({ name: "orders.view" });
@@ -1520,7 +1520,7 @@ export default {
         const me = await service({ requiresAuth: true, cached: true }).get(
           "users/me"
         );
-        if (!this.permissions.includes("orders_admin")) {
+        if (!(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
           this.form.owner = me.data.id;
         }
 
@@ -1586,7 +1586,7 @@ export default {
       );
       const permissions = me.data.permissions.map(p => p.permission);
 
-      if (!permissions.includes("orders_admin")) {
+      if (!(permissions.includes("orders_admin") || permissions.includes("orders_delivery"))) {
         this.users = users.filter(u => u.id == me.data.id);
       } else {
         this.users = users;
@@ -1596,7 +1596,7 @@ export default {
         );
       }
 
-      if (!permissions.includes("orders_admin")) {
+      if (!(permissions.includes("orders_admin") || permissions.includes("orders_delivery"))) {
         // this.users = this.users.filter(u => u.id == me.data.id);
       }
 
@@ -1730,7 +1730,7 @@ export default {
           error = "La ruta seleccionada no es fa dissabte";
         }
 
-        if (error && !this.permissions.includes("orders_admin")) {
+        if (error && !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
           this.$buefy.snackbar.open({
             message: error,
             queue: false,
@@ -1738,7 +1738,7 @@ export default {
           });
           return false;
         }
-        else if (error && this.permissions.includes("orders_admin")) {
+        else if (error && (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
           this.$buefy.snackbar.open({
             message: error,
             queue: false,

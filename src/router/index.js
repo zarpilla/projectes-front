@@ -567,6 +567,19 @@ const routes = [
   },
   {
     meta: {
+      title: "Veure Comanda"
+    },
+    path: "/order/view/:id",
+    name: "orders.view.detail",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/OrderView.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: "Comanda"
     },
     path: "/order/:id",

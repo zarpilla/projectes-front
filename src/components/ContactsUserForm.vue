@@ -229,7 +229,7 @@
                 />
               </b-field>
               <b-field
-                v-if="permissions.includes('orders_admin')"
+                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="Detalls repartidores"
                 horizontal
               >
@@ -256,16 +256,16 @@
                 <b-input v-model="form.website" />
               </b-field>
               <b-field
-                v-if="permissions.includes('orders_admin')"
+                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="Punt de consum"
                 horizontal
               >
-                <b-switch v-model="form.pickup_point" :disabled="!permissions.includes('orders_admin')" />
+                <b-switch v-model="form.pickup_point" :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))" />
               </b-field>
               <b-field
                 label="Usuària ESSTRAPIS"
                 horizontal
-                v-if="permissions.includes('orders_admin') && form.pickup_point"
+                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && form.pickup_point"
                 message="Usuària assignada per a la gestió de comandes del punt de consum"
               >
                 <b-select v-model="form.users_permissions_user" placeholder="">
@@ -279,14 +279,14 @@
                 </b-select>
               </b-field>
               <b-field
-                v-if="permissions.includes('orders_admin')"
+                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="% de descompte per recollida en finca"
                 horizontal
               >
                 <b-input
                   v-model="form.pickup_discount"
                   type="numeric"
-                  :disabled="!permissions.includes('orders_admin')"
+                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
                   @input="fixDecimals('pickup_discount', form.pickup_discount)"
                 />
               </b-field>
@@ -309,7 +309,8 @@
                   <b-button
                     v-if="
                       (me.data && form.id && form.owner === me.data.id) ||
-                        permissions.includes('orders_admin')
+                        permissions.includes('orders_admin') ||
+                        permissions.includes('orders_delivery')
                     "
                     type="is-danger"
                     class="ml-auto"
@@ -416,7 +417,7 @@ export default {
     },
     isOrdersContactAndUserIsOrdersAdmin() {
       return (
-        this.form.owner !== null && this.permissions.includes("orders_admin")
+        this.form.owner !== null && (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
       );
     },
     filteredCities() {
@@ -482,7 +483,7 @@ export default {
       this.permissions = me.data.permissions.map(p => p.permission);
 
       this.form.contact_types = [4];
-      if (!this.permissions.includes("orders_admin")) {
+      if (!(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
         this.form.owner = me.data.id;
       }
 
@@ -579,7 +580,7 @@ export default {
         if (
           this.$route.query.user &&
           this.$route.query.user === "true" &&
-          this.permissions.includes("orders_admin")
+          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
         ) {
           this.form.multiowner = true;
         } else {
@@ -710,7 +711,7 @@ export default {
           if (
             this.$route.query.user &&
             this.$route.query.user === "true" &&
-            this.permissions.includes("orders_admin") &&
+            (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")) &&
             this.form.owner === this.me.id
           ) {
             this.form.multiowner = true;

@@ -58,13 +58,13 @@
     </div>
 
     <div class="is-flex mt-4">
-      <span v-if="permissions.includes('orders_admin')">
+      <span v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
         Exportar per a planificador:
       </span>
 
       <!-- <pre>{{ theOrdersChecked }}</pre> -->
       <download-excel
-        v-if="permissions.includes('orders_admin')"
+        v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
         class="export"
         :data="theOrdersChecked"
         :escapeCsv="false"
@@ -98,11 +98,11 @@
           icon-left="download"
         />
       </download-excel>
-      <span v-if="permissions.includes('orders_admin')">
+      <span v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
         Ecologística:
       </span>
       <download-excel
-        v-if="permissions.includes('orders_admin')"
+        v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
         class="export"
         :data="theOrdersChecked"
         name="ecologistica.xlsx"
@@ -237,8 +237,8 @@
         ANUL·LADES
       </b-button>
     </div>
-    <h4 v-if="permissions.includes('orders_admin')">RUTES <small class="has-text-grey-light">(Ctrl+clic per seleccionar múltiples)</small></h4>
-    <div class="filters" v-if="permissions.includes('orders_admin')">
+    <h4 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">RUTES <small class="has-text-grey-light">(Ctrl+clic per seleccionar múltiples)</small></h4>
+    <div class="filters" v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
@@ -318,7 +318,7 @@
           </div>
         </div>
         <div class="column is-flex is-multiline">
-          <div class="is-flex" v-if="permissions.includes('orders_admin')">
+          <div class="is-flex" v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
             <div>
               <h2>CANVIAR ESTAT</h2>
               <b-select v-model="newState" placeholder="">
@@ -404,7 +404,7 @@
       :checked-rows.sync="checkedRows"
       :is-row-checkable="row => true"
       :debounce-search="500"
-      :checkable="true || permissions.includes('orders_admin')"
+      :checkable="true || permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
       :row-class="rowClassFn"
     >
       <b-table-column label="ID" field="idx" sortable v-slot="props" searchable>
@@ -752,7 +752,7 @@
         v-slot="props"        
         centered
         cell-class="opacity-100"
-        v-if="permissions.includes('orders_admin')"
+        v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
       >
         <div v-if="editingRowId === props.row.id" class="buttons">
           <b-button
@@ -1283,9 +1283,9 @@ export default {
       return (
         (order.id &&
           order.status !== "cancelled" &&
-          this.permissions.includes("orders_admin")) ||
+          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
         (order.status === "pending" &&
-          !this.permissions.includes("orders_admin"))
+          !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")))
       );
     },
     startEdit(order) {
@@ -1623,7 +1623,7 @@ export default {
         "users/me"
       );
       this.me = me.data;
-      if (me.data.permissions.map(p => p.permission).includes("orders_admin")) {
+      if (me.data.permissions.map(p => p.permission).includes("orders_admin") || me.data.permissions.map(p => p.permission).includes("orders_delivery")) {
         this.userFilter = "";
       } else {
         this.userFilter = `&_where[owner]=${me.data.id}`;
@@ -1655,7 +1655,7 @@ export default {
         u.permissions.map(p => p.permission).includes("orders")
       );
 
-      if (me.data.permissions.map(p => p.permission).includes("orders_admin")) {
+      if (me.data.permissions.map(p => p.permission).includes("orders_admin") || me.data.permissions.map(p => p.permission).includes("orders_delivery")) {
         this.csvExample.forEach(element => {
           element.owner_id = this.users[0].id;
         });
@@ -1796,7 +1796,7 @@ export default {
 
       // console.log("records", records);
 
-      const owner = this.permissions.includes("orders_admin")
+      const owner = (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
         ? this.users.find(
             u => u.id.toString() === records[0].owner_id.toString()
           )
@@ -2015,7 +2015,7 @@ export default {
           units: Math.abs(parseInt(record.units)),
           notes: record.notes,
           comments: record.notes,
-          owner: this.permissions.includes("orders_admin")
+          owner: (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
             ? this.users.find(
                 u => u.id.toString() === record.owner_id.toString()
               )
@@ -2175,13 +2175,13 @@ export default {
 
         if (
           record.owner_id.toString() === "0" &&
-          this.permissions.includes("orders_admin")
+          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
         ) {
           record.owner_id = this.me.id;
           record.multiowner = true;
         } else {
           record.multiowner = false;
-          if (!this.permissions.includes("orders_admin")) {
+          if (!(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
             record.owner_id = this.me.id;
           }
           if (
@@ -2321,12 +2321,30 @@ export default {
       // Get current user for tracking
       const currentUser = await service({ requiresAuth: true }).get("users/me");
       
+      const total = this.checkedRows.length;
+      let current = 0;
+      
       for await (const row of this.checkedRows) {
+        current++;
+        this.$buefy.snackbar.open({
+          message: `Processant comanda ${current}/${total}...`,
+          type: "is-info",
+          duration: 1500,
+          queue: false
+        });
+        
         await service({ requiresAuth: true }).put(`orders/${row.id}`, {
           status: this.newState,
           _tracking_user: currentUser.data
         });
       }
+      
+      this.$buefy.snackbar.open({
+        message: `Totes les comandes processades correctament (${total})`,
+        type: "is-success",
+        duration: 3000
+      });
+      
       this.checkedRows = [];
       this.importing = false;
       this.getData();

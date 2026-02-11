@@ -149,7 +149,7 @@ export default {
         // Check user permissions
         const me = await service({ requiresAuth: true, cached: true }).get("users/me");
         const permissions = me.data.permissions.map(p => p.permission);
-        this.orders_admin = permissions.includes("orders_admin");
+        this.orders_admin = (permissions.includes("orders_admin") || permissions.includes("orders_delivery"));
         
         // Load contacts with owner (user contacts / delivery points)
         const response = await service({ requiresAuth: true, cached: false }).get(

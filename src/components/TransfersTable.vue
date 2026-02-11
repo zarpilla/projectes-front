@@ -174,6 +174,7 @@
       <b-table-column
         label="Origen"
         field="transfer_pickup_origin"
+        sortable
         v-slot="props"
         width="150"
       >
@@ -183,6 +184,7 @@
       <b-table-column
         label="Destinació"
         field="transfer_pickup_destination"
+        sortable
         v-slot="props"
         width="150"
       >
@@ -190,9 +192,7 @@
       </b-table-column>
 
       <b-table-column
-        label="Estat"
-        field="transfer_status"
-        sortable
+        label="Estat Trànsferència"
         v-slot="props"
         width="130"
       >
@@ -211,6 +211,16 @@
         width="110"
       >
         {{ formatDate(props.row.estimated_delivery_date) }}
+      </b-table-column>
+
+      <b-table-column
+        label="Punt d'entrega"
+        field="contact.trade_name"
+        sortable
+        v-slot="props"
+        width="110"
+      >
+        {{ props.row.contact ? props.row.contact.trade_name : '-' }}
       </b-table-column>
 
       <b-table-column

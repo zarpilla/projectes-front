@@ -366,7 +366,7 @@ export default {
     );
     this.permissions = me.data.permissions.map(p => p.permission);
     this.currentUserId = me.data.id;
-    this.isAdmin = this.permissions.includes("orders_admin");
+    this.isAdmin = (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"));
     this.loadData();
   },
   methods: {
@@ -641,7 +641,7 @@ export default {
     },
     canDelete(incidence) {
       // Admins can always delete
-      if (this.permissions.includes("orders_admin")) {
+      if (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")) {
         return true;
       }
       

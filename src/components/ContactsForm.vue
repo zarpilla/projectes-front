@@ -321,7 +321,7 @@
               <hr />
               <b-field
                 horizontal
-                v-if="!form.multiowner || permissions.includes('orders_admin')"
+                v-if="!form.multiowner || permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
               >
                 <div class="is-flex">
                   <b-button
@@ -416,7 +416,7 @@ export default {
     },
     isOrdersContactAndUserIsOrdersAdmin() {
       return (
-        this.form.owner !== null && this.permissions.includes("orders_admin")
+        this.form.owner !== null && (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
       );
     },
     isPartner() {
@@ -563,7 +563,7 @@ export default {
         if (
           this.$route.query.user &&
           this.$route.query.user === "true" &&
-          this.permissions.includes("orders_admin")
+          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
         ) {
           this.form.multiowner = true;
         } else {
@@ -596,7 +596,7 @@ export default {
 
       // Load available collection points for partners (contact_type = 3)
       // Always load if user is orders_admin, as they can change contact types
-      if (this.permissions.includes("orders_admin") || this.isPartner) {
+      if (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery") || this.isPartner) {
         await this.loadCollectionPoints();
       }
     },
@@ -666,7 +666,7 @@ export default {
           if (
             this.$route.query.user &&
             this.$route.query.user === "true" &&
-            this.permissions.includes("orders_admin") &&
+            (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")) &&
             this.form.owner === this.me.id
           ) {
             this.form.multiowner = true;
