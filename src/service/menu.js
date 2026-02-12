@@ -80,7 +80,7 @@ const menu = [
       permission: "projects"
     }
   ],
-  "COMANDES",
+  "LOGÍSTICA",
   [
     {
       to: "/orders",
@@ -137,7 +137,7 @@ const menu = [
       permission: "orders"
     }
   ],
-  "COMANDES ADM",
+  "LOGÍSTICA ADM",
   [
     {
       to: "/orders",
@@ -212,7 +212,7 @@ const menu = [
       permission: "orders_admin"
     }
   ],
-  "COMANDES",
+  "LOGÍSTICA",
   [
     {
       to: "/orders",
@@ -243,12 +243,6 @@ const menu = [
       icon: "swap-horizontal",
       label: "Transferències",
       permission: "orders_delivery"
-    },
-    {
-      to: "/pickup-points",
-      icon: "package",
-      label: "Punts de consum",
-      permission: "orders_admin"
     }
   ],
   "Consulta dades",

@@ -11,7 +11,14 @@
       @confirm="confirmContact"
     ></modal-box-contact-user>
 
-    <section class="section is-main-section">
+    <modal-box-incidence
+      :is-active="isIncidenceModalActive"
+      :order-id="form.id || 0"
+      @confirm="onIncidenceCreated"
+      @cancel="isIncidenceModalActive = false"
+    ></modal-box-incidence>
+
+    <section class="section is-main-section section-adapted">
       <div class="columns">
         <div class="column is-full">
           <card-component class="tile is-child">
@@ -492,6 +499,17 @@
                   >
                     Afegir incidència
                   </b-button>
+
+                  <b-button
+                    v-if="form.id"
+                    type="is-info"
+                    outlined
+                    icon-left="alert-circle"
+                    @click="openIncidenceModal"
+                    class="mb-3 ml-2"
+                  >
+                    Crear incidència
+                  </b-button>
                 </div>
               </b-field>
 
@@ -721,10 +739,15 @@
                 message="Indica si la comanda necessita una transferència"
                 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
               >
-                <b-switch
-                  v-model="form.transfer"
-                  :disabled="true"
-                ></b-switch>
+                <div class="is-flex is-align-items-center">
+                  <b-switch
+                    v-model="form.transfer"
+                    :disabled="true"
+                  ></b-switch>
+                  <b-tag v-if="form.transfer" :type="transferStatusType" class="ml-3">
+                    {{ transferStatus }}
+                  </b-tag>
+                </div>
               </b-field>
 
               <b-field
@@ -1065,6 +1088,7 @@ import {
   calculateRoutePrice
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser";
+import ModalBoxIncidence from "@/components/ModalBoxIncidence";
 import getConfig from '@/config'
 
 export default {
@@ -1073,7 +1097,8 @@ export default {
     CardComponent,
     TitleBar,
     MoneyFormat,
-    ModalBoxContactUser
+    ModalBoxContactUser,
+    ModalBoxIncidence
   },
   props: {
     id: {
@@ -1118,6 +1143,7 @@ export default {
       apiUrl: process.env.VUE_APP_API_URL,
       dateWarningMessage: "",
       isModalActive: false,
+      isIncidenceModalActive: false,
       isLoadingDeposit: {},
       isLoadingPickup: {},
     };
@@ -1331,6 +1357,28 @@ export default {
         return false;
       }
       return moment(collectionDate).isAfter(moment(this.form.estimated_delivery_date), 'day');
+    },
+    transferStatus() {
+      if (!this.form.transfer) return "";
+      
+      if (this.form.transfer_end_date) {
+        return "FINALITZADA";
+      } else if (this.form.transfer_start_date) {
+        return "EN TRANSFER";
+      } else {
+        return "NO INICIADA";
+      }
+    },
+    transferStatusType() {
+      if (!this.form.transfer) return "";
+      
+      if (this.form.transfer_end_date) {
+        return "is-success";
+      } else if (this.form.transfer_start_date) {
+        return "is-warning";
+      } else {
+        return "is-light";
+      }
     }
   },
   watch: {
@@ -2559,6 +2607,28 @@ export default {
         this.form.incidences.splice(index, 1);
       }
     },
+    openIncidenceModal() {
+      if (!this.form.id) {
+        this.$buefy.snackbar.open({
+          message: "Primer has de guardar la comanda",
+          queue: false,
+          type: "is-warning"
+        });
+        return;
+      }
+      this.isIncidenceModalActive = true;
+    },
+    async onIncidenceCreated() {
+      // Reload order data after incidence is created
+      this.isIncidenceModalActive = false;
+      await this.getData();
+      
+      this.$buefy.snackbar.open({
+        message: "Incidència creada i dades recarregades",
+        queue: false,
+        type: "is-success"
+      });
+    },
     formatDate(date) {
       if (!date) return '';
       return dayjs(date).format('DD/MM/YYYY');
@@ -3091,5 +3161,10 @@ export default {
   border: 1px solid #e8e8e8;
   border-radius: 4px;
   background-color: #fafafa;
+}
+@media screen and (max-width: 768px) {
+  .section-adapted {
+    padding: 1rem 0.75rem;
+  }
 }
 </style>
