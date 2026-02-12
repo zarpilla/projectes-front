@@ -210,6 +210,12 @@ const menu = [
       icon: "table",
       label: "Taula Comandes",
       permission: "orders_admin"
+    },
+    {
+      to: "/incidences-stats",
+      icon: "table",
+      label: "Taula Incidències",
+      permission: "orders_admin"
     }
   ],
   "LOGÍSTICA",

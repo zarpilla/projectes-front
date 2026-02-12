@@ -659,6 +659,19 @@ const routes = [
   },
   {
     meta: {
+      title: "Incidències TD"
+    },
+    path: "/incidences-stats",
+    name: "incidences.stats",
+    component: () =>
+      import(/* webpackChunkName: "orders" */ "../views/StatsIncidences.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: "Factures Proveïdora"
     },
     path: "/provider-invoices",

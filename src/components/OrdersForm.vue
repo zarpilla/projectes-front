@@ -768,6 +768,15 @@
                 <span>{{ getPickupName(form.transfer_pickup_destination) }}</span>
               </b-field>
 
+              <b-field
+                label="Ruta completa"
+                horizontal
+                message="Recorregut complet desde la recollida fins l'entrega"
+                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && completeRouteText"
+              >
+                <span>{{ completeRouteText }}</span>
+              </b-field>
+
               
 
               <b-field
@@ -1379,6 +1388,73 @@ export default {
       } else {
         return "is-light";
       }
+    },
+    completeRouteText() {
+      if (!this.form) return "";
+
+      // Build movement chain showing all steps from pickup to delivery
+      const movements = [];
+
+      // Add pickup if exists
+      if (this.form.pickup) {
+        const pickup = this.pickups.find(p => p.id === this.form.pickup);
+        if (pickup) {
+          const pickupAlias = pickup.alias || pickup.name;
+          if (pickupAlias) {
+            movements.push(pickupAlias);
+          }
+        }
+      }
+
+      // Add transfer origin if exists (and different from pickup)
+      if (this.form.transfer_pickup_origin) {
+        const origin = this.pickups.find(p => p.id === this.form.transfer_pickup_origin);
+        if (origin) {
+          const originAlias = origin.alias || origin.name;
+          // Only add if it's not empty and not already the last item
+          if (
+            originAlias &&
+            (movements.length === 0 ||
+              movements[movements.length - 1] !== originAlias)
+          ) {
+            movements.push(originAlias);
+          }
+        }
+      }
+
+      // Add transfer destination if exists
+      if (this.form.transfer_pickup_destination) {
+        const destination = this.pickups.find(p => p.id === this.form.transfer_pickup_destination);
+        if (destination) {
+          const destinationAlias = destination.alias || destination.name;
+          // Only add if it's not empty and not already the last item
+          if (
+            destinationAlias &&
+            (movements.length === 0 ||
+              movements[movements.length - 1] !== destinationAlias)
+          ) {
+            movements.push(destinationAlias);
+          }
+        }
+      }
+
+      // Add route name at the end
+      if (this.form.route) {
+        const route = this.routes.find(r => r.id === this.form.route);
+        if (route) {
+          const routeName = route.short_name || route.name;
+          if (routeName) {
+            movements.push(routeName);
+          }
+        }
+      }
+
+      // Create the transfer text if there are multiple movements
+      if (movements.length > 1) {
+        return movements.join(" -> ");
+      }
+
+      return "";
     }
   },
   watch: {

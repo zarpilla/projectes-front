@@ -393,7 +393,8 @@
               </span>
             </div>
 
-            <div class="info-field" v-if="transferPickupText">              
+            <div class="info-field" v-if="transferPickupText">
+              <span class="field-label">{{ routeLabel }}</span>              
               <span class="field-value">{{ transferPickupText }}</span>
             </div>
 
@@ -646,22 +647,75 @@ export default {
       return slots.join(" i ") || "";
     },
     transferPickupText() {
-      if (!this.order || !this.order.transfer) return "";
+      if (!this.order) return "";
 
-      if (
-        this.order.transfer_pickup_origin &&
-        this.order.transfer_pickup_destination
-      ) {
+      // Build movement chain showing all steps from pickup to delivery
+      const movements = [];
+
+      // Add pickup if exists
+      if (this.order.pickup) {
+        const pickupAlias = this.order.pickup.alias || this.order.pickup.name;
+        if (pickupAlias) {
+          movements.push(pickupAlias);
+        }
+      }
+
+      // Add transfer origin if exists (and different from pickup)
+      if (this.order.transfer_pickup_origin) {
         const originAlias =
           this.order.transfer_pickup_origin.alias ||
           this.order.transfer_pickup_origin.name;
+        // Only add if it's not empty and not already the last item
+        if (
+          originAlias &&
+          (movements.length === 0 ||
+            movements[movements.length - 1] !== originAlias)
+        ) {
+          movements.push(originAlias);
+        }
+      }
+
+      // Add transfer destination if exists
+      if (this.order.transfer_pickup_destination) {
         const destinationAlias =
           this.order.transfer_pickup_destination.alias ||
           this.order.transfer_pickup_destination.name;
-        return `${originAlias} -> ${destinationAlias}`;
+        // Only add if it's not empty and not already the last item
+        if (
+          destinationAlias &&
+          (movements.length === 0 ||
+            movements[movements.length - 1] !== destinationAlias)
+        ) {
+          movements.push(destinationAlias);
+        }
+      }
+
+      // Add route name at the end
+      if (this.order.route) {
+        const routeName =
+          this.order.route.short_name || this.order.route.name;
+        if (routeName) {
+          movements.push(routeName);
+        }
+      }
+
+      // Create the transfer text if there are multiple movements
+      if (movements.length > 1) {
+        return movements.join(" -> ");
       }
 
       return "";
+    },
+    routeLabel() {
+      if (!this.order) return "Ruta completa:";
+      
+      // Determine label based on whether there's a transfer involved
+      const isTransfer =
+        this.order.transfer_pickup_origin ||
+        this.order.transfer_pickup_destination;
+      
+      if (!this.order) return "Ruta completa:";
+      return isTransfer ? "Ruta completa (Transfer):" : "Ruta completa:";
     },
     canEdit() {
       // User can edit if they are admin or the order owner
