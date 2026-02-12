@@ -73,6 +73,10 @@ export default {
   props: {
     project: Object,
     users: Array,
+    viewMode: {
+      type: String,
+      default: "original" // 'original' or 'estimated'
+    }
   },
   components: {
     ModalBoxEstimatedHours,
@@ -83,6 +87,12 @@ export default {
   },
   watch: {
     project: function (newVal, oldVal) {},
+    viewMode: function (newVal, oldVal) {
+      // Reinitialize Gantt chart when view mode changes
+      if (newVal !== oldVal) {
+        this.initializeGannt();
+      }
+    },
     users: function (newVal, oldVal) {
       if (newVal) {
         const user = newVal.find(
@@ -180,8 +190,18 @@ export default {
       this.tasks = { data: [] };
       let minDate = moment().format("YYYY-MM-DD");
       let maxDate = moment().format("YYYY-MM-DD");
-      for (let i = 0; i < this.project.project_original_phases.length; i++) {
-        const phase = this.project.project_original_phases[i];
+      
+      // Use the appropriate phases based on viewMode
+      const phases = this.viewMode === "original" 
+        ? this.project.project_original_phases 
+        : this.project.project_phases;
+      
+      if (!phases || phases.length === 0) {
+        return;
+      }
+      
+      for (let i = 0; i < phases.length; i++) {
+        const phase = phases[i];
         const task = {
           id: phase.id,
           text: phase.name,
@@ -503,8 +523,10 @@ export default {
           this.tasks.data.push(taskToAdd);
         }
       } else if (tasksInRow.length > 1) {
-        const ph =
-          this.project.project_original_phases[this.project.project_original_phases.length - 1];
+        const phases = this.viewMode === "original" 
+          ? this.project.project_original_phases 
+          : this.project.project_phases;
+        const ph = phases[phases.length - 1];
         
         var projects = tasksInRow.filter((t) => t.type === "project");
         currentTask = projects[projects.length - 1];

@@ -2032,7 +2032,9 @@
 
       <card-component
         v-if="!isLoading && !isUpdating && !form.children"
-        title="PLANIFICACIÓ"
+        :title="'PLANIFICACIÓ' + (ganttViewMode === 'original' ? ' ORIGINAL' : ' PREVISTA')"
+        header-icon="swap-horizontal"
+        @header-icon-click="toggleGanttView"
       >
         <button
           v-if="needsUpdate"
@@ -2048,14 +2050,15 @@
             !isLoading &&
               !needsUpdate &&
               form.id &&
-              form.project_original_phases &&
-              form.project_original_phases.length &&
-              form.project_original_phases[0].id
+              ((ganttViewMode === 'original' && form.project_original_phases && form.project_original_phases.length && form.project_original_phases[0].id) ||
+               (ganttViewMode === 'estimated' && form.project_phases && form.project_phases.length && form.project_phases[0].id))
           "
+          :key="'gantt-' + ganttViewMode + '-' + form.id"
           class="left-container"
           :project="form"
           :users="leaders"
           :tasks="{}"
+          :view-mode="ganttViewMode"
           @gantt-item-update="ganttItemUpdate"
           @gantt-item-delete="ganttItemDelete"
         />
@@ -2387,6 +2390,7 @@ export default {
       newTask: "",
       phasesVisible: true,
       tasksView: "state",
+      ganttViewMode: "original", // 'original' or 'estimated'
       apiUrl: process.env.VUE_APP_API_URL,
       hasBeenDirty: false,
       allByYear: [],
@@ -2402,6 +2406,7 @@ export default {
       deletedPhases: [],
       deletedIncomes: [],
       deletedExpenses: [],
+      deletedHours: [],
       deletedPhasesOriginal: [],
       deletedIncomesOriginal: [],
       deletedExpensesOriginal: [],
@@ -2874,6 +2879,9 @@ export default {
   created() {
     const config = getConfig();
     this.apiUrl = config.VUE_APP_API_URL;
+    // Restore Gantt view preference from localStorage
+    // if exist execution-> estimated
+    this.ganttViewMode = this.form.project_phases && this.form.project_phases.length > 0 ? 'estimated' : 'original';
     this.getData();
   },
   beforeRouteLeave(to, from, next) {
@@ -2963,6 +2971,7 @@ export default {
                   ? this.form.region
                   : { id: 0 };
 
+              // Load execution phases with estimated hours
               const phases = (
                 await service({ requiresAuth: true }).get(
                   `project-phases?project=${this.$route.params.id}&_limit=-1`
@@ -2970,15 +2979,9 @@ export default {
               ).data;
 
               this.form.project_phases = phases;
+              this.ganttViewMode = (phases && phases.length > 0) ? 'estimated' : 'original';
 
-              // const original_phases = (
-              //   await service({ requiresAuth: true }).get(
-              //     `project-original-phases?project=${this.$route.params.id}&_limit=-1`
-              //   )
-              // ).data;
-
-              // console.log("original_phases", phases);
-
+              // Load original phases with estimated hours
               const phases_and_estimated_hours = (
                 await service({ requiresAuth: true }).get(
                   `project-original-phases-hours?project=${this.$route.params.id}&_limit=-1`
@@ -3092,6 +3095,13 @@ export default {
               }
 
               this.getAuxiliarData();
+
+              // Set default Gantt view mode based on available phases
+              // If no saved preference exists, and project has execution phases, default to "estimated"
+              const savedGanttView = localStorage.getItem("ganttViewMode");
+              if (!savedGanttView && this.form.project_phases && this.form.project_phases.length > 0) {
+                this.ganttViewMode = "estimated";
+              }
 
               this.isLoading = false;
 
@@ -3791,19 +3801,31 @@ export default {
       }, 500);
     },
     ganttItemUpdate(item) {
-      this.form._project_original_phases_updated = true;
+      // Check which view mode we're in
+      const isOriginalMode = this.ganttViewMode === "original";
+      
+      if (isOriginalMode) {
+        this.form._project_original_phases_updated = true;
+      } else {
+        this.form._project_phases_updated = true;
+      }
+      
       if (!item._hours) {
         return;
       }
-      // return item
-      // console.log('ganttItemUpdate _uuid', item._uuid)
+      
       const id = item._hours.id;
       const uuid = item._uuid;
       const pid = item._phase.id;
 
+      // Get the appropriate phases array based on view mode
+      const phasesArray = isOriginalMode 
+        ? this.form.project_original_phases 
+        : this.form.project_phases;
+
       var subphase = item._subphase ? item._subphase : null;
       if (!item._subphase) {
-        const phase = this.form.project_original_phases.find(p => p.id === pid);
+        const phase = phasesArray.find(p => p.id === pid);
         phase.incomes.push({ concept: "SF", estimated_hours: [] });
         subphase = phase.incomes[0];
         subphase.dirty = true;
@@ -3812,8 +3834,7 @@ export default {
       const hours = subphase.estimated_hours.find(
         h => (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid)
       );
-      // console.log('hours', hours)
-      // console.log('item', item)
+      
       if (hours) {
         hours.from = moment(item.start_date).format("YYYY-MM-DD");
         hours.to = item.end_date
@@ -3853,45 +3874,82 @@ export default {
           _uuid: item._uuid,
           dirty: true
         };
-        // console.log('hour to push', hour)
         subphase.estimated_hours.push(hour);
         subphase.dirty = true;
       }
+      
       this.updatingGantt = true;
       if (this.updatingGanttTimer) {
         clearTimeout(this.updatingGanttTimer);
       }
 
-      this.form.project_original_phases_info = {
-        deletedPhases: this.deletedPhasesOriginal,
-        deletedIncomes: this.deletedIncomesOriginal,
-        deletedExpenses: this.deletedExpensesOriginal,
-        deletedHours: this.deletedHoursOriginal
-      };
+      // Update the appropriate info object based on view mode
+      if (isOriginalMode) {
+        this.form.project_original_phases_info = {
+          deletedPhases: this.deletedPhasesOriginal,
+          deletedIncomes: this.deletedIncomesOriginal,
+          deletedExpenses: this.deletedExpensesOriginal,
+          deletedHours: this.deletedHoursOriginal
+        };
+      } else {
+        this.form.project_phases_info = {
+          deletedPhases: this.deletedPhases,
+          deletedIncomes: this.deletedIncomes,
+          deletedExpenses: this.deletedExpenses,
+          deletedHours: this.deletedHours
+        };
+      }
 
       this.updatingGanttTimer = setTimeout(() => {
         this.updatingGantt = false;
       }, 800);
     },
     ganttItemDelete(item) {
-      this.form._project_original_phases_updated = true;
+      // Check which view mode we're in
+      const isOriginalMode = this.ganttViewMode === "original";
+      
+      if (isOriginalMode) {
+        this.form._project_original_phases_updated = true;
+      } else {
+        this.form._project_phases_updated = true;
+      }
+      
       const id = item._hours.id;
       const pid = item._phase.id;
       const sid = item._subphase.id;
 
-      this.deletedHoursOriginal.push(id);
+      // Add to appropriate deletedHours array
+      if (isOriginalMode) {
+        this.deletedHoursOriginal.push(id);
+      } else {
+        this.deletedHours.push(id);
+      }
 
-      const phase = this.form.project_original_phases.find(p => p.id === pid);
-
+      // Get the appropriate phases array based on view mode
+      const phasesArray = isOriginalMode 
+        ? this.form.project_original_phases 
+        : this.form.project_phases;
+        
+      const phase = phasesArray.find(p => p.id === pid);
       const income = phase.incomes.find(s => s.id === sid);
       income.estimated_hours = income.estimated_hours.filter(h => h.id !== id);
 
-      this.form.project_original_phases_info = {
-        deletedPhases: this.deletedPhasesOriginal,
-        deletedIncomes: this.deletedIncomesOriginal,
-        deletedExpenses: this.deletedExpensesOriginal,
-        deletedHours: this.deletedHoursOriginal
-      };
+      // Update the appropriate info object
+      if (isOriginalMode) {
+        this.form.project_original_phases_info = {
+          deletedPhases: this.deletedPhasesOriginal,
+          deletedIncomes: this.deletedIncomesOriginal,
+          deletedExpenses: this.deletedExpensesOriginal,
+          deletedHours: this.deletedHoursOriginal
+        };
+      } else {
+        this.form.project_phases_info = {
+          deletedPhases: this.deletedPhases,
+          deletedIncomes: this.deletedIncomes,
+          deletedExpenses: this.deletedExpenses,
+          deletedHours: this.deletedHours
+        };
+      }
     },
     sumByFn(arr, field) {
       return sumBy(arr, field);
@@ -4093,6 +4151,11 @@ export default {
     },
     toogleTasksView() {
       this.tasksView = this.tasksView === "list" ? "state" : "list";
+    },
+    toggleGanttView() {
+      this.ganttViewMode = this.ganttViewMode === "original" ? "estimated" : "original";
+      // Save preference to localStorage
+      localStorage.setItem("ganttViewMode", this.ganttViewMode);
     },
     changeValue(field, value) {
       if (value && value.toString().includes(",")) {
