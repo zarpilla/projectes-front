@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="columns position-relative">
+    <div class="columns position-relative pr-4 pl-4">
       <div class="column is-one-third">
         <h4 class="subtitle">
           <img class="main-logo" src="@/assets/esstrapis-dark.svg" alt="ESSTRAPIS"  />

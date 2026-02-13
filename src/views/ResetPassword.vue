@@ -1,8 +1,14 @@
 <template>
   <div class="container">
-    <div class="columns">
+    <div class="columns pr-4 pl-4">
       <div class="column is-one-third">
-        <h4 class="subtitle"><img class="main-logo" src="@/assets/esstrapis-dark.svg" alt="ESSTRAPIS"  /></h4>
+        <h4 class="subtitle">
+          <img
+            class="main-logo"
+            src="@/assets/esstrapis-dark.svg"
+            alt="ESSTRAPIS"
+          />
+        </h4>
         <h4 class="title mt-5">Canviar clau de pas</h4>
         <form @submit="resetPassword">
           <div class="field">
@@ -28,7 +34,9 @@
         </form>
 
         <p v-show="done" class="has-text-primary">{{ message }}</p>
-        <p v-show="error" class="has-text-danger">Oh oh, hi ha hagut un error...</p>
+        <p v-show="error" class="has-text-danger">
+          Oh oh, hi ha hagut un error...
+        </p>
 
         <div class="mt-4">
           <router-link to="/"> Torna </router-link>
@@ -49,7 +57,7 @@ export default {
       confirmPassword: "",
       done: false,
       error: false,
-      message: ''
+      message: ""
     };
   },
   methods: {
@@ -59,22 +67,22 @@ export default {
         .post("auth/reset-password", {
           code: this.$route.query.code,
           password: this.password,
-          passwordConfirmation: this.confirmPassword,
+          passwordConfirmation: this.confirmPassword
         })
         .then(() => {
           this.done = true;
           this.$buefy.snackbar.open({
-                position: "is-top",
-                message: 'Clau de pas canviada',
-                cancelText: "No"                    
-            });
+            position: "is-top",
+            message: "Clau de pas canviada",
+            cancelText: "No"
+          });
           this.$router.push("/");
         })
-        .catch((e) => {
+        .catch(e => {
           e;
           this.error = true;
         });
-    },
-  },
+    }
+  }
 };
 </script>
