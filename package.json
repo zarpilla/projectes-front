@@ -23,6 +23,7 @@
     "dhtmlx-gantt": "^7.1.6",
     "html2pdf.js": "^0.9.3",
     "html3pdf": "^0.12.2",
+    "html5-qrcode": "^2.3.8",
     "jquery": "^3.6.0",
     "k-progress": "^1.5.0",
     "lodash": "^4.17.20",

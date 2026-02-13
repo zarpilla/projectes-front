@@ -37,6 +37,24 @@
       >
         COMPLETADES
       </b-button>
+      <b-button
+        class="view-button mb-3 mr-3 ml-0"
+        type="is-info"
+        icon-left="qrcode-scan"
+        @click="openScanner('start')"
+        :disabled="!statusFilter.includes('pending')"
+      >
+        ESCANEJAR INICIAR
+      </b-button>
+      <b-button
+        class="view-button mb-3 mr-3 ml-0"
+        type="is-success"
+        icon-left="qrcode-scan"
+        @click="openScanner('end')"
+        :disabled="!statusFilter.includes('in_progress')"
+      >
+        ESCANEJAR FINALITZAR
+      </b-button>
     </div>
 
     <div class="mb-3">
@@ -70,7 +88,7 @@
     <div class="mb-3">
       <div class="columns is-multiline ml-0 mt-4">
         <div class="column is-half">
-          <div class="columns is-mobile bg-white-panel">
+          <div class="columns zis-mobile bg-white-panel">
             <div class="column">
               <h2 class="pr-2">Total</h2>
               <div class="is-flex">
@@ -271,10 +289,27 @@
             Finalitzar
           </b-button>
           
-          <!-- Completed indicator if ended -->
-          <b-tag v-if="props.row.transfer_end_date" type="is-success">
-            Completada
-          </b-tag>
+          <!-- Undo button if in progress -->
+          <b-button
+            v-if="props.row.transfer_start_date && !props.row.transfer_end_date"
+            type="is-danger"
+            size="is-small"
+            icon-left="undo"
+            @click="removeTransferStart(props.row)"
+          >
+            Desfer
+          </b-button>
+          
+          <!-- Undo button if completed -->
+          <b-button
+            v-if="props.row.transfer_end_date"
+            type="is-danger"
+            size="is-small"
+            icon-left="undo"
+            @click="removeTransferEnd(props.row)"
+          >
+            Desfer
+          </b-button>
         </div>
       </b-table-column>
 
@@ -391,6 +426,13 @@
         </div>
       </template>
     </b-table>
+
+    <q-r-scanner-modal
+      :is-active="isScannerActive"
+      :action-label="scannerAction === 'start' ? 'Iniciar transferències' : 'Finalitzar transferències'"
+      @scanned="handleScannedOrder"
+      @cancel="closeScanner"
+    />
   </section>
 </template>
 
@@ -398,9 +440,13 @@
 import service from "@/service/index";
 import { mapState } from "vuex";
 import moment from "moment";
+import QRScannerModal from "@/components/QRScannerModal";
 
 export default {
   name: "TransfersTable",
+  components: {
+    QRScannerModal
+  },
   data() {
     return {
       isLoading: false,
@@ -420,7 +466,9 @@ export default {
       pendingCount: 0,
       inProgressCount: 0,
       completedCount: 0,
-      currentUserId: null
+      currentUserId: null,
+      isScannerActive: false,
+      scannerAction: null // 'start' or 'end'
     };
   },
   computed: {
@@ -746,6 +794,118 @@ export default {
         return "has-background-light";
       }
       return "";
+    },
+    openScanner(action) {
+      this.scannerAction = action; // 'start' or 'end'
+      this.isScannerActive = true;
+    },
+    closeScanner() {
+      this.isScannerActive = false;
+      this.scannerAction = null;
+      // Reload data to show updated orders
+      this.loadData();
+    },
+    async handleScannedOrder(orderId, addToHistory) {
+      try {
+        // Fetch the order
+        const response = await service({ requiresAuth: true }).get(`orders/${orderId}`);
+        const order = response.data;
+
+        // Validate order exists
+        if (!order) {
+          addToHistory(orderId, 'error', 'Comanda no trobada');
+          this.$buefy.toast.open({
+            message: `Comanda #${orderId} no trobada`,
+            type: 'is-danger',
+            duration: 2000
+          });
+          return;
+        }
+
+        // Check if order has transfer flag
+        if (!order.transfer) {
+          addToHistory(orderId, 'warning', 'No és una comanda de transferència');
+          this.$buefy.toast.open({
+            message: `Comanda #${orderId} no és una transferència`,
+            type: 'is-warning',
+            duration: 2000
+          });
+          return;
+        }
+
+        const me = await service({ requiresAuth: true }).get("users/me");
+
+        if (this.scannerAction === 'start') {
+          // Starting transfer
+          if (order.transfer_start_date) {
+            addToHistory(orderId, 'warning', 'Transferència ja iniciada');
+            this.$buefy.toast.open({
+              message: `Comanda #${orderId} ja està iniciada`,
+              type: 'is-warning',
+              duration: 2000
+            });
+            return;
+          }
+
+          // Start the transfer
+          await service({ requiresAuth: true }).put(`orders/${orderId}`, {
+            transfer_start_date: new Date().toISOString(),
+            transfer_start_user: me.data.id
+          });
+
+          addToHistory(orderId, 'success', 'Transferència iniciada');
+          this.$buefy.toast.open({
+            message: `Transferència #${orderId} iniciada`,
+            type: 'is-success',
+            duration: 2000
+          });
+
+        } else if (this.scannerAction === 'end') {
+          // Ending transfer
+          if (!order.transfer_start_date) {
+            addToHistory(orderId, 'warning', 'Transferència no iniciada');
+            this.$buefy.toast.open({
+              message: `Comanda #${orderId} no està iniciada`,
+              type: 'is-warning',
+              duration: 2000
+            });
+            return;
+          }
+
+          if (order.transfer_end_date) {
+            addToHistory(orderId, 'warning', 'Transferència ja finalitzada');
+            this.$buefy.toast.open({
+              message: `Comanda #${orderId} ja està finalitzada`,
+              type: 'is-warning',
+              duration: 2000
+            });
+            return;
+          }
+
+          // End the transfer
+          await service({ requiresAuth: true }).put(`orders/${orderId}`, {
+            transfer_end_date: new Date().toISOString(),
+            transfer_end_user: me.data.id
+          });
+
+          addToHistory(orderId, 'success', 'Transferència finalitzada');
+          this.$buefy.toast.open({
+            message: `Transferència #${orderId} finalitzada`,
+            type: 'is-success',
+            duration: 2000
+          });
+        }
+
+      } catch (error) {
+        console.error('Error processing scanned order:', error);
+        const errorMsg = error.response?.data?.message || 'Error al processar';
+        addToHistory(orderId, 'error', errorMsg);
+        this.$buefy.toast.open({
+          message: `Error amb comanda #${orderId}`,
+          type: 'is-danger',
+          duration: 2000
+        });
+      }
     }
   }
 };

@@ -27,12 +27,59 @@
       >
         DIPOSITADES ({{ todayCount }})
       </b-button>
+      <b-button
+        :disabled="statusFilter !== 'pending'"
+        class="view-button mb-3 mr-3 ml-0"
+        type="is-info"
+        icon-left="qrcode-scan"
+        @click="openScanner"
+      >
+        ESCANEJAR QR
+      </b-button>
+    </div>
+
+    <div class="mb-3">
+      <h3 class="subtitle is-6 mb-2">Filtre per punt de dipòsit</h3>
+      <div class="is-flex is-block-mobile is-flex-wrap-wrap">
+        <b-button
+          class="view-button mb-2 mr-2 ml-0"
+          :class="{
+            'is-primary': pickupFilter === null,
+            'is-warning': pickupFilter !== null
+          }"
+          @click="setPickupFilter(null)"
+        >
+          TOTS
+        </b-button>
+        <b-button
+          v-for="pickup in nonPickupLocations"
+          :key="pickup.id"
+          class="view-button mb-2 mr-2 ml-0"
+          :class="{
+            'is-primary': pickupFilter === pickup.id,
+            'is-warning': pickupFilter !== pickup.id
+          }"
+          @click="setPickupFilter(pickup.id)"
+        >
+          {{ pickup.name || pickup.trade_name }}
+        </b-button>
+        <b-button
+          class="view-button mb-2 mr-2 ml-0"
+          :class="{
+            'is-primary': pickupFilter === 'finca',
+            'is-warning': pickupFilter !== 'finca'
+          }"
+          @click="setPickupFilter('finca')"
+        >
+          Finca
+        </b-button>
+      </div>
     </div>
 
     <div class="mb-3">
       <div class="columns is-multiline ml-0 mt-4">
         <div class="column is-half">
-          <div class="columns is-mobile bg-white-panel">
+          <div class="columns zis-mobile bg-white-panel">
             <div class="column">
               <h2>Pendents</h2>
               <div class="has-text-weight-bold is-size-4">
@@ -131,6 +178,21 @@
       </b-table-column>
 
       <b-table-column
+        label="Dipòsit a"
+        field="collection_point.trade_name"
+        sortable
+        v-slot="props"
+        width="150"
+      >
+        <span v-if="props.row.collection_point">
+          {{ props.row.collection_point.trade_name || props.row.collection_point.name || '-' }}
+        </span>
+        <span v-else>
+          {{ props.row.pickup ? (props.row.pickup.name || props.row.pickup.trade_name || '-') : '-' }}
+        </span>
+      </b-table-column>
+
+      <b-table-column
         label="Caixes"
         field="units"
         sortable
@@ -198,6 +260,13 @@
         <div class="has-text-centered">No hi ha dipòsits</div>
       </template>
     </b-table>
+
+    <q-r-scanner-modal
+      :is-active="isScannerActive"
+      :action-label="statusFilter === 'pending' ? 'Dipositar comandes' : 'Desfer dipòsit'"
+      @scanned="handleScannedOrder"
+      @cancel="closeScanner"
+    />
   </section>
 </template>
 
@@ -205,13 +274,19 @@
 import service from "@/service/index";
 import { mapState } from "vuex";
 import moment from "moment";
+import QRScannerModal from "@/components/QRScannerModal";
 
 export default {
   name: "DepositsTable",
+  components: {
+    QRScannerModal
+  },
   data() {
     return {
       isLoading: false,
       orders: [],
+      nonPickupLocations: [], // Pickups with pickup=false (Girona, Artés, etc.)
+      fincaPickupIds: [], // IDs of pickups with pickup=true
       total: 0,
       page: 1,
       perPage: 50,
@@ -219,11 +294,13 @@ export default {
       sortOrder: "desc",
       defaultSortOrder: "desc",
       statusFilter: 'pending',
+      pickupFilter: null,
       permissions: [],
       pendingCount: 0,
       todayCount: 0,
       currentUserId: null,
-      isAdmin: false
+      isAdmin: false,
+      isScannerActive: false
     };
   },
   computed: {
@@ -236,6 +313,15 @@ export default {
     this.permissions = me.data.permissions.map(p => p.permission);
     this.currentUserId = me.data.id;
     this.isAdmin = (this.permissions.includes('orders_admin') || this.permissions.includes('orders_delivery'));
+    
+    // Load all pickups
+    const pickupsResponse = await service({ requiresAuth: true, cached: true }).get(
+      "pickups?_limit=-1&_sort=name:ASC"
+    );
+    
+    // Separate pickups: those with pickup=false show individually, those with pickup=true group as "Finca"
+    this.nonPickupLocations = pickupsResponse.data.filter(p => p.pickup === false);
+    this.fincaPickupIds = pickupsResponse.data.filter(p => p.pickup === true).map(p => p.id);
     
     this.loadData();
   },
@@ -270,7 +356,32 @@ export default {
         params['_where[is_collection_order_null]'] = true;
 
         const response = await service({ requiresAuth: true }).get("orders", { params });
-        this.orders = response.data;
+        let orders = response.data;
+        
+        // Apply pickup filter if needed
+        if (this.pickupFilter !== null) {
+          if (this.pickupFilter === 'finca') {
+            // Filter for Finca: orders with collection_point OR pickup with pickup=true
+            orders = orders.filter(order => {
+              // Has a collection point
+              if (order.collection_point) {
+                return true;
+              }
+              // Has a pickup with pickup=true
+              if (order.pickup && this.fincaPickupIds.includes(order.pickup.id)) {
+                return true;
+              }
+              return false;
+            });
+          } else {
+            // Filter for specific non-pickup location
+            orders = orders.filter(order => {
+              return order.pickup && order.pickup.id === this.pickupFilter && !order.collection_point;
+            });
+          }
+        }
+        
+        this.orders = orders;
         this.total = response.data.length;
 
         // Get counts for different statuses
@@ -329,6 +440,11 @@ export default {
     },
     setStatusFilter(status) {
       this.statusFilter = status;
+      this.page = 1;
+      this.loadData();
+    },
+    setPickupFilter(pickupId) {
+      this.pickupFilter = pickupId;
       this.page = 1;
       this.loadData();
     },
@@ -412,6 +528,127 @@ export default {
         return "has-background-light";
       }
       return "";
+    },
+    openScanner() {
+      this.isScannerActive = true;
+    },
+    closeScanner() {
+      this.isScannerActive = false;
+      // Reload data to show updated orders
+      this.loadData();
+    },
+    async handleScannedOrder(orderId, addToHistory) {
+      try {
+        // Fetch the order
+        const response = await service({ requiresAuth: true }).get(`orders/${orderId}`);
+        const order = response.data;
+
+        // Validate order exists
+        if (!order) {
+          addToHistory(orderId, 'error', 'Comanda no trobada');
+          this.$buefy.toast.open({
+            message: `Comanda #${orderId} no trobada`,
+            type: 'is-danger',
+            duration: 2000
+          });
+          return;
+        }
+
+        // Check if order is a collection order (should be excluded)
+        if (order.is_collection_order) {
+          addToHistory(orderId, 'warning', 'No és una comanda de dipòsit');
+          this.$buefy.toast.open({
+            message: `Comanda #${orderId} no és una comanda de dipòsit`,
+            type: 'is-warning',
+            duration: 2000
+          });
+          return;
+        }
+
+        // Check if not admin and order doesn't belong to current user
+        if (!this.isAdmin && order.owner && order.owner.id !== this.currentUserId) {
+          addToHistory(orderId, 'error', 'No tens permís per modificar aquesta comanda');
+          this.$buefy.toast.open({
+            message: `No tens permís per modificar la comanda #${orderId}`,
+            type: 'is-danger',
+            duration: 2000
+          });
+          return;
+        }
+
+        // Handle based on current filter mode
+        if (this.statusFilter === 'pending') {
+          // Depositing mode
+          if (order.status === 'deposited') {
+            addToHistory(orderId, 'warning', 'Ja estava dipositada');
+            this.$buefy.toast.open({
+              message: `Comanda #${orderId} ja està dipositada`,
+              type: 'is-warning',
+              duration: 2000
+            });
+            return;
+          }
+
+          if (order.status !== 'pending') {
+            addToHistory(orderId, 'warning', `Estat actual: ${order.status}`);
+            this.$buefy.toast.open({
+              message: `Comanda #${orderId} no està pendent`,
+              type: 'is-warning',
+              duration: 2000
+            });
+            return;
+          }
+
+          // Mark as deposited
+          await service({ requiresAuth: true }).put(`orders/${orderId}`, {
+            status: 'deposited',
+            deposit_date: new Date().toISOString(),
+            deposit_user: this.currentUserId
+          });
+
+          addToHistory(orderId, 'success', 'Dipositada correctament');
+          this.$buefy.toast.open({
+            message: `Comanda #${orderId} dipositada`,
+            type: 'is-success',
+            duration: 2000
+          });
+        } else {
+          // Undo deposit mode
+          if (order.status !== 'deposited') {
+            addToHistory(orderId, 'warning', 'No està dipositada');
+            this.$buefy.toast.open({
+              message: `Comanda #${orderId} no està dipositada`,
+              type: 'is-warning',
+              duration: 2000
+            });
+            return;
+          }
+
+          // Unmark as deposited
+          await service({ requiresAuth: true }).put(`orders/${orderId}`, {
+            status: 'pending',
+            deposit_date: null,
+            deposit_user: null
+          });
+
+          addToHistory(orderId, 'success', 'Dipòsit desfet');
+          this.$buefy.toast.open({
+            message: `Dipòsit de comanda #${orderId} desfet`,
+            type: 'is-success',
+            duration: 2000
+          });
+        }
+
+      } catch (error) {
+        console.error('Error processing scanned order:', error);
+        const errorMsg = error.response?.data?.message || 'Error al processar';
+        addToHistory(orderId, 'error', errorMsg);
+        this.$buefy.toast.open({
+          message: `Error amb comanda #${orderId}`,
+          type: 'is-danger',
+          duration: 2000
+        });
+      }
     }
   }
 };

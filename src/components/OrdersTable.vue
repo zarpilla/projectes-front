@@ -2414,7 +2414,6 @@ export default {
       this.setStatusFilter({ ctrlKey: false, metaKey: false });
     },
     onFiltersChange(filters) {
-      console.log("filters", filters);
       this.filters = filters;
       this.setStatusFilter({ ctrlKey: false, metaKey: false });
     }
