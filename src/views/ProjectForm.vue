@@ -5,6 +5,33 @@
       <div class="columns">
         <div class="column is-two-thirds">
           <card-component :title="formCardTitle" class="tile is-child">
+            <!-- Step indicator for creation wizard -->
+            <div v-if="isCreationMode" class="steps mb-4">
+              <div class="step-item" :class="{ 'is-active': currentStep === 1, 'is-completed': currentStep > 1 }">
+                <div class="step-marker">1</div>
+                <div class="step-details">
+                  <p class="step-title">Dades bàsiques</p>
+                </div>
+              </div>
+              <div class="step-item" :class="{ 'is-active': currentStep === 2, 'is-completed': currentStep > 2 }">
+                <div class="step-marker">2</div>
+                <div class="step-details">
+                  <p class="step-title">Fases i pressupost</p>
+                </div>
+              </div>
+              <div class="step-item" :class="{ 'is-active': currentStep === 3, 'is-completed': currentStep > 3 }">
+                <div class="step-marker">3</div>
+                <div class="step-details">
+                  <p class="step-title">Planificació</p>
+                </div>
+              </div>
+              <div class="step-item" :class="{ 'is-active': currentStep === 4 }">
+                <div class="step-marker">4</div>
+                <div class="step-details">
+                  <p class="step-title">Confirmació</p>
+                </div>
+              </div>
+            </div>
             <form 
               @submit.prevent="submitAndContinue" 
               @focus.capture="enableUserInteraction"
@@ -715,8 +742,20 @@
                     >Cancel·lar</b-button
                   >
                 </b-field>
+                <!-- Creation wizard mode: step navigation -->
+                <template v-if="!isDuplicating && isCreationMode && currentStep === 1">
+                  <b-field horizontal>
+                    <b-button
+                      type="is-primary"
+                      :loading="isLoading"
+                      @click="nextStep"
+                      icon-right="arrow-right"
+                      >Continuar</b-button
+                    >
+                  </b-field>
+                </template>
                 <!-- Normal mode: regular save buttons -->
-                <template v-if="!isDuplicating">
+                <template v-if="!isDuplicating && !isCreationMode">
                   <b-field horizontal>
                     <b-button
                       type="is-primary"
@@ -1596,7 +1635,8 @@
 
       <card-component
         v-if="
-          !isLoading && phasesVisible && form && form.project_original_phases
+          !isLoading && phasesVisible && form && form.project_original_phases &&
+          (!isCreationMode || currentStep >= 2)
         "
         title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
         :closeIcon="true"
@@ -1666,23 +1706,46 @@
 
         <hr v-if="!isDuplicating" />
         <div class="is-flex" v-if="!isDuplicating">
-          <b-field horizontal>
-            <b-button
-              type="is-primary"
-              :loading="isLoading"
-              @click="submitAndContinue"
-              >Guardar</b-button
-            >
-          </b-field>
-          <b-field horizontal>
-            <b-button
-              v-if="form.id"
-              type="is-primary is-outlined"
-              :loading="isLoading && form.id"
-              @click="submitAndExit"
-              >Guardar i sortir</b-button
-            >
-          </b-field>
+          <!-- Creation wizard mode step 2: navigation buttons -->
+          <template v-if="isCreationMode && currentStep === 2">
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="previousStep"
+                icon-left="arrow-left"
+                >Enrere</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="nextStep"
+                icon-right="arrow-right"
+                >Continuar</b-button
+              >
+            </b-field>
+          </template>
+          <!-- Normal mode: regular save buttons -->
+          <template v-if="!isCreationMode">
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="submitAndContinue"
+                >Guardar</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                v-if="form.id"
+                type="is-primary is-outlined"
+                :loading="isLoading && form.id"
+                @click="submitAndExit"
+                >Guardar i sortir</b-button
+              >
+            </b-field>
+          </template>
         </div>
       </card-component>
 
@@ -1693,7 +1756,8 @@
             form &&
             form.project_phases &&
             form.project_phases.length &&
-            !form.children
+            !form.children &&
+            !isCreationMode
         "
         :title="'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
         :closeIcon="true"
@@ -2031,7 +2095,7 @@
       </card-component>
 
       <card-component
-        v-if="!isLoading && !isUpdating && !form.children"
+        v-if="!isLoading && !isUpdating && !form.children && (!isCreationMode || currentStep >= 3)"
         :title="'PLANIFICACIÓ' + (ganttViewMode === 'original' ? ' ORIGINAL' : ' PREVISTA')"
         header-icon="swap-horizontal"
         @header-icon-click="toggleGanttView"
@@ -2068,23 +2132,76 @@
         >
         <hr v-if="!isDuplicating" />
         <div class="is-flex" v-if="!isDuplicating">
-          <b-field horizontal>
-            <b-button
-              type="is-primary"
-              :loading="isLoading"
-              @click="submitAndContinue"
-              >Guardar</b-button
-            >
-          </b-field>
-          <b-field horizontal>
-            <b-button
-              v-if="form.id"
-              type="is-primary is-outlined"
-              :loading="isLoading"
-              @click="submitAndExit"
-              >Guardar i sortir</b-button
-            >
-          </b-field>
+          <!-- Creation wizard mode step 3: show confirmation options -->
+          <template v-if="isCreationMode && currentStep === 3">
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="previousStep"
+                icon-left="arrow-left"
+                >Enrere</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="nextStep"
+                icon-right="arrow-right"
+                >Continuar</b-button
+              >
+            </b-field>
+          </template>
+          <!-- Creation wizard mode step 4: final confirmation -->
+          <template v-if="isCreationMode && currentStep === 4">
+            <div class="notification is-info" style="flex-grow: 1; margin-right: 1rem;">
+              <p class="mb-2"><strong>El projecte està gairebé completat!</strong></p>
+              <p>Pots continuar editant les fases o la planificació, o tancar el pressupost per finalitzar la creació.</p>
+            </div>
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="continueEditing('phases')"
+                >Editar fases</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="continueEditing('planning')"
+                >Editar planificació</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-success"
+                :loading="isLoading"
+                @click="closeBudget"
+                icon-left="check"
+                >Tancar pressupost</b-button
+              >
+            </b-field>
+          </template>
+          <!-- Normal mode: regular save buttons -->
+          <template v-if="!isCreationMode">
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="submitAndContinue"
+                >Guardar</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                v-if="form.id"
+                type="is-primary is-outlined"
+                :loading="isLoading"
+                @click="submitAndExit"
+                >Guardar i sortir</b-button
+              >
+            </b-field>
+          </template>
         </div>
       </card-component>
 
@@ -2414,7 +2531,10 @@ export default {
       isDuplicating: false,
       formKey: 0,
       isInitialLoad: false,
-      userHasInteracted: false
+      userHasInteracted: false,
+      // Creation wizard state
+      currentStep: 1,
+      isCreationMode: false
     };
   },
   computed: {
@@ -2922,7 +3042,8 @@ export default {
         expenses: [],
         default_dedication_type: { id: 0 },
         project_type: { id: 0 },
-        grantable_years: []
+        grantable_years: [],
+        creation_step: 'basic_data' // Track creation wizard step
       };
     },
     getData() {
@@ -3094,6 +3215,16 @@ export default {
                 this.form.grantable_years = [];
               }
 
+              // Check if we're in creation mode based on creation_step
+              // null or 'completed' means project is fully created
+              if (this.form.creation_step && this.form.creation_step !== 'completed') {
+                this.isCreationMode = true;
+                this.currentStep = this.getStepNumber(this.form.creation_step);
+              } else {
+                this.isCreationMode = false;
+                this.currentStep = 1;
+              }
+
               this.getAuxiliarData();
 
               // Set default Gantt view mode based on available phases
@@ -3121,6 +3252,9 @@ export default {
         this.form.date_end = moment()
           .endOf("year")
           .toDate();
+        // Enable creation mode for new projects
+        this.isCreationMode = true;
+        this.currentStep = 1;
         this.getAuxiliarData();
       }
     },
@@ -3309,6 +3443,90 @@ export default {
         this.userHasInteracted = true;
       }
     },
+    // Wizard navigation methods
+    getStepNumber(stepName) {
+      const stepMap = {
+        'basic_data': 1,
+        'phases_budget': 2,
+        'planning': 3,
+        'confirmation': 4
+      };
+      return stepMap[stepName] || 1;
+    },
+    getStepName(stepNumber) {
+      const stepMap = {
+        1: 'basic_data',
+        2: 'phases_budget',
+        3: 'planning',
+        4: 'confirmation'
+      };
+      return stepMap[stepNumber] || 'basic_data';
+    },
+    isStepValid(step) {
+      // Validate each step's required fields
+      if (step === 1) {
+        // Basic data: name, state, scope, leader, dates are required
+        const stateInvalid = this.form.project_state.id === 0;
+        const scopeInvalid = this.form.project_scope.id === 0;
+        const leaderInvalid = this.form.leader.id === 0;
+        return !(!this.form.name || !this.form.date_start || !this.form.date_end ||
+                stateInvalid || scopeInvalid || leaderInvalid);
+      } else if (step === 2) {
+        // Phases and budget: at least one phase with data
+        return this.form.project_original_phases && this.form.project_original_phases.length > 0;
+      } else if (step === 3) {
+        // Planning: requires phases to be saved first
+        return this.form.id && this.form.project_original_phases && 
+               this.form.project_original_phases.length > 0 &&
+               this.form.project_original_phases[0].id;
+      }
+      return true;
+    },
+    async nextStep() {
+      // Validate current step before proceeding
+      if (!this.isStepValid(this.currentStep)) {
+        this.$buefy.snackbar.open({
+          message: "Si us plau, completa tots els camps obligatoris abans de continuar",
+          queue: false
+        });
+        return;
+      }
+
+      // Save the project with the current step
+      this.form.creation_step = this.getStepName(this.currentStep);
+      
+      // Save and proceed
+      await this.submit("next");
+    },
+    previousStep() {
+      if (this.currentStep > 1) {
+        this.currentStep--;
+      }
+    },
+    async closeBudget() {
+      // Close the budget by copying original phases to execution phases
+      if (!this.form.project_original_phases || this.form.project_original_phases.length === 0) {
+        this.$buefy.snackbar.open({
+          message: "No hi ha fases originals per tancar el pressupost",
+          queue: false
+        });
+        return;
+      }
+
+      // Mark creation as completed
+      this.form.creation_step = 'completed';
+      
+      // Save and create execution budget
+      await this.submit("closeBudget");
+    },
+    continueEditing(target) {
+      // Navigate back to the specified step
+      if (target === 'phases') {
+        this.currentStep = 2;
+      } else if (target === 'planning') {
+        this.currentStep = 3;
+      }
+    },
     // input(v) {
     //   this.createdReadable = dayjs(v).format("MMM D, YYYY");
     // },
@@ -3446,7 +3664,16 @@ export default {
             queue: false
           });
 
-          if (action === "continue") {
+          if (action === "next") {
+            // Wizard: move to next step after save
+            this.currentStep++;
+            this.getData();
+          } else if (action === "closeBudget") {
+            // Close budget and create execution phases
+            await this.closeQuoteFromOriginal();
+            this.isCreationMode = false;
+            this.getData();
+          } else if (action === "continue") {
             this.getData();
           } else {
             this.$router.push({
@@ -3667,7 +3894,20 @@ export default {
 
           this.isDuplicating = false; // Reset duplicate mode after save
 
-          if (action === "continue") {
+          if (action === "next") {
+            // Wizard: move to next step and switch to edit mode
+            this.currentStep++;
+            this.$router.push({
+              name: "project.edit",
+              params: { id: newProject.data.id }
+            });
+          } else if (action === "closeBudget") {
+            // Should not reach here in POST, but handle it
+            this.$router.push({
+              name: "project.edit",
+              params: { id: newProject.data.id }
+            });
+          } else if (action === "continue") {
             this.$router.push({
               name: "project.edit",
               params: { id: newProject.data.id }
@@ -4742,5 +4982,78 @@ export default {
 }
 .file-documents {
   margin-left: 17%;
+}
+
+/* Step indicator styles */
+.steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.step-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.step-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  right: -50%;
+  top: 15px;
+  height: 2px;
+  background: #dbdbdb;
+  z-index: -1;
+}
+
+.step-item.is-completed:not(:last-child)::after {
+  background: #48c774;
+}
+
+.step-marker {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #dbdbdb;
+  color: #4a4a4a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.step-item.is-active .step-marker {
+  background: #3273dc;
+  color: white;
+}
+
+.step-item.is-completed .step-marker {
+  background: #48c774;
+  color: white;
+}
+
+.step-details {
+  flex-grow: 1;
+}
+
+.step-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a4a4a;
+  margin: 0;
+}
+
+.step-item.is-active .step-title {
+  color: #3273dc;
+  font-weight: 600;
+}
+
+.step-item.is-completed .step-title {
+  color: #48c774;
 }
 </style>
