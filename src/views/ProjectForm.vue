@@ -3042,8 +3042,7 @@ export default {
         expenses: [],
         default_dedication_type: { id: 0 },
         project_type: { id: 0 },
-        grantable_years: [],
-        creation_step: 'basic_data' // Track creation wizard step
+        grantable_years: []
       };
     },
     getData() {
@@ -3216,8 +3215,10 @@ export default {
               }
 
               // Check if we're in creation mode based on creation_step
-              // null or 'completed' means project is fully created
-              if (this.form.creation_step && this.form.creation_step !== 'completed') {
+              // null or undefined or 'completed' means project is fully created
+              if (this.form.creation_step !== null && 
+                  this.form.creation_step !== undefined && 
+                  this.form.creation_step !== 'completed') {
                 this.isCreationMode = true;
                 this.currentStep = this.getStepNumber(this.form.creation_step);
               } else {
@@ -3252,9 +3253,10 @@ export default {
         this.form.date_end = moment()
           .endOf("year")
           .toDate();
-        // Enable creation mode for new projects
+        // Enable creation mode for new projects and set initial creation_step
         this.isCreationMode = true;
         this.currentStep = 1;
+        this.form.creation_step = 'basic_data';
         this.getAuxiliarData();
       }
     },
@@ -3469,15 +3471,17 @@ export default {
         const stateInvalid = this.form.project_state.id === 0;
         const scopeInvalid = this.form.project_scope.id === 0;
         const leaderInvalid = this.form.leader.id === 0;
-        return !(!this.form.name || !this.form.date_start || !this.form.date_end ||
-                stateInvalid || scopeInvalid || leaderInvalid);
+        return this.form.name && this.form.date_start && this.form.date_end &&
+               !stateInvalid && !scopeInvalid && !leaderInvalid;
       } else if (step === 2) {
         // Phases and budget: at least one phase with data
         return this.form.project_original_phases && this.form.project_original_phases.length > 0;
       } else if (step === 3) {
         // Planning: requires phases to be saved first
-        return this.form.id && this.form.project_original_phases && 
+        return this.form.id && 
+               this.form.project_original_phases && 
                this.form.project_original_phases.length > 0 &&
+               this.form.project_original_phases[0] &&
                this.form.project_original_phases[0].id;
       }
       return true;
@@ -3505,6 +3509,7 @@ export default {
     },
     async closeBudget() {
       // Close the budget by copying original phases to execution phases
+      // This method is called when user confirms they want to finalize the project creation
       if (!this.form.project_original_phases || this.form.project_original_phases.length === 0) {
         this.$buefy.snackbar.open({
           message: "No hi ha fases originals per tancar el pressupost",
@@ -3517,6 +3522,7 @@ export default {
       this.form.creation_step = 'completed';
       
       // Save and create execution budget
+      // This calls closeQuoteFromOriginal which copies phases
       await this.submit("closeBudget");
     },
     continueEditing(target) {
@@ -3902,7 +3908,9 @@ export default {
               params: { id: newProject.data.id }
             });
           } else if (action === "closeBudget") {
-            // Should not reach here in POST, but handle it
+            // This case shouldn't occur in POST as closeBudget is only available after
+            // phases are created and saved (which requires at least one PUT).
+            // However, handle it by redirecting to edit mode just in case.
             this.$router.push({
               name: "project.edit",
               params: { id: newProject.data.id }
