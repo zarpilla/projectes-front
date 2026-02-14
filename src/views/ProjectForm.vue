@@ -787,7 +787,7 @@
             </form>
           </card-component>
         </div>
-        <div class="column is-one-third" v-if="!isLoading">
+        <div class="column is-one-third" v-if="!isLoading && !isCreationMode">
           <card-component
             v-if="isProfileExists"
             title="RESUM FINANCER PROJECTE"
@@ -1546,7 +1546,7 @@
           </card-component>
 
           <card-component
-            v-if="isProfileExists"
+            v-if="isProfileExists && !isCreationMode"
             title="RESUM TRESORERIA PROJECTE"
             class="ztile is-child summary-card mt-4"
           >
@@ -1847,7 +1847,7 @@
       <!-- <pre>{{documents}}</pre> -->
 
       <card-component
-        v-if="!isLoading && periodification && form.periodification.length"
+        v-if="!isLoading && periodification && form.periodification.length && !isCreationMode"
         title="PERIODIFICACIÓ D'INGRESSOS I DESPESES"
       >
         <div
@@ -1978,7 +1978,7 @@
         </div>
       </card-component>
       <card-component
-        v-if="documents && documents.length && !isLoading"
+        v-if="documents && documents.length && !isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
         class="ztile is-child mt-2"
         :content-visible="true"
@@ -2206,7 +2206,7 @@
       </card-component>
 
       <card-component
-        v-if="treasury && treasury.length && !isLoading"
+        v-if="treasury && treasury.length && !isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
@@ -2396,7 +2396,7 @@
       </card-component>
 
       <card-component
-        v-if="!isLoading && !form.children"
+        v-if="!isLoading && !form.children && !isCreationMode"
         title="TASQUES"
         header-icon="view-column"
         @header-icon-click="toogleTasksView"
