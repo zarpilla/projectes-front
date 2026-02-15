@@ -2,7 +2,15 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section column is-half">
-      <card-component title="2025.02.09">
+      <card-component title="2026.02.15">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Nou assistent  per passos en la creació de projectes.
+          </div>
+        </div>
+      </card-component>
+      <card-component title="2026.02.09">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
@@ -32,7 +40,7 @@
           </div>
         </div>
       </card-component>
-      <card-component title="2025.02.02">
+      <card-component title="2026.02.02">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
@@ -46,7 +54,7 @@
           </div>
         </div>
       </card-component>
-      <card-component title="2025.01.26">
+      <card-component title="2026.01.26">
         <div class="item mb-4">
           <span class="tag is-warning">Millores</span>
           <div class="text mt-2">

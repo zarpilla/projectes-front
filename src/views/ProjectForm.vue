@@ -5,6 +5,33 @@
       <div class="columns">
         <div class="column is-two-thirds">
           <card-component :title="formCardTitle" class="tile is-child">
+            <!-- Step indicator for creation wizard -->
+            <div v-if="isCreationMode" class="steps mb-4">
+              <div class="step-item" :class="{ 'is-active': currentStep === 1, 'is-completed': currentStep > 1 }">
+                <div class="step-marker">1</div>
+                <div class="step-details">
+                  <p class="step-title">Dades bàsiques</p>
+                </div>
+              </div>
+              <div class="step-item" :class="{ 'is-active': currentStep === 2, 'is-completed': currentStep > 2 }">
+                <div class="step-marker">2</div>
+                <div class="step-details">
+                  <p class="step-title">Fases i pressupost</p>
+                </div>
+              </div>
+              <div class="step-item" :class="{ 'is-active': currentStep === 3, 'is-completed': currentStep > 3 }">
+                <div class="step-marker">3</div>
+                <div class="step-details">
+                  <p class="step-title">Planificació</p>
+                </div>
+              </div>
+              <div class="step-item" :class="{ 'is-active': currentStep === 4 }">
+                <div class="step-marker">4</div>
+                <div class="step-details">
+                  <p class="step-title">Confirmació</p>
+                </div>
+              </div>
+            </div>
             <form 
               @submit.prevent="submitAndContinue" 
               @focus.capture="enableUserInteraction"
@@ -715,8 +742,20 @@
                     >Cancel·lar</b-button
                   >
                 </b-field>
+                <!-- Creation wizard mode: step navigation -->
+                <template v-if="!isDuplicating && isCreationMode && currentStep === 1">
+                  <b-field horizontal>
+                    <b-button
+                      type="is-primary"
+                      :loading="isLoading"
+                      @click="nextStep"
+                      icon-right="arrow-right"
+                      >Continuar</b-button
+                    >
+                  </b-field>
+                </template>
                 <!-- Normal mode: regular save buttons -->
-                <template v-if="!isDuplicating">
+                <template v-if="!isDuplicating && !isCreationMode">
                   <b-field horizontal>
                     <b-button
                       type="is-primary"
@@ -748,7 +787,7 @@
             </form>
           </card-component>
         </div>
-        <div class="column is-one-third" v-if="!isLoading">
+        <div class="column is-one-third" v-if="!isLoading && (!isCreationMode || (isCreationMode && currentStep > 2))">
           <card-component
             v-if="isProfileExists"
             title="RESUM FINANCER PROJECTE"
@@ -1507,7 +1546,7 @@
           </card-component>
 
           <card-component
-            v-if="isProfileExists"
+            v-if="isProfileExists && !isCreationMode"
             title="RESUM TRESORERIA PROJECTE"
             class="ztile is-child summary-card mt-4"
           >
@@ -1596,7 +1635,8 @@
 
       <card-component
         v-if="
-          !isLoading && phasesVisible && form && form.project_original_phases
+          !isLoading && phasesVisible && form && form.project_original_phases &&
+          (!isCreationMode || currentStep >= 2)
         "
         title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
         :closeIcon="true"
@@ -1610,7 +1650,7 @@
           Aquest és un projecte mare amb fases pròpies (dades heretades del sistema antic). Els projectes mare només haurien de contenir l'agregació de les fases dels projectes fills.<br>
           <strong>Si us plau, elimina manualment les fases que pertanyen directament a aquest projecte.</strong> Les fases correctes són només les que provenen dels projectes fills.
         </b-notification>
-        <b-field v-if="!form.is_mother">
+        <!-- <b-field v-if="!form.is_mother">
           <b-button
             type="is-primary is-outlined"
             :loading="isLoading"
@@ -1620,18 +1660,7 @@
             <template v-if="!originalEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
-          <!-- 
-          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
-            <option value="10">10 per pàgina</option>            
-            <option value="50">50 per pàgina</option>
-            <option value="100">100 per pàgina</option>
-            <option value="1000">1000 per pàgina</option>
-          </b-select>
-
-          <div class="control is-flex">
-            <b-switch v-model="isPaginated">Paginat</b-switch>
-          </div> -->
-        </b-field>
+        </b-field> -->
 
         <project-phases
           :key="'original-' + formKey"
@@ -1652,11 +1681,13 @@
               (!form.project_phases || form.project_phases.length === 0)
           "
         />
+        
         <b-field
           v-if="
             !form.is_mother &&
             form.project_original_phases.length &&
               form.project_phases.length === 0
+              && (form.creation_step === '' || form.creation_step === 'completed')
           "
         >
           <b-button type="is-warning" @click="closeQuoteFromOriginal">
@@ -1666,23 +1697,46 @@
 
         <hr v-if="!isDuplicating" />
         <div class="is-flex" v-if="!isDuplicating">
-          <b-field horizontal>
-            <b-button
-              type="is-primary"
-              :loading="isLoading"
-              @click="submitAndContinue"
-              >Guardar</b-button
-            >
-          </b-field>
-          <b-field horizontal>
-            <b-button
-              v-if="form.id"
-              type="is-primary is-outlined"
-              :loading="isLoading && form.id"
-              @click="submitAndExit"
-              >Guardar i sortir</b-button
-            >
-          </b-field>
+          <!-- Creation wizard mode step 2: navigation buttons -->
+          <template v-if="isCreationMode && currentStep === 2">
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="previousStep"
+                icon-left="arrow-left"
+                >Enrere</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="nextStep"
+                icon-right="arrow-right"
+                >Continuar</b-button
+              >
+            </b-field>
+          </template>
+          <!-- Normal mode: regular save buttons -->
+          <template v-if="!isCreationMode">
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="submitAndContinue"
+                >Guardar</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                v-if="form.id"
+                type="is-primary is-outlined"
+                :loading="isLoading && form.id"
+                @click="submitAndExit"
+                >Guardar i sortir</b-button
+              >
+            </b-field>
+          </template>
         </div>
       </card-component>
 
@@ -1693,7 +1747,8 @@
             form &&
             form.project_phases &&
             form.project_phases.length &&
-            !form.children
+            !form.children &&
+            !isCreationMode
         "
         :title="'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
         :closeIcon="true"
@@ -1707,7 +1762,7 @@
           Aquest és un projecte mare amb fases pròpies (dades heretades del sistema antic). Els projectes mare només haurien de contenir l'agregació de les fases dels projectes fills.<br>
           <strong>Si us plau, elimina manualment les fases que pertanyen directament a aquest projecte.</strong> Les fases correctes són només les que provenen dels projectes fills.
         </b-notification>
-        <b-field v-if="!form.is_mother">
+        <!-- <b-field v-if="!form.is_mother">
           <b-button
             type="is-primary is-outlined"
             :loading="isLoading"
@@ -1717,18 +1772,7 @@
             <template v-if="!phasesEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
-
-          <!-- <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
-            <option value="10">10 per pàgina</option>            
-            <option value="50">50 per pàgina</option>
-            <option value="100">100 per pàgina</option>
-            <option value="1000">1000 per pàgina</option>
-          </b-select>
-
-          <div class="control is-flex">
-            <b-switch v-model="isPaginated">Paginat</b-switch>
-          </div> -->
-        </b-field>
+        </b-field> -->
 
         <project-phases
           :key="'execution-' + formKey"
@@ -1747,7 +1791,7 @@
                 form.project_original_phases.length === 0)
           "
         />
-        <b-field
+        <!-- <b-field
           v-if="
             !form.is_mother &&
             form.project_phases.length &&
@@ -1755,9 +1799,9 @@
           "
         >
           <b-button type="is-warning" @click="closeQuote">
-            Tancar Pressupost 3
+            Tancar Pressupost
           </b-button>
-        </b-field>
+        </b-field> -->
 
         <hr v-if="!isDuplicating" />
         <div class="is-flex" v-if="!isDuplicating">
@@ -1783,7 +1827,7 @@
       <!-- <pre>{{documents}}</pre> -->
 
       <card-component
-        v-if="!isLoading && periodification && form.periodification.length"
+        v-if="!isLoading && periodification && form.periodification.length && !isCreationMode"
         title="PERIODIFICACIÓ D'INGRESSOS I DESPESES"
       >
         <div
@@ -1914,7 +1958,7 @@
         </div>
       </card-component>
       <card-component
-        v-if="documents && documents.length && !isLoading"
+        v-if="documents && documents.length && !isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
         class="ztile is-child mt-2"
         :content-visible="true"
@@ -2031,7 +2075,7 @@
       </card-component>
 
       <card-component
-        v-if="!isLoading && !isUpdating && !form.children"
+        v-if="!isLoading && !isUpdating && !form.children && (!isCreationMode || currentStep >= 3)"
         :title="'PLANIFICACIÓ' + (ganttViewMode === 'original' ? ' ORIGINAL' : ' PREVISTA')"
         header-icon="swap-horizontal"
         @header-icon-click="toggleGanttView"
@@ -2068,28 +2112,81 @@
         >
         <hr v-if="!isDuplicating" />
         <div class="is-flex" v-if="!isDuplicating">
-          <b-field horizontal>
-            <b-button
-              type="is-primary"
-              :loading="isLoading"
-              @click="submitAndContinue"
-              >Guardar</b-button
-            >
-          </b-field>
-          <b-field horizontal>
-            <b-button
-              v-if="form.id"
-              type="is-primary is-outlined"
-              :loading="isLoading"
-              @click="submitAndExit"
-              >Guardar i sortir</b-button
-            >
-          </b-field>
+          <!-- Creation wizard mode step 3: show confirmation options -->
+          <template v-if="isCreationMode && currentStep === 3">
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="previousStep"
+                icon-left="arrow-left"
+                >Enrere</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="nextStep"
+                icon-right="arrow-right"
+                >Continuar</b-button
+              >
+            </b-field>
+          </template>
+          <!-- Creation wizard mode step 4: final confirmation -->
+          <template v-if="isCreationMode && currentStep === 4">
+            <div class="notification is-info" style="flex-grow: 1; margin-right: 1rem;">
+              <p class="mb-2"><strong>El projecte està gairebé completat!</strong></p>
+              <p>Pots continuar editant les fases o la planificació, o tancar el pressupost per finalitzar la creació.</p>
+            </div>
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="continueEditing('phases')"
+                >Editar fases</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-light"
+                @click="continueEditing('planning')"
+                >Editar planificació</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                type="is-success"
+                :loading="isLoading"
+                @click="closeBudget"
+                icon-left="check"
+                >Tancar pressupost</b-button
+              >
+            </b-field>
+          </template>
+          <!-- Normal mode: regular save buttons -->
+          <template v-if="!isCreationMode">
+            <b-field horizontal>
+              <b-button
+                type="is-primary"
+                :loading="isLoading"
+                @click="submitAndContinue"
+                >Guardar</b-button
+              >
+            </b-field>
+            <b-field horizontal>
+              <b-button
+                v-if="form.id"
+                type="is-primary is-outlined"
+                :loading="isLoading"
+                @click="submitAndExit"
+                >Guardar i sortir</b-button
+              >
+            </b-field>
+          </template>
         </div>
       </card-component>
 
       <card-component
-        v-if="treasury && treasury.length && !isLoading"
+        v-if="treasury && treasury.length && !isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         class="ztile is-child mt-2"
       >
@@ -2279,7 +2376,7 @@
       </card-component>
 
       <card-component
-        v-if="!isLoading && !form.children"
+        v-if="!isLoading && !form.children && !isCreationMode"
         title="TASQUES"
         header-icon="view-column"
         @header-icon-click="toogleTasksView"
@@ -2398,8 +2495,8 @@ export default {
       calculatedTotals: null,
       periodification: false,
       dirtyEnabled: true,
-      originalEditable: false,
-      phasesEditable: false,
+      originalEditable: true,
+      phasesEditable: true,
       grantable_contacts: [],
       perPage: 10,
       isPaginated: false,
@@ -2414,7 +2511,10 @@ export default {
       isDuplicating: false,
       formKey: 0,
       isInitialLoad: false,
-      userHasInteracted: false
+      userHasInteracted: false,
+      // Creation wizard state
+      currentStep: 1,
+      isCreationMode: false
     };
   },
   computed: {
@@ -2972,22 +3072,26 @@ export default {
                   : { id: 0 };
 
               // Load execution phases with estimated hours
+              console.log('=== getData: Loading execution phases ===');
               const phases = (
                 await service({ requiresAuth: true }).get(
                   `project-phases?project=${this.$route.params.id}&_limit=-1`
                 )
               ).data;
 
+              console.log('Loaded execution phases from API:', phases.length);
               this.form.project_phases = phases;
               this.ganttViewMode = (phases && phases.length > 0) ? 'estimated' : 'original';
 
               // Load original phases with estimated hours
+              console.log('=== getData: Loading original phases ===');
               const phases_and_estimated_hours = (
                 await service({ requiresAuth: true }).get(
                   `project-original-phases-hours?project=${this.$route.params.id}&_limit=-1`
                 )
               ).data;
 
+              console.log('Loaded original phases from API:', phases_and_estimated_hours.length);
               this.form.project_original_phases = phases_and_estimated_hours;
 
               // Load children data if this project is a mother project
@@ -3094,6 +3198,18 @@ export default {
                 this.form.grantable_years = [];
               }
 
+              // Check if we're in creation mode based on creation_step
+              // null or undefined or 'completed' means project is fully created
+              if (this.form.creation_step !== null && 
+                  this.form.creation_step !== undefined && 
+                  this.form.creation_step !== 'completed') {
+                this.isCreationMode = true;
+                this.currentStep = this.getStepNumber(this.form.creation_step);
+              } else {
+                this.isCreationMode = false;
+                this.currentStep = 1;
+              }
+
               this.getAuxiliarData();
 
               // Set default Gantt view mode based on available phases
@@ -3121,6 +3237,10 @@ export default {
         this.form.date_end = moment()
           .endOf("year")
           .toDate();
+        // Enable creation mode for new projects and set initial creation_step
+        this.isCreationMode = true;
+        this.currentStep = 1;
+        this.form.creation_step = 'basic_data';
         this.getAuxiliarData();
       }
     },
@@ -3309,6 +3429,101 @@ export default {
         this.userHasInteracted = true;
       }
     },
+    // Wizard navigation methods
+    getStepNumber(stepName) {
+      const stepMap = {
+        'basic_data': 1,
+        'phases_budget': 2,
+        'planning': 3,
+        'confirmation': 4
+      };
+      return stepMap[stepName] || 1;
+    },
+    getStepName(stepNumber) {
+      const stepMap = {
+        1: 'basic_data',
+        2: 'phases_budget',
+        3: 'planning',
+        4: 'confirmation'
+      };
+      return stepMap[stepNumber] || 'basic_data';
+    },
+    isStepValid(step) {
+      // Validate each step's required fields
+      if (step === 1) {
+        // Basic data: name, state, scope, leader, dates are required
+        const stateInvalid = this.form.project_state.id === 0;
+        const scopeInvalid = this.form.project_scope.id === 0;
+        const leaderInvalid = this.form.leader.id === 0;
+        return this.form.name && this.form.date_start && this.form.date_end &&
+               !stateInvalid && !scopeInvalid && !leaderInvalid;
+      } else if (step === 2) {
+        // Phases and budget: at least one phase with data
+        return this.form.project_original_phases && this.form.project_original_phases.length > 0;
+      } else if (step === 3) {
+        // Planning: requires phases to be saved first
+        return this.form.id && 
+               this.form.project_original_phases && 
+               this.form.project_original_phases.length > 0 &&
+               this.form.project_original_phases[0] &&
+               this.form.project_original_phases[0].id;
+      }
+      return true;
+    },
+    async nextStep() {
+      // Validate current step before proceeding
+      if (!this.isStepValid(this.currentStep)) {
+        this.$buefy.snackbar.open({
+          message: "Si us plau, completa tots els camps obligatoris abans de continuar",
+          queue: false
+        });
+        return;
+      }
+
+      // Save the project with the NEXT step (where we're going)
+      this.form.creation_step = this.getStepName(this.currentStep + 1);
+      
+      // Save and proceed
+      await this.submit("next");
+    },
+    previousStep() {
+      if (this.currentStep > 1) {
+        this.currentStep--;
+      }
+    },
+    async closeBudget() {
+      // Close the budget by copying original phases to execution phases
+      // This method is called when user confirms they want to finalize the project creation
+      console.log('=== closeBudget() METHOD START ===');
+      console.log('Original phases count:', this.form.project_original_phases?.length);
+      console.log('Execution phases count:', this.form.project_phases?.length);
+      
+      if (!this.form.project_original_phases || this.form.project_original_phases.length === 0) {
+        this.$buefy.snackbar.open({
+          message: "No hi ha fases originals per tancar el pressupost",
+          queue: false
+        });
+        return;
+      }
+
+      // Mark creation as completed
+      console.log('Setting creation_step to completed');
+      this.form.creation_step = 'completed';
+      
+      // Save and create execution budget
+      // This calls closeQuoteFromOriginal which copies phases
+      console.log('Calling submit("closeBudget")...');
+      await this.submit("closeBudget");
+      console.log('=== closeBudget() METHOD END ===');
+    },
+    continueEditing(target) {
+      // Navigate back to the specified step
+      if (target === 'phases') {
+        this.currentStep = 2;
+      } else if (target === 'planning') {
+        this.currentStep = 3;
+      }
+    },
     // input(v) {
     //   this.createdReadable = dayjs(v).format("MMM D, YYYY");
     // },
@@ -3397,6 +3612,20 @@ export default {
         console.log('Will use:', this.form.id ? 'PUT (update)' : 'POST (create)');
 
         if (this.form.id) {
+          // If closing budget, copy phases BEFORE the main save
+          if (action === "closeBudget") {
+            console.log('=== CLOSE BUDGET: Copying phases BEFORE save ===');
+            console.log('Before closeQuoteFromOriginal:');
+            console.log('  - Original phases:', this.form.project_original_phases?.length);
+            console.log('  - Execution phases:', this.form.project_phases?.length);
+            
+            await this.closeQuoteFromOriginal();
+            
+            console.log('After closeQuoteFromOriginal:');
+            console.log('  - Original phases:', this.form.project_original_phases?.length);
+            console.log('  - Execution phases:', this.form.project_phases?.length);
+          }
+          
           // Clean up grantable_contacts before destructuring
           console.log('Before filter - this.form.grantable_contacts:', JSON.stringify(this.form.grantable_contacts));
           this.form.grantable_contacts = (this.form.grantable_contacts || []).filter(gc => {
@@ -3446,7 +3675,17 @@ export default {
             queue: false
           });
 
-          if (action === "continue") {
+          if (action === "next") {
+            // Wizard: move to next step after save
+            this.currentStep++;
+            this.getData();
+          } else if (action === "closeBudget") {
+            // Phases were already copied BEFORE the main save above
+            // Just exit creation mode and reload
+            console.log('=== CLOSE BUDGET: Save completed, exiting creation mode ===');
+            this.isCreationMode = false;
+            this.getData();
+          } else if (action === "continue") {
             this.getData();
           } else {
             this.$router.push({
@@ -3667,7 +3906,22 @@ export default {
 
           this.isDuplicating = false; // Reset duplicate mode after save
 
-          if (action === "continue") {
+          if (action === "next") {
+            // Wizard: move to next step and switch to edit mode
+            this.currentStep++;
+            this.$router.push({
+              name: "project.edit",
+              params: { id: newProject.data.id }
+            });
+          } else if (action === "closeBudget") {
+            // This case shouldn't occur in POST as closeBudget is only available after
+            // phases are created and saved (which requires at least one PUT).
+            // However, handle it by redirecting to edit mode just in case.
+            this.$router.push({
+              name: "project.edit",
+              params: { id: newProject.data.id }
+            });
+          } else if (action === "continue") {
             this.$router.push({
               name: "project.edit",
               params: { id: newProject.data.id }
@@ -4110,30 +4364,78 @@ export default {
       this.phasesVisible = true;
     },
     closeQuoteFromOriginal() {
+      console.log('=== closeQuoteFromOriginal START ===');
+      console.log('Original phases count:', this.form.project_original_phases?.length);
+      console.log('Current execution phases count BEFORE:', this.form.project_phases?.length);
+      
       this.phasesVisible = false;
       const phases = JSON.parse(
         JSON.stringify(this.form.project_original_phases)
       );
-      phases.forEach(p => {
+      
+      console.log('Cloned phases count:', phases.length);
+      
+      phases.forEach((p, idx) => {
+        console.log(`Processing phase ${idx}: ${p.name}`);
         p.edit = false;
         p.opened = true;
         p.dirty = true;
         delete p.id;
-        p.incomes.forEach(sp => {
+        
+        console.log(`  Phase ${idx} has ${p.incomes?.length || 0} incomes`);
+        p.incomes.forEach((sp, incIdx) => {
           sp.dirty = true;
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           sp.date_estimate_document = moment(sp.date_estimate_document).format(
             "YYYY-MM-DD"
           );
           delete sp.id;
+          delete sp.project_original_phase; // Remove foreign key to original phase
+          delete sp.project_phase; // Remove any existing execution phase reference
+          // Copy estimated hours (planning)
+          if (sp.estimated_hours && sp.estimated_hours.length) {
+            console.log(`    Income ${incIdx} has ${sp.estimated_hours.length} hours`);
+            sp.estimated_hours.forEach((hour, hourIdx) => {
+              console.log(`      Hour ${hourIdx}: user=${hour.users_permissions_user}, quantity=${hour.quantity}`);
+              delete hour.id;
+              delete hour.phase_income; // Remove foreign key to parent income
+              hour.dirty = true;
+              // Keep from/to dates properly formatted
+              if (hour.from) {
+                hour.from = moment(hour.from).format("YYYY-MM-DD");
+              }
+              if (hour.to) {
+                hour.to = moment(hour.to).format("YYYY-MM-DD");
+              }
+            });
+          }
         });
+        
+        console.log(`  Phase ${idx} has ${p.expenses?.length || 0} expenses`);
         p.expenses.forEach(sp => {
           sp.dirty = true;
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           delete sp.id;
+          delete sp.project_original_phase; // Remove foreign key to original phase
+          delete sp.project_phase; // Remove any existing execution phase reference
         });
       });
+      
       this.form.project_phases = phases;
+      console.log('Execution phases count AFTER assignment:', this.form.project_phases.length);
+      
+      // Log detailed summary
+      let totalHours = 0;
+      this.form.project_phases.forEach((p, idx) => {
+        p.incomes.forEach(inc => {
+          if (inc.estimated_hours) {
+            totalHours += inc.estimated_hours.length;
+          }
+        });
+      });
+      console.log('Total estimated hours across all execution phases:', totalHours);
+      console.log('=== closeQuoteFromOriginal END ===');
+      
       const previousDeletedPhases = this.form.project_phases_info
         ? this.form.project_phases_info.deletedPhases
         : [];
@@ -4742,5 +5044,78 @@ export default {
 }
 .file-documents {
   margin-left: 17%;
+}
+
+/* Step indicator styles */
+.steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.step-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.step-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  right: -50%;
+  top: 15px;
+  height: 2px;
+  background: #dbdbdb;
+  z-index: -1;
+}
+
+.step-item.is-completed:not(:last-child)::after {
+  background: #48c774;
+}
+
+.step-marker {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #dbdbdb;
+  color: #4a4a4a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.step-item.is-active .step-marker {
+  background: #3273dc;
+  color: white;
+}
+
+.step-item.is-completed .step-marker {
+  background: #48c774;
+  color: white;
+}
+
+.step-details {
+  flex-grow: 1;
+}
+
+.step-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a4a4a;
+  margin: 0;
+}
+
+.step-item.is-active .step-title {
+  color: #3273dc;
+  font-weight: 600;
+}
+
+.step-item.is-completed .step-title {
+  color: #48c774;
 }
 </style>
