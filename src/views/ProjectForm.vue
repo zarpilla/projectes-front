@@ -787,7 +787,7 @@
             </form>
           </card-component>
         </div>
-        <div class="column is-one-third" v-if="!isLoading && !isCreationMode">
+        <div class="column is-one-third" v-if="!isLoading && (!isCreationMode || (isCreationMode && currentStep > 2))">
           <card-component
             v-if="isProfileExists"
             title="RESUM FINANCER PROJECTE"
@@ -1650,7 +1650,7 @@
           Aquest és un projecte mare amb fases pròpies (dades heretades del sistema antic). Els projectes mare només haurien de contenir l'agregació de les fases dels projectes fills.<br>
           <strong>Si us plau, elimina manualment les fases que pertanyen directament a aquest projecte.</strong> Les fases correctes són només les que provenen dels projectes fills.
         </b-notification>
-        <b-field v-if="!form.is_mother">
+        <!-- <b-field v-if="!form.is_mother">
           <b-button
             type="is-primary is-outlined"
             :loading="isLoading"
@@ -1660,18 +1660,7 @@
             <template v-if="!originalEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
-          <!-- 
-          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
-            <option value="10">10 per pàgina</option>            
-            <option value="50">50 per pàgina</option>
-            <option value="100">100 per pàgina</option>
-            <option value="1000">1000 per pàgina</option>
-          </b-select>
-
-          <div class="control is-flex">
-            <b-switch v-model="isPaginated">Paginat</b-switch>
-          </div> -->
-        </b-field>
+        </b-field> -->
 
         <project-phases
           :key="'original-' + formKey"
@@ -1692,11 +1681,13 @@
               (!form.project_phases || form.project_phases.length === 0)
           "
         />
+        
         <b-field
           v-if="
             !form.is_mother &&
             form.project_original_phases.length &&
               form.project_phases.length === 0
+              && (form.creation_step === '' || form.creation_step === 'completed')
           "
         >
           <b-button type="is-warning" @click="closeQuoteFromOriginal">
@@ -1771,7 +1762,7 @@
           Aquest és un projecte mare amb fases pròpies (dades heretades del sistema antic). Els projectes mare només haurien de contenir l'agregació de les fases dels projectes fills.<br>
           <strong>Si us plau, elimina manualment les fases que pertanyen directament a aquest projecte.</strong> Les fases correctes són només les que provenen dels projectes fills.
         </b-notification>
-        <b-field v-if="!form.is_mother">
+        <!-- <b-field v-if="!form.is_mother">
           <b-button
             type="is-primary is-outlined"
             :loading="isLoading"
@@ -1781,18 +1772,7 @@
             <template v-if="!phasesEditable">Modificar pressupost</template>
             <template v-else>Tancar pressupost</template>
           </b-button>
-
-          <!-- <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
-            <option value="10">10 per pàgina</option>            
-            <option value="50">50 per pàgina</option>
-            <option value="100">100 per pàgina</option>
-            <option value="1000">1000 per pàgina</option>
-          </b-select>
-
-          <div class="control is-flex">
-            <b-switch v-model="isPaginated">Paginat</b-switch>
-          </div> -->
-        </b-field>
+        </b-field> -->
 
         <project-phases
           :key="'execution-' + formKey"
@@ -1811,7 +1791,7 @@
                 form.project_original_phases.length === 0)
           "
         />
-        <b-field
+        <!-- <b-field
           v-if="
             !form.is_mother &&
             form.project_phases.length &&
@@ -1819,9 +1799,9 @@
           "
         >
           <b-button type="is-warning" @click="closeQuote">
-            Tancar Pressupost 3
+            Tancar Pressupost
           </b-button>
-        </b-field>
+        </b-field> -->
 
         <hr v-if="!isDuplicating" />
         <div class="is-flex" v-if="!isDuplicating">
@@ -2515,8 +2495,8 @@ export default {
       calculatedTotals: null,
       periodification: false,
       dirtyEnabled: true,
-      originalEditable: false,
-      phasesEditable: false,
+      originalEditable: true,
+      phasesEditable: true,
       grantable_contacts: [],
       perPage: 10,
       isPaginated: false,
@@ -3092,22 +3072,26 @@ export default {
                   : { id: 0 };
 
               // Load execution phases with estimated hours
+              console.log('=== getData: Loading execution phases ===');
               const phases = (
                 await service({ requiresAuth: true }).get(
                   `project-phases?project=${this.$route.params.id}&_limit=-1`
                 )
               ).data;
 
+              console.log('Loaded execution phases from API:', phases.length);
               this.form.project_phases = phases;
               this.ganttViewMode = (phases && phases.length > 0) ? 'estimated' : 'original';
 
               // Load original phases with estimated hours
+              console.log('=== getData: Loading original phases ===');
               const phases_and_estimated_hours = (
                 await service({ requiresAuth: true }).get(
                   `project-original-phases-hours?project=${this.$route.params.id}&_limit=-1`
                 )
               ).data;
 
+              console.log('Loaded original phases from API:', phases_and_estimated_hours.length);
               this.form.project_original_phases = phases_and_estimated_hours;
 
               // Load children data if this project is a mother project
@@ -3496,8 +3480,8 @@ export default {
         return;
       }
 
-      // Save the project with the current step
-      this.form.creation_step = this.getStepName(this.currentStep);
+      // Save the project with the NEXT step (where we're going)
+      this.form.creation_step = this.getStepName(this.currentStep + 1);
       
       // Save and proceed
       await this.submit("next");
@@ -3510,6 +3494,10 @@ export default {
     async closeBudget() {
       // Close the budget by copying original phases to execution phases
       // This method is called when user confirms they want to finalize the project creation
+      console.log('=== closeBudget() METHOD START ===');
+      console.log('Original phases count:', this.form.project_original_phases?.length);
+      console.log('Execution phases count:', this.form.project_phases?.length);
+      
       if (!this.form.project_original_phases || this.form.project_original_phases.length === 0) {
         this.$buefy.snackbar.open({
           message: "No hi ha fases originals per tancar el pressupost",
@@ -3519,11 +3507,14 @@ export default {
       }
 
       // Mark creation as completed
+      console.log('Setting creation_step to completed');
       this.form.creation_step = 'completed';
       
       // Save and create execution budget
       // This calls closeQuoteFromOriginal which copies phases
+      console.log('Calling submit("closeBudget")...');
       await this.submit("closeBudget");
+      console.log('=== closeBudget() METHOD END ===');
     },
     continueEditing(target) {
       // Navigate back to the specified step
@@ -3621,6 +3612,20 @@ export default {
         console.log('Will use:', this.form.id ? 'PUT (update)' : 'POST (create)');
 
         if (this.form.id) {
+          // If closing budget, copy phases BEFORE the main save
+          if (action === "closeBudget") {
+            console.log('=== CLOSE BUDGET: Copying phases BEFORE save ===');
+            console.log('Before closeQuoteFromOriginal:');
+            console.log('  - Original phases:', this.form.project_original_phases?.length);
+            console.log('  - Execution phases:', this.form.project_phases?.length);
+            
+            await this.closeQuoteFromOriginal();
+            
+            console.log('After closeQuoteFromOriginal:');
+            console.log('  - Original phases:', this.form.project_original_phases?.length);
+            console.log('  - Execution phases:', this.form.project_phases?.length);
+          }
+          
           // Clean up grantable_contacts before destructuring
           console.log('Before filter - this.form.grantable_contacts:', JSON.stringify(this.form.grantable_contacts));
           this.form.grantable_contacts = (this.form.grantable_contacts || []).filter(gc => {
@@ -3675,8 +3680,9 @@ export default {
             this.currentStep++;
             this.getData();
           } else if (action === "closeBudget") {
-            // Close budget and create execution phases
-            await this.closeQuoteFromOriginal();
+            // Phases were already copied BEFORE the main save above
+            // Just exit creation mode and reload
+            console.log('=== CLOSE BUDGET: Save completed, exiting creation mode ===');
             this.isCreationMode = false;
             this.getData();
           } else if (action === "continue") {
@@ -4358,30 +4364,78 @@ export default {
       this.phasesVisible = true;
     },
     closeQuoteFromOriginal() {
+      console.log('=== closeQuoteFromOriginal START ===');
+      console.log('Original phases count:', this.form.project_original_phases?.length);
+      console.log('Current execution phases count BEFORE:', this.form.project_phases?.length);
+      
       this.phasesVisible = false;
       const phases = JSON.parse(
         JSON.stringify(this.form.project_original_phases)
       );
-      phases.forEach(p => {
+      
+      console.log('Cloned phases count:', phases.length);
+      
+      phases.forEach((p, idx) => {
+        console.log(`Processing phase ${idx}: ${p.name}`);
         p.edit = false;
         p.opened = true;
         p.dirty = true;
         delete p.id;
-        p.incomes.forEach(sp => {
+        
+        console.log(`  Phase ${idx} has ${p.incomes?.length || 0} incomes`);
+        p.incomes.forEach((sp, incIdx) => {
           sp.dirty = true;
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           sp.date_estimate_document = moment(sp.date_estimate_document).format(
             "YYYY-MM-DD"
           );
           delete sp.id;
+          delete sp.project_original_phase; // Remove foreign key to original phase
+          delete sp.project_phase; // Remove any existing execution phase reference
+          // Copy estimated hours (planning)
+          if (sp.estimated_hours && sp.estimated_hours.length) {
+            console.log(`    Income ${incIdx} has ${sp.estimated_hours.length} hours`);
+            sp.estimated_hours.forEach((hour, hourIdx) => {
+              console.log(`      Hour ${hourIdx}: user=${hour.users_permissions_user}, quantity=${hour.quantity}`);
+              delete hour.id;
+              delete hour.phase_income; // Remove foreign key to parent income
+              hour.dirty = true;
+              // Keep from/to dates properly formatted
+              if (hour.from) {
+                hour.from = moment(hour.from).format("YYYY-MM-DD");
+              }
+              if (hour.to) {
+                hour.to = moment(hour.to).format("YYYY-MM-DD");
+              }
+            });
+          }
         });
+        
+        console.log(`  Phase ${idx} has ${p.expenses?.length || 0} expenses`);
         p.expenses.forEach(sp => {
           sp.dirty = true;
           sp.date = moment(sp.date).format("YYYY-MM-DD");
           delete sp.id;
+          delete sp.project_original_phase; // Remove foreign key to original phase
+          delete sp.project_phase; // Remove any existing execution phase reference
         });
       });
+      
       this.form.project_phases = phases;
+      console.log('Execution phases count AFTER assignment:', this.form.project_phases.length);
+      
+      // Log detailed summary
+      let totalHours = 0;
+      this.form.project_phases.forEach((p, idx) => {
+        p.incomes.forEach(inc => {
+          if (inc.estimated_hours) {
+            totalHours += inc.estimated_hours.length;
+          }
+        });
+      });
+      console.log('Total estimated hours across all execution phases:', totalHours);
+      console.log('=== closeQuoteFromOriginal END ===');
+      
       const previousDeletedPhases = this.form.project_phases_info
         ? this.form.project_phases_info.deletedPhases
         : [];
