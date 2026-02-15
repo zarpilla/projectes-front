@@ -2523,7 +2523,7 @@ export default {
     filteredClients() {
       return this.clients.filter(option => {
         return (
-          option.name
+          (option.name || '')
             .toString()
             .toLowerCase()
             .indexOf(this.clientSearch.toLowerCase()) >= 0
@@ -2533,7 +2533,7 @@ export default {
     filteredLeaders() {
       return this.clients.filter(option => {
         return (
-          option.name
+          (option.name || '')
             .toString()
             .toLowerCase()
             .indexOf(this.leadersSearch.toLowerCase()) >= 0
@@ -2543,7 +2543,7 @@ export default {
     filteredProjects() {
       return this.projects.filter(option => {
         return (
-          option.name
+          (option.name || '')
             .toString()
             .toLowerCase()
             .indexOf(this.projectSearch.toLowerCase()) >= 0
@@ -2553,7 +2553,7 @@ export default {
     filteredActivityTypes() {
       return this.activityTypes.filter(option => {
         return (
-          option.name
+          (option.name || '')
             .toString()
             .toLowerCase()
             .indexOf(this.activityTypeSearch.toLowerCase()) >= 0
@@ -2563,7 +2563,7 @@ export default {
     filteredCoopera() {
       return this.clients.filter(option => {
         return (
-          option.name
+          (option.name || '')
             .toString()
             .toLowerCase()
             .indexOf(this.cooperaSearch.toLowerCase()) >= 0
@@ -2573,7 +2573,7 @@ export default {
     filteredStrategies() {
       return this.strategies.filter(option => {
         return (
-          option.name
+          (option.name || '')
             .toString()
             .toLowerCase()
             .indexOf(this.strategiesSearch.toLowerCase()) >= 0
