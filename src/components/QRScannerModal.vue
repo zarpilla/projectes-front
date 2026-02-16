@@ -136,6 +136,10 @@ export default {
       currentCameraIndex: 0
     };
   },
+  created() {
+    // Load saved camera preference
+    this.loadCameraPreference();
+  },
   computed: {
     successCount() {
       return this.scannedHistory.filter(item => item.status === 'success').length;
@@ -162,6 +166,25 @@ export default {
     this.stopScanner();
   },
   methods: {
+    loadCameraPreference() {
+      try {
+        const savedIndex = localStorage.getItem('qrScanner_preferredCamera');
+        if (savedIndex !== null) {
+          this.currentCameraIndex = parseInt(savedIndex, 10);
+        }
+      } catch (err) {
+        console.error('Error loading camera preference:', err);
+      }
+    },
+    
+    saveCameraPreference() {
+      try {
+        localStorage.setItem('qrScanner_preferredCamera', this.currentCameraIndex.toString());
+      } catch (err) {
+        console.error('Error saving camera preference:', err);
+      }
+    },
+    
     async getAvailableCameras() {
       try {
         const cameras = await Html5Qrcode.getCameras();
@@ -376,6 +399,9 @@ export default {
         // Move to next camera (cycle through)
         this.currentCameraIndex = (this.currentCameraIndex + 1) % this.availableCameras.length;
         
+        // Save the camera preference
+        this.saveCameraPreference();
+        
         // Restart scanner with new camera
         await this.$nextTick();
         await this.startScanner();
@@ -399,7 +425,7 @@ export default {
     
     cancel() {
       this.stopScanner();
-      this.currentCameraIndex = 0; // Reset to default camera
+      // Don't reset currentCameraIndex - keep the saved preference
       this.$emit('cancel');
     }
   }

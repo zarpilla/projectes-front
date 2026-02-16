@@ -2515,11 +2515,9 @@ export default {
     },
     async getPDF() {
       const pdf = (
-        await service({ requiresAuth: true }).get(`/orders/pdf/${this.form.id}`)
+        await service({ requiresAuth: true }).post(`/orders/pdf`, { orders: [this.form.id] })
       ).data;
-      for (const url of pdf.urls) {
-        window.open(this.apiUrl + url);
-      }
+      window.open(this.apiUrl + pdf.urls);
     },
     async confirmContact(msg) {
       this.isModalActive = false;
