@@ -90,10 +90,9 @@
             !editable ||
               phase.incomes.find(s => s.paid && mode !== 'simple') ||
               phase.expenses.find(s => s.paid && mode !== 'simple') ||
-              (mode === 'simple' &&
-                phase.incomes.find(
-                  s => s.estimated_hours && s.estimated_hours.length > 0
-                ))
+              phase.incomes.find(
+                s => s.estimated_hours && s.estimated_hours.length > 0
+              )
           "
           @click.prevent="removePhase(phi)"
         >
@@ -302,8 +301,7 @@
                   :disabled="
                     !editable ||
                       (props.row.paid && mode !== 'simple') ||
-                      (mode === 'simple' &&
-                        props.row.estimated_hours &&
+                      (props.row.estimated_hours &&
                         props.row.estimated_hours.length > 0)
                   "
                   @click.prevent="removeSubPhase(phase, props.row, props.index)"
