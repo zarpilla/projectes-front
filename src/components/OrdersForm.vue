@@ -392,13 +392,61 @@
                       'is-warning': form.collection_point === cp.id,
                       'is-outlined': form.collection_point !== cp.id
                     }"
-                    @click="form.collection_point = cp.id; checkTransferNeeded()"
+                    @click="form.collection_point = cp.id; onCollectionPointChange()"
                     :disabled="!canEdit || form.is_collection_order"
                   >
                     {{ cp.name }}
                   </button>
                 </div>
               </b-field>
+
+              <b-field
+                v-if="form.collection_point && collectionPickupRoutes.length > 0"
+                label="Ruta de recollida *"
+                horizontal
+                :type="{ 'is-danger': errors['collection_pickup_route'] && submitted }"
+                message="Selecciona la ruta que farà la recollida en finca (determina el dia de recollida). Si canvies la ruta o data, es pot crear una nova comanda de recollida automàticament."
+              >
+                <b-select
+                  v-model="form.collection_pickup_route"
+                  placeholder="Selecciona ruta de recollida"
+                  :disabled="!canEdit || form.is_collection_order"
+                  @input="onCollectionPickupRouteChange"
+                >
+                  <option
+                    v-for="(r, index) in collectionPickupRoutes"
+                    :key="index"
+                    :value="r.id"
+                  >
+                    {{ r.name }}
+                  </option>
+                </b-select>
+              </b-field>
+
+              <b-field
+                v-if="form.collection_point && form.collection_pickup_route"
+                label="Data de recollida"
+                horizontal
+                message="Data prevista per la recollida en finca. Aquest camp determina a quina comanda de recollida s'afegirà aquesta comanda."
+              >
+                <b-datepicker
+                  :disabled="!canEdit || form.is_collection_order"
+                  v-model="form.collection_pickup_date"
+                  :show-week-number="false"
+                  :locale="'ca-ES'"
+                  :first-day-of-week="1"
+                  icon="calendar-today"
+                  placeholder="Data"
+                  trap-focus
+                  editable
+                  @input="onCollectionPickupDateChange"
+                >
+                </b-datepicker>
+              </b-field>
+
+              <b-message v-if="collectionPickupDateWarningMessage" type="is-warning">
+                {{ collectionPickupDateWarningMessage }}
+              </b-message>
 
                <b-field
                 label="Informació important"
@@ -490,15 +538,7 @@
                     </div>
                   </div>
                   
-                  <b-button
-                    v-if="canEdit"
-                    type="is-primary"
-                    icon-left="plus"
-                    @click="addIncidence"
-                    class="mb-3"
-                  >
-                    Afegir incidència
-                  </b-button>
+                  
 
                   <b-button
                     v-if="form.id"
@@ -1151,10 +1191,12 @@ export default {
       citySearch: "",
       apiUrl: process.env.VUE_APP_API_URL,
       dateWarningMessage: "",
+      collectionPickupDateWarningMessage: "",
       isModalActive: false,
       isIncidenceModalActive: false,
       isLoadingDeposit: {},
       isLoadingPickup: {},
+      collectionPickupRoutes: [],
     };
   },
   computed: {
@@ -1238,6 +1280,11 @@ export default {
       // Validate collection_point if it's required (when pickup is selected and has collection points available)
       if (this.collectionPoints && this.collectionPoints.length > 0) {
         baseErrors.collection_point = !this.form.collection_point;
+        
+        // Validate collection_pickup_route when collection_point is selected
+        if (this.form.collection_point && this.collectionPickupRoutes.length > 0) {
+          baseErrors.collection_pickup_route = !this.form.collection_pickup_route;
+        }
       }
 
       if (this.isPickupPoint) {
@@ -1490,6 +1537,8 @@ export default {
   methods: {
     getClearFormObject() {
       return {
+        collection_pickup_route: null,
+        collection_pickup_date: null,
         id: null,
         route_date: new Date(),
         estimated_delivery_date: null,
@@ -1551,6 +1600,7 @@ export default {
               this.normalizeIdsInForm("contact");
               this.normalizeIdsInForm("pickup");
               this.normalizeIdsInForm("collection_point");
+              this.normalizeIdsInForm("collection_pickup_route");
               this.normalizeIdsInForm("delivery_type");
               this.normalizeIdsInForm("contact_legal_form");
               this.normalizeIdsInForm("transfer_pickup_origin");
@@ -1634,6 +1684,19 @@ export default {
               // Ensure incidences is always an array
               if (!this.form.incidences || !Array.isArray(this.form.incidences)) {
                 this.form.incidences = [];
+              }
+
+              // Fetch collection pickup routes if collection_point is set
+              if (this.form.collection_point) {
+                await this.fetchCollectionPickupRoutes();
+                
+                // Convert collection_pickup_date to Date if it exists
+                if (this.form.collection_pickup_date) {
+                  this.form.collection_pickup_date = moment(
+                    this.form.collection_pickup_date,
+                    "YYYY-MM-DD"
+                  ).toDate();
+                }
               }
 
               this.isLoading = false;
@@ -2145,6 +2208,11 @@ export default {
             _tracking_user: currentUser.data
           };
 
+          // Format dates properly for backend
+          if (orderData.collection_pickup_date) {
+            orderData.collection_pickup_date = moment(orderData.collection_pickup_date).format("YYYY-MM-DD");
+          }
+
           await service({ requiresAuth: true }).put(
             `orders/${this.form.id}`,
             orderData
@@ -2197,6 +2265,11 @@ export default {
             ...this.form,
             _tracking_user: currentUser.data
           };
+
+          // Format dates properly for backend
+          if (orderData.collection_pickup_date) {
+            orderData.collection_pickup_date = moment(orderData.collection_pickup_date).format("YYYY-MM-DD");
+          }
 
           const newOrder = await service({ requiresAuth: true }).post(
             "orders",
@@ -2564,6 +2637,108 @@ export default {
       
       // Check if transfer is needed
       this.checkTransferNeeded();
+    },
+    async onCollectionPointChange() {
+      // When collection point changes, fetch available routes
+      await this.fetchCollectionPickupRoutes();
+      this.checkTransferNeeded();
+    },
+    async onCollectionPickupRouteChange() {
+      // When collection pickup route changes, calculate next available date
+      await this.calculateCollectionPickupDate();
+    },
+    async onCollectionPickupDateChange() {
+      // Validate the date
+      this.checkCollectionPickupDate();
+    },
+    async checkCollectionPickupDate() {
+      if (!this.form.collection_pickup_route || !this.form.collection_pickup_date) {
+        this.collectionPickupDateWarningMessage = "";
+        return;
+      }
+
+      const route = this.collectionPickupRoutes.find(r => r.id === this.form.collection_pickup_route);
+      if (!route) {
+        this.collectionPickupDateWarningMessage = "";
+        return;
+      }
+
+      const valid = checkIfDateIsValidInroute(
+        route,
+        moment(this.form.collection_pickup_date),
+        this.routeFestives
+      );
+      
+      if (!valid) {
+        this.collectionPickupDateWarningMessage =
+          "Atenció! La data de recollida no és vàlida per la ruta seleccionada";
+      } else {
+        this.collectionPickupDateWarningMessage = "";
+      }
+    },
+    async fetchCollectionPickupRoutes() {
+      if (!this.form.collection_point) {
+        this.collectionPickupRoutes = [];
+        return;
+      }
+
+      try {
+        const response = await service({ requiresAuth: true }).get(
+          `orders/collection-point-routes?collection_point=${this.form.collection_point}`
+        );
+        this.collectionPickupRoutes = response.data || [];
+        
+        // If there's only one route, select it automatically
+        if (this.collectionPickupRoutes.length === 1) {
+          this.form.collection_pickup_route = this.collectionPickupRoutes[0].id;
+          await this.calculateCollectionPickupDate();
+        }
+      } catch (error) {
+        console.error('Error fetching collection pickup routes:', error);
+        this.$buefy.toast.open({
+          message: 'Error carregant les rutes de recollida',
+          type: 'is-danger'
+        });
+      }
+    },
+    async calculateCollectionPickupDate() {
+      if (!this.form.collection_pickup_route) {
+        this.form.collection_pickup_date = null;
+        return;
+      }
+
+      const route = this.collectionPickupRoutes.find(r => r.id === this.form.collection_pickup_route);
+      if (!route) return;
+
+      // Calculate next available date for this route
+      const routeDayOfWeek = route.monday ? 1 :
+                            route.tuesday ? 2 :
+                            route.wednesday ? 3 :
+                            route.thursday ? 4 :
+                            route.friday ? 5 :
+                            route.saturday ? 6 :
+                            route.sunday ? 7 : 0;
+
+      if (routeDayOfWeek === 0) return;
+
+      let nextDay = moment();
+      let found = false;
+      let maxIterations = 7;
+      let iterations = 0;
+
+      while (!found && iterations < maxIterations) {
+        nextDay = nextDay.add(1, 'day');
+        if (routeDayOfWeek === nextDay.day()) {
+          found = true;
+        }
+        iterations++;
+      }
+
+      if (found) {
+        this.form.collection_pickup_date = nextDay.toDate();
+        // Validate the calculated date
+        this.checkCollectionPickupDate();
+      }
     },
     checkTransferNeeded() {
       // Only check if we have both a route and a pickup selected

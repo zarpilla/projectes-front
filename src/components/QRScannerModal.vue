@@ -27,6 +27,14 @@
               <div v-if="error" class="notification is-danger">
                 <p><strong>Error:</strong> {{ error }}</p>
                 <p class="mt-2">Assegura't que has donat permís per utilitzar la càmera.</p>
+                <b-button 
+                  type="is-primary" 
+                  class="mt-3"
+                  @click="retryCamera"
+                  icon-left="refresh"
+                >
+                  Tornar a intentar
+                </b-button>
               </div>
               <div 
                 id="qr-reader" 
@@ -379,6 +387,12 @@ export default {
     
     clearHistory() {
       this.scannedHistory = [];
+    },
+    
+    async retryCamera() {
+      this.error = null;
+      await this.$nextTick();
+      await this.startScanner();
     },
     
     async switchCamera() {
