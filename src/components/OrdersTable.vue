@@ -848,6 +848,9 @@ export default {
       deliveryTypes: [],
       pickups: [],
       routerates: [],
+      cityRoutes: [],
+      cities: [],
+      sociesContacts: [],
       checkedRows: [],
       newState: null,
       total: 0,
@@ -1358,6 +1361,18 @@ export default {
         // Get current user for tracking
         const currentUser = await service({ requiresAuth: true }).get("users/me");
         
+        // Create a temporary order object to calculate transfer
+        const tempOrder = {
+          ...order,
+          route: this.routes.find(r => r.id === this.editForm.route),
+          pickup: this.pickups.find(p => p.id === this.editForm.pickup),
+          owner: order.owner,
+          collection_point: order.collection_point
+        };
+        
+        // Calculate if transfer is needed
+        this.checkTransferNeeded(tempOrder);
+        
         const updateData = {
           route: this.editForm.route,
           estimated_delivery_date: this.editForm.estimated_delivery_date
@@ -1373,6 +1388,9 @@ export default {
           delivery_type: this.editForm.delivery_type,
           price: this.calculatedPrice,
           last_mile: this.editForm.last_mile,
+          transfer: tempOrder.transfer,
+          transfer_pickup_origin: tempOrder.transfer_pickup_origin,
+          transfer_pickup_destination: tempOrder.transfer_pickup_destination,
           _tracking_user: currentUser.data
         };
 
@@ -1683,6 +1701,21 @@ export default {
         display: `${c.trade_name || c.name} (${c.city || ''}) - ${c.id}`
       }));
 
+      // Load city routes for transfer logic
+      this.cityRoutes = (
+        await service({ requiresAuth: true }).get("city-routes?_limit=-1")
+      ).data;
+
+      // Load cities for transfer logic
+      this.cities = (
+        await service({ requiresAuth: true }).get("cities?_limit=-1")
+      ).data;
+
+      // Load socies contacts for collection points
+      this.sociesContacts = (
+        await service({ requiresAuth: true }).get("contacts?_where[users_permissions_user_gt]=0")
+      ).data;
+
       this.setStatusFilter({ ctrlKey: false, metaKey: false });
 
       // console.log("this.orders", this.orders);
@@ -1755,12 +1788,42 @@ export default {
           return;
         }
         this.importing = true;
+        
+        // Try to read with UTF-8 first, then fallback to Windows-1252 if encoding issues detected
         const reader = new FileReader();
         reader.onload = async e => {
           if (!continueImport) {
             return;
           }
-          const text = e.target.result;
+          let text = e.target.result;
+          
+          // Check if the text contains replacement characters (encoding issues)
+          if (text.includes('�')) {
+            console.log("Detected encoding issues, trying Windows-1252...");
+            // Try again with Windows-1252 encoding
+            const readerRetry = new FileReader();
+            readerRetry.onload = async e => {
+              text = e.target.result;
+              this.csv = text;
+              const records = await this.readCSV(text);
+              if (fileType === "orders") {
+                await this.importCSV(records);
+              } else {
+                await this.importContactsCSV(records);
+              }
+              this.importing = false;
+            };
+            readerRetry.onerror = () => {
+              this.$buefy.snackbar.open({
+                message: "Error llegint l'arxiu",
+                type: "is-danger"
+              });
+              this.importing = false;
+            };
+            readerRetry.readAsText(file, 'Windows-1252');
+            return;
+          }
+          
           this.csv = text;
           const records = await this.readCSV(text);
           if (fileType === "orders") {
@@ -1770,8 +1833,17 @@ export default {
           }
           this.importing = false;
         };
+        
+        reader.onerror = () => {
+          this.$buefy.snackbar.open({
+            message: "Error llegint l'arxiu",
+            type: "is-danger"
+          });
+          this.importing = false;
+        };
 
-        reader.readAsText(file);
+        // Try UTF-8 first
+        reader.readAsText(file, 'UTF-8');
       }
     },
     removeAccents(name) {
@@ -1970,6 +2042,18 @@ export default {
 
         const routeDate = assignRouteDate(route);
 
+        const pickup = record.pickup
+          ? this.pickups.find(
+              p => p.id.toString() === record.pickup.toString()
+            )
+          : this.pickups[0];
+
+        const owner = (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
+          ? this.users.find(
+              u => u.id.toString() === record.owner_id.toString()
+            )
+          : this.me;
+
         const order = {
           id: 0,
           route_date: new Date().toISOString().split("T")[0],
@@ -2006,20 +2090,12 @@ export default {
             record.refrigerated === "1"
               ? this.deliveryTypes.find(d => d.refrigerated)
               : this.deliveryTypes.find(d => !d.refrigerated),
-          pickup: record.pickup
-            ? this.pickups.find(
-                p => p.id.toString() === record.pickup.toString()
-              )
-            : this.pickups[0],
+          pickup: pickup,
           kilograms: Math.abs(parseInt(record.kilograms)),
           units: Math.abs(parseInt(record.units)),
           notes: record.notes,
           comments: record.notes,
-          owner: (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
-            ? this.users.find(
-                u => u.id.toString() === record.owner_id.toString()
-              )
-            : this.me,
+          owner: owner,
           route: route,
           estimated_delivery_date: record.estimated_delivery_date
             ? moment(record.estimated_delivery_date, "YYYYMMDD").format(
@@ -2028,8 +2104,14 @@ export default {
             : moment(routeDate.nextDay.toDate()).format("YYYY-MM-DD"),
           price: null,
           status: "CSV",
-          _uuid: this.createUUID()
+          _uuid: this.createUUID(),
+          transfer: false,
+          transfer_pickup_origin: null,
+          transfer_pickup_destination: null
         };
+
+        // Check if transfer is needed
+        this.checkTransferNeeded(order);
 
         if (routeDate.warning) {
           this.$buefy.toast.open({
@@ -2230,6 +2312,85 @@ export default {
         type: "is-success"
       });
     },
+    checkTransferNeeded(order) {
+      // Only check if we have both a route and a pickup selected
+      if (!order.route || !order.pickup) {
+        return;
+      }
+
+      const selectedPickup = order.pickup;
+      const selectedRoute = order.route;
+      
+      let pickupCityId = null;
+
+      // Case 1: Pickup where pickup = false (has direct city relation)
+      if (!selectedPickup.pickup && selectedPickup.city) {
+        pickupCityId = typeof selectedPickup.city === 'object' ? selectedPickup.city.id : selectedPickup.city;
+      }
+      // Case 2: Pickup where pickup = true (need to get city from collection_point)
+      else if (selectedPickup.pickup && order.collection_point && order.owner) {
+        // Find the collection point contact
+        const ownerId = typeof order.owner === 'object' ? order.owner.id : order.owner;
+        const ownerContact = this.sociesContacts.find(c => 
+          c.users_permissions_user && c.users_permissions_user.id === ownerId
+        );
+        
+        if (ownerContact && ownerContact.collection_points) {
+          // Find the specific collection point
+          const collectionPoint = ownerContact.collection_points.find(cp => {
+            const cpId = typeof cp === 'object' ? cp.id : cp;
+            return cpId === order.collection_point;
+          });
+
+          if (collectionPoint) {
+            // Collection point has city as a string, need to find the city object
+            const cityName = typeof collectionPoint === 'object' ? collectionPoint.city : null;
+            if (cityName) {
+              const cityObj = this.cities.find(c => c.name === cityName);
+              if (cityObj) {
+                pickupCityId = cityObj.id;
+              }
+            }
+          }
+        }
+      }
+
+      // If we couldn't determine the pickup city, can't calculate transfer
+      if (!pickupCityId) {
+        return;
+      }
+
+      const routeId = typeof selectedRoute === 'object' ? selectedRoute.id : selectedRoute;
+
+      // Check if the selected route travels to this city
+      const routeTravelsToCity = this.cityRoutes.some(cr => {
+        const cityId = typeof cr.city === 'object' ? cr.city.id : cr.city;
+        const crRouteId = typeof cr.route === 'object' ? cr.route.id : cr.route;
+        return cityId === pickupCityId && crRouteId === routeId;
+      });
+
+      // If route does NOT travel to the city, transfer is needed
+      order.transfer = !routeTravelsToCity;
+      
+      // Set transfer pickup origin and destination if transfer is needed
+      if (order.transfer) {
+        // Transfer origin: the pickup where the order was deposited
+        order.transfer_pickup_origin = selectedPickup.id || selectedPickup;
+        
+        // Transfer destination: the transfer_pickup from the route (where the transfer will go)
+        if (selectedRoute.transfer_pickup) {
+          order.transfer_pickup_destination = typeof selectedRoute.transfer_pickup === 'object' 
+            ? selectedRoute.transfer_pickup.id 
+            : selectedRoute.transfer_pickup;
+        } else {
+          order.transfer_pickup_destination = null;
+        }
+      } else {
+        // No transfer needed, clear the transfer pickup fields
+        order.transfer_pickup_origin = null;
+        order.transfer_pickup_destination = null;
+      }
+    },
     createUUID() {
       var dt = new Date().getTime();
       var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
@@ -2298,6 +2459,7 @@ export default {
       );
       if (orderToUpdate >= 0) {
         this.orders[orderToUpdate].id = data.id;
+        this.orders[orderToUpdate].idx = data.id.toString().padStart(4, "0") + (data.is_collection_order ? `-R` : "");
         this.orders[orderToUpdate].status = data.status;
       }
     },
