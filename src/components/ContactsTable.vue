@@ -217,17 +217,7 @@
           "
           >{{ props.row.owner.fullname || props.row.owner.username }}</span
         >
-      </b-table-column>
-      <b-table-column
-        v-if="orders_admin"
-        label="Multientrega"
-        field="multidelivery"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.multidelivery ? "Sí" : "No" }}
-      </b-table-column>
+      </b-table-column>      
       <b-table-column
         v-if="orders_admin"
         label="Rutes"
