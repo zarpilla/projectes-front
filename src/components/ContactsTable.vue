@@ -249,6 +249,17 @@
         {{ props.row.owners_flattened || "-" }}
       </b-table-column>
       <b-table-column
+        v-if="orders_admin"
+        label="Comandes 1any"
+        field="num_orders"
+        searchable
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.num_orders || 0 }}
+      </b-table-column>
+      <b-table-column
+        v-else
         label="Núm comandes"
         field="num_orders"
         searchable
