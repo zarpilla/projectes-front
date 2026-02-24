@@ -34,7 +34,7 @@
           class="export-button mt-0 mb-3"
           icon-left="file-excel"
         />
-      </download-excel>      
+      </download-excel>
       <b-button
         class="view-button is-primary mb-3"
         @click="navNew"
@@ -219,6 +219,36 @@
         >
       </b-table-column>
       <b-table-column
+        v-if="orders_admin"
+        label="Multientrega"
+        field="multidelivery"
+        searchable
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.multidelivery ? "Sí" : "No" }}
+      </b-table-column>
+      <b-table-column
+        v-if="orders_admin"
+        label="Rutes"
+        field="routes_flattened"
+        searchable
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.routes_flattened || "-" }}
+      </b-table-column>
+      <b-table-column
+        v-if="orders_admin"
+        label="Sòcies"
+        field="owners_flattened"
+        searchable
+        sortable
+        v-slot="props"
+      >
+        {{ props.row.owners_flattened || "-" }}
+      </b-table-column>
+      <b-table-column
         label="Núm comandes"
         field="num_orders"
         searchable
@@ -336,7 +366,7 @@ export default {
     onUnifyConfirm(data) {
       this.$buefy.snackbar.open({
         message: `S'han unificat els punts d'entrega correctament`,
-        type: 'is-success',
+        type: "is-success",
         queue: false
       });
       // Refresh the data
@@ -352,7 +382,10 @@ export default {
         );
         const permissions = me.data.permissions.map(p => p.permission);
         this.permissions = permissions;
-        if (permissions.includes("orders_admin") || permissions.includes("orders_delivery")) {
+        if (
+          permissions.includes("orders_admin") ||
+          permissions.includes("orders_delivery")
+        ) {
           this.orders_admin = true;
           userContacts = `&_where[owner_ne]=null`;
         } else {
@@ -438,9 +471,11 @@ export default {
             )
           ).data;
           for (const contact of contactsWithOrders) {
-            if (this.contacts.find(c => c.id === contact.id)) {
-              this.contacts.find(c => c.id === contact.id).num_orders =
-                contact.num_orders;
+            const c = this.contacts.find(c => c.id === contact.id);
+            if (c) {
+              c.num_orders = contact.num_orders;
+              c.owners_flattened = contact.owners_flattened;
+              c.routes_flattened = contact.routes_flattened;
             } else {
               this.contacts.push(contact);
             }
@@ -473,7 +508,9 @@ export default {
             ", "
           )}`,
           num_orders: contact.num_orders || 0,
-          routes: this.cities.find(c => c.name === contact.city) ? this.cities.find(c => c.name === contact.city).routes : null,
+          routes: this.cities.find(c => c.name === contact.city)
+            ? this.cities.find(c => c.name === contact.city).routes
+            : null
         };
       });
 
