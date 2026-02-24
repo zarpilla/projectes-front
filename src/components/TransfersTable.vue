@@ -499,53 +499,101 @@ export default {
     this.loadData();
   },
   methods: {
+    applyAllowedOrderStatusParams(params) {
+      params['_where[_or][0][status]'] = 'pending';
+      params['_where[_or][1][status]'] = 'deposited';
+      params['_where[_or][2][status]'] = 'processed';
+    },
+    applyTransferStatusParams(params, transferStatuses) {
+      if (!transferStatuses || transferStatuses.length === 0) {
+        return;
+      }
+
+      const conditions = [];
+      if (transferStatuses.includes('pending')) {
+        conditions.push({
+          transfer_start_date_null: true,
+          transfer_end_date_null: true
+        });
+      }
+      if (transferStatuses.includes('in_progress')) {
+        conditions.push({
+          transfer_start_date_null: false,
+          transfer_end_date_null: true
+        });
+      }
+      if (transferStatuses.includes('completed')) {
+        conditions.push({
+          transfer_end_date_null: false
+        });
+      }
+
+      conditions.forEach((condition, index) => {
+        Object.keys(condition).forEach(key => {
+          params[`_where[_and][1][_or][${index}][${key}]`] = condition[key];
+        });
+      });
+    },
+    isAllowedOrderStatus(order) {
+      return ['pending', 'deposited', 'processed'].includes(order.status);
+    },
     async loadData() {
       this.isLoading = true;
       try {
         const params = {
-          _limit: this.perPage,
-          _start: (this.page - 1) * this.perPage,
+          _limit: -1,
           _sort: `${this.sortField}:${this.sortOrder.toUpperCase()}`,
           transfer: true // Only get orders with transfer = true
         };
 
-        // Add status filter
-        if (this.statusFilter.length > 0) {
-          // We need to filter by the combination of transfer_start_date and transfer_end_date
-          // This will be handled after fetching
-        }
+        this.applyAllowedOrderStatusParams(params);
+        this.applyTransferStatusParams(params, this.statusFilter);
 
         const response = await service({ requiresAuth: true }).get("orders", { params });
-        let orders = response.data;
+        let allOrders = response.data || [];
 
-        // Apply status filter if needed
+        // Fallback if backend does not fully apply one of the filters
+        allOrders = allOrders.filter(order => this.isAllowedOrderStatus(order));
+
         if (this.statusFilter.length > 0) {
-          orders = orders.filter(order => {
+          allOrders = allOrders.filter(order => {
             const status = this.getTransferStatus(order);
             return this.statusFilter.includes(status);
           });
         }
 
+        // Keep all transfer orders to maintain coherent counters
+        this.allTransferOrders = allOrders;
+        this.pendingCount = allOrders.filter(
+          o => this.getTransferStatus(o) === 'pending'
+        ).length;
+        this.inProgressCount = allOrders.filter(
+          o => this.getTransferStatus(o) === 'in_progress'
+        ).length;
+        this.completedCount = allOrders.filter(
+          o => this.getTransferStatus(o) === 'completed'
+        ).length;
+
+        let filteredOrders = allOrders;
+
         // Apply pickup filter if needed
         if (this.pickupFilter !== null) {
-          orders = orders.filter(order => {
+          filteredOrders = filteredOrders.filter(order => {
             return order.transfer_pickup_origin && 
                    order.transfer_pickup_origin.id === this.pickupFilter;
           });
         }
 
-        this.orders = orders;
+        this.total = filteredOrders.length;
 
-        // Get total count
-        const countParams = { transfer: true };
-        const countResponse = await service({ requiresAuth: true }).get(
-          "orders/count",
-          { params: countParams }
-        );
-        this.total = countResponse.data;
+        const maxPage = Math.max(1, Math.ceil(this.total / this.perPage));
+        if (this.page > maxPage) {
+          this.page = maxPage;
+        }
 
-        // Get counts by status
-        await this.loadStatusCounts();
+        const start = (this.page - 1) * this.perPage;
+        const end = start + this.perPage;
+        this.orders = filteredOrders.slice(start, end);
       } catch (error) {
         console.error("Error loading transfers:", error);
         this.$buefy.toast.open({
@@ -559,10 +607,13 @@ export default {
     async loadStatusCounts() {
       try {
         // Fetch all transfer orders to count statuses
+        const params = { transfer: true, _limit: -1 };
+        this.applyAllowedOrderStatusParams(params);
+
         const response = await service({ requiresAuth: true }).get("orders", {
-          params: { transfer: true, _limit: -1 }
+          params
         });
-        const allOrders = response.data;
+        const allOrders = (response.data || []).filter(order => this.isAllowedOrderStatus(order));
 
         this.pendingCount = allOrders.filter(
           o => this.getTransferStatus(o) === 'pending'

@@ -2506,7 +2506,15 @@ export default {
         return { ...c, display: `${c.trade_name} (${c.id})` };
       });
 
-      const contactsOrPickups = this.isPickupPoint ? contacts1.filter(c => c.pickup_point) : contacts1;
+      const contactsNotInSector10 = contacts1.filter(c => {
+        if (!c.sector) return true;
+        if (Array.isArray(c.sector)) {
+          return !c.sector.some(s => (typeof s === "object" ? s.id : s) === 10);
+        }
+        return (typeof c.sector === "object" ? c.sector.id : c.sector) !== 10;
+      });
+
+      const contactsOrPickups = this.isPickupPoint ? contactsNotInSector10.filter(c => c.pickup_point) : contactsNotInSector10;
 
       this.contacts = contactsOrPickups;
     },

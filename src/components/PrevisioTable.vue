@@ -562,6 +562,11 @@ export default {
       this.getData();
     },
     async getData() {
+
+      const year = this.$route.query.year
+        ? this.$route.query.year
+        : moment().format("YYYY");
+        
       this.isLoading = true;
 
       const treasuryData = await getTreasuryData(this.selectedProjectStates, year);
