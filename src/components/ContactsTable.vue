@@ -44,7 +44,7 @@
         <span v-else>Nou Contacte</span>
       </b-button>
       <b-button
-        v-if="userContacts"
+        v-if="userContacts && orders_admin"
         class="view-button is-warning mb-3 ml-2"
         @click="openUnifyModal"
         icon-left="call-merge"
@@ -310,7 +310,8 @@ export default {
         Comandes: "num_orders",
         Rutes: "routes"
       },
-      cities: []
+      cities: [],
+      permissions: []
     };
   },
   computed: {
@@ -350,6 +351,7 @@ export default {
           "users/me"
         );
         const permissions = me.data.permissions.map(p => p.permission);
+        this.permissions = permissions;
         if (permissions.includes("orders_admin") || permissions.includes("orders_delivery")) {
           this.orders_admin = true;
           userContacts = `&_where[owner_ne]=null`;
