@@ -64,7 +64,10 @@
 
               <!-- PRIMER BLOC: A ON VA I QUIN DIA? -->
               <h3 class="title is-5 mt-4 mb-3">A ON VA I QUIN DIA?</h3>
-              <p class="help mb-4"><strong>Recorda!</strong> Has d'informar les comandes com a límit a les 13h del dia abans.</p>
+              <p class="help mb-4">
+                <strong>Recorda!</strong> Has d'informar les comandes com a
+                límit a les 13h del dia abans.
+              </p>
 
               <!-- <b-field
                 label="Data comanda *"
@@ -90,7 +93,11 @@
                 :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
                 horizontal
                 :type="{ 'is-danger': errors['contact'] && submitted }"
-                :message="!isPickupPoint ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt' : 'Cerca el punt de consum'"
+                :message="
+                  !isPickupPoint
+                    ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt'
+                    : 'Cerca el punt de consum'
+                "
               >
                 <b-autocomplete
                   v-model="contactSearch"
@@ -107,7 +114,10 @@
                 </b-autocomplete>
               </b-field>
 
-              <b-field horizontal v-if="!form.contact && !contactSearch && !isPickupPoint">
+              <b-field
+                horizontal
+                v-if="!form.contact && !contactSearch && !isPickupPoint"
+              >
                 <b-button
                   :disabled="!canEdit"
                   class="view-button is-primary mb-3"
@@ -124,7 +134,11 @@
                   title="Nou punt d'entrega"
                   @click="isModalActive = true"
                 >
-                  {{ isPickupPoint ? "Veure punt de recollida" : "Veure punt d'entrega" }}
+                  {{
+                    isPickupPoint
+                      ? "Veure punt de recollida"
+                      : "Veure punt d'entrega"
+                  }}
                 </b-button>
               </b-field>
 
@@ -182,7 +196,11 @@
                 label="Tipus de servei *"
                 horizontal
                 :type="{ 'is-danger': errors['delivery_type'] && submitted }"
-                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Indica refrigerat si almenys una caixa de la comanda ha d\'anar refrigerada'"
+                :message="
+                  form.is_collection_order
+                    ? 'Calculat automàticament des de les comandes associades'
+                    : 'Indica refrigerat si almenys una caixa de la comanda ha d\'anar refrigerada'
+                "
               >
                 <div class="is-flex">
                   <button
@@ -201,8 +219,6 @@
                 </div>
               </b-field>
 
-
-
               <!-- Pickup Point Lines Section -->
               <div v-if="isPickupPoint" class="mb-3">
                 <b-field
@@ -212,7 +228,11 @@
                   :type="{ 'is-danger': errors['lines'] && submitted }"
                 >
                   <div class="is-full-width mt-2">
-                    <div v-for="(line, index) in form.lines" :key="index" class="zbox mb-1">
+                    <div
+                      v-for="(line, index) in form.lines"
+                      :key="index"
+                      class="zbox mb-1"
+                    >
                       <div class="columns">
                         <div class="column is-3 p-2">
                           <b-field :label="index === 0 ? 'Caixes' : null">
@@ -236,18 +256,12 @@
                         </div>
                         <div class="column is-3 p-2">
                           <b-field :label="index === 0 ? 'Nom' : null">
-                            <b-input
-                              v-model="line.name"
-                              :disabled="!canEdit"
-                            />
+                            <b-input v-model="line.name" :disabled="!canEdit" />
                           </b-field>
                         </div>
                         <div class="column is-2 p-2">
                           <b-field :label="index === 0 ? 'NIF' : null">
-                            <b-input
-                              v-model="line.nif"
-                              :disabled="!canEdit"
-                            />
+                            <b-input v-model="line.nif" :disabled="!canEdit" />
                           </b-field>
                         </div>
                         <div class="column is-1">
@@ -264,7 +278,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <b-button
                       v-if="canEdit"
                       type="is-primary"
@@ -283,11 +297,7 @@
                   horizontal
                   message="Calculat automàticament des de les línies"
                 >
-                  <b-input
-                    :value="form.units"
-                    type="number"
-                    disabled
-                  />
+                  <b-input :value="form.units" type="number" disabled />
                 </b-field>
 
                 <b-field
@@ -295,11 +305,7 @@
                   horizontal
                   message="Calculat automàticament des de les línies"
                 >
-                  <b-input
-                    :value="form.kilograms"
-                    type="number"
-                    disabled
-                  />
+                  <b-input :value="form.kilograms" type="number" disabled />
                 </b-field>
               </div>
 
@@ -308,7 +314,11 @@
                 <b-field
                   label="Número de caixes *"
                   horizontal
-                  :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Nombre de caixes que inclou la comanda'"
+                  :message="
+                    form.is_collection_order
+                      ? 'Calculat automàticament des de les comandes associades'
+                      : 'Nombre de caixes que inclou la comanda'
+                  "
                   :type="{ 'is-danger': errors['units'] && submitted }"
                 >
                   <b-input
@@ -322,7 +332,11 @@
                   :type="{ 'is-danger': errors['kilograms'] && submitted }"
                   label="Kilograms *"
                   horizontal
-                  :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Kilograms totals'"
+                  :message="
+                    form.is_collection_order
+                      ? 'Calculat automàticament des de les comandes associades'
+                      : 'Kilograms totals'
+                  "
                 >
                   <b-input
                     v-model="form.kilograms"
@@ -332,20 +346,20 @@
                 </b-field>
               </div>
 
-
               <b-field
                 label="Fràgil"
                 horizontal
-                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Si la comanda és fràgil, marca aquesta casella'"
+                :message="
+                  form.is_collection_order
+                    ? 'Calculat automàticament des de les comandes associades'
+                    : 'Si la comanda és fràgil, marca aquesta casella'
+                "
               >
                 <b-switch
                   v-model="form.fragile"
                   :disabled="!canEdit || form.is_collection_order"
                 ></b-switch>
               </b-field>
-
-             
-
 
               <hr />
 
@@ -356,7 +370,13 @@
                 horizontal
                 :type="{ 'is-danger': errors['pickup'] && submitted }"
                 class="zmessage-alert"
-                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : (form.pickup && pickups.find(p => p.id === form.pickup) ? pickups.find(p => p.id === form.pickup).message : '')"
+                :message="
+                  form.is_collection_order
+                    ? 'Calculat automàticament des de les comandes associades'
+                    : form.pickup && pickups.find(p => p.id === form.pickup)
+                    ? pickups.find(p => p.id === form.pickup).message
+                    : ''
+                "
               >
                 <div class="is-flex-desktop">
                   <button
@@ -367,7 +387,10 @@
                       'is-warning': form.pickup === s.id,
                       'is-outlined': form.pickup !== s.id
                     }"
-                    @click="form.pickup = s.id; updatePickup()"
+                    @click="
+                      form.pickup = s.id;
+                      updatePickup();
+                    "
                     :disabled="!canEdit || form.is_collection_order"
                   >
                     {{ s.name }}
@@ -380,7 +403,11 @@
                 label="Punt de recollida en finca *"
                 horizontal
                 :type="{ 'is-danger': errors['collection_point'] && submitted }"
-                :message="form.is_collection_order ? 'Calculat automàticament des de les comandes associades' : 'Selecciona el punt de recollida concret dins de la finca'"
+                :message="
+                  form.is_collection_order
+                    ? 'Calculat automàticament des de les comandes associades'
+                    : 'Selecciona el punt de recollida concret dins de la finca'
+                "
               >
                 <div class="is-flex-desktop">
                   <button
@@ -392,7 +419,10 @@
                       'is-warning': form.collection_point === cp.id,
                       'is-outlined': form.collection_point !== cp.id
                     }"
-                    @click="form.collection_point = cp.id; onCollectionPointChange()"
+                    @click="
+                      form.collection_point = cp.id;
+                      onCollectionPointChange();
+                    "
                     :disabled="!canEdit || form.is_collection_order"
                   >
                     {{ cp.name }}
@@ -401,10 +431,14 @@
               </b-field>
 
               <b-field
-                v-if="form.collection_point && collectionPickupRoutes.length > 0"
+                v-if="
+                  form.collection_point && collectionPickupRoutes.length > 0
+                "
                 label="Ruta de recollida *"
                 horizontal
-                :type="{ 'is-danger': errors['collection_pickup_route'] && submitted }"
+                :type="{
+                  'is-danger': errors['collection_pickup_route'] && submitted
+                }"
                 message="Selecciona la ruta que farà la recollida en finca (determina el dia de recollida). Si canvies la ruta o data, es pot crear una nova comanda de recollida automàticament."
               >
                 <b-select
@@ -444,11 +478,14 @@
                 </b-datepicker>
               </b-field>
 
-              <b-message v-if="collectionPickupDateWarningMessage" type="is-warning">
+              <b-message
+                v-if="collectionPickupDateWarningMessage"
+                type="is-warning"
+              >
                 {{ collectionPickupDateWarningMessage }}
               </b-message>
 
-               <b-field
+              <b-field
                 label="Informació important"
                 horizontal
                 class="line-notes is-full-width mb-5"
@@ -473,18 +510,28 @@
               <hr />
 
               <h3 class="title is-5 mt-4 mb-3">HI HA INCIDÈNCIES?</h3>
-              <b-field v-if="form.id"
+              <b-field
+                v-if="form.id"
                 horizontal
                 message="Gestiona les incidències d'aquesta comanda"
               >
                 <template #label>
                   Incidències
-                  <b-tag v-if="openIncidencesCount > 0" type="is-warning" class="ml-2">
-                    {{ openIncidencesCount }} {{ openIncidencesCount === 1 ? 'oberta' : 'obertes' }}
+                  <b-tag
+                    v-if="openIncidencesCount > 0"
+                    type="is-warning"
+                    class="ml-2"
+                  >
+                    {{ openIncidencesCount }}
+                    {{ openIncidencesCount === 1 ? "oberta" : "obertes" }}
                   </b-tag>
                 </template>
                 <div class="is-full-width">
-                  <div v-for="(incidence, index) in form.incidences" :key="incidence.id || `new-${index}`" class="zbox mb-3">
+                  <div
+                    v-for="(incidence, index) in form.incidences"
+                    :key="incidence.id || `new-${index}`"
+                    class="zbox mb-3"
+                  >
                     <div class="columns">
                       <div class="column is-9 p-2">
                         <b-field :label="index === 0 ? 'Descripció' : null">
@@ -495,11 +542,11 @@
                             placeholder="Descripció de la incidència"
                           />
                         </b-field>
-                        <b-field :label="index === 0 ? 'Estat' : null" class="mt-3">
-                          <b-select
-                            v-model="incidence.state"
-                            :disabled="true"
-                          >
+                        <b-field
+                          :label="index === 0 ? 'Estat' : null"
+                          class="mt-3"
+                        >
+                          <b-select v-model="incidence.state" :disabled="true">
                             <option value="open">Oberta</option>
                             <option value="wip">En procés</option>
                             <option value="closed">Tancada</option>
@@ -507,12 +554,21 @@
                         </b-field>
                       </div>
                       <div class="column is-2 p-2">
-                        <b-field :label="index === 0 ? 'Creada / Accions' : null">
+                        <b-field
+                          :label="index === 0 ? 'Creada / Accions' : null"
+                        >
                           <div class="is-flex is-flex-direction-column">
-                            <span v-if="incidence.created_at" class="is-size-7 mb-2">
+                            <span
+                              v-if="incidence.created_at"
+                              class="is-size-7 mb-2"
+                            >
                               {{ formatDate(incidence.created_at) }}
                             </span>
-                            <span v-else class="is-size-7 has-text-grey-light mb-2">Nova</span>
+                            <span
+                              v-else
+                              class="is-size-7 has-text-grey-light mb-2"
+                              >Nova</span
+                            >
                             <div class="buttons">
                               <b-button
                                 v-if="!incidence.id && canEdit"
@@ -537,8 +593,6 @@
                       </div>
                     </div>
                   </div>
-                  
-                  
 
                   <b-button
                     v-if="form.id"
@@ -553,7 +607,6 @@
                 </div>
               </b-field>
 
-              
               <hr />
 
               <!-- COLLECTION ORDERS SECTION -->
@@ -569,39 +622,84 @@
                   >
                     <div class="is-full-width">
                       <b-table
-                        v-if="form.collection_orders && form.collection_orders.length > 0"
+                        v-if="
+                          form.collection_orders &&
+                            form.collection_orders.length > 0
+                        "
                         :data="form.collection_orders"
                         :striped="true"
                         :hoverable="true"
                         :mobile-cards="false"
                       >
-                        <b-table-column field="id" label="Comanda" width="120" v-slot="props">
+                        <b-table-column
+                          field="id"
+                          label="Comanda"
+                          width="120"
+                          v-slot="props"
+                        >
                           <router-link :to="`/order/${props.row.id}`">
-                            <strong>#{{ String(props.row.id).padStart(4, '0') }}</strong>
+                            <strong
+                              >#{{
+                                String(props.row.id).padStart(4, "0")
+                              }}</strong
+                            >
                           </router-link>
                         </b-table-column>
 
-                        <b-table-column field="contact" label="Entrega" v-slot="props">
-                          {{ (props.row.contact && props.row.contact.trade_name) || props.row.contact_trade_name || '-' }}
+                        <b-table-column
+                          field="contact"
+                          label="Entrega"
+                          v-slot="props"
+                        >
+                          {{
+                            (props.row.contact &&
+                              props.row.contact.trade_name) ||
+                              props.row.contact_trade_name ||
+                              "-"
+                          }}
                         </b-table-column>
 
-                        <b-table-column field="units" label="Caixes" width="100" numeric v-slot="props">
+                        <b-table-column
+                          field="units"
+                          label="Caixes"
+                          width="100"
+                          numeric
+                          v-slot="props"
+                        >
                           {{ props.row.units || 0 }}
                         </b-table-column>
 
-                        <b-table-column field="kilograms" label="Kg" width="100" numeric v-slot="props">
+                        <b-table-column
+                          field="kilograms"
+                          label="Kg"
+                          width="100"
+                          numeric
+                          v-slot="props"
+                        >
                           {{ props.row.kilograms || 0 }}
                         </b-table-column>
 
-                        <b-table-column field="status" label="Estat" width="150" v-slot="props">
+                        <b-table-column
+                          field="status"
+                          label="Estat"
+                          width="150"
+                          v-slot="props"
+                        >
                           <b-tag :type="getStatusColor(props.row.status)">
                             {{ getStatusName(props.row.status) }}
                           </b-tag>
                         </b-table-column>
 
-                        <b-table-column label="Dipositat" width="120" v-slot="props">
+                        <b-table-column
+                          label="Dipositat"
+                          width="120"
+                          v-slot="props"
+                        >
                           <div v-if="props.row.deposit_date">
-                            <b-icon icon="check-circle" type="is-success"></b-icon>
+                            <b-icon
+                              icon="check-circle"
+                              type="is-success"
+                            ></b-icon>
                           </div>
                           <div v-else>
                             <b-button
@@ -615,9 +713,16 @@
                           </div>
                         </b-table-column>
 
-                        <b-table-column label="Recollit" width="120" v-slot="props">
+                        <b-table-column
+                          label="Recollit"
+                          width="120"
+                          v-slot="props"
+                        >
                           <div v-if="props.row.pickup_date">
-                            <b-icon icon="check-circle" type="is-success"></b-icon>
+                            <b-icon
+                              icon="check-circle"
+                              type="is-success"
+                            ></b-icon>
                           </div>
                           <div v-else>
                             <b-button
@@ -625,7 +730,12 @@
                               size="is-small"
                               @click="pickupCollectionOrder(props.row.id)"
                               :loading="isLoadingPickup[props.row.id]"
-                              :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
+                              :disabled="
+                                !(
+                                  permissions.includes('orders_admin') ||
+                                  permissions.includes('orders_delivery')
+                                )
+                              "
                             >
                               Recollir
                             </b-button>
@@ -633,12 +743,17 @@
                         </b-table-column>
 
                         <template #empty>
-                          <div class="has-text-centered has-text-grey-light p-4">
+                          <div
+                            class="has-text-centered has-text-grey-light p-4"
+                          >
                             No hi ha comandes associades encara
                           </div>
                         </template>
                       </b-table>
-                      <div v-else class="has-text-grey-light has-text-centered p-4">
+                      <div
+                        v-else
+                        class="has-text-grey-light has-text-centered p-4"
+                      >
                         No hi ha comandes associades encara
                       </div>
                     </div>
@@ -648,11 +763,16 @@
                 <!-- Show collection order for regular order -->
                 <div v-else-if="form.collection_order">
                   <h3 class="title is-5 mt-4 mb-3">COMANDA DE RECOLLIDA</h3>
-                  
-                  <b-message v-if="isCollectionOrderDateBeforeMainOrder" type="is-warning" class="mb-4">
-                    <strong>Atenció!</strong> La data prevista d'entrega és anterior a la data prevista de recollida.
+
+                  <b-message
+                    v-if="isCollectionOrderDateBeforeMainOrder"
+                    type="is-warning"
+                    class="mb-4"
+                  >
+                    <strong>Atenció!</strong> La data prevista d'entrega és
+                    anterior a la data prevista de recollida.
                   </b-message>
-                  
+
                   <b-field
                     horizontal
                     message="Aquesta comanda forma part d'una recollida en finca"
@@ -664,40 +784,92 @@
                         :hoverable="true"
                         :mobile-cards="false"
                       >
-                        <b-table-column field="id" label="Comanda" width="150" v-slot="props">
-                          <router-link :to="`/order/${props.row.id || props.row}`">
-                            <strong>#{{ String(props.row.id || props.row).padStart(4, '0') }}-R</strong>
+                        <b-table-column
+                          field="id"
+                          label="Comanda"
+                          width="150"
+                          v-slot="props"
+                        >
+                          <router-link
+                            :to="`/order/${props.row.id || props.row}`"
+                          >
+                            <strong
+                              >#{{
+                                String(props.row.id || props.row).padStart(
+                                  4,
+                                  "0"
+                                )
+                              }}-R</strong
+                            >
                           </router-link>
                         </b-table-column>
 
-                        <b-table-column field="estimated_delivery_date" width="120" label="Data prevista" v-slot="props">
-                          {{ props.row.estimated_delivery_date || '-' }}
+                        <b-table-column
+                          field="estimated_delivery_date"
+                          width="120"
+                          label="Data prevista"
+                          v-slot="props"
+                        >
+                          {{ props.row.estimated_delivery_date || "-" }}
                         </b-table-column>
 
                         <!-- <b-table-column field="contact" label="Punt de recollida" v-slot="props">
                           {{ (props.row.contact_trade_name || props.row.contact_name) || '-' }}
                         </b-table-column> -->
 
-                        <b-table-column field="route" label="Ruta" width="250" v-slot="props">
-                          {{ (props.row.route && (props.row.route.short_name || props.row.route.name)) || '-' }}
+                        <b-table-column
+                          field="route"
+                          label="Ruta"
+                          width="250"
+                          v-slot="props"
+                        >
+                          {{
+                            (props.row.route &&
+                              (props.row.route.short_name ||
+                                props.row.route.name)) ||
+                              "-"
+                          }}
                         </b-table-column>
 
-                        <b-table-column field="units" width="120" label="Unitats" v-slot="props">
-                          {{ props.row.units || '-' }}
+                        <b-table-column
+                          field="units"
+                          width="120"
+                          label="Unitats"
+                          v-slot="props"
+                        >
+                          {{ props.row.units || "-" }}
                         </b-table-column>
 
-
-                        <b-table-column field="kilograms" width="120" label="Kg" v-slot="props">
-                          {{ props.row.kilograms || '-' }}
+                        <b-table-column
+                          field="kilograms"
+                          width="120"
+                          label="Kg"
+                          v-slot="props"
+                        >
+                          {{ props.row.kilograms || "-" }}
                         </b-table-column>
 
-                        <b-table-column field="status" label="Estat" width="120" v-slot="props">
-                          <b-tag v-if="props.row.status" :type="getStatusColor(props.row.status)">
+                        <b-table-column
+                          field="status"
+                          label="Estat"
+                          width="120"
+                          v-slot="props"
+                        >
+                          <b-tag
+                            v-if="props.row.status"
+                            :type="getStatusColor(props.row.status)"
+                          >
                             {{ getStatusName(props.row.status) }}
                           </b-tag>
                         </b-table-column>
 
-                        <b-table-column field="finalPrice" label="Preu" width="100" numeric v-slot="props">
+                        <b-table-column
+                          field="finalPrice"
+                          label="Preu"
+                          width="100"
+                          numeric
+                          v-slot="props"
+                        >
                           <money-format
                             :value="calculateFinalPrice(props.row)"
                             :locale="'es'"
@@ -712,7 +884,11 @@
                 </div>
               </div>
 
-              <hr v-if="form.id && (form.is_collection_order || form.collection_order)" />
+              <hr
+                v-if="
+                  form.id && (form.is_collection_order || form.collection_order)
+                "
+              />
 
               <!-- <b-field
                 label="Ruta *"
@@ -736,7 +912,6 @@
                 </b-select>
               </b-field> -->
 
-
               <h3 class="title is-5 mt-4 mb-3">ALTRES DADES</h3>
 
               <b-field
@@ -754,7 +929,12 @@
                       'is-outlined': form.status !== s.id
                     }"
                     @click="form.status = s.id"
-                    :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
+                    :disabled="
+                      !(
+                        permissions.includes('orders_admin') ||
+                        permissions.includes('orders_delivery')
+                      )
+                    "
                   >
                     {{ s.name }}
                   </button>
@@ -765,7 +945,10 @@
                 label="Última milla"
                 horizontal
                 message="En cas de que la comanda passi per última milla, aquesta casella es marcarà automàticament, però també pots marcar-la manualment si ja ho saps"
-                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
+                v-if="
+                  permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')
+                "
               >
                 <b-switch
                   v-model="form.last_mile"
@@ -777,14 +960,18 @@
                 label="Transferència"
                 horizontal
                 message="Indica si la comanda necessita una transferència"
-                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
+                v-if="
+                  permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')
+                "
               >
                 <div class="is-flex is-align-items-center">
-                  <b-switch
-                    v-model="form.transfer"
-                    :disabled="true"
-                  ></b-switch>
-                  <b-tag v-if="form.transfer" :type="transferStatusType" class="ml-3">
+                  <b-switch v-model="form.transfer" :disabled="true"></b-switch>
+                  <b-tag
+                    v-if="form.transfer"
+                    :type="transferStatusType"
+                    class="ml-3"
+                  >
                     {{ transferStatus }}
                   </b-tag>
                 </div>
@@ -794,7 +981,12 @@
                 label="Origen transferència"
                 horizontal
                 message="Punt de recollida on es deposita la comanda"
-                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && form.transfer && form.transfer_pickup_origin"
+                v-if="
+                  (permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')) &&
+                    form.transfer &&
+                    form.transfer_pickup_origin
+                "
               >
                 <span>{{ getPickupName(form.transfer_pickup_origin) }}</span>
               </b-field>
@@ -803,21 +995,30 @@
                 label="Destinació transferència"
                 horizontal
                 message="Punt de recollida on es farà la transferència"
-                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && form.transfer && form.transfer_pickup_destination"
+                v-if="
+                  (permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')) &&
+                    form.transfer &&
+                    form.transfer_pickup_destination
+                "
               >
-                <span>{{ getPickupName(form.transfer_pickup_destination) }}</span>
+                <span>{{
+                  getPickupName(form.transfer_pickup_destination)
+                }}</span>
               </b-field>
 
               <b-field
                 label="Ruta completa"
                 horizontal
                 message="Recorregut complet desde la recollida fins l'entrega"
-                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && completeRouteText"
+                v-if="
+                  (permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')) &&
+                    completeRouteText
+                "
               >
                 <span>{{ completeRouteText }}</span>
               </b-field>
-
-              
 
               <b-field
                 label="Data comanda *"
@@ -826,7 +1027,12 @@
                 message="Data de creació de la comanda"
               >
                 <b-datepicker
-                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
+                  :disabled="
+                    !(
+                      permissions.includes('orders_admin') ||
+                      permissions.includes('orders_delivery')
+                    )
+                  "
                   v-model="form.route_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -866,10 +1072,18 @@
                 label="Data lliurament"
                 horizontal
                 message="Data en la que la comanda ha estat entregada"
-                v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
+                v-if="
+                  permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')
+                "
               >
                 <b-datepicker
-                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
+                  :disabled="
+                    !(
+                      permissions.includes('orders_admin') ||
+                      permissions.includes('orders_delivery')
+                    )
+                  "
                   v-model="form.delivery_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -887,7 +1101,7 @@
                 horizontal
                 message="Data en la que la comanda ha estat facturada"
                 v-if="form.emitted_invoice_datetime"
-              >              
+              >
                 <b-datetimepicker
                   :disabled="true"
                   v-model="form.emitted_invoice_datetime"
@@ -917,7 +1131,10 @@
                   >
                   </money-format>
                   <button
-                    v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
+                    v-if="
+                      permissions.includes('orders_admin') ||
+                        permissions.includes('orders_delivery')
+                    "
                     class="button is-warning is-small ml-4 mt--6"
                     type="button"
                     @click="changeRate"
@@ -928,28 +1145,56 @@
                 </div>
               </b-field>
 
-              <b-field label="Descompte multientrega / recollida / volum" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount || form.volume_discount">
+              <b-field
+                label="Descompte multientrega / recollida / volum"
+                horizontal
+                class="mb-5"
+                v-if="
+                  form.multidelivery_discount ||
+                    form.contact_pickup_discount ||
+                    form.volume_discount
+                "
+              >
                 <b-input
                   :value="(form.multidelivery_discount || 0) + '%'"
                   type="text"
-                  :disabled="true"></b-input>
-                  <b-input
-                    :value="(form.contact_pickup_discount || 0)	+ '%'"
+                  :disabled="true"
+                ></b-input>
+                <b-input
+                  :value="(form.contact_pickup_discount || 0) + '%'"
                   type="text"
-                  :disabled="true"></b-input>
-                  <b-input
-                    :value="(-1 * form.volume_discount || 0) + ' €'"
+                  :disabled="true"
+                ></b-input>
+                <b-input
+                  :value="(-1 * form.volume_discount || 0) + ' €'"
                   type="text"
-                  :disabled="true"></b-input>
+                  :disabled="true"
+                ></b-input>
               </b-field>
 
-              <b-field label="Preu amb descompte" horizontal class="mb-5" v-if="form.multidelivery_discount || form.contact_pickup_discount || form.volume_discount">
+              <b-field
+                label="Preu amb descompte"
+                horizontal
+                class="mb-5"
+                v-if="
+                  form.multidelivery_discount ||
+                    form.contact_pickup_discount ||
+                    form.volume_discount
+                "
+              >
                 <b-input
-                  :value="( (route_price + (-1 * form.volume_discount || 0)) * ( 1 - form.multidelivery_discount / 100) * ( 1 - form.contact_pickup_discount / 100) ).toFixed(2) + ' €'"
+                  :value="
+                    (
+                      (route_price + (-1 * form.volume_discount || 0)) *
+                      (1 - form.multidelivery_discount / 100) *
+                      (1 - form.contact_pickup_discount / 100)
+                    ).toFixed(2) + ' €'
+                  "
                   type="text"
-                  :disabled="true"></b-input>
+                  :disabled="true"
+                ></b-input>
               </b-field>
-              
+
               <div class="hr"></div>
               <h3 class="title is-5 mt-4 mb-3">ACCIONS</h3>
 
@@ -966,15 +1211,20 @@
 
               <!-- depositar i recollir -->
 
-              <b-field 
+              <b-field
                 v-if="!form.is_collection_order"
-                horizontal 
+                horizontal
                 label="Dipòsit"
-                message="Informa que has dipositat els paquets">
+                message="Informa que has dipositat els paquets"
+              >
                 <div v-if="form.deposit_date && form.deposit_user">
                   <p>
-                    <strong>Data:</strong> {{ formatDateTime(form.deposit_date) }}<br/>
-                    <strong>Usuari:</strong> {{ form.deposit_user.username || form.deposit_user.fullname }}
+                    <strong>Data:</strong> {{ formatDateTime(form.deposit_date)
+                    }}<br />
+                    <strong>Usuari:</strong>
+                    {{
+                      form.deposit_user.username || form.deposit_user.fullname
+                    }}
                   </p>
                   <b-button
                     type="is-danger"
@@ -996,15 +1246,18 @@
                 </div>
               </b-field>
 
-              <b-field 
+              <b-field
                 v-if="!form.is_collection_order"
-                horizontal 
+                horizontal
                 label="Recollida"
-                message="Informa que has recollit els paquets">
+                message="Informa que has recollit els paquets"
+              >
                 <div v-if="form.pickup_date && form.pickup_user">
                   <p>
-                    <strong>Data:</strong> {{ formatDateTime(form.pickup_date) }}<br/>
-                    <strong>Usuari:</strong> {{ form.pickup_user.username || form.pickup_user.fullname }}
+                    <strong>Data:</strong> {{ formatDateTime(form.pickup_date)
+                    }}<br />
+                    <strong>Usuari:</strong>
+                    {{ form.pickup_user.username || form.pickup_user.fullname }}
                   </p>
                   <b-button
                     type="is-danger"
@@ -1026,13 +1279,23 @@
                 </div>
               </b-field>
 
-              <b-field horizontal label="Inici transferència"
+              <b-field
+                horizontal
+                label="Inici transferència"
                 message="Informa que has iniciat la transferència"
-                v-if="form.transfer">
-                <div v-if="form.transfer_start_date && form.transfer_start_user">
+                v-if="form.transfer"
+              >
+                <div
+                  v-if="form.transfer_start_date && form.transfer_start_user"
+                >
                   <p>
-                    <strong>Data:</strong> {{ formatDateTime(form.transfer_start_date) }}<br/>
-                    <strong>Usuari:</strong> {{ form.transfer_start_user.username || form.transfer_start_user.fullname }}
+                    <strong>Data:</strong>
+                    {{ formatDateTime(form.transfer_start_date) }}<br />
+                    <strong>Usuari:</strong>
+                    {{
+                      form.transfer_start_user.username ||
+                        form.transfer_start_user.fullname
+                    }}
                   </p>
                   <b-button
                     type="is-danger"
@@ -1054,13 +1317,21 @@
                 </div>
               </b-field>
 
-              <b-field horizontal label="Fi transferència"
+              <b-field
+                horizontal
+                label="Fi transferència"
                 message="Informa que has finalitzat la transferència"
-                v-if="form.transfer">
+                v-if="form.transfer"
+              >
                 <div v-if="form.transfer_end_date && form.transfer_end_user">
                   <p>
-                    <strong>Data:</strong> {{ formatDateTime(form.transfer_end_date) }}<br/>
-                    <strong>Usuari:</strong> {{ form.transfer_end_user.username || form.transfer_end_user.fullname }}
+                    <strong>Data:</strong>
+                    {{ formatDateTime(form.transfer_end_date) }}<br />
+                    <strong>Usuari:</strong>
+                    {{
+                      form.transfer_end_user.username ||
+                        form.transfer_end_user.fullname
+                    }}
                   </p>
                   <b-button
                     type="is-danger"
@@ -1138,7 +1409,7 @@ import {
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence";
-import getConfig from '@/config'
+import getConfig from "@/config";
 
 export default {
   name: "OrdersForm",
@@ -1196,7 +1467,7 @@ export default {
       isIncidenceModalActive: false,
       isLoadingDeposit: {},
       isLoadingPickup: {},
-      collectionPickupRoutes: [],
+      collectionPickupRoutes: []
     };
   },
   computed: {
@@ -1207,9 +1478,13 @@ export default {
     formCardTitle() {
       if (this.form.id) {
         const collection = this.form.is_collection_order ? "-R" : "";
-        return `Comanda #${this.form.id.toString().padStart(4, "0")}${collection}`;
+        return `Comanda #${this.form.id
+          .toString()
+          .padStart(4, "0")}${collection}`;
       } else {
-        return !this.isPickupPoint ? "Nova comanda" : "Nova comanda punt de consum";
+        return !this.isPickupPoint
+          ? "Nova comanda"
+          : "Nova comanda punt de consum";
       }
     },
     transitionName() {
@@ -1222,25 +1497,35 @@ export default {
       return (
         (this.form.id &&
           this.form.status !== "cancelled" &&
-          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
+          (this.permissions.includes("orders_admin") ||
+            this.permissions.includes("orders_delivery"))) ||
         (this.form.status === "pending" &&
-          !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")))
+          !(
+            this.permissions.includes("orders_admin") ||
+            this.permissions.includes("orders_delivery")
+          ))
       );
     },
     canEditContact() {
       return (
-        (this.form.contact && !this.form.contact_multiowner && !this.isPickupPoint) 
-        ||
-        (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
+        (this.form.contact &&
+          !this.form.contact_multiowner &&
+          !this.isPickupPoint) ||
+        this.permissions.includes("orders_admin") ||
+          this.permissions.includes("orders_delivery")
       );
     },
     canEdit() {
       return (
         (this.form.id &&
           this.form.status !== "cancelled" &&
-          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
+          (this.permissions.includes("orders_admin") ||
+            this.permissions.includes("orders_delivery"))) ||
         (this.form.status === "pending" &&
-          !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
+          !(
+            this.permissions.includes("orders_admin") ||
+            this.permissions.includes("orders_delivery")
+          )) ||
         !this.form.id
       );
     },
@@ -1250,9 +1535,11 @@ export default {
     },
     isPickupPoint() {
       return this.form.pickup_point === true;
-    },    
+    },
     errors() {
-      const isContactValid = this.form.contact && this.contacts.some(c => c.id === this.form.contact);
+      const isContactValid =
+        this.form.contact &&
+        this.contacts.some(c => c.id === this.form.contact);
       const baseErrors = {
         owner: this.form.owner === null,
         route: this.form.route === null,
@@ -1280,25 +1567,36 @@ export default {
       // Validate collection_point if it's required (when pickup is selected and has collection points available)
       if (this.collectionPoints && this.collectionPoints.length > 0) {
         baseErrors.collection_point = !this.form.collection_point;
-        
+
         // Validate collection_pickup_route when collection_point is selected
-        if (this.form.collection_point && this.collectionPickupRoutes.length > 0) {
-          baseErrors.collection_pickup_route = !this.form.collection_pickup_route;
+        if (
+          this.form.collection_point &&
+          this.collectionPickupRoutes.length > 0
+        ) {
+          baseErrors.collection_pickup_route = !this.form
+            .collection_pickup_route;
         }
       }
 
       if (this.isPickupPoint) {
         // For pickup points, validate lines instead of direct units/kilograms
-        baseErrors.lines = !this.form.lines || this.form.lines.length === 0 ||
-          this.form.lines.some(line => 
-            !line.units || line.units <= 0 ||
-            !line.kilograms || line.kilograms <= 0 ||
-            !line.name || line.name.trim() === ""
+        baseErrors.lines =
+          !this.form.lines ||
+          this.form.lines.length === 0 ||
+          this.form.lines.some(
+            line =>
+              !line.units ||
+              line.units <= 0 ||
+              !line.kilograms ||
+              line.kilograms <= 0 ||
+              !line.name ||
+              line.name.trim() === ""
           );
       } else {
         // For regular orders, validate units and kilograms directly
         baseErrors.units = this.form.units === null || this.form.units <= 0;
-        baseErrors.kilograms = this.form.kilograms === null ||
+        baseErrors.kilograms =
+          this.form.kilograms === null ||
           this.form.kilograms === "" ||
           this.form.kilograms <= 0;
       }
@@ -1319,9 +1617,15 @@ export default {
         return this.form.price;
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
-        this.form.price = calculateRoutePrice(this.route_rate, this.form.kilograms, this.form.lines ? this.form.lines.length : 0);
+        this.form.price = calculateRoutePrice(
+          this.route_rate,
+          this.form.kilograms,
+          this.form.lines ? this.form.lines.length : 0
+        );
       }
-      const discountEffectAsOne = ( this.form.multidelivery_discount || 1) / (this.form.multidelivery_discount || 1);
+      const discountEffectAsOne =
+        (this.form.multidelivery_discount || 1) /
+        (this.form.multidelivery_discount || 1);
       return this.form.price * discountEffectAsOne;
     },
     filteredContacts() {
@@ -1358,51 +1662,62 @@ export default {
     },
     allowedPickups() {
       // Find the contact (sòcia) associated with the selected owner (user)
-      const ownerContact = this.sociesContacts.find(c => 
-        c.users_permissions_user && c.users_permissions_user.id === this.form.owner
+      const ownerContact = this.sociesContacts.find(
+        c =>
+          c.users_permissions_user &&
+          c.users_permissions_user.id === this.form.owner
       );
-      const hasCollectionPoints = ownerContact && ownerContact.collection_points && ownerContact.collection_points.length > 0;
-      
+      const hasCollectionPoints =
+        ownerContact &&
+        ownerContact.collection_points &&
+        ownerContact.collection_points.length > 0;
+
       return this.pickups.filter(
-        p =>
-          !p.pickup ||
-          (p.pickup && hasCollectionPoints)
+        p => !p.pickup || (p.pickup && hasCollectionPoints)
       );
     },
     collectionPoints() {
       if (!this.form.owner || !this.form.pickup) {
         return [];
       }
-      
+
       const selectedPickup = this.pickups.find(p => p.id === this.form.pickup);
       if (!selectedPickup || !selectedPickup.pickup) {
         return [];
       }
-      
+
       // Find the contact (sòcia) associated with the selected owner (user)
-      const ownerContact = this.sociesContacts.find(c => 
-        c.users_permissions_user && c.users_permissions_user.id === this.form.owner
+      const ownerContact = this.sociesContacts.find(
+        c =>
+          c.users_permissions_user &&
+          c.users_permissions_user.id === this.form.owner
       );
-      
-      if (!ownerContact || !ownerContact.collection_points || ownerContact.collection_points.length === 0) {
+
+      if (
+        !ownerContact ||
+        !ownerContact.collection_points ||
+        ownerContact.collection_points.length === 0
+      ) {
         return [];
       }
-      
+
       // Return the collection points for this contact/sòcia
       // Assuming collection_points might be IDs or objects
       return ownerContact.collection_points.map(cp => {
-        if (typeof cp === 'object' && cp.id) {
+        if (typeof cp === "object" && cp.id) {
           return cp;
         }
         // If it's just an ID, we need to fetch the pickup details
-        return this.pickups.find(p => p.id === cp) || { id: cp, name: `Punt ${cp}` };
+        return (
+          this.pickups.find(p => p.id === cp) || { id: cp, name: `Punt ${cp}` }
+        );
       });
     },
     openIncidencesCount() {
       if (!this.form.incidences || !Array.isArray(this.form.incidences)) {
         return 0;
       }
-      return this.form.incidences.filter(inc => inc.state !== 'closed').length;
+      return this.form.incidences.filter(inc => inc.state !== "closed").length;
     },
     isCollectionOrderDateAfterMainOrder() {
       if (!this.form.collection_order || !this.form.estimated_delivery_date) {
@@ -1412,11 +1727,14 @@ export default {
       if (!collectionDate) {
         return false;
       }
-      return moment(collectionDate).isAfter(moment(this.form.estimated_delivery_date), 'day');
+      return moment(collectionDate).isAfter(
+        moment(this.form.estimated_delivery_date),
+        "day"
+      );
     },
     transferStatus() {
       if (!this.form.transfer) return "";
-      
+
       if (this.form.transfer_end_date) {
         return "FINALITZADA";
       } else if (this.form.transfer_start_date) {
@@ -1427,7 +1745,7 @@ export default {
     },
     transferStatusType() {
       if (!this.form.transfer) return "";
-      
+
       if (this.form.transfer_end_date) {
         return "is-success";
       } else if (this.form.transfer_start_date) {
@@ -1455,7 +1773,9 @@ export default {
 
       // Add transfer origin if exists (and different from pickup)
       if (this.form.transfer_pickup_origin) {
-        const origin = this.pickups.find(p => p.id === this.form.transfer_pickup_origin);
+        const origin = this.pickups.find(
+          p => p.id === this.form.transfer_pickup_origin
+        );
         if (origin) {
           const originAlias = origin.alias || origin.name;
           // Only add if it's not empty and not already the last item
@@ -1471,7 +1791,9 @@ export default {
 
       // Add transfer destination if exists
       if (this.form.transfer_pickup_destination) {
-        const destination = this.pickups.find(p => p.id === this.form.transfer_pickup_destination);
+        const destination = this.pickups.find(
+          p => p.id === this.form.transfer_pickup_destination
+        );
         if (destination) {
           const destinationAlias = destination.alias || destination.name;
           // Only add if it's not empty and not already the last item
@@ -1529,10 +1851,8 @@ export default {
     if (this.$route.query.pickup_point === "true") {
       this.isPickupPoint = this.$route.query.pickup_point === "true";
       this.form.pickup_point = true;
-      this.form.picked_up = false
+      this.form.picked_up = false;
     }
-    
-
   },
   methods: {
     getClearFormObject() {
@@ -1624,7 +1944,7 @@ export default {
                   "YYYY-MM-DD"
                 ).toDate();
               }
-              
+
               if (this.form.emitted_invoice_datetime) {
                 this.form.emitted_invoice_datetime = moment(
                   this.form.emitted_invoice_datetime
@@ -1636,7 +1956,10 @@ export default {
                 cached: true
               }).get("users/me");
               if (
-                !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")) &&
+                !(
+                  this.permissions.includes("orders_admin") ||
+                  this.permissions.includes("orders_delivery")
+                ) &&
                 this.form.owner !== me.data.id
               ) {
                 this.$router.push({ name: "orders.view" });
@@ -1662,14 +1985,20 @@ export default {
               }
 
               // Ensure contact_legal_form is properly normalized - never an empty object
-              if (this.form.contact_legal_form && typeof this.form.contact_legal_form === 'object') {
+              if (
+                this.form.contact_legal_form &&
+                typeof this.form.contact_legal_form === "object"
+              ) {
                 if (this.form.contact_legal_form.id) {
                   this.form.contact_legal_form = this.form.contact_legal_form.id;
                 } else {
                   // Empty object or object without id
                   this.form.contact_legal_form = 1;
                 }
-              } else if (!this.form.contact_legal_form || this.form.contact_legal_form === 0) {
+              } else if (
+                !this.form.contact_legal_form ||
+                this.form.contact_legal_form === 0
+              ) {
                 this.form.contact_legal_form = 1;
               }
 
@@ -1686,14 +2015,17 @@ export default {
               await assignRouteRate(this.form, this.routeRates, this.orders);
 
               // Ensure incidences is always an array
-              if (!this.form.incidences || !Array.isArray(this.form.incidences)) {
+              if (
+                !this.form.incidences ||
+                !Array.isArray(this.form.incidences)
+              ) {
                 this.form.incidences = [];
               }
 
               // Fetch collection pickup routes if collection_point is set
               if (this.form.collection_point) {
                 await this.fetchCollectionPickupRoutes();
-                
+
                 // Convert collection_pickup_date to Date if it exists
                 if (this.form.collection_pickup_date) {
                   this.form.collection_pickup_date = moment(
@@ -1711,7 +2043,12 @@ export default {
         const me = await service({ requiresAuth: true, cached: true }).get(
           "users/me"
         );
-        if (!(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
+        if (
+          !(
+            this.permissions.includes("orders_admin") ||
+            this.permissions.includes("orders_delivery")
+          )
+        ) {
           this.form.owner = me.data.id;
         }
 
@@ -1723,22 +2060,25 @@ export default {
       }
     },
     normalizeIdsInForm(property) {
-      if (this.form[property] && typeof this.form[property] === 'object') {
+      if (this.form[property] && typeof this.form[property] === "object") {
         // Check if it's an object with an id property
         if (this.form[property].id) {
           this.form[property] = this.form[property].id;
         } else {
           // Empty object or object without id - set to null or 0 based on the property
-          this.form[property] = property === 'contact_legal_form' ? 1 : 0;
+          this.form[property] = property === "contact_legal_form" ? 1 : 0;
         }
       } else if (!this.form[property]) {
         // Null or undefined - set to default
-        this.form[property] = property === 'contact_legal_form' ? 1 : 0;
+        this.form[property] = property === "contact_legal_form" ? 1 : 0;
       }
     },
     ensureContactLegalFormIsValid(data) {
       // Helper method to ensure contact_legal_form is never an empty object or invalid
-      if (data.contact_legal_form && typeof data.contact_legal_form === 'object') {
+      if (
+        data.contact_legal_form &&
+        typeof data.contact_legal_form === "object"
+      ) {
         if (data.contact_legal_form.id) {
           data.contact_legal_form = data.contact_legal_form.id;
         } else {
@@ -1777,7 +2117,12 @@ export default {
       );
       const permissions = me.data.permissions.map(p => p.permission);
 
-      if (!(permissions.includes("orders_admin") || permissions.includes("orders_delivery"))) {
+      if (
+        !(
+          permissions.includes("orders_admin") ||
+          permissions.includes("orders_delivery")
+        )
+      ) {
         this.users = users.filter(u => u.id == me.data.id);
       } else {
         this.users = users;
@@ -1787,7 +2132,12 @@ export default {
         );
       }
 
-      if (!(permissions.includes("orders_admin") || permissions.includes("orders_delivery"))) {
+      if (
+        !(
+          permissions.includes("orders_admin") ||
+          permissions.includes("orders_delivery")
+        )
+      ) {
         // this.users = this.users.filter(u => u.id == me.data.id);
       }
 
@@ -1832,7 +2182,9 @@ export default {
       ).data;
 
       this.sociesContacts = (
-        await service({ requiresAuth: true }).get("contacts?_where[users_permissions_user_gt]=0")
+        await service({ requiresAuth: true }).get(
+          "contacts?_where[users_permissions_user_gt]=0"
+        )
       ).data;
     },
     async changeOwner() {
@@ -1841,7 +2193,6 @@ export default {
       this.changeRoute();
     },
     async changeRoute() {
-      
       if (this.form.owner && this.form.route) {
         this.orders = (
           await service({ requiresAuth: true }).get(
@@ -1853,7 +2204,10 @@ export default {
         const route = this.routes.find(r => r.id === this.form.route);
         const routeDate = assignRouteDate(route);
         const nextDay = routeDate.nextDay;
-        if (this.form.status === "pending" || this.form.status === "deposited") {
+        if (
+          this.form.status === "pending" ||
+          this.form.status === "deposited"
+        ) {
           this.form.estimated_delivery_date = nextDay.toDate();
         }
         if (routeDate.warning) {
@@ -1882,7 +2236,7 @@ export default {
       } else {
         this.dateWarningMessage = "";
       }
-      this.checkMultidelivery()
+      this.checkMultidelivery();
     },
     async deleteOrder() {
       this.$buefy.dialog.confirm({
@@ -1921,15 +2275,24 @@ export default {
           error = "La ruta seleccionada no es fa dissabte";
         }
 
-        if (error && !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
+        if (
+          error &&
+          !(
+            this.permissions.includes("orders_admin") ||
+            this.permissions.includes("orders_delivery")
+          )
+        ) {
           this.$buefy.snackbar.open({
             message: error,
             queue: false,
             type: "is-danger"
           });
           return false;
-        }
-        else if (error && (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) {
+        } else if (
+          error &&
+          (this.permissions.includes("orders_admin") ||
+            this.permissions.includes("orders_delivery"))
+        ) {
           this.$buefy.snackbar.open({
             message: error,
             queue: false,
@@ -1991,12 +2354,9 @@ export default {
           return;
         }
 
-        if (
-          !this.form.contact_trade_name
-        ) {
+        if (!this.form.contact_trade_name) {
           this.$buefy.snackbar.open({
-            message:
-              "Error. No hi ha nom comercial al punt d'entrega",
+            message: "Error. No hi ha nom comercial al punt d'entrega",
             queue: false,
             type: "is-danger"
           });
@@ -2004,12 +2364,9 @@ export default {
           return;
         }
 
-        if (
-          !this.form.contact_city
-        ) {
+        if (!this.form.contact_city) {
           this.$buefy.snackbar.open({
-            message:
-              "Error. No hi ha població al punt d'entrega",
+            message: "Error. No hi ha població al punt d'entrega",
             queue: false,
             type: "is-danger"
           });
@@ -2030,12 +2387,9 @@ export default {
         //   return;
         // }
 
-        if (
-          !this.form.contact_nif
-        ) {
+        if (!this.form.contact_nif) {
           this.$buefy.snackbar.open({
-            message:
-              "Error. No hi ha NIF al punt d'entrega",
+            message: "Error. No hi ha NIF al punt d'entrega",
             queue: false,
             type: "is-danger"
           });
@@ -2043,12 +2397,9 @@ export default {
           return;
         }
 
-        if (
-          !this.form.contact_phone
-        ) {
+        if (!this.form.contact_phone) {
           this.$buefy.snackbar.open({
-            message:
-              "Error. No hi ha telèfon al punt d'entrega",
+            message: "Error. No hi ha telèfon al punt d'entrega",
             queue: false,
             type: "is-danger"
           });
@@ -2056,12 +2407,9 @@ export default {
           return;
         }
 
-        if (
-          !this.form.contact_address
-        ) {
+        if (!this.form.contact_address) {
           this.$buefy.snackbar.open({
-            message:
-              "Error. No hi ha adreça al punt d'entrega",
+            message: "Error. No hi ha adreça al punt d'entrega",
             queue: false,
             type: "is-danger"
           });
@@ -2069,12 +2417,9 @@ export default {
           return;
         }
 
-        if (
-          !this.form.contact_postcode
-        ) {
+        if (!this.form.contact_postcode) {
           this.$buefy.snackbar.open({
-            message:
-              "Error. No hi ha codi postal al punt d'entrega",
+            message: "Error. No hi ha codi postal al punt d'entrega",
             queue: false,
             type: "is-danger"
           });
@@ -2159,9 +2504,9 @@ export default {
             this.form.contact_time_slot_1_ini <
             3 &&
           this.form.contact_time_slot_2_end &&
-            this.form.contact_time_slot_2_end -
-              this.form.contact_time_slot_2_ini <
-              3
+          this.form.contact_time_slot_2_end -
+            this.form.contact_time_slot_2_ini <
+            3
         ) {
           this.$buefy.snackbar.open({
             message: "Error. El tram horari ha de ser mínim de 3 hores",
@@ -2193,7 +2538,10 @@ export default {
           delete this.form.emitted_invoice_datetime;
 
           // Normalize contact_legal_form to ensure it's not an empty object
-          if (this.form.contact_legal_form && typeof this.form.contact_legal_form === 'object') {
+          if (
+            this.form.contact_legal_form &&
+            typeof this.form.contact_legal_form === "object"
+          ) {
             if (this.form.contact_legal_form.id) {
               this.form.contact_legal_form = this.form.contact_legal_form.id;
             } else {
@@ -2204,8 +2552,10 @@ export default {
           }
 
           // Get current user for tracking
-          const currentUser = await service({ requiresAuth: true }).get("users/me");
-          
+          const currentUser = await service({ requiresAuth: true }).get(
+            "users/me"
+          );
+
           // Add tracking user information
           const orderData = {
             ...this.form,
@@ -2214,7 +2564,9 @@ export default {
 
           // Format dates properly for backend
           if (orderData.collection_pickup_date) {
-            orderData.collection_pickup_date = moment(orderData.collection_pickup_date).format("YYYY-MM-DD");
+            orderData.collection_pickup_date = moment(
+              orderData.collection_pickup_date
+            ).format("YYYY-MM-DD");
           }
 
           await service({ requiresAuth: true }).put(
@@ -2251,7 +2603,10 @@ export default {
           }
 
           // Normalize contact_legal_form to ensure it's not an empty object
-          if (this.form.contact_legal_form && typeof this.form.contact_legal_form === 'object') {
+          if (
+            this.form.contact_legal_form &&
+            typeof this.form.contact_legal_form === "object"
+          ) {
             if (this.form.contact_legal_form.id) {
               this.form.contact_legal_form = this.form.contact_legal_form.id;
             } else {
@@ -2262,7 +2617,9 @@ export default {
           }
 
           // Get current user for tracking
-          const currentUser = await service({ requiresAuth: true }).get("users/me");
+          const currentUser = await service({ requiresAuth: true }).get(
+            "users/me"
+          );
 
           // Add tracking user information
           const orderData = {
@@ -2272,7 +2629,9 @@ export default {
 
           // Format dates properly for backend
           if (orderData.collection_pickup_date) {
-            orderData.collection_pickup_date = moment(orderData.collection_pickup_date).format("YYYY-MM-DD");
+            orderData.collection_pickup_date = moment(
+              orderData.collection_pickup_date
+            ).format("YYYY-MM-DD");
           }
 
           const newOrder = await service({ requiresAuth: true }).post(
@@ -2403,7 +2762,7 @@ export default {
           !this.form.contact_phone ||
           !this.form.contact_city ||
           !this.form.contact_postcode ||
-          !this.form.contact_legal_form || 
+          !this.form.contact_legal_form ||
           !this.form.contact_time_slot_1_ini ||
           !this.form.contact_time_slot_1_end
         ) {
@@ -2509,11 +2868,10 @@ export default {
       ).data.map(c => {
         return { ...c, display: `${c.trade_name} (${c.id})` };
       });
-
+      const hasCollectionOrders =
+        Array.isArray(this.form.collection_orders) &&
+        this.form.collection_orders.length > 0;
       const contactsNotInSector10 = contacts1.filter(c => {
-        const hasCollectionOrders =
-          Array.isArray(c.collection_orders) && c.collection_orders.length > 0;
-
         if (hasCollectionOrders) return true;
 
         if (!c.sector) return true;
@@ -2523,7 +2881,9 @@ export default {
         return (typeof c.sector === "object" ? c.sector.id : c.sector) !== 10;
       });
 
-      const contactsOrPickups = this.isPickupPoint ? contactsNotInSector10.filter(c => c.pickup_point) : contactsNotInSector10;
+      const contactsOrPickups = this.isPickupPoint
+        ? contactsNotInSector10.filter(c => c.pickup_point)
+        : contactsNotInSector10;
 
       this.contacts = contactsOrPickups;
     },
@@ -2570,7 +2930,7 @@ export default {
         this.form.contact_city = contact.city;
         this.form.contact_multiowner = contact.multiowner;
         this.form.contact_pickup_discount = contact.pickup_discount || 0;
-        
+
         this.citySearch = contact.city;
 
         if (this.cities.find(c => c.name === contact.city)) {
@@ -2581,9 +2941,10 @@ export default {
         }
 
         this.form.contact_phone = contact.phone;
-        this.form.contact_legal_form = contact.legal_form && contact.legal_form.id
-          ? contact.legal_form.id
-          : 1;
+        this.form.contact_legal_form =
+          contact.legal_form && contact.legal_form.id
+            ? contact.legal_form.id
+            : 1;
         this.form.contact_time_slot_1_ini = contact.time_slot_1_ini;
         this.form.contact_time_slot_1_end = contact.time_slot_1_end;
         this.form.contact_time_slot_2_ini = contact.time_slot_2_ini;
@@ -2595,22 +2956,33 @@ export default {
       }
     },
     async checkMultidelivery() {
-      if (!this.form.contact || !this.form. estimated_delivery_date) {
-        return
+      if (!this.form.contact || !this.form.estimated_delivery_date) {
+        return;
       }
-      const multidelivery = await service({ requiresAuth: true }).post(
-            `orders/check-multidelivery`,
-            { id: this.form.id, contactId: this.form.contact, date: this.form.estimated_delivery_date, ownerId: this.form.owner }
-          );
-      if (multidelivery && multidelivery.data && multidelivery.data.multidelivery_discount) {
-        this.form.multidelivery_discount = multidelivery.data.multidelivery_discount;
+      const multidelivery = await service({
+        requiresAuth: true
+      }).post(`orders/check-multidelivery`, {
+        id: this.form.id,
+        contactId: this.form.contact,
+        date: this.form.estimated_delivery_date,
+        ownerId: this.form.owner
+      });
+      if (
+        multidelivery &&
+        multidelivery.data &&
+        multidelivery.data.multidelivery_discount
+      ) {
+        this.form.multidelivery_discount =
+          multidelivery.data.multidelivery_discount;
       } else {
         this.form.multidelivery_discount = 0;
       }
     },
     async getPDF() {
       const pdf = (
-        await service({ requiresAuth: true }).post(`/orders/pdf`, { orders: [this.form.id] })
+        await service({ requiresAuth: true }).post(`/orders/pdf`, {
+          orders: [this.form.id]
+        })
       ).data;
       window.open(this.apiUrl + pdf.urls);
     },
@@ -2624,41 +2996,50 @@ export default {
         : `${contactId}`;
       this.onClientaChange(contactId);
     },
-    changeRate() {      
+    changeRate() {
       this.form.multidelivery_discount = 0;
-      const rate = assignRouteRate(this.form, this.routeRates, this.orders);      
-      this.form.route_rate = rate;      
-      this.form.price = calculateRoutePrice(rate, this.form.kilograms, this.form.lines ? this.form.lines.length : 0);      
-      this.checkMultidelivery();      
+      const rate = assignRouteRate(this.form, this.routeRates, this.orders);
+      this.form.route_rate = rate;
+      this.form.price = calculateRoutePrice(
+        rate,
+        this.form.kilograms,
+        this.form.lines ? this.form.lines.length : 0
+      );
+      this.checkMultidelivery();
     },
     updatePickup() {
       // Find the selected pickup object
-      const selectedPickup = this.allowedPickups.find(p => p.id === this.form.pickup);
-      this.form.pickup_point = selectedPickup && selectedPickup.is_pickup_point || false;
-      
+      const selectedPickup = this.allowedPickups.find(
+        p => p.id === this.form.pickup
+      );
+      this.form.pickup_point =
+        (selectedPickup && selectedPickup.is_pickup_point) || false;
+
       // Clear collection_point if not a pickup point or pickup doesn't have collection points
       if (!selectedPickup || !selectedPickup.pickup) {
         this.form.collection_point = null;
       }
-      
+
       // Clear units and kilograms when switching to pickup point
       if (this.form.pickup_point) {
         this.form.units = null;
         this.form.kilograms = null;
         // Initialize with one empty line if none exist
         if (!this.form.lines || this.form.lines.length === 0) {
-          this.form.lines = [{
-            units: null,
-            kilograms: null,
-            name: "",
-            nif: ""
-          }];
+          this.form.lines = [
+            {
+              units: null,
+              kilograms: null,
+              name: "",
+              nif: ""
+            }
+          ];
         }
       } else {
         // Clear lines when switching to regular order
         this.form.lines = [];
       }
-      
+
       // Check if transfer is needed
       this.checkTransferNeeded();
     },
@@ -2676,12 +3057,17 @@ export default {
       this.checkCollectionPickupDate();
     },
     async checkCollectionPickupDate() {
-      if (!this.form.collection_pickup_route || !this.form.collection_pickup_date) {
+      if (
+        !this.form.collection_pickup_route ||
+        !this.form.collection_pickup_date
+      ) {
         this.collectionPickupDateWarningMessage = "";
         return;
       }
 
-      const route = this.collectionPickupRoutes.find(r => r.id === this.form.collection_pickup_route);
+      const route = this.collectionPickupRoutes.find(
+        r => r.id === this.form.collection_pickup_route
+      );
       if (!route) {
         this.collectionPickupDateWarningMessage = "";
         return;
@@ -2692,7 +3078,7 @@ export default {
         moment(this.form.collection_pickup_date),
         this.routeFestives
       );
-      
+
       if (!valid) {
         this.collectionPickupDateWarningMessage =
           "Atenció! La data de recollida no és vàlida per la ruta seleccionada";
@@ -2711,17 +3097,17 @@ export default {
           `orders/collection-point-routes?collection_point=${this.form.collection_point}`
         );
         this.collectionPickupRoutes = response.data || [];
-        
+
         // If there's only one route, select it automatically
         if (this.collectionPickupRoutes.length === 1) {
           this.form.collection_pickup_route = this.collectionPickupRoutes[0].id;
           await this.calculateCollectionPickupDate();
         }
       } catch (error) {
-        console.error('Error fetching collection pickup routes:', error);
+        console.error("Error fetching collection pickup routes:", error);
         this.$buefy.toast.open({
-          message: 'Error carregant les rutes de recollida',
-          type: 'is-danger'
+          message: "Error carregant les rutes de recollida",
+          type: "is-danger"
         });
       }
     },
@@ -2731,17 +3117,27 @@ export default {
         return;
       }
 
-      const route = this.collectionPickupRoutes.find(r => r.id === this.form.collection_pickup_route);
+      const route = this.collectionPickupRoutes.find(
+        r => r.id === this.form.collection_pickup_route
+      );
       if (!route) return;
 
       // Calculate next available date for this route
-      const routeDayOfWeek = route.monday ? 1 :
-                            route.tuesday ? 2 :
-                            route.wednesday ? 3 :
-                            route.thursday ? 4 :
-                            route.friday ? 5 :
-                            route.saturday ? 6 :
-                            route.sunday ? 7 : 0;
+      const routeDayOfWeek = route.monday
+        ? 1
+        : route.tuesday
+        ? 2
+        : route.wednesday
+        ? 3
+        : route.thursday
+        ? 4
+        : route.friday
+        ? 5
+        : route.saturday
+        ? 6
+        : route.sunday
+        ? 7
+        : 0;
 
       if (routeDayOfWeek === 0) return;
 
@@ -2751,7 +3147,7 @@ export default {
       let iterations = 0;
 
       while (!found && iterations < maxIterations) {
-        nextDay = nextDay.add(1, 'day');
+        nextDay = nextDay.add(1, "day");
         if (routeDayOfWeek === nextDay.day()) {
           found = true;
         }
@@ -2786,25 +3182,31 @@ export default {
 
       // Case 1: Pickup where pickup = false (has direct city relation)
       if (!selectedPickup.pickup && selectedPickup.city) {
-        pickupCityId = typeof selectedPickup.city === 'object' ? selectedPickup.city.id : selectedPickup.city;
+        pickupCityId =
+          typeof selectedPickup.city === "object"
+            ? selectedPickup.city.id
+            : selectedPickup.city;
       }
       // Case 2: Pickup where pickup = true (need to get city from collection_point)
       else if (selectedPickup.pickup && this.form.collection_point) {
         // Find the collection point contact
-        const ownerContact = this.sociesContacts.find(c => 
-          c.users_permissions_user && c.users_permissions_user.id === this.form.owner
+        const ownerContact = this.sociesContacts.find(
+          c =>
+            c.users_permissions_user &&
+            c.users_permissions_user.id === this.form.owner
         );
-        
+
         if (ownerContact && ownerContact.collection_points) {
           // Find the specific collection point
           const collectionPoint = ownerContact.collection_points.find(cp => {
-            const cpId = typeof cp === 'object' ? cp.id : cp;
+            const cpId = typeof cp === "object" ? cp.id : cp;
             return cpId === this.form.collection_point;
           });
 
           if (collectionPoint) {
             // Collection point has city as a string, need to find the city object
-            const cityName = typeof collectionPoint === 'object' ? collectionPoint.city : null;
+            const cityName =
+              typeof collectionPoint === "object" ? collectionPoint.city : null;
             if (cityName) {
               const cityObj = this.cities.find(c => c.name === cityName);
               if (cityObj) {
@@ -2822,24 +3224,25 @@ export default {
 
       // Check if the selected route travels to this city
       const routeTravelsToCity = this.cityRoutes.some(cr => {
-        const cityId = typeof cr.city === 'object' ? cr.city.id : cr.city;
-        const routeId = typeof cr.route === 'object' ? cr.route.id : cr.route;
+        const cityId = typeof cr.city === "object" ? cr.city.id : cr.city;
+        const routeId = typeof cr.route === "object" ? cr.route.id : cr.route;
         return cityId === pickupCityId && routeId === this.form.route;
       });
 
       // If route does NOT travel to the city, transfer is needed
       this.form.transfer = !routeTravelsToCity;
-      
+
       // Set transfer pickup origin and destination if transfer is needed
       if (this.form.transfer) {
         // Transfer origin: the pickup where the order was deposited
         this.form.transfer_pickup_origin = this.form.pickup;
-        
+
         // Transfer destination: the transfer_pickup from the route (where the transfer will go)
         if (selectedRoute.transfer_pickup) {
-          this.form.transfer_pickup_destination = typeof selectedRoute.transfer_pickup === 'object' 
-            ? selectedRoute.transfer_pickup.id 
-            : selectedRoute.transfer_pickup;
+          this.form.transfer_pickup_destination =
+            typeof selectedRoute.transfer_pickup === "object"
+              ? selectedRoute.transfer_pickup.id
+              : selectedRoute.transfer_pickup;
         } else {
           this.form.transfer_pickup_destination = null;
         }
@@ -2895,7 +3298,7 @@ export default {
       // Reload order data after incidence is created
       this.isIncidenceModalActive = false;
       await this.getData();
-      
+
       this.$buefy.snackbar.open({
         message: "Incidència creada i dades recarregades",
         queue: false,
@@ -2903,20 +3306,20 @@ export default {
       });
     },
     formatDate(date) {
-      if (!date) return '';
-      return dayjs(date).format('DD/MM/YYYY');
+      if (!date) return "";
+      return dayjs(date).format("DD/MM/YYYY");
     },
     getStatusColor(status) {
       const statusColors = {
-        'pending': 'is-warning',
-        'deposited': 'is-info',
-        'processed': 'is-primary',
-        'lastmile': 'is-link',
-        'delivered': 'is-success',
-        'invoiced': 'is-dark',
-        'cancelled': 'is-danger'
+        pending: "is-warning",
+        deposited: "is-info",
+        processed: "is-primary",
+        lastmile: "is-link",
+        delivered: "is-success",
+        invoiced: "is-dark",
+        cancelled: "is-danger"
       };
-      return statusColors[status] || 'is-light';
+      return statusColors[status] || "is-light";
     },
     getStatusName(status) {
       const statusObj = this.statuses.find(s => s.id === status);
@@ -2926,26 +3329,26 @@ export default {
       if (!this.form.lines || this.form.lines.length === 0) {
         return { totalUnits: 0, totalKilograms: 0 };
       }
-      
+
       const totalUnits = this.form.lines.reduce((sum, line) => {
         return sum + (parseFloat(line.units) || 0);
       }, 0);
-      
+
       const totalKilograms = this.form.lines.reduce((sum, line) => {
         return sum + (parseFloat(line.kilograms) || 0);
       }, 0);
 
       this.form.units = totalUnits;
       this.form.kilograms = totalKilograms;
-      
+
       return { totalUnits, totalKilograms };
     },
     formatDateTime(dateTime) {
-      if (!dateTime) return '';
-      return dayjs(dateTime).format('DD/MM/YYYY HH:mm');
+      if (!dateTime) return "";
+      return dayjs(dateTime).format("DD/MM/YYYY HH:mm");
     },
     getPickupName(pickupId) {
-      if (!pickupId) return '';
+      if (!pickupId) return "";
       const pickup = this.pickups.find(p => p.id === pickupId);
       return pickup ? pickup.name : `Pickup ${pickupId}`;
     },
@@ -2960,39 +3363,40 @@ export default {
     async depositOrder() {
       try {
         this.isLoading = true;
-        
+
         // Save the form first
         await this.submit(false);
-        
+
         // Get current user
-        const currentUser = await service({ requiresAuth: true }).get("users/me");
-        
+        const currentUser = await service({ requiresAuth: true }).get(
+          "users/me"
+        );
+
         // Prepare update data
         const updateData = {
           deposit_date: new Date().toISOString(),
           deposit_user: currentUser.data.id
         };
-        
+
         // If status is pending, change it to deposited
         if (this.form.status === "pending") {
           updateData.status = "deposited";
         }
-        
+
         // Update with deposit information
         const response = await service({ requiresAuth: true }).put(
           `orders/${this.form.id}`,
           updateData
         );
-        
+
         this.$buefy.snackbar.open({
           message: "Comanda depositada correctament",
           queue: false,
           type: "is-success"
         });
-        
+
         // Refresh data to show the updated information
         await this.getData();
-        
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
@@ -3010,25 +3414,24 @@ export default {
         onConfirm: async () => {
           try {
             this.isLoading = true;
-            
+
             const updateData = this.ensureContactLegalFormIsValid({
-                deposit_date: null,
-                deposit_user: null
-              });
-            
+              deposit_date: null,
+              deposit_user: null
+            });
+
             await service({ requiresAuth: true }).put(
               `orders/${this.form.id}`,
               updateData
             );
-            
+
             this.$buefy.snackbar.open({
               message: "Informació de dipòsit eliminada",
               queue: false,
               type: "is-success"
             });
-            
+
             await this.getData();
-            
           } catch (err) {
             console.error(err);
             this.$buefy.snackbar.open({
@@ -3045,13 +3448,15 @@ export default {
     async pickupOrder() {
       try {
         this.isLoading = true;
-        
+
         // Save the form first
         await this.submit(false);
-        
+
         // Get current user
-        const currentUser = await service({ requiresAuth: true }).get("users/me");
-        
+        const currentUser = await service({ requiresAuth: true }).get(
+          "users/me"
+        );
+
         // Update with pickup information
         const response = await service({ requiresAuth: true }).put(
           `orders/${this.form.id}`,
@@ -3060,16 +3465,15 @@ export default {
             pickup_user: currentUser.data.id
           }
         );
-        
+
         this.$buefy.snackbar.open({
           message: "Comanda recollida correctament",
           queue: false,
           type: "is-success"
         });
-        
+
         // Refresh data to show the updated information
         await this.getData();
-        
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
@@ -3084,62 +3488,68 @@ export default {
     async depositCollectionOrder(orderId) {
       try {
         this.$set(this.isLoadingDeposit, orderId, true);
-        
+
         // Get current user
-        const currentUser = await service({ requiresAuth: true }).get("users/me");
-        
+        const currentUser = await service({ requiresAuth: true }).get(
+          "users/me"
+        );
+
         // Get current order to check its status
-        const orderResponse = await service({ requiresAuth: true }).get(`orders/${orderId}`);
+        const orderResponse = await service({ requiresAuth: true }).get(
+          `orders/${orderId}`
+        );
         const currentOrder = orderResponse.data;
-        
+
         // Prepare update data
         const updateData = {
           deposit_date: new Date().toISOString(),
           deposit_user: currentUser.data.id
         };
-        
+
         // If order is pending, change status to deposited
-        if (currentOrder.status === 'pending') {
-          updateData.status = 'deposited';
+        if (currentOrder.status === "pending") {
+          updateData.status = "deposited";
         }
-        
+
         // Update with deposit information
         await service({ requiresAuth: true }).put(
           `orders/${orderId}`,
           updateData
         );
-        
+
         this.$buefy.snackbar.open({
           message: "Comanda depositada correctament",
           queue: false,
           type: "is-success"
         });
-        
+
         // Refresh data to show the updated information
         await this.getData();
-        
+
         // Check if this is a collection order and if all orders are now deposited
         if (this.form.is_collection_order && this.form.status === "pending") {
-          const allDeposited = this.form.collection_orders.every(order => order.deposit_date !== null);
-          
+          const allDeposited = this.form.collection_orders.every(
+            order => order.deposit_date !== null
+          );
+
           if (allDeposited) {
             // Update collection order status to deposited
             await service({ requiresAuth: true }).put(
               `orders/${this.form.id}`,
               { status: "deposited" }
             );
-            
+
             this.$buefy.snackbar.open({
-              message: "Totes les comandes estan depositades. Comanda de recollida marcada com a depositada.",
+              message:
+                "Totes les comandes estan depositades. Comanda de recollida marcada com a depositada.",
               queue: false,
               type: "is-success"
             });
-            
+
             // Refresh again to show the updated status
             await this.getData();
           }
         }
-        
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
@@ -3154,28 +3564,26 @@ export default {
     async pickupCollectionOrder(orderId) {
       try {
         this.$set(this.isLoadingPickup, orderId, true);
-        
+
         // Get current user
-        const currentUser = await service({ requiresAuth: true }).get("users/me");
-        
-        // Update with pickup information
-        await service({ requiresAuth: true }).put(
-          `orders/${orderId}`,
-          {
-            pickup_date: new Date().toISOString(),
-            pickup_user: currentUser.data.id
-          }
+        const currentUser = await service({ requiresAuth: true }).get(
+          "users/me"
         );
-        
+
+        // Update with pickup information
+        await service({ requiresAuth: true }).put(`orders/${orderId}`, {
+          pickup_date: new Date().toISOString(),
+          pickup_user: currentUser.data.id
+        });
+
         this.$buefy.snackbar.open({
           message: "Comanda recollida correctament",
           queue: false,
           type: "is-success"
         });
-        
+
         // Refresh data to show the updated information
         await this.getData();
-        
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
@@ -3193,25 +3601,24 @@ export default {
         onConfirm: async () => {
           try {
             this.isLoading = true;
-            
+
             const updateData = this.ensureContactLegalFormIsValid({
-                pickup_date: null,
-                pickup_user: null
-              });
-            
+              pickup_date: null,
+              pickup_user: null
+            });
+
             await service({ requiresAuth: true }).put(
               `orders/${this.form.id}`,
               updateData
             );
-            
+
             this.$buefy.snackbar.open({
               message: "Informació de recollida eliminada",
               queue: false,
               type: "is-success"
             });
-            
+
             await this.getData();
-            
           } catch (err) {
             console.error(err);
             this.$buefy.snackbar.open({
@@ -3228,31 +3635,29 @@ export default {
     async startTransfer() {
       try {
         this.isLoading = true;
-        
+
         // Save the form first
         await this.submit(false);
-        
+
         // Get current user
-        const currentUser = await service({ requiresAuth: true }).get("users/me");
-        
-        // Update with transfer start information
-        await service({ requiresAuth: true }).put(
-          `orders/${this.form.id}`,
-          {
-            transfer_start_date: new Date().toISOString(),
-            transfer_start_user: currentUser.data.id
-          }
+        const currentUser = await service({ requiresAuth: true }).get(
+          "users/me"
         );
-        
+
+        // Update with transfer start information
+        await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
+          transfer_start_date: new Date().toISOString(),
+          transfer_start_user: currentUser.data.id
+        });
+
         this.$buefy.snackbar.open({
           message: "Transferència iniciada correctament",
           queue: false,
           type: "is-success"
         });
-        
+
         // Refresh data to show the updated information
         await this.getData();
-        
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
@@ -3266,33 +3671,34 @@ export default {
     },
     async removeTransferStart() {
       this.$buefy.dialog.confirm({
-        message: "Estàs segura que vols eliminar la informació d'inici de transferència?",
+        message:
+          "Estàs segura que vols eliminar la informació d'inici de transferència?",
         onConfirm: async () => {
           try {
             this.isLoading = true;
-            
+
             const updateData = this.ensureContactLegalFormIsValid({
-                transfer_start_date: null,
-                transfer_start_user: null
-              });
-            
+              transfer_start_date: null,
+              transfer_start_user: null
+            });
+
             await service({ requiresAuth: true }).put(
               `orders/${this.form.id}`,
               updateData
             );
-            
+
             this.$buefy.snackbar.open({
               message: "Informació d'inici de transferència eliminada",
               queue: false,
               type: "is-success"
             });
-            
+
             await this.getData();
-            
           } catch (err) {
             console.error(err);
             this.$buefy.snackbar.open({
-              message: "Error al eliminar la informació d'inici de transferència",
+              message:
+                "Error al eliminar la informació d'inici de transferència",
               queue: false,
               type: "is-danger"
             });
@@ -3305,31 +3711,29 @@ export default {
     async endTransfer() {
       try {
         this.isLoading = true;
-        
+
         // Save the form first
         await this.submit(false);
-        
+
         // Get current user
-        const currentUser = await service({ requiresAuth: true }).get("users/me");
-        
-        // Update with transfer end information
-        await service({ requiresAuth: true }).put(
-          `orders/${this.form.id}`,
-          {
-            transfer_end_date: new Date().toISOString(),
-            transfer_end_user: currentUser.data.id
-          }
+        const currentUser = await service({ requiresAuth: true }).get(
+          "users/me"
         );
-        
+
+        // Update with transfer end information
+        await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
+          transfer_end_date: new Date().toISOString(),
+          transfer_end_user: currentUser.data.id
+        });
+
         this.$buefy.snackbar.open({
           message: "Transferència finalitzada correctament",
           queue: false,
           type: "is-success"
         });
-        
+
         // Refresh data to show the updated information
         await this.getData();
-        
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
@@ -3343,29 +3747,29 @@ export default {
     },
     async removeTransferEnd() {
       this.$buefy.dialog.confirm({
-        message: "Estàs segura que vols eliminar la informació de fi de transferència?",
+        message:
+          "Estàs segura que vols eliminar la informació de fi de transferència?",
         onConfirm: async () => {
           try {
             this.isLoading = true;
-            
+
             const updateData = this.ensureContactLegalFormIsValid({
-                transfer_end_date: null,
-                transfer_end_user: null
-              });
-            
+              transfer_end_date: null,
+              transfer_end_user: null
+            });
+
             await service({ requiresAuth: true }).put(
               `orders/${this.form.id}`,
               updateData
             );
-            
+
             this.$buefy.snackbar.open({
               message: "Informació de fi de transferència eliminada",
               queue: false,
               type: "is-success"
             });
-            
+
             await this.getData();
-            
           } catch (err) {
             console.error(err);
             this.$buefy.snackbar.open({
@@ -3422,7 +3826,7 @@ export default {
 .message-alert .help {
   color: red;
 }
-.mt--6{
+.mt--6 {
   margin-top: -6px;
 }
 .hr {
