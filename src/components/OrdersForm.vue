@@ -2511,6 +2511,11 @@ export default {
       });
 
       const contactsNotInSector10 = contacts1.filter(c => {
+        const hasCollectionOrders =
+          Array.isArray(c.collection_orders) && c.collection_orders.length > 0;
+
+        if (hasCollectionOrders) return true;
+
         if (!c.sector) return true;
         if (Array.isArray(c.sector)) {
           return !c.sector.some(s => (typeof s === "object" ? s.id : s) === 10);
