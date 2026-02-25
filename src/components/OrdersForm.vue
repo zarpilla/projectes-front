@@ -1644,8 +1644,12 @@ export default {
 
               await this.refreshClients(this.form.owner);
 
-              const c = this.contacts.find(c => c.id === this.form.contact);
-              this.contactSearch = `${c.trade_name} (${this.form.contact})`;
+              const c = this.contacts.find(
+                c => Number(c.id) === Number(this.form.contact)
+              );
+              this.contactSearch = c
+                ? `${c.trade_name} (${this.form.contact})`
+                : `${this.form.contact || ""}`;
 
               if (this.cities.find(c => c.name === this.form.contact_city)) {
                 this.citySearch = this.form.contact_city;
@@ -2544,6 +2548,11 @@ export default {
           c => c.id.toString() === id.toString()
         );
 
+        if (!contact) {
+          this.contactSearch = `${id}`;
+          return;
+        }
+
         this.contactSearch = `${contact.trade_name} (${contact.id})`;
 
         this.form.contact_name = contact.name;
@@ -2605,7 +2614,9 @@ export default {
       const contactId = msg.id;
       await this.refreshClients(this.form.owner);
       const contact = this.contacts.find(c => c.id === contactId);
-      this.contactSearch = `${contactId} - ${contact.trade_name}`;
+      this.contactSearch = contact
+        ? `${contactId} - ${contact.trade_name}`
+        : `${contactId}`;
       this.onClientaChange(contactId);
     },
     changeRate() {      
