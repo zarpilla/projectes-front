@@ -126,8 +126,8 @@
           />
         </download-excel>
         <div class="projects-number ml-4 mt-2 has-text-weight-bold">
-                {{ projectsNumber }} PROJECTES
-              </div>
+          {{ projectsNumber }} PROJECTES
+        </div>
       </div>
 
       <b-loading
@@ -138,11 +138,18 @@
 
       <card-component
         title="PROJECTES"
+        :header-icon="projectsEditMode ? 'table' : 'pencil'"
+        @header-icon-click="toggleProjectsEditMode"
         class="has-table has-mobile-sort-spaced"
       >
         <projects-table
           :project_state="filters.project_state"
           :projects="projects"
+          :users="users"
+          :project-states="project_states"
+          :project-types="project_types"
+          :scopes="scopes"
+          :edit-mode="projectsEditMode"
         />
       </card-component>
     </section>
@@ -172,13 +179,13 @@ export default {
     CardWidget,
     Tiles,
     // HeroBar,
-    TitleBar,
+    TitleBar
   },
   data() {
     return {
       defaultChart: {
         chartData: null,
-        extraOptions: chartConfig.chartOptionsMain,
+        extraOptions: chartConfig.chartOptionsMain
       },
       projectsNumber: 0,
       // contactsNumber: 0,
@@ -191,10 +198,12 @@ export default {
       dedication: 0,
       estimatedDedication: 0,
       project_states: [],
+      project_types: [],
       filters: { project_state: 1, q: "", user: "", scopeId: 0 },
       queryChanged: 0,
       users: [],
       loading: false,
+      projectsEditMode: false
     };
   },
   computed: {
@@ -205,7 +214,7 @@ export default {
     projectsCSV() {
       // return this.projects
       // console.log('this.projects', this.projects)
-      const projectsCSV = this.projects.map((p) => {
+      const projectsCSV = this.projects.map(p => {
         return {
           id: p.id,
           name: p.name,
@@ -248,24 +257,24 @@ export default {
             : "",
           real_result: p.total_real_incomes_expenses
             ? p.total_real_incomes_expenses.toString().replace(".", ",")
-            : "",
+            : ""
         };
       });
       return projectsCSV;
-    },
+    }
   },
   async mounted() {
-
-    const me = await service({ requiresAuth: true, cached: true }).get("users/me");
-    const permissions = me.data.permissions.map(p => p.permission)
-    if (!permissions.includes('projects')) {
-      if (permissions.includes('orders')) {
+    const me = await service({ requiresAuth: true, cached: true }).get(
+      "users/me"
+    );
+    const permissions = me.data.permissions.map(p => p.permission);
+    if (!permissions.includes("projects")) {
+      if (permissions.includes("orders")) {
         this.$router.push("/orders");
-      }
-      else if (!permissions.includes('projects')) {
+      } else if (!permissions.includes("projects")) {
         this.$router.push("/dedicacio");
       } else {
-        return
+        return;
       }
     }
 
@@ -274,14 +283,14 @@ export default {
     if (!localStorage.getItem("welcome")) {
       this.$buefy.snackbar.open({
         message: "Benvinguda",
-        queue: false,
+        queue: false
       });
       localStorage.setItem("welcome", "true");
     }
 
     service({ requiresAuth: true, cached: true })
       .get("project-states")
-      .then((r) => {
+      .then(r => {
         this.project_states = [...r.data];
         this.project_states.unshift({ id: 0, name: "Tots" });
         // this.filters.project_state = defaultProjectState
@@ -289,9 +298,15 @@ export default {
 
     service({ requiresAuth: true, cached: true })
       .get("users?_limit=-1")
-      .then((r) => {
-        const users = r.data.filter((u) => !u.hidden);
+      .then(r => {
+        const users = r.data.filter(u => !u.hidden);
         this.users = users;
+      });
+
+    service({ requiresAuth: true, cached: true })
+      .get("project-types?_limit=-1")
+      .then(r => {
+        this.project_types = r.data;
       });
 
     // service({ requiresAuth: true })
@@ -303,17 +318,17 @@ export default {
 
     service({ requiresAuth: true, cached: true })
       .get("project-scopes?_limit=-1&_sort=code:ASC")
-      .then((r) => {
-        this.scopes = r.data.filter((s) => !s.disabled);
+      .then(r => {
+        this.scopes = r.data.filter(s => !s.disabled);
       });
     this.loading = true;
     const query = `projects/basic?_limit=-1&project_state=1`;
     service({ requiresAuth: true })
       .get(query)
-      .then((r) => {
+      .then(r => {
         this.projects = sortBy(
           r.data.filter(
-            (p) => p.project_state !== null && p.project_state.id === 1
+            p => p.project_state !== null && p.project_state.id === 1
           ),
           "name"
         );
@@ -323,26 +338,24 @@ export default {
 
     service({ requiresAuth: true })
       .get("tasks?_limit=-1&_where[archived_eq]=false")
-      .then((r) => {
+      .then(r => {
         const allTasks = r.data;
         const myTasks = allTasks.filter(
-          (t) =>
+          t =>
             t.users_permissions_users &&
             t.users_permissions_users.length &&
             t.task_state &&
             t.task_state.id !== 3 &&
-            t.users_permissions_users.find(
-              (u) => u.username === this.userName
-            ) &&
+            t.users_permissions_users.find(u => u.username === this.userName) &&
             t.due_date &&
             t.due_date <= moment().format("YYYY-MM-DD")
         );
         const myChecklists = allTasks.filter(
-          (t) =>
+          t =>
             t.checklist &&
             t.checklist.length &&
             t.checklist.find(
-              (c) =>
+              c =>
                 c.user &&
                 c.user.username === this.userName &&
                 c.done === false &&
@@ -354,12 +367,15 @@ export default {
           this.$buefy.snackbar.open({
             message: "Atenció, tens tasques amb la data límit superada!",
             queue: false,
-            indefinite: true,
+            indefinite: true
           });
         }
       });
   },
   methods: {
+    toggleProjectsEditMode() {
+      this.projectsEditMode = !this.projectsEditMode;
+    },
     navNewProject() {
       this.$router.push("/project/0");
     },
@@ -404,7 +420,7 @@ export default {
           .get(
             `projects/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`
           )
-          .then((r) => {
+          .then(r => {
             this.projects = r.data;
             this.loading = false;
             this.applyProjects();
@@ -412,7 +428,7 @@ export default {
       } else {
         service({ requiresAuth: true })
           .get(`projects/basic?_limit=-1${where1}${where2}${where3}`)
-          .then((r) => {
+          .then(r => {
             this.projects = r.data;
             this.loading = false;
             this.applyProjects();
@@ -422,17 +438,17 @@ export default {
     },
     applyProjects() {
       this.projectsNumber = this.projects.length;
-      this.balance = sumBy(this.projects, (p) => {
+      this.balance = sumBy(this.projects, p => {
         return p.incomes_expenses;
       });
       this.realIncomes = sumBy(this.projects, "total_real_incomes_expenses");
-      this.realExpenses = sumBy(this.projects, (p) => {
+      this.realExpenses = sumBy(this.projects, p => {
         return 0;
       });
-      this.estimatedDedication = sumBy(this.projects, (p) => {
+      this.estimatedDedication = sumBy(this.projects, p => {
         return p.total_estimated_hours ? p.total_estimated_hours : 0;
       });
-      this.dedication = sumBy(this.projects, (p) => {
+      this.dedication = sumBy(this.projects, p => {
         return p.total_real_hours ? p.total_real_hours : 0;
       });
     },
@@ -452,16 +468,16 @@ export default {
             pointHoverRadius: 4,
             pointHoverBorderWidth: 15,
             pointRadius: 4,
-            data: this.randomChartData(9),
-          },
+            data: this.randomChartData(9)
+          }
         ],
-        labels: ["01", "02", "03", "04", "05", "06", "07", "08", "09"],
+        labels: ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
       };
     },
     setScope(scopeId) {
       this.filters.scopeId = scopeId;
       this.doFilteredQuery(this.filters.q);
-    },
-  },
+    }
+  }
 };
 </script>
