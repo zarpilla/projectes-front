@@ -7,31 +7,6 @@
           <card-component class="tile is-child" :css="!modal ? 'card' : 'z'">
             <form @submit.prevent="submit" v-if="!isLoading">
               <b-field
-                label="Nom comercial *"
-                horizontal
-                :type="{ 'is-danger': errors['trade_name'] && submitted }"
-              >
-                <b-input v-model="form.trade_name" required />
-              </b-field>
-
-              <b-field label="Sector *" horizontal>
-                <div class="is-flex is-flex-wrap-wrap">
-                  <div v-for="(sector, index) in sectors" :key="index">
-                    <b-button
-                      @click="form.sector = sector.id"
-                      :class="{
-                        'is-warning': form.sector === sector.id,
-                        'is-outlined': form.sector !== sector.id,
-                        'is-danger': errors['sector'] && submitted
-                      }"
-                      class="mr-2 mb-1"
-                      >{{ sector.name }}</b-button
-                    >
-                  </div>
-                </div>
-              </b-field>
-
-              <b-field
                 label="Contacte de *"
                 horizontal
                 v-if="isOrdersContactAndUserIsOrdersAdmin"
@@ -54,6 +29,79 @@
                   </option>
                 </b-select>
               </b-field>
+
+              
+              <h3 class="title is-5 mt-5">LOCALITZACIÓ</h3>
+
+              <b-field
+                label="Població *"
+                horizontal
+                message="Si vols que ens aturem a una població que no apareix a la llista, posa’t en contacte amb la Carla 722 84 49 98 abans de continuar"
+                :type="{ 'is-danger': errors['city'] && submitted }"
+              >
+                <b-autocomplete
+                  v-model="citySearch"
+                  placeholder="Cerca la població d'entrega"
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredCities"
+                  field="name"
+                  @select="citySelected"
+                  @input="onCityInput"
+                  :clearable="true"
+                >
+                </b-autocomplete>
+              </b-field>
+
+              <b-field
+                label="CP *"
+                horizontal
+                :type="{ 'is-danger': errors['postcode'] && submitted }"
+              >
+                <b-input v-model="form.postcode" required />
+              </b-field>
+
+              <b-field
+                label="Adreça *"
+                horizontal
+                :type="{ 'is-danger': errors['address'] && submitted }"
+              >
+                <b-input v-model="form.address" required type="text" />
+              </b-field>
+
+              <h3 class="title is-5 mt-5">ESTABLIMENT</h3>
+
+              <b-field
+                label="Nom comercial *"
+                horizontal
+                :type="{ 'is-danger': errors['trade_name'] && submitted }"
+                message="Aquest és el nom de referència a ESSTrapis"
+              >
+                <b-input v-model="form.trade_name" required />
+              </b-field>
+
+              <b-field label="Raó Social" horizontal>
+                <b-input v-model="form.name" required />
+              </b-field>
+
+              <b-field label="Sector *" horizontal>
+                <div class="is-flex is-flex-wrap-wrap">
+                  <div v-for="(sector, index) in sectors" :key="index">
+                    <b-button
+                      @click="form.sector = sector.id"
+                      :class="{
+                        'is-warning': form.sector === sector.id,
+                        'is-outlined': form.sector !== sector.id,
+                        'is-danger': errors['sector'] && submitted
+                      }"
+                      class="mr-2 mb-1"
+                      >{{ sector.name }}</b-button
+                    >
+                  </div>
+                </div>
+              </b-field>
+
+              
               <b-field
                 label="NIF *"
                 horizontal
@@ -71,52 +119,17 @@
                   <b-icon icon="refresh" />
                 </b-button>
               </b-field>
-              <b-field
-                label="Telèfon *"
-                horizontal
-                :type="{ 'is-danger': errors['phone'] && submitted }"
-              >
-                <b-input v-model="form.phone" required />
-              </b-field>
-              <b-field
-                label="Adreça *"
-                horizontal
-                :type="{ 'is-danger': errors['address'] && submitted }"
-              >
-                <b-input v-model="form.address" required type="text" />
-              </b-field>
-              <b-field
-                label="CP *"
-                horizontal
-                :type="{ 'is-danger': errors['postcode'] && submitted }"
-              >
-                <b-input v-model="form.postcode" required />
-              </b-field>
-              <b-field
-                label="Població *"
-                horizontal
-                message="Si vols que ens aturem a una població que no apareix aquí, contacta amb La Diligència"
-                :type="{ 'is-danger': errors['city'] && submitted }"
-              >
-                <b-autocomplete
-                  v-model="citySearch"
-                  placeholder="Cerca la població d'entrega"
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredCities"
-                  field="name"
-                  @select="citySelected"
-                  @input="onCityInput"
-                  :clearable="true"
-                >
-                </b-autocomplete>
-              </b-field>
-              <b-field label="Provincia" horizontal>
+
+              
+              
+              <!-- <b-field label="Provincia" horizontal>
                 <b-input v-model="form.state" />
               </b-field>
               <b-field label="País" horizontal>
                 <b-input v-model="form.country" />
-              </b-field>
+              </b-field> -->
+
+              <h3 class="title is-5 mt-5">CONDICIONS D’ENTREGA</h3>
 
               <b-field label="Horari de contacte 1 *" horizontal>
                 <b-field
@@ -124,12 +137,21 @@
                   :type="{
                     'is-danger': errors['time_slot_1_ini'] && submitted
                   }"
-                  message="Un dels dos trams horaris ha de ser mínim de 3 hores"
+                  message="Parleu amb l’establiment! No és l’horari d’obertura al públic! Indiqueu el màxim horari al que podem entregar les comandes. Necessitem franges el màxim d’àmplies, mínim 3 hores d’obertura."
                 >
+                  <b-checkbox
+                    v-model="slot1Closed"
+                    class="mr-4"
+                    @input="onSlotClosedChanged(1, $event)"
+                  >
+                    No obren
+                  </b-checkbox>
+
                   <b-select
                     v-model="form.time_slot_1_ini"
                     placeholder=""
                     class="mr-3"
+                    :disabled="slot1Closed"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -148,7 +170,11 @@
                     </option>
                   </b-select>
 
-                  <b-select v-model="form.time_slot_1_end" placeholder="">
+                  <b-select
+                    v-model="form.time_slot_1_end"
+                    placeholder=""
+                    :disabled="slot1Closed"
+                  >
                     <option
                       v-for="(s, index) in contact_time_slots"
                       :key="index"
@@ -174,11 +200,21 @@
                   :type="{
                     'is-danger': errors['time_slot_2_ini'] && submitted
                   }"
+                  message="Parleu amb l’establiment! No és l’horari d’obertura al públic! Indiqueu el màxim horari al que podem entregar les comandes. Necessitem franges el màxim d’àmplies, mínim 3 hores d’obertura."
                 >
+                  <b-checkbox
+                    v-model="slot2Closed"
+                    class="mr-4"
+                    @input="onSlotClosedChanged(2, $event)"
+                  >
+                    No obren
+                  </b-checkbox>
+
                   <b-select
                     v-model="form.time_slot_2_ini"
                     placeholder=""
                     class="mr-3"
+                    :disabled="slot2Closed"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -197,7 +233,11 @@
                     </option>
                   </b-select>
 
-                  <b-select v-model="form.time_slot_2_end" placeholder="">
+                  <b-select
+                    v-model="form.time_slot_2_end"
+                    placeholder=""
+                    :disabled="slot2Closed"
+                  >
                     <option
                       v-for="(s, index) in contact_time_slots"
                       :key="index"
@@ -217,10 +257,30 @@
                 </b-field>
               </b-field>
 
+
+              <b-field
+                label="Telèfon *"
+                horizontal
+                :type="{ 'is-danger': errors['phone'] && submitted }"
+                message="Necessitem un número de telèfon vàlid, pots posar espais o guions per separar o no, com vulguis, però ha de tenir 9 dígits com a mínim."
+              >
+                <b-input v-model="form.phone" required />
+              </b-field>
+              
+
+              <b-field label="Persona de contacte" horizontal>
+                <b-input v-model="form.contact_person" />
+              </b-field>
+
+
+              <b-field label="Email" horizontal>
+                <b-input v-model="form.email" />
+              </b-field>
+              
               <b-field
                 label="Notes"
                 horizontal
-                class="line-notes is-full-width mb-5"
+                class="line-notezs is-full-width mb-5"
               >
                 <b-input
                   type="textarea"
@@ -240,21 +300,13 @@
                 />
               </b-field>
 
-              <b-field label="Raó Social" horizontal>
-                <b-input v-model="form.name" required />
-              </b-field>
-              <b-field label="Email" horizontal>
-                <b-input v-model="form.email" />
-              </b-field>
-              <b-field label="Persona de contacte" horizontal>
-                <b-input v-model="form.contact_person" />
-              </b-field>
-              <b-field label="Telèfon de contacte" horizontal>
+              
+              <!-- <b-field label="Telèfon de contacte" horizontal>
                 <b-input v-model="form.contact_phone" />
               </b-field>
               <b-field label="Web" horizontal>
                 <b-input v-model="form.website" />
-              </b-field>
+              </b-field> -->
               <b-field
                 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="Punt de consum"
@@ -395,7 +447,9 @@ export default {
       cities: [],
       submitted: false,
       forceCanEdit: false,
-      slotErrors: []
+      slotErrors: [],
+      slot1Closed: false,
+      slot2Closed: false
     };
   },
   computed: {
@@ -432,17 +486,22 @@ export default {
     },
     errors() {
       const isCityValid = this.form.city && this.cities.some(c => c.name === this.form.city);
+      const phoneDigits = (this.form.phone || "").toString().replace(/\D/g, "");
       return {
         trade_name: !this.form.trade_name,
         nif: !this.form.nif,
-        phone: !this.form.phone,
+        phone: phoneDigits.length < 9,
         address: !this.form.address,
         city: !this.form.city || !isCityValid,
         sector: !this.form.sector,
         postcode: !this.form.postcode,
         owner: !this.form.owner,
-        time_slot_1_ini: this.slotErrors.length > 0,
-        time_slot_2_ini: this.slotErrors.length > 0
+        time_slot_1_ini: this.slotErrors.some(
+          e => e.time_slot_1_ini || e.time_slot_1_end || e.time_slots
+        ),
+        time_slot_2_ini: this.slotErrors.some(
+          e => e.time_slot_2_ini || e.time_slot_2_end || e.time_slots
+        )
       };
     }
   },
@@ -452,6 +511,7 @@ export default {
       if (!newValue || newValue === 0) {
         await this.getAuxiliarData();
         this.form = this.getClearFormObject();
+        this.syncSlotClosedFlags();
       } else {
         this.getData();
       }
@@ -471,7 +531,11 @@ export default {
         legal_form: null,
         sector: null,
         contact_types: [4],
-        nif: ""
+        nif: "",
+        time_slot_1_ini: null,
+        time_slot_1_end: null,
+        time_slot_2_ini: null,
+        time_slot_2_end: null
       };
     },
     async getData() {
@@ -557,6 +621,8 @@ export default {
                 ).toDate();
               }
 
+              this.syncSlotClosedFlags();
+
               // get orders
               const contactsWithOrders = (
                 await service({ requiresAuth: true }).get(
@@ -587,6 +653,15 @@ export default {
           this.form.multiowner = false;
         }
       }
+    },
+    syncSlotClosedFlags() {
+      const slot1IniEmpty = this.form.time_slot_1_ini === null || this.form.time_slot_1_ini === undefined || this.form.time_slot_1_ini === "";
+      const slot1EndEmpty = this.form.time_slot_1_end === null || this.form.time_slot_1_end === undefined || this.form.time_slot_1_end === "";
+      const slot2IniEmpty = this.form.time_slot_2_ini === null || this.form.time_slot_2_ini === undefined || this.form.time_slot_2_ini === "";
+      const slot2EndEmpty = this.form.time_slot_2_end === null || this.form.time_slot_2_end === undefined || this.form.time_slot_2_end === "";
+
+      this.slot1Closed = slot1IniEmpty && slot1EndEmpty;
+      this.slot2Closed = slot2IniEmpty && slot2EndEmpty;
     },
     async getAuxiliarData() {
       this.legalForms = (
@@ -865,69 +940,98 @@ export default {
       const nif = Math.floor(Math.random() * 100000000);
       this.form.nif = "I-" + nif.toString().padStart(8, "0");
     },
-    validateTimeSlots() {
-      const errors = [];
-      if (this.form.time_slot_1_ini && this.form.time_slot_1_end) {
-        if (
-          parseFloat(this.form.time_slot_1_ini) >=
-          parseFloat(this.form.time_slot_1_end)
-        ) {
-          errors.push({
-            time_slot_1_ini: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
-          });
-        }
+    onSlotClosedChanged(slotNumber, isClosed) {
+      if (!isClosed) {
+        return;
       }
 
-      // Cal indicar l'hora de finalització del tram horari 1
-      if (this.form.time_slot_1_ini && !this.form.time_slot_1_end) {
+      if (slotNumber === 1) {
+        this.form.time_slot_1_ini = null;
+        this.form.time_slot_1_end = null;
+      } else {
+        this.form.time_slot_2_ini = null;
+        this.form.time_slot_2_end = null;
+      }
+    },
+    validateTimeSlots() {
+      const errors = [];
+      const slot1Ini = this.form.time_slot_1_ini;
+      const slot1End = this.form.time_slot_1_end;
+      const slot2Ini = this.form.time_slot_2_ini;
+      const slot2End = this.form.time_slot_2_end;
+
+      const hasSlot1Ini = slot1Ini !== null && slot1Ini !== undefined && slot1Ini !== "";
+      const hasSlot1End = slot1End !== null && slot1End !== undefined && slot1End !== "";
+      const hasSlot2Ini = slot2Ini !== null && slot2Ini !== undefined && slot2Ini !== "";
+      const hasSlot2End = slot2End !== null && slot2End !== undefined && slot2End !== "";
+
+      if (hasSlot1Ini && !hasSlot1End) {
         errors.push({
           time_slot_1_end: `Cal indicar l'hora de finalització del tram horari 1`
         });
       }
-
-      // El tram horari ha de ser més gran de 3 hores
-      if (this.form.time_slot_1_ini && this.form.time_slot_1_end) {
-        if (
-          parseFloat(this.form.time_slot_1_end) -
-            parseFloat(this.form.time_slot_1_ini) <
-          3
-        ) {
-          // comprovar també per al tram 2
-          if (this.form.time_slot_2_ini && this.form.time_slot_2_end) {
-            if (
-              parseFloat(this.form.time_slot_2_end) -
-                parseFloat(this.form.time_slot_2_ini) <
-              3
-            ) {
-              errors.push({
-                time_slot_2_ini: `El tram horari ha de ser mínim de 3 hores`
-              });
-            }
-          } else {
-            errors.push({
-              time_slot_1_ini: `El tram horari ha de ser mínim de 3 hores`
-            });
-          }
-        }
+      if (!hasSlot1Ini && hasSlot1End) {
+        errors.push({
+          time_slot_1_ini: `Cal indicar l'hora d'inici del tram horari 1`
+        });
       }
 
-      if (this.form.time_slot_2_ini && this.form.time_slot_2_end) {
-        if (
-          parseFloat(this.form.time_slot_2_ini) >=
-          parseFloat(this.form.time_slot_2_end)
-        ) {
-          errors.push({
-            time_slot_2_ini: `L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització`
-          });
-        }
-      }
-
-      // Cal indicar l'hora de finalització del tram horari 2
-      if (this.form.time_slot_2_ini && !this.form.time_slot_2_end) {
+      if (hasSlot2Ini && !hasSlot2End) {
         errors.push({
           time_slot_2_end: `Cal indicar l'hora de finalització del tram horari 2`
         });
       }
+      if (!hasSlot2Ini && hasSlot2End) {
+        errors.push({
+          time_slot_2_ini: `Cal indicar l'hora d'inici del tram horari 2`
+        });
+      }
+
+      const slot1HasFullRange = hasSlot1Ini && hasSlot1End;
+      const slot2HasFullRange = hasSlot2Ini && hasSlot2End;
+
+      const slot1Duration = slot1HasFullRange
+        ? parseFloat(slot1End) - parseFloat(slot1Ini)
+        : 0;
+      const slot2Duration = slot2HasFullRange
+        ? parseFloat(slot2End) - parseFloat(slot2Ini)
+        : 0;
+
+      if (slot1HasFullRange && parseFloat(slot1Ini) >= parseFloat(slot1End)) {
+        errors.push({
+          time_slot_1_ini: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
+        });
+      }
+
+      if (slot2HasFullRange && parseFloat(slot2Ini) >= parseFloat(slot2End)) {
+        errors.push({
+          time_slot_2_ini: `L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització`
+        });
+      }
+
+      if (slot1HasFullRange && slot1Duration < 3) {
+        errors.push({
+          time_slot_1_ini: `El tram horari 1 ha de ser mínim de 3 hores`
+        });
+      }
+
+      if (slot2HasFullRange && slot2Duration < 3) {
+        errors.push({
+          time_slot_2_ini: `El tram horari 2 ha de ser mínim de 3 hores`
+        });
+      }
+
+      const hasValidSlot1 =
+        slot1HasFullRange && parseFloat(slot1Ini) < parseFloat(slot1End) && slot1Duration >= 3;
+      const hasValidSlot2 =
+        slot2HasFullRange && parseFloat(slot2Ini) < parseFloat(slot2End) && slot2Duration >= 3;
+
+      if (!hasValidSlot1 && !hasValidSlot2) {
+        errors.push({
+          time_slots: `Cal indicar com a mínim un tram horari de 3 hores`
+        });
+      }
+
       return errors;
     },
     fixDecimals(field, value) {
