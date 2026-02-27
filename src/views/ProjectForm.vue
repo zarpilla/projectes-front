@@ -1640,7 +1640,7 @@
         "
         title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
         :closeIcon="true"
-        :content-visible="true"
+        :content-visible="isCreationMode"
       >
         <b-notification v-if="form.is_mother && !hasLegacyMotherPhases" type="is-info" :closable="false" class="mb-4">
           Aquest és un projecte mare. Les fases que es mostren són l'agregació de tots els projectes fills. No es poden editar directament.
