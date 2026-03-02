@@ -146,6 +146,7 @@
                 >
                 </b-datepicker>
               </b-field>
+              
               <b-field
                 label="Horari de contacte 1"
                 horizontal
@@ -265,6 +266,31 @@
                   v-model="form.notes"
                   placeholder="Notes, observacions, comentaris... "
                 />
+              </b-field>
+
+              <b-field label="FACe" horizontal v-if="isFaceEnabled && !form.owner">
+                <b-switch v-model="form.face">Activar FACe</b-switch>
+              </b-field>
+              <b-field
+                label="DIR3 OC"
+                horizontal
+                v-if="isFaceEnabled && form.face"
+              >
+                <b-input v-model="form.face_dir3_oc" />
+              </b-field>
+              <b-field
+                label="DIR3 OG"
+                horizontal
+                v-if="isFaceEnabled && form.face"
+              >
+                <b-input v-model="form.face_dir3_og" />
+              </b-field>
+              <b-field
+                label="DIR3 UT"
+                horizontal
+                v-if="isFaceEnabled && form.face"
+              >
+                <b-input v-model="form.face_dir3_ut" />
               </b-field>
 
               <!-- Collection Points Section - Only for Partners (contact_type = 3) AND Orders Admin -->
@@ -393,6 +419,7 @@ export default {
       contactTypes: [],
       permissions: [],
       me: {},
+      faceMode: "no",
       collectionPointSearch: "",
       availableCollectionPoints: []
     };
@@ -424,6 +451,9 @@ export default {
         this.form.contact_types && 
         this.form.contact_types.includes(3)
       );
+    },
+    isFaceEnabled() {
+      return this.faceMode === "test" || this.faceMode === "real";
     },
     filteredCollectionPoints() {
       return this.availableCollectionPoints.filter(option => {
@@ -478,7 +508,11 @@ export default {
         legal_form: null,
         sector: null,
         contact_types: [],
-        collection_points: []
+        collection_points: [],
+        face: false,
+        face_dir3_oc: null,
+        face_dir3_og: null,
+        face_dir3_ut: null
       };
     },
     async getData() {
@@ -486,6 +520,15 @@ export default {
         "users/me"
       );
       this.me = me.data;
+
+      try {
+        const appMe = await service({ requiresAuth: true, cached: true }).get(
+          "me"
+        );
+        this.faceMode = appMe.data && appMe.data.face ? appMe.data.face : "no";
+      } catch (error) {
+        this.faceMode = "no";
+      }
 
       this.permissions = me.data.permissions.map(p => p.permission);
 

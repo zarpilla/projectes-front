@@ -33,12 +33,31 @@
               label="Estat"
               horizontal
             >
+            <div class="is-flex">
               <div
                 class="tag has-text-weight-bold"
                 :class="form.state === 'draft' ? 'is-warning' : 'is-success'"
               >
                 {{ form.state === "draft" ? "ESBORRANY" : "EMESA" }}
               </div>
+              <div
+                class="tag has-text-weight-bold is-uppercase ml-3"
+                v-if="form.state === 'real' && form.face_queue"
+                :class="{ 'is-success': form.face_queue === 'ok', 'is-warning': form.face_queue !== 'ok' }"
+              >
+                FACE: {{ form.face_queue }}
+              </div>
+
+              <div
+                class="tag has-text-weight-bold is-uppercase ml-3"
+                v-if="form.state === 'real' && form.verifactu_chain"
+                :class="{ 'is-success': form.verifactu_chain === 'ok', 'is-warning': form.verifactu_chain !== 'ok' }"
+              >
+                VERIFACTU: {{ form.verifactu_chain }}
+              </div>
+            </div>
+              
+              
             </b-field>
 
             <b-field label="Número" horizontal v-if="form.state !== 'draft'">
@@ -420,17 +439,27 @@
               horizontal
               v-if="type !== 'payrolls'"
             >
-              <b-autocomplete
-                v-model="projectSearch"
-                placeholder="Escriu el nom del projecte..."
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="projectSelected"
-                :clearable="true"
-              >
-              </b-autocomplete>
+              <div class="is-flex is-align-items-center is-full-width">
+                <b-autocomplete
+                  class="is-flex-grow-1"
+                  v-model="projectSearch"
+                  placeholder="Escriu el nom del projecte..."
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredProjects"
+                  field="name"
+                  @select="projectSelected"
+                  :clearable="true"
+                >
+                </b-autocomplete>
+                <!-- <b-button
+                  class="view-button is-warning mb-0 ml-3"
+                  @click="refreshProjects"
+                  icon-left="refresh"
+                  title="Refrescar Projectes"
+                >
+                </b-button> -->
+              </div>
             </b-field>
             <b-field
               label=""
@@ -1135,6 +1164,7 @@ import FileUpload from "@/components/FileUpload";
 // Services
 import service from "@/service/index";
 import getConfig from "@/config";
+import { upperCase } from "lodash";
 
 export default {
   name: "DocumentForm",
@@ -1848,6 +1878,23 @@ export default {
           "contacts/basic?_limit=-1&_sort=name:ASC"
         )
       ).data;
+    },
+    async refreshProjects() {
+      const projects = (
+        await service({ requiresAuth: true }).get(
+          "projects/basic?_limit=-1&_sort=name:ASC"
+        )
+      ).data;
+
+      this.projects = this.form.id
+        ? projects
+        : projects
+            .filter(p => p.project_state && p.project_state.id !== 2)
+            .filter(
+              p =>
+                p.mother === null ||
+                (p.mother !== null && p.mother.id && p.mother.id !== p.id)
+            );
     },
     changeLine(line, field, value) {
       if (value && value.toString().includes(",")) {

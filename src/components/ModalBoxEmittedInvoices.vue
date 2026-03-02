@@ -5,7 +5,7 @@
         <p class="modal-card-title">Esborranys de factures</p>
       </header>
       <form @submit.prevent="submit" v-if="invoice && contact">
-        <section class="modal-card-body">
+        <section class="modal-card-body">          
           <p class="mb-3 has-text-weight-bold" v-if="toReal === false">
             Atenció! Aquesta factura s'emetrà com a <span class="tag is-warning">ESBORRANY</span>, amb les dades següents, que podran ser modificades posteriorment fins
             que sigui emesa definitivament.
@@ -15,7 +15,17 @@
             podran ser modificades posteriorment.
           </p>
 
-          <p class="has-text-weight-bold">Dades de la factura:</p>
+          <p class="mt-5 mb-3 has-text-weight-bold" v-if="toReal === true && contact.face">
+            <span class="tag is-warning">FACTURA ELECTRÒNICA</span><br><br>
+            A més a més, aquesta factura s'enviarà a l'administració tributària mitjançant el sistema de facturació electrònica FACE, i el seu estat de tramitació es podrà consultar a través del portal de FACE.
+          </p>
+
+          
+
+          
+          <p class="title is-5 has-text-weight-bold mt-5">
+            <span class="tag is-warning">DADES DE LA FACTURA</span>
+          </p>
           <p class="zhas-text-weight-bold">
             Sèrie de factura: {{ serie ? serie.name : "-" }}
           </p>
