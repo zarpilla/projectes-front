@@ -832,6 +832,10 @@ export default {
     documentTypeName: {
       type: String,
       default: ""
+    },
+    documentEmitted: {
+      type: Date,
+      default: null
     }
   },
   data() {
@@ -1345,11 +1349,11 @@ export default {
         amount: amount,
         assign: autoAssign,
         paid: autoAssign,
-        date_estimate_document: this.form.date_end
-          ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
+        date_estimate_document: this.documentEmitted
+          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
-        date: this.form.date_end
-          ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
+        date: this.documentEmitted
+          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
         dirty: true
       });
@@ -1402,11 +1406,11 @@ export default {
         amount: amount,
         assign: autoAssign,
         paid: autoAssign,
-        date_estimate_document: this.form.date_end
-          ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
+        date_estimate_document: this.documentEmitted
+          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
-        date: this.form.date_end
-          ? moment(this.form.date_end, "YYYY-MM-DD").toDate()
+        date: this.documentEmitted
+          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
         dirty: true
       });
