@@ -196,7 +196,13 @@
 
               <!-- SEGON BLOC: QUÈ HEM DE PORTAR? -->
               <div class="hr"></div>
-              <h3 class="title is-5 mt-4 mb-3">QUÈ HEM DE PORTAR?</h3>
+              <h3 class="title is-5 mt-4 mb-3">
+                {{
+                  form.is_collection_order
+                    ? "QUÈ HEM DE RECOLLIR?"
+                    : "QUÈ HEM DE PORTAR?"
+                }}
+              </h3>
 
               <b-field
                 label="Tipus de servei *"
