@@ -63,7 +63,13 @@
               <hr />
 
               <!-- PRIMER BLOC: A ON VA I QUIN DIA? -->
-              <h3 class="title is-5 mt-4 mb-3">A ON VA I QUIN DIA?</h3>
+              <h3 class="title is-5 mt-4 mb-3">
+                {{
+                  form.is_collection_order
+                    ? "A ON I QUIN DIA S'HA DE RECOLLIR?"
+                    : "A ON VA I QUIN DIA?"
+                }}
+              </h3>
               <p class="help mb-4">
                 <strong>Recorda!</strong> Has d'informar les comandes com a
                 límit a les 13h del dia abans.
@@ -363,9 +369,10 @@
 
               <hr />
 
-              <h3 class="title is-5 mt-4 mb-3">ON HO DEIXARÀS?</h3>
-              <b-field
-                v-if="pickups && pickups.length > 0"
+              <template v-if="!form.is_collection_order">
+                <h3 class="title is-5 mt-4 mb-3">ON HO DEIXARÀS?</h3>
+                <b-field
+                  v-if="pickups && pickups.length > 0"
                 label="Recollida comanda *"
                 horizontal
                 :type="{ 'is-danger': errors['pickup'] && submitted }"
@@ -396,10 +403,10 @@
                     {{ s.name }}
                   </button>
                 </div>
-              </b-field>
+                </b-field>
 
-              <b-field
-                v-if="collectionPoints && collectionPoints.length > 0"
+                <b-field
+                  v-if="collectionPoints && collectionPoints.length > 0"
                 label="Punt de recollida en finca *"
                 horizontal
                 :type="{ 'is-danger': errors['collection_point'] && submitted }"
@@ -428,12 +435,12 @@
                     {{ cp.name }}
                   </button>
                 </div>
-              </b-field>
+                </b-field>
 
-              <b-field
-                v-if="
-                  form.collection_point && collectionPickupRoutes.length > 0
-                "
+                <b-field
+                  v-if="
+                    form.collection_point && collectionPickupRoutes.length > 0
+                  "
                 label="Ruta de recollida *"
                 horizontal
                 :type="{
@@ -455,10 +462,10 @@
                     {{ r.name }}
                   </option>
                 </b-select>
-              </b-field>
+                </b-field>
 
-              <b-field
-                v-if="form.collection_point && form.collection_pickup_route"
+                <b-field
+                  v-if="form.collection_point && form.collection_pickup_route"
                 label="Data de recollida"
                 horizontal
                 message="Data prevista per la recollida en finca. Aquest camp determina a quina comanda de recollida s'afegirà aquesta comanda."
@@ -476,14 +483,15 @@
                   @input="onCollectionPickupDateChange"
                 >
                 </b-datepicker>
-              </b-field>
+                </b-field>
 
-              <b-message
-                v-if="collectionPickupDateWarningMessage"
-                type="is-warning"
-              >
-                {{ collectionPickupDateWarningMessage }}
-              </b-message>
+                <b-message
+                  v-if="collectionPickupDateWarningMessage"
+                  type="is-warning"
+                >
+                  {{ collectionPickupDateWarningMessage }}
+                </b-message>
+              </template>
 
               <b-field
                 label="Informació important"
@@ -1546,7 +1554,7 @@ export default {
         contact: !this.form.contact || !isContactValid,
         delivery_date: this.form.delivery_date === null,
         delivery_type: this.form.delivery_type === null,
-        pickup: this.form.pickup == null,
+        pickup: !this.form.is_collection_order && this.form.pickup == null,
         contact_name:
           this.form.contact_name === null || this.form.contact_name === "",
         contact_nif:
@@ -1565,7 +1573,11 @@ export default {
       };
 
       // Validate collection_point if it's required (when pickup is selected and has collection points available)
-      if (this.collectionPoints && this.collectionPoints.length > 0) {
+      if (
+        !this.form.is_collection_order &&
+        this.collectionPoints &&
+        this.collectionPoints.length > 0
+      ) {
         baseErrors.collection_point = !this.form.collection_point;
 
         // Validate collection_pickup_route when collection_point is selected
@@ -1605,7 +1617,7 @@ export default {
     },
     route_rate() {
       //console.log("route_rate");
-      if (!this.canChangeRate) {
+      if (this.form.is_collection_order || !this.canChangeRate) {
         return this.form.route_rate;
       }
       const rr = assignRouteRate(this.form, this.routeRates, this.orders);
@@ -1613,7 +1625,7 @@ export default {
       return this.form.route_rate;
     },
     route_price() {
-      if (!this.canChangeRate) {
+      if (this.form.is_collection_order || !this.canChangeRate) {
         return this.form.price;
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
@@ -2193,14 +2205,14 @@ export default {
       this.changeRoute();
     },
     async changeRoute() {
-      if (this.form.owner && this.form.route) {
+      if (this.form.owner && this.form.route && !this.form.is_collection_order) {
         this.orders = (
           await service({ requiresAuth: true }).get(
             `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
           )
         ).data;
       }
-      if (this.form.route) {
+      if (this.form.route && !this.form.is_collection_order) {
         const route = this.routes.find(r => r.id === this.form.route);
         const routeDate = assignRouteDate(route);
         const nextDay = routeDate.nextDay;
@@ -2220,10 +2232,17 @@ export default {
           this.dateWarningMessage = "";
         }
       }
-      this.checkMultidelivery();
+      if (!this.form.is_collection_order) {
+        this.checkMultidelivery();
+      }
       this.checkTransferNeeded();
     },
     async checkEstimatedDeliveryDate() {
+      if (this.form.is_collection_order) {
+        this.dateWarningMessage = "";
+        return;
+      }
+
       const route = this.routes.find(r => r.id === this.form.route);
       const valid = checkIfDateIsValidInroute(
         route,
@@ -2254,6 +2273,10 @@ export default {
       this.$router.push({ name: "orders.view" });
     },
     validateEstimateDateDayOfWeek() {
+      if (this.form.is_collection_order) {
+        return true;
+      }
+
       if (this.form.route && this.form.estimated_delivery_date) {
         const route = this.routes.find(r => r.id === this.form.route);
         const dayOfWeek = this.form.estimated_delivery_date.getDay();
@@ -2524,7 +2547,7 @@ export default {
             !this.form.contact ||
             !this.form.units ||
             !this.form.kilograms ||
-            !this.form.pickup
+            (!this.form.pickup && !this.form.is_collection_order)
           ) {
             this.$buefy.snackbar.open({
               message: "Error. Falten alguns camps obligatòris",
@@ -2591,7 +2614,7 @@ export default {
             !this.form.contact ||
             !this.form.units ||
             !this.form.kilograms ||
-            !this.form.pickup
+            (!this.form.pickup && !this.form.is_collection_order)
           ) {
             this.$buefy.snackbar.open({
               message: "Error. Falten alguns camps obligatòris",
@@ -2997,6 +3020,10 @@ export default {
       this.onClientaChange(contactId);
     },
     changeRate() {
+      if (this.form.is_collection_order) {
+        return;
+      }
+
       this.form.multidelivery_discount = 0;
       const rate = assignRouteRate(this.form, this.routeRates, this.orders);
       this.form.route_rate = rate;
