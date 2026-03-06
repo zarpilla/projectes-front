@@ -147,6 +147,16 @@
       </b-table-column>
 
       <b-table-column
+        label="Punt"
+        field="order.contact_trade_name"
+        sortable
+        v-slot="props"
+        width="200"
+      >
+        {{ props.row.order && props.row.order ? props.row.order.contact_trade_name : '-' }}
+      </b-table-column>
+
+      <b-table-column
         label="Sòcia"
         field="order.owner"
         sortable
@@ -376,7 +386,8 @@ export default {
         const params = {
           _limit: this.perPage,
           _start: (this.page - 1) * this.perPage,
-          _sort: `${this.sortField}:${this.sortOrder.toUpperCase()}`
+          _sort: `${this.sortField}:${this.sortOrder.toUpperCase()}`,
+          // _populate: 'order.contact'
         };
 
         // Add state filter if any
