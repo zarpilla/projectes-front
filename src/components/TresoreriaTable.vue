@@ -336,7 +336,7 @@
         >
           <b-table-column
             label="Data"
-            field="datex"
+            field="datef"
             sortable
             searchable
             v-slot="props"
