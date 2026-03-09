@@ -20,11 +20,31 @@
               </b-select>
             </b-field>
 
+            <b-field label="Estat projecte">
+              <b-select
+                v-model="filters.project_state"
+                required
+              >
+                <option
+                  v-for="(state, index) in projectStates"
+                  :key="index"
+                  :value="state.id"
+                >
+                  {{ state.name }}
+                </option>
+              </b-select>
+            </b-field>
+
             <b-field label="Hores">
               <b-select
                 v-model="filters.type"
                 required
               >                
+                <option
+                  value="Manuals previstes"
+                >
+                Manuals previstes
+                </option>
                 <option
                   value="Previstes"
                 >
@@ -58,7 +78,12 @@
           </b-field>
         </form>
       </card-component>
-      <justification :type="filters.type" :year="filters.year ? filters.year.year : null" :view="filters.view" />
+      <justification 
+        :type="filters.type" 
+        :year="filters.year ? filters.year.year : null" 
+        :view="filters.view" 
+        :project-state="filters.project_state"
+      />
     </section>
   </div>
 </template>
@@ -82,14 +107,16 @@ export default {
     return {
       isLoading: false,
       filters: {
-        type: 'Previstes',
+        type: 'Manuals previstes',
         year: null,
-        view: 'Bestretes'
+        view: 'Bestretes',
+        project_state: null
       },
       projects: [],
       usersList: [],
       projectSearch: '',
       years: [],
+      projectStates: [],
     }
   },
   computed: {
@@ -115,6 +142,13 @@ export default {
         years.unshift({ id: -1, year: 'Tots' })
         this.filters.year = years[0]
         this.years = years
+
+        this.projectStates = await service({ requiresAuth: true, cached: true })
+          .get('project-states')
+          .then(r => r.data)
+        this.projectStates.unshift({ id: 0, name: 'Tots' })
+        this.filters.project_state = 0
+
         this.isLoading = false        
       }
     }, 100)   

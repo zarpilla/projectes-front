@@ -16,113 +16,94 @@
         :close-icon="true"
         :content-visible="true"
       >
-        <div class="columns card-body">
-          <div class="column is-3 has-text-weight-bold">Projecte</div>          
-          <div class="column is-2 has-text-weight-bold has-text-right">
-            Import a justificar
-          </div>
-          <div class="column is-2 has-text-weight-bold has-text-right">
-            Import justificat
-          </div>
-          <div class="column is-2 has-text-weight-bold has-text-right">
-            Pendent
-          </div>
-          <div class="column is-2 has-text-weight-bold has-text-right">%</div>
-        </div>
-        <div
-          v-for="(row, i) in summaryByProjectAll"
-          :key="'proj-' + i"
-          class="card-body"
+        <b-table
+          :data="summaryByProjectAll"
+          :striped="false"
+          :hoverable="false"
+          :mobile-cards="false"
+          default-sort="project"
         >
-          <div class="columns">
-            <div class="column is-3">{{ row.project }}</div>            
-            <div class="column is-2 has-text-right">
-              <money-format
-                :value="row.grantable_amount ? row.grantable_amount : 0"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
+          <b-table-column field="project" label="Projecte" sortable v-slot="props">
+            {{ props.row.project }}
+          </b-table-column>
+
+          <b-table-column field="grantable_amount" label="Import a justificar" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            <money-format
+              :value="props.row.grantable_amount ? props.row.grantable_amount : 0"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            />
+          </b-table-column>
+
+          <b-table-column field="cost" label="Import justificat" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            <money-format
+              :value="props.row.cost"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            />
+          </b-table-column>
+
+          <b-table-column label="Pendent" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.grantable_amount - a.cost) - (b.grantable_amount - b.cost)">
+            <money-format
+              :value="props.row.grantable_amount ? props.row.grantable_amount - props.row.cost : -props.row.cost"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            />
+          </b-table-column>
+
+          <b-table-column label="%" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.grantable_amount ? (a.cost / a.grantable_amount) * 100 : 0) - (b.grantable_amount ? (b.cost / b.grantable_amount) * 100 : 0)">
+            <money-format
+              :value="props.row.grantable_amount ? (props.row.cost / props.row.grantable_amount) * 100 : 0"
+              :locale="'es'"
+              :currency-code="'%'"
+              :subunits-value="false"
+              :hide-subunits="false"
+              currency="%"
+            />
+          </b-table-column>
+
+          <template #footer>
+            <div class="has-text-weight-bold">
+              <div class="columns">
+                <div class="column is-3">TOTAL</div>
+                <div class="column is-2 has-text-right">
+                  <money-format
+                    :value="summaryAllGrantable"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  />
+                </div>
+                <div class="column is-2 has-text-right">
+                  <money-format
+                    :value="summaryAll"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  />
+                </div>
+                <div class="column is-2 has-text-right">
+                  <money-format
+                    :value="summaryAllGrantable - summaryAll"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  />
+                </div>
+                <div class="column is-2"></div>
+              </div>
             </div>
-            <div class="column is-2 has-text-right">
-              <money-format
-                :value="row.cost"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-right">
-              <money-format
-                :value="
-                  row.grantable_amount
-                    ? row.grantable_amount - row.cost
-                    : -row.cost
-                "
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-right">
-              <money-format
-                :value="
-                  row.grantable_amount
-                    ? (row.cost / row.grantable_amount) * 100
-                    : 0
-                "
-                :locale="'es'"
-                :currency-code="'%'"
-                :subunits-value="false"
-                :hide-subunits="false"
-                currency="%"
-              >
-              </money-format>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="columns">
-            <div class="column is-3 has-text-weight-bold">TOTAL</div>
-            <div class="column is-2 has-text-weight-bold has-text-right">
-              <money-format
-                :value="summaryAllGrantable"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-weight-bold has-text-right">
-              <money-format
-                :value="summaryAll"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-weight-bold has-text-right">
-              <money-format
-                :value="summaryAllGrantable - summaryAll"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-right"></div>
-          </div>
-        </div>
+          </template>
+        </b-table>
       </card-component>
 
       <card-component
@@ -130,86 +111,75 @@
         v-if="justifications.length && view === 'Factures'"
         title="Totals per projecte (factures)"
       >
-        <div class="columns card-body">
-          <div class="column is-4 has-text-weight-bold">Projecte</div>
-          <div class="column is-2 has-text-weight-bold has-text-right">
-            Import justificat
-          </div>
-          <div class="column is-2 has-text-weight-bold has-text-right">
-            Import a justificar
-          </div>
-          <div class="column is-2 has-text-weight-bold has-text-right">%</div>
-        </div>
-        <div
-          v-for="(row, i) in summaryByProjectInvoices"
-          :key="'proj-' + i"
-          class="card-body"
+        <b-table
+          :data="summaryByProjectInvoices"
+          :striped="true"
+          :hoverable="true"
+          :mobile-cards="false"
+          default-sort="project"
         >
-          <div class="columns">
-            <div class="column is-4">{{ row.project }}</div>
-            <div class="column is-2 has-text-right">
-              <money-format
-                :value="row.cost"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
+          <b-table-column field="project" label="Projecte" sortable v-slot="props" width="40%">
+            {{ props.row.project }}
+          </b-table-column>
+
+          <b-table-column field="cost" label="Import justificat" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            <money-format
+              :value="props.row.cost"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            />
+          </b-table-column>
+
+          <b-table-column field="grantable_amount" label="Import a justificar" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            <money-format
+              :value="props.row.grantable_amount ? props.row.grantable_amount : 0"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            />
+          </b-table-column>
+
+          <b-table-column label="%" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.grantable_amount ? (a.cost / a.grantable_amount) * 100 : 0) - (b.grantable_amount ? (b.cost / b.grantable_amount) * 100 : 0)">
+            <money-format
+              :value="props.row.grantable_amount ? (props.row.cost / props.row.grantable_amount) * 100 : 0"
+              :locale="'es'"
+              :currency-code="'%'"
+              :subunits-value="false"
+              :hide-subunits="false"
+              currency="%"
+            />
+          </b-table-column>
+
+          <template #footer>
+            <div class="has-text-weight-bold">
+              <div class="columns">
+                <div class="column is-4">TOTAL</div>
+                <div class="column is-2 has-text-right">
+                  <money-format
+                    :value="summaryAllInvoices"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  />
+                </div>
+                <div class="column is-2 has-text-right">
+                  <money-format
+                    :value="summaryAllGrantableInvoices"
+                    :locale="'es'"
+                    :currency-code="'EUR'"
+                    :subunits-value="false"
+                    :hide-subunits="false"
+                  />
+                </div>
+                <div class="column is-2"></div>
+              </div>
             </div>
-            <div class="column is-2 has-text-right">
-              <money-format
-                :value="row.grantable_amount ? row.grantable_amount : 0"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-right">
-              <money-format
-                :value="
-                  row.grantable_amount
-                    ? (row.cost / row.grantable_amount) * 100
-                    : 0
-                "
-                :locale="'es'"
-                :currency-code="'%'"
-                :subunits-value="false"
-                :hide-subunits="false"
-                currency="%"
-              >
-              </money-format>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="columns">
-            <div class="column is-4 has-text-weight-bold">TOTAL</div>
-            <div class="column is-2 has-text-weight-bold has-text-right">
-              <money-format
-                :value="summaryAllInvoices"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-weight-bold has-text-right">
-              <money-format
-                :value="summaryAllGrantableInvoices"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column is-2 has-text-right"></div>
-          </div>
-        </div>
+          </template>
+        </b-table>
       </card-component>
 
       <card-component
@@ -220,93 +190,66 @@
         "
         title="Bestretes manuals"
       >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Any</div>
-          <div class="column has-text-weight-bold">Mes</div>
-          <div class="column has-text-weight-bold">Persona</div>
-          <div class="column has-text-weight-bold">Projecte</div>
-          <div class="column has-text-weight-bold has-text-right">
-            Hores (€)
-          </div>
-          <div class="column has-text-weight-bold has-text-right">
-            Hores (h)
-          </div>
-          <div class="column has-text-weight-bold has-text-right">
-            Bestreta (€)
-          </div>
-          <div class="column has-text-weight-bold has-text-right">
-            % Hores/Bestreta
-          </div>
-          <div class="column has-text-weight-bold has-text-right">Accions</div>
-        </div>
-
-        <div
-          v-for="(row, i) in justifications.filter(
-            j => j.users_permissions_user && (j.justification_type === justificationTypeEnum || (!j.justification_type && type === 'Reals'))
-          )"
-          :key="'justification-' + i"
-          class="card-body"
+        <b-table
+          :data="justifications.filter(j => j.users_permissions_user && (j.justification_type === justificationTypeEnum || (!j.justification_type && type === 'Reals')))"
+          :striped="true"
+          :hoverable="true"
+          :mobile-cards="false"
+          default-sort="year"
+          default-sort-direction="desc"
         >
-          <div class="columns">
-            <div class="column">
-              {{ row.year }}
-            </div>
-            <div class="column">
-              {{ zeroPad(row.month, 2) }}
-            </div>
-            <div class="column">
-              {{
-                row.users_permissions_user
-                  ? row.users_permissions_user.username
-                  : ""
-              }}
-            </div>
-            <div class="column">
-              {{ row.project ? row.project.name : "" }}
-            </div>
-            <div class="column has-text-right">
-              {{ row.quantity.toFixed(2) }} €
-            </div>
-            <div class="column has-text-right">
-              {{
-                row.dedication && row.dedication.costByHour
-                  ? (row.quantity / row.dedication.costByHour).toFixed(2)
-                  : 0
-              }}
-            </div>
-            <div class="column has-text-right">
-              {{ row.payroll ? row.payroll.total.toFixed(2) : "0" }} €
-            </div>
-            <div class="column has-text-right">
-              {{
-                row.payroll &&
-                row.payroll.total &&
-                row.dedication &&
-                row.dedication.costByHour
-                  ? ((100 * row.quantity) / row.payroll.total).toFixed(2)
-                  : ""
-              }}
-              %
-              <b-icon
-                v-if="isJustificationExceeding100(row)"
-                icon="alert"
-                type="is-warning"
-                size="is-small"
-                :title="`La suma de percentatges per aquesta persona en aquest mes supera el 100%. S'utilitza l'import de la bestreta (${row.payroll.total.toFixed(2)}€) en lloc de les hores fetes.`"
-                style="cursor: help; margin-left: 4px;"
-              />
-            </div>
-            <div class="column has-text-right">
-              <b-button
-                @click="deleteJustification(row)"
-                title="Esborrar"
-                class="view-button"
-                type="is-danger"
-                icon-left="trash-can"
-              />
-            </div>
-          </div>
-        </div>
+          <b-table-column field="year" label="Any" sortable v-slot="props">
+            {{ props.row.year }}
+          </b-table-column>
+
+          <b-table-column field="month" label="Mes" sortable v-slot="props">
+            {{ zeroPad(props.row.month, 2) }}
+          </b-table-column>
+
+          <b-table-column field="users_permissions_user.username" label="Persona" sortable v-slot="props">
+            {{ props.row.users_permissions_user ? props.row.users_permissions_user.username : "" }}
+          </b-table-column>
+
+          <b-table-column field="project.name" label="Projecte" sortable v-slot="props">
+            {{ props.row.project ? props.row.project.name : "" }}
+          </b-table-column>
+
+          <b-table-column field="quantity" label="Hores (€)" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            {{ props.row.quantity.toFixed(2) }} €
+          </b-table-column>
+
+          <b-table-column label="Hores (h)" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.dedication && a.dedication.costByHour ? a.quantity / a.dedication.costByHour : 0) - (b.dedication && b.dedication.costByHour ? b.quantity / b.dedication.costByHour : 0)">
+            {{ props.row.dedication && props.row.dedication.costByHour ? (props.row.quantity / props.row.dedication.costByHour).toFixed(2) : 0 }}
+          </b-table-column>
+
+          <b-table-column label="Bestreta (€)" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.payroll ? a.payroll.total : 0) - (b.payroll ? b.payroll.total : 0)">
+            {{ props.row.payroll ? props.row.payroll.total.toFixed(2) : "0" }} €
+          </b-table-column>
+
+          <b-table-column label="% Hores/Bestreta" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.payroll && a.payroll.total ? (100 * a.quantity) / a.payroll.total : 0) - (b.payroll && b.payroll.total ? (100 * b.quantity) / b.payroll.total : 0)">
+            <span v-if="props.row.payroll && props.row.payroll.total">
+              {{ ((100 * props.row.quantity) / props.row.payroll.total).toFixed(2) }} %
+            </span>
+            <b-icon
+              v-if="isJustificationExceeding100(props.row)"
+              icon="alert"
+              type="is-warning"
+              size="is-small"
+              :title="`La suma de percentatges per aquesta persona en aquest mes supera el 100%. S'utilitza l'import de la bestreta (${props.row.payroll.total.toFixed(2)}€) en lloc de les hores fetes.`"
+              style="cursor: help; margin-left: 4px;"
+            />
+          </b-table-column>
+
+          <b-table-column label="Accions" v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            <b-button
+              @click="deleteJustification(props.row)"
+              title="Esborrar"
+              class="view-button"
+              type="is-danger"
+              icon-left="trash-can"
+            />
+          </b-table-column>
+        </b-table>
         <div class="card-body">
           <div class="columns">
             <div class="column">
@@ -421,49 +364,46 @@
         :close-icon="true"
         :content-visible="true"
       >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Any</div>
-          <div class="column has-text-weight-bold">Projecte</div>
-          <div class="column has-text-weight-bold">Factura</div>
-          <div class="column has-text-weight-bold has-text-right">Import</div>
-          <div class="column has-text-weight-bold has-text-right">Accions</div>
-        </div>
-        <div
-          v-for="(row, i) in justifications.filter(j => j.emitted_invoice)"
-          :key="'justification-' + i"
-          class="card-body"
+        <b-table
+          :data="justifications.filter(j => j.emitted_invoice)"
+          :striped="false"
+          :hoverable="false"
+          :mobile-cards="false"
+          default-sort="year"
+          default-sort-direction="desc"
         >
-          <div class="columns">
-            <div class="column">
-              {{ row.year }}
-            </div>
-            <div class="column">
-              {{ row.project.name }}
-            </div>
-            <div class="column">
-              {{ row.emitted_invoice ? row.emitted_invoice.code : "" }}
-            </div>
-            <div class="column has-text-right">
-              <money-format
-                :value="row.quantity"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column has-text-right">
-              <b-button
-                @click="deleteJustification(row)"
-                title="Esborrar"
-                class="view-button"
-                type="is-danger"
-                icon-left="trash-can"
-              />
-            </div>
-          </div>
-        </div>
+          <b-table-column field="year" label="Any" sortable v-slot="props">
+            {{ props.row.year }}
+          </b-table-column>
+
+          <b-table-column field="project.name" label="Projecte" sortable v-slot="props">
+            {{ props.row.project.name }}
+          </b-table-column>
+
+          <b-table-column field="emitted_invoice.code" label="Factura" sortable v-slot="props">
+            {{ props.row.emitted_invoice ? props.row.emitted_invoice.code : "" }}
+          </b-table-column>
+
+          <b-table-column field="quantity" label="Import" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            <money-format
+              :value="props.row.quantity"
+              :locale="'es'"
+              :currency-code="'EUR'"
+              :subunits-value="false"
+              :hide-subunits="false"
+            />
+          </b-table-column>
+
+          <b-table-column label="Accions" v-slot="props" header-class="has-text-right" cell-class="has-text-right">
+            <b-button
+              @click="deleteJustification(props.row)"
+              title="Esborrar"
+              class="view-button"
+              type="is-danger"
+              icon-left="trash-can"
+            />
+          </b-table-column>
+        </b-table>
         <div class="card-body">
           <div class="columns">
             <div class="column">
@@ -603,6 +543,10 @@ export default {
     view: {
       type: String,
       default: null
+    },
+    projectState: {
+      type: [Number, String],
+      default: null
     }
   },
   data() {
@@ -636,7 +580,12 @@ export default {
     ...mapState(["userName", "user"]),
     justificationTypeEnum() {
       // Map view type to enum value
-      return this.type === 'Reals' ? 'real' : 'estimated';
+      if (this.type === 'Reals') {
+        return 'real';
+      } else if (this.type === 'Manuals previstes' || this.type === 'Previstes') {
+        return 'estimated';
+      }
+      return 'estimated';
     },
     trashObjectName() {
       if (this.trashObject) {
@@ -649,6 +598,12 @@ export default {
       if (!this.users || !this.users.length) {
         return [];
       }
+      
+      // For "Manuals previstes", return empty array (only justifications will be shown)
+      if (this.type === "Manuals previstes") {
+        return [];
+      }
+      
       const activities = [];
       if (this.type === "Reals") {
         this.projects.forEach(p => {
@@ -687,6 +642,12 @@ export default {
         this.estimatedTotals.forEach(t => {
           const activityYear = moment(t.day, "YYYY-MM-DD").format("YYYY");
           const project = this.projects.find(p => p.id == t.project);
+          
+          // Skip if project not found (filtered out by project_state)
+          if (!project) {
+            return;
+          }
+          
           const activity = {
             ...t,
             project: t.project,
@@ -762,18 +723,16 @@ export default {
       return activities;
     },
     summaryJustificationsByProject() {
-      const activities = _(
-        this.justifications.filter(
-          j => j.users_permissions_user && 
-          (j.justification_type === this.justificationTypeEnum || 
-           (!j.justification_type && this.type === 'Reals'))
-        )
-      )
+      // First, calculate capped amounts per user/month
+      const justificationsByCapped = this.getJustificationsWithCappedAmounts();
+      
+      // Then group by project
+      const activities = _(justificationsByCapped)
         .groupBy("project.name")
         .map((rows, id) => {
           return {
             project: id,
-            cost: _.sumBy(rows, r => r.quantity)
+            cost: _.sumBy(rows, r => r.cappedAmount)
           };
         })
         .value();
@@ -856,6 +815,35 @@ export default {
       return activities;
     },
     summaryByProjectAll() {
+      // For "Manuals previstes", only include manual justifications but show all projects
+      if (this.type === "Manuals previstes") {
+        // Get all grantable projects with their grantable amounts
+        const projectsWithGrantable = this.projects.map(project => {
+          return {
+            project: project.name,
+            cost: 0, // Will be filled from justifications
+            grantable_amount: this.getTotalGrantableAmount(project, "grantable_amount")
+          };
+        });
+        
+        // Merge with justifications data
+        const combined = _.concat(projectsWithGrantable, this.summaryJustificationsByProject);
+        
+        const activities = _(combined)
+          .groupBy("project")
+          .map((rows, id) => {
+            return {
+              project: id,
+              cost: _.sumBy(rows, r => r.cost),
+              grantable_amount: rows.find(r => r.grantable_amount)?.grantable_amount || 0
+            };
+          })
+          .value();
+        
+        return _.orderBy(activities, "project");
+      }
+      
+      // For "Previstes" and "Reals", include both activities and justifications
       const activities = _(
         _.concat(this.summaryByProject, this.summaryJustificationsByProject)
       )
@@ -908,18 +896,15 @@ export default {
       return activities;
     },
     summaryJustificationsByUser() {
-      const activities = _(
-        this.justifications.filter(
-          j => j.users_permissions_user && 
-          (j.justification_type === this.justificationTypeEnum || 
-           (!j.justification_type && this.type === 'Reals'))
-        )
-      )
+      // Use capped amounts when exceeding 100%
+      const justificationsByCapped = this.getJustificationsWithCappedAmounts();
+      
+      const activities = _(justificationsByCapped)
         .groupBy("users_permissions_user.username")
         .map((rows, id) => {
           return {
             username: id,
-            cost: _.sumBy(rows, "quantity")
+            cost: _.sumBy(rows, "cappedAmount")
           };
         })
         .value();
@@ -1210,6 +1195,9 @@ export default {
       }
       this.getActivities();
     },
+    projectState: function(newVal, oldVal) {
+      this.getActivities();
+    },
     pivotData: function(newVal, oldVal) {
       this.$nextTick(() => {
         this.updatePivotTable();
@@ -1261,6 +1249,67 @@ export default {
       const key = `${row.users_permissions_user.id}_${row.year}_${row.month}`;
       return this.justificationsExceeding100.find(item => item.key === key);
     },
+    // Get justifications with capped amounts (when exceeding 100%, use payroll total proportionally)
+    getJustificationsWithCappedAmounts() {
+      const filtered = this.justifications.filter(
+        j => j.users_permissions_user && 
+        (j.justification_type === this.justificationTypeEnum || 
+         (!j.justification_type && this.type === 'Reals'))
+      );
+      
+      // Group by user/month to check if they exceed 100%
+      const grouped = _.groupBy(filtered, j => `${j.users_permissions_user.id}_${j.year}_${j.month}`);
+      
+      const result = [];
+      
+      Object.keys(grouped).forEach(key => {
+        const justificationsGroup = grouped[key];
+        const firstJust = justificationsGroup[0];
+        
+        // Find payroll for this user/month
+        const payroll = this.payrolls.find(
+          p =>
+            p.users_permissions_user &&
+            p.users_permissions_user.id === firstJust.users_permissions_user.id &&
+            parseInt(p.year.year) === parseInt(firstJust.year) &&
+            parseInt(p.month.month) === parseInt(firstJust.month)
+        );
+        
+        if (payroll && payroll.total) {
+          const totalQuantity = _.sumBy(justificationsGroup, 'quantity');
+          const percentage = (totalQuantity / payroll.total) * 100;
+          
+          if (percentage > 100) {
+            // Distribute the payroll total proportionally among justifications
+            justificationsGroup.forEach(j => {
+              const proportion = j.quantity / totalQuantity;
+              result.push({
+                ...j,
+                cappedAmount: payroll.total * proportion
+              });
+            });
+          } else {
+            // No capping needed
+            justificationsGroup.forEach(j => {
+              result.push({
+                ...j,
+                cappedAmount: j.quantity
+              });
+            });
+          }
+        } else {
+          // No payroll found, use original quantity
+          justificationsGroup.forEach(j => {
+            result.push({
+              ...j,
+              cappedAmount: j.quantity
+            });
+          });
+        }
+      });
+      
+      return result;
+    },
     async getActivities() {
       this.isLoading = true;
 
@@ -1297,14 +1346,22 @@ export default {
       let query = this.theYear
         ? `payrolls?_where[year]=${yearFrom.id}&_limit=-1`
         : `payrolls?_limit=-1`;
-      let query2 = `projects?_where[grantable_eq]=true&_limit=-1`;
+      
+      // Build projects query with grantable and project_state filters
+      const projectState = this.projectState !== null ? this.projectState : 0;
+      let query2 = `projects?_where[grantable_eq]=true`;
+      if (projectState !== 0 && projectState !== '0') {
+        query2 += `&_where[project_state_eq]=${projectState}`;
+      }
+      query2 += `&_limit=-1`;
 
       this.payrolls = (await service({ requiresAuth: true }).get(query)).data;
 
       // Get projects with grantable_years populated
       this.projects = (await service({ requiresAuth: true }).get(query2)).data;
       
-      if (this.type !== "Reals") {
+      // Load estimated-totals only for "Previstes" type, not for "Manuals previstes" or "Reals"
+      if (this.type === "Previstes") {
         this.estimatedTotals = (
           await service({ requiresAuth: true }).get(
             this.theYear
@@ -1313,7 +1370,7 @@ export default {
           )
         ).data;
       } else {
-        // Clear estimated totals when viewing "Reals"
+        // Clear estimated totals when viewing "Reals" or "Manuals previstes"
         this.estimatedTotals = [];
       }
       
@@ -1413,6 +1470,61 @@ export default {
       }
       // Set justification_type based on current view
       dataToSubmit.justification_type = this.justificationTypeEnum;
+      
+      // Check if this justification would exceed 100% of the bestreta
+      const userId = dataToSubmit.users_permissions_user.id;
+      const year = dataToSubmit.year;
+      const month = dataToSubmit.month;
+      
+      // Find the payroll for this user/month
+      const payroll = this.payrolls.find(
+        p =>
+          p.users_permissions_user &&
+          p.users_permissions_user.id === userId &&
+          parseInt(p.year.year) === parseInt(year) &&
+          parseInt(p.month.month) === parseInt(month)
+      );
+      
+      if (payroll && payroll.total) {
+        // Calculate existing justifications total for this user/month
+        const existingTotal = this.justifications
+          .filter(
+            j =>
+              j.users_permissions_user &&
+              j.users_permissions_user.id === userId &&
+              parseInt(j.year) === parseInt(year) &&
+              parseInt(j.month) === parseInt(month) &&
+              (j.justification_type === this.justificationTypeEnum || 
+               (!j.justification_type && this.type === 'Reals'))
+          )
+          .reduce((sum, j) => sum + (j.quantity || 0), 0);
+        
+        // Calculate total percentage including the new justification
+        const newTotal = existingTotal + dataToSubmit.quantity;
+        const percentage = (newTotal / payroll.total) * 100;
+        
+        if (percentage > 100) {
+          // Show warning dialog but allow user to continue
+          this.$buefy.dialog.confirm({
+            title: 'Atenció',
+            message: `El percentatge total d'hores/bestreta per aquesta persona en aquest mes serà del ${percentage.toFixed(2)}%, superant el 100% de la bestreta (${payroll.total.toFixed(2)}€).<br><br>Vols continuar igualment?`,
+            confirmText: 'Continuar',
+            cancelText: 'Cancel·lar',
+            type: 'is-warning',
+            hasIcon: true,
+            icon: 'alert',
+            onConfirm: async () => {
+              await this.saveJustification(dataToSubmit);
+            }
+          });
+          return;
+        }
+      }
+      
+      // If percentage is OK or no payroll found, proceed normally
+      await this.saveJustification(dataToSubmit);
+    },
+    async saveJustification(dataToSubmit) {
       await service({ requiresAuth: true }).post(
         `justifications`,
         dataToSubmit
