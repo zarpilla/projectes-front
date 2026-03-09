@@ -2898,11 +2898,10 @@ export default {
         return { ...c, display: `${c.trade_name} (${c.id})` };
       });
       const hasCollectionOrders =
-        Array.isArray(this.form.collection_orders) &&
-        this.form.collection_orders.length > 0;
+        this.form.is_collection_order || (Array.isArray(this.form.collection_orders) &&
+        this.form.collection_orders.length > 0);
       const contactsNotInSector10 = contacts1.filter(c => {
         if (hasCollectionOrders) return true;
-
         if (!c.sector) return true;
         if (Array.isArray(c.sector)) {
           return !c.sector.some(s => (typeof s === "object" ? s.id : s) === 10);
