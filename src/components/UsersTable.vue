@@ -117,9 +117,9 @@ export default {
     async getData() {
       this.isLoading = true;
 
-      this.users = (await service({ requiresAuth: true }).get(`users`)).data
+      this.users = (await service({ requiresAuth: true }).get(`users?_limit=-1`)).data
 
-      this.contacts = (await service({ requiresAuth: true }).get(`contacts?_where[users_permissions_user_gt]=0`)).data
+      this.contacts = (await service({ requiresAuth: true }).get(`contacts?_where[users_permissions_user_gt]=0&_limit=-1`)).data
 
       this.users = this.users
         .filter(user => user.confirmed === true && user.blocked === false)

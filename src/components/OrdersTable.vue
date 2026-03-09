@@ -1713,7 +1713,7 @@ export default {
 
       // Load socies contacts for collection points
       this.sociesContacts = (
-        await service({ requiresAuth: true }).get("contacts?_where[users_permissions_user_gt]=0")
+        await service({ requiresAuth: true }).get("contacts?_where[users_permissions_user_gt]=0&_limit=-1")
       ).data;
 
       this.setStatusFilter({ ctrlKey: false, metaKey: false });

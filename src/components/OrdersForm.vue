@@ -2184,7 +2184,7 @@ export default {
       ).data;
 
       this.legalForms = (
-        await service({ requiresAuth: true }).get("legal-forms")
+        await service({ requiresAuth: true }).get("legal-forms?_limit=-1")
       ).data;
 
       this.cities = (
@@ -2201,7 +2201,7 @@ export default {
 
       this.sociesContacts = (
         await service({ requiresAuth: true }).get(
-          "contacts?_where[users_permissions_user_gt]=0"
+          "contacts?_where[users_permissions_user_gt]=0&_limit=-1"
         )
       ).data;
     },
