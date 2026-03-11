@@ -1650,17 +1650,6 @@
           Aquest és un projecte mare amb fases pròpies (dades heretades del sistema antic). Els projectes mare només haurien de contenir l'agregació de les fases dels projectes fills.<br>
           <strong>Si us plau, elimina manualment les fases que pertanyen directament a aquest projecte.</strong> Les fases correctes són només les que provenen dels projectes fills.
         </b-notification>
-        <!-- <b-field v-if="!form.is_mother">
-          <b-button
-            type="is-primary is-outlined"
-            :loading="isLoading"
-            @click="originalEditable = !originalEditable"
-            class="mr-2"
-          >
-            <template v-if="!originalEditable">Modificar pressupost</template>
-            <template v-else>Tancar pressupost</template>
-          </b-button>
-        </b-field> -->
 
         <project-phases
           :key="'original-' + formKey"
@@ -4345,18 +4334,18 @@ export default {
         delete p.id;
         p.dirty = true;
         p.incomes.forEach(sp => {
-          sp.date = moment(sp.date).format("YYYY-MM-DD");
-          sp.date_estimate_document = moment(sp.date_estimate_document).format(
-            "YYYY-MM-DD"
-          );
+          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
+          sp.date_estimate_document = sp.date_estimate_document
+            ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
+            : null;
           delete sp.id;
           sp.dirty = true;
         });
         p.expenses.forEach(sp => {
-          sp.date = moment(sp.date).format("YYYY-MM-DD");
-          sp.date_estimate_document = moment(sp.date_estimate_document).format(
-            "YYYY-MM-DD"
-          );
+          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
+          sp.date_estimate_document = sp.date_estimate_document
+            ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
+            : null;
           delete sp.id;
           sp.dirty = true;
         });
@@ -4385,10 +4374,10 @@ export default {
         console.log(`  Phase ${idx} has ${p.incomes?.length || 0} incomes`);
         p.incomes.forEach((sp, incIdx) => {
           sp.dirty = true;
-          sp.date = moment(sp.date).format("YYYY-MM-DD");
-          sp.date_estimate_document = moment(sp.date_estimate_document).format(
-            "YYYY-MM-DD"
-          );
+          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
+          sp.date_estimate_document = sp.date_estimate_document
+            ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
+            : null;
           delete sp.id;
           delete sp.project_original_phase; // Remove foreign key to original phase
           delete sp.project_phase; // Remove any existing execution phase reference
@@ -4414,7 +4403,7 @@ export default {
         console.log(`  Phase ${idx} has ${p.expenses?.length || 0} expenses`);
         p.expenses.forEach(sp => {
           sp.dirty = true;
-          sp.date = moment(sp.date).format("YYYY-MM-DD");
+          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
           delete sp.id;
           delete sp.project_original_phase; // Remove foreign key to original phase
           delete sp.project_phase; // Remove any existing execution phase reference

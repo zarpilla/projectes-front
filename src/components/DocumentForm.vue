@@ -78,6 +78,15 @@
                 icon-right-clickable
                 @icon-right-click="editNumber"
               />
+              <b-button
+                v-if="form.id"
+                class="view-button is-primary ml-3"
+                @click="getPDF"
+                size="is-small"
+                title="Visualitzar PDF"
+              >
+                PDF
+              </b-button>
             </b-field>
             <b-field label="Sèrie *" horizontal v-if="type !== 'payrolls'">
               <b-select

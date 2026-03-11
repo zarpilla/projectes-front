@@ -140,7 +140,7 @@
                   v-model="props.row.income_type"
                   placeholder="Tipus"
                   :disabled="!editable"
-                  @input="somethingChanged(props.row)"
+                  @input="incomeTypeChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in incomeTypes"
@@ -260,7 +260,7 @@
                 </b-datepicker>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Compte" width="100" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1" v-slot="props">
+          <b-table-column field="name" label="Compte" width="80" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1 && mode !== 'simple'" v-slot="props">
               <b-field
                 v-if="
                   bankAccounts && bankAccounts.length > 1
@@ -279,6 +279,27 @@
                     :value="s"
                   >
                     {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
+          </b-table-column>
+          <b-table-column field="name" label="IVA" width="80" v-slot="props">
+              <b-field
+                v-if="vatTypes && vatTypes.length"
+                class="subphase-detail-input subphase-detail-input-short"
+              >
+                <b-select
+                  v-model="props.row.vat_pct"
+                  placeholder="IVA"
+                  :disabled="!editable"
+                  @input="somethingChanged(props.row)"
+                >
+                  <option
+                    v-for="(s, index) in vatTypes"
+                    :key="index"
+                    :value="s.value"
+                  >
+                    {{ s.value }}%
                   </option>
                 </b-select>
               </b-field>
@@ -457,7 +478,7 @@
                   v-model="props.row.expense_type"
                   placeholder="Tipus"
                   :disabled="!editable"
-                  @input="somethingChanged(props.row)"
+                  @input="expenseTypeChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in expenseTypes"
@@ -572,7 +593,7 @@
                 </b-datepicker>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Compte" width="100" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1" v-slot="props">
+          <b-table-column field="name" label="Compte" width="80" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1" v-slot="props">
               <b-field
                 v-if="
                   bankAccounts && bankAccounts.length > 1
@@ -591,6 +612,27 @@
                     :value="s"
                   >
                     {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
+          </b-table-column>
+          <b-table-column field="name" label="IVA" width="80" v-slot="props">
+              <b-field
+                v-if="vatTypes && vatTypes.length"
+                class="subphase-detail-input subphase-detail-input-short"
+              >
+                <b-select
+                  v-model="props.row.vat_pct"
+                  placeholder="IVA"
+                  :disabled="!editable"
+                  @input="somethingChanged(props.row)"
+                >
+                  <option
+                    v-for="(s, index) in vatTypes"
+                    :key="index"
+                    :value="s.value"
+                  >
+                    {{ s.value }}%
                   </option>
                 </b-select>
               </b-field>
@@ -855,6 +897,7 @@ export default {
       incomeTypes: [],
       dedicationTypes: [],
       bankAccounts: [],
+      vatTypes: [],
       clientSearch: "",
       cooperaSearch: "",
       strategiesSearch: "",
@@ -1019,7 +1062,8 @@ export default {
     this.expenseTypes = this.expenseTypes.map(r => {
       return {
         name: r.name,
-        id: r.id
+        id: r.id,
+        vat_pct: r.vat_pct
       };
     });
 
@@ -1030,7 +1074,8 @@ export default {
     this.incomeTypes = this.incomeTypes.map(r => {
       return {
         name: r.name,
-        id: r.id
+        id: r.id,
+        vat_pct: r.vat_pct
       };
     });
 
@@ -1041,6 +1086,17 @@ export default {
     this.bankAccounts = this.bankAccounts.map(r => {
       return {
         name: r.name,
+        id: r.id
+      };
+    });
+
+    this.vatTypes = await service({ requiresAuth: true, cached: true })
+      .get("vat-types", )
+      .then(r => r.data);
+
+    this.vatTypes = this.vatTypes.map(r => {
+      return {
+        value: r.value,
         id: r.id
       };
     });
@@ -1144,6 +1200,20 @@ export default {
         deletedIncomes: this.deletedIncomes,
         deletedExpenses: this.deletedExpenses
       });
+    },
+    incomeTypeChanged(income) {
+      // Update vat_pct based on selected income type
+      if (income.income_type && income.income_type.vat_pct !== null && income.income_type.vat_pct !== undefined) {
+        income.vat_pct = income.income_type.vat_pct;
+      }
+      this.somethingChanged(income);
+    },
+    expenseTypeChanged(expense) {
+      // Update vat_pct based on selected expense type
+      if (expense.expense_type && expense.expense_type.vat_pct !== null && expense.expense_type.vat_pct !== undefined) {
+        expense.vat_pct = expense.expense_type.vat_pct;
+      }
+      this.somethingChanged(expense);
     },
     somethingChanged(subphase) {
       subphase.dirty = true;
@@ -1349,6 +1419,7 @@ export default {
         amount: amount,
         assign: autoAssign,
         paid: autoAssign,
+        vat_pct: 21,
         date_estimate_document: this.documentEmitted
           ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
@@ -1406,6 +1477,7 @@ export default {
         amount: amount,
         assign: autoAssign,
         paid: autoAssign,
+        vat_pct: 21,
         date_estimate_document: this.documentEmitted
           ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
@@ -1623,6 +1695,7 @@ export default {
             const newIncome = {
               income_type: action.subphase.income_type,
               bank_account: action.subphase.bank_account,
+              vat_pct: action.subphase.vat_pct,
               concept: action.subphase.concept,
               amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
@@ -1651,6 +1724,7 @@ export default {
           const newIncome = {
             income_type: action.subphase.income_type,
             bank_account: action.subphase.bank_account,
+            vat_pct: action.subphase.vat_pct,
             concept: action.subphase.concept,
             amount: action.amount,
             quantity: action.subphase.quantity,
@@ -1669,6 +1743,7 @@ export default {
             const newIncome = {
               expense_type: action.subphase.expense_type,
               bank_account: action.subphase.bank_account,
+              vat_pct: action.subphase.vat_pct,
               concept: action.subphase.concept,
               amount: action.subphase.amount / divider,
               quantity: action.subphase.quantity,
@@ -1698,6 +1773,7 @@ export default {
           const newIncome = {
             expense_type: action.subphase.expense_type,
             bank_account: action.subphase.bank_account,
+            vat_pct: action.subphase.vat_pct,
             concept: action.subphase.concept,
             amount: action.amount,
             quantity: action.subphase.quantity,
@@ -2016,12 +2092,19 @@ export default {
   text-align: right;
 }
 .subphase-detail-input select {
-  min-width: 180px;
+  min-width: 120px;
+  max-width: 120px;
 }
 .subphase-detail-input-short select {
-  min-width: 100px;
-  max-width: 100px;
+  min-width: 80px;
+  max-width: 80px;
 }
+
+.subphases-list .table td, .subphases-list .table th {
+  padding: 0.25em 0.375em;
+}
+
+
 .phase-container{
   background: #fafafa;
   border: 2px solid #eee;

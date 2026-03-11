@@ -126,7 +126,6 @@ export default {
     };
   },
   mounted() {
-    console.log("ProjectGrantableYears mounted");
     this.rows = [...this.grantableYears];
   },
   watch: {
