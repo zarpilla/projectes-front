@@ -34,7 +34,7 @@ const assignRouteRate = (form, routeRates, orders) => {
       const pendingOrders = orders.filter(
         o =>
           o.pickup.id === pickup &&
-          (o.status === "pending" || o.status === "deposited") &&
+          (o.status === "pending") &&
           o.id !== form.id &&
           o.route.id === route &&
           o.owner.id === owner

@@ -214,15 +214,15 @@
 
       <b-table-column
         label="Estat"
-        field="status"
+        field="deposit_date"
         sortable
         v-slot="props"
         width="130"
       >
         <b-tag
-          :type="props.row.status === 'deposited' ? 'is-success' : 'is-warning'"
+          :type="props.row.deposit_date ? 'is-success' : 'is-warning'"
         >
-          {{ props.row.status === 'deposited' ? 'DIPOSITAT' : 'PENDENT' }}
+          {{ props.row.deposit_date ? 'DIPOSITAT' : 'PENDENT' }}
         </b-tag>
       </b-table-column>
 
@@ -234,7 +234,7 @@
         <div class="action-buttons-grid">
           <!-- Mark as deposited button if not deposited -->
           <b-button
-            v-if="props.row.status !== 'deposited'"
+            v-if="!props.row.deposit_date"
             type="is-success"
             size="is-small"
             icon-left="check"
@@ -245,7 +245,7 @@
           
           <!-- Unmark as deposited button if deposited -->
           <b-button
-            v-if="props.row.status === 'deposited'"
+            v-if="props.row.deposit_date"
             type="is-warning"
             size="is-small"
             icon-left="undo"
@@ -329,33 +329,35 @@ export default {
     async loadData() {
       this.isLoading = true;
       try {
-        const params = {
-          _limit: this.perPage,
-          _start: (this.page - 1) * this.perPage,
-          _sort: `${this.sortField}:${this.sortOrder.toUpperCase()}`
-        };
+        // Build query string manually for duplicate keys
+        let queryParts = [
+          `_limit=${this.perPage}`,
+          `_start=${(this.page - 1) * this.perPage}`,
+          `_sort=${this.sortField}:${this.sortOrder.toUpperCase()}`,
+          `_where[status]=pending`,
+          `_where[status]=processed`,
+          `_where[is_collection_order_null]=true`
+        ];
 
         // Filter based on permission
         if (!this.isAdmin) {
           // Regular users only see their own orders
-          params['owner.id'] = this.currentUserId;
+          queryParts.push(`owner.id=${this.currentUserId}`);
         }
 
         // Apply status filter
         if (this.statusFilter === 'pending') {
-          params['status'] = 'pending';
+          queryParts.push(`_where[deposit_date_null]=true`);
         } else if (this.statusFilter === 'deposited') {
           // Get today's date range
           const today = moment().startOf('day').toISOString();
           const tomorrow = moment().add(1, 'day').startOf('day').toISOString();
-          params['status'] = 'deposited';
-          params['_where[deposit_date_gte]'] = today;
-          params['_where[deposit_date_lt]'] = tomorrow;
+          queryParts.push(`_where[deposit_date_gte]=${encodeURIComponent(today)}`);
+          queryParts.push(`_where[deposit_date_lt]=${encodeURIComponent(tomorrow)}`);
         }
 
-        params['_where[is_collection_order_null]'] = true;
-
-        const response = await service({ requiresAuth: true }).get("orders", { params });
+        const queryString = queryParts.join('&');
+        const response = await service({ requiresAuth: true }).get(`orders?${queryString}`);
         let orders = response.data;
         
         // Apply pickup filter if needed
@@ -398,32 +400,30 @@ export default {
     },
     async loadStatusCounts() {
       try {
-        const baseParams = {
-          '_where[is_collection_order_null]': true
-        };
+        // Build base query parts
+        let baseQueryParts = [
+          `_where[is_collection_order_null]=true`,
+          `_where[status]=pending`,
+          `_where[status]=processed`
+        ];
         
         // Filter based on permission
         if (!this.isAdmin) {
-          baseParams['owner.id'] = this.currentUserId;
+          baseQueryParts.push(`owner.id=${this.currentUserId}`);
         }
 
+        const baseQuery = baseQueryParts.join('&');
+
         // Count pending
-        const pendingResponse = await service({ requiresAuth: true }).get("orders/count", {
-          params: { ...baseParams, status: 'pending' }
-        });
+        const pendingQuery = `${baseQuery}&_where[deposit_date_null]=true`;
+        const pendingResponse = await service({ requiresAuth: true }).get(`orders/count?${pendingQuery}`);
         this.pendingCount = pendingResponse.data;
 
         // Count deposited today
         const today = moment().startOf('day').toISOString();
         const tomorrow = moment().add(1, 'day').startOf('day').toISOString();
-        const todayResponse = await service({ requiresAuth: true }).get("orders/count", {
-          params: {
-            ...baseParams,
-            status: 'deposited',
-            '_where[deposit_date_gte]': today,
-            '_where[deposit_date_lt]': tomorrow
-          }
-        });
+        const todayQuery = `${baseQuery}&_where[deposit_date_gte]=${encodeURIComponent(today)}&_where[deposit_date_lt]=${encodeURIComponent(tomorrow)}`;
+        const todayResponse = await service({ requiresAuth: true }).get(`orders/count?${todayQuery}`);
         this.todayCount = todayResponse.data;
       } catch (error) {
         console.error("Error loading status counts:", error);
@@ -470,7 +470,6 @@ export default {
           this.isLoading = true;
           try {
             await service({ requiresAuth: true }).put(`orders/${order.id}`, {
-              status: 'deposited',
               deposit_date: new Date().toISOString(),
               deposit_user: this.currentUserId
             });
@@ -500,7 +499,6 @@ export default {
           this.isLoading = true;
           try {
             await service({ requiresAuth: true }).put(`orders/${order.id}`, {
-              status: 'pending',
               deposit_date: null,
               deposit_user: null
             });
@@ -524,7 +522,7 @@ export default {
       });
     },
     rowClassFn(row) {
-      if (row.status === 'deposited') {
+      if (row.deposit_date) {
         return "has-background-light";
       }
       return "";
@@ -579,7 +577,7 @@ export default {
         // Handle based on current filter mode
         if (this.statusFilter === 'pending') {
           // Depositing mode
-          if (order.status === 'deposited') {
+          if (order.deposit_date) {
             addToHistory(orderId, 'warning', 'Ja estava dipositada');
             this.$buefy.toast.open({
               message: `Comanda #${orderId} ja està dipositada`,
@@ -589,19 +587,8 @@ export default {
             return;
           }
 
-          if (order.status !== 'pending') {
-            addToHistory(orderId, 'warning', `Estat actual: ${order.status}`);
-            this.$buefy.toast.open({
-              message: `Comanda #${orderId} no està pendent`,
-              type: 'is-warning',
-              duration: 2000
-            });
-            return;
-          }
-
           // Mark as deposited
           await service({ requiresAuth: true }).put(`orders/${orderId}`, {
-            status: 'deposited',
             deposit_date: new Date().toISOString(),
             deposit_user: this.currentUserId
           });
@@ -614,7 +601,7 @@ export default {
           });
         } else {
           // Undo deposit mode
-          if (order.status !== 'deposited') {
+          if (!order.deposit_date) {
             addToHistory(orderId, 'warning', 'No està dipositada');
             this.$buefy.toast.open({
               message: `Comanda #${orderId} no està dipositada`,
@@ -626,7 +613,6 @@ export default {
 
           // Unmark as deposited
           await service({ requiresAuth: true }).put(`orders/${orderId}`, {
-            status: 'pending',
             deposit_date: null,
             deposit_user: null
           });

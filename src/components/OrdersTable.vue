@@ -178,16 +178,6 @@
       <b-button
         class="view-button mb-3 mr-3 ml-0"
         :class="{
-          'is-primary': statusFilter.includes('deposited'),
-          'is-warning': !statusFilter.includes('deposited')
-        }"
-        @click="setStatusFilter($event, 'deposited')"
-      >
-        DEPOSITADES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
           'is-primary': statusFilter.includes('processed'),
           'is-warning': !statusFilter.includes('processed')
         }"
@@ -323,7 +313,6 @@
               <h2>CANVIAR ESTAT</h2>
               <b-select v-model="newState" placeholder="">
                 <option value="pending">PENDENT</option>
-                <option value="deposited">DEPOSITADA</option>
                 <option value="processed">PROCESSADA</option>
                 <option value="lastmile">ÚLTIMA MILLA</option>
                 <option value="delivered">LLIURADA</option>
@@ -343,7 +332,6 @@
               <h2>CANVIAR ESTAT</h2>
               <b-select v-model="newState" placeholder="">
                 <option value="pending">PENDENT</option>
-                <option value="deposited">DEPOSITADA</option>
               </b-select>
             </div>
             <button
@@ -715,11 +703,6 @@
           v-if="props.row.status === 'pending'"
           class="tag is-warning bg-pending"
           >PENDENT</span
-        >
-        <span
-          v-else-if="props.row.status === 'deposited'"
-          class="tag is-warning bg-deposited"
-          >DEPOSITADA</span
         >
         <span
           v-else-if="props.row.status === 'invoiced'"
@@ -2539,7 +2522,7 @@ export default {
       this.importing = true;
 
       try {
-        const orders = this.checkedRows.map(o => o.id);
+        const orders = this.checkedRows.filter(o => o.id && !o.is_collection_order).map(o => o.id);
 
         const pdf = (
           await service({ requiresAuth: true }).post(`/orders/pdf`, { orders })

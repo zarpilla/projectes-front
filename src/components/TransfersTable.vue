@@ -501,7 +501,6 @@ export default {
   methods: {
     applyAllowedOrderStatusParams(params) {
       params['_where[_or][0][status]'] = 'pending';
-      params['_where[_or][1][status]'] = 'deposited';
       params['_where[_or][2][status]'] = 'processed';
     },
     applyTransferStatusParams(params, transferStatuses) {
@@ -535,7 +534,7 @@ export default {
       });
     },
     isAllowedOrderStatus(order) {
-      return ['pending', 'deposited', 'processed'].includes(order.status);
+      return ['pending', 'processed'].includes(order.status);
     },
     async loadData() {
       this.isLoading = true;

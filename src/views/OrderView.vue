@@ -49,7 +49,8 @@
 
           <!-- PRIMER BLOC: A ON VA I QUIN DIA? -->
           <div class="info-section mb-4">
-            <h3 class="section-title">A on va i quin dia?</h3>
+            <h3 class="section-title">
+              {{ order.is_collection_order ? "A on i quin dia s'ha de recollir?" : "A on va i quin dia?" }}</h3>
 
             <div class="info-field">
               <span class="field-label">{{
@@ -90,7 +91,7 @@
 
           <!-- SEGON BLOC: QUÈ HEM DE PORTAR? -->
           <div class="info-section mb-4">
-            <h3 class="section-title">Què hem de portar?</h3>
+            <h3 class="section-title">{{ order.is_collection_order ? "Què hem de recollir?" : "Què hem de portar?" }}</h3>
 
             <div class="info-field">
               <span class="field-label">Tipus de servei:</span>
@@ -160,10 +161,10 @@
             </div>
           </div>
 
-          <hr />
+          <hr v-if="!order.is_collection_order" />
 
           <!-- ON HO DEIXARÀS? -->
-          <div class="info-section mb-4">
+          <div class="info-section mb-4" v-if="!order.is_collection_order">
             <h3 class="section-title">On ho deixaràs?</h3>
 
             <div class="info-field" v-if="pickupName">
@@ -197,7 +198,7 @@
             </div>
           </div>
 
-          <hr />
+          <hr v-if="!order.is_collection_order" />
 
           <!-- HI HA INCIDÈNCIES? -->
           <div
@@ -290,6 +291,26 @@
                 v-slot="props"
               >
                 {{ props.row.kilograms || 0 }}
+              </b-table-column>
+              <b-table-column
+                field="deposit_date"
+                label="Dipòsit"
+                width="100"
+                v-slot="props"
+              >
+                <b-tag :type="props.row.deposit_date ? 'is-success' : 'is-light'">
+                  {{ props.row.deposit_date ? 'Sí' : 'No' }}
+                </b-tag>
+              </b-table-column>
+              <b-table-column
+                field="pickup_date"
+                label="Recollida"
+                width="100"
+                v-slot="props"
+              >
+                <b-tag :type="props.row.pickup_date ? 'is-success' : 'is-light'">
+                  {{ props.row.pickup_date ? 'Sí' : 'No' }}
+                </b-tag>
               </b-table-column>
               <b-table-column
                 field="status"
@@ -505,10 +526,11 @@ export default {
     },
     formCardTitle() {
       if (this.order && this.order.id) {
-        const collection = this.order.pickup_point ? " (Punt Recollida)" : "";
+        const collectionSuffix = this.order.is_collection_order ? "-R" : "";
+        const pickupLabel = this.order.pickup_point ? " (Punt Recollida)" : "";
         return `Comanda #${this.order.id
           .toString()
-          .padStart(4, "0")}${collection}`;
+          .padStart(4, "0")}${collectionSuffix}${pickupLabel}`;
       }
       return "Veure Comanda";
     },
@@ -729,19 +751,16 @@ export default {
       return (
         this.order &&
         !this.order.deposit_date &&
-        ["pending", "deposited"].includes(this.order.status) &&
+        ["pending"].includes(this.order.status) &&
         (this.permissions.includes("orders_admin") ||
           this.permissions.includes("orders_delivery"))
       );
     },
     canPickup() {
-      // Can pickup if order is deposited and has deposit_date but no pickup_date
+      // Can pickup if order has no pickup_date
       return (
         this.order &&
-        this.order.deposit_date &&
         !this.order.pickup_date &&
-        !this.order.is_collection_order &&
-        ["deposited", "delivered"].includes(this.order.status) &&
         (this.permissions.includes("orders_admin") ||
           this.permissions.includes("orders_delivery"))
       );
@@ -1007,22 +1026,30 @@ export default {
           deposit_user: currentUser.data.id
         };
 
-        // If status is pending, change it to deposited
-        if (this.order.status === "pending") {
-          updateData.status = "deposited";
+        if (this.order.is_collection_order && this.order.collection_orders && this.order.collection_orders.length > 0) {
+          // For collection orders, deposit all inner orders first
+          for (const innerOrder of this.order.collection_orders) {
+            await service({ requiresAuth: true }).put(`orders/${innerOrder.id}`, updateData);
+          }
+          
+          // Then deposit the collection order itself
+          await service({ requiresAuth: true }).put(`orders/${this.order.id}`, updateData);
+
+          this.$buefy.snackbar.open({
+            message: `Comanda de recollida i ${this.order.collection_orders.length} comandes associades depositades correctament`,
+            queue: false,
+            type: "is-success"
+          });
+        } else {
+          // Normal order - single update
+          await service({ requiresAuth: true }).put(`orders/${this.order.id}`, updateData);
+
+          this.$buefy.snackbar.open({
+            message: "Comanda depositada correctament",
+            queue: false,
+            type: "is-success"
+          });
         }
-
-        // Update with deposit information
-        await service({ requiresAuth: true }).put(
-          `orders/${this.order.id}`,
-          updateData
-        );
-
-        this.$buefy.snackbar.open({
-          message: "Comanda depositada correctament",
-          queue: false,
-          type: "is-success"
-        });
 
         // Reload order data
         await this.loadOrder();
@@ -1046,17 +1073,35 @@ export default {
           "users/me"
         );
 
-        // Update with pickup information
-        await service({ requiresAuth: true }).put(`orders/${this.order.id}`, {
+        const pickupData = {
           pickup_date: new Date().toISOString(),
           pickup_user: currentUser.data.id
-        });
+        };
 
-        this.$buefy.snackbar.open({
-          message: "Comanda recollida correctament",
-          queue: false,
-          type: "is-success"
-        });
+        if (this.order.is_collection_order && this.order.collection_orders && this.order.collection_orders.length > 0) {
+          // For collection orders, pick up all inner orders first
+          for (const innerOrder of this.order.collection_orders) {
+            await service({ requiresAuth: true }).put(`orders/${innerOrder.id}`, pickupData);
+          }
+          
+          // Then pick up the collection order itself
+          await service({ requiresAuth: true }).put(`orders/${this.order.id}`, pickupData);
+
+          this.$buefy.snackbar.open({
+            message: `Comanda de recollida i ${this.order.collection_orders.length} comandes associades recollides correctament`,
+            queue: false,
+            type: "is-success"
+          });
+        } else {
+          // Normal order - single update
+          await service({ requiresAuth: true }).put(`orders/${this.order.id}`, pickupData);
+
+          this.$buefy.snackbar.open({
+            message: "Comanda recollida correctament",
+            queue: false,
+            type: "is-success"
+          });
+        }
 
         // Reload order data
         await this.loadOrder();
@@ -1146,19 +1191,35 @@ export default {
           try {
             this.isDepositingOrPickingUp = true;
 
-            await service({ requiresAuth: true }).put(
-              `orders/${this.order.id}`,
-              {
-                deposit_date: null,
-                deposit_user: null
-              }
-            );
+            const clearData = {
+              deposit_date: null,
+              deposit_user: null
+            };
 
-            this.$buefy.snackbar.open({
-              message: "Informació de dipòsit eliminada",
-              queue: false,
-              type: "is-success"
-            });
+            if (this.order.is_collection_order && this.order.collection_orders && this.order.collection_orders.length > 0) {
+              // For collection orders, clear all inner orders first
+              for (const innerOrder of this.order.collection_orders) {
+                await service({ requiresAuth: true }).put(`orders/${innerOrder.id}`, clearData);
+              }
+              
+              // Then clear the collection order itself
+              await service({ requiresAuth: true }).put(`orders/${this.order.id}`, clearData);
+
+              this.$buefy.snackbar.open({
+                message: `Informació de dipòsit de comanda de recollida i ${this.order.collection_orders.length} comandes associades eliminada`,
+                queue: false,
+                type: "is-success"
+              });
+            } else {
+              // Normal order - single update
+              await service({ requiresAuth: true }).put(`orders/${this.order.id}`, clearData);
+
+              this.$buefy.snackbar.open({
+                message: "Informació de dipòsit eliminada",
+                queue: false,
+                type: "is-success"
+              });
+            }
 
             await this.loadOrder();
           } catch (err) {
@@ -1181,19 +1242,35 @@ export default {
           try {
             this.isDepositingOrPickingUp = true;
 
-            await service({ requiresAuth: true }).put(
-              `orders/${this.order.id}`,
-              {
-                pickup_date: null,
-                pickup_user: null
-              }
-            );
+            const clearData = {
+              pickup_date: null,
+              pickup_user: null
+            };
 
-            this.$buefy.snackbar.open({
-              message: "Informació de recollida eliminada",
-              queue: false,
-              type: "is-success"
-            });
+            if (this.order.is_collection_order && this.order.collection_orders && this.order.collection_orders.length > 0) {
+              // For collection orders, clear all inner orders first
+              for (const innerOrder of this.order.collection_orders) {
+                await service({ requiresAuth: true }).put(`orders/${innerOrder.id}`, clearData);
+              }
+              
+              // Then clear the collection order itself
+              await service({ requiresAuth: true }).put(`orders/${this.order.id}`, clearData);
+
+              this.$buefy.snackbar.open({
+                message: `Informació de recollida de comanda de recollida i ${this.order.collection_orders.length} comandes associades eliminada`,
+                queue: false,
+                type: "is-success"
+              });
+            } else {
+              // Normal order - single update
+              await service({ requiresAuth: true }).put(`orders/${this.order.id}`, clearData);
+
+              this.$buefy.snackbar.open({
+                message: "Informació de recollida eliminada",
+                queue: false,
+                type: "is-success"
+              });
+            }
 
             await this.loadOrder();
           } catch (err) {

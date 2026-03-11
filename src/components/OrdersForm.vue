@@ -23,7 +23,7 @@
         <div class="column is-full">
           <card-component class="tile is-child">
             <b-message
-              v-if="firstStatus !== 'pending' && firstStatus !== 'deposited'"
+              v-if="firstStatus !== 'pending'"
               title="Comanda ja procesada"
               type="is-warning"
             >
@@ -461,8 +461,8 @@
                   @input="onCollectionPickupRouteChange"
                 >
                   <option
-                    v-for="(r, index) in collectionPickupRoutes"
-                    :key="index"
+                    v-for="r in collectionPickupRoutes"
+                    :key="r.id"
                     :value="r.id"
                   >
                     {{ r.name }}
@@ -1040,7 +1040,14 @@
                 :type="{ 'is-danger': errors['route_date'] && submitted }"
                 message="Data de creació de la comanda"
               >
+                <b-input
+                  v-if="form.id"
+                  :value="formatDateTime(form.created_at)"
+                  type="text"
+                  disabled
+                />
                 <b-datepicker
+                  v-else
                   :disabled="
                     !(
                       permissions.includes('orders_admin') ||
@@ -1461,7 +1468,6 @@ export default {
       firstStatus: "pending",
       statuses: [
         { id: "pending", name: "PENDENT" },
-        { id: "deposited", name: "DEPOSITADA" },
         { id: "processed", name: "PROCESSADA" },
         { id: "lastmile", name: "ÚLTIMA MILLA" },
         { id: "delivered", name: "LLIURADA" },
@@ -2223,8 +2229,7 @@ export default {
         const routeDate = assignRouteDate(route);
         const nextDay = routeDate.nextDay;
         if (
-          this.form.status === "pending" ||
-          this.form.status === "deposited"
+          this.form.status === "pending"
         ) {
           this.form.estimated_delivery_date = nextDay.toDate();
         }
@@ -2564,6 +2569,21 @@ export default {
             return;
           }
 
+          // Validate collection_pickup_route if collection_point is set and routes are available
+          if (
+            this.form.collection_point &&
+            this.collectionPickupRoutes.length > 0 &&
+            !this.form.collection_pickup_route
+          ) {
+            this.$buefy.snackbar.open({
+              message: "Error. Has de seleccionar una ruta de recollida",
+              queue: false,
+              type: "is-danger"
+            });
+            this.isLoading = false;
+            return;
+          }
+
           delete this.form.emitted_invoice_datetime;
 
           // Normalize contact_legal_form to ensure it's not an empty object
@@ -2624,6 +2644,21 @@ export default {
           ) {
             this.$buefy.snackbar.open({
               message: "Error. Falten alguns camps obligatòris",
+              queue: false,
+              type: "is-danger"
+            });
+            this.isLoading = false;
+            return;
+          }
+
+          // Validate collection_pickup_route if collection_point is set and routes are available
+          if (
+            this.form.collection_point &&
+            this.collectionPickupRoutes.length > 0 &&
+            !this.form.collection_pickup_route
+          ) {
+            this.$buefy.snackbar.open({
+              message: "Error. Has de seleccionar una ruta de recollida",
               queue: false,
               type: "is-danger"
             });
@@ -3410,11 +3445,6 @@ export default {
           deposit_user: currentUser.data.id
         };
 
-        // If status is pending, change it to deposited
-        if (this.form.status === "pending") {
-          updateData.status = "deposited";
-        }
-
         // Update with deposit information
         const response = await service({ requiresAuth: true }).put(
           `orders/${this.form.id}`,
@@ -3538,11 +3568,6 @@ export default {
           deposit_user: currentUser.data.id
         };
 
-        // If order is pending, change status to deposited
-        if (currentOrder.status === "pending") {
-          updateData.status = "deposited";
-        }
-
         // Update with deposit information
         await service({ requiresAuth: true }).put(
           `orders/${orderId}`,
@@ -3557,31 +3582,6 @@ export default {
 
         // Refresh data to show the updated information
         await this.getData();
-
-        // Check if this is a collection order and if all orders are now deposited
-        if (this.form.is_collection_order && this.form.status === "pending") {
-          const allDeposited = this.form.collection_orders.every(
-            order => order.deposit_date !== null
-          );
-
-          if (allDeposited) {
-            // Update collection order status to deposited
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              { status: "deposited" }
-            );
-
-            this.$buefy.snackbar.open({
-              message:
-                "Totes les comandes estan depositades. Comanda de recollida marcada com a depositada.",
-              queue: false,
-              type: "is-success"
-            });
-
-            // Refresh again to show the updated status
-            await this.getData();
-          }
-        }
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
