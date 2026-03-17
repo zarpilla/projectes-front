@@ -1858,6 +1858,22 @@ export default {
       } else {
         this.getData();
       }
+    },
+    collectionPoints(newValue) {
+      // Auto-select if only one collection point is available
+      if (newValue && newValue.length === 1 && !this.form.collection_point) {
+        this.form.collection_point = newValue[0].id;
+        this.onCollectionPointChange();
+      }
+      // Clear selection if the previously selected point is no longer available
+      if (newValue && this.form.collection_point) {
+        const stillAvailable = newValue.find(cp => cp.id === this.form.collection_point);
+        if (!stillAvailable) {
+          this.form.collection_point = null;
+          this.form.collection_pickup_route = null;
+          this.form.collection_pickup_date = null;
+        }
+      }
     }
   },
   async created() {
@@ -2465,6 +2481,38 @@ export default {
         if (!this.form.contact_postcode) {
           this.$buefy.snackbar.open({
             message: "Error. No hi ha codi postal al punt d'entrega",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        // Validate collection point when required
+        if (
+          !this.form.is_collection_order &&
+          this.collectionPoints &&
+          this.collectionPoints.length > 0 &&
+          !this.form.collection_point
+        ) {
+          this.$buefy.snackbar.open({
+            message: "Error. Has de seleccionar un punt de recollida en finca",
+            queue: false,
+            type: "is-danger"
+          });
+          this.isLoading = false;
+          return;
+        }
+
+        // Validate collection pickup route when collection point is set
+        if (
+          !this.form.is_collection_order &&
+          this.form.collection_point &&
+          this.collectionPickupRoutes.length > 0 &&
+          !this.form.collection_pickup_route
+        ) {
+          this.$buefy.snackbar.open({
+            message: "Error. Has de seleccionar una ruta de recollida",
             queue: false,
             type: "is-danger"
           });
