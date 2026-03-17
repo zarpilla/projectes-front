@@ -1628,7 +1628,6 @@ export default {
       return baseErrors;
     },
     route_rate() {
-      //console.log("route_rate");
       if (this.form.is_collection_order || !this.canChangeRate) {
         return this.form.route_rate;
       }
@@ -2214,7 +2213,7 @@ export default {
     async changeOwner() {
       this.refreshClients(this.form.owner);
 
-      this.changeRoute();
+      await this.changeRoute();
     },
     async changeRoute() {
       if (this.form.owner && this.form.route && !this.form.is_collection_order) {
@@ -2226,25 +2225,37 @@ export default {
       }
       if (this.form.route && !this.form.is_collection_order) {
         const route = this.routes.find(r => r.id === this.form.route);
-        const routeDate = assignRouteDate(route);
-        const nextDay = routeDate.nextDay;
-        if (
-          this.form.status === "pending"
-        ) {
-          this.form.estimated_delivery_date = nextDay.toDate();
-        }
-        if (routeDate.warning) {
-          this.dateWarningMessage = routeDate.warning;
+        
+        // Check if route has any days configured
+        const hasAnyDay = route && (route.monday || route.tuesday || route.wednesday || route.thursday || route.friday || route.saturday || route.sunday);
+        
+        if (!hasAnyDay) {
           this.$buefy.toast.open({
-            message: routeDate.warning,
-            type: "is-warning"
+            message: `La ruta "${route ? route.name : this.form.route}" no té cap dia de la setmana configurat. Contacta amb l'administrador.`,
+            type: "is-danger",
+            duration: 5000
           });
+          this.dateWarningMessage = "Aquesta ruta no té dies configurats";
         } else {
-          this.dateWarningMessage = "";
+          const routeDate = assignRouteDate(route);
+          const nextDay = routeDate.nextDay;
+          
+          if (this.form.status === "pending") {
+            this.form.estimated_delivery_date = nextDay.toDate();
+          }
+          if (routeDate.warning) {
+            this.dateWarningMessage = routeDate.warning;
+            this.$buefy.toast.open({
+              message: routeDate.warning,
+              type: "is-warning"
+            });
+          } else {
+            this.dateWarningMessage = "";
+          }
         }
       }
       if (!this.form.is_collection_order) {
-        this.checkMultidelivery();
+        await this.checkMultidelivery();
       }
       this.checkTransferNeeded();
     },
@@ -2742,10 +2753,9 @@ export default {
       this.form.contact = option;
     },
     async contactChanged(option) {
-      //console.log("contactChanged", option);
       if (option && option.id) {
         this.form.contact = option.id;
-        this.onClientaChange(option.id);
+        await this.onClientaChange(option.id);
       } else {
         this.form.contact = null;
         this.removeContactData();
@@ -2768,7 +2778,6 @@ export default {
       }
     },
     async citySelected(option) {
-      //console.log("citySelected", option);
       if (!option || !option.id) {
         this.form.contact_city = null;
       } else {
@@ -2784,7 +2793,7 @@ export default {
           (this.form.route && !this.routes.find(r => r.id === this.form.route))
         ) {
           this.form.route = this.routes[0].id;
-          this.changeRoute();
+          await this.changeRoute();
         }
       } else {
         //this.form.route = null
@@ -2997,10 +3006,9 @@ export default {
         this.citySearch = contact.city;
 
         if (this.cities.find(c => c.name === contact.city)) {
-          this.form.contact_city_id = this.cities.find(
-            c => c.name === contact.city
-          ).id;
-          this.citySelected(this.cities.find(c => c.name === contact.city));
+          const cityObj = this.cities.find(c => c.name === contact.city);
+          this.form.contact_city_id = cityObj.id;
+          await this.citySelected(cityObj);
         }
 
         this.form.contact_phone = contact.phone;
@@ -3013,7 +3021,7 @@ export default {
         this.form.contact_time_slot_2_ini = contact.time_slot_2_ini;
         this.form.contact_time_slot_2_end = contact.time_slot_2_end;
 
-        this.checkMultidelivery();
+        await this.checkMultidelivery();
       } else {
         this.removeContactData();
       }
