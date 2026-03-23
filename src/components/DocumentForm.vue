@@ -461,13 +461,13 @@
                   :clearable="true"
                 >
                 </b-autocomplete>
-                <!-- <b-button
+                <b-button
                   class="view-button is-warning mb-0 ml-3"
                   @click="refreshProjects"
                   icon-left="refresh"
                   title="Refrescar Projectes"
                 >
-                </b-button> -->
+                </b-button>
               </div>
             </b-field>
             <b-field
@@ -1842,11 +1842,10 @@ export default {
       this.projects = this.form.id
         ? projects
         : projects
-            .filter(p => p.project_state && p.project_state.id !== 2)
+            .filter(p => p.project_state && p.project_state.can_assign_documents)
             .filter(
               p =>
-                p.mother === null ||
-                (p.mother !== null && p.mother.id && p.mother.id !== p.id)
+                !p.is_mother
             );
 
       this.clients = (
@@ -1899,11 +1898,10 @@ export default {
       this.projects = this.form.id
         ? projects
         : projects
-            .filter(p => p.project_state && p.project_state.id !== 2)
+            .filter(p => p.project_state && p.project_state.can_assign_documents)
             .filter(
               p =>
-                p.mother === null ||
-                (p.mother !== null && p.mother.id && p.mother.id !== p.id)
+                !p.is_mother
             );
     },
     changeLine(line, field, value) {

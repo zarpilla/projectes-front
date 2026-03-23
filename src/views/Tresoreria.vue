@@ -10,12 +10,7 @@
 <script>
 import TitleBar from '@/components/TitleBar'
 import TresoreriaTable from '@/components/TresoreriaTable'
-// import CardComponent from '@/components/CardComponent'
-// import DedicationSaldo from '@/components/DedicationSaldo'
-// import service from '@/service/index'
 import { mapState } from 'vuex'
-// import moment from 'moment'
-// import sortBy from 'lodash/sortBy'
 
 export default {
   name: 'DedicacioSaldo',
