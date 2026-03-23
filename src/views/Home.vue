@@ -1,48 +1,7 @@
 <template>
   <div>
     <title-bar :title-stack="titleStack" />
-    <!-- <hero-bar :has-right-visible="false">
-      General
-    </hero-bar> -->
     <section class="section is-main-section">
-      <!-- <tiles>
-        <card-widget
-          class="tile is-child"
-          type="is-primary"
-          icon="account-multiple"
-          :number="projectsNumber"
-          label="Projectes"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-danger"
-          icon="clock-outline"
-          :number="dedication"
-          label="Hores reals"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-success"
-          icon="clock"
-          :number="estimatedDedication"
-          label="Hores previstes"
-        /><card-widget
-          class="tile is-child"
-          type="is-info"
-          icon="currency-eur"
-          :number="(realIncomes - realExpenses).toFixed(2)"
-          suffix="€"
-          label="Resultat actual"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-info"
-          icon="currency-eur"
-          :number="(balance ? balance : 0).toFixed(2)"
-          suffix="€"
-          label="Resultat previst"
-        />
-      </tiles> -->
 
       <card-component title="FILTRES">
         <form @submit.prevent="submit2">
@@ -328,7 +287,7 @@ export default {
       .then(r => {
         this.projects = sortBy(
           r.data.filter(
-            p => p.project_state !== null && p.project_state.id === 1
+            p => p.project_state !== null
           ),
           "name"
         );

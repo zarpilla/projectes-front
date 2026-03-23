@@ -78,12 +78,7 @@
           v-slot="props"
         >
           {{
-            formatPrice(
-              props.row.total_real_incomes -
-                props.row.total_real_expenses -
-                props.row.total_real_hours_price -
-                props.row.total_real_expenses_vat || 0
-            )
+            formatPrice(props.row.total_real_incomes_expenses || 0)
           }}
           €
         </b-table-column>
