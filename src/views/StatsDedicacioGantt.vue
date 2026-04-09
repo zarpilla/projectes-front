@@ -37,12 +37,22 @@
                 <option value="week">Setmanal</option>
               </b-select>
             </b-field>
+            <b-field label="Hores">
+              <b-select
+                v-model="filters.hoursType"
+                placeholder="Tipus hores"
+                required
+              >                
+                <option value="previstes">Previstes</option>
+                <option value="original">Originals</option>
+              </b-select>
+            </b-field>
           </b-field>
         </form>
       </card-component>
 
       <card-component title="Dedicació">        
-        <dedication-gantt :project-states="selectedProjectStates" :view="filters.view" v-if="!isLoading1 && !isLoading3" />
+        <dedication-gantt :project-states="selectedProjectStates" :view="filters.view" :hours-type="filters.hoursType" v-if="!isLoading1 && !isLoading3" />
       </card-component>
     </section>
   </div>
@@ -73,7 +83,8 @@ export default {
         project_state: null,
         year: null,
         month: null,
-        view: 'month'
+        view: 'month',
+        hoursType: 'previstes'
       },
       project_states: [],
       //years: [],

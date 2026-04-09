@@ -48,6 +48,10 @@ export default {
       type: String,
       default: "month",
     },
+    hoursType: {
+      type: String,
+      default: "previstes",
+    },
   },
   data() {
     return {
@@ -73,6 +77,9 @@ export default {
       this.getActivities();
     },
     view: function (newVal, oldVal) {
+      this.getActivities();
+    },
+    hoursType: function (newVal, oldVal) {
       this.getActivities();
     },
   },
@@ -103,7 +110,7 @@ export default {
       this.leaders = (await service({ requiresAuth: true }).get("users")).data //.filter(u => u.username === 'Ariadna');
       
       const projectStates = this.projectStates.join(',')
-      let query = `projects/phases?_where[project_state_in]=${projectStates}&_limit=-1`;
+      let query = `projects/phases?_where[project_state_in]=${projectStates}&hoursType=${this.hoursType}&_limit=-1`;
       
       const from = moment().startOf("year").format("YYYY-MM-DD");
       this.festives = (
@@ -169,8 +176,9 @@ export default {
     },
 
     processProject(p, activities, festivesMap) {
-      if (p.project_original_phases && p.project_original_phases.length > 0) {
-        p.project_original_phases.forEach((ph) => {
+      const phases = p.project_original_phases || p.project_phases || [];
+      if (phases.length > 0) {
+        phases.forEach((ph) => {
           if (ph.incomes && ph.incomes.length > 0) {
             ph.incomes.forEach((sph) => {
               if (sph.estimated_hours && sph.estimated_hours.length > 0) {
