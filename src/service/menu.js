@@ -170,6 +170,12 @@ const menu = [
       permission: "orders_admin"
     },
     {
+      to: "/order-operations",
+      icon: "format-list-checks",
+      label: "Operacions",
+      permission: "orders_admin"
+    },
+    {
       to: "/city-route",
       icon: "city",
       label: "Poblacions i rutes",
@@ -248,6 +254,12 @@ const menu = [
       to: "/transfers",
       icon: "swap-horizontal",
       label: "Transferències",
+      permission: "orders_delivery"
+    },
+    {
+      to: "/order-operations",
+      icon: "format-list-checks",
+      label: "Operacions",
       permission: "orders_delivery"
     }
   ],

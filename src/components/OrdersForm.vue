@@ -1035,6 +1035,54 @@
               </b-field>
 
               <b-field
+                label="Ruta transferència"
+                horizontal
+                message="Ruta que farà la transferència"
+                v-if="
+                  (permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')) &&
+                    form.transfer
+                "
+              >
+                <b-select
+                  v-model="form.transfer_route"
+                  placeholder="Selecciona una ruta de transferència"
+                  :disabled="!canEdit"
+                >
+                  <option :value="null">-- Cap --</option>
+                  <option
+                    v-for="route in transferRoutes"
+                    :value="route.id"
+                    :key="route.id"
+                  >
+                    {{ route.short_name || route.name }}
+                  </option>
+                </b-select>
+              </b-field>
+
+              <b-field
+                label="Data transferència"
+                horizontal
+                message="Data en què es farà la transferència"
+                v-if="
+                  (permissions.includes('orders_admin') ||
+                    permissions.includes('orders_delivery')) &&
+                    form.transfer
+                "
+              >
+                <b-datepicker
+                  v-model="form.transfer_route_date"
+                  placeholder="Selecciona una data"
+                  icon="calendar-today"
+                  :disabled="!canEdit"
+                  :readonly="false"
+                  trap-focus
+                  editable
+                >
+                </b-datepicker>
+              </b-field>
+
+              <b-field
                 label="Data comanda *"
                 horizontal
                 :type="{ 'is-danger': errors['route_date'] && submitted }"
@@ -1455,6 +1503,7 @@ export default {
       series: [],
       form: this.getClearFormObject(),
       routes: [],
+      allRoutes: [],
       products: [],
       users: [],
       contacts: [],
@@ -1847,6 +1896,11 @@ export default {
       }
 
       return "";
+    },
+    transferRoutes() {
+      // Filter routes that are marked as transfer routes and are active
+      // Use allRoutes instead of routes, since routes can be filtered by city
+      return this.allRoutes.filter(r => r.is_transfer_route && r.active);
     }
   },
   watch: {
@@ -1937,7 +1991,9 @@ export default {
         transfer_pickup_origin: null,
         transfer_pickup_destination: null,
         incidences: [],
-        transfer: false
+        transfer: false,
+        transfer_route: null,
+        transfer_route_date: null
       };
     },
     async getData() {
@@ -1964,6 +2020,7 @@ export default {
               this.normalizeIdsInForm("contact_legal_form");
               this.normalizeIdsInForm("transfer_pickup_origin");
               this.normalizeIdsInForm("transfer_pickup_destination");
+              this.normalizeIdsInForm("transfer_route");
 
               this.form.route_date = moment(
                 this.form.route_date,
@@ -1980,6 +2037,13 @@ export default {
               if (this.form.estimated_delivery_date) {
                 this.form.estimated_delivery_date = moment(
                   this.form.estimated_delivery_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
+
+              if (this.form.transfer_route_date) {
+                this.form.transfer_route_date = moment(
+                  this.form.transfer_route_date,
                   "YYYY-MM-DD"
                 ).toDate();
               }
@@ -2102,15 +2166,17 @@ export default {
       if (this.form[property] && typeof this.form[property] === "object") {
         // Check if it's an object with an id property
         if (this.form[property].id) {
-          this.form[property] = this.form[property].id;
+          // Use $set to ensure Vue reactivity
+          this.$set(this.form, property, this.form[property].id);
         } else {
-          // Empty object or object without id - set to null or 0 based on the property
-          this.form[property] = property === "contact_legal_form" ? 1 : 0;
+          // Empty object or object without id - set to null or default based on the property
+          this.$set(this.form, property, property === "contact_legal_form" ? 1 : null);
         }
-      } else if (!this.form[property]) {
-        // Null or undefined - set to default
-        this.form[property] = property === "contact_legal_form" ? 1 : 0;
+      } else if (this.form[property] === undefined) {
+        // Undefined - set to default
+        this.$set(this.form, property, property === "contact_legal_form" ? 1 : null);
       }
+      // If it's null or already a number/string, keep it as is (don't convert to 0)
     },
     ensureContactLegalFormIsValid(data) {
       // Helper method to ensure contact_legal_form is never an empty object or invalid
@@ -2129,18 +2195,18 @@ export default {
       return data;
     },
     async getAuxiliarData() {
+      // Always load all routes for transfer route selection
+      this.allRoutes = (
+        await service({ requiresAuth: true, cached: true }).get(
+          "routes?_limit=-1&_sort=order:ASC"
+        )
+      ).data;
+
+      // Load routes based on whether editing or creating
       if (this.$route.params.id && this.$route.params.id > 0) {
-        this.routes = (
-          await service({ requiresAuth: true, cached: true }).get(
-            "routes?_limit=-1&_sort=order:ASC"
-          )
-        ).data;
+        this.routes = this.allRoutes;
       } else {
-        this.routes = (
-          await service({ requiresAuth: true, cached: true }).get(
-            "routes?_limit=-1&_where[active]=true&_sort=order:ASC"
-          )
-        ).data;
+        this.routes = this.allRoutes.filter(r => r.active);
       }
 
       const users = (
@@ -2677,6 +2743,12 @@ export default {
             ).format("YYYY-MM-DD");
           }
 
+          if (orderData.transfer_route_date) {
+            orderData.transfer_route_date = moment(
+              orderData.transfer_route_date
+            ).format("YYYY-MM-DD");
+          }
+
           await service({ requiresAuth: true }).put(
             `orders/${this.form.id}`,
             orderData
@@ -2754,6 +2826,12 @@ export default {
           if (orderData.collection_pickup_date) {
             orderData.collection_pickup_date = moment(
               orderData.collection_pickup_date
+            ).format("YYYY-MM-DD");
+          }
+
+          if (orderData.transfer_route_date) {
+            orderData.transfer_route_date = moment(
+              orderData.transfer_route_date
             ).format("YYYY-MM-DD");
           }
 

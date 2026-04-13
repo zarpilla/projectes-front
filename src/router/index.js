@@ -845,6 +845,19 @@ const routes = [
   },
   {
     meta: {
+      title: "Operacions"
+    },
+    path: "/order-operations",
+    name: "order-operations.list",
+    component: () =>
+      import(/* webpackChunkName: "users" */ "../views/OrderOperations.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    },
+  },
+  {
+    meta: {
       title: "Contasol"
     },
     path: "/contasol",
