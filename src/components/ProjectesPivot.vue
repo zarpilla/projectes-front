@@ -79,13 +79,17 @@ export default {
     // project: function (newVal, oldVal) {
     //   this.getActivities()
     // },
-    projectState: function (newVal, oldVal) {
-      this.getActivities()
+    projectState: {
+      handler: function (newVal, oldVal) {
+        if (newVal !== null && newVal !== undefined) {
+          this.getActivities()
+        }
+      },
+      immediate: true
     }
   },
   mounted () {
     // console.log('mounted')
-    this.getActivities()
   },
   methods: {
     async getActivities () {
