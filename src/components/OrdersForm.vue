@@ -1037,17 +1037,52 @@
               <b-field
                 label="Ruta transferència"
                 horizontal
-                message="Ruta que farà la transferència"
                 v-if="
                   (permissions.includes('orders_admin') ||
                     permissions.includes('orders_delivery')) &&
                     form.transfer
                 "
               >
+                <template #label>
+                  Ruta transferència
+                  <b-tooltip
+                    label="Quan s'edita manualment, el càlcul automàtic es desactiva"
+                    type="is-dark"
+                    class="ml-2"
+                  >
+                    <b-icon icon="information" size="is-small"></b-icon>
+                  </b-tooltip>
+                </template>
+                <template #message>
+                  <div class="is-flex is-align-items-center">
+                    <span>Ruta que farà la transferència</span>
+                    <b-switch
+                      v-model="form.manual_transfer_route"
+                      class="ml-3"
+                      size="is-small"
+                      :disabled="!canEdit"
+                    >
+                      Edició manual
+                    </b-switch>
+                    <b-button
+                      v-if="form.manual_transfer_route"
+                      type="is-info"
+                      size="is-small"
+                      outlined
+                      icon-left="refresh"
+                      class="ml-3"
+                      @click="recalculateTransferRoute"
+                      :disabled="!canEdit"
+                    >
+                      Recalcular
+                    </b-button>
+                  </div>
+                </template>
                 <b-select
                   v-model="form.transfer_route"
                   placeholder="Selecciona una ruta de transferència"
                   :disabled="!canEdit"
+                  @input="onTransferRouteManualChange"
                 >
                   <option :value="null">-- Cap --</option>
                   <option
@@ -1078,6 +1113,7 @@
                   :readonly="false"
                   trap-focus
                   editable
+                  @input="onTransferDateManualChange"
                 >
                 </b-datepicker>
               </b-field>
@@ -1993,7 +2029,8 @@ export default {
         incidences: [],
         transfer: false,
         transfer_route: null,
-        transfer_route_date: null
+        transfer_route_date: null,
+        manual_transfer_route: false
       };
     },
     async getData() {
@@ -2021,6 +2058,11 @@ export default {
               this.normalizeIdsInForm("transfer_pickup_origin");
               this.normalizeIdsInForm("transfer_pickup_destination");
               this.normalizeIdsInForm("transfer_route");
+
+              // Initialize manual_transfer_route flag if not set
+              if (this.form.manual_transfer_route === undefined || this.form.manual_transfer_route === null) {
+                this.form.manual_transfer_route = false;
+              }
 
               this.form.route_date = moment(
                 this.form.route_date,
@@ -3948,6 +3990,37 @@ export default {
           }
         }
       });
+    },
+    onTransferRouteManualChange() {
+      // When user manually changes transfer route, mark it as manual
+      if (this.form.transfer_route !== null && this.form.transfer_route !== undefined) {
+        this.form.manual_transfer_route = true;
+      }
+    },
+    onTransferDateManualChange() {
+      // When user manually changes transfer date, mark it as manual
+      if (this.form.transfer_route_date) {
+        this.form.manual_transfer_route = true;
+      }
+    },
+    async recalculateTransferRoute() {
+      try {
+        // Reset the manual flag and trigger recalculation
+        this.form.manual_transfer_route = false;
+        this.form.transfer_route = null;
+        this.form.transfer_route_date = null;
+        
+        this.$buefy.toast.open({
+          message: "Els valors es recalcularan automàticament en guardar",
+          type: "is-info"
+        });
+      } catch (error) {
+        console.error("Error resetting transfer route:", error);
+        this.$buefy.toast.open({
+          message: "Error reiniciant la ruta de transferència",
+          type: "is-danger"
+        });
+      }
     }
   }
 };

@@ -202,11 +202,23 @@
         {{ formatDate(props.row.estimated_delivery_date) }}
       </b-table-column>
 
-      <b-table-column label="Recollida" v-slot="props" width="150">
+      <b-table-column
+        label="Recollida"
+        field="pickupPointSort"
+        sortable
+        v-slot="props"
+        width="150"
+      >
         {{ getPickupPointName(props.row) }}
       </b-table-column>
 
-      <b-table-column label="Entrega" v-slot="props" width="200">
+      <b-table-column
+        label="Entrega"
+        field="deliveryPointSort"
+        sortable
+        v-slot="props"
+        width="200"
+      >
         {{ getDeliveryPointName(props.row) }}
       </b-table-column>
 
@@ -626,10 +638,44 @@ export default {
               operationTypeSort = 2;
             }
 
+            // Compute sort values for pickup and delivery points
+            let pickupPointSort = "";
+            let deliveryPointSort = "";
+
+            // Pickup point sort value
+            if (order.is_collection_order) {
+              pickupPointSort = order.contact
+                ? (order.contact.trade_name || order.contact_trade_name || "").toLowerCase()
+                : "";
+            } else {
+              pickupPointSort = order.pickup
+                ? (order.pickup.name || "").toLowerCase()
+                : "";
+            }
+
+            // Delivery point sort value
+            if (order.is_collection_order) {
+              deliveryPointSort = order.pickup
+                ? (order.pickup.name || "").toLowerCase()
+                : "";
+            } else if (isTransfer && order.transfer_pickup_destination) {
+              deliveryPointSort = (
+                order.transfer_pickup_destination.name || ""
+              ).toLowerCase();
+            } else if (order.contact) {
+              deliveryPointSort = (
+                order.contact.trade_name ||
+                order.contact_trade_name ||
+                ""
+              ).toLowerCase();
+            }
+
             operations.push({
               ...order,
               operationType: isDirect && !isTransfer ? "direct" : "transfer",
-              operationTypeSort: operationTypeSort
+              operationTypeSort: operationTypeSort,
+              pickupPointSort: pickupPointSort,
+              deliveryPointSort: deliveryPointSort
             });
           }
         });
