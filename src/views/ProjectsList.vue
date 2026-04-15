@@ -85,16 +85,10 @@
                 placeholder="Coordina"
                 @change.native="onUserChange($event)"
               >
-              <option
-                  value="0"
-                >
+                <option value="0">
                   --
                 </option>
-                <option
-                  v-for="(s, index) in users"
-                  :key="index"
-                  :value="s.id"
-                >
+                <option v-for="(s, index) in users" :key="index" :value="s.id">
                   {{ s.username }}
                 </option>
               </b-select>
@@ -111,15 +105,23 @@
           <b-field grouped v-if="scopes && scopes.length">
             <div class="columns is-multiline mt-5">
               <div class="column">
-                <b-button class="zis-warning scope" @click="setScope(0)" :class="0 === filters.scopeId ? 'is-warning' : 'is-light'"
+                <b-button
+                  class="zis-warning scope"
+                  @click="setScope(0)"
+                  :class="0 === filters.scopeId ? 'is-warning' : 'is-light'"
                 >
-                Tots
+                  Tots
                 </b-button>
               </div>
               <div class="column" v-for="(scope, i) in scopes" :key="i">
-                <b-button class="scope" @click="setScope(scope.id)" :class="scope.id === filters.scopeId ? 'is-warning' : 'is-light'"
+                <b-button
+                  class="scope"
+                  @click="setScope(scope.id)"
+                  :class="
+                    scope.id === filters.scopeId ? 'is-warning' : 'is-light'
+                  "
                 >
-                {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : '' }}
+                  {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : "" }}
                 </b-button>
               </div>
             </div>
@@ -129,19 +131,19 @@
 
       <div class="actions is-flex mb-5">
         <b-button
-                class="view-button is-primary"
-                @click="navNewProject"
-                icon-left="plus"
-              >
-                Nou projecte
-              </b-button>
-<download-excel :data="projectsCSV">
-                <b-button
-                  title="Exporta dades"
-                  class="export-button mt-0 ml-4"
-                  icon-left="file-excel"
-                />
-              </download-excel>
+          class="view-button is-primary"
+          @click="navNewProject"
+          icon-left="plus"
+        >
+          Nou projecte
+        </b-button>
+        <download-excel :data="projectsCSV">
+          <b-button
+            title="Exporta dades"
+            class="export-button mt-0 ml-4"
+            icon-left="file-excel"
+          />
+        </download-excel>
       </div>
 
       <card-component
@@ -209,13 +211,13 @@ export default {
     CardWidget,
     Tiles,
     // HeroBar,
-    TitleBar,
+    TitleBar
   },
   data() {
     return {
       defaultChart: {
         chartData: null,
-        extraOptions: chartConfig.chartOptionsMain,
+        extraOptions: chartConfig.chartOptionsMain
       },
       projectsNumber: 0,
       // contactsNumber: 0,
@@ -228,8 +230,8 @@ export default {
       dedication: 0,
       estimatedDedication: 0,
       project_states: [],
-      filters: { project_state: 1, q: "", user: '', scopeId: 0 },
-      queryChanged: 0,      
+      filters: { project_state: 1, q: "", user: "", scopeId: 0 },
+      queryChanged: 0,
       users: []
     };
   },
@@ -239,8 +241,8 @@ export default {
     },
     projectsCSV() {
       // return this.projects
-      console.log('this.projects', this.projects)
-      const projectsCSV = this.projects.map((p) => {
+      console.log("this.projects", this.projects);
+      const projectsCSV = this.projects.map(p => {
         return {
           id: p.id,
           name: p.name,
@@ -251,34 +253,40 @@ export default {
           leader: p.leader && p.leader.id ? p.leader.username : "",
           date_start: p.date_start,
           date_end: p.date_end,
-          estimated_hours: p.total_estimated_hours.toString().replace('.', ','),
-          real_hours: p.total_real_hours.toString().replace('.', ','),
+          estimated_hours: p.total_estimated_hours.toString().replace(".", ","),
+          real_hours: p.total_real_hours.toString().replace(".", ","),
 
-          estimated_incomes: p.total_incomes.toString().replace('.', ','),
-          estimated_expenses: p.total_expenses.toString().replace('.', ','),
-          estimated_hours_price: p.total_estimated_hours_price.toString().replace('.', ','),
-          estimated_result: p.incomes_expenses.toString().replace('.', ','),
+          estimated_incomes: p.total_incomes.toString().replace(".", ","),
+          estimated_expenses: p.total_expenses.toString().replace(".", ","),
+          estimated_hours_price: p.total_estimated_hours_price
+            .toString()
+            .replace(".", ","),
+          estimated_result: p.incomes_expenses.toString().replace(".", ","),
 
-          real_incomes: p.total_real_incomes.toString().replace('.', ','),
-          real_expenses: p.total_real_expenses.toString().replace('.', ','),
-          real_hours_price: p.total_real_hours_price.toString().replace('.', ','),
-          real_result: p.total_real_incomes_expenses.toString().replace('.', ','),
+          real_incomes: p.total_real_incomes.toString().replace(".", ","),
+          real_expenses: p.total_real_expenses.toString().replace(".", ","),
+          real_hours_price: p.total_real_hours_price
+            .toString()
+            .replace(".", ","),
+          real_result: p.total_real_incomes_expenses
+            .toString()
+            .replace(".", ",")
         };
       });
       return projectsCSV;
-    },
+    }
   },
   mounted() {
     this.fillChartData();
 
     this.$buefy.snackbar.open({
       message: "Benvinguda",
-      queue: false,
+      queue: false
     });
 
     service({ requiresAuth: true, cached: true })
       .get("project-states")
-      .then((r) => {
+      .then(r => {
         this.project_states = [...r.data];
         this.project_states.unshift({ id: 0, name: "Tots" });
         // this.filters.project_state = defaultProjectState
@@ -286,9 +294,9 @@ export default {
 
     service({ requiresAuth: true, cached: true })
       .get("users?_limit=-1")
-      .then((r) => {        
+      .then(r => {
         const users = r.data.filter(u => !u.hidden);
-        this.users = users
+        this.users = users;
       });
 
     // service({ requiresAuth: true })
@@ -300,16 +308,16 @@ export default {
 
     service({ requiresAuth: true, cached: true })
       .get("project-scopes?_limit=-1&_sort=code:ASC")
-      .then((r) => {
-        this.scopes = r.data
+      .then(r => {
+        this.scopes = r.data;
         // this.applyProjects();
       });
-    const query = `projects/basic?_limit=-1&project_state=1`
+    const query = `projects/basic?_limit=-1&project_state=1`;
     service({ requiresAuth: true })
       .get(query)
-      .then((r) => {
+      .then(r => {
         this.projects = r.data.filter(
-          (p) => p.project_state !== null && p.project_state.id === 1
+          p => p.project_state !== null && p.project_state.id === 1
         );
         this.applyProjects();
       });
@@ -346,19 +354,26 @@ export default {
       const where1 = this.filters.project_state
         ? `&project_state=${this.filters.project_state}`
         : "";
-      const where2 = this.filters.scopeId ? '&project_scope=' + this.filters.scopeId : ''
-      const where3 = this.filters.user && this.filters.user > 0 ? '&leader=' + this.filters.user : ''
+      const where2 = this.filters.scopeId
+        ? "&project_scope=" + this.filters.scopeId
+        : "";
+      const where3 =
+        this.filters.user && this.filters.user > 0
+          ? "&leader=" + this.filters.user
+          : "";
       if (q) {
         service({ requiresAuth: true })
-          .get(`projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`)
-          .then((r) => {
+          .get(
+            `projects?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`
+          )
+          .then(r => {
             this.projects = r.data;
             this.applyProjects();
           });
       } else {
         service({ requiresAuth: true })
           .get(`projects?_limit=-1${where1}${where2}${where3}`)
-          .then((r) => {
+          .then(r => {
             this.projects = r.data;
             this.applyProjects();
           });
@@ -367,17 +382,17 @@ export default {
     },
     applyProjects() {
       this.projectsNumber = this.projects.length;
-      this.balance = sumBy(this.projects, (p) => {
+      this.balance = sumBy(this.projects, p => {
         return p.incomes_expenses;
       });
       this.realIncomes = sumBy(this.projects, "total_real_incomes_expenses");
-      this.realExpenses = sumBy(this.projects, (p) => {
+      this.realExpenses = sumBy(this.projects, p => {
         return 0;
       });
-      this.estimatedDedication = sumBy(this.projects, (p) => {
+      this.estimatedDedication = sumBy(this.projects, p => {
         return p.total_estimated_hours ? p.total_estimated_hours : 0;
       });
-      this.dedication = sumBy(this.projects, (p) => {
+      this.dedication = sumBy(this.projects, p => {
         return p.total_real_hours ? p.total_real_hours : 0;
       });
     },
@@ -397,16 +412,16 @@ export default {
             pointHoverRadius: 4,
             pointHoverBorderWidth: 15,
             pointRadius: 4,
-            data: this.randomChartData(9),
-          },
+            data: this.randomChartData(9)
+          }
         ],
-        labels: ["01", "02", "03", "04", "05", "06", "07", "08", "09"],
+        labels: ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
       };
     },
-    setScope (scopeId) {
-      this.filters.scopeId = scopeId
-      this.doFilteredQuery(this.filters.q)
+    setScope(scopeId) {
+      this.filters.scopeId = scopeId;
+      this.doFilteredQuery(this.filters.q);
     }
-  },
+  }
 };
 </script>
