@@ -38,21 +38,7 @@
       </b-table-column>
       
       <b-table-column
-        label="Hores prev."
-        field="total_estimated_hours"
-        sortable
-        numeric
-        v-slot="props"
-      >
-        {{
-          props.row.total_estimated_hours
-            ? props.row.total_estimated_hours.toFixed(2)
-            : "0.00"
-        }}
-      </b-table-column>
-      
-      <b-table-column
-        label="Hores reals"
+        label="Hores dedicades"
         field="total_real_hours"
         sortable
         numeric
@@ -66,79 +52,21 @@
       </b-table-column>
       
       <b-table-column
-        label="Import prev. hores"
-        field="total_estimated_hours_price"
+        label="Hores previstes"
+        field="total_estimated_hours"
         sortable
         numeric
         v-slot="props"
       >
-        {{ formatPrice(props.row.total_estimated_hours_price || 0) }}€
+        {{
+          props.row.total_estimated_hours
+            ? props.row.total_estimated_hours.toFixed(2)
+            : "0.00"
+        }}
       </b-table-column>
       
       <b-table-column
-        label="Import real hores"
-        field="total_real_hours_price"
-        sortable
-        numeric
-        v-slot="props"
-      >
-        {{ formatPrice(props.row.total_real_hours_price || 0) }}€
-      </b-table-column>
-      
-      <b-table-column
-        label="Ingressos prev."
-        field="total_incomes"
-        sortable
-        numeric
-        v-slot="props"
-      >
-        {{ formatPrice(props.row.total_incomes || 0) }}€
-      </b-table-column>
-      
-      <b-table-column
-        label="Despeses prev."
-        field="total_expenses"
-        sortable
-        numeric
-        v-slot="props"
-      >
-        {{ formatPrice(props.row.total_expenses || 0) }}€
-      </b-table-column>
-      
-      <b-table-column
-        label="Resultat prev."
-        field="incomes_expenses"
-        sortable
-        numeric
-        v-slot="props"
-      >
-        <span :class="getResultClass(props.row.incomes_expenses || 0)">
-          {{ formatPrice(props.row.incomes_expenses || 0) }}€
-        </span>
-      </b-table-column>
-      
-      <b-table-column
-        label="Ingressos reals"
-        field="total_real_incomes"
-        sortable
-        numeric
-        v-slot="props"
-      >
-        {{ formatPrice(props.row.total_real_incomes || 0) }}€
-      </b-table-column>
-      
-      <b-table-column
-        label="Despeses reals"
-        field="total_real_expenses"
-        sortable
-        numeric
-        v-slot="props"
-      >
-        {{ formatPrice(props.row.total_real_expenses || 0) }}€
-      </b-table-column>
-      
-      <b-table-column
-        label="Resultat real"
+        label="Resultat executat"
         field="total_real_incomes_expenses"
         sortable
         numeric
@@ -146,6 +74,18 @@
       >
         <span :class="getResultClass(props.row.total_real_incomes_expenses || 0)">
           {{ formatPrice(props.row.total_real_incomes_expenses || 0) }}€
+        </span>
+      </b-table-column>
+      
+      <b-table-column
+        label="Resultat previst"
+        field="estimated_incomes_expenses"
+        sortable
+        numeric
+        v-slot="props"
+      >
+        <span :class="getResultClass(props.row.estimated_incomes_expenses || 0)">
+          {{ formatPrice(props.row.estimated_incomes_expenses || 0) }}€
         </span>
       </b-table-column>
       
