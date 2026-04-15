@@ -2,6 +2,14 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section column is-half">
+      <card-component title="2026.04.15">
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Millores en la gestió i visualització de projectes mare, amb una nova vista de llistat i una nova vista de fitxa de projecte mare.
+          </div>
+        </div>
+      </card-component>
       <card-component title="2026.02.15">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
@@ -9,7 +17,7 @@
             Nou assistent  per passos en la creació de projectes.
           </div>
         </div>
-      </card-component>
+      </card-component>      
       <card-component title="2026.02.09">
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>

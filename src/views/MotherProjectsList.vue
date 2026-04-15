@@ -2,7 +2,7 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <tiles>
+      <!-- <tiles>
         <card-widget
           class="tile is-child"
           type="is-primary"
@@ -40,7 +40,7 @@
           suffix="€"
           label="Resultat previst"
         />
-      </tiles>
+      </tiles> -->
 
       <card-component title="FILTRES">
         <form @submit.prevent="applyFilters">
@@ -84,46 +84,33 @@
               />
             </b-field>
           </b-field>
-          <b-field grouped v-if="scopes && scopes.length">
-            <div class="columns is-multiline mt-5">
-              <div class="column">
-                <b-button
-                  class="scope"
-                  @click="setScope(0)"
-                  :class="0 === filters.scopeId ? 'is-warning' : 'is-light'"
-                >
-                  Tots
-                </b-button>
-              </div>
-              <div class="column" v-for="(scope, i) in scopes" :key="i">
-                <b-button
-                  class="scope"
-                  @click="setScope(scope.id)"
-                  :class="scope.id === filters.scopeId ? 'is-warning' : 'is-light'"
-                >
-                  {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : '' }}
-                </b-button>
-              </div>
-            </div>
-          </b-field>
         </form>
       </card-component>
 
-      <div class="actions is-flex mb-5">
-        <b-button
-          class="view-button is-primary"
-          @click="navNewProject"
-          icon-left="plus"
-        >
-          Nou projecte
-        </b-button>
-        <download-excel :data="projectsCSV">
+      <div class="actions is-flex mb-5" style="justify-content: space-between;">
+        <div class="is-flex">
           <b-button
-            title="Exporta dades"
-            class="export-button mt-0 ml-4"
-            icon-left="file-excel"
-          />
-        </download-excel>
+            class="view-button is-primary"
+            @click="navNewProject"
+            icon-left="plus"
+          >
+            Nou projecte
+          </b-button>
+          <download-excel :data="projectsCSV">
+            <b-button
+              title="Exporta dades"
+              class="export-button mt-0 ml-4"
+              icon-left="file-excel"
+            />
+          </download-excel>
+        </div>
+        <b-button
+          class="is-info"
+          @click="switchToRegularProjects"
+          icon-left="folder"
+        >
+          Tots els Projectes
+        </b-button>
       </div>
 
       <card-component
@@ -241,6 +228,10 @@ export default {
   methods: {
     navNewProject() {
       this.$router.push("/project/0");
+    },
+    switchToRegularProjects() {
+      localStorage.setItem("projectsDefaultView", "regular");
+      this.$router.push("/projectes");
     },
     onFilterChange() {
       this.doFilteredQuery(this.filters.q);
