@@ -69,24 +69,33 @@
         </form>
       </card-component>
 
-      <div class="actions is-flex mb-5">
-        <b-button
-          class="zview-button is-primary"
-          @click="navNewProject"
-          icon-left="plus"
-        >
-          Nou projecte
-        </b-button>
-        <download-excel :data="projectsCSV">
+      <div class="actions is-flex mb-5" style="justify-content: space-between;">
+        <div class="is-flex">
           <b-button
-            title="Exporta dades"
-            class="export-button mt-0 mt-0 ml-4"
-            icon-left="file-excel"
-          />
-        </download-excel>
-        <div class="projects-number ml-4 mt-2 has-text-weight-bold">
-          {{ projectsNumber }} PROJECTES
+            class="zview-button is-primary"
+            @click="navNewProject"
+            icon-left="plus"
+          >
+            Nou projecte
+          </b-button>
+          <download-excel :data="projectsCSV">
+            <b-button
+              title="Exporta dades"
+              class="export-button mt-0 mt-0 ml-4"
+              icon-left="file-excel"
+            />
+          </download-excel>
+          <div class="projects-number ml-4 mt-2 has-text-weight-bold">
+            {{ projectsNumber }} PROJECTES
+          </div>
         </div>
+        <b-button
+          class="is-info"
+          @click="switchToMotherProjects"
+          icon-left="folder-multiple"
+        >
+          Projectes Mare
+        </b-button>
       </div>
 
       <b-loading
@@ -337,6 +346,10 @@ export default {
     },
     navNewProject() {
       this.$router.push("/project/0");
+    },
+    switchToMotherProjects() {
+      localStorage.setItem("projectsDefaultView", "mother");
+      this.$router.push("/mother-projects");
     },
     onChange(event) {
       this.doFilteredQuery(this.filters.q);

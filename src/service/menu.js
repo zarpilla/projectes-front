@@ -271,12 +271,12 @@ const menu = [
       label: "Projectes",
       permission: "projects"
     },
-    {
-      to: "/mother-projects",
-      icon: "file-tree",
-      label: "Projectes Mare",
-      permission: "projects"
-    },
+    // {
+    //   to: "/mother-projects",
+    //   icon: "file-tree",
+    //   label: "Projectes Mare",
+    //   permission: "projects"
+    // },
     {
       to: "/dedicacio-charts",
       label: "Dedicació",

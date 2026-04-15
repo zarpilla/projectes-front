@@ -896,6 +896,15 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
+  // Check if navigating to /projectes and redirect based on localStorage preference
+  if (to.path === "/projectes" && from.path !== "/mother-projects") {
+    const defaultView = localStorage.getItem("projectsDefaultView");
+    if (defaultView === "mother") {
+      next({ path: "/mother-projects" });
+      return;
+    }
+  }
+  
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (localStorage.getItem("jwt") == null) {
       next({
