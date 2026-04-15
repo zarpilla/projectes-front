@@ -17,11 +17,15 @@
         <button class="button zis-small is-primary mr-1" type="button" @click="changeZoomLevel(+1)">
           <b-icon icon="magnify-plus" size="is-small"/>
         </button> -->
-        <b-select v-model="user" placeholder="Persona">
+        <b-select v-if="editable" v-model="user" placeholder="Persona">
           <option v-for="(s, index) in users" :key="index" :value="s">
             {{ s.username }}
           </option>
         </b-select>
+        <span v-else class="has-text-grey-light mr-2">
+          <b-icon icon="eye" size="is-small"></b-icon>
+          Mode només lectura
+        </span>
         <button
           class="button zis-small is-primary is-outlined ml-1"
           type="button"
@@ -76,6 +80,10 @@ export default {
     viewMode: {
       type: String,
       default: "original" // 'original' or 'estimated'
+    },
+    editable: {
+      type: Boolean,
+      default: true
     }
   },
   components: {
@@ -311,6 +319,13 @@ export default {
 
       gantt.config.start_date = minDate;
       gantt.config.end_date = maxDate;
+      gantt.config.readonly = !this.editable;
+      gantt.config.drag_move = this.editable;
+      gantt.config.drag_resize = this.editable;
+      gantt.config.drag_progress = this.editable;
+      gantt.config.drag_links = this.editable;
+      gantt.config.details_on_dblclick = this.editable;
+      gantt.config.details_on_create = this.editable;
       
       gantt.config.columns = [
         {
@@ -360,73 +375,96 @@ export default {
           return "";
       };
 
-      gantt.config.click_drag = {
-        callback: this.onDragEnd,
-        singleRow: true,
-      };
-      gantt.attachEvent(
-        "onTaskClick",
-        (id, e) => {
-          if (
-            e &&
-            e.target &&
-            (e.target.classList.contains("gantt_open") ||
-              e.target.classList.contains("gantt_close"))
-          ) {
-            return true;
-          }
-          this.dedicationObject = this.tasks.data.find(
-            (t) => t.id.toString() === id.toString()
-          );
-          if (
-            this.dedicationObject.type === "project" ||
-            this.dedicationObject.type === "milestone"
-          ) {
-            return true;
-          }
-          this.isModalActive = true;
-          return true;
-        },
-        { id: "onTaskClick" }
-      );
-
-      gantt.attachEvent(
-        "onAfterTaskUpdate",
-        (id, item) => {
-          // console.log('onAfterTaskUpdate', item, this.project)
-          if (
-            moment(item.start_date).format("YYYYMMDD") <
-              moment(this.project.date_start).format("YYYYMMDD") ||
-            moment(item.end_date).format("YYYYMMDD") >
-              moment(this.project.date_end).format("YYYYMMDD")
-          ) {
-            this.$buefy.snackbar.open({
-              message: "Atenció, planificació fora del període del projecte",
-              queue: false,
-            });
-          }
-          //any custom logic here
-          // this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
-          // this.isModalActive = true
-          if (!this.updating) {
-            // console.log('onAfterTaskUpdate', item)
-            // console.log('onAfterTaskUpdate', this.tasks.data)
-            const task = this.tasks.data.find(
+      if (this.editable) {
+        gantt.config.click_drag = {
+          callback: this.onDragEnd,
+          singleRow: true,
+        };
+      } else {
+        gantt.config.click_drag = false;
+      }
+      if (this.editable) {
+        gantt.attachEvent(
+          "onTaskClick",
+          (id, e) => {
+            if (
+              e &&
+              e.target &&
+              (e.target.classList.contains("gantt_open") ||
+                e.target.classList.contains("gantt_close"))
+            ) {
+              return true;
+            }
+            this.dedicationObject = this.tasks.data.find(
               (t) => t.id.toString() === id.toString()
             );
-            task.start_date = item.start_date;
-            task.end_date = item.end_date;
-            task.end_date = item.end_date;
-            // console.log('onAfterTaskUpdate item', item)
-            // console.log('onAfterTaskUpdate task', task)
-            this.$emit("gantt-item-update", task);
-          }
-        },
-        { id: "onAfterTaskUpdate" }
-      );
-      gantt.showLightbox = function (id) {
-        // code of the custom form
-      };
+            if (
+              this.dedicationObject.type === "project" ||
+              this.dedicationObject.type === "milestone"
+            ) {
+              return true;
+            }
+            this.isModalActive = true;
+            return true;
+          },
+          { id: "onTaskClick" }
+        );
+      }
+
+      if (this.editable) {
+        gantt.attachEvent(
+          "onAfterTaskUpdate",
+          (id, item) => {
+            // console.log('onAfterTaskUpdate', item, this.project)
+            if (
+              moment(item.start_date).format("YYYYMMDD") <
+                moment(this.project.date_start).format("YYYYMMDD") ||
+              moment(item.end_date).format("YYYYMMDD") >
+                moment(this.project.date_end).format("YYYYMMDD")
+            ) {
+              this.$buefy.snackbar.open({
+                message: "Atenció, planificació fora del període del projecte",
+                queue: false,
+              });
+            }
+            //any custom logic here
+            // this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
+            // this.isModalActive = true
+            if (!this.updating) {
+              // console.log('onAfterTaskUpdate', item)
+              // console.log('onAfterTaskUpdate', this.tasks.data)
+              const task = this.tasks.data.find(
+                (t) => t.id.toString() === id.toString()
+              );
+              task.start_date = item.start_date;
+              task.end_date = item.end_date;
+              task.end_date = item.end_date;
+              // console.log('onAfterTaskUpdate item', item)
+              // console.log('onAfterTaskUpdate task', task)
+              this.$emit("gantt-item-update", task);
+            }
+          },
+          { id: "onAfterTaskUpdate" }
+        );
+      }
+      
+      if (!this.editable) {
+        gantt.showLightbox = function (id) {
+          // Disable lightbox in read-only mode
+          return false;
+        };
+      } else {
+        gantt.showLightbox = function (id) {
+          // code of the custom form
+        };
+      }
+      
+      // Prevent deletion in read-only mode
+      if (!this.editable) {
+        gantt.attachEvent("onBeforeTaskDelete", function(id, item) {
+          return false; // prevent deletion
+        });
+      }
       
       if (document.getElementById(this.ganttId)) {
         gantt.init(this.ganttId);

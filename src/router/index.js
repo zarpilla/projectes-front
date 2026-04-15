@@ -64,6 +64,18 @@ const routes = [
   },
   {
     meta: {
+      title: "Projectes Mare"
+    },
+    path: "/mother-projects",
+    name: "mother.projects",
+    component: () =>
+      import(/* webpackChunkName: "projects" */ "../views/MotherProjectsList.vue"),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: "Panell Dedicacio"
     },
     path: "/stats-dedicacio",

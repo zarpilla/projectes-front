@@ -1736,7 +1736,6 @@
             form &&
             form.project_phases &&
             form.project_phases.length &&
-            !form.children &&
             !isCreationMode
         "
         :title="'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
@@ -2173,6 +2172,46 @@
           </template>
         </div>
       </card-component>
+
+      <!-- Gantt charts for child projects in mother projects -->
+      <div v-if="!isLoading && !isUpdating && form.is_mother && form.children && form.children.children && form.children.children.length && !isCreationMode">
+        <card-component
+          v-for="child in form.children.children"
+          :key="'child-gantt-' + child.id"
+          :title="'PLANIFICACIÓ DEL PROJECTE FILL: ' + child.name + (ganttViewMode === 'original' ? ' - ORIGINAL' : ' - PREVISTA')"
+          class="mt-4"
+          header-icon="swap-horizontal"
+          @header-icon-click="toggleGanttView"
+        >
+          <div class="mb-3">
+            <router-link
+              :to="{ name: 'project.edit', params: { id: child.id } }"
+              class="button is-small is-info"
+            >
+              <b-icon icon="open-in-new" size="is-small"></b-icon>
+              <span>Obrir projecte fill</span>
+            </router-link>
+          </div>
+          
+          <project-gannt
+            v-if="
+              child.id &&
+              ((ganttViewMode === 'original' && child.project_original_phases && child.project_original_phases.length && child.project_original_phases[0].id) ||
+               (ganttViewMode === 'estimated' && child.project_phases && child.project_phases.length && child.project_phases[0].id))
+            "
+            :key="'gantt-child-' + ganttViewMode + '-' + child.id"
+            class="left-container"
+            :project="child"
+            :users="leaders"
+            :tasks="{}"
+            :view-mode="ganttViewMode"
+            :editable="false"
+          />
+          <div v-else class="notification is-warning">
+            Aquest projecte fill no té fases {{ ganttViewMode === 'original' ? 'originals' : 'previstes' }} definides.
+          </div>
+        </card-component>
+      </div>
 
       <card-component
         v-if="treasury && treasury.length && !isLoading && !isCreationMode"
@@ -3085,34 +3124,69 @@ export default {
 
               // Load children data if this project is a mother project
               if (this.form.is_mother) {
+                console.log('=== getData: Loading children data for mother project ===');
                 const childrenData = (
                   await service({ requiresAuth: true }).get(
                     `projects/${this.$route.params.id}/children`
                   )
                 ).data;
+
+                console.log('Loaded children data from API:', childrenData);
                 
-                this.form.incomes_expenses =
-                  childrenData.totals.incomes_expenses;
-                this.form.total_real_incomes_expenses =
-                  childrenData.totals.total_real_incomes_expenses;
-                this.form.total_incomes = childrenData.totals.total_incomes;
-                this.form.total_real_incomes =
-                  childrenData.totals.total_real_incomes;
-                this.form.total_expenses = childrenData.totals.total_expenses;
-                this.form.total_estimated_hours_price =
-                  childrenData.totals.total_estimated_hours_price;
-                this.form.total_real_expenses =
-                  childrenData.totals.total_real_expenses;
-                this.form.total_real_hours_price =
-                  childrenData.totals.total_real_hours_price;
+                // Update all three financial dimensions from aggregated children data
+                // Original dimension
+                this.form.total_original_incomes =
+                  childrenData.totals.total_original_incomes;
+                this.form.total_original_expenses =
+                  childrenData.totals.total_original_expenses;
+                this.form.total_original_expenses_vat =
+                  childrenData.totals.total_original_expenses_vat;
+                this.form.total_original_hours =
+                  childrenData.totals.total_original_hours;
+                this.form.total_original_hours_price =
+                  childrenData.totals.total_original_hours_price;
+                this.form.original_incomes_expenses =
+                  childrenData.totals.original_incomes_expenses;
+                
+                // Estimated dimension
+                this.form.total_estimated_incomes =
+                  childrenData.totals.total_estimated_incomes;
+                this.form.total_estimated_expenses =
+                  childrenData.totals.total_estimated_expenses;
+                this.form.total_estimated_expenses_vat =
+                  childrenData.totals.total_estimated_expenses_vat;
                 this.form.total_estimated_hours =
                   childrenData.totals.total_estimated_hours;
-                this.form.total_real_hours =
-                  childrenData.totals.total_real_hours;
-                this.form.total_expenses_vat =
-                  childrenData.totals.total_expenses_vat;
+                this.form.total_estimated_hours_price =
+                  childrenData.totals.total_estimated_hours_price;
+                this.form.estimated_incomes_expenses =
+                  childrenData.totals.estimated_incomes_expenses;
+                
+                // Real/Executed dimension
+                this.form.total_real_incomes =
+                  childrenData.totals.total_real_incomes;
+                this.form.total_real_expenses =
+                  childrenData.totals.total_real_expenses;
                 this.form.total_real_expenses_vat =
                   childrenData.totals.total_real_expenses_vat;
+                this.form.total_real_hours =
+                  childrenData.totals.total_real_hours;
+                this.form.total_real_hours_price =
+                  childrenData.totals.total_real_hours_price;
+                this.form.total_real_incomes_expenses =
+                  childrenData.totals.total_real_incomes_expenses;
+                
+                // Backwards compatibility fields
+                this.form.total_incomes = childrenData.totals.total_incomes;
+                this.form.total_expenses = childrenData.totals.total_expenses;
+                this.form.total_expenses_vat =
+                  childrenData.totals.total_expenses_vat;
+                this.form.incomes_expenses =
+                  childrenData.totals.incomes_expenses;
+                this.form.balance = childrenData.totals.balance;
+                this.form.estimated_balance = childrenData.totals.estimated_balance;
+                
+                // Document arrays
                 this.form.emitted_invoices =
                   childrenData.totals.emitted_invoices;
                 this.form.received_grants = childrenData.totals.received_grants;
@@ -3624,7 +3698,53 @@ export default {
           });
           console.log('After filter - this.form.grantable_contacts:', JSON.stringify(this.form.grantable_contacts));
 
-          const { activities, ...form } = this.form;
+          // Exclude large computed/read-only fields from the payload to prevent 413 errors
+          // especially for mother projects which have large children data
+          const { 
+            activities, 
+            children,           // Mother project children data (read-only, computed)
+            allByYear,          // Computed aggregated data by year
+            calculatedTotals,   // Computed totals
+            incomes_expenses,   // Computed financial data
+            total_real_incomes_expenses,
+            total_incomes,
+            total_real_incomes,
+            total_expenses,
+            total_estimated_hours_price,
+            total_real_expenses,
+            total_real_hours_price,
+            total_estimated_hours,
+            total_real_hours,
+            total_expenses_vat,
+            total_real_expenses_vat,
+            // Document arrays (read-only relationships, loaded separately)
+            emitted_invoices,
+            received_grants,
+            received_invoices,
+            tickets,
+            diets,
+            received_incomes,
+            received_expenses,
+            treasury_annotations,
+            ...form 
+          } = this.form;
+          
+          // Log payload optimization for debugging
+          if (this.form.is_mother) {
+            console.log('=== MOTHER PROJECT PAYLOAD OPTIMIZATION ===');
+            console.log('Excluded children count:', children?.children?.length || 0);
+            console.log('Excluded allByYear entries:', allByYear?.length || 0);
+          }
+          console.log('Excluded document fields:', {
+            emitted_invoices: emitted_invoices?.length || 0,
+            received_grants: received_grants?.length || 0,
+            received_invoices: received_invoices?.length || 0,
+            tickets: tickets?.length || 0,
+            diets: diets?.length || 0,
+            received_incomes: received_incomes?.length || 0,
+            received_expenses: received_expenses?.length || 0,
+            treasury_annotations: treasury_annotations?.length || 0
+          });
           console.log('form.grantable_contacts in PUT:', JSON.stringify(form.grantable_contacts));
 
           if (form.project_phases && form.project_phases.length) {
