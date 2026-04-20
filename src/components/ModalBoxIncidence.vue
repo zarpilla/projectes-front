@@ -57,6 +57,10 @@ export default {
     orderId: {
       type: [Number, String],
       required: true
+    },
+    predefinedDescription: {
+      type: String,
+      default: ""
     }
   },
   data() {
@@ -84,7 +88,7 @@ export default {
   },
   methods: {
     resetForm() {
-      this.description = "";
+      this.description = this.predefinedDescription || "";
       this.state = "open";
       this.submitted = false;
     },

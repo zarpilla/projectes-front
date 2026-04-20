@@ -264,8 +264,6 @@
 
 <script>
 import service from "@/service/index";
-import moment from "moment";
-import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import ModalBoxUnifyContacts from "@/components/ModalBoxUnifyContacts";
 
@@ -339,7 +337,9 @@ export default {
         Horaris: "timeSlot1And2",
         notes: "notes",
         Comandes: "num_orders",
-        Rutes: "routes"
+        Rutes: "routes",
+        RutesEntrega: "routes_flattened",
+        Sòcies: "owners_flattened"
       },
       cities: [],
       permissions: []

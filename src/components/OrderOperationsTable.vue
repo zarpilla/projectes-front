@@ -6,6 +6,14 @@
       :can-cancel="false"
     ></b-loading>
 
+    <modal-box-incidence
+      :is-active="isIncidenceModalActive"
+      :order-id="selectedOrderForIncidence"
+      :predefined-description="predefinedIncidenceText"
+      @confirm="onIncidenceCreated"
+      @cancel="onIncidenceCancelled"
+    ></modal-box-incidence>
+
     <div class="filters-container mb-4">
       <div
         class="is-flex is-block-mobile is-align-items-center is-flex-wrap-wrap"
@@ -28,6 +36,43 @@
               </option>
             </b-select>
           </b-field>
+        </div>
+
+        <!-- Operation Type Filter -->
+        <div class="mb-3 mr-4">
+          <h3 class="subtitle is-6 mb-2">Tipus d'operació (Ctrl+click per múltiples)</h3>
+          <div class="is-flex is-block-mobile is-flex-wrap-wrap">
+            <b-button
+              class="view-button mb-2 mr-2 ml-0"
+              :class="{
+                'is-primary': operationTypeFilter.includes('entrega'),
+                'is-light': !operationTypeFilter.includes('entrega')
+              }"
+              @click="setOperationTypeFilter($event, 'entrega')"
+            >
+              Entrega
+            </b-button>
+            <b-button
+              class="view-button mb-2 mr-2 ml-0"
+              :class="{
+                'is-primary': operationTypeFilter.includes('recollida'),
+                'is-light': !operationTypeFilter.includes('recollida')
+              }"
+              @click="setOperationTypeFilter($event, 'recollida')"
+            >
+              Recollida
+            </b-button>
+            <b-button
+              class="view-button mb-2 mr-2 ml-0"
+              :class="{
+                'is-primary': operationTypeFilter.includes('transferencia'),
+                'is-light': !operationTypeFilter.includes('transferencia')
+              }"
+              @click="setOperationTypeFilter($event, 'transferencia')"
+            >
+              Transferència
+            </b-button>
+          </div>
         </div>
 
         <!-- Date Filter -->
@@ -56,39 +101,37 @@
               </template>
             </b-datepicker>
             <b-button
-                class="ml-2"
+              class="ml-2"
               v-if="selectedDate"
               @click="clearDateFilter"
               icon-left="close"
               type="is-danger"
-              
             >
             </b-button>
           </b-field>
         </div>
 
         <!-- Summary -->
-      <div class="mb-3 is-full-width">
-        <div class="columns is-multiline ml-0 mt-4">
-          <div class="column is-half">
-            <div class="columns zis-mobile bg-white-panel">
-              <div class="column is-3">
-                <h2>Comandes directes</h2>
-                <h3 class="title is-3 mb-0">{{ directOrdersCount }}</h3>
-              </div>
-              <div class="column is-3">
-                <h2>Transferències</h2>
-                <h3 class="title is-3 mb-0">{{ transfersCount }}</h3>
-              </div>
-              <div class="column is-3">
-                <h2>Total operacions</h2>
-                <h3 class="title is-3 mb-0">{{ totalOperationsCount }}</h3>
+        <div class="mb-3 is-full-width">
+          <div class="columns is-multiline ml-0 mt-4">
+            <div class="column is-half">
+              <div class="columns zis-mobile bg-white-panel">
+                <div class="column is-3">
+                  <h2>Comandes directes</h2>
+                  <h3 class="title is-3 mb-0">{{ directOrdersCount }}</h3>
+                </div>
+                <div class="column is-3">
+                  <h2>Transferències</h2>
+                  <h3 class="title is-3 mb-0">{{ transfersCount }}</h3>
+                </div>
+                <div class="column is-3">
+                  <h2>Total operacions</h2>
+                  <h3 class="title is-3 mb-0">{{ totalOperationsCount }}</h3>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
       </div>
       <!-- Status Filter -->
       <!-- <div class="mb-3">
@@ -116,8 +159,6 @@
           </b-button>
         </div>
       </div> -->
-
-      
     </div>
 
     <b-table
@@ -243,7 +284,7 @@
       </b-table-column>
 
       <b-table-column
-        label="Estat"
+        label="Estat comanda"
         field="status"
         sortable
         v-slot="props"
@@ -252,6 +293,54 @@
         <b-tag :type="getStatusTagType(props.row.status)">
           {{ getStatusLabel(props.row.status) }}
         </b-tag>
+      </b-table-column>
+
+      <b-table-column
+        label="Dipositat"
+        field="deposit_date"
+        sortable
+        v-slot="props"
+        width="100"
+      >
+        <b-tag type="is-success" v-if="props.row.deposit_date">
+          Sí
+        </b-tag>
+        <template v-else>
+          <b-button
+            v-if="props.row.incidences && props.row.incidences.length > 0"
+            type="is-primary"
+            size="is-small"
+            icon-left="bell"
+            @click="openIncidenceLink(props.row.incidences[0].id)"
+            title="Veure incidència"
+          >
+          </b-button>
+          <b-button
+            v-else
+            type="is-warning"
+            size="is-small"
+            icon-left="bell"
+            @click="openIncidenceModal(props.row)"
+            title="Crear incidència"
+          >
+          </b-button>
+        </template>
+      </b-table-column>
+
+      <b-table-column
+        label="Estat Logístic"
+        field="logisticsStatus"
+        sortable
+        v-slot="props"
+        width="130"
+      >
+        <b-tag
+          :type="getLogisticsStatusType(props.row)"
+          v-if="getLogisticsStatusLabel(props.row)"
+        >
+          {{ getLogisticsStatusLabel(props.row) }}
+        </b-tag>
+        <span v-else>-</span>
       </b-table-column>
 
       <b-table-column label="Accions" v-slot="props" width="180">
@@ -266,7 +355,7 @@
               icon-left="play"
               @click="startTransfer(props.row)"
             >
-              Iniciar
+              Carregar
             </b-button>
 
             <!-- End button if started but not ended -->
@@ -274,12 +363,12 @@
               v-if="
                 props.row.transfer_start_date && !props.row.transfer_end_date
               "
-              type="is-success"
+              type="is-info"
               size="is-small"
-              icon-left="check"
+              icon-left="play"
               @click="endTransfer(props.row)"
             >
-              Finalitzar
+              Descarregar
             </b-button>
 
             <!-- Undo button if in progress -->
@@ -307,22 +396,22 @@
             </b-button>
           </template>
 
-          <!-- Direct order actions -->
+          <!-- Direct order actions (all non-transfer orders) -->
           <template v-else>
             <!-- Pickup button if not picked up -->
             <b-button
-              v-if="!props.row.picked_up_date"
-              type="is-success"
+              v-if="!props.row.pickup_date"
+              type="is-info"
               size="is-small"
-              icon-left="check-circle"
+              icon-left="play"
               @click="pickupOrder(props.row)"
             >
-              Recollit
+              {{ props.row.is_collection_order ? "Recollir" : "Carregar" }}
             </b-button>
 
             <!-- Undo button if picked up -->
             <b-button
-              v-if="props.row.picked_up_date"
+              v-if="props.row.pickup_date"
               type="is-danger"
               size="is-small"
               icon-left="undo"
@@ -468,9 +557,13 @@
 import service from "@/service/index";
 import { mapState } from "vuex";
 import moment from "moment";
+import ModalBoxIncidence from "@/components/ModalBoxIncidence";
 
 export default {
   name: "OrderOperationsTable",
+  components: {
+    ModalBoxIncidence
+  },
   data() {
     return {
       isLoading: false,
@@ -480,6 +573,7 @@ export default {
       selectedDeliveryUser: null,
       selectedDate: null,
       statusFilter: ["pending", "processed"],
+      operationTypeFilter: ["entrega", "recollida", "transferencia"],
       total: 0,
       page: 1,
       perPage: 50,
@@ -490,7 +584,10 @@ export default {
       currentUserId: null,
       directOrdersCount: 0,
       transfersCount: 0,
-      totalOperationsCount: 0
+      totalOperationsCount: 0,
+      isIncidenceModalActive: false,
+      selectedOrderForIncidence: null,
+      predefinedIncidenceText: ""
     };
   },
   computed: {
@@ -630,12 +727,41 @@ export default {
             routeIds.includes(transferRouteId);
 
           if (isDirect || isTransfer) {
+            // Apply operation type filter
+            let operationType = '';
+            if (isTransfer) {
+              operationType = 'transferencia';
+            } else if (order.is_collection_order) {
+              operationType = 'recollida';
+            } else {
+              operationType = 'entrega';
+            }
+            
+            if (!this.operationTypeFilter.includes(operationType)) {
+              return; // Skip this order
+            }
             // Determine operation type sort order: 0=Normal, 1=Recollida, 2=Transferència
             let operationTypeSort = 0; // Normal by default
             if (isDirect && !isTransfer) {
               operationTypeSort = order.is_collection_order ? 1 : 0;
             } else if (isTransfer) {
               operationTypeSort = 2;
+            }
+
+            // Compute logistics status for sorting
+            let logisticsStatus = "";
+            if (isTransfer) {
+              // For transfers, only check transfer dates
+              if (order.transfer_end_date) {
+                logisticsStatus = "transferred";
+              } else if (order.transfer_start_date) {
+                logisticsStatus = "loaded";
+              }
+            } else {
+              // For non-transfers, check pickup_date
+              if (order.pickup_date) {
+                logisticsStatus = "picked_up";
+              }
             }
 
             // Compute sort values for pickup and delivery points
@@ -645,7 +771,11 @@ export default {
             // Pickup point sort value
             if (order.is_collection_order) {
               pickupPointSort = order.contact
-                ? (order.contact.trade_name || order.contact_trade_name || "").toLowerCase()
+                ? (
+                    order.contact.trade_name ||
+                    order.contact_trade_name ||
+                    ""
+                  ).toLowerCase()
                 : "";
             } else {
               pickupPointSort = order.pickup
@@ -675,7 +805,8 @@ export default {
               operationType: isDirect && !isTransfer ? "direct" : "transfer",
               operationTypeSort: operationTypeSort,
               pickupPointSort: pickupPointSort,
-              deliveryPointSort: deliveryPointSort
+              deliveryPointSort: deliveryPointSort,
+              logisticsStatus: logisticsStatus
             });
           }
         });
@@ -768,6 +899,22 @@ export default {
       this.page = 1;
       this.loadData();
     },
+    setOperationTypeFilter(event, type) {
+      if (event.ctrlKey || event.metaKey) {
+        // Add/remove from filter
+        const index = this.operationTypeFilter.indexOf(type);
+        if (index > -1) {
+          this.operationTypeFilter.splice(index, 1);
+        } else {
+          this.operationTypeFilter.push(type);
+        }
+      } else {
+        // Replace filter
+        this.operationTypeFilter = [type];
+      }
+      this.page = 1;
+      this.loadData();
+    },
     getRouteName(order) {
       if (order.operationType === "transfer" && order.transfer_route) {
         return (
@@ -803,6 +950,40 @@ export default {
       };
       return types[status] || "is-light";
     },
+    getLogisticsStatusLabel(order) {
+      // For transfers, only check transfer-specific fields
+      if (order.operationType === "transfer") {
+        if (order.transfer_end_date) {
+          return "Completada";
+        }
+        if (order.transfer_start_date) {
+          return "Carregada";
+        }
+        return null;
+      }
+      // For non-transfers, check pickup_date
+      if (order.pickup_date) {
+        return order.is_collection_order ? "Recollida" : "Carregada";
+      }
+      return null;
+    },
+    getLogisticsStatusType(order) {
+      // For transfers, only check transfer-specific fields
+      if (order.operationType === "transfer") {
+        if (order.transfer_end_date) {
+          return "is-success";
+        }
+        if (order.transfer_start_date) {
+          return "is-info";
+        }
+        return "is-light";
+      }
+      // For non-transfers, check pickup_date
+      if (order.pickup_date) {
+        return "is-success";
+      }
+      return "is-light";
+    },
     formatDate(date) {
       if (!date) return "-";
       return moment(date).format("DD/MM/YYYY");
@@ -828,7 +1009,7 @@ export default {
       if (order.is_collection_order) {
         return "Recollida";
       }
-      return "Normal";
+      return "Entrega";
     },
     getOperationTypeColor(order) {
       if (order.operationType === "transfer") {
@@ -1019,8 +1200,8 @@ export default {
             const me = await service({ requiresAuth: true }).get("users/me");
 
             await service({ requiresAuth: true }).put(`orders/${order.id}`, {
-              picked_up_date: new Date().toISOString(),
-              picked_up_user: me.data.id
+              pickup_date: new Date().toISOString(),
+              pickup_user: me.data.id
             });
 
             this.$buefy.toast.open({
@@ -1049,8 +1230,8 @@ export default {
             this.isLoading = true;
 
             await service({ requiresAuth: true }).put(`orders/${order.id}`, {
-              picked_up_date: null,
-              picked_up_user: null
+              pickup_date: null,
+              pickup_user: null
             });
 
             this.$buefy.toast.open({
@@ -1070,6 +1251,32 @@ export default {
           }
         }
       });
+    },
+    openIncidenceLink(incidenceId) {
+      const route = this.$router.resolve({
+        path: `/incidences?id=${incidenceId}`
+      });
+      window.open(route.href, "_blank");
+    },
+    openIncidenceModal(order) {
+      this.selectedOrderForIncidence = order.id;
+      this.predefinedIncidenceText = "Comanda no dipositada";
+      this.isIncidenceModalActive = true;
+    },
+    onIncidenceCreated() {
+      this.isIncidenceModalActive = false;
+      this.selectedOrderForIncidence = null;
+      this.$buefy.toast.open({
+        message: "Incidència creada correctament",
+        type: "is-success"
+      });
+      // Optionally reload data to reflect changes
+      this.loadData();
+    },
+    onIncidenceCancelled() {
+      this.isIncidenceModalActive = false;
+      this.selectedOrderForIncidence = null;
+      this.predefinedIncidenceText = "";
     }
   }
 };

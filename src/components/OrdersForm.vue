@@ -994,7 +994,7 @@
               <b-field
                 label="Origen transferència"
                 horizontal
-                message="Punt de recollida on es deposita la comanda"
+                message="Punt de recollida on es diposita la comanda"
                 v-if="
                   (permissions.includes('orders_admin') ||
                     permissions.includes('orders_delivery')) &&
@@ -3628,7 +3628,7 @@ export default {
         );
 
         this.$buefy.snackbar.open({
-          message: "Comanda depositada correctament",
+          message: "Comanda dipositada correctament",
           queue: false,
           type: "is-success"
         });
@@ -3638,7 +3638,7 @@ export default {
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
-          message: "Error al depositar la comanda",
+          message: "Error al dipositar la comanda",
           queue: false,
           type: "is-danger"
         });
@@ -3751,7 +3751,7 @@ export default {
         );
 
         this.$buefy.snackbar.open({
-          message: "Comanda depositada correctament",
+          message: "Comanda dipositada correctament",
           queue: false,
           type: "is-success"
         });
@@ -3761,7 +3761,7 @@ export default {
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
-          message: "Error al depositar la comanda",
+          message: "Error al dipositar la comanda",
           queue: false,
           type: "is-danger"
         });

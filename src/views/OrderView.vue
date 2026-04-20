@@ -877,7 +877,7 @@ export default {
         {
           type: "is-info",
           icon: "package-down",
-          label: "Depositar",
+          label: "Dipositar",
           action: this.depositOrder,
           visible: this.canDeposit,
           loading: this.isDepositingOrPickingUp,
@@ -1036,7 +1036,7 @@ export default {
           await service({ requiresAuth: true }).put(`orders/${this.order.id}`, updateData);
 
           this.$buefy.snackbar.open({
-            message: `Comanda de recollida i ${this.order.collection_orders.length} comandes associades depositades correctament`,
+            message: `Comanda de recollida i ${this.order.collection_orders.length} comandes associades dipositades correctament`,
             queue: false,
             type: "is-success"
           });
@@ -1045,7 +1045,7 @@ export default {
           await service({ requiresAuth: true }).put(`orders/${this.order.id}`, updateData);
 
           this.$buefy.snackbar.open({
-            message: "Comanda depositada correctament",
+            message: "Comanda dipositada correctament",
             queue: false,
             type: "is-success"
           });
@@ -1056,7 +1056,7 @@ export default {
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
-          message: "Error al depositar la comanda",
+          message: "Error al dipositar la comanda",
           queue: false,
           type: "is-danger"
         });
@@ -1406,7 +1406,7 @@ export default {
     getStatusName(status) {
       const names = {
         pending: "Pendent",
-        deposited: "Depositada",
+        deposited: "Dipositada",
         delivered: "Entregada",
         cancelled: "Cancel·lada",
         collected: "Recollida"
