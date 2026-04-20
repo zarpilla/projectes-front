@@ -74,6 +74,12 @@ const config = {
           subphase: {
             type: 'string'
           },
+          mother: {
+            type: 'string'
+          },
+          grantable: {
+            type: 'string'
+          },
         }
       },
       cube: {
