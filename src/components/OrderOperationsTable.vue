@@ -113,20 +113,20 @@
 
         <!-- Summary -->
         <div class="mb-3 is-full-width">
-          <div class="columns is-multiline ml-0 mt-4">
-            <div class="column is-half">
+          <div class="ml-4 mt-4">
+            <div class="ml-4">
               <div class="columns zis-mobile bg-white-panel">
                 <div class="column is-3">
-                  <h2>Comandes directes</h2>
-                  <h3 class="title is-3 mb-0">{{ directOrdersCount }}</h3>
+                  <h2>Entregues</h2>
+                  <h3 class="title is-3 mb-0">{{ entreguesCount }}</h3>
                 </div>
                 <div class="column is-3">
                   <h2>Transferències</h2>
                   <h3 class="title is-3 mb-0">{{ transfersCount }}</h3>
                 </div>
                 <div class="column is-3">
-                  <h2>Total operacions</h2>
-                  <h3 class="title is-3 mb-0">{{ totalOperationsCount }}</h3>
+                  <h2>Recollides</h2>
+                  <h3 class="title is-3 mb-0">{{ recollidesCount }}</h3>
                 </div>
               </div>
             </div>
@@ -244,7 +244,7 @@
       </b-table-column>
 
       <b-table-column
-        label="Recollida"
+        label="Origen"
         field="pickupPointSort"
         sortable
         v-slot="props"
@@ -254,7 +254,7 @@
       </b-table-column>
 
       <b-table-column
-        label="Entrega"
+        label="Destí"
         field="deliveryPointSort"
         sortable
         v-slot="props"
@@ -582,9 +582,9 @@ export default {
       defaultSortOrder: "asc",
       permissions: [],
       currentUserId: null,
-      directOrdersCount: 0,
+      entreguesCount: 0,
       transfersCount: 0,
-      totalOperationsCount: 0,
+      recollidesCount: 0,
       isIncidenceModalActive: false,
       selectedOrderForIncidence: null,
       predefinedIncidenceText: ""
@@ -670,9 +670,9 @@ export default {
         if (routeIds.length === 0) {
           this.operations = [];
           this.total = 0;
-          this.directOrdersCount = 0;
+          this.entreguesCount = 0;
           this.transfersCount = 0;
-          this.totalOperationsCount = 0;
+          this.recollidesCount = 0;
           this.isLoading = false;
           return;
         }
@@ -812,13 +812,15 @@ export default {
         });
 
         // Calculate counts
-        this.directOrdersCount = operations.filter(
-          o => o.operationType === "direct"
+        this.entreguesCount = operations.filter(
+          o => o.operationType === "direct" && !o.is_collection_order
         ).length;
         this.transfersCount = operations.filter(
           o => o.operationType === "transfer"
         ).length;
-        this.totalOperationsCount = operations.length;
+        this.recollidesCount = operations.filter(
+          o => o.operationType === "direct" && o.is_collection_order
+        ).length;
 
         // Sort operations
         operations.sort((a, b) => {
@@ -1286,7 +1288,7 @@ export default {
 .filters-container {
   background-color: white;
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 0 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
