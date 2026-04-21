@@ -11,9 +11,7 @@
 import TitleBar from '@/components/TitleBar'
 import OrdersTable from '@/components/OrdersTable'
 import CardComponent from '@/components/CardComponent'
-import service from '@/service/index'
 import { mapState } from 'vuex'
-import moment from 'moment'
 
 export default {
   name: 'DedicacioSaldo',

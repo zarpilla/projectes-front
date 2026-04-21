@@ -63,20 +63,13 @@
       </span>
 
       <!-- <pre>{{ theOrdersChecked }}</pre> -->
-      <download-excel
+      <b-button
         v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
-        class="export"
-        :data="theOrdersChecked"
-        :escapeCsv="false"
-        :name="comandesRouterCSVName()"
-        :fields="csvFieldsRouter"
-      >
-        <b-button
-          title="Descarrega les dades de les teves comandes"
-          class="export-button mt-0 ml-1 mb-3"
-          icon-left="download"
-        />
-      </download-excel>
+        title="Descarrega les dades de les teves comandes"
+        class="export-button mt-0 ml-1 mb-3"
+        icon-left="download"
+        @click="downloadRouterCSV"
+      />
       <span>
         Exportar comandes:
       </span>
@@ -2544,7 +2537,66 @@ export default {
       return `orders-${moment().format("YYYYMMDD-HHmmss")}.csv`;
     },
     comandesRouterCSVName() {
-      return `comandes-${moment().format("YYYYMMDD-HHmmss")}.xlsx`;
+      return `comandes-${moment().format("YYYYMMDD-HHmmss")}.csv`;
+    },
+    downloadRouterCSV() {
+      // Generate CSV with UTF-8 BOM for proper encoding in Excel
+      const BOM = '\uFEFF';
+      
+      // Get headers from csvFieldsRouter
+      const headers = Object.keys(this.csvFieldsRouter);
+      
+      // Generate CSV rows
+      const rows = this.theOrdersChecked.map(row => {
+        return headers.map(header => {
+          const fieldDef = this.csvFieldsRouter[header];
+          let value = '';
+          
+          if (typeof fieldDef === 'string') {
+            // Simple field path
+            value = this.getNestedValue(row, fieldDef);
+          } else if (typeof fieldDef === 'object' && fieldDef.field) {
+            // Field with callback
+            const rawValue = this.getNestedValue(row, fieldDef.field);
+            value = fieldDef.callback ? fieldDef.callback(rawValue) : rawValue;
+          }
+          
+          // Handle null/undefined
+          if (value === null || value === undefined) {
+            value = '';
+          }
+          
+          // Convert to string and escape quotes
+          value = String(value).replace(/"/g, '""');
+          
+          // Wrap in quotes if contains comma, newline, or quote
+          if (value.includes(',') || value.includes('\n') || value.includes('"')) {
+            return `"${value}"`;
+          }
+          
+          return value;
+        }).join(',');
+      });
+      
+      // Combine headers and rows
+      const csvContent = BOM + headers.join(',') + '\n' + rows.join('\n');
+      
+      // Create Blob with UTF-8 encoding
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      // Create download link
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', this.comandesRouterCSVName());
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+    getNestedValue(obj, path) {
+      // Helper function to get nested property value
+      return path.split('.').reduce((current, prop) => current?.[prop], obj);
     },
     onPageChange(page) {
       this.page = page;
