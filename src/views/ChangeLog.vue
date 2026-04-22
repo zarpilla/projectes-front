@@ -10,6 +10,14 @@
             projecte.
           </div>
         </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Possibilitat de descarregar el 
+            <router-link to="/registre-jornades">registre de jornades</router-link>
+             anual.
+          </div>
+        </div>
       </card-component>
       <card-component title="2026.04.15">
         <div class="item mb-4">

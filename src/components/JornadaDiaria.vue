@@ -209,7 +209,7 @@
             </tr>
             <tr class="bordered-2t pb-4">
               <th width="40%">PERÍODE</th>
-              <td>{{ months.find(m => m.month === month).name }} {{ year }}</td>
+              <td>{{ month ? months.find(m => m.month === month).name + ' ' + year : 'Any ' + year }}</td>
             </tr>
           </table>
 
@@ -464,12 +464,20 @@ export default {
 
       console.log('this.projects', this.projects)
 
-      const from = moment(this.year + "-" + this.month, "YYYY-MM")
-        .startOf("month")
-        .format("YYYY-MM-DD");
-      const to = moment(this.year + "-" + this.month, "YYYY-MM")
-        .endOf("month")
-        .format("YYYY-MM-DD");
+      const from = this.month 
+        ? moment(this.year + "-" + this.month, "YYYY-MM")
+            .startOf("month")
+            .format("YYYY-MM-DD")
+        : moment(this.year, "YYYY")
+            .startOf("year")
+            .format("YYYY-MM-DD");
+      const to = this.month
+        ? moment(this.year + "-" + this.month, "YYYY-MM")
+            .endOf("month")
+            .format("YYYY-MM-DD")
+        : moment(this.year, "YYYY")
+            .endOf("year")
+            .format("YYYY-MM-DD");
 
       let query = `workday-logs?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {
@@ -706,12 +714,12 @@ export default {
     },
     enumerateDaysBetweenDates() {
       var dates = [];
-      var currDate = moment(this.year + "-" + this.month, "YYYY-MM").startOf(
-        "month"
-      );
-      var endDate = moment(this.year + "-" + this.month, "YYYY-MM").endOf(
-        "month"
-      );
+      var currDate = this.month
+        ? moment(this.year + "-" + this.month, "YYYY-MM").startOf("month")
+        : moment(this.year, "YYYY").startOf("year");
+      var endDate = this.month
+        ? moment(this.year + "-" + this.month, "YYYY-MM").endOf("month")
+        : moment(this.year, "YYYY").endOf("year");
       if (currDate.diff(moment()) < 0) {
         dates.push(currDate.clone().toDate());
       }
@@ -733,9 +741,12 @@ export default {
     },
     downloadPDF() {
       var element = document.getElementById("pdf");
+      const filename = this.month 
+        ? `hores_${this.year}_${this.month}` 
+        : `hores_${this.year}`;
       var opt = {
         margin: [0, 0],
-        filename: `hores`,
+        filename: filename,
         html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
         jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
       };
@@ -749,7 +760,7 @@ export default {
         .toPdf()
         .get("pdf")
         .then(function(pdf) {
-          window.open(pdf.output("bloburl", "hores.pdf"));
+          window.open(pdf.output("bloburl", filename + ".pdf"));
         });
 
       // const pdf = document.getElementById("pdf");
