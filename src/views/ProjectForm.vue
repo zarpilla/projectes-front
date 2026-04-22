@@ -3261,6 +3261,24 @@ export default {
                 this.form.grantable_years = [];
               }
 
+              // Initialize phase info structures if not present (for deletions tracking)
+              if (!this.form.project_phases_info) {
+                this.form.project_phases_info = {
+                  deletedPhases: [],
+                  deletedIncomes: [],
+                  deletedExpenses: [],
+                  deletedHours: []
+                };
+              }
+              if (!this.form.project_original_phases_info) {
+                this.form.project_original_phases_info = {
+                  deletedPhases: [],
+                  deletedIncomes: [],
+                  deletedExpenses: [],
+                  deletedHours: []
+                };
+              }
+
               // Check if we're in creation mode based on creation_step
               // null or undefined or 'completed' means project is fully created
               if (this.form.creation_step !== null && 
@@ -4296,6 +4314,9 @@ export default {
       const phase = phasesArray.find(p => p.id === pid);
       const income = phase.incomes.find(s => s.id === sid);
       income.estimated_hours = income.estimated_hours.filter(h => h.id !== id);
+      
+      // Mark the income (subphase) as dirty so the deletion is persisted
+      income.dirty = true;
 
       // Update the appropriate info object
       if (isOriginalMode) {
@@ -4375,7 +4396,7 @@ export default {
         deletedPhases: this.deletedPhases,
         deletedIncomes: this.deletedIncomes,
         deletedExpenses: this.deletedExpenses,
-        deletedHours: []
+        deletedHours: this.deletedHours
       };
     },
     originalPhasesUpdated(info) {
