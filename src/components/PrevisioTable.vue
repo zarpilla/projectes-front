@@ -14,6 +14,10 @@
         :class="{ 'is-primary': selectedProjectStates.includes(state.id), 'is-outlined': !selectedProjectStates.includes(state.id) }">
         {{ state.name }}
         </button>
+        <button class="button is-warning ml-3" @click="getData" :disabled="isLoading">
+          <b-icon icon="refresh" size="is-small"></b-icon>
+          <span class="ml-1">Refrescar</span>
+        </button>
       </div>
     </b-field>
 
@@ -71,10 +75,10 @@
 
                 <tr>
                   <td class="has-text-weight-bold">
-                    <h6 class="subtitle has-text-weight-bold">
+                    <!-- <h6 class="subtitle has-text-weight-bold">
                       Projectes: 
                       <span>{{ selectedProjectStatesNames }}</span>
-                    </h6>
+                    </h6> -->
                   </td>
                   <td
                     class="has-text-right"
@@ -604,7 +608,6 @@ export default {
         "PrevisioTable.selectedProjectStates",
         JSON.stringify(this.selectedProjectStates)
       );
-      this.getData();
     },
     
   }

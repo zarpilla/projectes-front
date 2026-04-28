@@ -2175,8 +2175,33 @@
 
       <!-- Gantt charts for child projects in mother projects -->
       <div v-if="!isLoading && !isUpdating && form.is_mother && form.children && form.children.children && form.children.children.length && !isCreationMode">
+        <!-- Control buttons for non-open child projects -->
         <card-component
-          v-for="child in form.children.children"
+          v-if="closedChildren.length > 0"
+          title="PROJECTES FILLS NO ACTIUS"
+          class="mt-4"
+        >
+          <div class="notification is-info is-light">
+            <p class="mb-3">Els següents projectes fills no estan actius. Pots mostrar o ocultar la seva planificació:</p>
+            <div class="buttons">
+              <b-button
+                v-for="child in closedChildren"
+                :key="'toggle-' + child.id"
+                :type="isClosedChildVisible(child.id) ? 'is-primary' : 'is-light'"
+                size="is-small"
+                @click="toggleClosedChild(child.id)"
+                class="mr-2 mb-2"
+              >
+                <b-icon :icon="isClosedChildVisible(child.id) ? 'eye' : 'eye-off'" size="is-small"></b-icon>
+                <span class="ml-1">{{ child.name }} <span v-if="child.project_state && child.project_state.name" class="has-text-grey">({{ child.project_state.name }})</span></span>
+              </b-button>
+            </div>
+          </div>
+        </card-component>
+
+        <!-- Display visible child projects -->
+        <card-component
+          v-for="child in visibleChildren"
           :key="'child-gantt-' + child.id"
           :title="'PLANIFICACIÓ DEL PROJECTE FILL: ' + child.name + (ganttViewMode === 'original' ? ' - ORIGINAL' : ' - PREVISTA')"
           class="mt-4"
@@ -2542,7 +2567,9 @@ export default {
       userHasInteracted: false,
       // Creation wizard state
       currentStep: 1,
-      isCreationMode: false
+      isCreationMode: false,
+      // Visibility control for non-open child projects
+      visibleClosedChildren: []
     };
   },
   computed: {
@@ -2965,6 +2992,33 @@ export default {
       
       return hasOwnOriginalPhases || hasOwnExecutionPhases;
     },
+    openChildren() {
+      // Return children that are open (project_state.id === 1)
+      if (!this.form.children || !this.form.children.children) {
+        return [];
+      }
+      return this.form.children.children.filter(
+        child => child.project_state && child.project_state.id === 1
+      );
+    },
+    closedChildren() {
+      // Return children that are not open (project_state.id !== 1)
+      if (!this.form.children || !this.form.children.children) {
+        return [];
+      }
+      return this.form.children.children.filter(
+        child => !child.project_state || child.project_state.id !== 1
+      );
+    },
+    visibleChildren() {
+      // Return open children plus non-open children that are marked as visible
+      return [
+        ...this.openChildren,
+        ...this.closedChildren.filter(child => 
+          this.visibleClosedChildren.includes(child.id)
+        )
+      ];
+    },
     totals() {
       // When showing TOTS (total), use calculatedTotals from calculate endpoint
       // This ensures totals match the sum of yearly values
@@ -3037,6 +3091,19 @@ export default {
     }
   },
   methods: {
+    toggleClosedChild(childId) {
+      const index = this.visibleClosedChildren.indexOf(childId);
+      if (index > -1) {
+        // Hide the child
+        this.visibleClosedChildren.splice(index, 1);
+      } else {
+        // Show the child
+        this.visibleClosedChildren.push(childId);
+      }
+    },
+    isClosedChildVisible(childId) {
+      return this.visibleClosedChildren.includes(childId);
+    },
     getClearFormObject() {
       return {
         id: null,
