@@ -1027,8 +1027,10 @@ export default {
         "dropoff.address.telephone": "contact_phone",
         "dropoff.comments": {
           field: "comments",
-          callback: value => {
-            return this.addressFormatted(value);
+          callback: (value, row) => {
+            const comments = value || '';
+            const refrigeratedText = row && row.refrigerated ? ' - Refrigerat' : '';
+            return this.addressFormatted(comments + refrigeratedText);
           }
         },
         "dropoff.timeslot": {
