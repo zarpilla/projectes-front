@@ -1,5 +1,5 @@
 <template>
-  <section class="xsection">
+  <section class="xsection operations-table-section">
     <b-loading
       :is-full-page="true"
       v-model="isLoading"
@@ -40,7 +40,7 @@
 
         <!-- Operation Type Filter -->
         <div class="mb-3 mr-4">
-          <h3 class="subtitle is-6 mb-2">Tipus d'operació (Ctrl+click per múltiples)</h3>
+          <h3 class="subtitle is-6 mb-2 is-hidden-mobile">Tipus d'operació (Ctrl+click per múltiples)</h3>
           <div class="is-flex is-block-mobile is-flex-wrap-wrap">
             <b-button
               class="view-button mb-2 mr-2 ml-0"
@@ -77,8 +77,16 @@
 
         <!-- Date Filter -->
         <div class="mb-3">
-          <h3 class="subtitle is-6 mb-2">Filtre per data d'entrega</h3>
+          <h3 class="subtitle is-6 mb-2">Filtre per data operació</h3>
           <b-field class="is-flex">
+            <b-button
+              v-if="selectedDate"
+              @click="goToPreviousDay"
+              icon-left="chevron-left"
+              type="is-light"
+              title="Dia anterior"
+            >
+            </b-button>
             <b-datepicker
               v-model="selectedDate"
               placeholder="Selecciona una data"
@@ -93,6 +101,7 @@
                   icon-left="calendar-today"
                   outlined
                   :type="selectedDate ? 'is-primary' : ''"
+                  :class="{ 'ml-2': selectedDate }"
                 >
                   {{
                     selectedDate ? formatDate(selectedDate) : "Totes les dates"
@@ -100,6 +109,15 @@
                 </b-button>
               </template>
             </b-datepicker>
+            <b-button
+              class="ml-2"
+              v-if="selectedDate"
+              @click="goToNextDay"
+              icon-left="chevron-right"
+              type="is-light"
+              title="Dia següent"
+            >
+            </b-button>
             <b-button
               class="ml-2"
               v-if="selectedDate"
@@ -113,18 +131,18 @@
 
         <!-- Summary -->
         <div class="mb-3 is-full-width">
-          <div class="ml-4 mt-4">
-            <div class="ml-4">
-              <div class="columns zis-mobile bg-white-panel">
-                <div class="column is-3">
+          <div class="ml-0 mt-0 ml-md-4 mt-md-4">
+            <div class="ml-0 mt-0 ml-md-4 mt-md-4">
+              <div class="columns is-mobile bg-white-panel">
+                <div class="column is-4">
                   <h2>Entregues</h2>
                   <h3 class="title is-3 mb-0">{{ entreguesCount }}</h3>
                 </div>
-                <div class="column is-3">
+                <div class="column is-4">
                   <h2>Transferències</h2>
                   <h3 class="title is-3 mb-0">{{ transfersCount }}</h3>
                 </div>
-                <div class="column is-3">
+                <div class="column is-4">
                   <h2>Recollides</h2>
                   <h3 class="title is-3 mb-0">{{ recollidesCount }}</h3>
                 </div>
@@ -162,7 +180,7 @@
     </div>
 
     <b-table
-      class="small-table"
+      class="small-table operations-table"
       ref="table"
       :loading="isLoading"
       paginated
@@ -181,13 +199,28 @@
       detailed
       detail-key="id"
       :show-detail-icon="true"
+      :mobile-cards="false"
     >
+      <b-table-column
+        label="Tipus"
+        field="operationTypeSort"
+        sortable
+        v-slot="props"
+        width="120"
+        cell-class="mobile-type-cell"
+      >
+        <b-tag :type="getOperationTypeColor(props.row)" size="is-small">
+          {{ getOperationTypeLabel(props.row) }}
+        </b-tag>
+      </b-table-column>
+
       <b-table-column
         label="Comanda"
         field="id"
         sortable
         v-slot="props"
         width="100"
+        cell-class="mobile-id-cell"
       >
         <router-link
           :to="{ name: 'orders.edit', params: { id: props.row.id } }"
@@ -198,15 +231,14 @@
       </b-table-column>
 
       <b-table-column
-        label="Tipus"
-        field="operationTypeSort"
+        label="Data Operació"
+        field="operation_date"
         sortable
         v-slot="props"
-        width="120"
+        width="110"
+        cell-class="mobile-date-cell"
       >
-        <b-tag :type="getOperationTypeColor(props.row)">
-          {{ getOperationTypeLabel(props.row) }}
-        </b-tag>
+        {{ formatDate(props.row.operationType === 'transfer' ? props.row.transfer_route_date : props.row.estimated_delivery_date) }}
       </b-table-column>
 
       <b-table-column
@@ -215,7 +247,9 @@
         sortable
         v-slot="props"
         width="150"
+        cell-class="mobile-socia-cell"
       >
+        <span class="mobile-label">Sòcia:</span>
         {{
           props.row.owner
             ? props.row.owner.fullname || props.row.owner.username
@@ -224,11 +258,28 @@
       </b-table-column>
 
       <b-table-column
+        label="Punt"
+        field="contact_trade_name"
+        sortable
+        v-slot="props"
+        width="150"
+        cell-class="mobile-punt-cell"
+      >
+        <span class="mobile-label">Punt:</span>
+        {{
+          props.row.contact_trade_name
+        }}
+      </b-table-column>
+
+      
+
+      <b-table-column
         label="Ruta"
         field="route.name"
         sortable
         v-slot="props"
         width="150"
+        cell-class="hide-mobile"
       >
         {{ getRouteName(props.row) }}
       </b-table-column>
@@ -239,6 +290,7 @@
         sortable
         v-slot="props"
         width="110"
+        cell-class="hide-mobile"
       >
         {{ formatDate(props.row.estimated_delivery_date) }}
       </b-table-column>
@@ -249,8 +301,10 @@
         sortable
         v-slot="props"
         width="150"
+        cell-class="mobile-route-cell"
       >
-        {{ getPickupPointName(props.row) }}
+        <span class="mobile-route-display">{{ getPickupPointName(props.row) }} → {{ getDeliveryPointName(props.row) }}</span>
+        <span class="desktop-route-display">{{ getPickupPointName(props.row) }}</span>
       </b-table-column>
 
       <b-table-column
@@ -259,6 +313,7 @@
         sortable
         v-slot="props"
         width="200"
+        cell-class="hide-mobile"
       >
         {{ getDeliveryPointName(props.row) }}
       </b-table-column>
@@ -269,8 +324,32 @@
         sortable
         v-slot="props"
         width="80"
+        cell-class="mobile-caixes-cell"
       >
-        {{ props.row.units }}
+        <div class="mobile-caixes-wrapper">
+          <span><span class="mobile-label">Caixes:</span> {{ props.row.units }}</span>
+          <div class="mobile-incidence-button">
+            <b-button
+              v-if="!props.row.deposit_date && props.row.incidences && props.row.incidences.length > 0"
+              type="is-primary"
+              size="is-small"
+              icon-left="bell"
+              @click="openIncidenceLink(props.row.incidences[0].id)"
+              title="Veure incidència"
+            >
+            </b-button>
+            <b-button
+              v-else-if="!props.row.deposit_date"
+              type="is-warning"
+              size="is-small"
+              icon-left="bell"
+              @click="openIncidenceModal(props.row)"
+              title="Crear incidència"
+            >
+            </b-button>
+          </div>
+        </div>
+        <span class="desktop-caixes-display">{{ props.row.units }}</span>
       </b-table-column>
 
       <b-table-column
@@ -279,6 +358,7 @@
         sortable
         v-slot="props"
         width="80"
+        cell-class="hide-mobile"
       >
         {{ props.row.kilograms }}
       </b-table-column>
@@ -289,6 +369,7 @@
         sortable
         v-slot="props"
         width="120"
+        cell-class="hide-mobile"
       >
         <b-tag :type="getStatusTagType(props.row.status)">
           {{ getStatusLabel(props.row.status) }}
@@ -301,6 +382,7 @@
         sortable
         v-slot="props"
         width="100"
+        cell-class="hide-mobile"
       >
         <b-tag type="is-success" v-if="props.row.deposit_date">
           Sí
@@ -333,6 +415,7 @@
         sortable
         v-slot="props"
         width="130"
+        cell-class="hide-mobile"
       >
         <b-tag
           :type="getLogisticsStatusType(props.row)"
@@ -343,14 +426,14 @@
         <span v-else>-</span>
       </b-table-column>
 
-      <b-table-column label="Accions" v-slot="props" width="180">
+      <b-table-column label="Accions" v-slot="props" width="180" cell-class="mobile-actions-cell">
         <div class="action-buttons-grid">
           <!-- Transfer actions -->
           <template v-if="props.row.operationType === 'transfer'">
             <!-- Start button if not started -->
             <b-button
               v-if="!props.row.transfer_start_date"
-              type="is-info"
+              type="is-primary"
               size="is-small"
               icon-left="play"
               @click="startTransfer(props.row)"
@@ -363,7 +446,7 @@
               v-if="
                 props.row.transfer_start_date && !props.row.transfer_end_date
               "
-              type="is-info"
+              type="is-primary"
               size="is-small"
               icon-left="play"
               @click="endTransfer(props.row)"
@@ -401,7 +484,7 @@
             <!-- Pickup button if not picked up -->
             <b-button
               v-if="!props.row.pickup_date"
-              type="is-info"
+              type="is-primary"
               size="is-small"
               icon-left="play"
               @click="pickupOrder(props.row)"
@@ -506,7 +589,7 @@
                 </h3>
                 <div class="detail-row">
                   <strong>Nom:</strong>
-                  <span>{{ props.row.contact_name }}</span>
+                  <span>{{ props.row.contact_trade_name }}</span>
                 </div>
                 <div class="detail-row">
                   <strong>Adreça:</strong>
@@ -689,11 +772,8 @@ export default {
           });
         }
 
-        // Add date filter if selected
-        if (this.selectedDate) {
-          const dateStr = moment(this.selectedDate).format("YYYY-MM-DD");
-          params["estimated_delivery_date"] = dateStr;
-        }
+        // Note: Date filter is applied client-side after fetching orders
+        // because we need to filter by different fields (estimated_delivery_date or transfer_route_date)
 
         // Fetch all orders
         const response = await service({ requiresAuth: true }).get("orders", {
@@ -727,6 +807,18 @@ export default {
             routeIds.includes(transferRouteId);
 
           if (isDirect || isTransfer) {
+            // Apply date filter if selected
+            if (this.selectedDate) {
+              const dateStr = moment(this.selectedDate).format("YYYY-MM-DD");
+              const operationDate = isTransfer 
+                ? moment(order.transfer_route_date).format("YYYY-MM-DD")
+                : moment(order.estimated_delivery_date).format("YYYY-MM-DD");
+              
+              if (operationDate !== dateStr) {
+                return; // Skip this order if date doesn't match
+              }
+            }
+
             // Apply operation type filter
             let operationType = '';
             if (isTransfer) {
@@ -806,7 +898,8 @@ export default {
               operationTypeSort: operationTypeSort,
               pickupPointSort: pickupPointSort,
               deliveryPointSort: deliveryPointSort,
-              logisticsStatus: logisticsStatus
+              logisticsStatus: logisticsStatus,
+              operation_date: isTransfer ? order.transfer_route_date : order.estimated_delivery_date
             });
           }
         });
@@ -875,6 +968,24 @@ export default {
       this.selectedDate = null;
       this.page = 1;
       this.loadData();
+    },
+    goToPreviousDay() {
+      if (this.selectedDate) {
+        this.selectedDate = moment(this.selectedDate)
+          .subtract(1, "days")
+          .toDate();
+        this.page = 1;
+        this.loadData();
+      }
+    },
+    goToNextDay() {
+      if (this.selectedDate) {
+        this.selectedDate = moment(this.selectedDate)
+          .add(1, "days")
+          .toDate();
+        this.page = 1;
+        this.loadData();
+      }
     },
     onPageChange(page) {
       this.page = page;
@@ -1288,7 +1399,7 @@ export default {
 .filters-container {
   background-color: white;
   border-radius: 8px;
-  padding: 0 1.5rem;
+  padding: 1rem 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -1354,22 +1465,179 @@ h2 {
 </style>
 
 <style lang="scss">
-.small-table {
-  font-size: 0.875rem;
+.operations-table-section {
+  table {
+    font-size: 0.75rem;
 
   .table {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 
   td {
-    padding: 0.5rem 0.75rem;
+    padding: 0.375rem 0.375rem;
+    font-size: 0.75rem;
   }
 
   th {
-    padding: 0.5rem 0.75rem;
+    padding: 0.375rem 0.375rem;
+    font-size: 0.75rem;
   }
 }
 .is-full-width {
   flex-grow: 1;
+}
+  
+  @media screen and (min-width: 769px) {
+    .filters-container {
+      padding: 0 1.5rem;
+    }
+  .ml-md-4 {
+    margin-left: 1.5rem!important;
+  }
+  .mt-md-4 {
+    margin-top: 1.5rem!important;
+  }  
+  }
+
+  // Mobile-specific styles
+  @media screen and (max-width: 768px) {
+    .operations-table {
+      // Hide columns on mobile
+      .hide-mobile {
+        display: none !important;
+      }
+
+      // Hide table headers on mobile
+      thead {
+        display: none;
+      }
+
+      // Make table rows appear as cards
+      tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dbdbdb;
+        border-radius: 6px;
+        background-color: white;
+        box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+      }
+
+      tbody td {
+        display: block;
+        border: none !important;
+        padding: 0.25rem 0.5rem !important;
+        text-align: left !important;
+      }
+
+      // First row: ID, Tipus, Date in one line
+      .mobile-id-cell {
+        display: inline-block !important;
+        width: auto !important;
+        font-weight: 600;
+        padding-right: 0.5rem !important;
+        font-size: 0.85rem;
+        margin-top: 10px;
+      }
+
+      .mobile-type-cell {
+        display: inline-block !important;
+        width: auto !important;
+        padding-right: 0.5rem !important;
+        margin-top: 8px;
+      }
+
+      .mobile-date-cell {
+        display: inline-block !important;
+        width: auto !important;
+        font-size: 0.85rem;
+        margin-top: 10px;
+        // color: #7a7a7a;
+      }
+
+      // Show labels inline on mobile
+      .mobile-label {
+        font-weight: 600;
+        color: #363636;
+        margin-right: 0.25rem;
+      }
+
+      // Punt and Sòcia rows
+      .mobile-punt-cell,
+      .mobile-socia-cell {
+        font-size: 0.85rem;
+      }
+
+      // Route display
+      .mobile-route-cell {
+        .mobile-route-display {
+          display: inline !important;
+          font-size: 0.85rem;
+        }
+        .desktop-route-display {
+          display: none !important;
+        }
+      }
+
+      // Caixes with incidence button
+      .mobile-caixes-cell {
+        .mobile-caixes-wrapper {
+          display: flex !important;
+          align-items: center;
+          justify-content: space-between;
+          
+          .mobile-incidence-button {
+            margin-left: 0.5rem;
+          }
+        }
+        .desktop-caixes-display {
+          display: none !important;
+        }
+      }
+
+      // Actions cell on mobile
+      .mobile-actions-cell {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        
+        .action-buttons-grid {
+          justify-content: center;
+        }
+      }
+
+      // Detail icon - keep it visible
+      .chevron-cell {
+        text-align: right !important;
+        padding-top: 0.5rem !important;
+        position: absolute;
+        right: 0;
+        top: 4px;
+      }
+    }
+  }
+
+  // Desktop-specific styles
+  @media screen and (min-width: 769px) {
+    .operations-table {
+      .mobile-label {
+        display: none;
+      }
+
+      .mobile-route-display {
+        display: none;
+      }
+
+      .desktop-route-display {
+        display: inline;
+      }
+
+      .mobile-caixes-wrapper {
+        display: none;
+      }
+
+      .desktop-caixes-display {
+        display: inline;
+      }
+    }
+  }
 }
 </style>
