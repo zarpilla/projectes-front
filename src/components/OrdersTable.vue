@@ -439,7 +439,7 @@
         </div>
         <span v-else>{{ props.row.route.name }}</span>
       </b-table-column>
-      <b-table-column
+      <!-- <b-table-column
         label="Creada"
         searchable
         field="route_date"
@@ -448,7 +448,7 @@
         v-slot="props"
       >
         {{ props.row.route_date }}
-      </b-table-column>
+      </b-table-column> -->
       <b-table-column
         label="Prevista"
         searchable
@@ -598,7 +598,22 @@
             </option>
           </b-select>
         </div>
-        <span v-else>{{ props.row.pickup ? props.row.pickup.alias || props.row.pickup.name : "-" }}</span>
+        <span v-else>{{ props.row.pickup ? props.row.pickup.alias || props.row.pickup.name : "-" }}
+          <b-icon
+            v-if="props.row.deposit_date"
+            icon="circle"
+            class="has-text-success"
+            custom-size="default"
+            title="Depositada"
+          />
+          <b-icon
+            v-else
+            icon="circle"
+            class="has-text-danger"
+            custom-size="default"
+            title="No depositada"
+          />
+        </span>
       </b-table-column>
       <b-table-column
         label="Ú.milla"
@@ -1023,15 +1038,10 @@ export default {
           }
         },
         "dropoff.address.description": "contact_legal_form.name",
-        "dropoff.address.name": "contact_name",
+        "dropoff.address.name": "contact_trade_name",
         "dropoff.address.telephone": "contact_phone",
         "dropoff.comments": {
-          field: "comments",
-          callback: (value, row) => {
-            const comments = value || '';
-            const refrigeratedText = row && row.refrigerated ? ' - Refrigerat' : '';
-            return this.addressFormatted(comments + refrigeratedText);
-          }
+          field: "commentsNotes"          
         },
         "dropoff.timeslot": {
           field: "timeslot1",
@@ -1145,7 +1155,9 @@ export default {
           (o.contact && o.contact.notes ? o.contact.notes + " - " : "") +
           (o.comments ? o.comments : "") +
           (o.comments && o.refrigerated ? " - " : "") +
-          (o.refrigerated ? "REFRIGERAT" : ""),
+          (o.refrigerated ? "REFRIGERAT" : "") +
+          (o.fragile ? " - FRÀGIL" : "") +
+          (o.contact && o.contact.notes_delivery ? " - " + o.contact.notes_delivery : ""),
           notes_delivery: o.contact && o.contact.notes_delivery ? o.contact.notes_delivery : "",
       }));
 
