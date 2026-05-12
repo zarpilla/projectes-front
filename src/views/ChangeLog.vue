@@ -4,9 +4,9 @@
     <section class="section is-main-section column is-half">
       <card-component title="2026.05.12">        
         <div class="item mb-4">
-          <span class="tag is-warning">Millores</span>
+          <span class="tag is-primary">Novetats</span>
           <div class="text mt-2">
-            Afegida la periodificació a la taula de <router-link to="/forecast">previsió econòmica</router-link>.
+            Nova funcionalitat per validar moviments de tresoreria reals.
           </div>
         </div>
         <div class="item mb-4">
@@ -15,6 +15,12 @@
             Nova funcionalitat per exportar i importar contactes en format CSV.
           </div>
         </div>
+        <div class="item mb-4">
+          <span class="tag is-warning">Millores</span>
+          <div class="text mt-2">
+            Afegida la periodificació a la taula de <router-link to="/forecast">previsió econòmica</router-link>.
+          </div>
+        </div>        
       </card-component>
       <card-component title="2026.04.22">
         <div class="item mb-4">

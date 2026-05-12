@@ -479,6 +479,22 @@
             {{ props.row.bank_account }}
           </b-table-column>
           <b-table-column label="Accions" v-slot="props">
+            <!-- Warning icon for non-executed movements before today -->
+            <b-icon
+              v-if="!(props.row.paid || props.row.real) && isBeforeToday(props.row.datef)"
+              icon="alert"
+              class="has-text-warning mr-2"
+              size="is-small"
+              title="Moviment previst pendent"
+            />
+            <!-- Validation checkbox for real movements -->
+            <b-checkbox
+              v-if="(props.row.paid || props.row.real) && props.row.validation_key"
+              :value="props.row.is_validated"
+              @input="toggleValidation(props.row)"
+              class="mr-2"
+              :title="props.row.is_validated ? 'Moviment validat' : 'Marcar com validat'"
+            />
             <!-- <button
               v-if="props.row.expenseId"
               class="button is-small is-danger"
@@ -1112,6 +1128,44 @@ export default {
         // dataSource.filters([])
 
         this.selectedViewId = null;
+      }
+    },
+    isBeforeToday(datef) {
+      return datef < moment().format("YYYYMMDD");
+    },
+    async toggleValidation(row) {
+      try {
+        // Parse validation key to extract entity_type, entity_id, and sub_type
+        const parts = row.validation_key.split(':');
+        const entity_type = parts[0];
+        const entity_id = parseInt(parts[1]);
+        const sub_type = parts[2] || null;
+
+        // Call the toggle endpoint
+        const response = await service({ requiresAuth: true }).post(
+          'treasury-validations/toggle',
+          {
+            entity_type,
+            entity_id,
+            sub_type
+          }
+        );
+
+        // Update the local data
+        row.is_validated = response.data.validated;
+
+        this.$buefy.snackbar.open({
+          message: response.data.validated ? 'Moviment validat' : 'Validació eliminada',
+          type: response.data.validated ? 'is-success' : 'is-info',
+          queue: false
+        });
+      } catch (error) {
+        console.error('Error toggling validation:', error);
+        this.$buefy.snackbar.open({
+          message: 'Error al validar el moviment',
+          type: 'is-danger',
+          queue: false
+        });
       }
     }
   }
