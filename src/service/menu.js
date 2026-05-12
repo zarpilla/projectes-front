@@ -363,6 +363,12 @@ const menu = [
       icon: "open-in-new",
       label: "Strapi",
       permission: "projects"
+    },    
+    {
+      to: "/import-export",
+      icon: "swap-vertical",
+      label: "Importar/Exportar",
+      permission: "projects"
     },
     {
       to: "/changelog",

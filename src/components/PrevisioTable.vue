@@ -21,6 +21,14 @@
       </div>
     </b-field>
 
+    <b-field horizontal label="Periodificació">
+      <b-select v-model="periodificacio">
+        <option value="no">No</option>
+        <option value="prevista">Prevista</option>
+        <option value="real">Real</option>
+      </b-select>
+    </b-field>
+
     <card-component
       title="RESUM PREVISIÓ"
       class="ztile is-child mt-2"
@@ -130,7 +138,7 @@
                 </td>
                 </tr>
                 <tr>
-                  <td class="has-text-weight-bold">Cobraments</td>
+                  <td class="has-text-weight-bold">Ingressos</td>
                   <td
                     class="has-text-right"
                     v-for="(data, i) in yearlyForecast"
@@ -140,7 +148,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td class="has-text-weight-bold">Pagaments</td>
+                  <td class="has-text-weight-bold">Despeses</td>
                   <td
                     class="has-text-right"
                     v-for="(data, i) in yearlyForecast"
@@ -304,6 +312,7 @@ export default {
       view: "startOfYear",
       projectStates: [],
       selectedProjectStates: [],
+      periodificacio: "no",
     };
   },
   async mounted() {
@@ -573,7 +582,7 @@ export default {
         
       this.isLoading = true;
 
-      const treasuryData = await getTreasuryData(this.selectedProjectStates, year);
+      const treasuryData = await getTreasuryData(this.selectedProjectStates, year, null, this.periodificacio);
       this.treasuryData = treasuryData.treasury.map(d => {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
       });

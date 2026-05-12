@@ -870,6 +870,19 @@ const routes = [
   },
   {
     meta: {
+      title: "Importar/Exportar"
+    },
+    path: "/import-export",
+    name: "import-export.view",
+    component: () =>
+      import(/* webpackChunkName: "import-export" */ "../views/ImportExport.vue"),
+    props: true,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    meta: {
       title: "Contasol"
     },
     path: "/contasol",

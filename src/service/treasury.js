@@ -7,11 +7,11 @@ const zeroPad = (num, places) => {
   return String(num).padStart(places, "0");
 }
 
-const getTreasuryData = async (project_states, year, bank_account_id) => {
+const getTreasuryData = async (project_states, year, bank_account_id, periodification = null) => {
 
   project_states = project_states.join(',')
 
-  let url = `treasuries/forecast?_limit=-1&project_states=${project_states}&year=${year}`
+  let url = `treasuries/forecast?_limit=-1&project_states=${project_states}&year=${year}&periodification=${periodification}`
   if (bank_account_id) {
     url += `&bank_account_id=${encodeURIComponent(bank_account_id)}`
   }
