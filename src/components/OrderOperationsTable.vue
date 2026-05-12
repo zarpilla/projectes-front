@@ -129,11 +129,38 @@
           </b-field>
         </div>
 
+        <!-- Mobile Sort Selector -->
+        <div class="mb-3 is-hidden-tablet">
+          <h3 class="subtitle is-6 mb-2">Ordenar per</h3>
+          <b-field>
+            <b-select
+              v-model="mobileSortOption"
+              @input="onMobileSortChange"
+              expanded
+            >
+              <option value="operationTypeSort-asc">Tipus (A-Z)</option>
+              <option value="operationTypeSort-desc">Tipus (Z-A)</option>
+              <option value="id-asc">Comanda (Ascendent)</option>
+              <option value="id-desc">Comanda (Descendent)</option>
+              <option value="operation_date-asc">Data Operació (Ascendent)</option>
+              <option value="operation_date-desc">Data Operació (Descendent)</option>
+              <option value="owner.fullname-asc">Sòcia (A-Z)</option>
+              <option value="owner.fullname-desc">Sòcia (Z-A)</option>
+              <option value="contact_trade_name-asc">Punt (A-Z)</option>
+              <option value="contact_trade_name-desc">Punt (Z-A)</option>
+              <option value="pickupPointSort-asc">Origen (A-Z)</option>
+              <option value="pickupPointSort-desc">Origen (Z-A)</option>
+              <option value="units-asc">Caixes (Ascendent)</option>
+              <option value="units-desc">Caixes (Descendent)</option>
+            </b-select>
+          </b-field>
+        </div>
+
         <!-- Summary -->
-        <div class="mb-3 is-full-width">
-          <div class="ml-0 mt-0 ml-md-4 mt-md-4">
-            <div class="ml-0 mt-0 ml-md-4 mt-md-4">
-              <div class="columns is-mobile bg-white-panel">
+        <div class="ml-0 is-full-width ml-5-md">
+          <div class="ml-0 mt-0 ml-md-2 mt-md-2">
+            <div class="ml-0 mt-0 ml-md-2 mt-md-2">
+              <div class="columns is-mobile zbg-white-panel">
                 <div class="column is-4">
                   <h2>Entregues</h2>
                   <h3 class="title is-3 mb-0">{{ entreguesCount }}</h3>
@@ -663,6 +690,7 @@ export default {
       sortField: "estimated_delivery_date",
       sortOrder: "asc",
       defaultSortOrder: "asc",
+      mobileSortOption: "operation_date-asc",
       permissions: [],
       currentUserId: null,
       entreguesCount: 0,
@@ -993,6 +1021,15 @@ export default {
     },
     onSort(field, order) {
       this.sortField = field;
+      // Update mobile sort option to match
+      this.mobileSortOption = `${field}-${order}`;
+      this.loadData();
+    },
+    onMobileSortChange() {
+      const [field, order] = this.mobileSortOption.split('-');
+      this.sortField = field;
+      this.sortOrder = order;
+      this.page = 1;
       this.sortOrder = order;
       this.loadData();
     },
@@ -1489,7 +1526,7 @@ h2 {
   
   @media screen and (min-width: 769px) {
     .filters-container {
-      padding: 0 1.5rem;
+      padding: 1rem 1.5rem;
     }
   .ml-md-4 {
     margin-left: 1.5rem!important;
@@ -1637,6 +1674,9 @@ h2 {
       .desktop-caixes-display {
         display: inline;
       }
+    }
+    .ml-5-md {
+      margin-left: 3rem!important;
     }
   }
 }
