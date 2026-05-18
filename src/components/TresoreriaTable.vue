@@ -1154,11 +1154,11 @@ export default {
         // Update the local data
         row.is_validated = response.data.validated;
 
-        this.$buefy.snackbar.open({
-          message: response.data.validated ? 'Moviment validat' : 'Validació eliminada',
-          type: response.data.validated ? 'is-success' : 'is-info',
-          queue: false
-        });
+        // this.$buefy.snackbar.open({
+        //   message: response.data.validated ? 'Moviment validat' : 'Validació eliminada',
+        //   type: response.data.validated ? 'is-success' : 'is-info',
+        //   queue: false
+        // });
       } catch (error) {
         console.error('Error toggling validation:', error);
         this.$buefy.snackbar.open({
