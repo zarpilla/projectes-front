@@ -5,6 +5,7 @@
       v-bind="item"
       exact-active-class="is-active"
       :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown }"
+      :title="isCollapsed && item.label ? item.label : null"
       @click.native="menuClick"
     >
       <b-icon
@@ -24,6 +25,7 @@
       v-if="hasDropdown"
       :menu="item.menu"
       :is-submenu-list="true"
+      :is-collapsed="isCollapsed"
     />
   </li>
 </template>
@@ -38,6 +40,10 @@ export default {
     item: {
       type: Object,
       default: null
+    },
+    isCollapsed: {
+      type: Boolean,
+      default: false
     }
   },
   data () {

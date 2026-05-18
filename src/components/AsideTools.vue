@@ -4,6 +4,7 @@
       <b-icon v-if="icon" :icon="icon" custom-size="default" />
       <slot name="label" />
     </div>
+    <slot />
   </div>
 </template>
 

@@ -2,6 +2,9 @@ section.section.is-main-section {
   padding-top: $default-padding;
 }
 @media screen and (min-width: 1024px) {
+  section.section.is-main-section {
+    padding-top: calc(4.75rem);  
+  }
   .section {
     padding: 3rem 1.5rem;
   }

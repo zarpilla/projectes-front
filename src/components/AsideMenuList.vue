@@ -4,6 +4,7 @@
       v-for="(item, index) in menu"
       :key="index"
       :item="item"
+      :is-collapsed="isCollapsed"
       @menu-click="menuClick"
     />
   </ul>
@@ -21,6 +22,10 @@ export default {
   },
   props: {
     isSubmenuList: {
+      type: Boolean,
+      default: false
+    },
+    isCollapsed: {
       type: Boolean,
       default: false
     },
