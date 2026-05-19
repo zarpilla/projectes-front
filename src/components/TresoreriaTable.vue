@@ -94,6 +94,16 @@
       </button>
     </div>
 
+    <div class="is-flex mt-4">
+      <button
+        class="button is-warning"
+        @click="getData"
+      >
+        <b-icon icon="refresh" size="is-small" class="mr-1"></b-icon>
+        Refrescar
+      </button>
+    </div>
+
     <!-- Filters Section -->
     <div
       class="filters-section mt-4 p-4"
@@ -1068,7 +1078,6 @@ export default {
     },
     goToYear(year) {
       this.$router.push({ query: { year } });
-      this.getData();
     },
     toggleState(state) {
       if (this.selectedProjectStates.includes(state.id)) {
@@ -1082,8 +1091,6 @@ export default {
         "TresoreriaTable.selectedProjectStates",
         JSON.stringify(this.selectedProjectStates)
       );
-
-      this.getData();
     },
     toggleBankAccount(account) {
       if (this.selectedBankAccountIds.includes(account.id)) {
@@ -1096,8 +1103,6 @@ export default {
       } else {
         this.selectedBankAccountIds.push(account.id);
       }
-
-      this.getData();
     },
     excelFormat(value) {
       return format(this.user, value);
