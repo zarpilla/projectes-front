@@ -193,6 +193,17 @@
                   placeholder="Propòsit"
                 />
               </b-field>
+              <b-field
+                label="Notes internes"
+                message="Notes internes del projecte"
+                horizontal
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.internal_notes"
+                  placeholder="Notes internes"
+                />
+              </b-field>
               <hr />
               <b-field label="Intercooperació" horizontal>
                 <b-autocomplete
