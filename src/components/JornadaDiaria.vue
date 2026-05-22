@@ -1,5 +1,11 @@
 <template>
   <div>
+    <b-loading
+      :is-full-page="true"
+      v-model="updating"
+      :can-cancel="false"
+    ></b-loading>
+    
     <div class="table-view">
       <div class="mb-4">
         <button
@@ -162,7 +168,7 @@
 
             <div class="column">
               <button
-                v-if="a.id"
+                v-if="a.id && a.id > 0"
                 class="button is-small is-danger mr-5"
                 type="button"
                 @click.prevent="deleteWorkLog(a)"
@@ -462,8 +468,6 @@ export default {
         await service({ requiresAuth: true }).get("projects/basic?_limit=-1")
       ).data;
 
-      console.log('this.projects', this.projects)
-
       const from = this.month 
         ? moment(this.year + "-" + this.month, "YYYY-MM")
             .startOf("month")
@@ -541,6 +545,7 @@ export default {
           this.activities = activities.reverse();
 
           this.isLoading = false;
+          this.updating = false;
         });
 
       this.me = (await service({ requiresAuth: true }).get("me")).data;
@@ -570,22 +575,28 @@ export default {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols eliminar el registre?",
         onConfirm: async () => {
-          if (activity.activity) {
-            await service({ requiresAuth: true }).delete(
-              `activities/${activity.activity.id}`
-            );
-          }
+          this.updating = true;
+          try {
+            if (activity.activity) {
+              await service({ requiresAuth: true }).delete(
+                `activities/${activity.activity.id}`
+              );
+            }
 
-          await service({ requiresAuth: true }).delete(
-            `workday-logs/${activity.id}`
-          );
-          this.getWorkDayLogs();
+            await service({ requiresAuth: true }).delete(
+              `workday-logs/${activity.id}`
+            );
+            this.getWorkDayLogs();
+          } catch (error) {
+            this.updating = false;
+          }
         },
         onCancel: () => {}
       });
     },
     addPeriod(activity, index) {
       const item = {
+        id: -1,  // Use negative ID to mark as new editable period
         date: activity.date,
         users_permissions_user: this.user,
         hour_in: null,
@@ -596,7 +607,8 @@ export default {
         project: null,
         activity: null
       };
-      this.saveActivity(item, index, false);
+      // Add the new period at the first position
+      this.activities.unshift(item);
     },
     changeHourIn(activity, i) {
       const zeroPad = (num, places) => String(num).padStart(places, "0");
@@ -661,16 +673,21 @@ export default {
     async saveActivity(activity, i, replace, createActivity = true) {
       this.updating = true;
       try {
+        // Validate that hour values are not undefined or null
         if (
           activity.hour_in_h === "undefined" ||
           activity.hour_in_m === "undefined" ||
           activity.hour_out_h === "undefined" ||
-          activity.hour_out_h === "undefined"
+          activity.hour_out_m === "undefined" ||
+          activity.hour_in_h === undefined ||
+          activity.hour_in_m === undefined ||
+          activity.hour_out_h === undefined ||
+          activity.hour_out_m === undefined
         ) {
           this.updating = false;
           return;
         }
-        if (activity.id) {
+        if (activity.id && activity.id > 0) {
           await service({ requiresAuth: true }).put(
             `workday-logs/${activity.id}`,
             activity
@@ -786,34 +803,41 @@ export default {
         );
       });
     },
-    async projectChanged(activity, i) {      
-      console.log('projectChanged activity', activity)
-      if (activity.project) {
-        const item = {
-          hours: moment(activity.hour_out, "HH:mm:ss").diff(
-            moment(activity.hour_in, "HH:mm:ss"), 'hours', true
-          ),
-          date: activity.date,
-          users_permissions_user: this.user,
-          project: activity.project,
+    async projectChanged(activity, i) {
+      this.updating = true;
+      try {
+        if (activity.project) {
+          const item = {
+            hours: moment(activity.hour_out, "HH:mm:ss").diff(
+              moment(activity.hour_in, "HH:mm:ss"), 'hours', true
+            ),
+            date: activity.date,
+            users_permissions_user: this.user,
+            project: activity.project,
+          }
+          if (activity.activity && activity.activity.id) {
+            await service({ requiresAuth: true }).put(
+              `activities/${activity.activity.id || activity.activity}`,
+              item
+            );
+            this.updating = false;
+          } else {
+            const newActivity = await service({ requiresAuth: true }).post("activities", item);
+            activity.activity = newActivity.data;
+            await this.saveActivity(activity, i, true, false);
+            // saveActivity handles updating = false
+          }
+          
+        } else if (activity.activity) {
+          await service({ requiresAuth: true }).delete(
+            `activities/${activity.activity.id || activity.activity}`
+          );
+          activity.activity = null;
+          await this.saveActivity(activity, i, true, false);
+          // saveActivity handles updating = false
         }
-        if (activity.activity && activity.activity.id) {
-          await service({ requiresAuth: true }).put(
-            `activities/${activity.activity.id || activity.activity}`,
-            item
-          );          
-        } else {
-          const newActivity = await service({ requiresAuth: true }).post("activities", item);
-          activity.activity = newActivity.data;
-          this.saveActivity(activity, i, true, false);
-        }
-        
-      } else if (activity.activity) {
-        await service({ requiresAuth: true }).delete(
-          `activities/${activity.activity.id || activity.activity}`
-        );
-        activity.activity = null;
-        this.saveActivity(activity, i, true, false);
+      } catch (error) {
+        this.updating = false;
       }
       // if (activity.projectNameSearch === '') {
       //   activity.project = null
