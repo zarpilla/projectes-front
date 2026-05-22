@@ -2957,6 +2957,7 @@ export default {
       }
 
       this.routes = this.validCityRoutes();
+      
       if (this.routes.length > 0) {
         // Auto-select only if there's exactly one route
         if (this.routes.length === 1) {
@@ -2971,18 +2972,27 @@ export default {
       }
     },
     validCityRoutes() {
-      return this.form.contact_city_id
-        ? this.cityRoutes
-            .filter(
-              cr =>
-                cr.city &&
-                cr.route &&
-                cr.city.id &&
-                cr.city.id === this.form.contact_city_id &&
-                cr.route.active
-            )
-            .map(cr => cr.route)
-        : [];
+      if (!this.form.contact_city_id) {
+        return [];
+      }
+
+      const filteredCityRoutes = this.cityRoutes.filter(
+        cr =>
+          cr.city &&
+          cr.route &&
+          cr.city.id &&
+          cr.city.id === this.form.contact_city_id &&
+          cr.route.active
+      );
+      
+      const routes = filteredCityRoutes.map(cr => cr.route);
+      
+      // Remove duplicates based on route.id
+      const uniqueRoutes = routes.filter((route, index, self) =>
+        index === self.findIndex((r) => r.id === route.id)
+      );
+      
+      return uniqueRoutes;
     },
     routeSelected(option) {
       if (!option || !option.id) {
