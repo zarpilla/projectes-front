@@ -149,25 +149,28 @@
               </b-field>
 
               <b-field
+                v-if="form.owner && form.contact"
                 label="Ruta *"
                 horizontal
                 :type="{ 'is-danger': errors['route'] && submitted }"
                 message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t'aplicarà la tarifa corresponent. En cas de dubte, consulta'ns"
               >
-                <b-select
-                  @input="changeRoute"
-                  v-model="form.route"
-                  placeholder=""
-                  :disabled="!canEdit"
-                >
-                  <option
+                <div class="is-flex-desktop is-flex-wrap-wrap">
+                  <button
+                    class="button mr-2 mb-2"
+                    type="button"
                     v-for="(s, index) in routes"
                     :key="index"
-                    :value="s.id"
+                    :class="{
+                      'is-warning': form.route === s.id,
+                      'is-outlined': form.route !== s.id
+                    }"
+                    @click="form.route = s.id; changeRoute();"
+                    :disabled="!canEdit"
                   >
                     {{ s.name }}
-                  </option>
-                </b-select>
+                  </button>
+                </div>
               </b-field>
 
               <b-field
@@ -391,7 +394,7 @@
                     : ''
                 "
               >
-                <div class="is-flex-desktop">
+                <div class="is-flex-desktop is-flex-wrap-wrap">
                   <button
                     class="button mr-2 mb-2"
                     type="button"
@@ -422,7 +425,7 @@
                     : 'Selecciona el punt de recollida concret dins de la finca'
                 "
               >
-                <div class="is-flex-desktop">
+                <div class="is-flex-desktop is-flex-wrap-wrap">
                   <button
                     class="button mr-2 mb-2"
                     type="button"
@@ -933,7 +936,7 @@
                 horizontal
                 message="Estat actual de la comanda"
               >
-                <div class=" is-flex-desktop ">
+                <div class="is-flex-desktop is-flex-wrap-wrap">
                   <button
                     class="button mr-2 mb-2"
                     type="button"
@@ -2955,13 +2958,13 @@ export default {
 
       this.routes = this.validCityRoutes();
       if (this.routes.length > 0) {
-        if (
-          !this.form.route ||
-          this.routes.length === 1 ||
-          (this.form.route && !this.routes.find(r => r.id === this.form.route))
-        ) {
+        // Auto-select only if there's exactly one route
+        if (this.routes.length === 1) {
           this.form.route = this.routes[0].id;
           await this.changeRoute();
+        } else if (this.form.route && !this.routes.find(r => r.id === this.form.route)) {
+          // Clear route if currently selected route is not in available routes
+          this.form.route = null;
         }
       } else {
         //this.form.route = null
