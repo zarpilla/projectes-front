@@ -219,6 +219,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    code: {
+      type: String,
+      default: '',
+    },
     year: {
       type: Number,
       default: null,
@@ -271,6 +275,9 @@ export default {
     };
   },
   watch: {
+    code: function (newVal, oldVal) {
+      this.getData();
+    },
     year: function (newVal, oldVal) {
       this.getData();
     },
@@ -378,11 +385,13 @@ export default {
       const paidQuery2 = this.paid === 1 ? `&[paid_eq]=true` : (this.paid === 2 ? `&[paid_eq]=false` : '');
 
       const serialQuery = this.serial ? `&[serial_eq]=${this.serial}` : "";
+      
+      const codeQuery = this.code ? `&[code_contains]=${this.code}` : '';
 
       let invoices = (
         await service({ requiresAuth: true }).get(
           `received-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
-          }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}`
+          }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
         )
       ).data;
 
@@ -398,7 +407,7 @@ export default {
           : "";
       let expenses = (
         await service({ requiresAuth: true }).get(
-          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}`
+          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
         )
       ).data;
 
@@ -417,6 +426,14 @@ export default {
         payrolls = payrolls.map((element) => {
           return { ...element, type: "payrolls", total_base: element.total };
         });
+        
+        // Filter payrolls client-side by constructed code (year-month-username)
+        if (this.code) {
+          payrolls = payrolls.filter((p) => {
+            const payrollCode = `${p.year.year}-${this.zeroPad(p.month.month, 2)}-${p.users_permissions_user.username}`;
+            return payrollCode.toLowerCase().includes(this.code.toLowerCase());
+          });
+        }
       }
 
       const emitted = _.concat(invoices, expenses, payrolls);

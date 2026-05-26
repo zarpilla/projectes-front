@@ -5,6 +5,9 @@
       <card-component>
         <form @submit.prevent="submit2">
           <b-field horizontal>
+            <b-field label="Codi" class="is-narrow">
+              <b-input v-model="codeSearch" placeholder="Cerca per codi"></b-input>
+            </b-field>
             <b-field label="Any">
               <b-select v-model="filters.year" required>
                 <option
@@ -88,6 +91,7 @@
       </card-component>
 
       <received-invoices-table
+        :code="filters.code"
         :year="filters.year"
         :month="filters.month"
         :quarter="filters.quarter" 
@@ -119,7 +123,10 @@ export default {
   data() {
     return {
       isLoading: false,
+      codeSearch: '',
+      codeDebounceTimer: null,
       filters: {
+        code: '',
         year: null,
         month: 0,
         quarter: 0,
@@ -146,6 +153,16 @@ export default {
       contactNameSearch: '',
       projectNameSearch: ''
     };
+  },
+  watch: {
+    codeSearch(newVal) {
+      if (this.codeDebounceTimer) {
+        clearTimeout(this.codeDebounceTimer);
+      }
+      this.codeDebounceTimer = setTimeout(() => {
+        this.filters.code = newVal;
+      }, 500);
+    }
   },
   computed: {
     ...mapState(["userName"]),

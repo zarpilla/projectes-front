@@ -255,6 +255,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    code: {
+      type: String,
+      default: '',
+    },
     year: {
       type: Number,
       default: null,
@@ -327,6 +331,9 @@ export default {
     };
   },
   watch: {
+    code: function (newVal, oldVal) {
+      this.getData();
+    },
     year: function (newVal, oldVal) {
       this.getData();
     },
@@ -392,10 +399,12 @@ export default {
       const paidQuery = this.paid === 1 ? `&[paid_date_null]=false` : (this.paid === 2 ? `&[paid_date_null]=true` : '');
 
       const serialQuery = this.serial ? `&[serial_eq]=${this.serial}` : '';
+      
+      const codeQuery = this.code ? `&[code_contains]=${this.code}` : '';
 
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}`
+          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
         )
       ).data;
 
@@ -406,7 +415,7 @@ export default {
       const typeQuery = this.documentType !== 0 ? `&[document_type_eq]=${this.documentType}` : '';
       let incomes = (
         await service({ requiresAuth: true }).get(
-          `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}`
+          `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
         )
       ).data;
 

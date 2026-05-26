@@ -2736,6 +2736,7 @@ export default {
         )
       ).data;
       this.pdf = true;
+      this.form.pdf = pdf.url; // Save the updated PDF URL
 
       this.form.state = theInvoice.data.state;
       this.form.code = theInvoice.data.code;
