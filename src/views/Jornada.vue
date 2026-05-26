@@ -113,7 +113,6 @@ export default {
       // console.log('r.data', r.data)
       this.months = [{ month: null, month_number: null, name: '-- Tots --' }, ...r.data]
       this.filters.month = this.months.find(m => m.month_number === moment().format('MM'))
-      console.log('this.filters.month', this.filters.month)
     })
 
     service({ requiresAuth: true, cached: true }).get('users').then((r) => {

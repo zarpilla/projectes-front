@@ -192,7 +192,7 @@
         </div>
       </card-component>
 
-      <div v-if="generatedPDF || true" class="invoice-box-container">
+      <div v-if="(generatedPDF || true) && me" class="invoice-box-container">
         <div class="invoice-box" id="pdf">
           <table>
             <tr class="is-total bordered-2t">
