@@ -3031,8 +3031,12 @@ export default {
       ];
     },
     totals() {
-      // When showing TOTS (total), use calculatedTotals from calculate endpoint
-      // This ensures totals match the sum of yearly values
+      // For mother projects, `calculatedTotals` holds the aggregated totals
+      // from the children-aggregation endpoint. For regular projects it's
+      // null and we fall back to `this.form`, which is guaranteed to equal
+      // the sum of yearly values because the backend now derives both the
+      // project-level totals and `allByYear` from the same row stream
+      // (services/projectFinancials.js).
       const result = this.allByYearYear === "TOTS"
         ? (this.calculatedTotals || this.form)
         : this.allByYear.find(a => a.year === this.allByYearYear);
