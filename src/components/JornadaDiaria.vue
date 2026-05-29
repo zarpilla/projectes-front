@@ -672,17 +672,29 @@ export default {
     async saveActivity(activity, i, replace, createActivity = true) {
       this.updating = true;
       try {
-        // Validate that hour values are not undefined or null
-        if (
-          activity.hour_in_h === "undefined" ||
-          activity.hour_in_m === "undefined" ||
-          activity.hour_out_h === "undefined" ||
-          activity.hour_out_m === "undefined" ||
-          activity.hour_in_h === undefined ||
-          activity.hour_in_m === undefined ||
-          activity.hour_out_h === undefined ||
-          activity.hour_out_m === undefined
-        ) {
+        // Validate that at least one full pair (entrada or sortida) is set.
+        // Previously this required BOTH pairs, which prevented saving when
+        // the user only clicked "Entrada" (hour_out is still undefined).
+        const hasHourIn =
+          activity.hour_in_h !== undefined &&
+          activity.hour_in_m !== undefined &&
+          activity.hour_in_h !== "undefined" &&
+          activity.hour_in_m !== "undefined" &&
+          activity.hour_in_h !== null &&
+          activity.hour_in_m !== null &&
+          activity.hour_in_h !== "" &&
+          activity.hour_in_m !== "";
+        const hasHourOut =
+          activity.hour_out_h !== undefined &&
+          activity.hour_out_m !== undefined &&
+          activity.hour_out_h !== "undefined" &&
+          activity.hour_out_m !== "undefined" &&
+          activity.hour_out_h !== null &&
+          activity.hour_out_m !== null &&
+          activity.hour_out_h !== "" &&
+          activity.hour_out_m !== "";
+
+        if (!hasHourIn && !hasHourOut) {
           this.updating = false;
           return;
         }
