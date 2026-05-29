@@ -534,7 +534,6 @@ export default {
                   w.hour_out_m = w.hour_out.split(":")[1];
                 }
                 if (w.activity && w.activity.project) {
-                  console.log('w.activity', w.activity)
                   w.projectNameSearch = this.projects.find(p => p.id === w.activity.project).name
                 }
                 activities.push(w);
