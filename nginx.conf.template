@@ -4,6 +4,11 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Security: block direct download of sensitive credential files (defense in depth).
+    location ~* \.(p12|pfx|pem|key|crt|cer|jks|kdb)$ {
+        return 403;
+    }
+
     # Handle service worker specifically for /stats/ prefix - must come before other /stats/ rules
     location = /stats/service-worker.js {
         expires -1;

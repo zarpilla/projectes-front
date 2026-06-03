@@ -14,14 +14,6 @@
             Atenció! Aquesta factura passara a <span class="tag is-primary">EMESA</span> i s'emetrà amb les dades següents, que no
             podran ser modificades posteriorment.
           </p>
-
-          <p class="mt-5 mb-3 has-text-weight-bold" v-if="toReal === true && contact.face">
-            <span class="tag is-warning">FACTURA ELECTRÒNICA</span><br><br>
-            A més a més, aquesta factura s'enviarà a l'administració tributària mitjançant el sistema de facturació electrònica FACE, i el seu estat de tramitació es podrà consultar a través del portal de FACE.
-          </p>
-
-          
-
           
           <p class="title is-5 has-text-weight-bold mt-5">
             <span class="tag is-warning">DADES DE LA FACTURA</span>
@@ -57,7 +49,29 @@
           <p class="zhas-text-weight-bold">Nom: {{ contact.name }}</p>
           <p class="zhas-text-weight-bold">NIF: {{ contact.nif }}</p>
 
-          <p class="mt-3 mb-3 has-text-weight-bold" v-if="toReal === true">
+          <p class="mt-5 mb-3 has-text-weight-bold" v-if="toReal === true && contact.face">
+            <span class="tag is-warning">FACTURA ELECTRÒNICA</span><br><br>
+            A més a més, aquesta factura s'enviarà a l'administració tributària mitjançant el sistema de facturació electrònica FACE, i el seu estat de tramitació es podrà consultar a través del portal de FACE.
+          </p>
+
+          <div v-if="toReal === true && contact.face" class="mt-3">
+            <p class="has-text-weight-bold mb-2">Dades DIR3:</p>
+            <p class="zhas-text-weight-bold" v-if="contact.face_dir3_oc">
+              DIR3 OC: {{ contact.face_dir3_oc }}
+            </p>
+            <p class="zhas-text-weight-bold" v-if="contact.face_dir3_og">
+              DIR3 OG: {{ contact.face_dir3_og }}
+            </p>
+            <p class="zhas-text-weight-bold" v-if="contact.face_dir3_ut">
+              DIR3 UT: {{ contact.face_dir3_ut }}
+            </p>
+            <p class="zhas-text-weight-bold" v-if="!contact.face_dir3_oc && !contact.face_dir3_og && !contact.face_dir3_ut">
+              No hi ha dades DIR3 configurades
+            </p>
+          </div>  
+
+          <p class="mt-5   mb-3 has-text-weight-bold" v-if="toReal === true">
+            <span class="tag is-warning">ATENCIÓ</span><br><br>
             Si us plau, revisa bé les dades de la factura abans d'emetre-la.
           </p>
         </section>
