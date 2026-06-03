@@ -157,8 +157,7 @@
                 :open-on-focus="true"
                 :data="filteredProjects(a.projectNameSearch)"
                 field="name"
-                @select="option => (a.project = option ? option.id : null)"
-                @input="projectChanged(a, i)"
+                @select="option => selectProject(option, a, i)"
                 :disabled="a.id === 0"
                 :clearable="true"                
               >
@@ -814,6 +813,10 @@ export default {
         );
       });
     },
+    selectProject(option, activity, i) {
+      activity.project = option ? option.id : null;
+      this.projectChanged(activity, i);
+    },
     async projectChanged(activity, i) {
       this.updating = true;
       try {
@@ -846,13 +849,13 @@ export default {
           activity.activity = null;
           await this.saveActivity(activity, i, true, false);
           // saveActivity handles updating = false
+        } else {
+          // Nothing to save, just clear the loading state
+          this.updating = false;
         }
       } catch (error) {
         this.updating = false;
       }
-      // if (activity.projectNameSearch === '') {
-      //   activity.project = null
-      // }
     }
   },
   filters: {
