@@ -2990,6 +2990,11 @@ export default {
           queue: false
         });
       }
+      // Save reference to the original invoice being rectified
+      this.form.rectified_invoice = previousForm.id;
+      this.form.rectification_reason_code = "80";
+      this.form.rectification_reason = `Rectificativa de la factura ${previousForm.code}`;
+      this.form.rectification_method_code = "01";
       this.form.sent = false;
       this.form.sent_date = null;
       this.form.paid = false;
