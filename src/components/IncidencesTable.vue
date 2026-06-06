@@ -337,6 +337,154 @@
         </div>
       </template>
     </b-table>
+
+    <!-- Modal for incidence detail -->
+    <b-modal
+      v-model="showIncidenceModal"
+      :width="800"
+      scroll="keep"
+    >
+      <div class="modal-card" v-if="modalIncidence">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Incidència #{{ modalIncidence.id }}</p>
+          <button
+            type="button"
+            class="delete"
+            @click="showIncidenceModal = false"
+          ></button>
+        </header>
+        <section class="modal-card-body">
+          <!-- Incidence summary info -->
+          <div class="incidence-summary mb-4">
+            <div class="columns is-multiline">
+              <div class="column is-half">
+                <p><strong>Comanda:</strong> 
+                  <router-link
+                    v-if="modalIncidence.order && modalIncidence.order.id"
+                    :to="{ name: 'orders.edit', params: { id: modalIncidence.order.id } }"
+                    @click.native="showIncidenceModal = false"
+                  >
+                    #{{ modalIncidence.order.id.toString().padStart(4, "0") }}
+                  </router-link>
+                  <span v-else>-</span>
+                </p>
+              </div>
+              <div class="column is-half">
+                <p><strong>Estat:</strong> 
+                  <b-tag :type="getStateTagType(modalIncidence.state)">
+                    {{ getStateLabel(modalIncidence.state) }}
+                  </b-tag>
+                </p>
+              </div>
+              <div class="column is-half">
+                <p><strong>Punt:</strong> {{ modalIncidence.order ? modalIncidence.order.contact_trade_name : '-' }}</p>
+              </div>
+              <div class="column is-half">
+                <p><strong>Sòcia:</strong> {{ modalIncidence.order && modalIncidence.order.owner ? modalIncidence.order.owner.fullname : '-' }}</p>
+              </div>
+              <div class="column is-half">
+                <p><strong>Creada:</strong> {{ formatDate(modalIncidence.created_at) }}</p>
+              </div>
+              <div class="column is-half">
+                <p><strong>Creada per:</strong> {{ modalIncidence.created_user ? (modalIncidence.created_user.fullname || modalIncidence.created_user.username) : '-' }}</p>
+              </div>
+              <div class="column is-half" v-if="modalIncidence.closed_date">
+                <p><strong>Tancada:</strong> {{ formatDate(modalIncidence.closed_date) }}</p>
+              </div>
+              <div class="column is-half" v-if="modalIncidence.closed_user">
+                <p><strong>Tancada per:</strong> {{ modalIncidence.closed_user ? (modalIncidence.closed_user.fullname || modalIncidence.closed_user.username) : '-' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat detail (same as table detail) -->
+          <div class="incidence-chat-container">
+            <!-- Original incidence description -->
+            <div class="chat-message initial-message">
+              <div class="message-header">
+                <div class="message-author">
+                  <b-icon icon="account" size="is-small"></b-icon>
+                  <strong>{{ modalIncidence.created_user ? (modalIncidence.created_user.fullname || modalIncidence.created_user.username) : 'Usuari desconegut' }}</strong>
+                </div>
+                <div class="message-date">{{ formatDateTime(modalIncidence.created_at) }}</div>
+              </div>
+              <div class="message-content initial-content">
+                {{ modalIncidence.description }}
+              </div>
+            </div>
+
+            <!-- Responses -->
+            <div 
+              v-for="(response, index) in (modalIncidence.incidence_response || [])" 
+              :key="index"
+              class="chat-message"
+            >
+              <div class="message-header">
+                <div class="message-author">
+                  <b-icon icon="account-arrow-right" size="is-small"></b-icon>
+                  <strong>{{ response.user ? (response.user.fullname || response.user.username) : 'Usuari desconegut' }}</strong>
+                </div>
+                <div class="message-date">{{ formatDateTime(response.response_date) }}</div>
+              </div>
+              <div class="message-content">
+                {{ response.text }}
+              </div>
+            </div>
+
+            <!-- Add new response form -->
+            <div class="add-response-form" v-if="modalIncidence.state !== 'closed'">
+              <b-field grouped>
+                <b-field expanded>
+                  <b-input
+                    v-model="responseText[modalIncidence.id]"
+                    type="textarea"
+                    placeholder="Escriu una resposta..."
+                    :rows="2"
+                    @keydown.native.ctrl.enter="addResponseFromModal(modalIncidence)"
+                  ></b-input>
+                </b-field>
+              </b-field>
+              <div class="is-flex is-justify-content-space-between">
+                <div class="buttons">
+                  <b-button
+                    type="is-primary"
+                    size="is-small"
+                    icon-left="send"
+                    @click="addResponseFromModal(modalIncidence)"
+                    :disabled="!responseText[modalIncidence.id] || !responseText[modalIncidence.id].trim()"
+                  >
+                    Enviar resposta
+                  </b-button>
+                  <b-button
+                    v-if="modalIncidence.state === 'open'"
+                    type="is-warning"
+                    size="is-small"
+                    icon-left="clock"
+                    @click="changeStateFromModal(modalIncidence, 'wip')"
+                  >
+                    Marcar en procés
+                  </b-button>
+                  <b-button
+                    v-if="modalIncidence.state === 'wip'"
+                    type="is-success"
+                    size="is-small"
+                    icon-left="check"
+                    @click="changeStateFromModal(modalIncidence, 'closed')"
+                  >
+                    Tancar incidència
+                  </b-button>
+                </div>
+                <small class="has-text-grey-light">Ctrl+Enter per enviar</small>
+              </div>
+            </div>
+
+            <div v-else class="notification is-light">
+              <p>Aquesta incidència està tancada.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </b-modal>
   </section>
 </template>
 
@@ -364,7 +512,9 @@ export default {
       closedCount: 0,
       responseText: {},
       currentUserId: null,
-      isAdmin: false
+      isAdmin: false,
+      showIncidenceModal: false,
+      modalIncidence: null
     };
   },
   computed: {
@@ -378,8 +528,174 @@ export default {
     this.currentUserId = me.data.id;
     this.isAdmin = (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"));
     this.loadData();
+    
+    // Check if there's an id querystring
+    const incidenceId = this.$route.query.id;
+    if (incidenceId) {
+      await this.loadIncidenceModal(incidenceId);
+    }
   },
   methods: {
+    async loadIncidenceModal(incidenceId) {
+      try {
+        this.isLoading = true;
+        
+        // Fetch the specific incidence with all related data
+        const response = await service({ requiresAuth: true }).get(
+          `incidences/${incidenceId}`
+        );
+        
+        const incidence = response.data;
+        
+        // Fetch users to enrich order owner information
+        const usersResponse = await service({ requiresAuth: true, cached: true }).get(
+          "users", 
+          { params: { _limit: -1 } }
+        );
+        const users = usersResponse.data;
+        const usersMap = new Map(users.map(u => [u.id, u]));
+        
+        // Enrich order owner information
+        if (incidence.order && incidence.order.owner) {
+          const ownerId = typeof incidence.order.owner === 'object' 
+            ? incidence.order.owner.id 
+            : incidence.order.owner;
+          const owner = usersMap.get(ownerId);
+          if (owner) {
+            incidence.order.owner = owner;
+          }
+        }
+        
+        // Initialize response text for this incidence
+        if (!this.responseText[incidence.id]) {
+          this.$set(this.responseText, incidence.id, '');
+        }
+        
+        this.modalIncidence = incidence;
+        this.showIncidenceModal = true;
+      } catch (error) {
+        console.error("Error loading incidence:", error);
+        this.$buefy.toast.open({
+          message: "Error carregant la incidència",
+          type: "is-danger"
+        });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async addResponseFromModal(incidence) {
+      const text = this.responseText[incidence.id];
+      if (!text || !text.trim()) {
+        return;
+      }
+
+      try {
+        this.isLoading = true;
+
+        // Get current user
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me");
+        const currentUserId = me.data.id;
+
+        // Prepare the new response
+        const newResponse = {
+          text: text.trim(),
+          user: currentUserId,
+          response_date: new Date().toISOString()
+        };
+
+        // Get current responses and add the new one
+        const currentResponses = incidence.incidence_response || [];
+        const updatedResponses = [...currentResponses, newResponse];
+
+        // Update the incidence with the new response
+        await service({ requiresAuth: true }).put(
+          `incidences/${incidence.id}`,
+          {
+            incidence_response: updatedResponses
+          }
+        );
+
+        this.$buefy.toast.open({
+          message: "Resposta afegida correctament",
+          type: "is-success"
+        });
+
+        // Clear the input
+        this.$set(this.responseText, incidence.id, '');
+
+        // Reload the modal incidence
+        await this.loadIncidenceModal(incidence.id);
+        
+        // Also reload table data
+        await this.loadData();
+      } catch (error) {
+        console.error("Error adding response:", error);
+        this.$buefy.toast.open({
+          message: "Error afegint resposta",
+          type: "is-danger"
+        });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async changeStateFromModal(incidence, newState) {
+      const stateLabels = {
+        open: 'oberta',
+        wip: 'en procés',
+        closed: 'tancada'
+      };
+
+      const confirmMessage = newState === 'closed' 
+        ? 'Estàs segur que vols tancar aquesta incidència?' 
+        : `Vols marcar aquesta incidència com a ${stateLabels[newState]}?`;
+
+      this.$buefy.dialog.confirm({
+        message: confirmMessage,
+        onConfirm: async () => {
+          try {
+            this.isLoading = true;
+
+            // Get current user
+            const me = await service({ requiresAuth: true, cached: true }).get("users/me");
+            const currentUserId = me.data.id;
+
+            const updateData = {
+              state: newState
+            };
+
+            // If closing, set closed_date and closed_user
+            if (newState === 'closed') {
+              updateData.closed_date = new Date().toISOString();
+              updateData.closed_user = currentUserId;
+            }
+
+            await service({ requiresAuth: true }).put(
+              `incidences/${incidence.id}`,
+              updateData
+            );
+
+            this.$buefy.toast.open({
+              message: `Incidència marcada com a ${stateLabels[newState]}`,
+              type: "is-success"
+            });
+
+            // Reload the modal incidence
+            await this.loadIncidenceModal(incidence.id);
+            
+            // Also reload table data
+            await this.loadData();
+          } catch (error) {
+            console.error("Error changing state:", error);
+            this.$buefy.toast.open({
+              message: "Error canviant l'estat de la incidència",
+              type: "is-danger"
+            });
+          } finally {
+            this.isLoading = false;
+          }
+        }
+      });
+    },
     async loadData() {
       this.isLoading = true;
       try {
@@ -794,6 +1110,37 @@ h2 {
 
 .message-author .icon {
     color: #000;
+}
+
+.modal-card {
+  width: 100%;
+}
+
+.modal-card-head {
+  background-color: #3273dc;
+  
+  .modal-card-title {
+    color: white;
+  }
+}
+
+.modal-card-body {
+  background-color: #f5f5f5;
+}
+
+.incidence-summary {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  
+  p {
+    margin-bottom: 0.5rem;
+    
+    strong {
+      color: #363636;
+      margin-right: 0.5rem;
+    }
+  }
 }
 </style>
 

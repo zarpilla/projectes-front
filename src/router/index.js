@@ -905,6 +905,17 @@ const routes = [
     }
   },
   {
+    path: "/admin/verifactu",
+    name: "admin.verifactu",
+    component: () =>
+      import(/* webpackChunkName: "admin-verifactu" */ "../views/Verifactu.vue"),
+    meta: {
+      title: "Verifactu",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
     path: "/admin/users",
     name: "admin.users.list",
     component: () =>

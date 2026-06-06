@@ -371,6 +371,12 @@ const menu = [
       permission: "admin"
     },
     {
+      to: "/admin/verifactu",
+      icon: "certificate",
+      label: "Verifactu",
+      permission: "admin"
+    },
+    {
       to: "/admin/project-scope",
       icon: "tag",
       label: "Àmbits de projecte",

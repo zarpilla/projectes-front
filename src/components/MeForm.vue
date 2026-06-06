@@ -136,25 +136,6 @@
         </form>
       </card-component>
 
-      <!-- Verifactu Settings -->
-      <card-component title="CONFIGURACIÓ VERIFACTU" class="mt-4">
-        <form @submit.prevent="submit">
-          <b-field label="Verifactu" horizontal>
-            <b-select v-model="form.verifactu">
-              <option value="no">No</option>
-              <option value="test">Test</option>
-              <option value="real">Real</option>
-            </b-select>
-          </b-field>
-
-          <b-field label="Contrasenya certificat" horizontal>
-            <b-message type="is-info" has-icon size="is-small">
-              La contrasenya del certificat s'ha d'actualitzar a l'àrea d'administració del servidor per motius de seguretat.
-            </b-message>
-          </b-field>
-        </form>
-      </card-component>
-
       <!-- FACE Settings -->
       <card-component title="CONFIGURACIÓ FACE" class="mt-4">
         <form @submit.prevent="submit">
@@ -253,7 +234,6 @@ export default {
         invoice_email: '',
         invoice_subject: '',
         invoice_template: '',
-        verifactu: 'no',
         face: 'no',
         face_test_endpoint: '',
         face_real_endpoint: '',

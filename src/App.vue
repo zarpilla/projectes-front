@@ -38,6 +38,12 @@ export default {
     EventBus.$on("login", () => {
       this.loadUserData();
     });
+
+    // Refresh user data when tab/window regains focus
+    window.addEventListener("focus", this.refreshUserData);
+  },
+  beforeDestroy() {
+    window.removeEventListener("focus", this.refreshUserData);
   },
   computed: {
     ...mapState(["userName"]),
@@ -50,7 +56,8 @@ export default {
       loaded: false,
       menuList: [],
       isModalActive: false,
-      invoices: []
+      invoices: [],
+      lastRefresh: 0
     };
   },
   async created() {
@@ -71,12 +78,30 @@ export default {
         }) !== undefined
       );
     },
+    async refreshUserData() {
+      const now = Date.now();
+      const THROTTLE_MS = 900000; // Only refresh once every 15 minutes
+      
+      // Skip if refreshed recently
+      if (now - this.lastRefresh < THROTTLE_MS) {
+        return;
+      }
+      
+      this.lastRefresh = now;
+      
+      // Clear menu list to avoid duplicates
+      this.menuList = [];
+      await this.loadUserData();
+    },
     async loadUserData() {
       if (localStorage.getItem("user") && localStorage.getItem("jwt")) {
         try {
           const me = await service({ requiresAuth: true }).get("users/me");
           if (me && me.data && me.data.username) {
-            const user = JSON.parse(localStorage.getItem("user"));
+            // Update localStorage with fresh user data (including permissions)
+            localStorage.setItem("user", JSON.stringify(me.data));
+            
+            const user = me.data;
             user["jwt"] = localStorage.getItem("jwt");
             this.$store.commit("user", {
               user: user,
