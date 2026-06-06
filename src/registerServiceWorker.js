@@ -31,15 +31,15 @@ if (process.env.NODE_ENV === 'production') {
       
       // Wait a bit before starting periodic updates to let the SW finish installing
       setTimeout(() => {
-        console.log('Starting periodic update checks...')
+        console.log('Starting periodic update checks every 15 minutes...')
         setInterval(() => {
-          console.log('Manually checking for service worker updates...')
+          console.log('Checking for service worker updates...')
           if (registration && typeof registration.update === 'function') {
             registration.update().catch(error => {
               console.warn('Manual update check failed:', error.message)
             })
           }
-        }, 60000) // Check every minute for testing
+        }, 900000) // Check every 15 minutes
       }, 5000) // Wait 5 seconds after registration
     },
     cached () {
