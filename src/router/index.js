@@ -882,16 +882,97 @@ const routes = [
     }
   },
   {
-    meta: {
-      title: "Contasol"
-    },
     path: "/contasol",
     name: "contasol.view",
     component: () =>
       import(/* webpackChunkName: "quote" */ "../views/Contasol.vue"),
     props: true,
     meta: {
+      title: "Contasol",
       requiresAuth: true
+    }
+  },
+  // Admin routes - specific routes must come before dynamic ones
+  {
+    path: "/admin/me",
+    name: "admin.me",
+    component: () =>
+      import(/* webpackChunkName: "admin-me" */ "../views/Me.vue"),
+    meta: {
+      title: "Configuració General",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/users",
+    name: "admin.users.list",
+    component: () =>
+      import(/* webpackChunkName: "admin-users" */ "../views/AdminUserList.vue"),
+    meta: {
+      title: "Usuaris",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/users/new",
+    name: "admin.users.new",
+    component: () =>
+      import(/* webpackChunkName: "admin-users-form" */ "../views/AdminUserForm.vue"),
+    meta: {
+      title: "Crear usuari",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/users/:id",
+    name: "admin.users.edit",
+    component: () =>
+      import(/* webpackChunkName: "admin-users-form" */ "../views/AdminUserForm.vue"),
+    props: true,
+    meta: {
+      title: "Editar usuari",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  // Admin entity management routes
+  {
+    path: "/admin/:entityName",
+    name: "admin.entity.list",
+    component: () =>
+      import(/* webpackChunkName: "admin-entity-list" */ "../views/AdminEntityList.vue"),
+    props: true,
+    meta: {
+      title: "Administració",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/:entityName/new",
+    name: "admin.entity.new",
+    component: () =>
+      import(/* webpackChunkName: "admin-entity-form" */ "../views/AdminEntityForm.vue"),
+    props: route => ({ entityName: route.params.entityName }),
+    meta: {
+      title: "Crear entitat",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/:entityName/:id",
+    name: "admin.entity.edit",
+    component: () =>
+      import(/* webpackChunkName: "admin-entity-form" */ "../views/AdminEntityForm.vue"),
+    props: true,
+    meta: {
+      title: "Editar entitat",
+      requiresAuth: true,
+      requiresPermission: "admin"
     }
   }
 ];
@@ -932,7 +1013,21 @@ router.beforeEach((to, from, next) => {
         } else {
           next({ name: "projectes.view" });
         }
-      } else {
+      }
+      // Check for permission-based routes
+      else if (to.matched.some(record => record.meta.requiresPermission)) {
+        // Find the matched route with requiresPermission
+        const matchedRoute = to.matched.find(record => record.meta.requiresPermission);
+        const requiredPermission = matchedRoute.meta.requiresPermission;
+        const userPermissions = (user.permissions || []).map(p => p.permission);
+        
+        if (userPermissions.includes(requiredPermission)) {
+          next();
+        } else {
+          next({ name: "projectes.view" });
+        }
+      }
+      else {
         next();
       }
     }

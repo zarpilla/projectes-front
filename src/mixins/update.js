@@ -21,7 +21,7 @@ export default {
       }
     }
 
-    // AGGRESSIVE UPDATE CHECK - Check every 30 seconds for waiting service workers
+    // Periodic update check - Check every 15 minutes for waiting service workers
     if (navigator.serviceWorker) {
       this.startUpdateChecking()
 
@@ -42,15 +42,15 @@ export default {
   },
   methods: {
     startUpdateChecking () {
-      console.log('Starting aggressive update checking every 30 seconds')
+      console.log('Starting update checking every 15 minutes')
       
       // Check immediately
       this.checkForUpdates()
       
-      // Then check every 30 seconds
+      // Then check every 15 minutes
       this.updateCheckInterval = setInterval(() => {
         this.checkForUpdates()
-      }, 30000)
+      }, 900000)
     },
     
     checkForUpdates () {

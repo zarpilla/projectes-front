@@ -314,10 +314,10 @@ const menu = [
       permission: "projects"
     },
     {
-      to: '/forecast',
-      icon: 'table',
-      label: 'Previsió Econòmica',
-      permission: 'projects'
+      to: "/forecast",
+      icon: "table",
+      label: "Previsió Econòmica",
+      permission: "projects"
     },
     {
       to: "/stats-estrategies",
@@ -356,6 +356,124 @@ const menu = [
       permission: "projects"
     }
   ],
+  "ADMINISTRACIÓ",
+  [
+    {
+      to: "/admin/me",
+      icon: "settings",
+      label: "Configuració general",
+      permission: "admin"
+    },
+    {
+      to: "/admin/users",
+      icon: "account-multiple",
+      label: "Usuaris",
+      permission: "admin"
+    },
+    {
+      to: "/admin/project-scope",
+      icon: "tag",
+      label: "Àmbits de projecte",
+      permission: "admin"
+    },
+    {
+      to: "/admin/year",
+      icon: "calendar",
+      label: "Anys",
+      permission: "admin"
+    },
+    {
+      to: "/admin/bank-accounts",
+      icon: "bank",
+      label: "Comptes bancaris",
+      permission: "admin"
+    },
+    {
+      to: "/admin/social-entity",
+      icon: "account-group",
+      label: "Entitats socials",
+      permission: "admin"
+    },
+    {
+      to: "/admin/project-state",
+      icon: "state-machine",
+      label: "Estats de projecte",
+      permission: "admin"
+    },
+    {
+      to: "/admin/task-state",
+      icon: "state-machine",
+      label: "Estats de tasca",
+      permission: "admin"
+    },
+    {
+      to: "/admin/strategy",
+      icon: "strategy",
+      label: "Estratègies",
+      permission: "admin"
+    },
+    {
+      to: "/admin/legal-form",
+      icon: "gavel",
+      label: "Formes jurídiques",
+      permission: "admin"
+    },
+    {
+      to: "/admin/payment-method",
+      icon: "cash",
+      label: "Mètodes de pagament",
+      permission: "admin"
+    },
+    {
+      to: "/admin/regions",
+      icon: "map",
+      label: "Regions",
+      permission: "admin"
+    },
+    {
+      to: "/admin/sector",
+      icon: "tag",
+      label: "Sectors",
+      permission: "admin"
+    },
+    {
+      to: "/admin/serie",
+      icon: "counter",
+      label: "Sèries",
+      permission: "admin"
+    },
+    {
+      to: "/admin/contact-type",
+      icon: "tag",
+      label: "Tipus de contacte",
+      permission: "admin"
+    },
+    {
+      to: "/admin/dedication-type",
+      icon: "tag",
+      label: "Tipus de dedicació",
+      permission: "admin"
+    },
+    {
+      to: "/admin/expense-type",
+      icon: "tag",
+      label: "Tipus de despesa",
+      permission: "admin"
+    },
+    {
+      to: "/admin/income-type",
+      icon: "tag",
+      label: "Tipus d'ingrés",
+      permission: "admin"
+    },
+    {
+      to: "/admin/project-type",
+      icon: "tag",
+      label: "Tipus de projecte",
+      permission: "admin",
+      itemClassName: "mb-6"
+    }
+  ],
   "Altres",
   [
     {
@@ -363,7 +481,7 @@ const menu = [
       icon: "open-in-new",
       label: "Strapi",
       permission: "projects"
-    },    
+    },
     {
       to: "/import-export",
       icon: "swap-vertical",
@@ -389,27 +507,7 @@ const menu = [
       permission: "projects",
       itemClassName: "mb-6"
     }
-    // {
-    //   to: '/documentacio',
-    //   icon: 'help-circle',
-    //   label: 'Documentació',
-    //   permission: 'projects'
-    // }
   ]
-  //,
-  // 'About',
-  // [
-  //   {
-  //     href: 'https://admin-one.justboil.me',
-  //     label: 'Premium Demo',
-  //     icon: 'credit-card'
-  //   },
-  //   {
-  //     href: 'https://justboil.me/bulma-admin-template/one',
-  //     label: 'About',
-  //     icon: 'help-circle'
-  //   }
-  // ]
 ];
 
 export default menu;

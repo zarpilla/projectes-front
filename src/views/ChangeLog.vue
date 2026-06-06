@@ -2,6 +2,20 @@
   <div>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section column is-half">
+      <card-component title="2026.06.05">
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Integració amb FACe per a l'enviament automàtic de factures electròniques a l'Administració Pública.
+          </div>
+        </div>
+        <div class="item mb-4">
+          <span class="tag is-primary">Novetats</span>
+          <div class="text mt-2">
+            Noves pàgines d'administració per gestionar la configuració del sistema i els paràmetres globals.
+          </div>
+        </div>
+      </card-component>
       <card-component title="2026.05.12">        
         <div class="item mb-4">
           <span class="tag is-primary">Novetats</span>
