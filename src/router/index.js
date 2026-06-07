@@ -916,6 +916,52 @@ const routes = [
     }
   },
   {
+    path: "/admin/face-queue",
+    name: "admin.face-queue.list",
+    component: () =>
+      import(/* webpackChunkName: "admin-face-queue" */ "../views/FaceQueueList.vue"),
+    meta: {
+      title: "Factures FACE",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/face-queue/:id",
+    name: "admin.face-queue.edit",
+    component: () =>
+      import(/* webpackChunkName: "admin-face-queue" */ "../views/FaceQueueEdit.vue"),
+    props: true,
+    meta: {
+      title: "Editar cua FACE",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/verifactu-chain",
+    name: "admin.verifactu-chain.list",
+    component: () =>
+      import(/* webpackChunkName: "admin-verifactu-chain" */ "../views/VerifactuChainList.vue"),
+    meta: {
+      title: "Factures Verifactu",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/verifactu-chain/:id",
+    name: "admin.verifactu-chain.edit",
+    component: () =>
+      import(/* webpackChunkName: "admin-verifactu-chain" */ "../views/VerifactuChainEdit.vue"),
+    props: true,
+    meta: {
+      title: "Editar cadena Verifactu",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
     path: "/admin/users",
     name: "admin.users.list",
     component: () =>

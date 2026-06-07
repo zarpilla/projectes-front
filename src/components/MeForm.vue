@@ -49,6 +49,10 @@
           <b-field label="iCal URL" horizontal>
             <b-input v-model="form.ical" />
           </b-field>
+
+          <b-field label="URL Frontend" horizontal>
+            <b-input v-model="form.front_url" />
+          </b-field>
         </form>
       </card-component>
 
@@ -228,6 +232,7 @@ export default {
         state: '',
         ccc: '',
         ical: '',
+        front_url: '',
         quote_footer: '',
         invoice_footer: '',
         order_footer: '',

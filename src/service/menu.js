@@ -377,6 +377,18 @@ const menu = [
       permission: "admin"
     },
     {
+      to: "/admin/verifactu-chain",
+      icon: "link-variant",
+      label: "Factures Verifactu",
+      permission: "admin"
+    },
+    {
+      to: "/admin/face-queue",
+      icon: "format-list-bulleted-square",
+      label: "Factures FACE",
+      permission: "admin"
+    },
+    {
       to: "/admin/project-scope",
       icon: "tag",
       label: "Àmbits de projecte",
