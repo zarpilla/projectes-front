@@ -401,6 +401,12 @@ const menu = [
       permission: "admin"
     },
     {
+      to: "/admin/user-festive",
+      icon: "calendar-star",
+      label: "Festius d'usuari",
+      permission: "admin"
+    },
+    {
       to: "/admin/bank-accounts",
       icon: "bank",
       label: "Comptes bancaris",

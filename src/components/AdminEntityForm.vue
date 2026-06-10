@@ -309,11 +309,26 @@ export default {
           try {
             this.$set(this.loadingRelations, attrName, true);
             
-            // Use entityToApiPath mapping to get correct API endpoint
-            const apiPath = this.entityToApiPath[attrConfig.model] || attrConfig.model;
+            // Handle plugin relations (e.g., users-permissions)
+            let apiPath;
+            if (attrConfig.plugin === 'users-permissions') {
+              // Special case for users-permissions plugin
+              apiPath = attrConfig.model === 'user' ? 'users' : attrConfig.model;
+            } else {
+              // Use entityToApiPath mapping to get correct API endpoint
+              apiPath = this.entityToApiPath[attrConfig.model] || attrConfig.model;
+            }
+            
+            // Determine sort field based on the model
+            let sortField = 'name:ASC';
+            if (attrConfig.model === 'user') {
+              sortField = 'username:ASC';
+            } else if (attrConfig.model === 'year') {
+              sortField = 'year:DESC';
+            }
             
             const response = await service({ requiresAuth: true }).get(
-              `/${apiPath}?_limit=-1&_sort=name:ASC`
+              `/${apiPath}?_limit=-1&_sort=${sortField}`
             );
             
             this.$set(this.relationOptions, attrName, response.data);

@@ -61,7 +61,7 @@
             {{ formatDate(props.row[attrName]) }}
           </span>
           <span v-else-if="attrConfig.model && props.row[attrName]">
-            {{ props.row[attrName].name || props.row[attrName].id }}
+            {{ props.row[attrName].name || props.row[attrName].username || props.row[attrName].year || props.row[attrName].id }}
           </span>
           <span v-else>
             {{ props.row[attrName] }}
