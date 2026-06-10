@@ -1,5 +1,10 @@
 <template>
   <div>
+    <modal-box-dir3
+      :is-active="isDir3ModalActive"
+      @select="onDir3Select"
+      @cancel="isDir3ModalActive = false"
+    />
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
@@ -272,6 +277,19 @@
                 <b-switch v-model="form.face">Activar FACe</b-switch>
               </b-field>
               <b-field
+                label="DIR3"
+                horizontal
+                v-if="isFaceEnabled && form.face"
+              >
+                <b-button
+                  type="is-primary"
+                  icon-left="magnify"
+                  @click="openDir3Modal"
+                >
+                  Cercar DIR3
+                </b-button>
+              </b-field>
+              <b-field
                 label="DIR3 OC"
                 horizontal
                 v-if="isFaceEnabled && form.face"
@@ -383,6 +401,7 @@
 import dayjs from "dayjs";
 import TitleBar from "@/components/TitleBar";
 import CardComponent from "@/components/CardComponent";
+import ModalBoxDir3 from "@/components/ModalBoxDir3";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
@@ -397,7 +416,8 @@ export default {
   components: {
     CardComponent,
     TitleBar,
-    MoneyFormat
+    MoneyFormat,
+    ModalBoxDir3
   },
   props: {
     id: {
@@ -421,7 +441,8 @@ export default {
       me: {},
       faceMode: "no",
       collectionPointSearch: "",
-      availableCollectionPoints: []
+      availableCollectionPoints: [],
+      isDir3ModalActive: false
     };
   },
   computed: {
@@ -885,6 +906,32 @@ export default {
     getCollectionPointName(cpId) {
       const cp = this.availableCollectionPoints.find(c => c.id === cpId);
       return cp ? `${cp.trade_name || cp.name} (${cp.id})` : `ID: ${cpId}`;
+    },
+    openDir3Modal() {
+      this.isDir3ModalActive = true;
+    },
+    onDir3Select(data) {
+      if (data.og) {
+        this.form.face_dir3_og = data.og;
+      }
+      if (data.oc) {
+        this.form.face_dir3_oc = data.oc;
+      }
+      if (data.ut) {
+        this.form.face_dir3_ut = data.ut;
+      }
+      if (data.nif && !this.form.nif) {
+        this.form.nif = data.nif;
+      }
+      if (data.name && !this.form.name) {
+        this.form.name = data.name;
+      }
+      this.$buefy.snackbar.open({
+        message: "Dades DIR3 carregades",
+        queue: false,
+        type: "is-success"
+      });
+      this.isDir3ModalActive = false;
     }
   }
 };
