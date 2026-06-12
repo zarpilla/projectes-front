@@ -33,31 +33,35 @@
               label="Estat"
               horizontal
             >
-            <div class="is-flex">
-              <div
-                class="tag has-text-weight-bold"
-                :class="form.state === 'draft' ? 'is-warning' : 'is-success'"
-              >
-                {{ form.state === "draft" ? "ESBORRANY" : "EMESA" }}
-              </div>
-              <div
-                class="tag has-text-weight-bold is-uppercase ml-3"
-                v-if="form.state === 'real' && form.face_queue"
-                :class="{ 'is-success': form.face_queue === 'ok', 'is-warning': form.face_queue !== 'ok' }"
-              >
-                FACE: {{ form.face_queue }}
-              </div>
+              <div class="is-flex">
+                <div
+                  class="tag has-text-weight-bold"
+                  :class="form.state === 'draft' ? 'is-warning' : 'is-success'"
+                >
+                  {{ form.state === "draft" ? "ESBORRANY" : "EMESA" }}
+                </div>
+                <div
+                  class="tag has-text-weight-bold is-uppercase ml-3"
+                  v-if="form.state === 'real' && form.face_queue"
+                  :class="{
+                    'is-success': form.face_queue === 'ok',
+                    'is-warning': form.face_queue !== 'ok'
+                  }"
+                >
+                  FACE: {{ form.face_queue }}
+                </div>
 
-              <div
-                class="tag has-text-weight-bold is-uppercase ml-3"
-                v-if="form.state === 'real' && form.verifactu_chain"
-                :class="{ 'is-success': form.verifactu_chain === 'ok', 'is-warning': form.verifactu_chain !== 'ok' }"
-              >
-                VERIFACTU: {{ form.verifactu_chain }}
+                <div
+                  class="tag has-text-weight-bold is-uppercase ml-3"
+                  v-if="form.state === 'real' && form.verifactu_chain"
+                  :class="{
+                    'is-success': form.verifactu_chain === 'ok',
+                    'is-warning': form.verifactu_chain !== 'ok'
+                  }"
+                >
+                  VERIFACTU: {{ form.verifactu_chain }}
+                </div>
               </div>
-            </div>
-              
-              
             </b-field>
 
             <b-field label="Número" horizontal v-if="form.state !== 'draft'">
@@ -325,6 +329,14 @@
               </b-select>
             </b-field>
 
+            <b-field label="Concepte del document" horizontal>
+              <b-input
+                placeholder="Concepte intern del document"
+                v-model="form.document_concept"
+              >
+              </b-input>
+            </b-field>
+
             <b-field
               v-if="type == 'emitted-invoices' || type == 'quotes'"
               label="Clienta *"
@@ -443,6 +455,7 @@
               >
               </b-input>
             </b-field>
+
             <b-field
               :label="type === 'quotes' ? 'Projecte *' : 'Projectes *'"
               horizontal
@@ -1036,9 +1049,9 @@
                   Cal assignar el document (factura, tiquet, dieta...) a una
                   línia de pressupost del projecte. Si la línia no existís, es
                   pot crear en aquest moment o també es pot desdoblar alguna
-                  existent. Per assignar-lo, cal marcar la casella de 'Facturat (Fact.)'
-                  i clicar al botó de 'Document (Doc.)'. Un cop assignat, caldrà
-                  guardar la factura.
+                  existent. Per assignar-lo, cal marcar la casella de 'Facturat
+                  (Fact.)' i clicar al botó de 'Document (Doc.)'. Un cop
+                  assignat, caldrà guardar la factura.
                 </div>
               </div>
             </card-component>
@@ -1436,17 +1449,17 @@ export default {
     },
     documentTypeName() {
       const typeMap = {
-        'emitted-invoices': 'Factura emesa',
-        'received-incomes': 'Ingrés rebut',
-        'received-expenses': 'Despesa rebuda',
-        'received-invoices': 'Factura rebuda',
-        'received-grants': 'Subvenció rebuda',
-        'tickets': 'Tiquet',
-        'diets': 'Dieta',
-        'quotes': 'Pressupost',
-        'payrolls': 'Nòmina'
+        "emitted-invoices": "Factura emesa",
+        "received-incomes": "Ingrés rebut",
+        "received-expenses": "Despesa rebuda",
+        "received-invoices": "Factura rebuda",
+        "received-grants": "Subvenció rebuda",
+        tickets: "Tiquet",
+        diets: "Dieta",
+        quotes: "Pressupost",
+        payrolls: "Nòmina"
       };
-      return typeMap[this.type] || 'Document';
+      return typeMap[this.type] || "Document";
     }
   },
   watch: {
@@ -1508,7 +1521,9 @@ export default {
         return [
           {
             concept: "Dieta sense IRPF",
-            base: parseFloat((this.quotes.diet_amount_without_irpf || 0).toFixed(4)),
+            base: parseFloat(
+              (this.quotes.diet_amount_without_irpf || 0).toFixed(4)
+            ),
             quantity: 1,
             discount: 0,
             vat: 0,
@@ -1519,13 +1534,12 @@ export default {
           },
           {
             concept: "Dieta amb IRPF",
-            base:
-              parseFloat(
-            (
-              (this.quotes.diet_amount_total || 0) -
-              (this.quotes.diet_amount_without_irpf || 0)
-            ).toFixed(4)
-          ),
+            base: parseFloat(
+              (
+                (this.quotes.diet_amount_total || 0) -
+                (this.quotes.diet_amount_without_irpf || 0)
+              ).toFixed(4)
+            ),
             quantity: 1,
             discount: 0,
             vat: 0,
@@ -1842,11 +1856,10 @@ export default {
       this.projects = this.form.id
         ? projects
         : projects
-            .filter(p => p.project_state && p.project_state.can_assign_documents)
             .filter(
-              p =>
-                !p.is_mother
-            );
+              p => p.project_state && p.project_state.can_assign_documents
+            )
+            .filter(p => !p.is_mother);
 
       this.clients = (
         await service({ requiresAuth: true }).get(
@@ -1898,11 +1911,10 @@ export default {
       this.projects = this.form.id
         ? projects
         : projects
-            .filter(p => p.project_state && p.project_state.can_assign_documents)
             .filter(
-              p =>
-                !p.is_mother
-            );
+              p => p.project_state && p.project_state.can_assign_documents
+            )
+            .filter(p => !p.is_mother);
     },
     changeLine(line, field, value) {
       if (value && value.toString().includes(",")) {
@@ -2260,7 +2272,7 @@ export default {
         deletedHours: []
       };
       project._project_phases_updated = true;
-      
+
       // Calculate warnings for this document across all projects
       this.calculateDocumentWarnings();
     },
@@ -2269,38 +2281,50 @@ export default {
       if (!this.form.id) {
         return;
       }
-      
-      console.log('=== calculateDocumentWarnings ===', {
+
+      console.log("=== calculateDocumentWarnings ===", {
         documentId: this.form.id,
         documentType: this.type,
         totalBase: this.totalBase,
         projectCount: this.form.projects.length
       });
-      
+
       // Sum all phase lines that reference this document across ALL projects
       let totalAssignedIncomes = 0;
       let totalAssignedExpenses = 0;
       const matchedIncomeLines = [];
       const matchedExpenseLines = [];
-      
+
       this.form.projects.forEach(project => {
         if (!project.project_phases) return;
-        
+
         project.project_phases.forEach(phase => {
           // Check incomes
           if (phase.incomes) {
             phase.incomes.forEach(income => {
               let isMatched = false;
-              
+
               // Check if this income line references our document
-              if (this.type === 'emitted-invoices' && income.invoice && income.invoice.id === this.form.id) {
+              if (
+                this.type === "emitted-invoices" &&
+                income.invoice &&
+                income.invoice.id === this.form.id
+              ) {
                 isMatched = true;
-              } else if (this.type === 'received-incomes' && income.income && income.income.id === this.form.id) {
+              } else if (
+                this.type === "received-incomes" &&
+                income.income &&
+                income.income.id === this.form.id
+              ) {
                 isMatched = true;
-              } else if (this.type === 'received-grants' && income.grant && income.grant.id === this.form.id) {
+              } else if (
+                this.type === "received-grants" &&
+                income.grant &&
+                income.grant.id === this.form.id
+              ) {
                 isMatched = true;
               }
-              
+
               if (isMatched) {
                 const lineTotal = (income.quantity || 0) * (income.amount || 0);
                 totalAssignedIncomes += lineTotal;
@@ -2315,25 +2339,42 @@ export default {
               }
             });
           }
-          
+
           // Check expenses
           if (phase.expenses) {
             phase.expenses.forEach(expense => {
               let isMatched = false;
-              
+
               // Check if this expense line references our document
-              if (this.type === 'received-invoices' && expense.invoice && expense.invoice.id === this.form.id) {
+              if (
+                this.type === "received-invoices" &&
+                expense.invoice &&
+                expense.invoice.id === this.form.id
+              ) {
                 isMatched = true;
-              } else if (this.type === 'received-expenses' && expense.expense && expense.expense.id === this.form.id) {
+              } else if (
+                this.type === "received-expenses" &&
+                expense.expense &&
+                expense.expense.id === this.form.id
+              ) {
                 isMatched = true;
-              } else if (this.type === 'tickets' && expense.ticket && expense.ticket.id === this.form.id) {
+              } else if (
+                this.type === "tickets" &&
+                expense.ticket &&
+                expense.ticket.id === this.form.id
+              ) {
                 isMatched = true;
-              } else if (this.type === 'diets' && expense.diet && expense.diet.id === this.form.id) {
+              } else if (
+                this.type === "diets" &&
+                expense.diet &&
+                expense.diet.id === this.form.id
+              ) {
                 isMatched = true;
               }
-              
+
               if (isMatched) {
-                const lineTotal = (expense.quantity || 0) * (expense.amount || 0);
+                const lineTotal =
+                  (expense.quantity || 0) * (expense.amount || 0);
                 totalAssignedExpenses += lineTotal;
                 matchedExpenseLines.push({
                   projectId: project.id,
@@ -2348,17 +2389,25 @@ export default {
           }
         });
       });
-      
+
       // Determine which total to use based on document type
-      const isIncomeType = ['emitted-invoices', 'received-incomes', 'received-grants'].includes(this.type);
-      const totalAssigned = isIncomeType ? totalAssignedIncomes : totalAssignedExpenses;
-      const matchedLines = isIncomeType ? matchedIncomeLines : matchedExpenseLines;
-      
+      const isIncomeType = [
+        "emitted-invoices",
+        "received-incomes",
+        "received-grants"
+      ].includes(this.type);
+      const totalAssigned = isIncomeType
+        ? totalAssignedIncomes
+        : totalAssignedExpenses;
+      const matchedLines = isIncomeType
+        ? matchedIncomeLines
+        : matchedExpenseLines;
+
       // Calculate if there's a warning (difference > 0.01€)
       const diff = Math.abs(this.totalBase - totalAssigned);
       const hasWarning = diff > 0.01;
-      
-      console.log('Document warning calculation:', {
+
+      console.log("Document warning calculation:", {
         documentId: this.form.id,
         documentType: this.type,
         totalBase: this.totalBase,
@@ -2367,7 +2416,7 @@ export default {
         diff,
         hasWarning
       });
-      
+
       // Update warning field on all matched lines
       matchedLines.forEach(match => {
         if (match.line.warning !== hasWarning) {
@@ -2837,7 +2886,7 @@ export default {
         this.clientSearch = selectedContact.name;
         this.contact = selectedContact;
 
-        this.clientSelected(selectedContact)        
+        this.clientSelected(selectedContact);
       }
 
       // Set project

@@ -150,15 +150,13 @@
           {{ props.row.contact_invoice_number ? props.row.contact_invoice_number : "" }}
         </b-table-column>
 
-        <b-table-column label="Concepte" field="lines" v-slot="props" sortable>
+        <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable>
           <span v-if="props.row.type === 'payrolls'">
             {{ props.row.users_permissions_user.username }}
           </span>
           <span v-else>
             {{
-              props.row.lines && props.row.lines.length > 0
-              ? props.row.lines[0].concept
-              : ""
+              props.row.document_concept || (props.row.lines && props.row.lines.length > 0 ? props.row.lines[0].concept : "")
             }}
           </span>
         </b-table-column>
@@ -476,7 +474,7 @@ export default {
           proveidor_ciutat: e.contact ? e.contact.city : "",
           // proveidor_provincia: e.contact ? e.contact.state : "",
           // proveidor_pais: e.contact ? e.contact.country : "",
-          concepte: e.lines && e.lines.length > 0 ? e.lines[0].concept : "",
+          concepte: e.document_concept || (e.lines && e.lines.length > 0 ? e.lines[0].concept : ""),
           projecte:
             e.projects && e.projects.length
               ? e.projects[0].name

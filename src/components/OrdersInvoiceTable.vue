@@ -199,7 +199,11 @@ export default {
             c.users_permissions_user &&
             c.users_permissions_user.id === o.owner.id
         );
-        o.price = o.price * (1 - (o.multidelivery_discount || 0) / 100);
+        // Apply all discounts to match backend invoice calculation
+        o.price =
+          ((o.price || 0) - (o.volume_discount || 0)) *
+          (1 - (o.multidelivery_discount || 0) / 100) *
+          (1 - (o.contact_pickup_discount || 0) / 100);
         return o;
       });
 

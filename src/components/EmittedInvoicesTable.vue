@@ -200,11 +200,9 @@
       >
         {{ props.row.contact_info ? props.row.contact_info.nif : props.row.contact ? props.row.contact.nif : null }}
       </b-table-column>
-      <b-table-column label="Concepte" field="lines" v-slot="props" sortable v-if="!provider">
+      <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable v-if="!provider">
         {{
-          props.row.lines && props.row.lines.length > 0
-            ? props.row.lines[0].concept
-            : ""
+          props.row.document_concept || (props.row.lines && props.row.lines.length > 0 ? props.row.lines[0].concept : "")
         }}
       </b-table-column>
       <b-table-column :label="!provider ? 'Projecte' : 'Ruta'" field="lines" v-slot="props" sortable>
@@ -454,7 +452,7 @@ export default {
           proveidor_ciutat: e.contact_info ? e.contact_info.city : e.contact ? e.contact.city : "",
           // proveidor_provincia: e.contact ? e.contact.state : "",
           // proveidor_pais: e.contact ? e.contact.country : "",
-          concepte: e.lines && e.lines.length > 0 ? e.lines[0].concept : "-",
+          concepte: e.document_concept || (e.lines && e.lines.length > 0 ? e.lines[0].concept : "-"),
           projecte: e.projects && e.projects.length ? e.projects[0].name : (e.project ? e.project.name : ""),
           base: e.total_base,
           iva: e.total_vat,
