@@ -307,7 +307,6 @@
               <b-select v-model="newState" placeholder="">
                 <option value="pending">PENDENT</option>
                 <option value="processed">PROCESSADA</option>
-                <option value="lastmile">ÚLTIMA MILLA</option>
                 <option value="delivered">LLIURADA</option>
                 <option value="cancelled">ANUL·LADA</option>
               </b-select>

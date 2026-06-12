@@ -1557,7 +1557,6 @@ export default {
       statuses: [
         { id: "pending", name: "PENDENT" },
         { id: "processed", name: "PROCESSADA" },
-        { id: "lastmile", name: "ÚLTIMA MILLA" },
         { id: "delivered", name: "LLIURADA" },
         { id: "invoiced", name: "FACTURADA" },
         { id: "cancelled", name: "ANUL·LADA" }
