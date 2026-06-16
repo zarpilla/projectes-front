@@ -71,6 +71,19 @@
           }}
         </b-table-column>
         <b-table-column
+          label="Hores originals"
+          field="total_original_hours"
+          sortable
+          numeric
+          v-slot="props"
+        >
+          {{
+            props.row.total_original_hours
+              ? props.row.total_original_hours.toFixed(2)
+              : ""
+          }}
+        </b-table-column>
+        <b-table-column
           label="Resultat executat"
           field="total_real_incomes_expenses"
           sortable
@@ -95,6 +108,18 @@
                 props.row.estimated_incomes_expenses ||
                 0
             )
+          }}
+          €
+        </b-table-column>
+        <b-table-column
+          label="Resultat original"
+          field="original_incomes_expenses"
+          sortable
+          numeric
+          v-slot="props"
+        >
+          {{
+            formatPrice(props.row.original_incomes_expenses || 0)
           }}
           €
         </b-table-column>

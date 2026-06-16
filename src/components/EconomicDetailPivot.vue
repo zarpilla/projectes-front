@@ -143,7 +143,10 @@ export default {
             _.sumBy(rows, "total_original_hours_price") || 0,
           total_estimated_hours_price:
             _.sumBy(rows, "total_estimated_hours_price") || 0,
-          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0
+          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
+          total_original_hours: _.sumBy(rows, "total_original_hours") || 0,
+          total_estimated_hours: _.sumBy(rows, "total_estimated_hours") || 0,
+          total_real_hours: _.sumBy(rows, "total_real_hours") || 0
         }))
         .value();
     },
@@ -192,7 +195,10 @@ export default {
             _.sumBy(rows, "total_original_hours_price") || 0,
           total_estimated_hours_price:
             _.sumBy(rows, "total_estimated_hours_price") || 0,
-          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0
+          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
+          total_original_hours: _.sumBy(rows, "total_original_hours") || 0,
+          total_estimated_hours: _.sumBy(rows, "total_estimated_hours") || 0,
+          total_real_hours: _.sumBy(rows, "total_real_hours") || 0
         }))
         .value();
     },
@@ -282,6 +288,24 @@ export default {
           callback: value => {
             return this.excelFormat(value);
           }
+        },
+        total_original_hours: {
+          field: "total_original_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        total_estimated_hours: {
+          field: "total_estimated_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        total_real_hours: {
+          field: "total_real_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
         }
       };
       if (this.dataType === 'Previsió') {
@@ -293,6 +317,8 @@ export default {
         delete fields.expense_real_vat
         delete fields.total_original_hours_price
         delete fields.total_real_hours_price
+        delete fields.total_original_hours
+        delete fields.total_real_hours
       }
       else if (this.dataType === 'Execució') {
         delete fields.income_orig
@@ -303,6 +329,8 @@ export default {
         delete fields.expense_esti_vat
         delete fields.total_original_hours_price
         delete fields.total_estimated_hours_price
+        delete fields.total_original_hours
+        delete fields.total_estimated_hours
       }
       return fields
     },
@@ -418,6 +446,24 @@ export default {
           callback: value => {
             return this.excelFormat(value);
           }
+        },
+        "Hores orig (h)": {
+          field: "total_original_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Hores prev (h)": {
+          field: "total_estimated_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Hores exec (h)": {
+          field: "total_real_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
         }
       };
 
@@ -434,6 +480,8 @@ export default {
         delete fields["Despeses exec iva"]
         delete fields["Hores orig"]
         delete fields["Hores exec"]
+        delete fields["Hores orig (h)"]
+        delete fields["Hores exec (h)"]
       }
       else if (this.dataType === 'Execució') {
         delete fields["Resultat orig"]
@@ -448,6 +496,8 @@ export default {
         delete fields["Despeses prev iva"]
         delete fields["Hores orig"]
         delete fields["Hores prev"]
+        delete fields["Hores orig (h)"]
+        delete fields["Hores prev (h)"]
       }
       return fields
     },
@@ -544,6 +594,24 @@ export default {
           callback: value => {
             return this.excelFormat(value);
           }
+        },
+        "Hores orig (h)": {
+          field: "total_original_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Hores prev (h)": {
+          field: "total_estimated_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Hores exec (h)": {
+          field: "total_real_hours",
+          callback: value => {
+            return this.excelFormat(value);
+          }
         }
       };
 
@@ -629,7 +697,8 @@ export default {
           "Ingressos prev",
           "Despeses tot prev",
           "Despeses prev",
-          "Hores prev"
+          "Hores prev",
+          "Hores prev (h)"
         ];
       } else if (this.dataType === "Execució") {
         currentConfigPivot.dataSource.measures = [
@@ -637,7 +706,8 @@ export default {
           "Ingressos exec",
           "Despeses tot exec",
           "Despeses exec",
-          "Hores exec"
+          "Hores exec",
+          "Hores exec (h)"
         ];
       } else {
         currentConfigPivot.dataSource.measures = [
@@ -655,7 +725,10 @@ export default {
           "Despeses exec",
           "Hores orig",
           "Hores prev",
-          "Hores exec"
+          "Hores exec",
+          "Hores orig (h)",
+          "Hores prev (h)",
+          "Hores exec (h)"
         ];
       }
 

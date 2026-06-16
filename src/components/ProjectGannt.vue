@@ -66,7 +66,7 @@ import { EventBus } from "@/service/event-bus.js";
 import ModalBoxEstimatedHours from "@/components/ModalBoxEstimatedHours";
 import { mapState } from "vuex";
 // import sumBy from 'lodash/sumBy'
-import { gantt } from "dhtmlx-gantt";
+import { Gantt } from "dhtmlx-gantt";
 import moment from "moment";
 import service from "@/service/index";
 import _ from "lodash";
@@ -131,9 +131,14 @@ export default {
       projectTasks: [],
       collapsed: false,
       taskToAddId: 0,
+      gantt: null, // Will be initialized with separate instance
     };
   },
   async mounted() {
+    // Create a separate gantt instance for this component (dhtmlx-gantt v10)
+    // Gantt (capital G) is the factory for creating instances
+    this.gantt = Gantt.getGanttInstance();
+
     this.showSubPhases = !this.me.options.showEstimatedHoursInPhases;
     this.dedications = (
       await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
@@ -164,7 +169,7 @@ export default {
     setTimeout(() => {
       this.showGantt = true;
       // console.log('gantt', gantt)
-      gantt.clearAll();
+      this.gantt.clearAll();
       this.tasks = { data: [] };
       setTimeout(() => {
         this.initializeGannt();
@@ -173,10 +178,14 @@ export default {
   },
   beforeDestroy() {
     console.log("beforeDestroy");
-    gantt.detachEvent("onTaskClick");
-    gantt.detachEvent("onAfterTaskUpdate");
-    // gantt.detachEvent("onBeforeLightbox");
-    gantt.clearAll();
+    if (this.gantt) {
+      this.gantt.detachEvent("onTaskClick");
+      this.gantt.detachEvent("onAfterTaskUpdate");
+      // this.gantt.detachEvent("onBeforeLightbox");
+      this.gantt.clearAll();
+      // Properly destroy the gantt instance
+      this.gantt.destructor();
+    }
 
     this.showGantt = false;
   },
@@ -214,7 +223,7 @@ export default {
           id: phase.id,
           text: phase.name,
           open: true,
-          type: gantt.config.types.project,
+          type: this.gantt.config.types.project,
           _phase: phase,
         };
         let parentId = phase.id;
@@ -235,7 +244,7 @@ export default {
             parent: phase.id,
             open: true,
             unscheduled: unscheduled,
-            type: gantt.config.types.project,
+            type: this.gantt.config.types.project,
             _phase: phase,
             _subphase: subphase,
           };
@@ -291,7 +300,7 @@ export default {
             const milestone = {
               id: 9999999999 + i,
               text: pt.name,
-              type: gantt.config.types.milestone,
+              type: this.gantt.config.types.milestone,
               start_date: pt.due_date,
               readonly: true,
             };
@@ -317,17 +326,18 @@ export default {
         maxDate = endDate
       }
 
-      gantt.config.start_date = minDate;
-      gantt.config.end_date = maxDate;
-      gantt.config.readonly = !this.editable;
-      gantt.config.drag_move = this.editable;
-      gantt.config.drag_resize = this.editable;
-      gantt.config.drag_progress = this.editable;
-      gantt.config.drag_links = this.editable;
-      gantt.config.details_on_dblclick = this.editable;
-      gantt.config.details_on_create = this.editable;
-      
-      gantt.config.columns = [
+      this.gantt.config.start_date = minDate;
+      this.gantt.config.end_date = maxDate;
+      this.gantt.config.readonly = !this.editable;
+      this.gantt.config.drag_move = this.editable;
+      this.gantt.config.drag_resize = this.editable;
+      this.gantt.config.drag_progress = false; // Disable progress bar dragging
+      this.gantt.config.drag_links = false; // Disable link creation (hide control points)
+      this.gantt.config.show_links = false; // Hide link lines between tasks
+      this.gantt.config.details_on_dblclick = this.editable;
+      this.gantt.config.details_on_create = this.editable;
+
+      this.gantt.config.columns = [
         {
           name: "text",
           label: "Fases i dedicacions",
@@ -336,11 +346,11 @@ export default {
         },
       ];
 
-      gantt.config.scroll_size = 30;
+      this.gantt.config.scroll_size = 30;
 
-      gantt.plugins({ click_drag: true, tooltip: true });
+      this.gantt.plugins({ click_drag: true, tooltip: true });
 
-      gantt.templates.tooltip_text = (start, end, task) => {
+      this.gantt.templates.tooltip_text = (start, end, task) => {
         // console.log('task', task)
         var children = this.tasks.data.filter((t) => t.parent === task.id);
         if (!children || !children.length) {
@@ -356,35 +366,35 @@ export default {
         return this.getWeekTemplate(date);
       };
 
-      gantt.config.xml_date = "%Y-%m-%d";
-      gantt.config.duration_unit = this.view;
-      gantt.config.scales = [
+      this.gantt.config.xml_date = "%Y-%m-%d";
+      this.gantt.config.duration_unit = this.view;
+      this.gantt.config.scales = [
         { unit: "year", step: 1, format: "%Y" },
         { unit: "month", step: 1, format: "%M" },
       ];
 
       if (this.view === "week") {
-        gantt.config.scales.push({
+        this.gantt.config.scales.push({
           unit: "week",
           step: 1,
           format: weekScaleTemplate,
         });
       }
 
-      gantt.templates.task_class = (start, end, task) => {        
+      this.gantt.templates.task_class = (start, end, task) => {
           return "";
       };
 
       if (this.editable) {
-        gantt.config.click_drag = {
+        this.gantt.config.click_drag = {
           callback: this.onDragEnd,
           singleRow: true,
         };
       } else {
-        gantt.config.click_drag = false;
+        this.gantt.config.click_drag = false;
       }
       if (this.editable) {
-        gantt.attachEvent(
+        this.gantt.attachEvent(
           "onTaskClick",
           (id, e) => {
             if (
@@ -416,7 +426,7 @@ export default {
       }
 
       if (this.editable) {
-        gantt.attachEvent(
+        this.gantt.attachEvent(
           "onAfterTaskUpdate",
           (id, item) => {
             // console.log('onAfterTaskUpdate', item, this.project)
@@ -454,28 +464,28 @@ export default {
           { id: "onAfterTaskUpdate" }
         );
       }
-      
+
       if (!this.editable) {
-        gantt.showLightbox = function (id) {
+        this.gantt.showLightbox = function (id) {
           // Disable lightbox in read-only mode
           return false;
         };
       } else {
-        gantt.showLightbox = function (id) {
+        this.gantt.showLightbox = function (id) {
           // code of the custom form
         };
       }
-      
+
       // Prevent deletion in read-only mode
       if (!this.editable) {
-        gantt.attachEvent("onBeforeTaskDelete", function(id, item) {
+        this.gantt.attachEvent("onBeforeTaskDelete", function(id, item) {
           return false; // prevent deletion
         });
       }
-      
+
       if (document.getElementById(this.ganttId)) {
-        gantt.init(this.ganttId);
-        gantt.parse(this.tasks);
+        this.gantt.init(this.ganttId);
+        this.gantt.parse(this.tasks);
       }
     },
 
@@ -518,11 +528,11 @@ export default {
         if (currentTask.type === "project") {
           // currentTask.render = "split";
 
-          taskId = gantt.addTask(
+          taskId = this.gantt.addTask(
             {
               text: taskName,
-              start_date: gantt.roundDate(startDate),
-              end_date: gantt.roundDate(endDate),
+              start_date: this.gantt.roundDate(startDate),
+              end_date: this.gantt.roundDate(endDate),
               ...metaInfo,
             },
             currentTask.id
@@ -533,23 +543,23 @@ export default {
             text: taskName,
             parent: currentTask.id,
             open: true,
-            start_date: gantt.roundDate(startDate),
-            end_date: gantt.roundDate(endDate),
+            start_date: this.gantt.roundDate(startDate),
+            end_date: this.gantt.roundDate(endDate),
             ...metaInfo,
           };
           this.taskToAddId = taskId;
           this.tasks.data.push(taskToAdd);
 
-          gantt.getTask(currentTask.id).start_date = gantt.roundDate(startDate);
-          gantt.getTask(currentTask.id).end_date = gantt.roundDate(endDate);
-          gantt.getTask(currentTask.id).unscheduled = false;
-          gantt.updateTask(currentTask.id);
+          this.gantt.getTask(currentTask.id).start_date = this.gantt.roundDate(startDate);
+          this.gantt.getTask(currentTask.id).end_date = this.gantt.roundDate(endDate);
+          this.gantt.getTask(currentTask.id).unscheduled = false;
+          this.gantt.updateTask(currentTask.id);
         } else {
-          taskId = gantt.addTask(
+          taskId = this.gantt.addTask(
             {
               text: taskName,
-              start_date: gantt.roundDate(startDate),
-              end_date: gantt.roundDate(endDate),
+              start_date: this.gantt.roundDate(startDate),
+              end_date: this.gantt.roundDate(endDate),
               ...metaInfo,
             },
             currentTask.parent
@@ -560,8 +570,8 @@ export default {
             text: taskName,
             parent: currentTask.parent,
             open: true,
-            start_date: gantt.roundDate(startDate),
-            end_date: gantt.roundDate(endDate),
+            start_date: this.gantt.roundDate(startDate),
+            end_date: this.gantt.roundDate(endDate),
             ...metaInfo,
           };
           this.taskToAddId = taskId;
@@ -592,11 +602,11 @@ export default {
         };
 
         // console.log('currentTask!!', currentTask)
-        taskId = gantt.addTask(
+        taskId = this.gantt.addTask(
           {
             text: taskName,
-            start_date: gantt.roundDate(startDate),
-            end_date: gantt.roundDate(endDate),
+            start_date: this.gantt.roundDate(startDate),
+            end_date: this.gantt.roundDate(endDate),
             ...metaInfo,
           },
           currentTask.id
@@ -607,17 +617,17 @@ export default {
           text: taskName,
           parent: currentTask.id,
           open: true,
-          start_date: gantt.roundDate(startDate),
-          end_date: gantt.roundDate(endDate),
+          start_date: this.gantt.roundDate(startDate),
+          end_date: this.gantt.roundDate(endDate),
           ...metaInfo,
         };
         this.taskToAddId = taskId;
         this.tasks.data.push(taskToAdd);
 
-        gantt.getTask(currentTask.id).start_date = gantt.roundDate(startDate);
-        gantt.getTask(currentTask.id).end_date = gantt.roundDate(endDate);
-        gantt.getTask(currentTask.id).unscheduled = false;
-        gantt.updateTask(currentTask.id);
+        this.gantt.getTask(currentTask.id).start_date = this.gantt.roundDate(startDate);
+        this.gantt.getTask(currentTask.id).end_date = this.gantt.roundDate(endDate);
+        this.gantt.getTask(currentTask.id).unscheduled = false;
+        this.gantt.updateTask(currentTask.id);
       } else if (tasksInRow.length === 0) {
       }
       this.dedicationObject = taskToAdd;
@@ -629,20 +639,20 @@ export default {
     },
     collapse() {
       if (!this.collapsed) {
-        gantt.eachTask(function (task2close) {
+        this.gantt.eachTask(function (task2close) {
           if (task2close.$level == 0) {
             //is a project, not a task
-            gantt.close(task2close.id);
+            this.gantt.close(task2close.id);
           } //endif
-        });
+        }.bind(this));
       } else {
-        gantt.eachTask(function (task2open) {
+        this.gantt.eachTask(function (task2open) {
           if (task2open.$level == 0) {
             //is a project, not a task
-            gantt.open(task2open.id);
+            this.gantt.open(task2open.id);
             console.log(task2open.id);
           } //endif
-        });
+        }.bind(this));
       }
       this.collapsed = !this.collapsed;
     },
@@ -650,7 +660,7 @@ export default {
       this.showSubPhases = !this.showSubPhases;
 
       setTimeout(() => {
-        gantt.clearAll();
+        this.gantt.clearAll();
         this.tasks = { data: [] };
         setTimeout(() => {
           this.initializeGannt();
@@ -661,7 +671,7 @@ export default {
       this.view = this.view === "month" ? "week" : "month";
       // console.log("this.view", this.view);
       setTimeout(() => {
-        gantt.clearAll();
+        this.gantt.clearAll();
         this.tasks = { data: [] };
         setTimeout(() => {
           this.initializeGannt();
@@ -693,8 +703,8 @@ export default {
           ? "/mes"
           : ""
       }`;
-      gantt.getTask(activity.id).text = taskName;
-      gantt.updateTask(activity.id);
+      this.gantt.getTask(activity.id).text = taskName;
+      this.gantt.updateTask(activity.id);
 
       this.isModalActive = false;
       this.$emit("gantt-item-update", task);
@@ -706,7 +716,7 @@ export default {
       this.tasks.data = this.tasks.data.filter(
         (t) => t.id.toString() !== activity.id.toString()
       );
-      gantt.deleteTask(activity.id);
+      this.gantt.deleteTask(activity.id);
 
       this.isModalActive = false;
 
@@ -719,7 +729,7 @@ export default {
       // console.log('this.taskToAddId', this.taskToAddId)
       // console.log('this.tasks.data', this.tasks.data)
       if (this.taskToAddId) {
-        gantt.deleteTask(this.taskToAddId);
+        this.gantt.deleteTask(this.taskToAddId);
       }
       this.isModalActive = false;
     },
@@ -739,9 +749,9 @@ export default {
       return uuid;
     },
     getWeekTemplate(date) {
-      var to_day = gantt.date.date_to_str("%d");
+      var to_day = this.gantt.date.date_to_str("%d");
       var month_day = to_day(date);
-      var month_day2 = to_day(gantt.date.add(date, 6, "day"));
+      var month_day2 = to_day(this.gantt.date.add(date, 6, "day"));
       return `${month_day}-${month_day2}`;
     },
   },
@@ -769,5 +779,10 @@ export default {
 .gantt_task_line.gantt_project,
 .gantt_task_line {
   border-radius: 30px;
+}
+
+/* Hide progress bar inside gantt items */
+.gantt_task_progress {
+  display: none !important;
 }
 </style>

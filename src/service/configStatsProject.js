@@ -23,7 +23,7 @@ const config = {
       name: 'project_year',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Num', 'Hores previstes', 'Hores reals', 'Resultat previst', 'Resultat real', 'Ingressos previstos', 'Ingressos reals', 'Despeses previstes', 'Despeses reals', 'Hores previstes €', 'Hores reals €', 'Preu/hora previst', 'Preu/hora real', 'Despeses/hora previst', 'Despeses/hora real'],
+    measures: ['Num', 'Hores originals', 'Hores previstes', 'Hores reals', 'Resultat previst', 'Resultat real', 'Ingressos previstos', 'Ingressos reals', 'Despeses previstes', 'Despeses reals', 'Hores originals €', 'Hores previstes €', 'Hores reals €', 'Preu/hora previst', 'Preu/hora real', 'Despeses/hora previst', 'Despeses/hora real'],
     schema: {
       model: {
         fields: {
@@ -155,20 +155,30 @@ const config = {
             aggregate: 'sum',
             format: '{0:n2} h'
           },
+          'Hores originals': {
+            field: 'total_original_hours',
+            aggregate: 'sum',
+            format: '{0:n2} h'
+          },
           'Hores reals': {
             field: 'hours',
             aggregate: 'sum',
             format: '{0:n2} h'
           },
+          'Hores originals €': {
+            field: 'total_original_hours_price',
+            aggregate: 'sum',
+            format: '{0:n2} €'
+          },
           'Hores previstes €': {
             field: 'total_estimated_hours_price',
             aggregate: 'sum',
-            format: '{0:0.00} €'
+            format: '{0:n2} €'
           },
           'Hores reals €': {
             field: 'total_real_hours_price',
             aggregate: 'sum',
-            format: '{0:0.0} €'
+            format: '{0:n2} €'
           },
           'Preu/hora previst': {
             field: 'pricehour',

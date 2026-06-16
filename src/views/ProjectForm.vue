@@ -3061,7 +3061,7 @@ export default {
       // Return open children plus non-open children that are marked as visible
       return [
         ...this.openChildren,
-        ...this.closedChildren.filter(child => 
+        ...this.closedChildren.filter(child =>
           this.visibleClosedChildren.includes(child.id)
         )
       ];

@@ -117,6 +117,7 @@ export default {
             project_scope: p.project_scope && p.project_scope.short_name ? p.project_scope.short_name : '-',
             project_client: p.client && p.client? p.client.name : '-',
             project_year: p.date_start ? moment(p.date_start, 'YYYY-MM-DD').format('YYYY') : moment(p.created_at, 'YYYY-MM-DD').format('YYYY'),
+            total_original_hours: p.total_original_hours ? p.total_original_hours : 0,
             total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
             hours: sumBy(p.activities, 'hours'),
             incomes: p.invoice_hours_price ? incomes : p.total_incomes,
@@ -133,6 +134,7 @@ export default {
             total_real_incomes_expenses: p.total_real_incomes_expenses,
             total_real_incomes: p.total_real_incomes,
             expenses: p.total_expenses, // + p.total_estimated_hours_price,
+            total_original_hours_price: p.total_original_hours_price,
             total_estimated_hours_price: p.total_estimated_hours_price,
             total_real_hours_price: p.total_real_hours_price,
             count: 1

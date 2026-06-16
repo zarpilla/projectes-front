@@ -4,6 +4,11 @@ module.exports = {
       ? "/stats/"
       : process.env.VUE_APP_PATH,
 
+  // Transpile dhtmlx-gantt to support optional chaining
+  transpileDependencies: [
+    'dhtmlx-gantt'
+  ],
+
   configureWebpack: {
     module: {
       rules: [

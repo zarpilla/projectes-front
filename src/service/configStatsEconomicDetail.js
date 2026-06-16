@@ -40,7 +40,7 @@ const config = {
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Resultat orig', 'Resultat prev', 'Resultat exec', 'Ingressos orig', 'Ingressos prev', 'Ingressos exec', 'Despeses tot orig', 'Despeses tot prev', 'Despeses tot exec', 'Despeses orig', 'Despeses prev', 'Despeses exec', 'Hores orig', 'Hores prev', 'Hores exec'],
+    measures: ['Resultat orig', 'Resultat prev', 'Resultat exec', 'Ingressos orig', 'Ingressos prev', 'Ingressos exec', 'Despeses tot orig', 'Despeses tot prev', 'Despeses tot exec', 'Despeses orig', 'Despeses prev', 'Despeses exec', 'Hores orig', 'Hores prev', 'Hores exec', 'Hores orig (h)', 'Hores prev (h)', 'Hores exec (h)'],
     schema: {
       model: {
         fields: {
@@ -291,6 +291,21 @@ const config = {
             field: 'total_real_hours_price',
             aggregate: 'sum',
             format: '{0:n2} €'
+          },
+          'Hores orig (h)': {
+            field: 'total_original_hours',
+            aggregate: 'sum',
+            format: '{0:n2} h'
+          },
+          'Hores prev (h)': {
+            field: 'total_estimated_hours',
+            aggregate: 'sum',
+            format: '{0:n2} h'
+          },
+          'Hores exec (h)': {
+            field: 'total_real_hours',
+            aggregate: 'sum',
+            format: '{0:n2} h'
           }
         }
       }
