@@ -2219,7 +2219,7 @@
           header-icon="swap-horizontal"
           @header-icon-click="toggleGanttView"
         >
-          <div class="mb-3">
+          <div class="mb-3 is-flex is-justify-content-space-between is-align-items-center">
             <router-link
               :to="{ name: 'project.edit', params: { id: child.id } }"
               class="button is-small is-info"
@@ -2227,8 +2227,19 @@
               <b-icon icon="open-in-new" size="is-small"></b-icon>
               <span>Obrir projecte fill</span>
             </router-link>
+
+            <b-button
+              type="is-success"
+              size="is-small"
+              :loading="savingChildProjects[child.id]"
+              :disabled="!hasChildChanges(child.id)"
+              @click="saveChildProject(child.id)"
+            >
+              <b-icon icon="content-save" size="is-small"></b-icon>
+              <span>Guardar canvis de planificació</span>
+            </b-button>
           </div>
-          
+
           <project-gannt
             v-if="
               child.id &&
@@ -2241,7 +2252,9 @@
             :users="leaders"
             :tasks="{}"
             :view-mode="ganttViewMode"
-            :editable="false"
+            :editable="true"
+            @gantt-item-update="item => childGanttItemUpdate(child.id, item)"
+            @gantt-item-delete="item => childGanttItemDelete(child.id, item)"
           />
           <div v-else class="notification is-warning">
             Aquest projecte fill no té fases {{ ganttViewMode === 'original' ? 'originals' : 'previstes' }} definides.
@@ -2580,7 +2593,10 @@ export default {
       currentStep: 1,
       isCreationMode: false,
       // Visibility control for non-open child projects
-      visibleClosedChildren: []
+      visibleClosedChildren: [],
+      // Track child project changes for saving from mother project
+      childProjectChanges: {},
+      savingChildProjects: {}
     };
   },
   computed: {
@@ -3004,22 +3020,42 @@ export default {
       return hasOwnOriginalPhases || hasOwnExecutionPhases;
     },
     openChildren() {
-      // Return children that are open (project_state.id === 1)
+      // Return children that are open (project_state === 1)
       if (!this.form.children || !this.form.children.children) {
         return [];
       }
-      return this.form.children.children.filter(
-        child => child.project_state && child.project_state.id === 1
+      const open = this.form.children.children.filter(
+        child => child.project_state === 1
       );
+      console.log('=== openChildren computed ===');
+      console.log('Total children:', this.form.children.children.length);
+      console.log('Open children count:', open.length);
+      open.forEach(child => {
+        console.log(`Child ${child.id} (${child.name}):`, {
+          project_state: child.project_state,
+          is_numeric: typeof child.project_state === 'number'
+        });
+      });
+      return open;
     },
     closedChildren() {
-      // Return children that are not open (project_state.id !== 1)
+      // Return children that are not open (project_state !== 1)
       if (!this.form.children || !this.form.children.children) {
         return [];
       }
-      return this.form.children.children.filter(
-        child => !child.project_state || child.project_state.id !== 1
+      const closed = this.form.children.children.filter(
+        child => !child.project_state || child.project_state !== 1
       );
+      console.log('=== closedChildren computed ===');
+      console.log('Total children:', this.form.children.children.length);
+      console.log('Closed children count:', closed.length);
+      closed.forEach(child => {
+        console.log(`Child ${child.id} (${child.name}):`, {
+          project_state: child.project_state,
+          is_numeric: typeof child.project_state === 'number'
+        });
+      });
+      return closed;
     },
     visibleChildren() {
       // Return open children plus non-open children that are marked as visible
@@ -3214,6 +3250,17 @@ export default {
                 ).data;
 
                 console.log('Loaded children data from API:', childrenData);
+                console.log('Children array:', childrenData.children);
+                if (childrenData.children && childrenData.children.length > 0) {
+                  console.log('=== Individual children project_state ===');
+                  childrenData.children.forEach(child => {
+                    console.log(`Child ${child.id} (${child.name}):`, {
+                      project_state: child.project_state,
+                      project_state_id: child.project_state?.id,
+                      project_state_name: child.project_state?.name
+                    });
+                  });
+                }
                 
                 // Update all three financial dimensions from aggregated children data
                 // Original dimension
@@ -4416,6 +4463,315 @@ export default {
           deletedHours: this.deletedHours
         };
       }
+    },
+    // Child project gantt methods
+    childGanttItemUpdate(childId, item) {
+      console.log('=== childGanttItemUpdate ===', { childId, item });
+
+      // Initialize change tracking for this child if not exists
+      if (!this.childProjectChanges[childId]) {
+        this.$set(this.childProjectChanges, childId, {
+          _project_phases_updated: false,
+          _project_original_phases_updated: false,
+          deletedPhases: [],
+          deletedIncomes: [],
+          deletedExpenses: [],
+          deletedHours: [],
+          deletedPhasesOriginal: [],
+          deletedIncomesOriginal: [],
+          deletedExpensesOriginal: [],
+          deletedHoursOriginal: []
+        });
+      }
+
+      // Check which view mode we're in
+      const isOriginalMode = this.ganttViewMode === "original";
+
+      if (isOriginalMode) {
+        this.childProjectChanges[childId]._project_original_phases_updated = true;
+      } else {
+        this.childProjectChanges[childId]._project_phases_updated = true;
+      }
+
+      if (!item._hours) {
+        return;
+      }
+
+      const id = item._hours.id;
+      const uuid = item._uuid;
+      const pid = item._phase.id;
+
+      // Find the child in the visibleChildren array
+      const child = this.visibleChildren.find(c => c.id === childId);
+      if (!child) {
+        console.error('Child project not found:', childId);
+        return;
+      }
+
+      // Get the appropriate phases array based on view mode
+      const phasesArray = isOriginalMode
+        ? child.project_original_phases
+        : child.project_phases;
+
+      var subphase = item._subphase ? item._subphase : null;
+      if (!item._subphase) {
+        const phase = phasesArray.find(p => p.id === pid);
+        phase.incomes.push({ concept: "SF", estimated_hours: [] });
+        subphase = phase.incomes[0];
+        subphase.dirty = true;
+      }
+
+      const hours = subphase.estimated_hours.find(
+        h => (h.id === id && h.id > 0 && !uuid) || (h._uuid === uuid && uuid)
+      );
+
+      if (hours) {
+        hours.from = moment(item.start_date).format("YYYY-MM-DD");
+        hours.to = item.end_date
+          ? moment(item.end_date)
+              .add(-1, "day")
+              .format("YYYY-MM-DD")
+          : moment(item.start_date)
+              .add(1, "month")
+              .add(-1, "day")
+              .format("YYYY-MM-DD");
+        const to2 = moment(hours.to, "YYYY-MM-DD");
+        const months = moment(to2).diff(item.start_date, "months") + 1;
+        hours.monthly_quantity = item._hours.quantity * months;
+        hours.quantity = item._hours.quantity;
+        hours.quantity_type = item._hours.quantity_type;
+        hours.users_permissions_user = item._hours.users_permissions_user;
+        hours.amount = item._hours.amount;
+        hours.total_amount = item.total_amount;
+        hours.dirty = true;
+      } else if (uuid) {
+        const hour = {
+          from: moment(item.start_date).format("YYYY-MM-DD"),
+          to: item.end_date
+            ? moment(item.end_date)
+                .add(-1, "day")
+                .format("YYYY-MM-DD")
+            : moment(item.start_date)
+                .add(1, "month")
+                .add(-1, "day")
+                .format("YYYY-MM-DD"),
+          monthly_quantity: null,
+          quantity: item._hours.quantity,
+          quantity_type: item._hours.quantity_type,
+          users_permissions_user: item._hours.users_permissions_user,
+          amount: item._hours.amount,
+          total_amount: item._hours.total_amount,
+          _uuid: item._uuid,
+          dirty: true
+        };
+        subphase.estimated_hours.push(hour);
+        subphase.dirty = true;
+      }
+
+      // Update the appropriate info object based on view mode
+      if (isOriginalMode) {
+        child.project_original_phases_info = {
+          deletedPhases: this.childProjectChanges[childId].deletedPhasesOriginal,
+          deletedIncomes: this.childProjectChanges[childId].deletedIncomesOriginal,
+          deletedExpenses: this.childProjectChanges[childId].deletedExpensesOriginal,
+          deletedHours: this.childProjectChanges[childId].deletedHoursOriginal
+        };
+      } else {
+        child.project_phases_info = {
+          deletedPhases: this.childProjectChanges[childId].deletedPhases,
+          deletedIncomes: this.childProjectChanges[childId].deletedIncomes,
+          deletedExpenses: this.childProjectChanges[childId].deletedExpenses,
+          deletedHours: this.childProjectChanges[childId].deletedHours
+        };
+      }
+
+      console.log('Child project changes updated:', this.childProjectChanges[childId]);
+    },
+    childGanttItemDelete(childId, item) {
+      console.log('=== childGanttItemDelete ===', { childId, item });
+
+      // Initialize change tracking for this child if not exists
+      if (!this.childProjectChanges[childId]) {
+        this.$set(this.childProjectChanges, childId, {
+          _project_phases_updated: false,
+          _project_original_phases_updated: false,
+          deletedPhases: [],
+          deletedIncomes: [],
+          deletedExpenses: [],
+          deletedHours: [],
+          deletedPhasesOriginal: [],
+          deletedIncomesOriginal: [],
+          deletedExpensesOriginal: [],
+          deletedHoursOriginal: []
+        });
+      }
+
+      // Check which view mode we're in
+      const isOriginalMode = this.ganttViewMode === "original";
+
+      if (isOriginalMode) {
+        this.childProjectChanges[childId]._project_original_phases_updated = true;
+      } else {
+        this.childProjectChanges[childId]._project_phases_updated = true;
+      }
+
+      const id = item._hours.id;
+      const pid = item._phase.id;
+      const sid = item._subphase.id;
+
+      // Add to appropriate deletedHours array
+      if (isOriginalMode) {
+        this.childProjectChanges[childId].deletedHoursOriginal.push(id);
+      } else {
+        this.childProjectChanges[childId].deletedHours.push(id);
+      }
+
+      // Find the child in the visibleChildren array
+      const child = this.visibleChildren.find(c => c.id === childId);
+      if (!child) {
+        console.error('Child project not found:', childId);
+        return;
+      }
+
+      // Get the appropriate phases array based on view mode
+      const phasesArray = isOriginalMode
+        ? child.project_original_phases
+        : child.project_phases;
+
+      const phase = phasesArray.find(p => p.id === pid);
+      const income = phase.incomes.find(s => s.id === sid);
+      income.estimated_hours = income.estimated_hours.filter(h => h.id !== id);
+
+      // Mark the income (subphase) as dirty so the deletion is persisted
+      income.dirty = true;
+
+      // Update the appropriate info object
+      if (isOriginalMode) {
+        child.project_original_phases_info = {
+          deletedPhases: this.childProjectChanges[childId].deletedPhasesOriginal,
+          deletedIncomes: this.childProjectChanges[childId].deletedIncomesOriginal,
+          deletedExpenses: this.childProjectChanges[childId].deletedExpensesOriginal,
+          deletedHours: this.childProjectChanges[childId].deletedHoursOriginal
+        };
+      } else {
+        child.project_phases_info = {
+          deletedPhases: this.childProjectChanges[childId].deletedPhases,
+          deletedIncomes: this.childProjectChanges[childId].deletedIncomes,
+          deletedExpenses: this.childProjectChanges[childId].deletedExpenses,
+          deletedHours: this.childProjectChanges[childId].deletedHours
+        };
+      }
+
+      console.log('Child project changes updated after delete:', this.childProjectChanges[childId]);
+    },
+    hasChildChanges(childId) {
+      const changes = this.childProjectChanges[childId];
+      if (!changes) return false;
+      return changes._project_phases_updated || changes._project_original_phases_updated;
+    },
+    async saveChildProject(childId) {
+      console.log('=== saveChildProject ===', childId);
+
+      if (!this.hasChildChanges(childId)) {
+        this.$buefy.snackbar.open({
+          message: 'No hi ha canvis per guardar',
+          type: 'is-info',
+          queue: false
+        });
+        return;
+      }
+
+      // Set saving state
+      this.$set(this.savingChildProjects, childId, true);
+
+      try {
+        // Find the child project
+        const child = this.visibleChildren.find(c => c.id === childId);
+        if (!child) {
+          throw new Error('Child project not found');
+        }
+
+        // Prepare the payload similar to the main submit method
+        const {
+          activities,
+          children,
+          allByYear,
+          calculatedTotals,
+          incomes_expenses,
+          total_real_incomes_expenses,
+          total_incomes,
+          total_real_incomes,
+          total_expenses,
+          total_estimated_hours_price,
+          total_real_expenses,
+          total_real_hours_price,
+          total_estimated_hours,
+          total_real_hours,
+          total_expenses_vat,
+          total_real_expenses_vat,
+          emitted_invoices,
+          received_grants,
+          received_invoices,
+          tickets,
+          diets,
+          received_incomes,
+          received_expenses,
+          treasury_annotations,
+          ...childForm
+        } = child;
+
+        console.log('Saving child project with phases:', {
+          project_phases: childForm.project_phases?.length,
+          project_original_phases: childForm.project_original_phases?.length
+        });
+
+        // Transfer the update flags from childProjectChanges to childForm
+        if (this.childProjectChanges[childId]) {
+          childForm._project_phases_updated = this.childProjectChanges[childId]._project_phases_updated;
+          childForm._project_original_phases_updated = this.childProjectChanges[childId]._project_original_phases_updated;
+        }
+
+        // Save the child project
+        await service({ requiresAuth: true }).put(
+          `projects/${childId}`,
+          childForm
+        );
+
+        this.$buefy.snackbar.open({
+          message: `Projecte fill "${child.name}" guardat correctament`,
+          type: 'is-success',
+          queue: false
+        });
+
+        // Clear the changes tracking for this child
+        this.$delete(this.childProjectChanges, childId);
+
+        // Reload the children data to get fresh data
+        await this.loadChildrenData();
+
+      } catch (error) {
+        console.error('Error saving child project:', error);
+        this.$buefy.snackbar.open({
+          message: `Error guardant el projecte fill: ${error.message || error}`,
+          type: 'is-danger',
+          queue: false
+        });
+      } finally {
+        this.$set(this.savingChildProjects, childId, false);
+      }
+    },
+    async loadChildrenData() {
+      if (!this.form.is_mother || !this.form.id) return;
+
+      console.log('=== loadChildrenData: Reloading children data ===');
+      const childrenData = (
+        await service({ requiresAuth: true }).get(
+          `projects/${this.form.id}/children`
+        )
+      ).data;
+
+      console.log('Reloaded children data:', childrenData);
+      this.form.children = childrenData;
     },
     sumByFn(arr, field) {
       return sumBy(arr, field);

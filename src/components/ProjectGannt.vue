@@ -399,9 +399,13 @@ export default {
               (t) => t.id.toString() === id.toString()
             );
             if (
-              this.dedicationObject.type === "project" ||
-              this.dedicationObject.type === "milestone"
+              this.dedicationObject &&
+              (this.dedicationObject.type === "project" ||
+              this.dedicationObject.type === "milestone")
             ) {
+              return true;
+            }
+            if (!this.dedicationObject) {
               return true;
             }
             this.isModalActive = true;
@@ -436,6 +440,9 @@ export default {
               const task = this.tasks.data.find(
                 (t) => t.id.toString() === id.toString()
               );
+              if (!task) {
+                return;
+              }
               task.start_date = item.start_date;
               task.end_date = item.end_date;
               task.end_date = item.end_date;
