@@ -298,11 +298,7 @@ export default {
                 p.project_state &&
                 p.project_state.can_assign_activities === true
             )
-            .filter(
-              p =>
-                p.mother === null ||
-                (p.mother !== null && p.mother.id && p.mother.id !== p.id)
-            );
+            .filter(p => !p.is_mother);
       return projects.filter(option => {
         return (
           option.name

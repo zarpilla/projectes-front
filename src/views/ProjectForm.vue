@@ -3027,15 +3027,6 @@ export default {
       const open = this.form.children.children.filter(
         child => child.project_state === 1
       );
-      console.log('=== openChildren computed ===');
-      console.log('Total children:', this.form.children.children.length);
-      console.log('Open children count:', open.length);
-      open.forEach(child => {
-        console.log(`Child ${child.id} (${child.name}):`, {
-          project_state: child.project_state,
-          is_numeric: typeof child.project_state === 'number'
-        });
-      });
       return open;
     },
     closedChildren() {
@@ -3046,15 +3037,6 @@ export default {
       const closed = this.form.children.children.filter(
         child => !child.project_state || child.project_state !== 1
       );
-      console.log('=== closedChildren computed ===');
-      console.log('Total children:', this.form.children.children.length);
-      console.log('Closed children count:', closed.length);
-      closed.forEach(child => {
-        console.log(`Child ${child.id} (${child.name}):`, {
-          project_state: child.project_state,
-          is_numeric: typeof child.project_state === 'number'
-        });
-      });
       return closed;
     },
     visibleChildren() {
@@ -3218,50 +3200,35 @@ export default {
                   : { id: 0 };
 
               // Load execution phases with estimated hours
-              console.log('=== getData: Loading execution phases ===');
               const phases = (
                 await service({ requiresAuth: true }).get(
                   `project-phases?project=${this.$route.params.id}&_limit=-1`
                 )
               ).data;
 
-              console.log('Loaded execution phases from API:', phases.length);
               this.form.project_phases = phases;
               this.ganttViewMode = (phases && phases.length > 0) ? 'estimated' : 'original';
 
               // Load original phases with estimated hours
-              console.log('=== getData: Loading original phases ===');
               const phases_and_estimated_hours = (
                 await service({ requiresAuth: true }).get(
                   `project-original-phases-hours?project=${this.$route.params.id}&_limit=-1`
                 )
               ).data;
 
-              console.log('Loaded original phases from API:', phases_and_estimated_hours.length);
               this.form.project_original_phases = phases_and_estimated_hours;
 
               // Load children data if this project is a mother project
               if (this.form.is_mother) {
-                console.log('=== getData: Loading children data for mother project ===');
                 const childrenData = (
                   await service({ requiresAuth: true }).get(
                     `projects/${this.$route.params.id}/children`
                   )
                 ).data;
 
-                console.log('Loaded children data from API:', childrenData);
-                console.log('Children array:', childrenData.children);
                 if (childrenData.children && childrenData.children.length > 0) {
-                  console.log('=== Individual children project_state ===');
-                  childrenData.children.forEach(child => {
-                    console.log(`Child ${child.id} (${child.name}):`, {
-                      project_state: child.project_state,
-                      project_state_id: child.project_state?.id,
-                      project_state_name: child.project_state?.name
-                    });
-                  });
                 }
-                
+
                 // Update all three financial dimensions from aggregated children data
                 // Original dimension
                 this.form.total_original_incomes =
@@ -3529,7 +3496,6 @@ export default {
         .then(r => {
           this.projects = r.data;
           if (this.form.mother && this.form.mother.id) {
-            console.log("this.form.mother.id", this.form.mother.id);
             const mother = this.projects.find(
               p => p.id === this.form.mother.id
             );
@@ -3704,10 +3670,7 @@ export default {
     async closeBudget() {
       // Close the budget by copying original phases to execution phases
       // This method is called when user confirms they want to finalize the project creation
-      console.log('=== closeBudget() METHOD START ===');
-      console.log('Original phases count:', this.form.project_original_phases?.length);
-      console.log('Execution phases count:', this.form.project_phases?.length);
-      
+
       if (!this.form.project_original_phases || this.form.project_original_phases.length === 0) {
         this.$buefy.snackbar.open({
           message: "No hi ha fases originals per tancar el pressupost",
@@ -3717,14 +3680,11 @@ export default {
       }
 
       // Mark creation as completed
-      console.log('Setting creation_step to completed');
       this.form.creation_step = 'completed';
-      
+
       // Save and create execution budget
       // This calls closeQuoteFromOriginal which copies phases
-      console.log('Calling submit("closeBudget")...');
       await this.submit("closeBudget");
-      console.log('=== closeBudget() METHOD END ===');
     },
     continueEditing(target) {
       // Navigate back to the specified step
@@ -3744,14 +3704,7 @@ export default {
       this.submit("continue");
     },
     async submit(action) {
-      console.log('=== SUBMIT CALLED ===');
-      console.log('action:', action);
-      console.log('this.form.id:', this.form.id);
-      console.log('isDuplicating:', this.isDuplicating);
-      
       this.isLoading = true;
-
-      console.log("submit", this.form);
 
       if (!this.periodification) {
         this.form.periodification = [];
@@ -3812,38 +3765,19 @@ export default {
           return;
         }
 
-        console.log('=== VALIDATION PASSED ===');
-        console.log('Proceeding to save logic...');
-
         this.form.dirty = false;
-
-        console.log('=== CHECKING SAVE PATH ===');
-        console.log('this.form.id:', this.form.id);
-        console.log('Will use:', this.form.id ? 'PUT (update)' : 'POST (create)');
 
         if (this.form.id) {
           // If closing budget, copy phases BEFORE the main save
           if (action === "closeBudget") {
-            console.log('=== CLOSE BUDGET: Copying phases BEFORE save ===');
-            console.log('Before closeQuoteFromOriginal:');
-            console.log('  - Original phases:', this.form.project_original_phases?.length);
-            console.log('  - Execution phases:', this.form.project_phases?.length);
-            
             await this.closeQuoteFromOriginal();
-            
-            console.log('After closeQuoteFromOriginal:');
-            console.log('  - Original phases:', this.form.project_original_phases?.length);
-            console.log('  - Execution phases:', this.form.project_phases?.length);
           }
-          
+
           // Clean up grantable_contacts before destructuring
-          console.log('Before filter - this.form.grantable_contacts:', JSON.stringify(this.form.grantable_contacts));
           this.form.grantable_contacts = (this.form.grantable_contacts || []).filter(gc => {
             const hasValidContact = gc.contact && gc.contact.id;
-            console.log('Filtering grantable_contact:', gc, 'hasValidContact:', hasValidContact);
             return hasValidContact;
           });
-          console.log('After filter - this.form.grantable_contacts:', JSON.stringify(this.form.grantable_contacts));
 
           // Exclude large computed/read-only fields from the payload to prevent 413 errors
           // especially for mother projects which have large children data
@@ -3873,26 +3807,8 @@ export default {
             received_incomes,
             received_expenses,
             treasury_annotations,
-            ...form 
+            ...form
           } = this.form;
-          
-          // Log payload optimization for debugging
-          if (this.form.is_mother) {
-            console.log('=== MOTHER PROJECT PAYLOAD OPTIMIZATION ===');
-            console.log('Excluded children count:', children?.children?.length || 0);
-            console.log('Excluded allByYear entries:', allByYear?.length || 0);
-          }
-          console.log('Excluded document fields:', {
-            emitted_invoices: emitted_invoices?.length || 0,
-            received_grants: received_grants?.length || 0,
-            received_invoices: received_invoices?.length || 0,
-            tickets: tickets?.length || 0,
-            diets: diets?.length || 0,
-            received_incomes: received_incomes?.length || 0,
-            received_expenses: received_expenses?.length || 0,
-            treasury_annotations: treasury_annotations?.length || 0
-          });
-          console.log('form.grantable_contacts in PUT:', JSON.stringify(form.grantable_contacts));
 
           if (form.project_phases && form.project_phases.length) {
             form.project_phases.forEach(ph => {
@@ -3938,7 +3854,6 @@ export default {
           } else if (action === "closeBudget") {
             // Phases were already copied BEFORE the main save above
             // Just exit creation mode and reload
-            console.log('=== CLOSE BUDGET: Save completed, exiting creation mode ===');
             this.isCreationMode = false;
             this.getData();
           } else if (action === "continue") {
@@ -4069,89 +3984,12 @@ export default {
             });
           }
 
-          console.log('=== CLEANED FORM FOR POST ===');
-          if (this.form.project_original_phases && this.form.project_original_phases.length) {
-            this.form.project_original_phases.forEach((ph, idx) => {
-              if (ph.incomes && ph.incomes.length) {
-                ph.incomes.forEach((inc, incIdx) => {
-                  console.log(`Phase ${idx} Income ${incIdx}:`, {
-                    income_type: inc.income_type,
-                    client: inc.client,
-                    bank_account: inc.bank_account
-                  });
-                });
-              }
-              if (ph.expenses && ph.expenses.length) {
-                ph.expenses.forEach((exp, expIdx) => {
-                  console.log(`Phase ${idx} Expense ${expIdx}:`, {
-                    expense_type: exp.expense_type,
-                    client: exp.client,
-                    bank_account: exp.bank_account
-                  });
-                });
-              }
-            });
-          }
-
-          console.log('=== FINAL CHECK BEFORE POST ===');
-          console.log('this.form.id:', this.form.id);
-          console.log('this.form.name:', this.form.name);
-          console.log('this.form.project_original_phases_info:', JSON.stringify(this.form.project_original_phases_info, null, 2));
-          console.log('this.form.project_phases_info:', JSON.stringify(this.form.project_phases_info, null, 2));
-          console.log('this.form.project_original_phases count:', this.form.project_original_phases?.length);
-          console.log('this.form.project_phases count:', this.form.project_phases?.length);
-          
-          if (this.form.project_original_phases && this.form.project_original_phases.length > 0) {
-            const firstPhase = this.form.project_original_phases[0];
-            console.log('First phase sample:');
-            console.log('  - id:', firstPhase.id);
-            console.log('  - name:', firstPhase.name);
-            console.log('  - keys:', Object.keys(firstPhase));
-            console.log('  - has created_at:', firstPhase.hasOwnProperty('created_at'));
-            console.log('  - has updated_at:', firstPhase.hasOwnProperty('updated_at'));
-            
-            if (firstPhase.incomes && firstPhase.incomes.length > 0) {
-              const firstIncome = firstPhase.incomes[0];
-              console.log('  First income sample:');
-              console.log('    - id:', firstIncome.id);
-              console.log('    - income_type:', firstIncome.income_type);
-              console.log('    - client:', firstIncome.client);
-              console.log('    - bank_account:', firstIncome.bank_account);
-              console.log('    - has created_at:', firstIncome.hasOwnProperty('created_at'));
-              
-              if (firstIncome.estimated_hours && firstIncome.estimated_hours.length > 0) {
-                const firstHour = firstIncome.estimated_hours[0];
-                console.log('    First estimated_hour sample:');
-                console.log('      - id:', firstHour.id);
-                console.log('      - users_permissions_user:', firstHour.users_permissions_user);
-                console.log('      - has created_at:', firstHour.hasOwnProperty('created_at'));
-              }
-            }
-            
-            if (firstPhase.expenses && firstPhase.expenses.length > 0) {
-              const firstExpense = firstPhase.expenses[0];
-              console.log('  First expense sample:');
-              console.log('    - id:', firstExpense.id);
-              console.log('    - expense_type:', firstExpense.expense_type);
-              console.log('    - client:', firstExpense.client);
-              console.log('    - bank_account:', firstExpense.bank_account);
-              console.log('    - has created_at:', firstExpense.hasOwnProperty('created_at'));
-            }
-          }
-          console.log('=== END FINAL CHECK ===');
-
-          console.log('About to make POST request to /projects');
-          console.log('Request payload keys:', Object.keys(this.form));
-          console.log('POST URL:', "projects");
-          
           let newProject;
           try {
             newProject = await service({ requiresAuth: true }).post(
               "projects",
               this.form
             );
-            console.log('POST request successful!');
-            console.log('Response:', newProject);
           } catch (postError) {
             console.error('POST request failed!');
             console.error('Error:', postError);
@@ -4249,7 +4087,6 @@ export default {
       this.form.grantable_leader = option ? option.id : null;
     },
     projectSelected(option) {
-      console.log("projectSelected", option);
       if (option && option.id) {
         this.form.mother = option.id;
       } else {
@@ -4466,8 +4303,6 @@ export default {
     },
     // Child project gantt methods
     childGanttItemUpdate(childId, item) {
-      console.log('=== childGanttItemUpdate ===', { childId, item });
-
       // Initialize change tracking for this child if not exists
       if (!this.childProjectChanges[childId]) {
         this.$set(this.childProjectChanges, childId, {
@@ -4584,12 +4419,8 @@ export default {
           deletedHours: this.childProjectChanges[childId].deletedHours
         };
       }
-
-      console.log('Child project changes updated:', this.childProjectChanges[childId]);
     },
     childGanttItemDelete(childId, item) {
-      console.log('=== childGanttItemDelete ===', { childId, item });
-
       // Initialize change tracking for this child if not exists
       if (!this.childProjectChanges[childId]) {
         this.$set(this.childProjectChanges, childId, {
@@ -4661,8 +4492,6 @@ export default {
           deletedHours: this.childProjectChanges[childId].deletedHours
         };
       }
-
-      console.log('Child project changes updated after delete:', this.childProjectChanges[childId]);
     },
     hasChildChanges(childId) {
       const changes = this.childProjectChanges[childId];
@@ -4670,8 +4499,6 @@ export default {
       return changes._project_phases_updated || changes._project_original_phases_updated;
     },
     async saveChildProject(childId) {
-      console.log('=== saveChildProject ===', childId);
-
       if (!this.hasChildChanges(childId)) {
         this.$buefy.snackbar.open({
           message: 'No hi ha canvis per guardar',
@@ -4720,11 +4547,6 @@ export default {
           ...childForm
         } = child;
 
-        console.log('Saving child project with phases:', {
-          project_phases: childForm.project_phases?.length,
-          project_original_phases: childForm.project_original_phases?.length
-        });
-
         // Transfer the update flags from childProjectChanges to childForm
         if (this.childProjectChanges[childId]) {
           childForm._project_phases_updated = this.childProjectChanges[childId]._project_phases_updated;
@@ -4763,14 +4585,12 @@ export default {
     async loadChildrenData() {
       if (!this.form.is_mother || !this.form.id) return;
 
-      console.log('=== loadChildrenData: Reloading children data ===');
       const childrenData = (
         await service({ requiresAuth: true }).get(
           `projects/${this.form.id}/children`
         )
       ).data;
 
-      console.log('Reloaded children data:', childrenData);
       this.form.children = childrenData;
     },
     sumByFn(arr, field) {
@@ -4805,7 +4625,6 @@ export default {
     },
     async removeActivity(task) {
       if (this.form.id) {
-        console.log("task", task);
         let query = "tasks?_limit=-1&_where[archived_eq]=false";
         query += "&_where[project_eq]=" + this.form.id;
         query += "&_where[activity_type_eq]=" + task.id;
@@ -4932,25 +4751,17 @@ export default {
       this.phasesVisible = true;
     },
     closeQuoteFromOriginal() {
-      console.log('=== closeQuoteFromOriginal START ===');
-      console.log('Original phases count:', this.form.project_original_phases?.length);
-      console.log('Current execution phases count BEFORE:', this.form.project_phases?.length);
-      
       this.phasesVisible = false;
       const phases = JSON.parse(
         JSON.stringify(this.form.project_original_phases)
       );
-      
-      console.log('Cloned phases count:', phases.length);
-      
+
       phases.forEach((p, idx) => {
-        console.log(`Processing phase ${idx}: ${p.name}`);
         p.edit = false;
         p.opened = true;
         p.dirty = true;
         delete p.id;
-        
-        console.log(`  Phase ${idx} has ${p.incomes?.length || 0} incomes`);
+
         p.incomes.forEach((sp, incIdx) => {
           sp.dirty = true;
           sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
@@ -4962,9 +4773,7 @@ export default {
           delete sp.project_phase; // Remove any existing execution phase reference
           // Copy estimated hours (planning)
           if (sp.estimated_hours && sp.estimated_hours.length) {
-            console.log(`    Income ${incIdx} has ${sp.estimated_hours.length} hours`);
             sp.estimated_hours.forEach((hour, hourIdx) => {
-              console.log(`      Hour ${hourIdx}: user=${hour.users_permissions_user}, quantity=${hour.quantity}`);
               delete hour.id;
               delete hour.phase_income; // Remove foreign key to parent income
               hour.dirty = true;
@@ -4978,8 +4787,7 @@ export default {
             });
           }
         });
-        
-        console.log(`  Phase ${idx} has ${p.expenses?.length || 0} expenses`);
+
         p.expenses.forEach(sp => {
           sp.dirty = true;
           sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
@@ -4988,10 +4796,9 @@ export default {
           delete sp.project_phase; // Remove any existing execution phase reference
         });
       });
-      
+
       this.form.project_phases = phases;
-      console.log('Execution phases count AFTER assignment:', this.form.project_phases.length);
-      
+
       // Log detailed summary
       let totalHours = 0;
       this.form.project_phases.forEach((p, idx) => {
@@ -5001,9 +4808,7 @@ export default {
           }
         });
       });
-      console.log('Total estimated hours across all execution phases:', totalHours);
-      console.log('=== closeQuoteFromOriginal END ===');
-      
+
       const previousDeletedPhases = this.form.project_phases_info
         ? this.form.project_phases_info.deletedPhases
         : [];
@@ -5130,14 +4935,9 @@ export default {
       });
     },
     performDuplicate(moveDates) {
-      console.log('=== DUPLICATE PROJECT - moveDates:', moveDates);
-      
       // Create a deep copy of the current form
       const duplicatedForm = JSON.parse(JSON.stringify(this.form));
-      
-      console.log('Original date_start:', duplicatedForm.date_start);
-      console.log('Original documents count:', duplicatedForm.documents?.length);
-      
+
       // Disable dirty checking temporarily
       this.dirtyEnabled = false;
       
@@ -5167,16 +4967,14 @@ export default {
         if (moveDates) {
           momentDate.add(1, 'year');
         }
-        
+
         const newDate = momentDate.toDate();
-        console.log(`  adjustDate: ${originalDate} -> ${moment(newDate).format('YYYY-MM-DD')} (moved: ${moveDates})`);
-        
+
         // Always return a Date object for datepickers
         return newDate;
       };
-      
+
       // Adjust main project dates
-      console.log('Adjusting main project dates...');
       if (duplicatedForm.date_start) {
         duplicatedForm.date_start = adjustDate(duplicatedForm.date_start);
       }
@@ -5192,8 +4990,7 @@ export default {
       
       // Remove all documents - must be array, not undefined
       duplicatedForm.documents = [];
-      console.log('Documents cleared, count now:', duplicatedForm.documents.length);
-      
+
       // Duplicate and adjust project_original_phases (budget phases)
       if (duplicatedForm.project_original_phases && duplicatedForm.project_original_phases.length) {
         duplicatedForm.project_original_phases = duplicatedForm.project_original_phases.map(phase => {
@@ -5482,62 +5279,10 @@ export default {
       this.deletedIncomesOriginal = [];
       this.deletedExpensesOriginal = [];
       this.deletedHoursOriginal = [];
-      
-      // Log final state before assignment
-      console.log('=== FINAL DUPLICATED FORM STATE ===');
-      console.log('ID:', duplicatedForm.id);
-      console.log('Name:', duplicatedForm.name);
-      console.log('date_start:', duplicatedForm.date_start);
-      console.log('date_end:', duplicatedForm.date_end);
-      console.log('Documents count:', duplicatedForm.documents?.length);
-      console.log('Original phases count:', duplicatedForm.project_original_phases?.length);
-      console.log('Execution phases count:', duplicatedForm.project_phases?.length);
-      
-      // Log detailed phase structure to debug backend error
-      if (duplicatedForm.project_original_phases?.[0]) {
-        const phase = duplicatedForm.project_original_phases[0];
-        console.log('=== SAMPLE PHASE STRUCTURE ===');
-        console.log('Phase keys:', Object.keys(phase));
-        console.log('Phase ID:', phase.id);
-        console.log('Phase project:', phase.project);
-        console.log('Phase dirty:', phase.dirty);
-        console.log('Phase has created_at:', phase.hasOwnProperty('created_at'));
-        console.log('Phase has updated_at:', phase.hasOwnProperty('updated_at'));
-        
-        if (phase.incomes?.[0]) {
-          const income = phase.incomes[0];
-          console.log('=== SAMPLE INCOME STRUCTURE ===');
-          console.log('Income keys:', Object.keys(income));
-          console.log('Income ID:', income.id);
-          console.log('Income date:', income.date);
-          console.log('Income income_type:', income.income_type);
-          console.log('Income has created_at:', income.hasOwnProperty('created_at'));
-          console.log('Income client:', income.client);
-          console.log('Income bank_account:', income.bank_account);
-          
-          if (income.estimated_hours?.[0]) {
-            const hour = income.estimated_hours[0];
-            console.log('=== SAMPLE ESTIMATED HOUR STRUCTURE ===');
-            console.log('Hour keys:', Object.keys(hour));
-            console.log('Hour ID:', hour.id);
-            console.log('Hour users_permissions_user:', hour.users_permissions_user);
-            console.log('Hour has created_at:', hour.hasOwnProperty('created_at'));
-          }
-        }
-        
-        if (phase.expenses?.[0]) {
-          const expense = phase.expenses[0];
-          console.log('=== SAMPLE EXPENSE STRUCTURE ===');
-          console.log('Expense keys:', Object.keys(expense));
-          console.log('Expense ID:', expense.id);
-          console.log('Expense expense_type:', expense.expense_type);
-          console.log('Expense has created_at:', expense.hasOwnProperty('created_at'));
-        }
-      }
-      
+
       // Set the form to the duplicated data
       this.form = duplicatedForm;
-      
+
       // Initialize phase info structures for new project (empty deletions)
       this.form.project_original_phases_info = {
         deletedPhases: [],
@@ -5551,28 +5296,17 @@ export default {
         deletedExpenses: [],
         deletedHours: []
       };
-      
-      console.log('Form assigned. Current form.date_start:', this.form.date_start);
-      console.log('Current form.documents count:', this.form.documents?.length);
-      console.log('Phase info structures initialized with empty arrays');
-      
+
       // Enter duplicate mode
       this.isDuplicating = true;
-      
+
       // Increment formKey to force complete re-render of the entire form
       this.formKey++;
-      
-      console.log('Form key incremented to', this.formKey, '- forcing complete re-render');
-      
+
       // Re-enable dirty checking after render
       this.$nextTick(() => {
-        console.log('After re-render - form state:', {
-          date_start: this.form.date_start,
-          date_end: this.form.date_end,
-          documents_count: this.form.documents?.length
-        });
       });
-      
+
       // Re-enable dirty checking and set dirty
       setTimeout(() => {
         this.dirtyEnabled = true;
