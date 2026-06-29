@@ -85,8 +85,6 @@ export default {
   },
   mounted() {
     // console.log('mounted')
-    console.log("gantt dg", gantt);
-
     this.getActivities();
   },
   methods: {

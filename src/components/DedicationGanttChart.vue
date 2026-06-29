@@ -1,9 +1,52 @@
 <template>
   <div>
-    <div class="gannt-container" v-if="showGantt">
-      <div class="gantt gantt-dedication" :id="ganttId"></div>
+    <div class="dedication-table-container">
+      <div class="table-wrapper">
+        <table class="dedication-table">
+          <thead>
+            <tr>
+              <th class="sticky-col person-col">Persona</th>
+              <th v-for="period in periods" :key="period.key" class="period-col">
+                {{ period.label }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="leader in visibleLeaders" :key="leader.id">
+              <td class="sticky-col person-col">
+                <strong>{{ leader.username }}</strong>
+              </td>
+              <td 
+                v-for="period in periods" 
+                :key="period.key"
+                :class="cellData[leader.id][period.key].cssClass"
+                class="period-cell"
+                @mouseenter="showTooltip($event, cellData[leader.id][period.key].tooltip)"
+                @mousemove="updateTooltipPosition($event)"
+                @mouseleave="hideTooltip"
+              >
+                <div class="cell-content">
+                  <div class="hours">{{ cellData[leader.id][period.key].hours }}h</div>
+                  <div class="percentage">{{ cellData[leader.id][period.key].percentage }}%</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <div class="help">
+    
+    <!-- Tooltip -->
+    <div 
+      v-show="tooltip.visible" 
+      ref="tooltip"
+      class="custom-tooltip"
+      :style="tooltip.style"
+    >
+      <div class="tooltip-content">{{ tooltip.text }}</div>
+    </div>
+    
+    <div class="help mt-4">
       <b-icon icon="circle" class="has-text-warning" custom-size="default" />
       <b>Ocupada menys del 85%</b><br />
       <b-icon icon="circle" class="has-text-blue" custom-size="default" />
@@ -17,15 +60,10 @@
 </template>
 
 <script>
-import { EventBus } from "@/service/event-bus.js";
 import { mapState } from "vuex";
-// import sumBy from 'lodash/sumBy'
-import { gantt } from "dhtmlx-gantt";
 import moment from "moment";
-import service from "@/service/index";
 import _ from "lodash";
 
-// main component
 export default {
   name: "DedicationChartGannt",
   props: {
@@ -35,108 +73,129 @@ export default {
     festives: Array,
     view: String
   },
-  components: {},
-  computed: {
-    ...mapState(["userName"]),
-    ...mapState(["me"])
-  },
-  watch: {
-    dedications: function(newVal, oldVal) {
-      // this.initializeGannt()
-    },
-    leaders: function(newVal, oldVal) {
-      // this.initializeGannt()
-    }
-  },
   data() {
     return {
-      isModalActive: false,
-      zoom: 24,
-      user: {},
-      dedicationObject: null,
-      state: null,
-      phases: null,
-      minYear: null,
-      tasks: {},
-      updating: false,
-      showGantt: false,
-      ganttId: "",
-      // dedications: [],
-      showSubPhases: false
+      tooltip: {
+        visible: false,
+        text: '',
+        style: {}
+      }
     };
   },
-  async mounted() {
-    this.ganttId = "gantt-" + this.create_UUID();
-    this.initializeAll();
-  },
-  beforeDestroy() {
-    console.log("beforeDestroy");
-    gantt.clearAll();
-    // gantt.destructor()
-    this.showGantt = false;
-  },
-  methods: {
-    initializeAll() {
-      this.showGantt = true;
-      // gantt.clearAll();
-
-      this.tasks = { data: [] };
-
-      setTimeout(() => {
-        this.initializeGannt();
-      }, 250);
+  computed: {
+    ...mapState(["userName"]),
+    ...mapState(["me"]),
+    
+    visibleLeaders() {
+      return this.leaders ? this.leaders.filter(l => !l.hidden) : [];
     },
-    initializeGannt() {
-      this.tasks = { data: [] };
-      var tid = 999999;
-      var minEnddate = moment().format("YYYY-MM-DD");
-      var maxEnddate = moment().format("YYYY-MM-DD");
-      for (let i = 0; i < this.leaders.length; i++) {
-        const leader = this.leaders[i];
-        if (!leader.hidden) {
-          const task = {
-            id: leader.id,
-            text: leader.username,
-            open: true,
-            type: gantt.config.types.project,
-            unscheduled: false,
-            render: "split",
-            parent: 0,
-            readonly: true
-          };
+    
+    periods() {
+      if (!this.dedications || this.dedications.length === 0) {
+        return [];
+      }
+      
+      // Collect all unique period keys that have actual data
+      const periodKeysSet = new Set();
+      
+      this.dedications.forEach(d => {
+        if (d.from && d.estimated_hours) {
+          const fromDate = moment(d.from, 'YYYY-MM-DD');
+          const actualYear = fromDate.year();
+          const actualMonth = fromDate.format('MM');
+          const actualWeek = fromDate.isoWeek();
           
-          // Pre-process all dedications with calculated values for performance
-          const processedDedications = this.dedications
-            .filter(d => d.username === leader.username && d.estimated_hours)
-            .map(d => {
-              const fromDate = moment(d.from, 'YYYY-MM-DD');
-              const actualYear = fromDate.year();
-              const actualMonth = fromDate.format('MM');
-              const actualWeek = fromDate.isoWeek();
-              
-              const ymw = this.view === "week"
-                ? `${actualYear}-01-${String(actualWeek).padStart(2, '0')}`
-                : `${actualYear}-${actualMonth}-01`;
-              
-              return {
-                ...d,
-                ymw: ymw,
-                _actualYear: actualYear,
-                _actualMonth: actualMonth,
-                _actualWeek: actualWeek
-              };
-            });
+          const key = this.view === "week"
+            ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
+            : `${actualYear}-${actualMonth}`;
+          
+          periodKeysSet.add(key);
+        }
+      });
+      
+      // Also include festive periods if they have dedications
+      if (this.festives && this.visibleLeaders) {
+        this.festives.forEach(f => {
+          if (f.date) {
+            const festiveDate = moment(f.date, "YYYY-MM-DD");
+            const actualYear = festiveDate.year();
+            const actualMonth = festiveDate.format('MM');
+            const actualWeek = festiveDate.isoWeek();
 
-          const userDedications = processedDedications;
-
-          // console.log(`DEBUG: ${leader.username} has ${userDedications.length} dedications`);
-
-          if (userDedications && userDedications.length) {
-            this.tasks.data.push(task);
+            const key = this.view === "week"
+              ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
+              : `${actualYear}-${actualMonth}`;
+            
+            periodKeysSet.add(key);
           }
-
-          // Add festives - optimized version
-          const festiveDedications = [];
+        });
+      }
+      
+      // Convert to sorted array
+      const sortedKeys = Array.from(periodKeysSet).sort();
+      
+      // Generate period objects
+      const periods = sortedKeys.map(key => {
+        if (this.view === 'month') {
+          const [year, month] = key.split('-');
+          const date = moment(`${year}-${month}-01`, 'YYYY-MM-DD');
+          return {
+            key: key,
+            label: date.format('MMM YYYY'),
+            year: parseInt(year),
+            month: month
+          };
+        } else {
+          // Week view
+          const [year, weekPart] = key.split('-W');
+          const week = parseInt(weekPart);
+          return {
+            key: key,
+            label: `W${week}`,
+            year: parseInt(year),
+            week: week
+          };
+        }
+      });
+      
+      return periods;
+    },
+    
+    dedicationsByLeaderAndPeriod() {
+      const map = {};
+      
+      if (!this.visibleLeaders || !this.dedications) {
+        return map;
+      }
+      
+      this.visibleLeaders.forEach(leader => {
+        map[leader.id] = {};
+        
+        // Process regular dedications
+        const processedDedications = this.dedications
+          .filter(d => d.username === leader.username && d.estimated_hours)
+          .map(d => {
+            const fromDate = moment(d.from, 'YYYY-MM-DD');
+            const actualYear = fromDate.year();
+            const actualMonth = fromDate.format('MM');
+            const actualWeek = fromDate.isoWeek();
+            
+            const key = this.view === "week"
+              ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
+              : `${actualYear}-${actualMonth}`;
+            
+            return {
+              ...d,
+              periodKey: key,
+              _actualYear: actualYear,
+              _actualMonth: actualMonth,
+              _actualWeek: actualWeek
+            };
+          });
+        
+        // Process festive dedications
+        const festiveDedications = [];
+        if (this.festives && leader.daily_dedications) {
           this.festives.forEach(f => {
             if (
               (f.users_permissions_user &&
@@ -151,19 +210,18 @@ export default {
               });
 
               if (dailyHours > 0) {
-                // Use the same date-based calculation as regular dedications
                 const festiveDate = moment(f.date, "YYYY-MM-DD");
                 const actualYear = festiveDate.year();
                 const actualMonth = festiveDate.format('MM');
                 const actualWeek = festiveDate.isoWeek();
 
-                const ymw = this.view === "week"
-                  ? `${actualYear}-01-${String(actualWeek).padStart(2, '0')}`
-                  : `${actualYear}-${actualMonth}-01`;
+                const key = this.view === "week"
+                  ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
+                  : `${actualYear}-${actualMonth}`;
 
                 festiveDedications.push({
                   project_name: f.festive_type.name,
-                  ymw: ymw,
+                  periodKey: key,
                   estimated_hours: dailyHours,
                   from: f.date,
                   username: leader.username,
@@ -174,252 +232,195 @@ export default {
               }
             }
           });
-
-          // Merge festive dedications with regular dedications
-          const allDedications = [...userDedications, ...festiveDedications];
-          
-          const dedicationTotals = _(allDedications)
-            .groupBy("ymw")
-            .map((ymw, id) => ({
-              ymw: id,
-              year: id.substring(0, 4),
-              month: id.substring(5, 7),
-              week: id.substring(8, 10),
-              total: _.sumBy(ymw, "estimated_hours"),
-              from: ymw[0].from
-            }))
-            .value();
-
-          for (let j = 0; j < dedicationTotals.length; j++) {
-            tid++;
-            const dedication = dedicationTotals[j];
-            
-            // const ymw = `${d.year}-${d.month}-${d.week}`
-            var start_date = moment(
-              `${dedication.year}-${
-                this.view === "month" ? dedication.month : "01"
-              }-01`,
-              "YYYY-MM-DD"
-            );
-
-            if (dedication.from) {
-              start_date = dedication.from;
-            } else {
-              start_date = start_date.format("YYYY-MM-DD");
-            }
-
-            const end_date = moment(start_date, "YYYY-MM-DD")
-              .endOf(this.view)
-              .add(1, "day")
-              .format("YYYY-MM-DD");
-            if (end_date > maxEnddate) {
-              maxEnddate = end_date;
-            }
-
-            let dailyHours = 8;
-            leader.daily_dedications.forEach(dd => {
-              if (dd.from <= start_date && dd.to >= start_date) {
-                dailyHours = dd.hours;
-              }
-            });
-
-            const progress = dailyHours
-              ? dedication.total /
-                ((this.view === "month" ? 20 : 5) * dailyHours)
-              : 0;
-
-            let out = "";
-
-            // out += `<pre>${task._year } - ${task._month } - ${task._week }</pre>`;
-            // return out
-
-            // Use merged dedications (including festives) for much faster filtering
-            const taskDedications = allDedications.filter(d => {
-              const yearMatch = d._actualYear === parseInt(dedication.year);
-              
-              if (this.view === "week") {
-                const weekMatch = d._actualWeek === parseInt(dedication.week);
-                return yearMatch && weekMatch;
-              } else {
-                const monthMatch = d._actualMonth === dedication.month;
-                return yearMatch && monthMatch;
-              }
-            });
-
-            const taskDedicationsByProject = _(taskDedications)
-              .groupBy("project_name")
-              .map((project_name, id) => ({
-                project_name: id,
-                estimated_hours: _.sumBy(project_name, "estimated_hours")
+        }
+        
+        // Merge all dedications
+        const allDedications = [...processedDedications, ...festiveDedications];
+        
+        // Group by period
+        const byPeriod = _(allDedications)
+          .groupBy('periodKey')
+          .map((dedications, periodKey) => {
+            const total = _.sumBy(dedications, 'estimated_hours');
+            const byProject = _(dedications)
+              .groupBy('project_name')
+              .map((projectDeds, projectName) => ({
+                project_name: projectName,
+                estimated_hours: _.sumBy(projectDeds, 'estimated_hours')
               }))
               .value();
-
-            //let out = "";
-            taskDedicationsByProject.forEach(td => {
-              if (td.estimated_hours) {
-                out += `<b>${td.project_name}:</b> ${td.estimated_hours.toFixed(
-                  2
-                )}h<br>`;
-              }
-            });
-
-            // Note: Festive dedications are now included in taskDedications above,
-            // so no need for separate festive processing here
-
-            const totalHours =
-              (this.view === "month"
-                ? this.numberOfWorkingDays(start_date)
-                : 5) * dailyHours;
-            const dedicationTotal = dedication.total;
-
-            const progressText = dedicationTotal
-              ? (dedicationTotal / totalHours) * 100
-              : 0;
-
-            const hoursTask = {
-              id: tid,
-              text: `${dedication.total.toFixed(2)}h (${progressText.toFixed(
-                0
-              )}%)`, // (${dedication.year}-${dedication.month}-${dedication.week})`,
-              start_date: start_date,
-              end_date: end_date,
-              parent: leader.id,
-              progress: dedicationTotal ? dedicationTotal / totalHours : 0,
-              readonly: true,
-              _username: leader.username,
-              _week: dedication.week,
-              _month: dedication.month,
-              _year: dedication.year,
-              _dedication_total: dedication.total,
-              _total_hours:
-                (this.view === "month"
-                  ? this.numberOfWorkingDays(start_date)
-                  : 5) * dailyHours,
-              _tooltip: null
-
-              // open: true
+            
+            return {
+              periodKey,
+              total,
+              projects: byProject,
+              dedications
             };
-            // console.log('hoursTask', hoursTask)
-
-            if (hoursTask._total_hours) {
-              out += `<br><b>Hores període</b>: ${hoursTask._total_hours.toFixed(
-                2
-              )}h`;
-              if (hoursTask._dedication_total) {
-                if (hoursTask._total_hours - hoursTask._dedication_total > 0) {
-                  out += `<br><b>Falten</b>: ${(
-                    hoursTask._total_hours - hoursTask._dedication_total
-                  ).toFixed(2)}h`;
-                } else {
-                  out += `<br><b>Sobren</b>: ${(
-                    hoursTask._dedication_total - hoursTask._total_hours
-                  ).toFixed(2)}h`;
+          })
+          .value();
+        
+        byPeriod.forEach(p => {
+          map[leader.id][p.periodKey] = p;
+        });
+      });
+      
+      return map;
+    },
+    
+    // Pre-compute all cell display data to avoid recalculation on every render
+    cellData() {
+      const cells = {};
+      
+      this.visibleLeaders.forEach(leader => {
+        cells[leader.id] = {};
+        
+        this.periods.forEach(period => {
+          const data = this.dedicationsByLeaderAndPeriod[leader.id];
+          const periodData = data ? data[period.key] : null;
+          
+          let hours = '0.00';
+          let percentage = '0';
+          let cssClass = 'dedication-empty';
+          let tooltip = 'Sense dedicació';
+          
+          if (periodData) {
+            hours = periodData.total.toFixed(2);
+            
+            // Calculate percentage
+            const firstDedication = periodData.dedications[0];
+            const startDate = firstDedication ? firstDedication.from : period.key + '-01';
+            
+            let dailyHours = 8;
+            if (leader.daily_dedications) {
+              for (let dd of leader.daily_dedications) {
+                if (dd.from <= startDate && dd.to >= startDate) {
+                  dailyHours = dd.hours;
+                  break;
                 }
               }
             }
-
-            hoursTask._tooltip = out;
-
-            this.tasks.data.push(hoursTask);
+            
+            const expectedHours = (this.view === 'month' 
+              ? this.numberOfWorkingDays(startDate)
+              : 5) * dailyHours;
+            
+            if (expectedHours > 0) {
+              const pct = (periodData.total / expectedHours) * 100;
+              percentage = pct.toFixed(0);
+              
+              // Determine CSS class
+              if (pct < 85) {
+                cssClass = 'dedication-low';
+              } else if (pct > 105) {
+                cssClass = 'dedication-high';
+              } else if (pct >= 95 && pct <= 105) {
+                cssClass = 'dedication-optimal';
+              } else {
+                cssClass = 'dedication-good';
+              }
+            }
+            
+            // Build tooltip content (pre-computed, no performance hit)
+            const tooltipLines = [];
+            
+            // Show all projects
+            periodData.projects.forEach(p => {
+              if (p.estimated_hours) {
+                tooltipLines.push(`${p.project_name}: ${p.estimated_hours.toFixed(2)}h`);
+              }
+            });
+            
+            tooltipLines.push('');
+            tooltipLines.push(`Hores període: ${expectedHours.toFixed(2)}h`);
+            
+            const diff = expectedHours - periodData.total;
+            if (diff > 0) {
+              tooltipLines.push(`Falten: ${diff.toFixed(2)}h`);
+            } else if (diff < 0) {
+              tooltipLines.push(`Sobren: ${Math.abs(diff).toFixed(2)}h`);
+            }
+            
+            tooltip = tooltipLines.join('\n');
           }
-        }
-      }
-
-      // console.log('this.tasks.data', this.tasks.data)
-
-      // https://docs.dhtmlx.com/gantt/samples/11_resources/10_resource_histogram_workload_percents.html
-      // https://docs.dhtmlx.com/gantt/samples/11_resources/06_assign_multiple_owners.html
-      // https://dhtmlx.com/blog/using-d3-visualize-workload-dhtmlxgantt/
-
-      gantt.config.start_date = moment()
-        .startOf("year")
-        .toDate();
-      gantt.config.end_date = moment(maxEnddate, "YYYY-MM-DD")
-        .add(1, "months")
-        .toDate();
-      gantt.config.columns = [
-        {
-          name: "text",
-          label: "Previsió",
-          tree: true,
-          width: "150",
-          resize: true
-        }
-      ];
-
-      gantt.templates.task_class = (start, end, task) => {
-        if (task.progress < 0.85) {
-          return "has-background-warning has-text-black";
-        } else if (task.progress > 1.05) {
-          return "has-background-danger";
-        } else if (task.progress >= 0.95 && task.progress <= 1.05) {
-          return "has-background-success";
-        } else {
-          return "z";
-        }
-      };
-
-      gantt.config.scroll_size = 30;
-
-      // gantt.plugins({ click_drag: true })
-      // gantt.config.readonly = true
-      // gantt.config.editable_property = "editable";
-      gantt.config.xml_date = "%Y-%m-%d";
-      gantt.config.duration_unit = this.view;
-      gantt.config.scales = [
-        { unit: "year", step: 1, format: "%Y" },
-        { unit: "month", step: 1, format: "%M" }
-      ];
-
-      if (this.view === "week") {
-        var weekScaleTemplate = date => {
-          return this.getWeekTemplate(date);
-        };
-
-        gantt.config.scales.push({
-          unit: "week",
-          step: 1,
-          format: weekScaleTemplate
+          
+          cells[leader.id][period.key] = {
+            hours,
+            percentage,
+            cssClass,
+            tooltip
+          };
         });
+      });
+      
+      return cells;
+    }
+  },
+  mounted() {
+    // No longer needed since we're using template-based tooltip
+  },
+  methods: {
+    showTooltip(event, text) {
+      if (!text || text === 'Sense dedicació') {
+        return;
       }
-
-      gantt.config.min_column_width = 100;
-
-      gantt.plugins({ tooltip: true });
-
-      gantt.showLightbox = function(id) {
-        // code of the custom form
-      };
-
-      gantt.templates.tooltip_text = (start, end, task) => {
-        return task._tooltip;
-      };
-
-      gantt.init(this.ganttId);
-
-      gantt.parse(this.tasks);
+      
+      this.tooltip.text = text;
+      this.tooltip.visible = true;
+      this.updateTooltipPosition(event);
     },
-
-    create_UUID() {
-      var dt = new Date().getTime();
-      var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-        /[xy]/g,
-        function(c) {
-          var r = (dt + Math.random() * 16) % 16 | 0;
-          dt = Math.floor(dt / 16);
-          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+    
+    updateTooltipPosition(event) {
+      if (!this.tooltip.visible) {
+        return;
+      }
+      
+      this._cursorX = event.clientX;
+      this._cursorY = event.clientY;
+      
+      // Wait for the DOM to render the (possibly new) content, then measure
+      // its real size and clamp it inside the viewport.
+      this.$nextTick(() => {
+        const el = this.$refs.tooltip;
+        if (!el) {
+          return;
         }
-      );
-      return uuid;
+        
+        const margin = 12;        // min distance from viewport edges
+        const cursorGap = 16;     // distance between cursor and tooltip
+        const tw = el.offsetWidth;
+        const th = el.offsetHeight;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const x = this._cursorX;
+        const y = this._cursorY;
+        
+        // Horizontal: prefer the right of the cursor, flip to the left if it
+        // would overflow, then clamp so it never leaves the viewport.
+        let left = x + cursorGap;
+        if (left + tw + margin > vw) {
+          left = x - cursorGap - tw;
+        }
+        left = Math.max(margin, Math.min(left, vw - tw - margin));
+        
+        // Vertical: prefer below the cursor, flip above if it would overflow,
+        // then clamp.
+        let top = y + cursorGap;
+        if (top + th + margin > vh) {
+          top = y - cursorGap - th;
+        }
+        top = Math.max(margin, Math.min(top, vh - th - margin));
+        
+        this.$set(this.tooltip, 'style', {
+          left: `${left}px`,
+          top: `${top}px`
+        });
+      });
     },
-
-    getWeekTemplate(date) {
-      var to_day = gantt.date.date_to_str("%d");
-      var month_day = to_day(date);
-      var month_day2 = to_day(gantt.date.add(date, 6, "day"));
-      return `${month_day}-${month_day2}`;
+    
+    hideTooltip() {
+      this.tooltip.visible = false;
     },
-
+    
     numberOfWorkingDays(day) {
       let n = 0;
       const initOfMonth = moment(day, "YYYY-MM-DD");
@@ -428,8 +429,8 @@ export default {
         moment.duration(endOfMonth.diff(initOfMonth)).asDays()
       );
       for (var i = 0; i < days; i++) {
-        const day = initOfMonth.add(1, "day");
-        if (![0, 6].includes(day.day())) {
+        const currentDay = initOfMonth.clone().add(i, "day");
+        if (![0, 6].includes(currentDay.day())) {
           n++;
         }
       }
@@ -438,48 +439,266 @@ export default {
   }
 };
 </script>
+
 <style scoped>
-.gstc-component {
-  margin: 0;
-  padding: 0;
-}
-.toolbox {
-  padding: 10px;
-}
-</style>
-<style>
-@import "~dhtmlx-gantt/codebase/dhtmlxgantt.css";
-
-.gantt > div {
-  min-height: 600px;
-}
-/* .gantt_row_project, .gantt_layout_x > .gantt_layout_cell, .gantt_row_task, .gantt_grid_data .gantt_last_cell{
-      min-width: 300px;
-    } */
-.gantt_task_line.gantt_project,
-.gantt_task_line {
-  border-radius: 30px;
+.dedication-table-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  background: white;
+  max-height: 80vh;
+  /* Show scrollbar on hover for better UX */
+  scrollbar-width: thin;
+  scrollbar-color: #dbdbdb #f5f5f5;
 }
 
-.gantt-dedication .gantt_task_line.has-background-warning {
-  background-color: #ffdd57 !important;
-}
-.gantt-dedication .gantt_task_line.has-background-danger .gantt_task_progress {
-  background-color: #f14668 !important;
-}
-.gantt-dedication .gantt_task_content {
-  color: #222;
+.dedication-table-container::-webkit-scrollbar {
+  height: 12px;
 }
 
-.gantt-dedication .gantt_task_line.has-background-warning .gantt_task_progress {
-  background-color: #eecc46 !important;
+.dedication-table-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 6px;
 }
 
-.gantt-dedication .gantt_task_line.has-background-success .gantt_task_progress {
-  background-color: #67b764 !important;
+.dedication-table-container::-webkit-scrollbar-thumb {
+  background: #dbdbdb;
+  border-radius: 6px;
+}
+
+.dedication-table-container::-webkit-scrollbar-thumb:hover {
+  background: #b5b5b5;
+}
+
+.table-wrapper {
+  display: inline-block;
+  min-width: 100%;
+  position: relative;
+}
+
+.dedication-table {
+  width: auto;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+  table-layout: fixed;
+}
+
+.dedication-table thead {
+  background: linear-gradient(to bottom, #fafafa, #f5f5f5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dedication-table th {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #dbdbdb;
+  white-space: nowrap;
+  background: transparent;
+  min-width: 90px;
+  color: #363636;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.dedication-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 90px;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: white;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  min-width: 150px !important;
+  max-width: 150px !important;
+}
+
+.dedication-table tbody tr:nth-child(even) .sticky-col {
+  background: #fafafa;
+}
+
+.dedication-table tbody tr:hover .sticky-col {
+  background: #f5f5f5;
+}
+
+.dedication-table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.dedication-table thead .sticky-col {
+  z-index: 15;
+  background: linear-gradient(to bottom, #fafafa, #f5f5f5);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.person-col {
+  text-align: left !important;
+  font-weight: 600;
+  padding-left: 1rem !important;
+}
+
+.period-col {
+  min-width: 90px;
+}
+
+.period-cell {
+  min-width: 90px;
+  transition: all 0.15s ease;
+  will-change: background-color, transform;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.period-cell:hover {
+  opacity: 0.75;
+  z-index: 10;
+}
+
+/* Custom tooltip */
+.custom-tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: #2c3e50;
+  opacity: 0.9;
+  color: #ffffff;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  max-width: 350px;
+  min-width: 250px;
+  max-height: 400px;
+  overflow-y: auto;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.tooltip-content {
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transform: translateZ(0);
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.hours {
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.percentage {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Improve percentage visibility on colored backgrounds */
+.dedication-good .percentage,
+.dedication-optimal .percentage,
+.dedication-high .percentage {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+/* Color coding for dedication levels */
+.dedication-empty {
+  background-color: #fafafa;
+  color: #999;
+}
+
+.dedication-low {
+  background-color: #ffdd57;
+  color: #333;
+  font-weight: 500;
+}
+
+.dedication-low .percentage {
+  color: #555;
+  font-weight: 600;
+}
+
+.dedication-good {
+  background: linear-gradient(135deg, #299cb4 0%, #2aacc4 100%);
+  color: white;
+  font-weight: 500;
+}
+
+.dedication-good .percentage {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+.dedication-optimal {
+  background: linear-gradient(135deg, #48c774 0%, #58d784 100%);
+  color: white;
+  font-weight: 500;
+}
+
+.dedication-optimal .percentage {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+.dedication-high {
+  background: linear-gradient(135deg, #f14668 0%, #f15678 100%);
+  color: white;
+  font-weight: 500;
+}
+
+.dedication-high .percentage {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+.help {
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 4px;
+  font-size: 0.875rem;
 }
 
 .has-text-blue {
   color: #299cb4 !important;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .period-col,
+  .period-cell {
+    min-width: 70px;
+  }
+  
+  .hours {
+    font-size: 0.8rem;
+  }
+  
+  .percentage {
+    font-size: 0.7rem;
+  }
 }
 </style>
