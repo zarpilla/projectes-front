@@ -9,7 +9,7 @@
           <b-field
             v-for="(attrConfig, attrName) in metadata.attributes"
             :key="attrName"
-            :label="formatLabel(attrName) + (attrConfig.required ? ' *' : '')"
+            :label="(attrConfig.label || formatLabel(attrName)) + (attrConfig.required ? ' *' : '')"
             horizontal
             :type="{ 'is-danger': errors[attrName] }"
             :message="errors[attrName]"

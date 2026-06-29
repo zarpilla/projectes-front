@@ -46,7 +46,7 @@
         <b-table-column
           v-for="(attrConfig, attrName) in displayAttributes"
           :key="attrName"
-          :label="formatLabel(attrName)"
+          :label="attrConfig.label || formatLabel(attrName)"
           :field="attrName"
           sortable
           v-slot="props"
@@ -139,12 +139,14 @@ export default {
     },
     displayAttributes() {
       if (!this.metadata || !this.metadata.attributes) return {};
-      
+
       // Filter out attributes that shouldn't be displayed in list
       const filtered = {};
       for (const [name, config] of Object.entries(this.metadata.attributes)) {
         // Skip richtext and text fields in list view
         if (config.type === 'richtext' || config.type === 'text') continue;
+        // Skip collection relations (one-to-many, many-to-many)
+        if (config.collection) continue;
         filtered[name] = config;
       }
       return filtered;
