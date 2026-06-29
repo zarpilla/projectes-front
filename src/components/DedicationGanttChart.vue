@@ -36,14 +36,9 @@
       </div>
     </div>
     
-    <!-- Tooltip -->
-    <div 
-      v-show="tooltip.visible" 
-      ref="tooltip"
-      class="custom-tooltip"
-      :style="tooltip.style"
-    >
-      <div class="tooltip-content">{{ tooltip.text }}</div>
+    <!-- Tooltip (managed via direct DOM manipulation for performance) -->
+    <div ref="tooltip" class="custom-tooltip">
+      <div ref="tooltipContent" class="tooltip-content"></div>
     </div>
     
     <div class="help mt-4">
@@ -74,13 +69,7 @@ export default {
     view: String
   },
   data() {
-    return {
-      tooltip: {
-        visible: false,
-        text: '',
-        style: {}
-      }
-    };
+    return {};
   },
   computed: {
     ...mapState(["userName"]),
@@ -364,61 +353,82 @@ export default {
         return;
       }
       
-      this.tooltip.text = text;
-      this.tooltip.visible = true;
-      this.updateTooltipPosition(event);
-    },
-    
-    updateTooltipPosition(event) {
-      if (!this.tooltip.visible) {
+      const el = this.$refs.tooltip;
+      const content = this.$refs.tooltipContent;
+      if (!el || !content) {
         return;
       }
       
+      // Update content directly (no Vue re-render of the table).
+      content.textContent = text;
+      el.style.display = 'block';
+      this._tooltipVisible = true;
+      
+      this.positionTooltip(event.clientX, event.clientY);
+    },
+    
+    updateTooltipPosition(event) {
+      if (!this._tooltipVisible) {
+        return;
+      }
+      
+      // Throttle to one update per animation frame to avoid layout thrashing.
       this._cursorX = event.clientX;
       this._cursorY = event.clientY;
       
-      // Wait for the DOM to render the (possibly new) content, then measure
-      // its real size and clamp it inside the viewport.
-      this.$nextTick(() => {
-        const el = this.$refs.tooltip;
-        if (!el) {
-          return;
-        }
-        
-        const margin = 12;        // min distance from viewport edges
-        const cursorGap = 16;     // distance between cursor and tooltip
-        const tw = el.offsetWidth;
-        const th = el.offsetHeight;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const x = this._cursorX;
-        const y = this._cursorY;
-        
-        // Horizontal: prefer the right of the cursor, flip to the left if it
-        // would overflow, then clamp so it never leaves the viewport.
-        let left = x + cursorGap;
-        if (left + tw + margin > vw) {
-          left = x - cursorGap - tw;
-        }
-        left = Math.max(margin, Math.min(left, vw - tw - margin));
-        
-        // Vertical: prefer below the cursor, flip above if it would overflow,
-        // then clamp.
-        let top = y + cursorGap;
-        if (top + th + margin > vh) {
-          top = y - cursorGap - th;
-        }
-        top = Math.max(margin, Math.min(top, vh - th - margin));
-        
-        this.$set(this.tooltip, 'style', {
-          left: `${left}px`,
-          top: `${top}px`
-        });
+      if (this._rafId) {
+        return;
+      }
+      this._rafId = requestAnimationFrame(() => {
+        this._rafId = null;
+        this.positionTooltip(this._cursorX, this._cursorY);
       });
     },
     
+    positionTooltip(x, y) {
+      const el = this.$refs.tooltip;
+      if (!el) {
+        return;
+      }
+      
+      const margin = 12;        // min distance from viewport edges
+      const cursorGap = 16;     // distance between cursor and tooltip
+      const tw = el.offsetWidth;
+      const th = el.offsetHeight;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      
+      // Horizontal: prefer the right of the cursor, flip to the left if it
+      // would overflow, then clamp so it never leaves the viewport.
+      let left = x + cursorGap;
+      if (left + tw + margin > vw) {
+        left = x - cursorGap - tw;
+      }
+      left = Math.max(margin, Math.min(left, vw - tw - margin));
+      
+      // Vertical: prefer below the cursor, flip above if it would overflow,
+      // then clamp.
+      let top = y + cursorGap;
+      if (top + th + margin > vh) {
+        top = y - cursorGap - th;
+      }
+      top = Math.max(margin, Math.min(top, vh - th - margin));
+      
+      // Direct DOM write — bypasses Vue reactivity, no component re-render.
+      el.style.left = `${left}px`;
+      el.style.top = `${top}px`;
+    },
+    
     hideTooltip() {
-      this.tooltip.visible = false;
+      this._tooltipVisible = false;
+      if (this._rafId) {
+        cancelAnimationFrame(this._rafId);
+        this._rafId = null;
+      }
+      const el = this.$refs.tooltip;
+      if (el) {
+        el.style.display = 'none';
+      }
     },
     
     numberOfWorkingDays(day) {
@@ -557,8 +567,7 @@ export default {
 
 .period-cell {
   min-width: 90px;
-  transition: all 0.15s ease;
-  will-change: background-color, transform;
+  transition: opacity 0.15s ease;
   position: relative;
   border: 1px solid transparent;
 }
@@ -570,7 +579,10 @@ export default {
 
 /* Custom tooltip */
 .custom-tooltip {
+  display: none;
   position: fixed;
+  top: 0;
+  left: 0;
   z-index: 10000;
   background: #2c3e50;
   opacity: 0.9;
@@ -599,7 +611,6 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  transform: translateZ(0);
   width: 100%;
   height: 100%;
   cursor: pointer;
