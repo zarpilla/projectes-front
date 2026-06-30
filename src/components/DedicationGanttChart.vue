@@ -594,7 +594,7 @@ export default {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   max-width: 350px;
   min-width: 250px;
-  max-height: 400px;
+  max-height: 70vh;
   overflow-y: auto;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
   pointer-events: none;
