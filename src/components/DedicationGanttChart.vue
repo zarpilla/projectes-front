@@ -19,15 +19,15 @@
               <td 
                 v-for="period in periods" 
                 :key="period.key"
-                :class="cellData[leader.id][period.key].cssClass"
+                :class="cell(leader.id, period.key).cssClass"
                 class="period-cell"
-                @mouseenter="showTooltip($event, cellData[leader.id][period.key].tooltip)"
+                @mouseenter="showTooltip($event, cell(leader.id, period.key).tooltip)"
                 @mousemove="updateTooltipPosition($event)"
                 @mouseleave="hideTooltip"
               >
                 <div class="cell-content">
-                  <div class="hours">{{ cellData[leader.id][period.key].hours }}h</div>
-                  <div class="percentage">{{ cellData[leader.id][period.key].percentage }}%</div>
+                  <div class="hours">{{ cell(leader.id, period.key).hours }}h</div>
+                  <div class="percentage">{{ cell(leader.id, period.key).percentage }}%</div>
                 </div>
               </td>
             </tr>
@@ -56,17 +56,22 @@
 
 <script>
 import { mapState } from "vuex";
-import moment from "moment";
-import _ from "lodash";
+
+// Default cell used when a leader has no data for a period.
+const EMPTY_CELL = Object.freeze({
+  hours: "0.00",
+  percentage: "0",
+  cssClass: "dedication-empty",
+  tooltip: "Sense dedicació",
+});
 
 export default {
   name: "DedicationChartGannt",
   props: {
-    project: Object,
     leaders: Array,
-    dedications: Array,
-    festives: Array,
-    view: String
+    periods: Array,
+    cells: Object,
+    view: String,
   },
   data() {
     return {};
@@ -74,308 +79,51 @@ export default {
   computed: {
     ...mapState(["userName"]),
     ...mapState(["me"]),
-    
+
     visibleLeaders() {
-      return this.leaders ? this.leaders.filter(l => !l.hidden) : [];
+      return this.leaders ? this.leaders.filter((l) => !l.hidden) : [];
     },
-    
-    periods() {
-      if (!this.dedications || this.dedications.length === 0) {
-        return [];
-      }
-      
-      // Collect all unique period keys that have actual data
-      const periodKeysSet = new Set();
-      
-      this.dedications.forEach(d => {
-        if (d.from && d.estimated_hours) {
-          const fromDate = moment(d.from, 'YYYY-MM-DD');
-          const actualYear = fromDate.year();
-          const actualMonth = fromDate.format('MM');
-          const actualWeek = fromDate.isoWeek();
-          
-          const key = this.view === "week"
-            ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
-            : `${actualYear}-${actualMonth}`;
-          
-          periodKeysSet.add(key);
-        }
-      });
-      
-      // Also include festive periods if they have dedications
-      if (this.festives && this.visibleLeaders) {
-        this.festives.forEach(f => {
-          if (f.date) {
-            const festiveDate = moment(f.date, "YYYY-MM-DD");
-            const actualYear = festiveDate.year();
-            const actualMonth = festiveDate.format('MM');
-            const actualWeek = festiveDate.isoWeek();
-
-            const key = this.view === "week"
-              ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
-              : `${actualYear}-${actualMonth}`;
-            
-            periodKeysSet.add(key);
-          }
-        });
-      }
-      
-      // Convert to sorted array
-      const sortedKeys = Array.from(periodKeysSet).sort();
-      
-      // Generate period objects
-      const periods = sortedKeys.map(key => {
-        if (this.view === 'month') {
-          const [year, month] = key.split('-');
-          const date = moment(`${year}-${month}-01`, 'YYYY-MM-DD');
-          return {
-            key: key,
-            label: date.format('MMM YYYY'),
-            year: parseInt(year),
-            month: month
-          };
-        } else {
-          // Week view
-          const [year, weekPart] = key.split('-W');
-          const week = parseInt(weekPart);
-          return {
-            key: key,
-            label: `W${week}`,
-            year: parseInt(year),
-            week: week
-          };
-        }
-      });
-      
-      return periods;
-    },
-    
-    dedicationsByLeaderAndPeriod() {
-      const map = {};
-      
-      if (!this.visibleLeaders || !this.dedications) {
-        return map;
-      }
-      
-      this.visibleLeaders.forEach(leader => {
-        map[leader.id] = {};
-        
-        // Process regular dedications
-        const processedDedications = this.dedications
-          .filter(d => d.username === leader.username && d.estimated_hours)
-          .map(d => {
-            const fromDate = moment(d.from, 'YYYY-MM-DD');
-            const actualYear = fromDate.year();
-            const actualMonth = fromDate.format('MM');
-            const actualWeek = fromDate.isoWeek();
-            
-            const key = this.view === "week"
-              ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
-              : `${actualYear}-${actualMonth}`;
-            
-            return {
-              ...d,
-              periodKey: key,
-              _actualYear: actualYear,
-              _actualMonth: actualMonth,
-              _actualWeek: actualWeek
-            };
-          });
-        
-        // Process festive dedications
-        const festiveDedications = [];
-        if (this.festives && leader.daily_dedications) {
-          this.festives.forEach(f => {
-            if (
-              (f.users_permissions_user &&
-                f.users_permissions_user.username === leader.username) ||
-              f.users_permissions_user === null
-            ) {
-              let dailyHours = 0;
-              leader.daily_dedications.forEach(dd => {
-                if (dd.from <= f.date && dd.to >= f.date) {
-                  dailyHours = dd.hours;
-                }
-              });
-
-              if (dailyHours > 0) {
-                const festiveDate = moment(f.date, "YYYY-MM-DD");
-                const actualYear = festiveDate.year();
-                const actualMonth = festiveDate.format('MM');
-                const actualWeek = festiveDate.isoWeek();
-
-                const key = this.view === "week"
-                  ? `${actualYear}-W${String(actualWeek).padStart(2, '0')}`
-                  : `${actualYear}-${actualMonth}`;
-
-                festiveDedications.push({
-                  project_name: f.festive_type.name,
-                  periodKey: key,
-                  estimated_hours: dailyHours,
-                  from: f.date,
-                  username: leader.username,
-                  _actualYear: actualYear,
-                  _actualMonth: actualMonth,
-                  _actualWeek: actualWeek
-                });
-              }
-            }
-          });
-        }
-        
-        // Merge all dedications
-        const allDedications = [...processedDedications, ...festiveDedications];
-        
-        // Group by period
-        const byPeriod = _(allDedications)
-          .groupBy('periodKey')
-          .map((dedications, periodKey) => {
-            const total = _.sumBy(dedications, 'estimated_hours');
-            const byProject = _(dedications)
-              .groupBy('project_name')
-              .map((projectDeds, projectName) => ({
-                project_name: projectName,
-                estimated_hours: _.sumBy(projectDeds, 'estimated_hours')
-              }))
-              .value();
-            
-            return {
-              periodKey,
-              total,
-              projects: byProject,
-              dedications
-            };
-          })
-          .value();
-        
-        byPeriod.forEach(p => {
-          map[leader.id][p.periodKey] = p;
-        });
-      });
-      
-      return map;
-    },
-    
-    // Pre-compute all cell display data to avoid recalculation on every render
-    cellData() {
-      const cells = {};
-      
-      this.visibleLeaders.forEach(leader => {
-        cells[leader.id] = {};
-        
-        this.periods.forEach(period => {
-          const data = this.dedicationsByLeaderAndPeriod[leader.id];
-          const periodData = data ? data[period.key] : null;
-          
-          let hours = '0.00';
-          let percentage = '0';
-          let cssClass = 'dedication-empty';
-          let tooltip = 'Sense dedicació';
-          
-          if (periodData) {
-            hours = periodData.total.toFixed(2);
-            
-            // Calculate percentage
-            const firstDedication = periodData.dedications[0];
-            const startDate = firstDedication ? firstDedication.from : period.key + '-01';
-            
-            let dailyHours = 8;
-            if (leader.daily_dedications) {
-              for (let dd of leader.daily_dedications) {
-                if (dd.from <= startDate && dd.to >= startDate) {
-                  dailyHours = dd.hours;
-                  break;
-                }
-              }
-            }
-            
-            const expectedHours = (this.view === 'month' 
-              ? this.numberOfWorkingDays(startDate)
-              : 5) * dailyHours;
-            
-            if (expectedHours > 0) {
-              const pct = (periodData.total / expectedHours) * 100;
-              percentage = pct.toFixed(0);
-              
-              // Determine CSS class
-              if (pct < 85) {
-                cssClass = 'dedication-low';
-              } else if (pct > 105) {
-                cssClass = 'dedication-high';
-              } else if (pct >= 95 && pct <= 105) {
-                cssClass = 'dedication-optimal';
-              } else {
-                cssClass = 'dedication-good';
-              }
-            }
-            
-            // Build tooltip content (pre-computed, no performance hit)
-            const tooltipLines = [];
-            
-            // Show all projects
-            periodData.projects.forEach(p => {
-              if (p.estimated_hours) {
-                tooltipLines.push(`${p.project_name}: ${p.estimated_hours.toFixed(2)}h`);
-              }
-            });
-            
-            tooltipLines.push('');
-            tooltipLines.push(`Hores període: ${expectedHours.toFixed(2)}h`);
-            
-            const diff = expectedHours - periodData.total;
-            if (diff > 0) {
-              tooltipLines.push(`Falten: ${diff.toFixed(2)}h`);
-            } else if (diff < 0) {
-              tooltipLines.push(`Sobren: ${Math.abs(diff).toFixed(2)}h`);
-            }
-            
-            tooltip = tooltipLines.join('\n');
-          }
-          
-          cells[leader.id][period.key] = {
-            hours,
-            percentage,
-            cssClass,
-            tooltip
-          };
-        });
-      });
-      
-      return cells;
-    }
   },
   mounted() {
-    // No longer needed since we're using template-based tooltip
+    // Tooltip is managed via direct DOM manipulation for performance.
   },
   methods: {
+    // O(1) lookup into the precomputed cells map shipped by the backend
+    // (projects/dedications). Falls back to an empty cell if missing.
+    cell(leaderId, periodKey) {
+      const row = this.cells ? this.cells[leaderId] : null;
+      const c = row ? row[periodKey] : null;
+      return c || EMPTY_CELL;
+    },
+
     showTooltip(event, text) {
-      if (!text || text === 'Sense dedicació') {
+      if (!text || text === "Sense dedicació") {
         return;
       }
-      
+
       const el = this.$refs.tooltip;
       const content = this.$refs.tooltipContent;
       if (!el || !content) {
         return;
       }
-      
+
       // Update content directly (no Vue re-render of the table).
       content.textContent = text;
-      el.style.display = 'block';
+      el.style.display = "block";
       this._tooltipVisible = true;
-      
+
       this.positionTooltip(event.clientX, event.clientY);
     },
-    
+
     updateTooltipPosition(event) {
       if (!this._tooltipVisible) {
         return;
       }
-      
+
       // Throttle to one update per animation frame to avoid layout thrashing.
       this._cursorX = event.clientX;
       this._cursorY = event.clientY;
-      
+
       if (this._rafId) {
         return;
       }
@@ -384,20 +132,20 @@ export default {
         this.positionTooltip(this._cursorX, this._cursorY);
       });
     },
-    
+
     positionTooltip(x, y) {
       const el = this.$refs.tooltip;
       if (!el) {
         return;
       }
-      
-      const margin = 12;        // min distance from viewport edges
-      const cursorGap = 16;     // distance between cursor and tooltip
+
+      const margin = 12; // min distance from viewport edges
+      const cursorGap = 16; // distance between cursor and tooltip
       const tw = el.offsetWidth;
       const th = el.offsetHeight;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      
+
       // Horizontal: prefer the right of the cursor, flip to the left if it
       // would overflow, then clamp so it never leaves the viewport.
       let left = x + cursorGap;
@@ -405,7 +153,7 @@ export default {
         left = x - cursorGap - tw;
       }
       left = Math.max(margin, Math.min(left, vw - tw - margin));
-      
+
       // Vertical: prefer below the cursor, flip above if it would overflow,
       // then clamp.
       let top = y + cursorGap;
@@ -413,12 +161,12 @@ export default {
         top = y - cursorGap - th;
       }
       top = Math.max(margin, Math.min(top, vh - th - margin));
-      
+
       // Direct DOM write — bypasses Vue reactivity, no component re-render.
       el.style.left = `${left}px`;
       el.style.top = `${top}px`;
     },
-    
+
     hideTooltip() {
       this._tooltipVisible = false;
       if (this._rafId) {
@@ -427,26 +175,10 @@ export default {
       }
       const el = this.$refs.tooltip;
       if (el) {
-        el.style.display = 'none';
+        el.style.display = "none";
       }
     },
-    
-    numberOfWorkingDays(day) {
-      let n = 0;
-      const initOfMonth = moment(day, "YYYY-MM-DD");
-      const endOfMonth = initOfMonth.clone().endOf("month");
-      const days = Math.round(
-        moment.duration(endOfMonth.diff(initOfMonth)).asDays()
-      );
-      for (var i = 0; i < days; i++) {
-        const currentDay = initOfMonth.clone().add(i, "day");
-        if (![0, 6].includes(currentDay.day())) {
-          n++;
-        }
-      }
-      return n;
-    }
-  }
+  },
 };
 </script>
 
