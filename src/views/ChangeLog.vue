@@ -47,6 +47,15 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.07.06",
+          items: [
+            {
+              type: "Novetats",
+              text: "Nova funcionalitat per a la creació de factures de proveïdors i despeses a partir de lectura automàtica de PDFs."
+            }
+          ]
+        },
+        {
           date: "2026.06.05",
           items: [
             {
