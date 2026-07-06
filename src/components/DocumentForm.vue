@@ -22,12 +22,158 @@
       @submit="handleDietSubmit"
       @cancel="handleDietModalCancel"
     ></modal-box-diet>
+    <!-- Modal: shows the invoice extracted by Z.ai -->
+    <b-modal
+      :active.sync="isInvoiceModalActive"
+      has-modal-card
+      :on-cancel="closeInvoiceModal"
+    >
+      <div class="modal-card invoice-parser-modal">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Factura extreta</p>
+        </header>
+        <section class="modal-card-body">
+          <!-- Contact match status -->
+          <div
+            v-if="invoiceMatchedContact"
+            class="notification is-success is-light invoice-match"
+          >
+            <span class="icon"><b-icon icon="check-circle" /></span>
+            <span>
+              Proveïdor trobat:
+              <strong>{{ invoiceMatchedContact.name }}</strong>
+            </span>
+          </div>
+          <div v-else class="notification is-warning is-light invoice-match">
+            <span class="icon"><b-icon icon="alert" /></span>
+            <span v-if="parsedInvoice && parsedInvoice.vendor_tax_id">
+              No s'ha trobat cap contacte amb el NIF/CIF
+              <strong>{{ parsedInvoice.vendor_tax_id }}</strong
+              >. Revisa les dades abans d'aplicar-les.
+            </span>
+            <span v-else>
+              No s'ha pogut extreure el NIF/CIF del proveïdor, per tant no es
+              pot verificar el contacte. Revisa les dades abans d'aplicar-les.
+            </span>
+          </div>
+
+          <!-- Friendly summary -->
+          <div v-if="parsedInvoice" class="invoice-summary">
+            <div class="columns is-multiline is-mobile">
+              <div class="column is-half">
+                <span class="invoice-label">Proveïdor</span>
+                <div>{{ parsedInvoice.vendor_name || "—" }}</div>
+              </div>
+              <div class="column is-half">
+                <span class="invoice-label">NIF/CIF</span>
+                <div>{{ parsedInvoice.vendor_tax_id || "—" }}</div>
+              </div>
+              <div class="column is-half">
+                <span class="invoice-label">Número</span>
+                <div>{{ parsedInvoice.invoice_number || "—" }}</div>
+              </div>
+              <div class="column is-half">
+                <span class="invoice-label">Data</span>
+                <div>{{ formatInvoiceDate(parsedInvoice.invoice_date) }}</div>
+              </div>
+              <div class="column is-half">
+                <span class="invoice-label">Total</span>
+                <div>
+                  {{ parsedInvoice.total_amount }}
+                  <small>{{ parsedInvoice.currency || "" }}</small>
+                </div>
+              </div>
+              <div class="column is-half">
+                <span class="invoice-label">Línies</span>
+                <div>{{ (parsedInvoice.line_items || []).length }}</div>
+              </div>
+            </div>
+
+            <b-table
+              v-if="
+                parsedInvoice.line_items && parsedInvoice.line_items.length
+              "
+              :data="parsedInvoice.line_items"
+              :striped="true"
+              :hoverable="true"
+              :mobile-cards="false"
+            >
+              <b-table-column label="Concepte" v-slot="props">
+                {{ props.row.description }}
+              </b-table-column>
+              <b-table-column
+                label="Und."
+                numeric
+                v-slot="props"
+              >
+                {{ props.row.quantity }}
+              </b-table-column>
+              <b-table-column label="Preu" numeric v-slot="props">
+                {{ props.row.unit_price }}
+              </b-table-column>
+              <b-table-column label="IVA" numeric v-slot="props">
+                {{ props.row.vat_rate != null ? props.row.vat_rate + "%" : "—" }}
+              </b-table-column>
+              <b-table-column label="Total" numeric v-slot="props">
+                {{ props.row.total }}
+              </b-table-column>
+            </b-table>
+            <p class="invoice-note" v-if="parsedInvoice.prices_include_tax">
+              <small
+                >Els preus mostren l'IVA inclòs; es convertiran a base imposable
+                en aplicar-los.</small
+              >
+            </p>
+          </div>
+        </section>
+        <footer class="modal-card-foot">
+          <button class="button" type="button" @click="closeInvoiceModal">
+            Cancel·la
+          </button>
+          <button
+            class="button is-primary"
+            type="button"
+            @click="applyParsedInvoice"
+          >
+            Aplica les dades
+          </button>
+        </footer>
+      </div>
+    </b-modal>
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <div class="columns">
         <div class="column is-full">
           <!-- <pre>{{form}}</pre> -->
           <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
+            <!-- PDF invoice parser (Z.ai): for new received invoices/expenses -->
+            <b-field
+              v-if="
+                (type === 'received-invoices' || type === 'received-expenses') &&
+                  !form.id &&
+                  me &&
+                  me.pdf_invoice_parser !== false
+              "
+              horizontal
+              label=""
+            >
+              <b-button
+                class="view-button is-info"
+                icon-left="file-upload"
+                :loading="isParsingInvoice"
+                @click="onInvoiceUploadClick"
+              >
+                Omple dades a partir de PDF
+              </b-button>
+              <input
+                ref="invoicePdfInput"
+                type="file"
+                accept="application/pdf"
+                class="is-hidden"
+                @change="onInvoicePdfSelected"
+              />
+            </b-field>
+
             <b-field
               v-if="type === 'emitted-invoices'"
               label="Estat"
@@ -1243,6 +1389,11 @@ export default {
       contact: null,
       isModalActive: false,
       isDietModalActive: false,
+      // PDF invoice parser (Z.ai)
+      isParsingInvoice: false,
+      isInvoiceModalActive: false,
+      parsedInvoice: null,
+      invoiceMatchedContact: null,
       toReal: false,
       exitAfterSave: false,
       minEmittedDate: dayjs()
@@ -1446,6 +1597,13 @@ export default {
       const start = (this.currentPage - 1) * this.linesPerPage;
       const end = start + this.linesPerPage;
       return this.form.lines.slice(start, end);
+    },
+    prettyInvoiceJson() {
+      try {
+        return JSON.stringify(this.parsedInvoice, null, 2);
+      } catch (e) {
+        return String(this.parsedInvoice);
+      }
     },
     documentTypeName() {
       const typeMap = {
@@ -3117,6 +3275,176 @@ export default {
           return false;
         }
       });
+    },
+    // ===== PDF invoice parser (Z.ai) =====
+    onInvoiceUploadClick() {
+      // Reset the input so selecting the same file twice still fires `change`.
+      if (this.$refs.invoicePdfInput) {
+        this.$refs.invoicePdfInput.value = "";
+        this.$refs.invoicePdfInput.click();
+      }
+    },
+    async onInvoicePdfSelected(event) {
+      const file =
+        event && event.target && event.target.files && event.target.files[0];
+      if (!file) return;
+
+      this.isParsingInvoice = true;
+      this.parsedInvoice = null;
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+
+        const response = await service({
+          requiresAuth: true,
+          multipart: true
+        }).post(`${this.type}/upload`, formData);
+
+        const data = response && response.data;
+        const invoice =
+          data && data.data
+            ? data.data
+            : data && data.invoice
+            ? data.invoice
+            : data;
+
+        this.parsedInvoice = invoice;
+        // Check the extracted tax id against existing contacts (by nif).
+        this.invoiceMatchedContact = this.findContactByTaxId(
+          invoice && invoice.vendor_tax_id
+        );
+        this.isInvoiceModalActive = true;
+      } catch (error) {
+        console.error("Invoice parse error", error);
+        const message =
+          (error && error.data && error.data.message) ||
+          (error && error.message) ||
+          "No s'ha pogut processar la factura PDF.";
+
+        this.$buefy.snackbar.open({
+          message: `Error: ${message}`,
+          type: "is-danger",
+          queue: false
+        });
+      } finally {
+        this.isParsingInvoice = false;
+      }
+    },
+    closeInvoiceModal() {
+      this.isInvoiceModalActive = false;
+    },
+    /**
+     * Normalize a Spanish tax id by stripping anything that is not a letter or
+     * digit (spaces, dashes, dots) and lowercasing it, so that "B-73347494",
+     * "B73347494" and "b73347494" all match.
+     */
+    normalizeTaxId(value) {
+      if (!value) return "";
+      return String(value)
+        .replace(/[^a-z0-9]/gi, "")
+        .toLowerCase();
+    },
+    /**
+     * Find an existing contact whose `nif` matches the given vendor tax id.
+     * Returns the contact object or null.
+     */
+    findContactByTaxId(taxId) {
+      const normalized = this.normalizeTaxId(taxId);
+      if (!normalized) return null;
+      return (
+        this.clients.find(c => this.normalizeTaxId(c.nif) === normalized) ||
+        null
+      );
+    },
+    formatInvoiceDate(value) {
+      if (!value) return "—";
+      const parsed = moment(value, [
+        "YYYY-MM-DD",
+        "DD/MM/YYYY",
+        "DD-MM-YYYY"
+      ]);
+      return parsed.isValid()
+        ? parsed.format("DD/MM/YYYY")
+        : String(value);
+    },
+    applyParsedInvoice() {
+      const data = this.parsedInvoice;
+      if (!data) {
+        this.isInvoiceModalActive = false;
+        return;
+      }
+
+      // Invoice number from provider
+      if (data.invoice_number) {
+        this.form.contact_invoice_number = String(data.invoice_number);
+      }
+
+      // Dates (parse to Date objects, format expected: YYYY-MM-DD)
+      if (data.invoice_date) {
+        const parsed = moment(data.invoice_date, ["YYYY-MM-DD", "DD/MM/YYYY", "DD-MM-YYYY"]);
+        if (parsed.isValid()) {
+          this.form.emitted = parsed.toDate();
+        }
+      }
+      if (data.due_date) {
+        const parsed = moment(data.due_date, ["YYYY-MM-DD", "DD/MM/YYYY", "DD-MM-YYYY"]);
+        if (parsed.isValid()) {
+          this.form.paybefore = parsed.toDate();
+        }
+      }
+
+      // Vendor -> prefer the contact matched by tax id, otherwise fall back
+      // to a fuzzy match on the vendor name.
+      const contact =
+        this.invoiceMatchedContact ||
+        (data.vendor_name
+          ? this.clients.find(
+              c =>
+                c.name &&
+                c.name
+                  .toLowerCase()
+                  .includes(String(data.vendor_name).toLowerCase())
+            )
+          : null);
+      if (contact) {
+        this.form.contact = contact.id;
+        this.clientSearch = contact.name;
+        this.contact = contact;
+      }
+
+      // Line items
+      if (Array.isArray(data.line_items) && data.line_items.length > 0) {
+        const pricesIncludeTax = data.prices_include_tax === true;
+        this.form.lines = data.line_items.map(item => {
+          const vat = parseFloat(item.vat_rate) || 0;
+          let unitPrice = parseFloat(item.unit_price) || 0;
+          // If the invoice prints prices with tax included (gross), convert
+          // to the net/tax-exclusive unit price the form expects in `base`.
+          if (pricesIncludeTax && vat > 0) {
+            unitPrice = unitPrice / (1 + vat / 100);
+          }
+          return {
+            concept: item.description || "",
+            quantity: parseFloat(item.quantity) || 1,
+            base: unitPrice,
+            discount: 0,
+            vat: vat,
+            irpf: 0,
+            comments: "",
+            show: false,
+            date: new Date(),
+            product: null,
+            productSearch: ""
+          };
+        });
+      }
+
+      this.isInvoiceModalActive = false;
+      this.$buefy.snackbar.open({
+        message: "Dades aplicades al formulari",
+        queue: false
+      });
     }
   }
 };
@@ -3140,5 +3468,46 @@ export default {
 }
 .ml-auto {
   margin-left: auto;
+}
+.invoice-parser-modal {
+  width: 60vw;
+  min-width: 320px;
+}
+.invoice-parser-modal .modal-card-body {
+  max-height: calc(100vh - 200px);
+}
+.invoice-match {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.invoice-match .icon {
+  flex-shrink: 0;
+}
+.invoice-summary {
+  margin-top: 0.5rem;
+}
+.invoice-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin-bottom: 0.15rem;
+}
+.invoice-note {
+  margin-top: 0.5rem;
+  color: #777;
+}
+.invoice-json {
+  background: #f5f5f5;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  padding: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 50vh;
+  overflow: auto;
 }
 </style>

@@ -191,6 +191,17 @@
         </form>
       </card-component>
 
+      <!-- Options / feature flags -->
+      <card-component title="OPCIONS" class="mt-4">
+        <form @submit.prevent="submit">
+          <b-field label="Omple dades a partir de PDF" horizontal>
+            <b-switch v-model="form.pdf_invoice_parser">
+              Activa el botó "Omple dades a partir de PDF" a les factures i despeses rebudes. Atenció pq aquest servei envia dades a un servei extern per processar el PDF i extreure'n la informació. Només s'ha d'activar si es confia en aquest servei.
+            </b-switch>
+          </b-field>
+        </form>
+      </card-component>
+
       <!-- Save Button -->
       <card-component class="mt-4">
         <b-field horizontal>
@@ -250,7 +261,8 @@ export default {
         bank_account_payroll: null,
         bank_account_ss: null,
         bank_account_irpf: null,
-        bank_account_vat: null
+        bank_account_vat: null,
+        pdf_invoice_parser: true
       },
       bankAccounts: [],
       loadingBankAccounts: false
