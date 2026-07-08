@@ -264,7 +264,15 @@ export default {
                 // console.log('daysCurrent', d, festive.festive_type.name)
               }
             }
-            if (theoricHours) {
+            // A laborable weekday counts toward the contractual average even
+            // when the per-day distribution schedules 0 hours for it (e.g. a
+            // "0,9,10,9,0,0,0" distribution). Guarding on `theoricHours` skipped
+            // such days, inflating the average and showing >100% for part-time
+            // irregular jornadas. Count the weekday; its 0 hours add nothing to
+            // totalWorkedHours but correctly dilute the daily average.
+            const isLaborableWeekday =
+              !festive && dailyDedication && day !== 0 && day !== 6;
+            if (isLaborableWeekday) {
               totalWorkedDays++;
               totalWorkedHours += theoricHours;
             }
