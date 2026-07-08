@@ -610,38 +610,47 @@ export default {
     },
     changeHourIn(activity, i) {
       const zeroPad = (num, places) => String(num).padStart(places, "0");
-      if (activity.hour_in_h !== "") {
+      // A field counts as "filled" only when it holds a real value. null/undefined
+      // must NOT be zero-padded: String(null) === "null" would yield
+      // "09:null:00.000", which Strapi rejects with
+      // "Invalid time format, expected HH:mm:ss.SSS" (PUT /workday-logs 500).
+      const hasH = activity.hour_in_h !== "" && activity.hour_in_h !== null && activity.hour_in_h !== undefined;
+      const hasM = activity.hour_in_m !== "" && activity.hour_in_m !== null && activity.hour_in_m !== undefined;
+      if (hasH) {
         activity.hour_in_h = zeroPad(activity.hour_in_h, 2);
       }
-      if (activity.hour_in_m !== "") {
+      if (hasM) {
         activity.hour_in_m = zeroPad(activity.hour_in_m, 2);
       }
 
-      if (activity.hour_in_h !== "" && activity.hour_in_m !== "") {
-        activity.hour_in = moment().format(
-          `${activity.hour_in_h}:${activity.hour_in_m}:00.000`
-        );        
+      if (hasH && hasM) {
+        // Build the literal time string directly. Do NOT use moment().format()
+        // here: the typed hour/minute are interpolated into the *format string*,
+        // which is both wrong (it formats the current moment) and fragile.
+        activity.hour_in = `${activity.hour_in_h}:${activity.hour_in_m}:00.000`;
         this.saveActivity(activity, i, true);
-      } else if (activity.hour_in_h === "" && activity.hour_in_m === "") {
+      } else if (!hasH && !hasM) {
         activity.hour_in = null;
         this.saveActivity(activity, i, true);
       }
     },
     changeHourOut(activity, i) {
       const zeroPad = (num, places) => String(num).padStart(places, "0");
-      if (activity.hour_out_h !== "") {
+      // See changeHourIn: guard against null/undefined so we never build a
+      // time string like "09:null:00.000".
+      const hasH = activity.hour_out_h !== "" && activity.hour_out_h !== null && activity.hour_out_h !== undefined;
+      const hasM = activity.hour_out_m !== "" && activity.hour_out_m !== null && activity.hour_out_m !== undefined;
+      if (hasH) {
         activity.hour_out_h = zeroPad(activity.hour_out_h, 2);
       }
-      if (activity.hour_out_m !== "") {
+      if (hasM) {
         activity.hour_out_m = zeroPad(activity.hour_out_m, 2);
       }
 
-      if (activity.hour_out_h !== "" && activity.hour_out_m !== "") {
-        activity.hour_out = moment().format(
-          `${activity.hour_out_h}:${activity.hour_out_m}:00.000`
-        );
+      if (hasH && hasM) {
+        activity.hour_out = `${activity.hour_out_h}:${activity.hour_out_m}:00.000`;
         this.saveActivity(activity, i, true);
-      } else if (activity.hour_out_h === "" && activity.hour_out_m === "") {
+      } else if (!hasH && !hasM) {
         activity.hour_out = null;
         this.saveActivity(activity, i, true);
       }

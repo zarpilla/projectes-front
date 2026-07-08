@@ -51,7 +51,7 @@ export default {
           items: [
             {
               type: "Novetats",
-              text: "Nova funcionalitat per a la creació de factures de proveïdors i despeses a partir de lectura automàtica de PDFs."
+              text: "Nova funcionalitat per a la creació de factures de proveïdores i despeses a partir de lectura automàtica de PDFs."
             }
           ]
         },

@@ -191,7 +191,10 @@ export default {
                 if (!festive && dailyDedication && day !== 0 && day !== 6) {
                   laborableDays++
                 }
-                const workedHours = sumBy(activities, "hours");
+                // sumBy returns null when an activity has hours: null, and NaN
+                // when hours is non-numeric. Coerce to 0 so toFixed/balance math
+                // don't break (a null poisons balance/totalWorkedHours downstream).
+                const workedHours = sumBy(activities, "hours") || 0;
                 const dateDescription = festive
                   ? festive.festive_type
                     ? festive.festive_type.name
