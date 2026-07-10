@@ -209,6 +209,7 @@ export default {
         project_scope: "project_scope",
         project_state: "project_state",
         project_type: "project_type",
+        project_likelihood: "project_likelihood",
         project_leader: "project_leader",
         mother: "mother",
         type: "type",

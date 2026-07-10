@@ -425,6 +425,12 @@ const menu = [
       permission: "admin"
     },
     {
+      to: "/admin/project-likelihood",
+      icon: "chart-bell-curve",
+      label: "Probabilitats de projecte",
+      permission: "admin"
+    },
+    {
       to: "/admin/task-state",
       icon: "state-machine",
       label: "Estats de tasca",

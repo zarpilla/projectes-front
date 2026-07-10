@@ -125,6 +125,8 @@ export default {
                 project_state: p.project_state ? p.project_state.name : '-',
                 project_leader: p.leader ? p.leader.username : '-',
                 project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                project_type: p.project_type ? p.project_type.name : '-',
+                project_likelihood: p.project_likelihood ? p.project_likelihood.name : '-',
                 project_client: p.client ? p.client.name : '-',
                 total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                 hours: a.hours,

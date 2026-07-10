@@ -302,6 +302,17 @@
                   </option>
                 </b-select>
               </b-field>
+              <b-field label="Probabilitat" horizontal>
+                <b-select v-model="form.project_likelihood.id" placeholder="Probabilitat">
+                  <option
+                    v-for="(s, index) in project_likelihoods"
+                    :key="index"
+                    :value="s.id"
+                  >
+                    {{ s.name }}
+                  </option>
+                </b-select>
+              </b-field>
 
               <b-field label="Funcions" horizontal>
                 <b-autocomplete
@@ -2533,6 +2544,7 @@ export default {
       isProfileExists: false,
       project_states: [],
       project_scopes: [],
+      project_likelihoods: [],
       leaders: [],
       project_types: [],
       clients: [],
@@ -3143,6 +3155,7 @@ export default {
         name: null,
         project_state: { id: 0 },
         project_scope: { id: 0 },
+        project_likelihood: { id: 0 },
         region: { id: 0 },
         leader: { id: 0 },
         phases: [],
@@ -3183,6 +3196,10 @@ export default {
               this.form.project_scope =
                 this.form.project_scope && this.form.project_scope.id
                   ? this.form.project_scope
+                  : { id: 0 };
+              this.form.project_likelihood =
+                this.form.project_likelihood && this.form.project_likelihood.id
+                  ? this.form.project_likelihood
                   : { id: 0 };
               this.form.leader =
                 this.form.leader && this.form.leader.id
@@ -3410,6 +3427,7 @@ export default {
         this.isInitialLoad = true;
         this.userHasInteracted = false;
         this.project_scopes = this.project_scopes.filter(s => !s.disabled)
+        this.project_likelihoods = this.project_likelihoods.filter(s => !s.disabled)
         this.form.date_start = new Date();
         this.form.date_end = moment()
           .endOf("year")
@@ -3433,6 +3451,16 @@ export default {
           this.project_scopes = r.data;
           if (this.form.project_scope && this.form.project_scope.disabled !== true) {
             this.project_scopes = this.project_scopes.filter(
+              s => !s.disabled
+            );
+          }
+        });
+      service({ requiresAuth: true, cached: true })
+        .get("project-likelihoods?_limit=-1")
+        .then(r => {
+          this.project_likelihoods = r.data;
+          if (this.form.project_likelihood && this.form.project_likelihood.disabled !== true) {
+            this.project_likelihoods = this.project_likelihoods.filter(
               s => !s.disabled
             );
           }

@@ -12,6 +12,12 @@ const config = {
       name: 'project_scope',
       expand: false
     }, {
+      name: 'project_type',
+      expand: false
+    }, {
+      name: 'project_likelihood',
+      expand: false
+    }, {
       name: 'project_client',
       expand: false
     }, {
@@ -53,6 +59,12 @@ const config = {
           project_scope: {
             type: 'string'
           },
+          project_type: {
+            type: 'string'
+          },
+          project_likelihood: {
+            type: 'string'
+          },
           username: {
             type: 'string'
           },
@@ -89,6 +101,12 @@ const config = {
           },
           project_scope: {
             caption: 'Àmbits (TOTS)'
+          },
+          project_type: {
+            caption: 'Tipus de projecte (TOTS)'
+          },
+          project_likelihood: {
+            caption: 'Probabilitats (TOTES)'
           },
           project_client: {
             caption: 'Clients (TOTS)'

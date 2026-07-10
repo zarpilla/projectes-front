@@ -15,6 +15,12 @@ const config = {
       name: 'project_scope',
       expand: false
     }, {
+      name: 'project_type',
+      expand: false
+    }, {
+      name: 'project_likelihood',
+      expand: false
+    }, {
       name: 'grantable',
       expand: false
     }, {
@@ -56,6 +62,12 @@ const config = {
           project_scope: {
             type: 'string'
           },
+          project_type: {
+            type: 'string'
+          },
+          project_likelihood: {
+            type: 'string'
+          },
           project_year: {
             type: 'string'
           },
@@ -95,6 +107,12 @@ const config = {
           },
           project_scope: {
             caption: 'Àmbits (TOTS)'
+          },
+          project_type: {
+            caption: 'Tipus de projecte (TOTS)'
+          },
+          project_likelihood: {
+            caption: 'Probabilitats (TOTES)'
           },
           row_type: {
             caption: 'Tipus (TOTES)'

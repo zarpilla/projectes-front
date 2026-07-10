@@ -205,6 +205,35 @@
         </b-table-column>
 
         <b-table-column
+          label="Probabilitat"
+          field="project_likelihood.name"
+          sortable
+          v-slot="props"
+        >
+          <template v-if="isEditingRow(props.row.id)">
+            <b-select
+              v-model="editingForm.project_likelihood"
+              placeholder="Probabilitat"
+            >
+              <option
+                v-for="likelihood in projectLikelihoods"
+                :key="likelihood.id"
+                :value="likelihood.id"
+              >
+                {{ likelihood.name }}
+              </option>
+            </b-select>
+          </template>
+          <template v-else>
+            {{
+              props.row.project_likelihood
+                ? props.row.project_likelihood.name
+                : ""
+            }}
+          </template>
+        </b-table-column>
+
+        <b-table-column
           label="Estat"
           field="project_state.name"
           sortable
@@ -410,6 +439,10 @@ export default {
       type: Array,
       default: () => []
     },
+    projectLikelihoods: {
+      type: Array,
+      default: () => []
+    },
     editMode: {
       type: Boolean,
       default: false
@@ -491,6 +524,10 @@ export default {
           row.project_state && row.project_state.id ? row.project_state.id : 0,
         project_scope:
           row.project_scope && row.project_scope.id ? row.project_scope.id : 0,
+        project_likelihood:
+          row.project_likelihood && row.project_likelihood.id
+            ? row.project_likelihood.id
+            : 0,
         project_type:
           row.project_type && row.project_type.id ? row.project_type.id : 0,
         date_start: this.parseDate(row.date_start),
@@ -527,6 +564,10 @@ export default {
           this.editingForm.project_scope > 0
             ? this.editingForm.project_scope
             : null,
+        project_likelihood:
+          this.editingForm.project_likelihood > 0
+            ? this.editingForm.project_likelihood
+            : null,
         project_type:
           this.editingForm.project_type > 0
             ? this.editingForm.project_type
@@ -548,6 +589,9 @@ export default {
           this.projectStates.find(s => s.id === payload.project_state) || null;
         const scope =
           this.scopes.find(s => s.id === payload.project_scope) || null;
+        const projectLikelihood =
+          this.projectLikelihoods.find(l => l.id === payload.project_likelihood) ||
+          null;
         const projectType =
           this.projectTypes.find(t => t.id === payload.project_type) || null;
 
@@ -561,6 +605,7 @@ export default {
             leader,
             project_state: projectState,
             project_scope: scope,
+            project_likelihood: projectLikelihood,
             project_type: projectType,
             date_start: payload.date_start,
             date_end: payload.date_end,

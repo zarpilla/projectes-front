@@ -117,6 +117,7 @@
           :project-states="project_states"
           :project-types="project_types"
           :scopes="scopes"
+          :project-likelihoods="project_likelihoods"
           :edit-mode="projectsEditMode"
         />
       </card-component>
@@ -160,6 +161,7 @@ export default {
       projects: [],
       activities: [],
       scopes: [],
+      project_likelihoods: [],
       balance: 0,
       realIncomes: 0,
       realExpenses: 0,
@@ -288,6 +290,11 @@ export default {
       .get("project-scopes?_limit=-1&_sort=code:ASC")
       .then(r => {
         this.scopes = r.data.filter(s => !s.disabled);
+      });
+    service({ requiresAuth: true, cached: true })
+      .get("project-likelihoods?_limit=-1")
+      .then(r => {
+        this.project_likelihoods = r.data.filter(s => !s.disabled);
       });
     this.loading = true;
     const query = `projects/basic?_limit=-1&project_state=1`;
