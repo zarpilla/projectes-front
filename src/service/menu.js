@@ -296,6 +296,12 @@ const menu = [
       permission: "projects"
     },
     {
+      to: "/stats-real-gantt",
+      icon: "chart-gantt",
+      label: "Dedicació real",
+      permission: "projects"
+    },
+    {
       to: "/stats-previsio-hores",
       icon: "table",
       label: "Prev./Real Dedicació",
