@@ -878,6 +878,18 @@ export default {
     documentEmitted: {
       type: Date,
       default: null
+    },
+    documentPaidDate: {
+      type: Date,
+      default: null
+    },
+    documentEstimatedPayment: {
+      type: Date,
+      default: null
+    },
+    documentPaybefore: {
+      type: Date,
+      default: null
     }
   },
   data() {
@@ -1423,7 +1435,9 @@ export default {
         date_estimate_document: this.documentEmitted
           ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
-        date: this.documentEmitted
+        date: autoAssign
+          ? this.calculatePaymentDate()
+          : this.documentEmitted
           ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
         dirty: true
@@ -1481,7 +1495,9 @@ export default {
         date_estimate_document: this.documentEmitted
           ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
-        date: this.documentEmitted
+        date: autoAssign
+          ? this.calculatePaymentDate()
+          : this.documentEmitted
           ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
           : null,
         dirty: true
@@ -1528,6 +1544,25 @@ export default {
         deletedExpenses: this.deletedExpenses
       });
     },
+    /**
+     * Calcula la data de Previsió pag. d'una línia segons la prioritat de les
+     * dates del document que s'hi assigna:
+     *   1. paid_date (cobrada/pagada)
+     *   2. estimated_payment (previsió de cobrament)
+     *   3. paybefore (venciment)
+     *   4. emitted (emissió, sempre present)
+     * Torna un objecte Date o null si no hi ha cap data disponible.
+     */
+    calculatePaymentDate() {
+      const candidates = [
+        this.documentPaidDate,
+        this.documentEstimatedPayment,
+        this.documentPaybefore,
+        this.documentEmitted
+      ];
+      const found = candidates.find(d => d);
+      return found ? moment(found).toDate() : null;
+    },
     setInvoice(type, phase, subphase, i, j) {
       if (this.mode === "") {
         this.invoicingObject = {
@@ -1559,9 +1594,16 @@ export default {
         ) {
           // if (!subphase.invoice || !subphase.invoice.id) {
           subphase.paid = false; // necessary
+          const justAssigned = !subphase.assign;
           subphase.assign = !subphase.assign;
           subphase.paid = true; // necessary
           // }
+
+          // When assigning the document, fill Previsió pag. (date) with the
+          // best available document date, only if the line has no date yet.
+          if (justAssigned && !subphase.date) {
+            subphase.date = this.calculatePaymentDate();
+          }
 
           // Update warning fields after assignment toggle
           if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
@@ -1589,8 +1631,15 @@ export default {
           (!subphase.expense || !subphase.expense.id)
         ) {
           subphase.paid = false; // necessary
+          const justAssigned = !subphase.assign;
           subphase.assign = !subphase.assign;
           subphase.paid = true; // necessary
+
+          // When assigning the document, fill Previsió pag. (date) with the
+          // best available document date, only if the line has no date yet.
+          if (justAssigned && !subphase.date) {
+            subphase.date = this.calculatePaymentDate();
+          }
 
           // Update warning fields after assignment toggle
           if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {

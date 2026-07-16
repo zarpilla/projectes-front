@@ -1188,6 +1188,9 @@
                   :document-total="totalBase"
                   :document-type-name="documentTypeName"
                   :document-emitted="form.emitted"
+                  :document-paid-date="form.paid_date"
+                  :document-estimated-payment="form.estimated_payment"
+                  :document-paybefore="form.paybefore"
                 />
                 <div class="helper">
                   <b-icon icon="help-circle" />
