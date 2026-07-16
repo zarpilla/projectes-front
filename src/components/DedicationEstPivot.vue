@@ -165,17 +165,13 @@ export default {
     //   this.getActivities()
     // },
     // project: function (newVal, oldVal) {
-    //   this.getActivities()
+    //   this.getAccessivities()
     // },
-    projectState: function (newVal, oldVal) {
-      // console.log('filter state', newVal)
-      this.getActivities()
-    },
-    year: function (newVal, oldVal) {
-      // console.log('filter year', newVal)
-      this.getActivities()
-    },
-    person: function (newVal, oldVal) {
+    // All three filter props are funneled through `filterSignature`, so a
+    // simultaneous change to several of them (e.g. the parent committing them
+    // together on "Aplicar") triggers a single getActivities() call.
+    filterSignature (newVal, oldVal) {
+      if (newVal === oldVal) return
       this.getActivities()
     }
   },
@@ -185,6 +181,12 @@ export default {
   },
   computed: {
     ...mapState(["userName", "user"]),
+    // Single signature for all three filter props so that a synchronous
+    // change to several of them (e.g. when the parent commits them together
+    // on "Aplicar") only triggers one getActivities() instead of one per prop.
+    filterSignature () {
+      return `${this.projectState}|${this.year}|${this.person}`
+    },
     pivotDataGroupped() {
       return _(this.pivotData.map(p => { return { ...p, pyu: `${p.project_name}.${p.username}.${p.year}` } }))
         .groupBy("pyu")

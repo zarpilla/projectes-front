@@ -11,6 +11,7 @@
       :view="view"
       :periods="periods"
       :cells="cells"
+      :grouping="grouping"
       v-if="!isLoading"
     ></dedication-gantt-chart>
     <download-excel :data="pivotData">
@@ -46,6 +47,10 @@ export default {
     hoursType: {
       type: String,
       default: "previstes",
+    },
+    grouping: {
+      type: String,
+      default: "project",
     },
   },
   data() {

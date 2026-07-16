@@ -9,7 +9,7 @@
     </hero-bar> -->
     <section class="section is-main-section">
       <card-component title="Filtres">
-        <form @submit.prevent="submit2">
+        <form @submit.prevent="applyFilters">
           <b-field horizontal>            
             <b-field label="Estat projecte">
               <b-select
@@ -61,7 +61,7 @@
       </card-component>
 
       <card-component title="Projectes">
-        <dedication-est-pivot :project-state="filters.project_state" :year="filters.year" :person="filters.user" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
+        <dedication-est-pivot :project-state="appliedFilters.project_state" :year="appliedFilters.year" :person="appliedFilters.user" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
       </card-component>      
     </section>
   </div>
@@ -92,6 +92,14 @@ export default {
       isLoading2: true,
       isLoading3: true,
       filters: {
+        project_state: null,
+        year: null,
+        user: null
+      },
+      // Committed filters actually passed to the pivot. Dropdowns edit
+      // `filters` above without firing requests; only the "Aplicar" button
+      // copies them here, which is what triggers the child's watchers.
+      appliedFilters: {
         project_state: null,
         year: null,
         user: null
@@ -128,20 +136,26 @@ export default {
         this.project_states = [...r.data];
         this.project_states.unshift({ id: 0, name: 'Tots' })
         this.filters.project_state = defaultProjectState
+        this.appliedFilters.project_state = defaultProjectState
         this.isLoading1 = false
       })
       service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
         this.years = r.data.map(y => { return { ...y, display: y.year } })
         this.years.unshift({ id: 0, year: 0, display: 'Tots' })
         this.filters.year = 0
+        this.appliedFilters.year = 0
         this.isLoading2 = false
       })
       service({ requiresAuth: true, cached: true }).get('users').then((r) => {
         this.users = r.data.filter((u) => !u.hidden);
         this.users.unshift({ id: 0, username: 'Tots' })
         this.filters.user = 0
+        this.appliedFilters.user = 0
         this.isLoading3 = false
       })
+    },
+    applyFilters () {
+      this.appliedFilters = { ...this.filters }
     },
   }
 }

@@ -21,6 +21,32 @@
       </div>
     </b-field>
 
+    <b-field horizontal label="Tipus">
+      <div class="is-flex mt-2">
+        <button class="button mr-3" v-for="type in projectTypes" :key="type.id" @click="toggleType(type)"
+        :class="{ 'is-primary': selectedProjectTypes.includes(type.id), 'is-outlined': !selectedProjectTypes.includes(type.id) }">
+        {{ type.name }}
+        </button>
+        <button class="button mr-3" @click="toggleType(null)"
+        :class="{ 'is-primary': selectedProjectTypes.includes(null), 'is-outlined': !selectedProjectTypes.includes(null) }">
+        Sense tipus
+        </button>
+      </div>
+    </b-field>
+
+    <b-field horizontal label="Probabilitat">
+      <div class="is-flex mt-2">
+        <button class="button mr-3" v-for="likelihood in projectLikelihoods" :key="likelihood.id" @click="toggleLikelihood(likelihood)"
+        :class="{ 'is-primary': selectedProjectLikelihoods.includes(likelihood.id), 'is-outlined': !selectedProjectLikelihoods.includes(likelihood.id) }">
+        {{ likelihood.name }}
+        </button>
+        <button class="button mr-3" @click="toggleLikelihood(null)"
+        :class="{ 'is-primary': selectedProjectLikelihoods.includes(null), 'is-outlined': !selectedProjectLikelihoods.includes(null) }">
+        Sense probabilitat
+        </button>
+      </div>
+    </b-field>
+
     <b-field horizontal label="Periodificació">
       <b-select v-model="periodificacio">
         <option value="no">No</option>
@@ -312,6 +338,10 @@ export default {
       view: "startOfYear",
       projectStates: [],
       selectedProjectStates: [],
+      projectTypes: [],
+      selectedProjectTypes: [],
+      projectLikelihoods: [],
+      selectedProjectLikelihoods: [],
       periodificacio: "no",
     };
   },
@@ -572,6 +602,65 @@ export default {
         this.selectedProjectStates = this.projectStates.map(s => s.id);
       }
 
+      this.projectTypes = await service({ requiresAuth: true, cached: true })
+        .get("project-types")
+        .then(r => {
+          return r.data;
+        });
+
+      this.projectLikelihoods = await service({ requiresAuth: true, cached: true })
+        .get("project-likelihoods")
+        .then(r => {
+          return r.data;
+        });
+
+      // Default: every value + the "Sense" (null) bucket selected, so the
+      // page starts showing everything. project_state is mandatory, so it
+      // has no "Sense" bucket.
+      // `parseSelection` normalises a possibly-stale/polluted localStorage
+      // entry into a clean array of valid ids (objects reduced to their id,
+      // unknown ids dropped, duplicates removed) plus an optional null entry
+      // for the "Sense" bucket.
+      const validTypeIds = this.projectTypes.map(t => t.id);
+      const parseTypes = stored =>
+        !Array.isArray(stored) || stored.length === 0
+          ? [...validTypeIds, null]
+          : Array.from(
+              new Set(
+                stored
+                  .map(x => (x === null ? null : x && x.id ? x.id : x))
+                  .filter(x => x === null || validTypeIds.includes(x))
+              )
+            );
+      this.selectedProjectTypes = parseTypes(
+        JSON.parse(localStorage.getItem("PrevisioTable.selectedProjectTypes") || "null")
+      );
+
+      const validLikelihoodIds = this.projectLikelihoods.map(l => l.id);
+      const parseLikelihoods = stored =>
+        !Array.isArray(stored) || stored.length === 0
+          ? [...validLikelihoodIds, null]
+          : Array.from(
+              new Set(
+                stored
+                  .map(x => (x === null ? null : x && x.id ? x.id : x))
+                  .filter(x => x === null || validLikelihoodIds.includes(x))
+              )
+            );
+      this.selectedProjectLikelihoods = parseLikelihoods(
+        JSON.parse(localStorage.getItem("PrevisioTable.selectedProjectLikelihoods") || "null")
+      );
+
+      // Persist the cleaned selection so we don't re-read the polluted entry.
+      localStorage.setItem(
+        "PrevisioTable.selectedProjectTypes",
+        JSON.stringify(this.selectedProjectTypes)
+      );
+      localStorage.setItem(
+        "PrevisioTable.selectedProjectLikelihoods",
+        JSON.stringify(this.selectedProjectLikelihoods)
+      );
+
       this.getData();
     },
     async getData() {
@@ -582,7 +671,14 @@ export default {
         
       this.isLoading = true;
 
-      const treasuryData = await getTreasuryData(this.selectedProjectStates, year, null, this.periodificacio);
+      const treasuryData = await getTreasuryData(
+        this.selectedProjectStates,
+        year,
+        null,
+        this.periodificacio,
+        this.selectedProjectTypes,
+        this.selectedProjectLikelihoods
+      );
       this.treasuryData = treasuryData.treasury.map(d => {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
       });
@@ -616,6 +712,38 @@ export default {
       localStorage.setItem(
         "PrevisioTable.selectedProjectStates",
         JSON.stringify(this.selectedProjectStates)
+      );
+    },
+    toggleType(type) {
+      // `type` is a project-type object from the value buttons, or null from
+      // the "Sense tipus" button. Normalise to the stored value: id, or null.
+      const value = type === null ? null : type.id;
+      if (this.selectedProjectTypes.includes(value)) {
+        this.selectedProjectTypes = this.selectedProjectTypes.filter(
+          t => t !== value
+        );
+      } else {
+        this.selectedProjectTypes.push(value);
+      }
+      localStorage.setItem(
+        "PrevisioTable.selectedProjectTypes",
+        JSON.stringify(this.selectedProjectTypes)
+      );
+    },
+    toggleLikelihood(likelihood) {
+      // `likelihood` is a project-likelihood object, or null from the
+      // "Sense probabilitat" button.
+      const value = likelihood === null ? null : likelihood.id;
+      if (this.selectedProjectLikelihoods.includes(value)) {
+        this.selectedProjectLikelihoods = this.selectedProjectLikelihoods.filter(
+          l => l !== value
+        );
+      } else {
+        this.selectedProjectLikelihoods.push(value);
+      }
+      localStorage.setItem(
+        "PrevisioTable.selectedProjectLikelihoods",
+        JSON.stringify(this.selectedProjectLikelihoods)
       );
     },
     

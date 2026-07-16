@@ -71,7 +71,7 @@
           <template #footer>
             <div class="has-text-weight-bold">
               <div class="columns">
-                <div class="column is-3">TOTAL</div>
+                <div class="column is-5">TOTAL</div>
                 <div class="column is-2 has-text-right">
                   <money-format
                     :value="summaryAllGrantable"
@@ -250,10 +250,11 @@
             />
           </b-table-column>
         </b-table>
-        <div class="card-body">
+        <div class="card-body add-row-form">
           <div class="columns">
-            <div class="column">
-              <b-select v-model="justification.year">
+            <div class="column is-2">
+              <label class="add-row-label">Any</label>
+              <b-select v-model="justification.year" expanded>
                 <option
                   v-for="y in 5"
                   :key="'year-' + y"
@@ -263,14 +264,16 @@
                 </option>
               </b-select>
             </div>
-            <div class="column">
-              <b-select v-model="justification.month">
+            <div class="column is-1">
+              <label class="add-row-label">Mes</label>
+              <b-select v-model="justification.month" expanded>
                 <option v-for="m in 12" :key="'month-' + m" :value="m">
                   {{ zeroPad(m, 2) }}
                 </option>
               </b-select>
             </div>
-            <div class="column">
+            <div class="column is-3">
+              <label class="add-row-label">Persona</label>
               <b-autocomplete
                 v-model="userSearch"
                 placeholder="Selecciona una persona..."
@@ -280,10 +283,12 @@
                 field="username"
                 @select="option => onUserSelect(option)"
                 :clearable="true"
+                expanded
               >
               </b-autocomplete>
             </div>
-            <div class="column">
+            <div class="column is-3">
+              <label class="add-row-label">Projecte</label>
               <b-autocomplete
                 v-model="projectSearch2"
                 placeholder="Selecciona un projecte..."
@@ -293,16 +298,15 @@
                 field="name"
                 @select="option => onProjectSelect2(option)"
                 :clearable="true"
+                expanded
               >
               </b-autocomplete>
             </div>
-            <div class="column has-text-right">
-              <b-input v-model="justification.quantity" />
+            <div class="column is-2">
+              <label class="add-row-label">Hores (€)</label>
+              <b-input v-model="justification.quantity" expanded />
             </div>
-            <div class="column has-text-right"></div>
-            <div class="column has-text-right"></div>
-            <div class="column has-text-right"></div>
-            <div class="column has-text-right">
+            <div class="column is-1 is-flex is-align-items-end">
               <b-button
                 @click="addJustification"
                 title="Afegir"
@@ -404,10 +408,11 @@
             />
           </b-table-column>
         </b-table>
-        <div class="card-body">
+        <div class="card-body add-row-form">
           <div class="columns">
-            <div class="column">
-              <b-select v-model="justificationInvoice.year">
+            <div class="column is-1">
+              <label class="add-row-label">Any</label>
+              <b-select v-model="justificationInvoice.year" expanded>
                 <option
                   v-for="y in 5"
                   :key="'year-' + y"
@@ -417,7 +422,8 @@
                 </option>
               </b-select>
             </div>
-            <div class="column">
+            <div class="column is-4">
+              <label class="add-row-label">Projecte</label>
               <b-autocomplete
                 v-model="projectSearch"
                 placeholder="Selecciona un projecte..."
@@ -427,10 +433,12 @@
                 field="name"
                 @select="option => onProjectSelect(option)"
                 :clearable="true"
+                expanded
               >
               </b-autocomplete>
             </div>
-            <div class="column">
+            <div class="column is-4">
+              <label class="add-row-label">Factura</label>
               <b-autocomplete
                 v-model="invoiceSearch"
                 placeholder="Selecciona una factura..."
@@ -440,6 +448,7 @@
                 field="code"
                 @select="option => onEmittedInvoiceSelect(option)"
                 :clearable="true"
+                expanded
               >
                 <template slot-scope="props">
                   {{ props.option.code }} ({{
@@ -452,10 +461,11 @@
                 <template #empty>No hi ha resultats</template>
               </b-autocomplete>
             </div>
-            <div class="column has-text-right">
-              <b-input v-model="justificationInvoice.quantity" />
+            <div class="column is-2">
+              <label class="add-row-label">Import</label>
+              <b-input v-model="justificationInvoice.quantity" expanded />
             </div>
-            <div class="column has-text-right">
+            <div class="column is-1 is-flex is-align-items-end">
               <b-button
                 @click="addJustificationInvoice"
                 title="Afegir"
@@ -1670,6 +1680,20 @@ export default {
 }
 .day-label {
   cursor: pointer;
+}
+.add-row-form {
+  border-top: 2px dashed #dbdbdb;
+  margin-top: 0.5rem;
+  background: #fafafa;
+}
+.add-row-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4a4a4a;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 </style>
 <style>

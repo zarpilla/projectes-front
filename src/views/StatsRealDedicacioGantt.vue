@@ -42,12 +42,23 @@
                 </option>
               </b-select>
             </b-field>
+            <b-field label="Agrupació">
+              <b-select
+                v-model="filters.grouping"
+                placeholder="Agrupació"
+                required
+              >
+                <option value="project">Projecte</option>
+                <option value="type">Tipus de projecte</option>
+                <option value="likelihood">Probabilitat</option>
+              </b-select>
+            </b-field>
           </b-field>
         </form>
       </card-component>
 
       <card-component title="Dedicació real">
-        <real-dedication-gantt :project-states="selectedProjectStates" :view="filters.view" :year="filters.year" v-if="!isLoading1 && !isLoading3" />
+        <real-dedication-gantt :project-states="selectedProjectStates" :view="filters.view" :year="filters.year" :grouping="filters.grouping" v-if="!isLoading1 && !isLoading3" />
       </card-component>
     </section>
   </div>
@@ -81,7 +92,8 @@ export default {
         project_state: null,
         year: parseInt(moment().format('YYYY')),
         month: null,
-        view: 'month'
+        view: 'month',
+        grouping: 'project'
       },
       project_states: [],
       months: null,
@@ -91,7 +103,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Dedicació real / Jornades']
+      return ['Dedicació', '% Dedicació real']
     }
   },
   async mounted () {

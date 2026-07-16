@@ -47,6 +47,15 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.07.16",
+          items: [
+            {
+              type: "Novetats",
+              text: ["Nova taula de dedicació real amb gràfic de Gantt, que mostra les hores dedicades a projectes per persona i per setmana ", { to: "/stats-real-gantt", label: "% Dedicació real" }]
+            }
+          ]
+        },
+        {
           date: "2026.07.06",
           items: [
             {

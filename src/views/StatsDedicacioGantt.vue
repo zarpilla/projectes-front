@@ -42,17 +42,28 @@
                 v-model="filters.hoursType"
                 placeholder="Tipus hores"
                 required
-              >                
+              >
                 <option value="previstes">Previstes</option>
                 <option value="original">Originals</option>
+              </b-select>
+            </b-field>
+            <b-field label="Agrupació">
+              <b-select
+                v-model="filters.grouping"
+                placeholder="Agrupació"
+                required
+              >
+                <option value="project">Projecte</option>
+                <option value="type">Tipus de projecte</option>
+                <option value="likelihood">Probabilitat</option>
               </b-select>
             </b-field>
           </b-field>
         </form>
       </card-component>
 
-      <card-component title="Dedicació">        
-        <dedication-gantt :project-states="selectedProjectStates" :view="filters.view" :hours-type="filters.hoursType" v-if="!isLoading1 && !isLoading3" />
+      <card-component title="Dedicació">
+        <dedication-gantt :project-states="selectedProjectStates" :view="filters.view" :hours-type="filters.hoursType" :grouping="filters.grouping" v-if="!isLoading1 && !isLoading3" />
       </card-component>
     </section>
   </div>
@@ -84,7 +95,8 @@ export default {
         year: null,
         month: null,
         view: 'month',
-        hoursType: 'previstes'
+        hoursType: 'previstes',
+        grouping: 'project'
       },
       project_states: [],
       //years: [],
