@@ -21,7 +21,7 @@
       </div>
     </b-field>
 
-    <b-field horizontal label="Tipus">
+    <!-- <b-field horizontal label="Tipus">
       <div class="is-flex mt-2">
         <button class="button mr-3" v-for="type in projectTypes" :key="type.id" @click="toggleType(type)"
         :class="{ 'is-primary': selectedProjectTypes.includes(type.id), 'is-outlined': !selectedProjectTypes.includes(type.id) }">
@@ -32,7 +32,7 @@
         Sense tipus
         </button>
       </div>
-    </b-field>
+    </b-field> -->
 
     <b-field horizontal label="Probabilitat">
       <div class="is-flex mt-2">
@@ -170,7 +170,7 @@
                     v-for="(data, i) in yearlyForecast"
                     :key="i"
                   >
-                    {{ formatPrice(data.total_incomes) }} €
+                    {{ formatPrice(data.forecast_incomes) }} €
                   </td>
                 </tr>
                 <tr>
@@ -180,7 +180,7 @@
                     v-for="(data, i) in yearlyForecast"
                     :key="i"
                   >
-                    {{ formatPrice(data.total_expenses) }} €
+                    {{ formatPrice(data.forecast_expenses) }} €
                   </td>
                 </tr>
                 <tr>
@@ -190,7 +190,7 @@
                     v-for="(data, i) in yearlyForecast"
                     :key="i"
                   >
-                    {{ formatPrice(data.total_amount) }} €
+                    {{ formatPrice(data.forecast_amount) }} €
                   </td>
                 </tr>
 
@@ -455,22 +455,41 @@ export default {
     monthlySummaryTotal() {
       const ans = _(this.monthlySummary)
         .groupBy("ym")
-        .map((ym, id) => ({
-          ym: id,
-          year: !isNaN(id) ? id.substring(0, 4) : "2099",
-          month: !isNaN(id) ? id.substring(4, 6) : "99",
-          valid: !isNaN(id),
-          maxYm: _.maxBy(this.monthlySummary, e => (!isNaN(e.ym) ? e.ym : ""))
-            .ym,
-          total_amount: _.sumBy(ym, "total_amount"),
-          total_incomes: _.sumBy(ym, e =>
-            e.total_amount > 0 ? e.total_amount : 0
-          ),
-          total_expenses: _.sumBy(ym, e =>
-            e.total_amount < 0 ? e.total_amount : 0
-          ),
-          subtotal: this.todaySubTotal
-        }))
+        .map((ym, id) => {
+          // Forecast totals: only sales/purchase documents (invoices and
+          // received incomes/expenses), excluding treasury operations,
+          // payrolls, VAT settlements, periodification adjustments and the
+          // phase-level "expected" (original) entries. For expense documents
+          // the VAT portion (signed_vat, already negative) is stripped so the
+          // figure is the net base.
+          const forecast_incomes = _.sumBy(ym, e =>
+            this.isIncomeDoc(e) && e.total_amount > 0 ? e.total_amount : 0
+          );
+          const forecast_expenses = _.sumBy(ym, e =>
+            this.isExpenseDoc(e) && e.total_amount < 0
+              ? e.total_amount - (e.signed_vat || 0)
+              : 0
+          );
+          return {
+            ym: id,
+            year: !isNaN(id) ? id.substring(0, 4) : "2099",
+            month: !isNaN(id) ? id.substring(4, 6) : "99",
+            valid: !isNaN(id),
+            maxYm: _.maxBy(this.monthlySummary, e => (!isNaN(e.ym) ? e.ym : ""))
+              .ym,
+            total_amount: _.sumBy(ym, "total_amount"),
+            total_incomes: _.sumBy(ym, e =>
+              e.total_amount > 0 ? e.total_amount : 0
+            ),
+            total_expenses: _.sumBy(ym, e =>
+              e.total_amount < 0 ? e.total_amount : 0
+            ),
+            forecast_incomes,
+            forecast_expenses,
+            forecast_amount: forecast_incomes + forecast_expenses,
+            subtotal: this.todaySubTotal
+          };
+        })
         .value();
 
       const ansWithSubtotal = [];
@@ -491,6 +510,9 @@ export default {
             total_amount: _.sumBy(yearValues, "total_amount"),
             total_incomes: _.sumBy(yearValues, "total_incomes"),
             total_expenses: _.sumBy(yearValues, "total_expenses"),
+            forecast_incomes: _.sumBy(yearValues, "forecast_incomes"),
+            forecast_expenses: _.sumBy(yearValues, "forecast_expenses"),
+            forecast_amount: _.sumBy(yearValues, "forecast_amount"),
             subtotal: ans[i].subtotal
           };
           ansWithSubtotal.push(yearSummary);
@@ -574,6 +596,28 @@ export default {
     // }
   },
   methods: {
+    // Forecast helpers: a row counts as an income/expense *document* (the
+    // figures the previsió should sum) only if it comes from an invoice or a
+    // received income/expense. Phase-level "expected" entries, treasury
+    // operations, payrolls, VAT settlements and periodification adjustments are
+    // excluded.
+    isIncomeDoc(t) {
+      return (
+        t.type === "Factura emesa" ||
+        t.type === "Factura cobrada" ||
+        t.type === "Ingrés emès" ||
+        t.type === "Ingrés cobrat"
+      );
+    },
+    isExpenseDoc(t) {
+      if (!t.type) return false;
+      // received invoices (paid or unpaid) and their IRPF rows
+      if (t.type === "Factura rebuda" || t.type === "Factura pagada") return true;
+      if (t.type === "IRPF Factura") return true;
+      // received expenses: "Despesa rebuda (...)" / "Despesa pagada (...)"
+      if (t.type.startsWith("Despesa rebuda") || t.type.startsWith("Despesa pagada")) return true;
+      return false;
+    },
     async onStateChanged() {
       console.log("onStateChanged");
     },
@@ -632,9 +676,11 @@ export default {
                   .filter(x => x === null || validTypeIds.includes(x))
               )
             );
-      this.selectedProjectTypes = parseTypes(
-        JSON.parse(localStorage.getItem("PrevisioTable.selectedProjectTypes") || "null")
-      );
+      // this.selectedProjectTypes = parseTypes(
+      //   JSON.parse(localStorage.getItem("PrevisioTable.selectedProjectTypes") || "null")
+      // );
+      // all temporary
+      this.selectedProjectTypes = null
 
       const validLikelihoodIds = this.projectLikelihoods.map(l => l.id);
       const parseLikelihoods = stored =>
