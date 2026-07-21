@@ -357,6 +357,7 @@
               <option value="150">150 per pàg.</option>
               <option value="300">300 per pàg.</option>
               <option value="1000">1000 per pàg.</option>
+              <option value="2500">2500 per pàgina</option>
             </b-select>
           </div>
         </div>
@@ -1542,9 +1543,13 @@ export default {
         });
       }
 
+      // Use the lightweight /orders/table endpoint: same query semantics as
+      // /orders but only populates the relations the table renders (drops
+      // emitted_invoice and other deep relations, which were ~96% of the
+      // payload and not used here).
       this.orders = (
         await service({ requiresAuth: true }).get(
-          `orders?_limit=${this.perPage}&_start=${(this.page - 1) *
+          `orders/table?_limit=${this.perPage}&_start=${(this.page - 1) *
             this.perPage}&_sort=${this.sortField}:${this.sortOrder}${
             this.userFilter
           }&${where.join("&")}`
