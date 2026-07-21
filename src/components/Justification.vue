@@ -303,8 +303,31 @@
               </b-autocomplete>
             </div>
             <div class="column is-2">
-              <label class="add-row-label">Hores (€)</label>
-              <b-input v-model="justification.quantity" expanded />
+              <label class="add-row-label">
+                {{ justification.unit === 'hours' ? 'Hores (h)' : justification.unit === 'pct' ? '% Bestreta' : 'Hores (€)' }}
+              </label>
+              <b-field>
+                <b-input
+                  v-model="justification.quantity"
+                  expanded
+                  :placeholder="justification.unit === 'hours' ? 'Hores' : justification.unit === 'pct' ? '%' : '€'"
+                />
+                <b-select v-model="justification.unit">
+                  <option value="eur">€</option>
+                  <option value="hours">h</option>
+                  <option value="pct">%</option>
+                </b-select>
+              </b-field>
+              <p
+                class="help"
+                :class="formQuantityHintClass"
+                v-if="formQuantityHint"
+              >
+                <template v-if="formQuantityInEur.ok">
+                  ≈ <strong>{{ formQuantityInEur.eur.toFixed(2) }} €</strong>
+                </template>
+                <template v-else>{{ formQuantityHint }}</template>
+              </p>
             </div>
             <div class="column is-1 is-flex is-align-items-end">
               <b-button
@@ -567,7 +590,7 @@ export default {
       users: [],
       projects: [],
       estimatedTotals: [],
-      justification: {},
+      justification: { unit: "eur" },
       justificationInvoice: {
         year: "",
         month: null,
@@ -1021,6 +1044,120 @@ export default {
       const rows = _.concat(this.monthlyActivitiesTotal, justifications);
       return rows.map(({ ym, users_permissions_user, ...row }) => row);
     },
+    // The daily-dedication covering the form's current user/year/month
+    formDedication() {
+      const j = this.justification;
+      if (
+        !j ||
+        !j.users_permissions_user ||
+        !j.users_permissions_user.id ||
+        !j.year ||
+        !j.month
+      ) {
+        return null;
+      }
+      const date = moment(`${j.year}-${this.zeroPad(j.month, 2)}-01`).format(
+        "YYYY-MM-DD"
+      );
+      return (
+        this.dedications.find(
+          d =>
+            d.users_permissions_user &&
+            d.users_permissions_user.id === j.users_permissions_user.id &&
+            d.from <= date &&
+            d.to >= date
+        ) || null
+      );
+    },
+    // The payroll for the form's current user/year/month
+    formPayroll() {
+      const j = this.justification;
+      if (
+        !j ||
+        !j.users_permissions_user ||
+        !j.users_permissions_user.id ||
+        !j.year ||
+        !j.month
+      ) {
+        return null;
+      }
+      return (
+        this.payrolls.find(
+          p =>
+            p.users_permissions_user &&
+            p.users_permissions_user.id === j.users_permissions_user.id &&
+            parseInt(p.year.year) === parseInt(j.year) &&
+            parseInt(p.month.month) === parseInt(j.month)
+        ) || null
+      );
+    },
+    // Convert the form's quantity (in the selected unit) to euros.
+    // Returns { ok, eur, reason }. `ok === false` means the value cannot be
+    // safely stored (no cost/hour or payroll for the chosen unit).
+    formQuantityInEur() {
+      const j = this.justification;
+      const empty = { ok: false, eur: null, reason: null };
+      if (!j || !j.quantity) {
+        return empty;
+      }
+      const quantityStr = j.quantity.toString().replace(",", ".");
+      const quantity = parseFloat(quantityStr);
+      if (isNaN(quantity)) {
+        return empty;
+      }
+      const unit = j.unit || "eur";
+
+      if (unit === "eur") {
+        return { ok: true, eur: quantity, reason: null };
+      }
+      if (unit === "hours") {
+        const costByHour =
+          this.formDedication && this.formDedication.costByHour
+            ? this.formDedication.costByHour
+            : 0;
+        if (costByHour > 0) {
+          return { ok: true, eur: quantity * costByHour, reason: null };
+        }
+        return {
+          ok: false,
+          eur: null,
+          reason:
+            "No hi ha cost/hora definit per a aquesta persona en aquest mes (cal una dedicació diària)"
+        };
+      }
+      if (unit === "pct") {
+        const total =
+          this.formPayroll && this.formPayroll.total ? this.formPayroll.total : 0;
+        if (total > 0) {
+          return { ok: true, eur: (quantity / 100) * total, reason: null };
+        }
+        return {
+          ok: false,
+          eur: null,
+          reason:
+            "No hi ha bestreta definida per a aquesta persona en aquest mes"
+        };
+      }
+      return empty;
+    },
+    // Hint text shown under the quantity field (only the error reason; the
+    // success "≈ X €" is rendered directly in the template).
+    formQuantityHint() {
+      const j = this.justification;
+      if (!j || !j.quantity) return null;
+      const unit = j.unit || "eur";
+      if (unit === "eur") return null;
+      if (this.formQuantityInEur.ok) return "ok";
+      return this.formQuantityInEur.reason;
+    },
+    formQuantityHintClass() {
+      if (!this.justification || !this.justification.quantity) return "";
+      const unit = this.justification.unit || "eur";
+      if (unit === "eur") return "";
+      return this.formQuantityInEur.ok
+        ? "has-text-grey-light"
+        : "has-text-danger";
+    },
     addJustificationEnabled() {
       return (
         this.justification.month &&
@@ -1028,7 +1165,8 @@ export default {
         this.justification.users_permissions_user &&
         this.justification.project &&
         this.justification.quantity &&
-        parseInt(this.justification.quantity) !== 0
+        parseInt(this.justification.quantity) !== 0 &&
+        this.formQuantityInEur.ok
       );
     },
     addJustificationInvoiceEnabled() {
@@ -1473,19 +1611,34 @@ export default {
     },
     async addJustification() {
       const dataToSubmit = { ...this.justification };
-      if (dataToSubmit.quantity) {
-        // Convert to string, replace comma with dot, then parse as float
-        const quantityStr = dataToSubmit.quantity.toString().replace(",", ".");
-        dataToSubmit.quantity = parseFloat(quantityStr);
+
+      // Convert the entered value (in the selected unit) to euros before saving.
+      // `quantity` is always stored in €; the unit selector is a UI-only helper.
+      const conversion = this.formQuantityInEur;
+      if (!conversion.ok) {
+        // Defensive: the add button is disabled when !ok, but guard anyway.
+        if (conversion.reason) {
+          this.$buefy.snackbar.open({
+            message: conversion.reason,
+            type: "is-danger",
+            queue: false
+          });
+        }
+        return;
       }
+      dataToSubmit.quantity = conversion.eur;
+
       // Set justification_type based on current view
       dataToSubmit.justification_type = this.justificationTypeEnum;
-      
+
+      // `unit` is a transient UI field, do not send it to the backend
+      delete dataToSubmit.unit;
+
       // Check if this justification would exceed 100% of the bestreta
       const userId = dataToSubmit.users_permissions_user.id;
       const year = dataToSubmit.year;
       const month = dataToSubmit.month;
-      
+
       // Find the payroll for this user/month
       const payroll = this.payrolls.find(
         p =>
@@ -1494,7 +1647,7 @@ export default {
           parseInt(p.year.year) === parseInt(year) &&
           parseInt(p.month.month) === parseInt(month)
       );
-      
+
       if (payroll && payroll.total) {
         // Calculate existing justifications total for this user/month
         const existingTotal = this.justifications
@@ -1504,15 +1657,15 @@ export default {
               j.users_permissions_user.id === userId &&
               parseInt(j.year) === parseInt(year) &&
               parseInt(j.month) === parseInt(month) &&
-              (j.justification_type === this.justificationTypeEnum || 
+              (j.justification_type === this.justificationTypeEnum ||
                (!j.justification_type && this.type === 'Reals'))
           )
           .reduce((sum, j) => sum + (j.quantity || 0), 0);
-        
+
         // Calculate total percentage including the new justification
         const newTotal = existingTotal + dataToSubmit.quantity;
         const percentage = (newTotal / payroll.total) * 100;
-        
+
         if (percentage > 100) {
           // Show warning dialog but allow user to continue
           this.$buefy.dialog.confirm({
@@ -1530,7 +1683,7 @@ export default {
           return;
         }
       }
-      
+
       // If percentage is OK or no payroll found, proceed normally
       await this.saveJustification(dataToSubmit);
     },
@@ -1543,7 +1696,7 @@ export default {
         message: "Guardat",
         queue: false
       });
-      this.justification = {};
+      this.justification = { unit: "eur" };
       this.projectSearch2 = "";
       this.userSearch = "";
       this.getActivities();

@@ -147,7 +147,7 @@ export default {
           .get('project-states')
           .then(r => r.data)
         this.projectStates.unshift({ id: 0, name: 'Tots' })
-        this.filters.project_state = 0
+        this.filters.project_state = 1
 
         this.isLoading = false        
       }
