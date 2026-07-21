@@ -60,13 +60,17 @@
       <div v-else class="dt-empty">{{ emptyText }}</div>
     </div>
 
-    <!-- Footer: capacity + excedent -->
+    <!-- Footer: capacity + festive + excedent -->
     <template v-if="hasBreakdown">
       <div class="dt-divider"></div>
       <div class="dt-footer">
         <div class="dt-row dt-capacity">
           <span class="dt-row-label">Hores període</span>
           <span class="dt-row-hours">{{ formatHours(cell.expected) }}h</span>
+        </div>
+        <div v-if="festive !== null" class="dt-row dt-festive">
+          <span class="dt-row-label">Festius</span>
+          <span class="dt-row-hours">{{ formatHours(festive) }}h</span>
         </div>
         <div v-if="diff !== null && diff > 0" class="dt-row dt-excedent dt-falten">
           <span class="dt-row-label">Falten</span>
@@ -133,6 +137,11 @@ export default {
     },
     diff() {
       return typeof this.cell.diff === "number" ? this.cell.diff : null;
+    },
+    festive() {
+      // Hours the festive weekdays consumed this period (global + user
+      // festives). Null when the backend didn't ship it (e.g. forecast page).
+      return typeof this.cell.festive === "number" ? this.cell.festive : null;
     },
     dimensionLabel() {
       return GROUP_LABELS[this.grouping] || this.grouping;
@@ -331,6 +340,15 @@ export default {
 
 .dt-capacity {
   color: rgba(255, 255, 255, 0.92);
+}
+
+/* Festive hours consumed this period (informational, slightly muted). */
+.dt-festive {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.dt-festive .dt-row-hours {
+  color: #b9e3ff;
 }
 
 .dt-excedent {
