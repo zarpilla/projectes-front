@@ -343,6 +343,14 @@ export default {
       projectLikelihoods: [],
       selectedProjectLikelihoods: [],
       periodificacio: "no",
+      // Economic forecast ("prevista") per year, returned by the forecast
+      // endpoint. Keyed by year (string):
+      //   { forecast_incomes, forecast_expenses, forecast_expenses_vat }
+      // Always reflects the project plan (project_phases + prevista
+      // periodification), independent of the cashflow "Periodificació" select.
+      forecastByYear: {},
+      // Full payroll cost per year (net + IRPF + SS + other), paid or not.
+      forecastPayrollsByYear: {},
     };
   },
   async mounted() {
@@ -456,20 +464,6 @@ export default {
       const ans = _(this.monthlySummary)
         .groupBy("ym")
         .map((ym, id) => {
-          // Forecast totals: only sales/purchase documents (invoices and
-          // received incomes/expenses), excluding treasury operations,
-          // payrolls, VAT settlements, periodification adjustments and the
-          // phase-level "expected" (original) entries. For expense documents
-          // the VAT portion (signed_vat, already negative) is stripped so the
-          // figure is the net base.
-          const forecast_incomes = _.sumBy(ym, e =>
-            this.isIncomeDoc(e) && e.total_amount > 0 ? e.total_amount : 0
-          );
-          const forecast_expenses = _.sumBy(ym, e =>
-            this.isExpenseDoc(e) && e.total_amount < 0
-              ? e.total_amount - (e.signed_vat || 0)
-              : 0
-          );
           return {
             ym: id,
             year: !isNaN(id) ? id.substring(0, 4) : "2099",
@@ -484,9 +478,13 @@ export default {
             total_expenses: _.sumBy(ym, e =>
               e.total_amount < 0 ? e.total_amount : 0
             ),
-            forecast_incomes,
-            forecast_expenses,
-            forecast_amount: forecast_incomes + forecast_expenses,
+            // The economic forecast (prevista) is derived per year from the
+            // project plan (project_phases + prevista periodification) and
+            // nómines by the backend, so it is only meaningful on year-total
+            // rows. Per-month forecast_* is left at 0.
+            forecast_incomes: 0,
+            forecast_expenses: 0,
+            forecast_amount: 0,
             subtotal: this.todaySubTotal
           };
         })
@@ -501,6 +499,19 @@ export default {
         if (ans[i].month === "12") {
           const y = ans[i].year;
           const yearValues = ansWithSubtotal.filter(a => a.year === y);
+          // Forecast (prevista) for the year, from the project plan:
+          //   incomes = planned income lines + prevista periodification
+          //   expenses = base ("factures") + VAT prorrata + nómines totals
+          //             + prevista periodification
+          // Expenses are negated so the result is displayed with the same
+          // (negative) sign convention as the rest of the table.
+          const fy = this.forecastByYear[y] || {};
+          const forecast_incomes = fy.forecast_incomes || 0;
+          const forecast_expenses = -(
+            (fy.forecast_expenses || 0) +
+            (fy.forecast_expenses_vat || 0) +
+            (this.forecastPayrollsByYear[y] || 0)
+          );
           const yearSummary = {
             ym: `${y}00`,
             year: y,
@@ -510,9 +521,9 @@ export default {
             total_amount: _.sumBy(yearValues, "total_amount"),
             total_incomes: _.sumBy(yearValues, "total_incomes"),
             total_expenses: _.sumBy(yearValues, "total_expenses"),
-            forecast_incomes: _.sumBy(yearValues, "forecast_incomes"),
-            forecast_expenses: _.sumBy(yearValues, "forecast_expenses"),
-            forecast_amount: _.sumBy(yearValues, "forecast_amount"),
+            forecast_incomes,
+            forecast_expenses,
+            forecast_amount: forecast_incomes + forecast_expenses,
             subtotal: ans[i].subtotal
           };
           ansWithSubtotal.push(yearSummary);
@@ -596,28 +607,6 @@ export default {
     // }
   },
   methods: {
-    // Forecast helpers: a row counts as an income/expense *document* (the
-    // figures the previsió should sum) only if it comes from an invoice or a
-    // received income/expense. Phase-level "expected" entries, treasury
-    // operations, payrolls, VAT settlements and periodification adjustments are
-    // excluded.
-    isIncomeDoc(t) {
-      return (
-        t.type === "Factura emesa" ||
-        t.type === "Factura cobrada" ||
-        t.type === "Ingrés emès" ||
-        t.type === "Ingrés cobrat"
-      );
-    },
-    isExpenseDoc(t) {
-      if (!t.type) return false;
-      // received invoices (paid or unpaid) and their IRPF rows
-      if (t.type === "Factura rebuda" || t.type === "Factura pagada") return true;
-      if (t.type === "IRPF Factura") return true;
-      // received expenses: "Despesa rebuda (...)" / "Despesa pagada (...)"
-      if (t.type.startsWith("Despesa rebuda") || t.type.startsWith("Despesa pagada")) return true;
-      return false;
-    },
     async onStateChanged() {
       console.log("onStateChanged");
     },
@@ -729,6 +718,8 @@ export default {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
       });
       this.projects = treasuryData.projects;
+      this.forecastByYear = treasuryData.forecast_by_year || {};
+      this.forecastPayrollsByYear = treasuryData.forecast_payrolls_by_year || {};
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
 
       // const treasuryData2 = await getTreasuryData("approved", year);
