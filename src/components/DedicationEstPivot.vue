@@ -232,7 +232,7 @@ export default {
           if (p.activities) {
             p.activities.forEach(a => {
               if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) 
-                && (this.person === 0 || (this.person > 0 && a.users_permissions_user && a.users_permissions_user.toString() === this.person.toString()))
+                && (this.person === 0 || (this.person > 0 && a.users_permissions_user && (a.users_permissions_user.id || a.users_permissions_user).toString() === this.person.toString()))
                 ) {
                 const activity = {
                   project_name: p.name,
@@ -283,8 +283,8 @@ export default {
                         const numberOfDayOfMonthOfToday = moment().date()
                         const ratio = from.format('YYYY-MM') === moment().format('YYYY-MM') ? numberOfDayOfMonthOfToday / numberOfDaysOfFromMonth : 1
                         
-                        if ((year.toString() === this.year.toString() || this.year === 0) && 
-                        (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id.toString() === this.person.toString()))) {
+                        if ((year.toString() === this.year.toString() || this.year === 0) &&
+                        (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id && h.users_permissions_user.id.toString() === this.person.toString()))) {
                           const activity = {
                             project_name: p.name,
                             project_leader: p.leader ? p.leader.username : '-',
