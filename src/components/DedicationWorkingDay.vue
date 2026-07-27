@@ -50,7 +50,7 @@
           <b-button
             type="is-primary mb-5"
             @click="createAll"
-            :disabled="!filters.year || !filters.year.id"
+            :disabled="loading || !filters.year || !filters.year.id"
             >Crear</b-button
           >
         </b-field>
@@ -850,15 +850,34 @@ export default {
     },
 
     async createAll() {
-      this.summary = (
-        await service({ requiresAuth: true }).post(
-          `payrolls/create-all?year=${this.filters.year.year}`
-        )
-      ).data.userPayrollsInfo;
-      this.$buefy.snackbar.open({
-        message: "Bestretes creades",
-        queue: false
-      });
+      // Guard against double-clicks / concurrent calls. The backend reads the
+      // user's existing payrolls once into a snapshot, so two overlapping
+      // requests both see a stale (empty) list and create duplicates. The
+      // full-page loading overlay + disabled button prevent the trigger, and
+      // the backend now also re-checks before each insert (defense in depth).
+      if (this.loading) {
+        return;
+      }
+      this.loading = true;
+      try {
+        this.summary = (
+          await service({ requiresAuth: true }).post(
+            `payrolls/create-all?year=${this.filters.year.year}`
+          )
+        ).data.userPayrollsInfo;
+        this.$buefy.snackbar.open({
+          message: "Bestretes creades",
+          queue: false
+        });
+      } catch (err) {
+        console.error("createAll error", err);
+        this.$buefy.snackbar.open({
+          message: "Error al crear les bestretes",
+          queue: false
+        });
+      } finally {
+        this.loading = false;
+      }
     }
   }
 };
