@@ -31,7 +31,7 @@ const config = {
       name: 'project_name',
       expand: false
     }], // Specify a dimension on rows.
-    measures: ['Hores previstes', 'Hores previstes avui', 'Hores reals', 'Cost real'],
+    measures: ['Hores previstes', 'Hores previstes avui', 'Hores originals', 'Hores reals', 'Cost real'],
     schema: {
       model: {
         fields: {
@@ -124,7 +124,12 @@ const config = {
           'Hores previstes avui': {
             field: 'estimated_hours_today',
             aggregate: 'sum',
-            format: "{0:n2}" 
+            format: "{0:n2}"
+          },
+          'Hores originals': {
+            field: 'original_estimated_hours',
+            aggregate: 'sum',
+            format: "{0:n2}"
           },
           
           'Cost real': {

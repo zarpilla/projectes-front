@@ -42,6 +42,12 @@
             return excelFormat(value);
           },
         },
+        original_estimated_hours: {
+          field: 'original_estimated_hours',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
         real_hours: {
           field: 'hours',
           callback: (value) => {
@@ -59,7 +65,7 @@
       <b-button
         title="Exporta dades"
         class="export-button mt-0"
-        icon-left="file-excel"        
+        icon-left="file-excel"
       > Descarrega detall
       </b-button>
     </download-excel>
@@ -76,6 +82,12 @@
             return excelFormat(value);
           },
         },
+        original_estimated_hours: {
+          field: 'original_estimated_hours',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
         real_hours: {
           field: 'hours',
           callback: (value) => {
@@ -93,7 +105,7 @@
       <b-button
         title="Exporta dades"
         class="export-button mt-0"
-        icon-left="file-excel"        
+        icon-left="file-excel"
       > Descarrega totals per persona i any
       </b-button>
     </download-excel>
@@ -196,6 +208,7 @@ export default {
           username: pyu.split('.')[1],
           year: pyu.split('.')[2],
           estimated_hours: (_.sumBy(rows, "estimated_hours") || 0),
+          original_estimated_hours: (_.sumBy(rows, "original_estimated_hours") || 0),
           hours: (_.sumBy(rows, "hours") || 0) ,
           real_cost: _.sumBy(rows, "real_cost") || 0,
           rows: rows
@@ -205,6 +218,70 @@ export default {
     },
   },
   methods: {
+    // Expands the phases of a single collection (either project_phases for
+    // "Hores previstes" or project_original_phases for "Hores originals") into
+    // one activity row per month, applying the same month/week/total quantity
+    // logic the inline code previously had. `hoursField` controls which column
+    // the per-month quantity is written to so the two measures stay separate
+    // in the pivot (estimated_hours vs original_estimated_hours).
+    expandPhases (activities, p, phases, hoursField) {
+      phases.forEach(ph => {
+        if (ph.incomes && ph.incomes.length > 0) {
+          ph.incomes.forEach(sph => {
+            if (sph.estimated_hours && sph.estimated_hours.length > 0) {
+              sph.estimated_hours.forEach(h => {
+                const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
+                let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0
+
+                if (h.quantity_type === 'month') {
+                  estimated_hours = h.quantity
+                }
+                else if (h.quantity_type === 'week') {
+                  estimated_hours = h.quantity * (52 / 12)
+                }
+
+                for (var i = 0; i < mdiff; i++) {
+                  const from = moment(h.from, 'YYYY-MM-DD').add(i, 'M')
+                  const year = from.format('YYYY')
+                  const mult = from.isBefore(moment()) ? 1 : 0
+                  const numberOfDaysOfFromMonth = from.daysInMonth()
+                  const numberOfDayOfMonthOfToday = moment().date()
+                  const ratio = from.format('YYYY-MM') === moment().format('YYYY-MM') ? numberOfDayOfMonthOfToday / numberOfDaysOfFromMonth : 1
+
+                  if ((year.toString() === this.year.toString() || this.year === 0) &&
+                  (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id && h.users_permissions_user.id.toString() === this.person.toString()))) {
+                    const activity = {
+                      project_name: p.name,
+                      project_leader: p.leader ? p.leader.username : '-',
+                      project_state: p.project_state ? p.project_state.name : '-',
+                      project_scope: p.project_scope ? p.project_scope.short_name : '-',
+                      project_scope_name: p.project_scope ? p.project_scope.name : '-',
+                      project_client: p.client ? p.client.name : '-',
+                      total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
+                      total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
+                      count: 1,
+                      month: from.format('MM'),
+                      year: from.format('YYYY'),
+                      day: 0,
+                      date: '-',
+                      hours: 0,
+                      [hoursField]: estimated_hours,
+                      // "today" proration only makes sense for the planned
+                      // (previstes) hours, so it follows the previstes field.
+                      estimated_hours_today: hoursField === 'estimated_hours' ? estimated_hours * mult * ratio : 0,
+                      username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
+                      dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
+                      real_cost: 0
+                    }
+                    activities.push(activity)
+                  }
+                }
+              })
+            }
+          })
+        }
+      })
+    },
     async getActivities () {
       this.isLoading = true
 
@@ -221,9 +298,9 @@ export default {
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
-      let query = `projects/phases?_where[project_state_in]=${projectState}&_limit=-1&activities=true`
+      let query = `projects/phases-both?_where[project_state_in]=${projectState}&_limit=-1&activities=true`
       if (projectState === 0 || projectState === '0') {
-        query = 'projects/phases?_limit=-1&activities=true'
+        query = 'projects/phases-both?_limit=-1&activities=true'
       }
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)
@@ -259,63 +336,13 @@ export default {
               }
             })
           }
+          if (p.project_phases && p.project_phases.length > 0) {
+            this.expandPhases(activities, p, p.project_phases, 'estimated_hours')
+          }
           if (p.project_original_phases && p.project_original_phases.length > 0) {
-            p.project_original_phases.forEach(ph => {
-              if (ph.incomes && ph.incomes.length > 0) {
-                ph.incomes.forEach(sph => {
-                  if (sph.estimated_hours && sph.estimated_hours.length > 0) {
-                    sph.estimated_hours.forEach(h => {
-                      const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())                      
-                      let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0
-
-                      if (h.quantity_type === 'month') {
-                        estimated_hours = h.quantity
-                      }
-                      else if (h.quantity_type === 'week') {
-                        estimated_hours = h.quantity * (52 / 12)
-                      }
-
-                      for (var i = 0; i < mdiff; i++) {
-                        const from = moment(h.from, 'YYYY-MM-DD').add(i, 'M')
-                        const year = from.format('YYYY')
-                        const mult = from.isBefore(moment()) ? 1 : 0
-                        const numberOfDaysOfFromMonth = from.daysInMonth()
-                        const numberOfDayOfMonthOfToday = moment().date()
-                        const ratio = from.format('YYYY-MM') === moment().format('YYYY-MM') ? numberOfDayOfMonthOfToday / numberOfDaysOfFromMonth : 1
-                        
-                        if ((year.toString() === this.year.toString() || this.year === 0) &&
-                        (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id && h.users_permissions_user.id.toString() === this.person.toString()))) {
-                          const activity = {
-                            project_name: p.name,
-                            project_leader: p.leader ? p.leader.username : '-',
-                            project_state: p.project_state ? p.project_state.name : '-',
-                            project_scope: p.project_scope ? p.project_scope.short_name : '-',
-                            project_scope_name: p.project_scope ? p.project_scope.name : '-',
-                            project_client: p.client ? p.client.name : '-',
-                            // pyu: `${p.name}.${moment(h.from, 'YYYY-MM-DD').add(i, 'M').format('YYYY')}.${h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-'}`,
-                            total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-                            total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
-                            count: 1,
-                            month: from.format('MM'),
-                            year: from.format('YYYY'),
-                            day: 0,
-                            date: '-',
-                            hours: 0,
-                            estimated_hours: estimated_hours,
-                            estimated_hours_today: estimated_hours * mult * ratio,                            
-                            username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
-                            dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
-                            real_cost: 0
-                          }
-                          activities.push(activity)
-                        }
-                      }
-                    })
-                  }
-                })
-              }
-            })
-          } else if (p.estimated_hours && p.estimated_hours.length > 0) {
+            this.expandPhases(activities, p, p.project_original_phases, 'original_estimated_hours')
+          }
+          if (!(p.project_phases && p.project_phases.length > 0) && !(p.project_original_phases && p.project_original_phases.length > 0) && p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
               // console.log('a.users_permissions_user', a.users_permissions_user)
               // console.log('this.month', this.month)
@@ -338,6 +365,7 @@ export default {
                   date: '-',
                   hours: 0,
                   estimated_hours: a.quantity ? a.quantity: 0,
+                  original_estimated_hours: a.quantity ? a.quantity : 0,
                   username: a.users_permissions_user && a.users_permissions_user.id ? a.users_permissions_user.username : '-',
                   dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-'
                 }
