@@ -1,3 +1,16 @@
+// Relabel rendered field names (header buttons + setting chips) to Catalan;
+// classic Kendo ignores schema.cube.dimensions.caption for local data.
+import { relabelFields } from '@/service/pivotFieldCaptions'
+
+const fieldCaptions = {
+  project_state: 'Estat',
+  project_leader: 'Líder',
+  project_mother: 'Mare',
+  project_scope: 'Àmbit',
+  project_name: 'Projecte',
+  project_year: 'Any Inici'
+}
+
 const config = {
   filterable: true,
   sortable: false,
@@ -316,6 +329,7 @@ const config = {
     //     }
     // },
   },
+  dataBound: relabelFields(fieldCaptions),
   height: '90vh'
 }
 

@@ -1,5 +1,25 @@
 import { months } from "moment"
 
+// Relabel rendered field names (header buttons + setting chips) to Catalan;
+// classic Kendo ignores schema.cube.dimensions.caption for local data.
+import { relabelFields } from '@/service/pivotFieldCaptions'
+
+const fieldCaptions = {
+  project_state: 'Estat',
+  project_leader: 'Líder',
+  project_scope: 'Àmbit',
+  project_type: 'Tipus de projecte',
+  project_likelihood: 'Probabilitat',
+  grantable: 'Subvencionable',
+  phase: 'Fase',
+  subphase: 'Subfase',
+  row_type: 'Tipus',
+  year: 'Any',
+  month: 'Mes',
+  mother: 'Mare',
+  project_name: 'Projecte'
+}
+
 const config = {
   filterable: true,
   sortable: false,
@@ -337,6 +357,7 @@ const config = {
     //     }
     // },
   },
+  dataBound: relabelFields(fieldCaptions),
   height: '74vh'
 }
 

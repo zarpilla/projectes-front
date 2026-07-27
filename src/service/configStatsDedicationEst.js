@@ -1,3 +1,21 @@
+// Classic Kendo PivotGrid (v2019) renders the raw field name in the grid header
+// buttons and setting chips, ignoring schema.cube.dimensions.caption for local
+// data. We relabel them in the dataBound event instead. `fieldCaptions` below is
+// the single source of truth for the Catalan labels shown to the user.
+import { relabelFields } from '@/service/pivotFieldCaptions'
+
+const fieldCaptions = {
+  project_state: 'Estat',
+  project_leader: 'Líder',
+  project_scope: 'Àmbit',
+  project_client: 'Client',
+  dedication_type: 'Tipus Dedicació',
+  year: 'Any',
+  month: 'Mes',
+  username: 'Persona',
+  project_name: 'Projecte'
+}
+
 const config = {
   filterable: true,
   sortable: false,
@@ -14,7 +32,7 @@ const config = {
     }, {
       name: 'project_client',
       expand: false
-    }, {      
+    }, {
       name: 'dedication_type',
       expand: false
     }, {
@@ -114,12 +132,12 @@ const config = {
           'Hores reals': {
             field: 'hours',
             aggregate: 'sum',
-            format: "{0:n2}" 
+            format: "{0:n2}"
           },
           'Hores previstes': {
             field: 'estimated_hours',
             aggregate: 'sum',
-            format: "{0:n2}" 
+            format: "{0:n2}"
           },
           'Hores previstes avui': {
             field: 'estimated_hours_today',
@@ -131,19 +149,20 @@ const config = {
             aggregate: 'sum',
             format: "{0:n2}"
           },
-          
+
           'Cost real': {
             field: 'real_cost',
             aggregate: 'sum',
-            format: "{0:n2}" 
+            format: "{0:n2}"
           },
 
-          
+
         }
       }
     },
     pageSize: 10000
   },
+  dataBound: relabelFields(fieldCaptions),
   height: '74vh'
 }
 

@@ -1,3 +1,15 @@
+// Relabel rendered field names (header buttons + setting chips) to Catalan;
+// classic Kendo ignores schema.cube.dimensions.caption for local data.
+import { relabelFields } from '@/service/pivotFieldCaptions'
+
+const fieldCaptions = {
+  year: 'Any',
+  month: 'Mes',
+  bank_account: 'Compte bancari',
+  executat: 'Executat',
+  project_name: 'Projecte'
+}
+
 const config = {
   filterable: true,
   sortable: false,
@@ -95,10 +107,11 @@ const config = {
   },
   height: '50vh',
   dataBound: function(e) {
+    relabelFields(fieldCaptions).call(this)
     this.columnsHeader.find("#treasury-pivot table colgroup col:last-child").css({width:0});
     this.content.find("#treasury-pivot table colgroup col:last-child").css({width:0});
     this.element.find("#treasury-pivot .k-grid-footer").hide();
-    
+
   }
 }
 
