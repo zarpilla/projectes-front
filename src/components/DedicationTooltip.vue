@@ -17,7 +17,13 @@
             class="dt-row dt-project"
           >
             <span class="dt-row-label" :title="item.project">{{ item.project }}</span>
-            <span class="dt-row-hours">{{ formatHours(item.hours) }}h</span>
+            <span class="dt-row-hours">
+              {{ formatHours(item.hours) }}h<span
+                v-if="hasPercentages"
+                class="dt-row-pct"
+                > ({{ percentage(item.hours) }}%)</span
+              >
+            </span>
           </div>
         </template>
 
@@ -40,7 +46,13 @@
                 <span class="dt-group-dimension">{{ dimensionLabel }}:</span>
                 <span class="dt-group-name">{{ group.key }}</span>
               </span>
-              <span class="dt-group-hours">{{ formatHours(group.total) }}h</span>
+              <span class="dt-group-hours">
+                {{ formatHours(group.total) }}h<span
+                  v-if="hasPercentages"
+                  class="dt-row-pct"
+                  > ({{ percentage(group.total) }}%)</span
+                >
+              </span>
             </button>
 
             <div v-show="expandedGroups[group.key]" class="dt-group-body">
@@ -50,7 +62,13 @@
                 class="dt-row dt-project"
               >
                 <span class="dt-row-label" :title="item.project">{{ item.project }}</span>
-                <span class="dt-row-hours">{{ formatHours(item.hours) }}h</span>
+                <span class="dt-row-hours">
+                  {{ formatHours(item.hours) }}h<span
+                    v-if="hasPercentages"
+                    class="dt-row-pct"
+                    > ({{ percentage(item.hours) }}%)</span
+                  >
+                </span>
               </div>
             </div>
           </div>
@@ -135,6 +153,10 @@ export default {
     totalHours() {
       return this.breakdown.reduce((s, r) => s + (r.hours || 0), 0);
     },
+    // Show percentages only when there is actual worked time to base them on.
+    hasPercentages() {
+      return this.totalHours > 0;
+    },
     diff() {
       return typeof this.cell.diff === "number" ? this.cell.diff : null;
     },
@@ -179,6 +201,12 @@ export default {
       const n = Number(h);
       if (isNaN(n)) return "0.00";
       return n.toFixed(2);
+    },
+    // Percentage of an item/group relative to totalHours, rounded to the
+    // nearest integer. Used for both project rows and group headers.
+    percentage(h) {
+      if (this.totalHours <= 0) return 0;
+      return Math.round((Number(h) / this.totalHours) * 100);
     },
     toggleGroup(key) {
       // Use $set so adding a new key is reactive.
@@ -240,6 +268,14 @@ export default {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   flex-shrink: 0;
+}
+
+/* Percentage of total hours, shown next to the hours figure. */
+.dt-row-pct {
+  margin-left: 0.4rem;
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .dt-project {
