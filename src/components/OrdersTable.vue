@@ -82,7 +82,8 @@
         :fields="{
           id: 'id',
           date: 'route_date',
-          ...csvFields
+          ...csvFields,
+          ...csvExportFields
         }"
       >
         <b-button
@@ -941,6 +942,21 @@ export default {
             return this.addressFormatted(value);
           }
         }
+      },
+      // Camps addicionals només per a l'exportació de comandes.
+      // No formen part de csvFields perquè el preu no s'importa via CSV,
+      // es calcula al servidor a partir de la ruta, kg i descomptes.
+      csvExportFields: {
+        preu_ruta: "price",
+        descompte_volum: {
+          field: "volume_discount",
+          callback: value => {
+            return value ? -1 * value : 0;
+          }
+        },
+        descompte_multientrega_percent: "multidelivery_discount",
+        descompte_recollida_percent: "contact_pickup_discount",
+        preu_final: "finalPrice"
       },
       csvFieldsRouter: {
         "NOM CLIENT": "contact_trade_name",
