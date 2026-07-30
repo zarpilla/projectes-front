@@ -99,7 +99,8 @@ const assignRouteRate = (form, routeRates, orders) => {
   return form.route_rate;
 };
 
-const assignRouteDate = route => {
+const assignRouteDate = (route, options = {}) => {
+  const { nextDayLimitHour = 14, isAdmin = false } = options;
   let nextDay = dayjs().add(0, "day");
   let warning = "";
   const todayDayOfWeek = dayjs().day();
@@ -129,9 +130,9 @@ const assignRouteDate = route => {
     }
   }
   
-  // Check if it's tomorrow and past 14:00 today
+  // Check if it's tomorrow and past the next-day cutoff (admins are exempt)
   if (nextDay.isSame(dayjs().add(1, "day"), "day")) {
-    if (dayjs().hour() >= 14) {
+    if (!isAdmin && dayjs().hour() >= nextDayLimitHour) {
       // Find the next valid route day after skipping to next week
       nextDay = dayjs().add(1, "week").startOf("week");
       found = false;

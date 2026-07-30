@@ -835,6 +835,7 @@ export default {
       },
       importing: false,
       permissions: [],
+      nextDayLimitHour: 14,
       routes: [],
       users: [],
       deliveryTypes: [],
@@ -1282,6 +1283,22 @@ export default {
       "users/me"
     );
     this.permissions = me.data.permissions.map(p => p.permission);
+
+    // Load org-wide orders options (e.g. same-day cutoff hour)
+    try {
+      const orgConfig = (
+        await service({ requiresAuth: true, cached: true }).get("me")
+      ).data;
+      if (
+        orgConfig &&
+        orgConfig.orders_options &&
+        orgConfig.orders_options.next_day_limit_hour != null
+      ) {
+        this.nextDayLimitHour = orgConfig.orders_options.next_day_limit_hour;
+      }
+    } catch (e) {
+      // keep default 14 if org config unavailable
+    }
   },
   async mounted() {
     this.getData();
@@ -2050,7 +2067,10 @@ export default {
           return false;
         }
 
-        const routeDate = assignRouteDate(route);
+        const routeDate = assignRouteDate(route, {
+          nextDayLimitHour: this.nextDayLimitHour,
+          isAdmin: this.permissions.includes("orders_admin")
+        });
 
         const pickup = record.pickup
           ? this.pickups.find(

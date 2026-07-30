@@ -1568,6 +1568,7 @@ export default {
       contactSearch: "",
       citySearch: "",
       apiUrl: process.env.VUE_APP_API_URL,
+      nextDayLimitHour: 14,
       dateWarningMessage: "",
       collectionPickupDateWarningMessage: "",
       isModalActive: false,
@@ -1976,6 +1977,23 @@ export default {
       "users/me"
     );
     this.permissions = me.data.permissions.map(p => p.permission);
+
+    // Load org-wide orders options (e.g. same-day cutoff hour)
+    try {
+      const orgConfig = (
+        await service({ requiresAuth: true, cached: true }).get("me")
+      ).data;
+      if (
+        orgConfig &&
+        orgConfig.orders_options &&
+        orgConfig.orders_options.next_day_limit_hour != null
+      ) {
+        this.nextDayLimitHour = orgConfig.orders_options.next_day_limit_hour;
+      }
+    } catch (e) {
+      // keep default 14 if org config unavailable
+    }
+
     this.getData();
 
     // check if url has pickup_point=true
@@ -2363,7 +2381,10 @@ export default {
           });
           this.dateWarningMessage = "Aquesta ruta no té dies configurats";
         } else {
-          const routeDate = assignRouteDate(route);
+          const routeDate = assignRouteDate(route, {
+            nextDayLimitHour: this.nextDayLimitHour,
+            isAdmin: this.permissions.includes("orders_admin")
+          });
           const nextDay = routeDate.nextDay;
           
           if (this.form.status === "pending") {
