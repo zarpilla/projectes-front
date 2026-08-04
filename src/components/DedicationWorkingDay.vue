@@ -214,29 +214,34 @@ export default {
               d.users_permissions_user.id === user.id
           );
 
-          // Only add user if they have dedications
-          if (userDedications.length === 0) {
-            continue;
-          }
-
-          // Calculate parent task date range from children
+          // Users without dedications (e.g. recently created) must still be
+          // listed so an admin can add their first working-day period. We
+          // give them a default date range centred on "now" so the row is
+          // visible and clickable.
           let minUserDate = null;
           let maxUserDate = null;
-          userDedications.forEach(d => {
-            if (!minUserDate || moment(d.from).isBefore(moment(minUserDate))) {
-              minUserDate = d.from;
-            }
-            if (!maxUserDate || moment(d.to).isAfter(moment(maxUserDate))) {
-              maxUserDate = d.to;
-            }
-          });
 
-          // Track the earliest start date
-          if (
-            minUserDate &&
-            moment(minUserDate).isBefore(moment(minStartDate))
-          ) {
-            minStartDate = moment(minUserDate).format("YYYY-MM-DD");
+          if (userDedications.length > 0) {
+            // Calculate parent task date range from children
+            userDedications.forEach(d => {
+              if (!minUserDate || moment(d.from).isBefore(moment(minUserDate))) {
+                minUserDate = d.from;
+              }
+              if (!maxUserDate || moment(d.to).isAfter(moment(maxUserDate))) {
+                maxUserDate = d.to;
+              }
+            });
+
+            // Track the earliest start date
+            if (
+              minUserDate &&
+              moment(minUserDate).isBefore(moment(minStartDate))
+            ) {
+              minStartDate = moment(minUserDate).format("YYYY-MM-DD");
+            }
+          } else {
+            minUserDate = moment().format("YYYY-MM-DD");
+            maxUserDate = minUserDate;
           }
 
           // NOTE: dhtmlx-gantt Community edition does NOT support inline
