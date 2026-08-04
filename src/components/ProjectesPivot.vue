@@ -112,6 +112,7 @@ export default {
           return {
             project_name: p.name,
             project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
+            project_type: p.project_type && p.project_type.name ? p.project_type.name : '-',
             project_state: p.project_state && p.project_state.name ? p.project_state.name : '-',
             project_leader: p.leader && p.leader.username ? p.leader.username : '-',
             project_scope: p.project_scope && p.project_scope.short_name ? p.project_scope.short_name : '-',
@@ -143,6 +144,7 @@ export default {
 
         this.projects = r.data
         this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
+        console.log('pivotData', this.pivotData)
         configPivot.dataSource.data = this.pivotData
         this.initializePivotWithViews('#project-stats', configPivot)
         // setTimeout(() => {

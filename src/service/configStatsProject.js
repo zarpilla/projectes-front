@@ -8,6 +8,7 @@ const fieldCaptions = {
   project_mother: 'Mare',
   project_scope: 'Àmbit',
   project_name: 'Projecte',
+  project_type: 'Tipus',
   project_year: 'Any Inici'
 }
 
@@ -24,7 +25,10 @@ const config = {
       expand: false
     }, {
       name: 'project_mother',
-      expand: false    
+      expand: false
+    }, {
+      name: 'project_type',
+      expand: false
     }, {
       name: 'project_scope',
       expand: false
@@ -50,6 +54,9 @@ const config = {
             type: 'string'
           },
           project_name: {
+            type: 'string'
+          },
+          project_type: {
             type: 'string'
           },
           project_scope: {
@@ -79,6 +86,9 @@ const config = {
           },
           project_name: {
             caption: 'Projectes (TOTS)'
+          },
+          project_type: {
+            caption: 'Tipus (TOTS)'
           },
           project_scope: {
             caption: 'Àmbits (TOTS)'
