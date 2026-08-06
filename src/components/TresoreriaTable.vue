@@ -729,8 +729,10 @@ export default {
     },
     monthlySummaryForPivot() {
       return this.monthlySummary.map(s => {
-        // For balance annotations, we don't want to count them as income or expenses
+        // For balance annotations and real-balance adjustments, we don't want to
+        // count them as income or expenses (they only adjust the running saldo).
         const isBalanceAnnotation = s.is_balance_annotation;
+        const isRealBalanceAdjustment = s.is_real_balance_adjustment;
 
         return {
           ...s,
@@ -740,9 +742,17 @@ export default {
               : s.type,
           bank_account: s.bank_account || "Sense compte assignat",
           total_incomes:
-            !isBalanceAnnotation && s.total_amount > 0 ? s.total_amount : 0,
+            !isBalanceAnnotation &&
+            !isRealBalanceAdjustment &&
+            s.total_amount > 0
+              ? s.total_amount
+              : 0,
           total_expenses:
-            !isBalanceAnnotation && s.total_amount < 0 ? s.total_amount : 0
+            !isBalanceAnnotation &&
+            !isRealBalanceAdjustment &&
+            s.total_amount < 0
+              ? s.total_amount
+              : 0
         };
       });
     },
@@ -763,13 +773,23 @@ export default {
           maxYm: _.maxBy(this.monthlySummary, e => (!isNaN(e.ym) ? e.ym : ""))
             .ym,
           total_amount: _.sumBy(ym, e =>
-            e.is_balance_annotation ? 0 : e.total_amount
+            e.is_balance_annotation || e.is_real_balance_adjustment
+              ? 0
+              : e.total_amount
           ),
           total_incomes: _.sumBy(ym, e =>
-            !e.is_balance_annotation && e.total_amount > 0 ? e.total_amount : 0
+            !e.is_balance_annotation &&
+            !e.is_real_balance_adjustment &&
+            e.total_amount > 0
+              ? e.total_amount
+              : 0
           ),
           total_expenses: _.sumBy(ym, e =>
-            !e.is_balance_annotation && e.total_amount < 0 ? e.total_amount : 0
+            !e.is_balance_annotation &&
+            !e.is_real_balance_adjustment &&
+            e.total_amount < 0
+              ? e.total_amount
+              : 0
           ),
           subtotal: this.todaySubTotal
         }))
@@ -778,6 +798,11 @@ export default {
       const ansWithSubtotal = [];
       var subtotal = this.todaySubTotal;
       for (var i = 0; i < ans.length; i++) {
+        // The running Saldo accumulates real cash flows only. Real-balance
+        // adjustments are NOT a cash flow: they correct the starting balance,
+        // which is already reflected in the todaySubTotal seed (the "Inici Any"
+        // / "Avui" row subtotal, computed by the backend after the adjustment).
+        // Adding them here would double-count the adjustment.
         subtotal = subtotal + ans[i].total_amount;
         ans[i]["subtotal"] = subtotal;
         ansWithSubtotal.push(ans[i]);
