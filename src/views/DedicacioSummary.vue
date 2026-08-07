@@ -70,7 +70,7 @@ export default {
   computed: {
     ...mapState(['userName']),
     titleStack () {
-      return ['Projectes', 'Dedicació']
+      return ['Dedicació', 'Hores anuals']
     },
     filteredUsers () {
       return this.users.filter(option => {
