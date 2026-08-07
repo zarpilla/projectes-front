@@ -43,6 +43,26 @@
           </div>
         </div>
       </card-component>
+
+      <card-component
+        class="has-table has-mobile-sort-spaced"
+        title="Vacances / Lliure Elecció"
+        v-if="!isLoading && !warn"
+      >
+        <div class="columns card-body">
+          <div class="column has-text-weight-bold">Data</div>
+          <div class="column has-text-weight-bold">Tipus</div>
+        </div>
+        <div v-if="!personalDaysList.length" class="card-body has-text-grey-light">
+          Cap dia registrat
+        </div>
+        <div v-for="item in personalDaysList" :key="item.date" class="card-body">
+          <div class="columns">
+            <div class="column">{{ item.date | formatDMYDate }}</div>
+            <div class="column">{{ item.type }}</div>
+          </div>
+        </div>
+      </card-component>
     </div>
   </div>
 </template>
@@ -95,6 +115,7 @@ export default {
       // dailyDedications: [],
       dates: [],
       summary: {},
+      personalDaysList: [],
       warn: false
     };
   },
@@ -181,6 +202,14 @@ export default {
               f.users_permissions_user === null ||
               f.users_permissions_user.id === this.user
           );
+
+          this.personalDaysList = ["Vacances", "Lliure Elecció"]
+            .flatMap(name =>
+              festives
+                .filter(f => f.festive_type && f.festive_type.name === name)
+                .map(f => ({ date: f.date, type: name }))
+            )
+            .sort((a, b) => (a.date < b.date ? -1 : 1));
 
           const dailyDedications = (
             await service({ requiresAuth: true }).get(
