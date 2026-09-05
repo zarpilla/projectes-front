@@ -159,8 +159,12 @@ export default {
           })
           .catch(error => {
             console.error(error.response);
-            if (error.response && error.response.data && error.response.data.message && error.response.data.message.length && error.response.data.message[0].messages && error.response.data.message[0].messages.length) {
-              const message = error.response.data.message[0].messages[0].message.replace("Identifier or password invalid.", "Correu electrònic o clau de pas incorrectes");
+            // Strapi v5 answers { error: { message } }; the compat layer in
+            // service/v5-compat.js aliases it to a top-level `message` string.
+            if (error.response && error.response.data && typeof error.response.data.message === "string") {
+              const message = error.response.data.message
+                .replace("Identifier or password invalid.", "Correu electrònic o clau de pas incorrectes")
+                .replace("Invalid identifier or password", "Correu electrònic o clau de pas incorrectes");
 
               this.$buefy.snackbar.open({
                 // indefinite: true,
