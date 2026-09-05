@@ -137,10 +137,13 @@ export function isEnvelope (payload) {
   return isPlainObject(payload.meta)
 }
 
+// `publishedAt` is deliberately NOT aliased: no view reads `published_at`, and
+// echoing it back in a save body is what makes Strapi split a Draft & Publish
+// row in two and renumber it. The one view that writes it (ProjectsTable's
+// "trash") sets `published_at` explicitly, which the backend still honours.
 const TIMESTAMP_ALIASES = [
   ['createdAt', 'created_at'],
-  ['updatedAt', 'updated_at'],
-  ['publishedAt', 'published_at']
+  ['updatedAt', 'updated_at']
 ]
 
 /**
