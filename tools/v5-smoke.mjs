@@ -178,6 +178,47 @@ if(created.data && created.data.id){
   }
 }
 
+// --- a plain project save that touches no phases ---
+// The form echoes the whole phase graph back regardless, `dirty` markers and
+// all, WITHOUT the _project_phases_updated flag. Those markers are not schema
+// attributes ("Invalid key dirty at project_phases.incomes"), and the echoed
+// rows must not overwrite the phases either.
+{
+  const projects = await service('get', 'projects?_limit=-1', undefined, jwt)
+  let target = null
+  for (const row of (projects.data || []).slice(0, 12)) {
+    const full = (await service('get', `projects/${row.id}`, undefined, jwt)).data
+    if ((full.project_phases || []).some(p => (p.incomes || []).length)) { target = full; break }
+  }
+  if (!target) {
+    console.log('skip  plain save (no project with phase incomes)')
+  } else {
+    const nameBefore = target.name
+    const incomesBefore = target.project_phases.reduce((n, p) => n + (p.incomes || []).length, 0)
+    const body = JSON.parse(JSON.stringify(target))
+    body.project_phases.forEach(p => {
+      (p.incomes || []).forEach(i => { i.dirty = false; i.assign = false; i.estimated_hours = [] })
+      ;(p.expenses || []).forEach(e => { e.dirty = false; e.assign = false })
+    })
+    body.name = nameBefore + ' (p9)'
+    body.project_phases_info = { deletedPhases: [], deletedIncomes: [], deletedExpenses: [], deletedHours: [] }
+    body.project_original_phases_info = { deletedPhases: [], deletedIncomes: [], deletedExpenses: [], deletedHours: [] }
+    // deliberately no _project_phases_updated
+
+    const saved = await service('put', `projects/${target.id}`, body, jwt)
+    check('plain save with echoed phases succeeds', saved.status === 200 && !saved.data?.error,
+      JSON.stringify(saved.data)?.slice(0, 140))
+    const after = (await service('get', `projects/${target.id}`, undefined, jwt)).data
+    check('  the scalar edit landed', after.name === nameBefore + ' (p9)', after.name)
+    check('  the echoed phases did not overwrite anything',
+      after.project_phases.reduce((n, p) => n + (p.incomes || []).length, 0) === incomesBefore)
+    const restore = JSON.parse(JSON.stringify(after))
+    restore.name = nameBefore
+    await service('put', `projects/${target.id}`, restore, jwt)
+    check('  restored', (await service('get', `projects/${target.id}`, undefined, jwt)).data.name === nameBefore)
+  }
+}
+
 // --- ProjectForm "PLANIFICACIÓ": the gantt writes estimated_hours ---
 // ganttItemUpdate edits an hour in place (flagging it and its income `dirty`),
 // appends new blocks with a client `_uuid`, assigns a person as a whole user
