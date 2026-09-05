@@ -106,6 +106,41 @@ function appendParams (query, extra) {
   return query ? `${query}&${extra}` : extra
 }
 
+// `publishedAt` is deliberately NOT aliased: no view reads `published_at`, and
+// echoing it back in a save body is what makes Strapi split a Draft & Publish
+// row in two and renumber it. The one view that writes it (ProjectsTable's
+// "trash") sets `published_at` explicitly, which the backend still honours.
+const TIMESTAMP_ALIASES = [
+  ['createdAt', 'created_at'],
+  ['updatedAt', 'updated_at']
+]
+
+/**
+ * Removes the read-side aliases before a body goes back to the server.
+ *
+ * `addTimestampAliases` walks the whole payload, so a populated relation carries
+ * `created_at` too — and v5 validates nested relation payloads, answering
+ * `400 Invalid key created_at at leader`. Only drop the snake_case key when its
+ * camelCase twin is present, which is exactly the pair we added.
+ */
+export function stripReadAliases (payload, depth = 0) {
+  if (depth > 12 || payload === null || typeof payload !== 'object') return payload
+  if (Array.isArray(payload)) {
+    for (let i = 0; i < payload.length; i++) stripReadAliases(payload[i], depth + 1)
+    return payload
+  }
+  for (let i = 0; i < TIMESTAMP_ALIASES.length; i++) {
+    const [camel, snake] = TIMESTAMP_ALIASES[i]
+    if (payload[camel] !== undefined && payload[snake] !== undefined) delete payload[snake]
+  }
+  const keys = Object.keys(payload)
+  for (let i = 0; i < keys.length; i++) {
+    const value = payload[keys[i]]
+    if (value !== null && typeof value === 'object') stripReadAliases(value, depth + 1)
+  }
+  return payload
+}
+
 /**
  * v5 core create/update reject a body without a `data` key
  * ("Missing \"data\" payload in the request body"). Custom endpoints — every
@@ -136,15 +171,6 @@ export function isEnvelope (payload) {
   if (keys.indexOf('data') === -1 || keys.indexOf('meta') === -1) return false
   return isPlainObject(payload.meta)
 }
-
-// `publishedAt` is deliberately NOT aliased: no view reads `published_at`, and
-// echoing it back in a save body is what makes Strapi split a Draft & Publish
-// row in two and renumber it. The one view that writes it (ProjectsTable's
-// "trash") sets `published_at` explicitly, which the backend still honours.
-const TIMESTAMP_ALIASES = [
-  ['createdAt', 'created_at'],
-  ['updatedAt', 'updated_at']
-]
 
 /**
  * v5 renamed the automatic timestamps to camelCase; ~54 call sites still read

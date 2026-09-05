@@ -5,6 +5,7 @@ import {
   wrapRequestBody,
   isEnvelope,
   addTimestampAliases,
+  stripReadAliases,
   normalizeErrorBody
 } from './v5-compat'
 
@@ -34,6 +35,9 @@ export default ({ requiresAuth = false, multipart = false, cached = false } = {}
     config.url = mapped.url
     config.v5Count = mapped.isCount
     config.v5Unwrap = mapped.unwrap
+    // Drop the aliases the response interceptor added — v5 validates nested
+    // relation payloads and rejects `created_at` inside them.
+    stripReadAliases(config.data)
     if (mapped.wrapBody) {
       config.data = wrapRequestBody(config.data)
     }
