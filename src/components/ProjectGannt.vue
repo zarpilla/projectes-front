@@ -94,7 +94,15 @@ export default {
     ...mapState(["me"]),
   },
   watch: {
-    project: function (newVal, oldVal) {},
+    project: function (newVal, oldVal) {
+      // Rebuild when the project is reloaded — e.g. ProjectForm.getData() after
+      // a save. The chart is built once in mounted(), so without this a reused
+      // component instance keeps showing the pre-save data (or nothing, if it
+      // was built before the phases existed).
+      if (newVal && oldVal && newVal !== oldVal && this.gantt) {
+        this.initializeGannt();
+      }
+    },
     viewMode: function (newVal, oldVal) {
       // Reinitialize Gantt chart when view mode changes
       if (newVal !== oldVal) {

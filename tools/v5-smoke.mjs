@@ -254,6 +254,18 @@ for (const mode of ['estimated', 'original']) {
   await service('put', `projects/${before.id}`, restore, jwt)
   const back = (await service('get', `projects/${before.id}`, undefined, jwt)).data
   const bHours = (back[phasesKey].find(p => p.id === phase.id).incomes.find(i => i.id === income.id) || {}).estimated_hours || []
+  // ProjectGannt only draws a block when the API gives it BOTH dates, and it
+  // labels the bar from users_permissions_user.username — so a populate gap
+  // here shows up as an empty chart rather than an error.
+  if (mode === 'estimated') {
+    const drawable = hours.filter(h => h.from && h.to)
+    check(`  ${mode}: every hour carries both dates (the gantt drops the rest)`,
+      drawable.length === hours.length, `${drawable.length}/${hours.length}`)
+    const named = hours.filter(h => !h.users_permissions_user || h.users_permissions_user.username !== undefined)
+    check(`  ${mode}: assigned people are populated, not bare ids`,
+      named.length === hours.length, `${named.length}/${hours.length}`)
+  }
+
   check(`  ${mode}: restored`,
     bHours.length === countBefore && bHours.find(h => h.id === hour.id)?.quantity === originalQty,
     `count ${bHours.length}/${countBefore}`)
