@@ -114,13 +114,18 @@ export default {
       }
     },
     users: function (newVal, oldVal) {
-      if (newVal) {
-        const user = newVal.find(
-          (u) => u.username.toLowerCase() === this.userName.toLowerCase()
-        );
-        if (user && user.id) {
-          this.user = user;
-        }
+      // A user with no username, or the store's userName not hydrated yet, threw
+      // here — and the watcher dying left `this.user` as {}, so every planning
+      // block created afterwards was saved with nobody assigned.
+      if (!newVal || !this.userName) {
+        return;
+      }
+      const wanted = String(this.userName).toLowerCase();
+      const user = newVal.find(
+        (u) => u && u.username && String(u.username).toLowerCase() === wanted
+      );
+      if (user && user.id) {
+        this.user = user;
       }
     },
   },

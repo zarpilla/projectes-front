@@ -219,6 +219,33 @@ if(created.data && created.data.id){
   }
 }
 
+// --- the endpoint ProjectForm actually loads the planning from ---
+// It does NOT read the phases out of GET projects/:id — it fetches them from
+// `project-phases?project=<id>` ("Load execution phases with estimated hours")
+// and builds the PREVISTA chart from incomes.estimated_hours. A one-level
+// populate here leaves the chart empty and makes a save echo back
+// `estimated_hours: []`.
+{
+  const projects = await service('get', 'projects?_limit=-1', undefined, jwt)
+  let withHours = null
+  for (const row of (projects.data || []).slice(0, 12)) {
+    const phases = await service('get', `project-phases?project=${row.id}&_limit=-1`, undefined, jwt)
+    if ((phases.data || []).some(p => (p.incomes || []).some(i => (i.estimated_hours || []).length))) {
+      withHours = phases.data; break
+    }
+  }
+  if (!withHours) {
+    console.log('skip  project-phases deep populate (no estimated hours in this dataset)')
+  } else {
+    const income = withHours.flatMap(p => p.incomes || []).find(i => (i.estimated_hours || []).length)
+    check('project-phases returns incomes.estimated_hours (PREVISTA chart)',
+      Array.isArray(income.estimated_hours) && income.estimated_hours.length > 0)
+    const hour = income.estimated_hours[0]
+    check('  its blocks carry both dates', !!hour.from && !!hour.to, `${hour.from} .. ${hour.to}`)
+    check('  the assigned person is populated', !hour.users_permissions_user || hour.users_permissions_user.username !== undefined)
+  }
+}
+
 // --- ProjectForm "PLANIFICACIÓ": the gantt writes estimated_hours ---
 // ganttItemUpdate edits an hour in place (flagging it and its income `dirty`),
 // appends new blocks with a client `_uuid`, assigns a person as a whole user
