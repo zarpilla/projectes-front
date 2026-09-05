@@ -178,5 +178,86 @@ if(created.data && created.data.id){
   }
 }
 
+// --- ProjectForm "PLANIFICACIÓ": the gantt writes estimated_hours ---
+// ganttItemUpdate edits an hour in place (flagging it and its income `dirty`),
+// appends new blocks with a client `_uuid`, assigns a person as a whole user
+// object, and deletes through `deletedHours` — all via the same
+// _project_(original_)phases_updated mechanism as the economic section.
+for (const mode of ['estimated', 'original']) {
+  const phasesKey = mode === 'original' ? 'project_original_phases' : 'project_phases'
+  const flag = mode === 'original' ? '_project_original_phases_updated' : '_project_phases_updated'
+  const infoKey = mode === 'original' ? 'project_original_phases_info' : 'project_phases_info'
+
+  const projects = await service('get', 'projects?_limit=-1', undefined, jwt)
+  let before = null
+  for (const row of (projects.data || []).slice(0, 12)) {
+    const full = (await service('get', `projects/${row.id}`, undefined, jwt)).data
+    if ((full[phasesKey] || []).some(p => (p.incomes || []).some(i => (i.estimated_hours || []).length))) {
+      before = full; break
+    }
+  }
+  if (!before) { console.log(`skip  PLANIFICACIÓ ${mode} (no estimated hours in this dataset)`); continue }
+
+  const phase = before[phasesKey].find(p => (p.incomes || []).some(i => (i.estimated_hours || []).length))
+  const income = phase.incomes.find(i => (i.estimated_hours || []).length)
+  const hour = income.estimated_hours[0]
+  const originalQty = hour.quantity
+  const originalUser = hour.users_permissions_user ? hour.users_permissions_user.id : null
+  const countBefore = income.estimated_hours.length
+  const someone = (await service('get', 'users?_limit=2', undefined, jwt)).data
+    .find(u => u.id !== originalUser) || {}
+
+  const edited = JSON.parse(JSON.stringify(before))
+  const einc = edited[phasesKey].find(p => p.id === phase.id).incomes.find(i => i.id === income.id)
+  const eh = einc.estimated_hours.find(h => h.id === hour.id)
+  eh.quantity = originalQty + 3
+  eh.from = '2026-02-01'
+  eh.to = '2026-02-28'
+  eh.users_permissions_user = someone          // the gantt assigns the whole user object
+  eh.dirty = true
+  einc.estimated_hours.push({ from: '2026-03-01', to: '2026-03-31', quantity: 5, monthly_quantity: 5,
+    quantity_type: eh.quantity_type, users_permissions_user: {}, amount: 0, total_amount: 0,
+    _uuid: 'p9-smoke', dirty: true })          // `{}` = nobody assigned yet
+  einc.dirty = true
+  edited[flag] = true
+  edited[infoKey] = { deletedPhases: [], deletedIncomes: [], deletedExpenses: [], deletedHours: [] }
+
+  const saved = await service('put', `projects/${before.id}`, edited, jwt)
+  check(`PLANIFICACIÓ ${mode}: save succeeds`, saved.status === 200 && !saved.data?.error,
+    JSON.stringify(saved.data)?.slice(0, 120))
+
+  const after = (await service('get', `projects/${before.id}`, undefined, jwt)).data
+  const aInc = after[phasesKey].find(p => p.id === phase.id).incomes.find(i => i.id === income.id)
+  const hours = aInc.estimated_hours || []
+  const ah = hours.find(h => h.id === hour.id)
+  check(`  ${mode}: edited block persists`, ah && ah.quantity === originalQty + 3, `got ${ah && ah.quantity}`)
+  check(`  ${mode}: its dates persist`, ah && String(ah.from).startsWith('2026-02-01'), `got ${ah && ah.from}`)
+  check(`  ${mode}: the assigned person persists`,
+    !someone.id || (ah && ah.users_permissions_user && ah.users_permissions_user.id === someone.id),
+    `got ${ah && JSON.stringify(ah.users_permissions_user)}`)
+  const added = hours.find(h => h.quantity === 5 && h.id !== hour.id)
+  check(`  ${mode}: a new block is created`, !!added, `hours ${hours.length}, was ${countBefore}`)
+
+  // put it back
+  const restore = JSON.parse(JSON.stringify(after))
+  const rInc = restore[phasesKey].find(p => p.id === phase.id).incomes.find(i => i.id === income.id)
+  const rh = rInc.estimated_hours.find(h => h.id === hour.id)
+  if (rh) {
+    rh.quantity = originalQty; rh.from = hour.from; rh.to = hour.to
+    rh.users_permissions_user = originalUser ? { id: originalUser } : {}
+    rh.dirty = true
+  }
+  rInc.estimated_hours = rInc.estimated_hours.filter(h => !added || h.id !== added.id)
+  rInc.dirty = true
+  restore[flag] = true
+  restore[infoKey] = { deletedPhases: [], deletedIncomes: [], deletedExpenses: [], deletedHours: added ? [added.id] : [] }
+  await service('put', `projects/${before.id}`, restore, jwt)
+  const back = (await service('get', `projects/${before.id}`, undefined, jwt)).data
+  const bHours = (back[phasesKey].find(p => p.id === phase.id).incomes.find(i => i.id === income.id) || {}).estimated_hours || []
+  check(`  ${mode}: restored`,
+    bHours.length === countBefore && bHours.find(h => h.id === hour.id)?.quantity === originalQty,
+    `count ${bHours.length}/${countBefore}`)
+}
+
 console.log(fail===0?'\nALL INTEGRATION CHECKS PASS':`\n${fail} FAILURES`)
 process.exit(fail?1:0)
