@@ -51,6 +51,20 @@ check('bad login exposes a v3-style message string',
 // --- App.vue ---
 const me=await service('get','users/me',undefined,jwt)
 check('users/me is a plain user object', me.status===200 && typeof me.data.id==='number' && !!me.data.username)
+// App.vue and 95 other call sites do `me.permissions.map(p => p.permission)`
+// unguarded — the whole frontend authorization model lives on this component.
+check('users/me carries the permissions component',
+  Array.isArray(me.data.permissions) && me.data.permissions.every(p=>typeof p.permission==='string'),
+  JSON.stringify(me.data.permissions))
+check('users/me carries role (AdminUserForm reads user.role.id)', !!(me.data.role && me.data.role.id))
+check('users/me stays small (populate is role+permissions, not *)',
+  JSON.stringify(me.data).length < 4000 && me.data.tasks===undefined, `${JSON.stringify(me.data).length} bytes`)
+
+// AdminUserList pages the user list; ContactUsForm reads u.permissions on it
+const userPage=await service('get','users?_start=0&_limit=3&_sort=username:ASC',undefined,jwt)
+check('users list paginates and sorts',
+  userPage.status===200 && userPage.data.length===3 && Array.isArray(userPage.data[0].permissions),
+  `rows=${userPage.data && userPage.data.length}`)
 
 // --- list screens: (await ...).data must be an array ---
 for(const [label,url] of [
