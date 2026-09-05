@@ -92,6 +92,10 @@ export default {
   computed: {
     ...mapState(["userName"]),
     ...mapState(["me"]),
+    /** `me.options` is optional and loads asynchronously; never dereference it raw. */
+    meOptions() {
+      return (this.me && this.me.options) || {};
+    },
   },
   watch: {
     project: function (newVal, oldVal) {
@@ -147,7 +151,11 @@ export default {
     // Gantt (capital G) is the factory for creating instances
     this.gantt = Gantt.getGanttInstance();
 
-    this.showSubPhases = !this.me.options.showEstimatedHoursInPhases;
+    // `me` arrives in the store from an async fetch in ProjectForm.getData().
+    // Dereferencing it unguarded threw here on any load that won the race,
+    // aborting mounted() before the chart was ever built — the section then
+    // renders empty with no error in the UI.
+    this.showSubPhases = !this.meOptions.showEstimatedHoursInPhases;
     this.dedications = (
       await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
     ).data;
@@ -302,7 +310,7 @@ export default {
         }
       }
 
-      if (this.me.options.showTasksInGantt) {
+      if (this.meOptions.showTasksInGantt) {
         this.projectTasks.forEach((pt, i) => {
           if (pt.due_date) {
             const milestone = {
@@ -493,6 +501,9 @@ export default {
 
       if (document.getElementById(this.ganttId)) {
         this.gantt.init(this.ganttId);
+        // parse() appends, so a rebuild (project reloaded, view toggled) would
+        // stack a second copy of every row on top of the first.
+        this.gantt.clearAll();
         this.gantt.parse(this.tasks);
       }
     },
