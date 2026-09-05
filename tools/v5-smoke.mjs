@@ -113,5 +113,70 @@ if(created.data && created.data.id){
   check('delete by numeric id', del.status===204||del.status===200, `status=${del.status}`)
 }
 
+// --- ProjectForm "GESTIÓ ECONÒMICA": edit, add and delete a phase income ---
+// The form flags edited rows `dirty`, sends new rows without an id, and lists
+// removed ones in `project_phases_info` behind `_project_phases_updated`. None
+// of those are schema attributes, so they only survive if the backend's write
+// sanitizer keeps them.
+{
+  // the list only populates one relation level, so incomes are not visible there
+  const projects = await service('get', 'projects?_limit=-1', undefined, jwt)
+  let before = null
+  for (const row of (projects.data || []).slice(0, 12)) {
+    const full = (await service('get', `projects/${row.id}`, undefined, jwt)).data
+    if ((full.project_phases || []).some(ph => (ph.incomes || []).length >= 2)) { before = full; break }
+  }
+  if (!before) {
+    console.log('skip  GESTIÓ ECONÒMICA (no project with 2+ phase incomes in this dataset)')
+  } else {
+    const withPhases = before
+    const phase = before.project_phases.find(ph => (ph.incomes || []).length >= 2)
+    const target = phase.incomes[0]
+    const doomed = phase.incomes[1]
+    const originalAmount = target.amount
+    const countBefore = phase.incomes.length
+
+    const edited = JSON.parse(JSON.stringify(before))
+    const ph = edited.project_phases.find(p => p.id === phase.id)
+    ph.incomes = ph.incomes.filter(i => i.id !== doomed.id)
+    const edit = ph.incomes.find(i => i.id === target.id)
+    edit.amount = originalAmount + 11
+    edit.dirty = true
+    ph.incomes.push({ concept: 'p9 smoke income', quantity: 1, amount: 7, vat_pct: 21, date: target.date })
+    edited._project_phases_updated = true
+    edited.project_phases_info = { deletedPhases: [], deletedIncomes: [doomed.id], deletedExpenses: [], deletedHours: [] }
+
+    const saved = await service('put', `projects/${withPhases.id}`, edited, jwt)
+    check('GESTIÓ ECONÒMICA save succeeds', !saved.data?.error && saved.status === 200, JSON.stringify(saved.data)?.slice(0, 120))
+
+    const after = (await service('get', `projects/${withPhases.id}`, undefined, jwt)).data
+    const incomes = (after.project_phases.find(p => p.id === phase.id) || {}).incomes || []
+    const editedRow = incomes.find(i => i.id === target.id)
+    const created = incomes.find(i => i.concept === 'p9 smoke income')
+    check('  edit to an existing income persists', editedRow && editedRow.amount === originalAmount + 11,
+      `got ${editedRow && editedRow.amount}`)
+    check('  removed income is deleted', !incomes.some(i => i.id === doomed.id))
+    check('  new income is created with its fields', !!created && created.amount === 7 && created.total_amount === 7)
+    check('  income count is unchanged (one out, one in)', incomes.length === countBefore, `got ${incomes.length}`)
+
+    // put it back: restore the amount, drop the row we added, recreate the deleted one
+    const restore = JSON.parse(JSON.stringify(after))
+    const rph = restore.project_phases.find(p => p.id === phase.id)
+    rph.incomes = rph.incomes.filter(i => i.concept !== 'p9 smoke income')
+    const back = rph.incomes.find(i => i.id === target.id)
+    if (back) { back.amount = originalAmount; back.dirty = true }
+    const { id: _drop, documentId: _drop2, ...doomedFields } = doomed
+    rph.incomes.push({ ...doomedFields, dirty: true })
+    restore._project_phases_updated = true
+    restore.project_phases_info = { deletedPhases: [], deletedIncomes: created ? [created.id] : [], deletedExpenses: [], deletedHours: [] }
+    await service('put', `projects/${withPhases.id}`, restore, jwt)
+    const restored = (await service('get', `projects/${withPhases.id}`, undefined, jwt)).data
+    const rIncomes = (restored.project_phases.find(p => p.id === phase.id) || {}).incomes || []
+    check('  restored to the original amount and count',
+      rIncomes.length === countBefore && rIncomes.find(i => i.id === target.id)?.amount === originalAmount,
+      `count ${rIncomes.length}/${countBefore}`)
+  }
+}
+
 console.log(fail===0?'\nALL INTEGRATION CHECKS PASS':`\n${fail} FAILURES`)
 process.exit(fail?1:0)
