@@ -3406,10 +3406,16 @@ export default {
 
               this.getAuxiliarData();
 
-              // Set default Gantt view mode based on available phases
-              // If no saved preference exists, and project has execution phases, default to "estimated"
+              // Restore the Gantt view the user last chose; with no preference,
+              // default to "estimated" (PREVISTA) when the project has execution
+              // phases. The saved value used to be read and then never applied,
+              // so once a user toggled the view every later load fell back to the
+              // component default ("original") and their PREVISTA planning looked
+              // as though it had not been saved.
               const savedGanttView = localStorage.getItem("ganttViewMode");
-              if (!savedGanttView && this.form.project_phases && this.form.project_phases.length > 0) {
+              if (savedGanttView === "original" || savedGanttView === "estimated") {
+                this.ganttViewMode = savedGanttView;
+              } else if (this.form.project_phases && this.form.project_phases.length > 0) {
                 this.ganttViewMode = "estimated";
               }
 
