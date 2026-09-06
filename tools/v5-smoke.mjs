@@ -219,6 +219,31 @@ if(created.data && created.data.id){
   }
 }
 
+// --- projects/basic must carry `mother` on every row ---
+// v3 stored relations as FK columns, so `mother` was on every row even when it
+// was not populated; v5 omits an unpopulated relation entirely. Three components
+// branch on `p.mother === null` (JornadaDiaria, ModalBoxMoveProject,
+// TreasuryAnnotationInput) and threw on undefined, and Home and the pivots read
+// `p.mother.name` — so it has to be present AND a real object.
+{
+  const basic = await service('get', 'projects/basic?_limit=-1', undefined, jwt)
+  const rows = basic.data || []
+  check('projects/basic returns rows', Array.isArray(rows) && rows.length > 0)
+  check('  every row has the `mother` key', rows.every(p => 'mother' in p),
+    `${rows.filter(p => !('mother' in p)).length} missing`)
+  const withMother = rows.filter(p => p.mother)
+  check('  a populated mother is an object with id and name',
+    withMother.every(p => typeof p.mother === 'object' && p.mother.id && p.mother.name !== undefined),
+    JSON.stringify(withMother[0] && withMother[0].mother))
+  // the filter those three components run
+  let filterError = null
+  try {
+    rows.filter(p => p.project_state && p.project_state.can_assign_activities === true)
+        .filter(p => p.mother === null || (p.mother !== null && p.mother.id && p.mother.id !== p.id))
+  } catch (e) { filterError = e.message }
+  check('  the project-picker filter runs without throwing', filterError === null, filterError)
+}
+
 // --- the endpoint ProjectForm actually loads the planning from ---
 // It does NOT read the phases out of GET projects/:id — it fetches them from
 // `project-phases?project=<id>` ("Load execution phases with estimated hours")
