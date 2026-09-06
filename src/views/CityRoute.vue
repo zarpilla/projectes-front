@@ -115,8 +115,11 @@ export default {
         .then(r => r.data);
 
       for (const city of cities) {
+        // Skip rows whose city or route no longer exists: a dangling relation
+        // comes back as null, and 536 of the 901 city-routes point at a route
+        // that has been deleted (the same rows dangle in the v3 database).
         const cityRoutes = this.cityRoutes.filter(
-          cr => cr.city && cr.city.id === city.id
+          cr => cr.city && cr.route && cr.city.id === city.id
         );
         const routes = cityRoutes.map(cr => cr.route.id);
         this.cities.find(c => c.id === city.id).routes = routes;
@@ -138,11 +141,14 @@ export default {
         });
       } else {
         const cityRoute = this.cityRoutes.find(
-          cr => cr.city.id === cityId && cr.route.id === route.id
+          cr =>
+            cr.city && cr.route && cr.city.id === cityId && cr.route.id === route.id
         );
-        await service({ requiresAuth: true }).delete(
-          `city-routes/${cityRoute.id}`
-        );
+        if (cityRoute) {
+          await service({ requiresAuth: true }).delete(
+            `city-routes/${cityRoute.id}`
+          );
+        }
       }
       //console.log(add, city, route);
       await this.getData();
