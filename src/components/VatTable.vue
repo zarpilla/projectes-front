@@ -398,7 +398,7 @@
           :striped="false"
           :data="documentsWithSearchableFields"
           :checked-rows.sync="checkedRows"
-          checkable="true"
+          :checkable="true"
           ref="documentsTable"
         >
           <b-table-column sortable searchable label="Codi" field="code" v-slot="props">
