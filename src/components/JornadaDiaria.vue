@@ -532,8 +532,13 @@ export default {
                   w.hour_out_h = w.hour_out.split(":")[0];
                   w.hour_out_m = w.hour_out.split(":")[1];
                 }
-                if (w.activity && w.activity.project) {
-                  w.projectNameSearch = this.projects.find(p => p.id === w.activity.project).name
+                if (w.project) {
+                  // `w.project` is the id normalised just above; comparing against
+                  // `w.activity.project` only worked while v3 returned relations as
+                  // bare FK ids. Guard the lookup too — a project the picker does
+                  // not list (trashed, or not assignable) would throw on `.name`.
+                  const assigned = this.projects.find(p => p.id === w.project);
+                  w.projectNameSearch = assigned ? assigned.name : "";
                 }
                 activities.push(w);
               });

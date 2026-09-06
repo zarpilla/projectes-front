@@ -219,6 +219,27 @@ if(created.data && created.data.id){
   }
 }
 
+// --- workday-logs must reach activity.project (Registre Jornades) ---
+// The grid resolves each row's project through `log.activity.project`. v3 kept
+// relations as FK columns so the nested activity carried its project id for
+// free; a one-level populate here leaves it absent and every saved row comes
+// back with no project attached.
+{
+  const logs = await service('get', 'workday-logs?_limit=20&[activity_null]=false', undefined, jwt)
+  const rows = (logs.data || []).filter(r => r.activity)
+  if (!rows.length) {
+    console.log('skip  workday-logs activity.project (no rows with an activity)')
+  } else {
+    check('workday-logs populate activity', rows.every(r => typeof r.activity === 'object'))
+    check('  activity carries its project key', rows.every(r => 'project' in r.activity),
+      `${rows.filter(r => !('project' in r.activity)).length} of ${rows.length} missing`)
+    const linked = rows.filter(r => r.activity.project)
+    check('  a linked project is an object with id and name',
+      linked.every(r => r.activity.project.id && r.activity.project.name !== undefined),
+      JSON.stringify(linked[0] && linked[0].activity.project))
+  }
+}
+
 // --- projects/basic must carry `mother` on every row ---
 // v3 stored relations as FK columns, so `mother` was on every row even when it
 // was not populated; v5 omits an unpopulated relation entirely. Three components
