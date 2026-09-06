@@ -177,6 +177,7 @@ export default {
                 ...r,
                 festive: this.routesFestives.find(
                   rf =>
+                    rf.route &&
                     rf.route.id === r.id &&
                     rf.date === moment(d).format("YYYY-MM-DD")
                 )
@@ -253,15 +254,24 @@ export default {
       }
       if (add) {
         await service({ requiresAuth: true }).post("route-festives", {
-          date: date,
+          // `date` is a JS Date at LOCAL midnight. Posting it raw serialises to
+          // UTC ("2026-09-08T22:00:00.000Z" for a CEST Wednesday), and the
+          // backend truncates that to the UTC day — storing the festive one day
+          // early, so it never matched the route's own weekday. Send the same
+          // local YYYY-MM-DD string the lookup and delete paths below compare on.
+          date: moment(date).format("YYYY-MM-DD"),
           route: route.id
         });
       } else {
         const dateRoute = this.routesFestives.find(
           cr =>
+            cr.route &&
             cr.date === moment(date).format("YYYY-MM-DD") &&
             cr.route.id === route.id
         );
+        if (!dateRoute) {
+          return;
+        }
         await service({ requiresAuth: true }).delete(
           `route-festives/${dateRoute.id}`
         );
