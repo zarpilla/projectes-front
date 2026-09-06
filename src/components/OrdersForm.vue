@@ -3500,6 +3500,12 @@ export default {
 
       // Check if the selected route travels to this city
       const routeTravelsToCity = this.cityRoutes.some(cr => {
+        // A dangling relation comes back as null, and `typeof null === "object"`,
+        // so reading `.id` off it throws and aborts the whole transfer check.
+        // 536 of the 901 city-routes point at a route that no longer exists —
+        // the same rows are dangling in the v3 database. The
+        // `filteredCityRoutes` computed above already guards this the same way.
+        if (!cr.city || !cr.route) return false;
         const cityId = typeof cr.city === "object" ? cr.city.id : cr.city;
         const routeId = typeof cr.route === "object" ? cr.route.id : cr.route;
         return cityId === pickupCityId && routeId === this.form.route;
