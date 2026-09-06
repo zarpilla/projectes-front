@@ -219,6 +219,20 @@ if(created.data && created.data.id){
   }
 }
 
+// --- `_limit=-1` must mean "everything", not one row ---
+// v3's return-all idiom, used by most list screens. Assigning ctx.query
+// stringifies it, and Strapi's "no limit" branch is a strict `=== -1` that
+// '-1' misses — after which Math.max(limit, 1) clamps it to a SINGLE row.
+{
+  for (const type of ['workday-logs', 'activities', 'contacts', 'festives']) {
+    const all = await service('get', `${type}?_limit=-1`, undefined, jwt)
+    const page = await service('get', `${type}?_limit=2`, undefined, jwt)
+    const n = (all.data || []).length
+    check(`${type}?_limit=-1 returns every row`, n > (page.data || []).length || n === (page.data || []).length && n < 2,
+      `${n} rows, and a _limit=2 page returned ${(page.data || []).length}`)
+  }
+}
+
 // --- workday-logs must reach activity.project (Registre Jornades) ---
 // The grid resolves each row's project through `log.activity.project`. v3 kept
 // relations as FK columns so the nested activity carried its project id for
