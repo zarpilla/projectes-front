@@ -1,0 +1,48 @@
+name: Build and Publish Frontend Docker image (v5)
+
+# The Strapi v5 frontend. Every route moved under /api and the request/response
+# envelopes changed, so this build does NOT work against a v3 backend — see
+# src/service/v5-compat.js. It ships as its own tag so v3 and v5 tenants can run
+# side by side while they are migrated one at a time; `latest` stays on master
+# until the last tenant has moved, at which point this branch merges and this
+# workflow can go.
+#
+# Pair the tags: a v5 frontend against a v3 backend 404s every request, and the
+# reverse does too. Deploy esstrapis-front:v5 with esstrapis-back:v5.
+
+on:
+  push:
+    branches:
+      - v5
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Frontend Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            VUE_APP_PATH=/stats/
+          # Two tags on purpose: `v5` is what deployments follow, and the
+          # sha-pinned one is what you roll a single tenant back to without
+          # touching the others.
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:v5
+            ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:v5-${{ github.sha }}
