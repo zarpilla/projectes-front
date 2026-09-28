@@ -450,7 +450,7 @@ export default {
               requiresAuth: true,
               cached: false
             })
-              .get("city-routes?_limit=-1")
+              .get("city-routes/basic")
               .then(r => r.data);
 
             for (const city of cities) {

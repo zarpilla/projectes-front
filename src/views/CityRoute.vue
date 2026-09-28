@@ -111,7 +111,7 @@ export default {
         .then(r => r.data);
       this.cities = cities.map(c => ({ id: c.id, name: c.name, routes: [] }));
       this.cityRoutes = await service({ requiresAuth: true, cached: false })
-        .get("city-routes?_limit=-1")
+        .get("city-routes/basic")
         .then(r => r.data);
 
       for (const city of cities) {

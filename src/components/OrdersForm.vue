@@ -2341,7 +2341,7 @@ export default {
       ).data;
 
       this.cityRoutes = (
-        await service({ requiresAuth: true }).get("city-routes?_limit=-1")
+        await service({ requiresAuth: true }).get("city-routes/basic")
       ).data;
 
       this.routeFestives = (

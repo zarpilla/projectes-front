@@ -1748,7 +1748,7 @@ export default {
 
       // Load city routes for transfer logic
       this.cityRoutes = (
-        await service({ requiresAuth: true }).get("city-routes?_limit=-1")
+        await service({ requiresAuth: true }).get("city-routes/basic")
       ).data;
 
       // Load cities for transfer logic
