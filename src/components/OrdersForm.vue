@@ -2308,51 +2308,42 @@ export default {
         // this.users = this.users.filter(u => u.id == me.data.id);
       }
 
-      this.products = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "products?_limit=-1"
-        )
-      ).data;
+      // These nine lookups do not depend on each other, but they used to be
+      // awaited one after another: nine sequential round trips, and nginx
+      // still speaks HTTP/1.1 so the browser opens at most six connections per
+      // origin. Issued together, the block costs roughly the slowest of them
+      // instead of the sum.
+      const [
+        products,
+        pickups,
+        deliveryTypes,
+        routeRates,
+        legalForms,
+        cities,
+        cityRoutes,
+        routeFestives,
+        sociesContacts
+      ] = await Promise.all([
+        service({ requiresAuth: true, cached: true }).get("products?_limit=-1"),
+        service({ requiresAuth: true, cached: true }).get("pickups?_limit=-1"),
+        service({ requiresAuth: true, cached: true }).get("delivery-types?_limit=-1"),
+        service({ requiresAuth: true, cached: true }).get("route-rates?_limit=-1"),
+        service({ requiresAuth: true }).get("legal-forms?_limit=-1"),
+        service({ requiresAuth: true }).get("cities?_limit=-1&_sort=name"),
+        service({ requiresAuth: true }).get("city-routes/basic"),
+        service({ requiresAuth: true }).get("route-festives?_limit=-1"),
+        service({ requiresAuth: true }).get("contacts/for-orders?socies=1")
+      ]);
 
-      this.pickups = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "pickups?_limit=-1"
-        )
-      ).data;
-
-      this.deliveryTypes = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "delivery-types?_limit=-1"
-        )
-      ).data;
-
-      this.routeRates = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "route-rates?_limit=-1"
-        )
-      ).data;
-
-      this.legalForms = (
-        await service({ requiresAuth: true }).get("legal-forms?_limit=-1")
-      ).data;
-
-      this.cities = (
-        await service({ requiresAuth: true }).get("cities?_limit=-1&_sort=name")
-      ).data;
-
-      this.cityRoutes = (
-        await service({ requiresAuth: true }).get("city-routes/basic")
-      ).data;
-
-      this.routeFestives = (
-        await service({ requiresAuth: true }).get("route-festives?_limit=-1")
-      ).data;
-
-      this.sociesContacts = (
-        await service({ requiresAuth: true }).get(
-          "contacts?_where[users_permissions_user_gt]=0&_limit=-1"
-        )
-      ).data;
+      this.products = products.data;
+      this.pickups = pickups.data;
+      this.deliveryTypes = deliveryTypes.data;
+      this.routeRates = routeRates.data;
+      this.legalForms = legalForms.data;
+      this.cities = cities.data;
+      this.cityRoutes = cityRoutes.data;
+      this.routeFestives = routeFestives.data;
+      this.sociesContacts = sociesContacts.data;
     },
     async changeOwner() {
       this.refreshClients(this.form.owner);
