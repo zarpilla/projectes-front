@@ -798,6 +798,20 @@ import {
   calculateRoutePrice
 } from "@/service/assignRouteRate";
 import moment from "moment";
+
+/**
+ * Id of a relation, whether it arrives populated or as a bare id.
+ *
+ * `typeof null === "object"`, so the obvious ternary dereferences null: with
+ * 536 of diligencia's 902 city-routes pointing at a deleted route, `cr.route`
+ * is null and `cr.route.id` threw during the CSV import. The same rows dangle
+ * in v3 — it only surfaced here once the sector check stopped rejecting the
+ * file first.
+ */
+function idOf(value) {
+  if (value === null || value === undefined) return null;
+  return typeof value === "object" ? value.id : value;
+}
 import _ from "lodash";
 import getConfig from '@/config'
 
@@ -2365,12 +2379,12 @@ export default {
 
       // Case 1: Pickup where pickup = false (has direct city relation)
       if (!selectedPickup.pickup && selectedPickup.city) {
-        pickupCityId = typeof selectedPickup.city === 'object' ? selectedPickup.city.id : selectedPickup.city;
+        pickupCityId = idOf(selectedPickup.city);
       }
       // Case 2: Pickup where pickup = true (need to get city from collection_point)
       else if (selectedPickup.pickup && order.collection_point && order.owner) {
         // Find the collection point contact
-        const ownerId = typeof order.owner === 'object' ? order.owner.id : order.owner;
+        const ownerId = idOf(order.owner);
         const ownerContact = this.sociesContacts.find(c => 
           c.users_permissions_user && c.users_permissions_user.id === ownerId
         );
@@ -2378,7 +2392,7 @@ export default {
         if (ownerContact && ownerContact.collection_points) {
           // Find the specific collection point
           const collectionPoint = ownerContact.collection_points.find(cp => {
-            const cpId = typeof cp === 'object' ? cp.id : cp;
+            const cpId = idOf(cp);
             return cpId === order.collection_point;
           });
 
@@ -2400,13 +2414,14 @@ export default {
         return;
       }
 
-      const routeId = typeof selectedRoute === 'object' ? selectedRoute.id : selectedRoute;
+      const routeId = idOf(selectedRoute);
 
       // Check if the selected route travels to this city
       const routeTravelsToCity = this.cityRoutes.some(cr => {
-        const cityId = typeof cr.city === 'object' ? cr.city.id : cr.city;
-        const crRouteId = typeof cr.route === 'object' ? cr.route.id : cr.route;
-        return cityId === pickupCityId && crRouteId === routeId;
+        // A dangling relation comes back as null; those rows cannot match
+        // anything, so skip them rather than dereference them.
+        if (!cr || !cr.city || !cr.route) return false;
+        return idOf(cr.city) === pickupCityId && idOf(cr.route) === routeId;
       });
 
       // If route does NOT travel to the city, transfer is needed
