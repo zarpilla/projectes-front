@@ -1547,6 +1547,7 @@ export default {
       users: [],
       contacts: [],
       sociesContacts: [],
+      clientsLoadedFor: null,
       cities: [],
       cityRoutes: [],
       pickups: [],
@@ -3064,7 +3065,7 @@ export default {
           message: "Punt d'entrega guardat",
           queue: false
         });
-        await this.refreshClients(this.form.owner);
+        await this.refreshClients(this.form.owner, { force: true });
         this.contactSearch = `${this.form.contact} - ${this.form.contact_name}`;
         // this.contactSearch = `${this.form.contact_name}`;
       } else {
@@ -3112,7 +3113,7 @@ export default {
           message: "Punt d'entrega guardat",
           queue: false
         });
-        await this.refreshClients(this.form.owner);
+        await this.refreshClients(this.form.owner, { force: true });
         this.contactSearch = `${newContact.data.id} - ${newContact.data.trade_name}`;
         this.form.contact_name = newContact.data.name;
       }
@@ -3125,7 +3126,22 @@ export default {
       });
       window.open(routeData.href, "_blank");
     },
-    async refreshClients(owner) {
+    /**
+     * The owner <b-select> has `@input="changeOwner"`, and Buefy emits input
+     * for a programmatic v-model write too. Initialising a new order sets
+     * `form.owner = me.id`, which fires changeOwner -> refreshClients, while
+     * getData also called refreshClients explicitly: the same
+     * `contacts/basic?_where[owner_gt]=0` went out twice, ~1.2s each.
+     *
+     * Re-fetching for an owner already loaded is skipped. The callers that run
+     * after a contact was created or changed pass `{ force: true }`, since for
+     * them the list really is stale.
+     */
+    async refreshClients(owner, { force = false } = {}) {
+      if (!force && this.clientsLoadedFor === owner) {
+        return;
+      }
+      this.clientsLoadedFor = owner;
       const contacts1 = (
         await service({ requiresAuth: true, cached: false }).get(
           `contacts/basic?_limit=-1&_where[owner_gt]=0&_sort=trade_name:ASC`
@@ -3252,7 +3268,7 @@ export default {
     async confirmContact(msg) {
       this.isModalActive = false;
       const contactId = msg.id;
-      await this.refreshClients(this.form.owner);
+      await this.refreshClients(this.form.owner, { force: true });
       const contact = this.contacts.find(c => c.id === contactId);
       this.contactSearch = contact
         ? `${contactId} - ${contact.trade_name}`
