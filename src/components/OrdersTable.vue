@@ -1989,7 +1989,13 @@ export default {
           return false;
         }
 
-        if (!contact.legal_form) {
+        // Checks `sector`, which is what the message has always said. It used
+        // to test `legal_form`: v3 stored 0 for "unset" on 833 of 1263
+        // contacts and Bookshelf handed that dangling FK back as something
+        // truthy, so the check passed; v5 resolves it to null and every
+        // import failed. Only 19 contacts have a real legal form, against
+        // 1091 with a sector.
+        if (!contact.sector) {
           this.csvErrors.push({
             line: i,
             error: `El punt d'entrega ${record.contact_trade_name} no te sector`
