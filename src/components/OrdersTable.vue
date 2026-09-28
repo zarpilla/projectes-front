@@ -1720,9 +1720,13 @@ export default {
         )
       ).data;
 
-      // Load contacts for autocomplete
+      // Load contacts for autocomplete.
+      // `contacts?_limit=-1` is the core route: the backend gives it
+      // populate='*' and then sanitises every field of every row, which cost
+      // ~1s server-side and a 2MB payload for ~1200 contacts. /contacts/for-orders
+      // selects only the fields this table reads (36ms, 0.59MB).
       this.contacts = (
-        await service({ requiresAuth: true }).get(`contacts?_limit=-1`)
+        await service({ requiresAuth: true }).get(`contacts/for-orders`)
       ).data.map(c => ({
         ...c,
         display: `${c.trade_name || c.name} (${c.city || ''}) - ${c.id}`
@@ -1740,7 +1744,7 @@ export default {
 
       // Load socies contacts for collection points
       this.sociesContacts = (
-        await service({ requiresAuth: true }).get("contacts?_where[users_permissions_user_gt]=0&_limit=-1")
+        await service({ requiresAuth: true }).get("contacts/for-orders?socies=1")
       ).data;
 
       this.setStatusFilter({ ctrlKey: false, metaKey: false });
