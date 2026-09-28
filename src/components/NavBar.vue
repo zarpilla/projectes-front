@@ -50,6 +50,7 @@
 import { mapState } from 'vuex'
 import NavBarMenu from '@/components/NavBarMenu'
 import UserAvatar from '@/components/UserAvatar'
+import { logout } from '@/service/auth'
 
 export default {
   name: 'NavBar',
@@ -83,9 +84,8 @@ export default {
     menuNavBarToggle () {
       this.isMenuNavBarActive = !this.isMenuNavBarActive
     },
-    logout () {
-      localStorage.removeItem('user')
-      localStorage.removeItem('jwt')
+    async logout () {
+      await logout()
       this.$buefy.snackbar.open({
         message: 'Log out',
         queue: false

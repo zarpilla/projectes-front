@@ -69,6 +69,7 @@ import { mapState } from 'vuex'
 import AsideTools from '@/components/AsideTools'
 import AsideMenuList from '@/components/AsideMenuList'
 import UserAvatar from '@/components/UserAvatar'
+import { logout } from '@/service/auth'
 import service from "@/service/index";
 import getConfig from "@/config";
 
@@ -136,9 +137,8 @@ export default {
         console.error("Error fetching logos:", error);
       });
     },
-    logout () {
-      localStorage.removeItem('user')
-      localStorage.removeItem('jwt')
+    async logout () {
+      await logout()
       this.$buefy.snackbar.open({
         message: 'Log out',
         queue: false
