@@ -240,11 +240,15 @@ export default {
       this.importing = true;
 
       let hasError = false;
+      let response = null;
 
       await service({ requiresAuth: true })
         .post("orders/invoice", {
           orders: orders,
           project: this.projectId
+        })
+        .then(res => {
+          response = res;
         })
         .catch(error => {
           console.error(error);
@@ -263,6 +267,16 @@ export default {
         });
 
       if (!hasError) {
+        // The backend skips orders that are already invoiced (or still linked
+        // to an invoice) instead of duplicating their draft — say which ones.
+        const skipped = response && response.data && response.data.skipped;
+        if (skipped && skipped.length) {
+          this.$buefy.snackbar.open({
+            message: `${skipped.length} comanda${skipped.length > 1 ? "es" : ""} ja estaven facturades i s'han saltat`,
+            type: "is-warning",
+            duration: 5000
+          });
+        }
         this.$buefy.snackbar.open({
           message: "Comandes facturades correctament",
           type: "is-success"
@@ -273,8 +287,6 @@ export default {
 
       this.checkedRows = [];
       this.getData();
-
-      //console.log("response", response);
     },
     async projectSelected(project) {
       this.isLoading = true;
