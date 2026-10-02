@@ -28,6 +28,14 @@ ENV VUE_APP_RESET_PASSWORD=$VUE_APP_RESET_PASSWORD
 # Build the application
 RUN npm run build
 
+# Replace the generated Workbox service worker with a self-unregistering kill
+# switch. The precache worker shipped stale app shells after every redeploy:
+# the shell references content-hashed assets that no longer exist, so browsers
+# holding the old worker render a blank page. The kill switch is picked up on
+# the next navigation (nginx serves it no-cache), clears the stale caches and
+# unregisters itself; clients then always load from the network.
+RUN cp service-worker.kill.js dist/service-worker.js
+
 # Production stage
 FROM nginx:alpine AS production
 
