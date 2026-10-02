@@ -2110,7 +2110,7 @@ export default {
 
         const order = {
           id: 0,
-          route_date: new Date().toISOString().split("T")[0],
+          route_date: moment().format("YYYY-MM-DD"),
           estimated_delivery_date: record.estimated_delivery_date,
           contact_address: contact.address,
           contact_name: contact.name,

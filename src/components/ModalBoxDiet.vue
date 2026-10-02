@@ -116,6 +116,7 @@
 </template>
 
 <script>
+import moment from "moment";
 import service from "@/service/index";
 
 export default {
@@ -340,7 +341,9 @@ export default {
         
         if (dedications.data && dedications.data.length > 0) {
           // Find dedication that matches the selected date
-          const formattedDate = this.form.date.toISOString().split('T')[0]; // YYYY-MM-DD format
+          // Local day: toISOString() gives the UTC day, i.e. the previous day for a
+          // datepicker (local-midnight) date.
+          const formattedDate = moment(this.form.date).format('YYYY-MM-DD');
           console.log('Looking for dedication matching date:', formattedDate);
           
           const dedication = dedications.data.find(d => 

@@ -2502,7 +2502,7 @@ export default {
 
       //console.log("this.form", this.form);
       if (this.form.status === "delivered" && !this.form.delivery_date) {
-        this.form.delivery_date = new Date().toISOString().split("T")[0];
+        this.form.delivery_date = moment().format("YYYY-MM-DD");
       }
 
       try {
