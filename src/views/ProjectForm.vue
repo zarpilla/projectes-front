@@ -4083,21 +4083,31 @@ export default {
         console.error('=== END ERROR INFO ===');
         
         // console.error("projects error", err);
-        const oldProjectData = await service({ requiresAuth: true }).get(
-          `projects?name=${this.form.name}`
-        );
+        // This lookup must not throw: if it did, isLoading would never reset
+        // and the page would look stuck after a failed save.
+        let oldProjectData = null;
+        try {
+          oldProjectData = await service({ requiresAuth: true }).get(
+            `projects?name=${encodeURIComponent(this.form.name)}`
+          );
+        } catch (lookupErr) {
+          console.error("project name lookup failed", lookupErr);
+        }
+        const backendMessage = err.response?.data?.error?.message;
         if (
           oldProjectData &&
           oldProjectData.data &&
           oldProjectData.data.length
         ) {
           this.$buefy.snackbar.open({
-            message: "S'ha produït un error al guardar el projecte",
+            message: backendMessage
+              ? `S'ha produït un error al guardar el projecte: ${backendMessage}`
+              : "S'ha produït un error al guardar el projecte",
             queue: false
           });
         } else {
           this.$buefy.snackbar.open({
-            message: "Error",
+            message: backendMessage ? `Error: ${backendMessage}` : "Error",
             queue: false
           });
         }
