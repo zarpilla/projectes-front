@@ -610,8 +610,14 @@ export default {
         project: null,
         activity: null
       };
-      // Add the new period at the first position
-      this.activities.unshift(item);
+      // Keep the new period next to the clicked row instead of jumping to the
+      // top: an empty placeholder day (id 0) is replaced in place, otherwise
+      // the extra period goes right below the existing one.
+      if (activity.id === 0) {
+        this.activities.splice(index, 1, item);
+      } else {
+        this.activities.splice(index + 1, 0, item);
+      }
     },
     changeHourIn(activity, i) {
       const zeroPad = (num, places) => String(num).padStart(places, "0");
