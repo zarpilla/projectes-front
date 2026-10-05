@@ -112,7 +112,9 @@ export default {
     service({ requiresAuth: true, cached: true }).get('months?_sort=month:ASC').then((r) => {
       // console.log('r.data', r.data)
       this.months = [{ month: null, month_number: null, name: '-- Tots --' }, ...r.data]
-      this.filters.month = this.months.find(m => m.month_number === moment().format('MM'))
+      // Match on the integer `month` (what JornadaDiaria receives) rather than
+      // the zero-padded `month_number` string, which must match exactly.
+      this.filters.month = this.months.find(m => m.month !== null && Number(m.month) === moment().month() + 1)
     })
 
     service({ requiresAuth: true, cached: true }).get('users').then((r) => {
