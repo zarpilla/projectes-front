@@ -19,25 +19,21 @@ import App from './App.vue'
 import menu from "@/service/menu";
 
 /* Progress bar */
-import KProgress from 'k-progress'
-
-/* JSON 2 csv */
-import JsonCSV from 'vue-json-csv'
+import ProgressBar from '@/components/ProgressBar.vue'
 
 /* Calendar */
 import VCalendar from 'v-calendar'
 
-import JsonExcel from "vue-json-excel";
+/* Excel / CSV export */
+import DownloadExcel from '@/components/DownloadExcel.vue'
 
-Vue.component("downloadExcel", JsonExcel);
+Vue.component('downloadExcel', DownloadExcel)
 
 Vue.use(VCalendar, {
   componentPrefix: 'v'
 })
 
-Vue.component('downloadCsv', JsonCSV)
-
-Vue.component('kk-progress', KProgress)
+Vue.component('kk-progress', ProgressBar)
 
 
 

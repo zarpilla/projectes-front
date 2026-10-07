@@ -19,11 +19,11 @@
     "date-fns": "^2.21.1",
     "dayjs": "^1.10.4",
     "dhtmlx-gantt": "^10.0.0",
+    "downloadjs": "^1.4.7",
     "html2pdf.js": "^0.9.3",
     "html3pdf": "^0.12.2",
     "html5-qrcode": "^2.3.8",
     "jquery": "^3.6.0",
-    "k-progress": "^1.5.0",
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "node-ical": "^0.15.1",
@@ -33,10 +33,7 @@
     "vue": "^2.6.12",
     "vue-chartjs": "^3.5.1",
     "vue-currency-input": "^2.0.2",
-    "vue-json-csv": "^1.2.12",
-    "vue-json-excel": "^0.3.0",
     "vue-router": "^3.5.1",
-    "vue-top-progress": "^0.7.0",
     "vuex": "^3.6.2"
   },
   "devDependencies": {

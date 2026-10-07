@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vue-topprogress ref="topProgress"></vue-topprogress>
+    <top-progress ref="topProgress"></top-progress>
     <modal-box
       :is-active="isModalActive"
       :trash-object-name="trashObjectName"
@@ -59,13 +59,13 @@ import CardComponent from '@/components/CardComponent'
 import DedicationCircleChart from '@/components/DedicationCircleChart'
 import * as chartConfig from '@/components/Charts/chart.config'
 import ModalBoxDedication from '@/components/ModalBoxDedication'
-import { vueTopprogress } from 'vue-top-progress'
+import TopProgress from '@/components/TopProgress.vue'
 
 moment.locale('ca')
 
 export default {
   name: 'DedicationWidget',
-  components: { ModalBox, CardComponent, BarChart, DedicationCircleChart, ModalBoxDedication, vueTopprogress },
+  components: { ModalBox, CardComponent, BarChart, DedicationCircleChart, ModalBoxDedication, TopProgress },
   props: {
     user: {
       type: Number,
