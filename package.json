@@ -7,7 +7,8 @@
     "build": "npx update-browserslist-db@latest && cross-env NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build",
     "build:dev": "npx update-browserslist-db@latest && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "lintfix": "vue-cli-service lint --fix"
+    "lintfix": "vue-cli-service lint --fix",
+    "lint:vue3": "eslint --no-eslintrc -c .eslintrc.vue3.js --ext .js,.vue src"
   },
   "dependencies": {
     "axios": "^0.21.1",
