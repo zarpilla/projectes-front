@@ -1,5 +1,6 @@
 <template>
-  <div id="app">
+  <!-- Vue 3 mounts inside index.html's #app instead of replacing it -->
+  <div>
     <nav-bar v-if="userName" />
     <aside-menu v-if="userName" :menu="menuList" />
     <router-view />

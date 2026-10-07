@@ -1,3 +1,5 @@
+@use "sass:math";
+
 /* Theme overrides that Bulma 1 no longer takes as Sass variables */
 
 // Bulma 1 derives menu item colours from lightness tokens; restore the
@@ -19,10 +21,21 @@
 
 .modal-card-head {
   border-bottom: $modal-card-head-border-bottom;
+  box-shadow: none;
 }
 
 .modal-card-foot {
   border-top: $modal-card-foot-border-top;
+
+  .button:not(:last-child) {
+    margin-right: .5em;
+  }
+}
+
+// Buefy 3 also shows the corner close button on card modals (has-modal-card);
+// Buefy 0.9 didn't, they close with their own buttons, Escape or the backdrop
+.modal > .animation-content:not(.modal-content) ~ .modal-close {
+  display: none;
 }
 
 // Bulma 1 builds the text colour of coloured buttons from a lightness value and
@@ -57,4 +70,68 @@
 // the <th>, where the table can still shrink it
 .b-table .table th .th-wrap {
   width: auto !important;
+}
+
+// AsideMenu's `.collapse-toggle { background: transparent }` used to lose to
+// Bulma 0.9's `.button.is-primary`; Bulma 1 colours buttons through variables
+// on `.button`, so keep the toggle primary as users know it
+.aside .button.is-primary.collapse-toggle {
+  background-color: var(--bulma-primary);
+  color: $white;
+}
+
+// Bulma 1 removed the tile layout; Bulma 0.9's grid/tiles.sass, used by
+// <tiles> and the `tile is-child` cards
+$tile-spacing: 0.75rem;
+
+.tile {
+  align-items: stretch;
+  display: block;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: min-content;
+
+  &.is-ancestor {
+    margin-left: $tile-spacing * -1;
+    margin-right: $tile-spacing * -1;
+    margin-top: $tile-spacing * -1;
+
+    &:last-child {
+      margin-bottom: $tile-spacing * -1;
+    }
+
+    &:not(:last-child) {
+      margin-bottom: $tile-spacing;
+    }
+  }
+
+  &.is-child {
+    margin: 0 !important;
+  }
+
+  &.is-parent {
+    padding: $tile-spacing;
+  }
+
+  &.is-vertical {
+    flex-direction: column;
+
+    & > .tile.is-child:not(:last-child) {
+      margin-bottom: 1.5rem !important;
+    }
+  }
+
+  @include tablet {
+    &:not(.is-child) {
+      display: flex;
+    }
+
+    @for $i from 1 through 12 {
+      &.is-#{$i} {
+        flex: none;
+        width: math.percentage(math.div($i, 12));
+      }
+    }
+  }
 }

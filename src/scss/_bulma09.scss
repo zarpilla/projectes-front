@@ -42,6 +42,12 @@ $desktop: 1024px;
   }
 }
 
+@mixin tablet {
+  @media screen and (min-width: $tablet), print {
+    @content;
+  }
+}
+
 @mixin touch {
   @media screen and (max-width: $desktop - 1px) {
     @content;
