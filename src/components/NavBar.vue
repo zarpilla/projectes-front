@@ -33,13 +33,15 @@
             <span>{{ userName }}</span>
           </div>
 
-          <div slot="dropdown" class="navbar-dropdown">
-            <hr class="navbar-divider" />
-            <a class="navbar-item" @click="logout">
-              <b-icon icon="logout" custom-size="default"></b-icon>
-              <span>Sortir</span>
-            </a>
-          </div>
+          <template #dropdown>
+            <div class="navbar-dropdown">
+              <hr class="navbar-divider" />
+              <a class="navbar-item" @click="logout">
+                <b-icon icon="logout" custom-size="default"></b-icon>
+                <span>Sortir</span>
+              </a>
+            </div>
+          </template>
         </nav-bar-menu>
       </div>
     </div>

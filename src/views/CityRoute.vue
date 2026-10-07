@@ -13,7 +13,7 @@
         
         <b-table :data="cities" :sticky-header="true" :height="tableHeight" :striped="false">
           <b-table-column field="name" label="">
-            <template slot-scope="props">
+            <template v-slot="props">
               {{ props.row.name }}
             </template>
           </b-table-column>

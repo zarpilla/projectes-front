@@ -78,7 +78,7 @@
                       task.project.name
                     }}</span>                    
                     <span class="tag mr-1" v-if="task.due_date" :class="task.due_date < today ? 'is-danger' : 'is-warning'">{{
-                      task.due_date | formatDMYDate
+                      formatDMYDate(task.due_date)
                     }}                    
                     </span>
                     
@@ -498,32 +498,13 @@ export default {
         return "";
       }
       return val.length > 215 ? val.substring(0, 215) + ' ...' : val;
-    }
-  },
-  filters: {
-    formatDate(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).fromNow();
     },
     formatDMYDate(val) {
       if (!val) {
         return "-";
       }
       return moment(val).format("dddd DD/MM/YYYY");
-    },
-    formatTitle(val) {
-      if (!val) {
-        return "-";
-      }
-      return (
-        moment(val).format("dddd DD/MM/YYYY") +
-        " (" +
-        moment(val).fromNow() +
-        ")"
-      );
-    }    
+    }
   },
 };
 </script>

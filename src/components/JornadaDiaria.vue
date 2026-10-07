@@ -139,12 +139,12 @@
               <!-- <button class="button is-small is-danger mr-5" type="button" @click.prevent="hourout(a)" title="Entrada">
                 <b-icon icon="arrow-left" size="is-small" />
               </button>
-              {{ a.hour_out | formatHour }} -->
+              {{ formatHour(a.hour_out) }} -->
             </div>
             <div class="column">
-              {{ a | formatHourDiff }}
+              {{ formatHourDiff(a) }}
               <b
-                >({{ daily.find(d => d.date === a.date) | formatHourMonth }})</b
+                >({{ formatHourMonth(daily.find(d => d.date === a.date)) }})</b
               >
             </div>
             <div class="column">
@@ -179,8 +179,8 @@
           </div>
           <div class="columns" v-else>
             <div class="column">
-              <b>TOTAL {{ a.date | formatMonthName }}: </b>
-              {{ monthly.find(m => m.month === a.month) | formatHourMonth }}
+              <b>TOTAL {{ formatMonthName(a.date) }}: </b>
+              {{ formatHourMonth(monthly.find(m => m.month === a.month)) }}
             </div>
             <div class="column"></div>
             <div class="column"></div>
@@ -233,19 +233,19 @@
             >
               <td>
                 <span class="has-text-weight-bold" v-if="a._type === 'total'"
-                  >TOTAL {{ a.date | formatMonthName }}</span
+                  >TOTAL {{ formatMonthName(a.date) }}</span
                 >
                 <span v-else>{{ a.date }}</span>
               </td>
               <td>
                 <span class="has-text-weight-bold" v-if="a._type === 'total'">{{
-                  monthly.find(m => m.month === a.month) | formatHourMonth
+                  formatHourMonth(monthly.find(m => m.month === a.month))
                 }}</span>
                 <span v-else
                   >{{ a.hour_in_h }}:{{ a.hour_in_m }} - {{ a.hour_out_h }}:{{
                     a.hour_out_m
                   }}
-                  ({{ a | formatHourDiff }})</span
+                  ({{ formatHourDiff(a) }})</span
                 >
               </td>
             </tr>
@@ -876,26 +876,6 @@ export default {
       } catch (error) {
         this.updating = false;
       }
-    }
-  },
-  filters: {
-    formatHour(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val, "HH:mm:ss").format("HH:mm");
-    },
-    formatMonthName(dt) {
-      return moment(dt)
-        .format("MMMM")
-        .toUpperCase();
-    },
-    formatHourMonth(m) {
-      if (m && m.m) {
-        m.m = Math.abs(m.m);
-        return `${parseInt(m.m / 60)}h ${m.m - parseInt(m.m / 60) * 60}m`;
-      }
-      return "0h";
     },
     formatHourDiff(activity) {
       if (!activity.hour_in || !activity.hour_out) {
@@ -916,30 +896,19 @@ export default {
 
       return `${hours}h ${minutes - hours * 60}m`;
     },
-    formatDate(val) {
-      if (!val) {
-        return "-";
+    formatHourMonth(m) {
+      if (m && m.m) {
+        m.m = Math.abs(m.m);
+        return `${parseInt(m.m / 60)}h ${m.m - parseInt(m.m / 60) * 60}m`;
       }
-      return moment(val).fromNow();
+      return "0h";
     },
-    formatDMYDate(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).format("dddd DD/MM/YYYY");
-    },
-    formatTitle(val) {
-      if (!val) {
-        return "-";
-      }
-      return (
-        moment(val).format("dddd DD/MM/YYYY") +
-        " (" +
-        moment(val).fromNow() +
-        ")"
-      );
+    formatMonthName(dt) {
+      return moment(dt)
+        .format("MMMM")
+        .toUpperCase();
     }
-  }
+  },
 };
 </script>
 <style scoped>

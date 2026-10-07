@@ -98,22 +98,24 @@
         {{ props.row.project_state ? props.row.project_state.name : "" }}
       </b-table-column>
 
-      <section slot="empty" class="section">
-        <div class="content has-text-grey has-text-centered">
-          <template v-if="isLoading">
-            <p>
-              <b-icon icon="dots-horizontal" size="is-large" />
-            </p>
-            <p>Carregant dades...</p>
-          </template>
-          <template v-else>
-            <p>
-              <b-icon icon="emoticon-sad" size="is-large" />
-            </p>
-            <p>No hi ha dades per mostrar</p>
-          </template>
-        </div>
-      </section>
+      <template #empty>
+        <section class="section">
+          <div class="content has-text-grey has-text-centered">
+            <template v-if="isLoading">
+              <p>
+                <b-icon icon="dots-horizontal" size="is-large" />
+              </p>
+              <p>Carregant dades...</p>
+            </template>
+            <template v-else>
+              <p>
+                <b-icon icon="emoticon-sad" size="is-large" />
+              </p>
+              <p>No hi ha dades per mostrar</p>
+            </template>
+          </div>
+        </section>
+      </template>
     </b-table>
   </div>
 </template>
@@ -159,20 +161,6 @@ export default {
       return '';
     }
   },
-  filters: {
-    formatDateTime(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).format("DD/MM/YYYY HH:mm");
-    },
-    formatDate(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).format("DD/MM/YYYY");
-    }
-  }
 };
 </script>
 

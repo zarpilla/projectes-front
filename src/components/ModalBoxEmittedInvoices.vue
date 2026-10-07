@@ -22,7 +22,7 @@
             Sèrie de factura: {{ serie ? serie.name : "-" }}
           </p>
           <p class="zhas-text-weight-bold">
-            Data de la factura: {{ invoice.emitted | formatDMYDate }}
+            Data de la factura: {{ formatDMYDate(invoice.emitted) }}
           </p>
           <p class="zhas-text-weight-bold">
             Import base: {{ invoice.totalBase.toFixed(2) }} €
@@ -37,7 +37,7 @@
             Import total amb IVA i IRPF: {{ invoice.total.toFixed(2) }} €
           </p>
           <p class="zhas-text-weight-bold" v-if="invoice.paybefore">
-            Data de venciment: {{ invoice.paybefore | formatDMYDate }}
+            Data de venciment: {{ formatDMYDate(invoice.paybefore) }}
           </p>
           <p class="zhas-text-weight-bold" v-else>Data de venciment: -</p>
 
@@ -157,32 +157,13 @@ export default {
     },
     submit() {
       this.$emit("yes", this.form);
-    }
-  },
-  filters: {
-    formatDate(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).fromNow();
     },
     formatDMYDate(val) {
       if (!val) {
         return "-";
       }
       return moment(val).format("DD/MM/YYYY");
-    },
-    formatTitle(val) {
-      if (!val) {
-        return "-";
-      }
-      return (
-        moment(val).format("dddd DD/MM/YYYY") +
-        " (" +
-        moment(val).fromNow() +
-        ")"
-      );
     }
-  }
+  },
 };
 </script>

@@ -277,7 +277,7 @@
               @click="showModal(a)"
             >
               <span class="is-total" v-if="a.project.name === 'Total'">
-                {{ d.day | formatTitle }}
+                {{ formatTitle(d.day) }}
               </span>
               <span v-else>
                 {{ a.project && a.project.name ? a.project.name : "" }}
@@ -1562,19 +1562,6 @@ export default {
       this.isLoadingImport = false;
     }
   },
-  filters: {
-    formatDate(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).fromNow();
-    },
-    formatDMYDate(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).format("dddd DD/MM/YYYY");
-    },
     formatTitle(val) {
       if (!val) {
         return "-";
@@ -1586,8 +1573,7 @@ export default {
         ")"
       );
     }
-  }
-};
+  };
 </script>
 <style scoped>
 .separator {

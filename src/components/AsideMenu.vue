@@ -1,10 +1,12 @@
 <template>
   <aside v-show="isAsideVisible" class="aside is-placed-left" :class="{ 'is-expanded': !isCollapsed, 'is-collapsed': isCollapsed }">
     <aside-tools :is-main-menu="true">
-      <span slot="label">
-        <img v-if="!isCollapsed" class="main-logo" src="@/assets/esstrapis.svg" alt="ESSTRAPIS"  />
-        <img v-else class="main-logo-collapsed" src="@/assets/esstrapis-collapsed.svg" alt="ESSTRAPIS" title="ESSTRAPIS" />
-      </span>
+      <template #label>
+        <span>
+          <img v-if="!isCollapsed" class="main-logo" src="@/assets/esstrapis.svg" alt="ESSTRAPIS"  />
+          <img v-else class="main-logo-collapsed" src="@/assets/esstrapis-collapsed.svg" alt="ESSTRAPIS" title="ESSTRAPIS" />
+        </span>
+      </template>
       <button class="button is-primary is-small collapse-toggle" @click="toggleCollapse" :title="isCollapsed ? 'Expandir menú' : 'Contraure menú'">
         <b-icon :icon="isCollapsed ? 'chevron-right' : 'chevron-left'" custom-size="default" />
       </button>

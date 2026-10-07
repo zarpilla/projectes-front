@@ -36,13 +36,13 @@
                           {{ quote.code }}<br />
                           {{ texts[locale]["Data"] }}:
                           {{
-                            quote.emitted
+                            formatDMYDate(quote.emitted
                               ? quote.emitted
-                              : quote.updated_at | formatDMYDate
+                              : quote.updated_at)
                           }}<br />
                           <div v-if="quote.paybefore">
                             {{ texts[locale]["Venciment:"] }}
-                            {{ quote.paybefore | formatDMYDate }}
+                            {{ formatDMYDate(quote.paybefore) }}
                           </div>
                           <div
                             v-if="
@@ -52,7 +52,7 @@
                             "
                           >
                             {{ texts[locale]["Pagada:"] }}
-                            {{ quote.paid_date | formatDMYDate }}
+                            {{ formatDMYDate(quote.paid_date) }}
                           </div>
                         </td>
                       </tr>
@@ -165,7 +165,7 @@
                         v-bind:key="line.id"
                         :class="{ last: i == line.length }"
                       >
-                        <td v-if="showDate">{{ line.date | formatDMYDate }}</td>
+                        <td v-if="showDate">{{ formatDMYDate(line.date) }}</td>
                         <td class="has-text-left">
                           {{ line.concept }}
                           <div v-if="line.comments" class="comments">
@@ -178,32 +178,29 @@
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
                         <td v-if="showQuantity || showVat">
-                          {{ line.base | formatCurrency }}€
+                          {{ formatCurrency(line.base) }}€
                         </td>
                         <td>
-                          {{ (line.quantity * line.base) | formatCurrency }}€
+                          {{ formatCurrency((line.quantity * line.base)) }}€
                         </td>
                         <td v-if="showIrpf">
                           {{
-                            ((-1 * line.quantity * line.base * line.irpf) /
-                              100)
-                              | formatCurrency
+                            formatCurrency(((-1 * line.quantity * line.base * line.irpf) /
+                              100))
                           }}
                           ({{ line.irpf }}%)
                         </td>
                         <td v-if="showVat">
                           {{
-                            ((line.quantity * line.base * line.vat) / 100)
-                              | formatCurrency
+                            formatCurrency(((line.quantity * line.base * line.vat) / 100))
                           }}
                           ({{ line.vat }}%)
                         </td>
                         <td>
                           {{
-                            (line.quantity * line.base -
+                            formatCurrency((line.quantity * line.base -
                               (line.quantity * line.base * line.irpf) / 100 +
-                              (line.quantity * line.base * line.vat) / 100)
-                              | formatCurrency
+                              (line.quantity * line.base * line.vat) / 100))
                           }}€
                         </td>
                       </tr>
@@ -211,19 +208,19 @@
                         <td :colspan="6">
                           <div>
                             {{ texts[locale]["Base imposable"] }}:
-                            {{ quote.total_base | formatCurrency }}€
+                            {{ formatCurrency(quote.total_base) }}€
                           </div>
                           <div v-if="quote.total_vat">
                             {{ texts[locale]["IVA"] }}:
-                            {{ quote.total_vat | formatCurrency }}€
+                            {{ formatCurrency(quote.total_vat) }}€
                           </div>
                           <div v-if="quote.total_irpf">
                             {{ texts[locale]["IRPF"] }}:
-                            {{ (-1 * quote.total_irpf) | formatCurrency }}€
+                            {{ formatCurrency((-1 * quote.total_irpf)) }}€
                           </div>
                           <div class="total-val">
                             {{ texts[locale]["Total"] }}:
-                            {{ quote.total | formatCurrency }}€
+                            {{ formatCurrency(quote.total) }}€
                           </div>
                         </td>
                       </tr>
@@ -555,9 +552,7 @@ export default {
       xhr.open("GET", url);
       xhr.responseType = "blob";
       xhr.send();
-    }
-  },
-  filters: {
+    },
     formatDMYDate(val) {
       if (!val) {
         return "-";
@@ -574,7 +569,7 @@ export default {
         .replace(/\./g, ",")
         .replace(/;/g, ".");
     }
-  }
+  },
 };
 </script>
 <style scoped>

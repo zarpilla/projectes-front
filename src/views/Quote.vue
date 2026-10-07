@@ -25,7 +25,7 @@
                           <span v-if="quote.proforma">{{ texts[locale]['Factura proforma'] }}</span>
                           <span v-else>{{ texts[locale]['Pressupost'] }} </span>
                           {{ quote.code }}<br />
-                          {{ texts[locale]['Data:'] }} {{ quote.date ? quote.date : quote.updated_at | formatDMYDate }}<br />
+                          {{ texts[locale]['Data:'] }} {{ formatDMYDate(quote.date ? quote.date : quote.updated_at) }}<br />
                         </td>
                       </tr>
                     </table>
@@ -75,15 +75,15 @@
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
                         <td v-if="showQuantity || showVat">{{ line.base }}€</td>
-                        <td v-if="showVat">{{ line.quantity * line.base * line.vat / 100 | formatCurrency }}€ ({{ line.vat }}%)</td>
-                        <td>{{ line.quantity * line.base * (1+ line.vat / 100) | formatCurrency }}€</td>
+                        <td v-if="showVat">{{ formatCurrency(line.quantity * line.base * line.vat / 100) }}€ ({{ line.vat }}%)</td>
+                        <td>{{ formatCurrency(line.quantity * line.base * (1+ line.vat / 100)) }}€</td>
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
-                          <div class="zmt-3" v-if="showVat">{{ texts[locale]['Total (sense IVA):'] }} {{ quote.total_base | formatCurrency }}€</div>
-                          <div v-if="showVat">{{ texts[locale]['IVA'] }}: {{ quote.total_vat | formatCurrency}}€</div>
+                          <div class="zmt-3" v-if="showVat">{{ texts[locale]['Total (sense IVA):'] }} {{ formatCurrency(quote.total_base) }}€</div>
+                          <div v-if="showVat">{{ texts[locale]['IVA'] }}: {{ formatCurrency(quote.total_vat)}}€</div>
                           <div class="mt-3">
-                          {{ texts[locale]['Total'] }}: {{ quote.total | formatCurrency}}€
+                          {{ texts[locale]['Total'] }}: {{ formatCurrency(quote.total)}}€
                           </div>
                         </td>
                       </tr>
@@ -269,9 +269,7 @@ export default {
       xhr.open('GET', url)
       xhr.responseType = 'blob'
       xhr.send()
-    }
-  },
-  filters: {
+    },
     formatDMYDate (val) {
       if (!val) { return '-' }
       return moment(val).format('DD/MM/YYYY')
@@ -280,7 +278,7 @@ export default {
       if (!val) { return '-' }
       return val.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&;').replace(/\./g, ',').replace(/;/g, '.')
     }
-  }
+  },
 }
 </script>
 <style scoped>

@@ -145,8 +145,8 @@
           v-slot="props"
           date
         >
-          <span :title="props.row.updated_at | formatDateTime">{{
-            props.row.updated_at | formatDate
+          <span :title="formatDateTime(props.row.updated_at)">{{
+            formatDate(props.row.updated_at)
           }}</span>
         </b-table-column>
       </template>
@@ -273,7 +273,7 @@
             />
           </template>
           <template v-else>
-            {{ props.row.date_start | formatDate }}
+            {{ formatDate(props.row.date_start) }}
           </template>
         </b-table-column>
 
@@ -290,7 +290,7 @@
             />
           </template>
           <template v-else>
-            {{ props.row.date_end | formatDate }}
+            {{ formatDate(props.row.date_end) }}
           </template>
         </b-table-column>
 
@@ -378,22 +378,24 @@
         </div>
       </b-table-column>
 
-      <section slot="empty" class="section">
-        <div class="content has-text-grey has-text-centered">
-          <template v-if="isLoading">
-            <p>
-              <b-icon icon="dots-horizontal" size="is-large" />
-            </p>
-            <p>Fetching data...</p>
-          </template>
-          <template v-else>
-            <p>
-              <b-icon icon="emoticon-sad" size="is-large" />
-            </p>
-            <p>Nothing's here&hellip;</p>
-          </template>
-        </div>
-      </section>
+      <template #empty>
+        <section class="section">
+          <div class="content has-text-grey has-text-centered">
+            <template v-if="isLoading">
+              <p>
+                <b-icon icon="dots-horizontal" size="is-large" />
+              </p>
+              <p>Fetching data...</p>
+            </template>
+            <template v-else>
+              <p>
+                <b-icon icon="emoticon-sad" size="is-large" />
+              </p>
+              <p>Nothing's here&hellip;</p>
+            </template>
+          </div>
+        </section>
+      </template>
     </b-table>
   </div>
 </template>
@@ -670,9 +672,7 @@ export default {
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-  },
-  filters: {
+    },
     formatDateTime(val) {
       if (!val) {
         return "-";
@@ -685,7 +685,7 @@ export default {
       }
       return moment(val).format("DD/MM/YYYY");
     }
-  }
+  },
 };
 </script>
 <style scoped>

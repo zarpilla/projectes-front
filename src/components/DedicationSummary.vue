@@ -58,7 +58,7 @@
         </div>
         <div v-for="item in personalDaysList" :key="item.date" class="card-body">
           <div class="columns">
-            <div class="column">{{ item.date | formatDMYDate }}</div>
+            <div class="column">{{ formatDMYDate(item.date) }}</div>
             <div class="column">{{ item.type }}</div>
           </div>
         </div>
@@ -363,33 +363,14 @@ export default {
         dates.push(currDate.clone().toDate());
       }
       return dates;
-    }
-  },
-  filters: {
-    formatDate(val) {
-      if (!val) {
-        return "-";
-      }
-      return moment(val).fromNow();
     },
     formatDMYDate(val) {
       if (!val) {
         return "-";
       }
       return moment(val).format("dddd DD/MM/YYYY");
-    },
-    formatTitle(val) {
-      if (!val) {
-        return "-";
-      }
-      return (
-        moment(val).format("dddd DD/MM/YYYY") +
-        " (" +
-        moment(val).fromNow() +
-        ")"
-      );
     }
-  }
+  },
 };
 </script>
 <style scoped>

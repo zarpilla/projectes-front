@@ -122,7 +122,7 @@
               @select="projectSelected"
               :clearable="true"
             >
-              <template slot="empty">Cap projecte trobat</template>
+              <template #empty>Cap projecte trobat</template>
             </b-autocomplete>
           </b-field>
         </div>

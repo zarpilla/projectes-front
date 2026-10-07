@@ -35,7 +35,7 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.estimated_delivery_date | formatDate }}
+        {{ props.row.estimated_delivery_date }}
       </b-table-column>
 
       <b-table-column label="Línia" v-slot="props">
@@ -81,22 +81,24 @@
         </div>
       </b-table-column>
 
-      <section slot="empty" class="section">
-        <div class="content has-text-grey has-text-centered">
-          <template v-if="isLoading">
-            <p>
-              <b-icon icon="dots-horizontal" size="is-large" />
-            </p>
-            <p>Carregant dades...</p>
-          </template>
-          <template v-else>
-            <p>
-              <b-icon icon="emoticon-sad" size="is-large" />
-            </p>
-            <p>No hi ha comandes de punt de consum pendents</p>
-          </template>
-        </div>
-      </section>
+      <template #empty>
+        <section class="section">
+          <div class="content has-text-grey has-text-centered">
+            <template v-if="isLoading">
+              <p>
+                <b-icon icon="dots-horizontal" size="is-large" />
+              </p>
+              <p>Carregant dades...</p>
+            </template>
+            <template v-else>
+              <p>
+                <b-icon icon="emoticon-sad" size="is-large" />
+              </p>
+              <p>No hi ha comandes de punt de consum pendents</p>
+            </template>
+          </div>
+        </section>
+      </template>
     </b-table>
   </div>
 </template>

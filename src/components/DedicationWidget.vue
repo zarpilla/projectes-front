@@ -301,20 +301,6 @@ export default {
       this.isModalEditActive = false
     }
   },
-  filters: {
-    formatDate (val) {
-      if (!val) { return '-' }
-      return moment(val).fromNow()
-    },
-    formatDMYDate (val) {
-      if (!val) { return '-' }
-      return moment(val).format('dddd DD/MM/YYYY')
-    },
-    formatTitle (val) {
-      if (!val) { return '-' }
-      return moment(val).format('dddd DD/MM/YYYY') + ' (' + moment(val).fromNow() + ')'
-    }
-  }
 }
 </script>
 <style>

@@ -23,12 +23,12 @@
         <div v-if="!isLoading" class="mt-4">
           <b-table :data="contactCitiesNotFoundInCities">
               <b-table-column field="name" label="Població" width="10%">
-                <template slot-scope="props">
+                <template v-slot="props">
                   {{ props.row.name }}
                 </template>
               </b-table-column>
               <b-table-column field="name" label="Afegeix població" width="20%">
-                <template slot-scope="props">
+                <template v-slot="props">
                   <button class="button is-primary" @click="addCityName(props.row.name)" title="Afegeix població">
                     <b-icon icon="plus"></b-icon>
                   </button>
