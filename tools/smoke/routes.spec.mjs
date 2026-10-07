@@ -69,8 +69,9 @@ const knownFile = path.join(here, 'baseline', 'known-errors.json')
 const readJson = (file, fallback) => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : fallback
 const known = readJson(knownFile, {})
 
-// a failing test restarts the worker (and the login), so results are appended per route
-const reportFile = path.join(here, 'results', `console-${process.env.SMOKE_LABEL || 'run'}.json`)
+// a failing test restarts the worker (and the login), so results are appended per
+// route; kept outside results/, which Playwright empties on every run
+const reportFile = path.join(here, 'reports', `console-${process.env.SMOKE_LABEL || 'run'}.json`)
 function record (route, entry) {
   fs.mkdirSync(path.dirname(reportFile), { recursive: true })
   const report = readJson(reportFile, { unresolved, visited: {} })
