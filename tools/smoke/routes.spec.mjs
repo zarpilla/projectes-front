@@ -125,6 +125,10 @@ test.describe('routes', () => {
         await page.waitForLoadState('networkidle').catch(() => {})
         // let mounted() hooks finish their follow-up requests and renders
         await page.waitForTimeout(1500)
+        // pages keep a b-loading overlay up while their data streams in
+        await page.waitForFunction(() => !document.querySelector('.loading-overlay.is-active'), null, { timeout: 30_000 })
+          .catch(() => {})
+        await page.waitForLoadState('networkidle').catch(() => {})
 
         // the router guard silently redirects when a permission is missing
         const landed = await page.evaluate(() => location.hash.replace(/^#/, ''))
