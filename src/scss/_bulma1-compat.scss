@@ -137,6 +137,11 @@ $tile-spacing: 0.75rem;
 }
 
 // Bulma 0.9 pagination metrics (Bulma 1 widened the links and dropped the margin)
+.pagination {
+  // cancels the links' margin vertically too, as Bulma 0.9 did
+  margin: -.25rem;
+}
+
 .pagination-ellipsis,
 .pagination-link,
 .pagination-next,
