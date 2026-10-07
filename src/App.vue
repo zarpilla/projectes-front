@@ -13,7 +13,6 @@
 import NavBar from "@/components/NavBar";
 import AsideMenu from "@/components/AsideMenu";
 import FooterBar from "@/components/FooterBar";
-import update from "@/mixins/update";
 import { mapState } from "vuex";
 import service from "@/service/index";
 import menu from "@/service/menu";
@@ -21,7 +20,6 @@ import ModalBoxInvoice from "@/components/ModalBoxInvoice";
 
 export default {
   name: "Home",
-  mixins: [update],
   components: {
     NavBar,
     AsideMenu,

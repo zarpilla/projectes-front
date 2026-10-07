@@ -105,7 +105,7 @@
 
 <script>
 import service from "@/service/index";
-import { parse } from "csv-parse";
+import { parse } from "csv-parse/browser/esm";
 import { mapState } from "vuex";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";

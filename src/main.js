@@ -9,9 +9,6 @@ import Buefy from 'buefy'
 import router from './router'
 import store from './store'
 
-/* Service Worker */
-import './registerServiceWorker'
-
 /* Vue. Main component */
 import App from './App.vue'
 

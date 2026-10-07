@@ -352,7 +352,6 @@ import ModalBoxDedication from "@/components/ModalBoxDedication";
 import ModalBoxFestive from "@/components/ModalBoxFestive";
 import ModalBoxMoveProject from "@/components/ModalBoxMoveProject";
 import { mapState } from "vuex";
-import ical from "node-ical";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
