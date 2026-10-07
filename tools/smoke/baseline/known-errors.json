@@ -6,5 +6,26 @@
   "/incidences-stats": [
     "TypeError: Cannot read properties of null (reading 'id')",
     "Object"
+  ],
+  "/project/30": [
+    "TypeError: Cannot read properties of undefined (reading 'filter')"
+  ],
+  "/document/0/emitted-invoices": [
+    "TypeError: Cannot read properties of undefined (reading 'map')"
+  ],
+  "/document/883/emitted-invoices": [
+    "TypeError: Cannot read properties of undefined (reading 'map')"
+  ],
+  "/document/320/received-invoices": [
+    "TypeError: Cannot read properties of undefined (reading 'map')"
+  ],
+  "/document/10/received-expenses": [
+    "TypeError: Cannot read properties of undefined (reading 'map')"
+  ],
+  "/invoice/10/received-expenses": [
+    "TypeError: Cannot read properties of undefined (reading 'name')"
+  ],
+  "/transfers": [
+    "TypeError: Cannot read properties of null (reading 'name')"
   ]
 }

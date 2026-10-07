@@ -151,7 +151,11 @@ test.describe('routes', () => {
 
         if (RECORD_KNOWN) {
           const all = readJson(knownFile, {})
-          if (pageErrors.length) all[route] = [...new Set(pageErrors.map(firstLine))]
+          // Vue 2 caught render errors and only logged them; Vue 3 (dev) lets them
+          // surface as uncaught, so logged errors count as already known too
+          const logged = consoleErrors.map(firstLine).filter(l => /Error/.test(l) && !l.startsWith('Failed to load resource'))
+          const seen = [...new Set([...pageErrors.map(firstLine), ...logged])]
+          if (seen.length) all[route] = seen
           else delete all[route]
           fs.mkdirSync(path.dirname(knownFile), { recursive: true })
           fs.writeFileSync(knownFile, JSON.stringify(all, null, 2) + '\n')
