@@ -135,3 +135,20 @@ $tile-spacing: 0.75rem;
     }
   }
 }
+
+// Bulma 0.9 pagination metrics (Bulma 1 widened the links and dropped the margin)
+.pagination-ellipsis,
+.pagination-link,
+.pagination-next,
+.pagination-previous {
+  margin: .25rem;
+  padding-left: .5em;
+  padding-right: .5em;
+}
+
+// Buefy 0.9 tightened the arrow buttons
+.pagination .pagination-next,
+.pagination .pagination-previous {
+  padding-left: .25em;
+  padding-right: .25em;
+}
