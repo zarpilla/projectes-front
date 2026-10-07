@@ -490,11 +490,12 @@
 
 <script>
 import dayjs from "dayjs";
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-import ModalBoxIncidence from "@/components/ModalBoxIncidence";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import service from "@/service/index";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import { hr } from "date-fns/locale";
 
 export default {
@@ -520,7 +521,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),
+    ...mapState(useMainStore, ["me"]),
     titleStack() {
       return ["Comandes", this.formCardTitle];
     },

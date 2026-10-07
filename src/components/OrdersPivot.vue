@@ -76,7 +76,8 @@ import moment from 'moment'
 import configPivot from '@/service/configStatsOrder'
 import sortBy from 'lodash/sortBy'
 import { format } from '@/helpers/excelFormatter'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 import PivotViews from '@/components/PivotViews.vue'
 import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
 
@@ -105,7 +106,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["userName", "user"]),
+    ...mapState(useMainStore, ["userName", "user"]),
   },
   watch: {
     year: function (newVal, oldVal) {

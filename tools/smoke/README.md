@@ -42,5 +42,8 @@ Give each checkout its own `node_modules`. The old one needs
 | `npm test` | Same checks without the screenshot comparison. |
 | `SMOKE_STRICT=1 npm test` | Also fails on any Vue warning or console error. |
 
+Set `SMOKE_BASELINE_DIR=baseline-vue3` (for example) to record and compare against
+a second baseline without touching `baseline/`.
+
 The per-route report (errors, Vue warnings, console errors, where each route
 landed) is written to `reports/console-<label>.json`; `SMOKE_LABEL` names it.

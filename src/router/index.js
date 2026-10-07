@@ -20,7 +20,7 @@ const routes = [
     path: "/forgotten-password",
     name: "forgotten.password",
     component: () =>
-      import(/* webpackChunkName: "login" */ "../views/ForgottenPassword.vue")
+      import("../views/ForgottenPassword.vue")
   },
   {
     meta: {
@@ -29,7 +29,7 @@ const routes = [
     path: "/reset-password",
     name: "reset.password",
     component: () =>
-      import(/* webpackChunkName: "login" */ "../views/ResetPassword.vue")
+      import("../views/ResetPassword.vue")
   },
   {
     meta: {
@@ -38,7 +38,7 @@ const routes = [
     path: "/projectes",
     name: "projectes.view",
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/Home.vue"),
+      import("../views/Home.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -54,7 +54,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/StatsProjectes.vue"),
+      import("../views/StatsProjectes.vue"),
     meta: {
       requiresAuth: true
     }
@@ -66,7 +66,7 @@ const routes = [
     path: "/mother-projects",
     name: "mother.projects",
     component: () =>
-      import(/* webpackChunkName: "projects" */ "../views/MotherProjectsList.vue"),
+      import("../views/MotherProjectsList.vue"),
     meta: {
       requiresAuth: true
     }
@@ -81,7 +81,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/StatsDedicacio.vue"),
+      import("../views/StatsDedicacio.vue"),
     meta: {
       requiresAuth: true
     }
@@ -97,7 +97,7 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import(
-        /* webpackChunkName: "stats" */ "../views/StatsEconomicDetail.vue"
+        "../views/StatsEconomicDetail.vue"
       ),
     meta: {
       requiresAuth: true
@@ -110,7 +110,7 @@ const routes = [
     path: "/price-hour",
     name: "stats.price-hour",
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/PricePerHour.vue"),
+      import("../views/PricePerHour.vue"),
     meta: {
       requiresAuth: true
     }
@@ -125,7 +125,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/StatsExpenses.vue"),
+      import("../views/StatsExpenses.vue"),
     meta: {
       requiresAuth: true
     }
@@ -140,7 +140,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/StatsDedicacioEst.vue"),
+      import("../views/StatsDedicacioEst.vue"),
     meta: {
       requiresAuth: true
     }
@@ -156,7 +156,7 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import(
-        /* webpackChunkName: "stats" */ "../views/StatsDedicacioGantt.vue"
+        "../views/StatsDedicacioGantt.vue"
       ),
     meta: {
       requiresAuth: true
@@ -173,7 +173,7 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import(
-        /* webpackChunkName: "stats" */ "../views/StatsRealDedicacioGantt.vue"
+        "../views/StatsRealDedicacioGantt.vue"
       ),
     meta: {
       requiresAuth: true
@@ -190,7 +190,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/StatsEstrategies.vue"),
+      import("../views/StatsEstrategies.vue"),
     meta: {
       requiresAuth: true
     }
@@ -205,7 +205,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "stats" */ "../views/StatsIntercoop.vue"),
+      import("../views/StatsIntercoop.vue"),
     meta: {
       requiresAuth: true
     }
@@ -217,7 +217,7 @@ const routes = [
     path: "/project/:id",
     name: "project.edit",
     component: () =>
-      import(/* webpackChunkName: "project-form" */ "../views/ProjectForm.vue"),
+      import("../views/ProjectForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -231,7 +231,7 @@ const routes = [
     name: "document.edit",
     component: () =>
       import(
-        /* webpackChunkName: "document-form" */ "../views/EmittedInvoiceForm.vue"
+        "../views/EmittedInvoiceForm.vue"
       ),
     props: true,
     meta: {
@@ -248,7 +248,7 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "tables" */ "../views/Tables.vue"),
+      import("../views/Tables.vue"),
     meta: {
       requiresAuth: true
     }
@@ -260,7 +260,7 @@ const routes = [
     path: "/forms",
     name: "forms",
     component: () =>
-      import(/* webpackChunkName: "forms" */ "../views/Forms.vue"),
+      import("../views/Forms.vue"),
     meta: {
       requiresAuth: true
     }
@@ -272,7 +272,7 @@ const routes = [
     path: "/profile",
     name: "profile",
     component: () =>
-      import(/* webpackChunkName: "profile" */ "../views/Profile.vue"),
+      import("../views/Profile.vue"),
     meta: {
       requiresAuth: true
     }
@@ -284,7 +284,7 @@ const routes = [
     path: "/client/new",
     name: "client.new",
     component: () =>
-      import(/* webpackChunkName: "client-form" */ "../views/ClientForm.vue"),
+      import("../views/ClientForm.vue"),
     meta: {
       requiresAuth: true
     }
@@ -296,7 +296,7 @@ const routes = [
     path: "/client/:id",
     name: "client.edit",
     component: () =>
-      import(/* webpackChunkName: "client-form" */ "../views/ClientForm.vue"),
+      import("../views/ClientForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -309,7 +309,7 @@ const routes = [
     path: "/dedicacio",
     name: "dedicacio",
     component: () =>
-      import(/* webpackChunkName: "dedicacio" */ "../views/Dedicacio.vue"),
+      import("../views/Dedicacio.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -323,7 +323,7 @@ const routes = [
     name: "dedicacio-charts",
     component: () =>
       import(
-        /* webpackChunkName: "dedicacio" */ "../views/DedicacioCharts.vue"
+        "../views/DedicacioCharts.vue"
       ),
     props: true,
     meta: {
@@ -337,7 +337,7 @@ const routes = [
     path: "/dedicacio-saldo",
     name: "dedicacio-saldo",
     component: () =>
-      import(/* webpackChunkName: "dedicacio" */ "../views/DedicacioSaldo.vue"),
+      import("../views/DedicacioSaldo.vue"),
     meta: {
       requiresAuth: true
     }
@@ -349,7 +349,7 @@ const routes = [
     path: "/registre-jornades",
     name: "jornada",
     component: () =>
-      import(/* webpackChunkName: "dedicacio" */ "../views/Jornada.vue"),
+      import("../views/Jornada.vue"),
     meta: {
       requiresAuth: true
     }
@@ -362,7 +362,7 @@ const routes = [
     name: "dedicacio-summary",
     component: () =>
       import(
-        /* webpackChunkName: "dedicacio" */ "../views/DedicacioSummary.vue"
+        "../views/DedicacioSummary.vue"
       ),
     meta: {
       requiresAuth: true
@@ -376,7 +376,7 @@ const routes = [
     name: "dedicacio-working-day",
     component: () =>
       import(
-        /* webpackChunkName: "dedicacio" */ "../views/DedicacioWorkingDay.vue"
+        "../views/DedicacioWorkingDay.vue"
       ),
     meta: {
       requiresAuth: true
@@ -390,7 +390,7 @@ const routes = [
     name: "dedicacio-salary",
     component: () =>
       import(
-        /* webpackChunkName: "dedicacio" */ "../views/DedicacioSalary.vue"
+        "../views/DedicacioSalary.vue"
       ),
     meta: {
       requiresAuth: true
@@ -403,7 +403,7 @@ const routes = [
     path: "/justifications",
     name: "justifications",
     component: () =>
-      import(/* webpackChunkName: "dedicacio" */ "../views/Justifications.vue"),
+      import("../views/Justifications.vue"),
     meta: {
       requiresAuth: true
     }
@@ -415,7 +415,7 @@ const routes = [
     path: "/grants",
     name: "subvencions",
     component: () =>
-      import(/* webpackChunkName: "dedicacio" */ "../views/Grants.vue"),
+      import("../views/Grants.vue"),
     meta: {
       requiresAuth: true
     }
@@ -427,7 +427,7 @@ const routes = [
     path: "/quote/:id",
     name: "quote.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Quote.vue"),
+      import("../views/Quote.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -440,7 +440,7 @@ const routes = [
     path: "/invoice/:id/:type",
     name: "invoice.old.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Invoice.vue"),
+      import("../views/Invoice.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -453,7 +453,7 @@ const routes = [
     path: "/pdf/:id/:type",
     name: "invoice.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Invoice.vue"),
+      import("../views/Invoice.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -466,7 +466,7 @@ const routes = [
     path: "/tresoreria",
     name: "tresoreria.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Tresoreria.vue"),
+      import("../views/Tresoreria.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -479,7 +479,7 @@ const routes = [
     path: "/vat",
     name: "vat.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Vat.vue"),
+      import("../views/Vat.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -492,7 +492,7 @@ const routes = [
     path: "/emitted-invoices",
     name: "emitted.invoices.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/EmittedInvoices.vue"),
+      import("../views/EmittedInvoices.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -505,7 +505,7 @@ const routes = [
     path: "/received-invoices",
     name: "received.invoices.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/ReceivedInvoices.vue"),
+      import("../views/ReceivedInvoices.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -518,7 +518,7 @@ const routes = [
     path: "/quotes",
     name: "quotes.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Quotes.vue"),
+      import("../views/Quotes.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -531,7 +531,7 @@ const routes = [
     path: "/forecast",
     name: "forecast.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Forecast.vue"),
+      import("../views/Forecast.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -544,7 +544,7 @@ const routes = [
     path: "/contacts",
     name: "contacts.view",
     component: () =>
-      import(/* webpackChunkName: "contact" */ "../views/Contacts.vue"),
+      import("../views/Contacts.vue"),
     props: true,
     meta: {
       requiresAuth: true,
@@ -558,7 +558,7 @@ const routes = [
     path: "/user-contacts",
     name: "user-contacts.view",
     component: () =>
-      import(/* webpackChunkName: "contact" */ "../views/ContactsUser.vue"),
+      import("../views/ContactsUser.vue"),
     props: true,
     meta: {
       requiresAuth: true,
@@ -572,7 +572,7 @@ const routes = [
     path: "/orders",
     name: "orders.view",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/Orders.vue"),
+      import("../views/Orders.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -585,7 +585,7 @@ const routes = [
     path: "/orders-invoice",
     name: "orders-invoice.view",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/OrdersInvoice.vue"),
+      import("../views/OrdersInvoice.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -598,7 +598,7 @@ const routes = [
     path: "/order/view/:id",
     name: "orders.view.detail",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/OrderView.vue"),
+      import("../views/OrderView.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -611,7 +611,7 @@ const routes = [
     path: "/order/:id",
     name: "orders.edit",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/OrderForm.vue"),
+      import("../views/OrderForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -624,7 +624,7 @@ const routes = [
     path: "/city-route",
     name: "cityroute.edit",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/CityRoute.vue"),
+      import("../views/CityRoute.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -637,7 +637,7 @@ const routes = [
     path: "/city-route-delivery",
     name: "cityroutedelivery.edit",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/CityRouteDelivery.vue"),
+      import("../views/CityRouteDelivery.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -650,7 +650,7 @@ const routes = [
     path: "/route-days",
     name: "routedays.edit",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/RouteDays.vue"),
+      import("../views/RouteDays.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -663,7 +663,7 @@ const routes = [
     path: "/pickup-points",
     name: "pickup-points.edit",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/PickupPointsOrders.vue"),
+      import("../views/PickupPointsOrders.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -677,7 +677,7 @@ const routes = [
     path: "/orders-stats",
     name: "orders.stats",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/StatsOrders.vue"),
+      import("../views/StatsOrders.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -690,7 +690,7 @@ const routes = [
     path: "/incidences-stats",
     name: "incidences.stats",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/StatsIncidences.vue"),
+      import("../views/StatsIncidences.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -704,7 +704,7 @@ const routes = [
     name: "provider.invoices",
     component: () =>
       import(
-        /* webpackChunkName: "orders" */ "../views/EmittedInvoicesProvider.vue"
+        "../views/EmittedInvoicesProvider.vue"
       ),
     props: true,
     meta: {
@@ -718,7 +718,7 @@ const routes = [
     path: "/contact-us",
     name: "contact-us",
     component: () =>
-      import(/* webpackChunkName: "orders" */ "../views/ContactUs.vue"),
+      import("../views/ContactUs.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -731,7 +731,7 @@ const routes = [
     path: "/contact/:id",
     name: "contacts.edit",
     component: () =>
-      import(/* webpackChunkName: "contact" */ "../views/ContactForm.vue"),
+      import("../views/ContactForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -744,7 +744,7 @@ const routes = [
     path: "/contact-user/:id",
     name: "contactsuser.edit",
     component: () =>
-      import(/* webpackChunkName: "contact" */ "../views/ContactUserForm.vue"),
+      import("../views/ContactUserForm.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -757,7 +757,7 @@ const routes = [
     path: "/documentacio",
     name: "documentation.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Documentation.vue"),
+      import("../views/Documentation.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -770,7 +770,7 @@ const routes = [
     path: "/tasks",
     name: "tasks.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/TasksView.vue"),
+      import("../views/TasksView.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -783,7 +783,7 @@ const routes = [
     path: "/recalculate",
     name: "projects.recalculate",
     component: () =>
-      import(/* webpackChunkName: "project" */ "../views/Recalculate.vue"),
+      import("../views/Recalculate.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -796,7 +796,7 @@ const routes = [
     path: "/changelog",
     name: "changelog",
     component: () =>
-      import(/* webpackChunkName: "changelog" */ "../views/ChangeLog.vue"),
+      import("../views/ChangeLog.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -810,7 +810,7 @@ const routes = [
     name: "VerifactuDeclaration",
     component: () =>
       import(
-        /* webpackChunkName: "changelog" */ "../views/VerifactuDeclaration.vue"
+        "../views/VerifactuDeclaration.vue"
       ),
     props: true,
     meta: {
@@ -824,7 +824,7 @@ const routes = [
     path: "/partners",
     name: "partners.list",
     component: () =>
-      import(/* webpackChunkName: "users" */ "../views/Partners.vue"),
+      import("../views/Partners.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -837,7 +837,7 @@ const routes = [
     path: "/incidences",
     name: "incidences.list",
     component: () =>
-      import(/* webpackChunkName: "users" */ "../views/Incidences.vue"),
+      import("../views/Incidences.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -850,7 +850,7 @@ const routes = [
     path: "/transfers",
     name: "transfers.list",
     component: () =>
-      import(/* webpackChunkName: "users" */ "../views/Transfers.vue"),
+      import("../views/Transfers.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -863,7 +863,7 @@ const routes = [
     path: "/deposits",
     name: "deposits.list",
     component: () =>
-      import(/* webpackChunkName: "users" */ "../views/Deposits.vue"),
+      import("../views/Deposits.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -876,7 +876,7 @@ const routes = [
     path: "/order-operations",
     name: "order-operations.list",
     component: () =>
-      import(/* webpackChunkName: "users" */ "../views/OrderOperations.vue"),
+      import("../views/OrderOperations.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -889,7 +889,7 @@ const routes = [
     path: "/import-export",
     name: "import-export.view",
     component: () =>
-      import(/* webpackChunkName: "import-export" */ "../views/ImportExport.vue"),
+      import("../views/ImportExport.vue"),
     props: true,
     meta: {
       requiresAuth: true
@@ -899,7 +899,7 @@ const routes = [
     path: "/contasol",
     name: "contasol.view",
     component: () =>
-      import(/* webpackChunkName: "quote" */ "../views/Contasol.vue"),
+      import("../views/Contasol.vue"),
     props: true,
     meta: {
       title: "Contasol",
@@ -911,7 +911,7 @@ const routes = [
     path: "/admin/me",
     name: "admin.me",
     component: () =>
-      import(/* webpackChunkName: "admin-me" */ "../views/Me.vue"),
+      import("../views/Me.vue"),
     meta: {
       title: "Configuració General",
       requiresAuth: true,
@@ -922,7 +922,7 @@ const routes = [
     path: "/admin/verifactu",
     name: "admin.verifactu",
     component: () =>
-      import(/* webpackChunkName: "admin-verifactu" */ "../views/Verifactu.vue"),
+      import("../views/Verifactu.vue"),
     meta: {
       title: "Verifactu",
       requiresAuth: true,
@@ -933,7 +933,7 @@ const routes = [
     path: "/admin/face-queue",
     name: "admin.face-queue.list",
     component: () =>
-      import(/* webpackChunkName: "admin-face-queue" */ "../views/FaceQueueList.vue"),
+      import("../views/FaceQueueList.vue"),
     meta: {
       title: "Factures FACE",
       requiresAuth: true,
@@ -944,7 +944,7 @@ const routes = [
     path: "/admin/face-queue/:id",
     name: "admin.face-queue.edit",
     component: () =>
-      import(/* webpackChunkName: "admin-face-queue" */ "../views/FaceQueueEdit.vue"),
+      import("../views/FaceQueueEdit.vue"),
     props: true,
     meta: {
       title: "Editar cua FACE",
@@ -956,7 +956,7 @@ const routes = [
     path: "/admin/verifactu-chain",
     name: "admin.verifactu-chain.list",
     component: () =>
-      import(/* webpackChunkName: "admin-verifactu-chain" */ "../views/VerifactuChainList.vue"),
+      import("../views/VerifactuChainList.vue"),
     meta: {
       title: "Factures Verifactu",
       requiresAuth: true,
@@ -967,7 +967,7 @@ const routes = [
     path: "/admin/verifactu-chain/:id",
     name: "admin.verifactu-chain.edit",
     component: () =>
-      import(/* webpackChunkName: "admin-verifactu-chain" */ "../views/VerifactuChainEdit.vue"),
+      import("../views/VerifactuChainEdit.vue"),
     props: true,
     meta: {
       title: "Editar cadena Verifactu",
@@ -979,7 +979,7 @@ const routes = [
     path: "/admin/users",
     name: "admin.users.list",
     component: () =>
-      import(/* webpackChunkName: "admin-users" */ "../views/AdminUserList.vue"),
+      import("../views/AdminUserList.vue"),
     meta: {
       title: "Usuaris",
       requiresAuth: true,
@@ -990,7 +990,7 @@ const routes = [
     path: "/admin/users/new",
     name: "admin.users.new",
     component: () =>
-      import(/* webpackChunkName: "admin-users-form" */ "../views/AdminUserForm.vue"),
+      import("../views/AdminUserForm.vue"),
     meta: {
       title: "Crear usuari",
       requiresAuth: true,
@@ -1001,7 +1001,7 @@ const routes = [
     path: "/admin/users/:id",
     name: "admin.users.edit",
     component: () =>
-      import(/* webpackChunkName: "admin-users-form" */ "../views/AdminUserForm.vue"),
+      import("../views/AdminUserForm.vue"),
     props: true,
     meta: {
       title: "Editar usuari",
@@ -1014,7 +1014,7 @@ const routes = [
     path: "/admin/:entityName",
     name: "admin.entity.list",
     component: () =>
-      import(/* webpackChunkName: "admin-entity-list" */ "../views/AdminEntityList.vue"),
+      import("../views/AdminEntityList.vue"),
     props: true,
     meta: {
       title: "Administració",
@@ -1026,7 +1026,7 @@ const routes = [
     path: "/admin/:entityName/new",
     name: "admin.entity.new",
     component: () =>
-      import(/* webpackChunkName: "admin-entity-form" */ "../views/AdminEntityForm.vue"),
+      import("../views/AdminEntityForm.vue"),
     props: route => ({ entityName: route.params.entityName }),
     meta: {
       title: "Crear entitat",
@@ -1038,7 +1038,7 @@ const routes = [
     path: "/admin/:entityName/:id",
     name: "admin.entity.edit",
     component: () =>
-      import(/* webpackChunkName: "admin-entity-form" */ "../views/AdminEntityForm.vue"),
+      import("../views/AdminEntityForm.vue"),
     props: true,
     meta: {
       title: "Editar entitat",
@@ -1049,7 +1049,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(process.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {

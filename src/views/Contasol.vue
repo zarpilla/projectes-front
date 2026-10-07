@@ -87,8 +87,8 @@
   </div>
 </template>
 <script>
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
 import contasolCustomersClient from "@/service/contasol-clients";
 import contasolProvidersClient from "@/service/contasol-providers";
 import contasolInvoicesClient from "@/service/contasol-invoices";

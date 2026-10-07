@@ -401,7 +401,7 @@
 </template>
 
 <script>
-import ModalBox from "@/components/ModalBox";
+import ModalBox from "@/components/ModalBox.vue";
 import service from "@/service/index";
 import moment from "moment";
 

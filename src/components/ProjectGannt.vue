@@ -62,8 +62,9 @@
 </template>
 
 <script>
-import ModalBoxEstimatedHours from "@/components/ModalBoxEstimatedHours";
-import { mapState } from "vuex";
+import ModalBoxEstimatedHours from "@/components/ModalBoxEstimatedHours.vue";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 // import sumBy from 'lodash/sumBy'
 import { Gantt } from "dhtmlx-gantt";
 import moment from "moment";
@@ -90,8 +91,8 @@ export default {
     ModalBoxEstimatedHours,
   },
   computed: {
-    ...mapState(["userName"]),
-    ...mapState(["me"]),
+    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["me"]),
     /** `me.options` is optional and loads asynchronously; never dereference it raw. */
     meOptions() {
       return (this.me && this.me.options) || {};
@@ -785,7 +786,7 @@ export default {
 }
 </style>
 <style>
-@import "~dhtmlx-gantt/codebase/dhtmlxgantt.css";
+@import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 
 .gantt > div {
   min-height: 600px;

@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar';
-import AdminEntityForm from '@/components/AdminEntityForm';
+import TitleBar from '@/components/TitleBar.vue';
+import AdminEntityForm from '@/components/AdminEntityForm.vue';
 import service from '@/service/index';
 
 export default {

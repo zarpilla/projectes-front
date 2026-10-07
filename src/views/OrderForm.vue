@@ -5,9 +5,10 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import OrdersForm from "@/components/OrdersForm";
-import { mapState } from "vuex";
+import TitleBar from "@/components/TitleBar.vue";
+import OrdersForm from "@/components/OrdersForm.vue";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 
 export default {
   name: "OrderForm",

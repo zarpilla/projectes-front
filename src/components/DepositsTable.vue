@@ -272,9 +272,10 @@
 
 <script>
 import service from "@/service/index";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
-import QRScannerModal from "@/components/QRScannerModal";
+import QRScannerModal from "@/components/QRScannerModal.vue";
 
 export default {
   name: "DepositsTable",
@@ -304,7 +305,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"])
+    ...mapState(useMainStore, ["me"])
   },
   async mounted() {
     const me = await service({ requiresAuth: true, cached: true }).get(

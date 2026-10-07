@@ -68,7 +68,8 @@
 
 <script>
 import service from "@/service/index";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
 
 export default {
@@ -80,7 +81,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"])
+    ...mapState(useMainStore, ["userName"])
   },
   async mounted() {
     if (this.userName) {
@@ -138,7 +139,7 @@ export default {
             delete user.daily_dedications;
             localStorage.setItem("user", JSON.stringify(user));
             localStorage.setItem("jwt", response.data.jwt);
-            this.$store.commit("user", {
+            useMainStore().setUser({
               user: user,
               name: user.username,
               jwt: response.data.jwt

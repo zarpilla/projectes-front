@@ -1,0 +1,10 @@
+{
+  "/orders-stats": [
+    "TypeError: Cannot read properties of null (reading 'id')",
+    "Object"
+  ],
+  "/incidences-stats": [
+    "TypeError: Cannot read properties of null (reading 'id')",
+    "Object"
+  ]
+}

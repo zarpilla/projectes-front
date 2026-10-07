@@ -1,4 +1,3 @@
-import { months } from "moment"
 
 // Relabel rendered field names (header buttons + setting chips) to Catalan;
 // classic Kendo ignores schema.cube.dimensions.caption for local data.

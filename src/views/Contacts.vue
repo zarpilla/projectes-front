@@ -8,11 +8,12 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import ContactsTable from '@/components/ContactsTable'
-import CardComponent from '@/components/CardComponent'
+import TitleBar from '@/components/TitleBar.vue'
+import ContactsTable from '@/components/ContactsTable.vue'
+import CardComponent from '@/components/CardComponent.vue'
 import service from '@/service/index'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 import moment from 'moment'
 
 export default {
@@ -35,7 +36,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Contactes']
     }

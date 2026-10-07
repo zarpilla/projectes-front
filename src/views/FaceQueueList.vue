@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar';
-import FaceQueueList from '@/components/FaceQueueList';
+import TitleBar from '@/components/TitleBar.vue';
+import FaceQueueList from '@/components/FaceQueueList.vue';
 
 export default {
   name: 'FaceQueueListView',

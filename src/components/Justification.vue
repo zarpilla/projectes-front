@@ -549,10 +549,11 @@ import service from "@/service/index";
 // import map from 'lodash/map'
 import sumBy from "lodash/sumBy";
 import moment from "moment";
-import CardComponent from "@/components/CardComponent";
+import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import configJustificationPivot from "@/service/configJustificationPivot";
 import PivotViews from "@/components/PivotViews.vue";
@@ -610,7 +611,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName", "user"]),
+    ...mapState(useMainStore, ["userName", "user"]),
     justificationTypeEnum() {
       // Map view type to enum value
       if (this.type === 'Reals') {

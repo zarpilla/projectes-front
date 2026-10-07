@@ -42,14 +42,15 @@
 </template>
 
 <script>
-import Notification from "@/components/Notification";
-import CardComponent from "@/components/CardComponent";
-import TitleBar from "@/components/TitleBar";
-import HeroBar from "@/components/HeroBar";
-import Tasks from "@/components/Tasks";
+import Notification from "@/components/Notification.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import TitleBar from "@/components/TitleBar.vue";
+import HeroBar from "@/components/HeroBar.vue";
+import Tasks from "@/components/Tasks.vue";
 import service from "@/service/index";
 import moment from "moment";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import _ from "lodash";
 
 export default {
@@ -83,7 +84,7 @@ export default {
     titleStack() {
       return ["Projectes", "Tasques"];
     },
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     filteredUsers() {
       return this.users.filter((option) => {
         return (

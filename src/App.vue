@@ -11,13 +11,14 @@
 
 <script>
 // @ is an alias to /src
-import NavBar from "@/components/NavBar";
-import AsideMenu from "@/components/AsideMenu";
-import FooterBar from "@/components/FooterBar";
-import { mapState } from "vuex";
+import NavBar from "@/components/NavBar.vue";
+import AsideMenu from "@/components/AsideMenu.vue";
+import FooterBar from "@/components/FooterBar.vue";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import service from "@/service/index";
 import menu from "@/service/menu";
-import ModalBoxInvoice from "@/components/ModalBoxInvoice";
+import ModalBoxInvoice from "@/components/ModalBoxInvoice.vue";
 
 export default {
   name: "Home",
@@ -43,7 +44,7 @@ export default {
     window.removeEventListener("focus", this.refreshUserData);
   },
   computed: {
-    ...mapState(["userName", "userJwt"]),
+    ...mapState(useMainStore, ["userName", "userJwt"]),
     menu() {
       return this.loaded ? this.menuList : [];
     }
@@ -100,7 +101,7 @@ export default {
             
             const user = me.data;
             user["jwt"] = localStorage.getItem("jwt");
-            this.$store.commit("user", {
+            useMainStore().setUser({
               user: user,
               name: user.username,
               jwt: sessionStorage.getItem("jwt")

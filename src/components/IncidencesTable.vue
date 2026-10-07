@@ -490,7 +490,8 @@
 
 <script>
 import service from "@/service/index";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 
 export default {
@@ -518,7 +519,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"])
+    ...mapState(useMainStore, ["me"])
   },
   async mounted() {
     const me = await service({ requiresAuth: true, cached: true }).get(

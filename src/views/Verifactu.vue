@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar';
-import VerifactuForm from '@/components/VerifactuForm';
+import TitleBar from '@/components/TitleBar.vue';
+import VerifactuForm from '@/components/VerifactuForm.vue';
 
 export default {
   name: 'VerifactuView',

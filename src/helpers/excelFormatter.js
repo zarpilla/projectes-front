@@ -23,4 +23,4 @@ const format = (user, value) => {
   return stringValue;
 };
 
-module.exports = { format };
+export { format };

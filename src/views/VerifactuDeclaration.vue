@@ -207,8 +207,8 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
 import html2pdf from "html2pdf.js";
 export default {

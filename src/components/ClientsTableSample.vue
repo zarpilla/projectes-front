@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import ModalBox from '@/components/ModalBox'
+import ModalBox from '@/components/ModalBox.vue'
 import service from '@/service/index'
 
 export default {

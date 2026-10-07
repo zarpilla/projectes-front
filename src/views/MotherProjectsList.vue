@@ -124,11 +124,11 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import Tiles from "@/components/Tiles";
-import CardWidget from "@/components/CardWidget";
-import CardComponent from "@/components/CardComponent";
-import MotherProjectsTable from "@/components/MotherProjectsTable";
+import TitleBar from "@/components/TitleBar.vue";
+import Tiles from "@/components/Tiles.vue";
+import CardWidget from "@/components/CardWidget.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import MotherProjectsTable from "@/components/MotherProjectsTable.vue";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 

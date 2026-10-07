@@ -789,7 +789,8 @@
 <script>
 import service from "@/service/index";
 import { parse } from "csv-parse/browser/esm";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import {
@@ -1166,7 +1167,7 @@ export default {
           contact_time_slot_2_end: "19"
         }
       ],
-      apiUrl: process.env.VUE_APP_API_URL,
+      apiUrl: import.meta.env.VUE_APP_API_URL,
       showExport: false,
       editingRowId: null,
       editForm: {},
@@ -1177,8 +1178,8 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
-    ...mapState(["userId"]),
+    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["userId"]),
     theOrders() {
       this.orders = this.orders.map(o => ({
         ...o,

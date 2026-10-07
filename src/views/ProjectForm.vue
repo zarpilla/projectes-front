@@ -2490,21 +2490,22 @@
 // External libraries
 import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 
 // Project components
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
-import ModalBoxSplit from "@/components/ModalBoxSplit";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import ModalBoxInvoicing from "@/components/ModalBoxInvoicing.vue";
+import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
 import ProjectGannt from "@/components/ProjectGannt.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import ProjectGrantableContacts from "@/components/ProjectGrantableContacts.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import FinancialDiffTooltip from "@/components/FinancialDiffTooltip.vue";
-import Tasks from "@/components/Tasks";
-import FileUpload from "@/components/FileUpload";
+import Tasks from "@/components/Tasks.vue";
+import FileUpload from "@/components/FileUpload.vue";
 import ProjectGrantableYears from "@/components/ProjectGrantableYears.vue";
 import getConfig from "@/config";
 
@@ -2577,7 +2578,7 @@ export default {
       phasesVisible: true,
       tasksView: "state",
       ganttViewMode: "original", // 'original' or 'estimated'
-      apiUrl: process.env.VUE_APP_API_URL,
+      apiUrl: import.meta.env.VUE_APP_API_URL,
       hasBeenDirty: false,
       allByYear: [],
       allByYearYear: "TOTS",
@@ -2612,8 +2613,8 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["me"]),
+    ...mapState(useMainStore, ["userName"]),
     filteredClients() {
       return this.clients.filter(option => {
         return (
@@ -3172,7 +3173,7 @@ export default {
           .get("me")
           .then(r => {
             this.me = r.data;
-            this.$store.commit("me", {
+            useMainStore().setMe({
               me: r.data
             });
           });

@@ -8,10 +8,11 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import UsersTable from '@/components/UsersTable'
-import CardComponent from '@/components/CardComponent'
-import { mapState } from 'vuex'
+import TitleBar from '@/components/TitleBar.vue'
+import UsersTable from '@/components/UsersTable.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'Partners',
@@ -25,7 +26,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Sòcies']
     }

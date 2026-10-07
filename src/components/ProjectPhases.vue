@@ -805,17 +805,18 @@
 
 <script>
 import dayjs from "dayjs";
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
-import ModalBoxSplit from "@/components/ModalBoxSplit";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import ModalBoxInvoicing from "@/components/ModalBoxInvoicing.vue";
+import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
-import RadioPicker from "@/components/RadioPicker";
+import RadioPicker from "@/components/RadioPicker.vue";
 import { sub } from "date-fns";
 import { de, is } from "date-fns/locale";
 
@@ -950,7 +951,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),
+    ...mapState(useMainStore, ["me"]),
     filteredClients() {
       return this.clients.filter(option => {
         return (

@@ -11,7 +11,8 @@ export default defineConfig({
   retries: 0,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'report' }]],
   outputDir: 'results',
-  snapshotPathTemplate: 'baseline/{arg}{ext}',
+  // SMOKE_BASELINE_DIR keeps several baselines side by side (e.g. Vue 2 vs Vue 3)
+  snapshotPathTemplate: `${process.env.SMOKE_BASELINE_DIR || 'baseline'}/{arg}{ext}`,
   expect: {
     toHaveScreenshot: {
       // live data changes between runs; this catches layout breakage, not pixel drift

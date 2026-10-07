@@ -117,8 +117,8 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
-import Tiles from "@/components/Tiles";
-import CardWidget from "@/components/CardWidget";
+import Tiles from "@/components/Tiles.vue";
+import CardWidget from "@/components/CardWidget.vue";
 import _ from "lodash";
 
 export default {

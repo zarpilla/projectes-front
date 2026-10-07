@@ -134,15 +134,16 @@
 <script>
 // @ is an alias to /src
 import * as chartConfig from "@/components/Charts/chart.config";
-import TitleBar from "@/components/TitleBar";
-import Tiles from "@/components/Tiles";
-import CardWidget from "@/components/CardWidget";
-import CardComponent from "@/components/CardComponent";
-import ProjectsTable from "@/components/ProjectsTable";
+import TitleBar from "@/components/TitleBar.vue";
+import Tiles from "@/components/Tiles.vue";
+import CardWidget from "@/components/CardWidget.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import formatPrice from "@/helpers/format-price";
 
@@ -165,7 +166,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     titleStack() {
       return ["Subvencions"];
     }

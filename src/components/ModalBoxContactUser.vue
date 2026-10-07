@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import ContactsUserForm from "@/components/ContactsUserForm";
+import ContactsUserForm from "@/components/ContactsUserForm.vue";
 
 export default {
   name: 'ModalBoxContactUser',

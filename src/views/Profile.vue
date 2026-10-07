@@ -30,14 +30,15 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import CardComponent from '@/components/CardComponent'
-import TitleBar from '@/components/TitleBar'
-import HeroBar from '@/components/HeroBar'
-import ProfileUpdateForm from '@/components/ProfileUpdateForm'
-import PasswordUpdateForm from '@/components/PasswordUpdateForm'
-import Tiles from '@/components/Tiles'
-import UserAvatar from '@/components/UserAvatar'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
+import CardComponent from '@/components/CardComponent.vue'
+import TitleBar from '@/components/TitleBar.vue'
+import HeroBar from '@/components/HeroBar.vue'
+import ProfileUpdateForm from '@/components/ProfileUpdateForm.vue'
+import PasswordUpdateForm from '@/components/PasswordUpdateForm.vue'
+import Tiles from '@/components/Tiles.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 export default {
   name: 'Profile',
   components: {
@@ -53,7 +54,7 @@ export default {
     titleStack () {
       return ['Admin', 'Profile']
     },
-    ...mapState(['userName', 'userEmail'])
+    ...mapState(useMainStore, ['userName', 'userEmail'])
   }
 }
 </script>

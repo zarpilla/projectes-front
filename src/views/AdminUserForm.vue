@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar';
-import AdminUserForm from '@/components/AdminUserForm';
+import TitleBar from '@/components/TitleBar.vue';
+import AdminUserForm from '@/components/AdminUserForm.vue';
 
 export default {
   name: 'AdminUserFormView',

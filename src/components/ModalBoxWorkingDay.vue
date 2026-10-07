@@ -202,8 +202,9 @@
 
 <script>
 import service from "@/service/index";
-import { mapState } from "vuex";
-import ModalBox from "@/components/ModalBox";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
+import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
 
 export default {
@@ -261,7 +262,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     enabled() {
       return this.form.from && this.form.to;
     },

@@ -65,9 +65,9 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import RealDedicationGantt from '@/components/RealDedicationGantt'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import RealDedicationGantt from '@/components/RealDedicationGantt.vue'
 import service from '@/service/index'
 import moment from 'moment'
 

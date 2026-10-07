@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar';
-import MeForm from '@/components/MeForm';
+import TitleBar from '@/components/TitleBar.vue';
+import MeForm from '@/components/MeForm.vue';
 
 export default {
   name: 'MeView',

@@ -540,7 +540,7 @@
 </template>
 
 <script>
-// import ModalBox from '@/components/ModalBox'
+// import ModalBox from '@/components/ModalBox.vue'
 import service from "@/service/index";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
@@ -548,7 +548,8 @@ import _ from "lodash";
 import configPivot from "@/service/configStatsTreasury";
 import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
 import CardComponent from "./CardComponent.vue";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
@@ -616,22 +617,22 @@ export default {
       if (window.jQuery) {
         clearInterval(interval);
         await addScript(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.all.min.js",
           "kendo-all-min-js"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.common.min.css",
           "kendo-common-min-css"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.custom.css",
           "kendo-custom-css"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/custom.css",
           "custom-css"
         );
@@ -658,7 +659,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["userName", "user"]),
+    ...mapState(useMainStore, ["userName", "user"]),
     monthlySummary() {
       const year = this.$route.query.year
         ? this.$route.query.year

@@ -28,9 +28,10 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import FilePicker from '@/components/FilePicker'
-import CardComponent from '@/components/CardComponent'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
+import FilePicker from '@/components/FilePicker.vue'
+import CardComponent from '@/components/CardComponent.vue'
 
 export default {
   name: 'ProfileUpdateForm',
@@ -49,7 +50,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName', 'userEmail'])
+    ...mapState(useMainStore, ['userName', 'userEmail'])
   },
   watch: {
     userName (newValue) {
@@ -68,7 +69,7 @@ export default {
       this.isLoading = true
       setTimeout(() => {
         this.isLoading = false
-        this.$store.commit('user', this.form)
+        useMainStore().setUser(this.form)
         this.$buefy.snackbar.open({
           message: 'Updated',
           queue: false

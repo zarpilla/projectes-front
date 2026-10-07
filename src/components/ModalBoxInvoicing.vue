@@ -167,7 +167,7 @@
 </template>
 
 <script>
-import ModalBox from '@/components/ModalBox'
+import ModalBox from '@/components/ModalBox.vue'
 
 export default {
   name: 'ModalBoxInvoicing',

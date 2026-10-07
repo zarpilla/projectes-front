@@ -75,7 +75,8 @@ import sortBy from "lodash/sortBy";
 import omit from "lodash/omit";
 import moment from "moment";
 import configPivot from "@/service/configStatsEconomicDetail";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
 import PivotViews from '@/components/PivotViews.vue'
@@ -102,7 +103,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["userName", "user"]),
+    ...mapState(useMainStore, ["userName", "user"]),
     pivotDataGroupped() {
       return _(this.pivotData)
         .groupBy("id")

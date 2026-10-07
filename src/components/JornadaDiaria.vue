@@ -264,9 +264,9 @@
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
-import CardComponent from "@/components/CardComponent";
+import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
-import * as html2pdf from "html3pdf";
+import html2pdf from "html3pdf";
 import getConfig from '@/config'
 
 moment.locale("ca");
@@ -312,7 +312,7 @@ export default {
       generatedPDF: false,
       users: [],
       me: null,
-      apiUrl: process.env.VUE_APP_API_URL,
+      apiUrl: import.meta.env.VUE_APP_API_URL,
       imageUrl: null,
       projects: [],
     };

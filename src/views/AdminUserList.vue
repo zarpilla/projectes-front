@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar';
-import AdminUserList from '@/components/AdminUserList';
+import TitleBar from '@/components/TitleBar.vue';
+import AdminUserList from '@/components/AdminUserList.vue';
 
 export default {
   name: 'AdminUserListView',

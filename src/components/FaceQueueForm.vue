@@ -90,7 +90,7 @@
 
 <script>
 import service from '@/service/index';
-import CardComponent from '@/components/CardComponent';
+import CardComponent from '@/components/CardComponent.vue';
 import moment from 'moment';
 
 export default {

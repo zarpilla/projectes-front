@@ -35,7 +35,7 @@ export default {
   name: 'AsideMenuItem',
   emits: ["menu-click"],
   components: {
-    AsideMenuList: () => import('@/components/AsideMenuList')
+    AsideMenuList: () => import('@/components/AsideMenuList.vue')
   },
   props: {
     item: {

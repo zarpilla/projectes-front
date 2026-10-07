@@ -55,11 +55,12 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import JornadaDiaria from '@/components/JornadaDiaria'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import JornadaDiaria from '@/components/JornadaDiaria.vue'
 import service from '@/service/index'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 import moment from 'moment'
 // import moment from 'moment'
 
@@ -86,7 +87,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Projectes', 'Registre Jornades']
     },

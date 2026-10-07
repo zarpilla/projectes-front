@@ -1321,17 +1321,18 @@ import dayjs from "dayjs";
 import moment from "moment";
 import _ from "lodash";
 import sumBy from "lodash/sumBy";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 
 // Project components
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-import ModalBoxEmittedInvoices from "@/components/ModalBoxEmittedInvoices";
-import ModalBoxSplit from "@/components/ModalBoxSplit";
-import ModalBoxDiet from "@/components/ModalBoxDiet";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import ModalBoxEmittedInvoices from "@/components/ModalBoxEmittedInvoices.vue";
+import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
+import ModalBoxDiet from "@/components/ModalBoxDiet.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import FileUpload from "@/components/FileUpload";
+import FileUpload from "@/components/FileUpload.vue";
 
 // Services
 import service from "@/service/index";
@@ -1362,7 +1363,7 @@ export default {
   },
   data() {
     return {
-      appPath: process.env.VUE_APP_PATH,
+      appPath: import.meta.env.VUE_APP_PATH,
       isProfileExists: false,
       isLoading: false,
       isLoadingProject: false,
@@ -1383,7 +1384,7 @@ export default {
       dedicationsDiets: [],
       dedication: null,
       numberEditable: false,
-      apiUrl: process.env.VUE_APP_API_URL,
+      apiUrl: import.meta.env.VUE_APP_API_URL,
       editingDocuments: false,
       personIrpf: 0,
       quotes: null,
@@ -1417,7 +1418,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),
+    ...mapState(useMainStore, ["me"]),
     filteredClients() {
       return this.clients.filter(option => {
         return (
@@ -1732,7 +1733,7 @@ export default {
       const me = await service({ requiresAuth: true }).get("me");
 
       this.options = me.data;
-      this.$store.commit("me", {
+      useMainStore().setMe({
         me: me.data
       });
 

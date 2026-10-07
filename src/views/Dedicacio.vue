@@ -81,13 +81,14 @@
 
 <script>
 import mapValues from "lodash/mapValues";
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-// import HeroBar from '@/components/HeroBar'
-import DedicationInput from "@/components/DedicationInput";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+// import HeroBar from '@/components/HeroBar.vue'
+import DedicationInput from "@/components/DedicationInput.vue";
 import service from "@/service/index";
 import moment from "moment";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 
 export default {
   name: "Dedicacio",
@@ -120,7 +121,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     titleStack() {
       return ["Projectes", "Dedicació"];
     },

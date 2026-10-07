@@ -66,10 +66,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import AsideTools from '@/components/AsideTools'
-import AsideMenuList from '@/components/AsideMenuList'
-import UserAvatar from '@/components/UserAvatar'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
+import AsideTools from '@/components/AsideTools.vue'
+import AsideMenuList from '@/components/AsideMenuList.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { logout } from '@/service/auth'
 import service from "@/service/index";
 import getConfig from "@/config";
@@ -84,7 +85,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['isAsideVisible', 'userName'])
+    ...mapState(useMainStore, ['isAsideVisible', 'userName'])
   },
   data() {
     return {
@@ -144,7 +145,7 @@ export default {
         message: 'Log out',
         queue: false
       })
-      location.href = process.env.VUE_APP_PATH || '/'
+      location.href = import.meta.env.VUE_APP_PATH || '/'
     }
   }
 }

@@ -33,4 +33,4 @@ const addStyle = async (src, id) => {
   })
 }
 
-module.exports = { addScript, addStyle }
+export { addScript, addStyle }

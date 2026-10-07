@@ -8,9 +8,10 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import TresoreriaTable from '@/components/TresoreriaTable'
-import { mapState } from 'vuex'
+import TitleBar from '@/components/TitleBar.vue'
+import TresoreriaTable from '@/components/TresoreriaTable.vue'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'DedicacioSaldo',
@@ -37,7 +38,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Tresoreria']
     },

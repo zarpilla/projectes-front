@@ -27,7 +27,7 @@
 <script>
 import service from "@/service/index";
 import moment from "moment";
-import DedicationGanttChart from "@/components/DedicationGanttChart";
+import DedicationGanttChart from "@/components/DedicationGanttChart.vue";
 
 
 moment.locale("ca");

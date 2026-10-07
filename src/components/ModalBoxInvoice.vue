@@ -31,11 +31,12 @@
 
 <script>
 import service from "@/service/index";
-import { mapState } from "vuex";
-import ModalBox from "@/components/ModalBox";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
+import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
-import RadioPicker from "@/components/RadioPicker";
-import FileUpload from "@/components/FileUpload";
+import RadioPicker from "@/components/RadioPicker.vue";
+import FileUpload from "@/components/FileUpload.vue";
 
 export default {
   name: "ModalBoxTask",
@@ -57,7 +58,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     sumOfInvoices() {
       return this.invoices.reduce((acc, invoice) => {
         return acc + invoice.total;

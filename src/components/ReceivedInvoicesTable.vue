@@ -203,11 +203,12 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
-import Tiles from "@/components/Tiles";
-import CardWidget from "@/components/CardWidget";
+import Tiles from "@/components/Tiles.vue";
+import CardWidget from "@/components/CardWidget.vue";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: "ReceivedInvoices",
@@ -314,7 +315,7 @@ export default {
     total_total() {
       return sumBy(this.emitted, "total").toFixed(2);
     },
-    ...mapState(["userName", "user"]),
+    ...mapState(useMainStore, ["userName", "user"]),
   },
   async mounted() {
     this.getData();

@@ -14,9 +14,9 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import PickupPointsOrders from '@/components/PickupPointsOrders'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import PickupPointsOrders from '@/components/PickupPointsOrders.vue'
 
 export default {
   name: 'PickupPointsOrdersView',

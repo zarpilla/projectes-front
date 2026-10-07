@@ -49,9 +49,10 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import NavBarMenu from '@/components/NavBarMenu'
-import UserAvatar from '@/components/UserAvatar'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
+import NavBarMenu from '@/components/NavBarMenu.vue'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { logout } from '@/service/auth'
 
 export default {
@@ -72,7 +73,7 @@ export default {
     menuToggleMobileIcon () {
       return this.isAsideMobileExpanded ? 'backburger' : 'forwardburger'
     },
-    ...mapState(['isNavBarVisible', 'isAsideMobileExpanded', 'userName'])
+    ...mapState(useMainStore, ['isNavBarVisible', 'isAsideMobileExpanded', 'userName'])
   },
   mounted () {
     this.$router.afterEach(() => {
@@ -81,7 +82,7 @@ export default {
   },
   methods: {
     menuToggleMobile () {
-      this.$store.commit('asideMobileStateToggle')
+      useMainStore().asideMobileStateToggle()
     },
     menuNavBarToggle () {
       this.isMenuNavBarActive = !this.isMenuNavBarActive
@@ -92,7 +93,7 @@ export default {
         message: 'Log out',
         queue: false
       })
-      location.href = process.env.VUE_APP_PATH || '/'
+      location.href = import.meta.env.VUE_APP_PATH || '/'
     }
   }
 }

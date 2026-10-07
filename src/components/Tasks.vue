@@ -130,15 +130,16 @@
 </template>
 
 <script>
-import Notification from "@/components/Notification";
-import ModalBoxTask from "@/components/ModalBoxTask";
-import CardComponent from "@/components/CardComponent";
-import TitleBar from "@/components/TitleBar";
-import HeroBar from "@/components/HeroBar";
-// import Tiles from "@/components/Tiles";
+import Notification from "@/components/Notification.vue";
+import ModalBoxTask from "@/components/ModalBoxTask.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import TitleBar from "@/components/TitleBar.vue";
+import HeroBar from "@/components/HeroBar.vue";
+// import Tiles from "@/components/Tiles.vue";
 import service from "@/service/index";
 import moment from "moment";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import _ from "lodash";
 import getConfig from '@/config'
 
@@ -175,7 +176,7 @@ export default {
       today: moment().format('YYYY-MM-DD'),
       kanbanViewId: null,
       kanbanViewDb: null,
-      apiUrl: process.env.VUE_APP_API_URL
+      apiUrl: import.meta.env.VUE_APP_API_URL
     };
   },
   props: {
@@ -219,7 +220,7 @@ export default {
     titleStack() {
       return ["Projectes", "Tasques"];
     },
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     lists() {
       if (this.view === 'list') {
         const cap = { id: 0, name: '---' }

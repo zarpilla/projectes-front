@@ -70,12 +70,13 @@
 
 <script>
 import mapValues from 'lodash/mapValues'
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import DedicationWidget from '@/components/DedicationWidget'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import DedicationWidget from '@/components/DedicationWidget.vue'
 import service from '@/service/index'
 import moment from 'moment'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'DedicacioCharts',
@@ -107,7 +108,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Projectes', 'Gràfiques']
     },

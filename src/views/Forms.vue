@@ -128,12 +128,12 @@
 
 <script>
 import mapValues from 'lodash/mapValues'
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import CheckboxPicker from '@/components/CheckboxPicker'
-import RadioPicker from '@/components/RadioPicker'
-import FilePicker from '@/components/FilePicker'
-import HeroBar from '@/components/HeroBar'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import CheckboxPicker from '@/components/CheckboxPicker.vue'
+import RadioPicker from '@/components/RadioPicker.vue'
+import FilePicker from '@/components/FilePicker.vue'
+import HeroBar from '@/components/HeroBar.vue'
 export default {
   name: 'Forms',
   components: {

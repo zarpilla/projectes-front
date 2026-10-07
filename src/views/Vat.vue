@@ -8,9 +8,10 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import VatTable from '@/components/VatTable'
-import { mapState } from 'vuex'
+import TitleBar from '@/components/TitleBar.vue'
+import VatTable from '@/components/VatTable.vue'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'VatView',
@@ -35,7 +36,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['IVA']
     }

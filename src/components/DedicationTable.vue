@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import ModalBox from '@/components/ModalBox'
+import ModalBox from '@/components/ModalBox.vue'
 import service from '@/service/index'
 import subDays from 'date-fns/subDays'
 import format from 'date-fns/format'

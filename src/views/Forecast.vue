@@ -8,9 +8,10 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import PrevisioTable from '@/components/PrevisioTable'
-import { mapState } from 'vuex'
+import TitleBar from '@/components/TitleBar.vue'
+import PrevisioTable from '@/components/PrevisioTable.vue'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'DedicacioSaldo',
@@ -24,7 +25,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Previsió Econòmica']
     },

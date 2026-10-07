@@ -70,9 +70,9 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import DedicationEstPivot from '@/components/DedicationEstPivot'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import DedicationEstPivot from '@/components/DedicationEstPivot.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'
@@ -122,10 +122,10 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        await addScript((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle((process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
+        await addScript((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
         this.isLoading = false
         this.getData()
       }

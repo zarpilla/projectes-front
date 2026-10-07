@@ -264,8 +264,9 @@
 
 <script>
 import service from "@/service/index";
-import { mapState } from "vuex";
-import ModalBoxUnifyContacts from "@/components/ModalBoxUnifyContacts";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
+import ModalBoxUnifyContacts from "@/components/ModalBoxUnifyContacts.vue";
 
 export default {
   name: "ContactsTable",
@@ -346,8 +347,8 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
-    ...mapState(["userId"])
+    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["userId"])
   },
   async mounted() {
     this.getData();

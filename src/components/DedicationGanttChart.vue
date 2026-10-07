@@ -72,8 +72,9 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
-import DedicationTooltip from "@/components/DedicationTooltip";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
+import DedicationTooltip from "@/components/DedicationTooltip.vue";
 
 // Default cell used when a leader has no data for a period.
 const EMPTY_CELL = Object.freeze({
@@ -113,8 +114,8 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
-    ...mapState(["me"]),
+    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["me"]),
 
     visibleLeaders() {
       return this.leaders ? this.leaders.filter((l) => !l.hidden) : [];

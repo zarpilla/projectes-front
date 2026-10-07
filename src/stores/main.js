@@ -1,7 +1,9 @@
-import { createStore } from 'vuex'
+import { defineStore } from 'pinia'
 
-export default createStore({
-  state: {
+// Ported from the Vuex store. Pinia puts state and actions on the same object,
+// so the former `user` / `me` / `basic` mutations are setUser / setMe / setBasic.
+export const useMainStore = defineStore('main', {
+  state: () => ({
     /* User */
     user: null,
     userName: null,
@@ -21,35 +23,34 @@ export default createStore({
 
     /* Options */
     me: null
-  },
-  mutations: {
-    /* A fit-them-all commit */
-    basic (state, payload) {
-      state[payload.key] = payload.value
+  }),
+  actions: {
+    /* A fit-them-all setter */
+    setBasic (payload) {
+      this[payload.key] = payload.value
     },
 
     /* User */
-    user (state, payload) {
-      // console.log('payload', payload)
+    setUser (payload) {
       if (payload.user) {
-        state.user = payload.user
+        this.user = payload.user
       }
       if (payload.name) {
-        state.userName = payload.name
+        this.userName = payload.name
       }
       if (payload.email) {
-        state.userEmail = payload.email
+        this.userEmail = payload.email
       }
       if (payload.avatar) {
-        state.userAvatar = payload.avatar
+        this.userAvatar = payload.avatar
       }
       if (payload.jwt) {
-        state.userJwt = payload.jwt
+        this.userJwt = payload.jwt
       }
     },
 
     /* Aside Mobile */
-    asideMobileStateToggle (state, payload = null) {
+    asideMobileStateToggle (payload = null) {
       const htmlClassName = 'has-aside-mobile-expanded'
 
       let isShow
@@ -57,7 +58,7 @@ export default createStore({
       if (payload !== null) {
         isShow = payload
       } else {
-        isShow = !state.isAsideMobileExpanded
+        isShow = !this.isAsideMobileExpanded
       }
 
       if (isShow) {
@@ -66,17 +67,13 @@ export default createStore({
         document.documentElement.classList.remove(htmlClassName)
       }
 
-      state.isAsideMobileExpanded = isShow
+      this.isAsideMobileExpanded = isShow
     },
 
-    me (state, payload) {
-      // console.log('payload', payload)
+    setMe (payload) {
       if (payload.me) {
-        state.me = payload.me
+        this.me = payload.me
       }
     }
-  },
-  actions: {
-
   }
 })

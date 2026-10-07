@@ -337,7 +337,7 @@
 </template>
 
 <script>
-import ModalBox from "@/components/ModalBox";
+import ModalBox from "@/components/ModalBox.vue";
 import service from "@/service/index";
 import uniq from "lodash/uniq";
 import map from "lodash/map";
@@ -345,13 +345,14 @@ import sumBy from "lodash/sumBy";
 import sum from "lodash/sum";
 import orderBy from "lodash/orderBy";
 import moment from "moment";
-import CardComponent from "@/components/CardComponent";
-import TimeCounter from "@/components/TimeCounter";
+import CardComponent from "@/components/CardComponent.vue";
+import TimeCounter from "@/components/TimeCounter.vue";
 import * as chartConfig from "@/components/Charts/chart.config";
-import ModalBoxDedication from "@/components/ModalBoxDedication";
-import ModalBoxFestive from "@/components/ModalBoxFestive";
-import ModalBoxMoveProject from "@/components/ModalBoxMoveProject";
-import { mapState } from "vuex";
+import ModalBoxDedication from "@/components/ModalBoxDedication.vue";
+import ModalBoxFestive from "@/components/ModalBoxFestive.vue";
+import ModalBoxMoveProject from "@/components/ModalBoxMoveProject.vue";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
@@ -471,7 +472,7 @@ export default {
         ? sumBy(this.activities, "hours").toFixed(2)
         : 0;
     },
-    ...mapState(["me", "userName"]),
+    ...mapState(useMainStore, ["me", "userName"]),
     counterTime() {
       if (this.counter === null) {
         return 0;

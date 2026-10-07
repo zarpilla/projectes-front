@@ -101,22 +101,23 @@
 </template>
 
 <script>
-import ModalBoxWorkingDay from "@/components/ModalBoxWorkingDay";
-import { mapState } from "vuex";
+import ModalBoxWorkingDay from "@/components/ModalBoxWorkingDay.vue";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 // import sumBy from 'lodash/sumBy'
 import { Gantt } from "dhtmlx-gantt";
 import moment from "moment";
 import service from "@/service/index";
 import _ from "lodash";
-import CardComponent from "@/components/CardComponent";
+import CardComponent from "@/components/CardComponent.vue";
 
 // main component
 export default {
   name: "DedicationWorkingDay",
   components: { ModalBoxWorkingDay, CardComponent },
   computed: {
-    ...mapState(["userName"]),
-    ...mapState(["me"])
+    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["me"])
   },
   data() {
     return {
@@ -896,7 +897,7 @@ export default {
 }
 </style>
 <style>
-@import "~dhtmlx-gantt/codebase/dhtmlxgantt.css";
+@import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 
 .gantt > div {
   min-height: 600px;

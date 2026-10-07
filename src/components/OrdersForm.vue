@@ -1500,12 +1500,13 @@
 
 <script>
 import dayjs from "dayjs";
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import sortBy, { name } from "lodash/sortBy";
 import concat from "lodash/concat";
@@ -1515,8 +1516,8 @@ import {
   checkIfDateIsValidInroute,
   calculateRoutePrice
 } from "@/service/assignRouteRate";
-import ModalBoxContactUser from "@/components/ModalBoxContactUser";
-import ModalBoxIncidence from "@/components/ModalBoxIncidence";
+import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
+import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import getConfig from "@/config";
 
 export default {
@@ -1568,7 +1569,7 @@ export default {
       routeRates: [],
       contactSearch: "",
       citySearch: "",
-      apiUrl: process.env.VUE_APP_API_URL,
+      apiUrl: import.meta.env.VUE_APP_API_URL,
       nextDayLimitHour: 14,
       dateWarningMessage: "",
       collectionPickupDateWarningMessage: "",
@@ -1580,7 +1581,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),
+    ...mapState(useMainStore, ["me"]),
     titleStack() {
       return ["Comandes", this.formCardTitle];
     },

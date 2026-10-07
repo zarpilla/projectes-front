@@ -65,7 +65,7 @@ const firstLine = text => String(text).split('\n')[0]
 // Errors the Vue 2 app already throws today are recorded once (npm run baseline)
 // so later runs only fail on errors the migration introduced.
 const RECORD_KNOWN = process.env.SMOKE_RECORD_KNOWN === '1'
-const knownFile = path.join(here, 'baseline', 'known-errors.json')
+const knownFile = path.join(here, process.env.SMOKE_BASELINE_DIR || 'baseline', 'known-errors.json')
 const readJson = (file, fallback) => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : fallback
 const known = readJson(knownFile, {})
 

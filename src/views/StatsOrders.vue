@@ -38,13 +38,13 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-import OrdersPivot from "@/components/OrdersPivot";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import OrdersPivot from "@/components/OrdersPivot.vue";
 import service from "@/service/index";
 import defaultProjectState from "@/service/projectState";
 import { addScript, addStyle } from "@/helpers/addScript";
-import moment, { months } from "moment";
+import moment from "moment";
 
 export default {
   name: "StatsOrders",
@@ -78,22 +78,22 @@ export default {
       if (window.jQuery) {
         clearInterval(interval);
         await addScript(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.all.min.js",
           "kendo-all-min-js"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.common.min.css",
           "kendo-common-min-css"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.custom.css",
           "kendo-custom-css"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/custom.css",
           "custom-css"
         );

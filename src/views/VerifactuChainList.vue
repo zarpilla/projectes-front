@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar';
-import VerifactuChainList from '@/components/VerifactuChainList';
+import TitleBar from '@/components/TitleBar.vue';
+import VerifactuChainList from '@/components/VerifactuChainList.vue';
 
 export default {
   name: 'VerifactuChainListView',

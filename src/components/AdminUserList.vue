@@ -104,7 +104,7 @@
 </template>
 
 <script>
-import CardComponent from "@/components/CardComponent";
+import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
 
 export default {

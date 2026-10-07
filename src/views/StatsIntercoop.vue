@@ -93,9 +93,9 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import IntercoopPivot from '@/components/IntercoopPivot'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import IntercoopPivot from '@/components/IntercoopPivot.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'

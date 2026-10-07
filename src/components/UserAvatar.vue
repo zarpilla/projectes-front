@@ -5,7 +5,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 export default {
   name: 'UserAvatar',
   props: {
@@ -33,7 +34,7 @@ export default {
       // return `https://avatars.dicebear.com/v2/human/${name}.svg?options[mood][]=happy`
       return name
     },
-    ...mapState(['userAvatar', 'userName'])
+    ...mapState(useMainStore, ['userAvatar', 'userName'])
   }
 }
 </script>

@@ -1,3 +1,3 @@
-const defaultProjectState = process.env.VUE_APP_DEFAULT_PROJECT_STATE || 1
+const defaultProjectState = import.meta.env.VUE_APP_DEFAULT_PROJECT_STATE || 1
 
-module.exports = defaultProjectState
+export default defaultProjectState

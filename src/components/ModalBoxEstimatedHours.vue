@@ -77,9 +77,10 @@
 
 <script>
 import service from '@/service/index'
-import { mapState } from 'vuex'
-import ModalBox from '@/components/ModalBox'
-import RadioPicker from '@/components/RadioPicker'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
+import ModalBox from '@/components/ModalBox.vue'
+import RadioPicker from '@/components/RadioPicker.vue'
 import moment from 'moment'
 
 export default {
@@ -121,8 +122,8 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
-    ...mapState(['me']),
+    ...mapState(useMainStore, ['userName']),
+    ...mapState(useMainStore, ['me']),
     enabled () {
       return this.form.quantity && this.form.users_permissions_user
     },

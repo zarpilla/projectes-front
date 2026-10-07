@@ -38,9 +38,9 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-import IncidencesPivot from "@/components/IncidencesPivot";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import IncidencesPivot from "@/components/IncidencesPivot.vue";
 import service from "@/service/index";
 import { addScript, addStyle } from "@/helpers/addScript";
 import moment from "moment";
@@ -75,22 +75,22 @@ export default {
       if (window.jQuery) {
         clearInterval(interval);
         await addScript(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.all.min.js",
           "kendo-all-min-js"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.common.min.css",
           "kendo-common-min-css"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/kendo.custom.css",
           "kendo-custom-css"
         );
         await addStyle(
-          (process.env.VUE_APP_PATH ? process.env.VUE_APP_PATH : "") +
+          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
             "/vendor/kendo/custom.css",
           "custom-css"
         );

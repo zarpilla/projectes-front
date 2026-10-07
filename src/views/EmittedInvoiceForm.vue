@@ -5,9 +5,10 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import DocumentForm from "@/components/DocumentForm";
-import { mapState } from "vuex";
+import TitleBar from "@/components/TitleBar.vue";
+import DocumentForm from "@/components/DocumentForm.vue";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 
 export default {
   name: "EmittedInvoiceForm",
@@ -28,7 +29,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),    
+    ...mapState(useMainStore, ["me"]),    
   },
   created() {
     this.type = this.$route.params.type

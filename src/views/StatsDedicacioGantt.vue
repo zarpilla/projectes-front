@@ -72,9 +72,9 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import DedicationGantt from '@/components/DedicationGantt'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import DedicationGantt from '@/components/DedicationGantt.vue'
 import service from '@/service/index'
 
 export default {

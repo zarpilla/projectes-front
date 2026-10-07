@@ -171,7 +171,7 @@ import service from "@/service/index";
 // import map from 'lodash/map'
 import sumBy from "lodash/sumBy";
 import moment from "moment";
-import CardComponent from "@/components/CardComponent";
+import CardComponent from "@/components/CardComponent.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 
 moment.locale("ca");

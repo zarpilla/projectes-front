@@ -134,7 +134,7 @@
 </template>
 
 <script>
-import ModalBox from "@/components/ModalBox";
+import ModalBox from "@/components/ModalBox.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 
 export default {

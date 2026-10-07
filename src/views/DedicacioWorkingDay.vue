@@ -8,11 +8,12 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import DedicationWorkingDay from '@/components/DedicationWorkingDay'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import DedicationWorkingDay from '@/components/DedicationWorkingDay.vue'
 import service from '@/service/index'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'DedicationWorkingDayView',
@@ -27,7 +28,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Persones', 'Jornades']
     }

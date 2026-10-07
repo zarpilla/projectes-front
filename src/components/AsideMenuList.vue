@@ -11,8 +11,9 @@
 </template>
 
 <script>
-import AsideMenuItem from '@/components/AsideMenuItem'
-import { mapState } from "vuex";
+import AsideMenuItem from '@/components/AsideMenuItem.vue'
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import service from "@/service/index";
 
 export default {

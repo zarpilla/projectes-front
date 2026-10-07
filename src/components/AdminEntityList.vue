@@ -104,8 +104,8 @@
 
 <script>
 import service from '@/service/index';
-import CardComponent from '@/components/CardComponent';
-import ModalBox from '@/components/ModalBox';
+import CardComponent from '@/components/CardComponent.vue';
+import ModalBox from '@/components/ModalBox.vue';
 import moment from 'moment';
 
 export default {

@@ -122,7 +122,8 @@ import configPivot from '@/service/configStatsDedicationEst'
 import sortBy from 'lodash/sortBy'
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import PivotViews from '@/components/PivotViews.vue'
 import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
 
@@ -192,7 +193,7 @@ export default {
     this.getActivities()
   },
   computed: {
-    ...mapState(["userName", "user"]),
+    ...mapState(useMainStore, ["userName", "user"]),
     // Single signature for all three filter props so that a synchronous
     // change to several of them (e.g. when the parent commits them together
     // on "Aplicar") only triggers one getActivities() instead of one per prop.

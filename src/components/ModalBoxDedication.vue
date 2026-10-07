@@ -203,11 +203,12 @@
 
 <script>
 import service from "@/service/index";
-import RadioPicker from "@/components/RadioPicker";
+import RadioPicker from "@/components/RadioPicker.vue";
 import moment from "moment";
-import { mapState } from "vuex";
-import ModalBox from "@/components/ModalBox";
-import TimeCounter from "@/components/TimeCounter";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
+import ModalBox from "@/components/ModalBox.vue";
+import TimeCounter from "@/components/TimeCounter.vue";
 
 export default {
   name: "ModalBoxDedication",
@@ -270,7 +271,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     enabled() {
       return (
         this.form.project &&

@@ -106,7 +106,8 @@
 <script>
 import service from "@/service/index";
 import { parse } from "csv-parse/browser/esm";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import FileUpload from "@/components/FileUpload.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import moment from "moment";
@@ -135,12 +136,12 @@ export default {
       projectSearch: "",
       projectId: null,
       projects: [],
-      apiUrl: process.env.VUE_APP_API_URL
+      apiUrl: import.meta.env.VUE_APP_API_URL
     };
   },
   computed: {
-    ...mapState(["userName"]),
-    ...mapState(["userId"]),
+    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["userId"]),
     theOrdersChecked() {
       return this.checkedRows.length
         ? this.orders.filter(o =>

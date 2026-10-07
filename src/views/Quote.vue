@@ -115,8 +115,8 @@
 // import axios from 'axios'
 // import dayjs from 'dayjs'
 // import find from 'lodash/find'
-import TitleBar from '@/components/TitleBar'
-import HeroBar from '@/components/HeroBar'
+import TitleBar from '@/components/TitleBar.vue'
+import HeroBar from '@/components/HeroBar.vue'
 import service from '@/service/index'
 import moment from 'moment'
 import html2pdf from 'html2pdf.js'
@@ -138,7 +138,7 @@ export default {
       isLoading: false,
       quote: null,
       me: null,
-      baseUrl: process.env.VUE_APP_API_URL || 'http://localhost:1337',
+      baseUrl: import.meta.env.VUE_APP_API_URL || 'http://localhost:1337',
       imageUrl: null,
       locale: 'ca',
       texts: {

@@ -35,8 +35,8 @@
   </div>
 </template>
 <script>
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
 export default {
   name: "ChangeLog",
   components: {

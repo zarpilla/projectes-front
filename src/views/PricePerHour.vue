@@ -60,9 +60,9 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import CardComponent from "@/components/CardComponent";
-import PricePerHourDetail from "@/components/PricePerHourDetail";
+import TitleBar from "@/components/TitleBar.vue";
+import CardComponent from "@/components/CardComponent.vue";
+import PricePerHourDetail from "@/components/PricePerHourDetail.vue";
 import service from "@/service/index";
 
 export default {

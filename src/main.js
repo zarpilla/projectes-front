@@ -2,12 +2,17 @@
 import '@/scss/main.scss'
 
 /* Core */
+import jQuery from 'jquery'
+// webpack bundled every moment locale automatically (moment loads them with a
+// dynamic require); with Vite the ones moment.locale() switches to must be imported
+import 'moment/dist/locale/ca'
 import { createApp } from 'vue'
 import Buefy from 'buefy'
 
 /* Router & Store */
 import router from './router'
-import store from './store'
+import { createPinia } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 /* Vue. Main component */
 import App from './App.vue'
@@ -28,7 +33,7 @@ import DownloadExcel from '@/components/DownloadExcel.vue'
 /* Default title tag */
 const defaultDocumentTitle = 'ESSTRAPIS'
 
-window.$ = window.jQuery = require('jquery')
+window.$ = window.jQuery = jQuery
 
 /* Collapse mobile aside menu on route change & set document title from route meta */
 router.beforeEach((to, from, next)  => {
@@ -38,7 +43,7 @@ router.beforeEach((to, from, next)  => {
   next()
 })
 router.afterEach(to => {
-  store.commit('asideMobileStateToggle', false)
+  useMainStore().asideMobileStateToggle(false)
 
   if (to.meta && to.meta.title) {
     document.title = `${to.meta.title} — ${defaultDocumentTitle}`
@@ -60,8 +65,8 @@ router.afterEach(to => {
 
 const app = createApp(App)
 
+app.use(createPinia())
 app.use(router)
-app.use(store)
 app.use(Buefy)
 app.use(VCalendar, {
   componentPrefix: 'v'

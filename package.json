@@ -3,12 +3,11 @@
   "version": "1.5.1",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "npx update-browserslist-db@latest && cross-env NODE_ENV=production vue-cli-service build",
-    "build:dev": "npx update-browserslist-db@latest && vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "lintfix": "vue-cli-service lint --fix",
-    "lint:vue3": "eslint --no-eslintrc -c .eslintrc.vue3.js --ext .js,.vue src"
+    "serve": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint:vue3": "eslint --no-eslintrc -c .eslintrc.vue3.cjs --ext .js,.vue src"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
@@ -16,7 +15,6 @@
     "buefy": "^3.1.0",
     "bulma": "^1.0.4",
     "chart.js": "^4.5.1",
-    "core-js": "^3.9.0",
     "csv-parse": "^5.5.5",
     "date-fns": "^2.21.1",
     "dayjs": "^1.10.4",
@@ -29,63 +27,24 @@
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "numeral": "^2.0.6",
+    "pinia": "^4.0.3",
     "v-calendar": "^3.1.2",
     "vue": "^3.5.43",
     "vue-chartjs": "^5.3.4",
-    "vue-router": "^4.6.4",
-    "vuex": "^4.1.0"
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/eslint-parser": "^7.29.9",
-    "@babel/plugin-transform-nullish-coalescing-operator": "^7.27.1",
-    "@babel/plugin-transform-optional-chaining": "^7.28.5",
-    "@vue/cli-plugin-babel": "^5.0.9",
-    "@vue/cli-plugin-eslint": "^5.0.9",
-    "@vue/cli-plugin-router": "^5.0.9",
-    "@vue/cli-plugin-vuex": "^5.0.9",
-    "@vue/cli-service": "^5.0.9",
-    "@vue/eslint-config-standard": "^8.0.1",
+    "@vitejs/plugin-vue": "^6.0.9",
     "autoprefixer": "^10.6.1",
-    "browserslist": "^4.25.1",
-    "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.6.0",
     "eslint-plugin-vue": "^9.33.0",
     "gh-pages": "^3.1.0",
     "postcss": "^8.5.29",
     "sass": "^1.105.1",
-    "sass-loader": "^13.3.3"
+    "vite": "^8.3.3"
   },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "@vue/standard"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {
-      "semi": "warn",
-      "no-tabs": "warn",
-      "indent": "warn",
-      "comma-spacing": "warn",
-      "no-mixed-spaces-and-tabs": "warn"
-    },
-    "ignorePatterns": [
-      "src/**/*.js",
-      "src/**/*.vue"
-    ]
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  }
 }

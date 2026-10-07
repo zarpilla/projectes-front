@@ -89,7 +89,7 @@
 </template>
 
 <script>
-import ModalBox from "@/components/ModalBox";
+import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
 
 export default {

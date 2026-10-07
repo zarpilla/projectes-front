@@ -107,7 +107,8 @@ import service from "@/service/index";
 import sortBy from "lodash/sortBy";
 import omit from "lodash/omit";
 import moment from "moment";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
 
@@ -135,7 +136,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["userName", "user"]),
+    ...mapState(useMainStore, ["userName", "user"]),
     total_expense() {
       return this.dataType === "Previsió"
         ? 'total_expense_esti' : 'total_expense_real';

@@ -26,7 +26,8 @@
 
 <script>
 import dayjs from 'dayjs'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'FooterBar',
@@ -34,7 +35,7 @@ export default {
     year () {
       return dayjs().year()
     },
-    ...mapState(['isFooterBarVisible'])
+    ...mapState(useMainStore, ['isFooterBarVisible'])
   }
 }
 </script>

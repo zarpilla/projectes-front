@@ -47,7 +47,7 @@
 </template>
 
 <script>
-import ModalBox from '@/components/ModalBox'
+import ModalBox from '@/components/ModalBox.vue'
 import service from '@/service/index'
 // import LineChart from '@/components/Charts/LineChart'
 import BarChart from '@/components/Charts/BarChart'
@@ -55,10 +55,10 @@ import uniq from 'lodash/uniq'
 import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
 import moment from 'moment'
-import CardComponent from '@/components/CardComponent'
-import DedicationCircleChart from '@/components/DedicationCircleChart'
+import CardComponent from '@/components/CardComponent.vue'
+import DedicationCircleChart from '@/components/DedicationCircleChart.vue'
 import * as chartConfig from '@/components/Charts/chart.config'
-import ModalBoxDedication from '@/components/ModalBoxDedication'
+import ModalBoxDedication from '@/components/ModalBoxDedication.vue'
 import TopProgress from '@/components/TopProgress.vue'
 
 moment.locale('ca')

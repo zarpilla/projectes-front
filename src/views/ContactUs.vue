@@ -5,9 +5,10 @@
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar";
-import ContactUsForm from "@/components/ContactUsForm";
-import { mapState } from "vuex";
+import TitleBar from "@/components/TitleBar.vue";
+import ContactUsForm from "@/components/ContactUsForm.vue";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 
 export default {
   name: "ContactUs",
@@ -23,7 +24,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["me"]),
+    ...mapState(useMainStore, ["me"]),
   },
 };
 </script>

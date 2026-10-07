@@ -3,7 +3,7 @@
 
 // no-dark-mode: Bulma 1 otherwise follows prefers-color-scheme, which the
 // rest of the theme doesn't support
-@use "~bulma/versions/bulma-no-dark-mode" with (
+@use "bulma/versions/bulma-no-dark-mode" with (
   // Bulma 0.9 / Buefy 0.9 look: neutral greys (Bulma 1 tints them blue),
   // the 0.9 palette and radii, regular-weight buttons with white text
   $scheme-h: 0,
@@ -60,4 +60,4 @@
   $footer-padding: theme.$footer-padding,
   $progress-bar-background-color: theme.$progress-bar-background-color
 );
-@use "~buefy/src/scss/buefy";
+@use "buefy/src/scss/buefy";

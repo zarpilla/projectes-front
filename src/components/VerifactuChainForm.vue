@@ -93,7 +93,7 @@
 
 <script>
 import service from '@/service/index';
-import CardComponent from '@/components/CardComponent';
+import CardComponent from '@/components/CardComponent.vue';
 
 export default {
   name: 'VerifactuChainForm',

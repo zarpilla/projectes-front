@@ -248,11 +248,12 @@
 
 <script>
 import service from "@/service/index";
-import { mapState } from "vuex";
-import ModalBox from "@/components/ModalBox";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
+import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
-import RadioPicker from "@/components/RadioPicker";
-import FileUpload from "@/components/FileUpload";
+import RadioPicker from "@/components/RadioPicker.vue";
+import FileUpload from "@/components/FileUpload.vue";
 import getConfig from "@/config";
 
 export default {
@@ -325,7 +326,7 @@ export default {
       activity_types: [],
       activityTypes: {},
       taskStates: {},
-      apiUrl: process.env.VUE_APP_API_URL,
+      apiUrl: import.meta.env.VUE_APP_API_URL,
       checklistToAdd: "",
     };
   },
@@ -334,7 +335,7 @@ export default {
     this.apiUrl = config.VUE_APP_API_URL;
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(useMainStore, ["userName"]),
     filteredUsers() {
       return this.users.filter((option) => {
         return (

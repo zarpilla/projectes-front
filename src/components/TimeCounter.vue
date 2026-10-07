@@ -7,17 +7,16 @@
 </template>
 
 <script>
-import ModalBox from '@/components/ModalBox'
+import ModalBox from '@/components/ModalBox.vue'
 import moment from 'moment'
-import CardComponent from '@/components/CardComponent'
-import ModalBoxDedication from '@/components/ModalBoxDedication'
+import CardComponent from '@/components/CardComponent.vue'
 
 moment.locale('ca')
 
 export default {
   name: 'TimeCounter',
   emits: ['update'],
-  components: { ModalBox, CardComponent, ModalBoxDedication },
+  components: { ModalBox, CardComponent },
   props: {
     counter: {
       type: Object

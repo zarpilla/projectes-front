@@ -5,3 +5,4 @@ params.json
 .env.smoke
 baseline/*.png
 reports/
+baseline-*/*.png

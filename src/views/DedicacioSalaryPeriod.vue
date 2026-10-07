@@ -41,11 +41,12 @@
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar'
-import CardComponent from '@/components/CardComponent'
-import DedicationSalary from '@/components/DedicationSalary'
+import TitleBar from '@/components/TitleBar.vue'
+import CardComponent from '@/components/CardComponent.vue'
+import DedicationSalary from '@/components/DedicationSalary.vue'
 import service from '@/service/index'
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: 'DedicacioSalary',
@@ -68,7 +69,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['userName']),
+    ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Dedicació', 'Bestretes']
     },

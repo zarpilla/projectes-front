@@ -42,7 +42,7 @@ import map from 'lodash/map'
 import sumBy from 'lodash/sumBy'
 import orderBy from 'lodash/orderBy'
 import moment from 'moment'
-import CardComponent from '@/components/CardComponent'
+import CardComponent from '@/components/CardComponent.vue'
 import * as chartConfig from '@/components/Charts/chart.config'
 
 moment.locale('ca')

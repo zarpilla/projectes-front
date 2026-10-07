@@ -89,7 +89,8 @@
 <script>
 import service from "@/service/index";
 import { name } from "lodash/sortBy";
-import { mapState } from "vuex";
+import { mapState } from "pinia"
+import { useMainStore } from "@/stores/main.js";
 
 export default {
   name: "UsersTable",
@@ -107,8 +108,8 @@ export default {
     };
   },
   computed: {
-    ...mapState(["userName"]),
-    ...mapState(["userId"])
+    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["userId"])
   },
   async mounted() {
     this.getData();
