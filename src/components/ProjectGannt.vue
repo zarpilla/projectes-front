@@ -62,7 +62,6 @@
 </template>
 
 <script>
-import { EventBus } from "@/service/event-bus.js";
 import ModalBoxEstimatedHours from "@/components/ModalBoxEstimatedHours";
 import { mapState } from "vuex";
 // import sumBy from 'lodash/sumBy'
@@ -164,15 +163,6 @@ export default {
     this.dedications = (
       await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
     ).data;
-
-    EventBus.$on("item-clicked", (item) => {
-      // console.log('item-clicked', item)
-      this.dedicationObject = item;
-      this.isModalActive = true;
-    });
-    EventBus.$on("phases-updated", (info) => {
-      this.phases = info.phases;
-    });
 
     let query =
       "tasks?_limit=-1&_where[archived_eq]=false&_where[due_date_null]=false";

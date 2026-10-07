@@ -63,7 +63,6 @@
 </template>
 
 <script>
-import { EventBus } from "../service/event-bus.js";
 import service from "@/service/index";
 
 const STATUS_INITIAL = 0,

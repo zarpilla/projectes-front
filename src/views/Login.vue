@@ -69,7 +69,6 @@
 <script>
 import service from "@/service/index";
 import { mapState } from "vuex";
-import { EventBus } from "@/service/event-bus.js";
 import getConfig from "@/config";
 
 export default {
@@ -145,10 +144,8 @@ export default {
               jwt: response.data.jwt
             });
 
-            EventBus.$emit("login", {});
-
-            if (this.$route.params.nextUrl != null) {
-              this.$router.push(this.$route.params.nextUrl);
+            if (this.$route.query.nextUrl != null) {
+              this.$router.push(this.$route.query.nextUrl);
             } else {
               if (is_admin == 1) {
                 this.$router.push("admin");

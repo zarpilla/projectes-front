@@ -811,7 +811,6 @@ import ModalBoxInvoicing from "@/components/ModalBoxInvoicing";
 import ModalBoxSplit from "@/components/ModalBoxSplit";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import { EventBus } from "@/service/event-bus.js";
 import sumBy from "lodash/sumBy";
 import { mapState } from "vuex";
 import moment from "moment";

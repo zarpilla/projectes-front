@@ -17,16 +17,10 @@ import update from "@/mixins/update";
 import { mapState } from "vuex";
 import service from "@/service/index";
 import menu from "@/service/menu";
-import { EventBus } from "@/service/event-bus.js";
 import ModalBoxInvoice from "@/components/ModalBoxInvoice";
 
 export default {
   name: "Home",
-  components: {
-    FooterBar,
-    AsideMenu,
-    NavBar
-  },
   mixins: [update],
   components: {
     NavBar,
@@ -34,11 +28,15 @@ export default {
     FooterBar,
     ModalBoxInvoice
   },
+  watch: {
+    // Login.vue commits the new jwt on a successful login
+    userJwt(jwt) {
+      if (jwt) {
+        this.loadUserData();
+      }
+    }
+  },
   mounted() {
-    EventBus.$on("login", () => {
-      this.loadUserData();
-    });
-
     // Refresh user data when tab/window regains focus
     window.addEventListener("focus", this.refreshUserData);
   },
@@ -46,7 +44,7 @@ export default {
     window.removeEventListener("focus", this.refreshUserData);
   },
   computed: {
-    ...mapState(["userName"]),
+    ...mapState(["userName", "userJwt"]),
     menu() {
       return this.loaded ? this.menuList : [];
     }
@@ -155,7 +153,9 @@ export default {
                 this.isModalActive = true;
               }
             } else {
-              if (this.$route.name === "login") {
+              // Login.vue is already navigating to nextUrl (a lazy route can
+              // still be loading here); pushing now would cancel it
+              if (this.$route.name === "login" && !this.$route.query.nextUrl) {
                 this.$router.push("projectes");
               }
             }

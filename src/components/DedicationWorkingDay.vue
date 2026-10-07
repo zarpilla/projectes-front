@@ -101,7 +101,6 @@
 </template>
 
 <script>
-import { EventBus } from "@/service/event-bus.js";
 import ModalBoxWorkingDay from "@/components/ModalBoxWorkingDay";
 import { mapState } from "vuex";
 // import sumBy from 'lodash/sumBy'
