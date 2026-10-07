@@ -33,3 +33,16 @@ they must be checked by hand, on a local or staging tenant, before and after the
 - [ ] Charts on the stats pages render, and their tooltips work
 - [ ] Kendo pivot views load and pivot
 - [ ] Mobile width: aside menu toggles and closes on navigation
+
+## Vue 3 differences to confirm against production (Vue 2)
+
+On the local copy these pages were broken or empty on Vue 2 and work on Vue 3.
+Check whether production Vue 2 behaves the same, so the change is understood:
+- [ ] `/salary` (Bestretes): on Vue 2 the year select stayed at "0" and the page kept loading
+- [ ] `/dedicacio-saldo`, `/orders-stats`, `/incidences-stats`: same year-select pattern, Vue 2 never finished loading
+- [ ] `/route-days`: Vue 2's calendar showed no routes, Vue 3 shows each weekday's routes
+- [ ] Opening one document after another (`/document/:id/:type`): Vue 2 kept showing the previous document
+
+Intentional behaviour changes:
+- [ ] Changing "Línies" per page in DocumentForm now jumps back to page 1 (the handler never fired on Vue 2)
+- [ ] Logging in from a deep link returns to that page (the redirect was lost on Vue 2)
