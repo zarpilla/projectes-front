@@ -1,0 +1,18 @@
+{
+  "/project/:id": ["/project/0", "/project/1"],
+  "/document/:id/:type": ["/document/0/emitted-invoices", "/document/1/emitted-invoices", "/document/1/received-invoices", "/document/1/received-expenses"],
+  "/invoice/:id/:type": ["/invoice/1/emitted-invoices", "/invoice/1/received-expenses"],
+  "/pdf/:id/:type": "/pdf/1/emitted-invoices",
+  "/quote/:id": "/quote/1",
+  "/client/:id": "/client/1",
+  "/order/view/:id": "/order/view/1",
+  "/order/:id": ["/order/0", "/order/1"],
+  "/contact/:id": ["/contact/0", "/contact/1"],
+  "/contact-user/:id": "/contact-user/0",
+  "/admin/face-queue/:id": "/admin/face-queue/1",
+  "/admin/verifactu-chain/:id": "/admin/verifactu-chain/1",
+  "/admin/users/:id": "/admin/users/1",
+  "/admin/:entityName": ["/admin/bank-account", "/admin/contact-type"],
+  "/admin/:entityName/new": "/admin/bank-account/new",
+  "/admin/:entityName/:id": "/admin/bank-account/1"
+}

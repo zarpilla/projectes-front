@@ -1,0 +1,15 @@
+{
+  "name": "esstrapis-smoke",
+  "private": true,
+  "description": "Route-level smoke test + screenshot baseline for the Vue 2 -> Vue 3 migration",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "baseline": "SMOKE_VISUAL=1 SMOKE_RECORD_KNOWN=1 SMOKE_LABEL=baseline playwright test --update-snapshots",
+    "compare": "SMOKE_VISUAL=1 playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

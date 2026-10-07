@@ -1,0 +1,6 @@
+node_modules/
+results/
+report/
+params.json
+.env.smoke
+baseline/*.png
