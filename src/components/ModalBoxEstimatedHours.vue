@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Planificació</p>
@@ -12,7 +12,7 @@
                 placeholder="Hores"
                 name="hours"
                 required
-                @input="fixDecimals('quantity', form.quantity)"
+                @update:model-value="fixDecimals('quantity', form.quantity)"
               />
             </b-field>
             <b-field label="" horizontal v-if="form.quantity_type">
@@ -25,7 +25,7 @@
               <b-select
                 v-model="form.users_permissions_user"
                 placeholder="Persona"
-                @change.native="onUserChange($event)"
+                @change="onUserChange($event)"
               >
                 <option
                   v-for="(s, index) in users"
@@ -42,7 +42,7 @@
                 placeholder="Cost/hora (€)"
                 name="hours"
                 disabled
-                @input="fixDecimals('amount', form.amount)"
+                @update:model-value="fixDecimals('amount', form.amount)"
               />
             </b-field>
             <b-field label="Descripció" horizontal>
@@ -84,6 +84,7 @@ import moment from 'moment'
 
 export default {
   name: 'ModalBoxEstimatedHours',
+  emits: ["cancel", "delete", "submit"],
   components: { ModalBox, RadioPicker },
   props: {
     isActive: {

@@ -32,7 +32,7 @@
                             "
                             >{{ texts[locale][type]["documentName"] }}</span
                           >
-                          <span v-else>{{ quote.document_type.name }}</span>
+                          <span v-else>{{ quote.document_type ? quote.document_type.name : '' }}</span>
                           {{ quote.code }}<br />
                           {{ texts[locale]["Data"] }}:
                           {{

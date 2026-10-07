@@ -504,7 +504,7 @@
                   type="numeric"
                   v-model="form.grantable_amount_total"
                   placeholder="Import a justificar total"
-                  @input="
+                  @update:model-value="
                     changeValue(
                       'grantable_amount_total',
                       form.grantable_amount_total
@@ -524,7 +524,7 @@
                   type="numeric"
                   v-model="form.grantable_amount"
                   placeholder="Import a justificar amb nòmines"
-                  @input="
+                  @update:model-value="
                     changeValue('grantable_amount', form.grantable_amount)
                   "
                 >
@@ -540,7 +540,7 @@
                   type="numeric"
                   v-model="form.grantable_structural_expenses_justify_invoices"
                   placeholder="Import a justificar amb factures indirectes"
-                  @input="
+                  @update:model-value="
                     changeValue(
                       'grantable_structural_expenses_justify_invoices',
                       form.grantable_structural_expenses_justify_invoices
@@ -561,7 +561,7 @@
                   type="numeric"
                   v-model="form.grantable_structural_expenses"
                   placeholder="Import de despeses indirectes"
-                  @input="
+                  @update:model-value="
                     changeValue(
                       'grantable_structural_expenses',
                       form.grantable_structural_expenses
@@ -582,7 +582,7 @@
                   type="numeric"
                   v-model="form.grantable_cofinancing"
                   placeholder="Import de cofinançament"
-                  @input="
+                  @update:model-value="
                     changeValue(
                       'grantable_cofinancing',
                       form.grantable_cofinancing
@@ -1860,7 +1860,7 @@
               <b-input
                 :disabled="i === form.periodification.length - 1"
                 v-model="y.incomes"
-                @input="changeLine(y, 'incomes', y.incomes)"
+                @update:model-value="changeLine(y, 'incomes', y.incomes)"
               />
             </b-field>
           </div>
@@ -1872,7 +1872,7 @@
               <b-input
                 :disabled="i === form.periodification.length - 1"
                 v-model="y.expenses"
-                @input="changeLine(y, 'expenses', y.expenses)"
+                @update:model-value="changeLine(y, 'expenses', y.expenses)"
               />
             </b-field>
           </div>
@@ -1884,7 +1884,7 @@
               <b-input
                 :disabled="i === form.periodification.length - 1"
                 v-model="y.real_incomes"
-                @input="changeLine(y, 'real_incomes', y.real_incomes)"
+                @update:model-value="changeLine(y, 'real_incomes', y.real_incomes)"
               />
             </b-field>
           </div>
@@ -1893,7 +1893,7 @@
               <b-input
                 :disabled="i === form.periodification.length - 1"
                 v-model="y.real_expenses"
-                @input="changeLine(y, 'real_expenses', y.real_expenses)"
+                @update:model-value="changeLine(y, 'real_expenses', y.real_expenses)"
               />
             </b-field>
           </div>
@@ -1914,7 +1914,7 @@
               <b-input
                 :disabled="true"
                 v-model="y.incomes"
-                @input="changeLine(y, 'incomes', y.incomes)"
+                @update:model-value="changeLine(y, 'incomes', y.incomes)"
               />
             </b-field>
           </div>
@@ -1923,7 +1923,7 @@
               <b-input
                 :disabled="true"
                 v-model="y.expenses"
-                @input="changeLine(y, 'expenses', y.expenses)"
+                @update:model-value="changeLine(y, 'expenses', y.expenses)"
               />
             </b-field>
           </div>
@@ -1932,7 +1932,7 @@
               <b-input
                 :disabled="true"
                 v-model="y.real_incomes"
-                @input="changeLine(y, 'real_incomes', y.real_incomes)"
+                @update:model-value="changeLine(y, 'real_incomes', y.real_incomes)"
               />
             </b-field>
           </div>
@@ -1941,7 +1941,7 @@
               <b-input
                 :disabled="true"
                 v-model="y.real_expenses"
-                @input="changeLine(y, 'real_expenses', y.real_expenses)"
+                @update:model-value="changeLine(y, 'real_expenses', y.real_expenses)"
               />
             </b-field>
           </div>
@@ -3573,7 +3573,8 @@ export default {
         // For mother projects, allByYear is already loaded from children data
         // For other projects, we need to calculate it
         if (!this.form.is_mother) {
-          this.allByYear = this.form.allByYear;
+          // the API omits allByYear when there is nothing to aggregate
+          this.allByYear = this.form.allByYear || [];
           
           // const calculate = (
           //   await service({ requiresAuth: true }).get(
@@ -4349,7 +4350,7 @@ export default {
     childGanttItemUpdate(childId, item) {
       // Initialize change tracking for this child if not exists
       if (!this.childProjectChanges[childId]) {
-        this.$set(this.childProjectChanges, childId, {
+        this.childProjectChanges[childId] = {
           _project_phases_updated: false,
           _project_original_phases_updated: false,
           deletedPhases: [],
@@ -4360,7 +4361,7 @@ export default {
           deletedIncomesOriginal: [],
           deletedExpensesOriginal: [],
           deletedHoursOriginal: []
-        });
+        };
       }
 
       // Check which view mode we're in
@@ -4467,7 +4468,7 @@ export default {
     childGanttItemDelete(childId, item) {
       // Initialize change tracking for this child if not exists
       if (!this.childProjectChanges[childId]) {
-        this.$set(this.childProjectChanges, childId, {
+        this.childProjectChanges[childId] = {
           _project_phases_updated: false,
           _project_original_phases_updated: false,
           deletedPhases: [],
@@ -4478,7 +4479,7 @@ export default {
           deletedIncomesOriginal: [],
           deletedExpensesOriginal: [],
           deletedHoursOriginal: []
-        });
+        };
       }
 
       // Check which view mode we're in
@@ -4553,7 +4554,7 @@ export default {
       }
 
       // Set saving state
-      this.$set(this.savingChildProjects, childId, true);
+      this.savingChildProjects[childId] = true;
 
       try {
         // Find the child project
@@ -4610,7 +4611,7 @@ export default {
         });
 
         // Clear the changes tracking for this child
-        this.$delete(this.childProjectChanges, childId);
+        delete this.childProjectChanges[childId];
 
         // Reload the children data to get fresh data
         await this.loadChildrenData();
@@ -4623,7 +4624,7 @@ export default {
           queue: false
         });
       } finally {
-        this.$set(this.savingChildProjects, childId, false);
+        this.savingChildProjects[childId] = false;
       }
     },
     async loadChildrenData() {

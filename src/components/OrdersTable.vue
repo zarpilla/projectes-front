@@ -352,7 +352,7 @@
           <div class="ml-auto mt-2">
             <b-select
               v-model="perPage"
-              @input="setStatusFilter({ ctrlKey: false, metaKey: false })"
+              @update:model-value="setStatusFilter({ ctrlKey: false, metaKey: false })"
               v-if="total > 100"
             >
               <option value="150">150 per pàg.</option>
@@ -383,7 +383,7 @@
       @sort="onSort"
       :striped="false"
       :data="theOrders"
-      :checked-rows.sync="checkedRows"
+      v-model:checked-rows="checkedRows"
       :is-row-checkable="row => true"
       :debounce-search="500"
       :checkable="true || permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
@@ -427,7 +427,7 @@
             v-model="editForm.route"
             placeholder=""
             size="is-small"
-            @input="updateCalculatedPrice"
+            @update:model-value="updateCalculatedPrice"
           >
             <option
               v-for="r in routes"
@@ -547,7 +547,7 @@
             v-model="editForm.kilograms"
             type="number"
             size="is-small"
-            @input="updateCalculatedPrice"
+            @update:model-value="updateCalculatedPrice"
           />
         </div>
         <span v-else>{{ props.row.kilograms }}</span>
@@ -564,7 +564,7 @@
             v-model="editForm.delivery_type"
             placeholder=""
             size="is-small"
-            @input="updateCalculatedPrice"
+            @update:model-value="updateCalculatedPrice"
           >
             <option
               v-for="dt in deliveryTypes"

@@ -33,6 +33,7 @@
 <script>
 export default {
   name: 'CardComponent',
+  emits: ["header-icon-click"],
   props: {
     title: {
       type: String,

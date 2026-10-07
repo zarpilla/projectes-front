@@ -91,7 +91,7 @@
           <div class="ml-auto mt-2">
             <b-select
               v-model="perPage"
-              @input="loadData"
+              @update:model-value="loadData"
               v-if="total > 50"
             >
               <option value="50">50 per pàg.</option>
@@ -293,7 +293,7 @@
                   type="textarea"
                   placeholder="Escriu una resposta..."
                   :rows="2"
-                  @keydown.native.ctrl.enter="addResponse(props.row)"
+                  @keydown.ctrl.enter="addResponse(props.row)"
                 ></b-input>
               </b-field>
             </b-field>
@@ -362,7 +362,7 @@
                   <router-link
                     v-if="modalIncidence.order && modalIncidence.order.id"
                     :to="{ name: 'orders.edit', params: { id: modalIncidence.order.id } }"
-                    @click.native="showIncidenceModal = false"
+                    @click="showIncidenceModal = false"
                   >
                     #{{ modalIncidence.order.id.toString().padStart(4, "0") }}
                   </router-link>
@@ -440,7 +440,7 @@
                     type="textarea"
                     placeholder="Escriu una resposta..."
                     :rows="2"
-                    @keydown.native.ctrl.enter="addResponseFromModal(modalIncidence)"
+                    @keydown.ctrl.enter="addResponseFromModal(modalIncidence)"
                   ></b-input>
                 </b-field>
               </b-field>
@@ -568,7 +568,7 @@ export default {
         
         // Initialize response text for this incidence
         if (!this.responseText[incidence.id]) {
-          this.$set(this.responseText, incidence.id, '');
+          this.responseText[incidence.id] = '';
         }
         
         this.modalIncidence = incidence;
@@ -621,7 +621,7 @@ export default {
         });
 
         // Clear the input
-        this.$set(this.responseText, incidence.id, '');
+        this.responseText[incidence.id] = '';
 
         // Reload the modal incidence
         await this.loadIncidenceModal(incidence.id);
@@ -850,7 +850,7 @@ export default {
     onDetailsOpen(row) {
       // Initialize response text for this row if not exists
       if (!this.responseText[row.id]) {
-        this.$set(this.responseText, row.id, '');
+        this.responseText[row.id] = '';
       }
     },
     async addResponse(incidence) {
@@ -891,7 +891,7 @@ export default {
         });
 
         // Clear the input
-        this.$set(this.responseText, incidence.id, '');
+        this.responseText[incidence.id] = '';
 
         // Reload data to show the new response
         await this.loadData();

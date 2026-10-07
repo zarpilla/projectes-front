@@ -72,6 +72,7 @@ const STATUS_INITIAL = 0,
 
 export default {
   name: "FileUpload",
+  emits: ["uploaded"],
   data() {
     return {
       uploadedFiles: [],

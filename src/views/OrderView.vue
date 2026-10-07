@@ -16,24 +16,24 @@
         :close-icon="false"
       >
         <div v-if="isLoading" class="has-text-centered">
-          <b-loading :active="isLoading"></b-loading>
+          <b-loading :model-value="isLoading"></b-loading>
         </div>
 
         <div v-else-if="order">
           <!-- Action Buttons (Top) -->
           <div class="buttons mb-5">
-            <b-button
-              v-for="(button, index) in actionButtons"
-              :key="'top-' + index"
-              :type="button.type"
-              :icon-left="button.icon"
-              :size="button.size"
-              @click="button.action"
-              v-if="button.visible"
-              :loading="button.loading"
-            >
-              {{ button.label }}
-            </b-button>
+            <template v-for="(button, index) in actionButtons" :key="'top-' + index">
+              <b-button
+                :type="button.type"
+                :icon-left="button.icon"
+                :size="button.size"
+                @click="button.action"
+                v-if="button.visible"
+                :loading="button.loading"
+              >
+                {{ button.label }}
+              </b-button>
+            </template>
           </div>
 
           <!-- BLOC ZERO: Sòcia -->
@@ -465,18 +465,18 @@
 
           <!-- Action Buttons (Bottom) -->
           <div class="buttons mt-5">
-            <b-button
-              v-for="(button, index) in actionButtons"
-              :key="'bottom-' + index"
-              :type="button.type"
-              :icon-left="button.icon"
-              :size="button.size"
-              @click="button.action"
-              v-if="button.visible"
-              :loading="button.loading"
-            >
-              {{ button.label }}
-            </b-button>
+            <template v-for="(button, index) in actionButtons" :key="'bottom-' + index">
+              <b-button
+                :type="button.type"
+                :icon-left="button.icon"
+                :size="button.size"
+                @click="button.action"
+                v-if="button.visible"
+                :loading="button.loading"
+              >
+                {{ button.label }}
+              </b-button>
+            </template>
           </div>
         </div>
 

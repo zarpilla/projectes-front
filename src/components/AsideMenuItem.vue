@@ -6,7 +6,7 @@
       exact-active-class="is-active"
       :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown }"
       :title="isCollapsed && item.label ? item.label : null"
-      @click.native="menuClick"
+      @click="menuClick"
     >
       <b-icon
         v-if="item.icon"
@@ -33,6 +33,7 @@
 <script>
 export default {
   name: 'AsideMenuItem',
+  emits: ["menu-click"],
   components: {
     AsideMenuList: () => import('@/components/AsideMenuList')
   },

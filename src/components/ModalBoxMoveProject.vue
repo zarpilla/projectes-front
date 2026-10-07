@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card">
       <header class="modal-card-head">
         <p class="modal-card-title">{{ title }}</p>
@@ -31,6 +31,7 @@
 <script>
 export default {
   name: "ModalBox",
+  emits: ["cancel", "submit"],
   props: {
     isActive: {
       type: Boolean,

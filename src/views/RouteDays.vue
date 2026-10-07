@@ -13,7 +13,7 @@
       <form @submit.prevent="submit2">
         <b-field horizontal>
           <b-field label="Any">
-            <b-select v-model="filters.year" required @input="getData">
+            <b-select v-model="filters.year" required @update:model-value="getData">
               <option v-for="(year, index) in years" :key="index" :value="year">
                 {{ year.year }}
               </option>
@@ -40,7 +40,7 @@
       :masks="masks"
       :attributes="attributes"
       title-position="left"
-      is-expanded
+      expanded
     >
       <template v-slot:day-content="{ day, attributes }">
         <div class="flex flex-col h-full z-10 overflow-hidden">
@@ -310,9 +310,15 @@ export default {
   border: 0;
   width: 100%;
 }
+/* v-calendar 3 overlays the arrows header on the month header: only the
+   month header gets the background, both get the same box so they line up */
 .custom-calendar.vc-container .vc-header {
-  background-color: #eee;
+  height: auto;
+  margin-top: 0;
   padding: 10px 0;
+}
+.custom-calendar.vc-container .vc-pane > .vc-header {
+  background-color: #eee;
   border-top-right-radius: 0.25rem;
   border-top-left-radius: 0.25rem;
 }

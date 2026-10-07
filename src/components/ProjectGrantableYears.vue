@@ -7,7 +7,7 @@
           style="width: 20%;"
           class="mr-3"
         >
-          <b-select :value="getYearId(yearData)" @input="updateYearValue(yearData, $event)">
+          <b-select :model-value="getYearId(yearData)" @update:model-value="updateYearValue(yearData, $event)">
             <option v-for="(year, index) in years" :key="index" :value="year.id">
               {{ year.year }}
             </option>
@@ -36,7 +36,7 @@
               placeholder="Import a justificar total"
               type="number"
               step="0.01"
-              @input="changeValue(yearData, 'grantable_amount_total', yearData.grantable_amount_total)" 
+              @update:model-value="changeValue(yearData, 'grantable_amount_total', yearData.grantable_amount_total)" 
             />
           </b-field>
         </div>
@@ -47,7 +47,7 @@
               placeholder="Import a justificar amb nòmines"
               type="number"
               step="0.01"
-              @input="changeValue(yearData, 'grantable_amount', yearData.grantable_amount)" 
+              @update:model-value="changeValue(yearData, 'grantable_amount', yearData.grantable_amount)" 
             />
           </b-field>
         </div>
@@ -61,7 +61,7 @@
               placeholder="Import a justificar amb factures indirectes"
               type="number"
               step="0.01"
-              @input="changeValue(yearData, 'grantable_structural_expenses_justify_invoices', yearData.grantable_structural_expenses_justify_invoices)" 
+              @update:model-value="changeValue(yearData, 'grantable_structural_expenses_justify_invoices', yearData.grantable_structural_expenses_justify_invoices)" 
             />
           </b-field>
         </div>
@@ -72,7 +72,7 @@
               placeholder="Despeses indirectes no justificables"
               type="number"
               step="0.01"
-              @input="changeValue(yearData, 'grantable_structural_expenses', yearData.grantable_structural_expenses)" 
+              @update:model-value="changeValue(yearData, 'grantable_structural_expenses', yearData.grantable_structural_expenses)" 
             />
           </b-field>
         </div>
@@ -86,7 +86,7 @@
               placeholder="Import de cofinançament"
               type="number"
               step="0.01"
-              @input="changeValue(yearData, 'grantable_cofinancing', yearData.grantable_cofinancing)" 
+              @update:model-value="changeValue(yearData, 'grantable_cofinancing', yearData.grantable_cofinancing)" 
             />
           </b-field>
         </div>
@@ -110,6 +110,7 @@
 <script>
 export default {
   name: 'ProjectGrantableYears',
+  emits: ["updated"],
   props: {
     grantableYears: {
       type: Array,

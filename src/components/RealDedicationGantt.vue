@@ -63,8 +63,11 @@ export default {
     };
   },
   watch: {
-    projectStates: function () {
-      this.getActivities();
+    projectStates: {
+      handler () {
+        this.getActivities();
+      },
+      deep: 1
     },
     view: function () {
       this.getActivities();

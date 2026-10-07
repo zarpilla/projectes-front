@@ -248,7 +248,7 @@
                 <b-select
                   v-model="form.owner"
                   placeholder=""
-                  @input="onOwnerChanged"
+                  @update:model-value="onOwnerChanged"
                 >
                   <option
                     v-for="(s, index) in usersWithOrdersPermissions"

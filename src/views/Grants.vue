@@ -15,7 +15,7 @@
               v-model="filters.project_state"
               placeholder="Estat"
               required
-              @input="getData"
+              @update:model-value="getData"
             >
               <option
                 v-for="(s, index) in project_states"

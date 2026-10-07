@@ -32,7 +32,7 @@
           <b-input
             placeholder="Nom de la fase..."
             v-model="phase.name"
-            @input="blurPhaseEdit(phase)"
+            @update:model-value="blurPhaseEdit(phase)"
             class="phase-detail-input"
             :disabled="(mode !== '' && mode !== 'simple') || !editable"
           >
@@ -140,7 +140,7 @@
                   v-model="props.row.income_type"
                   placeholder="Tipus"
                   :disabled="!editable"
-                  @input="incomeTypeChanged(props.row)"
+                  @update:model-value="incomeTypeChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in incomeTypes"
@@ -162,7 +162,7 @@
                   placeholder="Nom de la subfase..."
                   v-model="props.row.concept"
                   class="subphase-detail-input subphase-detail-input-large"
-                  @input="somethingChanged(props.row)"
+                  @update:model-value="somethingChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-input>
@@ -176,7 +176,7 @@
                   name="Unitats"
                   placeholder="Quantitat, hores, unitats..."
                   v-model="props.row.quantity"
-                  @input="
+                  @update:model-value="
                     changeSubPhase(props.row, 'quantity', props.row.quantity)
                   "
                   class="subphase-detail-input"
@@ -191,7 +191,7 @@
                   name="PreuUnitari"
                   placeholder="Preu per unitat"
                   v-model="props.row.amount"
-                  @input="changeSubPhase(props.row, 'amount', props.row.amount)"
+                  @update:model-value="changeSubPhase(props.row, 'amount', props.row.amount)"
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
@@ -227,7 +227,7 @@
                   :first-day-of-week="1"
                   icon="calendar-today"
                   placeholder="Data factura"
-                  @input="
+                  @update:model-value="
                     input;
                     somethingChanged(props.row);
                   "
@@ -249,7 +249,7 @@
                   :first-day-of-week="1"
                   icon="calendar-today"
                   placeholder="Data pagament"
-                  @input="
+                  @update:model-value="
                     input;
                     somethingChanged(props.row);
                   "
@@ -271,7 +271,7 @@
                   v-model="props.row.bank_account"
                   placeholder="Compte"
                   :disabled="!editable"
-                  @input="somethingChanged(props.row)"
+                  @update:model-value="somethingChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in bankAccounts"
@@ -292,7 +292,7 @@
                   v-model="props.row.vat_pct"
                   placeholder="IVA"
                   :disabled="!editable"
-                  @input="somethingChanged(props.row)"
+                  @update:model-value="somethingChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in vatTypes"
@@ -347,7 +347,7 @@
                 <b-checkbox
                   v-model="props.row.paid"
                   class="checkbox-inline"
-                  @input="paidChanged(props.row)"
+                  @update:model-value="paidChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-checkbox>
@@ -478,7 +478,7 @@
                   v-model="props.row.expense_type"
                   placeholder="Tipus"
                   :disabled="!editable"
-                  @input="expenseTypeChanged(props.row)"
+                  @update:model-value="expenseTypeChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in expenseTypes"
@@ -499,7 +499,7 @@
                   placeholder="Nom de la despesa..."
                   v-model="props.row.concept"
                   class="subphase-detail-input subphase-detail-input-large"
-                  @input="somethingChanged(props.row)"
+                  @update:model-value="somethingChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-input>
@@ -513,7 +513,7 @@
                   name="Unitats"
                   placeholder="Quantitat, hores, unitats..."
                   v-model="props.row.quantity"
-                  @input="
+                  @update:model-value="
                     changeSubPhase(props.row, 'quantity', props.row.quantity)
                   "
                   class="subphase-detail-input"
@@ -528,7 +528,7 @@
                   name="PreuUnitari"
                   placeholder="Preu per unitat"
                   v-model="props.row.amount"
-                  @input="changeSubPhase(props.row, 'amount', props.row.amount)"
+                  @update:model-value="changeSubPhase(props.row, 'amount', props.row.amount)"
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
@@ -560,7 +560,7 @@
                   :first-day-of-week="1"
                   icon="calendar-today"
                   placeholder="Data factura"
-                  @input="
+                  @update:model-value="
                     input;
                     somethingChanged(props.row);
                   "
@@ -582,7 +582,7 @@
                   :first-day-of-week="1"
                   icon="calendar-today"
                   placeholder="Data pagament"
-                  @input="
+                  @update:model-value="
                     input;
                     somethingChanged(props.row);
                   "
@@ -604,7 +604,7 @@
                   v-model="props.row.bank_account"
                   placeholder="Compte"
                   :disabled="!editable"
-                  @input="somethingChanged(props.row)"
+                  @update:model-value="somethingChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in bankAccounts"
@@ -625,7 +625,7 @@
                   v-model="props.row.vat_pct"
                   placeholder="IVA"
                   :disabled="!editable"
-                  @input="somethingChanged(props.row)"
+                  @update:model-value="somethingChanged(props.row)"
                 >
                   <option
                     v-for="(s, index) in vatTypes"
@@ -675,7 +675,7 @@
                 <b-checkbox
                   v-model="props.row.paid"
                   class="checkbox-inline"
-                  @input="paidChanged(props.row)"
+                  @update:model-value="paidChanged(props.row)"
                   :disabled="!editable"
                 >
                 </b-checkbox>
@@ -821,6 +821,7 @@ import { de, is } from "date-fns/locale";
 
 export default {
   name: "ProjectFormPhases",
+  emits: ["phases-copy", "phases-updated"],
   components: {
     CardComponent,
     TitleBar,

@@ -1,0 +1,60 @@
+/* Theme overrides that Bulma 1 no longer takes as Sass variables */
+
+// Bulma 1 derives menu item colours from lightness tokens; restore the
+// Bulma 0.9 menu.sass rules with the theme colours
+.menu-list a {
+  color: $menu-item-color;
+  background-color: transparent;
+
+  &:hover {
+    background-color: $menu-item-hover-background-color;
+    color: $menu-item-hover-color;
+  }
+
+  &.is-active {
+    background-color: $menu-item-active-background-color;
+    color: $menu-item-active-color;
+  }
+}
+
+.modal-card-head {
+  border-bottom: $modal-card-head-border-bottom;
+}
+
+.modal-card-foot {
+  border-top: $modal-card-foot-border-top;
+}
+
+// Bulma 1 builds the text colour of coloured buttons from a lightness value and
+// drops the alpha that Bulma 0.9 used on light backgrounds
+.button.is-warning,
+.button.is-light,
+.tag.is-warning {
+  color: rgba(0, 0, 0, .7);
+}
+
+// Bulma 0.9 message header and checkbox metrics
+.message-header {
+  font-weight: 700;
+  padding: .75em 1em;
+}
+
+.message-body {
+  border-radius: 0 0 4px 4px;
+}
+
+.b-checkbox.checkbox {
+  line-height: 1.25;
+}
+
+// Buefy 0.9 greyed out a select that still shows its placeholder
+.select.is-empty select {
+  color: rgba(122, 122, 122, .7);
+}
+
+// Buefy 3 repeats a column's `width` on the inner .th-wrap, which turns it into
+// a minimum and makes wide tables overflow their card; Buefy 0.9 only set it on
+// the <th>, where the table can still shrink it
+.b-table .table th .th-wrap {
+  width: auto !important;
+}

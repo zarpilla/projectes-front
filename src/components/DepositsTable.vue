@@ -98,7 +98,7 @@
           <div class="ml-auto mt-2">
             <b-select
               v-model="perPage"
-              @input="loadData"
+              @update:model-value="loadData"
               v-if="total > 50"
             >
               <option value="50">50 per pàgina</option>

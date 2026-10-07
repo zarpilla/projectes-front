@@ -1,12 +1,62 @@
-/* Buefy & Bulma */
+/* Bulma 1 + Buefy 3 */
+@use "../theme-default" as theme;
 
-/* Actually we need buefy-build, but it has relative paths */
-//@import "~buefy/src/scss/buefy-build";
-
-/* This is fixed version of buefy-build */
-@import "~bulma/sass/utilities/functions";
-@import "~bulma/sass/utilities/initial-variables";
-@import "~buefy/src/scss/utils/_all";
-@import "~bulma/bulma";
-@import "~buefy/src/scss/utils/variables-ext";
-@import "~buefy/src/scss/buefy";
+// no-dark-mode: Bulma 1 otherwise follows prefers-color-scheme, which the
+// rest of the theme doesn't support
+@use "~bulma/versions/bulma-no-dark-mode" with (
+  // Bulma 0.9 / Buefy 0.9 look: neutral greys (Bulma 1 tints them blue),
+  // the 0.9 palette and radii, regular-weight buttons with white text
+  $scheme-h: 0,
+  $scheme-s: 0%,
+  $black: theme.$black,
+  $black-bis: theme.$black-bis,
+  $black-ter: theme.$black-ter,
+  $grey-darker: theme.$grey-darker,
+  $grey-dark: theme.$grey-dark,
+  $grey: theme.$grey,
+  $grey-light: theme.$grey-light,
+  $grey-lighter: theme.$grey-lighter,
+  $grey-lightest: theme.$grey-lightest,
+  $white-ter: theme.$white-ter,
+  $white-bis: theme.$white-bis,
+  $yellow: theme.$yellow,
+  $green: hsl(141, 53%, 53%),
+  $cyan: hsl(204, 71%, 53%),
+  $red: hsl(348, 86%, 61%),
+  $info: #167df0,
+  $radius-small: 2px,
+  $radius: 4px,
+  $radius-large: theme.$radius-large,
+  $card-radius: 0.25rem,
+  $button-weight: 400,
+  $title-weight: 600,
+  $custom-colors: (
+    "primary": (theme.$primary, theme.$white),
+    "link": (theme.$link, theme.$white),
+    "info": (#167df0, theme.$white),
+    "success": (hsl(141, 53%, 53%), theme.$white),
+    "warning": (theme.$yellow, rgba(0, 0, 0, .7)),
+    "danger": (hsl(348, 86%, 61%), theme.$white)
+  ),
+  $family-sans-serif: theme.$family-sans-serif,
+  $primary: theme.$primary,
+  $link: theme.$link,
+  $body-background-color: theme.$body-background-color,
+  $hr-height: theme.$hr-height,
+  $navbar-box-shadow-size: 0 1px 0 0,
+  $navbar-box-shadow-color: rgba(24, 28, 33, .04),
+  $menu-item-radius: theme.$menu-item-radius,
+  $menu-list-link-padding: theme.$menu-list-link-padding,
+  $menu-label-color: theme.$menu-label-color,
+  $card-shadow: theme.$card-shadow,
+  $card-header-shadow: theme.$card-header-shadow,
+  $table-cell-border-color: theme.$white-bis,
+  $modal-card-head-background-color: theme.$modal-card-head-background-color,
+  $modal-card-title-size: theme.$modal-card-title-size,
+  $modal-card-body-padding: theme.$modal-card-body-padding,
+  $notification-padding: theme.$notification-padding,
+  $footer-background-color: theme.$footer-background-color,
+  $footer-padding: theme.$footer-padding,
+  $progress-bar-background-color: theme.$progress-bar-background-color
+);
+@use "~buefy/src/scss/buefy";

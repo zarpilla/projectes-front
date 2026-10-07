@@ -48,7 +48,7 @@
                   :disabled="!canEdit"
                   v-model="form.owner"
                   placeholder=""
-                  @input="changeOwner"
+                  @update:model-value="changeOwner"
                 >
                   <option
                     v-for="(s, index) in users"
@@ -113,7 +113,7 @@
                   :data="filteredContacts"
                   field="display"
                   @select="contactChanged"
-                  @input="onContactInput"
+                  @update:model-value="onContactInput"
                   :disabled="!canEdit"
                   :clearable="true"
                 >
@@ -188,7 +188,7 @@
                   placeholder="Data"
                   trap-focus
                   editable
-                  @input="checkEstimatedDeliveryDate"
+                  @update:model-value="checkEstimatedDeliveryDate"
                 >
                 </b-datepicker>
               </b-field>
@@ -255,7 +255,7 @@
                               v-model="line.units"
                               type="number"
                               :disabled="!canEdit"
-                              @input="calculateTotals"
+                              @update:model-value="calculateTotals"
                             />
                           </b-field>
                         </div>
@@ -265,7 +265,7 @@
                               v-model="line.kilograms"
                               type="number"
                               :disabled="!canEdit"
-                              @input="calculateTotals"
+                              @update:model-value="calculateTotals"
                             />
                           </b-field>
                         </div>
@@ -312,7 +312,7 @@
                   horizontal
                   message="Calculat automàticament des de les línies"
                 >
-                  <b-input :value="form.units" type="number" disabled />
+                  <b-input :model-value="form.units" type="number" disabled />
                 </b-field>
 
                 <b-field
@@ -320,7 +320,7 @@
                   horizontal
                   message="Calculat automàticament des de les línies"
                 >
-                  <b-input :value="form.kilograms" type="number" disabled />
+                  <b-input :model-value="form.kilograms" type="number" disabled />
                 </b-field>
               </div>
 
@@ -461,7 +461,7 @@
                   v-model="form.collection_pickup_route"
                   placeholder="Selecciona ruta de recollida"
                   :disabled="!canEdit || form.is_collection_order"
-                  @input="onCollectionPickupRouteChange"
+                  @update:model-value="onCollectionPickupRouteChange"
                 >
                   <option
                     v-for="r in collectionPickupRoutes"
@@ -489,7 +489,7 @@
                   placeholder="Data"
                   trap-focus
                   editable
-                  @input="onCollectionPickupDateChange"
+                  @update:model-value="onCollectionPickupDateChange"
                 >
                 </b-datepicker>
                 </b-field>
@@ -914,7 +914,7 @@
                 message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t’aplicarà la tarifa corresponent. En cas de dubte, consulta’ns"
               >
                 <b-select
-                  @input="changeRoute"
+                  @update:model-value="changeRoute"
                   v-model="form.route"
                   placeholder=""
                   :disabled="!canEdit"
@@ -1085,7 +1085,7 @@
                   v-model="form.transfer_route"
                   placeholder="Selecciona una ruta de transferència"
                   :disabled="!canEdit"
-                  @input="onTransferRouteManualChange"
+                  @update:model-value="onTransferRouteManualChange"
                 >
                   <option :value="null">-- Cap --</option>
                   <option
@@ -1116,7 +1116,7 @@
                   :readonly="false"
                   trap-focus
                   editable
-                  @input="onTransferDateManualChange"
+                  @update:model-value="onTransferDateManualChange"
                 >
                 </b-datepicker>
               </b-field>
@@ -1129,7 +1129,7 @@
               >
                 <b-input
                   v-if="form.id"
-                  :value="formatDateTime(form.created_at)"
+                  :model-value="formatDateTime(form.created_at)"
                   type="text"
                   disabled
                 />
@@ -1168,7 +1168,7 @@
                   placeholder="Data"
                   trap-focus
                   editable
-                  @input="checkEstimatedDeliveryDate"
+                  @update:model-value="checkEstimatedDeliveryDate"
                 >
                 </b-datepicker>
               </b-field> -->
@@ -1264,17 +1264,17 @@
                 "
               >
                 <b-input
-                  :value="(form.multidelivery_discount || 0) + '%'"
+                  :model-value="(form.multidelivery_discount || 0) + '%'"
                   type="text"
                   :disabled="true"
                 ></b-input>
                 <b-input
-                  :value="(form.contact_pickup_discount || 0) + '%'"
+                  :model-value="(form.contact_pickup_discount || 0) + '%'"
                   type="text"
                   :disabled="true"
                 ></b-input>
                 <b-input
-                  :value="(-1 * form.volume_discount || 0) + ' €'"
+                  :model-value="(-1 * form.volume_discount || 0) + ' €'"
                   type="text"
                   :disabled="true"
                 ></b-input>
@@ -1291,7 +1291,7 @@
                 "
               >
                 <b-input
-                  :value="
+                  :model-value="
                     (
                       (route_price + (-1 * form.volume_discount || 0)) *
                       (1 - form.multidelivery_discount / 100) *
@@ -2230,14 +2230,14 @@ export default {
         // Check if it's an object with an id property
         if (this.form[property].id) {
           // Use $set to ensure Vue reactivity
-          this.$set(this.form, property, this.form[property].id);
+          this.form[property] = this.form[property].id;
         } else {
           // Empty object or object without id - set to null or default based on the property
-          this.$set(this.form, property, property === "contact_legal_form" ? 1 : null);
+          this.form[property] = property === "contact_legal_form" ? 1 : null;
         }
       } else if (this.form[property] === undefined) {
         // Undefined - set to default
-        this.$set(this.form, property, property === "contact_legal_form" ? 1 : null);
+        this.form[property] = property === "contact_legal_form" ? 1 : null;
       }
       // If it's null or already a number/string, keep it as is (don't convert to 0)
     },
@@ -3771,7 +3771,7 @@ export default {
     },
     async depositCollectionOrder(orderId) {
       try {
-        this.$set(this.isLoadingDeposit, orderId, true);
+        this.isLoadingDeposit[orderId] = true;
 
         // Get current user
         const currentUser = await service({ requiresAuth: true }).get(
@@ -3812,12 +3812,12 @@ export default {
           type: "is-danger"
         });
       } finally {
-        this.$set(this.isLoadingDeposit, orderId, false);
+        this.isLoadingDeposit[orderId] = false;
       }
     },
     async pickupCollectionOrder(orderId) {
       try {
-        this.$set(this.isLoadingPickup, orderId, true);
+        this.isLoadingPickup[orderId] = true;
 
         // Get current user
         const currentUser = await service({ requiresAuth: true }).get(
@@ -3846,7 +3846,7 @@ export default {
           type: "is-danger"
         });
       } finally {
-        this.$set(this.isLoadingPickup, orderId, false);
+        this.isLoadingPickup[orderId] = false;
       }
     },
     async removePickup() {

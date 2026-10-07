@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication modal-card-task">
       <header class="modal-card-head">
         <p class="modal-card-title">Tasca</p>
@@ -257,6 +257,7 @@ import getConfig from "@/config";
 
 export default {
   name: "ModalBoxTask",
+  emits: ["cancel", "delete", "phases-updated", "submit"],
   components: { ModalBox, RadioPicker, FileUpload },
   props: {
     isActive: {

@@ -1,6 +1,6 @@
 <template>
   <b-field class="file">
-    <b-upload v-model="file" :accept="accept" @input="upload">
+    <b-upload v-model="file" :accept="accept" @update:model-value="upload">
       <a class="button is-primary">
         <b-icon icon="upload" custom-size="default"></b-icon>
         <span>{{ buttonLabel }}</span>
@@ -19,6 +19,7 @@ export default {
       default: null
     }
   },
+  emits: ['update:modelValue'],
   data () {
     return {
       file: null,
@@ -32,7 +33,7 @@ export default {
   },
   methods: {
     upload (file) {
-      this.$emit('input', file)
+      this.$emit('update:modelValue', file)
       // Use this as an example for handling file uploads
       // let formData = new FormData()
       // formData.append('file', file)

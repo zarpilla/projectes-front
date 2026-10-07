@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Jornada</p>
@@ -52,7 +52,7 @@
               placeholder="Hores"
               name="hours"
               required
-              @input="fixDecimals('hours', form.hours)"
+              @update:model-value="fixDecimals('hours', form.hours)"
             />
           </b-field>
 
@@ -73,7 +73,7 @@
               v-model="form.monthly_salary"
               placeholder="Salari base mensual jornada completa (€)"
               name="monthly_salary"
-              @input="fixDecimals('monthly_salary', form.monthly_salary)"
+              @update:model-value="fixDecimals('monthly_salary', form.monthly_salary)"
             />
           </b-field>
 
@@ -81,7 +81,7 @@
             <b-radio
               v-model="form.scheme"
               name="name"
-              @input="schemeChanged('autonoma')"
+              @update:model-value="schemeChanged('autonoma')"
               native-value="autonoma"
             >
               Treballadora Autònoma
@@ -90,7 +90,7 @@
               v-model="form.scheme"
               name="name"
               native-value="general"
-              @input="schemeChanged('general')"
+              @update:model-value="schemeChanged('general')"
             >
               Règim General
             </b-radio>
@@ -105,14 +105,14 @@
               v-model="form.quota"
               placeholder="Quota fixa €"
               name="quota"
-              @input="fixDecimals('quota', form.quota)"
+              @update:model-value="fixDecimals('quota', form.quota)"
               message="soportada per la cooperativa (€)"
             />
             <b-input
               v-model="form.pct_quota"
               placeholder="Quota %"
               name="pct_quota"
-              @input="fixDecimals('pct_quota', form.pct_quota)"
+              @update:model-value="fixDecimals('pct_quota', form.pct_quota)"
               message="soportada per la cooperativa (%)"
             />
           </b-field>
@@ -122,7 +122,7 @@
                 v-model="form.pct_quota"
                 placeholder="Cuota"
                 name="pct_quota"
-                @input="fixDecimals('pct_quota', form.pct_quota)"
+                @update:model-value="fixDecimals('pct_quota', form.pct_quota)"
                 message="soportada per la cooperativa (%)"
               />
             </b-field> -->
@@ -136,7 +136,7 @@
               v-model="form.pct_irpf"
               placeholder="% IRPF"
               name="pct_irpf"
-              @input="fixDecimals('pct_irpf', form.pct_irpf)"
+              @update:model-value="fixDecimals('pct_irpf', form.pct_irpf)"
             />
           </b-field>
 
@@ -149,7 +149,7 @@
               v-model="form.pct_other"
               placeholder="% Altres"
               name="pct_other"
-              @input="fixDecimals('pct_other', form.pct_other)"
+              @update:model-value="fixDecimals('pct_other', form.pct_other)"
             />
           </b-field>
 
@@ -208,6 +208,7 @@ import moment from "moment";
 
 export default {
   name: "ModalBoxWorkingDay",
+  emits: ["cancel", "delete", "submit"],
   components: { ModalBox },
   props: {
     isActive: {

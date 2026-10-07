@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dir3">
       <header class="modal-card-head">
         <p class="modal-card-title">Cerca DIR3</p>
@@ -96,6 +96,7 @@ import service from '@/service/index';
 
 export default {
   name: 'ModalBoxDir3',
+  emits: ["cancel", "select"],
   props: {
     isActive: {
       type: Boolean,

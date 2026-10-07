@@ -38,7 +38,7 @@ export default {
     // Refresh user data when tab/window regains focus
     window.addEventListener("focus", this.refreshUserData);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener("focus", this.refreshUserData);
   },
   computed: {

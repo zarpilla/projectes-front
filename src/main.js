@@ -2,7 +2,7 @@
 import '@/scss/main.scss'
 
 /* Core */
-import Vue from 'vue'
+import { createApp } from 'vue'
 import Buefy from 'buefy'
 
 /* Router & Store */
@@ -20,19 +20,10 @@ import ProgressBar from '@/components/ProgressBar.vue'
 
 /* Calendar */
 import VCalendar from 'v-calendar'
+import 'v-calendar/style.css'
 
 /* Excel / CSV export */
 import DownloadExcel from '@/components/DownloadExcel.vue'
-
-Vue.component('downloadExcel', DownloadExcel)
-
-Vue.use(VCalendar, {
-  componentPrefix: 'v'
-})
-
-Vue.component('kk-progress', ProgressBar)
-
-
 
 /* Default title tag */
 const defaultDocumentTitle = 'ESSTRAPIS'
@@ -67,12 +58,16 @@ router.afterEach(to => {
   }
 })
 
-Vue.config.productionTip = false
+const app = createApp(App)
 
-Vue.use(Buefy)
+app.use(router)
+app.use(store)
+app.use(Buefy)
+app.use(VCalendar, {
+  componentPrefix: 'v'
+})
 
-new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
+app.component('downloadExcel', DownloadExcel)
+app.component('kk-progress', ProgressBar)
+
+app.mount('#app')

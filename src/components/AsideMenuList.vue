@@ -17,6 +17,7 @@ import service from "@/service/index";
 
 export default {
   name: 'AsideMenuList',
+  emits: ["menu-click"],
   components: {
     AsideMenuItem
   },

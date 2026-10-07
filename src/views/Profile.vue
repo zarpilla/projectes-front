@@ -16,11 +16,11 @@
           <user-avatar class="image has-max-width is-aligned-center" />
           <hr />
           <b-field label="Name">
-            <b-input :value="userName" custom-class="is-static" readonly />
+            <b-input :model-value="userName" custom-class="is-static" readonly />
           </b-field>
           <hr />
           <b-field label="E-mail">
-            <b-input :value="userEmail" custom-class="is-static" readonly />
+            <b-input :model-value="userEmail" custom-class="is-static" readonly />
           </b-field>
         </card-component>
       </tiles>

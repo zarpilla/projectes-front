@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Entrada hores</p>
@@ -58,7 +58,7 @@
               :data="filteredProjects"
               field="name"
               @select="option => (form.project = option ? option.id : null)"
-              @input="projectChanged"
+              @update:model-value="projectChanged"
               :disabled="form.id > 0"
               :clearable="true"
             >
@@ -211,6 +211,7 @@ import TimeCounter from "@/components/TimeCounter";
 
 export default {
   name: "ModalBoxDedication",
+  emits: ["cancel", "counter-continue", "delete", "submit"],
   components: { RadioPicker, ModalBox, TimeCounter },
   props: {
     isActive: {

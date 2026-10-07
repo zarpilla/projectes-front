@@ -56,7 +56,7 @@
                 v-model="form.created_date"
                 placeholder="Click to select..."
                 icon="calendar-today"
-                @input="input"
+                @update:model-value="input"
               >
               </b-datepicker>
             </b-field>
@@ -87,17 +87,17 @@
           />
           <hr />
           <b-field label="Name">
-            <b-input :value="form.name" custom-class="is-static" readonly />
+            <b-input :model-value="form.name" custom-class="is-static" readonly />
           </b-field>
           <b-field label="Company">
-            <b-input :value="form.company" custom-class="is-static" readonly />
+            <b-input :model-value="form.company" custom-class="is-static" readonly />
           </b-field>
           <b-field label="City">
-            <b-input :value="form.city" custom-class="is-static" readonly />
+            <b-input :model-value="form.city" custom-class="is-static" readonly />
           </b-field>
           <b-field label="Created">
             <b-input
-              :value="createdReadable"
+              :model-value="createdReadable"
               custom-class="is-static"
               readonly
             />

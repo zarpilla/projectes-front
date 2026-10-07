@@ -13,13 +13,12 @@
     </aside-tools>
     <div class="aside-content-scrollable">
       <div class="menu is-menu-main">
-      <template v-for="(menuGroup, index) in menu">
-        <p v-if="typeof menuGroup === 'string'" :key="'label-' + index" class="menu-label" v-show="!isCollapsed">
+      <template v-for="(menuGroup, index) in menu" :key="index">
+        <p v-if="typeof menuGroup === 'string'" class="menu-label" v-show="!isCollapsed">
           {{ menuGroup }}
         </p>
         <aside-menu-list
-          v-else          
-          :key="'menu-' + index"
+          v-else
           :menu="menuGroup"
           :is-collapsed="isCollapsed"
           @menu-click="menuClick"
@@ -97,7 +96,7 @@ export default {
     this.fetchLogos();
     this.loadCollapsedState();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     document.documentElement.classList.remove('has-aside-collapsed');
   },
   methods: {

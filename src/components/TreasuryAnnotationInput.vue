@@ -18,7 +18,7 @@
           <b-input
             v-model="form.total"
             placeholder="Import"
-            @input="fixDecimals('total', form.total)"
+            @update:model-value="fixDecimals('total', form.total)"
           />
         </b-field>
         <b-field label="Concepte" horizontal>
@@ -79,7 +79,7 @@
           <b-input
             v-model="form2.total"
             placeholder="Import"
-            @input="fixDecimals2('total', form2.total)"
+            @update:model-value="fixDecimals2('total', form2.total)"
           />
         </b-field>
         <b-field label="Compte bancari" horizontal>
@@ -118,6 +118,7 @@ moment.locale("ca");
 
 export default {
   name: "TreasuryAnnotationInput",
+  emits: ["annotation"],
   // components: { CardComponent },
   props: {
     projects: {

@@ -20,17 +20,17 @@
           <b-table-column v-for="route in routes" :key="route.id" v-slot="props" :label="route.short_name || route.name">
              <b-checkbox
                   v-if="props.row.routes.includes(route.id)"
-                  :value="true"
+                  :model-value="true"
                   class="checkbox-inline"
-                  @input="checkCityRoute(false, props.row.id, route)"
+                  @update:model-value="checkCityRoute(false, props.row.id, route)"
                   :disabled="!orders_admin"
                 >
                 </b-checkbox>
                 <b-checkbox
                   v-else
-                  :value="false"
+                  :model-value="false"
                   class="checkbox-inline"
-                  @input="checkCityRoute(true, props.row.id, route)"
+                  @update:model-value="checkCityRoute(true, props.row.id, route)"
                   :disabled="!orders_admin"
                 >
                 </b-checkbox> 

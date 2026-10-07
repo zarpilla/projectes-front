@@ -9,7 +9,7 @@
     />
     <b-table
       :key="editMode ? 'projects-table-edit' : 'projects-table-view'"
-      :checked-rows.sync="checkedRows"
+      v-model:checked-rows="checkedRows"
       :checkable="checkable"
       :loading="isLoading"
       :paginated="paginated"
@@ -407,6 +407,7 @@ import moment from "moment";
 
 export default {
   name: "ProjectsTable",
+  emits: ["project-updated"],
   components: { ModalBox },
   props: {
     dataUrl: {
@@ -470,10 +471,13 @@ export default {
     //   console.log('newVal', newVal)
     //   this.getProjects()
     // },
-    projects: function(newVal, oldVal) {
-      // console.log('newVal', newVal)
-      // this.setProjects(newVal)
-      this.projectsData = this.projects;
+    projects: {
+      handler (newVal, oldVal) {
+        // console.log('newVal', newVal)
+        // this.setProjects(newVal)
+        this.projectsData = this.projects;
+      },
+      deep: 1
     },
     editMode: function(newVal) {
       if (!newVal) {

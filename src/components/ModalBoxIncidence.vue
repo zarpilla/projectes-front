@@ -49,6 +49,7 @@ import service from "@/service/index";
 
 export default {
   name: "ModalBoxIncidence",
+  emits: ["cancel", "confirm"],
   props: {
     isActive: {
       type: Boolean,

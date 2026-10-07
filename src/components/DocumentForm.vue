@@ -24,7 +24,7 @@
     ></modal-box-diet>
     <!-- Modal: shows the invoice extracted by Z.ai -->
     <b-modal
-      :active.sync="isInvoiceModalActive"
+      v-model="isInvoiceModalActive"
       has-modal-card
       :on-cancel="closeInvoiceModal"
     >
@@ -244,7 +244,7 @@
                 placeholder=""
                 required
                 :disabled="emittedInvoiceSerieDisabled"
-                @change.native="$event => calculateMinEmittedDate()"
+                @change="$event => calculateMinEmittedDate()"
               >
                 <option v-for="(s, index) in series" :key="index" :value="s.id">
                   {{ s.name }}
@@ -292,7 +292,7 @@
                 v-model="form.document_type"
                 placeholder=""
                 required
-                @change.native="$event => calculateIRPF($event)"
+                @change="$event => calculateIRPF($event)"
               >
                 <option
                   v-for="(s, index) in documentTypes"
@@ -305,7 +305,7 @@
             </b-field>
             <b-field label="Emissió *" horizontal>
               <b-datepicker
-                @input="
+                @update:model-value="
                   input;
                   calculateIRPF();
                 "
@@ -353,7 +353,7 @@
               v-if="type === 'received-incomes' || type === 'emitted-invoices'"
             >
               <b-datepicker
-                @input="
+                @update:model-value="
                   input;
                   calculateIRPF();
                 "
@@ -782,7 +782,7 @@
                       placeholder="Quantitat, hores, unitats..."
                       v-model="line.quantity"
                       class="subphase-detail-input"
-                      @input="debouncedChangeLine(line, 'quantity', $event)"
+                      @update:model-value="debouncedChangeLine(line, 'quantity', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -793,7 +793,7 @@
                       placeholder="Preu per unitat"
                       v-model="line.base"
                       class="subphase-detail-input"
-                      @input="debouncedChangeLine(line, 'base', $event)"
+                      @update:model-value="debouncedChangeLine(line, 'base', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -807,7 +807,7 @@
                       placeholder="Descompte"
                       v-model="line.discount"
                       class="subphase-detail-input"
-                      @input="debouncedChangeLine(line, 'discount', $event)"
+                      @update:model-value="debouncedChangeLine(line, 'discount', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -821,7 +821,7 @@
                       placeholder="Preu per unitat"
                       v-model="line.vat"
                       class="subphase-detail-input"
-                      @input="debouncedChangeLine(line, 'vat', $event)"
+                      @update:model-value="debouncedChangeLine(line, 'vat', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -835,7 +835,7 @@
                       placeholder="Preu per unitat"
                       v-model="line.irpf"
                       class="subphase-detail-input"
-                      @input="debouncedChangeLine(line, 'irpf', $event)"
+                      @update:model-value="debouncedChangeLine(line, 'irpf', $event)"
                     >
                     </b-input>
                   </b-field>
@@ -1044,7 +1044,7 @@
                 v-model="form.total_base"
                 type="numeric"
                 placeholder=""
-                @input="fixDecimalsPayroll('total_base', form.total_base)"
+                @update:model-value="fixDecimalsPayroll('total_base', form.total_base)"
               />
             </b-field>
 
@@ -1059,7 +1059,7 @@
                 v-model="form.irpf_base"
                 type="numeric"
                 placeholder=""
-                @input="fixDecimalsPayroll('irpf_base', form.irpf_base)"
+                @update:model-value="fixDecimalsPayroll('irpf_base', form.irpf_base)"
               />
 
               <b-datepicker
@@ -1084,7 +1084,7 @@
                 v-model="form.other_base"
                 type="numeric"
                 placeholder=""
-                @input="fixDecimalsPayroll('other_base', form.other_base)"
+                @update:model-value="fixDecimalsPayroll('other_base', form.other_base)"
               />
 
               <b-datepicker
@@ -1127,7 +1127,7 @@
               <b-input
                 v-model="form.ss_base"
                 placeholder=""
-                @input="fixDecimalsPayroll('ss_base', form.ss_base)"
+                @update:model-value="fixDecimalsPayroll('ss_base', form.ss_base)"
               />
 
               <b-datepicker
@@ -1648,7 +1648,7 @@ export default {
 
     this.getData();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // Clean up any pending debounced timeouts
     this.debouncedInputs.forEach(timeoutId => {
       clearTimeout(timeoutId);

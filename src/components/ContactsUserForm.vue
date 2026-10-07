@@ -16,7 +16,7 @@
                   v-model="form.owner"
                   placeholder=""
                   :disabled="ownerId"
-                  @input="onOwnerChanged"
+                  @update:model-value="onOwnerChanged"
                 >
                   <option
                     v-for="(s, index) in usersWithOrdersPermissions"
@@ -47,7 +47,7 @@
                   :data="filteredCities"
                   field="name"
                   @select="citySelected"
-                  @input="onCityInput"
+                  @update:model-value="onCityInput"
                   :clearable="true"
                 >
                 </b-autocomplete>
@@ -142,7 +142,7 @@
                   <b-checkbox
                     v-model="slot1Closed"
                     class="mr-4"
-                    @input="onSlotClosedChanged(1, $event)"
+                    @update:model-value="onSlotClosedChanged(1, $event)"
                   >
                     No obren
                   </b-checkbox>
@@ -205,7 +205,7 @@
                   <b-checkbox
                     v-model="slot2Closed"
                     class="mr-4"
-                    @input="onSlotClosedChanged(2, $event)"
+                    @update:model-value="onSlotClosedChanged(2, $event)"
                   >
                     No obren
                   </b-checkbox>
@@ -339,7 +339,7 @@
                   v-model="form.pickup_discount"
                   type="numeric"
                   :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
-                  @input="fixDecimals('pickup_discount', form.pickup_discount)"
+                  @update:model-value="fixDecimals('pickup_discount', form.pickup_discount)"
                 />
               </b-field>
               <hr />
@@ -406,6 +406,7 @@ import { pick } from "lodash";
 
 export default {
   name: "ContactUsersForm",
+  emits: ["cancel", "confirm"],
   components: {
     CardComponent,
     TitleBar,

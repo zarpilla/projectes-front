@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Assignació de documents</p>
@@ -17,7 +17,7 @@
                   field="display"
                   @select="option => (form.emitted = option ? option : null)"
                   :clearable="true"
-                  @input="emittedChanged"
+                  @update:model-value="emittedChanged"
                 >
                 </b-autocomplete>
                 <router-link 
@@ -41,7 +41,7 @@
                   field="display"
                   @select="option => (form.income = option ? option : null)"
                   :clearable="true"
-                  @input="incomeChanged"
+                  @update:model-value="incomeChanged"
                 >
                 </b-autocomplete>
                 <router-link 
@@ -64,7 +64,7 @@
                 field="display"
                 @select="option => (form.grant = option ? option : null)"
                 :clearable="true"
-                @input="grantChanged"
+                @update:model-value="grantChanged"
               >
               </b-autocomplete>
             </b-field> -->
@@ -79,7 +79,7 @@
                   field="display"
                   @select="option => (form.received = option ? option : null)"
                   :clearable="true"
-                  @input="receivedChanged"
+                  @update:model-value="receivedChanged"
                 >
                 </b-autocomplete>
                 <router-link 
@@ -103,7 +103,7 @@
                   field="display"
                   @select="option => (form.expense = option ? option : null)"
                   :clearable="true"
-                  @input="expenseChanged"
+                  @update:model-value="expenseChanged"
                 >
                 </b-autocomplete>
                 <router-link 
@@ -126,7 +126,7 @@
                 field="display"
                 @select="option => (form.ticket = option ? option : null)"
                 :clearable="true"
-                @input="ticketChanged"
+                @update:model-value="ticketChanged"
               >
               </b-autocomplete>
             </b-field>
@@ -141,7 +141,7 @@
                 @select="option => (form.diet = option ? option : null)"
                 :disabled="form.id > 0"
                 :clearable="true"
-                @input="dietChanged"
+                @update:model-value="dietChanged"
               >
               </b-autocomplete>
             </b-field> -->
@@ -171,6 +171,7 @@ import ModalBox from '@/components/ModalBox'
 
 export default {
   name: 'ModalBoxInvoicing',
+  emits: ["cancel", "delete", "submit"],
   components: { ModalBox },
   props: {
     isActive: {

@@ -16,6 +16,7 @@ moment.locale('ca')
 
 export default {
   name: 'TimeCounter',
+  emits: ['update'],
   components: { ModalBox, CardComponent, ModalBoxDedication },
   props: {
     counter: {

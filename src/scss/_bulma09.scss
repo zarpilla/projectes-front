@@ -1,0 +1,55 @@
+// The Bulma 0.9 values this theme (and the partials in this folder) were
+// designed against. Bulma 1 changed several of them (e.g. $blue), so they are
+// pinned here instead of read from Bulma.
+
+$black: hsl(0, 0%, 4%);
+$black-bis: hsl(0, 0%, 7%);
+$black-ter: hsl(0, 0%, 14%);
+$grey-darker: hsl(0, 0%, 21%);
+$grey-dark: hsl(0, 0%, 29%);
+$grey: hsl(0, 0%, 48%);
+$grey-light: hsl(0, 0%, 71%);
+$grey-lighter: hsl(0, 0%, 86%);
+$grey-lightest: hsl(0, 0%, 93%);
+$white-ter: hsl(0, 0%, 96%);
+$white-bis: hsl(0, 0%, 98%);
+$white: hsl(0, 0%, 100%);
+
+$yellow: hsl(48, 100%, 67%);
+$turquoise: hsl(171, 100%, 41%);
+$blue: hsl(217, 71%, 53%);
+$purple: hsl(271, 100%, 71%);
+
+$radius-large: 6px;
+$radius-rounded: 290486px;
+$navbar-height: 3.25rem;
+$card-content-padding: 1.5rem;
+
+// elements/button and elements/notification defaults
+$button-color: $grey-darker;
+$button-background-color: $white;
+$button-border-color: $grey-lighter;
+$button-active-border-color: $grey-dark;
+$notification-background-color: $white-ter;
+
+// breakpoints (unchanged in Bulma 1)
+$tablet: 769px;
+$desktop: 1024px;
+
+@mixin mobile {
+  @media screen and (max-width: $tablet - 1px) {
+    @content;
+  }
+}
+
+@mixin touch {
+  @media screen and (max-width: $desktop - 1px) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media screen and (min-width: $desktop) {
+    @content;
+  }
+}

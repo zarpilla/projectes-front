@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card">
       <header class="modal-card-head">
         <p class="modal-card-title">Unificar punts d'entrega</p>
@@ -75,6 +75,7 @@ import service from "@/service/index";
 
 export default {
   name: 'ModalBoxUnifyContacts',
+  emits: ["cancel", "confirm"],
   props: {
     isActive: {
       type: Boolean,

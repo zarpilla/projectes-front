@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Esborranys de factures</p>
@@ -94,6 +94,7 @@ import moment from "moment";
 
 export default {
   name: "ModalBoxInvoicing",
+  emits: ["cancel", "yes"],
   components: { ModalBox },
   props: {
     isActive: {

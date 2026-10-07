@@ -1,6 +1,6 @@
 <template>
   <b-modal 
-    :active.sync="isModalActive" 
+    v-model="isModalActive" 
     has-modal-card 
     :on-cancel="cancel"
     :can-cancel="['escape', 'x']"
@@ -21,7 +21,7 @@
           <div class="column is-half">
             <div class="scanner-container">
               <div v-if="!isScanning && !error" class="scanner-loading">
-                <b-loading :active="true" :is-full-page="false"></b-loading>
+                <b-loading :model-value="true" :is-full-page="false"></b-loading>
                 <p class="mt-4">Iniciant càmera...</p>
               </div>
               <div v-if="error" class="notification is-danger">
@@ -54,7 +54,7 @@
               </b-button>
               
               <div v-if="isProcessing" class="processing-overlay">
-                <b-loading :active="true" :is-full-page="false"></b-loading>
+                <b-loading :model-value="true" :is-full-page="false"></b-loading>
               </div>
             </div>
           </div>
@@ -119,6 +119,7 @@ import { Html5Qrcode } from "html5-qrcode";
 
 export default {
   name: "QRScannerModal",
+  emits: ["cancel", "scanned"],
   props: {
     isActive: {
       type: Boolean,
@@ -170,7 +171,7 @@ export default {
       }
     }
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.stopScanner();
   },
   methods: {

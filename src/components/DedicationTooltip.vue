@@ -210,7 +210,7 @@ export default {
     },
     toggleGroup(key) {
       // Use $set so adding a new key is reactive.
-      this.$set(this.expandedGroups, key, !this.expandedGroups[key]);
+      this.expandedGroups[key] = !this.expandedGroups[key];
     },
   },
 };

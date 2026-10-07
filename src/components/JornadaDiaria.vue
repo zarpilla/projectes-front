@@ -63,7 +63,7 @@
                   type="number"
                   min="0"
                   max="23"
-                  @change.native="changeHourIn(a, i)"
+                  @change="changeHourIn(a, i)"
                   :disabled="a.id === 0"
                 >
                 </b-input>
@@ -74,7 +74,7 @@
                   type="number"
                   min="0"
                   max="59"
-                  @change.native="changeHourIn(a, i)"
+                  @change="changeHourIn(a, i)"
                   :disabled="a.id === 0"
                 >
                 </b-input>
@@ -104,7 +104,7 @@
                   type="number"
                   min="0"
                   max="23"
-                  @change.native="changeHourOut(a, i)"
+                  @change="changeHourOut(a, i)"
                   :disabled="a.id === 0"
                 >
                 </b-input>
@@ -115,7 +115,7 @@
                   type="number"
                   min="0"
                   max="59"
-                  @change.native="changeHourOut(a, i)"
+                  @change="changeHourOut(a, i)"
                   :disabled="a.id === 0"
                 >
                 </b-input>

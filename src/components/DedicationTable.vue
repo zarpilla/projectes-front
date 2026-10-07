@@ -7,7 +7,7 @@
       @cancel="trashCancel"
     />
     <b-table
-      :checked-rows.sync="checkedRows"
+      v-model:checked-rows="checkedRows"
       :checkable="checkable"
       :loading="isLoading"
       :paginated="paginated"

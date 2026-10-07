@@ -144,7 +144,7 @@ export default {
     this.ganttId = "gantt-" + this.create_UUID();
     this.initializeAll();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     // console.log('beforeDestroy')
     if (this.gantt) {
       this.gantt.detachEvent("onTaskClick");

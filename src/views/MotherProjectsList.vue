@@ -49,7 +49,7 @@
               <b-select
                 v-model="filters.project_state"
                 placeholder="Estat"
-                @change.native="onFilterChange"
+                @change="onFilterChange"
               >
                 <option
                   v-for="(s, index) in project_states"
@@ -64,7 +64,7 @@
               <b-select
                 v-model="filters.user"
                 placeholder="Coordina"
-                @change.native="onFilterChange"
+                @change="onFilterChange"
               >
                 <option value="0">--</option>
                 <option
@@ -78,8 +78,8 @@
             </b-field>
             <b-field horizontal label="Nom">
               <b-input
-                :value="filters.q"
-                @keyup.native="queryProjects($event.target.value)"
+                :model-value="filters.q"
+                @keyup="queryProjects($event.target.value)"
                 placeholder="Nom del projecte"
               />
             </b-field>

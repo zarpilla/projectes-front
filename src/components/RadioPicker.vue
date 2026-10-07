@@ -1,7 +1,7 @@
 <template>
   <b-field grouped group-multiline>
     <div v-for="(v, k) in options" :key="k" class="control">
-      <b-radio v-model="newValue" :native-value="k" :type="type" @input="input">
+      <b-radio v-model="newValue" :native-value="k" :type="type" @update:model-value="input">
         {{ v }}
       </b-radio>
     </div>
@@ -20,27 +20,28 @@ export default {
       type: String,
       default: null
     },
-    value: {
+    modelValue: {
       type: [String, Number],
       default: null
     }
   },
+  emits: ['update:modelValue'],
   data () {
     return {
       newValue: null
     }
   },
   watch: {
-    value (newValue) {
+    modelValue (newValue) {
       this.newValue = newValue
     }
   },
   created () {
-    this.newValue = this.value
+    this.newValue = this.modelValue
   },
   methods: {
     input () {
-      this.$emit('input', this.newValue)
+      this.$emit('update:modelValue', this.newValue)
     }
   }
 }

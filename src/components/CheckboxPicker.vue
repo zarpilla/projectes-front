@@ -5,7 +5,7 @@
         v-model="newValue"
         :native-value="k"
         :type="type"
-        @input="input"
+        @update:model-value="input"
       >
         {{ v }}
       </b-checkbox>
@@ -25,27 +25,31 @@ export default {
       type: String,
       default: null
     },
-    value: {
+    modelValue: {
       type: Array,
       default: () => []
     }
   },
+  emits: ['update:modelValue'],
   data () {
     return {
       newValue: []
     }
   },
   watch: {
-    value (newValue) {
-      this.newValue = newValue
+    modelValue: {
+      handler (newValue) {
+        this.newValue = newValue
+      },
+      deep: 1
     }
   },
   created () {
-    this.newValue = this.value
+    this.newValue = this.modelValue
   },
   methods: {
     input () {
-      this.$emit('input', this.newValue)
+      this.$emit('update:modelValue', this.newValue)
     }
   }
 }

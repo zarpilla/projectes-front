@@ -11,7 +11,7 @@
           </b-field>
 
           <b-field label="Factura emesa" horizontal>
-            <b-input :value="invoiceDisplay" disabled />
+            <b-input :model-value="invoiceDisplay" disabled />
           </b-field>
 
           <b-field label="Mode" horizontal>
@@ -27,7 +27,7 @@
           </b-field>
 
           <b-field label="Última comprovació" horizontal>
-            <b-input :value="formatDate(form.last_status_check)" disabled />
+            <b-input :model-value="formatDate(form.last_status_check)" disabled />
           </b-field>
 
           <b-field label="Codi resposta" horizontal>

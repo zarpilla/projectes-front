@@ -1,5 +1,16 @@
 <script>
+import { h, Fragment, Comment } from 'vue'
 import chunk from 'lodash/chunk'
+
+// Vue 3 hands v-for children over as a Fragment and v-if="false" ones as a
+// Comment; Vue 2's $slots.default was already the flat list of elements
+function flatten (vnodes) {
+  return vnodes.flatMap(vnode => {
+    if (vnode.type === Fragment) return flatten(vnode.children)
+    if (vnode.type === Comment) return []
+    return [vnode]
+  })
+}
 
 export default {
   name: 'Tiles',
@@ -10,33 +21,29 @@ export default {
     }
   },
   methods: {
-    renderAncestor (createElement, elements) {
-      return createElement(
+    renderAncestor (elements) {
+      return h(
         'div',
-        { attrs: { class: 'tile is-ancestor' } },
+        { class: 'tile is-ancestor' },
         elements.map((element) => {
-          return createElement('div', { attrs: { class: 'tile is-parent' } }, [
-            element
-          ])
+          return h('div', { class: 'tile is-parent' }, [element])
         })
       )
     }
   },
-  render (createElement) {
-    if (!this.$slots) {
-      return
-    }
+  render () {
     if (!this.$slots.default) {
       return
     }
-    if (this.$slots.default.length <= this.maxPerRow) {
-      return this.renderAncestor(createElement, this.$slots.default)
+    const elements = flatten(this.$slots.default())
+    if (elements.length <= this.maxPerRow) {
+      return this.renderAncestor(elements)
     } else {
-      return createElement(
+      return h(
         'div',
-        { attrs: { class: 'is-tiles-wrapper' } },
-        chunk(this.$slots.default, this.maxPerRow).map((group) => {
-          return this.renderAncestor(createElement, group)
+        { class: 'is-tiles-wrapper' },
+        chunk(elements, this.maxPerRow).map((group) => {
+          return this.renderAncestor(group)
         })
       )
     }

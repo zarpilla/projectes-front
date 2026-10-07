@@ -127,7 +127,7 @@ export default {
     // Most recent anchor rect (the cell the tooltip is attached to).
     this._anchor = null;
   },
-  beforeDestroy() {
+  beforeUnmount() {
     clearTimeout(this._hideTimer);
     document.removeEventListener("mousedown", this._docClickHandler, true);
   },

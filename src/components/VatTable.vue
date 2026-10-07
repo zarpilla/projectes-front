@@ -397,7 +397,7 @@
           :paginated="false"
           :striped="false"
           :data="documentsWithSearchableFields"
-          :checked-rows.sync="checkedRows"
+          v-model:checked-rows="checkedRows"
           :checkable="true"
           ref="documentsTable"
         >

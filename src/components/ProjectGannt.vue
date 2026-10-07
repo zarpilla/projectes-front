@@ -73,6 +73,7 @@ import _ from "lodash";
 // main component
 export default {
   name: "ProjectGannt",
+  emits: ["gantt-item-delete", "gantt-item-update"],
   props: {
     project: Object,
     users: Array,
@@ -112,20 +113,23 @@ export default {
         this.initializeGannt();
       }
     },
-    users: function (newVal, oldVal) {
-      // A user with no username, or the store's userName not hydrated yet, threw
-      // here — and the watcher dying left `this.user` as {}, so every planning
-      // block created afterwards was saved with nobody assigned.
-      if (!newVal || !this.userName) {
-        return;
-      }
-      const wanted = String(this.userName).toLowerCase();
-      const user = newVal.find(
-        (u) => u && u.username && String(u.username).toLowerCase() === wanted
-      );
-      if (user && user.id) {
-        this.user = user;
-      }
+    users: {
+      handler (newVal, oldVal) {
+        // A user with no username, or the store's userName not hydrated yet, threw
+        // here — and the watcher dying left `this.user` as {}, so every planning
+        // block created afterwards was saved with nobody assigned.
+        if (!newVal || !this.userName) {
+          return;
+        }
+        const wanted = String(this.userName).toLowerCase();
+        const user = newVal.find(
+          (u) => u && u.username && String(u.username).toLowerCase() === wanted
+        );
+        if (user && user.id) {
+          this.user = user;
+        }
+      },
+      deep: 1
     },
   },
   data() {
@@ -187,7 +191,7 @@ export default {
       }, 250);
     }, 250);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     console.log("beforeDestroy");
     if (this.gantt) {
       this.gantt.detachEvent("onTaskClick");

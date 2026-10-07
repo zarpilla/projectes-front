@@ -1,8 +1,7 @@
 // Vue 3 migration guard: only the eslint-plugin-vue rules for APIs that Vue 3
 // removes or changes, kept separate from the (still disabled) style lint.
 //   npm run lint:vue3
-// "error" rules are already fixed on the Vue 2 code and must stay fixed;
-// "warn" rules are the remaining worklist for the Vue 3 switch.
+// Everything here is fixed and must stay fixed.
 module.exports = {
   root: true,
   parser: 'vue-eslint-parser',
@@ -34,9 +33,14 @@ module.exports = {
     'vue/require-toggle-inside-transition': 'error',
     'vue/valid-v-slot': 'error',
 
-    'vue/no-deprecated-destroyed-lifecycle': 'warn',
-    'vue/no-deprecated-v-bind-sync': 'warn',
-    'vue/no-deprecated-v-on-native-modifier': 'warn',
-    'vue/no-v-for-template-key-on-child': 'warn'
+    'vue/no-deprecated-destroyed-lifecycle': 'error',
+    'vue/no-deprecated-v-bind-sync': 'error',
+    'vue/no-deprecated-v-on-native-modifier': 'error',
+    'vue/no-v-for-template-key-on-child': 'error',
+    'vue/no-use-v-if-with-v-for': 'error',
+    'vue/no-deprecated-router-link-tag-prop': 'error',
+    'vue/no-deprecated-delete-set': 'error',
+    'vue/no-deprecated-model-definition': 'error',
+    'vue/require-explicit-emits': 'error'
   }
 }

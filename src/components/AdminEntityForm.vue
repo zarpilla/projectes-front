@@ -307,7 +307,7 @@ export default {
       for (const [attrName, attrConfig] of Object.entries(this.metadata.attributes)) {
         if (attrConfig.model) {
           try {
-            this.$set(this.loadingRelations, attrName, true);
+            this.loadingRelations[attrName] = true;
             
             // Handle plugin relations (e.g., users-permissions)
             let apiPath;
@@ -331,7 +331,7 @@ export default {
               `/${apiPath}?_limit=-1&_sort=${sortField}`
             );
             
-            this.$set(this.relationOptions, attrName, response.data);
+            this.relationOptions[attrName] = response.data;
           } catch (error) {
             console.error(`Error loading relation options for ${attrName} (model: ${attrConfig.model}):`, error);
             this.$buefy.toast.open({
@@ -340,9 +340,9 @@ export default {
               duration: 3000
             });
             // Set empty array so the select still renders
-            this.$set(this.relationOptions, attrName, []);
+            this.relationOptions[attrName] = [];
           } finally {
-            this.$set(this.loadingRelations, attrName, false);
+            this.loadingRelations[attrName] = false;
           }
         }
       }

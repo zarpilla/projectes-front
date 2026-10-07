@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Edició de pressupost</p>
@@ -19,7 +19,7 @@
                 placeholder="Preu per unitat"
                 v-model="newAmount"                
                 class="subphase-detail-input"
-                @input="fixDecimals(newAmount)"
+                @update:model-value="fixDecimals(newAmount)"
               >
               </b-input>
             </b-field>
@@ -139,6 +139,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 
 export default {
   name: "ModalBoxInvoicing",
+  emits: ["action", "cancel", "delete", "submit"],
   components: { ModalBox, MoneyFormat },
   props: {
     isActive: {

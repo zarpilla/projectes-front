@@ -177,9 +177,9 @@
       :first-day-of-week="2"
       :masks="masks"
       :attributes="attributes"
-      @update:from-page="pageChange"
+      @update:pages="pages => pageChange(pages[0])"
       title-position="left"
-      is-expanded
+      expanded
       v-if="viewType == 'all' || viewType == 'calendar'"
     >
       <template v-slot:day-content="{ day, attributes }">
@@ -360,6 +360,7 @@ moment.locale("ca");
 
 export default {
   name: "DedicationInput",
+  emits: ["calendar-changed"],
   components: {
     ModalBox,
     CardComponent,
@@ -399,6 +400,7 @@ export default {
   data() {
     return {
       moving: false,
+      lastCalendarPage: null,
       firstTime: true,
       isModalActive: false,
       isModalEditActive: false,
@@ -520,8 +522,11 @@ export default {
     last: function(newVal, oldVal) {
       this.getActivities();
     },
-    projects: function(newVal, oldVal) {
-      this.getActivities();
+    projects: {
+      handler (newVal, oldVal) {
+        this.getActivities();
+      },
+      deep: 1
     }
   },
   async mounted() {
@@ -976,6 +981,13 @@ export default {
       this.isModalEditActive = false;
     },
     pageChange(page) {
+      // v-calendar 3 re-emits update:pages when it refreshes the same month;
+      // v2's update:from-page only fired when the month actually changed
+      const key = page && `${page.year}-${page.month}`;
+      if (!key || key === this.lastCalendarPage) {
+        return;
+      }
+      this.lastCalendarPage = key;
       if (!this.moving) {
         this.$emit("calendar-changed", { year: page.year, month: page.month });
       }
@@ -1651,9 +1663,15 @@ export default {
   border: 0;
   width: 100%;
 }
+/* v-calendar 3 overlays the arrows header on the month header: only the
+   month header gets the background, both get the same box so they line up */
 .custom-calendar.vc-container .vc-header {
-  background-color: #eee;
+  height: auto;
+  margin-top: 0;
   padding: 10px 0;
+}
+.custom-calendar.vc-container .vc-pane > .vc-header {
+  background-color: #eee;
 }
 .custom-calendar.vc-container .vc-weeks {
   padding: 0;

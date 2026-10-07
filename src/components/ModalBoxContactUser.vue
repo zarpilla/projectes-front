@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card">
       <header class="modal-card-head">
         <p class="modal-card-title">Nou punt d'entrega</p>
@@ -16,6 +16,7 @@ import ContactsUserForm from "@/components/ContactsUserForm";
 
 export default {
   name: 'ModalBoxContactUser',
+  emits: ["cancel", "confirm"],
   components: {    
     ContactsUserForm
   },

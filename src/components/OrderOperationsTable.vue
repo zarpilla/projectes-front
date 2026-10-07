@@ -25,7 +25,7 @@
             <b-select
               v-model="selectedDeliveryUser"
               placeholder="Selecciona usuari"
-              @input="onDeliveryUserChange"
+              @update:model-value="onDeliveryUserChange"
             >
               <option
                 v-for="user in deliveryUsers"
@@ -94,7 +94,7 @@
               :date-formatter="formatDatePicker"
               :date-parser="parseDatePicker"
               editable
-              @input="onDateChange"
+              @update:model-value="onDateChange"
             >
               <template v-slot:trigger>
                 <b-button
@@ -135,7 +135,7 @@
           <b-field>
             <b-select
               v-model="mobileSortOption"
-              @input="onMobileSortChange"
+              @update:model-value="onMobileSortChange"
               expanded
             >
               <option value="operationTypeSort-asc">Tipus (A-Z)</option>

@@ -138,7 +138,7 @@
               trap-focus
               editable
               :clearable="true"
-              @input="applyDateFilters"
+              @update:model-value="applyDateFilters"
             >
             </b-datepicker>
           </b-field>
@@ -155,7 +155,7 @@
               trap-focus
               editable
               :clearable="true"
-              @input="applyDateFilters"
+              @update:model-value="applyDateFilters"
             >
             </b-datepicker>
           </b-field>
@@ -500,8 +500,8 @@
             <!-- Validation checkbox for real movements -->
             <b-checkbox
               v-if="(props.row.paid || props.row.real) && props.row.validation_key"
-              :value="props.row.is_validated"
-              @input="toggleValidation(props.row)"
+              :model-value="props.row.is_validated"
+              @update:model-value="toggleValidation(props.row)"
               class="mr-2"
               :title="props.row.is_validated ? 'Moviment validat' : 'Marcar com validat'"
             />

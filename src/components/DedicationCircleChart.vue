@@ -82,8 +82,11 @@ export default {
     }
   },
   watch: {
-    activities: function (newVal, oldVal) {
-      this.getActivities()
+    activities: {
+      handler (newVal, oldVal) {
+        this.getActivities()
+      },
+      deep: 1
     }
   },
   mounted () {

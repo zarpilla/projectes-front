@@ -127,7 +127,7 @@
           <div class="ml-auto mt-2">
             <b-select
               v-model="perPage"
-              @input="loadData"
+              @update:model-value="loadData"
               v-if="total > 50"
             >
               <option value="50">50 per pàg.</option>
@@ -196,7 +196,7 @@
         v-slot="props"
         width="150"
       >
-        {{ props.row.transfer_pickup_origin.name }}
+        {{ props.row.transfer_pickup_origin ? props.row.transfer_pickup_origin.name : '-' }}
       </b-table-column>
 
       <b-table-column
@@ -206,7 +206,7 @@
         v-slot="props"
         width="150"
       >
-        {{ props.row.transfer_pickup_destination.name }}
+        {{ props.row.transfer_pickup_destination ? props.row.transfer_pickup_destination.name : '-' }}
       </b-table-column>
 
       <b-table-column

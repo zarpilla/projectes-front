@@ -13,7 +13,7 @@
         </b-select>
       </b-field>
       <b-field :label="i === 0 ? 'Import' : null" style="width: 20%">
-        <b-input v-model="contact.amount" placeholder="Amount" @input="changeValue(contact, 'amount', contact.amount)" />
+        <b-input v-model="contact.amount" placeholder="Amount" @update:model-value="changeValue(contact, 'amount', contact.amount)" />
       </b-field>
       <b-field
         :label="i === 0 ? 'Esborra' : null"
@@ -41,6 +41,7 @@
 
 <script>
 export default {
+  emits: ["updated"],
   props: {
     grantables: {
       type: Array,

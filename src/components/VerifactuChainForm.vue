@@ -11,7 +11,7 @@
           </b-field>
 
           <b-field label="Factura emesa" horizontal>
-            <b-input :value="invoiceDisplay" disabled />
+            <b-input :model-value="invoiceDisplay" disabled />
           </b-field>
 
           <b-field label="Mode" horizontal>
@@ -19,7 +19,7 @@
           </b-field>
 
           <b-field label="Usuari" horizontal>
-            <b-input :value="userDisplay" disabled />
+            <b-input :model-value="userDisplay" disabled />
           </b-field>
 
           <b-field label="Hash" horizontal>

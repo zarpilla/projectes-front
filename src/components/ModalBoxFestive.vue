@@ -1,5 +1,5 @@
 <template>
-  <b-modal :active.sync="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Entrada festiu</p>
@@ -77,6 +77,7 @@ import ModalBox from '@/components/ModalBox'
 
 export default {
   name: 'ModalBoxDedication',
+  emits: ["cancel", "delete", "submit"],
   components: { RadioPicker, ModalBox },
   props: {
     isActive: {

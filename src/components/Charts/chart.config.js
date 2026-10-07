@@ -6,105 +6,60 @@ export const chartColors = {
   }
 }
 
+// Chart.js 4 option format (legend/tooltip live under `plugins`, axes are
+// keyed scales). Same look as the Chart.js 2 options these replace.
 export const baseChartOptions = {
   maintainAspectRatio: false,
-  legend: {
-    display: false
+  plugins: {
+    legend: {
+      display: false
+    }
   },
   responsive: true
 }
 
+const tooltip = {
+  titleColor: '#333',
+  bodyColor: '#666',
+  bodySpacing: 4,
+  padding: 12,
+  mode: 'nearest',
+  intersect: false,
+  position: 'nearest'
+}
+
 export const chartOptionsMain = {
   ...baseChartOptions,
-  tooltips: {
-    backgroundColor: '#f5f5f5',
-    titleFontColor: '#333',
-    bodyFontColor: '#666',
-    bodySpacing: 4,
-    xPadding: 12,
-    mode: 'nearest',
-    intersect: 0,
-    position: 'nearest'
+  plugins: {
+    ...baseChartOptions.plugins,
+    tooltip: { ...tooltip, backgroundColor: '#f5f5f5' }
+  },
+  datasets: {
+    bar: { barPercentage: 1.2 }
   },
   scales: {
-    yAxes: [
-      {
-        barPercentage: 1.6,
-        gridLines: {
-          drawBorder: false,
-          color: 'rgba(29,140,248,0.0)',
-          zeroLineColor: 'transparent'
-        },
-        ticks: {
-          padding: 20,
-          fontColor: '#9a9a9a',
-          beginAtZero: true
-        },
-        stacked: true
-      }
-    ],
-    xAxes: [
-      {
-        barPercentage: 1.2,
-        gridLines: {
-          drawBorder: false,
-          color: 'rgba(225,78,202,0.1)',
-          zeroLineColor: 'transparent'
-        },
-        ticks: {
-          padding: 20,
-          fontColor: '#9a9a9a'
-        },
-        stacked: true
-      }
-    ]
+    y: {
+      beginAtZero: true,
+      stacked: true,
+      border: { display: false },
+      grid: { color: 'rgba(29,140,248,0.0)' },
+      ticks: { padding: 20, color: '#9a9a9a' }
+    },
+    x: {
+      stacked: true,
+      border: { display: false },
+      grid: { color: 'rgba(225,78,202,0.1)' },
+      ticks: { padding: 20, color: '#9a9a9a' }
+    }
   }
 }
 
+// Pie charts have no axes; Chart.js 2 ignored the scales it was given here
 export const chartOptionsPie = {
   ...baseChartOptions,
-  tooltips: {
-    // backgroundColor: '#f5f5f5',
-    titleFontColor: '#333',
-    bodyFontColor: '#666',
-    bodySpacing: 4,
-    xPadding: 12,
-    mode: 'nearest',
-    intersect: 0,
-    position: 'nearest'
-  },
-  scales: {
-    yAxes: [
-      {
-        barPercentage: 1.6,
-        gridLines: {
-          drawBorder: false,
-          color: 'rgba(29,140,248,0.0)',
-          zeroLineColor: 'transparent'
-        },
-        ticks: {
-          padding: 20,
-          fontColor: '#9a9a9a',
-          beginAtZero: true,
-          display: false
-        }
-      }
-    ],
-    xAxes: [
-      {
-        barPercentage: 1.2,
-        gridLines: {
-          drawBorder: false,
-          color: 'rgba(225,78,202,0.1)',
-          zeroLineColor: 'transparent'
-        },
-        ticks: {
-          padding: 20,
-          fontColor: '#9a9a9a',
-          display: false
-        }
-      }
-    ]
+  plugins: {
+    ...baseChartOptions.plugins,
+    tooltip
   }
 }
 
