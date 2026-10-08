@@ -1572,8 +1572,7 @@ export default {
 
       this.getActivities();
       this.isLoadingImport = false;
-    }
-  },
+    },
     formatTitle(val) {
       if (!val) {
         return "-";
@@ -1585,7 +1584,8 @@ export default {
         ")"
       );
     }
-  };
+  }
+};
 </script>
 <style scoped>
 .separator {
