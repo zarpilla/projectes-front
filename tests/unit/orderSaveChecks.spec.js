@@ -108,4 +108,24 @@ describe('OrdersForm save checks', () => {
     const none = await submitResult({ form: { ...base, contact_time_slot_2_ini: null, contact_time_slot_2_end: null }, collectionPoints: null, collectionPickupRoutes: [] })
     expect(none.wrote).toBe(true)
   })
+
+  // issues/005: at least one slot must last 3 hours; a short slot 1 with no
+  // slot 2 used to pass
+  it('needs at least one time slot of 3 hours or more', async () => {
+    const base = {
+      units: 1, kilograms: 1, contact_trade_name: 'B', contact_city: 'G', contact_nif: 'N', contact_phone: 'P',
+      contact_address: 'A', contact_postcode: 'C', id: 123, owner: 5, route: 3, contact: 10, pickup: 1
+    }
+    const save = slots => submitResult({ form: { ...base, ...slots }, collectionPoints: null, collectionPickupRoutes: [] })
+    const short = { message: 'Error. El tram horari ha de ser mínim de 3 hores', wrote: false }
+    const slots = (a, b, c, d) => ({
+      contact_time_slot_1_ini: a, contact_time_slot_1_end: b, contact_time_slot_2_ini: c, contact_time_slot_2_end: d
+    })
+    expect(await save(slots(9, 11, null, null))).toEqual(short)
+    expect(await save(slots(9, 11, undefined, undefined))).toEqual(short)
+    expect(await save(slots(9, 11, 15, 17))).toEqual(short)
+    expect((await save(slots(9, 12, null, null))).wrote).toBe(true)
+    expect((await save(slots(9, 11, 15, 18))).wrote).toBe(true)
+    expect((await save(slots(8, 12, 15, 16))).wrote).toBe(true)
+  })
 })

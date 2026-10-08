@@ -147,14 +147,16 @@ export function orderSaveProblem (form, { collectionPoints, collectionPickupRout
   ) {
     return "Error. Cal indicar l'hora de finalització del tram horari 1";
   }
+  // at least one slot must last 3 hours (same rule as the orders CSV import)
   if (
     form.contact_time_slot_1_end -
       form.contact_time_slot_1_ini <
       3 &&
-    form.contact_time_slot_2_end &&
-    form.contact_time_slot_2_end -
-      form.contact_time_slot_2_ini <
-      3
+    (!form.contact_time_slot_2_ini ||
+      !form.contact_time_slot_2_end ||
+      form.contact_time_slot_2_end -
+        form.contact_time_slot_2_ini <
+        3)
   ) {
     return "Error. El tram horari ha de ser mínim de 3 hores";
   }
