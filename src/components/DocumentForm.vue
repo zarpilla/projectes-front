@@ -708,309 +708,14 @@
 
           <hr />
           <card-component title="LINIES" v-if="form.lines">
-            <!-- Pagination for large lists -->
-            <div v-if="form.lines.length > 50" class="pagination-controls mb-3">
-              <b-field grouped>
-                <b-field label="Línies" class="ml-auto">
-                  <b-select v-model="linesPerPage" @change="currentPage = 1">
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option value="99999"
-                      >Totes ({{ form.lines.length }})</option
-                    >
-                  </b-select>
-                </b-field>
-                <b-field
-                  label="Pàgina"
-                  v-if="linesPerPage > 0"
-                  class="mzl-auto"
-                >
-                  <b-pagination
-                    v-model="currentPage"
-                    :total="form.lines.length"
-                    :per-page="linesPerPage"
-                    size="is-small"
-                  ></b-pagination>
-                </b-field>
-              </b-field>
-            </div>
-            <ul class="subphases-list">
-              <li
-                v-for="(line, j) in paginatedLines"
-                :key="getLineKey(line, j)"
-                class="subphase line mt-2 mb-2"
-              >
-                <b-field grouped class="is-full-width">
-                  <b-field
-                    v-if="form.document_type == '4'"
-                    :label="j == 0 ? 'Data' : null"
-                    class="medium-field"
-                  >
-                    <b-datepicker
-                      v-model="line.date"
-                      :show-week-number="false"
-                      :locale="'ca-ES'"
-                      :first-day-of-week="1"
-                      icon="calendar-today"
-                      placeholder="Data"
-                      trap-focus
-                      editable
-                    >
-                    </b-datepicker>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Concepte' : null"
-                    class="subphase-detail-input-large-field"
-                  >
-                    <b-input
-                      :disabled="emittedInvoiceEditDisabled"
-                      name="SubFase"
-                      placeholder="Concepte..."
-                      v-model="line.concept"
-                      class="subphase-detail-input subphase-detail-input-large"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Quantitat' : null"
-                    class="medium-field"
-                  >
-                    <b-input
-                      name="Unitats"
-                      :disabled="emittedInvoiceEditDisabled"
-                      placeholder="Quantitat, hores, unitats..."
-                      v-model="line.quantity"
-                      class="subphase-detail-input"
-                      @update:model-value="debouncedChangeLine(line, 'quantity', $event)"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
-                    <b-input
-                      name="base"
-                      :disabled="emittedInvoiceEditDisabled"
-                      placeholder="Preu per unitat"
-                      v-model="line.base"
-                      class="subphase-detail-input"
-                      @update:model-value="debouncedChangeLine(line, 'base', $event)"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Descompte %' : null"
-                    class="medium-field"
-                  >
-                    <b-input
-                      :disabled="emittedInvoiceEditDisabled"
-                      name="discount"
-                      placeholder="Descompte"
-                      v-model="line.discount"
-                      class="subphase-detail-input"
-                      @update:model-value="debouncedChangeLine(line, 'discount', $event)"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'IVA %' : null"
-                    class="medium-field"
-                  >
-                    <b-input
-                      :disabled="emittedInvoiceEditDisabled"
-                      name="vat"
-                      placeholder="Preu per unitat"
-                      v-model="line.vat"
-                      class="subphase-detail-input"
-                      @update:model-value="debouncedChangeLine(line, 'vat', $event)"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'IRPF %' : null"
-                    class="medium-field"
-                  >
-                    <b-input
-                      :disabled="emittedInvoiceEditDisabled"
-                      name="irpf"
-                      placeholder="Preu per unitat"
-                      v-model="line.irpf"
-                      class="subphase-detail-input"
-                      @update:model-value="debouncedChangeLine(line, 'irpf', $event)"
-                    >
-                    </b-input>
-                  </b-field>
-                  <b-field
-                    :label="j == 0 ? 'Accions' : null"
-                    class="medium-field"
-                  >
-                    <button
-                      class="button is-small is-primary ml-2"
-                      type="button"
-                      @click.prevent="line.show = !line.show"
-                    >
-                      <b-icon icon="comment" size="is-small" />
-                    </button>
-                    <button
-                      v-if="form.lines.length > 1"
-                      class="button is-small is-danger ml-2"
-                      type="button"
-                      @click.prevent="removeLine(line, j)"
-                      :disabled="emittedInvoiceEditDisabled"
-                    >
-                      <b-icon icon="trash-can" size="is-small" />
-                    </button>
-                    <button
-                      v-if="isLastLineInPagination(j)"
-                      class="button is-small is-primary ml-2"
-                      type="button"
-                      @click.prevent="addLine(line)"
-                      :disabled="emittedInvoiceEditDisabled"
-                    >
-                      <b-icon icon="plus-circle" size="is-small" />
-                    </button>
-                  </b-field>
-                </b-field>
-                <!-- <b-field
-                  grouped
-                  class="is-full-width"
-                  v-if="products.length > 0"
-                >
-                  <b-autocomplete
-                    class="is-w-30"
-                    v-model="line.productSearch"
-                    placeholder="Escriu el codi del producte..."
-                    :keep-first="false"
-                    :open-on-focus="true"
-                    :data="filteredProducts"
-                    field="namecode"
-                    @select="option => productSelected(option, line)"
-                    :clearable="true"
-                  >
-                  </b-autocomplete>
-                </b-field> -->
-                <b-field
-                  label="Notes"
-                  grouped
-                  class="line-notes is-full-width mb-5"
-                  :class="line.show ? 'z' : 'is-hidden'"
-                >
-                  <b-input
-                    type="textarea"
-                    maxlength="1000"
-                    :disabled="emittedInvoiceEditDisabled"
-                    v-model="line.comments"
-                    placeholder="Descripció del concepte"
-                  />
-                </b-field>
-              </li>
-            </ul>
-            <!-- Pagination for large lists -->
-            <div
-              v-if="form.lines.length > 50"
-              class="pagination-controls mt-5 mb-3"
-            >
-              <b-field grouped>
-                <b-field label="Línies" class="ml-auto">
-                  <b-select v-model="linesPerPage" @change="currentPage = 1">
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option value="99999"
-                      >Totes ({{ form.lines.length }})</option
-                    >
-                  </b-select>
-                </b-field>
-                <b-field
-                  label="Pàgina"
-                  v-if="linesPerPage > 0"
-                  class="mzl-auto"
-                >
-                  <b-pagination
-                    v-model="currentPage"
-                    :total="form.lines.length"
-                    :per-page="linesPerPage"
-                    size="is-small"
-                  ></b-pagination>
-                </b-field>
-              </b-field>
-            </div>
+            <document-lines
+              v-model:lines="form.lines"
+              :new-line="getNewLine"
+              :disabled="emittedInvoiceEditDisabled"
+              :is-diet="form.document_type == '4'"
+            />
             <hr />
-            <div class="summary has-background-white-ter p-4">
-              <div
-                class="is-flex is-justify-content-flex-end"
-                v-if="hasDiscount"
-              >
-                <label>Base sense descompte: </label>
-                <money-format
-                  :value="totalBaseWithoutDiscount"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
-              <div
-                class="is-flex is-justify-content-flex-end"
-                v-if="hasDiscount"
-              >
-                <label>Descompte: </label>
-                <money-format
-                  :value="totalDiscount"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
-              <div class="is-flex is-justify-content-flex-end">
-                <label>Base: </label>
-                <money-format
-                  :value="totalBase"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
-              <div class="is-flex is-justify-content-flex-end">
-                <label>IVA: </label>
-                <money-format
-                  :value="totalVat"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
-              <div class="is-flex is-justify-content-flex-end">
-                <label>IRPF: </label>
-                <money-format
-                  :value="totalIrpf"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
-              <div
-                class="is-flex is-justify-content-flex-end has-text-weight-bold mt-5"
-              >
-                <label>Total </label>
-                <money-format
-                  :value="total"
-                  :locale="'es'"
-                  :currency-code="'EUR'"
-                  :subunits-value="false"
-                  :hide-subunits="false"
-                >
-                </money-format>
-              </div>
-            </div>
+            <document-totals :lines="form.lines" />
             <hr />
 
             <b-field label="Notes" horizontal message="Visibles a la factura">
@@ -1319,7 +1024,7 @@
 // External libraries
 import moment from "moment";
 import _ from "lodash";
-import sumBy from "lodash/sumBy";
+import * as documentTotals from "@/domain/documentTotals.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 
@@ -1331,6 +1036,8 @@ import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
 import ModalBoxDiet from "@/components/ModalBoxDiet.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import DocumentLines from "@/components/DocumentLines.vue";
+import DocumentTotals from "@/components/DocumentTotals.vue";
 import FileUpload from "@/components/FileUpload.vue";
 
 // Services
@@ -1344,6 +1051,8 @@ export default {
     CardComponent,
     TitleBar,
     MoneyFormat,
+    DocumentLines,
+    DocumentTotals,
     ModalBoxEmittedInvoices,
     ModalBoxSplit,
     ModalBoxDiet,
@@ -1409,10 +1118,7 @@ export default {
       options: null,
       user: null,
       // Pagination for large lists
-      linesPerPage: 50,
-      currentPage: 1,
       // Debouncing for inputs
-      debouncedInputs: new Map(),
       apiUrl: ""
     };
   },
@@ -1518,37 +1224,22 @@ export default {
       return "x";
     },
     totalBase() {
-      return sumBy(this.form.lines, l => {
-        return l.quantity * l.base * (1 - (l.discount || 0) / 100);
-      });
+      return documentTotals.totalBase(this.form.lines);
     },
     totalVat() {
-      return sumBy(this.form.lines, l => {
-        return (
-          (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.vat) / 100
-        );
-      });
+      return documentTotals.totalVat(this.form.lines);
     },
     totalIrpf() {
-      return (
-        -1 *
-        sumBy(this.form.lines, l => {
-          return (
-            (l.quantity * l.base * (1 - (l.discount || 0) / 100) * l.irpf) / 100
-          );
-        })
-      );
+      return documentTotals.totalIrpf(this.form.lines);
     },
     total() {
       return this.totalBase + this.totalVat + this.totalIrpf;
     },
     hasDiscount() {
-      return this.form.lines.some(l => l.discount && l.discount > 0);
+      return documentTotals.hasDiscount(this.form.lines);
     },
     totalBaseWithoutDiscount() {
-      return sumBy(this.form.lines, l => {
-        return l.quantity * l.base;
-      });
+      return documentTotals.totalBaseWithoutDiscount(this.form.lines);
     },
     totalDiscount() {
       return this.totalBaseWithoutDiscount - this.totalBase;
@@ -1592,14 +1283,6 @@ export default {
     },
     currentProjectLinesHashHasChanged() {
       return this.initialProjectLinesHash !== this.currentProjectLinesHash;
-    },
-    paginatedLines() {
-      if (this.linesPerPage === 0 || this.form.lines.length <= 50) {
-        return this.form.lines;
-      }
-      const start = (this.currentPage - 1) * this.linesPerPage;
-      const end = start + this.linesPerPage;
-      return this.form.lines.slice(start, end);
     },
     prettyInvoiceJson() {
       try {
@@ -1647,13 +1330,6 @@ export default {
     this.apiUrl = config.VUE_APP_API_URL;
 
     this.getData();
-  },
-  beforeUnmount() {
-    // Clean up any pending debounced timeouts
-    this.debouncedInputs.forEach(timeoutId => {
-      clearTimeout(timeoutId);
-    });
-    this.debouncedInputs.clear();
   },
   methods: {
     getClearFormObject() {
@@ -2077,44 +1753,6 @@ export default {
             )
             .filter(p => !p.is_mother);
     },
-    changeLine(line, field, value) {
-      if (value && value.toString().includes(",")) {
-        line[field] = value.toString().replace(",", ".");
-      }
-    },
-    debouncedChangeLine(line, field, value) {
-      // Create a unique key for this line and field combination
-      const lineIndex = this.form.lines.indexOf(line);
-      const key = `${lineIndex}-${field}`;
-
-      // Clear any existing timeout for this field
-      if (this.debouncedInputs.has(key)) {
-        clearTimeout(this.debouncedInputs.get(key));
-      }
-
-      // Set new debounced timeout
-      const timeoutId = setTimeout(() => {
-        this.changeLine(line, field, value);
-        this.debouncedInputs.delete(key);
-      }, 300); // 300ms delay
-
-      this.debouncedInputs.set(key, timeoutId);
-    },
-    getLineKey(line, index) {
-      // Generate a stable key for each line
-      return line.id || `line-${index}`;
-    },
-    isLastLineInPagination(index) {
-      // Check if this is the last line in the current pagination view
-      const isLastInPage = index === this.paginatedLines.length - 1;
-      const isLastOverall =
-        this.linesPerPage === 0 || this.form.lines.length <= 50
-          ? index === this.form.lines.length - 1
-          : (this.currentPage - 1) * this.linesPerPage + index ===
-            this.form.lines.length - 1;
-
-      return isLastInPage && isLastOverall;
-    },
     input(v) {},
     async submit(exit) {
       console.log("submit", this.form);
@@ -2389,36 +2027,6 @@ export default {
       // setTimeout(async () => {
       //     this.productSearch = "";
       //   }, 100);
-    },
-    removeLine(line, j) {
-      this.needsUpdate = true;
-      // Calculate the actual index in the full array
-      const actualIndex =
-        this.linesPerPage > 0 && this.form.lines.length > 50
-          ? (this.currentPage - 1) * this.linesPerPage + j
-          : j;
-
-      this.form.lines.splice(actualIndex, 1);
-
-      // Adjust current page if we deleted the last item on the page
-      if (
-        this.linesPerPage > 0 &&
-        this.paginatedLines.length === 0 &&
-        this.currentPage > 1
-      ) {
-        this.currentPage--;
-      }
-    },
-    addLine() {
-      this.form.lines = _.concat(this.form.lines, this.getNewLine());
-
-      // If using pagination, go to the last page to show the new line
-      if (this.linesPerPage > 0 && this.form.lines.length > 50) {
-        const totalPages = Math.ceil(
-          this.form.lines.length / this.linesPerPage
-        );
-        this.currentPage = totalPages;
-      }
     },
     phasesUpdated(info) {
       console.log("Phases updated:", info);
