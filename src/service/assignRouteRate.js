@@ -177,7 +177,7 @@ const checkIfDateIsValidInroute = (route, date, routeFestives) => {
     routeDayOfWeek.push(6);
   }
   if (route.sunday) {
-    routeDayOfWeek.push(7);
+    routeDayOfWeek.push(0); // Sunday is 0 in day()
   }
   if (routeDayOfWeek.includes(date.day())) {
     return true;

@@ -113,8 +113,12 @@ describe('checkIfDateIsValidInroute', () => {
     expect(checkIfDateIsValidInroute(route, moment('2026-10-12'), festives)).toBe(false) // festive Monday
   })
 
-  it('never accepts a Sunday (existing behaviour: Sunday is pushed as 7, day() returns 0)', () => {
-    expect(checkIfDateIsValidInroute(ROUTES.sunday, moment('2026-10-11'), [])).toBe(false)
+  // issues/006: Sunday was pushed as 7, but day() returns 0
+  it('accepts a Sunday only for routes that run on Sunday', () => {
+    expect(checkIfDateIsValidInroute(ROUTES.sunday, moment('2026-10-11'), [])).toBe(true)
+    expect(checkIfDateIsValidInroute(ROUTES.everyDay, moment('2026-10-11'), [])).toBe(true)
+    expect(checkIfDateIsValidInroute(ROUTES.mondayThursday, moment('2026-10-11'), [])).toBe(false)
+    expect(checkIfDateIsValidInroute(ROUTES.sunday, moment('2026-10-11'), [{ date: '2026-10-11' }])).toBe(false)
   })
 })
 
