@@ -1504,6 +1504,7 @@ import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
+import { orderErrors } from "@/domain/orderValidation.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -1646,75 +1647,7 @@ export default {
       return this.form.pickup_point === true;
     },
     errors() {
-      const isContactValid =
-        this.form.contact &&
-        this.contacts.some(c => c.id === this.form.contact);
-      const baseErrors = {
-        owner: this.form.owner === null,
-        route: this.form.route === null,
-        contact: !this.form.contact || !isContactValid,
-        delivery_date: this.form.delivery_date === null,
-        delivery_type: this.form.delivery_type === null,
-        pickup: !this.form.is_collection_order && this.form.pickup == null,
-        contact_name:
-          this.form.contact_name === null || this.form.contact_name === "",
-        contact_nif:
-          this.form.contact_nif === null || this.form.contact_nif === "",
-        contact_legal_form: this.form.contact_legal_form === null,
-        contact_address:
-          this.form.contact_address === null ||
-          this.form.contact_address === "",
-        contact_postcode:
-          this.form.contact_postcode === null ||
-          this.form.contact_postcode === "",
-        contact_city:
-          this.form.contact_city === null || this.form.contact_city === "",
-        contact_phone:
-          this.form.contact_phone === null || this.form.contact_phone === ""
-      };
-
-      // Validate collection_point if it's required (when pickup is selected and has collection points available)
-      if (
-        !this.form.is_collection_order &&
-        this.collectionPoints &&
-        this.collectionPoints.length > 0
-      ) {
-        baseErrors.collection_point = !this.form.collection_point;
-
-        // Validate collection_pickup_route when collection_point is selected
-        if (
-          this.form.collection_point &&
-          this.collectionPickupRoutes.length > 0
-        ) {
-          baseErrors.collection_pickup_route = !this.form
-            .collection_pickup_route;
-        }
-      }
-
-      if (this.isPickupPoint) {
-        // For pickup points, validate lines instead of direct units/kilograms
-        baseErrors.lines =
-          !this.form.lines ||
-          this.form.lines.length === 0 ||
-          this.form.lines.some(
-            line =>
-              !line.units ||
-              line.units <= 0 ||
-              !line.kilograms ||
-              line.kilograms <= 0 ||
-              !line.name ||
-              line.name.trim() === ""
-          );
-      } else {
-        // For regular orders, validate units and kilograms directly
-        baseErrors.units = this.form.units === null || this.form.units <= 0;
-        baseErrors.kilograms =
-          this.form.kilograms === null ||
-          this.form.kilograms === "" ||
-          this.form.kilograms <= 0;
-      }
-
-      return baseErrors;
+      return orderErrors(this);
     },
     route_rate() {
       if (this.form.is_collection_order || !this.canChangeRate) {
@@ -3649,42 +3582,34 @@ export default {
       price = price - (order.volume_discount || 0);
       return price;
     },
-    async depositOrder() {
+    // Stamps <field>_date/<field>_user (deposit, pickup, transfer start/end)
+    // with now and the current user, after saving the order.
+    async markOrder(field, { success, failure }) {
       try {
         this.isLoading = true;
 
-        // Save the form first
         await this.submit(false);
 
-        // Get current user
         const currentUser = await service({ requiresAuth: true }).get(
           "users/me"
         );
 
-        // Prepare update data
-        const updateData = {
-          deposit_date: new Date().toISOString(),
-          deposit_user: currentUser.data.id
-        };
-
-        // Update with deposit information
-        const response = await service({ requiresAuth: true }).put(
-          `orders/${this.form.id}`,
-          updateData
-        );
+        await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
+          [`${field}_date`]: new Date().toISOString(),
+          [`${field}_user`]: currentUser.data.id
+        });
 
         this.$buefy.snackbar.open({
-          message: "Comanda dipositada correctament",
+          message: success,
           queue: false,
           type: "is-success"
         });
 
-        // Refresh data to show the updated information
         await this.getData();
       } catch (err) {
         console.error(err);
         this.$buefy.snackbar.open({
-          message: "Error al dipositar la comanda",
+          message: failure,
           queue: false,
           type: "is-danger"
         });
@@ -3692,16 +3617,17 @@ export default {
         this.isLoading = false;
       }
     },
-    async removeDeposit() {
+    // Clears <field>_date/<field>_user after a confirmation.
+    clearOrderMark(field, { confirm, success, failure }) {
       this.$buefy.dialog.confirm({
-        message: "Estàs segura que vols eliminar la informació de dipòsit?",
+        message: confirm,
         onConfirm: async () => {
           try {
             this.isLoading = true;
 
             const updateData = this.ensureContactLegalFormIsValid({
-              deposit_date: null,
-              deposit_user: null
+              [`${field}_date`]: null,
+              [`${field}_user`]: null
             });
 
             await service({ requiresAuth: true }).put(
@@ -3710,7 +3636,7 @@ export default {
             );
 
             this.$buefy.snackbar.open({
-              message: "Informació de dipòsit eliminada",
+              message: success,
               queue: false,
               type: "is-success"
             });
@@ -3719,7 +3645,7 @@ export default {
           } catch (err) {
             console.error(err);
             this.$buefy.snackbar.open({
-              message: "Error al eliminar la informació de dipòsit",
+              message: failure,
               queue: false,
               type: "is-danger"
             });
@@ -3729,45 +3655,24 @@ export default {
         }
       });
     },
-    async pickupOrder() {
-      try {
-        this.isLoading = true;
-
-        // Save the form first
-        await this.submit(false);
-
-        // Get current user
-        const currentUser = await service({ requiresAuth: true }).get(
-          "users/me"
-        );
-
-        // Update with pickup information
-        const response = await service({ requiresAuth: true }).put(
-          `orders/${this.form.id}`,
-          {
-            pickup_date: new Date().toISOString(),
-            pickup_user: currentUser.data.id
-          }
-        );
-
-        this.$buefy.snackbar.open({
-          message: "Comanda recollida correctament",
-          queue: false,
-          type: "is-success"
-        });
-
-        // Refresh data to show the updated information
-        await this.getData();
-      } catch (err) {
-        console.error(err);
-        this.$buefy.snackbar.open({
-          message: "Error al recollir la comanda",
-          queue: false,
-          type: "is-danger"
-        });
-      } finally {
-        this.isLoading = false;
-      }
+    depositOrder() {
+      return this.markOrder("deposit", {
+        success: "Comanda dipositada correctament",
+        failure: "Error al dipositar la comanda"
+      });
+    },
+    removeDeposit() {
+      return this.clearOrderMark("deposit", {
+        confirm: "Estàs segura que vols eliminar la informació de dipòsit?",
+        success: "Informació de dipòsit eliminada",
+        failure: "Error al eliminar la informació de dipòsit"
+      });
+    },
+    pickupOrder() {
+      return this.markOrder("pickup", {
+        success: "Comanda recollida correctament",
+        failure: "Error al recollir la comanda"
+      });
     },
     async depositCollectionOrder(orderId) {
       try {
@@ -3849,192 +3754,37 @@ export default {
         this.isLoadingPickup[orderId] = false;
       }
     },
-    async removePickup() {
-      this.$buefy.dialog.confirm({
-        message: "Estàs segura que vols eliminar la informació de recollida?",
-        onConfirm: async () => {
-          try {
-            this.isLoading = true;
-
-            const updateData = this.ensureContactLegalFormIsValid({
-              pickup_date: null,
-              pickup_user: null
-            });
-
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              updateData
-            );
-
-            this.$buefy.snackbar.open({
-              message: "Informació de recollida eliminada",
-              queue: false,
-              type: "is-success"
-            });
-
-            await this.getData();
-          } catch (err) {
-            console.error(err);
-            this.$buefy.snackbar.open({
-              message: "Error al eliminar la informació de recollida",
-              queue: false,
-              type: "is-danger"
-            });
-          } finally {
-            this.isLoading = false;
-          }
-        }
+    removePickup() {
+      return this.clearOrderMark("pickup", {
+        confirm: "Estàs segura que vols eliminar la informació de recollida?",
+        success: "Informació de recollida eliminada",
+        failure: "Error al eliminar la informació de recollida"
       });
     },
-    async startTransfer() {
-      try {
-        this.isLoading = true;
-
-        // Save the form first
-        await this.submit(false);
-
-        // Get current user
-        const currentUser = await service({ requiresAuth: true }).get(
-          "users/me"
-        );
-
-        // Update with transfer start information
-        await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
-          transfer_start_date: new Date().toISOString(),
-          transfer_start_user: currentUser.data.id
-        });
-
-        this.$buefy.snackbar.open({
-          message: "Transferència iniciada correctament",
-          queue: false,
-          type: "is-success"
-        });
-
-        // Refresh data to show the updated information
-        await this.getData();
-      } catch (err) {
-        console.error(err);
-        this.$buefy.snackbar.open({
-          message: "Error al iniciar la transferència",
-          queue: false,
-          type: "is-danger"
-        });
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    async removeTransferStart() {
-      this.$buefy.dialog.confirm({
-        message:
-          "Estàs segura que vols eliminar la informació d'inici de transferència?",
-        onConfirm: async () => {
-          try {
-            this.isLoading = true;
-
-            const updateData = this.ensureContactLegalFormIsValid({
-              transfer_start_date: null,
-              transfer_start_user: null
-            });
-
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              updateData
-            );
-
-            this.$buefy.snackbar.open({
-              message: "Informació d'inici de transferència eliminada",
-              queue: false,
-              type: "is-success"
-            });
-
-            await this.getData();
-          } catch (err) {
-            console.error(err);
-            this.$buefy.snackbar.open({
-              message:
-                "Error al eliminar la informació d'inici de transferència",
-              queue: false,
-              type: "is-danger"
-            });
-          } finally {
-            this.isLoading = false;
-          }
-        }
+    startTransfer() {
+      return this.markOrder("transfer_start", {
+        success: "Transferència iniciada correctament",
+        failure: "Error al iniciar la transferència"
       });
     },
-    async endTransfer() {
-      try {
-        this.isLoading = true;
-
-        // Save the form first
-        await this.submit(false);
-
-        // Get current user
-        const currentUser = await service({ requiresAuth: true }).get(
-          "users/me"
-        );
-
-        // Update with transfer end information
-        await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
-          transfer_end_date: new Date().toISOString(),
-          transfer_end_user: currentUser.data.id
-        });
-
-        this.$buefy.snackbar.open({
-          message: "Transferència finalitzada correctament",
-          queue: false,
-          type: "is-success"
-        });
-
-        // Refresh data to show the updated information
-        await this.getData();
-      } catch (err) {
-        console.error(err);
-        this.$buefy.snackbar.open({
-          message: "Error al finalitzar la transferència",
-          queue: false,
-          type: "is-danger"
-        });
-      } finally {
-        this.isLoading = false;
-      }
+    removeTransferStart() {
+      return this.clearOrderMark("transfer_start", {
+        confirm: "Estàs segura que vols eliminar la informació d'inici de transferència?",
+        success: "Informació d'inici de transferència eliminada",
+        failure: "Error al eliminar la informació d'inici de transferència"
+      });
     },
-    async removeTransferEnd() {
-      this.$buefy.dialog.confirm({
-        message:
-          "Estàs segura que vols eliminar la informació de fi de transferència?",
-        onConfirm: async () => {
-          try {
-            this.isLoading = true;
-
-            const updateData = this.ensureContactLegalFormIsValid({
-              transfer_end_date: null,
-              transfer_end_user: null
-            });
-
-            await service({ requiresAuth: true }).put(
-              `orders/${this.form.id}`,
-              updateData
-            );
-
-            this.$buefy.snackbar.open({
-              message: "Informació de fi de transferència eliminada",
-              queue: false,
-              type: "is-success"
-            });
-
-            await this.getData();
-          } catch (err) {
-            console.error(err);
-            this.$buefy.snackbar.open({
-              message: "Error al eliminar la informació de fi de transferència",
-              queue: false,
-              type: "is-danger"
-            });
-          } finally {
-            this.isLoading = false;
-          }
-        }
+    endTransfer() {
+      return this.markOrder("transfer_end", {
+        success: "Transferència finalitzada correctament",
+        failure: "Error al finalitzar la transferència"
+      });
+    },
+    removeTransferEnd() {
+      return this.clearOrderMark("transfer_end", {
+        confirm: "Estàs segura que vols eliminar la informació de fi de transferència?",
+        success: "Informació de fi de transferència eliminada",
+        failure: "Error al eliminar la informació de fi de transferència"
       });
     },
     onTransferRouteManualChange() {

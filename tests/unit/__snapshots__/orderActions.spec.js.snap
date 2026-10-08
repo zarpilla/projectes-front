@@ -1,0 +1,481 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OrdersForm status actions > depositOrder reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "deposit_date": "2026-10-08T10:00:00.000Z",
+        "deposit_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al dipositar la comanda",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > depositOrder saves the order, then stamps date and user 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "deposit_date": "2026-10-08T10:00:00.000Z",
+        "deposit_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Comanda dipositada correctament",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > endTransfer reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "transfer_end_date": "2026-10-08T10:00:00.000Z",
+        "transfer_end_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al finalitzar la transferència",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > endTransfer saves the order, then stamps date and user 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "transfer_end_date": "2026-10-08T10:00:00.000Z",
+        "transfer_end_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Transferència finalitzada correctament",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > pickupOrder reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "pickup_date": "2026-10-08T10:00:00.000Z",
+        "pickup_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al recollir la comanda",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > pickupOrder saves the order, then stamps date and user 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "pickup_date": "2026-10-08T10:00:00.000Z",
+        "pickup_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Comanda recollida correctament",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removeDeposit asks first, then clears date and user 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació de dipòsit?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "deposit_date": null,
+        "deposit_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Informació de dipòsit eliminada",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removeDeposit reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació de dipòsit?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "deposit_date": null,
+        "deposit_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al eliminar la informació de dipòsit",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removePickup asks first, then clears date and user 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació de recollida?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "pickup_date": null,
+        "pickup_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Informació de recollida eliminada",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removePickup reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació de recollida?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "pickup_date": null,
+        "pickup_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al eliminar la informació de recollida",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removeTransferEnd asks first, then clears date and user 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació de fi de transferència?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "transfer_end_date": null,
+        "transfer_end_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Informació de fi de transferència eliminada",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removeTransferEnd reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació de fi de transferència?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "transfer_end_date": null,
+        "transfer_end_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al eliminar la informació de fi de transferència",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removeTransferStart asks first, then clears date and user 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació d'inici de transferència?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "transfer_start_date": null,
+        "transfer_start_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Informació d'inici de transferència eliminada",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > removeTransferStart reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "confirm",
+      "Estàs segura que vols eliminar la informació d'inici de transferència?",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "contact_legal_form": 1,
+        "transfer_start_date": null,
+        "transfer_start_user": null,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al eliminar la informació d'inici de transferència",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > startTransfer reports an error when the update fails 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "transfer_start_date": "2026-10-08T10:00:00.000Z",
+        "transfer_start_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Error al iniciar la transferència",
+      "is-danger",
+      false,
+    ],
+  ],
+  "loading": false,
+}
+`;
+
+exports[`OrdersForm status actions > startTransfer saves the order, then stamps date and user 1`] = `
+{
+  "calls": [
+    [
+      "submit",
+      false,
+    ],
+    [
+      "GET",
+      "users/me",
+    ],
+    [
+      "PUT",
+      "orders/123",
+      {
+        "transfer_start_date": "2026-10-08T10:00:00.000Z",
+        "transfer_start_user": 77,
+      },
+    ],
+    [
+      "snackbar",
+      "Transferència iniciada correctament",
+      "is-success",
+      false,
+    ],
+    [
+      "getData",
+    ],
+  ],
+  "loading": false,
+}
+`;
