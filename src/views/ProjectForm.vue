@@ -2490,6 +2490,8 @@
 // External libraries
 import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
+import { projectDocuments, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
+import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -2721,288 +2723,28 @@ export default {
       return "x";
     },
     documents() {
-      const documents = [];
-      if (this.form.emitted_invoices) {
-        this.form.emitted_invoices.forEach(e => {
-          documents.push({
-            docType: "emitted_invoices",
-            docTypeDesc: "Factura emesa",
-            multiplier: 1,
-            document: e
-          });
-        });
-      }
-      if (this.form.received_grants) {
-        this.form.received_grants.forEach(e => {
-          documents.push({
-            docType: "received_grants",
-            docTypeDesc: "Subvenció rebuda",
-            multiplier: 1,
-            document: e
-          });
-        });
-      }
-      if (this.form.received_invoices) {
-        this.form.received_invoices.forEach(e => {
-          documents.push({
-            docType: "received_invoices",
-            docTypeDesc: "Factura rebuda",
-            multiplier: -1,
-            document: e
-          });
-        });
-      }
-      if (this.form.tickets) {
-        this.form.tickets.forEach(e => {
-          documents.push({
-            docType: "tickets",
-            docTypeDesc: "Ticket",
-            multiplier: -1,
-            document: e
-          });
-        });
-      }
-      if (this.form.diets) {
-        this.form.diets.forEach(e => {
-          documents.push({
-            docType: "diets",
-            docTypeDesc: "Dieta",
-            multiplier: -1,
-            document: e
-          });
-        });
-      }
-      if (this.form.received_incomes) {
-        this.form.received_incomes.forEach(e => {
-          documents.push({
-            docType: "received_income",
-            docTypeDesc:
-              e.document_type &&
-              this.documentTypes.find(t => t.id === e.document_type)
-                ? this.documentTypes.find(t => t.id === e.document_type).name
-                : "",
-            multiplier: 1,
-            document: e
-          });
-        });
-      }
-      if (this.form.received_expenses) {
-        this.form.received_expenses.forEach(e => {
-          documents.push({
-            docType: "received_expense",
-            docTypeDesc:
-              e.document_type &&
-              this.documentTypes.find(t => t.id === e.document_type)
-                ? this.documentTypes.find(t => t.id === e.document_type).name
-                : "",
-            multiplier: -1,
-            document: e
-          });
-        });
-      }
-      return sortBy(documents, "document.emitted");
+      return projectDocuments(this.form, this.documentTypes);
     },
     treasuryDone() {
-      const documents = [];
-      const project_phases = this.form.project_phases || [];
-      project_phases.forEach(ph => {
-        ph.incomes.forEach(income => {
-          if (income.paid) {
-            if (income.invoice) {
-              documents.push({
-                docType: "emitted_invoices",
-                id: income.invoice.id,
-                multiplier: 1
-              });
-            } else if (income.grant) {
-              documents.push({
-                docType: "received_grants",
-                id: income.grant.id,
-                multiplier: 1
-              });
-            } else if (income.income) {
-              documents.push({
-                docType: "received_income",
-                id: income.income.id,
-                multiplier: 1
-              });
-            }
-          }
-        });
-        ph.expenses.forEach(expense => {
-          if (expense.paid) {
-            if (expense.invoice) {
-              documents.push({
-                docType: "received_invoices",
-                id: expense.invoice.id,
-                multiplier: -1
-              });
-            } else if (expense.ticket) {
-              documents.push({
-                docType: "tickets",
-                id: expense.ticket.id,
-                multiplier: -1
-              });
-            } else if (expense.diet) {
-              documents.push({
-                docType: "diets",
-                id: expense.diet.id,
-                multiplier: -1
-              });
-            } else if (expense.expense) {
-              documents.push({
-                docType: "received_expense",
-                id: expense.expense.id,
-                multiplier: -1
-              });
-            }
-          }
-        });
-      });
-      return documents;
+      return projectTreasuryDone(this.form);
     },
     treasury() {
-      const documents = [];
-      const project_phases = this.form.project_phases || [];
-      project_phases.forEach(ph => {
-        const incomes = ph.incomes || [];
-        incomes.forEach(income => {
-          if (!income.paid || true) {
-            documents.push({
-              docType: "income",
-              document: income,
-              multiplier: 1
-            });
-          }
-        });
-        const expenses = ph.expenses || [];
-        expenses.forEach(expense => {
-          if (!expense.paid || true) {
-            documents.push({
-              docType: "expense",
-              document: expense,
-              multiplier: -1
-            });
-          }
-        });
-      });
-      if (this.form.treasury_annotations) {
-        this.form.treasury_annotations.forEach(t => {
-          documents.push({
-            docType: "treasury",
-            document: { ...t, total_amount: t.total },
-            concept: t.concept,
-            multiplier: 1
-          });
-        });
-      }
-      return documents;
-      // return sortBy(documents, "document.emitted");
+      return projectTreasury(this.form);
     },
     unassignedDocuments() {
-      // Get all document IDs that are already assigned to phases
-      const assignedIds = new Set();
-      const project_phases = this.form.project_phases || [];
-      
-      project_phases.forEach(ph => {
-        ph.incomes.forEach(income => {
-          if (income.invoice && income.invoice.id) assignedIds.add(`emitted_invoices_${income.invoice.id}`);
-          if (income.grant && income.grant.id) assignedIds.add(`received_grants_${income.grant.id}`);
-          if (income.income && income.income.id) assignedIds.add(`received_income_${income.income.id}`);
-        });
-        ph.expenses.forEach(expense => {
-          if (expense.invoice && expense.invoice.id) assignedIds.add(`received_invoices_${expense.invoice.id}`);
-          if (expense.ticket && expense.ticket.id) assignedIds.add(`tickets_${expense.ticket.id}`);
-          if (expense.diet && expense.diet.id) assignedIds.add(`diets_${expense.diet.id}`);
-          if (expense.grant && expense.grant.id) assignedIds.add(`received_grants_${expense.grant.id}`);
-          if (expense.expense && expense.expense.id) assignedIds.add(`received_expense_${expense.expense.id}`);
-        });
-      });
-      
-      // Find unassigned documents
-      const unassigned = [];
-      
-      if (this.form.emitted_invoices) {
-        this.form.emitted_invoices.forEach(doc => {
-          if (!assignedIds.has(`emitted_invoices_${doc.id}`)) {
-            unassigned.push({ ...doc, type: 'Factura emesa' });
-          }
-        });
-      }
-      
-      if (this.form.received_grants) {
-        this.form.received_grants.forEach(doc => {
-          if (!assignedIds.has(`received_grants_${doc.id}`)) {
-            unassigned.push({ ...doc, type: 'Subvenció rebuda' });
-          }
-        });
-      }
-      
-      if (this.form.received_incomes) {
-        this.form.received_incomes.forEach(doc => {
-          if (!assignedIds.has(`received_income_${doc.id}`)) {
-            unassigned.push({ ...doc, type: 'Ingrés rebut' });
-          }
-        });
-      }
-      
-      if (this.form.received_invoices) {
-        this.form.received_invoices.forEach(doc => {
-          if (!assignedIds.has(`received_invoices_${doc.id}`)) {
-            unassigned.push({ ...doc, type: 'Factura rebuda' });
-          }
-        });
-      }
-      
-      if (this.form.tickets) {
-        this.form.tickets.forEach(doc => {
-          if (!assignedIds.has(`tickets_${doc.id}`)) {
-            unassigned.push({ ...doc, type: 'Tiquet' });
-          }
-        });
-      }
-      
-      if (this.form.diets) {
-        this.form.diets.forEach(doc => {
-          if (!assignedIds.has(`diets_${doc.id}`)) {
-            unassigned.push({ ...doc, type: 'Dieta' });
-          }
-        });
-      }
-      
-      if (this.form.received_expenses) {
-        this.form.received_expenses.forEach(doc => {
-          if (!assignedIds.has(`received_expense_${doc.id}`)) {
-            unassigned.push({ ...doc, type: 'Despesa rebuda' });
-          }
-        });
-      }
-      
-      return unassigned;
+      return unassignedProjectDocuments(this.form);
     },
     treasuryIncomesPending() {
-      return sumBy(
-        this.treasury.filter(t => t.multiplier > 0 && t.document.paid !== true),
-        "document.total_amount"
-      );
+      return treasurySums(this.treasury).incomesPending;
     },
     treasuryExpensesPending() {
-      return sumBy(
-        this.treasury.filter(t => t.multiplier < 0 && t.document.paid !== true),
-        "document.total_amount"
-      );
+      return treasurySums(this.treasury).expensesPending;
     },
     treasuryIncomesDone() {
-      return sumBy(
-        this.treasury.filter(t => t.multiplier > 0 && t.document.paid),
-        "document.total_amount"
-      );
+      return treasurySums(this.treasury).incomesDone;
     },
     treasuryExpensesDone() {
-      return sumBy(
-        this.treasury.filter(t => t.multiplier < 0 && t.document.paid),
-        "document.total_amount"
-      );
+      return treasurySums(this.treasury).expensesDone;
     },
     user() {
       return this.leaders.find(
