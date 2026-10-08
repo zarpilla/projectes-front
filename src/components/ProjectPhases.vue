@@ -804,7 +804,6 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing.vue";
@@ -817,8 +816,6 @@ import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
 import RadioPicker from "@/components/RadioPicker.vue";
-import { sub } from "date-fns";
-import { de, is } from "date-fns/locale";
 
 export default {
   name: "ProjectFormPhases",
@@ -1355,7 +1352,7 @@ export default {
       });
     },
     input(v) {
-      this.createdReadable = dayjs(v).format("MMM D, YYYY");
+      this.createdReadable = moment(v).locale("en").format("MMM D, YYYY");
     },
     removeSubPhase(phase, subphase, j) {
       this.needsUpdate = true;

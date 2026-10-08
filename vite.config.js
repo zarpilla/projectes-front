@@ -33,6 +33,13 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       chunkSizeWarningLimit: 4000
+    },
+    test: {
+      environment: 'jsdom',
+      include: ['tests/unit/**/*.spec.js'],
+      setupFiles: ['tests/unit/setup.js'],
+      // dates in the app are Catalan, Europe/Madrid
+      env: { TZ: 'Europe/Madrid' }
     }
   }
 })

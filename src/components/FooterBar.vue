@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import dayjs from 'dayjs'
+import moment from 'moment'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 
@@ -33,7 +33,7 @@ export default {
   name: 'FooterBar',
   computed: {
     year () {
-      return dayjs().year()
+      return moment().year()
     },
     ...mapState(useMainStore, ['isFooterBarVisible'])
   }

@@ -398,7 +398,6 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxDir3 from "@/components/ModalBoxDir3.vue";
@@ -410,7 +409,6 @@ import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
-import { ca } from "date-fns/locale";
 
 export default {
   name: "ContactsForm",

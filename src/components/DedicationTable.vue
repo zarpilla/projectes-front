@@ -71,8 +71,7 @@
 <script>
 import ModalBox from '@/components/ModalBox.vue'
 import service from '@/service/index'
-import subDays from 'date-fns/subDays'
-import format from 'date-fns/format'
+import moment from 'moment'
 
 export default {
   name: 'DedicationTable',
@@ -115,7 +114,7 @@ export default {
   },
   methods: {
     getActivities () {
-      const weekday = format(subDays(new Date(), 7), 'yyyy-MM-dd')
+      const weekday = moment().subtract(7, 'days').format('YYYY-MM-DD')
       service({ requiresAuth: true }).get(`activities/calendar?_limit=-1&_where[date_gte]=${weekday}`).then((r) => {
         this.activities = r.data
       })

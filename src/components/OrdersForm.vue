@@ -1499,7 +1499,6 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
@@ -3597,7 +3596,7 @@ export default {
     },
     formatDate(date) {
       if (!date) return "";
-      return dayjs(date).format("DD/MM/YYYY");
+      return moment(date).format("DD/MM/YYYY");
     },
     getStatusColor(status) {
       const statusColors = {
@@ -3635,7 +3634,7 @@ export default {
     },
     formatDateTime(dateTime) {
       if (!dateTime) return "";
-      return dayjs(dateTime).format("DD/MM/YYYY HH:mm");
+      return moment(dateTime).format("DD/MM/YYYY HH:mm");
     },
     getPickupName(pickupId) {
       if (!pickupId) return "";

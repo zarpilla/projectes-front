@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import moment from "moment";
 
 const assignRouteRate = (form, routeRates, orders) => {
   // console.log("assignRouteRate!");
@@ -101,9 +101,9 @@ const assignRouteRate = (form, routeRates, orders) => {
 
 const assignRouteDate = (route, options = {}) => {
   const { nextDayLimitHour = 14, isAdmin = false } = options;
-  let nextDay = dayjs().add(0, "day");
+  let nextDay = moment();
   let warning = "";
-  const todayDayOfWeek = dayjs().day();
+  const todayDayOfWeek = moment().day();
   
   // Build an array of all valid days for this route
   const routeDaysOfWeek = [];
@@ -113,7 +113,7 @@ const assignRouteDate = (route, options = {}) => {
   if (route.thursday) routeDaysOfWeek.push(4);
   if (route.friday) routeDaysOfWeek.push(5);
   if (route.saturday) routeDaysOfWeek.push(6);
-  if (route.sunday) routeDaysOfWeek.push(0); // Sunday is 0 in dayjs
+  if (route.sunday) routeDaysOfWeek.push(0); // Sunday is 0 in day()
 
   // Check if today is a valid route day
   if (routeDaysOfWeek.includes(todayDayOfWeek)) {
@@ -131,10 +131,13 @@ const assignRouteDate = (route, options = {}) => {
   }
   
   // Check if it's tomorrow and past the next-day cutoff (admins are exempt)
-  if (nextDay.isSame(dayjs().add(1, "day"), "day")) {
-    if (!isAdmin && dayjs().hour() >= nextDayLimitHour) {
+  if (nextDay.isSame(moment().add(1, "day"), "day")) {
+    if (!isAdmin && moment().hour() >= nextDayLimitHour) {
       // Find the next valid route day after skipping to next week
-      nextDay = dayjs().add(1, "week").startOf("week");
+      // Sunday of next week. Not startOf("week"): moment follows the locale and
+      // the app runs it in Catalan, where weeks start on Monday.
+      nextDay = moment().add(1, "week").startOf("day");
+      nextDay.subtract(nextDay.day(), "days");
       found = false;
       while (!found) {
         nextDay = nextDay.add(1, "day");

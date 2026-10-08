@@ -489,14 +489,13 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
+import moment from "moment";
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
-import { hr } from "date-fns/locale";
 
 export default {
   name: "OrderView",
@@ -1372,11 +1371,11 @@ export default {
     },
     formatDate(date) {
       if (!date) return "";
-      return dayjs(date).format("DD/MM/YYYY");
+      return moment(date).format("DD/MM/YYYY");
     },
     formatDateTime(dateTime) {
       if (!dateTime) return "";
-      return dayjs(dateTime).format("DD/MM/YYYY HH:mm");
+      return moment(dateTime).format("DD/MM/YYYY HH:mm");
     },
     formatTimeSlot(time) {
       if (time == null) return "";

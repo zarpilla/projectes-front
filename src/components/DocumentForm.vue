@@ -1317,7 +1317,6 @@
 
 <script>
 // External libraries
-import dayjs from "dayjs";
 import moment from "moment";
 import _ from "lodash";
 import sumBy from "lodash/sumBy";
@@ -1400,10 +1399,10 @@ export default {
       invoiceMatchedContact: null,
       toReal: false,
       exitAfterSave: false,
-      minEmittedDate: dayjs()
+      minEmittedDate: moment()
         .subtract(25, "year")
         .toDate(),
-      maxEmittedDate: dayjs()
+      maxEmittedDate: moment()
         .add(4, "day")
         .toDate(),
       canEditDraft: false,
@@ -1982,8 +1981,8 @@ export default {
         ).data;
         this.minEmittedDate =
           maxDateInvoice.length > 0
-            ? dayjs(maxDateInvoice[0].emitted).toDate()
-            : dayjs()
+            ? moment(maxDateInvoice[0].emitted).toDate()
+            : moment()
                 .subtract(25, "year")
                 .toDate();
 

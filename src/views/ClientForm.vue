@@ -119,7 +119,7 @@
 
 <script>
 import axios from 'axios'
-import dayjs from 'dayjs'
+import moment from 'moment'
 import find from 'lodash/find'
 import TitleBar from '@/components/TitleBar.vue'
 import HeroBar from '@/components/HeroBar.vue'
@@ -235,9 +235,9 @@ export default {
               this.isProfileExists = true
               this.form = item
               this.form.created_date = new Date(item.created_mm_dd_yyyy)
-              this.createdReadable = dayjs(
+              this.createdReadable = moment(
                 new Date(item.created_mm_dd_yyyy)
-              ).format('MMM D, YYYY')
+              ).locale('en').format('MMM D, YYYY')
             } else {
               this.$router.push({ name: 'client.new' })
             }
@@ -252,7 +252,7 @@ export default {
       }
     },
     input (v) {
-      this.createdReadable = dayjs(v).format('MMM D, YYYY')
+      this.createdReadable = moment(v).locale('en').format('MMM D, YYYY')
     },
     submit () {
       this.isLoading = true
