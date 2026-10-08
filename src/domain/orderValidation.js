@@ -78,9 +78,8 @@ export function orderErrors ({ form, contacts, collectionPoints, collectionPicku
 
 // The first reason not to save an order, checked by OrdersForm.submit before
 // anything is sent (null when it can be saved). Conditions are kept as the form
-// always had them, including two quirks pinned by tests/unit/orderSaveChecks.spec.js:
-// slot 2's end-time check looks at slot 1's end, and the 3-hour minimum only
-// applies when both slots are shorter.
+// always had them, including a quirk pinned by tests/unit/orderSaveChecks.spec.js:
+// the 3-hour minimum only applies when both slots are shorter (issues/005).
 export function orderSaveProblem (form, { collectionPoints, collectionPickupRoutes }) {
   if (form.units <= 0 || form.kilograms <= 0) {
     return "Error. Els valors de caixes i kilos han de ser positius";
@@ -132,6 +131,12 @@ export function orderSaveProblem (form, { collectionPoints, collectionPickupRout
   }
   if (
     form.contact_time_slot_2_ini &&
+    !form.contact_time_slot_2_end
+  ) {
+    return "Error. Cal indicar l'hora de finalització del tram horari 2";
+  }
+  if (
+    form.contact_time_slot_2_ini &&
     form.contact_time_slot_2_ini > form.contact_time_slot_2_end
   ) {
     return "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització";
@@ -141,13 +146,6 @@ export function orderSaveProblem (form, { collectionPoints, collectionPickupRout
     !form.contact_time_slot_1_end
   ) {
     return "Error. Cal indicar l'hora de finalització del tram horari 1";
-  }
-  if (
-    form.contact_time_slot_2_ini &&
-    form.contact_time_slot_2_ini &&
-    !form.contact_time_slot_1_end
-  ) {
-    return "Error. Cal indicar l'hora de finalització del tram horari 2";
   }
   if (
     form.contact_time_slot_1_end -

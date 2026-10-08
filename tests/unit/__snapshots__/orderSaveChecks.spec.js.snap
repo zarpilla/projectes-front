@@ -371,7 +371,7 @@ exports[`OrdersForm save checks > matches the recorded outcome of 300 generated 
     "wrote": false,
   },
   {
-    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "message": "Error. Cal indicar l'hora de finalització del tram horari 2",
     "wrote": false,
   },
   {
@@ -531,7 +531,7 @@ exports[`OrdersForm save checks > matches the recorded outcome of 300 generated 
     "wrote": false,
   },
   {
-    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "message": "Error. Cal indicar l'hora de finalització del tram horari 2",
     "wrote": false,
   },
   {
@@ -607,7 +607,7 @@ exports[`OrdersForm save checks > matches the recorded outcome of 300 generated 
     "wrote": true,
   },
   {
-    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "message": "Error. Cal indicar l'hora de finalització del tram horari 2",
     "wrote": false,
   },
   {
@@ -1007,7 +1007,7 @@ exports[`OrdersForm save checks > matches the recorded outcome of 300 generated 
     "wrote": true,
   },
   {
-    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "message": "Error. Cal indicar l'hora de finalització del tram horari 2",
     "wrote": false,
   },
   {
@@ -1151,7 +1151,7 @@ exports[`OrdersForm save checks > matches the recorded outcome of 300 generated 
     "wrote": false,
   },
   {
-    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "message": "Error. Cal indicar l'hora de finalització del tram horari 2",
     "wrote": false,
   },
   {

@@ -90,13 +90,22 @@ describe('OrdersForm save checks', () => {
     expect(r).toEqual({ message: 'Error. Els valors de caixes i kilos han de ser positius', wrote: false })
   })
 
-  it('checks slot 2\'s end time against slot 1\'s end (existing behaviour)', async () => {
+  // issues/004: the check looked at slot 1's end, so a missing slot 2 end got
+  // the "start later than end" message (null) or none at all (undefined)
+  it('asks for slot 2\'s end time when it has a start but no end', async () => {
     const base = {
       units: 1, kilograms: 1, contact_trade_name: 'B', contact_city: 'G', contact_nif: 'N', contact_phone: 'P',
       contact_address: 'A', contact_postcode: 'C', contact_time_slot_1_ini: 8, contact_time_slot_1_end: 12,
-      contact_time_slot_2_ini: 15, contact_time_slot_2_end: null, id: 123, owner: 5, route: 3, contact: 10, pickup: 1
+      contact_time_slot_2_ini: 15, id: 123, owner: 5, route: 3, contact: 10, pickup: 1
     }
-    const r = await submitResult({ form: base, collectionPoints: null, collectionPickupRoutes: [] })
-    expect(r.message).not.toBe("Error. Cal indicar l'hora de finalització del tram horari 2")
+    for (const end of [null, undefined, '']) {
+      const r = await submitResult({ form: { ...base, contact_time_slot_2_end: end }, collectionPoints: null, collectionPickupRoutes: [] })
+      expect(r, `slot 2 end ${JSON.stringify(end)}`).toEqual({ message: "Error. Cal indicar l'hora de finalització del tram horari 2", wrote: false })
+    }
+    const complete = await submitResult({ form: { ...base, contact_time_slot_2_end: 19 }, collectionPoints: null, collectionPickupRoutes: [] })
+    // passing every check means reaching the save (which the harness fails on purpose)
+    expect(complete.wrote).toBe(true)
+    const none = await submitResult({ form: { ...base, contact_time_slot_2_ini: null, contact_time_slot_2_end: null }, collectionPoints: null, collectionPickupRoutes: [] })
+    expect(none.wrote).toBe(true)
   })
 })
