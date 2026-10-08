@@ -64,6 +64,7 @@
                         <td>{{ texts[locale]['Concepte'] }}</td>
                         <td v-if="showQuantity">{{ texts[locale]['Q.'] }}</td>
                         <td v-if="showQuantity || showVat">{{ texts[locale]['Preu'] }}</td>
+                        <td v-if="showDiscount">{{ texts[locale]['Descompte'] }}</td>
                         <td v-if="showVat">{{ texts[locale]['IVA'] }}</td>
                         <td>{{ texts[locale]['Total'] }}</td>
                       </tr>
@@ -75,8 +76,9 @@
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
                         <td v-if="showQuantity || showVat">{{ line.base }}€</td>
-                        <td v-if="showVat">{{ formatCurrency(line.quantity * line.base * line.vat / 100) }}€ ({{ line.vat }}%)</td>
-                        <td>{{ formatCurrency(line.quantity * line.base * (1+ line.vat / 100)) }}€</td>
+                        <td v-if="showDiscount">{{ formatCurrency(-1 * lineDiscount(line)) }}€ ({{ line.discount || 0 }}%)</td>
+                        <td v-if="showVat">{{ formatCurrency(lineVat(line)) }}€ ({{ line.vat }}%)</td>
+                        <td>{{ formatCurrency(lineBase(line) * (1 + line.vat / 100)) }}€</td>
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
@@ -120,6 +122,7 @@ import HeroBar from '@/components/HeroBar.vue'
 import service from '@/service/index'
 import moment from 'moment'
 import html2pdf from 'html2pdf.js'
+import { lineBase, lineDiscount, lineVat, hasDiscount } from '@/domain/documentTotals'
 
 export default {
   name: 'ClientForm',
@@ -151,6 +154,7 @@ export default {
           'Concepte': 'Concepte',
           'Q.': 'Q.',
           'Preu': 'Preu',
+          'Descompte': 'Descompte',
           'IVA': 'IVA',
           'Total': 'Total',
           'Total:': 'Total:',
@@ -166,6 +170,7 @@ export default {
           'Concepte': 'Concepto',
           'Q.': 'Cant.',
           'Preu': 'Precio',
+          'Descompte': 'Descuento',
           'IVA': 'IVA',
           'Total': 'Total',
           'Total:': 'Total:',
@@ -181,6 +186,7 @@ export default {
           'Concepte': 'Concept',
           'Q.': 'Q.',
           'Preu': 'Price',
+          'Descompte': 'Discount',
           'IVA': 'VAT',
           'Total': 'Total',
           'Total:': 'Total:',
@@ -203,6 +209,9 @@ export default {
     showVat () {
       return this.quote.lines.find(l => l.vat > 0) !== undefined
     },
+    showDiscount () {
+      return hasDiscount(this.quote.lines)
+    },
     columnsShown () {
       return this.showQuantity && this.showVat ? 5 : (this.showQuantity ? 3 : 4)
     }
@@ -214,6 +223,9 @@ export default {
     }
   },
   methods: {
+    lineBase,
+    lineDiscount,
+    lineVat,
     getData () {
       if (this.$route.params.id) {
         service({ requiresAuth: true })

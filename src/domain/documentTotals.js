@@ -10,6 +10,17 @@ import sumBy from 'lodash/sumBy'
 /** Line amount after its discount. */
 export const lineBase = l => l.quantity * l.base * (1 - (l.discount || 0) / 100)
 
+/** Amount the line's discount takes off. */
+export const lineDiscount = l => (l.quantity * l.base * (l.discount || 0)) / 100
+
+/** Line VAT and IRPF (withheld, positive) on the discounted amount. */
+export const lineVat = l => (lineBase(l) * l.vat) / 100
+
+export const lineIrpf = l => (lineBase(l) * l.irpf) / 100
+
+/** Line total as the invoice views show it: base - IRPF + VAT. */
+export const lineTotal = l => lineBase(l) - lineIrpf(l) + lineVat(l)
+
 export const totalBase = lines => sumBy(lines, lineBase)
 
 export const totalVat = lines => sumBy(lines, l => (lineBase(l) * l.vat) / 100)

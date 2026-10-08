@@ -154,6 +154,9 @@
                         <td v-if="showQuantity || showVat">
                           {{ texts[locale]["Base"] }}
                         </td>
+                        <td v-if="showDiscount">
+                          {{ texts[locale]["Descompte"] }}
+                        </td>
                         <td>{{ texts[locale]["Base imposable"] }}</td>
                         <td v-if="showIrpf">{{ texts[locale]["IRPF"] }}</td>
                         <td v-if="showVat">{{ texts[locale]["IVA"] }}</td>
@@ -180,32 +183,37 @@
                         <td v-if="showQuantity || showVat">
                           {{ formatCurrency(line.base) }}€
                         </td>
+                        <td v-if="showDiscount">
+                          {{ formatCurrency(-1 * lineDiscount(line)) }}
+                          ({{ line.discount || 0 }}%)
+                        </td>
                         <td>
-                          {{ formatCurrency((line.quantity * line.base)) }}€
+                          {{ formatCurrency(lineBase(line)) }}€
                         </td>
                         <td v-if="showIrpf">
-                          {{
-                            formatCurrency(((-1 * line.quantity * line.base * line.irpf) /
-                              100))
-                          }}
+                          {{ formatCurrency(-1 * lineIrpf(line)) }}
                           ({{ line.irpf }}%)
                         </td>
                         <td v-if="showVat">
-                          {{
-                            formatCurrency(((line.quantity * line.base * line.vat) / 100))
-                          }}
+                          {{ formatCurrency(lineVat(line)) }}
                           ({{ line.vat }}%)
                         </td>
                         <td>
-                          {{
-                            formatCurrency((line.quantity * line.base -
-                              (line.quantity * line.base * line.irpf) / 100 +
-                              (line.quantity * line.base * line.vat) / 100))
-                          }}€
+                          {{ formatCurrency(lineTotal(line)) }}€
                         </td>
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
+                          <template v-if="showDiscount">
+                            <div>
+                              {{ texts[locale]["Base sense descompte"] }}:
+                              {{ formatCurrency(totalBaseWithoutDiscount(quote.lines)) }}€
+                            </div>
+                            <div>
+                              {{ texts[locale]["Descompte"] }}:
+                              {{ formatCurrency(-1 * sumBy(quote.lines, lineDiscount)) }}€
+                            </div>
+                          </template>
                           <div>
                             {{ texts[locale]["Base imposable"] }}:
                             {{ formatCurrency(quote.total_base) }}€
@@ -285,6 +293,16 @@ import HeroBar from "@/components/HeroBar.vue";
 import service from "@/service/index";
 import moment from "moment";
 import html2pdf from "html2pdf.js";
+import sumBy from "lodash/sumBy";
+import {
+  lineBase,
+  lineDiscount,
+  lineIrpf,
+  lineTotal,
+  lineVat,
+  hasDiscount,
+  totalBaseWithoutDiscount
+} from "@/domain/documentTotals";
 
 export default {
   name: "ClientForm",
@@ -321,6 +339,8 @@ export default {
           "Q.": "Q.",
           Base: "Base",
           IVA: "IVA",
+          Descompte: "Descompte",
+          "Base sense descompte": "Base sense descompte",
           IRPF: "IRPF",
           Total: "Total",
           "Total:": "Total:",
@@ -365,6 +385,8 @@ export default {
           "Q.": "Cant.",
           Base: "Base",
           IVA: "IVA",
+          Descompte: "Descuento",
+          "Base sense descompte": "Base sin descuento",
           IRPF: "IRPF",
           Total: "Total",
           "Total:": "Total:",
@@ -409,6 +431,8 @@ export default {
           "Q.": "Q.",
           Base: "Base",
           IVA: "VAT",
+          Descompte: "Discount",
+          "Base sense descompte": "Base before discount",
           IRPF: "IRPF",
           Total: "Total",
           "Total:": "Total:",
@@ -469,6 +493,9 @@ export default {
     showIrpf() {
       return this.quote.lines.find(l => l.irpf > 0) !== undefined;
     },
+    showDiscount() {
+      return hasDiscount(this.quote.lines);
+    },
     columnsShown() {
       return this.showQuantity && this.showVat ? 5 : this.showQuantity ? 3 : 4;
     },
@@ -490,6 +517,13 @@ export default {
     }
   },
   methods: {
+    lineBase,
+    lineDiscount,
+    lineIrpf,
+    lineTotal,
+    lineVat,
+    sumBy,
+    totalBaseWithoutDiscount,
     getData() {
       if (this.$route.params.id) {
         service({ requiresAuth: true })
