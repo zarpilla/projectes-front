@@ -102,7 +102,13 @@ function check (name, result) {
   }
   expect(fs.existsSync(file), `no recorded payloads for ${name}; record them from the reference build first`).toBe(true)
   const expected = JSON.parse(fs.readFileSync(file, 'utf8'))
-  expect(result.writes).toEqual(expected.writes)
+  // timestamps the server manages, echoed back from records the form loaded:
+  // they change whenever someone edits the data, not because of the form
+  const SERVER_STAMPS = new Set(['createdAt', 'updatedAt', 'publishedAt', 'created_at', 'updated_at', 'published_at'])
+  const strip = v => Array.isArray(v) ? v.map(strip)
+    : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).filter(([k]) => !SERVER_STAMPS.has(k)).map(([k, x]) => [k, strip(x)]))
+      : v
+  expect(strip(result.writes)).toEqual(strip(expected.writes))
   // axios 1 errors carry name 'AxiosError', which the app's rejection object copies:
   // the same unhandled rejection reads "AxiosError: Object" instead of "Object"
   const errorKey = e => e.replace(/^AxiosError: /, '')

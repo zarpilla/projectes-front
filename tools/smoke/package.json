@@ -1,12 +1,14 @@
 {
   "name": "esstrapis-smoke",
   "private": true,
-  "description": "Route-level smoke test + screenshot baseline for the Vue 2 -> Vue 3 migration",
+  "description": "Route smoke test, screenshot baseline and form save-flow checks",
   "type": "module",
   "scripts": {
-    "test": "playwright test",
-    "baseline": "SMOKE_VISUAL=1 SMOKE_RECORD_KNOWN=1 SMOKE_LABEL=baseline playwright test --update-snapshots",
-    "compare": "SMOKE_VISUAL=1 playwright test",
+    "test": "playwright test routes.spec.mjs",
+    "baseline": "SMOKE_VISUAL=1 SMOKE_RECORD_KNOWN=1 SMOKE_LABEL=baseline playwright test routes.spec.mjs --update-snapshots",
+    "compare": "SMOKE_VISUAL=1 playwright test routes.spec.mjs",
+    "forms:record": "SMOKE_FORMS_RECORD=1 playwright test forms.spec.mjs",
+    "forms": "playwright test forms.spec.mjs",
     "report": "playwright show-report"
   },
   "devDependencies": {
