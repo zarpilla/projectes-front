@@ -1,0 +1,1206 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`OrdersForm save checks > matches the recorded outcome of 300 generated orders 1`] = `
+[
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha tots els trams horaris definits al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Has de seleccionar una ruta de recollida",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha tots els trams horaris definits al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Has de seleccionar un punt de recollida en finca",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. El tram horari ha de ser mínim de 3 hores",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha tots els trams horaris definits al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Has de seleccionar una ruta de recollida",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Has de seleccionar una ruta de recollida",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha tots els trams horaris definits al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha NIF al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha adreça al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha tots els trams horaris definits al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha telèfon al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Has de seleccionar un punt de recollida en finca",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha població al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error",
+    "wrote": true,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha codi postal al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Els valors de caixes i kilos han de ser positius",
+    "wrote": false,
+  },
+  {
+    "message": "Error. No hi ha nom comercial al punt d'entrega",
+    "wrote": false,
+  },
+  {
+    "message": "Error. Falten alguns camps obligatòris",
+    "wrote": false,
+  },
+]
+`;

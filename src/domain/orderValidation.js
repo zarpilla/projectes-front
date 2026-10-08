@@ -75,3 +75,90 @@ export function orderErrors ({ form, contacts, collectionPoints, collectionPicku
 
   return baseErrors;
 }
+
+// The first reason not to save an order, checked by OrdersForm.submit before
+// anything is sent (null when it can be saved). Conditions are kept as the form
+// always had them, including two quirks pinned by tests/unit/orderSaveChecks.spec.js:
+// slot 2's end-time check looks at slot 1's end, and the 3-hour minimum only
+// applies when both slots are shorter.
+export function orderSaveProblem (form, { collectionPoints, collectionPickupRoutes }) {
+  if (form.units <= 0 || form.kilograms <= 0) {
+    return "Error. Els valors de caixes i kilos han de ser positius";
+  }
+  if (
+    form.contact_time_slot_1_ini > form.contact_time_slot_1_end
+  ) {
+    return "Error. L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització";
+  }
+  if (!form.contact_trade_name) {
+    return "Error. No hi ha nom comercial al punt d'entrega";
+  }
+  if (!form.contact_city) {
+    return "Error. No hi ha població al punt d'entrega";
+  }
+  if (!form.contact_nif) {
+    return "Error. No hi ha NIF al punt d'entrega";
+  }
+  if (!form.contact_phone) {
+    return "Error. No hi ha telèfon al punt d'entrega";
+  }
+  if (!form.contact_address) {
+    return "Error. No hi ha adreça al punt d'entrega";
+  }
+  if (!form.contact_postcode) {
+    return "Error. No hi ha codi postal al punt d'entrega";
+  }
+  if (
+    !form.is_collection_order &&
+    collectionPoints &&
+    collectionPoints.length > 0 &&
+    !form.collection_point
+  ) {
+    return "Error. Has de seleccionar un punt de recollida en finca";
+  }
+  if (
+    !form.is_collection_order &&
+    form.collection_point &&
+    collectionPickupRoutes.length > 0 &&
+    !form.collection_pickup_route
+  ) {
+    return "Error. Has de seleccionar una ruta de recollida";
+  }
+  if (
+    !form.contact_time_slot_1_ini ||
+    !form.contact_time_slot_1_end
+  ) {
+    return "Error. No hi ha tots els trams horaris definits al punt d'entrega";
+  }
+  if (
+    form.contact_time_slot_2_ini &&
+    form.contact_time_slot_2_ini > form.contact_time_slot_2_end
+  ) {
+    return "Error. L'hora d'inici del tram horari 2 no pot ser més gran que l'hora de finalització";
+  }
+  if (
+    form.contact_time_slot_1_ini &&
+    !form.contact_time_slot_1_end
+  ) {
+    return "Error. Cal indicar l'hora de finalització del tram horari 1";
+  }
+  if (
+    form.contact_time_slot_2_ini &&
+    form.contact_time_slot_2_ini &&
+    !form.contact_time_slot_1_end
+  ) {
+    return "Error. Cal indicar l'hora de finalització del tram horari 2";
+  }
+  if (
+    form.contact_time_slot_1_end -
+      form.contact_time_slot_1_ini <
+      3 &&
+    form.contact_time_slot_2_end &&
+    form.contact_time_slot_2_end -
+      form.contact_time_slot_2_ini <
+      3
+  ) {
+    return "Error. El tram horari ha de ser mínim de 3 hores";
+  }
+  return null;
+}
