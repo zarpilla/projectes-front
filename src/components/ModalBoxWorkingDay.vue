@@ -398,7 +398,9 @@ export default {
       // this.form.id = this.dedicationObject.id
       this.form._dedication = this.dedicationObject._dedication;
       this.form.costByHour = this.calcCostByHour();
-      this.$emit("submit", this.form);
+      // a copy: the parent formats the dates as strings before saving, which
+      // the datepickers bound to this.form can't render (issues/008)
+      this.$emit("submit", { ...this.form });
     },
     trashModal(trashObject) {
       this.trashObject = trashObject;

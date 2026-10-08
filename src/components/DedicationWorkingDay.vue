@@ -699,8 +699,7 @@ export default {
       this.loading = true;
 
       if (activity.id) {
-        const activityObject = activity;
-        delete activityObject._dedication;
+        const { _dedication, ...activityObject } = activity;
         activityObject.from = moment(activityObject.from).format("YYYY-MM-DD");
         activityObject.to = moment(activityObject.to).format("YYYY-MM-DD");
 
