@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "axios": "^0.21.1",
+    "axios": "^1.20.0",
     "buefy": "^3.1.0",
     "bulma": "^1.0.4",
     "chart.js": "^4.5.1",

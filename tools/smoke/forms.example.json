@@ -1,0 +1,11 @@
+{
+  "project": 1,
+  "emittedInvoice": 1,
+  "receivedInvoice": 1,
+  "expense": 1,
+  "order": 1,
+  "clientSearch": "a",
+  "projectSearch": "a",
+  "deliveryPointSearch": "a",
+  "orderPickupButton": "Magatzem"
+}
