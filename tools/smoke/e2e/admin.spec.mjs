@@ -52,12 +52,8 @@ test('admin: create a user with only the hours permission', async () => {
   state.user = user
 })
 
-// KNOWN BUG (front): "Crear usuari" fails unless a "Rol" is picked. The select starts
-// empty, the form sends role: null and Strapi 5 answers 400 "role must be a `object`
-// type" (AdminUserForm.submit). New users should get the Authenticated role by
-// default. Remove test.fail() once fixed.
+// issues/027: new users get the Authenticated role by default
 test('a new user can be created without picking a role', async () => {
-  test.fail()
   await visit('/admin/users/new')
   await field("Nom d'usuari").locator('input').fill(`${USER.username}-r`)
   await field('Email').locator('input').fill(`r-${USER.email}`)

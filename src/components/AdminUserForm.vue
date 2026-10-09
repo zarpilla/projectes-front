@@ -190,11 +190,23 @@ export default {
         this.loadingRoles = true;
         const response = await service({ requiresAuth: true }).get('/users-permissions/roles');
         this.roles = response.data.roles || [];
+        // new users get the Authenticated role unless another is picked (issues/027)
+        if (!this.userId && !this.form.role) {
+          this.form.role = this.findAuthenticatedRole();
+        }
       } catch (error) {
         console.error('Error loading roles:', error);
       } finally {
         this.loadingRoles = false;
       }
+    },
+    findAuthenticatedRole() {
+      const role = this.roles.find(r => r.type === 'authenticated');
+      return role ? role.id : null;
+    },
+    async authenticatedRoleId() {
+      if (!this.roles.length) await this.loadRoles();
+      return this.findAuthenticatedRole();
     },
     async loadData() {
       try {
@@ -266,6 +278,8 @@ export default {
             onConfirm: async (password) => {
               try {
                 data.password = password;
+                // Strapi 5 requires a role (issues/027): saved before the roles loaded
+                if (!data.role) data.role = await this.authenticatedRoleId();
                 await service({ requiresAuth: true }).post('/users', data);
                 this.$buefy.toast.open({
                   message: 'Usuari creat correctament',

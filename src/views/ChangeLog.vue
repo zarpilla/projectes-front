@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: "Administració d'usuàries: les noves usuàries reben el rol Authenticated per defecte i ja no cal triar-lo perquè es puguin crear."
+            },
+            {
+              type: "Correccions",
               text: "Administració: les pantalles de Comptes bancaris i de Regions tornen a obrir-se."
             },
             {
