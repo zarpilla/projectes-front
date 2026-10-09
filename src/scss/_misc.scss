@@ -1,3 +1,5 @@
+@use "theme-default" as *;
+
 .is-user-avatar {
   &.has-max-width {
     max-width: $size-base * 7;

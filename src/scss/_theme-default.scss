@@ -1,7 +1,7 @@
+/* Bulma 0.9 palette this theme was designed against (forwarded with it) */
+@forward "bulma09";
 @use "sass:color";
-
-/* Bulma 0.9 palette this theme was designed against */
-@import "bulma09";
+@use "bulma09" as *;
 
 /* Base: Size  */
 $size-base: 1rem;

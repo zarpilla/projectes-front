@@ -1,3 +1,6 @@
+@use "theme-default" as *;
+@use "mixins" as *;
+
 section.hero.is-hero-bar {
   background-color: $hero-bar-background;
   border-bottom: $light-border;

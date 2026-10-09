@@ -1,3 +1,5 @@
+@use "theme-default" as *;
+
 section.section.is-title-bar {
   padding: $default-padding;
   border-bottom: $light-border;

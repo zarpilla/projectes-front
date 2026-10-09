@@ -552,7 +552,7 @@ export default {
 };
 </script>
 <style scoped>
-.zb-table >>> tbody tr {
+.zb-table :deep(tbody tr) {
   border-bottom: 1px solid #eee;
 }
 </style>

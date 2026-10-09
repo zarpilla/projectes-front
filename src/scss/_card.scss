@@ -1,3 +1,5 @@
+@use "theme-default" as *;
+
 .card:not(:last-child) {
   margin-bottom: $default-padding;
 }

@@ -1,26 +1,23 @@
 /* Theme style (colors & sizes) */
-@import "theme-default";
+@use "theme-default";
 
 /* Core Libs & Lib configs */
-@import "libs/all";
-@import "bulma1-compat";
-
-/* Mixins */
-@import "mixins";
+@use "libs/all";
+@use "bulma1-compat";
 
 /* Theme components */
-@import "nav-bar";
-@import "aside";
-@import "title-bar";
-@import "hero-bar";
-@import "card";
-@import "table";
-@import "tiles";
-@import "form";
-@import "main-section";
-@import "modal";
-@import "footer";
-@import "misc";
+@use "nav-bar";
+@use "aside";
+@use "title-bar";
+@use "hero-bar";
+@use "card";
+@use "table";
+@use "tiles";
+@use "form";
+@use "main-section";
+@use "modal";
+@use "footer";
+@use "misc";
 
 /* Animate.css custom build (just selected animations to minimize bundle size) */
 @import "../css/animate.min.css";
