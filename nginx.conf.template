@@ -4,6 +4,10 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Keep the app out of search engines. Repeated in every location that
+    # defines its own add_header, since nginx does not inherit them.
+    add_header X-Robots-Tag "noindex, nofollow" always;
+
     # Security: block direct download of sensitive credential files (defense in depth).
     location ~* \.(p12|pfx|pem|key|crt|cer|jks|kdb)$ {
         return 403;
@@ -14,6 +18,7 @@ server {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         add_header Pragma "no-cache";
+        add_header X-Robots-Tag "noindex, nofollow" always;
         try_files /service-worker.js =404;
     }
     
@@ -22,12 +27,14 @@ server {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         add_header Pragma "no-cache";
+        add_header X-Robots-Tag "noindex, nofollow" always;
     }
 
     # Handle static assets with /stats/ prefix - strip the prefix (but exclude service-worker.js)
     location ~* ^/stats/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+        add_header X-Robots-Tag "noindex, nofollow" always;
         try_files /$1 =404;
     }
 
@@ -36,6 +43,7 @@ server {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         add_header Pragma "no-cache";
+        add_header X-Robots-Tag "noindex, nofollow" always;
         add_header Last-Modified $date_gmt;
         add_header ETag "";
         if_modified_since off;
