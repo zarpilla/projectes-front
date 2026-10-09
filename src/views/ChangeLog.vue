@@ -56,6 +56,10 @@ export default {
             {
               type: "Correccions",
               text: ["Després de visitar ", { to: "/tresoreria", label: "Tresoreria" }, " ja es pot tornar a navegar a altres pàgines quan hi ha moviments bancaris sense projecte."]
+            },
+            {
+              type: "Correccions",
+              text: ["La columna Concepte de la llista d'", { to: "/emitted-invoices", label: "ingressos" }, " i la seva exportació a Excel tornen a mostrar el concepte de cada factura."]
             }
           ]
         },
