@@ -67,8 +67,8 @@ collide. Shared setup and helpers are in `e2e/helpers.mjs`.
 Tests for confirmed bugs are marked `test.fail()` with a `KNOWN BUG` comment: they
 pass while the bug is there and fail once it is fixed, as a reminder to remove the
 mark. Bugs a flow runs into without being its subject are reported as "known error"
-annotations instead (`KNOWN_ERRORS` in `helpers.mjs`, `KNOWN_BROKEN_ADMIN` in
-`admin.spec.mjs`). Run with `--reporter=list` to see them.
+annotations instead (`KNOWN_ERRORS` in `helpers.mjs`). Run with `--reporter=list` to
+see them.
 
 ## A throwaway database
 

@@ -1010,6 +1010,9 @@ const routes = [
     }
   },
   // Admin entity management routes
+  // Strapi 3 names of two entities, kept for bookmarks (issues/026)
+  { path: "/admin/bank-accounts", redirect: "/admin/bank-account" },
+  { path: "/admin/regions", redirect: "/admin/region" },
   {
     path: "/admin/:entityName",
     name: "admin.entity.list",

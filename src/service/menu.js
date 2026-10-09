@@ -414,7 +414,7 @@ const menu = [
       permission: "admin"
     },
     {
-      to: "/admin/bank-accounts",
+      to: "/admin/bank-account",
       icon: "bank",
       label: "Comptes bancaris",
       permission: "admin"
@@ -462,7 +462,7 @@ const menu = [
       permission: "admin"
     },
     {
-      to: "/admin/regions",
+      to: "/admin/region",
       icon: "map",
       label: "Regions",
       permission: "admin"

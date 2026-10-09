@@ -265,13 +265,8 @@ test('tasks: create, move to another state and archive', async () => {
   expect(task.archived).toBe(true)
 })
 
-// KNOWN BUG (front): these menu entries still use the Strapi 3 entity names; v5's
-// entity-metadata names them "bank-account" and "region", so the screens fail with
-// "Error carregant dades: Cannot read properties of undefined (reading 'apiPath')".
-// Reported as annotations; remove an entry once its link is fixed.
-const KNOWN_BROKEN_ADMIN = new Set(['#/admin/bank-accounts', '#/admin/regions'])
-
-test('every administration screen loads', async ({}, testInfo) => {
+// issues/026: every ADMINISTRACIÓ entry names an entity the backend serves
+test('every administration screen loads', async () => {
   await visit('/projectes')
   const links = await page.locator('aside a[href^="#/admin/"]').evaluateAll(as => as.map(a => a.getAttribute('href')))
   expect(links.length).toBeGreaterThan(10)
@@ -279,14 +274,7 @@ test('every administration screen loads', async ({}, testInfo) => {
   for (const href of links) {
     await visit(href.slice(1))
     const error = page.locator('.toast, .snackbar', { hasText: /Error/ })
-    const failed = await error.count()
-    if (failed && KNOWN_BROKEN_ADMIN.has(href)) {
-      testInfo.annotations.push({ type: 'known error', description: `${href} doesn't load (Strapi 3 entity name)` })
-    } else if (failed) {
-      broken.push(`${href}: ${(await error.first().innerText()).trim()}`)
-    } else if (KNOWN_BROKEN_ADMIN.has(href)) {
-      broken.push(`${href} loads now: remove it from KNOWN_BROKEN_ADMIN`)
-    }
+    if (await error.count()) broken.push(`${href}: ${(await error.first().innerText()).trim()}`)
     await page.locator('.toast').evaluateAll(ts => ts.forEach(t => t.remove()))
   }
   expect(broken).toEqual([])

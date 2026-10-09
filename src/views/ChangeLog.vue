@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: "Administració: les pantalles de Comptes bancaris i de Regions tornen a obrir-se."
+            },
+            {
+              type: "Correccions",
               text: "El botó + (Nou Contacte) de les factures i despeses torna a obrir sempre un contacte nou, també des d'un document ja guardat."
             },
             {
