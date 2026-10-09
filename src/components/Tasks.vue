@@ -59,7 +59,7 @@
               @dragover.prevent="onDragOver(i, j, $event, state)"
               @dragenter.prevent="onDragEnter($event, state)"
             >
-              <div class="card" draggable @dragstart="startDrag($event, task)">
+              <div class="card" draggable="true" @dragstart="startDrag($event, task)">
                 <div class="content clickable" @click.prevent="showTask(task)">
                   <div class="card-header title is-size-5">
                     {{ task.name }}
