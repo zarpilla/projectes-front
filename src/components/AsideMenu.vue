@@ -74,6 +74,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { logout } from '@/service/auth'
 import service from "@/service/index";
 import getConfig from "@/config";
+import { openTickets, ticketsErrorMessage } from "@/service/tickets";
 
 export default {
   name: 'AsideMenu',
@@ -101,9 +102,14 @@ export default {
     document.documentElement.classList.remove('has-aside-collapsed');
   },
   methods: {
-    menuClick (item) {
-      
-      //
+    async menuClick (item) {
+      if (item.action === 'tickets') {
+        try {
+          await openTickets()
+        } catch (error) {
+          this.$buefy.snackbar.open({ message: ticketsErrorMessage(error), type: 'is-danger', queue: false })
+        }
+      }
     },
     toggleCollapse() {
       this.isCollapsed = !this.isCollapsed;

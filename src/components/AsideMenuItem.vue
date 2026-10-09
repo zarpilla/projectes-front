@@ -70,7 +70,11 @@ export default {
     }
   },
   methods: {
-    menuClick () {
+    menuClick (event) {
+      // Items with an `action` run code instead of navigating.
+      if (this.item.action && event) {
+        event.preventDefault()
+      }
       this.$emit('menu-click', this.item)
 
       if (this.hasDropdown) {

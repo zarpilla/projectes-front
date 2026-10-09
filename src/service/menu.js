@@ -541,6 +541,14 @@ const menu = [
       to: "/verifactu",
       icon: "bank",
       label: "Verifactu",
+      permission: "projects"
+    },
+    {
+      // Opens the tickets site logged in (issues/019); handled in AsideMenu.menuClick.
+      href: "#",
+      action: "tickets",
+      icon: "ticket-outline",
+      label: "Tiquets",
       permission: "projects",
       itemClassName: "mb-6"
     }

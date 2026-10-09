@@ -50,6 +50,10 @@ export default {
           date: "2026.10.09",
           items: [
             {
+              type: "Novetats",
+              text: "Nou enllaç Tiquets al menú lateral (a Altres): obre el web de tiquets, ja identificat amb el teu usuari, per comunicar errors, millores i suggeriments."
+            },
+            {
               type: "Correccions",
               text: "Les hores executades dels projectes tornen a calcular-se amb el cost/hora de cada persona i s'actualitzen en afegir, modificar o eliminar dedicacions."
             },
