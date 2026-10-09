@@ -87,8 +87,7 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
     await other.goto('#/admin/users')
     await expect(other).toHaveURL(/#\/projectes/)
 
-    // and the backend refuses the admin-only operations (see the known bug below for
-    // the status code)
+    // and the backend refuses the admin-only operations
     for (const [method, route, body] of ADMIN_ONLY) {
       expect((await apiAs(other, method, route, body)).status, `${method} ${route}`).toBeGreaterThanOrEqual(400)
     }
@@ -98,13 +97,9 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
   }
 })
 
-// KNOWN BUG (backend): admin-only operations answer 500 instead of 403 to other users.
-// The isAdmin policy (src/policies/isAdmin.js) calls ctx.forbidden(), which Strapi 5
-// policies don't have ("ctx.forbidden is not a function"); they should return false
-// or throw a PolicyError. The operation is still refused. Remove test.fail() once fixed.
+// issues/025
 test('admin-only operations answer 403 to other users', async ({ browser }) => {
   test.skip(!state.user, 'needs the user')
-  test.fail()
   const other = await openSession(browser, USER.email, USER.password)
   try {
     for (const [method, route, body] of ADMIN_ONLY) {
