@@ -53,8 +53,11 @@ compose_tag() { sed -n "s#^\s*image:\s*$IMAGE:\(\S*\)\s*\$#\1#p" "$1/docker-comp
 set_tag() { sed -i "s#^\(\s*image:\s*$IMAGE:\)\S*\s*\$#\1$2#" "$1/docker-compose.yml"; }
 site_port() { sed -n 's/^EXTERNAL_PORT=//p' "$1/.env" 2>/dev/null | tr -d "\"' " | head -1; }
 
+# Every site's compose dir is called `docker`, so they all share the compose project
+# "docker": never pass --remove-orphans (or `down`), it would remove the other sites'
+# containers. Only the service in the site's own file is recreated.
 recreate() {  # dir
-  (cd "$1" && docker compose up -d --force-recreate --remove-orphans 2>&1 | grep -vE "^\s*$|obsolete" || true)
+  (cd "$1" && docker compose up -d --force-recreate 2>&1 | grep -vE "^\s*$|obsolete" || true)
 }
 
 healthy() {  # site
@@ -97,6 +100,14 @@ for s in "${ORDER[@]}"; do
   recreate "$dir"
   healthy "$s" || rollback
 done
+
+# Every site must still be up (a deploy step must never take another site down).
+DOWN=()
+for s in "${ALL[@]}"; do
+  (cd "${DIR[$s]}" && docker compose up -d 2>&1 | grep -vE "^\s*$|obsolete|Running" || true)
+  HEALTH_TIMEOUT=30 healthy "$s" >/dev/null || DOWN+=("$s")
+done
+[ ${#DOWN[@]} -eq 0 ] || { echo "!!  not serving after the deploy: ${DOWN[*]}"; exit 1; }
 
 # Keep the images some site still uses and the one just deployed; drop the rest.
 IN_USE=" $IMAGE:$TAG "
