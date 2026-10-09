@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: "El botó + (Nou Contacte) de les factures i despeses torna a obrir sempre un contacte nou, també des d'un document ja guardat."
+            },
+            {
+              type: "Correccions",
               text: "Els pressupostos tornen a guardar-se amb els seus imports (base, IVA i total); els que s'havien guardat a zero es recalculen."
             },
             {

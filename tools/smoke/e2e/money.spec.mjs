@@ -205,13 +205,9 @@ test('a quote stores its totals (IRPF does not apply)', async () => {
   expect([quote.total_base, quote.total_vat, quote.total_irpf, quote.total].map(Number)).toEqual([180, 37.8, 0, 217.8])
 })
 
-// KNOWN BUG (front, Vue Router 4): from an existing document the button opens
-// #/contact/<document id>, an unrelated contact. DocumentForm.navNew() resolves
-// { name: 'contacts.edit' } without params, and Vue Router 4 reuses the current
-// route's `id`. Remove test.fail() once fixed.
+// issues/024: "Nou Contacte" always opens an empty contact form
 test('"Nou Contacte" next to the contact opens an empty contact form', async () => {
   test.skip(!state.receivedId, 'needs a saved document')
-  test.fail()
   // a new document, and an existing one (the button must not open the contact
   // whose id happens to be the document's)
   for (const route of ['/document/0/received-invoices', `/document/${state.receivedId}/received-invoices`]) {

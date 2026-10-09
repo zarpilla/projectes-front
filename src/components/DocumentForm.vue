@@ -2706,7 +2706,9 @@ export default {
       // setTimeout(() => this.submit(false), 200);
     },
     navNew() {
-      let routeData = this.$router.resolve({ name: "contacts.edit" });
+      // id 0 = new contact. Without it Vue Router 4 reuses the document's id
+      // and opens an unrelated contact (issues/024)
+      let routeData = this.$router.resolve({ name: "contacts.edit", params: { id: 0 } });
       window.open(routeData.href, "_blank");
     },
     async uploaded(info) {
