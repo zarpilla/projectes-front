@@ -47,6 +47,15 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.10.09",
+          items: [
+            {
+              type: "Correccions",
+              text: "Les hores executades dels projectes tornen a calcular-se amb el cost/hora de cada persona i s'actualitzen en afegir, modificar o eliminar dedicacions."
+            }
+          ]
+        },
+        {
           date: "2026.07.16",
           items: [
             {
