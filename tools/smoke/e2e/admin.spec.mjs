@@ -154,12 +154,9 @@ test('login errors are explained', async ({ browser }) => {
   }
 })
 
-// KNOWN BUG (front/backend): "He oblidat la clau de pas" always fails. The front posts
-// { email, url } to auth/forgot-password and Strapi 5 rejects the unknown `url` key
-// (400 "this field has unspecified keys: url"). Remove test.fail() once fixed.
-// (Locally the e-mail itself can't be sent; the test only checks the request is accepted.)
+// issues/021: the form only sends the email; the backend builds the reset link.
+// (Locally the e-mail itself can't be sent; the test checks the request is accepted.)
 test('the forgotten password form is accepted', async ({ browser }) => {
-  test.fail()
   const anon = await openAnonymous(browser)
   try {
     await anon.goto('#/forgotten-password')

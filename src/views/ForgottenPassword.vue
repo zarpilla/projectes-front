@@ -42,7 +42,6 @@
 
 <script>
 import service from "@/service/index";
-import getConfig from "@/config";
 
 export default {
   name: "ForgottenPassword",
@@ -62,12 +61,10 @@ export default {
       this.done = false;
       this.error = false;
       this.sent = true;
-      const config = getConfig();
       service()
-        .post("auth/forgot-password", {
-          email: this.email,
-          url: config.VUE_APP_RESET_PASSWORD
-        })
+        // Strapi 5 takes the reset link from its own settings and refuses
+        // other keys (issues/021)
+        .post("auth/forgot-password", { email: this.email })
         .then(res => {
           this.done = true;
           this.message = `${this.message0} ${this.email}`;

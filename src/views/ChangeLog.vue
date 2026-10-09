@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: "Torna a funcionar «He oblidat la clau de pas»: rebràs el correu amb l'enllaç per canviar-la."
+            },
+            {
+              type: "Correccions",
               text: "Només les persones administradores poden crear usuàries o canviar-ne els permisos, el rol o l'estat."
             },
             {

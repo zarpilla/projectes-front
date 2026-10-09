@@ -80,7 +80,8 @@ traces then hold no real data), served by its own backend and front:
 MYSQL_PWD=... ./e2e-db.sh projectes_v5_manual projectes_v5_e2e   # stop the e2e backend first
 # from ../projectes-v5
 CRON_ENABLED=false PORT=1339 DATABASE_NAME=projectes_v5_e2e \
-  EMAIL_PROVIDER=nodemailer SMTP_HOST=127.0.0.1 SMTP_PORT=9 npx strapi start   # no cron, no real e-mail
+  EMAIL_PROVIDER=nodemailer SMTP_HOST=127.0.0.1 SMTP_PORT=9 \
+  RESET_PASSWORD_URL='http://localhost:8082/stats/#/reset-password' npx strapi start   # no cron, no real e-mail
 # from the front root
 VUE_APP_API_URL=http://localhost:1339 npx vite --port 8082
 ```
