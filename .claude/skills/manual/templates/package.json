@@ -1,0 +1,12 @@
+{
+  "name": "esstrapis-manual-capture",
+  "private": true,
+  "description": "Takes the ESSTRAPIS user-manual screenshots with Playwright",
+  "type": "module",
+  "scripts": {
+    "capture": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
