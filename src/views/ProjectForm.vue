@@ -2,6 +2,24 @@
   <div class="project-form">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
+      <!-- issues/015: undated lines end up in a "9999" periodification year -->
+      <b-notification
+        v-if="!isLoading && !isCreationMode && undatedLines.length"
+        type="is-warning"
+        :closable="false"
+        class="mb-4"
+      >
+        <p>
+          <strong>{{ undatedLines.length }} {{ undatedLines.length === 1 ? "línia no té" : "línies no tenen" }} data.</strong>
+          Els seus imports surten a la fila "Sense data" de la periodificació. Poseu-los una data:
+        </p>
+        <ul class="undated-lines">
+          <li v-for="(l, i) in undatedLines" :key="i">
+            {{ l.type === "income" ? "Ingrés" : "Despesa" }} ·
+            {{ l.phase || "-" }} · {{ l.concept || "(sense concepte)" }}
+          </li>
+        </ul>
+      </b-notification>
       <div class="columns">
         <div class="column is-two-thirds">
           <card-component :title="formCardTitle" class="tile is-child">
@@ -1562,7 +1580,7 @@
                 :class="allByYearYear == y.year ? 'is-primary' : 'is-ghost'"
                 @click="allByYearYear = y.year"
               >
-                {{ y.year }}
+                {{ periodificationYearLabel(y.year) }}
               </div>
             </div>
           </card-component>
@@ -1849,7 +1867,14 @@
           <div class="year-label">
             <label class="label" v-if="i === 0">Any</label>
             <div class="year mr-4 pt-2">
-              {{ y.year }}
+              {{ periodificationYearLabel(y.year) }}
+              <b-icon
+                v-if="isUndatedYear(y.year)"
+                icon="alert"
+                type="is-warning"
+                size="is-small"
+                title="Imports de línies sense data"
+              />
             </div>
           </div>
           <div>
@@ -1906,7 +1931,14 @@
         >
           <div class="year-label">
             <div class="year mr-4 pt-2">
-              {{ y.year }}
+              {{ periodificationYearLabel(y.year) }}
+              <b-icon
+                v-if="isUndatedYear(y.year)"
+                icon="alert"
+                type="is-warning"
+                size="is-small"
+                title="Imports de línies sense data"
+              />
             </div>
           </div>
           <div>
@@ -2492,6 +2524,12 @@ import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
 import { projectDocuments, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
+import {
+  dropEmptyUndatedRows,
+  isUndatedYear,
+  periodificationYearLabel,
+  undatedProjectLines
+} from "@/domain/projectPeriodification.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -2616,6 +2654,9 @@ export default {
   },
   computed: {
     ...mapState(useMainStore, ["me"]),
+    undatedLines() {
+      return undatedProjectLines(this.form);
+    },
     ...mapState(useMainStore, ["userName"]),
     filteredClients() {
       return this.clients.filter(option => {
@@ -2879,6 +2920,8 @@ export default {
     }
   },
   methods: {
+    isUndatedYear,
+    periodificationYearLabel,
     toggleClosedChild(childId) {
       const index = this.visibleClosedChildren.indexOf(childId);
       if (index > -1) {
@@ -3364,6 +3407,10 @@ export default {
             }
           }
         }
+        this.form.periodification = dropEmptyUndatedRows(
+          this.form.periodification || [],
+          this.undatedLines.length > 0
+        );
 
         // Re-enable dirty tracking and reset dirty flag in proper sequence
         // Use nextTick to ensure all Vue reactivity updates are complete
@@ -3563,6 +3610,7 @@ export default {
             activities, 
             children,           // Mother project children data (read-only, computed)
             allByYear,          // Computed aggregated data by year
+            undatedLines,       // Computed: lines with no date (issues/015)
             calculatedTotals,   // Computed totals
             incomes_expenses,   // Computed financial data
             total_real_incomes_expenses,
@@ -4311,6 +4359,7 @@ export default {
           activities,
           children,
           allByYear,
+          undatedLines,
           calculatedTotals,
           incomes_expenses,
           total_real_incomes_expenses,
@@ -5131,6 +5180,10 @@ export default {
 <style>
 .year-label {
   min-width: 100px;
+}
+.undated-lines {
+  list-style: disc;
+  margin: 0.5rem 0 0 1.5rem;
 }
 .file-documents {
   margin-left: 17%;
