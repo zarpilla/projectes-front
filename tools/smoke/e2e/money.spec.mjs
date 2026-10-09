@@ -112,15 +112,9 @@ test('a collected invoice is a "Factura cobrada" movement in Tresoreria', async 
   await expect(shown).toContainText('212,00')
 })
 
-// KNOWN BUG (backend): an update that sends new lines (without component ids) to an
-// issued invoice deletes its stored line. emitted-invoice beforeUpdate pins
-// `data.lines = invoice.lines`, but in Strapi 5 the old components are already replaced
-// when the db lifecycle runs, so the invoice ends up linked to a deleted row.
-// The form sends the lines with their ids and isn't affected (see the test above).
-// Remove test.fail() once fixed.
+// issues/023: an update can't change or delete the lines of an issued invoice
 test('the lines of an issued invoice can\'t be changed', async () => {
   test.skip(!state.invoice, 'needs the issued invoice')
-  test.fail()
   const id = state.invoice.id
   await api('PUT', `emitted-invoices/${id}`, { data: { comments: 'canviat per API', lines: [{ concept: 'x', quantity: 1, base: 1, vat: 0, irpf: 0 }] } }, { raw: true })
   const after = await api('GET', `emitted-invoices/${id}`)
