@@ -115,16 +115,15 @@ test('admin-only operations answer 403 to other users', async ({ browser }) => {
   }
 })
 
-// KNOWN BUG (backend, security): any logged-in user can change their own app
-// permissions, e.g. make themselves admin. The authenticated role may update users
-// (services/bootstrap-permissions.js) and the users-permissions update controller
-// doesn't restrict what a user sets on themselves. Remove test.fail() once fixed.
+// issues/020: only admins may create or change users
 test('users can\'t give themselves more permissions', async ({ browser }) => {
   test.skip(!state.user, 'needs the user')
-  test.fail()
   const other = await openSession(browser, USER.email, USER.password)
   try {
-    await apiAs(other, 'PUT', `users/${state.user.id}`, { permissions: [{ permission: 'hours' }, { permission: 'admin' }] })
+    const res = await apiAs(other, 'PUT', `users/${state.user.id}`, { permissions: [{ permission: 'hours' }, { permission: 'admin' }] })
+    expect(res.status).toBe(403)
+    const create = await apiAs(other, 'POST', 'users', { username: `${USER.username}-x`, email: `x-${USER.email}`, password: USER.password, role: 1 })
+    expect(create.status).toBe(403)
   } finally {
     await other.context().close()
   }

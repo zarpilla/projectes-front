@@ -50,6 +50,10 @@ export default {
           date: "2026.10.09",
           items: [
             {
+              type: "Correccions",
+              text: "Només les persones administradores poden crear usuàries o canviar-ne els permisos, el rol o l'estat."
+            },
+            {
               type: "Novetats",
               text: "Nou enllaç Tiquets al menú lateral (a Altres): obre el web de tiquets, ja identificat amb el teu usuari, per comunicar errors, millores i suggeriments."
             },
