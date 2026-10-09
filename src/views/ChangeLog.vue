@@ -60,6 +60,10 @@ export default {
             {
               type: "Correccions",
               text: ["La columna Concepte de la llista d'", { to: "/emitted-invoices", label: "ingressos" }, " i la seva exportació a Excel tornen a mostrar el concepte de cada factura."]
+            },
+            {
+              type: "Millores",
+              text: "Els projectes avisen de les línies d'ingrés o despesa sense data. A la periodificació, els seus imports surten a la fila \"Sense data\" en lloc de l'any 9999."
             }
           ]
         },
