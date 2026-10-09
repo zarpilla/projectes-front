@@ -1,0 +1,4 @@
+# <site> <compose dir>    (the dir holds docker-compose.yml and .env with EXTERNAL_PORT)
+# The first deploy goes to the canary (`demo` in deploy.sh), then the rest in this order.
+demo            /var/www/demo.projectes/docker
+ladili_test     /var/www/projectes-ladili_test/docker

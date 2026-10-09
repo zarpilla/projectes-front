@@ -1,12 +1,59 @@
-name: Build and Publish Frontend Docker image (master)
+name: Build, publish and deploy the frontend (master, Vue 3)
+
+# master is the v5 frontend on Vue 3 (Vite): it talks to the Strapi v5 backend,
+# so pair it with esstrapis-back:v5. Every push to master is tested, published as
+# esstrapis-front:v5-vue3-<sha> (and the floating v5-vue3), and deployed to every
+# site on the VPS (deploy/docker/deploy.sh).
 
 on:
   push:
     branches:
       - master
+    # Server scripts, docs and the manual don't change the image: no build, no deploy.
+    paths-ignore:
+      - 'deploy/**'
+      - 'docs/**'
+      - 'manual/**'
+      - '**/*.md'
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-image-${{ github.ref }}
+  # Only superseded PR builds are cancelled: on master a run may be deploying, and
+  # cutting it off mid-rollout would leave sites on mixed builds.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Fails on Vue 2 APIs creeping back in (filters, .sync, .native, $set...)
+      - name: Vue 3 migration lint
+        run: npm run lint:vue3
+
+      - name: Unit tests
+        run: npm run test:unit
+
   build-and-push:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -15,7 +62,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Pull requests only build: they never get the credentials or push.
       - name: Login to DockerHub
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -26,7 +75,50 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           build-args: |
             VUE_APP_PATH=/stats/
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:latest
+          # The sha-pinned tag is what sites are deployed to (and rolled back to);
+          # `v5-vue3` follows the latest master build.
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:v5-vue3
+            ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:v5-vue3-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploys the image just built to every site on the VPS (deploy/docker/deploy.sh:
+  # canary first, then one by one, automatic rollback). The SSH key can only run that
+  # script (forced command in authorized_keys), and the host key is pinned.
+  # Secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_KNOWN_HOSTS.
+  deploy:
+    needs: build-and-push
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    concurrency:
+      group: deploy-frontend-production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy v5-vue3-${{ github.sha }} to the VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+          # Fingerprints only (safe to log), shown as annotations so a wrong secret is obvious.
+          echo "::notice title=deploy key::$(ssh-keygen -y -f ~/.ssh/deploy_key | ssh-keygen -lf - || echo 'NOT A VALID PRIVATE KEY')"
+          echo "::notice title=known hosts::$(ssh-keygen -lf ~/.ssh/known_hosts | tr '\n' ' ' || echo 'NO VALID HOST KEY')"
+          echo "::notice title=target::${VPS_USER:-<empty VPS_USER>}@${VPS_HOST:-<empty VPS_HOST>}"
+          set +e
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 "$VPS_USER@$VPS_HOST" "v5-vue3-${GITHUB_SHA}" 2> >(tee ssh-stderr.log >&2)
+          rc=$?
+          if [ $rc -ne 0 ]; then
+            echo "::error title=deploy failed (exit $rc)::$(tail -3 ssh-stderr.log | tr '\n' ' ')"
+            exit $rc
+          fi

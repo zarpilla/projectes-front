@@ -1,10 +1,9 @@
-name: Build and Publish Frontend Docker image (v5, Vue 3)
+name: Build a preview Frontend Docker image (vue-3 branch)
 
-# The Vue 3 migration of the v5 frontend (branch vue-3). Same Strapi v5 API as
-# the v5 image, so pair it with esstrapis-back:v5. It ships under its own
-# v5-vue3 tags so a staging tenant can run it while every other tenant stays on
-# esstrapis-front:v5; this workflow never touches the v5 tag. Once vue-3 is
-# merged into v5, the v5 workflow builds it and this file can go.
+# vue-3 was merged into master, which builds and deploys every site (master.yml).
+# Pushes to vue-3 now only publish a preview image, esstrapis-front:v5-vue3-<sha>,
+# never the floating v5-vue3 tag; try it on one site with
+#   /var/www/esstrapis-front/deploy.sh v5-vue3-<sha> ladili_test
 
 on:
   push:
@@ -48,8 +47,5 @@ jobs:
           push: true
           build-args: |
             VUE_APP_PATH=/stats/
-          # `v5-vue3` is what the staging tenant follows; the sha-pinned tag is
-          # what you roll it back (or forward) to.
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:v5-vue3
             ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:v5-vue3-${{ github.sha }}
