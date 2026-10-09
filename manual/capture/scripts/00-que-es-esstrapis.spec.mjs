@@ -45,8 +45,6 @@ test('00-que-es-esstrapis', async ({ page }) => {
   await settle(page)
   await shot(page, 'informe-projectes')
 
-  // Tresoreria goes last: leaving it breaks navigation when a bank movement has no project
-  // (RouterLink without id, vue-3 branch).
   await page.goto('#/tresoreria')
   await settle(page, 2500)
   await shot(page, 'tresoreria')

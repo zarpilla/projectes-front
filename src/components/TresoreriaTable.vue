@@ -458,7 +458,9 @@
             searchable
             v-slot="props"
           >
+            <!-- No project: Vue Router 4 throws on a missing id (issues/014) -->
             <router-link
+              v-if="props.row.project_id"
               :to="{
                 name: 'project.edit',
                 params: { id: props.row.project_id }
@@ -468,6 +470,7 @@
                 {{ props.row.project_name }}
               </span>
             </router-link>
+            <span v-else>{{ props.row.project_name }}</span>
           </b-table-column>
           <b-table-column
             label="Contacte"

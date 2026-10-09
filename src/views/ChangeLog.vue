@@ -52,6 +52,10 @@ export default {
             {
               type: "Correccions",
               text: "Les hores executades dels projectes tornen a calcular-se amb el cost/hora de cada persona i s'actualitzen en afegir, modificar o eliminar dedicacions."
+            },
+            {
+              type: "Correccions",
+              text: ["Després de visitar ", { to: "/tresoreria", label: "Tresoreria" }, " ja es pot tornar a navegar a altres pàgines quan hi ha moviments bancaris sense projecte."]
             }
           ]
         },

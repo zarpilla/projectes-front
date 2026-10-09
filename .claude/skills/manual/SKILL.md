@@ -106,8 +106,6 @@ Lessons so far (see `scripts/00-que-es-esstrapis.spec.mjs`):
   view can stay mounted while the next one loads. Pivot-table screens load the Kendo library first; wait
   for `Taula dinàmica` and `Per defecte`, then scroll `.k-pivot-table` into view.
 - The demo hours end in summer 2026: go back with the calendar's `.vc-arrow.vc-prev`.
-- Leaving **Tresoreria** breaks navigation on the `vue-3` branch (a bank movement without project renders a
-  RouterLink without id). Until that is fixed, make it the last screen of a script.
 - Find good example records with SQL on the copy (e.g. a project whose original/forecast/actual results
   are all positive) and note their ids at the top of the script.
 
