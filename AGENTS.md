@@ -22,4 +22,5 @@ A separate package (`cd tools/smoke && npm install`, Node 20+), run against a lo
 - `npm run forms:record` / `npm run forms`: save flows of the critical forms (projects, invoices/expenses, orders). Writes are intercepted and never reach the backend; the payloads must match those recorded from the reference build.
 - Record and compare on the same day against the same database: the data is live.
 - `node style-diff.mjs <route>`: computed-style differences between two running builds.
+- `npm run e2e`: end-to-end tests (`tools/smoke/e2e/`) of the critical flows (projects, phases, hours and their cost, Persones, invoices, treasury, quotes, users and permissions, contacts, tasks, admin screens) that **save for real**, so only against a throwaway `*_e2e` copy of an anonymized tenant made with `e2e-db.sh` (see `tools/smoke/README.md`). Settings in `.env.e2e`.
 Use these for refactors and UI-library upgrades. Bug fixes still need a Vitest test. Ask before adding other e2e tooling.

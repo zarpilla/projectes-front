@@ -1,7 +1,7 @@
 {
   "name": "esstrapis-smoke",
   "private": true,
-  "description": "Route smoke test, screenshot baseline and form save-flow checks",
+  "description": "Route smoke test, screenshot baseline, form save-flow checks and end-to-end tests",
   "type": "module",
   "scripts": {
     "test": "playwright test routes.spec.mjs",
@@ -9,7 +9,8 @@
     "compare": "SMOKE_VISUAL=1 playwright test routes.spec.mjs",
     "forms:record": "SMOKE_FORMS_RECORD=1 playwright test forms.spec.mjs",
     "forms": "playwright test forms.spec.mjs",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "e2e": "playwright test e2e/"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0"

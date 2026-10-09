@@ -9,3 +9,4 @@ baseline-*/*.png
 forms.local.json
 baseline-forms/
 baseline-ref/
+.env.e2e
