@@ -204,14 +204,9 @@ test('a quote is saved', async () => {
   expect(quote.lines.map(l => [l.concept, Number(l.quantity), Number(l.base), Number(l.discount)])).toEqual([[`${NAME} pressupost`, 2, 100, 10]])
 })
 
-// KNOWN BUG (backend): quotes are saved with all totals at 0. The quote lifecycle
-// (api/quote/content-types/quote/lifecycles.js calculateTotals) sums `data.lines`
-// directly, which in Strapi 5 are bare component references; the other documents
-// read them back first (resolveLines in services/document-lifecycle.js).
-// Remove test.fail() once fixed.
+// issues/022: quotes are saved with their totals
 test('a quote stores its totals (IRPF does not apply)', async () => {
   test.skip(!state.quoteId, 'needs the quote')
-  test.fail()
   const quote = await api('GET', `quotes/${state.quoteId}`)
   expect([quote.total_base, quote.total_vat, quote.total_irpf, quote.total].map(Number)).toEqual([180, 37.8, 0, 217.8])
 })

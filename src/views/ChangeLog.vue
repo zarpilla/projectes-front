@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: "Els pressupostos tornen a guardar-se amb els seus imports (base, IVA i total); els que s'havien guardat a zero es recalculen."
+            },
+            {
+              type: "Correccions",
               text: "Torna a funcionar «He oblidat la clau de pas»: rebràs el correu amb l'enllaç per canviar-la."
             },
             {
