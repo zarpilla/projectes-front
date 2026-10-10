@@ -47,6 +47,19 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.10.10",
+          items: [
+            {
+              type: "Millores",
+              text: "Guardar un projecte amb moltes hores dedicades, i assignar-hi una factura o una despesa, torna a ser ràpid: en els projectes més grans passa de més de 7 segons a mig segon."
+            },
+            {
+              type: "Millores",
+              text: ["Les pàgines carreguen menys dades: els projectes, les factures i les taules dinàmiques de ", { to: "/stats-projectes", label: "Projectes" }, " i ", { to: "/stats-dedicacio", label: "Dedicació" }, " s'obren més de pressa, sobretot amb connexions lentes."]
+            }
+          ]
+        },
+        {
           date: "2026.10.09",
           items: [
             {

@@ -105,9 +105,10 @@ export default {
       this.contacts = (await service({ requiresAuth: true }).get('contacts/basic?_limit=-1&_sort=name:ASC')).data
 
       const projectState = this.projectState !== null ? this.projectState : 1
-      let query = `projects?_where[project_state_eq]=${projectState}&_limit=-1`
+      // with-activities: this pivot has a row per logged activity (issues/016)
+      let query = `projects/with-activities?_where[project_state_eq]=${projectState}&_limit=-1`
       if (projectState === 0 || projectState === '0') {
-        query = 'projects?_limit=-1'
+        query = 'projects/with-activities?_limit=-1'
       }
 
       this.dedicationTypes = (await service({ requiresAuth: true }).get('dedication-types')).data
@@ -136,9 +137,9 @@ export default {
                 year: a.date ? moment(a.date).format('YYYY').toString() : 0,
                 day: a.date ? moment(a.date).format('DD').toString() : 0,
                 date: a.date ? moment(a.date).format('YYYY-MM-DD').toString() : '-',
-                username: a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user)?.username : '-',
+                username: a.users_permissions_user ? (this.leaders.find(u => u.id === a.users_permissions_user)?.username || '-') : '-',
                 dedication_type: a.dedication_type && this.dedicationTypes.find(t => t.id === a.dedication_type) ? this.dedicationTypes.find(t => t.id === a.dedication_type).name : '-',
-                activity_type: a.activity_type ? this.activityTypes.find(t => t.id === a.activity_type).name : '-',
+                activity_type: a.activity_type ? (this.activityTypes.find(t => t.id === a.activity_type)?.name || '-') : '-',
                 count: 1
               }
               activities.push(activity)

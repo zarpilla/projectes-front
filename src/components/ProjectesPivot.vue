@@ -101,9 +101,10 @@ export default {
       this.contacts = (await service({ requiresAuth: true }).get('contacts/basic?_limit=-1&_sort=name:ASC')).data
 
       const projectState = this.projectState !== null ? this.projectState : 1
-      let query = `projects?_where[project_state_eq]=${projectState}&_limit=-1`
+      // with-activities: this pivot sums the logged hours of each project (issues/016)
+      let query = `projects/with-activities?_where[project_state_eq]=${projectState}&_limit=-1`
       if (projectState === 0 || projectState === '0') {
-        query = 'projects?_limit=-1'
+        query = 'projects/with-activities?_limit=-1'
       }
       
       service({ requiresAuth: true }).get(query).then((r) => {

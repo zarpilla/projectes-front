@@ -881,6 +881,7 @@
                   :hidden="true"
                   :form="project"
                   :project-phases="project.project_phases"
+                  :contacts="clients"
                   :is-paginated="false"
                   @phases-updated="phasesUpdated"
                   :mode="
@@ -1025,6 +1026,7 @@
 import moment from "moment";
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
+import { documentPayload } from "@/domain/documentPayload.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 
@@ -1800,7 +1802,7 @@ export default {
 
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,
-            this.form
+            documentPayload(this.form)
           );
 
           if (this.shouldSaveProject && this.type !== "payrolls") {
@@ -1885,7 +1887,7 @@ export default {
 
           const newProject = await service({ requiresAuth: true }).post(
             this.type,
-            this.form
+            documentPayload(this.form)
           );
 
           if (this.shouldSaveProject) {

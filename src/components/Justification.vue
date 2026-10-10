@@ -1498,7 +1498,8 @@ export default {
       
       // Build projects query with grantable and project_state filters
       const projectState = this.projectState !== null ? this.projectState : 0;
-      let query2 = `projects?_where[grantable_eq]=true`;
+      // with-activities: the real hours ("Reals") are read from each project's activities (issues/016)
+      let query2 = `projects/with-activities?_where[grantable_eq]=true`;
       if (projectState !== 0 && projectState !== '0') {
         query2 += `&_where[project_state_eq]=${projectState}`;
       }

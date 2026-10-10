@@ -230,6 +230,31 @@ test('emitted invoice: create a draft assigned to a budget line', async () => {
   expect([line.paid, line.invoice?.id ?? line.invoice]).toEqual([true, state.emittedId])
 })
 
+// issues/016: a document is saved with references to its projects instead of the
+// whole projects; the project link and the budget line must survive a second save.
+test('emitted invoice: saving the draft again keeps its project and its budget line', async () => {
+  test.skip(!state.emittedId, 'needs the draft from the earlier test')
+  await visit(`/document/${state.emittedId}/emitted-invoices`)
+  await expect(card('LINIES').locator('input[name="SubFase"]').first()).toHaveValue(`${NAME} servei`)
+  // a saved draft is locked until it is opened for editing
+  await button("Editar dades de l'ESBORRANY").click()
+  await expect(card('LINIES').locator('input[name="SubFase"]').first()).toBeEnabled()
+  await fillLine({ concept: `${NAME} servei`, quantity: 3, price: 100, vat: 21, irpf: 15 })
+  // base 300 + VAT 63 - IRPF 45
+  await expect(page.getByText(/^\s*Total\s+318,00\s*€\s*$/)).toBeVisible()
+  await button('Guardar').click()
+  await expectSnackbar('Guardat')
+  await settle()
+
+  const invoice = await api('GET', `emitted-invoices/${state.emittedId}`)
+  expect([invoice.state, invoice.code]).toEqual(['draft', 'ESBORRANY'])
+  expect([invoice.total_base, invoice.total_vat, invoice.total_irpf, invoice.total]).toEqual([300, 63, 45, 318])
+  expect(invoice.projects.map(p => p.id)).toEqual([state.projectId])
+  const phases = await api('GET', `project-phases?_where[project]=${state.projectId}&_limit=-1`)
+  const line = phases.flatMap(p => p.incomes).find(i => i.concept === 'Ingrés fase B')
+  expect([line.paid, line.invoice?.id ?? line.invoice]).toEqual([true, state.emittedId])
+})
+
 test('received invoice: create one assigned to a budget line', async () => {
   test.skip(!state.projectId, 'needs the project and phases from the earlier tests')
   const contact = await contactWithNif()

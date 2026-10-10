@@ -837,6 +837,13 @@ export default {
       type: [Array],
       default: null
     },
+    // The contact list, when the parent already has it loaded. Each instance
+    // used to fetch its own copy: three requests of the whole list to open one
+    // project (issues/016). Left out, it is fetched here as before.
+    contacts: {
+      type: Array,
+      default: null
+    },
     mode: {
       type: String,
       default: ""
@@ -1046,6 +1053,13 @@ export default {
     }
   },
   watch: {
+    // The parent's list arrives (or is refreshed) after this is mounted.
+    contacts: {
+      immediate: true,
+      handler(contacts) {
+        if (contacts) this.clients = contacts;
+      }
+    },
     documentTotal(newVal, oldVal) {
       // When document total changes in assignment mode, recalculate warnings
       // This happens when you change the document line amounts in DocumentForm
@@ -1111,9 +1125,11 @@ export default {
       };
     });
 
-    this.clients = await service({ requiresAuth: true })
-      .get("contacts/basic?_limit=-1&_sort=name:ASC")
-      .then(r => r.data);
+    if (!this.contacts) {
+      this.clients = await service({ requiresAuth: true })
+        .get("contacts/basic?_limit=-1&_sort=name:ASC")
+        .then(r => r.data);
+    }
 
     const phases0 = this.projectPhases.map(r => {
       return {

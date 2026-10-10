@@ -1695,6 +1695,7 @@
           :key="'original-' + formKey"
           :form="form"
           :project-phases="form.project_original_phases"
+          :contacts="clients"
           @phases-updated="originalPhasesUpdated"
           @phases-copy="originalPhasesCopy"
           mode="simple"
@@ -1806,6 +1807,7 @@
           :key="'execution-' + formKey"
           :form="form"
           :project-phases="form.project_phases"
+          :contacts="clients"
           @phases-updated="phasesUpdated"
           :editable="phasesEditable && !form.is_mother"
           :per-page="parseInt(perPage)"
@@ -2969,10 +2971,31 @@ export default {
         this.dirtyEnabled = false;
         this.isInitialLoad = true;
         this.userHasInteracted = false; // Reset interaction tracking on data reload
+        // The phases come from their own endpoints (with estimated hours and
+        // bank accounts, and without the totals engine's working values), so
+        // the project is asked without its copy of them, and the three
+        // requests run at once instead of one after another (issues/016).
+        const projectId = this.$route.params.id;
+        const phasesRequest = service({ requiresAuth: true }).get(
+          `project-phases?project=${projectId}&_limit=-1`
+        );
+        const originalPhasesRequest = service({ requiresAuth: true }).get(
+          `project-original-phases-hours?project=${projectId}&_limit=-1`
+        );
         service({ requiresAuth: true })
-          .get("projects/" + this.$route.params.id)
+          .get(`projects/${projectId}?_phases=false`)
           .then(async r => {
             if (r.data && r.data.id) {
+              // Execution phases, and original phases, both with estimated hours.
+              // Set before the form is shown: the template reads their length.
+              const [phasesResponse, originalPhasesResponse] = await Promise.all([
+                phasesRequest,
+                originalPhasesRequest
+              ]);
+              const phases = phasesResponse.data;
+              r.data.project_phases = phases;
+              r.data.project_original_phases = originalPhasesResponse.data;
+
               this.isProfileExists = true;
               this.form = r.data;
               this.form.project_state =
@@ -3002,24 +3025,7 @@ export default {
                   ? this.form.region
                   : { id: 0 };
 
-              // Load execution phases with estimated hours
-              const phases = (
-                await service({ requiresAuth: true }).get(
-                  `project-phases?project=${this.$route.params.id}&_limit=-1`
-                )
-              ).data;
-
-              this.form.project_phases = phases;
               this.ganttViewMode = (phases && phases.length > 0) ? 'estimated' : 'original';
-
-              // Load original phases with estimated hours
-              const phases_and_estimated_hours = (
-                await service({ requiresAuth: true }).get(
-                  `project-original-phases-hours?project=${this.$route.params.id}&_limit=-1`
-                )
-              ).data;
-
-              this.form.project_original_phases = phases_and_estimated_hours;
 
               // Load children data if this project is a mother project
               if (this.form.is_mother) {
@@ -3263,7 +3269,10 @@ export default {
           this.project_types = r.data;
         });
 
-      service({ requiresAuth: true, cached: true })
+      // Not cached: the phase lines share this list (they used to fetch their
+      // own, fresh, copy), and a contact created earlier in the session must
+      // be there.
+      service({ requiresAuth: true })
         .get("contacts/basic?_limit=-1&_sort=name:ASC")
         .then(r => {
           this.clients = r.data;
