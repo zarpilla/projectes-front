@@ -120,6 +120,47 @@
         </form>
       </card-component>
 
+      <!-- Logistics: only for orders_admin (issues/017) -->
+      <card-component v-if="ordersAdmin" title="LOGÍSTICA" icon="truck" class="mt-4">
+        <form @submit.prevent="submit">
+          <b-field
+            label="Descompte multientrega"
+            message="Si es desmarca, les comandes d'aquest usuari no reben el descompte multientrega"
+            horizontal
+          >
+            <b-switch v-model="form.multidelivery_discount" />
+          </b-field>
+        </form>
+      </card-component>
+
+      <!-- Password of an existing user (a new one is asked for it on save) -->
+      <card-component v-if="userId" title="CONTRASENYA" icon="lock-reset" class="mt-4">
+        <form @submit.prevent="submit">
+          <b-field
+            label="Nova contrasenya"
+            message="Deixa-ho en blanc per no canviar-la. Mínim 6 caràcters"
+            horizontal
+          >
+            <b-input
+              v-model="password"
+              type="password"
+              minlength="6"
+              autocomplete="new-password"
+              password-reveal
+            />
+          </b-field>
+
+          <b-field label="Repeteix la contrasenya" horizontal>
+            <b-input
+              v-model="passwordConfirmation"
+              type="password"
+              autocomplete="new-password"
+              password-reveal
+            />
+          </b-field>
+        </form>
+      </card-component>
+
       <!-- Actions -->
       <card-component class="mt-4">
         <b-field horizontal>
@@ -172,14 +213,20 @@ export default {
         confirmed: false,
         blocked: false,
         hidden: false,
-        role: null
+        role: null,
+        // the backend only withholds the discount when this is exactly false
+        multidelivery_discount: true
       },
       roles: [],
-      selectedPermissions: []
+      selectedPermissions: [],
+      ordersAdmin: false,
+      password: '',
+      passwordConfirmation: ''
     };
   },
   mounted() {
     this.loadRoles();
+    this.loadMe();
     if (this.userId) {
       this.loadData();
     }
@@ -199,6 +246,22 @@ export default {
       } finally {
         this.loadingRoles = false;
       }
+    },
+    async loadMe() {
+      try {
+        const me = await service({ requiresAuth: true, cached: true }).get('users/me');
+        const permissions = (me.data.permissions || []).map(p => p.permission);
+        this.ordersAdmin = permissions.includes('orders_admin');
+      } catch (error) {
+        console.error('Error loading permissions:', error);
+      }
+    },
+    // The message to show when the new password can't be saved, or null
+    passwordError() {
+      if (!this.password) return null;
+      if (this.password.length < 6) return 'La contrasenya ha de tenir 6 caràcters com a mínim';
+      if (this.password !== this.passwordConfirmation) return 'Les contrasenyes no coincideixen';
+      return null;
     },
     findAuthenticatedRole() {
       const role = this.roles.find(r => r.type === 'authenticated');
@@ -225,6 +288,7 @@ export default {
         this.form.blocked = user.blocked || false;
         this.form.hidden = user.hidden || false;
         this.form.role = user.role && user.role.id ? user.role.id : null;
+        this.form.multidelivery_discount = user.multidelivery_discount !== false;
         
         // Extract permissions
         if (user.permissions && user.permissions.length > 0) {
@@ -257,9 +321,19 @@ export default {
           role: this.form.role,
           permissions: this.selectedPermissions.map(permission => ({ permission }))
         };
-        
+        // only orders_admin sees the switch, so nobody else overwrites it (issues/017)
+        if (this.ordersAdmin) {
+          data.multidelivery_discount = this.form.multidelivery_discount;
+        }
+
         if (this.userId) {
           // Update
+          const passwordError = this.passwordError();
+          if (passwordError) {
+            this.$buefy.toast.open({ message: passwordError, type: 'is-danger' });
+            return;
+          }
+          if (this.password) data.password = this.password;
           await service({ requiresAuth: true }).put(`/users/${this.userId}`, data);
           this.$buefy.toast.open({
             message: 'Usuari actualitzat correctament',

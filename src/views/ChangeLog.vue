@@ -47,6 +47,15 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.10.11",
+          items: [
+            {
+              type: "Novetats",
+              text: ["Administració d'usuàries: des de la fitxa d'una usuària a ", { to: "/admin/users", label: "Usuàries" }, " es pot posar-li una contrasenya nova i, amb el permís Logística (Admin), activar o desactivar el seu descompte multientrega."]
+            }
+          ]
+        },
+        {
           date: "2026.10.10",
           items: [
             {
