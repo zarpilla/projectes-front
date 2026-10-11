@@ -1,5 +1,17 @@
 <template>
   <section class="xsection">
+    <download-excel
+      class="export"
+      :data="users"
+      name="socies"
+      :fields="excelFields"
+    >
+      <b-button
+        title="Exporta dades"
+        class="export-button mt-0 mb-3"
+        icon-left="file-excel"
+      />
+    </download-excel>
     <b-table
       :loading="isLoading"
       :paginated="false"
@@ -104,7 +116,18 @@ export default {
     return {
       isLoading: false,
       users: [],
-      contacts: []
+      contacts: [],
+      // the columns of the table (issues/018)
+      excelFields: {
+        "ID Usuària": "id",
+        "Sòcia": "contact.name",
+        "Nom": "username",
+        "Nom complet": "fullname",
+        "Correu accès": "email",
+        "Permisos": "permissions",
+        "Import aportació": "contact.partner_amount",
+        "Data aportació": "contact.partner_amount_date"
+      }
     };
   },
   computed: {

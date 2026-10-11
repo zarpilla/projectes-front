@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Novetats",
+              text: ["La pàgina ", { to: "/partners", label: "Sòcies" }, " té un botó per exportar la llista de sòcies a Excel."]
+            },
+            {
+              type: "Novetats",
               text: ["Administració d'usuàries: des de la fitxa d'una usuària a ", { to: "/admin/users", label: "Usuàries" }, " es pot posar-li una contrasenya nova i, amb el permís Logística (Admin), activar o desactivar el seu descompte multientrega."]
             }
           ]
