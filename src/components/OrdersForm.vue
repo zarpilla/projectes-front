@@ -2868,7 +2868,9 @@ export default {
       this.clientsLoadedFor = owner;
       const contacts1 = (
         await service({ requiresAuth: true, cached: false }).get(
-          `contacts/basic?_limit=-1&_where[owner_gt]=0&_sort=trade_name:ASC`
+          // the delivery points with only the fields this form reads, sorted by
+          // trade name: `contacts/basic?_where[owner_gt]=0` was 2 MB (issues/016)
+          `contacts/for-orders?owned=1`
         )
       ).data.map(c => {
         return { ...c, display: `${c.trade_name} (${c.id})` };
