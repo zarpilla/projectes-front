@@ -9,6 +9,18 @@
       >
         Crear usuari
       </b-button>
+      <download-excel
+        class="export"
+        name="usuaries"
+        :fields="excelFields"
+        :fetch="fetchExcel"
+      >
+        <b-button
+          title="Exporta dades"
+          class="export-button mt-0 mb-4 ml-3"
+          icon-left="file-excel"
+        />
+      </download-excel>
       <card-component>
         <b-table
           :data="users"
@@ -118,7 +130,17 @@ export default {
       total: 0,
       perPage: 25,
       currentPage: 1,
-      isLoading: false
+      isLoading: false,
+      // the columns of the table (issues/029)
+      excelFields: {
+        "Nom d'usuari": "username",
+        "Nom complet": "fullname",
+        "Email": "email",
+        "Confirmat": "confirmed",
+        "Bloquejat": "blocked",
+        "Ocult": "hidden",
+        "Permisos": "permissions"
+      }
     };
   },
   mounted() {
@@ -145,6 +167,31 @@ export default {
           message: `Error carregant usuaris: ${error.message}`,
           type: "is-danger"
         });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    // Every user, not only the page on screen
+    async fetchExcel() {
+      const yesNo = value => (value ? "Sí" : "No");
+      try {
+        this.isLoading = true;
+        const response = await service({ requiresAuth: true }).get(
+          "/users?_limit=-1&_sort=username:ASC"
+        );
+        return response.data.map(user => ({
+          ...user,
+          confirmed: yesNo(user.confirmed),
+          blocked: yesNo(user.blocked),
+          hidden: yesNo(user.hidden),
+          permissions: (user.permissions || []).map(p => p.permission).join(", ")
+        }));
+      } catch (error) {
+        this.$buefy.toast.open({
+          message: `Error exportant usuaris: ${error.message}`,
+          type: "is-danger"
+        });
+        return [];
       } finally {
         this.isLoading = false;
       }

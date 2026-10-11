@@ -7,6 +7,18 @@
     ></b-loading>
 
     <div class="is-flex is-block-mobile is-flex-wrap-wrap mb-3">
+      <download-excel
+        class="export"
+        name="incidencies"
+        :fields="excelFields"
+        :fetch="fetchExcel"
+      >
+        <b-button
+          title="Exporta dades"
+          class="export-button mt-0 mb-3"
+          icon-left="file-excel"
+        />
+      </download-excel>
       <b-button
         class="view-button mb-3 ml-0 mr-3"
         :class="{
@@ -515,7 +527,20 @@ export default {
       currentUserId: null,
       isAdmin: false,
       showIncidenceModal: false,
-      modalIncidence: null
+      modalIncidence: null,
+      // the columns of the table (issues/029)
+      excelFields: {
+        "ID": "id",
+        "Comanda": "order.id",
+        "Punt": "order.contact_trade_name",
+        "Sòcia": "order.owner.fullname",
+        "Descripció": "description",
+        "Estat": "state_label",
+        "Creada": "created",
+        "Creada per": "created_by",
+        "Tancada": "closed",
+        "Tancada per": "closed_by"
+      }
     };
   },
   computed: {
@@ -707,51 +732,12 @@ export default {
           // _populate: 'order.contact'
         };
 
-        // Add state filter if any
-        if (this.stateFilter.length > 0) {
-          params.state_in = this.stateFilter;
-        }
+        Object.assign(params, this.filterParams());
 
-        // If not admin, filter by order owner
-        if (!this.isAdmin && this.currentUserId) {
-          params['order.owner'] = this.currentUserId;
-        }
-
-        // Fetch incidences and users in parallel
-        const [incidencesResponse, usersResponse] = await Promise.all([
-          service({ requiresAuth: true }).get("incidences", { params }),
-          service({ requiresAuth: true, cached: true }).get("users", { params: { _limit: -1 } })
-        ]);
-
-        this.incidences = incidencesResponse.data;
-        const users = usersResponse.data;
-
-        // Create a map of users by id for quick lookup
-        const usersMap = new Map(users.map(u => [u.id, u]));
-
-        // Enrich incidences with order owner information
-        this.incidences = this.incidences.map(incidence => {
-          if (incidence.order && incidence.order.owner) {
-            const ownerId = typeof incidence.order.owner === 'object' 
-              ? incidence.order.owner.id 
-              : incidence.order.owner;
-            const owner = usersMap.get(ownerId);
-            if (owner) {
-              incidence.order.owner = owner;
-            }
-          }
-          return incidence;
-        });
+        this.incidences = await this.fetchIncidences(params);
 
         // Get total count
-        const countParams = {};
-        if (this.stateFilter.length > 0) {
-          countParams.state_in = this.stateFilter;
-        }
-        // If not admin, filter by order owner for count too
-        if (!this.isAdmin && this.currentUserId) {
-          countParams['order.owner'] = this.currentUserId;
-        }
+        const countParams = this.filterParams();
         const countResponse = await service({ requiresAuth: true }).get(
           "incidences/count",
           { params: countParams }
@@ -766,6 +752,68 @@ export default {
           message: "Error carregant incidències",
           type: "is-danger"
         });
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    // The filters of the list: the chosen states and, for non-admins, their own orders
+    filterParams() {
+      const params = {};
+      if (this.stateFilter.length > 0) {
+        params.state_in = this.stateFilter;
+      }
+      if (!this.isAdmin && this.currentUserId) {
+        params['order.owner'] = this.currentUserId;
+      }
+      return params;
+    },
+    // Incidences with the owner of their order as a user (the API gives its id)
+    async fetchIncidences(params) {
+      const [incidencesResponse, usersResponse] = await Promise.all([
+        service({ requiresAuth: true }).get("incidences", { params }),
+        service({ requiresAuth: true, cached: true }).get("users", { params: { _limit: -1 } })
+      ]);
+
+      const usersMap = new Map(usersResponse.data.map(u => [u.id, u]));
+
+      return incidencesResponse.data.map(incidence => {
+        if (incidence.order && incidence.order.owner) {
+          const ownerId = typeof incidence.order.owner === 'object' 
+            ? incidence.order.owner.id 
+            : incidence.order.owner;
+          const owner = usersMap.get(ownerId);
+          if (owner) {
+            incidence.order.owner = owner;
+          }
+        }
+        return incidence;
+      });
+    },
+    // Every incidence of the current filter and order, not only the page on screen
+    async fetchExcel() {
+      const userName = user => (user ? user.fullname || user.username : "");
+      try {
+        this.isLoading = true;
+        const incidences = await this.fetchIncidences({
+          _limit: -1,
+          _sort: `${this.sortField}:${this.sortOrder.toUpperCase()}`,
+          ...this.filterParams()
+        });
+        return incidences.map(incidence => ({
+          ...incidence,
+          state_label: this.getStateLabel(incidence.state),
+          created: this.formatDate(incidence.created_at),
+          created_by: userName(incidence.created_user),
+          closed: incidence.closed_date ? this.formatDate(incidence.closed_date) : "",
+          closed_by: userName(incidence.closed_user)
+        }));
+      } catch (error) {
+        console.error("Error exporting incidences:", error);
+        this.$buefy.toast.open({
+          message: "Error exportant incidències",
+          type: "is-danger"
+        });
+        return [];
       } finally {
         this.isLoading = false;
       }

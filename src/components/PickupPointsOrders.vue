@@ -1,5 +1,17 @@
 <template>
   <div>
+    <download-excel
+      class="export"
+      name="punts-recollida"
+      :fields="excelFields"
+      :data="excelRows"
+    >
+      <b-button
+        title="Exporta dades"
+        class="export-button mt-0 mb-3"
+        icon-left="file-excel"
+      />
+    </download-excel>
     <b-table :loading="isLoading" :data="ordersData" :paginated="false" :striped="false">
       <b-table-column label="Comanda" field="id" sortable v-slot="props">
         <router-link
@@ -113,8 +125,43 @@ export default {
       ordersData: [],
       isLoading: false,
       perPage: 20,
-      updatingLines: {}
+      updatingLines: {},
+      excelFields: {
+        "Comanda": "id",
+        "Estat": "status",
+        "Punt": "point",
+        "Ruta": "route",
+        "Data estimada": "estimated_delivery_date",
+        "Línia": "line",
+        "NIF": "nif",
+        "Caixes": "units",
+        "Kg": "kilograms",
+        "Recollida": "picked_up"
+      }
     };
+  },
+  computed: {
+    // One row per line of each order, or one row for an order without lines (issues/029)
+    excelRows() {
+      return this.ordersData.flatMap(order => {
+        const row = {
+          id: order.id,
+          status: this.getStatusLabel(order.status),
+          point: order.contact ? order.contact.name || order.contact.trade_name : "",
+          route: order.route ? order.route.name : "",
+          estimated_delivery_date: order.estimated_delivery_date
+        };
+        if (!order.lines || order.lines.length === 0) return [row];
+        return order.lines.map(line => ({
+          ...row,
+          line: line.name,
+          nif: line.nif,
+          units: line.units,
+          kilograms: line.kilograms,
+          picked_up: line.picked_up ? "Sí" : "No"
+        }));
+      });
+    }
   },
   async created() {
     await this.getOrders();
