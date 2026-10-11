@@ -47,6 +47,22 @@
   color: rgba(0, 0, 0, .7);
 }
 
+// Bulma 1 paints an outlined button's text and border with the button's own
+// colour, which is the white background when no colour class sets it (the
+// unselected options of the button groups). In Bulma 0.9 `is-outlined` alone
+// left the default button untouched (issues/030)
+.button.is-outlined:not(.is-white, .is-black, .is-light, .is-dark, .is-text, .is-ghost, .is-primary, .is-link, .is-info, .is-success, .is-warning, .is-danger) {
+  --bulma-button-border-width: 1px;
+  background-color: var(--bulma-scheme-main);
+  border-color: var(--bulma-border);
+  color: var(--bulma-text-strong);
+
+  &:hover {
+    --bulma-button-border-width: 1px;
+    border-color: var(--bulma-border-hover);
+  }
+}
+
 // Bulma 0.9 message header and checkbox metrics
 .message-header {
   font-weight: 700;
