@@ -12,6 +12,8 @@ import { parse } from '@vue/compiler-sfc'
 const root = process.cwd()
 // same as css.preprocessorOptions.scss in vite.config.js
 const scssOptions = { quietDeps: true }
+// compiling Bulma/Buefy takes seconds, more under coverage: the default 5 s is too tight
+const TIMEOUT = 60000
 
 function compileWarnings (compile) {
   const warnings = []
@@ -44,7 +46,7 @@ describe('Sass deprecations (issues/010)', () => {
   it('src/scss/main.scss compiles without deprecation warnings', () => {
     const file = join(root, 'src/scss/main.scss')
     expect(compileWarnings(options => sass.compile(file, options))).toEqual([])
-  })
+  }, TIMEOUT)
 
   it('the components\' <style lang="scss"> blocks compile without deprecation warnings', () => {
     const warnings = vueFiles(join(root, 'src')).flatMap(file => {
@@ -55,5 +57,5 @@ describe('Sass deprecations (issues/010)', () => {
           sass.compileString(style.content, { ...options, url: pathToFileURL(file) })))
     })
     expect(warnings).toEqual([])
-  })
+  }, TIMEOUT)
 })
