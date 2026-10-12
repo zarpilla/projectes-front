@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint:vue3": "eslint --no-eslintrc -c .eslintrc.vue3.cjs --ext .js,.vue src",
     "test:unit": "vitest run",
+    "test:unit:cov": "vitest run --coverage",
     "test:unit:watch": "vitest"
   },
   "dependencies": {
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.9",
+    "@vitest/coverage-v8": "^4.1.11",
     "@vue/test-utils": "^2.5.1",
     "autoprefixer": "^10.6.1",
     "axios-mock-adapter": "^2.1.0",

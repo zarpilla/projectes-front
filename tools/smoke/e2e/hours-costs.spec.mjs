@@ -45,9 +45,9 @@ test.beforeAll(async () => {
   for (const a of await myMarchActivities()) await api('DELETE', `activities/${a.id}`)
   for (const p of await myMarchPayrolls()) await api('DELETE', `payrolls/${p.id}`)
   for (const p of await periodsFrom(state.me.id, MARCH.from)) await api('DELETE', `daily-dedications/${p.id}`)
+  // a database seeded from scratch only has the current year
   const [year] = await api('GET', 'years?_where[year]=2027&_limit=1')
-  expect(year, 'the year 2027 must exist').toBeTruthy()
-  state.workingHours = Number(year.working_hours) || 1764
+  state.workingHours = Number((year || await api('POST', 'years', { data: { year: 2027, working_hours: 1760, deductible_vat_pct: 100 } })).working_hours) || 1764
 })
 
 onCleanup(async () => {

@@ -3,6 +3,7 @@
 ## Commands
 - `npm run dev` — Vite dev server
 - `npm run test:unit` — Vitest (all `tests/unit/**/*.spec.js`)
+- `npm run test:unit:cov` — the same with coverage; fails under the floor in `vite.config.js` (what CI runs)
 - `npx vitest run tests/unit/<file>.spec.js` — a single test file
 - `npm run lint:vue3`
 
@@ -22,5 +23,5 @@ A separate package (`cd tools/smoke && npm install`, Node 20+), run against a lo
 - `npm run forms:record` / `npm run forms`: save flows of the critical forms (projects, invoices/expenses, orders). Writes are intercepted and never reach the backend; the payloads must match those recorded from the reference build.
 - Record and compare on the same day against the same database: the data is live.
 - `node style-diff.mjs <route>`: computed-style differences between two running builds.
-- `npm run e2e`: end-to-end tests (`tools/smoke/e2e/`) of the critical flows (projects, phases, hours and their cost, Persones, invoices, treasury, quotes, users and permissions, contacts, tasks, admin screens) that **save for real**, so only against a throwaway `*_e2e` copy of an anonymized tenant made with `e2e-db.sh` (see `tools/smoke/README.md`). Settings in `.env.e2e`.
+- `npm run e2e`: end-to-end tests (`tools/smoke/e2e/`) of the critical flows (projects, phases, hours and their cost, the workday log, Persones, invoices, treasury, quotes, users and permissions, contacts, tasks, admin screens) that **save for real**, so only against a throwaway `*_e2e` copy of an anonymized tenant made with `e2e-db.sh`, or an empty database seeded by the backend (see `tools/smoke/README.md`). Settings in `.env.e2e`. CI runs them every night on an empty database (`.github/workflows/e2e.yml`).
 Use these for refactors and UI-library upgrades. Bug fixes still need a Vitest test. Ask before adding other e2e tooling.

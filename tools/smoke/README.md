@@ -1,7 +1,7 @@
 # Route smoke test
 
-Safety net for the Vue 2 → Vue 3 migration (there are no other tests). It logs
-in, visits every route in `src/router/index.js` and records uncaught errors,
+Written as the safety net for the Vue 2 → Vue 3 migration, before there were unit
+tests (`tests/unit/`) or the end-to-end tests below. It logs in, visits every route in `src/router/index.js` and records uncaught errors,
 console errors, Vue warnings and a full-page screenshot.
 
 ## Setup (Node 20+)
@@ -58,6 +58,7 @@ collide. Shared setup and helpers are in `e2e/helpers.mjs`.
 | Spec | Covers |
 | --- | --- |
 | `core.spec.mjs` | project creation wizard, original phases and "Tancar pressupost", project edition, execution phases, hours in "Hores dedicades" → "Hores executades (h)", Persones work periods, draft emitted invoice and received invoice assigned to budget lines |
+| `workday-log.spec.mjs` | the daily workday log ("Registre Jornades"): typing when a day started and ended, assigning the log to a project (its hours become an activity that the project counts), changing the time, deleting the log and its activity |
 | `hours-costs.spec.mjs` | a work period's cost/hour prices the activities ("Hores executades" €), changing it re-prices them, overlapping periods are refused, "Crear bestretes" (payroll amounts and dates, no duplicates), "Moure hores entre projectes" |
 | `money.spec.mjs` | issuing an invoice ("Emetre factura": series number, code, can't be deleted), "Cobrada" → "Factura cobrada" in Tresoreria, the IRPF movement of a received invoice, manual treasury movements (validate, delete), quotes, "Nou Contacte" from a document |
 | `admin.spec.mjs` | creating a user in #/admin/users, what an hours-only user sees and may do, login errors, token refresh, contacts (create, edit, delete, in-use guard), tasks kanban (create, drag, archive), every ADMINISTRACIÓ screen loads, admin entities (strategy code name) |
@@ -96,6 +97,28 @@ VUE_APP_API_URL=http://localhost:1339 npx vite --port 8082
 `projectes_v5_manual` is the anonymized copy made for the user manual (see the manual
 skill). Rebuild the e2e copy whenever you want a clean start.
 
+### Or an empty database (what CI does)
+
+The tests don't need a tenant's data: they create what they use. A backend started on
+an **empty** database seeds it on first boot (catalogs, settings, the current year and
+its invoice series) and creates the user in `SEED_USER_EMAIL` / `SEED_USER_PASSWORD`,
+which is then the e2e login:
+
+```sh
+mysql -uadmin -p -e "CREATE DATABASE projectes_v5_empty_e2e CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+# from ../projectes-v5; the first boot creates every table, give it a few minutes
+CRON_ENABLED=false PORT=1339 DATABASE_NAME=projectes_v5_empty_e2e \
+  EMAIL_PROVIDER=nodemailer SMTP_HOST=127.0.0.1 SMTP_PORT=9 \
+  SEED_USER_EMAIL=e2e@exemple.coop SEED_USER_PASSWORD=... SEED_USER_NAME=e2e \
+  RESET_PASSWORD_URL='http://localhost:8082/stats/#/reset-password' npx strapi start
+# once it is up, the sentinel the tests look for
+mysql -uadmin -p projectes_v5_empty_e2e -e "INSERT INTO contacts (document_id, name, created_at, updated_at) VALUES ('e2e-sentinel', 'E2E SENTINEL', NOW(), NOW())"
+```
+
+`.github/workflows/e2e.yml` does exactly this every night, with the published backend
+image (`esstrapis-back:v5`) and the front on `master`, and uploads the Playwright
+report as an artifact. Run it by hand from the Actions tab to test another backend tag.
+
 ## Running
 
 `.env.e2e` (git-ignored) holds `E2E_USER`, `E2E_PASSWORD`, `E2E_BASE_URL`
@@ -111,5 +134,6 @@ Uncaught page errors fail the test, except for the bugs listed in `KNOWN_ERRORS`
 which are reported as "known error" annotations (and on the console). Remove an entry
 once its bug is fixed.
 
-Emitted invoices stay drafts (`ESBORRANY`): the tests never issue them, so nothing
-is sent to AEAT/FACe and no invoice number is used.
+`money.spec.mjs` issues an invoice, which uses a number of its series and can't be
+undone: one more reason to run only on a throwaway database. Nothing is sent to
+AEAT/FACe, because VeriFactu and FACe are off in the e2e copies (the test checks it).

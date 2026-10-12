@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test'
 import {
   useE2E, page, state, api, API_URL, STAMP, NAME, visit, settle, field, button, modal,
-  expectSnackbar, confirmDialog, pickAutocomplete, openSession, openAnonymous
+  expectSnackbar, confirmDialog, pickAutocomplete, openSession, openAnonymous, isoToday
 } from './helpers.mjs'
 
 useE2E()
@@ -207,9 +207,22 @@ test('contacts: create, edit and delete', async () => {
   expect((await api('GET', `contacts/${id}`, undefined, { raw: true })).status).toBe(404)
 })
 
-test('contacts with invoices can\'t be deleted', async () => {
+// A contact with an issued invoice: the oldest one there is or, on a database seeded
+// from scratch, one issued here through the API (money.spec.mjs checks issuing itself)
+async function contactWithIssuedInvoice () {
   const [invoice] = await api('GET', 'emitted-invoices?_where[state]=real&_sort=id:ASC&_limit=1')
-  const contactId = idOf(invoice.contact)
+  if (invoice) return idOf(invoice.contact)
+  const contact = await api('POST', 'contacts', { data: { name: `${NAME} amb factura`, nif: `E2E${STAMP}F` } })
+  const [serie] = await api('GET', 'series?_limit=1&_sort=id:DESC')
+  const data = { contact: contact.id, serial: serie.id, emitted: isoToday(), lines: [{ concept: `${NAME} servei`, quantity: 1, base: 100, vat: 21 }] }
+  const draft = await api('POST', 'emitted-invoices', { data })
+  const issued = await api('PUT', `emitted-invoices/${draft.id}`, { data: { ...data, state: 'real' } })
+  expect(issued.state).toBe('real')
+  return contact.id
+}
+
+test('contacts with invoices can\'t be deleted', async () => {
+  const contactId = await contactWithIssuedInvoice()
   await visit(`/contact/${contactId}`)
   await button('Esborrar').click()
   await confirmDialog('Vols esborrar aquest contacte?')

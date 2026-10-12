@@ -49,8 +49,9 @@ jobs:
       - name: Vue 3 migration lint
         run: npm run lint:vue3
 
+      # With coverage, so the floor in vite.config.js (test.coverage.thresholds) is enforced.
       - name: Unit tests
-        run: npm run test:unit
+        run: npm run test:unit:cov
 
   build-and-push:
     needs: test
