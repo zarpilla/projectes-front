@@ -21,6 +21,7 @@
     "csv-parse": "^5.5.5",
     "dhtmlx-gantt": "^10.0.0",
     "downloadjs": "^1.4.7",
+    "fflate": "^0.4.8",
     "html2pdf.js": "^0.9.3",
     "html3pdf": "^0.12.2",
     "html5-qrcode": "^2.3.8",

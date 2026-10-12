@@ -197,38 +197,18 @@ export default {
           date_start: p.date_start,
           date_end: p.date_end,
           mother: p.mother ? p.mother.name : "",
-          estimated_hours: p.total_estimated_hours
-            ? p.total_estimated_hours.toString().replace(".", ",")
-            : "",
-          real_hours: p.total_real_hours
-            ? p.total_real_hours.toString().replace(".", ",")
-            : "",
+          estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : "",
+          real_hours: p.total_real_hours ? p.total_real_hours : "",
 
-          estimated_incomes: p.total_incomes
-            ? p.total_incomes.toString().replace(".", ",")
-            : "",
-          estimated_expenses: p.total_expenses
-            ? p.total_expenses.toString().replace(".", ",")
-            : "",
-          estimated_hours_price: p.total_estimated_hours_price
-            ? p.total_estimated_hours_price.toString().replace(".", ",")
-            : "",
-          estimated_result: p.incomes_expenses
-            ? p.incomes_expenses.toString().replace(".", ",")
-            : "",
+          estimated_incomes: p.total_incomes ? p.total_incomes : "",
+          estimated_expenses: p.total_expenses ? p.total_expenses : "",
+          estimated_hours_price: p.total_estimated_hours_price ? p.total_estimated_hours_price : "",
+          estimated_result: p.incomes_expenses ? p.incomes_expenses : "",
 
-          real_incomes: p.total_real_incomes
-            ? p.total_real_incomes.toString().replace(".", ",")
-            : "",
-          real_expenses: p.total_real_expenses
-            ? p.total_real_expenses.toString().replace(".", ",")
-            : "",
-          real_hours_price: p.total_real_hours_price
-            ? p.total_real_hours_price.toString().replace(".", ",")
-            : "",
-          real_result: p.total_real_incomes_expenses
-            ? p.total_real_incomes_expenses.toString().replace(".", ",")
-            : ""
+          real_incomes: p.total_real_incomes ? p.total_real_incomes : "",
+          real_expenses: p.total_real_expenses ? p.total_real_expenses : "",
+          real_hours_price: p.total_real_hours_price ? p.total_real_hours_price : "",
+          real_result: p.total_real_incomes_expenses ? p.total_real_incomes_expenses : ""
         };
       });
       return projectsCSV;

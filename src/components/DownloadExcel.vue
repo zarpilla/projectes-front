@@ -5,19 +5,20 @@
 </template>
 
 <script>
-// Local port of vue-json-excel 0.3.0 (MIT, https://github.com/jecovier/vue-json-excel),
-// registered globally as <download-excel>. The package is Vue 2 only; this copy
-// runs on Vue 2 and Vue 3 and keeps the exported files byte-for-byte identical
-// (an HTML table served as application/vnd.ms-excel, or CSV).
+// Download button registered globally as <download-excel>, with the props of
+// vue-json-excel 0.3.0 (MIT, https://github.com/jecovier/vue-json-excel) that
+// the app uses. The file is an OpenDocument spreadsheet (.ods) with numeric
+// cells for the numbers (issues/032), or a CSV for the templates of the imports.
 import download from "downloadjs";
+import { buildOds, ODS_MIME } from "@/service/ods";
 
 export default {
   name: "DownloadExcel",
   props: {
-    // mime type [xls, csv]
+    // file format [ods, csv]
     type: {
       type: String,
-      default: "xls"
+      default: "ods"
     },
     // Json to download
     data: {
@@ -50,17 +51,13 @@ export default {
     footer: {
       default: null
     },
-    // filename to export
+    // filename to export; the extension is set from the format
     name: {
       type: String,
-      default: "data.xls"
+      default: "data"
     },
     fetch: {
       type: Function
-    },
-    meta: {
-      type: Array,
-      default: () => []
     },
     worksheet: {
       type: String,
@@ -78,11 +75,6 @@ export default {
     escapeCsv: {
       type: Boolean,
       default: true
-    },
-    // long number stringify
-    stringifyLongNum: {
-      type: Boolean,
-      default: false
     }
   },
   computed: {
@@ -110,82 +102,40 @@ export default {
       }
 
       const json = this.getProcessedJson(data, this.downloadFields);
-      if (this.type === "html") {
+      if (this.type === "csv") {
         return this.export(
-          this.jsonToXLS(json),
-          this.name.replace(".xls", ".html"),
-          "text/html"
-        );
-      } else if (this.type === "csv") {
-        return this.export(
-          this.jsonToCSV(json),
-          this.name.replace(".xls", ".csv"),
+          new Blob([this.jsonToCSV(json)], { type: "application/csv" }),
+          this.fileName("csv"),
           "application/csv"
         );
       }
       return this.export(
-        this.jsonToXLS(json),
-        this.name,
-        "application/vnd.ms-excel"
+        new Blob([this.jsonToODS(json)], { type: ODS_MIME }),
+        this.fileName("ods"),
+        ODS_MIME
       );
     },
-    async export(data, filename, mime) {
-      const blob = this.base64ToBlob(data, mime);
+    async export(blob, filename, mime) {
       if (typeof this.beforeFinish === "function") await this.beforeFinish();
       download(blob, filename, mime);
     },
-    // Transform json data into an xml document with MS Excel format; Excel shows
-    // a format warning when it opens it, which cannot be avoided.
-    jsonToXLS(data) {
-      const xlsTemp =
-        '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta name=ProgId content=Excel.Sheet> <meta name=Generator content="Microsoft Excel 11"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>${worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>br {mso-data-placement: same-cell;}</style></head><body><table>${table}</table></body></html>';
-      let xlsData = "<thead>";
-      const colspan = Object.keys(data[0]).length;
-
-      // Header
+    fileName(extension) {
+      return this.name.replace(/\.(xlsx?|ods|csv)$/i, "") + "." + extension;
+    },
+    // title and footer lines, one per row
+    extraRows(extraData) {
+      return (Array.isArray(extraData) ? extraData : [extraData])
+        .filter(line => line)
+        .map(line => [line]);
+    },
+    jsonToODS(data) {
+      const rows = [];
       const header = this.header || this.$attrs.title;
-      if (header) {
-        xlsData += this.parseExtraData(
-          header,
-          '<tr><th colspan="' + colspan + '">${data}</th></tr>'
-        );
-      }
-
-      // Fields
-      xlsData += "<tr>";
-      for (const key in data[0]) {
-        xlsData += "<th>" + key + "</th>";
-      }
-      xlsData += "</tr>";
-      xlsData += "</thead>";
-
-      // Data
-      xlsData += "<tbody>";
-      data.forEach(item => {
-        xlsData += "<tr>";
-        for (const key in item) {
-          xlsData +=
-            "<td>" +
-            this.preprocessLongNum(this.valueReformattedForMultilines(item[key])) +
-            "</td>";
-        }
-        xlsData += "</tr>";
-      });
-      xlsData += "</tbody>";
-
-      // Footer
-      if (this.footer != null) {
-        xlsData += "<tfoot>";
-        xlsData += this.parseExtraData(
-          this.footer,
-          '<tr><td colspan="' + colspan + '">${data}</td></tr>'
-        );
-        xlsData += "</tfoot>";
-      }
-
-      return xlsTemp
-        .replace("${table}", xlsData)
-        .replace("${worksheet}", this.worksheet);
+      if (header) rows.push(...this.extraRows(header));
+      rows.push(Object.keys(data[0]));
+      data.forEach(item => rows.push(Object.values(item)));
+      if (this.footer != null) rows.push(...this.extraRows(this.footer));
+      return buildOds(rows, this.worksheet);
     },
     jsonToCSV(data) {
       const csvData = [];
@@ -274,24 +224,6 @@ export default {
 
       return value;
     },
-    // newlines become <br/> so they stay in the same cell
-    valueReformattedForMultilines(value) {
-      if (typeof value == "string") return value.replace(/\n/gi, "<br/>");
-      return value;
-    },
-    preprocessLongNum(value) {
-      if (this.stringifyLongNum) {
-        if (String(value).startsWith("0x")) {
-          return value;
-        }
-        if (!isNaN(value) && value != "") {
-          if (value > 99999999999 || value < 0.0000000000001) {
-            return '="' + value + '"';
-          }
-        }
-      }
-      return value;
-    },
     getValueFromNestedItem(item, indexes) {
       let nestedItem = item;
       for (const index of indexes) {
@@ -307,16 +239,6 @@ export default {
       return value || value === 0 || typeof value === "boolean"
         ? value
         : this.defaultValue;
-    },
-    base64ToBlob(data, mime) {
-      const base64 = window.btoa(window.unescape(encodeURIComponent(data)));
-      const bstr = atob(base64);
-      let n = bstr.length;
-      const u8arr = new Uint8ClampedArray(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new Blob([u8arr], { type: mime });
     }
   }
 };

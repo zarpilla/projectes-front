@@ -9,7 +9,7 @@
           class="export"
           :fetch="downloadCustomers"
           :escapeCsv="false"
-          name="CLI.xlsx"
+          name="CLI.ods"
           :fields="contasolClientFields"
         >
           <button class="button is-warning mr-2">
@@ -20,7 +20,7 @@
           class="export"
           :fetch="downloadProviders"
           :escapeCsv="false"
-          name="PRO.xlsx"
+          name="PRO.ods"
           :fields="contasolProviderFields"
         >
           <button class="button is-warning mr-2">
@@ -31,7 +31,7 @@
           class="export"
           :fetch="downloadInvoices"
           :escapeCsv="false"
-          name="FAC.xlsx"
+          name="FAC.ods"
           :fields="contasolInvoiceFields"
         >
           <button class="button is-warning mr-2">
@@ -42,7 +42,7 @@
           class="export"
           :fetch="downloadInvoicesLines"
           :escapeCsv="false"
-          name="LFA.xlsx"
+          name="LFA.ods"
           :fields="contasolInvoiceLinesFields"
         >
           <button class="button is-warning mr-2">
@@ -53,7 +53,7 @@
           class="export"
           :fetch="downloadPayableEffects"
           :escapeCsv="false"
-          name="EFP.xlsx"
+          name="EFP.ods"
           :fields="contasolPayableEffectsFields"
         >
           <button class="button is-warning mr-2">
@@ -64,7 +64,7 @@
           class="export"
           :fetch="downloadSupportedVAT"
           :escapeCsv="false"
-          name="IVS.xlsx"
+          name="IVS.ods"
           :fields="contasolSupportedVATFields"
         >
           <button class="button is-warning mr-2">
@@ -75,7 +75,7 @@
           class="export"
           :fetch="downloadReppercutedVAT"
           :escapeCsv="false"
-          name="IVR.xlsx"
+          name="IVR.ods"
           :fields="contasolReppercutedVATFields"
         >
           <button class="button is-warning mr-2">

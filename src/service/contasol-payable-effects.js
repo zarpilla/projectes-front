@@ -380,7 +380,8 @@ const excelFormat = (value) => {
   if (value === null || value === undefined || value === '') return '';
   const numValue = parseFloat(value);
   if (isNaN(numValue)) return value;
-  return numValue.toString().replace('.', ',');
+  // a number: the download writes it as a numeric cell (issues/032)
+  return numValue;
 };
 
 // Helper function to process VAT lines and group by VAT rate

@@ -47,6 +47,15 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.10.12",
+          items: [
+            {
+              type: "Millores",
+              text: "Les descàrregues de dades (botó «Exporta dades» de les taules i estadístiques, comandes, Ecologística i Contasol) ara són fulls de càlcul en format obert OpenDocument (.ods), que s'obren amb LibreOffice, OpenOffice i Microsoft Excel. Els números hi van com a números, amb tots els decimals, i ja no depenen del camp «Decimal Excel» de la usuària."
+            }
+          ]
+        },
+        {
           date: "2026.10.11",
           items: [
             {

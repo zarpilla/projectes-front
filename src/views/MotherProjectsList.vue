@@ -183,10 +183,10 @@ export default {
           leader: p.leader && p.leader.id ? p.leader.username : "",
           date_start: p.date_start,
           date_end: p.date_end,
-          real_hours: p.total_real_hours ? p.total_real_hours.toString().replace(".", ",") : "0",
-          estimated_hours: p.total_estimated_hours ? p.total_estimated_hours.toString().replace(".", ",") : "0",
-          real_result: p.total_real_incomes_expenses ? p.total_real_incomes_expenses.toString().replace(".", ",") : "0",
-          estimated_result: p.estimated_incomes_expenses ? p.estimated_incomes_expenses.toString().replace(".", ",") : "0"
+          real_hours: p.total_real_hours || 0,
+          estimated_hours: p.total_estimated_hours || 0,
+          real_result: p.total_real_incomes_expenses || 0,
+          estimated_result: p.estimated_incomes_expenses || 0
         };
       });
     }

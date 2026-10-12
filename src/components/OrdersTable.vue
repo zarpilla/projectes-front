@@ -76,8 +76,6 @@
       <download-excel
         class="export"
         :data="theOrdersChecked"
-        type="csv"
-        :escapeCsv="false"
         :name="comandesCSVName()"
         :fields="{
           id: 'id',
@@ -99,7 +97,7 @@
         v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
         class="export"
         :data="theOrdersChecked"
-        name="ecologistica.xlsx"
+        name="ecologistica.ods"
         :fields="{
           ...csvEcologistica
         }"
@@ -2614,7 +2612,7 @@ export default {
       this.importing = false;
     },
     comandesCSVName() {
-      return `orders-${moment().format("YYYYMMDD-HHmmss")}.csv`;
+      return `orders-${moment().format("YYYYMMDD-HHmmss")}.ods`;
     },
     comandesRouterCSVName() {
       return `comandes-${moment().format("YYYYMMDD-HHmmss")}.csv`;
