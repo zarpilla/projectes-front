@@ -50,6 +50,10 @@ export default {
           date: "2026.10.12",
           items: [
             {
+              type: "Correccions",
+              text: "Al pressupost dels projectes, les despeses d'un tipus de despesa amb 0% d'IVA (per exemple «Ma d'obra») ja no sumen un 21% d'IVA. Els tipus «Quotes», «Comissions bancàries» i «Ajustament salarial final d'any», que no tenien IVA indicat, passen a tenir un 0%; un tipus de despesa sense IVA indicat continua comptant un 21%. Els totals dels projectes afectats es recalculen sols."
+            },
+            {
               type: "Millores",
               text: "Les descàrregues de dades (botó «Exporta dades» de les taules i estadístiques, comandes, Ecologística i Contasol) ara són fulls de càlcul en format obert OpenDocument (.ods), que s'obren amb LibreOffice, OpenOffice i Microsoft Excel. Els números hi van com a números, amb tots els decimals, i ja no depenen del camp «Decimal Excel» de la usuària."
             }
