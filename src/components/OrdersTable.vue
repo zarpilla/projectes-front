@@ -1179,19 +1179,8 @@ export default {
     ...mapState(useMainStore, ["userName"]),
     ...mapState(useMainStore, ["userId"]),
     theOrders() {
-      this.orders = this.orders.map(o => ({
-        ...o,
-        commentsNotes:
-          (o.contact && o.contact.notes ? o.contact.notes + " - " : "") +
-          (o.comments ? o.comments : "") +
-          (o.comments && o.refrigerated ? " - " : "") +
-          (o.refrigerated ? "REFRIGERAT" : "") +
-          (o.fragile ? " - FRÀGIL" : "") +
-          (o.contact && o.contact.notes_delivery ? " - " + o.contact.notes_delivery : ""),
-          notes_delivery: o.contact && o.contact.notes_delivery ? o.contact.notes_delivery : "",
-      }));
-
-      // Filtering is now done at API level
+      // Filtering is done at API level. The rows must stay the same objects:
+      // the table matches the checked rows by identity (issues/038)
       return this.orders;
     },
     theOrdersChecked() {
@@ -1610,7 +1599,7 @@ export default {
 
       this.orders = this.orders.map(o => {
         return {
-          ...o,
+          ...this.withNotes(o),
           idx: o.id.toString().padStart(4, "0") + (o.is_collection_order ? `-R` : ""),
           route_name: o.route.name,
           owner_id: o.owner.id,
@@ -1640,6 +1629,19 @@ export default {
       });
 
       this.checkedRows = [];
+    },
+    withNotes(o) {
+      return {
+        ...o,
+        commentsNotes:
+          (o.contact && o.contact.notes ? o.contact.notes + " - " : "") +
+          (o.comments ? o.comments : "") +
+          (o.comments && o.refrigerated ? " - " : "") +
+          (o.refrigerated ? "REFRIGERAT" : "") +
+          (o.fragile ? " - FRÀGIL" : "") +
+          (o.contact && o.contact.notes_delivery ? " - " + o.contact.notes_delivery : ""),
+        notes_delivery: o.contact && o.contact.notes_delivery ? o.contact.notes_delivery : ""
+      };
     },
     setRouteFilter(event, route) {
       // Handle Ctrl+Click for multiple selection
@@ -2183,7 +2185,7 @@ export default {
         // console.log("orders", this.orders);
 
         const orderWithRate = {
-          ...order,
+          ...this.withNotes(order),
           route_rate: assignRouteRate(order, this.routeRates, this.orders)
         };
         orderWithRate.price = orderWithRate.route_rate.price;

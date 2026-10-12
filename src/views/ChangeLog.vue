@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: ["A la ", { to: "/orders", label: "llista de comandes" }, ", les caselles per seleccionar comandes tornen a marcar-se."]
+            },
+            {
+              type: "Correccions",
               text: "El botó «Imprimeix PDF» de les comandes torna a funcionar. El PDF torna a mostrar també les caixes de les recollides i la ruta amb els punts de transferència."
             },
             {
