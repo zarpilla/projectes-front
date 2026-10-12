@@ -11,7 +11,7 @@
       >
         <p>
           <strong>{{ undatedLines.length }} {{ undatedLines.length === 1 ? "línia no té" : "línies no tenen" }} data.</strong>
-          Els seus imports surten a la fila "Sense data" de la periodificació. Poseu-los una data:
+          Els seus imports surten com a "Sense data" a les previsions, la periodificació, la tresoreria... Poseu-los una data:
         </p>
         <ul class="undated-lines">
           <li v-for="(l, i) in undatedLines" :key="i">
