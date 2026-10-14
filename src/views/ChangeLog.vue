@@ -60,6 +60,14 @@ export default {
             {
               type: "Correccions",
               text: "La fitxa del projecte ja no es penja en guardar-la sense «Àmbit territorial» o sense «Tipus de dedicació», ni quan no es pot guardar perquè hi falta alguna dada obligatòria."
+            },
+            {
+              type: "Correccions",
+              text: "La vista per imprimir d'una factura o d'un pressupost ja no falla quan l'entitat encara no té logo."
+            },
+            {
+              type: "Correccions",
+              text: ["A les ", { to: "/orders-stats", label: "estadístiques de comandes" }, " i d'incidències, triar «Tots» els anys amb un mes mostra aquell mes de tots els anys, en lloc de fallar o no mostrar res."]
             }
           ]
         },

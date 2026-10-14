@@ -12,6 +12,8 @@
 //
 // Each spec file calls useE2E() once at the top: it runs its tests in order on one
 // logged-in page (later tests use what earlier ones created), exported as `page`.
+// useE2E({ serial: false }) is for specs whose tests don't depend on each other: a
+// failure doesn't skip the rest (Playwright then starts a new session for them).
 
 import { test, expect } from '@playwright/test'
 import fs from 'node:fs'
@@ -94,8 +96,8 @@ export function onCleanup (fn) {
 
 // Registers the hooks of a spec file: one session for all its tests, the sentinel
 // check, and a failure screenshot plus the uncaught-errors check after each test.
-export function useE2E () {
-  test.describe.configure({ mode: 'serial' })
+export function useE2E ({ serial = true } = {}) {
+  if (serial) test.describe.configure({ mode: 'serial' })
 
   test.beforeAll(async ({ browser }) => {
     test.skip(!env.E2E_USER || !env.E2E_PASSWORD, 'E2E_USER and E2E_PASSWORD are required (.env.e2e)')

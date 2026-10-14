@@ -122,10 +122,9 @@ export default {
               }
               const currentMonth = moment().month();
               this.filters.month = this.months[currentMonth + 1];
+              // only now: the pivot needs both filters (issues/043)
               this.isLoading = false;
             });
-
-          this.isLoading = false;
         });
     }
   }

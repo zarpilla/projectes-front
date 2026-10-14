@@ -101,6 +101,8 @@ export default {
   },
   methods: {
     async getData () {
+      // both filters are needed for the query (issues/043)
+      if (!this.year || !this.month) return
       this.isLoading = true
       const qYear = this.year.id === 0 ? '' : `&year=${this.year.year}`
       const qMonth = this.month.id === 0 ? '' : `&month=${this.month.month}`

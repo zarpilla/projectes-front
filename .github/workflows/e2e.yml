@@ -152,6 +152,8 @@ jobs:
         run: |
           mysql -h 127.0.0.1 -uroot -p"$DATABASE_PASSWORD" "$DATABASE_NAME" \
             -e "INSERT INTO contacts (document_id, name, created_at, updated_at) VALUES ('e2e-sentinel', 'E2E SENTINEL', NOW(), NOW())"
+          # the route, pickup and delivery type orders.spec.mjs needs (users can't create them)
+          mysql -h 127.0.0.1 -uroot -p"$DATABASE_PASSWORD" "$DATABASE_NAME" < tools/smoke/e2e/logistics-fixture.sql
 
       - name: Run the end-to-end tests
         working-directory: tools/smoke

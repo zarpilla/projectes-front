@@ -16,6 +16,7 @@
                       <tr>
                         <td class="title">
                           <img
+                            v-if="imageUrl"
                             :src="imageUrl"
                             style="width: 100%; max-width: 200px"
                           />
@@ -535,10 +536,13 @@ export default {
           .get("me")
           .then(r => {
             this.me = r.data;
-            const img = `${this.baseUrl}${this.me.logo.url}`;
-            this.toDataUrl(img, base64 => {
-              this.imageUrl = base64;
-            });
+            // a new tenant has no logo yet (issues/044)
+            if (this.me.logo && this.me.logo.url) {
+              const img = `${this.baseUrl}${this.me.logo.url}`;
+              this.toDataUrl(img, base64 => {
+                this.imageUrl = base64;
+              });
+            }
           });
       }
     },

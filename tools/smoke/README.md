@@ -62,6 +62,8 @@ collide. Shared setup and helpers are in `e2e/helpers.mjs`.
 | `hours-costs.spec.mjs` | a work period's cost/hour prices the activities ("Hores executades" €), changing it re-prices them, overlapping periods are refused, "Crear bestretes" (payroll amounts and dates, no duplicates), "Moure hores entre projectes" |
 | `money.spec.mjs` | issuing an invoice ("Emetre factura": series number, code, can't be deleted), "Cobrada" → "Factura cobrada" in Tresoreria, the IRPF movement of a received invoice, manual treasury movements (validate, delete), quotes, "Nou Contacte" from a document |
 | `admin.spec.mjs` | creating a user in #/admin/users, what an hours-only user sees and may do, login errors, token refresh, contacts (create, edit, delete, in-use guard), tasks kanban (create, drag, archive), every ADMINISTRACIÓ screen loads, admin entities (strategy code name) |
+| `orders.spec.mjs` | logistics: a town on a route ("Poblacions i rutes"), a delivery point, an order (route, date, boxes, pickup), the order list and view, an incidence, "Dipositar" and undoing it, "CANVIAR ESTAT" to delivered, invoicing the delivered orders to a project ("Facturar comandes"), the invoice in the member's "Factures", "Anul·lar Comanda". Needs `e2e/logistics-fixture.sql` |
+| `screens.spec.mjs` | every route of `src/router/index.js` opens without uncaught errors, backend 5xx or error toasts (with every app permission; routes with ids on records it creates or finds). Its tests are independent: one failure doesn't skip the rest |
 
 ### Known bugs
 
@@ -113,6 +115,8 @@ CRON_ENABLED=false PORT=1339 DATABASE_NAME=projectes_v5_empty_e2e \
   RESET_PASSWORD_URL='http://localhost:8082/stats/#/reset-password' npx strapi start
 # once it is up, the sentinel the tests look for
 mysql -uadmin -p projectes_v5_empty_e2e -e "INSERT INTO contacts (document_id, name, created_at, updated_at) VALUES ('e2e-sentinel', 'E2E SENTINEL', NOW(), NOW())"
+# and the route, pickup and delivery type of orders.spec.mjs (users can't create them through the API)
+mysql -uadmin -p projectes_v5_empty_e2e < e2e/logistics-fixture.sql
 ```
 
 `.github/workflows/e2e.yml` does exactly this every night, with the published backend
