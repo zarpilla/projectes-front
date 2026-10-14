@@ -3556,9 +3556,9 @@ export default {
         this.form.default_dedication_type = null;
       }
 
-      if (this.form.region && this.form.region.id === 0) {
-        this.form.region = null;
-      }
+      // No region is sent as null, but form.region stays { id: 0 }: the template
+      // binds form.region.id and a null there crashes the page (issues/041).
+      const region = this.form.region && this.form.region.id === 0 ? null : this.form.region;
 
       if (this.form.mother && this.form.mother.id) {
         this.form.mother = this.form.mother.id;
@@ -3672,7 +3672,7 @@ export default {
 
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
-            form
+            { ...form, region }
           );
 
           this.dirty = false;
@@ -3823,7 +3823,7 @@ export default {
           try {
             newProject = await service({ requiresAuth: true }).post(
               "projects",
-              this.form
+              { ...this.form, region }
             );
           } catch (postError) {
             console.error('POST request failed!');

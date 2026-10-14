@@ -41,10 +41,6 @@ const KNOWN_ERRORS = [
   {
     match: /reading 'getService'.*ProjectGannt\.vue/,
     why: 'ProjectGannt: the mounted() timers still run after the chart is destroyed (leaving the planning quickly)'
-  },
-  {
-    match: /of null \(reading 'id'\).*ProjectForm\.vue/,
-    why: 'ProjectForm.submit() sets form.region = null before the request; the template still reads form.region.id'
   }
 ]
 

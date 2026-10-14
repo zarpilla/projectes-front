@@ -52,6 +52,10 @@ export default {
             {
               type: "Correccions",
               text: ["A l'entrada d'", { to: "/dedicacio", label: "hores dedicades" }, ", es torna a poder triar la funció del projecte (per exemple Licitacions o Propostes) i es guarda amb les hores."]
+            },
+            {
+              type: "Correccions",
+              text: "La fitxa del projecte ja no es penja en guardar-la sense «Àmbit territorial», ni quan no es pot guardar perquè hi falta alguna dada obligatòria."
             }
           ]
         },
