@@ -47,6 +47,15 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.10.14",
+          items: [
+            {
+              type: "Correccions",
+              text: ["A l'entrada d'", { to: "/dedicacio", label: "hores dedicades" }, ", es torna a poder triar la funció del projecte (per exemple Licitacions o Propostes) i es guarda amb les hores."]
+            }
+          ]
+        },
+        {
           date: "2026.10.12",
           items: [
             {

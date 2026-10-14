@@ -110,7 +110,7 @@
             <radio-picker
               v-model="form.activity_type"
               :options="activityTypes"
-              @input="projectChanged"
+              @update:model-value="projectChanged"
             ></radio-picker>
           </b-field>
           <b-field
