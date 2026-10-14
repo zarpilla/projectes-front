@@ -55,7 +55,7 @@ export default {
             },
             {
               type: "Correccions",
-              text: "La fitxa del projecte ja no es penja en guardar-la sense «Àmbit territorial», ni quan no es pot guardar perquè hi falta alguna dada obligatòria."
+              text: "La fitxa del projecte ja no es penja en guardar-la sense «Àmbit territorial» o sense «Tipus de dedicació», ni quan no es pot guardar perquè hi falta alguna dada obligatòria."
             }
           ]
         },

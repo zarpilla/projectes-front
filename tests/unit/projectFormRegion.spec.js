@@ -3,6 +3,7 @@
 // v-model="form.region.id", so the next render read null.id and the page threw
 // (then Vue's patch failed with "reading 'emitsOptions'"). The empty region
 // must go out as null in the request while the form keeps { id: 0 }.
+// default_dedication_type ("Tipus de dedicació") had the same bug.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const api = { post: vi.fn(), put: vi.fn(), get: vi.fn() }
@@ -64,5 +65,20 @@ describe('ProjectForm.submit() without a region (issues/041)', () => {
     await ProjectForm.methods.submit.call(c, 'continue')
 
     expect(api.post.mock.calls[0][1].region).toEqual({ id: 3, name: 'Catalunya' })
+  })
+
+  it('sends an empty dedication type as null and keeps it bindable', async () => {
+    const c = vm({ id: 5, region: { id: 0 }, default_dedication_type: { id: 0 } })
+    await ProjectForm.methods.submit.call(c, 'continue')
+
+    expect(api.put.mock.calls[0][1].default_dedication_type).toBeNull()
+    expect(c.form.default_dedication_type).toEqual({ id: 0 })
+  })
+
+  it('a chosen dedication type is sent as is', async () => {
+    const c = vm({ region: { id: 0 }, default_dedication_type: { id: 2 } })
+    await ProjectForm.methods.submit.call(c, 'continue')
+
+    expect(api.post.mock.calls[0][1].default_dedication_type).toEqual({ id: 2 })
   })
 })

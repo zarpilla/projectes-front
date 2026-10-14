@@ -3025,6 +3025,12 @@ export default {
                   ? this.form.region
                   : { id: 0 };
 
+              // Here and not after the awaits below: the template binds its .id
+              this.form.default_dedication_type =
+                this.form.default_dedication_type
+                  ? this.form.default_dedication_type
+                  : { id: 0 };
+
               this.ganttViewMode = (phases && phases.length > 0) ? 'estimated' : 'original';
 
               // Load children data if this project is a mother project
@@ -3120,10 +3126,6 @@ export default {
                 }
 
                 this.form.children = childrenData;
-              }
-
-              if (this.form.default_dedication_type === null) {
-                this.form.default_dedication_type = { id: 0 };
               }
 
               if (this.form.date_start) {
@@ -3547,17 +3549,13 @@ export default {
       if (!this.form.structural_expenses_pct) {
         this.form.structural_expenses_pct = null;
       }
-      //console.log('type default_dedication_type', typeof this.form.default_dedication_type, this.form.default_dedication_type)
-      if (
-        this.form.default_dedication_type &&
-        typeof this.form.default_dedication_type === "object" &&
-        !this.form.default_dedication_type.id
-      ) {
-        this.form.default_dedication_type = null;
-      }
-
-      // No region is sent as null, but form.region stays { id: 0 }: the template
-      // binds form.region.id and a null there crashes the page (issues/041).
+      // No dedication type or region is sent as null, but the form keeps { id: 0 }:
+      // the template binds their .id and a null there crashes the page (issues/041).
+      const dedicationType = this.form.default_dedication_type;
+      const default_dedication_type =
+        dedicationType && typeof dedicationType === "object" && !dedicationType.id
+          ? null
+          : dedicationType;
       const region = this.form.region && this.form.region.id === 0 ? null : this.form.region;
 
       if (this.form.mother && this.form.mother.id) {
@@ -3672,7 +3670,7 @@ export default {
 
           await service({ requiresAuth: true }).put(
             `projects/${this.form.id}`,
-            { ...form, region }
+            { ...form, default_dedication_type, region }
           );
 
           this.dirty = false;
@@ -3823,7 +3821,7 @@ export default {
           try {
             newProject = await service({ requiresAuth: true }).post(
               "projects",
-              { ...this.form, region }
+              { ...this.form, default_dedication_type, region }
             );
           } catch (postError) {
             console.error('POST request failed!');
