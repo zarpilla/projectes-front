@@ -88,6 +88,8 @@ jobs:
 
       # No cron, no real e-mail (SMTP port 9 discards), and throwaway secrets.
       # VeriFactu and FACe are off in a seeded database: nothing is sent anywhere.
+      # Plain HTTP and no proxy: the refresh cookie can't be `secure` here, or every
+      # login answers 500 (issues/040).
       - name: Start the backend
         env:
           IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-back:${{ inputs.backend_tag || 'v5' }}
@@ -109,6 +111,7 @@ jobs:
             -e DATABASE_PASSWORD="$DATABASE_PASSWORD" \
             -e DATABASE_SSL=false \
             -e CRON_ENABLED=false \
+            -e REFRESH_COOKIE_SECURE=false \
             -e EMAIL_PROVIDER=nodemailer -e SMTP_HOST=127.0.0.1 -e SMTP_PORT=9 \
             -e RESET_PASSWORD_URL="${E2E_BASE_URL}#/reset-password" \
             -e SEED_USER_EMAIL="$E2E_USER" \
