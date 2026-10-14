@@ -268,6 +268,21 @@
               />
             </b-field>
 
+            <b-field label="Compte bancari" horizontal v-if="type === 'payrolls'">
+              <b-select
+                v-model="payrollBankAccount"
+                placeholder="-- Compte --"
+              >
+                <option
+                  v-for="account in bankAccounts"
+                  :key="account.id"
+                  :value="account.id"
+                >
+                  {{ account.name }}
+                </option>
+              </b-select>
+            </b-field>
+
             <b-field
               label="Tipus"
               horizontal
@@ -1078,6 +1093,7 @@ export default {
       isLoading: false,
       isLoadingProject: false,
       series: [],
+      bankAccounts: [],
       form: this.getClearFormObject(),
       clients: [],
       clientSearch: "",
@@ -1126,6 +1142,17 @@ export default {
   },
   computed: {
     ...mapState(useMainStore, ["me"]),
+    // The bank a bestreta is paid from; Tresoreria shows its net payment
+    // there (issues/042). Saved as { id }, like the other relations.
+    payrollBankAccount: {
+      get() {
+        const account = this.form.bank_account;
+        return account && typeof account === "object" ? account.id : account || null;
+      },
+      set(id) {
+        this.form.bank_account = id ? { id } : null;
+      }
+    },
     filteredClients() {
       return this.clients.filter(option => {
         return (
@@ -1679,6 +1706,11 @@ export default {
       this.paymentMethods = (
         await service({ requiresAuth: true }).get("payment-methods")
       ).data;
+      if (this.type === "payrolls") {
+        this.bankAccounts = (
+          await service({ requiresAuth: true }).get("bank-accounts")
+        ).data;
+      }
       const projects = (
         await service({ requiresAuth: true }).get(
           "projects/basic?_limit=-1&_sort=name:ASC"

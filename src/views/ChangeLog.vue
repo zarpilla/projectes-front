@@ -50,6 +50,10 @@ export default {
           date: "2026.10.14",
           items: [
             {
+              type: "Novetats",
+              text: ["Ara es pot triar el compte bancari de cada nòmina o bestreta (per defecte, el de nòmines). A ", { to: "/tresoreria", label: "Tresoreria" }, " la bestreta surt al compte triat."]
+            },
+            {
               type: "Correccions",
               text: ["A l'entrada d'", { to: "/dedicacio", label: "hores dedicades" }, ", es torna a poder triar la funció del projecte (per exemple Licitacions o Propostes) i es guarda amb les hores."]
             },
