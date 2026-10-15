@@ -52,6 +52,10 @@ export default {
             {
               type: "Correccions",
               text: ["Algunes factures rebudes desades a finals de setembre sortien amb l'import doble a la llista de ", { to: "/received-invoices", label: "despeses" }, " i als informes. Ara mostren l'import correcte de les seves línies."]
+            },
+            {
+              type: "Correccions",
+              text: ["A les dietes de ", { to: "/received-invoices", label: "despeses" }, ", els botons de cada línia (també el d'afegir-ne una de nova) quedaven fora de la pantalla. Ara les línies s'ajusten a l'amplada i els botons sempre es veuen."]
             }
           ]
         },

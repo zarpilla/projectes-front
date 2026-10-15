@@ -81,6 +81,21 @@ describe('DocumentLines', () => {
     expect(mountLines({ isDiet: false }).find('.datepicker').exists()).toBe(false)
   })
 
+  // issues/046: with the date column the row overflowed the card and hid the
+  // + button. The actions go in their own fixed-width column (.line-actions in
+  // main.scss) and the editable columns share the rest.
+  it('keeps the action buttons in their own column, also for diets', () => {
+    for (const isDiet of [false, true]) {
+      const w = mountLines({ isDiet, lines: [line(), line()] })
+      const actions = rows(w).map(r => r.find('.line-actions'))
+      expect(actions.every(a => a.exists())).toBe(true)
+      expect(actions[1].find('.mdi-plus-circle').exists()).toBe(true)
+      const columns = rows(w)[0].findAll('.field.is-grouped > .field')
+      expect(columns.at(-1).classes()).toContain('line-actions')
+      expect(columns.slice(0, -1).every(c => c.classes().includes('line-field'))).toBe(true)
+    }
+  })
+
   it('paginates documents with more than 50 lines and removes on the right page', async () => {
     const lines = Array.from({ length: 60 }, (_, i) => line({ concept: `L${i}` }))
     const w = mountLines({ lines })

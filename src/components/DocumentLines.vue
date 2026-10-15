@@ -36,7 +36,7 @@
           <b-field
             v-if="isDiet"
             :label="j == 0 ? 'Data' : null"
-            class="medium-field"
+            class="line-field line-date medium-field"
           >
             <b-datepicker
               v-model="line.date"
@@ -52,7 +52,7 @@
           </b-field>
           <b-field
             :label="j == 0 ? 'Concepte' : null"
-            class="subphase-detail-input-large-field"
+            class="line-field subphase-detail-input-large-field"
           >
             <b-input
               :disabled="disabled"
@@ -65,7 +65,7 @@
           </b-field>
           <b-field
             :label="j == 0 ? 'Quantitat' : null"
-            class="medium-field"
+            class="line-field medium-field"
           >
             <b-input
               name="Unitats"
@@ -77,7 +77,7 @@
             >
             </b-input>
           </b-field>
-          <b-field :label="j == 0 ? 'Preu' : null" class="medium-field">
+          <b-field :label="j == 0 ? 'Preu' : null" class="line-field medium-field">
             <b-input
               name="base"
               :disabled="disabled"
@@ -90,7 +90,7 @@
           </b-field>
           <b-field
             :label="j == 0 ? 'Descompte %' : null"
-            class="medium-field"
+            class="line-field medium-field"
           >
             <b-input
               :disabled="disabled"
@@ -104,7 +104,7 @@
           </b-field>
           <b-field
             :label="j == 0 ? 'IVA %' : null"
-            class="medium-field"
+            class="line-field medium-field"
           >
             <b-input
               :disabled="disabled"
@@ -118,7 +118,7 @@
           </b-field>
           <b-field
             :label="j == 0 ? 'IRPF %' : null"
-            class="medium-field"
+            class="line-field medium-field"
           >
             <b-input
               :disabled="disabled"
@@ -132,7 +132,7 @@
           </b-field>
           <b-field
             :label="j == 0 ? 'Accions' : null"
-            class="medium-field"
+            class="line-actions"
           >
             <button
               class="button is-small is-primary ml-2"
