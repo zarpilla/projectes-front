@@ -51,6 +51,14 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", si es tancava la finestra d'entrada d'hores clicant fora o amb Esc, ja no s'obria més fins a recarregar la pàgina: ni per afegir hores a mà, ni per aturar el comptador, ni per modificar una entrada. Ara es torna a obrir sempre. També passava amb altres finestres de l'aplicació."]
+            },
+            {
+              type: "Correccions",
+              text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", en aturar el comptador («Fi de l'activitat») les hores es desaven a 0. Ara es desa el temps que ha estat en marxa."]
+            },
+            {
+              type: "Correccions",
               text: ["Algunes factures rebudes desades a finals de setembre sortien amb l'import doble a la llista de ", { to: "/received-invoices", label: "despeses" }, " i als informes. Ara mostren l'import correcte de les seves línies."]
             },
             {

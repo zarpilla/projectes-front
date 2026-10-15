@@ -209,6 +209,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
 import TimeCounter from "@/components/TimeCounter.vue";
+import { counterElapsed } from "@/service/timeCounter";
 
 export default {
   name: "ModalBoxDedication",
@@ -427,25 +428,13 @@ export default {
     },
     doCounter() {
       this.counterInterval = setInterval(() => {
-        const startTime = moment(
-          this.counter.created_at,
-          "YYYY-MM-DDTHH:mm:ss.000Z"
-        );
-        const endTime = moment();
-        const duration = moment.duration(endTime.diff(startTime));
-        const hours = parseInt(duration.asHours());
-        const minutes = parseInt(duration.asMinutes()) % 60;
-
-        const secondsDiff =
-          endTime.diff(startTime, "seconds") - hours * 60 * 60 - minutes * 60;
-
-        const counterDisplayTimeInHours =
-          hours + minutes / 60 + secondsDiff / 3600;
-        this.counterDisplayTime = `${hours}h ${minutes}m ${secondsDiff}s (${counterDisplayTimeInHours.toFixed(
-          3
-        )}h)`;
-        this.counterDisplayStartTime = startTime.format("DD/MM/YYYY HH:mm:ss");
-        this.form.hours = counterDisplayTimeInHours.toFixed(3);
+        const elapsed = counterElapsed(this.counter);
+        if (!elapsed) {
+          return;
+        }
+        this.counterDisplayTime = elapsed.display;
+        this.counterDisplayStartTime = elapsed.start.format("DD/MM/YYYY HH:mm:ss");
+        this.form.hours = elapsed.inHours.toFixed(3);
       }, 1000);
     },
     cancel() {
