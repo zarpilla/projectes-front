@@ -398,6 +398,14 @@ export default {
         this.dietSearch = ''
       }
     },
+    ticketChanged () {
+      if (this.form.ticket) {
+        this.form.received = null
+        this.form.diet = null
+        this.receivedSearch = ''
+        this.dietSearch = ''
+      }
+    },
     dietChanged () {
       if (this.form.diet) {
         this.form.received = null

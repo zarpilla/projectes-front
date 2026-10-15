@@ -3,7 +3,7 @@
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <card-component>
-        <form @submit.prevent="submit2">
+        <form @submit.prevent>
           <b-field horizontal>
             <b-field label="Codi" class="is-narrow">
               <b-input v-model="codeSearch" placeholder="Cerca per codi"></b-input>

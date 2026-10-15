@@ -3,7 +3,7 @@
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section" v-if="!isLoading">
       <card-component>
-        <form @submit.prevent="submit2">
+        <form @submit.prevent>
           <b-field horizontal>
             <b-field label="Persona">
               <b-autocomplete

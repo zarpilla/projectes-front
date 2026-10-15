@@ -10,7 +10,7 @@
 
     <!-- <card-component title="Filtres">
 
-      <form @submit.prevent="submit2">
+      <form @submit.prevent>
         <b-field horizontal>
           <b-field label="Any">
             <b-select v-model="filters.year" required @update:model-value="getData">

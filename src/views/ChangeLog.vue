@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: "A «Assignació de documents» (fases del projecte i tresoreria), en triar un tiquet ara es buiden la factura rebuda i la dieta, com ja passava amb els altres camps: cada línia queda lligada a un sol document."
+            },
+            {
+              type: "Correccions",
               text: ["A les ", { to: "/received-invoices", label: "despeses" }, ", el botó «Cancel·lar» de «Nova Dieta» no feia res. Ara tanca la finestra i et deixa a la despesa nova."]
             },
             {

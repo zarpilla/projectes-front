@@ -4,7 +4,7 @@
     <section class="section is-main-section">
 
       <card-component title="FILTRES">
-        <form @submit.prevent="submit2">
+        <form @submit.prevent>
           <b-field grouped>
             <b-field horizontal label="Estat">
               <b-select
