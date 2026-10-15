@@ -26,7 +26,7 @@
     <b-modal
       v-model="isInvoiceModalActive"
       has-modal-card
-      :on-cancel="closeInvoiceModal"
+      @cancel="closeInvoiceModal"
     >
       <div class="modal-card invoice-parser-modal">
         <header class="modal-card-head">

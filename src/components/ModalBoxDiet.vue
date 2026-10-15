@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
+    <b-modal v-model="isModalActive" has-modal-card @cancel="cancel">
       <div class="modal-card modal-card-diet">
         <header class="modal-card-head">
           <p class="modal-card-title">Nova Dieta</p>

@@ -1,5 +1,5 @@
 <template>
-  <b-modal v-model="isModalActive" has-modal-card :on-cancel="cancel">
+  <b-modal v-model="isModalActive" has-modal-card @cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
         <p class="modal-card-title">Esborranys de factures</p>

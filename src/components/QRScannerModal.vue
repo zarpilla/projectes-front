@@ -2,7 +2,7 @@
   <b-modal 
     v-model="isModalActive" 
     has-modal-card 
-    :on-cancel="cancel"
+    @cancel="cancel"
     :can-cancel="['escape', 'x']"
     :width="960"
   >
