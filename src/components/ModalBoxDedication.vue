@@ -58,7 +58,7 @@
               :data="filteredProjects"
               field="name"
               @select="option => (form.project = option ? option.id : null)"
-              @update:model-value="projectChanged"
+              @update:model-value="projectChanged()"
               :disabled="form.id > 0"
               :clearable="true"
             >
@@ -110,7 +110,7 @@
             <radio-picker
               v-model="form.activity_type"
               :options="activityTypes"
-              @update:model-value="projectChanged"
+              @update:model-value="activityTypeChanged"
             ></radio-picker>
           </b-field>
           <b-field
@@ -209,7 +209,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
 import TimeCounter from "@/components/TimeCounter.vue";
-import { counterElapsed } from "@/service/timeCounter";
+import { counterElapsed, relationId } from "@/service/timeCounter";
 
 export default {
   name: "ModalBoxDedication",
@@ -393,10 +393,16 @@ export default {
 
         if (this.counter) {
           this.form.counter = this.counter;
+          // the choices kept on "Continua" (issues/051), ids or populated
+          this.form.activity_type = relationId(this.counter.activity_type);
+          this.form.dedication_type = relationId(this.counter.dedication_type);
+          this.form.task = relationId(this.counter.task);
           if (this.counter.project && this.counter.project.id) {
             this.form.project = this.counter.project.id;
             this.projectNameSearch = this.counter.project.name;
-            this.projectChanged();
+            this.projectChanged({
+              applyDefaultDedication: this.form.dedication_type === null
+            });
           }
           if (this.counter.description) {
             this.form.description = this.counter.description;
@@ -449,7 +455,12 @@ export default {
       clearInterval(this.counterInterval);
       this.$emit("submit", this.form);
     },
-    async projectChanged() {
+    // Picking a Funció only filters the tasks: it must not reset the
+    // dedication type to the project's default (issues/051)
+    activityTypeChanged() {
+      return this.projectChanged({ applyDefaultDedication: false });
+    },
+    async projectChanged({ applyDefaultDedication = true } = {}) {
       if (this.form.project) {
         this.isLoading2 = true;
         const project = this.projects.find(p => p.id === this.form.project);
@@ -461,7 +472,7 @@ export default {
           this.hasActivities = true;
         });
         
-        if (!this.form.id) {
+        if (!this.form.id && applyDefaultDedication) {
           if (
             project.default_dedication_type &&
             project.default_dedication_type.id &&
@@ -474,7 +485,9 @@ export default {
           ) {
             this.form.dedication_type = null;
           } else if (project.default_dedication_type) {
-            this.form.dedication_type = project.default_dedication_type;
+            this.form.dedication_type = relationId(
+              project.default_dedication_type
+            );
           }
         }
 
@@ -510,7 +523,10 @@ export default {
       this.$emit("counter-continue", {
         counter: this.counter,
         project: this.form.project,
-        description: this.form.description
+        description: this.form.description,
+        activity_type: this.form.activity_type,
+        dedication_type: this.form.dedication_type,
+        task: this.form.task
       });
     },
     trashModal(trashObject) {

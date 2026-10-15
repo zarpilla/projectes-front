@@ -27,3 +27,9 @@ export function counterElapsed (counter, now = moment()) {
     display: `${hours}h ${minutes}m ${seconds}s (${inHours.toFixed(3)}h)`
   }
 }
+
+// The id of a relation that may come populated ({ id, ... }) or as a bare id.
+export function relationId (value) {
+  if (value === null || value === undefined || value === '') return null
+  return typeof value === 'object' ? (value.id ?? null) : value
+}

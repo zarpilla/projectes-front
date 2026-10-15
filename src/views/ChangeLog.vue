@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", en fer «Continua» al comptador es perdia la Funció triada (i també el tipus de dedicació i la tasca). Ara es guarden i hi són quan el tornes a obrir."]
+            },
+            {
+              type: "Correccions",
               text: "A «Assignació de documents» (fases del projecte i tresoreria), en triar un tiquet ara es buiden la factura rebuda i la dieta, com ja passava amb els altres camps: cada línia queda lligada a un sol document."
             },
             {

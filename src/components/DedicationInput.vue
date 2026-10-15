@@ -1057,10 +1057,17 @@ export default {
           requiresAuth: true
         }).put(`time-counters/${this.counter.id}`, {
           project: info.project,
-          description: info.description
+          description: info.description,
+          activity_type: info.activity_type || null,
+          dedication_type: info.dedication_type || null,
+          task: info.task || null
         });
         this.counter.project = this.projects.find(p => p.id === info.project);
         this.counter.description = info.description;
+        // kept for the next opening of the dialog (issues/051)
+        this.counter.activity_type = info.activity_type || null;
+        this.counter.dedication_type = info.dedication_type || null;
+        this.counter.task = info.task || null;
       }
       this.counterClicked = false;
       this.isModalEditActive = false;
