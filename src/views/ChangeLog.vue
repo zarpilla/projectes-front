@@ -47,6 +47,15 @@ export default {
     return {
       changeLog: [
         {
+          date: "2026.10.15",
+          items: [
+            {
+              type: "Correccions",
+              text: ["Algunes factures rebudes desades a finals de setembre sortien amb l'import doble a la llista de ", { to: "/received-invoices", label: "despeses" }, " i als informes. Ara mostren l'import correcte de les seves línies."]
+            }
+          ]
+        },
+        {
           date: "2026.10.14",
           items: [
             {
