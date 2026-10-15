@@ -51,6 +51,10 @@ export default {
           items: [
             {
               type: "Correccions",
+              text: ["A les ", { to: "/received-invoices", label: "despeses" }, ", el botó «Cancel·lar» de «Nova Dieta» no feia res. Ara tanca la finestra i et deixa a la despesa nova."]
+            },
+            {
+              type: "Correccions",
               text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", si es tancava la finestra d'entrada d'hores clicant fora o amb Esc, ja no s'obria més fins a recarregar la pàgina: ni per afegir hores a mà, ni per aturar el comptador, ni per modificar una entrada. Ara es torna a obrir sempre. També passava amb altres finestres de l'aplicació."]
             },
             {

@@ -2671,6 +2671,11 @@ export default {
     sendSubmitEmittedInvoice() {
       this.submit(this.exitAfterSave);
     },
+    // "Cancel·lar", an outside click or Escape in the "Nova Dieta" modal: close it
+    // and stay on the (empty) expense form (issues/048)
+    handleDietModalCancel() {
+      this.isDietModalActive = false;
+    },
     async handleDietSubmit(dietData) {
       // Populate the form with diet data
       this.isDietModalActive = false;

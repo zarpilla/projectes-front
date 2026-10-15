@@ -220,3 +220,24 @@ test('"Nou Contacte" next to the contact opens an empty contact form', async () 
     await tab.close()
   }
 })
+
+// issues/048 — "Cancel·lar" in "Nova Dieta" did nothing (DocumentForm had no
+// handler for the modal's cancel). It must close the modal and stay on the new
+// expense; an outside click and Escape too. Nothing is saved.
+test('a new diet ("Nova Dieta") can be cancelled', async () => {
+  const route = '/document/0/received-expenses?document_type=4'
+  const diet = () => modal('Nova Dieta')
+  const closers = {
+    'Cancel·lar': () => button('Cancel·lar', diet()).click(),
+    'an outside click': () => diet().locator('.modal-background').click({ position: { x: 5, y: 5 } }),
+    'Escape': () => page.keyboard.press('Escape')
+  }
+  for (const [how, close] of Object.entries(closers)) {
+    await visit(route)
+    await expect(diet(), `opens on ${route}`).toBeVisible()
+    await close()
+    await expect(diet(), `closes with ${how}`).toBeHidden()
+    await expect(page).toHaveURL(/#\/document\/0\/received-expenses/)
+    await expect(button('Guardar')).toBeVisible()
+  }
+})
