@@ -7,6 +7,13 @@
       @confirm="duplicateConfirmed"
       @cancel="isDuplicateModalActive = false"
     />
+    <modal-box
+      :is-active="isDeleteModalActive"
+      :trash-object-name="form.name"
+      message="S'esborrarà permanentment el projecte"
+      @confirm="deleteConfirmed"
+      @cancel="isDeleteModalActive = false"
+    />
     <title-bar :title-stack="titleStack" :subtitle="isCreationMode && !isDuplicating ? `Projecte nou · pas ${currentStep} de 4` : ''">
       <template v-if="tabsEnabled && projectMeta" #subtitle>
         <span v-if="form.project_state && form.project_state.name" class="tag project-state-tag">{{ form.project_state.name }}</span>
@@ -2491,6 +2498,10 @@
               <b-icon icon="content-copy" size="is-small" />
               Duplicar projecte
             </b-dropdown-item>
+            <b-dropdown-item aria-role="menuitem" class="has-text-danger" @click="isDeleteModalActive = true">
+              <b-icon icon="trash-can-outline" size="is-small" />
+              Esborrar projecte
+            </b-dropdown-item>
           </b-dropdown>
           <b-button :loading="isLoading" @click="submitAndExit">Guardar i sortir</b-button>
           <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
@@ -2524,6 +2535,7 @@ const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum
 import TitleBar from "@/components/TitleBar.vue";
 import WizardSteps from "@/components/WizardSteps.vue";
 import ProjectSummaryCards from "@/components/ProjectSummaryCards.vue";
+import ModalBox from "@/components/ModalBox.vue";
 import ModalBoxDuplicateProject from "@/components/ModalBoxDuplicateProject.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing.vue";
@@ -2548,6 +2560,7 @@ export default {
     TitleBar,
     WizardSteps,
     ProjectSummaryCards,
+    ModalBox,
     ModalBoxDuplicateProject,
     MoneyFormat,
     FinancialDiffTooltip,
@@ -2600,6 +2613,7 @@ export default {
       // redesign: the page is split in tabs (only for existing projects)
       activeTab: "resum",
       isDuplicateModalActive: false,
+      isDeleteModalActive: false,
       showOptionalFields: false,
       updatingGantt: false,
       updatingGanttTimer: 0,
@@ -4829,6 +4843,14 @@ export default {
     // opens the "Duplicar projecte" dialog; it calls performDuplicate or nothing
     duplicateProject() {
       this.isDuplicateModalActive = true;
+    },
+    // same as the projects list: the project is unpublished, not removed
+    async deleteConfirmed() {
+      this.isDeleteModalActive = false;
+      await service({ requiresAuth: true }).put(`projects/${this.form.id}`, { published_at: null });
+      this.dirty = false;
+      this.$buefy.snackbar.open({ message: "Esborrat", queue: false });
+      this.$router.push({ name: "projectes.view" });
     },
     duplicateConfirmed(moveDates) {
       this.isDuplicateModalActive = false;
