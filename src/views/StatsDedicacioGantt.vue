@@ -1,78 +1,72 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
-    <!-- <hero-bar>
-      Dedicació
-      <template #right>
-        <router-link to="/" class="button">
-          Dashboard
-        </router-link>
-      </template>
-    </hero-bar> -->
+    <title-bar :title-stack="titleStack" :subtitle="subtitle">
+      <download-excel :data="exportData" :name="exportName">
+        <b-button icon-left="download" :disabled="!exportData.length">Exporta</b-button>
+      </download-excel>
+    </title-bar>
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Estat projecte">
-              <div class="is-flex mt-2">
-                <button
-                  class="button mr-3"
-                  v-for="state in project_states"
-                  :key="state.id"
-                  @click="toggleState(state)"
-                  :class="{
-                    'is-primary': selectedProjectStates.includes(state.id),
-                    'is-outlined': !selectedProjectStates.includes(state.id)
-                  }"
-                >
-                  {{ state.name }}
-                </button>
-              </div>
-            </b-field>            
-            <b-field label="Vista">
-              <b-select
-                v-model="filters.view"
-                placeholder="Estat"
-                required
-              >
-                <option value="month">Mensual</option>
-                <option value="week">Setmanal</option>
-              </b-select>
-            </b-field>
-            <b-field label="Hores">
-              <b-select
-                v-model="filters.hoursType"
-                placeholder="Tipus hores"
-                required
-              >
-                <option value="previstes">Previstes</option>
-                <option value="original">Originals</option>
-              </b-select>
-            </b-field>
-            <b-field label="Agrupació">
-              <b-select
-                v-model="filters.grouping"
-                placeholder="Agrupació"
-                required
-              >
-                <option value="project">Projecte</option>
-                <option value="type">Tipus de projecte</option>
-                <option value="likelihood">Probabilitat</option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
-      <card-component title="Dedicació">
-        <dedication-gantt :project-states="selectedProjectStates" :view="filters.view" :hours-type="filters.hoursType" :grouping="filters.grouping" v-if="!isLoading1 && !isLoading3" />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <div class="month-nav">
+          <button type="button" class="button" aria-label="Any anterior" :disabled="filters.year <= minYear" @click="filters.year--">
+            <b-icon icon="chevron-left" />
+          </button>
+          <span class="month-nav-label">{{ filters.year }}</span>
+          <button type="button" class="button" aria-label="Any següent" :disabled="filters.year >= maxYear" @click="filters.year++">
+            <b-icon icon="chevron-right" />
+          </button>
+        </div>
+        <div class="segmented" role="group" aria-label="Vista">
+          <button type="button" :class="{ 'is-on': filters.view === 'month' }" @click="filters.view = 'month'">Mensual</button>
+          <button type="button" :class="{ 'is-on': filters.view === 'week' }" @click="filters.view = 'week'">Setmanal</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Hores">
+          <button type="button" :class="{ 'is-on': filters.hoursType === 'previstes' }" @click="filters.hoursType = 'previstes'">Previstes</button>
+          <button type="button" :class="{ 'is-on': filters.hoursType === 'original' }" @click="filters.hoursType = 'original'">Originals</button>
+        </div>
+        <label class="filter-select">
+          <span>Detall per</span>
+          <b-select v-model="filters.grouping" aria-label="Agrupació del detall">
+            <option value="project">Projecte</option>
+            <option value="type">Tipus de projecte</option>
+            <option value="likelihood">Probabilitat</option>
+          </b-select>
+        </label>
+        <div class="toggle-group" role="group" aria-label="Estat projecte">
+          <span class="toggle-label">Estat projecte</span>
+          <button
+            v-for="state in project_states"
+            :key="state.id"
+            type="button"
+            class="chip-toggle"
+            :class="{ 'is-on': selectedProjectStates.includes(state.id) }"
+            :aria-pressed="selectedProjectStates.includes(state.id) ? 'true' : 'false'"
+            @click="toggleState(state)"
+          >
+            {{ state.name }}
+          </button>
+        </div>
+      </form>
+      <dedication-gantt
+        v-if="!isLoading1 && !isLoading3"
+        :project-states="selectedProjectStates"
+        :view="filters.view"
+        :year="filters.year"
+        :hours-type="filters.hoursType"
+        :grouping="filters.grouping"
+        :title="(filters.hoursType === 'original' ? 'Hores originals' : 'Hores previstes') + ' i ocupació per persona · ' + filters.year"
+        @export-data="exportData = $event"
+      />
+      <p class="notification is-info mt-4 occupation-note">
+        L'ocupació és hores previstes ÷ hores de jornada del període (jornada de la persona, sense caps de setmana, festius ni vacances).
+      </p>
     </section>
   </div>
 </template>
 
 <script>
 import TitleBar from '@/components/TitleBar.vue'
+import moment from 'moment'
 import CardComponent from '@/components/CardComponent.vue'
 import DedicationGantt from '@/components/DedicationGantt.vue'
 import service from '@/service/index'
@@ -94,7 +88,7 @@ export default {
       isLoading3: true,
       filters: {
         project_state: null,
-        year: null,
+        year: parseInt(moment().format('YYYY')),
         month: null,
         view: 'month',
         hoursType: 'previstes',
@@ -103,12 +97,21 @@ export default {
       project_states: [],
       //years: [],
       months: null,
-      selectedProjectStates: []
+      selectedProjectStates: [],
+      exportData: [],
+      minYear: parseInt(moment().format('YYYY')) - 5,
+      maxYear: parseInt(moment().format('YYYY')) + 3
     }
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Previsió dedicació / Jornades']
+      return ['Informes', 'Previsió dedicació']
+    },
+    subtitle () {
+      return 'Hores previstes als projectes per a cada persona i període, comparades amb la seva jornada.'
+    },
+    exportName () {
+      return `previsio-dedicacio-${this.filters.year}.xls`
     }
   },
   async mounted () {
@@ -167,3 +170,18 @@ export default {
   }
 }
 </script>
+<style scoped>
+.month-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.month-nav-label {
+  min-width: 3.5rem;
+  text-align: center;
+  font-weight: 800;
+}
+.occupation-note {
+  font-size: .875rem;
+}
+</style>

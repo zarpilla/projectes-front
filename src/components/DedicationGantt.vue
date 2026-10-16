@@ -12,15 +12,9 @@
       :periods="periods"
       :cells="cells"
       :grouping="grouping"
+      :title="title"
       v-if="!isLoading"
     ></dedication-gantt-chart>
-    <download-excel :data="pivotData">
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0"
-        icon-left="file-excel"
-      />
-    </download-excel>
   </div>
 </template>
 
@@ -52,7 +46,17 @@ export default {
       type: String,
       default: "project",
     },
+    title: {
+      type: String,
+      default: "",
+    },
+    year: {
+      type: Number,
+      default: null,
+    },
   },
+  // the rows for "Exporta" (the page head has the button)
+  emits: ["export-data"],
   data() {
     return {
       leaders: [],
@@ -60,7 +64,6 @@ export default {
       cells: {},
       pivotData: [],
       isLoading: true,
-      year: parseInt(moment().format("YYYY")),
     };
   },
   watch: {
@@ -71,6 +74,9 @@ export default {
       deep: 1
     },
     view: function () {
+      this.getActivities();
+    },
+    year: function () {
       this.getActivities();
     },
     hoursType: function () {
@@ -89,7 +95,7 @@ export default {
       }
 
       const projectStates = this.projectStates.join(",");
-      const query = `projects/dedications?_where[project_state_in]=${projectStates}&hoursType=${this.hoursType}&year=${this.year}&view=${this.view}`;
+      const query = `projects/dedications?_where[project_state_in]=${projectStates}&hoursType=${this.hoursType}&year=${this.year || parseInt(moment().format("YYYY"))}&view=${this.view}`;
 
       try {
         const response = await service({ requiresAuth: true }).get(query);
@@ -97,6 +103,7 @@ export default {
         this.periods = response.data.periods || [];
         this.cells = response.data.cells || {};
         this.pivotData = response.data.dedications || [];
+        this.$emit("export-data", this.pivotData);
       } catch (error) {
         console.error("Error loading dedications:", error);
         this.leaders = [];

@@ -1,65 +1,60 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle">
+      <download-excel :data="exportData" :name="exportName">
+        <b-button icon-left="download" :disabled="!exportData.length">Exporta</b-button>
+      </download-excel>
+    </title-bar>
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Estat projecte">
-              <div class="is-flex mt-2">
-                <button
-                  class="button mr-3"
-                  v-for="state in project_states"
-                  :key="state.id"
-                  @click="toggleState(state)"
-                  :class="{
-                    'is-primary': selectedProjectStates.includes(state.id),
-                    'is-outlined': !selectedProjectStates.includes(state.id)
-                  }"
-                >
-                  {{ state.name }}
-                </button>
-              </div>
-            </b-field>
-            <b-field label="Vista">
-              <b-select
-                v-model="filters.view"
-                placeholder="Estat"
-                required
-              >
-                <option value="month">Mensual</option>
-                <option value="week">Setmanal</option>
-              </b-select>
-            </b-field>
-            <b-field label="Any">
-              <b-select
-                v-model="filters.year"
-                placeholder="Any"
-                required
-              >
-                <option v-for="year in years" :key="year" :value="year">
-                  {{ year }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Agrupació">
-              <b-select
-                v-model="filters.grouping"
-                placeholder="Agrupació"
-                required
-              >
-                <option value="project">Projecte</option>
-                <option value="type">Tipus de projecte</option>
-                <option value="likelihood">Probabilitat</option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
-      <card-component title="Dedicació real">
-        <real-dedication-gantt :project-states="selectedProjectStates" :view="filters.view" :year="filters.year" :grouping="filters.grouping" v-if="!isLoading1 && !isLoading3" />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <div class="month-nav">
+          <button type="button" class="button" aria-label="Any anterior" :disabled="filters.year <= minYear" @click="filters.year--">
+            <b-icon icon="chevron-left" />
+          </button>
+          <span class="month-nav-label">{{ filters.year }}</span>
+          <button type="button" class="button" aria-label="Any següent" :disabled="filters.year >= maxYear" @click="filters.year++">
+            <b-icon icon="chevron-right" />
+          </button>
+        </div>
+        <div class="segmented" role="group" aria-label="Vista">
+          <button type="button" :class="{ 'is-on': filters.view === 'month' }" @click="filters.view = 'month'">Mensual</button>
+          <button type="button" :class="{ 'is-on': filters.view === 'week' }" @click="filters.view = 'week'">Setmanal</button>
+        </div>
+        <label class="filter-select">
+          <span>Detall per</span>
+          <b-select v-model="filters.grouping" aria-label="Agrupació del detall">
+            <option value="project">Projecte</option>
+            <option value="type">Tipus de projecte</option>
+            <option value="likelihood">Probabilitat</option>
+          </b-select>
+        </label>
+        <div class="toggle-group" role="group" aria-label="Estat projecte">
+          <span class="toggle-label">Estat projecte</span>
+          <button
+            v-for="state in project_states"
+            :key="state.id"
+            type="button"
+            class="chip-toggle"
+            :class="{ 'is-on': selectedProjectStates.includes(state.id) }"
+            :aria-pressed="selectedProjectStates.includes(state.id) ? 'true' : 'false'"
+            @click="toggleState(state)"
+          >
+            {{ state.name }}
+          </button>
+        </div>
+      </form>
+      <real-dedication-gantt
+        v-if="!isLoading1 && !isLoading3"
+        :project-states="selectedProjectStates"
+        :view="filters.view"
+        :year="filters.year"
+        :grouping="filters.grouping"
+        :title="'Hores fetes i ocupació per persona · ' + filters.year"
+        @export-data="exportData = $event"
+      />
+      <p class="notification is-info mt-4 occupation-note">
+        L'ocupació és hores fetes ÷ hores de jornada del període (jornada de la persona, sense caps de setmana, festius ni vacances).
+      </p>
     </section>
   </div>
 </template>
@@ -98,12 +93,21 @@ export default {
       project_states: [],
       months: null,
       years: [],
-      selectedProjectStates: []
+      selectedProjectStates: [],
+      exportData: [],
+      minYear: MIN_YEAR,
+      maxYear: parseInt(moment().format('YYYY'))
     }
   },
   computed: {
     titleStack () {
-      return ['Dedicació', '% Dedicació real']
+      return ['Informes', '% Dedicació real']
+    },
+    subtitle () {
+      return 'Hores fetes per cada persona i període, comparades amb la seva jornada.'
+    },
+    exportName () {
+      return `dedicacio-real-${this.filters.year}.xls`
     }
   },
   async mounted () {
@@ -161,3 +165,18 @@ export default {
   }
 }
 </script>
+<style scoped>
+.month-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.month-nav-label {
+  min-width: 3.5rem;
+  text-align: center;
+  font-weight: 800;
+}
+.occupation-note {
+  font-size: .875rem;
+}
+</style>

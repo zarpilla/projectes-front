@@ -12,15 +12,9 @@
       :periods="periods"
       :cells="cells"
       :grouping="grouping"
+      :title="title"
       v-if="!isLoading"
     ></dedication-gantt-chart>
-    <download-excel :data="pivotData">
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0"
-        icon-left="file-excel"
-      />
-    </download-excel>
   </div>
 </template>
 
@@ -52,7 +46,13 @@ export default {
       type: String,
       default: "project",
     },
+    title: {
+      type: String,
+      default: "",
+    },
   },
+  // the rows for "Exporta" (the page head has the button)
+  emits: ["export-data"],
   data() {
     return {
       leaders: [],
@@ -97,6 +97,7 @@ export default {
         this.periods = response.data.periods || [];
         this.cells = response.data.cells || {};
         this.pivotData = response.data.dedications || [];
+        this.$emit("export-data", this.pivotData);
       } catch (error) {
         console.error("Error loading real dedications:", error);
         this.leaders = [];

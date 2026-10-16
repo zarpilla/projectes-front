@@ -1,40 +1,62 @@
 <template>
   <div>
-    <div class="dedication-table-container">
-      <div class="table-wrapper">
+    <!-- Redesign A: quiet heat map, hours and occupation of each person and period -->
+    <section class="report-card">
+      <header class="report-card-head">
+        <h2>{{ title }}</h2>
+        <span class="has-text-muted">{{ withHours.length }} {{ withHours.length === 1 ? "persona" : "persones" }} · {{ hoursText(grandTotal) }} h</span>
+      </header>
+      <div class="heat-legend" aria-hidden="true">
+        <span><i class="dedication-low"></i>Menys del 85 %</span>
+        <span><i class="dedication-good"></i>Del 85 al 95 %</span>
+        <span><i class="dedication-optimal"></i>Del 95 al 105 %</span>
+        <span><i class="dedication-high"></i>Més del 105 %</span>
+        <span><i class="dedication-nojornada"></i>s/j: sense jornada definida</span>
+        <span><i class="dedication-empty">—</i>Sense hores</span>
+      </div>
+      <div class="dedication-table-container">
         <table class="dedication-table">
           <thead>
             <tr>
               <th class="sticky-col person-col">Persona</th>
               <th v-for="period in periods" :key="period.key" class="period-col">
-                {{ period.label }}
+                {{ shortLabel(period.label) }}
               </th>
+              <th class="total-col">Total</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="leader in visibleLeaders" :key="leader.id">
-              <td class="sticky-col person-col">
-                <strong>{{ leader.username }}</strong>
-              </td>
+            <tr v-for="leader in shownLeaders" :key="leader.id">
+              <th scope="row" class="sticky-col person-col">{{ leader.username }}</th>
               <td
                 v-for="period in periods"
                 :key="period.key"
-                :class="cell(leader.id, period.key).cssClass"
+                :class="cellClass(cell(leader.id, period.key))"
                 class="period-cell"
                 @mouseenter="showTooltip($event, cell(leader.id, period.key))"
                 @mouseleave="scheduleHide"
                 @click="pinTooltip($event, cell(leader.id, period.key))"
               >
-                <div class="cell-content">
-                  <div class="hours">{{ cell(leader.id, period.key).hours }}h</div>
-                  <div class="percentage">{{ cell(leader.id, period.key).percentage }}%</div>
+                <div v-if="Number(cell(leader.id, period.key).hours)" class="cell-content">
+                  <div class="hours">{{ hoursText(cell(leader.id, period.key).hours) }}</div>
+                  <div class="percentage">{{ percentText(cell(leader.id, period.key).percentage, cell(leader.id, period.key).hours) }}</div>
                 </div>
+                <div v-else class="cell-content is-none">—</div>
               </td>
+              <td class="total-col">{{ hoursText(totalOf(leader.id)) }} h</td>
             </tr>
           </tbody>
         </table>
       </div>
-    </div>
+      <footer class="report-card-foot">
+        <p v-if="withoutHours.length">
+          {{ withoutHours.length }} {{ withoutHours.length === 1 ? "persona" : "persones" }} sense hores:
+          {{ withoutHours.map(l => l.username).join(", ") }}.
+          <button type="button" class="link-button" @click="showAll = !showAll">{{ showAll ? "Amaga-les" : "Mostra-les" }}</button>
+        </p>
+        <p class="has-text-muted">Passa per sobre d'una cel·la per veure'n el detall per projecte; clica-la per fixar-lo.</p>
+      </footer>
+    </section>
 
     <!-- Tooltip. Content is a dedicated Vue component (DedicationTooltip);
          only this child re-renders when the active cell or grouping changes,
@@ -58,16 +80,6 @@
       />
     </div>
 
-    <div class="help mt-4">
-      <b-icon icon="circle" class="has-text-warning" custom-size="default" />
-      <b>Ocupada menys del 85%</b><br />
-      <b-icon icon="circle" class="has-text-blue" custom-size="default" />
-      <b>Ocupada entre el 85 i el 95%</b><br />
-      <b-icon icon="circle" class="has-text-success" custom-size="default" />
-      <b>Ocupada entre el 95 i el 105%</b><br />
-      <b-icon icon="circle" class="has-text-danger" custom-size="default" />
-      <b>Ocupada més del 105%</b><br />
-    </div>
   </div>
 </template>
 
@@ -75,6 +87,7 @@
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import DedicationTooltip from "@/components/DedicationTooltip.vue";
+import { formatNumber } from "@/helpers/format-number";
 
 // Default cell used when a leader has no data for a period.
 const EMPTY_CELL = Object.freeze({
@@ -101,6 +114,11 @@ export default {
       default: "project",
       validator: (v) => ["project", "type", "likelihood"].includes(v),
     },
+    // card heading, e.g. "Hores fetes i ocupació per persona · 2026"
+    title: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -111,6 +129,8 @@ export default {
       // When true, the tooltip is locked to its cell and no longer follows
       // the mouse or hides on mouseleave. Click outside to release.
       pinned: false,
+      // also list the people without hours in the period
+      showAll: false,
     };
   },
   computed: {
@@ -119,6 +139,27 @@ export default {
 
     visibleLeaders() {
       return this.leaders ? this.leaders.filter((l) => !l.hidden) : [];
+    },
+    withHours() {
+      return this.visibleLeaders.filter((l) => this.totalOf(l.id) > 0);
+    },
+    withoutHours() {
+      return this.visibleLeaders.filter((l) => !(this.totalOf(l.id) > 0));
+    },
+    shownLeaders() {
+      return this.showAll ? this.visibleLeaders : this.withHours;
+    },
+    // the year most periods belong to
+    mainYear() {
+      const counts = {};
+      (this.periods || []).forEach((p) => {
+        const y = (String(p.label || "").match(/(\d{4})$/) || [])[1];
+        if (y) counts[y] = (counts[y] || 0) + 1;
+      });
+      return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || "";
+    },
+    grandTotal() {
+      return this.visibleLeaders.reduce((acc, l) => acc + this.totalOf(l.id), 0);
     },
   },
   mounted() {
@@ -136,6 +177,31 @@ export default {
     // O(1) lookup into the precomputed cells map shipped by the backend
     // (projects/dedications or projects/real-dedications). Falls back to an
     // empty cell if missing.
+    totalOf(leaderId) {
+      const row = this.cells ? this.cells[leaderId] : null;
+      if (!row) return 0;
+      return (this.periods || []).reduce((acc, p) => acc + (Number(row[p.key] && row[p.key].hours) || 0), 0);
+    },
+    // "GEN 2026" -> "GEN"; months of a neighbouring year keep it short: "DES '25"
+    shortLabel(label) {
+      const m = String(label || "").match(/^(.*?)\s*(\d{4})$/);
+      if (!m) return label;
+      return m[2] === this.mainYear ? m[1] : `${m[1]} '${m[2].slice(2)}`;
+    },
+    hoursText(value) {
+      return formatNumber(Number(value) || 0, 1, 1);
+    },
+    // "↓ 56 %" under 85 %, "↑ 172 %" over 105 %
+    percentText(value, hours) {
+      const n = Math.round(Number(value) || 0);
+      // hours but no working day to compare with
+      if (!n && Number(hours)) return "s/j";
+      return (n < 85 ? "↓ " : n > 105 ? "↑ " : "") + n + " %";
+    },
+    cellClass(c) {
+      if (!Number(c.hours)) return "dedication-empty";
+      return Math.round(Number(c.percentage) || 0) ? c.cssClass : "dedication-nojornada";
+    },
     cell(leaderId, periodKey) {
       const row = this.cells ? this.cells[leaderId] : null;
       const c = row ? row[periodKey] : null;
@@ -288,267 +354,194 @@ export default {
 </script>
 
 <style scoped>
-.dedication-table-container {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  border: 1px solid #dbdbdb;
+.report-card {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.report-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--a-line);
+}
+.report-card-head h2 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.heat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem 1.25rem;
+  padding: .75rem 1.25rem;
+  font-size: .8125rem;
+  color: var(--a-fg-2);
+}
+.heat-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+}
+.heat-legend i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1rem;
   border-radius: 4px;
-  background: white;
+  font-style: normal;
+  color: var(--a-muted);
+}
+.dedication-table-container {
+  overflow-x: auto;
   max-height: 80vh;
-  /* Show scrollbar on hover for better UX */
   scrollbar-width: thin;
-  scrollbar-color: #dbdbdb #f5f5f5;
 }
-
-.dedication-table-container::-webkit-scrollbar {
-  height: 12px;
-}
-
-.dedication-table-container::-webkit-scrollbar-track {
-  background: #f5f5f5;
-  border-radius: 6px;
-}
-
-.dedication-table-container::-webkit-scrollbar-thumb {
-  background: #dbdbdb;
-  border-radius: 6px;
-}
-
-.dedication-table-container::-webkit-scrollbar-thumb:hover {
-  background: #b5b5b5;
-}
-
-.table-wrapper {
-  display: inline-block;
-  min-width: 100%;
-  position: relative;
-}
-
 .dedication-table {
-  width: auto;
-  min-width: 100%;
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.875rem;
-  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
 }
-
-.dedication-table thead {
-  background: linear-gradient(to bottom, #fafafa, #f5f5f5);
+.dedication-table th,
+.dedication-table td {
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+.dedication-table thead th {
   position: sticky;
   top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.dedication-table th {
-  padding: 0.75rem 0.5rem;
-  text-align: center;
-  font-weight: 600;
-  border-bottom: 2px solid #dbdbdb;
-  white-space: nowrap;
-  background: transparent;
-  min-width: 90px;
-  color: #363636;
-  font-size: 0.875rem;
+  z-index: 2;
+  background: var(--a-thead);
+  padding: .625rem .375rem;
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .06em;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.dedication-table td {
-  padding: 0.5rem;
-  border-bottom: 1px solid #f0f0f0;
-  text-align: center;
+  color: var(--a-muted);
+  border-bottom: 1px solid var(--a-line);
   white-space: nowrap;
-  min-width: 90px;
 }
-
 .sticky-col {
   position: sticky;
   left: 0;
-  z-index: 5;
-  background: white;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  min-width: 150px !important;
-  max-width: 150px !important;
+  z-index: 1;
+  background: var(--a-surface);
 }
-
-.dedication-table tbody tr:nth-child(even) .sticky-col {
-  background: #fafafa;
-}
-
-.dedication-table tbody tr:hover .sticky-col {
-  background: #f5f5f5;
-}
-
-.dedication-table tbody tr:hover {
-  background: #f9f9f9;
-}
-
 .dedication-table thead .sticky-col {
-  z-index: 15;
-  background: linear-gradient(to bottom, #fafafa, #f5f5f5);
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
+  z-index: 3;
+  background: var(--a-thead);
 }
-
 .person-col {
+  min-width: 9rem;
+  padding: .5rem 1rem !important;
   text-align: left !important;
-  font-weight: 600;
-  padding-left: 1rem !important;
+  font-weight: 700;
+  font-size: .875rem;
+  border-right: 1px solid var(--a-line);
+  white-space: nowrap;
 }
-
-.period-col {
-  min-width: 90px;
+.dedication-table tbody tr + tr > * {
+  border-top: 1px solid var(--a-surface);
 }
-
 .period-cell {
-  min-width: 90px;
-  transition: opacity 0.15s ease;
-  position: relative;
-  border: 1px solid transparent;
+  min-width: 4.5rem;
+  border-left: 1px solid var(--a-surface);
+  cursor: pointer;
 }
-
 .period-cell:hover {
-  opacity: 0.75;
-  z-index: 10;
+  box-shadow: inset 0 0 0 2px var(--a-fg);
 }
-
-/* Custom tooltip — hoverable so group headers can be clicked. */
+.cell-content {
+  padding: .375rem .25rem;
+  line-height: 1.2;
+}
+.cell-content .hours {
+  font-weight: 800;
+  font-size: .8125rem;
+}
+.cell-content .percentage {
+  font-size: .6875rem;
+  font-weight: 700;
+}
+.cell-content.is-none {
+  color: var(--a-line);
+}
+.total-col {
+  padding: .5rem 1rem !important;
+  text-align: right !important;
+  font-weight: 800;
+  font-size: .8125rem;
+  white-space: nowrap;
+  border-left: 1px solid var(--a-line);
+}
+.dedication-empty {
+  background: var(--a-surface);
+}
+.dedication-low {
+  background: #FCEFC7;
+  color: #7A5A00;
+}
+.dedication-good {
+  background: #DCE9F8;
+  color: #1E4E86;
+}
+.dedication-optimal {
+  background: #CDEBE3;
+  color: #0B5B4C;
+}
+.dedication-high {
+  background: #F6C3A7;
+  color: #8A3A12;
+}
+.dedication-nojornada {
+  background: repeating-linear-gradient(135deg, var(--a-chip) 0 5px, var(--a-surface) 5px 10px);
+  color: var(--a-fg-2);
+}
+.report-card-foot {
+  padding: .75rem 1.25rem;
+  border-top: 1px solid var(--a-line);
+  font-size: .8125rem;
+  color: var(--a-fg-2);
+}
+.report-card-foot p + p {
+  margin-top: .375rem;
+}
+/* hover / pinned breakdown of a cell (DedicationTooltip) */
 .custom-tooltip {
-  /* Visibility is toggled via v-show (display), so the base value is block. */
+  /* toggled with v-show */
   display: block;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 10000;
-  background: #2c3e50;
-  opacity: 0.97;
-  color: #ffffff;
-  padding: 0.85rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 400;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #1F2A2E;
+  color: #fff;
+  padding: .875rem 1rem;
+  border-radius: 10px;
+  font-size: .875rem;
   max-width: 380px;
   min-width: 250px;
   max-height: 70vh;
   overflow-y: auto;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
   pointer-events: auto;
 }
-
-/* Pinned state: locked to its cell, no longer follows the mouse. A subtle
-   highlight tells the user it's fixed and a click outside will release it. */
 .custom-tooltip.is-pinned {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35), 0 0 0 2px #3273dc;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .3), 0 0 0 2px var(--a-accent);
 }
-
-.cell-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  width: 100%;
-  height: 100%;
+.link-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+  color: var(--a-accent);
   cursor: pointer;
-}
-
-.hours {
-  font-weight: 600;
-  font-size: 0.95rem;
-  letter-spacing: -0.01em;
-}
-
-.percentage {
-  font-size: 0.8rem;
-  color: #666;
-  font-weight: 500;
-}
-
-/* Improve percentage visibility on colored backgrounds */
-.dedication-good .percentage,
-.dedication-optimal .percentage,
-.dedication-high .percentage {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 600;
-}
-
-/* Color coding for dedication levels */
-.dedication-empty {
-  background-color: #fafafa;
-  color: #999;
-}
-
-.dedication-low {
-  background-color: #ffdd57;
-  color: #333;
-  font-weight: 500;
-}
-
-.dedication-low .percentage {
-  color: #555;
-  font-weight: 600;
-}
-
-.dedication-good {
-  background: linear-gradient(135deg, #299cb4 0%, #2aacc4 100%);
-  color: white;
-  font-weight: 500;
-}
-
-.dedication-good .percentage {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 600;
-}
-
-.dedication-optimal {
-  background: linear-gradient(135deg, #48c774 0%, #58d784 100%);
-  color: white;
-  font-weight: 500;
-}
-
-.dedication-optimal .percentage {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 600;
-}
-
-.dedication-high {
-  background: linear-gradient(135deg, #f14668 0%, #f15678 100%);
-  color: white;
-  font-weight: 500;
-}
-
-.dedication-high .percentage {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 600;
-}
-
-.help {
-  padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 4px;
-  font-size: 0.875rem;
-}
-
-.has-text-blue {
-  color: #299cb4 !important;
-}
-
-/* Responsive adjustments */
-@media screen and (max-width: 768px) {
-  .period-col,
-  .period-cell {
-    min-width: 70px;
-  }
-
-  .hours {
-    font-size: 0.8rem;
-  }
-
-  .percentage {
-    font-size: 0.7rem;
-  }
 }
 </style>
