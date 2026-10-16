@@ -49,105 +49,47 @@
       :can-cancel="false"
     ></b-loading>
 
-    <card-component class="has-table has-mobile-sort-spaced">
-      <div class="card-body is-total">
-        <div class="columns">
-          <div class="column is-4 has-text-weight-bold">
-            Total
-            <!-- <download-csv :data="activitiesJSON">
-              <b-button
-              class="zview-button"
-              :type="'is-disabled'"
-              icon-left="file-excel" />
-            </download-csv> -->
-          </div>
-          <div class="column is-3 has-text-weight-bold">{{ superTotal }} h</div>
-          <div class="column is-5 has-text-right">
-            <b-button
-              @click="viewType = 'all'"
-              title="Vista completa"
-              class="view-button"
-              :type="viewType == 'all' ? 'is-primary' : 'is-disabled'"
-              icon-left="table-headers-eye-off"
-            />
-            <b-button
-              @click="viewType = 'calendar'"
-              title="Vista calendari"
-              class="view-button"
-              :type="viewType == 'calendar' ? 'is-primary' : 'is-disabled'"
-              icon-left="calendar"
-            />
-            <b-button
-              @click="viewType = 'table'"
-              title="Vista taula"
-              class="view-button"
-              :type="viewType == 'table' ? 'is-primary' : 'is-disabled'"
-              icon-left="table-large"
-            />
-            <span class="separator"></span>
-            <download-excel class="export view-button" :data="activitiesJSON">
-              <b-button
-                title="Exporta dades"
-                class="zview-button"
-                :type="'is-disabled'"
-                icon-left="file-excel"
-              />
-            </download-excel>
-            <span class="separator"></span>
-            <b-button
-              title="Vista persona"
-              @click="colorTypeChanged('user')"
-              class="view-button"
-              :type="colorType == 'user' ? 'is-primary' : 'is-disabled'"
-              icon-left="account"
-            />
-            <b-button
-              title="Vista projecte"
-              @click="colorTypeChanged('project')"
-              class="view-button"
-              :type="colorType == 'project' ? 'is-primary' : 'is-disabled'"
-              icon-left="wrench"
-            />
-            <span class="separator"></span>
-            <b-button
-              title="Importar des de calendari *.ics"
-              @click="importFromCalendar(true)"
-              class="view-button is-warning"
-              :disabled="!user"
-              :loading="isLoadingImport"
-              icon-left="download"
-            />
-            <b-button
-              title="Moure hores entre projectes"
-              @click="showModalMoveToProject"
-              class="view-button is-warning"
-              :disabled="!project"
-              :loading="isLoadingMove"
-              icon-left="swap-horizontal"
-            />
-            <b-button
-              title="Afegir festiu"
-              @click="showModalFestive(null)"
-              class="view-button is-warning"
-              icon-left="calendar-star"
-            />
-            <b-button
-              id="time-counter-button"
-              title="Començar dedicació"
-              @click="showModalCounter"
-              class="view-button is-warning"
-              icon-left="clock-outline"
-            />
-            <b-button
-              title="Afegir dedicació"
-              @click="showModal(null)"
-              class="view-button is-warning"
-              icon-left="plus"
-            />
-          </div>
-        </div>
+    <!-- Redesign A: total, views and actions in one labelled toolbar
+         (titles kept: the e2e tests use them) -->
+    <div class="hours-toolbar">
+      <div class="hours-total">
+        <span>Total</span>
+        <b>{{ formatHours(superTotal) }}</b>
       </div>
-    </card-component>
+      <div class="segmented" role="group" aria-label="Vista">
+        <button type="button" title="Vista calendari" :class="{ 'is-on': viewType == 'calendar' }" :aria-pressed="viewType == 'calendar' ? 'true' : 'false'" @click="viewType = 'calendar'">Calendari</button>
+        <button type="button" title="Vista taula" :class="{ 'is-on': viewType == 'table' }" :aria-pressed="viewType == 'table' ? 'true' : 'false'" @click="viewType = 'table'">Taula</button>
+        <button type="button" title="Vista completa" :class="{ 'is-on': viewType == 'all' }" :aria-pressed="viewType == 'all' ? 'true' : 'false'" @click="viewType = 'all'">Tot</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Colors per">
+        <button type="button" title="Vista persona" :class="{ 'is-on': colorType == 'user' }" :aria-pressed="colorType == 'user' ? 'true' : 'false'" @click="colorTypeChanged('user')">Per persona</button>
+        <button type="button" title="Vista projecte" :class="{ 'is-on': colorType == 'project' }" :aria-pressed="colorType == 'project' ? 'true' : 'false'" @click="colorTypeChanged('project')">Per projecte</button>
+      </div>
+      <div class="hours-actions">
+        <download-excel class="export" :data="activitiesJSON">
+          <b-button size="is-small" title="Exporta dades" icon-left="download">Exporta</b-button>
+        </download-excel>
+        <b-button
+          size="is-small"
+          title="Importar des de calendari *.ics"
+          :disabled="!user"
+          :loading="isLoadingImport"
+          icon-left="calendar-import"
+          @click="importFromCalendar(true)"
+        >Importa .ics</b-button>
+        <b-button
+          size="is-small"
+          title="Moure hores entre projectes"
+          :disabled="!project"
+          :loading="isLoadingMove"
+          icon-left="swap-horizontal"
+          @click="showModalMoveToProject"
+        >Mou hores</b-button>
+        <b-button size="is-small" title="Afegir festiu" icon-left="calendar-star" @click="showModalFestive(null)">Festiu</b-button>
+        <b-button id="time-counter-button" size="is-small" title="Començar dedicació" icon-left="clock-outline" @click="showModalCounter">Comptador</b-button>
+        <b-button type="is-primary" title="Afegir dedicació" icon-left="plus" @click="showModal(null)">Afegeix hores</b-button>
+      </div>
+    </div>
 
     <card-component class="has-table has-mobile-sort-spaced" v-if="counter">
       <div
@@ -353,6 +295,7 @@ import ModalBoxFestive from "@/components/ModalBoxFestive.vue";
 import ModalBoxMoveProject from "@/components/ModalBoxMoveProject.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
+import { formatHours } from "@/helpers/format-number";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
@@ -541,6 +484,7 @@ export default {
     ).data;
   },
   methods: {
+    formatHours,
     async getActivities() {
       if (this.isLoading) {
         return;
@@ -1595,6 +1539,70 @@ export default {
 };
 </script>
 <style scoped>
+/* Redesign A: one toolbar with the total, the views and labelled actions */
+.hours-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1rem;
+  margin-bottom: 1rem;
+  padding: .75rem 1rem;
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+}
+.hours-total {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  margin-right: .5rem;
+}
+.hours-total span {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.hours-total b {
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--a-seg);
+}
+.segmented button {
+  height: 2rem;
+  padding: 0 .75rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--a-fg-2);
+  cursor: pointer;
+}
+.segmented button.is-on {
+  background: var(--a-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.hours-actions {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .375rem;
+}
+.hours-actions .export {
+  display: inline-flex;
+}
 .separator {
   margin-right: 0.5rem;
   display: inline-block;
