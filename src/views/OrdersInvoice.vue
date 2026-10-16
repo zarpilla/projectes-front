@@ -1,9 +1,7 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
-    <section class="section is-main-section">
-      <orders-invoice-table v-if="!isLoading" />
-    </section>
+    <!-- the title bar is in OrdersInvoiceTable: its actions need the selection -->
+    <orders-invoice-table v-if="!isLoading" />
   </div>
 </template>
 

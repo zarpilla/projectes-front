@@ -176,7 +176,7 @@ test('delivered orders are invoiced to the member ("Facturar comandes")', async 
   await input.click()
   await input.pressSequentially(state.projectName, { delay: 20 })
   await page.locator('.autocomplete .dropdown-item', { hasText: state.projectName }).filter({ visible: true }).first().click()
-  await button('FACTURAR').click()
+  await button('Factura').click()
   await expectSnackbar('Comandes facturades correctament')
 
   const order = await api('GET', `orders/${state.orderId}`)
