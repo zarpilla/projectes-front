@@ -527,6 +527,68 @@ td.doc-total {
   font-weight: 800;
 }
 
+/* ---------- segmented control and toggle chips ---------- */
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: $a-seg;
+
+  button {
+    height: 2.125rem;
+    padding: 0 .75rem;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    font: inherit;
+    font-size: .875rem;
+    font-weight: 600;
+    color: $a-fg-2;
+    cursor: pointer;
+
+    &.is-on {
+      background: $a-surface;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+      font-weight: 800;
+      color: $a-fg;
+    }
+  }
+}
+// a labelled group of on/off chips (multi-select filters)
+.toggle-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .375rem;
+}
+.toggle-label {
+  font-size: .8125rem;
+  font-weight: 700;
+  color: $a-muted;
+  margin-right: .25rem;
+}
+.chip-toggle {
+  height: 2rem;
+  padding: 0 .75rem;
+  border: 1px solid $a-input;
+  border-radius: 999px;
+  background: $a-surface;
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: $a-fg-2;
+  cursor: pointer;
+
+  &.is-on {
+    background: $a-accent-soft;
+    border-color: $a-accent;
+    color: $a-accent-hover;
+    font-weight: 800;
+  }
+}
+
 /* ---------- small helpers shared by redesigned screens ---------- */
 .has-text-pos { color: $a-pos !important; }
 .has-text-neg { color: $a-neg !important; }

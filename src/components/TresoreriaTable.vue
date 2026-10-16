@@ -7,22 +7,25 @@
       @cancel="modalCancel"
     />
 
-    <div class="is-flex">
-      <button
-        class="button mr-3"
-        v-for="year in years"
-        :key="year.year"
-        @click="goToYear(year.year)"
-        :class="{
-          'is-primary': selectedYear == year.year,
-          'is-outlined': selectedYear != year.year
-        }"
-      >
-        {{ year.year }}
-      </button>
+    <!-- Redesign A: year, project states and accounts as labelled toggles -->
+    <div class="treasury-filters">
+    <div class="treasury-row">
+      <div class="segmented" role="group" aria-label="Any">
+        <button
+          v-for="year in years"
+          :key="year.year"
+          type="button"
+          :class="{ 'is-on': selectedYear == year.year }"
+          :aria-pressed="selectedYear == year.year ? 'true' : 'false'"
+          @click="goToYear(year.year)"
+        >
+          {{ year.year }}
+        </button>
+      </div>
+      <b-button class="ml-auto" icon-left="refresh" @click="getData">Refrescar</b-button>
 
       <download-excel
-        class="export view-button ml-auto"
+        class="export view-button"
         :data="treasuryDataDesc"
         v-if="treasuryDataDesc && treasuryDataDesc.length"
         name="tresoreria"
@@ -55,125 +58,88 @@
           pagat: 'paid'
         }"
       >
-        <b-button
-          title="Exporta dades"
-          class="zview-button"
-          :type="'is-disabled'"
-          icon-left="file-excel"
-        />
+        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
     </div>
 
-    <div class="is-flex mt-2">
-      <button
-        class="button mr-3"
-        v-for="state in projectStates"
-        :key="state.id"
-        @click="toggleState(state)"
-        :class="{
-          'is-primary': selectedProjectStates.includes(state.id),
-          'is-outlined': !selectedProjectStates.includes(state.id)
-        }"
-      >
-        {{ state.name }}
-      </button>
-    </div>
-
-    <div class="is-flex mt-2" v-if="bankAccounts && bankAccounts.length > 1">
-      <button
-        class="button mr-3"
-        v-for="account in bankAccounts"
-        :key="account.id"
-        @click="toggleBankAccount(account)"
-        :class="{
-          'is-primary': selectedBankAccountIds.includes(account.id),
-          'is-outlined': !selectedBankAccountIds.includes(account.id)
-        }"
-      >
-        {{ account.name }}
-      </button>
-    </div>
-
-    <div class="is-flex mt-4">
-      <button
-        class="button is-warning"
-        @click="getData"
-      >
-        <b-icon icon="refresh" size="is-small" class="mr-1"></b-icon>
-        Refrescar
-      </button>
-    </div>
-
-    <!-- Filters Section -->
-    <div
-      class="filters-section mt-4 p-4"
-      style="background-color: #f5f5f5; border-radius: 4px;"
-    >
-      <div class="columns">
-        <div class="column is-4">
-          <b-field label="Projecte">
-            <b-autocomplete
-              v-model="projectSearch"
-              placeholder="Filtrar per projecte..."
-              :keep-first="false"
-              :open-on-focus="true"
-              :data="filteredProjects"
-              field="name"
-              @select="projectSelected"
-              :clearable="true"
-            >
-              <template #empty>Cap projecte trobat</template>
-            </b-autocomplete>
-          </b-field>
-        </div>
-        <div class="column is-3">
-          <b-field label="Data Inici">
-            <b-datepicker
-              v-model="filterDateStart"
-              :show-week-number="false"
-              :locale="'ca-ES'"
-              :first-day-of-week="1"
-              icon="calendar-today"
-              placeholder="Des de..."
-              trap-focus
-              editable
-              :clearable="true"
-              @update:model-value="applyDateFilters"
-            >
-            </b-datepicker>
-          </b-field>
-        </div>
-        <div class="column is-3">
-          <b-field label="Data Final">
-            <b-datepicker
-              v-model="filterDateEnd"
-              :show-week-number="false"
-              :locale="'ca-ES'"
-              :first-day-of-week="1"
-              icon="calendar-today"
-              placeholder="Fins a..."
-              trap-focus
-              editable
-              :clearable="true"
-              @update:model-value="applyDateFilters"
-            >
-            </b-datepicker>
-          </b-field>
-        </div>
-        <div class="column is-2 is-flex is-align-items-end">
-          <b-button
-            v-if="selectedProject || filterDateStart || filterDateEnd"
-            @click="clearFilters"
-            type="is-warning"
-          >
-            Netejar filtres
-          </b-button>
-        </div>
+    <div class="treasury-row">
+      <div class="toggle-group" role="group" aria-label="Estats de projecte">
+        <span class="toggle-label">Projectes</span>
+        <button
+          v-for="state in projectStates"
+          :key="state.id"
+          type="button"
+          class="chip-toggle"
+          :class="{ 'is-on': selectedProjectStates.includes(state.id) }"
+          :aria-pressed="selectedProjectStates.includes(state.id) ? 'true' : 'false'"
+          @click="toggleState(state)"
+        >
+          {{ state.name }}
+        </button>
       </div>
-      <!-- <div class="has-text-grey-light is-size-7 mt-2" v-if="selectedProject">
-        <b-icon icon="filter" size="is-small"></b-icon>
-        Filtrant per projecte: <strong>{{ selectedProject.name }}</strong>
-      </div> -->
+      <div v-if="bankAccounts && bankAccounts.length > 1" class="toggle-group" role="group" aria-label="Comptes">
+        <span class="toggle-label">Comptes</span>
+        <button
+          v-for="account in bankAccounts"
+          :key="account.id"
+          type="button"
+          class="chip-toggle"
+          :class="{ 'is-on': selectedBankAccountIds.includes(account.id) }"
+          :aria-pressed="selectedBankAccountIds.includes(account.id) ? 'true' : 'false'"
+          @click="toggleBankAccount(account)"
+        >
+          {{ account.name }}
+        </button>
+      </div>
+    </div>
+
+    <div class="treasury-row">
+      <b-autocomplete
+        v-model="projectSearch"
+        class="treasury-project"
+        placeholder="Filtra per projecte"
+        aria-label="Projecte"
+        icon="folder-outline"
+        :keep-first="false"
+        :open-on-focus="true"
+        :data="filteredProjects"
+        field="name"
+        :clearable="true"
+        @select="projectSelected"
+      >
+        <template #empty>Cap projecte trobat</template>
+      </b-autocomplete>
+      <div class="treasury-dates">
+        <b-datepicker
+          v-model="filterDateStart"
+          aria-label="Des de"
+          :show-week-number="false"
+          :locale="'ca-ES'"
+          :first-day-of-week="1"
+          icon="calendar-today"
+          placeholder="Des de…"
+          trap-focus
+          editable
+          :clearable="true"
+          @update:model-value="applyDateFilters"
+        />
+        <span aria-hidden="true">–</span>
+        <b-datepicker
+          v-model="filterDateEnd"
+          aria-label="Fins a"
+          :show-week-number="false"
+          :locale="'ca-ES'"
+          :first-day-of-week="1"
+          icon="calendar-today"
+          placeholder="Fins a…"
+          trap-focus
+          editable
+          :clearable="true"
+          @update:model-value="applyDateFilters"
+        />
+      </div>
+      <b-button v-if="selectedProject || filterDateStart || filterDateEnd" type="is-text" @click="clearFilters">Netejar filtres</b-button>
+    </div>
     </div>
 
     <!-- <pre>{{ treasuryData }}</pre> -->
@@ -330,9 +296,17 @@
 
     <card-component title="MOVIMENTS BANCARIS" class="ztile is-child mt-2">
       <section class="section">
+        <!-- paginated (the whole year was one ~60.000 px table); opens on the page with "Avui" -->
         <b-table
+          v-model:current-page="movementsPage"
           :loading="isLoading"
-          :paginated="false"
+          :paginated="true"
+          :per-page="movementsPerPage"
+          pagination-position="both"
+          aria-next-label="Pàgina següent"
+          aria-previous-label="Pàgina anterior"
+          aria-page-label="Pàgina"
+          aria-current-label="Pàgina actual"
           :striped="false"
           :data="treasuryDataDesc"
           :row-class="
@@ -349,6 +323,7 @@
             field="datef"
             sortable
             searchable
+            cell-class="is-nowrap"
             v-slot="props"
           >
             {{ props.row.datex }}
@@ -579,6 +554,8 @@ export default {
   },
   data() {
     return {
+      movementsPage: 1,
+      movementsPerPage: 50,
       isLoading: false,
       years: [],
       projects: [],
@@ -645,6 +622,11 @@ export default {
     }, 100);
   },
   watch: {
+    // the movements list opens on the page that holds today's row ("Avui")
+    treasuryDataDesc(rows) {
+      const today = (rows || []).findIndex(r => r.type === "Avui");
+      this.movementsPage = today >= 0 ? Math.floor(today / this.movementsPerPage) + 1 : 1;
+    },
     pivotData2: {
       handler(newVal) {
         // Update the pivot table when filter data changes
@@ -1206,6 +1188,37 @@ export default {
 };
 </script>
 <style>
+.treasury-filters {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+}
+.treasury-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1.5rem;
+}
+.treasury-row .export {
+  display: inline-flex;
+}
+.treasury-project {
+  flex: 1 1 14rem;
+  max-width: 22rem;
+}
+.treasury-dates {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.treasury-dates .datepicker {
+  width: 9.5rem;
+}
 .treasury-table.b-table .table th,
 .treasury-table.b-table td {
   min-width: 150px;
