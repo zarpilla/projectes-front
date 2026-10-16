@@ -86,23 +86,26 @@ a {
     }
   }
 
-  // The old theme used yellow buttons for secondary actions; the redesign has
-  // one primary action per screen and neutral secondary buttons.
+  // The old theme used yellow (is-warning) both for secondary actions and, much more,
+  // for the *selected* button of a toggle group (unselected ones are outlined/light).
+  // In the redesign it is the "selected" look: soft teal, so selections stay visible.
   &.is-warning {
-    background-color: $a-surface;
-    border-color: $a-input;
-    color: $a-fg;
+    background-color: $a-accent-soft;
+    border-color: $a-accent;
+    color: $a-accent-hover;
+    font-weight: 800;
 
     &:hover, &.is-hovered, &:focus {
-      background-color: $a-thead;
-      border-color: $a-input;
-      color: $a-fg;
+      background-color: #D2EEE8;
+      border-color: $a-accent-hover;
+      color: $a-accent-hover;
     }
 
-    &.is-selected, &.is-active {
-      background-color: $a-accent-soft;
-      border-color: $a-accent;
-      color: $a-accent;
+    &.is-light {
+      background-color: $a-surface;
+      border-color: $a-input;
+      color: $a-fg;
+      font-weight: 700;
     }
   }
 
@@ -329,6 +332,74 @@ a {
 .modal-card-foot {
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
+}
+
+/* ---------- edit forms: labels on top, two columns, section headings ----------
+   <form class="a-form"> on forms of horizontal b-fields. Fields span both columns,
+   except selects, dates and switches. .is-compact: plain short fields side by side
+   too (use .full for the wide ones). <h3 class="form-section-title"> between groups. */
+.a-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  align-items: start;
+  max-width: 64rem;
+}
+.a-form > *,
+.a-form .optional-fields > * {
+  grid-column: 1 / -1;
+}
+// a wrapper whose fields join the form grid (e.g. folded optional fields)
+.a-form .optional-fields {
+  display: contents;
+}
+.a-form .field {
+  margin: 0;
+}
+.a-form .field.is-horizontal {
+  display: block;
+}
+.a-form .field.is-horizontal > .field-label {
+  text-align: left;
+  padding: 0;
+  margin: 0 0 .375rem;
+}
+.a-form .field.is-horizontal > .field-label .label {
+  font-size: .875rem;
+}
+.a-form > .field:has(.select):not(:has(.taginput)):not(:has(textarea)),
+.a-form > .field:has(.datepicker),
+.a-form > .field:has(.switch),
+.a-form .optional-fields > .field:has(.select):not(:has(.taginput)):not(:has(textarea)),
+.a-form .optional-fields > .field:has(.switch) {
+  grid-column: auto;
+}
+.a-form.is-compact > .field:not(.full):not(:has(textarea)):not(:has(.taginput)) {
+  grid-column: auto;
+}
+.a-form > .full {
+  grid-column: 1 / -1 !important;
+}
+.a-form .select,
+.a-form .select select,
+.a-form .datepicker {
+  width: 100%;
+}
+.a-form hr {
+  margin: .5rem 0 0;
+  background: $a-line;
+  height: 1px;
+}
+.a-form .form-section-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: $a-fg;
+  margin-top: .25rem;
+}
+@media screen and (max-width: 768px) {
+  .a-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ---------- small helpers shared by redesigned screens ---------- */

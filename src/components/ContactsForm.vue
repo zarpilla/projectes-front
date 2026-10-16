@@ -10,8 +10,9 @@
       <div class="columns">
         <div class="column is-full">
           <card-component class="tile is-child">
-            <form @submit.prevent="submit" v-if="!isLoading">
-              <b-field label="Raó Social *" horizontal>
+            <form class="a-form is-compact" @submit.prevent="submit" v-if="!isLoading">
+              <h3 class="form-section-title">Identificació</h3>
+              <b-field label="Raó Social *" horizontal class="full">
                 <b-input
                   v-model="form.name"
                   placeholder="Raó Social del contacte"
@@ -21,7 +22,7 @@
               <b-field :label="!form.owner ? 'NIF *' : 'NIF'" horizontal>
                 <b-input v-model="form.nif" required />
               </b-field>
-              <b-field label="Tipus de contacte" horizontal>
+              <b-field label="Tipus de contacte" horizontal class="full">
                 <div class="is-flex">
                   <div
                     v-for="(contactType, index) in contactTypes"
@@ -69,7 +70,8 @@
               <b-field label="Email" horizontal>
                 <b-input v-model="form.email" />
               </b-field>
-              <b-field label="Adreça *" horizontal>
+              <h3 class="form-section-title">Adreça</h3>
+              <b-field label="Adreça *" horizontal class="full">
                 <b-input v-model="form.address" required type="text" />
               </b-field>
               <b-field label="CP *" horizontal>
@@ -84,6 +86,7 @@
               <b-field label="País" horizontal>
                 <b-input v-model="form.country" />
               </b-field>
+              <h3 class="form-section-title">Persona de contacte</h3>
               <b-field label="Persona de contacte" horizontal>
                 <b-input v-model="form.contact_person" />
               </b-field>
@@ -100,6 +103,7 @@
               <b-field label="Web" horizontal>
                 <b-input v-model="form.website" />
               </b-field>
+              <h3 class="form-section-title">Entitat</h3>
               <b-field label="Forma jurídica" horizontal>
                 <b-select v-model="form.legal_form" placeholder="">
                   <option
@@ -138,6 +142,7 @@
                 >
                 </b-datepicker>
               </b-field>
+              <h3 class="form-section-title">Seguiment</h3>
               <b-field label="Data de seguiment" horizontal>
                 <b-datepicker
                   v-model="form.followup_date"
@@ -153,6 +158,7 @@
               </b-field>
               
               <b-field
+                class="full"
                 label="Horari de contacte 1"
                 horizontal
                 v-if="form.owner"
@@ -197,6 +203,7 @@
               </b-field>
 
               <b-field
+                class="full"
                 label="Horari de contacte 2"
                 horizontal
                 v-if="form.owner"
@@ -241,6 +248,7 @@
               </b-field>
 
               <b-field
+                class="full"
                 label="Contacte de"
                 horizontal
                 v-if="isOrdersContactAndUserIsOrdersAdmin"
@@ -264,7 +272,7 @@
               <b-field
                 label="Notes"
                 horizontal
-                class="line-notes is-full-width mb-5"
+                class="line-notes is-full-width mb-5 full"
               >
                 <b-input
                   type="textarea"
@@ -273,6 +281,7 @@
                 />
               </b-field>
 
+              <h3 v-if="isFaceEnabled && !form.owner" class="form-section-title">Facturació electrònica</h3>
               <b-field label="FACe" horizontal v-if="isFaceEnabled && !form.owner">
                 <b-switch v-model="form.face">Activar FACe</b-switch>
               </b-field>
@@ -365,9 +374,10 @@
               <hr />
               <b-field
                 horizontal
+                class="full"
                 v-if="!form.multiowner || permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
               >
-                <div class="is-flex">
+                <div class="is-flex contact-actions">
                   <b-button
                     type="is-primary mr-2"
                     :loading="isLoading"
@@ -375,7 +385,7 @@
                     >Guardar</b-button
                   >
                   <b-button
-                    type="is-primary mr-2"
+                    class="mr-2"
                     :loading="isLoading"
                     @click="submitExit"
                     >Guardar i sortir</b-button

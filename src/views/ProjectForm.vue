@@ -5307,56 +5307,7 @@ body:has(.project-form .savebar) .notices.is-bottom {
     padding: .75rem 1rem;
   }
 }
-/* Dades in the redesign: labels on top, short fields in two columns, sections */
-.project-form .a-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem 1.5rem;
-  align-items: start;
-}
-.project-form .a-form > *,
-.project-form .a-form .optional-fields > * {
-  grid-column: 1 / -1;
-}
-/* the folded optional fields join the same grid */
-.project-form .a-form {
-  max-width: 64rem;
-}
-.project-form .a-form .optional-fields {
-  display: contents;
-}
-.project-form .a-form .field {
-  margin: 0;
-}
-.project-form .a-form .field.is-horizontal {
-  display: block;
-}
-.project-form .a-form .field.is-horizontal > .field-label {
-  text-align: left;
-  padding: 0;
-  margin: 0 0 .375rem;
-}
-.project-form .a-form .field.is-horizontal > .field-label .label {
-  font-size: .875rem;
-}
-/* short fields side by side: selects, dates and switches without long text */
-.project-form .a-form > .field:has(.select):not(:has(.taginput)):not(:has(textarea)),
-.project-form .a-form > .field:has(.datepicker),
-.project-form .a-form .optional-fields > .field:has(.select):not(:has(.taginput)):not(:has(textarea)),
-.project-form .a-form .optional-fields > .field:has(.switch),
-.project-form .a-form > .field:has(.switch) {
-  grid-column: auto;
-}
-.project-form .a-form .select,
-.project-form .a-form .select select,
-.project-form .a-form .datepicker {
-  width: 100%;
-}
-.project-form .a-form hr {
-  margin: .5rem 0 0;
-  background: var(--a-line);
-  height: 1px;
-}
+/* Dades: the form layout is the shared .a-form (_redesign.scss); project bits here */
 .project-form .a-form .file-documents {
   margin-left: 0;
 }
@@ -5364,17 +5315,6 @@ body:has(.project-form .savebar) .notices.is-bottom {
 .project-form .a-form .field:has(.file-documents) > .field-label,
 .project-form .a-form .field:has(> .field-body .help + .file-documents) > .field-label {
   display: none;
-}
-.project-form .a-form .form-section-title {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--a-fg);
-  margin-top: .25rem;
-}
-@media screen and (max-width: 768px) {
-  .project-form .a-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 .project-form .optional-toggle {
   display: flex;
