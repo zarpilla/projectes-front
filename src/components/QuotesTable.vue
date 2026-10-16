@@ -1,54 +1,17 @@
 <template>
   <section class="xsection">
-    <!-- <tiles>
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_base"
-        suffix="€"
-        label="Base"
-      />
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_vat"
-        label="IVA"
-        suffix="€"
-      />
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_irpf"
-        label="IRPF"
-        suffix="€"
-      />
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_total"
-        label="Total"
-        suffix="€"
-      />
-    </tiles> -->
-
-    <download-excel class="export" :data="emittedCSV">
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0 mb-3"
-        icon-left="file-excel"
-      />
-    </download-excel>
-    <b-button
-      class="view-button is-primary mb-3"
-      @click="navNew"
-      icon-left="plus"
-    >
-      Nou pressupost
-    </b-button>
+    <!-- Redesign A: totals of the year, actions, and the quotes list -->
+    <div class="doc-kpis">
+      <div class="doc-kpi"><span>Pressupostat</span><b>{{ formatMoney(total_base) }}</b><small>{{ emitted.length }} pressupostos · base</small></div>
+      <div class="doc-kpi"><span>Acceptat</span><b>{{ formatMoney(acceptedBase) }}</b><small>{{ acceptedCount }} acceptats</small></div>
+      <div class="doc-kpi"><span>Pendent de resposta</span><b>{{ formatMoney(total_base - acceptedBase) }}</b><small>{{ emitted.length - acceptedCount }} pendents</small></div>
+    </div>
+    <div class="doc-actions">
+      <download-excel class="export" :data="emittedCSV">
+        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
+      </download-excel>
+      <b-button type="is-primary" icon-left="plus" @click="navNew">Nou pressupost</b-button>
+    </div>
     <b-table
       :loading="isLoading"
       :paginated="false"
@@ -60,7 +23,7 @@
           (row.type == 'Avui' && 'has-text-info')
       "
     >
-      <b-table-column label="Codi" field="code" v-slot="props" sortable>
+      <b-table-column label="Codi" field="code" v-slot="props" sortable cell-class="is-nowrap">
         <router-link
           v-if="props.row.id"
           :to="{ name: 'document.edit', params: { id: props.row.id, type: props.row.type } }"
@@ -69,45 +32,30 @@
         </router-link>
         <b v-else>{{ props.row.code }}</b>
       </b-table-column>      
-      <b-table-column label="Data" field="emitted" v-slot="props" sortable>
+      <b-table-column label="Data" field="emitted" v-slot="props" sortable cell-class="is-nowrap">
         {{ props.row.emitted ? formatDate(props.row.emitted) : "" }}
       </b-table-column>
-      <b-table-column
-        label="Acceptat"
-        field="paybefore"
-        v-slot="props"
-        sortable
-      >
-        {{ props.row.paybefore ? formatDate(props.row.accepted_date) : "" }}
+      <b-table-column label="Contacte" field="contact.name" v-slot="props" sortable cell-class="doc-contact">
+        <span class="doc-title">{{ props.row.contact ? props.row.contact.name : "—" }}</span>
+        <span class="doc-subline">{{ props.row.contact ? props.row.contact.nif : "" }}</span>
       </b-table-column>
-      <b-table-column
-        label="Contacte"
-        field="contact.name"
-        v-slot="props"
-        sortable
-      >
-        {{ props.row.contact ? props.row.contact.name : "" }}
-      </b-table-column>
-      <b-table-column
-        label="NIF Contacte"
-        field="contact.name"
-        v-slot="props"
-        sortable
-      >
-        {{ props.row.contact ? props.row.contact.nif : null }}
-      </b-table-column>
-      <b-table-column label="Concepte" field="lines" v-slot="props" sortable>
-        {{
+      <b-table-column label="Concepte" field="lines" v-slot="props" sortable cell-class="doc-concept">
+        <div class="doc-clamp" :title="props.row.lines && props.row.lines.length ? props.row.lines[0].concept : null">{{
           props.row.lines && props.row.lines.length > 0
             ? props.row.lines[0].concept
             : ""
-        }}
+        }}</div>
       </b-table-column>
-      <b-table-column label="Projecte" field="lines" v-slot="props" sortable>
-        {{ props.row.projects && props.row.projects.length ? props.row.projects[0].name : (props.row.project ? props.row.project.name : "-" ) }}
+      <b-table-column label="Projecte" field="lines" v-slot="props" sortable cell-class="doc-project">
+        <div class="doc-clamp">{{ props.row.projects && props.row.projects.length ? props.row.projects[0].name : (props.row.project ? props.row.project.name : "—" ) }}</div>
       </b-table-column>
-      <b-table-column label="Base" field="total_base" v-slot="props" sortable>
-        {{ formatPrice(props.row.total_base) }} €
+      <b-table-column label="Base" field="total_base" v-slot="props" sortable numeric cell-class="is-nowrap doc-total">
+        {{ formatMoney(props.row.total_base) }}
+      </b-table-column>
+      <b-table-column label="Estat" field="accepted" v-slot="props" sortable cell-class="is-nowrap">
+        <span v-if="props.row.accepted || props.row.accepted_date" class="tag is-success is-light">Acceptat</span>
+        <span v-else class="tag is-warning">Pendent</span>
+        <span v-if="props.row.accepted_date" class="doc-subline">{{ formatDate(props.row.accepted_date) }}</span>
       </b-table-column>      
     </b-table>
   </section>
@@ -117,13 +65,12 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
-import Tiles from "@/components/Tiles.vue";
-import CardWidget from "@/components/CardWidget.vue";
+import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
 
 export default {
   name: "EmittedInvoices",
-  components: { Tiles, CardWidget },
+  components: {},
   props: {
     titleStack: {
       type: Array,
@@ -135,6 +82,15 @@ export default {
     },
   },
   computed: {
+    acceptedQuotes() {
+      return (this.emitted || []).filter(q => q.accepted || q.accepted_date);
+    },
+    acceptedCount() {
+      return this.acceptedQuotes.length;
+    },
+    acceptedBase() {
+      return sumBy(this.acceptedQuotes, q => Number(q.total_base) || 0);
+    },
     total_base() {
       return sumBy(this.emitted, "total_base").toFixed(2);
     },
@@ -175,6 +131,7 @@ export default {
     this.getData();
   },
   methods: {
+    formatMoney,
     navNew() {
       this.$router.push("/document/0/quotes");
     },    
@@ -184,7 +141,7 @@ export default {
     },
     formatDate(value) {
       if (!value) return ''
-      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+      return moment(value, "YYYY-MM-DD").format("DD/MM/YYYY");
     },
     async getData() {
       this.isLoading = true;

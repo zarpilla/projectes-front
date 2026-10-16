@@ -2,27 +2,14 @@
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <card-component>
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Any">
-              <b-select
-                v-model="filters.year"
-                required
-              >
-                <option
-                  v-for="(year, index) in years"
-                  :key="index"
-                  :value="year"
-                >
-                  {{ year.year }}
-                </option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
+      <div class="filter-bar">
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" required>
+            <option v-for="(year, index) in years" :key="index" :value="year">{{ year.year }}</option>
+          </b-select>
+        </label>
+      </div>
       <quotes-table :year="filters.year" />
     </section>
   </div>
@@ -31,7 +18,6 @@
 <script>
 import TitleBar from '@/components/TitleBar.vue'
 import QuotesTable from '@/components/QuotesTable.vue'
-import CardComponent from '@/components/CardComponent.vue'
 import service from '@/service/index'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
@@ -40,7 +26,6 @@ import moment from 'moment'
 export default {
   name: 'DedicacioSaldo',
   components: {
-    CardComponent,
     TitleBar,
     QuotesTable
     // DedicationSaldo
@@ -59,7 +44,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Facturació', 'Ingressos']
+      return ['Diners', 'Pressupostos']
     }
   },
   mounted () {
