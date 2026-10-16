@@ -220,8 +220,8 @@ export default {
 .dropbox {
   outline: 2px dashed #aaa; /* the dash box */
   outline-offset: -10px;
-  background: #f9f9f9;
-  background: #eeeeee;
+  background: var(--a-thead);
+  background: var(--a-chip);
   color: dimgray;
   padding: 10px 10px;
   min-height: 80px; /* minimum height */
@@ -240,7 +240,7 @@ export default {
 }
 
 .dropbox:hover {
-  background: #ddd; /* when mouse over to the drop zone, change color */
+  background: var(--a-chip); /* when mouse over to the drop zone, change color */
 }
 
 .dropbox p {

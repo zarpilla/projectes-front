@@ -1435,14 +1435,14 @@ export default {
 
 <style lang="scss" scoped>
 .filters-container {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 8px;
   padding: 1rem 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .bg-white-panel {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 4px;
   padding: 1rem;
 }
@@ -1454,19 +1454,19 @@ export default {
 h2 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #7a7a7a;
+  color: var(--a-muted);
   margin-bottom: 0.25rem;
 }
 
 .order-detail-container {
   padding: 1.5rem;
-  background-color: #f9f9f9;
+  background-color: var(--a-thead);
   border-radius: 8px;
   margin: 1rem 0;
 }
 
 .detail-section {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -1483,12 +1483,12 @@ h2 {
   }
 
   strong {
-    color: #363636;
+    color: var(--a-fg);
     min-width: 150px;
   }
 
   span {
-    color: #4a4a4a;
+    color: var(--a-fg);
     text-align: right;
     flex: 1;
   }
@@ -1554,9 +1554,9 @@ h2 {
       tbody tr {
         display: block;
         margin-bottom: 1rem;
-        border: 1px solid #dbdbdb;
+        border: 1px solid var(--a-line);
         border-radius: 6px;
-        background-color: white;
+        background-color: var(--a-surface);
         box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
       }
 
@@ -1589,13 +1589,13 @@ h2 {
         width: auto !important;
         font-size: 0.85rem;
         margin-top: 10px;
-        // color: #7a7a7a;
+        // color: var(--a-muted);
       }
 
       // Show labels inline on mobile
       .mobile-label {
         font-weight: 600;
-        color: #363636;
+        color: var(--a-fg);
         margin-right: 0.25rem;
       }
 

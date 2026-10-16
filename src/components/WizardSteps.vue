@@ -66,6 +66,9 @@ export default {
   padding: calc(.875rem - 1px) calc(1rem - 1px);
   background: #F7FCFB;
 }
+[data-theme=dark] .wizard-step.is-current {
+  background: var(--a-accent-soft);
+}
 .wizard-marker {
   flex: none;
   width: 1.75rem;
@@ -81,7 +84,7 @@ export default {
 }
 .is-current .wizard-marker {
   background: var(--a-accent);
-  color: #fff;
+  color: var(--a-on-accent);
 }
 .is-done .wizard-marker {
   background: var(--a-accent-soft);

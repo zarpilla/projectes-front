@@ -964,7 +964,7 @@ export default {
 
 <style lang="scss" scoped>
 .bg-white-panel {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 4px;
   padding: 1rem;
 }
@@ -976,19 +976,19 @@ export default {
 h2 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #7a7a7a;
+  color: var(--a-muted);
   margin-bottom: 0.25rem;
 }
 
 .transfer-detail-container {
   padding: 1.5rem;
-  background-color: #f9f9f9;
+  background-color: var(--a-thead);
   border-radius: 8px;
   margin: 1rem 0;
 }
 
 .detail-section {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -1005,22 +1005,22 @@ h2 {
   }
 
   strong {
-    color: #363636;
+    color: var(--a-fg);
     min-width: 120px;
   }
 
   span {
-    color: #4a4a4a;
+    color: var(--a-fg);
     text-align: right;
     flex: 1;
   }
 }
 
 .transfer-action-box {
-  background-color: #f5f5f5;
+  background-color: var(--a-thead);
   border-radius: 6px;
   padding: 1rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--a-line);
 }
 
 .action-header {
@@ -1029,14 +1029,14 @@ h2 {
   border-bottom: 1px solid #d0d0d0;
 
   strong {
-    color: #363636;
+    color: var(--a-fg);
     font-size: 0.95rem;
   }
 }
 
 .action-info {
   .detail-row {
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--a-line);
     padding: 0.4rem 0;
   }
 

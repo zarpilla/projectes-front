@@ -499,6 +499,11 @@ export default {
   background: #F6C3A7;
   color: #8A3A12;
 }
+/* dark mode: same hues, dark cells */
+[data-theme=dark] .dedication-low { background: #3A3016; color: #F0D68E; }
+[data-theme=dark] .dedication-good { background: #1B2F48; color: #A9CBF0; }
+[data-theme=dark] .dedication-optimal { background: #164139; color: #8FE0CF; }
+[data-theme=dark] .dedication-high { background: #4A2616; color: #F4B08C; }
 .dedication-nojornada {
   background: repeating-linear-gradient(135deg, var(--a-chip) 0 5px, var(--a-surface) 5px 10px);
   color: var(--a-fg-2);
@@ -531,6 +536,10 @@ export default {
   overflow-y: auto;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
   pointer-events: auto;
+}
+[data-theme=dark] .custom-tooltip {
+  background: #26353A;
+  border: 1px solid var(--a-line);
 }
 .custom-tooltip.is-pinned {
   box-shadow: 0 8px 24px rgba(0, 0, 0, .3), 0 0 0 2px var(--a-accent);

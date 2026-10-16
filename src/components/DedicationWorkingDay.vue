@@ -1345,7 +1345,7 @@ export default {
   right: 0;
 }
 .dedication-bar-label {
-  color: #fff;
+  color: var(--a-on-accent);
   font-size: .6875rem;
   font-weight: 800;
   white-space: nowrap;

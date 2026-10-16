@@ -1,0 +1,88 @@
+/* ---------- Dark mode: third-party widgets ----------
+   The app's own styles follow the --a-* tokens (_redesign.scss); these libraries
+   bring their own colours: point them to the same tokens. */
+
+[data-theme=dark] {
+  // v-calendar (hours calendar, date pickers)
+  .vc-light {
+    --vc-color: var(--a-fg);
+    --vc-bg: var(--a-surface);
+    --vc-border: var(--a-line);
+    --vc-hover-bg: var(--a-chip);
+    --vc-focus-ring: 0 0 0 2px var(--a-focus);
+    --vc-header-arrow-color: var(--a-muted);
+    --vc-header-arrow-hover-bg: var(--a-chip);
+    --vc-header-title-color: var(--a-fg);
+    --vc-weekday-color: var(--a-muted);
+    --vc-weeknumber-color: var(--a-muted);
+    --vc-nav-hover-bg: var(--a-chip);
+    --vc-nav-title-color: var(--a-fg);
+    --vc-nav-item-active-color: var(--a-on-accent);
+    --vc-nav-item-active-bg: var(--a-accent);
+    --vc-nav-item-current-color: var(--a-accent);
+    --vc-popover-content-color: var(--a-fg);
+    --vc-popover-content-bg: var(--a-surface);
+    --vc-popover-content-border: var(--a-line);
+    --vc-day-popover-container-color: var(--a-fg);
+    --vc-day-popover-container-bg: var(--a-surface);
+    --vc-day-popover-container-border: var(--a-line);
+    --vc-day-popover-header-color: var(--a-muted);
+    --vc-select-color: var(--a-fg);
+    --vc-select-bg: var(--a-surface);
+    --vc-select-hover-bg: var(--a-chip);
+    --vc-day-content-hover-bg: var(--a-chip);
+    --vc-day-content-disabled-color: var(--a-muted);
+  }
+
+  // Kendo pivot tables (Informes): its CSS is loaded later, hence `body`
+  body {
+    .k-pivot .k-grid,
+    .k-pivot .k-grid-content,
+    .k-pivot .k-grid-content table,
+    .k-pivot .k-pivot-table,
+    .k-pivot .k-pivot-rowheaders .k-grid,
+    .k-pivot td,
+    .k-pivot .k-pivot-layout > tbody > tr > td {
+      background-color: var(--a-surface);
+      color: var(--a-fg);
+      border-color: var(--a-line-soft);
+    }
+    .k-pivot .k-grid-content tr.k-alt td {
+      background-color: var(--a-surface);
+    }
+    .k-popup, .k-menu-group, .k-list-container, .k-animation-container .k-popup {
+      background-color: var(--a-surface);
+      color: var(--a-fg);
+      border-color: var(--a-line);
+    }
+    .k-popup .k-item:hover, .k-menu-group .k-item.k-state-hover, .k-menu-group .k-item:hover > .k-link {
+      background-color: var(--a-chip);
+      color: var(--a-fg);
+    }
+    .k-textbox, .k-input, .k-treeview, .k-treeview .k-in {
+      background-color: var(--a-surface);
+      color: var(--a-fg);
+      border-color: var(--a-input);
+    }
+  }
+}
+
+// dhtmlx Gantt (Planificació, Persones, Previsió / real dedicació): its CSS sets
+// these on :root and loads later, so `html` wins on specificity
+html[data-theme=dark] {
+  --dhx-gantt-base-colors-white: var(--a-surface);
+  --dhx-gantt-base-colors-background: var(--a-surface);
+  --dhx-gantt-base-colors-background-alt: var(--a-thead);
+  --dhx-gantt-base-colors-border: var(--a-line);
+  --dhx-gantt-base-colors-border-light: var(--a-line-soft);
+  --dhx-gantt-base-colors-text-base: var(--a-fg);
+  --dhx-gantt-base-colors-text-light: var(--a-muted);
+  --dhx-gantt-base-colors-select: var(--a-accent-soft);
+  --dhx-gantt-base-colors-hover-color: var(--a-chip);
+  --dhx-gantt-base-colors-disabled: var(--a-chip);
+  --dhx-gantt-base-colors-icons: var(--a-muted);
+  --dhx-gantt-popup-background: var(--a-surface);
+  --dhx-gantt-popup-border: 1px solid var(--a-line);
+  --dhx-gantt-scale-color: var(--a-muted);
+  --dhx-gantt-navline-font-color: var(--a-fg);
+}

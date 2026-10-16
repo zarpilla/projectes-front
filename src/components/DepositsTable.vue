@@ -643,7 +643,7 @@ export default {
 
 <style lang="scss" scoped>
 .bg-white-panel {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 4px;
   padding: 1rem;
 }
@@ -655,7 +655,7 @@ export default {
 h2 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #7a7a7a;
+  color: var(--a-muted);
   margin-bottom: 0.25rem;
 }
 

@@ -651,7 +651,7 @@ export default {
 
 <style scoped>
 .box {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);

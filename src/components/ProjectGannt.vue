@@ -940,7 +940,7 @@ export default {
   border-color: var(--a-accent);
 }
 .gantt_task_line.is-phase .gantt_task_content {
-  color: #fff;
+  color: var(--a-on-accent);
 }
 .gantt_task_line.is-income {
   background: var(--a-accent-soft);

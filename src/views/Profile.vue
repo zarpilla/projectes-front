@@ -38,6 +38,24 @@
               <span v-if="error" class="has-text-neg">No s'ha pogut enviar. Torna-ho a provar d'aquí a una estona.</span>
             </div>
           </section>
+
+          <section class="form-box">
+            <h2>Aparença</h2>
+            <p class="form-box-sub">Es guarda en aquest navegador.</p>
+            <div class="segmented" role="group" aria-label="Aparença">
+              <button
+                v-for="option in themeOptions"
+                :key="option.id"
+                type="button"
+                :class="{ 'is-on': themeChoice === option.id }"
+                :aria-pressed="themeChoice === option.id ? 'true' : 'false'"
+                @click="chooseTheme(option.id)"
+              >
+                <b-icon :icon="option.icon" size="is-small" />
+                <span>{{ option.label }}</span>
+              </button>
+            </div>
+          </section>
         </div>
 
         <aside class="profile-side">
@@ -86,6 +104,7 @@
 import service from '@/service/index'
 import { logout } from '@/service/auth'
 import { CHANGELOG } from '@/service/changelog'
+import { getThemeChoice, setThemeChoice } from '@/service/theme'
 
 const PERMISSION_LABELS = {
   projects: 'Projectes',
@@ -103,7 +122,13 @@ export default {
       me: {},
       sending: false,
       sent: false,
-      error: false
+      error: false,
+      themeChoice: getThemeChoice(),
+      themeOptions: [
+        { id: 'light', label: 'Clar', icon: 'white-balance-sunny' },
+        { id: 'dark', label: 'Fosc', icon: 'weather-night' },
+        { id: 'system', label: 'Com el sistema', icon: 'monitor' }
+      ]
     }
   },
   computed: {
@@ -129,6 +154,10 @@ export default {
     }
   },
   methods: {
+    chooseTheme (choice) {
+      this.themeChoice = choice
+      setThemeChoice(choice)
+    },
     permissionLabel (code) {
       return PERMISSION_LABELS[code] || code
     },
@@ -250,6 +279,11 @@ export default {
   align-items: center;
   gap: .75rem;
   font-size: .875rem;
+}
+.profile-page .segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
 }
 .profile-dl {
   display: grid;

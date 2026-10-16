@@ -244,7 +244,7 @@ export default {
 }
 
 .result-item:hover {
-  background-color: #f5f5f5;
+  background-color: var(--a-thead);
   border-color: #3273dc;
 }
 </style>

@@ -7,11 +7,11 @@ html body {
   .k-pivot {
     font-family: inherit;
     font-size: .8125rem;
-    color: $a-fg;
-    border: 1px solid $a-line;
+    color: var(--a-fg);
+    border: 1px solid var(--a-line);
     border-radius: 12px;
     overflow: hidden;
-    background: $a-surface;
+    background: var(--a-surface);
   }
   .k-pivot-layout {
     border-collapse: collapse;
@@ -21,21 +21,21 @@ html body {
     vertical-align: top;
   }
   .k-pivot-rowheaders {
-    border-right: 1px solid $a-line;
+    border-right: 1px solid var(--a-line);
   }
 
   /* field chips (measures, rows, columns): only while configuring */
   .k-pivot-toolbar {
-    background: $a-thead !important;
-    border-color: $a-line !important;
+    background: var(--a-thead) !important;
+    border-color: var(--a-line) !important;
     padding: .5rem .625rem;
   }
   .k-pivot-toolbar .k-button,
   .k-pivot-rowheaders .k-button {
-    background: $a-surface !important;
-    border: 1px solid $a-input !important;
+    background: var(--a-surface) !important;
+    border: 1px solid var(--a-input) !important;
     border-radius: 999px;
-    color: $a-fg-2 !important;
+    color: var(--a-fg-2) !important;
     font-weight: 700;
     font-size: .75rem;
     /* room for the ⋮ and × that Kendo places on the right */
@@ -45,13 +45,13 @@ html body {
     box-shadow: none;
   }
   .k-pivot-toolbar .k-button:hover {
-    border-color: $a-accent !important;
-    color: $a-accent-hover !important;
+    border-color: var(--a-accent) !important;
+    color: var(--a-accent-hover) !important;
   }
   /* the ⋮ and × of a chip: small and quiet */
   .k-pivot-toolbar .k-icon,
   .k-pivot-rowheaders .k-button .k-icon {
-    color: $a-muted;
+    color: var(--a-muted);
     font-size: 12px;
     width: 12px;
     height: 12px;
@@ -64,7 +64,7 @@ html body {
     right: .375rem;
   }
   .k-pivot-toolbar .k-icon:hover {
-    color: $a-fg;
+    color: var(--a-fg);
   }
 
   /* headers */
@@ -72,15 +72,15 @@ html body {
   .k-pivot .k-grid-header-wrap,
   .k-pivot th.k-header,
   .k-pivot .k-grid.k-alt td {
-    background: $a-thead !important;
-    border-color: $a-line-soft !important;
+    background: var(--a-thead) !important;
+    border-color: var(--a-line-soft) !important;
   }
   .k-pivot th.k-header {
     font-size: .6875rem;
     font-weight: 800;
     letter-spacing: .04em;
     text-transform: uppercase;
-    color: $a-muted !important;
+    color: var(--a-muted) !important;
     padding: .5rem .375rem;
     white-space: normal;
     overflow: visible;
@@ -89,18 +89,18 @@ html body {
     line-height: 1.25;
   }
   .k-pivot .k-grid.k-alt td {
-    color: $a-fg;
+    color: var(--a-fg);
     font-weight: 700;
     padding: .4375rem .625rem;
   }
   .k-pivot .k-i-expand,
   .k-pivot .k-i-collapse {
-    color: $a-accent;
+    color: var(--a-accent);
   }
 
   /* values */
   .k-pivot .k-grid-content td {
-    border-color: $a-line-soft !important;
+    border-color: var(--a-line-soft) !important;
     /* Kendo fixes the column widths: keep the padding small so amounts fit */
     padding: .4375rem .375rem;
     letter-spacing: -.01em;
@@ -110,17 +110,17 @@ html body {
   }
   .k-pivot .k-grid-content tr:hover td,
   .k-pivot .k-grid.k-alt tr:hover td {
-    background: $a-chip !important;
+    background: var(--a-chip) !important;
   }
   .k-pivot .k-grid-footer td,
   .k-pivot td.k-grid-footer,
   .k-pivot .k-alt .k-grid-footer td {
-    background: $a-thead !important;
+    background: var(--a-thead) !important;
     font-weight: 800;
   }
   .k-pivot .k-grid-content td.k-grid-footer,
   .k-pivot .k-grid-content .k-grid-footer td {
-    color: $a-fg;
+    color: var(--a-fg);
   }
 }
 

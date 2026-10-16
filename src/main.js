@@ -30,6 +30,11 @@ import 'v-calendar/style.css'
 /* Excel / CSV export */
 import DownloadExcel from '@/components/DownloadExcel.vue'
 
+/* Light / dark mode */
+import { applyTheme, watchSystemTheme } from '@/service/theme'
+applyTheme()
+watchSystemTheme()
+
 /* Default title tag */
 const defaultDocumentTitle = 'ESSTRAPIS'
 

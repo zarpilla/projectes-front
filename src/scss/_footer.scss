@@ -15,8 +15,8 @@ footer.footer {
   }
 }
 
-// the footer is empty: on pages with a sticky save bar it only showed up as a
-// strip under the bar at the end of the scroll, as if the bar grew
-body:has(.savebar) footer.footer {
+// the footer is empty (template leftover): it only showed up as a 16px strip at
+// the bottom of the pages, under the sticky save bars too
+footer.footer {
   display: none;
 }

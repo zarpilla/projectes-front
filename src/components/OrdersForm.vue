@@ -3663,9 +3663,9 @@ export default {
 }
 .zbox {
   padding: 0.75rem;
-  border: 1px solid #e8e8e8;
+  border: 1px solid var(--a-line);
   border-radius: 4px;
-  background-color: #fafafa;
+  background-color: var(--a-thead);
 }
 @media screen and (max-width: 768px) {
   .section-adapted {

@@ -180,7 +180,7 @@ export default {
 
 <style scoped>
 .year-section {
-  border: 1px solid #ddd;
+  border: 1px solid var(--a-line);
   padding: 15px;
   border-radius: 5px;
   margin-bottom: 15px;

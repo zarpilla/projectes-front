@@ -613,6 +613,6 @@ export default {
   white-space: nowrap;
 }
 .zb-table :deep(tbody tr) {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--a-line-soft);
 }
 </style>

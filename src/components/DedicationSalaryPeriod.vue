@@ -265,7 +265,7 @@ export default {
 <style>
 .card-body {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--a-line-soft);
 }
 .card-header-title {
   text-transform: capitalize;
@@ -274,11 +274,11 @@ export default {
   cursor: pointer;
 }
 .is-total {
-  background: #eee;
+  background: var(--a-chip);
   text-transform: capitalize;
 }
 .auxiliar {
-  color: #999;
+  color: var(--a-muted);
 }
 .projects-bars {
   margin-bottom: 2rem;
@@ -290,7 +290,7 @@ export default {
   margin-left: 0.5rem;
 }
 .is-striped .card-body:nth-child(2n) {
-  background: #fafafa;
+  background: var(--a-thead);
 }
 </style>
 

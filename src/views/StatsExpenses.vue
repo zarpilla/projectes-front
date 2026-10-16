@@ -87,8 +87,8 @@ export default {
 </script>
 <style>
 .k-header, .k-grid-header, .k-grouping-header, .k-pager-wrap, .k-state-highlight, .k-panelbar .k-tabstrip-items .k-item{
-  background-color: #f3f3f3!important;
-  border-color: #ddd!important;
+  background-color: var(--a-thead)!important;
+  border-color: var(--a-line)!important;
 }
 .k-pivot-toolbar .k-button{
   background-color: #999!important;

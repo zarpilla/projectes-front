@@ -641,16 +641,16 @@ export default {
   right: -4px;
   top: -15px;
   cursor: pointer;
-  border: 1px solid #999;
+  border: 1px solid var(--a-line);
   border-radius: 50%;
   padding: 5px;
   z-index: 10;
 }
 .column-doc .icon:hover {
-  color: #333;
+  color: var(--a-fg);
 }
 .column-doc img {
-  border: 1px solid #eee;
+  border: 1px solid var(--a-line-soft);
 }
 .check-name {
   vertical-align: 4px;

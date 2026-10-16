@@ -475,7 +475,7 @@
               </b-autocomplete>
               <div class="is-flex">
                 <b-button
-                  class="view-button is-warning mb-3"
+                  class="view-button mb-3"
                   @click="navNew"
                   icon-left="plus"
                   title="Nou Contacte"
@@ -483,7 +483,7 @@
                 >
                 </b-button>
                 <b-button
-                  class="view-button is-warning mb-3 ml-3"
+                  class="view-button mb-3 ml-3"
                   @click="refreshClients"
                   icon-left="refresh"
                   title="Refrescar Contactes"
@@ -510,14 +510,14 @@
               </b-autocomplete>
               <div class="is-flex">
                 <b-button
-                  class="view-button is-warning mb-3"
+                  class="view-button mb-3"
                   @click="navNew"
                   icon-left="plus"
                   title="Nou Contacte"
                 >
                 </b-button>
                 <b-button
-                  class="view-button is-warning mb-3 ml-3"
+                  class="view-button mb-3 ml-3"
                   @click="refreshClients"
                   icon-left="refresh"
                   title="Refrescar Contactes"
@@ -3215,7 +3215,7 @@ export default {
   .subtitle {
     font-size: 1.1rem;
     line-height: 1rem;
-    color: #aaa;
+    color: var(--a-muted);
     margin-left: 0.5rem;
   }
 }
@@ -3250,16 +3250,16 @@ export default {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #999;
+  color: var(--a-muted);
   margin-bottom: 0.15rem;
 }
 .invoice-note {
   margin-top: 0.5rem;
-  color: #777;
+  color: var(--a-muted);
 }
 .invoice-json {
-  background: #f5f5f5;
-  border: 1px solid #dbdbdb;
+  background: var(--a-thead);
+  border: 1px solid var(--a-line);
   border-radius: 4px;
   padding: 1rem;
   white-space: pre-wrap;

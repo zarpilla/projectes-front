@@ -1,9 +1,8 @@
 /* Bulma 1 + Buefy 3 */
 @use "../theme-default" as theme;
 
-// no-dark-mode: Bulma 1 otherwise follows prefers-color-scheme, which the
-// rest of the theme doesn't support
-@use "bulma/versions/bulma-no-dark-mode" with (
+// light theme on :root, dark theme on [data-theme=dark] (see _bulma.scss)
+@use "bulma" with (
   // Redesign "A · Clar": greys slightly tinted towards the teal accent,
   // 8px radii, bold buttons (see docs/redisseny-v2/assets/a.css)
   $scheme-h: 185,
@@ -52,7 +51,7 @@
   $menu-label-color: theme.$menu-label-color,
   $card-shadow: theme.$card-shadow,
   $card-header-shadow: theme.$card-header-shadow,
-  $table-cell-border-color: theme.$a-line-soft,
+  $table-cell-border-color: var(--a-line-soft),
   $modal-card-head-background-color: theme.$modal-card-head-background-color,
   $modal-card-title-size: theme.$modal-card-title-size,
   $modal-card-body-padding: theme.$modal-card-body-padding,

@@ -241,7 +241,7 @@ export default {
 }
 .drop-zone-active .empty-zone, .drop-zone-active.empty-zone-no-card {
   margin-top: 1rem;
-  background: #ddd;
+  background: var(--a-chip);
   padding-bottom: 10rem;
   border-radius: 4px;
 }

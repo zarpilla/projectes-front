@@ -2680,7 +2680,7 @@ export default {
 }
 /* Highlight future week orders */
 .future-week-row {
-  background-color: #fafafa !important;  
+  background-color: var(--a-thead) !important;  
 }
 .future-week-row :not(.opacity-100) a, 
 .future-week-row :not(.opacity-100) span,
@@ -2715,7 +2715,7 @@ export default {
   }
 }
 .bg-white-panel {
-  background-color: white !important;
+  background-color: var(--a-surface) !important;
   border: 1px solid rgb(219, 219, 219) !important;
   border-radius: 4px;
 }

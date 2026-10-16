@@ -1430,7 +1430,7 @@ export default {
 .section-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #363636;
+  color: var(--a-fg);
   margin-bottom: 1rem;
 }
 
@@ -1443,17 +1443,17 @@ export default {
 .field-label {
   font-weight: 600;
   min-width: 200px;
-  color: #4a4a4a;
+  color: var(--a-fg);
   flex-shrink: 0;
 }
 
 .field-value {
-  color: #363636;
+  color: var(--a-fg);
   flex: 1;
 }
 
 .incidence-item {
-  background-color: #f5f5f5;
+  background-color: var(--a-thead);
   padding: 1rem;
   border-radius: 4px;
   margin-bottom: 0.75rem;

@@ -14,7 +14,7 @@ section.section.is-title-bar {
     display: flex;
     flex-wrap: wrap;
     gap: .5rem;
-    color: $a-muted;
+    color: var(--a-muted);
     font-weight: 600;
     font-size: .875rem;
     margin-bottom: .5rem;
@@ -37,7 +37,7 @@ section.section.is-title-bar {
     font-size: 1.75rem;
     font-weight: 800;
     line-height: 1.15;
-    color: $a-fg;
+    color: var(--a-fg);
   }
 
   .title-head {
@@ -58,7 +58,7 @@ section.section.is-title-bar {
   }
 
   .subtitle-line {
-    color: $a-muted;
+    color: var(--a-muted);
     margin-top: .125rem;
   }
 
@@ -67,7 +67,7 @@ section.section.is-title-bar {
     margin-right: 1.25rem;
 
     b {
-      color: $a-fg;
+      color: var(--a-fg);
       font-weight: 700;
     }
   }

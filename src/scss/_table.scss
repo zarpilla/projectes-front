@@ -51,22 +51,21 @@ table.table {
     padding-left: $card-content-padding;
     padding-right: $card-content-padding;
     margin: 0;
-    border-top: $base-color-light;
-    background: $notification-background-color;
+    background: var(--a-thead);
 
     .pagination-link {
-      background: $button-background-color;
-      color: $button-color;
-      border-color: $button-border-color;
+      background: var(--a-surface);
+      color: var(--a-fg);
+      border-color: var(--a-input);
 
       &.is-current {
-        border-color: $button-active-border-color;
+        border-color: var(--a-fg-2);
       }
     }
 
     .pagination-previous, .pagination-next, .pagination-link {
-      border-color: $button-border-color;
-      color: $base-color;
+      border-color: var(--a-input);
+      color: var(--a-fg);
 
       &[disabled] {
         background-color: transparent;

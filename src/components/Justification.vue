@@ -1820,15 +1820,15 @@ export default {
   cursor: pointer;
 }
 .add-row-form {
-  border-top: 2px dashed #dbdbdb;
+  border-top: 2px dashed var(--a-line);
   margin-top: 0.5rem;
-  background: #fafafa;
+  background: var(--a-thead);
 }
 .add-row-label {
   display: block;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #4a4a4a;
+  color: var(--a-fg);
   margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -1837,7 +1837,7 @@ export default {
 <style>
 .card-body {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--a-line-soft);
 }
 .card-header-title {
   text-transform: capitalize;
@@ -1846,11 +1846,11 @@ export default {
   cursor: pointer;
 }
 .is-total {
-  background: #eee;
+  background: var(--a-chip);
   text-transform: capitalize;
 }
 .auxiliar {
-  color: #999;
+  color: var(--a-muted);
 }
 .projects-bars {
   margin-bottom: 2rem;

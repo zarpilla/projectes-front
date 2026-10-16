@@ -2343,8 +2343,8 @@ export default {
 
 
 .phase-container{
-  background: #fafafa;
-  border: 2px solid #eee;
+  background: var(--a-thead);
+  border: 2px solid var(--a-line-soft);
   margin-bottom: 2rem!important;  
 }
 .subphase-detail-title {
@@ -2352,7 +2352,7 @@ export default {
   font-weight: bold;  
 }
 .phase-container .b-table .table {
-  background: #fafafa;
+  background: var(--a-thead);
 
 }
 </style>

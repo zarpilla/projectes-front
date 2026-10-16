@@ -31,58 +31,125 @@
   --a-danger-fg: #{$a-danger-fg};
   --a-info-bg: #{$a-info-bg};
   --a-info-fg: #{$a-info-fg};
+  // fixed colours of the light theme that the dark one changes
+  --a-on-accent: #fff;
+  --a-accent-soft-hover: #D2EEE8;
+  --a-danger-line: #F2B8B0;
+  --a-info-line: #BCD3EE;
+  --a-placeholder: #8A9799;
+}
+
+
+/* Dark mode (Perfil · Aparença, src/service/theme.js): same tokens, no mockup;
+   greys keep the teal tint of the light ones and the accent is lighter so it
+   reads as text on the dark surfaces */
+[data-theme=dark] {
+  color-scheme: dark;
+  --a-bg: #0E1516;
+  --a-surface: #162022;
+  --a-fg: #E3EBEB;
+  --a-fg-2: #C1CDCE;
+  --a-muted: #8D9FA1;
+  --a-line: #2A383A;
+  --a-line-soft: #203032;
+  --a-input: #3B4C4E;
+  --a-thead: #1A2628;
+  --a-chip: #223133;
+  --a-seg: #0F181A;
+  --a-accent: #3DC2AC;
+  --a-accent-hover: #6BD8C6;
+  --a-accent-soft: #15403A;
+  --a-focus: #1E5A50;
+  --a-brand: #00B89C;
+  --a-pos: #55C795;
+  --a-neg: #F08466;
+  --a-over: #F0A066;
+  --a-warn-bg: #362C12;
+  --a-warn-line: #6B5522;
+  --a-warn-fg: #F0D68E;
+  --a-danger-bg: #3A1D19;
+  --a-danger-fg: #F4A69A;
+  --a-info-bg: #15283C;
+  --a-info-fg: #9EC4EE;
+  --a-on-accent: #05231F;
+  --a-accent-soft-hover: #1C4E47;
+  --a-danger-line: #6E3129;
+  --a-info-line: #2C4A6B;
+  --a-placeholder: #6C7E80;
+
+  // Bulma's dark scheme on the same surfaces
+  --bulma-scheme-main: var(--a-surface);
+  --bulma-scheme-main-bis: var(--a-thead);
+  --bulma-scheme-main-ter: var(--a-chip);
+  --bulma-background: var(--a-chip);
+  --bulma-border: var(--a-line);
+  --bulma-border-weak: var(--a-line-soft);
+  --bulma-text: var(--a-fg-2);
+  --bulma-text-strong: var(--a-fg);
+  --bulma-text-weak: var(--a-muted);
+  --bulma-body-background-color: var(--a-bg);
+
+  // the light variants (.tag.is-success.is-light...): Bulma paints them with the
+  // light lightness of the neutral "light" colour; here, the colour's own hue
+  // on a dark background with light text
+  @each $el in tag, button, notification {
+    .#{$el}.is-light:not(body) {
+      --bulma-#{$el}-background-l: 18%;
+      --bulma-#{$el}-color-l: 74%;
+    }
+  }
 }
 
 body {
-  color: $a-fg;
-  background: $a-bg;
+  color: var(--a-fg);
+  background: var(--a-bg);
 }
 
 a {
-  color: $a-accent;
+  color: var(--a-accent);
 
   &:hover {
-    color: $a-accent-hover;
+    color: var(--a-accent-hover);
   }
 }
 
 /* ---------- buttons ---------- */
 .button {
-  border-color: $a-input;
-  color: $a-fg;
+  border-color: var(--a-input);
+  color: var(--a-fg);
 
   &:hover {
-    border-color: $a-input;
-    background-color: $a-thead;
-    color: $a-fg;
+    border-color: var(--a-input);
+    background-color: var(--a-thead);
+    color: var(--a-fg);
   }
 
   &.is-primary {
-    background-color: $a-accent;
-    border-color: $a-accent;
-    color: #fff;
+    background-color: var(--a-accent);
+    border-color: var(--a-accent);
+    color: var(--a-on-accent);
 
     &:hover, &.is-hovered {
-      background-color: $a-accent-hover;
-      border-color: $a-accent-hover;
-      color: #fff;
+      background-color: var(--a-accent-hover);
+      border-color: var(--a-accent-hover);
+      color: var(--a-on-accent);
     }
 
     &.is-outlined {
-      background-color: #fff;
-      color: $a-accent;
-      border-color: $a-accent;
+      background-color: var(--a-surface);
+      color: var(--a-accent);
+      border-color: var(--a-accent);
 
       &:hover {
-        background-color: $a-accent-soft;
-        color: $a-accent-hover;
+        background-color: var(--a-accent-soft);
+        color: var(--a-accent-hover);
       }
     }
 
     &.is-light {
-      background-color: $a-accent-soft;
+      background-color: var(--a-accent-soft);
       border-color: transparent;
-      color: $a-accent;
+      color: var(--a-accent);
     }
   }
 
@@ -90,63 +157,63 @@ a {
   // for the *selected* button of a toggle group (unselected ones are outlined/light).
   // In the redesign it is the "selected" look: soft teal, so selections stay visible.
   &.is-warning {
-    background-color: $a-accent-soft;
-    border-color: $a-accent;
-    color: $a-accent-hover;
+    background-color: var(--a-accent-soft);
+    border-color: var(--a-accent);
+    color: var(--a-accent-hover);
     font-weight: 800;
 
     &:hover, &.is-hovered, &:focus {
-      background-color: #D2EEE8;
-      border-color: $a-accent-hover;
-      color: $a-accent-hover;
+      background-color: var(--a-accent-soft-hover);
+      border-color: var(--a-accent-hover);
+      color: var(--a-accent-hover);
     }
 
     &.is-light {
-      background-color: $a-surface;
-      border-color: $a-input;
-      color: $a-fg;
+      background-color: var(--a-surface);
+      border-color: var(--a-input);
+      color: var(--a-fg);
       font-weight: 700;
     }
   }
 
   &.is-danger:not(.is-outlined):not(.is-light) {
-    background-color: $a-surface;
-    border-color: $a-input;
-    color: $a-danger-fg;
+    background-color: var(--a-surface);
+    border-color: var(--a-input);
+    color: var(--a-danger-fg);
 
     &:hover {
-      background-color: $a-danger-bg;
-      border-color: #F2B8B0;
+      background-color: var(--a-danger-bg);
+      border-color: var(--a-danger-line);
     }
   }
 
   &.is-text {
-    color: $a-accent;
+    color: var(--a-accent);
   }
 }
 
 /* ---------- form controls ---------- */
 .input, .textarea, .select select, .taginput .taginput-container {
-  border-color: $a-input;
+  border-color: var(--a-input);
   box-shadow: none;
-  color: $a-fg;
+  color: var(--a-fg);
 
   &:focus, &.is-focused, &:focus-within {
-    border-color: $a-accent;
-    box-shadow: 0 0 0 3px $a-focus;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-focus);
   }
 
   &::placeholder {
-    color: #8A9799;
+    color: var(--a-placeholder);
   }
 }
 
 .select:not(.is-multiple):not(.is-loading)::after {
-  border-color: $a-muted;
+  border-color: var(--a-muted);
 }
 
 .label {
-  color: $a-fg;
+  color: var(--a-fg);
   font-weight: 700;
 }
 
@@ -155,27 +222,27 @@ a {
 }
 
 .help {
-  color: $a-muted;
+  color: var(--a-muted);
 }
 
 .b-checkbox.checkbox input[type=checkbox]:checked + .check,
 .b-radio.radio input[type=radio]:checked + .check {
-  background-color: $a-accent;
-  border-color: $a-accent;
+  background-color: var(--a-accent);
+  border-color: var(--a-accent);
 }
 
 .switch input[type=checkbox]:checked + .check {
-  background: $a-accent;
+  background: var(--a-accent);
 }
 
 /* ---------- cards ---------- */
 .card {
   border-radius: 12px;
-  border: 1px solid $a-line;
+  border: 1px solid var(--a-line);
   box-shadow: none;
 
   .card-header {
-    border-bottom: 1px solid $a-line;
+    border-bottom: 1px solid var(--a-line);
     box-shadow: none;
   }
 
@@ -183,51 +250,51 @@ a {
     padding: .875rem 1.125rem;
     font-size: 1rem;
     font-weight: 800;
-    color: $a-fg;
+    color: var(--a-fg);
     letter-spacing: 0;
   }
 
   .card-header-icon {
-    color: $a-muted;
+    color: var(--a-muted);
   }
 }
 
 /* ---------- tables ---------- */
 .table {
-  color: $a-fg;
+  color: var(--a-fg);
   font-size: .875rem;
   font-variant-numeric: tabular-nums;
 
   thead th, thead td {
-    background: $a-thead;
-    color: $a-fg-2;
+    background: var(--a-thead);
+    color: var(--a-fg-2);
     font-size: .75rem;
     font-weight: 800;
     letter-spacing: .03em;
     text-transform: uppercase;
-    border-bottom: 1px solid $a-line;
+    border-bottom: 1px solid var(--a-line);
     border-width: 0 0 1px;
     vertical-align: bottom;
   }
 
   td, th {
-    border-color: $a-line-soft;
+    border-color: var(--a-line-soft);
     vertical-align: middle;
   }
 
   tfoot td, tfoot th {
-    background: $a-thead;
+    background: var(--a-thead);
     font-weight: 800;
-    border-top: 1px solid $a-line;
+    border-top: 1px solid var(--a-line);
   }
 
   &.is-hoverable tbody tr:not(.is-selected):hover {
-    background-color: $a-thead;
+    background-color: var(--a-thead);
   }
 
   tr.is-selected {
-    background-color: $a-accent-soft;
-    color: $a-fg;
+    background-color: var(--a-accent-soft);
+    color: var(--a-fg);
   }
 }
 
@@ -240,25 +307,25 @@ a {
 .card.has-table .b-table .level:last-child {
   margin: 0;
   padding: .75rem 1rem;
-  background: $a-surface;
-  border-top: 1px solid $a-line;
+  background: var(--a-surface);
+  border-top: 1px solid var(--a-line);
   border-radius: 0 0 12px 12px;
 }
 
 .table tfoot .table-footer th {
   font-weight: 800;
-  color: $a-fg;
+  color: var(--a-fg);
 }
 
 .pagination .pagination-link, .pagination .pagination-previous, .pagination .pagination-next {
-  border-color: $a-line;
+  border-color: var(--a-line);
   border-radius: 8px;
   min-width: 2.25rem;
 
   &.is-current {
-    background-color: $a-accent-soft;
-    border-color: $a-accent-soft;
-    color: $a-accent;
+    background-color: var(--a-accent-soft);
+    border-color: var(--a-accent-soft);
+    color: var(--a-accent);
     font-weight: 800;
   }
 }
@@ -269,8 +336,8 @@ a {
   font-weight: 700;
 
   &.is-warning {
-    background-color: $a-warn-bg;
-    color: $a-warn-fg;
+    background-color: var(--a-warn-bg);
+    color: var(--a-warn-fg);
   }
 }
 
@@ -278,39 +345,39 @@ a {
   border-radius: 10px;
 
   &.is-warning {
-    background-color: $a-warn-bg;
-    border: 1px solid $a-warn-line;
-    color: $a-warn-fg;
+    background-color: var(--a-warn-bg);
+    border: 1px solid var(--a-warn-line);
+    color: var(--a-warn-fg);
   }
 
   &.is-danger {
-    background-color: $a-danger-bg;
-    border: 1px solid #F2B8B0;
-    color: $a-danger-fg;
+    background-color: var(--a-danger-bg);
+    border: 1px solid var(--a-danger-line);
+    color: var(--a-danger-fg);
   }
 
   &.is-info {
-    background-color: $a-info-bg;
-    border: 1px solid #BCD3EE;
-    color: $a-info-fg;
+    background-color: var(--a-info-bg);
+    border: 1px solid var(--a-info-line);
+    color: var(--a-info-fg);
   }
 }
 
 .tabs {
   a {
-    color: $a-fg-2;
+    color: var(--a-fg-2);
     font-weight: 700;
-    border-bottom-color: $a-line;
+    border-bottom-color: var(--a-line);
   }
 
   li.is-active a {
-    color: $a-accent;
-    border-bottom: 3px solid $a-accent;
+    color: var(--a-accent);
+    border-bottom: 3px solid var(--a-accent);
     font-weight: 800;
   }
 
   ul {
-    border-bottom-color: $a-line;
+    border-bottom-color: var(--a-line);
   }
 }
 
@@ -326,7 +393,7 @@ a {
 
 .modal-card-title {
   font-weight: 800;
-  color: $a-fg;
+  color: var(--a-fg);
 }
 
 .modal-card-foot {
@@ -387,13 +454,13 @@ a {
 }
 .a-form hr {
   margin: .5rem 0 0;
-  background: $a-line;
+  background: var(--a-line);
   height: 1px;
 }
 .a-form .form-section-title {
   font-size: 1rem;
   font-weight: 800;
-  color: $a-fg;
+  color: var(--a-fg);
   margin-top: .25rem;
 }
 @media screen and (max-width: 768px) {
@@ -424,12 +491,12 @@ a {
   align-items: center;
   height: 2.5rem;
   padding-left: .75rem;
-  border: 1px solid $a-input;
+  border: 1px solid var(--a-input);
   border-radius: 8px;
-  background: $a-surface;
+  background: var(--a-surface);
 
   > span {
-    color: $a-muted;
+    color: var(--a-muted);
     font-weight: 600;
     font-size: .875rem;
     white-space: nowrap;
@@ -463,8 +530,8 @@ a {
   }
 
   &:focus-within {
-    border-color: $a-accent;
-    box-shadow: 0 0 0 3px $a-focus;
+    border-color: var(--a-accent);
+    box-shadow: 0 0 0 3px var(--a-focus);
   }
 }
 
@@ -553,7 +620,7 @@ td.doc-total {
   gap: 2px;
   padding: 3px;
   border-radius: 9px;
-  background: $a-seg;
+  background: var(--a-seg);
 
   button {
     height: 2.125rem;
@@ -564,14 +631,14 @@ td.doc-total {
     font: inherit;
     font-size: .875rem;
     font-weight: 600;
-    color: $a-fg-2;
+    color: var(--a-fg-2);
     cursor: pointer;
 
     &.is-on {
-      background: $a-surface;
+      background: var(--a-surface);
       box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
       font-weight: 800;
-      color: $a-fg;
+      color: var(--a-fg);
     }
   }
 }
@@ -585,33 +652,33 @@ td.doc-total {
 .toggle-label {
   font-size: .8125rem;
   font-weight: 700;
-  color: $a-muted;
+  color: var(--a-muted);
   margin-right: .25rem;
 }
 .chip-toggle {
   height: 2rem;
   padding: 0 .75rem;
-  border: 1px solid $a-input;
+  border: 1px solid var(--a-input);
   border-radius: 999px;
-  background: $a-surface;
+  background: var(--a-surface);
   font: inherit;
   font-size: .8125rem;
   font-weight: 600;
-  color: $a-fg-2;
+  color: var(--a-fg-2);
   cursor: pointer;
 
   &.is-on {
-    background: $a-accent-soft;
-    border-color: $a-accent;
-    color: $a-accent-hover;
+    background: var(--a-accent-soft);
+    border-color: var(--a-accent);
+    color: var(--a-accent-hover);
     font-weight: 800;
   }
 }
 
 /* ---------- small helpers shared by redesigned screens ---------- */
-.has-text-pos { color: $a-pos !important; }
-.has-text-neg { color: $a-neg !important; }
-.has-text-muted { color: $a-muted !important; }
+.has-text-pos { color: var(--a-pos) !important; }
+.has-text-neg { color: var(--a-neg) !important; }
+.has-text-muted { color: var(--a-muted) !important; }
 
 /* ---------- export buttons (DownloadExcel) ----------
    inline, so several exports sit side by side with a gap */
@@ -633,10 +700,10 @@ td.doc-total {
 .table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item),
 .table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item) {
   font-weight: 700;
-  color: $a-accent;
+  color: var(--a-accent);
 }
 .table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):hover,
 .table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):hover {
-  color: $a-accent-hover;
+  color: var(--a-accent-hover);
   text-decoration: underline;
 }

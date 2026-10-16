@@ -1063,7 +1063,7 @@ export default {
 
 <style lang="scss" scoped>
 .bg-white-panel {
-  background-color: white;
+  background-color: var(--a-surface);
   border-radius: 4px;
   padding: 1rem;
 }
@@ -1081,13 +1081,13 @@ export default {
 h2 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #7a7a7a;
+  color: var(--a-muted);
   margin-bottom: 0.25rem;
 }
 
 .incidence-chat-container {
   padding: 1.5rem;
-  background-color: #f9f9f9;
+  background-color: var(--a-thead);
   border-radius: 8px;
   margin: 1rem 0;
 }
@@ -1110,7 +1110,7 @@ h2 {
   align-items: center;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--a-line);
   background-color: transparent;
 }
 
@@ -1120,13 +1120,13 @@ h2 {
   gap: 0.5rem;
   
   strong {
-    color: #363636;
+    color: var(--a-fg);
   }
 }
 
 .message-date {
   font-size: 0.875rem;
-  color: #7a7a7a;
+  color: var(--a-muted);
 }
 
 .message-content {
@@ -1170,7 +1170,7 @@ h2 {
 }
 
 .modal-card-body {
-  background-color: #f5f5f5;
+  background-color: var(--a-thead);
 }
 
 .incidence-summary {
@@ -1182,7 +1182,7 @@ h2 {
     margin-bottom: 0.5rem;
     
     strong {
-      color: #363636;
+      color: var(--a-fg);
       margin-right: 0.5rem;
     }
   }

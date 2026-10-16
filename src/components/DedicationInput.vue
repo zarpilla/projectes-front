@@ -1618,7 +1618,7 @@ export default {
 <style>
 .card-body {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--a-line-soft);
 }
 .card-header-title {
   text-transform: capitalize;
@@ -1627,11 +1627,11 @@ export default {
   cursor: pointer;
 }
 .is-total {
-  background: #eee;
+  background: var(--a-chip);
   text-transform: capitalize;
 }
 .auxiliar {
-  color: #999;
+  color: var(--a-muted);
 }
 .projects-bars {
   margin-bottom: 2rem;
@@ -1648,7 +1648,7 @@ export default {
 .day-sum-label {
   float: right;
   font-size: 12px;
-  color: #999;
+  color: var(--a-muted);
   padding-top: 3px;
 }
 .week-total {
@@ -1669,12 +1669,12 @@ export default {
   display: none;
 }
 .custom-calendar.vc-container {
-  --day-border: 1px solid #b8c2cc;
-  --day-border-highlight: 1px solid #b8c2cc;
+  --day-border: 1px solid var(--a-line);
+  --day-border-highlight: 1px solid var(--a-line);
   --day-width: 90px;
   --day-height: 90px;
   --weekday-bg: #f8fafc;
-  --weekday-border: 1px solid #eaeaea;
+  --weekday-border: 1px solid var(--a-line-soft);
   border-radius: 0.25rem;
   border: 0;
   width: 100%;
@@ -1687,15 +1687,15 @@ export default {
   padding: 10px 0;
 }
 .custom-calendar.vc-container .vc-pane > .vc-header {
-  background-color: #eee;
+  background-color: var(--a-chip);
 }
 .custom-calendar.vc-container .vc-weeks {
   padding: 0;
 }
 .custom-calendar.vc-container .vc-weekday {
-  background-color: #f8f8f8;
-  border-bottom: 1px solid #eaeaea;
-  border-top: 1px solid #eaeaea;
+  background-color: var(--a-thead);
+  border-bottom: 1px solid var(--a-line-soft);
+  border-top: 1px solid var(--a-line-soft);
   padding: 5px 0;
 }
 .custom-calendar.vc-container .vc-day {
@@ -1704,22 +1704,22 @@ export default {
   height: auto;
   min-height: 90px;
   min-width: 90px;
-  background-color: white;
+  background-color: var(--a-surface);
 }
 .custom-calendar.vc-container .vc-day.weekday-1,
 .custom-calendar.vc-container .vc-day.weekday-7 {
   background-color: #eff8ff;
-  background: #eee;
+  background: var(--a-chip);
 }
 .custom-calendar.vc-container .vc-day:not(.on-bottom) {
-  border-bottom: 1px solid #b8c2cc;
+  border-bottom: 1px solid var(--a-line);
 }
 .custom-calendar.vc-container .vc-day:not(.on-bottom).weekday-1 {
-  border-bottom: 1px solid #b8c2cc;
+  border-bottom: 1px solid var(--a-line);
 }
 
 .custom-calendar.vc-container .vc-day:not(.on-right) {
-  border-right: 1px solid #b8c2cc;
+  border-right: 1px solid var(--a-line);
 }
 
 .custom-calendar.vc-container .vc-day .vc-day-dots {

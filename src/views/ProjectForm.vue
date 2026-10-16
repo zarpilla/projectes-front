@@ -5549,7 +5549,7 @@ html .project-form .subphase-detail-input.readonly {
   height: 30px;
   border-radius: 50%;
   background: #dbdbdb;
-  color: #4a4a4a;
+  color: var(--a-fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5575,7 +5575,7 @@ html .project-form .subphase-detail-input.readonly {
 .step-title {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #4a4a4a;
+  color: var(--a-fg);
   margin: 0;
 }
 
