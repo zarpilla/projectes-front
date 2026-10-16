@@ -53,7 +53,17 @@
             trap-focus
           />
         </label>
-        <b-checkbox v-model="filters.lastUpdated">Últimes</b-checkbox>
+        <div class="segmented" role="group" aria-label="Període">
+          <button
+            v-for="p in presets"
+            :key="p.id"
+            type="button"
+            :class="{ 'is-on': presetOn(p) }"
+            :aria-pressed="presetOn(p) ? 'true' : 'false'"
+            @click="setPreset(p)"
+          >{{ p.label }}</button>
+        </div>
+        <b-checkbox v-model="filters.lastUpdated">Només hores modificades els últims 7 dies</b-checkbox>
       </form>
       <dedication-widget :user="filters.user" :date1="filters.date1" :date2="filters.date2" :project="filters.project" :last="filters.lastUpdated" />
     </section>
@@ -100,6 +110,18 @@ export default {
     }
   },
   computed: {
+    // quick periods, all ending at the end of the current month, quarter, half or year
+    presets () {
+      const now = moment()
+      const span = (from, to) => ({ from: from.format('YYYY-MM-DD'), to: to.format('YYYY-MM-DD') })
+      const half = now.month() < 6 ? 0 : 6
+      return [
+        { id: 'month', label: 'Aquest mes', ...span(now.clone().startOf('month'), now.clone().endOf('month')) },
+        { id: 'quarter', label: 'Trimestre', ...span(now.clone().startOf('quarter'), now.clone().endOf('quarter')) },
+        { id: 'half', label: 'Semestre', ...span(now.clone().month(half).startOf('month'), now.clone().month(half + 5).endOf('month')) },
+        { id: 'year', label: 'Any', ...span(now.clone().startOf('year'), now.clone().endOf('year')) }
+      ]
+    },
     ...mapState(useMainStore, ['userName']),
     titleStack () {
       return ['Informes', 'Dedicació']
@@ -167,6 +189,15 @@ export default {
     this.isLoading = false
   },
   methods: {
+    presetOn (p) {
+      return !this.filters.lastUpdated && this.filters.date1 && this.filters.date2 &&
+        moment(this.filters.date1).format('YYYY-MM-DD') === p.from && moment(this.filters.date2).format('YYYY-MM-DD') === p.to
+    },
+    setPreset (p) {
+      this.filters.lastUpdated = false
+      this.filters.date1 = moment(p.from).toDate()
+      this.filters.date2 = moment(p.to).toDate()
+    },
     submit () {},
     submit2 () {},
     reset () {
