@@ -279,8 +279,12 @@ test('tasks: create, move to another state and archive', async () => {
 // issues/026: every ADMINISTRACIÓ entry names an entity the backend serves
 test('every administration screen loads', async () => {
   await visit('/projectes')
-  const links = await page.locator('aside a[href^="#/admin/"]').evaluateAll(as => as.map(a => a.getAttribute('href')))
-  expect(links.length).toBeGreaterThan(10)
+  const menuLinks = await page.locator('aside a[href^="#/admin/"]').evaluateAll(as => as.map(a => a.getAttribute('href')))
+  // the auxiliary tables share one menu entry ("Taules auxiliars") and are listed on its screen
+  await visit('/admin/project-scope')
+  const tableLinks = await page.locator('.admin-tables-nav a[href^="#/admin/"]').evaluateAll(as => as.map(a => a.getAttribute('href')))
+  const links = [...new Set([...menuLinks, ...tableLinks])]
+  expect(tableLinks.length).toBeGreaterThan(10)
   const broken = []
   for (const href of links) {
     await visit(href.slice(1))

@@ -7,6 +7,7 @@
 
 <script>
 import TitleBar from '@/components/TitleBar.vue';
+import { ADMIN_TABLES } from '@/service/adminTables';
 import AdminEntityForm from '@/components/AdminEntityForm.vue';
 import service from '@/service/index';
 
@@ -37,7 +38,10 @@ export default {
                            (this.metadata && this.metadata.displayName) || 
                            this.formatEntityName(this.entityName);
       const action = this.id ? 'Editar' : 'Crear';
-      return ['Administració', entityDisplay, action];
+      const isTable = ADMIN_TABLES.some(t => t.entity === this.entityName);
+      return isTable
+        ? ['Administració', 'Taules auxiliars', entityDisplay, action]
+        : ['Administració', entityDisplay, action];
     }
   },
   async mounted() {

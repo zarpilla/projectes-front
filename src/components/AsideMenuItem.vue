@@ -4,7 +4,7 @@
       :is="componentIs"
       v-bind="item"
       exact-active-class="is-active"
-      :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown }"
+      :class="{ 'has-icon': !!item.icon, 'has-dropdown-icon': hasDropdown, 'is-active': isActiveGroup }"
       :title="isCollapsed && item.label ? item.label : null"
       @click="menuClick"
     >
@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import { isAdminTablePath } from '@/service/adminTables'
 export default {
   name: 'AsideMenuItem',
   emits: ["menu-click"],
@@ -53,6 +54,10 @@ export default {
     }
   },
   computed: {
+    // an entry that stands for a group of screens (e.g. the auxiliary tables)
+    isActiveGroup () {
+      return this.item.activeWhen === 'admin-tables' && isAdminTablePath(this.$route.path)
+    },
     componentIs () {
       return this.item.to ? 'router-link' : 'a'
     },

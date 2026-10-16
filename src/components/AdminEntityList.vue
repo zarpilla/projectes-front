@@ -1,5 +1,5 @@
 <template>
-  <section class="section">
+  <div class="admin-entity">
     <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false"></b-loading>
 
     <modal-box
@@ -9,97 +9,77 @@
       @cancel="trashCancel"
     />
 
-    <div class="mt-5 mb-4">
-      <b-button
-        type="is-primary"
-        icon-left="plus"
-        @click="createNew"
-      >
-        Crear {{ entityDisplayNameSingular }}
+    <div class="admin-entity-head">
+      <div>
+        <h2>{{ entityDisplayName }}</h2>
+        <p class="has-text-muted">{{ countText }}</p>
+      </div>
+      <b-button type="is-primary" icon-left="plus" @click="createNew">
+        Crear {{ entityDisplayNameSingular.toLowerCase() }}
       </b-button>
     </div>
 
-    <card-component v-if="!isLoading && items.length > 0">
-      <b-table
-        :data="items"
-        :loading="isLoading"
-        :paginated="items.length > 50"
-        :per-page="50"
-        :striped="true"
-        :hoverable="true"
-      >
-        <!-- ID Column -->
-        <b-table-column
-          label="ID"
-          field="id"
-          sortable
-          numeric
-          width="80"
-          v-slot="props"
-        >
-          <router-link :to="{ name: 'admin.entity.edit', params: { entityName, id: props.row.id } }">
-            {{ props.row.id }}
-          </router-link>
-        </b-table-column>
+    <div v-if="items.length" class="filter-bar">
+      <b-input v-model="search" class="filter-search" icon="magnify" placeholder="Cerca" aria-label="Cerca" />
+      <div v-if="statusAttr" class="segmented" role="group" aria-label="Estat">
+        <button type="button" :class="{ 'is-on': status === 'on' }" @click="status = 'on'">Actius · {{ activeCount }}</button>
+        <button type="button" :class="{ 'is-on': status === 'off' }" @click="status = 'off'">{{ statusOffLabel }} · {{ items.length - activeCount }}</button>
+        <button type="button" :class="{ 'is-on': status === 'all' }" @click="status = 'all'">Tots · {{ items.length }}</button>
+      </div>
+    </div>
 
-        <!-- Dynamic columns based on attributes -->
+    <div v-if="!isLoading && items.length > 0" class="card has-table">
+      <b-table
+        :data="shownItems"
+        :loading="isLoading"
+        :paginated="shownItems.length > 50"
+        :per-page="50"
+        :hoverable="true"
+        :default-sort="firstAttr || 'id'"
+      >
         <b-table-column
-          v-for="(attrConfig, attrName) in displayAttributes"
+          v-for="(attrConfig, attrName, i) in displayAttributes"
           :key="attrName"
-          :label="attrConfig.label || formatLabel(attrName)"
+          :label="attrName === statusAttr ? 'Estat' : (attrConfig.label || formatLabel(attrName))"
           :field="attrName"
           sortable
+          :numeric="['decimal', 'integer', 'float'].includes(attrConfig.type)"
           v-slot="props"
         >
-          <span v-if="attrConfig.type === 'boolean'">
-            {{ props.row[attrName] ? 'Sí' : 'No' }}
+          <router-link
+            v-if="i === 0"
+            :to="{ name: 'admin.entity.edit', params: { entityName, id: props.row.id } }"
+            class="doc-title"
+          >{{ cellText(props.row, attrName, attrConfig) || '—' }}</router-link>
+          <span v-else-if="attrName === statusAttr" class="tag" :class="props.row[attrName] ? '' : 'is-success is-light'">
+            {{ props.row[attrName] ? statusOffLabel.replace(/s$/, '') : 'Actiu' }}
           </span>
-          <span v-else-if="attrConfig.type === 'decimal' || attrConfig.type === 'integer' || attrConfig.type === 'float'">
-            {{ formatNumber(props.row[attrName]) }}
-          </span>
-          <span v-else-if="attrConfig.type === 'date' || attrConfig.type === 'datetime'">
-            {{ formatDate(props.row[attrName]) }}
-          </span>
-          <span v-else-if="attrConfig.model && props.row[attrName]">
-            {{ props.row[attrName].name || props.row[attrName].username || props.row[attrName].year || props.row[attrName].id }}
-          </span>
-          <span v-else>
-            {{ props.row[attrName] }}
-          </span>
+          <span v-else-if="attrConfig.type === 'boolean'">{{ props.row[attrName] ? 'Sí' : 'No' }}</span>
+          <span v-else :class="{ 'has-text-muted': !cellText(props.row, attrName, attrConfig) }">{{ cellText(props.row, attrName, attrConfig) || '—' }}</span>
         </b-table-column>
 
-        <!-- Actions Column -->
-        <b-table-column
-          label="Accions"
-          custom-key="actions"
-          cell-class="is-actions-cell"
-          v-slot="props"
-        >
-          <div class="buttons is-right">
+        <b-table-column label="" custom-key="actions" cell-class="is-actions-cell" v-slot="props">
+          <div class="row-actions">
             <router-link
               :to="{ name: 'admin.entity.edit', params: { entityName, id: props.row.id } }"
-              class="button is-small is-primary"
+              class="row-action"
+              title="Edita"
+              aria-label="Edita"
             >
-              <b-icon icon="pencil" size="is-small" />
+              <b-icon icon="pencil-outline" custom-size="default" />
             </router-link>
-            <button
-              class="button is-small is-danger"
-              type="button"
-              @click.prevent="trashModal(props.row)"
-            >
-              <b-icon icon="trash-can" size="is-small" />
+            <button class="row-action is-danger" type="button" title="Esborra" aria-label="Esborra" @click.prevent="trashModal(props.row)">
+              <b-icon icon="trash-can-outline" custom-size="default" />
             </button>
           </div>
         </b-table-column>
       </b-table>
-    </card-component>
+    </div>
 
-    <card-component v-else-if="!isLoading">
-      <p class="has-text-centered has-text-grey">
-        No hi ha cap {{ entityDisplayNameSingular }} encara. Crea'n un nou!
-      </p>
-    </card-component>
-  </section>
+    <div v-else-if="!isLoading" class="card admin-empty">
+      <p>No hi ha cap {{ entityDisplayNameSingular.toLowerCase() }} encara.</p>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -127,7 +107,9 @@ export default {
       metadata: null,
       entityToApiPath: {},
       isModalActive: false,
-      trashObject: null
+      trashObject: null,
+      search: '',
+      status: 'all'
     };
   },
   computed: {
@@ -150,6 +132,36 @@ export default {
         filtered[name] = config;
       }
       return filtered;
+    },
+    firstAttr() {
+      return Object.keys(this.displayAttributes)[0] || null;
+    },
+    // a "switched off" flag (disabled, trashed) gives the Actius / Desactivats filter
+    statusAttr() {
+      return ['disabled', 'trashed'].find(a => this.displayAttributes[a] && this.displayAttributes[a].type === 'boolean') || null;
+    },
+    statusOffLabel() {
+      return this.statusAttr === 'trashed' ? 'Esborrats' : 'Desactivats';
+    },
+    activeCount() {
+      return this.statusAttr ? this.items.filter(i => !i[this.statusAttr]).length : this.items.length;
+    },
+    shownItems() {
+      const q = this.search.trim().toLowerCase();
+      return this.items.filter(item => {
+        if (this.statusAttr && this.status === 'on' && item[this.statusAttr]) return false;
+        if (this.statusAttr && this.status === 'off' && !item[this.statusAttr]) return false;
+        if (!q) return true;
+        return Object.entries(this.displayAttributes).some(([name, config]) =>
+          String(this.cellText(item, name, config) || '').toLowerCase().includes(q));
+      });
+    },
+    countText() {
+      const n = this.items.length;
+      const name = n === 1 ? this.entityDisplayNameSingular : this.entityDisplayName;
+      let text = `${n} ${name.toLowerCase()}`;
+      if (this.statusAttr) text += ` · ${this.activeCount} actius`;
+      return text;
     },
     trashObjectName() {
       if (!this.trashObject) return null;
@@ -243,6 +255,16 @@ export default {
         });
       }
     },
+    cellText(row, name, config) {
+      const value = row[name];
+      if (value === null || value === undefined || value === '') return '';
+      if (['decimal', 'integer', 'float'].includes(config.type)) return this.formatNumber(value);
+      if (config.type === 'date' || config.type === 'datetime') return this.formatDate(value);
+      if (config.model || typeof value === 'object') {
+        return value.name || value.username || value.year || value.id || '';
+      }
+      return String(value);
+    },
     formatLabel(name) {
       // Convert snake_case or camelCase to Title Case
       return name
@@ -262,3 +284,49 @@ export default {
   }
 };
 </script>
+<style scoped>
+.admin-entity-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.admin-entity-head h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.admin-entity-head p {
+  font-size: .875rem;
+}
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .25rem;
+}
+.row-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--a-fg-2);
+  cursor: pointer;
+}
+.row-action:hover {
+  background: var(--a-chip);
+  color: var(--a-fg);
+}
+.row-action.is-danger:hover {
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
+}
+.admin-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--a-muted);
+}
+</style>
