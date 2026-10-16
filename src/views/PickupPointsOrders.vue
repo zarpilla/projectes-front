@@ -1,14 +1,8 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Comandes que es recullen en un punt de consum: marca qui ja ha passat a buscar la seva caixa." />
     <section class="section is-main-section">
-      <card-component
-        title="Comandes"
-        
-        has-table
-      >
-        <pickup-points-orders />
-      </card-component>
+      <pickup-points-orders />
     </section>
   </div>
 </template>
@@ -27,7 +21,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ['Comandes', 'Comandes punt de consum']
+      return ['Rutes i punts', 'Punts de consum']
     }
   }
 }

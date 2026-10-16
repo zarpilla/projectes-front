@@ -1,28 +1,21 @@
 <template>
   <div>
-    <download-excel
-      class="export"
-      name="punts-recollida"
-      :fields="excelFields"
-      :data="excelRows"
-    >
-      <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
-    </download-excel>
-    <b-table :loading="isLoading" :data="ordersData" :paginated="false" :striped="false">
+    <div class="filter-bar">
+      <span class="pp-count">{{ ordersData.length }} {{ ordersData.length === 1 ? "comanda" : "comandes" }}</span>
+      <download-excel class="export ml-auto" name="punts-recollida" :fields="excelFields" :data="excelRows">
+        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
+      </download-excel>
+    </div>
+    <div class="a-box list-box">
+    <b-table :loading="isLoading" :data="ordersData" :paginated="false" :striped="false" :mobile-cards="false">
       <b-table-column label="Comanda" field="id" sortable v-slot="props">
-        <router-link
-          :to="{ name: 'orders.edit', params: { id: props.row.id } }"
-        >
-          <span class="has-text-info">
-            #{{ props.row.id.toString().padStart(4, "0") }}
-          </span>
+        <router-link :to="{ name: 'orders.view.detail', params: { id: props.row.id } }">
+          <b>#{{ props.row.id.toString().padStart(4, "0") }}</b>
         </router-link>
       </b-table-column>
 
       <b-table-column label="Estat" field="status" sortable v-slot="props">
-        <b-tag class="status" :type="getStatusType(props.row.status)">
-          {{ getStatusLabel(props.row.status) }}
-        </b-tag>
+        <span class="tag" :class="getStatusType(props.row.status)">{{ getStatusLabel(props.row.status) }}</span>
       </b-table-column>
 
       <b-table-column label="Punt" field="contact.name" sortable v-slot="props">
@@ -43,7 +36,7 @@
         sortable
         v-slot="props"
       >
-        {{ props.row.estimated_delivery_date }}
+        <span class="nowrap">{{ formatDate(props.row.estimated_delivery_date) }}</span>
       </b-table-column>
 
       <b-table-column label="Línia" v-slot="props">
@@ -57,29 +50,30 @@
               class="is-flex is-justify-content-space-between is-align-items-center"
             >
               <div>
-                <strong>{{ line.name }}</strong> ({{ line.nif }})
+                <strong>{{ line.name }}</strong><span v-if="line.nif" class="has-text-muted"> · {{ line.nif }}</span>
                 <br />
-                <small>{{ line.units }} caixes - {{ line.kilograms }} kg</small>
+                <small>{{ line.units }} {{ Number(line.units) === 1 ? "caixa" : "caixes" }} · {{ line.kilograms }} kg</small>
               </div>
               <div>
                 <b-button
                   v-if="!line.picked_up"
                   size="is-small"
                   type="is-primary"
+                  icon-left="check"
                   @click="markAsPickedUp(props.row.id, index)"
                   :loading="updatingLines[`${props.row.id}_${index}`]"
                 >
-                  Marcar com recollit
+                  Recollit
                 </b-button>
-                <b-button
-                  v-else
-                  size="is-small"
-                  type="is-outlined"
-                  @click="markAsNotPickedUp(props.row.id, index)"
-                  :loading="updatingLines[`${props.row.id}_${index}`]"
-                >
-                  Marcar com NO recollit
-                </b-button>
+                <span v-else class="picked">
+                  <b-icon icon="check-circle" size="is-small" /> Recollit
+                  <b-button
+                    size="is-small"
+                    type="is-text"
+                    @click="markAsNotPickedUp(props.row.id, index)"
+                    :loading="updatingLines[`${props.row.id}_${index}`]"
+                  >Desfés</b-button>
+                </span>
               </div>
             </div>
           </div>
@@ -108,6 +102,7 @@
         </section>
       </template>
     </b-table>
+    </div>
   </div>
 </template>
 
@@ -310,22 +305,29 @@ export default {
     getStatusType(status) {
       const statusTypes = {
         pending: "is-warning",
-        confirmed: "is-info",
-        in_progress: "is-primary",
-        delivered: "is-success",
-        cancelled: "is-danger"
+        processed: "is-info is-light",
+        confirmed: "is-info is-light",
+        in_progress: "is-info is-light",
+        delivered: "is-success is-light",
+        invoiced: "",
+        cancelled: "is-danger is-light"
       };
-      return statusTypes[status] || "is-light";
+      return statusTypes[status] || "";
     },
     getStatusLabel(status) {
       const statusLabels = {
         pending: "Pendent",
+        processed: "Processada",
         confirmed: "Confirmada",
         in_progress: "En procés",
-        delivered: "Entregada",
-        cancelled: "Cancel·lada"
+        delivered: "Lliurada",
+        invoiced: "Facturada",
+        cancelled: "Anul·lada"
       };
       return statusLabels[status] || status;
+    },
+    formatDate(date) {
+      return date ? String(date).split("-").reverse().join("/") : "";
     }
   }
 };
@@ -339,6 +341,24 @@ export default {
   text-transform: uppercase;
 }
 .hrow {
-  border-bottom: 1px solid #fafafa;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.hrow:last-child {
+  border-bottom: 0;
+}
+.pp-count {
+  font-weight: 700;
+  color: var(--a-fg-2);
+}
+.picked {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-weight: 700;
+  color: var(--a-pos);
+}
+.nowrap {
+  white-space: nowrap;
 }
 </style>
