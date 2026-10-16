@@ -2277,8 +2277,8 @@
         v-show="showTab('moviments')"
         class="ztile is-child mt-2"
       >
-        <b-field>
-          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2">
+        <b-field class="movements-paging">
+          <b-select v-model="perPage" :disabled="!isPaginated" class="mr-2" aria-label="Moviments per pàgina">
             <option value="10">10 per pàgina</option>
             <option value="50">50 per pàgina</option>
             <option value="100">100 per pàgina</option>
@@ -2300,6 +2300,7 @@
             label="Data"
             field="document.date"
             sortable
+            cell-class="is-nowrap"
             v-slot="props"
           >
             <span v-if="props.row.document && props.row.document.date">{{
@@ -2342,10 +2343,11 @@
                   props.row.document &&
                   props.row.document.paid
               "
+              class="tag is-success is-light"
             >
               Cobrament
             </span>
-            <span v-else-if="props.row.docType === 'income'">
+            <span v-else-if="props.row.docType === 'income'" class="tag is-warning">
               Cobrament esperat
             </span>
             <span
@@ -2354,13 +2356,14 @@
                   props.row.document &&
                   props.row.document.paid
               "
+              class="tag"
             >
               Pagament
             </span>
-            <span v-else-if="props.row.docType === 'expense'">
+            <span v-else-if="props.row.docType === 'expense'" class="tag is-warning">
               Pagament esperat
             </span>
-            <span v-else-if="props.row.docType === 'treasury'">
+            <span v-else-if="props.row.docType === 'treasury'" class="tag is-info is-light">
               Operació de tresoreria
             </span>
           </b-table-column>
@@ -2368,8 +2371,10 @@
             label="Concepte"
             field="document.concept"
             sortable
+            cell-class="movement-concept"
             v-slot="props"
           >
+            <div class="movement-concept-text" :title="props.row.document.concept || null">
             {{
               props.row.docType === "income" && props.row.document.income_type
                 ? props.row.document.income_type.name + " - "
@@ -2384,6 +2389,7 @@
             <span v-if="props.row.document.comment">{{
               props.row.document.comment
             }}</span>
+            </div>
           </b-table-column>
           <b-table-column label="Document" v-slot="props">
             <router-link
@@ -2450,14 +2456,9 @@
             numeric
             v-slot="props"
           >
-            <money-format
-              :value="props.row.document.total_amount * props.row.multiplier"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
+            <span class="movement-amount" :class="'has-text-' + sign(props.row.document.total_amount * props.row.multiplier)">
+              {{ formatMoney(props.row.document.total_amount * props.row.multiplier) }}
+            </span>
           </b-table-column>
         </b-table>
       </card-component>
@@ -2530,7 +2531,7 @@ import {
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
-import { formatHours, formatMoney } from "@/helpers/format-number";
+import { formatHours, formatMoney, sign } from "@/helpers/format-number";
 import { defaultProjectLeader } from "@/domain/projectLeader.js";
 
 const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum: 4 };
@@ -2979,6 +2980,7 @@ export default {
   methods: {
     formatHours,
     formatMoney,
+    sign,
     // Which sections show: the active tab; in the new project wizard, the section of
     // the current step (1 basic data, 2 phases, 3 planning, 4 summary to confirm);
     // when duplicating, every section, as before.
@@ -5452,6 +5454,26 @@ html .project-form .subphase-detail-input.readonly {
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
+}
+.project-form .is-nowrap {
+  white-space: nowrap;
+}
+.project-form td.movement-concept {
+  max-width: 36rem;
+}
+/* long concepts: two lines, the full text in the tooltip */
+.project-form .movement-concept-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.project-form .movement-amount {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.project-form .movements-paging .select select {
+  height: 2.25rem;
 }
 .project-form .treasury-summary {
   overflow: hidden;
