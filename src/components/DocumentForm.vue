@@ -792,7 +792,8 @@
             <document-totals :lines="form.lines" />
             <hr />
 
-            <b-field label="Notes" horizontal message="Visibles a la factura">
+            <div class="a-form doc-notes">
+            <b-field label="Notes" message="Visibles a la factura">
               <b-input
                 type="textarea"
                 v-model="form.comments"
@@ -803,7 +804,7 @@
             </b-field>
             <b-field
               label="Notes internes"
-              horizontal
+             
               message="No visibles a la factura"
             >
               <b-input
@@ -813,6 +814,7 @@
                 :maxlength="1000"
               />
             </b-field>
+            </div>
           </card-component>
           <card-component
             v-if="type === 'payrolls' && dedication"
@@ -3120,6 +3122,17 @@ export default {
 }
 .document-fields :deep(.project-tags > .field-label) {
   display: none;
+}
+.doc-notes {
+  padding: 1rem 1.25rem 0;
+}
+@media screen and (min-width: 769px) {
+  .doc-notes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .doc-notes > .field {
+    grid-column: auto;
+  }
 }
 .savebar-state {
   margin-right: auto;

@@ -332,3 +332,19 @@ export default {
   }
 };
 </script>
+<style scoped>
+/* Redesign A: the first row's labels read as the table head */
+.document-lines :deep(.line-field > .label) {
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+  margin-bottom: .375rem;
+}
+.document-lines .subphase.line {
+  margin: 0 !important;
+  padding: .375rem 0;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+</style>
