@@ -203,7 +203,7 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import html2pdf from "html3pdf";
 import getConfig from '@/config'
-import { slotMinutes, formatDuration, formatExpected, expectedHours, festiveOn } from "@/domain/workdayLog.js";
+import { slotMinutes, formatDuration, formatExpected, expectedHours, festiveOn, festivesBetween } from "@/domain/workdayLog.js";
 
 moment.locale("ca");
 
@@ -579,15 +579,6 @@ export default {
         await service({ requiresAuth: true }).get("projects/basic?_limit=-1")
       ).data;
 
-      const [periods, festives] = await Promise.all([
-        service({ requiresAuth: true }).get(`daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`),
-        service({ requiresAuth: true, cached: true }).get("festives?_limit=-1")
-      ]);
-      this.periods = periods.data;
-      this.festives = festives.data.filter(
-        f => !f.users_permissions_user || (f.users_permissions_user.id || f.users_permissions_user) === this.user
-      );
-
       const from = this.month 
         ? moment(this.year + "-" + this.month, "YYYY-MM")
             .startOf("month")
@@ -602,6 +593,15 @@ export default {
         : moment(this.year, "YYYY")
             .endOf("year")
             .format("YYYY-MM-DD");
+
+      const [periods, festives] = await Promise.all([
+        service({ requiresAuth: true }).get(`daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`),
+        service({ requiresAuth: true, cached: true }).get(festivesBetween(from, to))
+      ]);
+      this.periods = periods.data;
+      this.festives = festives.data.filter(
+        f => !f.users_permissions_user || (f.users_permissions_user.id || f.users_permissions_user) === this.user
+      );
 
       let query = `workday-logs?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`;
       if (this.user) {

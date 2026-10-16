@@ -7,6 +7,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Millores",
+      text: ["El ", { to: "/registre-jornades", label: "registre de jornades" }, ", el saldo d'hores i les bestretes s'obren més de pressa: només demanen els festius del període que mostren, no els de tots els anys."]
+    },
+    {
+      type: "Millores",
       text: "Les llistes que gairebé no canvien (estats, tipus i àmbits de projecte, anys, tipus de dedicació, d'IVA…) es carreguen un sol cop per sessió, i les pantalles s'obren més de pressa. Si en canvies una a «Taules auxiliars», ho veus al moment; la resta d'usuàries, quan tornin a entrar o recarreguin la pàgina."
     },
     {

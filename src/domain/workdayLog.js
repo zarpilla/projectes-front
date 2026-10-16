@@ -44,3 +44,8 @@ export const expectedHours = (date, periods, festives) => {
   }
   return day === 0 || day === 6 ? 0 : Number(period.hours) || 0
 }
+
+// Only the festives of the dates a screen shows: all of them took 3+ s on
+// tenants with years of festives (issues/096)
+export const festivesBetween = (from, to) =>
+  `festives?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`

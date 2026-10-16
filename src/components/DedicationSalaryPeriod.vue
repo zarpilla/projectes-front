@@ -67,6 +67,7 @@ import service from "@/service/index";
 // import map from 'lodash/map'
 import sumBy from "lodash/sumBy";
 import moment from "moment";
+import { festivesBetween } from "@/domain/workdayLog.js";
 import CardComponent from "@/components/CardComponent.vue";
 
 moment.locale("ca");
@@ -147,7 +148,9 @@ export default {
           this.activities = r.data;
           
           const festives = (
-            await service({ requiresAuth: true }).get("festives?_limit=-1")
+            await service({ requiresAuth: true }).get(
+              festivesBetween(from, moment().endOf("year").format("YYYY-MM-DD"))
+            )
           ).data.filter(
             (f) =>
               f.users_permissions_user === null ||

@@ -141,6 +141,7 @@ import service from "@/service/index";
 // import map from 'lodash/map'
 import sumBy from "lodash/sumBy";
 import moment from "moment";
+import { festivesBetween } from "@/domain/workdayLog.js";
 import CardComponent from "@/components/CardComponent.vue";
 import { formatNumber, sign } from "@/helpers/format-number";
 
@@ -327,7 +328,7 @@ export default {
           });
           
           const festives = (
-            await service({ requiresAuth: true, cached: true }).get("festives?_limit=-1")
+            await service({ requiresAuth: true, cached: true }).get(festivesBetween(from, to))
           ).data.filter(
             (f) =>
               f.users_permissions_user === null ||
