@@ -1,61 +1,38 @@
 <template>
+  <!-- Redesign A: the members' contact form, with the entity's text beside it -->
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Una població que no és a la llista, un problema amb una recollida o una entrega, o qualsevol altra cosa." />
     <section class="section is-main-section">
-      <div class="columns">
-        <div class="column is-full" v-if="!submitted">
-          <div v-html="config.contact_form_text" />
-          <card-component class="tile is-child">
-            <form @submit.prevent="submit" v-if="!isLoading">
-              <b-field label="Sòcia *" horizontal>
-                <b-select v-model="form.user" placeholder="" disabled="true">
-                  <option
-                    v-for="(s, index) in users"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.fullname || s.username }}
-                  </option>
-                </b-select>
-              </b-field>
-
-              <b-field label="Correu electrònic*" horizontal>
-                <b-input
-                  v-model="form.email"
-                  placeholder="El teu correu"
-                  required
-                />
-              </b-field>
-
-              <b-field label="Nom *" horizontal>
-                <b-input
-                  v-model="form.name"
-                  placeholder="El teu nom"
-                  required
-                />
-              </b-field>
-
-              <b-field label="Missatge *" horizontal>
-                <b-input
-                  type="textarea"
-                  v-model="form.message"
-                  placeholder="Què vols dir-nos?"
-                  required
-                />
-              </b-field>
-
-              <hr />
-              <b-field horizontal>
-                <b-button type="is-primary" :loading="isLoading || submitting" @click="submit"
-                  >Enviar</b-button
-                >
-              </b-field>
-            </form>
-          </card-component>
-        </div>
-        <div class="column is-full" v-if="submitted">
-          <div v-html="config.contact_form_thankyou" />
-        </div>
+      <div v-if="!submitted" class="contact-layout">
+        <section class="a-box">
+          <header class="box-head"><h2>El teu missatge</h2></header>
+          <form v-if="!isLoading" class="a-form" @submit.prevent="submit">
+            <b-field label="Sòcia">
+              <b-select v-model="form.user" placeholder="" disabled expanded>
+                <option v-for="(s, index) in users" :key="index" :value="s.id">{{ s.fullname || s.username }}</option>
+              </b-select>
+            </b-field>
+            <b-field label="Correu electrònic *">
+              <b-input v-model="form.email" type="email" placeholder="El teu correu" required />
+            </b-field>
+            <b-field label="Nom *" class="full">
+              <b-input v-model="form.name" placeholder="El teu nom" required />
+            </b-field>
+            <b-field label="Missatge *" class="full">
+              <b-input v-model="form.message" type="textarea" placeholder="Què vols dir-nos?" required />
+            </b-field>
+            <div class="full">
+              <b-button type="is-primary" icon-left="send" :loading="isLoading || submitting" @click="submit">Envia</b-button>
+            </div>
+          </form>
+        </section>
+        <aside v-if="config.contact_form_text" class="a-box contact-help">
+          <div class="content" v-html="config.contact_form_text" />
+        </aside>
+      </div>
+      <div v-else class="a-box contact-thanks">
+        <b-icon icon="check-circle-outline" size="is-large" />
+        <div class="content" v-html="config.contact_form_thankyou || 'Gràcies! Hem rebut el teu missatge.'" />
       </div>
     </section>
   </div>
@@ -170,34 +147,30 @@ export default {
   }
 };
 </script>
-<style lang="scss" scoped>
-.line .field.medium-field {
-  width: 10%;
+<style scoped>
+.contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  gap: 1rem;
+  align-items: start;
 }
-.line .field.subphase-detail-input-large-field {
-  width: 30%;
+.contact-help {
+  font-size: .9375rem;
+  color: var(--a-fg-2);
 }
-.summary-card .column {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+.contact-thanks {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  max-width: 40rem;
+  color: var(--a-pos);
 }
-.summary-card .label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.8rem;
-}
-.ulist .tag {
-  margin-right: 3px;
-  margin-bottom: 3px;
-}
-.summary label {
-  margin-right: 0.5rem;
-}
-.line-notes .control {
-  width: 50%;
-}
-.line-notes textarea {
-  width: 100%;
+@media screen and (max-width: 1023px) {
+  .contact-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .contact-help {
+    order: -1;
+  }
 }
 </style>
