@@ -10,7 +10,7 @@
     <!-- <pre>{{emittedCSV}}</pre> -->
 
     <div class="doc-actions">
-    <download-excel name="ingressos" class="export" :data="emittedCSV" 
+    <download-excel class="export" :data="emittedCSV" 
     
     :fields="{
         num: 'num',

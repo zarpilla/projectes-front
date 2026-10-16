@@ -506,7 +506,6 @@
             }
           }
         }"
-        name="justificacions"
       >
         <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
