@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <!-- <hero-bar>
       Dedicació
       <template #right>
@@ -10,84 +10,15 @@
       </template>
     </hero-bar> -->
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal label="Estat projecte">
-            <b-select
-              v-model="filters.project_state"
-              placeholder="Estat"
-              required
-            >
-              <option
-                v-for="(s, index) in project_states"
-                :key="index"
-                :value="s.id"
-              >
-                {{ s.name }}
-              </option>
-            </b-select>
-            <!-- <b-field label="Persona">
-              <b-autocomplete
-                v-model="userNameSearch"
-                placeholder="Persona"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredUsers"
-                field="username"
-                @select="(option) => (filters.user = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Projecte">
-              <b-autocomplete
-                v-model="projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="
-                  (option) => (filters.project = option ? option.id : null)
-                "
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field> -->
-            <!-- <b-field label="Inici">
-              <b-datepicker
-                v-model="filters.date1"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Final">
-              <b-datepicker
-                v-model="filters.date2"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                trap-focus
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field label="Últimes">
-              <b-checkbox v-model="filters.lastUpdated"> </b-checkbox>
-            </b-field> -->
-          </b-field>
-        </form>
-      </card-component>
-
-      <card-component title="Intercooperació">
-        <intercoop-pivot :project-state="filters.project_state" v-if="!isLoading" />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Estat projecte</span>
+          <b-select v-model="filters.project_state" aria-label="Estat projecte">
+            <option v-for="(s, index) in project_states" :key="index" :value="s.id">{{ s.name }}</option>
+          </b-select>
+        </label>
+      </form>
+      <intercoop-pivot v-if="!isLoading" :project-state="filters.project_state" />
     </section>
   </div>
 </template>
@@ -119,7 +50,10 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Projectes', 'Intercooperació']
+      return ['Informes', 'Intercooperació']
+    },
+    subtitle () {
+      return 'Projectes i imports amb altres entitats. Configura la taula dinàmica per agrupar-los com vulguis.'
     }
   },
   async mounted () {

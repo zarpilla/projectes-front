@@ -443,6 +443,21 @@ a {
     background: transparent;
   }
 
+  // an autocomplete or a date picker as the value
+  .autocomplete,
+  .datepicker {
+    flex: 1;
+    min-width: 9rem;
+  }
+  .autocomplete .input,
+  .datepicker .input {
+    border: 0;
+    box-shadow: none;
+    height: 2.375rem;
+    font-weight: 700;
+    background: transparent;
+  }
+
   &:focus-within {
     border-color: $a-accent;
     box-shadow: 0 0 0 3px $a-focus;

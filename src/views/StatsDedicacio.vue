@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <!-- <hero-bar>
       Dedicació
       <template #right>
@@ -10,43 +10,15 @@
       </template>
     </hero-bar> -->
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal label="Estat projecte">
-            <b-select
-              v-model="filters.project_state"
-              placeholder="Estat"
-              required
-            >
-              <option
-                v-for="(s, index) in project_states"
-                :key="index"
-                :value="s.id"
-              >
-                {{ s.name }}
-              </option>
-            </b-select>
-          </b-field>
-          <!-- <b-field horizontal label="Any">
-            <b-select
-              v-model="filters.year"
-              placeholder="Any"              
-            >
-              <option
-                v-for="(s, index) in years"
-                :key="index"
-                :value="s.year"
-              >
-                {{ s.year ? s.year : 'Tots' }}
-              </option>
-            </b-select>
-          </b-field>           -->
-        </form>
-      </card-component>
-
-      <card-component title="Projectes">
-        <dedication-pivot :project-state="filters.project_state" :year="filters.year" v-if="!isLoading" />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Estat projecte</span>
+          <b-select v-model="filters.project_state" aria-label="Estat projecte">
+            <option v-for="(s, index) in project_states" :key="index" :value="s.id">{{ s.name }}</option>
+          </b-select>
+        </label>
+      </form>
+      <dedication-pivot v-if="!isLoading" :project-state="filters.project_state" :year="filters.year" />
     </section>
   </div>
 </template>
@@ -83,7 +55,10 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Taula dinàmica']
+      return ['Informes', 'Dedicació per projecte']
+    },
+    subtitle () {
+      return 'Hores reals de cada projecte. Configura la taula dinàmica per veure-les per persona, tipus de dedicació o funció.'
     }
   },
   async mounted () {

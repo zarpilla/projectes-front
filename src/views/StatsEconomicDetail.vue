@@ -1,57 +1,39 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent="() => {}">
-          <b-field horizontal>
-            <b-field label="Estat projecte">
-              <div class="is-flex mt-2">
-                <button
-                  class="button mr-3"
-                  v-for="state in project_states"
-                  :key="state.id"
-                  @click="toggleState(state)"
-                  :class="{
-                    'is-primary': selectedProjectStates.includes(state.id),
-                    'is-outlined': !selectedProjectStates.includes(state.id)
-                  }"
-                >
-                  {{ state.name }}
-                </button>
-              </div>
-            </b-field>
-            <b-field label="Any">
-              <b-select v-model="filters.year" placeholder="Any">
-                <option
-                  v-for="(s, index) in years"
-                  :key="index"
-                  :value="s.year"
-                >
-                  {{ s.year }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Dades">
-              <b-select v-model="filters.dataType" placeholder="Any">
-                <option v-for="(s, index) in dataTypes" :key="index" :value="s">
-                  {{ s }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field>
-              <b-button type="is-warning mt-x" @click="refreshData">Refrescar</b-button>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
-      <card-component title="Projectes" v-if="show">
-        <economic-detail-pivot
-          :project-states="selectedProjectStates" :year="filters.year" :data-type="filters.dataType"
-          v-if="!isLoading"
-        />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <div class="toggle-group" role="group" aria-label="Estat projecte">
+          <span class="toggle-label">Estat projecte</span>
+          <button
+            v-for="state in project_states"
+            :key="state.id"
+            type="button"
+            class="chip-toggle"
+            :class="{ 'is-on': selectedProjectStates.includes(state.id) }"
+            :aria-pressed="selectedProjectStates.includes(state.id) ? 'true' : 'false'"
+            @click="toggleState(state)"
+          >
+            {{ state.name }}
+          </button>
+        </div>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" aria-label="Any">
+            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ s.year }}</option>
+          </b-select>
+        </label>
+        <div class="segmented" role="group" aria-label="Dades">
+          <button v-for="t in dataTypes" :key="t" type="button" :class="{ 'is-on': filters.dataType === t }" @click="filters.dataType = t">{{ t }}</button>
+        </div>
+        <b-button icon-left="refresh" @click="refreshData">Refrescar</b-button>
+      </form>
+      <economic-detail-pivot
+        v-if="show && !isLoading"
+        :project-states="selectedProjectStates"
+        :year="filters.year"
+        :data-type="filters.dataType"
+      />
     </section>
   </div>
 </template>
@@ -88,8 +70,11 @@ export default {
     };
   },
   computed: {
-    titleStack() {
-      return ["Projectes", "Detall Ingressos i Despeses"];
+    titleStack () {
+      return ['Informes', 'Ingressos i despeses']
+    },
+    subtitle () {
+      return 'Ingressos i despeses previstos i executats dels projectes, en detall. Configura la taula dinàmica per agrupar-los.'
     }
   },
   async mounted() {

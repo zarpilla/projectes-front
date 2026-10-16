@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <!-- <hero-bar>
       Dedicació
       <template #right>
@@ -10,61 +10,33 @@
       </template>
     </hero-bar> -->
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent="applyFilters">
-          <b-field horizontal>            
-            <b-field label="Estat projecte">
-              <b-select
-                v-model="filters.project_state"
-                placeholder="Estat"
-              >
-                <option
-                  v-for="(s, index) in project_states"
-                  :key="index"
-                  :value="s.id"
-                >
-                  {{ s.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Any">
-              <b-select
-                v-model="filters.year"
-                placeholder="Any"
-              >
-                <option
-                  v-for="(s, index) in years"
-                  :key="index"
-                  :value="s.year"
-                >
-                  {{ s.display }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Persona">
-              <b-select
-                v-model="filters.user"
-                placeholder="Persona"
-              >
-                <option
-                  v-for="(s, index) in users"
-                  :key="index"
-                  :value="s.id"
-                >
-                  {{ s.username }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field>
-              <b-button type="is-primary mt-x" native-type="submit">Aplicar</b-button>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
-      <card-component title="Projectes">
-        <dedication-est-pivot :project-state="appliedFilters.project_state" :year="appliedFilters.year" :person="appliedFilters.user" v-if="!isLoading1 && !isLoading2 && !isLoading3" />
-      </card-component>      
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="applyFilters">
+        <label class="filter-select">
+          <span>Estat projecte</span>
+          <b-select v-model="filters.project_state" aria-label="Estat projecte">
+            <option v-for="(s, index) in project_states" :key="index" :value="s.id">{{ s.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" aria-label="Any">
+            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ s.display }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Persona</span>
+          <b-select v-model="filters.user" aria-label="Persona">
+            <option v-for="(s, index) in users" :key="index" :value="s.id">{{ s.username }}</option>
+          </b-select>
+        </label>
+        <b-button type="is-primary" native-type="submit">Aplica</b-button>
+      </form>
+      <dedication-est-pivot
+        v-if="!isLoading1 && !isLoading2 && !isLoading3"
+        :project-state="appliedFilters.project_state"
+        :year="appliedFilters.year"
+        :person="appliedFilters.user"
+      />
     </section>
   </div>
 </template>
@@ -113,7 +85,10 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Dedicació', 'Previsió/Execució dedicació']
+      return ['Informes', 'Previsió i execució de la dedicació']
+    },
+    subtitle () {
+      return 'Hores previstes i fetes per projecte i persona. Tria els filtres i aplica-ho.'
     }
   },
   async mounted () {

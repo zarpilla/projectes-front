@@ -1,30 +1,16 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal label="Estat projecte">
-            <b-select
-              v-model="filters.project_state"
-              placeholder="Estat"
-              required
-            >
-              <option
-                v-for="(s, index) in project_states"
-                :key="index"
-                :value="s.id"
-              >
-                {{ s.name }}
-              </option>
-            </b-select>
-          </b-field>
-        </form>
-      </card-component>
-
-      <card-component title="Projectes">
-        <projectes-pivot :project-state="filters.project_state" v-if="!isLoading" />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Estat projecte</span>
+          <b-select v-model="filters.project_state" aria-label="Estat projecte">
+            <option v-for="(s, index) in project_states" :key="index" :value="s.id">{{ s.name }}</option>
+          </b-select>
+        </label>
+      </form>
+      <projectes-pivot v-if="!isLoading" :project-state="filters.project_state" />
     </section>
   </div>
 </template>
@@ -58,7 +44,10 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Projectes', 'Taula dinàmica']
+      return ['Informes', 'Projectes']
+    },
+    subtitle () {
+      return 'Hores, ingressos, despeses i resultats dels projectes. Configura la taula dinàmica per agrupar-los com vulguis.'
     }
   },
   async mounted () {
