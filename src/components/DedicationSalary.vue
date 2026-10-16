@@ -69,19 +69,16 @@
         </div>
         <div v-for="(value, key) in months" v-bind:key="key" class="card-body">
           <div class="columns">
-            <div class="column">
-              {{ key }}
+            <div class="column month-name">
+              {{ monthName(key) }}
             </div>
-            <!-- <div class="column">
-              {{ value }}
-            </div> -->
-            <div class="column">{{ value.worked.toFixed(2) }} h</div>
-            <div class="column">{{ value.theoricHours.toFixed(2) }} h</div>
-            <div class="column">{{ value.balance.toFixed(2) }} h</div>
-            <div class="column">{{ value.balanceTotal.toFixed(2) }} h</div>
+            <div class="column">{{ hours(value.worked) }}</div>
+            <div class="column">{{ hours(value.theoricHours) }}</div>
+            <div class="column" :class="'has-text-' + sign(value.balance)">{{ hours(value.balance, true) }}</div>
+            <div class="column" :class="'has-text-' + sign(value.balanceTotal)">{{ hours(value.balanceTotal, true) }}</div>
             <div class="column">
               <span>
-                {{ (value.dailySalary / value.theoricDays).toFixed(2) }} €
+                {{ salary(value.dailySalary / value.theoricDays) }}
                 <span
                   v-if="
                     hasPayroll(key) &&
@@ -107,7 +104,7 @@
                       hasPayroll(key).total_base.toFixed(2)
                 "
               >
-                {{ hasPayroll(key).total_base.toFixed(2) }} € (Nòmina)
+                {{ salary(hasPayroll(key).total_base) }} (Nòmina)
               </span>
             </div>
             <div class="column">
@@ -120,7 +117,7 @@
                       (value.dailySalary / value.theoricDays).toFixed(2)
                     )
                   "
-                  class="is-warning"
+                  type="is-primary"
                   icon="edit"
                   >Crear</b-button
                 >
@@ -145,14 +142,18 @@
                         hasPayroll(key).total_base.toFixed(2)
                     )
                   "
-                  class="is-danger mr-3"
+                  class="mr-2"
+                  title="Esborra la nòmina"
+                  aria-label="Esborra la nòmina"
                 >
                   <b-icon icon="trash-can" size="is-small" />
                 </b-button>
                 <b-button
                   v-if="hasPayroll(key)"
                   @click="viewPayroll(key)"
-                  class="is-primary mr-3"
+                  class="mr-2"
+                  title="Mostra la nòmina"
+                  aria-label="Mostra la nòmina"
                 >
                   <b-icon icon="eye" size="is-small" />
                 </b-button>
@@ -173,6 +174,7 @@ import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import { formatNumber, formatMoney, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
 
@@ -238,6 +240,20 @@ export default {
     this.getActivities();
   },
   methods: {
+    sign,
+    monthName(key) {
+      const names = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
+      return names[Number(key) - 1] || key;
+    },
+    // hours in Catalan format; balances with their sign
+    hours(value, signed = false) {
+      const number = Number(value) || 0;
+      return (signed && number > 0 ? "+" : "") + formatNumber(number, 2, 2) + " h";
+    },
+    // a month with no theoretical days gives no salary figure (was "NaN €")
+    salary(value) {
+      return Number.isFinite(Number(value)) ? formatMoney(value) : "—";
+    },
     async getActivities() {
       this.isLoading = true;
 
