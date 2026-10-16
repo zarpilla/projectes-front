@@ -16,76 +16,50 @@
       @delete="modalSplitDelete"
     />
 
-    <div class="columns subphase-detail-title">
-      <div class="column is-8">Fase</div>
-      <div class="column is-1">Ing - Des</div>
-      <div class="column is-1">Total</div>
-      <div class="column is-2">Accions</div>
+    <div v-if="phases && phases.length" class="phases-toolbar">
+      <span class="phases-count">{{ phases.length }} {{ phases.length === 1 ? "fase" : "fases" }} · {{ linesCount }} {{ linesCount === 1 ? "línia" : "línies" }}</span>
+      <div v-if="phases.length > 1" class="phases-toolbar-actions">
+        <b-button size="is-small" icon-left="unfold-less-horizontal" @click="setAllCollapsed(true)">Plega-ho tot</b-button>
+        <b-button size="is-small" icon-left="unfold-more-horizontal" @click="setAllCollapsed(false)">Desplega-ho tot</b-button>
+      </div>
     </div>
 
     <div
       v-for="(phase, phi) in phases"
       class="phase-container columns is-multiline"
     >
-      <div class="column is-8">
-        <form @submit.prevent="blurPhaseEdit(phase)">
+      <div class="column is-12 phase-head">
+        <button
+          type="button"
+          class="phase-toggle"
+          :aria-expanded="isCollapsed(phase, phi) ? 'false' : 'true'"
+          :aria-label="(isCollapsed(phase, phi) ? 'Desplega la fase ' : 'Plega la fase ') + (phase.name || '')"
+          @click="toggleCollapsed(phase, phi)"
+        >
+          <b-icon :icon="isCollapsed(phase, phi) ? 'chevron-right' : 'chevron-down'" custom-size="default" />
+        </button>
+        <form class="phase-name" @submit.prevent="blurPhaseEdit(phase)">
           <b-input
             placeholder="Nom de la fase..."
             v-model="phase.name"
             @update:model-value="blurPhaseEdit(phase)"
             class="phase-detail-input"
+            aria-label="Nom de la fase"
             :disabled="(mode !== '' && mode !== 'simple') || !editable"
           >
           </b-input>
         </form>
-      </div>
-      <div class="column is-1">
-        <div
-          class="readonly
-                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total"
-        >
-          <money-format
-            class="inline"
-            :value="subTotalIncomes(phase)"
-            :locale="'es'"
-            currency-code=" "
-            :subunits-value="false"
-            :hide-subunits="false"
-          >
-          </money-format>
-          -
-          <money-format
-            class="inline"
-            :value="subTotalExpenses(phase)"
-            :locale="'es'"
-            currency-code=" "
-            :subunits-value="false"
-            :hide-subunits="false"
-          >
-          </money-format>
-        </div>
-      </div>
-      <div class="column is-1">
-        <div
-          class="readonly
-                subphase-detail-input zsubphase-detail-input-phase-subtotal subphase-detail-input-phase-total"
-        >
-          <money-format
-            class="inline"
-            :value="phase.total_amount ? phase.total_amount : 0"
-            :locale="'es'"
-            :currency-code="'EUR'"
-            :subunits-value="false"
-            :hide-subunits="false"
-          >
-          </money-format>
-        </div>
-      </div>
-      <div v-if="mode === '' || mode === 'simple'" class="column is-2">
+        <dl class="phase-sums">
+          <div><dt>Ingressos</dt><dd>{{ formatMoney(subTotalIncomes(phase)) }}</dd></div>
+          <div><dt>Despeses</dt><dd>{{ formatMoney(subTotalExpenses(phase)) }}</dd></div>
+          <div><dt>Total</dt><dd :class="'has-text-' + sign(phase.total_amount)">{{ formatMoney(phase.total_amount || 0) }}</dd></div>
+        </dl>
+      <div v-if="mode === '' || mode === 'simple'" class="phase-actions">
         <button
-          class="button is-small is-danger"
+          class="button is-small"
           type="button"
-          title="Esborrar"
+          title="Esborra la fase"
+          aria-label="Esborra la fase"
           :disabled="
             !editable ||
               phase.incomes.find(s => s.paid && mode !== 'simple') ||
@@ -102,7 +76,8 @@
           v-if="mode === 'simple'"
           class="button is-small is-danger ml-1"
           type="button"
-          title="Copiar fase a execució"
+          title="Copia la fase a l'execució"
+          aria-label="Copia la fase a l'execució"
           :disabled="!editable"
           @click.prevent="copyPhase(phi)"
         >
@@ -111,16 +86,18 @@
         <button
           class="button is-small is-warning ml-1"
           type="button"
-          title="Duplica fase i pressupost"
+          title="Duplica la fase i el pressupost"
+          aria-label="Duplica la fase i el pressupost"
           :disabled="!editable"
           @click.prevent="duplicatePhase(phi)"
         >
           <b-icon icon="content-copy" size="is-small" />
         </button>
       </div>
-      <div class="column is-12 subphases-list" v-if="mode !== 'expenses'">
+      </div>
+      <div v-show="!isCollapsed(phase, phi)" class="column is-12 subphases-list" v-if="mode !== 'expenses'">
         <div class="subphase-detail-title">
-          Ingressos
+          Ingressos <span class="lines-count">{{ phase.incomes ? phase.incomes.length : 0 }}</span>
         </div>
         <b-table v-if="form && phase.incomes" :data="phase.incomes" ref="table"
           :paginated="isPaginated && phase.incomes.length > 10"
@@ -128,7 +105,7 @@
           pagination-position="top"
           :pagination-simple="true"
         >
-          <b-table-column field="name" label="Tipus" width="40px" v-slot="props">
+          <b-table-column field="name" label="Tipus" width="40px" cell-class="col-type" v-slot="props">
             <b-field
                 v-if="
                   (incomeTypes && incomeTypes.length) ||
@@ -152,7 +129,7 @@
                 </b-select>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Concepte" width="450" v-slot="props">
+          <b-table-column field="name" label="Concepte" width="450" cell-class="col-concept" v-slot="props">
             <b-field
                 
                 class="subphase-detail-input-large-field"
@@ -168,7 +145,7 @@
                 </b-input>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Quantitat" width="80" v-slot="props">
+          <b-table-column field="name" label="Quantitat" width="80" cell-class="col-qty" v-slot="props">
               <b-field
                 class="medium-field"
               >
@@ -185,7 +162,7 @@
                 </b-input>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Preu" width="80" v-slot="props">
+          <b-table-column field="name" label="Preu" width="80" cell-class="col-price" v-slot="props">
               <b-field class="medium-field">
                 <b-input
                   name="PreuUnitari"
@@ -307,7 +284,9 @@
           <b-table-column field="name" label="Accions" width="80" v-slot="props">
               <b-field class="medium-field">
                 <button
-                  class="button is-small is-primary ml-2"
+                  class="button is-small line-action ml-2"
+                  title="Divideix la línia"
+                  aria-label="Divideix la línia"
                   type="button"
                   @click.prevent="
                     splitSubPhase(phase, props.row, phi, props.index)
@@ -317,7 +296,9 @@
                   <b-icon icon="arrow-split-horizontal" size="is-small" />
                 </button>
                 <button
-                  class="button is-small is-danger ml-2"
+                  class="button is-small line-action ml-2"
+                  title="Esborra la línia"
+                  aria-label="Esborra la línia"
                   type="button"
                   :disabled="
                     !editable ||
@@ -331,7 +312,9 @@
                 </button>
                 <button
                   v-if="props.index === phase.incomes.length - 1"
-                  class="button is-small is-primary ml-2"
+                  class="button is-small line-action ml-2"
+                  title="Afegeix una línia"
+                  aria-label="Afegeix una línia"
                   type="button"
                   @click.prevent="addSubPhase(phase)"
                   :disabled="!editable"
@@ -448,7 +431,9 @@
         </b-table>
         <div class="add-subphase mt-2" v-if="phase.incomes.length === 0">
           <button
-            class="button is-small is-primary"
+            class="button is-small line-action"
+            title="Afegeix una línia"
+            aria-label="Afegeix una línia"
             type="button"
             @click.prevent="addSubPhase(phase)"
             :disabled="!editable"
@@ -457,16 +442,16 @@
           </button>
         </div>
       </div>
-      <div class="column is-12 subphases-list" v-if="mode !== 'incomes'">
+      <div v-show="!isCollapsed(phase, phi)" class="column is-12 subphases-list" v-if="mode !== 'incomes'">
         <div class="subphase-detail-title">
-          Despeses
+          Despeses <span class="lines-count">{{ phase.expenses ? phase.expenses.length : 0 }}</span>
         </div>
         <b-table v-if="form && phase.expenses" :data="phase.expenses" ref="table"
         :paginated="isPaginated && phase.expenses.length > 10"
           :per-page="perPage"
           pagination-position="top"
           :pagination-simple="true">
-          <b-table-column field="name" label="Tipus" width="80" v-slot="props">
+          <b-table-column field="name" label="Tipus" width="80" cell-class="col-type" v-slot="props">
             <b-field
                 v-if="
                   (incomeTypes && incomeTypes.length) ||
@@ -490,7 +475,7 @@
                 </b-select>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Concepte" width="450" v-slot="props">
+          <b-table-column field="name" label="Concepte" width="450" cell-class="col-concept" v-slot="props">
             <b-field                
                 class="subphase-detail-input-large-field"
               >
@@ -505,7 +490,7 @@
                 </b-input>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Quantitat" width="80" v-slot="props">
+          <b-table-column field="name" label="Quantitat" width="80" cell-class="col-qty" v-slot="props">
               <b-field
                 class="medium-field"
               >
@@ -522,7 +507,7 @@
                 </b-input>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Preu" width="80" v-slot="props">
+          <b-table-column field="name" label="Preu" width="80" cell-class="col-price" v-slot="props">
               <b-field class="medium-field">
                 <b-input
                   name="PreuUnitari"
@@ -640,7 +625,9 @@
           <b-table-column field="name" label="Accions" width="80" v-slot="props">
               <b-field class="medium-field">
                 <button
-                  class="button is-small is-primary ml-2"
+                  class="button is-small line-action ml-2"
+                  title="Divideix la línia"
+                  aria-label="Divideix la línia"
                   type="button"
                   @click.prevent="
                     splitSubExpense(phase, props.row, phi, props.index)
@@ -650,7 +637,9 @@
                   <b-icon icon="arrow-split-horizontal" size="is-small" />
                 </button>
                 <button
-                  class="button is-small is-danger ml-2"
+                  class="button is-small line-action ml-2"
+                  title="Esborra la línia"
+                  aria-label="Esborra la línia"
                   type="button"
                   :disabled="props.row.paid || !editable"
                   @click.prevent="removeSubExpense(phase, props.row, props.index)"
@@ -659,7 +648,9 @@
                 </button>                
                 <button
                   v-if="props.index === phase.expenses.length - 1"
-                  class="button is-small is-primary ml-2"
+                  class="button is-small line-action ml-2"
+                  title="Afegeix una línia"
+                  aria-label="Afegeix una línia"
                   type="button"
                   @click.prevent="addSubExpense(phase)"
                   :disabled="!editable"
@@ -775,7 +766,9 @@
         </b-table>
         <div class="add-subphase mt-2" v-if="phase.expenses.length === 0">
           <button
-            class="button is-small is-primary"
+            class="button is-small line-action"
+            title="Afegeix una línia"
+            aria-label="Afegeix una línia"
             type="button"
             @click.prevent="addSubExpense(phase)"
             :disabled="!editable"
@@ -816,6 +809,7 @@ import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
 import RadioPicker from "@/components/RadioPicker.vue";
+import { formatMoney, sign } from "@/helpers/format-number";
 
 export default {
   name: "ProjectFormPhases",
@@ -899,6 +893,8 @@ export default {
   },
   data() {
     return {
+      // phases folded by the user (key: phase id, or index for unsaved ones)
+      collapsedPhases: {},
       phases: [],
       isLoading: false,
       isUpdating: false,
@@ -955,6 +951,12 @@ export default {
     };
   },
   computed: {
+    linesCount() {
+      return (this.phases || []).reduce(
+        (total, phase) => total + (phase.incomes ? phase.incomes.length : 0) + (phase.expenses ? phase.expenses.length : 0),
+        0
+      );
+    },
     ...mapState(useMainStore, ["me"]),
     filteredClients() {
       return this.clients.filter(option => {
@@ -1200,6 +1202,25 @@ export default {
     this.isLoading = false;
   },
   methods: {
+    formatMoney,
+    sign,
+    phaseKey(phase, index) {
+      return phase && phase.id ? "id-" + phase.id : "index-" + index;
+    },
+    isCollapsed(phase, index) {
+      return !!this.collapsedPhases[this.phaseKey(phase, index)];
+    },
+    toggleCollapsed(phase, index) {
+      const key = this.phaseKey(phase, index);
+      this.collapsedPhases = { ...this.collapsedPhases, [key]: !this.collapsedPhases[key] };
+    },
+    setAllCollapsed(collapsed) {
+      const all = {};
+      (this.phases || []).forEach((phase, index) => {
+        all[this.phaseKey(phase, index)] = collapsed;
+      });
+      this.collapsedPhases = all;
+    },
     blurPhase(phase) {
       this.phases.forEach(p => {
         p.edit = false;
@@ -2142,6 +2163,159 @@ export default {
 </script>
 
 <style>
+/* Redesign A: phase head, folding, quiet line actions, columns that don't truncate */
+.project-form-phases .phases-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+.project-form-phases .phases-count {
+  color: var(--a-muted);
+  font-weight: 700;
+  font-size: .875rem;
+}
+.project-form-phases .phases-toolbar-actions {
+  display: flex;
+  gap: .5rem;
+}
+.project-form-phases .phase-container {
+  margin: 0 0 .75rem !important;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: var(--a-surface);
+}
+.project-form-phases .phase-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  padding: .625rem .75rem;
+  background: var(--a-thead);
+  border-radius: 10px;
+}
+.project-form-phases .phase-toggle {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--a-fg-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.project-form-phases .phase-toggle:hover {
+  background: var(--a-chip);
+}
+.project-form-phases .phase-name {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+.project-form-phases .phase-name .input {
+  font-weight: 800;
+}
+.project-form-phases .phase-sums {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1.25rem;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.project-form-phases .phase-sums div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.project-form-phases .phase-sums dt {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.project-form-phases .phase-sums dd {
+  margin: 0;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.project-form-phases .phase-actions {
+  display: flex;
+  gap: .25rem;
+}
+.project-form-phases .phase-actions .button,
+.project-form-phases .button.line-action {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  color: var(--a-fg-2);
+  box-shadow: none;
+}
+.project-form-phases .phase-actions .button:hover,
+.project-form-phases .button.line-action:hover {
+  background: var(--a-chip);
+  color: var(--a-fg);
+}
+.project-form-phases .phase-actions .button[title^="Esborra"]:hover,
+.project-form-phases .button.line-action[title^="Esborra"]:hover {
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
+}
+.project-form-phases .subphases-list {
+  padding: .5rem .75rem .75rem;
+}
+.project-form-phases .subphase-detail-title {
+  font-weight: 800;
+  color: var(--a-fg);
+  margin: .25rem 0 .375rem;
+}
+.project-form-phases .lines-count {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0 .375rem;
+  border-radius: 999px;
+  background: var(--a-chip);
+  color: var(--a-fg-2);
+  font-size: .75rem;
+  text-align: center;
+}
+/* wide budgets scroll inside the phase instead of truncating dates and types */
+.project-form-phases .subphases-list .table-wrapper {
+  overflow-x: auto;
+}
+.project-form-phases .subphases-list .table td,
+.project-form-phases .subphases-list .table th {
+  padding: .3rem .375rem;
+}
+.project-form-phases .subphases-list .table .input,
+.project-form-phases .subphases-list .table .select select {
+  height: 2.125rem;
+  font-size: .8125rem;
+}
+/* dates: no calendar icon inside the table (the picker still opens on click) */
+.project-form-phases .subphases-list .table .datepicker .control.has-icons-left .icon.is-left {
+  display: none;
+}
+.project-form-phases .subphases-list .table .datepicker .control.has-icons-left .input {
+  padding-left: .5rem;
+  min-width: 6.5rem;
+}
+.project-form-phases .subphases-list .table .select select {
+  min-width: 4.75rem;
+}
+.project-form-phases .subphases-list .table td.col-type .select select {
+  min-width: 9rem;
+}
+.project-form-phases .subphases-list .table td.col-concept {
+  min-width: 10rem;
+}
+.project-form-phases .subphases-list .table td.col-qty .input {
+  min-width: 3.5rem;
+}
+.project-form-phases .subphases-list .table td.col-price .input {
+  min-width: 5.5rem;
+}
 .warning-tag {
   padding-left: 0.5rem;
 }
