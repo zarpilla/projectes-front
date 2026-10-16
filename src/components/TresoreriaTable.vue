@@ -181,7 +181,8 @@
       {{ money(noDate.total_incomes) }} de cobraments i {{ money(noDate.total_expenses) }} de pagaments no entren a la previsió.
     </div>
 
-    <section class="report-box">
+    <div class="tres-top" :class="{ 'has-accounts': accountRows.length > 1 }">
+    <section class="report-box tres-chart">
       <header class="report-box-head">
         <h2>Saldo a final de mes · {{ selectedYear }}</h2>
         <span class="chart-legend" aria-hidden="true">
@@ -222,6 +223,42 @@
         </div>
       </div>
     </section>
+      <section v-if="accountRows.length > 1" class="report-box tres-accounts">
+        <header class="report-box-head">
+          <h2>Comptes</h2>
+          <span class="has-text-muted">a {{ todayLabel }}</span>
+        </header>
+        <table class="table is-fullwidth accounts-table">
+          <thead>
+            <tr>
+              <th>Compte</th>
+              <th class="has-text-right">{{ view === "today" ? "Avui" : "Inici d'any" }}</th>
+              <th class="has-text-right">Avui</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="a in accountRows" :key="a.name">
+              <th>
+                {{ a.name }}
+                <small v-if="a.iban" class="has-text-muted">···· {{ a.iban }}</small>
+              </th>
+              <td class="has-text-right" :class="'has-text-' + sign(a.start)">{{ money(a.start) }}</td>
+              <td class="has-text-right">
+                <b :class="'has-text-' + sign(a.today)">{{ money(a.today) }}</b>
+                <small class="has-text-muted acc-move">{{ money(a.today - a.start, true) }} mov.</small>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total</th>
+              <th class="has-text-right">{{ money(accountRows.reduce((t, a) => t + a.start, 0)) }}</th>
+              <th class="has-text-right" :class="'has-text-' + sign(accountRows.reduce((t, a) => t + a.today, 0))">{{ money(accountRows.reduce((t, a) => t + a.today, 0)) }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+    </div>
 
     <section class="report-box">
       <header class="report-box-head">
@@ -306,7 +343,7 @@
     </b-modal>
 
     <card-component title="Moviments bancaris" class="ztile is-child mt-2">
-      <section class="section">
+      <section class="movements-section">
         <!-- Redesign A: what to list and a search over concept, project and contact -->
         <div class="filter-bar movements-bar">
           <div class="segmented" role="group" aria-label="Moviments">
@@ -797,6 +834,25 @@ export default {
         if (!q) return true;
         return [r.concept, r.project_name, r.contact, r.type].some(v => v && String(v).toLowerCase().includes(q));
       });
+    },
+    // balance of each account at the start of the year and today ("Inici Any" /
+    // "Avui" rows, one per account)
+    accountRows() {
+      const start = this.treasuryData.filter(t => t.type === (this.view === "today" ? "Avui" : "Inici Any"));
+      const today = this.treasuryData.filter(t => t.type === "Avui");
+      return today.map(t => {
+        const acc = this.bankAccounts.find(b => b.name === t.bank_account) || {};
+        const s0 = start.find(x => x.bank_account === t.bank_account);
+        return {
+          name: t.bank_account || "Sense compte",
+          iban: acc.iban ? String(acc.iban).replace(/\s/g, "").slice(-4) : "",
+          start: s0 ? Number(s0.account_subtotal) || 0 : 0,
+          today: Number(t.account_subtotal) || 0
+        };
+      }).sort((x, y) => x.name.localeCompare(y.name));
+    },
+    todayLabel() {
+      return moment().format("DD/MM/YYYY");
     },
     currentYm() {
       return moment().format("YYYYMM");
@@ -1483,8 +1539,52 @@ export default {
 .forecast-months tr.is-start > * {
   color: var(--a-fg-2);
 }
+.tres-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.tres-top.has-accounts {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+.tres-top > .report-box {
+  margin-bottom: 0;
+}
+.accounts-table {
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+.accounts-table th:first-child,
+.accounts-table td:first-child {
+  padding-left: 1.25rem;
+}
+.accounts-table th:last-child,
+.accounts-table td:last-child {
+  padding-right: 1.25rem;
+}
+.accounts-table td,
+.accounts-table th {
+  white-space: nowrap;
+}
+.accounts-table small {
+  display: block;
+  font-size: .75rem;
+  font-weight: 600;
+}
+.accounts-table tfoot th {
+  background: var(--a-thead);
+}
+@media screen and (max-width: 1215px) {
+  .tres-top.has-accounts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .ops-modal {
   width: min(44rem, calc(100vw - 2rem));
+}
+.movements-section {
+  padding: 0;
 }
 .movements-bar {
   margin-bottom: .75rem;
