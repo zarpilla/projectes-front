@@ -43,20 +43,19 @@ test('setup: the logistics permissions, the member contact and a project', async
 
 test('"Poblacions i rutes": a new town, linked to a route', async () => {
   await visit('/city-route')
-  await page.getByPlaceholder('Població').fill(TOWN)
+  await page.getByPlaceholder('Població', { exact: true }).fill(TOWN)
   await page.locator('button[title="Nova població"]').click()
   await confirmDialog('Vols afegir la població?')
   await settle()
   ;[state.city] = await api('GET', `cities?_where[name]=${encodeURIComponent(TOWN)}&_limit=1`)
   expect(state.city).toBeTruthy()
 
-  // its row, the column of the route (headed by its short name)
-  const headers = await page.locator('table thead th').allInnerTexts()
-  const column = headers.findIndex(h => h.trim() === state.route.short_name)
-  expect(column, `a column for ${state.route.short_name}`).toBeGreaterThan(-1)
-  const row = page.locator('table tbody tr', { hasText: TOWN })
-  await row.locator('td').nth(column).locator('.checkbox, .b-checkbox').click()
+  // the new town opens in "Quina ruta passa per…?": add the route there
+  const town = page.locator('.town-card', { hasText: TOWN }).first()
+  await expect(town).toContainText('Cap ruta hi passa')
+  await town.locator('select').selectOption({ label: state.route.name })
   await settle()
+  await expect(town.locator('.route-chip', { hasText: state.route.short_name || state.route.name })).toBeVisible()
   const links = await api('GET', `city-routes?_where[city]=${state.city.id}&_limit=-1`)
   expect(links.map(l => idOf(l.route))).toEqual([state.route.id])
 })
