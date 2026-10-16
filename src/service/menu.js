@@ -374,7 +374,7 @@ const menu = [
     {
       to: "/admin/users",
       icon: "account-key-outline",
-      label: "Usuaris",
+      label: "Usuàries",
       permission: "admin"
     },
     {

@@ -26,7 +26,7 @@
               <div class="is-full"><span class="pf-label">Correu electrònic</span><span class="pf-value">{{ me.email || "—" }}</span><small>És el que fas servir per entrar.</small></div>
               <div class="is-full"><span class="pf-label">Calendari personal (iCal)</span><span class="pf-value">{{ me.ical || "Sense calendari" }}</span><small>Les cites d'aquest calendari es poden importar com a hores dedicades.</small></div>
             </div>
-            <p class="profile-note">Per canviar aquestes dades, demana-ho a una persona administradora (Administració · Usuaris).</p>
+            <p class="profile-note">Per canviar aquestes dades, demana-ho a una persona administradora (Administració · Usuàries).</p>
           </section>
 
           <section class="form-box">

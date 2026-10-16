@@ -5,13 +5,13 @@
     <section class="title-bar user-head">
       <nav class="crumbs" aria-label="Ruta">
         <span>Administració</span><span aria-hidden="true">/</span>
-        <router-link to="/admin/users">Usuaris</router-link>
+        <router-link to="/admin/users">Usuàries</router-link>
       </nav>
       <div class="user-head-row">
         <span class="user-avatar" aria-hidden="true">{{ initials }}</span>
         <div class="user-head-text">
           <h1>
-            {{ userId ? (form.fullname || form.username || "Usuari") : "Nou usuari" }}
+            {{ userId ? (form.fullname || form.username || "Usuària") : "Nova usuària" }}
             <span v-if="userId" class="tag" :class="stateTag.css">{{ stateTag.label }}</span>
             <span v-if="userId && form.hidden" class="tag">Ocult</span>
           </h1>
@@ -74,7 +74,7 @@
           <!-- Logistics: only for orders_admin (issues/017) -->
           <section v-if="ordersAdmin" class="form-box">
             <h2>Logística</h2>
-            <b-field message="Si es desmarca, les comandes d'aquest usuari no reben el descompte multientrega">
+            <b-field message="Si es desmarca, les comandes d'aquesta usuària no reben el descompte multientrega">
               <b-checkbox v-model="form.multidelivery_discount">Descompte multientrega</b-checkbox>
             </b-field>
           </section>
@@ -170,7 +170,7 @@ const PERMISSION_GROUPS = [
   {
     title: 'Administració',
     items: [
-      { value: 'admin', label: 'Admin', help: 'Aquest apartat: configuració, usuaris, Verifactu i FACe, taules auxiliars.' }
+      { value: 'admin', label: 'Admin', help: 'Aquest apartat: configuració, usuàries, Verifactu i FACe, taules auxiliars.' }
     ]
   }
 ];
@@ -373,13 +373,13 @@ export default {
           if (this.password) data.password = this.password;
           await service({ requiresAuth: true }).put(`/users/${this.userId}`, data);
           this.$buefy.toast.open({
-            message: 'Usuari actualitzat correctament',
+            message: 'Usuària actualitzada correctament',
             type: 'is-success'
           });
         } else {
           // Create - for new users, we need a password
           this.$buefy.dialog.prompt({
-            message: 'Introdueix una contrasenya per al nou usuari',
+            message: 'Introdueix una contrasenya per a la nova usuària',
             inputAttrs: {
               type: 'password',
               minlength: 6,
@@ -393,13 +393,13 @@ export default {
                 if (!data.role) data.role = await this.authenticatedRoleId();
                 await service({ requiresAuth: true }).post('/users', data);
                 this.$buefy.toast.open({
-                  message: 'Usuari creat correctament',
+                  message: 'Usuària creada correctament',
                   type: 'is-success'
                 });
                 this.$router.push('/admin/users');
               } catch (error) {
                 this.$buefy.toast.open({
-                  message: `Error creant usuari: ${error.message}`,
+                  message: `Error creant la usuària: ${error.message}`,
                   type: 'is-danger'
                 });
               }
@@ -411,7 +411,7 @@ export default {
         this.$router.push('/admin/users');
       } catch (error) {
         this.$buefy.toast.open({
-          message: `Error guardant usuari: ${error.message}`,
+          message: `Error guardant la usuària: ${error.message}`,
           type: 'is-danger'
         });
       } finally {

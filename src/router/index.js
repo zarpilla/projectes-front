@@ -981,7 +981,7 @@ const routes = [
     component: () =>
       import("../views/AdminUserList.vue"),
     meta: {
-      title: "Usuaris",
+      title: "Usuàries",
       requiresAuth: true,
       requiresPermission: "admin"
     }

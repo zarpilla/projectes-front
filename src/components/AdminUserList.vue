@@ -1,10 +1,10 @@
 <template>
   <div>
-    <title-bar :title-stack="['Administració', 'Usuaris']" :subtitle="summaryText">
+    <title-bar :title-stack="['Administració', 'Usuàries']" :subtitle="summaryText">
       <download-excel class="export" name="usuaries" :fields="excelFields" :fetch="fetchExcel">
         <b-button icon-left="download">Exporta</b-button>
       </download-excel>
-      <b-button type="is-primary" icon-left="plus" @click="$router.push('/admin/users/new')">Nou usuari</b-button>
+      <b-button type="is-primary" icon-left="plus" @click="$router.push('/admin/users/new')">Nova usuària</b-button>
     </title-bar>
     <section class="section is-main-section">
       <!-- Redesign A: all accounts filtered here (a few dozen) -->
@@ -57,7 +57,7 @@
             </router-link>
           </b-table-column>
           <template #empty>
-            <p class="has-text-centered has-text-muted py-5">Cap usuari amb aquests filtres.</p>
+            <p class="has-text-centered has-text-muted py-5">Cap usuària amb aquests filtres.</p>
           </template>
         </b-table>
       </div>
@@ -166,7 +166,7 @@ export default {
         this.users = response.data;
       } catch (error) {
         this.$buefy.toast.open({
-          message: `Error carregant usuaris: ${error.message}`,
+          message: `Error carregant usuàries: ${error.message}`,
           type: "is-danger"
         });
       } finally {
@@ -190,7 +190,7 @@ export default {
         }));
       } catch (error) {
         this.$buefy.toast.open({
-          message: `Error exportant usuaris: ${error.message}`,
+          message: `Error exportant usuàries: ${error.message}`,
           type: "is-danger"
         });
         return [];

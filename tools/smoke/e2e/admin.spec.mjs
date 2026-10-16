@@ -45,7 +45,7 @@ test('admin: create a user with only the hours permission', async () => {
   const prompt = page.locator('.dialog.modal.is-active')
   await prompt.locator('input[type=password]').fill(USER.password)
   await prompt.locator('.modal-card-foot .button.is-primary').click()
-  await expect(page.locator('.toast', { hasText: 'Usuari creat correctament' })).toBeVisible()
+  await expect(page.locator('.toast', { hasText: 'Usuària creada correctament' })).toBeVisible()
 
   const user = await userNamed(USER.username)
   expect([user.email, user.confirmed, user.blocked]).toEqual([USER.email, true, false])
