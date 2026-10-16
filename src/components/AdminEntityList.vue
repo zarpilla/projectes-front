@@ -83,6 +83,7 @@
 </template>
 
 <script>
+import { normalizeEntity } from '@/service/adminMetadata';
 import service from '@/service/index';
 import CardComponent from '@/components/CardComponent.vue';
 import ModalBox from '@/components/ModalBox.vue';
@@ -188,7 +189,8 @@ export default {
         const response = await service({ requiresAuth: true }).get('/entity-metadata/admin-entities');
         const { entities, entityToApiPath } = response.data;
         this.entityToApiPath = entityToApiPath || {};
-        this.metadata = entities.find(m => m.name === this.entityName);
+        // Strapi 5 relations read as the Strapi 3 model / collection (service/adminMetadata)
+        this.metadata = normalizeEntity(entities.find(m => m.name === this.entityName));
         
         if (!this.metadata) {
           throw new Error(`Metadata not found for entity: ${this.entityName}`);

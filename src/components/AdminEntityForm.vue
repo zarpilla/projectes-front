@@ -7,7 +7,7 @@
         <form @submit.prevent="submit" v-if="metadata && metadata.attributes">
           <!-- Dynamic form fields based on attributes -->
           <b-field
-            v-for="(attrConfig, attrName) in metadata.attributes"
+            v-for="(attrConfig, attrName) in formAttributes"
             :key="attrName"
             :label="(attrConfig.label || formatLabel(attrName)) + (attrConfig.required ? ' *' : '')"
             horizontal
@@ -162,6 +162,7 @@
 </template>
 
 <script>
+import { normalizeEntity } from '@/service/adminMetadata';
 import service from '@/service/index';
 import CardComponent from '@/components/CardComponent.vue';
 
@@ -193,6 +194,14 @@ export default {
     };
   },
   computed: {
+    // to-many relations (e.g. a strategy's projects) are edited from the other side
+    formAttributes() {
+      const out = {};
+      for (const [name, config] of Object.entries((this.metadata && this.metadata.attributes) || {})) {
+        if (!config.collection) out[name] = config;
+      }
+      return out;
+    },
     isEdit() {
       return this.id !== null && this.id !== undefined;
     },
@@ -232,7 +241,8 @@ export default {
         const response = await service({ requiresAuth: true }).get('/entity-metadata/admin-entities');
         const { entities, entityToApiPath } = response.data;
         this.entityToApiPath = entityToApiPath || {};
-        this.metadata = entities.find(m => m.name === this.entityName);
+        // Strapi 5 relations read as the Strapi 3 model / collection (service/adminMetadata)
+        this.metadata = normalizeEntity(entities.find(m => m.name === this.entityName));
         
         if (!this.metadata) {
           throw new Error(`Metadata not found for entity: ${this.entityName}`);

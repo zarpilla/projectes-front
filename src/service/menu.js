@@ -388,7 +388,7 @@ const menu = [
     {
       // the 19 auxiliary tables (service/adminTables.js) share one screen
       to: "/admin/project-scope",
-      icon: "table-cog",
+      icon: "table-large",
       label: "Taules auxiliars",
       permission: "admin",
       activeWhen: "admin-tables",
