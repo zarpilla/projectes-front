@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Les productores que fan comandes de logística, i la seva aportació a la cooperativa." />
     <section class="section is-main-section">
       <users-table v-if="!isLoading" />
     </section>
@@ -28,7 +28,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Sòcies']
+      return ['Rutes i punts', 'Sòcies']
     }
   },
   mounted () {    
