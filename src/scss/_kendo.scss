@@ -1,0 +1,114 @@
+/* ---------- Kendo UI pivot tables of the reports (redesign A) ----------
+   Kendo's own CSS is loaded later by each report (addStyle), so these rules
+   start with `html body` to win over it. */
+@use "theme-default" as *;
+
+html body {
+  .k-pivot {
+    font-family: inherit;
+    font-size: .8125rem;
+    color: $a-fg;
+    border: 1px solid $a-line;
+    border-radius: 12px;
+    overflow: hidden;
+    background: $a-surface;
+  }
+  .k-pivot-layout {
+    border-collapse: collapse;
+  }
+  .k-pivot-layout > tbody > tr > td {
+    padding: 0;
+    vertical-align: top;
+  }
+  .k-pivot-rowheaders {
+    border-right: 1px solid $a-line;
+  }
+
+  /* field chips (measures, rows, columns): only while configuring */
+  .k-pivot-toolbar {
+    background: $a-thead !important;
+    border-color: $a-line !important;
+    padding: .5rem .625rem;
+  }
+  .k-pivot-toolbar .k-button,
+  .k-pivot-rowheaders .k-button {
+    background: $a-surface !important;
+    border: 1px solid $a-input !important;
+    border-radius: 999px;
+    color: $a-fg-2 !important;
+    font-weight: 700;
+    font-size: .75rem;
+    /* room for the ⋮ and × that Kendo places on the right */
+    padding: .125rem 2.75rem .125rem .625rem;
+    position: relative;
+    margin: .125rem;
+    box-shadow: none;
+  }
+  .k-pivot-toolbar .k-button:hover {
+    border-color: $a-accent !important;
+    color: $a-accent-hover !important;
+  }
+  .k-pivot-toolbar .k-icon {
+    color: $a-muted;
+  }
+
+  /* headers */
+  .k-pivot .k-grid-header,
+  .k-pivot .k-grid-header-wrap,
+  .k-pivot th.k-header,
+  .k-pivot .k-grid.k-alt td {
+    background: $a-thead !important;
+    border-color: $a-line-soft !important;
+  }
+  .k-pivot th.k-header {
+    font-size: .6875rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: $a-muted !important;
+    padding: .5rem .375rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    vertical-align: bottom;
+    line-height: 1.25;
+  }
+  .k-pivot .k-grid.k-alt td {
+    color: $a-fg;
+    font-weight: 700;
+    padding: .4375rem .625rem;
+  }
+  .k-pivot .k-i-expand,
+  .k-pivot .k-i-collapse {
+    color: $a-accent;
+  }
+
+  /* values */
+  .k-pivot .k-grid-content td {
+    border-color: $a-line-soft !important;
+    /* Kendo fixes the column widths: keep the padding small so amounts fit */
+    padding: .4375rem .375rem;
+    letter-spacing: -.01em;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .k-pivot .k-grid-content tr:hover td,
+  .k-pivot .k-grid.k-alt tr:hover td {
+    background: $a-chip !important;
+  }
+  .k-pivot .k-grid-footer td,
+  .k-pivot td.k-grid-footer,
+  .k-pivot .k-alt .k-grid-footer td {
+    background: $a-thead !important;
+    font-weight: 800;
+  }
+  .k-pivot .k-grid-content td.k-grid-footer,
+  .k-pivot .k-grid-content .k-grid-footer td {
+    color: $a-fg;
+  }
+}
+
+html:not(.pivot-config-open) body .k-pivot .k-pivot-setting {
+  display: none !important;
+}

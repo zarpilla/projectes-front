@@ -1754,6 +1754,7 @@ export default {
       this.justification.users_permissions_user = option;
     },
     applyDefaultView() {
+      this.selectedViewId = null
       if (this.pivotGridInstance) {
         // Reset to default configuration
         const dataSource = this.pivotGridInstance.dataSource;

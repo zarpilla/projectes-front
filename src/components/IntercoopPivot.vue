@@ -140,6 +140,7 @@ export default {
       })
     },
     applyDefaultView() {
+      this.selectedViewId = null
       if (this.pivotGridInstance) {
         // Reset to default configuration
         const dataSource = this.pivotGridInstance.dataSource

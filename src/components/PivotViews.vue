@@ -1,41 +1,51 @@
 <template>
   <div class="pivot-views-container">
-    <!-- Views Selection -->
-    <div class="pivot-views-toolbar mb-4" v-if="pivotViews.length > 0 || true">
-      <div class="buttons has-addons">
-        <button 
-          class="button is-small"
-          :class="{ 'is-primary': selectedViewId === null }"
-          @click="selectedViewId = null; $emit('apply-default')"
+    <!-- Views of the pivot table and the switch for its field settings (redesign A) -->
+    <div class="pivot-views-toolbar">
+      <span class="toggle-label">Vista</span>
+      <div class="segmented" role="group" aria-label="Vistes desades">
+        <button
+          type="button"
+          :class="{ 'is-on': selectedViewId === null }"
           title="Vista per defecte"
+          @click="$emit('apply-default')"
         >
-          <span>Per defecte</span>
+          Per defecte
         </button>
-        
-        <button 
-          v-for="view in pivotViews" 
+        <button
+          v-for="view in pivotViews"
           :key="view.id"
-          class="button is-small"
-          :class="{ 'is-primary': selectedViewId === view.id }"
-          @click="$emit('apply-view', view)"
+          type="button"
+          class="saved-view"
+          :class="{ 'is-on': selectedViewId === view.id }"
           :title="view.name"
+          @click="$emit('apply-view', view)"
         >
-          <span>{{ view.name }}</span>
-          <span class="icon is-small ml-1" @click.stop="$emit('delete-view', view)">
-            <b-icon icon="trash-can" size="is-small" aria-label="Eliminar vista"></b-icon>
+          {{ view.name }}
+          <span
+            class="view-delete"
+            role="button"
+            :aria-label="'Elimina la vista ' + view.name"
+            title="Elimina la vista"
+            @click.stop="$emit('delete-view', view)"
+          >
+            <b-icon icon="close" custom-size="default" />
           </span>
         </button>
-
-        <button 
-        class="button is-small is-warning ml-2" 
-        @click="$emit('save-view')"
-        title="Guardar vista actual"
-      >
-        <span>Guardar vista</span>
-      </button>
       </div>
-      
-      
+      <button type="button" class="button is-small" title="Desa la configuració actual com a vista" @click="$emit('save-view')">
+        Desa la vista
+      </button>
+      <button
+        type="button"
+        class="button is-small config-toggle"
+        :class="{ 'is-on': configOpen }"
+        :aria-pressed="configOpen ? 'true' : 'false'"
+        @click="toggleConfig"
+      >
+        <b-icon icon="tune" custom-size="default" />
+        <span>{{ configOpen ? "Amaga la configuració" : "Configura la taula dinàmica" }}</span>
+      </button>
     </div>
 
     <!-- Save View Modal -->
@@ -93,7 +103,49 @@ export default {
       default: ''
     }
   },
-  emits: ['apply-view', 'apply-default', 'save-view', 'delete-view', 'close-save-modal', 'confirm-save', 'update:viewName']
+  emits: ['apply-view', 'apply-default', 'save-view', 'delete-view', 'close-save-modal', 'confirm-save', 'update:viewName'],
+  data () {
+    return { configOpen: readConfigOpen() }
+  },
+  mounted () {
+    applyConfigOpen(this.configOpen)
+  },
+  methods: {
+    // the field chips (measures, rows, columns) of every pivot on the page are
+    // shown only while configuring; remembered in this browser
+    toggleConfig () {
+      this.configOpen = !this.configOpen
+      applyConfigOpen(this.configOpen)
+      // Kendo measured its layout with the chips shown or hidden: draw it again
+      this.$nextTick(refreshPivots)
+      try {
+        localStorage.setItem(CONFIG_KEY, this.configOpen ? '1' : '0')
+      } catch (e) {
+        // private mode: just not remembered
+      }
+    }
+  }
+}
+
+const CONFIG_KEY = 'pivotConfigOpen'
+function readConfigOpen () {
+  try {
+    return localStorage.getItem(CONFIG_KEY) === '1'
+  } catch (e) {
+    return false
+  }
+}
+function refreshPivots () {
+  const $ = window.jQuery
+  if (!$ || !window.kendo) return
+  $('.k-pivot').each((i, el) => {
+    const grid = $(el).data('kendoPivotGrid')
+    if (grid && grid.refresh) grid.refresh()
+    else window.kendo.resize(el)
+  })
+}
+function applyConfigOpen (open) {
+  document.documentElement.classList.toggle('pivot-config-open', open)
 }
 </script>
 
@@ -101,24 +153,32 @@ export default {
 .pivot-views-container {
   margin-bottom: 1rem;
 }
-
 .pivot-views-toolbar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: .5rem .75rem;
 }
-
-.buttons.has-addons .button:not(:first-child):not(:last-child) {
-  border-radius: 0;
+.saved-view {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
 }
-
-.button .icon.is-small.ml-1 {
-  margin-left: 0.25rem !important;
+.view-delete {
+  display: inline-flex;
+  border-radius: 999px;
+  color: var(--a-muted);
 }
-
-.button .icon.is-small.ml-1:hover {
-  background-color: rgba(255, 56, 96, 0.1);
-  border-radius: 50%;
+.view-delete:hover {
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
+}
+.config-toggle {
+  margin-left: auto;
+}
+.config-toggle.is-on {
+  background: var(--a-accent-soft);
+  border-color: var(--a-accent);
+  color: var(--a-accent-hover);
 }
 </style>

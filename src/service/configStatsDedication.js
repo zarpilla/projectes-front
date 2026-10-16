@@ -161,7 +161,7 @@ const config = {
           'Hores reals': {
             field: 'hours',
             aggregate: 'sum',
-            format: '{0} h'
+            format: '{0:n2} h'
           }
         }
       }

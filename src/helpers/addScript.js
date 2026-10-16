@@ -1,6 +1,9 @@
+import { applyKendoCulture } from './kendoCulture'
+
 const addScript = async (src, id) => {
   return new Promise((resolve, reject) => {
     if (document.getElementById(id)) {
+      applyKendoCulture()
       resolve()
       return
     }
@@ -8,7 +11,8 @@ const addScript = async (src, id) => {
     const script = document.createElement('script')
     script.id = id
     script.src = src
-    script.addEventListener('load', resolve)
+    // the pivot reports load Kendo through here: give it the app's number format
+    script.addEventListener('load', () => { applyKendoCulture(); resolve() })
     script.addEventListener('error', (e) => reject(e))
     script.addEventListener('abort', (e) => reject(e))
     head.appendChild(script)
