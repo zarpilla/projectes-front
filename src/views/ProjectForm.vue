@@ -1,5 +1,7 @@
 <template>
-  <div class="project-form">
+  <!-- input/change anywhere in the page (phases, periodification...) count as
+       user interaction for the "unsaved changes" tracking, not only the data form -->
+  <div class="project-form" @input.capture="enableUserInteraction" @change.capture="enableUserInteraction">
     <modal-box-duplicate-project
       :is-active="isDuplicateModalActive"
       @confirm="duplicateConfirmed"
@@ -1876,125 +1878,94 @@
         title="PERIODIFICACIÓ D'INGRESSOS I DESPESES"
         v-show="showTab('periodificacio')"
       >
-        <div
-          v-for="(y, i) in form.periodification.filter(
-            (p, i) => i < form.periodification.length - 1
-          )"
-          class="year-total-periodic mb-2 is-flex"
-        >
-          <div class="year-label">
-            <label class="label" v-if="i === 0">Any</label>
-            <div class="year mr-4 pt-2">
-              {{ periodificationYearLabel(y.year) }}
-              <b-icon
-                v-if="isUndatedYear(y.year)"
-                icon="alert"
-                type="is-warning"
-                size="is-small"
-                title="Imports de línies sense data"
-              />
-            </div>
-          </div>
-          <div>
-            <b-field
-              :label="i === 0 ? '+Ingressos previstos' : null"
-              class="mr-4"
-            >
-              <b-input
-                :disabled="i === form.periodification.length - 1"
-                v-model="y.incomes"
-                @update:model-value="changeLine(y, 'incomes', y.incomes)"
-              />
-            </b-field>
-          </div>
-          <div>
-            <b-field
-              :label="i === 0 ? '+Despeses previstes' : null"
-              class="mr-4"
-            >
-              <b-input
-                :disabled="i === form.periodification.length - 1"
-                v-model="y.expenses"
-                @update:model-value="changeLine(y, 'expenses', y.expenses)"
-              />
-            </b-field>
-          </div>
-          <div>
-            <b-field
-              :label="i === 0 ? '+Ingressos executats' : null"
-              class="mr-4"
-            >
-              <b-input
-                :disabled="i === form.periodification.length - 1"
-                v-model="y.real_incomes"
-                @update:model-value="changeLine(y, 'real_incomes', y.real_incomes)"
-              />
-            </b-field>
-          </div>
-          <div>
-            <b-field :label="i === 0 ? '+Despeses executades' : null">
-              <b-input
-                :disabled="i === form.periodification.length - 1"
-                v-model="y.real_expenses"
-                @update:model-value="changeLine(y, 'real_expenses', y.real_expenses)"
-              />
-            </b-field>
-          </div>
-        </div>
-        <div
-          v-for="(y, i) in form.periodification.filter(
-            (p, i) => i == form.periodification.length - 1
-          )"
-          class="year-total-periodic mb-2 is-flex"
-        >
-          <div class="year-label">
-            <div class="year mr-4 pt-2">
-              {{ periodificationYearLabel(y.year) }}
-              <b-icon
-                v-if="isUndatedYear(y.year)"
-                icon="alert"
-                type="is-warning"
-                size="is-small"
-                title="Imports de línies sense data"
-              />
-            </div>
-          </div>
-          <div>
-            <b-field class="mr-4">
-              <b-input
-                :disabled="true"
-                v-model="y.incomes"
-                @update:model-value="changeLine(y, 'incomes', y.incomes)"
-              />
-            </b-field>
-          </div>
-          <div>
-            <b-field class="mr-4">
-              <b-input
-                :disabled="true"
-                v-model="y.expenses"
-                @update:model-value="changeLine(y, 'expenses', y.expenses)"
-              />
-            </b-field>
-          </div>
-          <div>
-            <b-field class="mr-4">
-              <b-input
-                :disabled="true"
-                v-model="y.real_incomes"
-                @update:model-value="changeLine(y, 'real_incomes', y.real_incomes)"
-              />
-            </b-field>
-          </div>
-          <div>
-            <b-field>
-              <b-input
-                :disabled="true"
-                v-model="y.real_expenses"
-                @update:model-value="changeLine(y, 'real_expenses', y.real_expenses)"
-              />
-            </b-field>
-          </div>
+        <p class="period-help">
+          Ajusta quina part dels ingressos i les despeses compta a cada any (en positiu o en negatiu).
+          L'últim any, {{ periodificationYearLabel(form.periodification[form.periodification.length - 1].year) }}, compensa automàticament perquè el total del projecte no canviï.
+        </p>
+        <div class="table-wrap">
+          <table class="table period-table">
+            <thead>
+              <tr>
+                <th scope="col" rowspan="2">Any</th>
+                <th scope="colgroup" colspan="2" class="period-group">Previst</th>
+                <th scope="colgroup" colspan="2" class="period-group">Executat</th>
+              </tr>
+              <tr>
+                <th scope="col" class="has-text-right">Ajust d'ingressos</th>
+                <th scope="col" class="has-text-right">Ajust de despeses</th>
+                <th scope="col" class="has-text-right">Ajust d'ingressos</th>
+                <th scope="col" class="has-text-right">Ajust de despeses</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(y, i) in form.periodification.filter(
+                  (p, i) => i < form.periodification.length - 1
+                )"
+                :key="'period-' + y.year"
+                :class="{ 'is-undated': isUndatedYear(y.year) }"
+              >
+                <th scope="row">
+                  {{ periodificationYearLabel(y.year) }}
+                  <b-icon
+                    v-if="isUndatedYear(y.year)"
+                    icon="alert"
+                    type="is-warning"
+                    size="is-small"
+                    title="Imports de línies sense data"
+                  />
+                </th>
+                <td>
+                  <b-input
+                    v-model="y.incomes"
+                    class="period-input"
+                    :aria-label="`Ajust d'ingressos previstos ${periodificationYearLabel(y.year)}`"
+                    @update:model-value="changeLine(y, 'incomes', y.incomes)"
+                  />
+                </td>
+                <td>
+                  <b-input
+                    v-model="y.expenses"
+                    class="period-input"
+                    :aria-label="`Ajust de despeses previstes ${periodificationYearLabel(y.year)}`"
+                    @update:model-value="changeLine(y, 'expenses', y.expenses)"
+                  />
+                </td>
+                <td>
+                  <b-input
+                    v-model="y.real_incomes"
+                    class="period-input"
+                    :aria-label="`Ajust d'ingressos executats ${periodificationYearLabel(y.year)}`"
+                    @update:model-value="changeLine(y, 'real_incomes', y.real_incomes)"
+                  />
+                </td>
+                <td>
+                  <b-input
+                    v-model="y.real_expenses"
+                    class="period-input"
+                    :aria-label="`Ajust de despeses executades ${periodificationYearLabel(y.year)}`"
+                    @update:model-value="changeLine(y, 'real_expenses', y.real_expenses)"
+                  />
+                </td>
+              </tr>
+              <tr
+                v-for="y in form.periodification.filter(
+                  (p, i) => i == form.periodification.length - 1
+                )"
+                :key="'period-last-' + y.year"
+                class="period-auto"
+              >
+                <th scope="row">
+                  {{ periodificationYearLabel(y.year) }}
+                  <span class="tag">automàtic</span>
+                </th>
+                <td class="has-text-right">{{ formatNumber(y.incomes, 2, 2) }}</td>
+                <td class="has-text-right">{{ formatNumber(y.expenses, 2, 2) }}</td>
+                <td class="has-text-right">{{ formatNumber(y.real_incomes, 2, 2) }}</td>
+                <td class="has-text-right">{{ formatNumber(y.real_expenses, 2, 2) }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         <hr v-if="!isDuplicating && !tabsEnabled && !isCreationMode" />
         <div class="is-flex" v-if="!isDuplicating && !tabsEnabled && !isCreationMode">
@@ -2536,7 +2507,7 @@ import {
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
-import { formatHours, formatMoney, sign } from "@/helpers/format-number";
+import { formatHours, formatMoney, formatNumber, sign } from "@/helpers/format-number";
 import { defaultProjectLeader } from "@/domain/projectLeader.js";
 
 const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum: 4 };
@@ -2988,6 +2959,7 @@ export default {
   methods: {
     formatHours,
     formatMoney,
+    formatNumber,
     sign,
     // Which sections show: the active tab; in the new project wizard, the section of
     // the current step (1 basic data, 2 phases, 3 planning, 4 summary to confirm);
@@ -5469,6 +5441,40 @@ html .project-form .subphase-detail-input.readonly {
 }
 .project-form .movements-paging .select select {
   height: 2.25rem;
+}
+.project-form .period-help {
+  color: var(--a-muted);
+  margin-bottom: .75rem;
+  max-width: 60rem;
+}
+.project-form .period-table {
+  width: 100%;
+}
+.project-form .period-table thead th.period-group {
+  text-align: center;
+  border-bottom: 1px solid var(--a-line);
+}
+.project-form .period-table tbody th {
+  white-space: nowrap;
+  font-weight: 800;
+}
+.project-form .period-table .period-input input {
+  text-align: right;
+  height: 2.25rem;
+  font-variant-numeric: tabular-nums;
+}
+.project-form .period-table tr.period-auto th,
+.project-form .period-table tr.period-auto td {
+  background: var(--a-thead);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.project-form .period-table tr.period-auto .tag {
+  margin-left: .5rem;
+  vertical-align: 1px;
+}
+.project-form .period-table tr.is-undated th {
+  color: var(--a-warn-fg);
 }
 .project-form .treasury-summary {
   overflow: hidden;
