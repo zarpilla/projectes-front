@@ -287,8 +287,8 @@ export default {
     this.getWorkDayLogs();
   },
   computed: {
-    // one row per day (oldest first) with its slots, week subtotals and, over a
-    // whole year, month totals. Slots keep their index in `activities`, which the
+    // one row per day (newest first) with its slots, week subtotals and, over a
+    // whole year, month totals, each heading its days. Slots keep their index in `activities`, which the
     // save methods work with.
     rows() {
       const byDate = {};
@@ -348,7 +348,9 @@ export default {
       });
       closeWeek();
       closeMonth();
-      return rows;
+      // built oldest first with the totals after their days: reversed, the
+      // newest day comes first and each total heads its week / month
+      return rows.reverse();
     },
     dayRows() {
       return this.rows.filter(r => r.type === "day");
