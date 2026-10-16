@@ -2281,9 +2281,11 @@ export default {
         ? matchedIncomeLines
         : matchedExpenseLines;
 
-      // Calculate if there's a warning (difference > 0.01€)
+      // Calculate if there's a warning (difference > 0.01€), in whole cents:
+      // 78.18 - 78.17 is 0.010000000000005. Same rule as the backend, which
+      // recomputes it when the project lines change (issues/094)
       const diff = Math.abs(this.totalBase - totalAssigned);
-      const hasWarning = diff > 0.01;
+      const hasWarning = Math.round(diff * 100) > 1;
 
       console.log("Document warning calculation:", {
         documentId: this.form.id,

@@ -6,6 +6,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Correccions",
+      text: "A les fases del projecte, l'avís «Imports diferents» d'una línia lligada a una factura o a un ingrés/despesa s'actualitza quan es desa el projecte. Abans només es calculava en desar el document, i si després es canviaven les línies quedava desfasat. Una diferència d'un cèntim ja no surt com a avís."
+    },
+    {
       type: "Millores",
       text: ["El ", { to: "/registre-jornades", label: "registre de jornades" }, ", el saldo d'hores i les bestretes s'obren més de pressa: només demanen els festius del període que mostren, no els de tots els anys."]
     },
