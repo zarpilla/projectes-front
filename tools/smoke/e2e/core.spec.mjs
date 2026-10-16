@@ -213,7 +213,7 @@ test('emitted invoice: create a draft assigned to a budget line', async () => {
   await pickAutocomplete('Projectes', NAME)
   await fillLine({ concept: `${NAME} servei`, quantity: 2, price: 100, vat: 21, irpf: 15 })
   // base 200 + VAT 42 - IRPF 30
-  await expect(page.getByText(/^\s*Total\s+212,00\s*€\s*$/)).toBeVisible()
+  await expect(page.locator('.summary').getByText(/^\s*Total\s+212,00\s*€\s*$/)).toBeVisible()
   await assignBudgetLine('Ingrés fase B')
   await button('Guardar').click()
   // a new emitted invoice is confirmed in a summary of the draft
@@ -240,13 +240,13 @@ test('emitted invoice: create a draft assigned to a budget line', async () => {
 test('emitted invoice: saving the draft again keeps its project and its budget line', async () => {
   test.skip(!state.emittedId, 'needs the draft from the earlier test')
   await visit(`/document/${state.emittedId}/emitted-invoices`)
-  await expect(card('LINIES').locator('input[name="SubFase"]').first()).toHaveValue(`${NAME} servei`)
+  await expect(card('Línies').locator('input[name="SubFase"]').first()).toHaveValue(`${NAME} servei`)
   // a saved draft is locked until it is opened for editing
   await button("Editar dades de l'ESBORRANY").click()
-  await expect(card('LINIES').locator('input[name="SubFase"]').first()).toBeEnabled()
+  await expect(card('Línies').locator('input[name="SubFase"]').first()).toBeEnabled()
   await fillLine({ concept: `${NAME} servei`, quantity: 3, price: 100, vat: 21, irpf: 15 })
   // base 300 + VAT 63 - IRPF 45
-  await expect(page.getByText(/^\s*Total\s+318,00\s*€\s*$/)).toBeVisible()
+  await expect(page.locator('.summary').getByText(/^\s*Total\s+318,00\s*€\s*$/)).toBeVisible()
   await button('Guardar').click()
   await expectSnackbar('Guardat')
   await settle()

@@ -40,9 +40,36 @@ section.section.is-title-bar {
     color: $a-fg;
   }
 
+  .title-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem .75rem;
+  }
+
+  .title-badges {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .375rem;
+
+    .tag {
+      font-size: .75rem;
+    }
+  }
+
   .subtitle-line {
     color: $a-muted;
     margin-top: .125rem;
+  }
+
+  // "Label value" pairs of a document's summary line
+  .head-part {
+    margin-right: 1.25rem;
+
+    b {
+      color: $a-fg;
+      font-weight: 700;
+    }
   }
 
   .title-actions {

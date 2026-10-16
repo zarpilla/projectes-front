@@ -140,12 +140,68 @@
         </footer>
       </div>
     </b-modal>
-    <title-bar :title-stack="titleStack" />
+    <!-- Redesign A: head with the document, its state, a summary line and the
+         document actions; saving is in the bar at the bottom -->
+    <title-bar :title-stack="headStack">
+      <template #badges>
+        <span v-if="entity === 'emitted-invoice' && form.id" class="tag" :class="form.state === 'real' ? 'is-success is-light' : 'is-warning is-light'">{{ form.state === 'real' ? 'Emesa' : 'Esborrany' }}</span>
+        <span v-if="form.paid && type !== 'quotes'" class="tag is-success is-light">{{ isIncome ? 'Cobrada' : 'Pagada' }}</span>
+        <span v-if="form.sent" class="tag is-info is-light">Enviada</span>
+        <span v-if="type === 'quotes' && form.accepted" class="tag is-success is-light">Acceptat</span>
+      </template>
+      <template v-if="form.id" #subtitle>
+        <span v-for="part in headSummary" :key="part.label" class="head-part">{{ part.label }} <b>{{ part.value }}</b></span>
+      </template>
+      <template v-if="form.id">
+        <b-button icon-left="file-pdf-box" @click="getPDF">PDF</b-button>
+        <b-button
+          v-if="entity === 'emitted-invoice' && form.state === 'real'"
+          icon-left="content-copy"
+          @click="duplicateInvoice()"
+        >Duplica com a esborrany</b-button>
+        <b-button
+          v-if="entity === 'emitted-invoice' && form.state === 'real'"
+          icon-left="undo-variant"
+          class="is-danger is-outlined"
+          @click="createRectificativeInvoice()"
+        >Anul·la i rectifica…</b-button>
+        <b-button
+          v-if="entity === 'emitted-invoice' && form.state === 'draft'"
+          @click="canEditDraft = true"
+          :disabled="canEditDraft"
+        >Editar dades de l'ESBORRANY</b-button>
+        <b-button
+          v-if="entity === 'emitted-invoice' && form.state === 'draft'"
+          class="is-danger is-outlined"
+          @click="deleteInvoice()"
+        >Eliminar esborrany</b-button>
+        <b-button
+          v-if="entity === 'emitted-invoice' && form.state === 'draft'"
+          type="is-primary"
+          :loading="isLoading"
+          :disabled="form.state === 'real' || canEditDraft"
+          @click="setReal()"
+        >Emetre factura (convertir a EMESA)</b-button>
+        <b-button
+          v-if="entity === 'emitted-invoice'"
+          type="is-primary"
+          icon-left="email-outline"
+          :disabled="!canSendEmail || form.state !== 'real'"
+          title="Desa la factura i l'envia per correu a la clienta"
+          @click="sendInvoiceByEmail"
+        >Envia per correu</b-button>
+      </template>
+    </title-bar>
     <section class="section is-main-section">
       <div class="columns">
         <div class="column is-full">
           <!-- <pre>{{form}}</pre> -->
-          <card-component class="tile is-child" title="INFORMACIÓ BÀSICA">
+          <div v-if="entity === 'emitted-invoice' && form.state === 'real'" class="notification is-info lock-note">
+            <b-icon icon="lock-outline" custom-size="default" />
+            <span><b>Factura emesa:</b> la clienta, la sèrie, les dates, el mètode de cobrament, les línies i les notes visibles ja no es poden canviar. Per corregir-les, anul·la-la i crea'n una de rectificativa.</span>
+          </div>
+          <card-component class="tile is-child" title="Document">
+            <div class="a-form is-compact document-fields">
             <!-- PDF invoice parser (Z.ai): for new received invoices/expenses -->
             <b-field
               v-if="
@@ -620,6 +676,7 @@
             <b-field
               :label="type === 'quotes' ? 'Projecte *' : 'Projectes *'"
               horizontal
+              class="full"
               v-if="type !== 'payrolls'"
             >
               <div class="is-flex is-align-items-center is-full-width">
@@ -647,6 +704,7 @@
             <b-field
               label=""
               horizontal
+              class="full project-tags"
               v-if="form.projects && form.projects.length && type !== 'quotes'"
             >
               <div class="list">
@@ -719,10 +777,11 @@
               v-if="form.id"
             >
             </file-upload>
+            </div>
           </card-component>
 
           <hr />
-          <card-component title="LINIES" v-if="form.lines">
+          <card-component title="Línies" v-if="form.lines">
             <document-lines
               v-model:lines="form.lines"
               :new-line="getNewLine"
@@ -866,22 +925,6 @@
             </b-field>
           </card-component>
 
-          <b-field v-if="type === 'received-expenses'">
-            <b-button
-              class="mr-3"
-              type="is-primary"
-              :loading="isLoading"
-              @click="canEditDocument(false)"
-              >Guardar</b-button
-            >
-            <b-button
-              type="is-primary"
-              :loading="isLoading"
-              @click="canEditDocument(true)"
-              v-if="form.id"
-              >Guardar i sortir</b-button
-            >
-          </b-field>
 
           <hr />
 
@@ -928,111 +971,15 @@
             <hr />
           </div>
 
-          <b-field
-            v-if="
-              (type !== 'payrolls' &&
-                ((form.projects && form.projects.length) || form.projects)) ||
-                type === 'payrolls'
-            "
-          >
-            <b-button
-              class="mr-3"
-              type="is-primary"
-              :loading="isLoading"
-              @click="canEditDocument(false)"
-              >Guardar</b-button
-            >
-
-            <b-button
-              class="mr-3"
-              type="is-primary"
-              :loading="isLoading"
-              @click="canEditDocument(true)"
-              v-if="form.id"
-              >Guardar i sortir</b-button
-            >
-
-            <b-button
-              class="mr-3"
-              type="is-primary"
-              :loading="isLoading"
-              @click="canEditDraft = true"
-              v-if="
-                form.id &&
-                  entity === 'emitted-invoice' &&
-                  form.state === 'draft'
-              "
-              :disabled="canEditDraft"
-              >Editar dades de l'ESBORRANY</b-button
-            >
-
-            <b-button
-              class="mr-3"
-              type="is-primary"
-              :loading="isLoading"
-              @click="setReal()"
-              v-if="
-                form.id &&
-                  entity === 'emitted-invoice' &&
-                  form.state === 'draft'
-              "
-              :disabled="form.state === 'real' || canEditDraft"
-              >Emetre factura (convertir a EMESA)</b-button
-            >
-
-            <b-button
-              class="mr-3"
-              type="is-primary"
-              @click="sendInvoiceByEmail"
-              v-if="form.id && entity === 'emitted-invoice'"
-              :disabled="!canSendEmail || form.state !== 'real'"
-            >
-              Guardar i enviar factura per correu
-            </b-button>
-            <b-button
-              class="mr-3"
-              type="is-warning"
-              @click="createRectificativeInvoice()"
-              v-if="
-                form.id && entity === 'emitted-invoice' && form.state === 'real'
-              "
-            >
-              Anul·lar i crear factura rectificativa
-            </b-button>
-            <b-button
-              class="mr-3"
-              type="is-primary"
-              @click="duplicateInvoice()"
-              v-if="
-                form.id && entity === 'emitted-invoice' && form.state === 'real'
-              "
-            >
-              Duplicar factura (com a ESBORRANY)
-            </b-button>
-            <b-button
-              class="mr-3"
-              type="is-warning"
-              @click="deleteInvoice()"
-              v-if="
-                form.id &&
-                  entity === 'emitted-invoice' &&
-                  form.state === 'draft'
-              "
-            >
-              Eliminar esborrany
-            </b-button>
-            <b-button
-              class="mr-3"
-              v-if="form.id"
-              type="is-primary"
-              @click="getPDF"
-            >
-              Visualitzar PDF
-            </b-button>
-          </b-field>
         </div>
       </div>
     </section>
+
+    <div v-if="canSave" class="savebar">
+      <span class="savebar-state">{{ form.id ? (form.updatable === false ? 'Document no modificable' : 'Desa els canvis quan acabis') : 'Document nou' }}</span>
+      <b-button v-if="form.id" :loading="isLoading" @click="canEditDocument(true)">Guardar i sortir</b-button>
+      <b-button type="is-primary" :loading="isLoading" @click="canEditDocument(false)">Guardar</b-button>
+    </div>
   </div>
 </template>
 
@@ -1042,6 +989,7 @@ import moment from "moment";
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
+import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 
@@ -1227,6 +1175,43 @@ export default {
         return "quote";
       }
     },
+    // the old bottom buttons showed once the document had a project (or always
+    // for payrolls and received expenses)
+    canSave() {
+      return this.type === "payrolls" || this.type === "received-expenses" ||
+        !!((this.form.projects && this.form.projects.length) || this.form.projects);
+    },
+    isIncome() {
+      return this.type === "emitted-invoices" || this.type === "received-incomes" || this.type === "quotes";
+    },
+    headStack() {
+      const crumbs = {
+        "emitted-invoices": ["Ingressos", "Factures emeses"],
+        "received-incomes": ["Ingressos", "Ingressos rebuts"],
+        "received-invoices": ["Despeses", "Factures rebudes"],
+        "received-expenses": ["Despeses", "Despeses rebudes"],
+        quotes: ["Pressupostos"],
+        payrolls: ["Bestretes"]
+      }[this.type] || ["Facturació"];
+      let title = this.formCardTitle;
+      if (this.isProfileExists) {
+        const noun = { "emitted-invoices": "Factura", "received-invoices": "Factura", quotes: "Pressupost" }[this.type];
+        if (noun && this.form.code) title = `${noun} ${this.form.code}`;
+        else if (this.entity === "emitted-invoice" && this.form.state === "draft") title = "Esborrany de factura";
+      }
+      return [...crumbs, title || ""];
+    },
+    headSummary() {
+      const date = d => (d ? moment(d).format("DD/MM/YYYY") : null);
+      const contactName = this.contact && this.contact.name;
+      const parts = [
+        { label: this.isIncome ? "Clienta" : "Proveïdor", value: contactName },
+        { label: this.type === "quotes" ? "Data" : "Emesa", value: date(this.form.emitted) },
+        { label: "Venciment", value: date(this.form.paybefore) },
+        { label: "Total", value: this.total !== undefined && this.total !== null ? this.formatMoney(this.total) : null }
+      ];
+      return parts.filter(p => p.value);
+    },
     formCardTitle() {
       if (this.isProfileExists) {
         return this.form.code;
@@ -1361,6 +1346,7 @@ export default {
     this.getData();
   },
   methods: {
+    formatMoney,
     getClearFormObject() {
       return {
         id: null,
@@ -3101,6 +3087,46 @@ export default {
   }
 };
 </script>
+<style scoped>
+/* Redesign A */
+.document-form {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.document-form > .section.is-main-section {
+  flex: 1;
+}
+.lock-note {
+  display: flex;
+  align-items: flex-start;
+  gap: .625rem;
+  font-size: .875rem;
+}
+.savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .875rem 2rem;
+  background: var(--a-surface);
+  border-top: 1px solid var(--a-line);
+  box-shadow: 0 -6px 16px rgba(16, 32, 30, .06);
+}
+.document-fields :deep(.project-tags) {
+  margin-top: -.5rem;
+}
+.document-fields :deep(.project-tags > .field-label) {
+  display: none;
+}
+.savebar-state {
+  margin-right: auto;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+</style>
 <style lang="scss">
 .helper {
   margin-top: 1rem;

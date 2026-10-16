@@ -412,7 +412,7 @@ export async function assignBudgetLine (concept) {
 
 // the first document line: concept, quantity, price, discount %, VAT %, IRPF %
 export async function fillLine ({ concept, quantity, price, discount = 0, vat, irpf = 0 }) {
-  const lines = card('LINIES')
+  const lines = card('Línies')
   const values = { SubFase: concept, Unitats: quantity, base: price, discount, vat, irpf }
   for (const [name, value] of Object.entries(values)) await lines.locator(`input[name="${name}"]`).first().fill(String(value))
   await lines.locator('input[name="irpf"]').first().press('Tab')

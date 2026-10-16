@@ -10,7 +10,10 @@
     </nav>
     <div class="title-row">
       <div class="title-text">
-        <h1>{{ title }}</h1>
+        <div class="title-head">
+          <h1>{{ title }}</h1>
+          <span v-if="$slots.badges" class="title-badges"><slot name="badges" /></span>
+        </div>
         <div v-if="subtitle || $slots.subtitle" class="subtitle-line">
           <slot name="subtitle">{{ subtitle }}</slot>
         </div>

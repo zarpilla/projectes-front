@@ -65,7 +65,7 @@ test('issuing an invoice numbers it in its series and locks it', async () => {
   await settle()
   await expect(page.locator('.tag', { hasText: /^\s*EMESA\s*$/ }).first()).toBeVisible()
   await expect(button('Eliminar esborrany')).toHaveCount(0)
-  await expect(button('Anul·lar i crear factura rectificativa')).toBeVisible()
+  await expect(button('Anul·la i rectifica…')).toBeVisible()
 
   const invoice = await api('GET', `emitted-invoices/${id}`)
   const number = before + 1
@@ -186,7 +186,7 @@ test('a quote is saved', async () => {
   await pickAutocomplete('Projecte', PROJECT)
   await fillLine({ concept: `${NAME} pressupost`, quantity: 2, price: 100, discount: 10, vat: 21, irpf: 15 })
   // the form's own totals: 2 × 100 − 10 % = 180, VAT 37.80
-  await expect(page.getByText(/^\s*Total\s+(217,80|234,80|190,80)\s*€\s*$/)).toBeVisible()
+  await expect(page.locator('.summary').getByText(/^\s*Total\s+(217,80|234,80|190,80)\s*€\s*$/)).toBeVisible()
   await button('Guardar').click()
   await expect(page).toHaveURL(/#\/document\/[1-9]\d*\/quotes/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
