@@ -1,9 +1,7 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
-    <section class="section is-main-section">
-      <order-operations-table v-if="!isLoading" />
-    </section>
+    <!-- the title bar is in OrderOperationsTable (its subtitle needs the day) -->
+    <order-operations-table v-if="!isLoading" />
   </div>
 </template>
 

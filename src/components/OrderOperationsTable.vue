@@ -1,10 +1,9 @@
 <template>
-  <section class="xsection operations-table-section">
-    <b-loading
-      :is-full-page="true"
-      v-model="isLoading"
-      :can-cancel="false"
-    ></b-loading>
+  <!-- Redesign A (mockup A-Log-Repartiment): a driver's day as cards, made for
+       the phone: farm pickups, deliveries (load them) and transfers grouped by
+       origin (tick them as they are loaded). -->
+  <div class="operations-page">
+    <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false" />
 
     <modal-box-incidence
       :is-active="isIncidenceModalActive"
@@ -14,653 +13,145 @@
       @cancel="onIncidenceCancelled"
     ></modal-box-incidence>
 
-    <div class="filters-container mb-4">
-      <div
-        class="is-flex is-block-mobile is-align-items-center is-flex-wrap-wrap"
-      >
-        <!-- Delivery User Filter -->
-        <div class="mb-3 mr-4">
-          <h3 class="subtitle is-6 mb-2">Usuari</h3>
-          <b-field>
-            <b-select
-              v-model="selectedDeliveryUser"
-              placeholder="Selecciona usuari"
-              @update:model-value="onDeliveryUserChange"
-            >
-              <option
-                v-for="user in deliveryUsers"
-                :key="user.id"
-                :value="user.id"
-              >
-                {{ user.fullname || user.username }}
-              </option>
-            </b-select>
-          </b-field>
-        </div>
+    <title-bar :title-stack="['Logística', 'Operacions']" :subtitle="headline" />
 
-        <!-- Operation Type Filter -->
-        <div class="mb-3 mr-4">
-          <h3 class="subtitle is-6 mb-2 is-hidden-mobile">Tipus d'operació (Ctrl+click per múltiples)</h3>
-          <div class="is-flex is-block-mobile is-flex-wrap-wrap">
-            <b-button
-              class="view-button mb-2 mr-2 ml-0"
-              :class="{
-                'is-primary': operationTypeFilter.includes('entrega'),
-                'is-light': !operationTypeFilter.includes('entrega')
-              }"
-              @click="setOperationTypeFilter($event, 'entrega')"
-            >
-              Entrega
-            </b-button>
-            <b-button
-              class="view-button mb-2 mr-2 ml-0"
-              :class="{
-                'is-primary': operationTypeFilter.includes('recollida'),
-                'is-light': !operationTypeFilter.includes('recollida')
-              }"
-              @click="setOperationTypeFilter($event, 'recollida')"
-            >
-              Recollida
-            </b-button>
-            <b-button
-              class="view-button mb-2 mr-2 ml-0"
-              :class="{
-                'is-primary': operationTypeFilter.includes('transferencia'),
-                'is-light': !operationTypeFilter.includes('transferencia')
-              }"
-              @click="setOperationTypeFilter($event, 'transferencia')"
-            >
-              Transferència
-            </b-button>
-          </div>
+    <section class="section is-main-section">
+      <div class="ops-controls">
+        <div class="ops-date">
+          <b-button icon-left="chevron-left" aria-label="Dia anterior" @click="goToPreviousDay" />
+          <b-datepicker
+            v-model="selectedDate"
+            class="ops-date-picker"
+            :show-week-number="false"
+            locale="ca-ES"
+            :first-day-of-week="1"
+            placeholder="Tots els dies"
+            :date-formatter="formatDayLong"
+            trap-focus
+            @update:model-value="onDateChange"
+          >
+            <b-button size="is-small" @click="selectedDate = new Date(); onDateChange()">Avui</b-button>
+            <b-button size="is-small" @click="clearDateFilter">Tots els dies</b-button>
+          </b-datepicker>
+          <b-button icon-left="chevron-right" aria-label="Dia següent" @click="goToNextDay" />
         </div>
-
-        <!-- Date Filter -->
-        <div class="mb-3">
-          <h3 class="subtitle is-6 mb-2">Filtre per data operació</h3>
-          <b-field class="is-flex">
-            <b-button
-              v-if="selectedDate"
-              @click="goToPreviousDay"
-              icon-left="chevron-left"
-              type="is-light"
-              title="Dia anterior"
-            >
-            </b-button>
-            <b-datepicker
-              v-model="selectedDate"
-              placeholder="Selecciona una data"
-              icon="calendar-today"
-              :date-formatter="formatDatePicker"
-              :date-parser="parseDatePicker"
-              editable
-              @update:model-value="onDateChange"
-            >
-              <template v-slot:trigger>
-                <b-button
-                  icon-left="calendar-today"
-                  outlined
-                  :type="selectedDate ? 'is-primary' : ''"
-                  :class="{ 'ml-2': selectedDate }"
-                >
-                  {{
-                    selectedDate ? formatDate(selectedDate) : "Totes les dates"
-                  }}
-                </b-button>
-              </template>
-            </b-datepicker>
-            <b-button
-              class="ml-2"
-              v-if="selectedDate"
-              @click="goToNextDay"
-              icon-left="chevron-right"
-              type="is-light"
-              title="Dia següent"
-            >
-            </b-button>
-            <b-button
-              class="ml-2"
-              v-if="selectedDate"
-              @click="clearDateFilter"
-              icon-left="close"
-              type="is-danger"
-            >
-            </b-button>
-          </b-field>
-        </div>
-
-        <!-- Mobile Sort Selector -->
-        <div class="mb-3 is-hidden-tablet">
-          <h3 class="subtitle is-6 mb-2">Ordenar per</h3>
-          <b-field>
-            <b-select
-              v-model="mobileSortOption"
-              @update:model-value="onMobileSortChange"
-              expanded
-            >
-              <option value="operationTypeSort-asc">Tipus (A-Z)</option>
-              <option value="operationTypeSort-desc">Tipus (Z-A)</option>
-              <option value="id-asc">Comanda (Ascendent)</option>
-              <option value="id-desc">Comanda (Descendent)</option>
-              <option value="operation_date-asc">Data Operació (Ascendent)</option>
-              <option value="operation_date-desc">Data Operació (Descendent)</option>
-              <option value="owner.fullname-asc">Sòcia (A-Z)</option>
-              <option value="owner.fullname-desc">Sòcia (Z-A)</option>
-              <option value="contact_trade_name-asc">Punt (A-Z)</option>
-              <option value="contact_trade_name-desc">Punt (Z-A)</option>
-              <option value="pickupPointSort-asc">Origen (A-Z)</option>
-              <option value="pickupPointSort-desc">Origen (Z-A)</option>
-              <option value="units-asc">Caixes (Ascendent)</option>
-              <option value="units-desc">Caixes (Descendent)</option>
-            </b-select>
-          </b-field>
-        </div>
-
-        <!-- Summary -->
-        <div class="ml-0 is-full-width ml-5-md">
-          <div class="ml-0 mt-0 ml-md-2 mt-md-2">
-            <div class="ml-0 mt-0 ml-md-2 mt-md-2">
-              <div class="columns is-mobile zbg-white-panel">
-                <div class="column is-4">
-                  <h2>Entregues</h2>
-                  <h3 class="title is-3 mb-0">{{ entreguesCount }}</h3>
-                </div>
-                <div class="column is-4">
-                  <h2>Transferències</h2>
-                  <h3 class="title is-3 mb-0">{{ transfersCount }}</h3>
-                </div>
-                <div class="column is-4">
-                  <h2>Recollides</h2>
-                  <h3 class="title is-3 mb-0">{{ recollidesCount }}</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <label v-if="deliveryUsers.length > 1" class="filter-select">
+          <span>Repartidora</span>
+          <b-select v-model="selectedDeliveryUser" @update:model-value="onDeliveryUserChange">
+            <option v-for="user in deliveryUsers" :key="user.id" :value="user.id">{{ user.fullname || user.username }}</option>
+          </b-select>
+        </label>
       </div>
-      <!-- Status Filter -->
-      <!-- <div class="mb-3">
-        <h3 class="subtitle is-6 mb-2">Estat de comanda</h3>
-        <div class="is-flex is-block-mobile is-flex-wrap-wrap">
-          <b-button
-            class="view-button mb-2 mr-2 ml-0"
-            :class="{
-              'is-primary': statusFilter.includes('pending'),
-              'is-warning': !statusFilter.includes('pending')
-            }"
-            @click="setStatusFilter($event, 'pending')"
-          >
-            PENDENTS
-          </b-button>
-          <b-button
-            class="view-button mb-2 mr-2 ml-0"
-            :class="{
-              'is-primary': statusFilter.includes('processed'),
-              'is-warning': !statusFilter.includes('processed')
-            }"
-            @click="setStatusFilter($event, 'processed')"
-          >
-            PROCESSADES
-          </b-button>
+
+      <div class="segmented ops-tabs" role="group" aria-label="Tipus d'operació">
+        <button type="button" :class="{ 'is-on': typeTab === 'all' }" @click="typeTab = 'all'">Totes <span class="count">{{ allOps.length }}</span></button>
+        <button type="button" :class="{ 'is-on': typeTab === 'recollida' }" @click="typeTab = 'recollida'">Recollides <span class="count">{{ pickups.length }}</span></button>
+        <button type="button" :class="{ 'is-on': typeTab === 'entrega' }" @click="typeTab = 'entrega'">Entregues <span class="count">{{ deliveries.length }}</span></button>
+        <button type="button" :class="{ 'is-on': typeTab === 'transferencia' }" @click="typeTab = 'transferencia'">Transf. <span class="count">{{ transfers.length }}</span></button>
+      </div>
+
+      <div class="ops-progress">
+        <div class="ops-progress-text">
+          <b>{{ doneCount }} de {{ allOps.length }} fetes</b>
+          <span>{{ formatNum(sumUnits) }} caixes · {{ formatNum(sumKg) }} kg</span>
         </div>
-      </div> -->
-    </div>
+        <progress class="progress is-small" :value="doneCount" :max="allOps.length || 1"></progress>
+      </div>
 
-    <b-table
-      class="small-table operations-table"
-      ref="table"
-      :loading="isLoading"
-      paginated
-      backend-pagination
-      :total="total"
-      :per-page="perPage"
-      @page-change="onPageChange"
-      pagination-position="both"
-      backend-sorting
-      :default-sort-direction="defaultSortOrder"
-      :default-sort="[sortField, sortOrder]"
-      @sort="onSort"
-      :striped="true"
-      :data="operations"
-      :debounce-search="500"
-      detailed
-      detail-key="id"
-      :show-detail-icon="true"
-      :mobile-cards="false"
-    >
-      <b-table-column
-        label="Tipus"
-        field="operationTypeSort"
-        sortable
-        v-slot="props"
-        width="120"
-        cell-class="mobile-type-cell"
-      >
-        <b-tag :type="getOperationTypeColor(props.row)" size="is-small">
-          {{ getOperationTypeLabel(props.row) }}
-        </b-tag>
-      </b-table-column>
+      <p v-if="!isLoading && !allOps.length" class="a-box box-empty">
+        {{ selectedDeliveryUser ? "No hi ha operacions per a aquest dia." : "No tens cap ruta assignada." }}
+      </p>
 
-      <b-table-column
-        label="Comanda"
-        field="id"
-        sortable
-        v-slot="props"
-        width="100"
-        cell-class="mobile-id-cell"
-      >
-        <router-link
-          :to="{ name: 'orders.edit', params: { id: props.row.id } }"
-        >
-          #{{ props.row.id.toString().padStart(4, "0")
-          }}{{ props.row.is_collection_order ? "-R" : "" }}
-        </router-link>
-      </b-table-column>
-
-      <b-table-column
-        label="Data Operació"
-        field="operation_date"
-        sortable
-        v-slot="props"
-        width="110"
-        cell-class="mobile-date-cell"
-      >
-        {{ formatDate(props.row.operationType === 'transfer' ? props.row.transfer_route_date : props.row.estimated_delivery_date) }}
-      </b-table-column>
-
-      <b-table-column
-        label="Sòcia"
-        field="owner.fullname"
-        sortable
-        v-slot="props"
-        width="150"
-        cell-class="mobile-socia-cell"
-      >
-        <span class="mobile-label">Sòcia:</span>
-        {{
-          props.row.owner
-            ? props.row.owner.fullname || props.row.owner.username
-            : "-"
-        }}
-      </b-table-column>
-
-      <b-table-column
-        label="Punt"
-        field="contact_trade_name"
-        sortable
-        v-slot="props"
-        width="150"
-        cell-class="mobile-punt-cell"
-      >
-        <span class="mobile-label">Punt:</span>
-        {{
-          props.row.contact_trade_name
-        }}
-      </b-table-column>
-
-      
-
-      <b-table-column
-        label="Ruta"
-        field="route.name"
-        sortable
-        v-slot="props"
-        width="150"
-        cell-class="hide-mobile"
-      >
-        {{ getRouteName(props.row) }}
-      </b-table-column>
-
-      <b-table-column
-        label="Data entrega"
-        field="estimated_delivery_date"
-        sortable
-        v-slot="props"
-        width="110"
-        cell-class="hide-mobile"
-      >
-        {{ formatDate(props.row.estimated_delivery_date) }}
-      </b-table-column>
-
-      <b-table-column
-        label="Origen"
-        field="pickupPointSort"
-        sortable
-        v-slot="props"
-        width="150"
-        cell-class="mobile-route-cell"
-      >
-        <span class="mobile-route-display">{{ getPickupPointName(props.row) }} → {{ getDeliveryPointName(props.row) }}</span>
-        <span class="desktop-route-display">{{ getPickupPointName(props.row) }}</span>
-      </b-table-column>
-
-      <b-table-column
-        label="Destí"
-        field="deliveryPointSort"
-        sortable
-        v-slot="props"
-        width="200"
-        cell-class="hide-mobile"
-      >
-        {{ getDeliveryPointName(props.row) }}
-      </b-table-column>
-
-      <b-table-column
-        label="Caixes"
-        field="units"
-        sortable
-        v-slot="props"
-        width="80"
-        cell-class="mobile-caixes-cell"
-      >
-        <div class="mobile-caixes-wrapper">
-          <span><span class="mobile-label">Caixes:</span> {{ props.row.units }}</span>
-          <div class="mobile-incidence-button">
-            <b-button
-              v-if="!props.row.deposit_date && props.row.incidences && props.row.incidences.length > 0"
-              type="is-primary"
-              size="is-small"
-              icon-left="bell"
-              @click="openIncidenceLink(props.row.incidences[0].id)"
-              title="Veure incidència"
-            >
-            </b-button>
-            <b-button
-              v-else-if="!props.row.deposit_date"
-              type="is-warning"
-              size="is-small"
-              icon-left="bell"
-              @click="openIncidenceModal(props.row)"
-              title="Crear incidència"
-            >
-            </b-button>
+      <!-- farm pickups and deliveries: one card per stop -->
+      <template v-for="section in cardSections" :key="section.key">
+        <section v-if="section.items.length" class="ops-section">
+          <h2 class="ops-section-title">{{ section.title }} <span>{{ section.items.length }}</span></h2>
+          <div class="ops-cards">
+            <article v-for="(op, i) in section.items" :key="op.id" class="a-box op-card" :class="{ 'is-done': !!op.pickup_date }">
+              <header class="op-head">
+                <span class="op-num">{{ section.offset + i + 1 }}</span>
+                <div class="op-title">
+                  <b>{{ stopName(op) }}</b>
+                  <small>{{ [op.contact_city || (op.contact && op.contact.city), timeSlots(op)].filter(Boolean).join(" · ") }}</small>
+                </div>
+              </header>
+              <div class="op-load">
+                <b>{{ op.units || 0 }} caixes · {{ formatNum(op.kilograms) }} kg</b>
+                <span v-if="op.refrigerated" class="tag is-info is-light">Refrigerada</span>
+                <span v-if="op.fragile" class="tag is-warning is-light">Fràgil</span>
+                <span v-if="op.status === 'pending'" class="tag is-warning">Pendent</span>
+                <span v-if="op.deposit_date" class="tag is-success is-light">Dipositada</span>
+                <span v-if="op.incidences && op.incidences.length" class="tag is-danger is-light">Incidència</span>
+              </div>
+              <p class="op-ref">
+                <router-link :to="{ name: 'orders.view.detail', params: { id: op.id } }">#{{ op.id }}</router-link>
+                · {{ op.owner ? op.owner.fullname || op.owner.username : "" }}
+                <template v-if="op.operation_date && !selectedDate"> · {{ formatDayShort(op.operation_date) }}</template>
+              </p>
+              <div class="op-actions">
+                <b-button
+                  v-if="!op.pickup_date"
+                  type="is-primary"
+                  icon-left="check"
+                  class="op-main"
+                  @click="pickupOrder(op)"
+                >{{ op.is_collection_order ? "Recollit" : "Carregat" }}</b-button>
+                <span v-else class="op-done">
+                  <b-icon icon="check-circle" size="is-small" />
+                  {{ op.is_collection_order ? "Recollit" : "Carregat" }} {{ formatTime(op.pickup_date) }}
+                  <button type="button" class="undo-link" @click="removePickup(op)">Desfés</button>
+                </span>
+                <a v-if="phoneOf(op)" :href="`tel:${phoneOf(op)}`" class="button op-icon" title="Truca" aria-label="Truca"><b-icon icon="phone-outline" size="is-small" /></a>
+                <a v-if="addressOf(op)" :href="mapUrl(op)" target="_blank" rel="noopener" class="button op-icon" title="Obre el mapa" aria-label="Obre el mapa"><b-icon icon="map-outline" size="is-small" /></a>
+                <b-button class="op-icon" icon-left="alert-outline" title="Crea una incidència" aria-label="Crea una incidència" @click="openIncidenceModal(op)" />
+              </div>
+            </article>
           </div>
-        </div>
-        <span class="desktop-caixes-display">{{ props.row.units }}</span>
-      </b-table-column>
-
-      <b-table-column
-        label="Kg"
-        field="kilograms"
-        sortable
-        v-slot="props"
-        width="80"
-        cell-class="hide-mobile"
-      >
-        {{ props.row.kilograms }}
-      </b-table-column>
-
-      <b-table-column
-        label="Estat comanda"
-        field="status"
-        sortable
-        v-slot="props"
-        width="120"
-        cell-class="hide-mobile"
-      >
-        <b-tag :type="getStatusTagType(props.row.status)">
-          {{ getStatusLabel(props.row.status) }}
-        </b-tag>
-      </b-table-column>
-
-      <b-table-column
-        label="Dipositat"
-        field="deposit_date"
-        sortable
-        v-slot="props"
-        width="100"
-        cell-class="hide-mobile"
-      >
-        <b-tag type="is-success" v-if="props.row.deposit_date">
-          Sí
-        </b-tag>
-        <template v-else>
-          <b-button
-            v-if="props.row.incidences && props.row.incidences.length > 0"
-            type="is-primary"
-            size="is-small"
-            icon-left="bell"
-            @click="openIncidenceLink(props.row.incidences[0].id)"
-            title="Veure incidència"
-          >
-          </b-button>
-          <b-button
-            v-else
-            type="is-warning"
-            size="is-small"
-            icon-left="bell"
-            @click="openIncidenceModal(props.row)"
-            title="Crear incidència"
-          >
-          </b-button>
-        </template>
-      </b-table-column>
-
-      <b-table-column
-        label="Estat Logístic"
-        field="logisticsStatus"
-        sortable
-        v-slot="props"
-        width="130"
-        cell-class="hide-mobile"
-      >
-        <b-tag
-          :type="getLogisticsStatusType(props.row)"
-          v-if="getLogisticsStatusLabel(props.row)"
-        >
-          {{ getLogisticsStatusLabel(props.row) }}
-        </b-tag>
-        <span v-else>-</span>
-      </b-table-column>
-
-      <b-table-column label="Accions" v-slot="props" width="180" cell-class="mobile-actions-cell">
-        <div class="action-buttons-grid">
-          <!-- Transfer actions -->
-          <template v-if="props.row.operationType === 'transfer'">
-            <!-- Start button if not started -->
-            <b-button
-              v-if="!props.row.transfer_start_date"
-              type="is-primary"
-              size="is-small"
-              icon-left="play"
-              @click="startTransfer(props.row)"
-            >
-              Carregar
-            </b-button>
-
-            <!-- End button if started but not ended -->
-            <b-button
-              v-if="
-                props.row.transfer_start_date && !props.row.transfer_end_date
-              "
-              type="is-primary"
-              size="is-small"
-              icon-left="play"
-              @click="endTransfer(props.row)"
-            >
-              Descarregar
-            </b-button>
-
-            <!-- Undo button if in progress -->
-            <b-button
-              v-if="
-                props.row.transfer_start_date && !props.row.transfer_end_date
-              "
-              type="is-danger"
-              size="is-small"
-              icon-left="undo"
-              @click="removeTransferStart(props.row)"
-            >
-              Desfer
-            </b-button>
-
-            <!-- Undo button if completed -->
-            <b-button
-              v-if="props.row.transfer_end_date"
-              type="is-danger"
-              size="is-small"
-              icon-left="undo"
-              @click="removeTransferEnd(props.row)"
-            >
-              Desfer
-            </b-button>
-          </template>
-
-          <!-- Direct order actions (all non-transfer orders) -->
-          <template v-else>
-            <!-- Pickup button if not picked up -->
-            <b-button
-              v-if="!props.row.pickup_date"
-              type="is-primary"
-              size="is-small"
-              icon-left="play"
-              @click="pickupOrder(props.row)"
-            >
-              {{ props.row.is_collection_order ? "Recollir" : "Carregar" }}
-            </b-button>
-
-            <!-- Undo button if picked up -->
-            <b-button
-              v-if="props.row.pickup_date"
-              type="is-danger"
-              size="is-small"
-              icon-left="undo"
-              @click="removePickup(props.row)"
-            >
-              Desfer
-            </b-button>
-          </template>
-        </div>
-      </b-table-column>
-
-      <template #empty>
-        <div class="has-text-centered">
-          No hi ha operacions per aquest usuari
-        </div>
+        </section>
       </template>
 
-      <template #detail="props">
-        <div class="order-detail-container">
-          <div class="columns">
-            <div class="column is-half">
-              <div class="detail-section">
-                <h3 class="subtitle is-6 mb-3">Informació de la comanda</h3>
-                <div class="detail-row">
-                  <strong>Tipus d'operació:</strong>
-                  <span>{{ getOperationTypeDetailLabel(props.row) }}</span>
-                </div>
-                <div
-                  class="detail-row"
-                  v-if="props.row.operationType === 'transfer'"
-                >
-                  <strong>Ruta de transferència:</strong>
-                  <span>{{
-                    props.row.transfer_route
-                      ? props.row.transfer_route.name
-                      : "-"
-                  }}</span>
-                </div>
-                <div
-                  class="detail-row"
-                  v-if="props.row.operationType === 'transfer'"
-                >
-                  <strong>Data transferència:</strong>
-                  <span>{{ formatDate(props.row.transfer_route_date) }}</span>
-                </div>
-                <div
-                  class="detail-row"
-                  v-if="props.row.operationType === 'transfer'"
-                >
-                  <strong>Origen:</strong>
-                  <span>{{
-                    props.row.transfer_pickup_origin
-                      ? props.row.transfer_pickup_origin.name
-                      : "-"
-                  }}</span>
-                </div>
-                <div
-                  class="detail-row"
-                  v-if="props.row.operationType === 'transfer'"
-                >
-                  <strong>Destinació:</strong>
-                  <span>{{
-                    props.row.transfer_pickup_destination
-                      ? props.row.transfer_pickup_destination.name
-                      : "-"
-                  }}</span>
-                </div>
-                <div class="detail-row">
-                  <strong>Punt de recollida:</strong>
-                  <span>{{
-                    props.row.pickup ? props.row.pickup.name : "-"
-                  }}</span>
-                </div>
-                <div class="detail-row">
-                  <strong>Refrigerada:</strong>
-                  <span>{{ props.row.refrigerated ? "Sí" : "No" }}</span>
-                </div>
-                <div class="detail-row">
-                  <strong>Fràgil:</strong>
-                  <span>{{ props.row.fragile ? "Sí" : "No" }}</span>
-                </div>
-                <div class="detail-row" v-if="props.row.comments">
-                  <strong>Comentaris:</strong>
-                  <span>{{ props.row.comments }}</span>
-                </div>
-              </div>
+      <!-- transfers: a checklist by origin, ticked as they are loaded -->
+      <section v-if="(typeTab === 'all' || typeTab === 'transferencia') && transfers.length" class="ops-section">
+        <h2 class="ops-section-title">Transferències <span>{{ transfers.length }}</span></h2>
+        <p class="ops-hint">Marca-les quan les carreguis; un cop descarregades al destí, prem «Descarregada».</p>
+        <section v-for="group in transferGroups" :key="group.key" class="a-box transfer-group">
+          <header class="transfer-head">
+            <div>
+              <b>Des de {{ group.origin }}</b>
+              <span> · {{ group.items.length }} comandes · {{ group.units }} caixes</span>
             </div>
-            <div class="column is-half">
-              <div class="detail-section">
-                <h3 class="subtitle is-6 mb-3">
-                  Informació del punt d'entrega
-                </h3>
-                <div class="detail-row">
-                  <strong>Nom:</strong>
-                  <span>{{ props.row.contact_trade_name }}</span>
-                </div>
-                <div class="detail-row">
-                  <strong>Adreça:</strong>
-                  <span>{{ props.row.contact_address }}</span>
-                </div>
-                <div class="detail-row">
-                  <strong>Codi postal:</strong>
-                  <span>{{ props.row.contact_postcode }}</span>
-                </div>
-                <div class="detail-row">
-                  <strong>Telèfon:</strong>
-                  <span>{{ props.row.contact_phone }}</span>
-                </div>
-                <div
-                  class="detail-row"
-                  v-if="props.row.contact_time_slot_1_ini"
-                >
-                  <strong>Horari 1:</strong>
-                  <span
-                    >{{ formatTimeSlot(props.row.contact_time_slot_1_ini) }} -
-                    {{
-                      formatTimeSlot(props.row.contact_time_slot_1_end)
-                    }}</span
-                  >
-                </div>
-                <div
-                  class="detail-row"
-                  v-if="props.row.contact_time_slot_2_ini"
-                >
-                  <strong>Horari 2:</strong>
-                  <span
-                    >{{ formatTimeSlot(props.row.contact_time_slot_2_ini) }} -
-                    {{
-                      formatTimeSlot(props.row.contact_time_slot_2_end)
-                    }}</span
-                  >
-                </div>
+            <b-button v-if="group.items.some(o => !o.transfer_start_date)" size="is-small" @click="loadAll(group)">Carrega-les totes</b-button>
+          </header>
+          <ul class="transfer-list">
+            <li v-for="op in group.items" :key="op.id" :class="{ 'is-loaded': op.transfer_start_date, 'is-done': op.transfer_end_date }">
+              <b-checkbox
+                :model-value="!!op.transfer_start_date"
+                :disabled="!!op.transfer_end_date"
+                :aria-label="`Carregada ${stopName(op)}`"
+                @update:model-value="on => setLoaded(op, on)"
+              />
+              <div class="transfer-text">
+                <b>{{ stopName(op) }}</b>
+                <small>{{ [op.contact_city, routeShort(op)].filter(Boolean).join(" · ") }}</small>
               </div>
-            </div>
-          </div>
-        </div>
-      </template>
-    </b-table>
-  </section>
+              <div class="transfer-load">
+                <b>{{ op.units || 0 }} c.</b>
+                <small>{{ formatNum(op.kilograms) }} kg</small>
+              </div>
+              <span v-if="op.refrigerated" class="cold" title="Refrigerada" aria-label="Refrigerada">*</span>
+              <div class="transfer-actions">
+                <b-button v-if="op.transfer_start_date && !op.transfer_end_date" size="is-small" @click="endTransfer(op)">Descarregada</b-button>
+                <template v-if="op.transfer_end_date">
+                  <span class="tag is-success is-light">Descarregada</span>
+                  <button type="button" class="undo-link" @click="removeTransferEnd(op)">Desfés</button>
+                </template>
+              </div>
+            </li>
+          </ul>
+        </section>
+      </section>
+    </section>
+  </div>
 </template>
 
 <script>
@@ -669,11 +160,16 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
+import TitleBar from "@/components/TitleBar.vue";
+import { formatNumber } from "@/helpers/format-number";
+
+const relId = value => (value && typeof value === "object" ? value.id : value);
 
 export default {
   name: "OrderOperationsTable",
   components: {
-    ModalBoxIncidence
+    ModalBoxIncidence,
+    TitleBar
   },
   data() {
     return {
@@ -682,7 +178,10 @@ export default {
       routes: [],
       deliveryUsers: [],
       selectedDeliveryUser: null,
-      selectedDate: null,
+      // a driver's day: today first
+      selectedDate: new Date(),
+      typeTab: "all",
+      allOps: [],
       statusFilter: ["pending", "processed"],
       operationTypeFilter: ["entrega", "recollida", "transferencia"],
       total: 0,
@@ -703,7 +202,50 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ["me"])
+    ...mapState(useMainStore, ["me"]),
+    pickups() {
+      return this.allOps.filter(o => o.operationType === "direct" && o.is_collection_order);
+    },
+    deliveries() {
+      return this.allOps.filter(o => o.operationType === "direct" && !o.is_collection_order);
+    },
+    transfers() {
+      return this.allOps.filter(o => o.operationType === "transfer");
+    },
+    cardSections() {
+      const show = type => this.typeTab === "all" || this.typeTab === type;
+      return [
+        { key: "pickups", title: "Recollides a finca", items: show("recollida") ? this.pickups : [], offset: 0 },
+        { key: "deliveries", title: "Entregues", items: show("entrega") ? this.deliveries : [], offset: show("recollida") ? this.pickups.length : 0 }
+      ];
+    },
+    transferGroups() {
+      const map = new Map();
+      for (const op of this.transfers) {
+        const point = op.transfer_pickup_origin || op.pickup;
+        const origin = (point && typeof point === "object" && (point.alias || point.name)) || this.getPickupPointName(op) || "origen sense definir";
+        if (!map.has(origin)) map.set(origin, { key: origin, origin, items: [], units: 0 });
+        const g = map.get(origin);
+        g.items.push(op);
+        g.units += Number(op.units) || 0;
+      }
+      return [...map.values()];
+    },
+    doneCount() {
+      return this.allOps.filter(o => (o.operationType === "transfer" ? !!o.transfer_end_date : !!o.pickup_date)).length;
+    },
+    sumUnits() {
+      return this.allOps.reduce((a, o) => a + (Number(o.units) || 0), 0);
+    },
+    sumKg() {
+      return this.allOps.reduce((a, o) => a + (Number(o.kilograms) || 0), 0);
+    },
+    headline() {
+      const user = this.deliveryUsers.find(u => u.id === this.selectedDeliveryUser);
+      const routes = this.routes.filter(r => r.delivery_user && r.delivery_user.id === this.selectedDeliveryUser);
+      const names = routes.length === 1 ? routes[0].name : user ? user.fullname || user.username : "";
+      return [names, `${this.allOps.length} ${this.allOps.length === 1 ? "operació" : "operacions"}`].filter(Boolean).join(" · ");
+    }
   },
   async mounted() {
     const me = await service({ requiresAuth: true, cached: true }).get(
@@ -781,6 +323,7 @@ export default {
 
         if (routeIds.length === 0) {
           this.operations = [];
+          this.allOps = [];
           this.total = 0;
           this.entreguesCount = 0;
           this.transfersCount = 0;
@@ -965,16 +508,8 @@ export default {
         });
 
         this.total = operations.length;
-
-        // Apply pagination
-        const maxPage = Math.max(1, Math.ceil(this.total / this.perPage));
-        if (this.page > maxPage) {
-          this.page = maxPage;
-        }
-
-        const start = (this.page - 1) * this.perPage;
-        const end = start + this.perPage;
-        this.operations = operations.slice(start, end);
+        this.allOps = operations;
+        this.operations = operations;
       } catch (error) {
         console.error("Error loading operations:", error);
         this.$buefy.toast.open({
@@ -999,6 +534,7 @@ export default {
       this.loadData();
     },
     goToPreviousDay() {
+      if (!this.selectedDate) this.selectedDate = moment().add(1, "days").toDate();
       if (this.selectedDate) {
         this.selectedDate = moment(this.selectedDate)
           .subtract(1, "days")
@@ -1008,6 +544,7 @@ export default {
       }
     },
     goToNextDay() {
+      if (!this.selectedDate) this.selectedDate = moment().subtract(1, "days").toDate();
       if (this.selectedDate) {
         this.selectedDate = moment(this.selectedDate)
           .add(1, "days")
@@ -1403,6 +940,71 @@ export default {
         }
       });
     },
+    stopName(op) {
+      return op.contact_trade_name || (op.contact && (op.contact.trade_name || op.contact.name)) || op.contact_name || `Comanda #${op.id}`;
+    },
+    timeSlots(op) {
+      const slot = (a, b) => (a !== null && a !== undefined && b !== null && b !== undefined ? `${this.formatTimeSlot(a)}–${this.formatTimeSlot(b)}` : "");
+      return [slot(op.contact_time_slot_1_ini, op.contact_time_slot_1_end), slot(op.contact_time_slot_2_ini, op.contact_time_slot_2_end)].filter(Boolean).join(" i ");
+    },
+    phoneOf(op) {
+      return op.contact_phone || (op.contact && op.contact.phone) || "";
+    },
+    addressOf(op) {
+      return [op.contact_address, op.contact_postcode, op.contact_city].filter(Boolean).join(", ");
+    },
+    mapUrl(op) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(this.addressOf(op))}`;
+    },
+    routeShort(op) {
+      const route = this.routes.find(r => r.id === relId(op.route));
+      return route ? route.short_name || route.name : (op.route && op.route.name) || "";
+    },
+    formatNum(value) {
+      return formatNumber(Number(value) || 0, 2);
+    },
+    formatTime(date) {
+      return date ? moment(date).format("HH:mm") : "";
+    },
+    formatDayLong(date) {
+      const text = date ? moment(date).locale("ca").format("dddd DD/MM/YYYY") : "";
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    },
+    formatDayShort(date) {
+      return date ? moment(date).locale("ca").format("dd DD/MM") : "";
+    },
+    // the transfer checklist: a tick loads (or unloads) the order at once
+    async setLoaded(op, on) {
+      try {
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me");
+        await service({ requiresAuth: true }).put(`orders/${op.id}`, on
+          ? { transfer_start_date: new Date().toISOString(), transfer_start_user: me.data.id }
+          : { transfer_start_date: null, transfer_start_user: null });
+        await this.loadData();
+      } catch (error) {
+        this.$buefy.toast.open({ message: "No s'ha pogut desar", type: "is-danger" });
+        await this.loadData();
+      }
+    },
+    loadAll(group) {
+      const pending = group.items.filter(o => !o.transfer_start_date);
+      this.$buefy.dialog.confirm({
+        message: `Vols marcar com a carregades les ${pending.length} comandes des de ${group.origin}?`,
+        onConfirm: async () => {
+          this.isLoading = true;
+          try {
+            const me = await service({ requiresAuth: true, cached: true }).get("users/me");
+            for (const op of pending) {
+              await service({ requiresAuth: true }).put(`orders/${op.id}`, { transfer_start_date: new Date().toISOString(), transfer_start_user: me.data.id });
+            }
+            this.$buefy.toast.open({ message: `${pending.length} comandes carregades`, type: "is-success" });
+          } finally {
+            this.isLoading = false;
+            await this.loadData();
+          }
+        }
+      });
+    },
     openIncidenceLink(incidenceId) {
       const route = this.$router.resolve({
         path: `/incidences?id=${incidenceId}`
@@ -1434,74 +1036,241 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.filters-container {
-  background-color: var(--a-surface);
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.ops-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+  margin-bottom: 1rem;
 }
-
-.bg-white-panel {
-  background-color: var(--a-surface);
-  border-radius: 4px;
-  padding: 1rem;
+.ops-date {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex: 1 1 22rem;
+  max-width: 30rem;
 }
-
-.view-button {
-  margin-right: 0.5rem;
+.ops-date-picker {
+  flex: 1;
 }
-
-h2 {
-  font-size: 0.875rem;
-  font-weight: 600;
+.ops-date-picker :deep(.input) {
+  text-align: center;
+  font-weight: 800;
+}
+.ops-tabs {
+  margin-bottom: 1rem;
+}
+.ops-tabs .count {
+  margin-left: .25rem;
+  font-size: .75rem;
+  font-weight: 700;
   color: var(--a-muted);
-  margin-bottom: 0.25rem;
 }
-
-.order-detail-container {
-  padding: 1.5rem;
-  background-color: var(--a-thead);
-  border-radius: 8px;
-  margin: 1rem 0;
+.ops-progress {
+  margin-bottom: 1.25rem;
 }
-
-.detail-section {
-  background-color: var(--a-surface);
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.detail-row {
+.ops-progress-text {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f0f0f0;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  strong {
-    color: var(--a-fg);
-    min-width: 150px;
-  }
-
-  span {
-    color: var(--a-fg);
-    text-align: right;
-    flex: 1;
-  }
+  gap: 1rem;
+  margin-bottom: .375rem;
+  font-size: .875rem;
+  color: var(--a-fg-2);
 }
-
-.action-buttons-grid {
+.ops-progress-text b {
+  color: var(--a-fg);
+}
+.ops-section {
+  margin-bottom: 1.5rem;
+}
+.ops-section-title {
   display: flex;
-  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.ops-section-title span {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--a-muted);
+}
+.ops-hint {
+  margin: -.5rem 0 .75rem;
+  font-size: .8125rem;
+  color: var(--a-muted);
+}
+.ops-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: .75rem;
+}
+.op-card {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.op-card.is-done {
+  background: var(--a-thead);
+}
+.op-head {
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+}
+.op-num {
+  display: inline-flex;
+  flex: none;
   align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--a-fg);
+  color: var(--a-surface);
+  font-size: .8125rem;
+  font-weight: 800;
+}
+.op-card.is-done .op-num {
+  background: var(--a-accent);
+}
+.op-title b,
+.op-title small {
+  display: block;
+}
+.op-title b {
+  font-size: 1.0625rem;
+  color: var(--a-fg);
+}
+.op-title small,
+.op-ref {
+  font-size: .8125rem;
+  color: var(--a-muted);
+}
+.op-load {
+  display: flex;
   flex-wrap: wrap;
+  gap: .375rem;
+  align-items: center;
+}
+.op-load .tag {
+  height: 1.375rem;
+  font-size: .6875rem;
+}
+.op-actions {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+.op-main {
+  flex: 1;
+  height: 3rem;
+}
+.op-icon.button {
+  width: 3rem;
+  height: 3rem;
+}
+.op-done {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  gap: .375rem;
+  font-weight: 700;
+  color: var(--a-pos);
+}
+.undo-link {
+  margin-left: .25rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .8125rem;
+  color: var(--a-fg-2);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.transfer-group {
+  margin-bottom: .75rem;
+  padding: 0;
+  overflow: hidden;
+}
+.transfer-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: .875rem 1rem;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.transfer-head span {
+  color: var(--a-muted);
+}
+.transfer-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  gap: .75rem;
+  align-items: center;
+  padding: .625rem 1rem;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.transfer-list li.is-loaded {
+  background: var(--a-accent-soft);
+}
+.transfer-list li.is-done {
+  background: var(--a-thead);
+}
+.transfer-text b,
+.transfer-text small,
+.transfer-load b,
+.transfer-load small {
+  display: block;
+}
+.transfer-text small,
+.transfer-load small {
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.transfer-load {
+  text-align: right;
+}
+.cold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--a-info-bg);
+  color: var(--a-info-fg);
+  font-weight: 800;
+}
+.transfer-actions {
+  display: flex;
+  gap: .375rem;
+  align-items: center;
+}
+.box-empty {
+  padding: 2rem !important;
+  text-align: center;
+  color: var(--a-muted);
+}
+@media screen and (max-width: 768px) {
+  .ops-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .transfer-list li {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .cold {
+    display: none;
+  }
+  .transfer-actions {
+    grid-column: 2 / -1;
+  }
 }
 </style>
-
 <style lang="scss">
 .operations-table-section {
   table {
