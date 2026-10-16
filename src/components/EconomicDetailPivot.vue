@@ -27,12 +27,7 @@
       :fields="excelFields1"
       name="detall-ingressos-despeses"
     >
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0"
-        icon-left="file-excel"
-        label="Descarrega detall"
-      />
+      <b-button title="Descarrega detall" icon-left="download">Exporta detall</b-button>
     </download-excel>
     <download-excel
       class="export"
@@ -40,12 +35,7 @@
       :fields="excelFields2"
       name="totals-any-ingressos-despeses"
     >
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0"
-        icon-left="file-excel"
-        label="Descarrega totals per any i projecte"
-      />
+      <b-button title="Descarrega totals per any i projecte" icon-left="download">Exporta totals per any</b-button>
     </download-excel>
     <download-excel
       class="export"
@@ -53,12 +43,7 @@
       :fields="excelFields3"
       name="totals-ingressos-despeses"
     >
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0"
-        icon-left="file-excel"
-        label="Descarrega totals per projecte"
-      />
+      <b-button title="Descarrega totals per projecte" icon-left="download">Exporta totals</b-button>
     </download-excel>
 
     <!-- <pre>{{ pivotData }}</pre> -->

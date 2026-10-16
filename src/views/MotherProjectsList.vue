@@ -96,12 +96,8 @@
           >
             Nou projecte
           </b-button>
-          <download-excel :data="projectsCSV">
-            <b-button
-              title="Exporta dades"
-              class="export-button mt-0 ml-4"
-              icon-left="file-excel"
-            />
+          <download-excel name="projectes-mare" :data="projectsCSV">
+            <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
           </download-excel>
         </div>
         <b-button

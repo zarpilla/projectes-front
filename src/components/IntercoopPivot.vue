@@ -16,11 +16,8 @@
     />
     
     <div id="project-stats"></div>
-    <download-excel class="export" :data="pivotData">
-      <b-button
-      title="Exporta dades"
-      class="export-button mt-0"
-      icon-left="file-excel" />
+    <download-excel name="intercooperacio" class="export" :data="pivotData">
+      <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
     </download-excel>
   </div>
 </template>

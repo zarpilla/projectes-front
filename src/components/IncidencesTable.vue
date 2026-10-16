@@ -13,11 +13,7 @@
         :fields="excelFields"
         :fetch="fetchExcel"
       >
-        <b-button
-          title="Exporta dades"
-          class="export-button mt-0 mb-3"
-          icon-left="file-excel"
-        />
+        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
       <b-button
         class="view-button mb-3 ml-0 mr-3"

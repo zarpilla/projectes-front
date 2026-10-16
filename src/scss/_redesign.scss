@@ -612,3 +612,17 @@ td.doc-total {
 .has-text-pos { color: $a-pos !important; }
 .has-text-neg { color: $a-neg !important; }
 .has-text-muted { color: $a-muted !important; }
+
+/* ---------- export buttons (DownloadExcel) ----------
+   inline, so several exports sit side by side with a gap */
+.download-excel {
+  display: inline-flex;
+  vertical-align: middle;
+}
+.download-excel:has(+ .download-excel) {
+  margin-right: .5rem;
+}
+// exports right below a pivot table
+.k-pivot ~ .download-excel {
+  margin-top: .75rem;
+}

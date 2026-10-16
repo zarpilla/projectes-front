@@ -70,9 +70,6 @@
         icon-left="download"
         @click="downloadRouterCSV"
       />
-      <span>
-        Exportar comandes:
-      </span>
       <download-excel
         class="export"
         :data="theOrdersChecked"
@@ -84,15 +81,8 @@
           ...csvExportFields
         }"
       >
-        <b-button
-          title="Descarrega les dades de les teves comandes"
-          class="export-button mt-0 ml-1 mb-3"
-          icon-left="download"
-        />
+        <b-button title="Descarrega les dades de les teves comandes" icon-left="download">Exporta comandes</b-button>
       </download-excel>
-      <span v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
-        Ecologística:
-      </span>
       <download-excel
         v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
         class="export"
@@ -102,16 +92,9 @@
           ...csvEcologistica
         }"
       >
-        <b-button
-          title="Descarrega les dades de les teves comandes en format per a Ecologística"
-          class="export-button mt-0 ml-1 mb-3"
-          icon-left="download"
-        />
+        <b-button title="Descarrega les dades de les teves comandes en format per a Ecologística" icon-left="download">Exporta per a Ecologística</b-button>
       </download-excel>
 
-      <span class="ml-auto">
-        Exemple de fitxer CSV de comandes:
-      </span>
       <download-excel
         class="export"
         :data="csvExample"
@@ -120,14 +103,9 @@
         name="exemple-comandes.csv"
         :fields="csvFields"
       >
-        <b-button
-          title="Descarrega exemple de fitxer CSV de comandes"
-          class="export-button mt-0 ml-1 mb-3"
-          icon-left="file-delimited"
-        />
+        <b-button title="Descarrega exemple de fitxer CSV de comandes" icon-left="download">Exemple CSV de comandes</b-button>
       </download-excel>
 
-      Exemple de fitxer CSV de punts d'entrega:
       <download-excel
         class="export"
         :data="csvExampleContacts"
@@ -136,11 +114,7 @@
         name="exemple-contactes.csv"
         :fields="csvFieldsContacts"
       >
-        <b-button
-          title="Descarrega exemple de fitxer CSV de comandes"
-          class="export-button mt-0 ml-1 mb-3"
-          icon-left="file-delimited"
-        />
+        <b-button title="Descarrega exemple de fitxer CSV de punts d'entrega" icon-left="download">Exemple CSV de punts d'entrega</b-button>
       </download-excel>
     </div>
 

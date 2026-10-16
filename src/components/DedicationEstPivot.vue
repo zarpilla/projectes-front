@@ -21,7 +21,7 @@
         v-model="isLoading"
         :can-cancel="false"
       ></b-loading>
-    <download-excel :data="pivotData"
+    <download-excel name="previsio-execucio-dedicacio-detall" :data="pivotData"
     
     :fields="{
         project_name: 'project_name',
@@ -62,15 +62,10 @@
         },
       }"
       >
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0"
-        icon-left="file-excel"
-      > Descarrega detall
-      </b-button>
+      <b-button title="Exporta dades" icon-left="download">Exporta detall</b-button>
     </download-excel>
 
-    <download-excel :data="pivotDataGroupped"
+    <download-excel name="previsio-execucio-dedicacio-per-persona" :data="pivotDataGroupped"
     
     :fields="{
         project_name: 'project_name',        
@@ -102,12 +97,7 @@
         },
       }"
       >
-      <b-button
-        title="Exporta dades"
-        class="export-button mt-0"
-        icon-left="file-excel"
-      > Descarrega totals per persona i any
-      </b-button>
+      <b-button title="Exporta dades" icon-left="download">Exporta totals per persona</b-button>
     </download-excel>
     <!-- <pre>
       {{ pivotDataGroupped }}

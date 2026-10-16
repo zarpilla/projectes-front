@@ -16,7 +16,7 @@
     />
     
     <div id="incidences-stats"></div>
-    <download-excel class="export" 
+    <download-excel name="estadistiques-incidencies" class="export" 
       :fields="{
         id: 'id',
         count: 'count',
@@ -37,10 +37,7 @@
         month: 'month'
       }"
       :data="pivotData">
-      <b-button
-      title="Exporta dades"
-      class="export-button mt-0"
-      icon-left="file-excel" />
+      <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
     </download-excel>
     <b-loading
         :is-full-page="true"

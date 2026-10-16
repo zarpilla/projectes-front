@@ -12,9 +12,7 @@
           name="CLI.ods"
           :fields="contasolClientFields"
         >
-          <button class="button is-warning mr-2">
-            Clientes (CLI)
-          </button>
+          <b-button icon-left="download" class="mb-2">Clientes (CLI)</b-button>
         </download-excel>
         <download-excel
           class="export"
@@ -23,9 +21,7 @@
           name="PRO.ods"
           :fields="contasolProviderFields"
         >
-          <button class="button is-warning mr-2">
-            Proveïdores (PRO)
-          </button>
+          <b-button icon-left="download" class="mb-2">Proveïdores (PRO)</b-button>
         </download-excel>
         <download-excel
           class="export"
@@ -34,9 +30,7 @@
           name="FAC.ods"
           :fields="contasolInvoiceFields"
         >
-          <button class="button is-warning mr-2">
-            Factures emeses (FAC)
-          </button>
+          <b-button icon-left="download" class="mb-2">Factures emeses (FAC)</b-button>
         </download-excel>
         <download-excel
           class="export"
@@ -45,9 +39,7 @@
           name="LFA.ods"
           :fields="contasolInvoiceLinesFields"
         >
-          <button class="button is-warning mr-2">
-            Linies de factures emeses (LFA)
-          </button>
+          <b-button icon-left="download" class="mb-2">Linies de factures emeses (LFA)</b-button>
         </download-excel>
         <download-excel
           class="export"
@@ -56,9 +48,7 @@
           name="EFP.ods"
           :fields="contasolPayableEffectsFields"
         >
-          <button class="button is-warning mr-2">
-            Efectes comercials a pagar (EFP)
-          </button>
+          <b-button icon-left="download" class="mb-2">Efectes comercials a pagar (EFP)</b-button>
         </download-excel>
         <download-excel
           class="export"
@@ -67,9 +57,7 @@
           name="IVS.ods"
           :fields="contasolSupportedVATFields"
         >
-          <button class="button is-warning mr-2">
-            IVA suportat (IVS)
-          </button>
+          <b-button icon-left="download" class="mb-2">IVA suportat (IVS)</b-button>
         </download-excel>
         <download-excel
           class="export"
@@ -78,9 +66,7 @@
           name="IVR.ods"
           :fields="contasolReppercutedVATFields"
         >
-          <button class="button is-warning mr-2">
-            IVA repercutit (IVR)
-          </button>
+          <b-button icon-left="download" class="mb-2">IVA repercutit (IVR)</b-button>
         </download-excel>
       </div>
     </section>

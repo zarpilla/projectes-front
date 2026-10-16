@@ -7,7 +7,7 @@
       <div class="doc-kpi"><span>Pendent de resposta</span><b>{{ formatMoney(total_base - acceptedBase) }}</b><small>{{ emitted.length - acceptedCount }} pendents</small></div>
     </div>
     <div class="doc-actions">
-      <download-excel class="export" :data="emittedCSV">
+      <download-excel name="pressupostos" class="export" :data="emittedCSV">
         <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
       <b-button type="is-primary" icon-left="plus" @click="navNew">Nou pressupost</b-button>

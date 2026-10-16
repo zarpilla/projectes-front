@@ -66,7 +66,7 @@
         <button type="button" title="Vista projecte" :class="{ 'is-on': colorType == 'project' }" :aria-pressed="colorType == 'project' ? 'true' : 'false'" @click="colorTypeChanged('project')">Per projecte</button>
       </div>
       <div class="hours-actions">
-        <download-excel class="export" :data="activitiesJSON">
+        <download-excel name="hores-dedicades" class="export" :data="activitiesJSON">
           <b-button size="is-small" title="Exporta dades" icon-left="download">Exporta</b-button>
         </download-excel>
         <b-button

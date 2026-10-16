@@ -1,7 +1,7 @@
 <template>
   <div>
     <title-bar :title-stack="titleStack" :subtitle="subtitle">
-      <download-excel :data="projectsCSV">
+      <download-excel name="projectes" :data="projectsCSV">
         <b-button icon-left="download">Exporta</b-button>
       </download-excel>
       <b-button @click="switchToMotherProjects">Projectes mare</b-button>

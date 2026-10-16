@@ -16,7 +16,7 @@
     />
     
     <div id="project-stats"></div>
-    <download-excel class="export" 
+    <download-excel name="estadistiques-comandes" class="export" 
       :fields="{
         id: 'id',
         count: 'count',
@@ -53,10 +53,7 @@
         pickup_discount: 'pickup_discount'
       }"
       :data="pivotData">
-      <b-button
-      title="Exporta dades"
-      class="export-button mt-0"
-      icon-left="file-excel" />
+      <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
     </download-excel>
     <b-loading
         :is-full-page="true"

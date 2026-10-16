@@ -9,7 +9,7 @@
       </div>
       <div class="doc-actions">
       <!-- <pre>{{emitted}}</pre> -->
-      <download-excel class="export" 
+      <download-excel name="despeses" class="export" 
       :fields="{
         num: 'num',
         num_document_proveidor: 'num_document_proveidor',

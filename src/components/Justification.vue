@@ -350,12 +350,8 @@
 
           <div id="justification-pivot"></div>
 
-          <download-excel class="export" :data="pivotData">
-            <b-button
-              title="Exporta dades"
-              class="export-button mt-0"
-              icon-left="file-excel"
-            />
+          <download-excel name="justificacions-bestretes" class="export" :data="pivotData">
+            <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
           </download-excel>
         </div>
       </card-component>
@@ -481,7 +477,7 @@
         </div>
       </card-component>
 
-      <download-excel
+      <download-excel name="justificacions-factures"
         class="export"
         :data="dataCSV"
         :fields="{
@@ -512,11 +508,7 @@
         }"
         name="justificacions"
       >
-        <b-button
-          title="Exporta dades"
-          class="export-button mt-0"
-          icon-left="file-excel"
-        />
+        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
     </div>
   </div>

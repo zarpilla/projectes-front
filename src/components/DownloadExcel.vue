@@ -1,5 +1,5 @@
 <template>
-  <div :id="idName" @click="generate">
+  <div :id="idName" class="download-excel" @click="generate">
     <slot> Download {{ name }} </slot>
   </div>
 </template>
