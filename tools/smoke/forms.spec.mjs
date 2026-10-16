@@ -9,7 +9,9 @@
 //
 // Record and compare on the same day against the same database: payloads hold
 // live data. They are kept in baseline-forms/ (git-ignored, tenant data).
-// Record ids come from forms.local.json (see forms.example.json).
+// Record ids come from forms.local.json (see forms.example.json), or from the file in
+// SMOKE_FORMS_IDS; SMOKE_FORMS_DIR picks the folder of recorded payloads (default
+// baseline-forms/), so several tenants can be recorded side by side.
 
 import { test, expect } from '@playwright/test'
 import fs from 'node:fs'
@@ -24,8 +26,11 @@ const env = Object.fromEntries(
 const USER = process.env.SMOKE_USER || env.SMOKE_USER
 const PASS = process.env.SMOKE_PASS || process.env.SMOKE_PASSWORD || env.SMOKE_PASS || env.SMOKE_PASSWORD
 const RECORD = process.env.SMOKE_FORMS_RECORD === '1'
-const ids = JSON.parse(fs.readFileSync(path.join(here, fs.existsSync(path.join(here, 'forms.local.json')) ? 'forms.local.json' : 'forms.example.json'), 'utf8'))
-const baselineDir = path.join(here, 'baseline-forms')
+const idsFile = process.env.SMOKE_FORMS_IDS
+  ? path.resolve(here, process.env.SMOKE_FORMS_IDS)
+  : path.join(here, fs.existsSync(path.join(here, 'forms.local.json')) ? 'forms.local.json' : 'forms.example.json')
+const ids = JSON.parse(fs.readFileSync(idsFile, 'utf8'))
+const baselineDir = path.resolve(here, process.env.SMOKE_FORMS_DIR || 'baseline-forms')
 
 // Same instant for every run, so "today" defaults are reproducible
 const NOW = new Date('2026-10-08T10:00:00+02:00')
@@ -127,6 +132,10 @@ const FLOWS = {
     // these selects have no empty option: 0 is the first real value
     await selectOption(page, 'Estat', 0)
     await selectOption(page, 'Àmbit', 0)
+    // the logged-in user is the default "Coordina" only when she can be chosen
+    // (not when hidden): then pick the first person
+    const leader = field(page, 'Coordina').locator('select').first()
+    if (!(await leader.inputValue())) await selectOption(page, 'Coordina', 0)
     await field(page, 'Descripció').locator('textarea').fill('Descripció de prova')
     await visible(page, 'button', { hasText: /^\s*Continuar\s*$/ }).click()
     await settle(page)

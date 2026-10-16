@@ -1,7 +1,25 @@
 <template>
   <div class="project-form">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="isCreationMode && !isDuplicating ? `Projecte nou · pas ${currentStep} de 4` : ''">
+      <template v-if="tabsEnabled && projectMeta" #subtitle>
+        <span v-if="form.project_state && form.project_state.name" class="tag project-state-tag">{{ form.project_state.name }}</span>
+        {{ projectMeta }}
+      </template>
+    </title-bar>
     <section class="section is-main-section">
+      <wizard-steps
+        v-if="isCreationMode && !isDuplicating && !isLoading"
+        :steps="wizardSteps"
+        :current="currentStep"
+        label="Passos per crear el projecte"
+      />
+      <nav v-if="tabsEnabled" class="tabs project-tabs" aria-label="Seccions del projecte">
+        <ul>
+          <li v-for="tab in projectTabs" :key="tab.id" :class="{ 'is-active': activeTab === tab.id }">
+            <a :href="'#' + $route.path + '?tab=' + tab.id" :aria-current="activeTab === tab.id ? 'page' : null" @click.prevent="selectTab(tab.id)">{{ tab.label }}</a>
+          </li>
+        </ul>
+      </nav>
       <!-- issues/015: undated lines end up in a "9999" periodification year -->
       <b-notification
         v-if="!isLoading && !isCreationMode && undatedLines.length"
@@ -20,36 +38,9 @@
           </li>
         </ul>
       </b-notification>
-      <div class="columns">
-        <div class="column is-two-thirds">
+      <div class="columns" :class="{ 'is-tabbed': tabsEnabled }">
+        <div v-show="showTab('dades')" class="column" :class="tabsEnabled ? 'is-12' : 'is-two-thirds'">
           <card-component :title="formCardTitle" class="tile is-child">
-            <!-- Step indicator for creation wizard -->
-            <div v-if="isCreationMode" class="steps mb-4">
-              <div class="step-item" :class="{ 'is-active': currentStep === 1, 'is-completed': currentStep > 1 }">
-                <div class="step-marker">1</div>
-                <div class="step-details">
-                  <p class="step-title">Dades bàsiques</p>
-                </div>
-              </div>
-              <div class="step-item" :class="{ 'is-active': currentStep === 2, 'is-completed': currentStep > 2 }">
-                <div class="step-marker">2</div>
-                <div class="step-details">
-                  <p class="step-title">Fases i pressupost</p>
-                </div>
-              </div>
-              <div class="step-item" :class="{ 'is-active': currentStep === 3, 'is-completed': currentStep > 3 }">
-                <div class="step-marker">3</div>
-                <div class="step-details">
-                  <p class="step-title">Planificació</p>
-                </div>
-              </div>
-              <div class="step-item" :class="{ 'is-active': currentStep === 4 }">
-                <div class="step-marker">4</div>
-                <div class="step-details">
-                  <p class="step-title">Confirmació</p>
-                </div>
-              </div>
-            </div>
             <form 
               @submit.prevent="submitAndContinue" 
               @focus.capture="enableUserInteraction"
@@ -124,6 +115,30 @@
                 >
                 </b-datepicker>
               </b-field>
+              <b-field
+                label="Descripció"
+                message="Descripció o notes sobre el projecte"
+                horizontal
+              >
+                <b-input
+                  type="textarea"
+                  v-model="form.description"
+                  placeholder="Descripció"
+                />
+              </b-field>
+
+              <div v-if="wizardBasics" class="optional-toggle">
+                <b-button
+                  size="is-small"
+                  :icon-left="showOptionalFields ? 'chevron-up' : 'chevron-down'"
+                  :aria-expanded="showOptionalFields ? 'true' : 'false'"
+                  @click="showOptionalFields = !showOptionalFields"
+                >
+                  {{ showOptionalFields ? "Amaga les dades opcionals" : "Més dades (opcionals)" }}
+                </b-button>
+                <span>Tipus, clientes, propòsit, estratègies, subvencions… Les pots omplir ara o més endavant.</span>
+              </div>
+              <div v-show="!wizardBasics || showOptionalFields" class="optional-fields">
               <b-field label="Tipus" horizontal>
                 <b-select v-model="form.project_type.id" placeholder="Tipus">
                   <option
@@ -186,18 +201,6 @@
                     </li>
                   </ul>
                 </div>
-              </b-field>
-
-              <b-field
-                label="Descripció"
-                message="Descripció o notes sobre el projecte"
-                horizontal
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.description"
-                  placeholder="Descripció"
-                />
               </b-field>
 
               <b-field
@@ -763,7 +766,8 @@
                 v-if="form.id"
               >
               </file-upload>
-              <hr />
+              </div>
+              <hr v-if="!isCreationMode" />
               <div class="is-flex">
                 <!-- Duplicate mode: single confirm button -->
                 <b-field horizontal v-if="isDuplicating">
@@ -782,20 +786,8 @@
                     >Cancel·lar</b-button
                   >
                 </b-field>
-                <!-- Creation wizard mode: step navigation -->
-                <template v-if="!isDuplicating && isCreationMode && currentStep === 1">
-                  <b-field horizontal>
-                    <b-button
-                      type="is-primary"
-                      :loading="isLoading"
-                      @click="nextStep"
-                      icon-right="arrow-right"
-                      >Continuar</b-button
-                    >
-                  </b-field>
-                </template>
-                <!-- Normal mode: regular save buttons -->
-                <template v-if="!isDuplicating && !isCreationMode">
+                <!-- Normal mode: regular save buttons (with tabs: the save bar) -->
+                <template v-if="!isDuplicating && !isCreationMode && !tabsEnabled">
                   <b-field horizontal>
                     <b-button
                       type="is-primary"
@@ -827,7 +819,7 @@
             </form>
           </card-component>
         </div>
-        <div class="column is-one-third" v-if="!isLoading && (!isCreationMode || (isCreationMode && currentStep > 2))">
+        <div v-show="showTab('resum')" class="column" :class="tabsEnabled || (isCreationMode && !isDuplicating) ? 'is-12 project-summary' : 'is-one-third'" v-if="!isLoading && (!isCreationMode || (isCreationMode && currentStep > 2))">
           <card-component
             v-if="isProfileExists"
             title="RESUM FINANCER PROJECTE"
@@ -1280,14 +1272,7 @@
                   :show-as-currency="false"
                   unit="h"
                 >
-                  <div class="has-text-right">
-                    {{
-                      totals && totals.total_original_hours
-                        ? totals.total_original_hours.toFixed(2)
-                        : "0"
-                    }}
-                    h
-                  </div>
+                  <div class="has-text-right summary-hours">{{ formatHours(totals && totals.total_original_hours ? totals.total_original_hours : 0) }}</div>
                 </financial-diff-tooltip>
               </b-field>
               <b-field label="Hores previstes (h)" class="column">
@@ -1300,14 +1285,7 @@
                   :show-as-currency="false"
                   unit="h"
                 >
-                  <div class="has-text-right">
-                    {{
-                      totals && totals.total_estimated_hours
-                        ? totals.total_estimated_hours.toFixed(2)
-                        : "0"
-                    }}
-                    h
-                  </div>
+                  <div class="has-text-right summary-hours">{{ formatHours(totals && totals.total_estimated_hours ? totals.total_estimated_hours : 0) }}</div>
                 </financial-diff-tooltip>
               </b-field>
               <b-field label="Hores executades (h)" class="column">
@@ -1320,14 +1298,7 @@
                   :show-as-currency="false"
                   unit="h"
                 >
-                  <div class="has-text-right">
-                    {{
-                      totals && totals.total_real_hours
-                        ? totals.total_real_hours.toFixed(2)
-                        : "0"
-                    }}
-                    h
-                  </div>
+                  <div class="has-text-right summary-hours">{{ formatHours(totals && totals.total_real_hours ? totals.total_real_hours : 0) }}</div>
                 </financial-diff-tooltip>
               </b-field>
             </div>
@@ -1679,6 +1650,7 @@
           (!isCreationMode || currentStep >= 2)
         "
         title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
+        v-show="showTab('pressupost')"
         :closeIcon="true"
         :content-visible="isCreationMode"
       >
@@ -1725,30 +1697,10 @@
           </b-button>
         </b-field>
 
-        <hr v-if="!isDuplicating" />
-        <div class="is-flex" v-if="!isDuplicating">
-          <!-- Creation wizard mode step 2: navigation buttons -->
-          <template v-if="isCreationMode && currentStep === 2">
-            <b-field horizontal>
-              <b-button
-                type="is-light"
-                @click="previousStep"
-                icon-left="arrow-left"
-                >Enrere</b-button
-              >
-            </b-field>
-            <b-field horizontal>
-              <b-button
-                type="is-primary"
-                :loading="isLoading"
-                @click="nextStep"
-                icon-right="arrow-right"
-                >Continuar</b-button
-              >
-            </b-field>
-          </template>
-          <!-- Normal mode: regular save buttons -->
-          <template v-if="!isCreationMode">
+        <hr v-if="!isDuplicating && !tabsEnabled && !isCreationMode" />
+        <div class="is-flex" v-if="!isDuplicating && !tabsEnabled && !isCreationMode">
+          <!-- Normal mode: regular save buttons (with tabs: the save bar) -->
+          <template v-if="!isCreationMode && !tabsEnabled">
             <b-field horizontal>
               <b-button
                 type="is-primary"
@@ -1780,6 +1732,7 @@
             !isCreationMode
         "
         :title="'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
+        v-show="showTab('pressupost')"
         :closeIcon="true"
         :content-visible="true"
       >
@@ -1833,8 +1786,8 @@
           </b-button>
         </b-field> -->
 
-        <hr v-if="!isDuplicating" />
-        <div class="is-flex" v-if="!isDuplicating">
+        <hr v-if="!isDuplicating && !tabsEnabled && !isCreationMode" />
+        <div class="is-flex" v-if="!isDuplicating && !tabsEnabled && !isCreationMode">
           <b-field horizontal>
             <b-button
               type="is-primary"
@@ -1856,9 +1809,18 @@
       </card-component>
       <!-- <pre>{{documents}}</pre> -->
 
+      <div
+        v-if="tabsEnabled && showTab('periodificacio') && !isLoading && !(periodification && form.periodification && form.periodification.length)"
+        class="card tab-empty"
+      >
+        <p><b>Aquest projecte no periodifica manualment els ingressos i les despeses.</b></p>
+        <p>Cada import compta l'any de la seva data. Si cal repartir-los entre anys, activa «Periodificació d'ingressos i despeses» a les dades del projecte.</p>
+        <b-button size="is-small" @click="selectTab('dades')">Ves a Dades</b-button>
+      </div>
       <card-component
         v-if="!isLoading && periodification && form.periodification.length && !isCreationMode"
         title="PERIODIFICACIÓ D'INGRESSOS I DESPESES"
+        v-show="showTab('periodificacio')"
       >
         <div
           v-for="(y, i) in form.periodification.filter(
@@ -1980,8 +1942,8 @@
             </b-field>
           </div>
         </div>
-        <hr v-if="!isDuplicating" />
-        <div class="is-flex" v-if="!isDuplicating">
+        <hr v-if="!isDuplicating && !tabsEnabled && !isCreationMode" />
+        <div class="is-flex" v-if="!isDuplicating && !tabsEnabled && !isCreationMode">
           <b-field horizontal>
             <b-button
               type="is-primary"
@@ -2004,6 +1966,7 @@
       <card-component
         v-if="documents && documents.length && !isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
+        v-show="showTab('moviments')"
         class="ztile is-child mt-2"
         :content-visible="true"
       >
@@ -2121,6 +2084,7 @@
       <card-component
         v-if="!isLoading && !isUpdating && !form.children && (!isCreationMode || currentStep >= 3)"
         :title="'PLANIFICACIÓ' + (ganttViewMode === 'original' ? ' ORIGINAL' : ' PREVISTA')"
+        v-show="showTab('planificacio')"
         header-icon="swap-horizontal"
         @header-icon-click="toggleGanttView"
       >
@@ -2135,6 +2099,7 @@
         </button>
         <project-gannt
           v-if="
+            showTab('planificacio') &&
             !isLoading &&
               !needsUpdate &&
               form.id &&
@@ -2154,60 +2119,10 @@
           >Es necessari tenir fases i guardar el projecte amb un pressupost
           tancat per accedir a la planificació</span
         >
-        <hr v-if="!isDuplicating" />
-        <div class="is-flex" v-if="!isDuplicating">
-          <!-- Creation wizard mode step 3: show confirmation options -->
-          <template v-if="isCreationMode && currentStep === 3">
-            <b-field horizontal>
-              <b-button
-                type="is-light"
-                @click="previousStep"
-                icon-left="arrow-left"
-                >Enrere</b-button
-              >
-            </b-field>
-            <b-field horizontal>
-              <b-button
-                type="is-primary"
-                :loading="isLoading"
-                @click="nextStep"
-                icon-right="arrow-right"
-                >Continuar</b-button
-              >
-            </b-field>
-          </template>
-          <!-- Creation wizard mode step 4: final confirmation -->
-          <template v-if="isCreationMode && currentStep === 4">
-            <div class="notification is-info" style="flex-grow: 1; margin-right: 1rem;">
-              <p class="mb-2"><strong>El projecte està gairebé completat!</strong></p>
-              <p>Pots continuar editant les fases o la planificació, o tancar el pressupost per finalitzar la creació.</p>
-            </div>
-            <b-field horizontal>
-              <b-button
-                type="is-light"
-                @click="continueEditing('phases')"
-                >Editar fases</b-button
-              >
-            </b-field>
-            <b-field horizontal>
-              <b-button
-                type="is-light"
-                @click="continueEditing('planning')"
-                >Editar planificació</b-button
-              >
-            </b-field>
-            <b-field horizontal>
-              <b-button
-                type="is-success"
-                :loading="isLoading"
-                @click="closeBudget"
-                icon-left="check"
-                >Tancar pressupost</b-button
-              >
-            </b-field>
-          </template>
-          <!-- Normal mode: regular save buttons -->
-          <template v-if="!isCreationMode">
+        <hr v-if="!isDuplicating && !tabsEnabled && !isCreationMode" />
+        <div class="is-flex" v-if="!isDuplicating && !tabsEnabled && !isCreationMode">
+          <!-- Normal mode: regular save buttons (with tabs: the save bar) -->
+          <template v-if="!isCreationMode && !tabsEnabled">
             <b-field horizontal>
               <b-button
                 type="is-primary"
@@ -2230,7 +2145,7 @@
       </card-component>
 
       <!-- Gantt charts for child projects in mother projects -->
-      <div v-if="!isLoading && !isUpdating && form.is_mother && form.children && form.children.children && form.children.children.length && !isCreationMode">
+      <div v-if="showTab('planificacio') && !isLoading && !isUpdating && form.is_mother && form.children && form.children.children && form.children.children.length && !isCreationMode">
         <!-- Control buttons for non-open child projects -->
         <card-component
           v-if="closedChildren.length > 0"
@@ -2310,6 +2225,7 @@
       <card-component
         v-if="treasury && treasury.length && !isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
+        v-show="showTab('moviments')"
         class="ztile is-child mt-2"
       >
         <b-field>
@@ -2500,6 +2416,7 @@
       <card-component
         v-if="!isLoading && !form.children && !isCreationMode"
         title="TASQUES"
+        v-show="showTab('tasques')"
         header-icon="view-column"
         @header-icon-click="toogleTasksView"
       >
@@ -2516,6 +2433,35 @@
           >Es necessari guardar el projecte per accedir a les tasques</span
         >
       </card-component>
+
+      <!-- Redesign A: wizard bar of the new project (same actions as the old step buttons) -->
+      <div v-if="isCreationMode && !isDuplicating && !isLoading" class="savebar wizard-bar">
+        <span class="savebar-state">Pas {{ currentStep }} de {{ wizardSteps.length }} · {{ wizardSteps[currentStep - 1].title }}</span>
+        <span v-if="currentStep === 4" class="wizard-bar-note">
+          Pots tornar a les fases o a la planificació, o tancar el pressupost per acabar.
+        </span>
+        <div class="savebar-actions">
+          <b-button v-if="currentStep > 1 && currentStep < 4" icon-left="arrow-left" @click="previousStep">Enrere</b-button>
+          <template v-if="currentStep === 4">
+            <b-button @click="continueEditing('phases')">Editar fases</b-button>
+            <b-button @click="continueEditing('planning')">Editar planificació</b-button>
+            <b-button type="is-primary" :loading="isLoading" icon-left="check" @click="closeBudget">Tancar pressupost</b-button>
+          </template>
+          <b-button v-else type="is-primary" :loading="isLoading" icon-right="arrow-right" @click="nextStep">Continuar</b-button>
+        </div>
+      </div>
+
+      <!-- Redesign A: one save bar for every tab (same actions as the old buttons in each card) -->
+      <div v-if="tabsEnabled && !isLoading" class="savebar">
+        <span class="savebar-state" :class="{ 'is-dirty': dirty }">
+          {{ dirty ? "Canvis sense desar" : "Sense canvis pendents" }}
+        </span>
+        <div class="savebar-actions">
+          <b-button @click="duplicateProject">Duplicar projecte</b-button>
+          <b-button :loading="isLoading" @click="submitAndExit">Guardar i sortir</b-button>
+          <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
+        </div>
+      </div>
     </section>
   </div>
 </template>
@@ -2535,9 +2481,14 @@ import {
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
+import { formatHours } from "@/helpers/format-number";
+import { defaultProjectLeader } from "@/domain/projectLeader.js";
+
+const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum: 4 };
 
 // Project components
 import TitleBar from "@/components/TitleBar.vue";
+import WizardSteps from "@/components/WizardSteps.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing.vue";
 import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
@@ -2559,6 +2510,7 @@ export default {
   components: {
     CardComponent,
     TitleBar,
+    WizardSteps,
     MoneyFormat,
     FinancialDiffTooltip,
     ModalBoxInvoicing,
@@ -2607,6 +2559,9 @@ export default {
       cooperaSearch: "",
       strategiesSearch: "",
       phaseToAdd: "",
+      // redesign: the page is split in tabs (only for existing projects)
+      activeTab: "resum",
+      showOptionalFields: false,
       updatingGantt: false,
       updatingGanttTimer: 0,
       defaultOpenedDetails: [1],
@@ -2719,6 +2674,40 @@ export default {
             .indexOf(this.strategiesSearch.toLowerCase()) >= 0
         );
       });
+    },
+    // first step of the new project wizard: only the essential fields are shown
+    wizardBasics() {
+      return this.isCreationMode && !this.isDuplicating && this.currentStep === 1;
+    },
+    wizardSteps() {
+      return [
+        { title: "Dades bàsiques", description: "Nom, estat, àmbit, qui coordina i dates." },
+        { title: "Fases i pressupost", description: "Fases amb els ingressos i les despeses previstos." },
+        { title: "Planificació", description: "Qui hi dedica hores i quan." },
+        { title: "Confirmació", description: "Tanca el pressupost: es crea el d'execució." }
+      ];
+    },
+    tabsEnabled() {
+      return !this.isCreationMode && !this.isDuplicating && !!this.form.id;
+    },
+    projectTabs() {
+      return [
+        { id: "resum", label: "Resum" },
+        { id: "dades", label: "Dades" },
+        { id: "pressupost", label: "Pressupost i fases" },
+        { id: "periodificacio", label: "Periodificació" },
+        { id: "moviments", label: "Cobraments i pagaments" },
+        { id: "planificacio", label: "Planificació" },
+        { id: "tasques", label: "Tasques" }
+      ];
+    },
+    projectMeta() {
+      const parts = [];
+      if (this.form.project_scope && this.form.project_scope.name) parts.push(this.form.project_scope.name);
+      if (this.form.leader && this.form.leader.username) parts.push("coordina " + this.form.leader.username);
+      const date = d => (d ? moment(d).format("DD/MM/YYYY") : "");
+      if (this.form.date_start || this.form.date_end) parts.push(`${date(this.form.date_start)} – ${date(this.form.date_end)}`);
+      return parts.join(" · ");
     },
     titleStack() {
       let lastCrumb;
@@ -2861,6 +2850,12 @@ export default {
     }
   },
   watch: {
+    "$route.query.tab": {
+      immediate: true,
+      handler(tab) {
+        this.activeTab = this.projectTabs.some(t => t.id === tab) ? tab : "resum";
+      }
+    },
     id(newValue) {
       this.isProfileExists = false;
       this.userHasInteracted = false;
@@ -2922,6 +2917,21 @@ export default {
     }
   },
   methods: {
+    formatHours,
+    // Which sections show: the active tab; in the new project wizard, the section of
+    // the current step (1 basic data, 2 phases, 3 planning, 4 summary to confirm);
+    // when duplicating, every section, as before.
+    showTab(tab) {
+      if (this.isCreationMode && !this.isDuplicating) {
+        return WIZARD_STEP_OF_SECTION[tab] === this.currentStep;
+      }
+      return !this.tabsEnabled || this.activeTab === tab;
+    },
+    selectTab(tab) {
+      if (tab === this.activeTab) return;
+      this.activeTab = tab;
+      this.$router.replace({ query: { ...this.$route.query, tab } }).catch(() => {});
+    },
     isUndatedYear,
     periodificationYearLabel,
     toggleClosedChild(childId) {
@@ -3351,7 +3361,10 @@ export default {
       ).data;
 
       if (this.$route.params.id === "0" && !this.form.leader.id) {
-        this.form.leader = { id: this.user.id };
+        const leader = defaultProjectLeader(this.leaders, this.userName);
+        if (leader) {
+          this.form.leader = leader;
+        }
       }
 
       this.activityTypes = (
@@ -3485,8 +3498,13 @@ export default {
     async nextStep() {
       // Validate current step before proceeding
       if (!this.isStepValid(this.currentStep)) {
+        const messages = {
+          1: "Omple els camps obligatoris (*): codi, estat, àmbit, qui coordina i dates.",
+          2: "Afegeix almenys una fase al pressupost abans de continuar.",
+          3: "Desa les fases del pressupost abans de passar a la confirmació."
+        };
         this.$buefy.snackbar.open({
-          message: "Si us plau, completa tots els camps obligatoris abans de continuar",
+          message: messages[this.currentStep] || "Si us plau, completa tots els camps obligatoris abans de continuar",
           queue: false
         });
         return;
@@ -5185,6 +5203,159 @@ export default {
 };
 </script>
 <style>
+/* Redesign A: tabs, page head and the summary as text instead of grey boxes */
+.project-form .project-tabs {
+  margin-bottom: 1.25rem;
+}
+.project-form .project-tabs ul {
+  border-bottom: 1px solid var(--a-line);
+}
+.project-form .project-tabs a {
+  padding: .625rem .875rem;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+.project-form .project-tabs li.is-active a {
+  border-bottom-color: var(--a-accent);
+}
+/* toasts and snackbars appear above the save / wizard bar, not over its buttons */
+body:has(.project-form .savebar) .notices.is-bottom {
+  padding-bottom: 4.75rem;
+}
+/* the save / wizard bar sits at the bottom of the window even on short pages */
+.project-form {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.project-form > .section.is-main-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.project-form .savebar {
+  margin-top: auto !important;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  margin: 1.5rem -2rem -3rem;
+  padding: .875rem 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  background: var(--a-surface);
+  border-top: 1px solid var(--a-line);
+  box-shadow: 0 -6px 16px rgba(16, 32, 30, .06);
+}
+.project-form .savebar-state {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.project-form .savebar-state.is-dirty {
+  color: var(--a-fg);
+}
+.project-form .savebar-state.is-dirty::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--a-over);
+}
+.project-form .savebar-actions {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+@media screen and (max-width: 768px) {
+  .project-form .savebar {
+    margin: 1.5rem -1rem -2.5rem;
+    padding: .75rem 1rem;
+  }
+}
+.project-form .optional-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  margin: 1.25rem 0 .5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--a-line-soft);
+  color: var(--a-muted);
+  font-size: .875rem;
+}
+.project-form .wizard-bar-note {
+  color: var(--a-muted);
+  font-size: .875rem;
+}
+.project-form .tab-empty {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--a-muted);
+}
+.project-form .tab-empty p {
+  margin-bottom: .75rem;
+}
+.project-form .tab-empty b {
+  color: var(--a-fg);
+}
+.project-state-tag {
+  margin-right: .5rem;
+  vertical-align: 1px;
+}
+html .project-form .subphase-detail-input.readonly {
+  border-color: transparent;
+  background: transparent;
+  color: var(--a-fg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.project-form .columns.is-tabbed {
+  margin-top: 0;
+}
+.project-form .project-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.project-form .project-summary > .card {
+  margin: 0 !important;
+}
+.project-form .project-summary .summary-card .label {
+  font-size: .8125rem;
+  color: var(--a-muted);
+  font-weight: 700;
+  margin-bottom: .125rem;
+}
+/* each row: original · previst · executat, value under its label */
+.project-form .project-summary .summary-card .card-content > .columns {
+  margin: 0;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.project-form .project-summary .summary-card .card-content > .columns > .column {
+  padding: .25rem .75rem .25rem 0;
+}
+.project-form .project-summary .summary-card .readonly {
+  padding: 0;
+  text-align: left;
+  font-size: 1.0625rem;
+}
+.project-form .project-summary .summary-card .summary-hours {
+  text-align: left !important;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  font-variant-numeric: tabular-nums;
+}
+.project-form .project-summary .summary-card .readonly * {
+  text-align: left;
+  justify-content: flex-start;
+}
 .year-label {
   min-width: 100px;
 }
