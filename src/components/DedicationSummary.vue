@@ -1,69 +1,160 @@
 <template>
-  <div>
-    <div class="table-view">
-      <div class="alert" v-if="warn">
-        <b-icon icon="alert-circle"></b-icon>
-        Atenció, abans de consultar el resum d'hores anuals cal definir la
-        <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de
-        tot l'any.
+  <div class="annual-report">
+    <div v-if="warn" class="notification is-warning">
+      Abans de consultar el resum d'hores anuals cal definir la jornada laboral de tot l'any a
+      <router-link to="/working-day">Persones</router-link>.
+    </div>
+
+    <template v-if="!isLoading && !warn && calc">
+      <div v-for="o in overMax" :key="o.name" class="notification is-danger">
+        <b>{{ o.name }}: {{ o.days }} dies gastats {{ o.max === 1 ? "d'1 disponible" : "de " + o.max + " disponibles" }}.</b>
+        Revisa'n el registre o el màxim d'aquest any.
       </div>
 
-      <card-component
-        class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading && !warn"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Tipus</div>
-          <div class="column has-text-weight-bold">Hores</div>
-          <div class="column has-text-weight-bold">Dies</div>
-          <div class="column has-text-weight-bold">Gastats avui</div>
+      <!-- Redesign A: figures, holidays and absences, how the balance is computed
+           and the holiday and free-choice days. Same figures as before (summary). -->
+      <div class="doc-kpis">
+        <div class="doc-kpi">
+          <span>Saldo anual</span>
+          <b :class="'has-text-' + sign(balance.hours)">{{ signed(balance.hours) }} h</b>
+          <small>laborables − màxim del conveni ({{ signed(balance.days, 0) }} {{ Math.abs(balance.days) === 1 ? "dia" : "dies" }})</small>
         </div>
-        <div v-for="(value, key) in summary" v-bind:key="key" class="card-body">
-          <div class="columns">
-            <div class="column">
-              {{ key }}
-            </div>
-            <div class="column">
-              {{ value.hours }}
-            </div>
-            <div class="column">
-              {{ value.days }} {{ value.max ? `/ ${value.max}` : "" }}
-              <b-icon
-              v-if="value.max && value.maxIsDefault === false"
-              class="has-text-grey-light"
-              icon="alert-circle"
-              title="Valor personalitzat"
-              size="is-small"
-            >
-            </b-icon>
-            </div>
-            <div class="column">
-              {{ value.daysCurrent }} {{ value.max ? `/ ${value.max}` : "" }}
-            </div>
-          </div>
+        <div class="doc-kpi">
+          <span>Hores laborables</span>
+          <b>{{ hours(summary["Laborables"].hours) }} h</b>
+          <small>{{ summary["Laborables"].days }} dies</small>
         </div>
-      </card-component>
+        <div class="doc-kpi">
+          <span>Màxim del conveni</span>
+          <b>{{ hours(summary["Màxim Conveni"].hours) }} h</b>
+          <small>{{ formatNumber(summary["Màxim Conveni"].days, 1) }} dies</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Jornada</span>
+          <b>{{ hours(calc.ratio * 8) }} h/dia</b>
+          <small>{{ formatNumber(calc.ratio * 100, 1) }} % d'una jornada completa</small>
+        </div>
+      </div>
 
-      <card-component
-        class="has-table has-mobile-sort-spaced"
-        title="Vacances / Lliure Elecció"
-        v-if="!isLoading && !warn"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Data</div>
-          <div class="column has-text-weight-bold">Tipus</div>
-        </div>
-        <div v-if="!personalDaysList.length" class="card-body has-text-grey-light">
-          Cap dia registrat
-        </div>
-        <div v-for="item in personalDaysList" :key="item.date" class="card-body">
-          <div class="columns">
-            <div class="column">{{ formatDMYDate(item.date) }}</div>
-            <div class="column">{{ item.type }}</div>
+      <div class="report-columns">
+        <section class="report-box">
+          <header class="report-box-head">
+            <h2>Festius, vacances i lliure elecció</h2>
+            <span class="has-text-muted">dies gastats / màxim</span>
+          </header>
+          <div class="table-wrap">
+            <table class="table is-fullwidth annual-table">
+              <thead>
+                <tr>
+                  <th>Tipus</th>
+                  <th class="has-text-right">Dies</th>
+                  <th class="bar-col"><span class="is-sr-only">Progrés</span></th>
+                  <th class="has-text-right">Hores</th>
+                  <th v-if="isCurrentYear" class="has-text-right">Gastats a avui</th>
+                  <th>Estat</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="f in festiveRows" :key="f.name">
+                  <th scope="row">
+                    {{ f.name }}
+                    <b-icon v-if="f.max && f.maxIsDefault === false" icon="pencil-outline" custom-size="default" class="has-text-muted" title="Màxim personalitzat" />
+                  </th>
+                  <td class="has-text-right is-nowrap"><b>{{ f.days }}</b>{{ f.max ? " / " + f.max : "" }}</td>
+                  <td class="bar-col">
+                    <span v-if="f.max" class="bar"><i :class="{ 'is-over': f.days > f.max }" :style="{ width: Math.min(100, f.days / f.max * 100) + '%' }"></i></span>
+                  </td>
+                  <td class="has-text-right is-nowrap">{{ hours(f.hours) }} h</td>
+                  <td v-if="isCurrentYear" class="has-text-right is-nowrap">{{ f.daysCurrent }}{{ f.max ? " / " + f.max : "" }}</td>
+                  <td>
+                    <span v-if="!f.max" class="has-text-muted">sense màxim</span>
+                    <span v-else-if="f.days > f.max" class="tag is-danger is-light">↑ {{ f.days - f.max }} {{ f.days - f.max === 1 ? "dia" : "dies" }} per sobre del màxim</span>
+                    <span v-else-if="f.days === f.max" class="tag">Complet</span>
+                    <span v-else class="tag is-success is-light">{{ f.max - f.days === 1 ? "Queda 1 dia" : "Queden " + (f.max - f.days) + " dies" }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </section>
+
+        <section class="report-box">
+          <header class="report-box-head">
+            <h2>Com es calcula</h2>
+          </header>
+          <dl class="calc-list">
+            <dt>Dies feiners amb jornada</dt>
+            <dd>{{ calc.baseDays }} dies</dd>
+            <dd>{{ hours(calc.baseHours) }} h</dd>
+            <template v-for="p in calc.pending" :key="p.name">
+              <dt class="is-sub">− {{ p.name }} que falten per gastar ({{ p.max }} − {{ p.used }})</dt>
+              <dd>−{{ p.days }} dies</dd>
+              <dd>−{{ hours(p.hours) }} h</dd>
+            </template>
+            <dt class="is-strong">Laborables</dt>
+            <dd class="is-strong">{{ summary["Laborables"].days }} dies</dd>
+            <dd class="is-strong">{{ hours(summary["Laborables"].hours) }} h</dd>
+            <dt class="is-sub">− Màxim del conveni</dt>
+            <dd>{{ formatNumber(summary["Màxim Conveni"].days, 1) }} dies</dd>
+            <dd>{{ hours(summary["Màxim Conveni"].hours) }} h</dd>
+            <dt class="is-strong is-line">Saldo anual</dt>
+            <dd class="is-strong is-line" :class="'has-text-' + sign(balance.days)">{{ signed(balance.days, 0) }} dies</dd>
+            <dd class="is-strong is-line" :class="'has-text-' + sign(balance.hours)">{{ signed(balance.hours) }} h</dd>
+            <dt class="is-line">Hores treballades (registrades)</dt>
+            <dd class="is-line">{{ summary["Treballades"].days }} dies</dd>
+            <dd class="is-line">{{ hours(summary["Treballades"].hours) }} h</dd>
+          </dl>
+        </section>
+      </div>
+
+      <section class="report-box">
+        <header class="report-box-head">
+          <h2>Dies de vacances i lliure elecció</h2>
+          <span class="legend"><span class="tag is-success is-light">Vacances</span> <span class="tag is-warning is-light">Lliure elecció</span></span>
+        </header>
+        <p v-if="!personalDaysList.length" class="report-note">Cap dia registrat.</p>
+        <div v-else class="table-wrap">
+          <table class="table is-fullwidth annual-table">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Dies</th>
+                <th class="has-text-right">Vacances</th>
+                <th class="has-text-right">Lliure elecció</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="m in personalMonths" :key="m.key">
+                <th scope="row">{{ m.name }}</th>
+                <td>
+                  <span
+                    v-for="d in m.days"
+                    :key="d.date"
+                    class="tag day-chip"
+                    :class="d.type === 'Vacances' ? 'is-success is-light' : 'is-warning is-light'"
+                    :title="formatDMYDate(d.date) + ' · ' + d.type"
+                  >{{ d.date.slice(8, 10) }}</span>
+                </td>
+                <td class="has-text-right">{{ m.holidays }}</td>
+                <td class="has-text-right">{{ m.free }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Total {{ year }}</th>
+                <th></th>
+                <th class="has-text-right">{{ personalMonths.reduce((a, m) => a + m.holidays, 0) }}</th>
+                <th class="has-text-right">{{ personalMonths.reduce((a, m) => a + m.free, 0) }}</th>
+              </tr>
+            </tfoot>
+          </table>
         </div>
-      </card-component>
-    </div>
+      </section>
+
+      <p class="notification is-info">
+        Aquí el balanç es fa amb el màxim d'hores del conveni. El saldo dia a dia entre hores registrades i jornada és a «Saldo d'hores».
+      </p>
+    </template>
   </div>
 </template>
 
@@ -74,6 +165,7 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
+import { formatNumber, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
 
@@ -116,10 +208,43 @@ export default {
       dates: [],
       summary: {},
       personalDaysList: [],
-      warn: false
+      warn: false,
+      // the festive types, and the steps of the calculation (for "Com es calcula")
+      festiveNames: [],
+      calc: null
     };
   },
   computed: {
+    festiveRows() {
+      return this.festiveNames.map(name => ({ name, ...this.summary[name] })).filter(f => f && f.days !== undefined);
+    },
+    overMax() {
+      return this.festiveRows.filter(f => f.max && f.days > f.max);
+    },
+    balance() {
+      const b = this.summary["Saldo anual d'hores (Laborables - Conveni)"] || {};
+      return { hours: Number(b.hours) || 0, days: Number(b.days) || 0 };
+    },
+    isCurrentYear() {
+      return Number(this.year) === moment().year();
+    },
+    personalMonths() {
+      const months = [];
+      this.personalDaysList.forEach(d => {
+        const key = d.date.slice(0, 7);
+        let m = months.find(x => x.key === key);
+        if (!m) {
+          const name = moment(key + "-01").format("MMMM");
+          m = { key, name: name.charAt(0).toUpperCase() + name.slice(1), days: [], holidays: 0, free: 0 };
+          months.push(m);
+        }
+        m.days.push(d);
+        if (d.type === "Vacances") m.holidays++;
+        else m.free++;
+      });
+      months.forEach(m => m.days.sort((a, b) => (a.date < b.date ? -1 : 1)));
+      return months.sort((a, b) => (a.key < b.key ? -1 : 1));
+    },
     trashObjectName() {
       if (this.trashObject) {
         return this.trashObject.name;
@@ -148,6 +273,15 @@ export default {
     // this.$on('update:page', () => { console.log('update:page') })
   },
   methods: {
+    sign,
+    formatNumber,
+    hours(value) {
+      return formatNumber(Number(value) || 0, 2, 2);
+    },
+    signed(value, decimals = 2) {
+      const n = Number(value) || 0;
+      return (n > 0.004 ? "+" : "") + formatNumber(n, decimals, decimals);
+    },
     async getActivities() {
       this.isLoading = true;
 
@@ -183,6 +317,7 @@ export default {
           const festiveTypes = (
             await service({ requiresAuth: true, cached: true }).get("festive-types?_limit=-1")
           ).data;
+          this.festiveNames = festiveTypes.map(ft => ft.name);
           festiveTypes.forEach(ft => {
             this.summary[ft.name] = {
               hours: 0,
@@ -320,9 +455,13 @@ export default {
             days: totalWorkedDays
           };
 
+          const pending = [];
+          const baseDays = totalWorkedDays;
+          const baseHours = totalWorkedHours;
           festiveTypes.forEach(ft => {
             if (this.summary[ft.name].days < this.summary[ft.name].max) {              
               const daysToAdd = this.summary[ft.name].max - this.summary[ft.name].days
+              pending.push({ name: ft.name, days: daysToAdd, hours: daysToAdd * ratio * 8, used: this.summary[ft.name].days, max: this.summary[ft.name].max })
               this.summary["Laborables"].hours = this.summary["Laborables"].hours - daysToAdd * ratio * 8
               this.summary["Laborables"].days = this.summary["Laborables"].days - daysToAdd
             }              
@@ -345,6 +484,7 @@ export default {
 
 
           this.summary["Treballades"] = { hours: sumBy(this.activities, 'hours') , days: this.activities.filter(a => a.hours > 0).length};
+          this.calc = { baseDays, baseHours, pending, ratio };
 
           this.isLoading = false;
         });
@@ -373,6 +513,110 @@ export default {
   },
 };
 </script>
+<style scoped>
+.report-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+.report-box {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.report-columns .report-box {
+  margin-bottom: 0;
+}
+.report-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: .875rem 1.25rem;
+  border-bottom: 1px solid var(--a-line);
+}
+.report-box-head h2 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.report-box-head > span {
+  font-size: .8125rem;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+.annual-table {
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+.annual-table th:first-child,
+.annual-table td:first-child {
+  padding-left: 1.25rem;
+}
+.annual-table th:last-child,
+.annual-table td:last-child {
+  padding-right: 1.25rem;
+}
+.bar-col {
+  width: 7rem;
+}
+.bar {
+  display: block;
+  height: .5rem;
+  border-radius: 999px;
+  background: var(--a-chip);
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--a-accent);
+}
+.bar i.is-over {
+  background: #D9480F;
+}
+.calc-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: .5rem 1rem;
+  padding: 1rem 1.25rem;
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+.calc-list dd {
+  text-align: right;
+  white-space: nowrap;
+}
+.calc-list .is-sub {
+  color: var(--a-fg-2);
+  padding-left: .5rem;
+}
+.calc-list .is-strong {
+  font-weight: 800;
+}
+.calc-list .is-line {
+  padding-top: .5rem;
+  border-top: 1px solid var(--a-line);
+}
+.day-chip {
+  margin: .125rem .25rem .125rem 0;
+  min-width: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+.report-note {
+  padding: .875rem 1.25rem;
+  color: var(--a-muted);
+}
+@media screen and (max-width: 1023px) {
+  .report-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+</style>
 <style scoped>
 .separator {
   margin-right: 0.5rem;
