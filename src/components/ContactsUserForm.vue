@@ -1,14 +1,13 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" v-if="!modal" />
+    <title-bar :title-stack="titleStack" v-if="!modal" subtitle="On s'entreguen les comandes i quan s'hi pot anar." />
     <section :class="!modal ? 'section is-main-section' : 'z'">
       <div class="columns">
         <div class="column is-full">
           <card-component class="tile is-child" :css="!modal ? 'card' : 'z'">
-            <form @submit.prevent="submit" v-if="!isLoading">
+            <form class="a-form point-form" @submit.prevent="submit" v-if="!isLoading">
               <b-field
                 label="Contacte de *"
-                horizontal
                 v-if="isOrdersContactAndUserIsOrdersAdmin"
                 :type="{ 'is-danger': errors['owner'] && submitted }"
               >
@@ -31,11 +30,10 @@
               </b-field>
 
               
-              <h3 class="title is-5 mt-5">LOCALITZACIÓ</h3>
+              <h3 class="form-section">Localització</h3>
 
               <b-field
                 label="Població *"
-                horizontal
                 message="Si vols que ens aturem a una població que no apareix a la llista, posa’t en contacte amb la Carla 722 84 49 98 abans de continuar"
                 :type="{ 'is-danger': errors['city'] && submitted }"
               >
@@ -55,7 +53,6 @@
 
               <b-field
                 label="CP *"
-                horizontal
                 :type="{ 'is-danger': errors['postcode'] && submitted }"
               >
                 <b-input v-model="form.postcode" required />
@@ -63,28 +60,26 @@
 
               <b-field
                 label="Adreça *"
-                horizontal
                 :type="{ 'is-danger': errors['address'] && submitted }"
               >
                 <b-input v-model="form.address" required type="text" />
               </b-field>
 
-              <h3 class="title is-5 mt-5">ESTABLIMENT</h3>
+              <h3 class="form-section">Establiment</h3>
 
               <b-field
                 label="Nom comercial *"
-                horizontal
                 :type="{ 'is-danger': errors['trade_name'] && submitted }"
                 message="Aquest és el nom de referència a ESSTrapis"
               >
                 <b-input v-model="form.trade_name" required />
               </b-field>
 
-              <b-field label="Raó Social" horizontal>
+              <b-field label="Raó Social">
                 <b-input v-model="form.name" required />
               </b-field>
 
-              <b-field label="Sector *" horizontal>
+              <b-field label="Sector *">
                 <div class="is-flex is-flex-wrap-wrap">
                   <div v-for="(sector, index) in sectors" :key="index">
                     <b-button
@@ -104,34 +99,32 @@
               
               <b-field
                 label="NIF *"
-                horizontal
                 :type="{ 'is-danger': errors['nif'] && submitted }"
                 message="Posa un NIF vàlid. Si no el tens, en pots generar un amb el botó de la dreta"
               >
-                <b-input v-model="form.nif" />
-                <b-button
-                  type="button"
-                  class="button is-warning is-small ml-2"
-                  @click="generateNIF"
-                  title="Generar NIF inventat"
-                  :disabled="form.nif !== ''"
-                >
-                  <b-icon icon="refresh" />
-                </b-button>
+                <div class="nif-row">
+                  <b-input v-model="form.nif" />
+                  <b-button
+                    icon-left="refresh"
+                    title="Generar NIF inventat"
+                    :disabled="form.nif !== ''"
+                    @click="generateNIF"
+                  >Genera'n un</b-button>
+                </div>
               </b-field>
 
               
               
-              <!-- <b-field label="Provincia" horizontal>
+              <!-- <b-field label="Provincia">
                 <b-input v-model="form.state" />
               </b-field>
-              <b-field label="País" horizontal>
+              <b-field label="País">
                 <b-input v-model="form.country" />
               </b-field> -->
 
-              <h3 class="title is-5 mt-5">CONDICIONS D’ENTREGA</h3>
+              <h3 class="form-section">Condicions d’entrega</h3>
 
-              <b-field label="Horari de contacte 1 *" horizontal>
+              <b-field label="Horari de contacte 1 *">
                 <b-field
                   label=""
                   :type="{
@@ -194,7 +187,7 @@
                 </b-field>
               </b-field>
 
-              <b-field label="Horari de contacte 2 *" horizontal>
+              <b-field label="Horari de contacte 2 *">
                 <b-field
                   label=""
                   :type="{
@@ -260,7 +253,6 @@
 
               <b-field
                 label="Telèfon *"
-                horizontal
                 :type="{ 'is-danger': errors['phone'] && submitted }"
                 message="Necessitem un número de telèfon vàlid, pots posar espais o guions per separar o no, com vulguis, però ha de tenir 9 dígits com a mínim."
               >
@@ -268,18 +260,17 @@
               </b-field>
               
 
-              <b-field label="Persona de contacte" horizontal>
+              <b-field label="Persona de contacte">
                 <b-input v-model="form.contact_person" />
               </b-field>
 
 
-              <b-field label="Email" horizontal>
+              <b-field label="Email">
                 <b-input v-model="form.email" />
               </b-field>
               
               <b-field
                 label="Notes"
-                horizontal
                 class="line-notezs is-full-width mb-5"
               >
                 <b-input
@@ -291,7 +282,6 @@
               <b-field
                 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="Detalls repartidores"
-                horizontal
               >
                 <b-input
                   v-model="form.notes_delivery"
@@ -301,22 +291,20 @@
               </b-field>
 
               
-              <!-- <b-field label="Telèfon de contacte" horizontal>
+              <!-- <b-field label="Telèfon de contacte">
                 <b-input v-model="form.contact_phone" />
               </b-field>
-              <b-field label="Web" horizontal>
+              <b-field label="Web">
                 <b-input v-model="form.website" />
               </b-field> -->
               <b-field
                 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="Punt de consum"
-                horizontal
               >
                 <b-switch v-model="form.pickup_point" :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))" />
               </b-field>
               <b-field
                 label="Usuària ESSTRAPIS"
-                horizontal
                 v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && form.pickup_point"
                 message="Usuària assignada per a la gestió de comandes del punt de consum"
               >
@@ -333,7 +321,6 @@
               <b-field
                 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="% de descompte per recollida en finca"
-                horizontal
               >
                 <b-input
                   v-model="form.pickup_discount"
@@ -342,8 +329,7 @@
                   @update:model-value="fixDecimals('pickup_discount', form.pickup_discount)"
                 />
               </b-field>
-              <hr />
-              <b-field horizontal>
+              <div class="form-actions">
                 <div class="is-flex" v-if="!modal">
                   <b-button
                     type="is-primary"
@@ -386,7 +372,7 @@
                     >Guardar</b-button
                   >
                 </div>
-              </b-field>
+              </div>
             </form>
           </card-component>
         </div>
@@ -1072,5 +1058,36 @@ export default {
 }
 .line-notes textarea {
   width: 100%;
+}
+</style>
+<style scoped>
+.point-form {
+  max-width: 52rem;
+}
+.form-section {
+  margin-top: .75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--a-line-soft);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.point-form > .form-section:first-of-type {
+  margin-top: 0;
+}
+.nif-row {
+  display: flex;
+  gap: .5rem;
+  width: 100%;
+}
+.nif-row .control {
+  flex: 1;
+}
+.form-actions {
+  padding-top: 1rem;
+  border-top: 1px solid var(--a-line-soft);
+}
+.form-actions .is-flex {
+  gap: .5rem;
 }
 </style>
