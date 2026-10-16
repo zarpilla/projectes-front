@@ -378,22 +378,12 @@ const menu = [
       permission: "admin"
     },
     {
+      // Verifactu's configuration, its register and the FACe queue share one head
       to: "/admin/verifactu",
       icon: "certificate",
-      label: "Verifactu",
-      permission: "admin"
-    },
-    {
-      to: "/admin/verifactu-chain",
-      icon: "link-variant",
-      label: "Factures Verifactu",
-      permission: "admin"
-    },
-    {
-      to: "/admin/face-queue",
-      icon: "format-list-bulleted-square",
-      label: "Factures FACE",
-      permission: "admin"
+      label: "Verifactu i FACe",
+      permission: "admin",
+      activeWhen: "verifactu"
     },
     {
       // the 19 auxiliary tables (service/adminTables.js) share one screen
