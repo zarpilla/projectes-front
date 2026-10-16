@@ -9,8 +9,7 @@ import {
   normalizeErrorBody
 } from './v5-compat'
 import { refreshJwt, clearSession } from './auth'
-
-const cache = {}
+import { cachedGet, clearCache, isCatalog, resourceOf } from './cache'
 
 export default ({ requiresAuth = false, multipart = false, cached = false } = {}) => {
   const config = getConfig()
@@ -53,9 +52,6 @@ export default ({ requiresAuth = false, multipart = false, cached = false } = {}
       config.data = wrapRequestBody(config.data)
     }
 
-    if (cached && cache[config.url]) {
-      return Promise.reject(new axios.Cancel(config.url));
-    }
     return config;
   }, error => {
     return Promise.reject(error);
@@ -79,16 +75,8 @@ export default ({ requiresAuth = false, multipart = false, cached = false } = {}
         response.meta.pagination.total) || 0
     }
 
-    if (cached) {
-      cache[response.config.url] = response;
-    }
     return response;
   }, async error => {
-    if (axios.isCancel(error)) {
-      console.log('Request cancelled', error.message);
-      return cache[error.message];
-    }
-
     // Access JWT expired: refresh it once and replay the request.
     const conf = error.config
     const sentAuth = conf && conf.headers && conf.headers.Authorization
@@ -122,6 +110,22 @@ export default ({ requiresAuth = false, multipart = false, cached = false } = {}
       data: error.response ? error.response.data : null
     });
   });
+
+  const get = instance.get.bind(instance)
+  instance.get = (url, conf) =>
+    (cached || isCatalog(url)) && !conf
+      ? cachedGet(url, () => get(url))
+      : get(url, conf)
+  for (const method of ['post', 'put', 'patch', 'delete']) {
+    const write = instance[method].bind(instance)
+    instance[method] = async (url, ...args) => {
+      try {
+        return await write(url, ...args)
+      } finally {
+        clearCache(resourceOf(url))
+      }
+    }
+  }
 
   return instance;
 }

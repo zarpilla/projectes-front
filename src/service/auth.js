@@ -1,5 +1,6 @@
 import axios from 'axios'
 import getConfig from '@/config'
+import { clearCache } from './cache'
 
 // Strapi v5 runs users-permissions with `jwtManagement: 'refresh'`: the access
 // JWT lives ~10 minutes and is renewed with POST /api/auth/refresh, which reads
@@ -53,6 +54,7 @@ export function refreshJwt (staleJwt) {
 }
 
 export function clearSession () {
+  clearCache()
   localStorage.removeItem('user')
   localStorage.removeItem('jwt')
 }

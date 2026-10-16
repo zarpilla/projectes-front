@@ -112,6 +112,65 @@ describe('responses', () => {
   })
 })
 
+// issues/097: catalogs come from a session cache, cleared when they change
+describe('catalog cache', () => {
+  beforeEach(() => clearSession() || localStorage.setItem('jwt', 'jwt-1'))
+
+  it('asks a catalog once, even for concurrent callers', async () => {
+    mock.onGet(/.*/).reply(200, { data: [{ id: 1, name: 'Tancat' }], meta: {} })
+    const [a, b] = await Promise.all([
+      service({ requiresAuth: true }).get('project-states?_limit=-1'),
+      service({ requiresAuth: true }).get('project-states?_limit=-1')
+    ])
+    const c = await service({ requiresAuth: true }).get('project-states?_limit=-1')
+    expect(mock.history.get).toHaveLength(1)
+    expect(c.data).toEqual([{ id: 1, name: 'Tancat' }])
+    expect(a.data).not.toBe(b.data)
+  })
+
+  it('gives every caller its own copy', async () => {
+    mock.onGet(/.*/).reply(200, { data: [{ id: 1 }], meta: {} })
+    const a = await service({ requiresAuth: true }).get('project-types')
+    a.data.unshift({ id: 0, name: 'Tots' })
+    const b = await service({ requiresAuth: true }).get('project-types')
+    expect(b.data).toEqual([{ id: 1 }])
+  })
+
+  it('does not cache data that changes often', async () => {
+    mock.onGet(/.*/).reply(200, { data: [], meta: {} })
+    await service({ requiresAuth: true }).get('projects/basic')
+    await service({ requiresAuth: true }).get('projects/basic')
+    expect(mock.history.get).toHaveLength(2)
+  })
+
+  it('reloads a catalog after the app writes to it', async () => {
+    mock.onAny(/.*/).reply(200, { data: [], meta: {} })
+    await service({ requiresAuth: true }).get('project-scopes?_limit=-1')
+    await service({ requiresAuth: true }).get('years?_sort=year:DESC')
+    await service({ requiresAuth: true }).put('project-scopes/3', { name: 'X' })
+    await service({ requiresAuth: true }).get('project-scopes?_limit=-1')
+    await service({ requiresAuth: true }).get('years?_sort=year:DESC')
+    expect(mock.history.get.map(r => r.url)).toEqual([
+      'api/project-scopes?_limit=-1', 'api/years?_sort=year:DESC', 'api/project-scopes?_limit=-1'
+    ])
+  })
+
+  it('forgets the catalogs when the session ends', async () => {
+    mock.onGet(/.*/).reply(200, { data: [], meta: {} })
+    await service({ requiresAuth: true }).get('regions')
+    clearSession()
+    await service({ requiresAuth: true }).get('regions')
+    expect(mock.history.get).toHaveLength(2)
+  })
+
+  it('does not keep a failed answer', async () => {
+    mock.onGet(/.*/).replyOnce(500, {}).onGet(/.*/).reply(200, { data: [{ id: 2 }], meta: {} })
+    await expect(service({ requiresAuth: true }).get('vat-types')).rejects.toBeTruthy()
+    const r = await service({ requiresAuth: true }).get('vat-types')
+    expect(r.data).toEqual([{ id: 2 }])
+  })
+})
+
 describe('errors', () => {
   it('normalizes the v5 error body to a v3-style message string', async () => {
     mock.onPost(/.*/).reply(400, { data: null, error: { status: 400, name: 'ValidationError', message: 'Invalid identifier or password' } })

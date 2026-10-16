@@ -6,6 +6,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Millores",
+      text: "Les llistes que gairebé no canvien (estats, tipus i àmbits de projecte, anys, tipus de dedicació, d'IVA…) es carreguen un sol cop per sessió, i les pantalles s'obren més de pressa. Si en canvies una a «Taules auxiliars», ho veus al moment; la resta d'usuàries, quan tornin a entrar o recarreguin la pàgina."
+    },
+    {
       type: "Correccions",
       text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", mentre es desa «Fi de l'activitat» el botó queda desactivat. Abans, si es tornava a clicar perquè tardava, es podia desar l'activitat dues vegades."]
     }

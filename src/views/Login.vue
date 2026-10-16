@@ -63,6 +63,7 @@
 
 <script>
 import service from "@/service/index";
+import { clearCache } from "@/service/cache";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
@@ -130,6 +131,8 @@ export default {
 
             delete user.tasks;
             delete user.daily_dedications;
+            // the catalogs cached for the previous user (issues/097)
+            clearCache();
             localStorage.setItem("user", JSON.stringify(user));
             localStorage.setItem("jwt", response.data.jwt);
             useMainStore().setUser({
