@@ -154,13 +154,14 @@ test('"Dipositar" from the order view, and undoing it', async () => {
   expect(order.deposit_date).toBeFalsy()
 })
 
-test('"CANVIAR ESTAT" marks the order delivered', async () => {
+test('the selection bar marks the order delivered ("Canvia l\'estat a…")', async () => {
   test.skip(!state.orderId, 'needs the order')
   await visit('/orders')
-  const row = page.locator('table tbody tr', { hasText: POINT }).first()
+  const row = page.locator('table tbody tr.order-row', { hasText: POINT }).first()
   await row.locator('.checkbox, .b-checkbox').first().click()
-  await page.locator('select', { has: page.locator('option[value="delivered"]') }).first().selectOption('delivered')
-  await button('CANVIAR ESTAT').click()
+  const bar = page.locator('.selection-bar')
+  await bar.locator('select').selectOption('delivered')
+  await button('Aplica', bar).click()
   await settle()
   const order = await api('GET', `orders/${state.orderId}`)
   expect(order.status).toBe('delivered')

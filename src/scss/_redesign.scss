@@ -716,3 +716,50 @@ td.doc-total {
   border-radius: 12px;
   padding: 1rem 1.25rem;
 }
+.a-box > .box-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin: -1rem -1.25rem 1rem;
+  padding: .875rem 1.25rem;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.a-box > .box-head h2 {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.a-box .box-hint {
+  font-size: .875rem;
+  color: var(--a-muted);
+}
+.a-box .box-empty {
+  padding: .5rem 0;
+  text-align: center;
+  color: var(--a-muted);
+}
+// label / value pairs of a box
+.a-box dl.facts {
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) minmax(0, 1fr);
+  gap: .5rem 1rem;
+  margin: 0;
+  font-size: .9375rem;
+}
+.a-box dl.facts dt {
+  color: var(--a-fg-2);
+}
+.a-box dl.facts dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--a-fg);
+}
+.a-box dl.facts dd.is-total {
+  font-size: 1.125rem;
+  font-weight: 800;
+}

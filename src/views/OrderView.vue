@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <!-- <title-bar :title-stack="titleStack" /> -->
-
+  <!-- Redesign A (mockup A-Log-Comanda-vista): where the order is on its way,
+       its tracking with the next step as the main action, and its data. -->
+  <div class="order-view">
     <modal-box-incidence
       :is-active="isIncidenceModalActive"
       :order-id="order ? order.id : 0"
@@ -9,481 +9,225 @@
       @cancel="onIncidenceCancelled"
     ></modal-box-incidence>
 
-    <section class="section is-main-section section-adapted">
-      <card-component
-        :title="formCardTitle"
-        icon="package-variant"
-        :close-icon="false"
-      >
-        <div v-if="isLoading" class="has-text-centered">
-          <b-loading :model-value="isLoading"></b-loading>
+    <title-bar :title-stack="titleStack" :subtitle="headSubtitle">
+      <template #badges>
+        <template v-if="order">
+          <span class="tag" :class="statusTag(order.status)">{{ getStatusName(order.status) }}</span>
+          <span v-if="order.refrigerated" class="tag is-info is-light">Refrigerada</span>
+          <span v-if="order.fragile" class="tag is-warning is-light">Fràgil</span>
+          <span v-if="order.is_collection_order" class="tag">Comanda de recollida</span>
+          <span v-if="order.last_mile" class="tag is-link is-light">Última milla</span>
+        </template>
+      </template>
+      <template v-if="order">
+        <b-button v-if="canCreateIncidence" icon-left="alert-outline" @click="createIncidence">Crea incidència</b-button>
+        <b-button v-if="!order.is_collection_order" icon-left="printer" :loading="printing" @click="printOrder">Albarà</b-button>
+        <b-button v-if="canEdit" icon-left="pencil-outline" @click="editOrder">Edita</b-button>
+        <b-button
+          v-if="nextAction"
+          type="is-primary"
+          :icon-left="nextAction.icon"
+          :loading="isDepositingOrPickingUp"
+          @click="nextAction.action"
+        >{{ nextAction.label }}</b-button>
+      </template>
+    </title-bar>
+
+    <section class="section is-main-section">
+      <b-loading :is-full-page="false" :model-value="isLoading" />
+
+      <div v-if="!isLoading && !order" class="notification is-warning">No s'ha trobat la comanda</div>
+
+      <template v-if="order">
+        <div v-if="order.status === 'cancelled'" class="notification is-danger is-light">
+          <b>Comanda anul·lada.</b> No es repartirà ni es facturarà.
         </div>
 
-        <div v-else-if="order">
-          <!-- Action Buttons (Top) -->
-          <div class="buttons mb-5">
-            <template v-for="(button, index) in actionButtons" :key="'top-' + index">
-              <b-button
-                :type="button.type"
-                :icon-left="button.icon"
-                :size="button.size"
-                @click="button.action"
-                v-if="button.visible"
-                :loading="button.loading"
-              >
-                {{ button.label }}
-              </b-button>
-            </template>
-          </div>
-
-          <!-- BLOC ZERO: Sòcia -->
-          <div class="info-section mb-4">
-            <h3 class="section-title">Sòcia</h3>
-            <div class="info-field">
-              <!-- <span class="field-label">Sòcia:</span> -->
-              <span class="field-value">{{ ownerName }}</span>
-            </div>
-          </div>
-
-          <hr />
-
-          <!-- PRIMER BLOC: A ON VA I QUIN DIA? -->
-          <div class="info-section mb-4">
-            <h3 class="section-title">
-              {{ order.is_collection_order ? "A on i quin dia s'ha de recollir?" : "A on va i quin dia?" }}</h3>
-
-            <div class="info-field">
-              <span class="field-label">{{
-                isPickupPoint ? "Punt de consum:" : "Punt d'entrega:"
-              }}</span>
-              <span class="field-value">{{ contactName }}</span>
-            </div>
-
-            <div class="info-field" v-if="contactAddress">
-              <span class="field-label">Adreça:</span>
-              <span class="field-value">{{ contactAddress }}</span>
-            </div>
-
-            <div class="info-field" v-if="contactPhone">
-              <span class="field-label">Telèfon:</span>
-              <span class="field-value">{{ contactPhone }}</span>
-            </div>
-
-            <div class="info-field" v-if="contactTimeSlots">
-              <span class="field-label">Horari:</span>
-              <span class="field-value">{{ contactTimeSlots }}</span>
-            </div>
-
-            <div class="info-field">
-              <span class="field-label">Ruta:</span>
-              <span class="field-value">{{ routeName }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.estimated_delivery_date">
-              <span class="field-label">Data prevista d'entrega:</span>
-              <span class="field-value">{{
-                formatDate(order.estimated_delivery_date)
-              }}</span>
-            </div>
-          </div>
-
-          <hr />
-
-          <!-- SEGON BLOC: QUÈ HEM DE PORTAR? -->
-          <div class="info-section mb-4">
-            <h3 class="section-title">{{ order.is_collection_order ? "Què hem de recollir?" : "Què hem de portar?" }}</h3>
-
-            <div class="info-field">
-              <span class="field-label">Tipus de servei:</span>
-              <span class="field-value">{{ deliveryTypeName }}</span>
-            </div>
-
-            <!-- Pickup Point Lines -->
-            <div
-              v-if="isPickupPoint && order.lines && order.lines.length > 0"
-              class="mt-3"
+        <!-- the way of the order: pickup, transfer, delivery route, delivery point -->
+        <section v-if="!order.is_collection_order" class="a-box journey">
+          <header class="box-head">
+            <h2>Recorregut</h2>
+            <span class="box-hint">Pas actual: {{ journey[currentStep] ? journey[currentStep].current : "entregada" }}</span>
+          </header>
+          <ol class="journey-steps">
+            <li
+              v-for="(step, i) in journey"
+              :key="step.key"
+              :class="{ 'is-done': i < currentStep, 'is-current': i === currentStep, 'is-skipped': step.skipped }"
             >
-              <div class="info-field">
-                <span class="field-label">Línies:</span>
+              <span class="journey-bar"></span>
+              <small class="journey-label">{{ i + 1 }} · {{ step.label }}</small>
+              <b>{{ step.title }}</b>
+              <span v-for="(line, j) in step.lines" :key="j" class="journey-line">
+                <router-link v-if="line.to" :to="line.to">{{ line.text }}</router-link>
+                <template v-else>{{ line.text }}</template>
+              </span>
+            </li>
+          </ol>
+        </section>
+
+        <div class="order-columns">
+          <div class="order-main">
+            <section class="a-box">
+              <header class="box-head">
+                <h2>Seguiment</h2>
+                <span class="box-hint">Moviments registrats i pendents</span>
+              </header>
+              <ol class="timeline">
+                <li v-for="step in timeline" :key="step.key" :class="{ 'is-done': step.done }">
+                  <span class="timeline-dot" aria-hidden="true"><b-icon v-if="step.done" icon="check" size="is-small" /></span>
+                  <div class="timeline-body">
+                    <b>{{ step.title }}</b>
+                    <span class="timeline-detail">{{ step.detail }}</span>
+                  </div>
+                  <div class="timeline-actions">
+                    <template v-for="a in step.actions.filter(a => a.visible)" :key="a.label">
+                      <b-button
+                        v-if="a.kind === 'do'"
+                        size="is-small"
+                        :icon-left="a.icon"
+                        :loading="isDepositingOrPickingUp"
+                        @click="a.action"
+                      >{{ a.label }}</b-button>
+                      <button v-else type="button" class="undo-link" :disabled="isDepositingOrPickingUp" @click="a.action">
+                        <b-icon icon="undo-variant" size="is-small" />{{ a.label }}
+                      </button>
+                    </template>
+                  </div>
+                </li>
+              </ol>
+            </section>
+
+            <section class="a-box">
+              <header class="box-head">
+                <h2>
+                  Incidències
+                  <span v-if="openIncidencesCount" class="tag is-warning">{{ openIncidencesCount }} {{ openIncidencesCount === 1 ? "oberta" : "obertes" }}</span>
+                </h2>
+                <b-button v-if="canCreateIncidence" size="is-small" icon-left="plus" @click="createIncidence">Crea incidència</b-button>
+              </header>
+              <p v-if="!order.incidences || !order.incidences.length" class="box-empty">Cap incidència en aquesta comanda.</p>
+              <ul v-else class="incidence-list">
+                <li v-for="(incidence, index) in order.incidences" :key="index">
+                  <div class="incidence-head">
+                    <span class="tag" :class="incidence.state === 'closed' ? 'is-success is-light' : incidence.state === 'open' ? 'is-danger is-light' : 'is-warning is-light'">{{ getIncidenceState(incidence.state) }}</span>
+                    <small>{{ formatDateTime(incidence.created_at || incidence.createdAt) }}</small>
+                  </div>
+                  <p>{{ incidence.description }}</p>
+                </li>
+              </ul>
+            </section>
+
+            <section v-if="order.is_collection_order && order.collection_orders && order.collection_orders.length" class="a-box">
+              <header class="box-head">
+                <h2>Comandes a recollir</h2>
+                <span class="box-hint">{{ order.collection_orders.length }} {{ order.collection_orders.length === 1 ? "comanda" : "comandes" }}</span>
+              </header>
+              <div class="table-container">
+                <table class="table is-fullwidth">
+                  <thead>
+                    <tr>
+                      <th>Comanda</th>
+                      <th>Entrega</th>
+                      <th class="has-text-right">Caixes</th>
+                      <th class="has-text-right">Kg</th>
+                      <th>Dipòsit</th>
+                      <th>Recollida</th>
+                      <th>Estat</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="row in order.collection_orders" :key="row.id">
+                      <td><router-link :to="`/order/view/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
+                      <td>{{ getContactTradeName(row) }}</td>
+                      <td class="has-text-right">{{ row.units || 0 }}</td>
+                      <td class="has-text-right">{{ row.kilograms || 0 }}</td>
+                      <td><span class="tag" :class="row.deposit_date ? 'is-success is-light' : ''">{{ row.deposit_date ? "Sí" : "No" }}</span></td>
+                      <td><span class="tag" :class="row.pickup_date ? 'is-success is-light' : ''">{{ row.pickup_date ? "Sí" : "No" }}</span></td>
+                      <td><span class="tag" :class="statusTag(row.status)">{{ getStatusName(row.status) }}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <b-table
-                :data="order.lines"
-                :striped="true"
-                :hoverable="true"
-                :mobile-cards="false"
-                class="mt-2"
-              >
-                <b-table-column
-                  field="units"
-                  label="Caixes"
-                  width="100"
-                  numeric
-                  v-slot="props"
-                >
-                  {{ props.row.units || 0 }}
-                </b-table-column>
-                <b-table-column
-                  field="kilograms"
-                  label="Kilograms"
-                  width="100"
-                  numeric
-                  v-slot="props"
-                >
-                  {{ props.row.kilograms || 0 }}
-                </b-table-column>
-                <b-table-column field="name" label="Nom" v-slot="props">
-                  {{ props.row.name || "-" }}
-                </b-table-column>
-                <b-table-column
-                  field="nif"
-                  label="NIF"
-                  width="150"
-                  v-slot="props"
-                >
-                  {{ props.row.nif || "-" }}
-                </b-table-column>
-              </b-table>
-            </div>
-
-            <div class="info-field">
-              <span class="field-label">Número de caixes:</span>
-              <span class="field-value">{{ order.units || 0 }}</span>
-            </div>
-
-            <div class="info-field">
-              <span class="field-label">Kilograms:</span>
-              <span class="field-value">{{ order.kilograms || 0 }}</span>
-            </div>
-
-            <div class="info-field">
-              <span class="field-label">Fràgil:</span>
-              <span class="field-value">{{ order.fragile ? "Sí" : "No" }}</span>
-            </div>
+            </section>
           </div>
 
-          <hr v-if="!order.is_collection_order" />
+          <aside class="order-side">
+            <section class="a-box">
+              <header class="box-head"><h2>{{ order.is_collection_order ? "A on i quin dia s'ha de recollir?" : "A on va i quin dia?" }}</h2></header>
+              <dl class="facts">
+                <dt>{{ isPickupPoint ? "Punt de consum" : "Punt d'entrega" }}</dt><dd>{{ contactName || "—" }}</dd>
+                <template v-if="contactAddress"><dt>Adreça</dt><dd>{{ contactAddress }}</dd></template>
+                <template v-if="contactPhone"><dt>Telèfon</dt><dd>{{ contactPhone }}</dd></template>
+                <template v-if="contactTimeSlots"><dt>Horari</dt><dd>{{ contactTimeSlots }}</dd></template>
+                <dt>Ruta</dt><dd>{{ routeName || "—" }}</dd>
+                <template v-if="order.estimated_delivery_date"><dt>Data prevista</dt><dd>{{ formatDate(order.estimated_delivery_date) }}</dd></template>
+              </dl>
+            </section>
 
-          <!-- ON HO DEIXARÀS? -->
-          <div class="info-section mb-4" v-if="!order.is_collection_order">
-            <h3 class="section-title">On ho deixaràs?</h3>
-
-            <div class="info-field" v-if="pickupName">
-              <span class="field-label">Recollida comanda:</span>
-              <span class="field-value">{{ pickupName }}</span>
-            </div>
-
-            <div class="info-field" v-if="collectionPointName">
-              <span class="field-label">Punt de recollida en finca:</span>
-              <span class="field-value">{{ collectionPointName }}</span>
-            </div>
-
-            <div class="info-field" v-if="collectionPointAddress">
-              <span class="field-label">Adreça punt recollida:</span>
-              <span class="field-value">{{ collectionPointAddress }}</span>
-            </div>
-
-            <div class="info-field" v-if="collectionPointPhone">
-              <span class="field-label">Telèfon punt recollida:</span>
-              <span class="field-value">{{ collectionPointPhone }}</span>
-            </div>
-
-            <div class="info-field" v-if="collectionPointTimeSlots">
-              <span class="field-label">Horari punt recollida:</span>
-              <span class="field-value">{{ collectionPointTimeSlots }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.comments">
-              <span class="field-label">Informació important:</span>
-              <span class="field-value">{{ order.comments }}</span>
-            </div>
-          </div>
-
-          <hr v-if="!order.is_collection_order" />
-
-          <!-- HI HA INCIDÈNCIES? -->
-          <div
-            class="info-section mb-4"
-            v-if="order.incidences && order.incidences.length > 0"
-          >
-            <h3 class="section-title">
-              Hi ha incidències?
-              <b-tag
-                v-if="openIncidencesCount > 0"
-                type="is-warning"
-                class="ml-2"
-              >
-                {{ openIncidencesCount }}
-                {{ openIncidencesCount === 1 ? "oberta" : "obertes" }}
-              </b-tag>
-            </h3>
-            <div
-              v-for="(incidence, index) in order.incidences"
-              :key="index"
-              class="incidence-item"
-            >
-              <div class="is-flex is-align-items-center mb-2">
-                <b-tag
-                  :type="
-                    incidence.state === 'closed' ? 'is-success' : 'is-warning'
-                  "
-                >
-                  {{ getIncidenceState(incidence.state) }}
-                </b-tag>
-                <span class="ml-2 is-size-7 has-text-grey">
-                  {{ formatDateTime(incidence.created_at) }}
-                </span>
+            <section class="a-box">
+              <header class="box-head"><h2>{{ order.is_collection_order ? "Què hem de recollir?" : "Què hem de portar?" }}</h2></header>
+              <dl class="facts">
+                <dt>Tipus de servei</dt><dd>{{ deliveryTypeName || "—" }}</dd>
+                <dt>Caixes</dt><dd>{{ order.units || 0 }}</dd>
+                <dt>Kilograms</dt><dd>{{ order.kilograms || 0 }} kg</dd>
+                <dt>Fràgil</dt><dd>{{ order.fragile ? "Sí" : "No" }}</dd>
+              </dl>
+              <div v-if="isPickupPoint && order.lines && order.lines.length" class="table-container lines-table">
+                <table class="table is-fullwidth">
+                  <thead><tr><th class="has-text-right">Caixes</th><th class="has-text-right">Kg</th><th>Nom</th><th>NIF</th></tr></thead>
+                  <tbody>
+                    <tr v-for="(line, i) in order.lines" :key="i">
+                      <td class="has-text-right">{{ line.units || 0 }}</td>
+                      <td class="has-text-right">{{ line.kilograms || 0 }}</td>
+                      <td>{{ line.name || "—" }}</td>
+                      <td>{{ line.nif || "—" }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <p class="ml-0">{{ incidence.description }}</p>
-            </div>
-          </div>
+            </section>
 
-          <hr v-if="order.incidences && order.incidences.length > 0" />
+            <section v-if="!order.is_collection_order" class="a-box">
+              <header class="box-head"><h2>On ho deixaràs?</h2></header>
+              <dl class="facts">
+                <dt>Recollida</dt><dd>{{ pickupName || "—" }}</dd>
+                <template v-if="collectionPointName"><dt>Punt en finca</dt><dd>{{ collectionPointName }}</dd></template>
+                <template v-if="collectionPointAddress"><dt>Adreça</dt><dd>{{ collectionPointAddress }}</dd></template>
+                <template v-if="collectionPointPhone"><dt>Telèfon</dt><dd>{{ collectionPointPhone }}</dd></template>
+                <template v-if="collectionPointTimeSlots"><dt>Horari</dt><dd>{{ collectionPointTimeSlots }}</dd></template>
+              </dl>
+              <p v-if="order.comments" class="important"><b>Informació important:</b> {{ order.comments }}</p>
+            </section>
 
-          <!-- COLLECTION ORDERS SECTION -->
-          <div
-            v-if="
-              order.is_collection_order &&
-                order.collection_orders &&
-                order.collection_orders.length > 0
-            "
-            class="info-section mb-4"
-          >
-            <h3 class="section-title">
-              Comandes a recollir ({{ order.collection_orders.length }})
-            </h3>
-            <b-table
-              :data="order.collection_orders"
-              :striped="true"
-              :hoverable="true"
-              :mobile-cards="false"
-              class="mt-3"
-            >
-              <b-table-column
-                field="id"
-                label="Comanda"
-                width="120"
-                v-slot="props"
-              >
-                <router-link v-if="permissions.includes('orders_admin')" :to="`/order/${props.row.id}`">
-                  <strong>#{{ String(props.row.id).padStart(4, "0") }}</strong>
-                </router-link>
-                <router-link v-else :to="`/order/view/${props.row.id}`">
-                  <strong>#{{ String(props.row.id).padStart(4, "0") }}</strong>
-                </router-link>
-              </b-table-column>
-              <b-table-column field="contact" label="Entrega" v-slot="props">
-                {{ getContactTradeName(props.row) }}
-              </b-table-column>
-              <b-table-column
-                field="units"
-                label="Caixes"
-                width="100"
-                numeric
-                v-slot="props"
-              >
-                {{ props.row.units || 0 }}
-              </b-table-column>
-              <b-table-column
-                field="kilograms"
-                label="Kg"
-                width="100"
-                numeric
-                v-slot="props"
-              >
-                {{ props.row.kilograms || 0 }}
-              </b-table-column>
-              <b-table-column
-                field="deposit_date"
-                label="Dipòsit"
-                width="100"
-                v-slot="props"
-              >
-                <b-tag :type="props.row.deposit_date ? 'is-success' : 'is-light'">
-                  {{ props.row.deposit_date ? 'Sí' : 'No' }}
-                </b-tag>
-              </b-table-column>
-              <b-table-column
-                field="pickup_date"
-                label="Recollida"
-                width="100"
-                v-slot="props"
-              >
-                <b-tag :type="props.row.pickup_date ? 'is-success' : 'is-light'">
-                  {{ props.row.pickup_date ? 'Sí' : 'No' }}
-                </b-tag>
-              </b-table-column>
-              <b-table-column
-                field="status"
-                label="Estat"
-                width="150"
-                v-slot="props"
-              >
-                <b-tag :type="getStatusColor(props.row.status)">
-                  {{ getStatusName(props.row.status) }}
-                </b-tag>
-              </b-table-column>
-            </b-table>
-          </div>
+            <section v-if="!order.is_collection_order" class="a-box">
+              <header class="box-head"><h2>Preu</h2></header>
+              <dl class="facts">
+                <template v-if="order.route_rate && order.route_rate.name"><dt>Tarifa</dt><dd>{{ order.route_rate.name }}</dd></template>
+                <dt>Preu</dt><dd>{{ money(order.price) }}</dd>
+                <template v-if="Number(order.multidelivery_discount)"><dt>Multientrega</dt><dd>−{{ order.multidelivery_discount }} %</dd></template>
+                <template v-if="Number(order.contact_pickup_discount)"><dt>Descompte recollida</dt><dd>−{{ order.contact_pickup_discount }} %</dd></template>
+                <template v-if="Number(order.volume_discount)"><dt>Descompte volum</dt><dd>−{{ money(order.volume_discount) }}</dd></template>
+                <dt>Amb descompte</dt><dd class="is-total">{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : money(order.price) }}</dd>
+              </dl>
+            </section>
 
-          <div v-else-if="order.collection_order" class="info-section mb-4">
-            <h3 class="section-title">Comanda de recollida</h3>
-            <div class="info-field">
-              <span class="field-label">Comanda:</span>
-              <span class="field-value">
-                <router-link
-                  v-if="permissions.includes('orders') || permissions.includes('orders_delivery') || permissions.includes('orders_admin')"
-                  :to="
-                    `/order/view/${
-                      typeof order.collection_order === 'object'
-                        ? order.collection_order.id
-                        : order.collection_order
-                    }`
-                  "
-                >
-                  #{{
-                    String(
-                      typeof order.collection_order === "object"
-                        ? order.collection_order.id
-                        : order.collection_order
-                    ).padStart(4, "0")
-                  }}-R
-                </router-link>
-                <router-link
-                  v-else
-                  :to="
-                    `/order/${
-                      typeof order.collection_order === 'object'
-                        ? order.collection_order.id
-                        : order.collection_order
-                    }`
-                  "
-                >
-                  #{{
-                    String(
-                      typeof order.collection_order === "object"
-                        ? order.collection_order.id
-                        : order.collection_order
-                    ).padStart(4, "0")
-                  }}-R
-                </router-link>
-
-              </span>
-            </div>
-            <div
-              class="info-field"
-              v-if="
-                typeof order.collection_order === 'object' &&
-                  order.collection_order.estimated_delivery_date
-              "
-            >
-              <span class="field-label">Data prevista:</span>
-              <span class="field-value">{{
-                formatDate(order.collection_order.estimated_delivery_date)
-              }}</span>
-            </div>
-          </div>
-
-          <hr v-if="order.is_collection_order || order.collection_order" />
-
-          <!-- ALTRES DADES -->
-          <div class="info-section mb-4">
-            <h3 class="section-title">Altres dades</h3>
-
-            <div class="info-field">
-              <span class="field-label">Estat:</span>
-              <span class="field-value">
-                <b-tag :type="getStatusColor(order.status)">
-                  {{ getStatusName(order.status) }}
-                </b-tag>
-              </span>
-            </div>
-
-            <div class="info-field" v-if="order.last_mile">
-              <span class="field-label">Última milla:</span>
-              <span class="field-value">{{
-                order.last_mile ? "Sí" : "No"
-              }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.transfer">
-              <span class="field-label">Transferència:</span>
-              <span class="field-value">
-                <b-tag :type="transferStatusType">
-                  {{ transferStatus }}
-                </b-tag>
-              </span>
-            </div>
-
-            <div class="info-field" v-if="transferPickupText">
-              <span class="field-label">{{ routeLabel }}</span>              
-              <span class="field-value">{{ transferPickupText }}</span>
-            </div>
-
-            <div class="info-field">
-              <span class="field-label">Data comanda:</span>
-              <span class="field-value">{{
-                formatDate(order.route_date)
-              }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.delivery_date">
-              <span class="field-label">Data lliurament:</span>
-              <span class="field-value">{{
-                formatDate(order.delivery_date)
-              }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.deposit_date">
-              <span class="field-label">Data dipòsit:</span>
-              <span class="field-value">{{
-                formatDateTime(order.deposit_date)
-              }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.pickup_date">
-              <span class="field-label">Data recollida:</span>
-              <span class="field-value">{{
-                formatDateTime(order.pickup_date)
-              }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.transfer_start_date">
-              <span class="field-label">Inici transferència:</span>
-              <span class="field-value">{{
-                formatDateTime(order.transfer_start_date)
-              }}</span>
-            </div>
-
-            <div class="info-field" v-if="order.transfer_end_date">
-              <span class="field-label">Fi transferència:</span>
-              <span class="field-value">{{
-                formatDateTime(order.transfer_end_date)
-              }}</span>
-            </div>
-          </div>
-          <hr />
-
-          <!-- Action Buttons (Bottom) -->
-          <div class="buttons mt-5">
-            <template v-for="(button, index) in actionButtons" :key="'bottom-' + index">
-              <b-button
-                :type="button.type"
-                :icon-left="button.icon"
-                :size="button.size"
-                @click="button.action"
-                v-if="button.visible"
-                :loading="button.loading"
-              >
-                {{ button.label }}
-              </b-button>
-            </template>
-          </div>
+            <section class="a-box">
+              <header class="box-head"><h2>Altres dades</h2></header>
+              <dl class="facts">
+                <dt>Sòcia</dt><dd>{{ ownerName || "—" }}</dd>
+                <dt>Data comanda</dt><dd>{{ formatDate(order.route_date) }}</dd>
+                <template v-if="order.provider_order_number"><dt>Referència</dt><dd>{{ order.provider_order_number }}</dd></template>
+                <template v-if="transferPickupText"><dt>{{ routeLabel.replace(":", "") }}</dt><dd>{{ transferPickupText }}</dd></template>
+                <template v-if="order.collection_order">
+                  <dt>Comanda de recollida</dt>
+                  <dd><router-link :to="`/order/view/${collectionOrderId}`">#{{ String(collectionOrderId).padStart(4, "0") }}-R</router-link></dd>
+                </template>
+              </dl>
+            </section>
+          </aside>
         </div>
-
-        <div v-else class="notification is-warning">
-          No s'ha trobat la comanda
-        </div>
-      </card-component>
+      </template>
     </section>
   </div>
 </template>
@@ -496,6 +240,17 @@ import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
+import getConfig from "@/config";
+import { formatMoney } from "@/helpers/format-number";
+
+const relId = value => (value && typeof value === "object" ? value.id : value);
+const myId = () => {
+  try {
+    return (JSON.parse(localStorage.getItem("user") || "{}") || {}).id || null;
+  } catch (e) {
+    return null;
+  }
+};
 
 export default {
   name: "OrderView",
@@ -516,13 +271,154 @@ export default {
       isDepositingOrPickingUp: false,
       order: null,
       permissions: [],
-      isIncidenceModalActive: false
+      isIncidenceModalActive: false,
+      printing: false
     };
   },
   computed: {
     ...mapState(useMainStore, ["me"]),
     titleStack() {
       return ["Comandes", this.formCardTitle];
+    },
+    isStaff() {
+      return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
+    },
+    headSubtitle() {
+      if (!this.order) return "";
+      const parts = [this.ownerName];
+      if (this.order.estimated_delivery_date) {
+        const day = moment(this.order.estimated_delivery_date).locale("ca").format("dddd DD/MM/YYYY");
+        parts.push(`${this.order.is_collection_order ? "recollida prevista" : "entrega prevista"} ${day}`);
+      }
+      const point = this.contactName ? `a ${this.contactName}${this.order.contact_city ? ` (${this.order.contact_city})` : ""}` : "";
+      return parts.join(" · ") + (point ? ` ${point}` : "");
+    },
+    collectionOrderId() {
+      return relId(this.order && this.order.collection_order);
+    },
+    isFarmPickup() {
+      return !!(this.order && this.order.pickup && this.order.pickup.pickup);
+    },
+    // the way of the order, for the "Recorregut" card
+    journey() {
+      const o = this.order;
+      if (!o) return [];
+      const pickup = this.isFarmPickup
+        ? {
+            title: this.collectionPointName || "Recollida en finca",
+            lines: [
+              { text: [this.order.collection_point && this.order.collection_point.city, o.collection_pickup_route && o.collection_pickup_route.name, o.collection_pickup_date && this.shortDay(o.collection_pickup_date)].filter(Boolean).join(" · ") },
+              this.collectionOrderId ? { text: `Comanda de recollida #${this.collectionOrderId}`, to: `/order/view/${this.collectionOrderId}` } : null
+            ].filter(l => l && l.text)
+          }
+        : { title: this.pickupName || "—", lines: [{ text: o.deposit_date ? `dipositada ${this.formatDateTime(o.deposit_date)}` : "la sòcia hi deixa la comanda" }] };
+      const transfer = o.transfer
+        ? {
+            title: (o.transfer_route && o.transfer_route.name) || "Transferència",
+            lines: [
+              { text: [o.transfer_pickup_origin && `des de ${o.transfer_pickup_origin.alias || o.transfer_pickup_origin.name}`, o.transfer_route_date && this.shortDay(o.transfer_route_date)].filter(Boolean).join(" · ") },
+              { text: o.transfer_pickup_destination ? `cap a ${o.transfer_pickup_destination.alias || o.transfer_pickup_destination.name}` : "Destinació sense definir" }
+            ].filter(l => l.text)
+          }
+        : { title: "Sense transferència", lines: [], skipped: true };
+      return [
+        { key: "pickup", label: this.isFarmPickup ? "Recollida en finca" : "Dipòsit", current: this.isFarmPickup ? "recollida a la finca" : "dipòsit al magatzem", ...pickup },
+        { key: "transfer", label: "Transferència", current: "transferència", ...transfer },
+        { key: "route", label: "Repartiment", current: "repartiment", title: this.routeName || "—", lines: [{ text: o.estimated_delivery_date ? this.shortDay(o.estimated_delivery_date) : "" }].filter(l => l.text) },
+        { key: "delivery", label: "Entrega", current: "entrega", title: this.contactName || "—", lines: [{ text: [o.contact_city, this.contactTimeSlots].filter(Boolean).join(" · ") }].filter(l => l.text) }
+      ];
+    },
+    currentStep() {
+      const o = this.order;
+      if (!o) return 0;
+      if (["delivered", "invoiced"].includes(o.status) || o.delivery_date) return 4;
+      const pickedUp = this.isFarmPickup ? !!o.pickup_date : !!o.deposit_date;
+      if (!pickedUp) return 0;
+      if (o.transfer && !o.transfer_end_date) return 1;
+      return 2;
+    },
+    // the tracking, done and pending moves with their actions
+    timeline() {
+      const o = this.order;
+      if (!o) return [];
+      const who = user => (user && typeof user === "object" ? ` · ${user.fullname || user.username}` : "");
+      const steps = [
+        { key: "created", title: "Comanda creada", done: true, detail: `${this.formatDateTime(o.createdAt || o.created_at)} · ${this.ownerName}`, actions: [] },
+        {
+          key: "deposit",
+          title: "Dipositada",
+          done: !!o.deposit_date,
+          detail: o.deposit_date ? `${this.formatDateTime(o.deposit_date)}${who(o.deposit_user)}` : `Al punt de recollida ${this.pickupName || ""}`.trim(),
+          actions: [
+            { kind: "do", label: "Dipositar", icon: "package-down", action: this.depositOrder, visible: this.canDeposit },
+            { kind: "undo", label: "Desfer dipòsit", action: this.removeDeposit, visible: this.canRemoveDeposit }
+          ]
+        }
+      ];
+      if (this.isFarmPickup || o.pickup_date || o.is_collection_order) {
+        steps.push({
+          key: "pickup",
+          title: "Recollida a la finca",
+          done: !!o.pickup_date,
+          detail: o.pickup_date
+            ? `${this.formatDateTime(o.pickup_date)}${who(o.pickup_user)}`
+            : o.collection_pickup_date ? `Prevista ${this.shortDay(o.collection_pickup_date)}${o.collection_pickup_route ? ` · ${o.collection_pickup_route.name}` : ""}` : "Pendent",
+          actions: [
+            { kind: "do", label: "Recollir", icon: "package-up", action: this.pickupOrder, visible: this.canPickup },
+            { kind: "undo", label: "Desfer recollida", action: this.removePickup, visible: this.canRemovePickup }
+          ]
+        });
+      }
+      if (o.transfer) {
+        steps.push({
+          key: "transfer-start",
+          title: "Inici de transferència",
+          done: !!o.transfer_start_date,
+          detail: o.transfer_start_date
+            ? `${this.formatDateTime(o.transfer_start_date)}${who(o.transfer_start_user)}`
+            : o.transfer_route_date ? `Prevista ${this.shortDay(o.transfer_route_date)}${o.transfer_route ? ` · ${o.transfer_route.name}` : ""}` : "Pendent",
+          actions: [
+            { kind: "do", label: "Iniciar transferència", icon: "truck-fast", action: this.startTransfer, visible: this.canStartTransfer },
+            { kind: "undo", label: "Desfer inici", action: this.removeTransferStart, visible: this.canRemoveTransferStart }
+          ]
+        });
+        steps.push({
+          key: "transfer-end",
+          title: "Fi de transferència",
+          done: !!o.transfer_end_date,
+          detail: o.transfer_end_date ? `${this.formatDateTime(o.transfer_end_date)}${who(o.transfer_end_user)}` : o.transfer_start_date ? "En camí" : "Quan s'hagi iniciat",
+          actions: [
+            { kind: "do", label: "Finalitzar transferència", icon: "truck-check", action: this.endTransfer, visible: this.canEndTransfer },
+            { kind: "undo", label: "Desfer fi", action: this.removeTransferEnd, visible: this.canRemoveTransferEnd }
+          ]
+        });
+      }
+      steps.push({
+        key: "delivered",
+        title: "Lliurada",
+        done: !!o.delivery_date || ["delivered", "invoiced"].includes(o.status),
+        detail: o.delivery_date ? this.formatDate(o.delivery_date) : o.estimated_delivery_date ? `Prevista ${this.shortDay(o.estimated_delivery_date)} · ${this.routeName}` : "Pendent",
+        actions: []
+      });
+      if (!o.is_collection_order) {
+        steps.push({
+          key: "invoiced",
+          title: "Facturada",
+          done: o.status === "invoiced" || !!o.emitted_invoice,
+          detail: o.emitted_invoice_datetime ? this.formatDateTime(o.emitted_invoice_datetime) : o.status === "invoiced" ? "Facturada a la sòcia" : "Quan es lliuri",
+          actions: []
+        });
+      }
+      return steps;
+    },
+    // the main action of the head: the next move of the order
+    nextAction() {
+      if (!this.order || this.order.status === "cancelled") return null;
+      if (this.isFarmPickup && this.canPickup && !this.order.pickup_date) return { label: "Recollir", icon: "package-up", action: this.pickupOrder };
+      if (!this.isFarmPickup && this.canDeposit) return { label: "Dipositar", icon: "package-down", action: this.depositOrder };
+      if (this.canStartTransfer) return { label: "Inicia la transferència", icon: "swap-horizontal", action: this.startTransfer };
+      if (this.canEndTransfer) return { label: "Finalitza la transferència", icon: "truck-check", action: this.endTransfer };
+      return null;
     },
     formCardTitle() {
       if (this.order && this.order.id) {
@@ -741,9 +637,10 @@ export default {
     },
     canEdit() {
       // User can edit if they are admin or the order owner
+      const me = (this.me && this.me.id) || myId();
       return (
         this.permissions.includes("orders_admin") ||
-        (this.order && this.me && this.order.owner === this.me.id)
+        !!(this.order && me && relId(this.order.owner) === me)
       );
     },
     canDeposit() {
@@ -1406,12 +1303,40 @@ export default {
     getStatusName(status) {
       const names = {
         pending: "Pendent",
+        processed: "Processada",
         deposited: "Dipositada",
-        delivered: "Entregada",
-        cancelled: "Cancel·lada",
+        delivered: "Lliurada",
+        invoiced: "Facturada",
+        cancelled: "Anul·lada",
         collected: "Recollida"
       };
       return names[status] || status;
+    },
+    shortDay(date) {
+      return date ? moment(date).locale("ca").format("dd DD/MM/YYYY") : "";
+    },
+    money(value) {
+      return formatMoney(Number(value) || 0);
+    },
+    statusTag(status) {
+      return {
+        pending: "is-warning",
+        processed: "is-info is-light",
+        delivered: "is-success is-light",
+        invoiced: "",
+        cancelled: "is-danger is-light"
+      }[status] || "";
+    },
+    async printOrder() {
+      this.printing = true;
+      try {
+        const pdf = (await service({ requiresAuth: true }).post("/orders/pdf", { orders: [this.order.id] })).data;
+        window.open(getConfig().VUE_APP_API_URL + pdf.urls);
+      } catch (error) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut generar l'albarà", type: "is-danger", queue: false });
+      } finally {
+        this.printing = false;
+      }
     },
     getContactTradeName(row) {
       return (
@@ -1423,61 +1348,160 @@ export default {
 </script>
 
 <style scoped>
-.info-section {
-  padding: 0;
+.order-view :deep(.title-bar .actions) {
+  flex-wrap: wrap;
 }
-
-.section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--a-fg);
+.order-view .a-box {
   margin-bottom: 1rem;
 }
-
-.info-field {
+.journey-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  list-style: none;
+}
+.journey-steps li {
   display: flex;
-  padding: 0.5rem 0;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: .125rem;
+  font-size: .875rem;
+  color: var(--a-fg-2);
 }
-
-.field-label {
+.journey-bar {
+  height: 4px;
+  margin-bottom: .75rem;
+  border-radius: 2px;
+  background: var(--a-line);
+}
+.journey-steps li.is-done .journey-bar {
+  background: var(--a-accent);
+}
+.journey-steps li.is-current .journey-bar {
+  background: linear-gradient(90deg, var(--a-accent) 45%, var(--a-line) 45%);
+}
+.journey-label {
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+.journey-steps li b {
+  color: var(--a-fg);
+}
+.journey-steps li.is-skipped b {
+  color: var(--a-muted);
   font-weight: 600;
-  min-width: 200px;
+}
+.order-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 27rem;
+  gap: 1rem;
+  align-items: start;
+}
+.timeline {
+  position: relative;
+  margin: 0;
+  list-style: none;
+}
+.timeline li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  gap: .75rem;
+  align-items: start;
+  padding-bottom: 1.125rem;
+}
+.timeline li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: calc(.875rem - 1px);
+  top: 1.75rem;
+  bottom: 0;
+  width: 2px;
+  background: var(--a-line);
+}
+.timeline-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--a-input);
+  border-radius: 50%;
+  background: var(--a-surface);
+  color: var(--a-on-accent);
+}
+.timeline li.is-done .timeline-dot {
+  border-color: var(--a-accent);
+  background: var(--a-accent);
+}
+.timeline-body b {
+  display: block;
   color: var(--a-fg);
-  flex-shrink: 0;
 }
-
-.field-value {
-  color: var(--a-fg);
-  flex: 1;
+.timeline li:not(.is-done) .timeline-body b {
+  font-weight: 600;
+  color: var(--a-fg-2);
 }
-
-.incidence-item {
-  background-color: var(--a-thead);
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
+.timeline-detail {
+  font-size: .8125rem;
+  color: var(--a-muted);
 }
-
-hr {
-  margin: 1.5rem 0;
-  background-color: #dbdbdb;
+.timeline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
 }
-
-@media screen and (max-width: 768px) {
-  .info-field {
-    flex-direction: column;
+.undo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--a-fg-2);
+  cursor: pointer;
+}
+.undo-link:hover {
+  color: var(--a-neg);
+}
+.incidence-list li + li {
+  margin-top: .75rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--a-line-soft);
+}
+.incidence-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .25rem;
+  color: var(--a-muted);
+}
+.lines-table {
+  margin-top: 1rem;
+}
+.important {
+  margin-top: 1rem;
+  padding: .75rem;
+  border-radius: 8px;
+  background: var(--a-warn-bg);
+  color: var(--a-warn-fg);
+  font-size: .875rem;
+}
+@media screen and (max-width: 1215px) {
+  .order-columns {
+    grid-template-columns: minmax(0, 1fr);
   }
-
-  .field-label {
-    min-width: auto;
-    margin-bottom: 0.25rem;
-  }
 }
-
 @media screen and (max-width: 768px) {
-  .section-adapted {
-    padding: 1rem 0.75rem;
+  .journey-steps {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 </style>
