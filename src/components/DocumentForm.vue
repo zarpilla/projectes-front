@@ -222,13 +222,6 @@
               <div class="ro-item"><span class="ro-label">Emissió</span><span class="ro-value">{{ formatDate(form.emitted) }}</span></div>
               <div class="ro-item"><span class="ro-label">Venciment</span><span class="ro-value">{{ formatDate(form.paybefore) }}</span></div>
               <div class="ro-item"><span class="ro-label">Mètode de cobrament</span><span class="ro-value">{{ paymentMethodName || "—" }}</span></div>
-              <div v-if="form.state === 'real' && (form.verifactu_chain || form.face_queue)" class="ro-item">
-                <span class="ro-label">Verifactu i FACe</span>
-                <span class="ro-value ro-tags">
-                  <span v-if="form.verifactu_chain" class="tag is-light" :class="form.verifactu_chain === 'ok' ? 'is-success' : 'is-warning'">Verifactu: {{ form.verifactu_chain }}</span>
-                  <span v-if="form.face_queue" class="tag is-light" :class="form.face_queue === 'ok' ? 'is-success' : 'is-warning'">FACe: {{ form.face_queue }}</span>
-                </span>
-              </div>
             </div>
             <!-- PDF invoice parser (Z.ai): for new received invoices/expenses -->
             <b-field
@@ -773,6 +766,12 @@
             </b-field>
               </div>
             </card-component>
+            <invoice-submission-card
+              v-if="type === 'emitted-invoices' && form.id && form.state === 'real'"
+              :invoice-id="form.id"
+              :verifactu="form.verifactu_chain"
+              :face="form.face_queue"
+            />
             <card-component class="tile is-child" title="Adjunts">
               <p v-if="!form.id" class="has-text-muted side-hint">Els adjunts es poden afegir un cop desat el document.</p>
               <div class="a-form side-fields no-labels">
@@ -1069,6 +1068,7 @@ import DocumentLines from "@/components/DocumentLines.vue";
 import DocumentLinesReadOnly from "@/components/DocumentLinesReadOnly.vue";
 import DocumentTotals from "@/components/DocumentTotals.vue";
 import FileUpload from "@/components/FileUpload.vue";
+import InvoiceSubmissionCard from "@/components/InvoiceSubmissionCard.vue";
 
 // Services
 import service from "@/service/index";
@@ -1088,7 +1088,8 @@ export default {
     ModalBoxSplit,
     ModalBoxDiet,
     ProjectPhases,
-    FileUpload
+    FileUpload,
+    InvoiceSubmissionCard
   },
   props: {
     id: {
@@ -3266,11 +3267,6 @@ export default {
   font-size: .875rem;
   font-weight: 700;
   text-decoration: underline;
-}
-.ro-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .375rem;
 }
 .lines-readonly-card :deep(.card-content) {
   padding-bottom: 1.25rem;
