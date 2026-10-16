@@ -39,7 +39,7 @@
         </ul>
       </b-notification>
       <div class="columns" :class="{ 'is-tabbed': tabsEnabled }">
-        <div v-show="showTab('dades')" class="column" :class="tabsEnabled ? 'is-12' : 'is-two-thirds'">
+        <div v-show="showTab('dades')" class="column" :class="newSummary ? 'is-12' : 'is-two-thirds'">
           <card-component :title="formCardTitle" class="tile is-child">
             <form 
               @submit.prevent="submitAndContinue" 
@@ -48,7 +48,10 @@
               @change.capture="enableUserInteraction"
               v-if="!isLoading" 
               :key="formKey"
+            
+              :class="{ 'a-form': newSummary }"
             >
+              <h3 v-if="newSummary" class="form-section-title">Identificació</h3>
               <b-field label="Codi *" horizontal>
                 <b-input v-model="form.name" placeholder="Codi" required />
               </b-field>
@@ -226,6 +229,7 @@
                 />
               </b-field>
               <hr />
+              <h3 v-if="newSummary" class="form-section-title">Relacions i classificació</h3>
               <b-field label="Intercooperació" horizontal>
                 <b-autocomplete
                   v-model="cooperaSearch"
@@ -377,6 +381,7 @@
                 </div>
               </b-field>
               <hr />
+              <h3 v-if="newSummary" class="form-section-title">Gestió del projecte</h3>
               
               <b-field
                 v-if="dedicationTypes && dedicationTypes.length"
@@ -477,6 +482,7 @@
                 <b-switch v-model="periodification"> </b-switch>
               </b-field>
               <hr />
+              <h3 v-if="newSummary" class="form-section-title">Subvencions</h3>
               
               <b-field
                 label="Subvencions"
@@ -713,6 +719,7 @@
               </b-field>
 
               <hr />
+              <h3 v-if="newSummary" class="form-section-title">Documents</h3>
               <b-field horizontal label="Documents">
                 <div class="help">
                   Per exemple, afegir pressupost total del projecte (sense IVA)
@@ -1567,8 +1574,39 @@
             </div>
           </card-component>
 
+          <section v-if="isProfileExists && !isCreationMode && newSummary" class="card treasury-summary" aria-labelledby="treasury-summary-title">
+            <header class="card-header">
+              <h2 id="treasury-summary-title" class="card-header-title">Tresoreria del projecte</h2>
+            </header>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Moviment</th>
+                    <th scope="col" class="has-text-right">Previst</th>
+                    <th scope="col" class="has-text-right">Realitzat</th>
+                    <th scope="col" class="has-text-right">Diferència</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Cobraments</th>
+                    <td class="has-text-right">{{ formatMoney(treasuryIncomesPending) }}</td>
+                    <td class="has-text-right">{{ formatMoney(treasuryIncomesDone) }}</td>
+                    <td class="has-text-right">{{ formatMoney(-1 * (treasuryIncomesPending - treasuryIncomesDone)) }}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Pagaments</th>
+                    <td class="has-text-right">{{ formatMoney(treasuryExpensesPending) }}</td>
+                    <td class="has-text-right">{{ formatMoney(treasuryExpensesDone) }}</td>
+                    <td class="has-text-right">{{ formatMoney(-1 * (treasuryExpensesPending - treasuryExpensesDone)) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
           <card-component
-            v-if="isProfileExists && !isCreationMode"
+            v-if="isProfileExists && !isCreationMode && !newSummary"
             title="RESUM TRESORERIA PROJECTE"
             class="ztile is-child summary-card mt-4"
           >
@@ -2492,7 +2530,7 @@ import {
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
-import { formatHours } from "@/helpers/format-number";
+import { formatHours, formatMoney } from "@/helpers/format-number";
 import { defaultProjectLeader } from "@/domain/projectLeader.js";
 
 const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum: 4 };
@@ -2940,6 +2978,7 @@ export default {
   },
   methods: {
     formatHours,
+    formatMoney,
     // Which sections show: the active tab; in the new project wizard, the section of
     // the current step (1 basic data, 2 phases, 3 planning, 4 summary to confirm);
     // when duplicating, every section, as before.
@@ -5299,6 +5338,75 @@ body:has(.project-form .savebar) .notices.is-bottom {
     padding: .75rem 1rem;
   }
 }
+/* Dades in the redesign: labels on top, short fields in two columns, sections */
+.project-form .a-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  align-items: start;
+}
+.project-form .a-form > *,
+.project-form .a-form .optional-fields > * {
+  grid-column: 1 / -1;
+}
+/* the folded optional fields join the same grid */
+.project-form .a-form {
+  max-width: 64rem;
+}
+.project-form .a-form .optional-fields {
+  display: contents;
+}
+.project-form .a-form .field {
+  margin: 0;
+}
+.project-form .a-form .field.is-horizontal {
+  display: block;
+}
+.project-form .a-form .field.is-horizontal > .field-label {
+  text-align: left;
+  padding: 0;
+  margin: 0 0 .375rem;
+}
+.project-form .a-form .field.is-horizontal > .field-label .label {
+  font-size: .875rem;
+}
+/* short fields side by side: selects, dates and switches without long text */
+.project-form .a-form > .field:has(.select):not(:has(.taginput)):not(:has(textarea)),
+.project-form .a-form > .field:has(.datepicker),
+.project-form .a-form .optional-fields > .field:has(.select):not(:has(.taginput)):not(:has(textarea)),
+.project-form .a-form .optional-fields > .field:has(.switch),
+.project-form .a-form > .field:has(.switch) {
+  grid-column: auto;
+}
+.project-form .a-form .select,
+.project-form .a-form .select select,
+.project-form .a-form .datepicker {
+  width: 100%;
+}
+.project-form .a-form hr {
+  margin: .5rem 0 0;
+  background: var(--a-line);
+  height: 1px;
+}
+.project-form .a-form .file-documents {
+  margin-left: 0;
+}
+/* the section heading already says "Documents" */
+.project-form .a-form .field:has(.file-documents) > .field-label,
+.project-form .a-form .field:has(> .field-body .help + .file-documents) > .field-label {
+  display: none;
+}
+.project-form .a-form .form-section-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--a-fg);
+  margin-top: .25rem;
+}
+@media screen and (max-width: 768px) {
+  .project-form .a-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .project-form .optional-toggle {
   display: flex;
   flex-wrap: wrap;
@@ -5344,6 +5452,17 @@ html .project-form .subphase-detail-input.readonly {
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
+}
+.project-form .treasury-summary {
+  overflow: hidden;
+}
+.project-form .treasury-summary .table {
+  width: 100%;
+  margin: 0;
+}
+.project-form .treasury-summary td {
+  font-weight: 700;
+  white-space: nowrap;
 }
 .project-form .summary-dirty {
   display: flex;
