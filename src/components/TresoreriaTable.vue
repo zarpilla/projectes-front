@@ -60,6 +60,7 @@
       >
         <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
+      <b-button type="is-primary" icon-left="plus" title="Moviment manual o saldo real del compte" @click="goToOperations">Nova operació</b-button>
     </div>
 
     <div class="treasury-row">
@@ -168,10 +169,10 @@
         <b :class="'has-text-' + sign(yearEnd ? yearEnd.subtotal : 0)">{{ yearEnd ? money(yearEnd.subtotal) : "—" }}</b>
         <small v-if="yearEnd">resultat de l'any {{ money(yearEnd.total_amount) }}</small>
       </div>
-      <div class="doc-kpi" :class="{ 'is-warn': overdueCount }">
+      <div class="doc-kpi is-clickable" :class="{ 'is-warn': overdueCount }" role="button" tabindex="0" title="Mostra'ls a Moviments bancaris" @click="showOverdue" @keydown.enter="showOverdue">
         <span>Previstos endarrerits</span>
         <b>{{ overdueCount }}</b>
-        <small>moviments previstos amb data passada sense executar</small>
+        <small>previstos del {{ selectedYear }} amb data passada sense executar</small>
       </div>
     </div>
 
@@ -289,6 +290,7 @@
     </card-component>
 
     <card-component
+      ref="operations"
       title="Operacions de tresoreria"
       class="ztile is-child mt-2"
     >
@@ -302,6 +304,15 @@
 
     <card-component title="Moviments bancaris" class="ztile is-child mt-2">
       <section class="section">
+        <!-- Redesign A: what to list and a search over concept, project and contact -->
+        <div class="filter-bar movements-bar">
+          <div class="segmented" role="group" aria-label="Moviments">
+            <button v-for="t in movementTabs" :key="t.id" type="button" :class="{ 'is-on': movementsTab === t.id }" @click="movementsTab = t.id">
+              {{ t.label }}<template v-if="t.count !== null"> · {{ t.count }}</template>
+            </button>
+          </div>
+          <b-input v-model="movementsSearch" class="filter-search" icon="magnify" placeholder="Cerca concepte, projecte o contacte" aria-label="Cerca moviments" />
+        </div>
         <!-- paginated (the whole year was one ~60.000 px table); opens on the page with "Avui" -->
         <b-table
           v-model:current-page="movementsPage"
@@ -314,7 +325,7 @@
           aria-page-label="Pàgina"
           aria-current-label="Pàgina actual"
           :striped="false"
-          :data="treasuryDataDesc"
+          :data="movementsShown"
           :row-class="
             (row, index) =>
               (row.subtotal < 0 && 'has-text-danger has-text-bold') ||
@@ -593,6 +604,8 @@ export default {
       selectedYear: null,
       showLater: false,
       hoverYm: null,
+      movementsTab: "all",
+      movementsSearch: "",
       selectedBankAccountIds: [],
       pivotIdentifier: "tresoreria-pivot",
       projectSearch: "",
@@ -632,7 +645,7 @@ export default {
   },
   watch: {
     // the movements list opens on the page that holds today's row ("Avui")
-    treasuryDataDesc(rows) {
+    movementsShown(rows) {
       const today = (rows || []).findIndex(r => r.type === "Avui");
       this.movementsPage = today >= 0 ? Math.floor(today / this.movementsPerPage) + 1 : 1;
     },
@@ -761,6 +774,26 @@ export default {
     laterCount() {
       return this.pivotData.filter(d => d.year > String(this.selectedYear) && d.month !== "00" && d.month !== "99").length;
     },
+    movementTabs() {
+      const rows = this.treasuryDataDesc.filter(r => this.isMovement(r));
+      return [
+        { id: "all", label: "Tots", count: null },
+        { id: "next", label: "Pròxims", count: rows.filter(r => this.movementState(r) === "next").length },
+        { id: "overdue", label: "Endarrerits", count: rows.filter(r => this.movementState(r) === "overdue").length },
+        { id: "done", label: "Executats", count: rows.filter(r => this.movementState(r) === "done").length }
+      ];
+    },
+    // the movements list after the tab and the search (balance rows only in "Tots")
+    movementsShown() {
+      const q = this.movementsSearch.trim().toLowerCase();
+      return this.treasuryDataDesc.filter(r => {
+        if (this.movementsTab !== "all") {
+          if (!this.isMovement(r) || this.movementState(r) !== this.movementsTab) return false;
+        }
+        if (!q) return true;
+        return [r.concept, r.project_name, r.contact, r.type].some(v => v && String(v).toLowerCase().includes(q));
+      });
+    },
     currentYm() {
       return moment().format("YYYYMM");
     },
@@ -792,10 +825,9 @@ export default {
     noDate() {
       return this.pivotData.find(d => d.month === "99") || null;
     },
+    // the same rows as the "Endarrerits" tab of the movements (shown year and filters)
     overdueCount() {
-      return this.treasuryData.filter(t =>
-        t.type !== "Avui" && t.type !== "Inici Any" && !t.is_balance_annotation && !t.is_real_balance_adjustment &&
-        !(t.paid || t.real) && t.datef && this.isBeforeToday(t.datef)).length;
+      return this.treasuryDataDesc.filter(r => this.isMovement(r) && this.movementState(r) === "overdue").length;
     },
     pivotData2() {
       return this.monthlySummaryForPivot;
@@ -1023,6 +1055,26 @@ export default {
       this.selectedBankAccountIds = this.bankAccounts.map(ba => ba.id);
 
       this.getData();
+    },
+    isMovement(r) {
+      return r.type !== "Avui" && r.type !== "Inici Any" && !r.is_balance_annotation && !r.is_real_balance_adjustment;
+    },
+    // executed (paid or real), overdue (forecast with a past date) or next
+    movementState(r) {
+      if (r.paid || r.real) return "done";
+      return r.datef && this.isBeforeToday(r.datef) ? "overdue" : "next";
+    },
+    // header actions: the operations card (manual movements and real balance)
+    showOverdue() {
+      this.movementsTab = "overdue";
+      this.$nextTick(() => {
+        const el = this.$el.querySelector(".movements-bar");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    },
+    goToOperations() {
+      const el = this.$refs.operations && (this.$refs.operations.$el || this.$refs.operations);
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
     },
     money(value, signed = false) {
       const n = Number(value) || 0;
@@ -1422,6 +1474,18 @@ export default {
 }
 .forecast-months tr.is-start > * {
   color: var(--a-fg-2);
+}
+.movements-bar {
+  margin-bottom: .75rem;
+}
+.movements-bar .filter-search {
+  flex: 0 1 22rem;
+}
+.doc-kpi.is-clickable {
+  cursor: pointer;
+}
+.doc-kpi.is-clickable:hover {
+  border-color: var(--a-input);
 }
 .tres-more {
   padding: .75rem 1.25rem;
