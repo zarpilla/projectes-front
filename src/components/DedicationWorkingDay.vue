@@ -381,19 +381,19 @@ export default {
         if (!task._dedications || !task._dedications.length) {
           return `<span class="first-period">+ Defineix la primera jornada</span>`;
         }
-        const taskStart = +task.start_date;
-        const taskEnd = +task.end_date;
+        // the person's bar is drawn only over the shown year: place the periods
+        // against that visible part, and leave out the ones outside it
+        const [taskStart, taskEnd] = this.visibleRange(task);
         const span = taskEnd - taskStart || 1;
         let html = "";
         task._dedications.forEach(d => {
-          const dStart = +moment(d.from);
-          const dEnd = +moment(d.to, "YYYY-MM-DD")
-            .add(1, "day");
-          const left = Math.max(0, ((dStart - taskStart) / span) * 100);
-          const width = Math.min(
-            100 - left,
-            Math.max(0, ((dEnd - dStart) / span) * 100)
-          );
+          const dStart = Math.max(+moment(d.from), taskStart);
+          const dEnd = Math.min(+moment(d.to, "YYYY-MM-DD").add(1, "day"), taskEnd);
+          if (dEnd <= dStart) {
+            return;
+          }
+          const left = ((dStart - taskStart) / span) * 100;
+          const width = ((dEnd - dStart) / span) * 100;
           html +=
             `<div class="dedication-bar` +
             (Number(d.hours) ? "" : " is-zero") +
@@ -540,8 +540,7 @@ export default {
       const { task, dedication, mode, barEl, taskLineEl } = drag;
 
       const rect = taskLineEl.getBoundingClientRect();
-      const taskStart = +moment(task.start_date);
-      const taskEnd = +moment(task.end_date);
+      const [taskStart, taskEnd] = this.visibleRange(task);
       const span = taskEnd - taskStart || 1;
       // Do NOT clamp pct to [0,1]: when expanding a period past the task
       // bar's visual bounds, the pointer is outside the bar so pct goes
@@ -913,6 +912,13 @@ export default {
         area.appendChild(line);
       }
       line.style.left = this.gantt.posFromDate(now) + "px";
+    },
+    // the part of a person's row bar inside the shown year (dhtmlx clips the bar to it)
+    visibleRange(task) {
+      return [
+        Math.max(+task.start_date, +this.gantt.config.start_date),
+        Math.min(+task.end_date, +this.gantt.config.end_date)
+      ];
     },
     // the timeline shows one year, its twelve months filling the width
     applyYearRange() {
