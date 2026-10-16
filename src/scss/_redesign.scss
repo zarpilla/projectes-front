@@ -568,6 +568,22 @@ a {
 .doc-kpi.is-warn b {
   color: var(--a-warn-fg);
 }
+// on a phone the figures sit two by two, smaller
+@media screen and (max-width: 768px) {
+  .doc-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+  }
+  .doc-kpi {
+    padding: .625rem .75rem;
+  }
+  .doc-kpi b {
+    font-size: 1.125rem;
+  }
+  .doc-kpi small {
+    display: none;
+  }
+}
 .doc-actions {
   display: flex;
   flex-wrap: wrap;
@@ -762,4 +778,18 @@ td.doc-total {
 .a-box dl.facts dd.is-total {
   font-size: 1.125rem;
   font-weight: 800;
+}
+// a b-table inside a box (logistics lists)
+.a-box.list-box {
+  padding: 0;
+  overflow: hidden;
+}
+.a-box.list-box .b-table .table-wrapper {
+  margin-bottom: 0;
+}
+.segmented .count {
+  margin-left: .25rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--a-muted);
 }

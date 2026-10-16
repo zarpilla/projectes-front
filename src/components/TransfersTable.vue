@@ -1,144 +1,58 @@
 <template>
-  <section class="xsection">
+  <div class="transfers-page">
     <b-loading
       :is-full-page="true"
       v-model="isLoading"
       :can-cancel="false"
     ></b-loading>
 
-    <div class="is-flex is-block-mobile is-flex-wrap-wrap mb-3">
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('pending'),
-          'is-warning': !statusFilter.includes('pending')
-        }"
-        @click="setStatusFilter($event, 'pending')"
-      >
-        PENDENTS
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('in_progress'),
-          'is-warning': !statusFilter.includes('in_progress')
-        }"
-        @click="setStatusFilter($event, 'in_progress')"
-      >
-        EN PROCÉS
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('completed'),
-          'is-warning': !statusFilter.includes('completed')
-        }"
-        @click="setStatusFilter($event, 'completed')"
-      >
-        COMPLETADES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        type="is-info"
-        icon-left="qrcode-scan"
-        @click="openScanner('start')"
-        :disabled="!statusFilter.includes('pending')"
-      >
-        ESCANEJAR INICIAR
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        type="is-success"
-        icon-left="qrcode-scan"
-        @click="openScanner('end')"
-        :disabled="!statusFilter.includes('in_progress')"
-      >
-        ESCANEJAR FINALITZAR
-      </b-button>
+    <title-bar :title-stack="['Logística', 'Transferències']" subtitle="Comandes que van d'un punt de recollida a un altre abans del repartiment">
+      <b-button icon-left="qrcode-scan" :disabled="!statusFilter.includes('pending')" @click="openScanner('start')">Escaneja per iniciar</b-button>
+      <b-button type="is-primary" icon-left="qrcode-scan" :disabled="!statusFilter.includes('in_progress')" @click="openScanner('end')">Escaneja per finalitzar</b-button>
+    </title-bar>
+
+    <section class="section is-main-section">
+    <div class="doc-kpis">
+      <div class="doc-kpi">
+        <span>Pendents</span>
+        <b>{{ pendingCount }}</b>
+      </div>
+      <div class="doc-kpi">
+        <span>En procés</span>
+        <b>{{ inProgressCount }}</b>
+      </div>
+      <div class="doc-kpi">
+        <span>Completades</span>
+        <b>{{ completedCount }}</b>
+      </div>
     </div>
 
-    <div class="mb-3">
-      <h3 class="subtitle is-6 mb-2">Filtre per punt d'origen</h3>
-      <div class="is-flex is-block-mobile is-flex-wrap-wrap">
-        <b-button
-          class="view-button mb-2 mr-2 ml-0"
-          :class="{
-            'is-primary': pickupFilter === null,
-            'is-warning': pickupFilter !== null
-          }"
-          @click="setPickupFilter(null)"
-        >
-          TOTS
-        </b-button>
-        <b-button
+    <div class="filter-bar">
+      <div class="segmented" role="group" aria-label="Estat">
+        <button type="button" :class="{ 'is-on': statusFilter.includes('pending') }" title="Ctrl+clic per triar-ne més d'un" @click="setStatusFilter($event, 'pending')">Pendents <span class="count">{{ pendingCount }}</span></button>
+        <button type="button" :class="{ 'is-on': statusFilter.includes('in_progress') }" title="Ctrl+clic per triar-ne més d'un" @click="setStatusFilter($event, 'in_progress')">En procés <span class="count">{{ inProgressCount }}</span></button>
+        <button type="button" :class="{ 'is-on': statusFilter.includes('completed') }" title="Ctrl+clic per triar-ne més d'un" @click="setStatusFilter($event, 'completed')">Completades <span class="count">{{ completedCount }}</span></button>
+      </div>
+      <div class="toggle-group" role="group" aria-label="Punt d'origen">
+        <span class="toggle-label">Origen</span>
+        <button type="button" class="chip-toggle" :class="{ 'is-on': pickupFilter === null }" @click="setPickupFilter(null)">Tots</button>
+        <button
           v-for="pickup in sourcePickups"
           :key="pickup.id"
-          class="view-button mb-2 mr-2 ml-0"
-          :class="{
-            'is-primary': pickupFilter === pickup.id,
-            'is-warning': pickupFilter !== pickup.id
-          }"
+          type="button"
+          class="chip-toggle"
+          :class="{ 'is-on': pickupFilter === pickup.id }"
           @click="setPickupFilter(pickup.id)"
-        >
-          {{ pickup.name }}
-        </b-button>
+        >{{ pickup.alias || pickup.name }}</button>
       </div>
+      <b-select v-if="total > 50" v-model="perPage" size="is-small" class="ml-auto" @update:model-value="loadData">
+        <option value="50">50 per pàgina</option>
+        <option value="100">100 per pàgina</option>
+        <option value="250">250 per pàgina</option>
+      </b-select>
     </div>
 
-    <div class="mb-3">
-      <div class="columns is-multiline ml-0 mt-4">
-        <div class="column is-half">
-          <div class="columns zis-mobile bg-white-panel">
-            <div class="column">
-              <h2 class="pr-2">Total</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ total }} (PÀG {{ this.page }}/{{ Math.ceil(total / perPage) }})
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">Pendents</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ pendingCount }}
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">En procés</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ inProgressCount }}
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">Completades</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ completedCount }}
-                </b>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="column is-flex">
-          <div class="ml-auto mt-2">
-            <b-select
-              v-model="perPage"
-              @update:model-value="loadData"
-              v-if="total > 50"
-            >
-              <option value="50">50 per pàg.</option>
-              <option value="100">100 per pàg.</option>
-              <option value="250">250 per pàg.</option>
-            </b-select>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <div class="a-box list-box">
     <b-table
       class="small-table"
       ref="table"
@@ -148,7 +62,7 @@
       :total="total"
       :per-page="perPage"
       @page-change="onPageChange"
-      pagination-position="both"
+      pagination-position="bottom"
       backend-sorting
       :default-sort-direction="defaultSortOrder"
       :default-sort="[sortField, sortOrder]"
@@ -210,15 +124,11 @@
       </b-table-column>
 
       <b-table-column
-        label="Estat Trànsferència"
+        label="Estat"
         v-slot="props"
         width="130"
       >
-        <b-tag
-          :type="getStatusTagType(props.row)"
-        >
-          {{ getStatusLabel(props.row) }}
-        </b-tag>
+        <span class="tag" :class="statusTag(props.row)">{{ getStatusLabel(props.row) }}</span>
       </b-table-column>
 
       <b-table-column
@@ -270,7 +180,7 @@
           <!-- Start button if not started -->
           <b-button
             v-if="!props.row.transfer_start_date"
-            type="is-info"
+            type="is-primary"
             size="is-small"
             icon-left="play"
             @click="startTransfer(props.row)"
@@ -281,7 +191,7 @@
           <!-- End button if started but not ended -->
           <b-button
             v-if="props.row.transfer_start_date && !props.row.transfer_end_date"
-            type="is-success"
+            type="is-primary"
             size="is-small"
             icon-left="check"
             @click="endTransfer(props.row)"
@@ -292,23 +202,21 @@
           <!-- Undo button if in progress -->
           <b-button
             v-if="props.row.transfer_start_date && !props.row.transfer_end_date"
-            type="is-danger"
             size="is-small"
-            icon-left="undo"
+            icon-left="undo-variant"
             @click="removeTransferStart(props.row)"
           >
-            Desfer
+            Desfés
           </b-button>
           
           <!-- Undo button if completed -->
           <b-button
             v-if="props.row.transfer_end_date"
-            type="is-danger"
             size="is-small"
-            icon-left="undo"
+            icon-left="undo-variant"
             @click="removeTransferEnd(props.row)"
           >
-            Desfer
+            Desfés
           </b-button>
         </div>
       </b-table-column>
@@ -426,6 +334,8 @@
         </div>
       </template>
     </b-table>
+    </div>
+    </section>
 
     <q-r-scanner-modal
       :is-active="isScannerActive"
@@ -433,7 +343,7 @@
       @scanned="handleScannedOrder"
       @cancel="closeScanner"
     />
-  </section>
+  </div>
 </template>
 
 <script>
@@ -442,11 +352,13 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import QRScannerModal from "@/components/QRScannerModal.vue";
+import TitleBar from "@/components/TitleBar.vue";
 
 export default {
   name: "TransfersTable",
   components: {
-    QRScannerModal
+    QRScannerModal,
+    TitleBar
   },
   data() {
     return {
@@ -670,12 +582,15 @@ export default {
       this.page = 1;
       this.loadData();
     },
+    statusTag(order) {
+      return { pending: "is-warning", in_progress: "is-info is-light", completed: "is-success is-light" }[this.getTransferStatus(order)] || "";
+    },
     getStatusLabel(order) {
       const status = this.getTransferStatus(order);
       const labels = {
-        pending: "PENDENT",
-        in_progress: "EN PROCÉS",
-        completed: "COMPLETADA"
+        pending: "Pendent",
+        in_progress: "En procés",
+        completed: "Completada"
       };
       return labels[status] || status;
     },

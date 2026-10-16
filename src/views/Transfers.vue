@@ -1,9 +1,7 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
-    <section class="section is-main-section">
-      <transfers-table v-if="!isLoading" />
-    </section>
+    <!-- the title bar is in TransfersTable (its scan buttons) -->
+    <transfers-table v-if="!isLoading" />
   </div>
 </template>
 

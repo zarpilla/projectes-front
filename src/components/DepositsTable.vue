@@ -1,115 +1,55 @@
 <template>
-  <section class="xsection">
+  <div class="deposits-page">
     <b-loading
       :is-full-page="true"
       v-model="isLoading"
       :can-cancel="false"
     ></b-loading>
 
-    <div class="is-flex is-block-mobile is-flex-wrap-wrap mb-3">
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter === 'pending',
-          'is-warning': statusFilter !== 'pending'
-        }"
-        @click="setStatusFilter('pending')"
-      >
-        PENDENTS ({{ pendingCount }})
+    <title-bar :title-stack="['Logística', 'Dipòsits']" subtitle="Les comandes que les sòcies deixen als magatzems i a les finques">
+      <b-button type="is-primary" icon-left="qrcode-scan" @click="openScanner">
+        {{ statusFilter === "pending" ? "Escaneja per dipositar" : "Escaneja per desfer" }}
       </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter === 'deposited',
-          'is-warning': statusFilter !== 'deposited'
-        }"
-        @click="setStatusFilter('deposited')"
-      >
-        DIPOSITADES ({{ todayCount }})
-      </b-button>
-      <b-button
-        :disabled="statusFilter !== 'pending'"
-        class="view-button mb-3 mr-3 ml-0"
-        type="is-info"
-        icon-left="qrcode-scan"
-        @click="openScanner"
-      >
-        ESCANEJAR QR
-      </b-button>
+    </title-bar>
+
+    <section class="section is-main-section">
+    <div class="doc-kpis">
+      <div class="doc-kpi">
+        <span>Pendents de dipositar</span>
+        <b>{{ pendingCount }}</b>
+      </div>
+      <div class="doc-kpi">
+        <span>Dipositades avui</span>
+        <b>{{ todayCount }}</b>
+      </div>
     </div>
 
-    <div class="mb-3">
-      <h3 class="subtitle is-6 mb-2">Filtre per punt de dipòsit</h3>
-      <div class="is-flex is-block-mobile is-flex-wrap-wrap">
-        <b-button
-          class="view-button mb-2 mr-2 ml-0"
-          :class="{
-            'is-primary': pickupFilter === null,
-            'is-warning': pickupFilter !== null
-          }"
-          @click="setPickupFilter(null)"
-        >
-          TOTS
-        </b-button>
-        <b-button
+    <div class="filter-bar">
+      <div class="segmented" role="group" aria-label="Estat">
+        <button type="button" :class="{ 'is-on': statusFilter === 'pending' }" @click="setStatusFilter('pending')">Pendents <span class="count">{{ pendingCount }}</span></button>
+        <button type="button" :class="{ 'is-on': statusFilter === 'deposited' }" @click="setStatusFilter('deposited')">Dipositades avui <span class="count">{{ todayCount }}</span></button>
+      </div>
+      <div class="toggle-group" role="group" aria-label="Punt de dipòsit">
+        <span class="toggle-label">Punt</span>
+        <button type="button" class="chip-toggle" :class="{ 'is-on': pickupFilter === null }" @click="setPickupFilter(null)">Tots</button>
+        <button
           v-for="pickup in nonPickupLocations"
           :key="pickup.id"
-          class="view-button mb-2 mr-2 ml-0"
-          :class="{
-            'is-primary': pickupFilter === pickup.id,
-            'is-warning': pickupFilter !== pickup.id
-          }"
+          type="button"
+          class="chip-toggle"
+          :class="{ 'is-on': pickupFilter === pickup.id }"
           @click="setPickupFilter(pickup.id)"
-        >
-          {{ pickup.name || pickup.trade_name }}
-        </b-button>
-        <b-button
-          class="view-button mb-2 mr-2 ml-0"
-          :class="{
-            'is-primary': pickupFilter === 'finca',
-            'is-warning': pickupFilter !== 'finca'
-          }"
-          @click="setPickupFilter('finca')"
-        >
-          Finca
-        </b-button>
+        >{{ pickup.alias || pickup.name || pickup.trade_name }}</button>
+        <button type="button" class="chip-toggle" :class="{ 'is-on': pickupFilter === 'finca' }" @click="setPickupFilter('finca')">Finca</button>
       </div>
+      <b-select v-if="total > 50" v-model="perPage" size="is-small" class="ml-auto" @update:model-value="loadData">
+        <option value="50">50 per pàgina</option>
+        <option value="100">100 per pàgina</option>
+        <option value="200">200 per pàgina</option>
+      </b-select>
     </div>
 
-    <div class="mb-3">
-      <div class="columns is-multiline ml-0 mt-4">
-        <div class="column is-half">
-          <div class="columns zis-mobile bg-white-panel">
-            <div class="column">
-              <h2>Pendents</h2>
-              <div class="has-text-weight-bold is-size-4">
-                {{ pendingCount }}
-              </div>
-            </div>
-            <div class="column">
-              <h2>Dipositades avui</h2>
-              <div class="has-text-weight-bold is-size-4">
-                {{ todayCount }}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="column is-flex">
-          <div class="ml-auto mt-2">
-            <b-select
-              v-model="perPage"
-              @update:model-value="loadData"
-              v-if="total > 50"
-            >
-              <option value="50">50 per pàgina</option>
-              <option value="100">100 per pàgina</option>
-              <option value="200">200 per pàgina</option>
-            </b-select>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <div class="a-box list-box">
     <b-table
       class="small-table"
       ref="table"
@@ -119,7 +59,7 @@
       :total="total"
       :per-page="perPage"
       @page-change="onPageChange"
-      pagination-position="both"
+      pagination-position="bottom"
       backend-sorting
       :default-sort-direction="defaultSortOrder"
       :default-sort="[sortField, sortOrder]"
@@ -130,10 +70,8 @@
       :row-class="rowClassFn"
     >
       <b-table-column label="Comanda" field="id" sortable v-slot="props" width="100">
-        <router-link
-          :to="{ name: 'orders.edit', params: { id: props.row.id } }"
-        >
-          #{{ props.row.id.toString().padStart(4, "0") }}
+        <router-link :to="{ name: 'orders.view.detail', params: { id: props.row.id } }">
+          <b>#{{ props.row.id.toString().padStart(4, "0") }}</b>
         </router-link>
       </b-table-column>
 
@@ -219,11 +157,9 @@
         v-slot="props"
         width="130"
       >
-        <b-tag
-          :type="props.row.deposit_date ? 'is-success' : 'is-warning'"
-        >
-          {{ props.row.deposit_date ? 'DIPOSITAT' : 'PENDENT' }}
-        </b-tag>
+        <span class="tag" :class="props.row.deposit_date ? 'is-success is-light' : 'is-warning'">
+          {{ props.row.deposit_date ? "Dipositada" : "Pendent" }}
+        </span>
       </b-table-column>
 
       <b-table-column
@@ -235,7 +171,7 @@
           <!-- Mark as deposited button if not deposited -->
           <b-button
             v-if="!props.row.deposit_date"
-            type="is-success"
+            type="is-primary"
             size="is-small"
             icon-left="check"
             @click="markAsDeposited(props.row)"
@@ -246,12 +182,11 @@
           <!-- Unmark as deposited button if deposited -->
           <b-button
             v-if="props.row.deposit_date"
-            type="is-warning"
             size="is-small"
-            icon-left="undo"
+            icon-left="undo-variant"
             @click="unmarkAsDeposited(props.row)"
           >
-            Desfer
+            Desfés
           </b-button>
         </div>
       </b-table-column>
@@ -260,6 +195,8 @@
         <div class="has-text-centered">No hi ha dipòsits</div>
       </template>
     </b-table>
+    </div>
+    </section>
 
     <q-r-scanner-modal
       :is-active="isScannerActive"
@@ -267,7 +204,7 @@
       @scanned="handleScannedOrder"
       @cancel="closeScanner"
     />
-  </section>
+  </div>
 </template>
 
 <script>
@@ -276,11 +213,13 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import QRScannerModal from "@/components/QRScannerModal.vue";
+import TitleBar from "@/components/TitleBar.vue";
 
 export default {
   name: "DepositsTable",
   components: {
-    QRScannerModal
+    QRScannerModal,
+    TitleBar
   },
   data() {
     return {

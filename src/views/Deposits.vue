@@ -1,9 +1,7 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
-    <section class="section is-main-section">
-      <deposits-table v-if="!isLoading" />
-    </section>
+    <!-- the title bar is in DepositsTable (its scan button) -->
+    <deposits-table v-if="!isLoading" />
   </div>
 </template>
 
