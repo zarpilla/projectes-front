@@ -1,9 +1,7 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
-    <section class="section is-main-section">
-      <incidences-table v-if="!isLoading" />
-    </section>
+    <!-- the title bar is in IncidencesTable: its export needs the list -->
+    <incidences-table v-if="!isLoading" />
   </div>
 </template>
 

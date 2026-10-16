@@ -1,499 +1,161 @@
 <template>
-  <section class="xsection">
-    <b-loading
-      :is-full-page="true"
-      v-model="isLoading"
-      :can-cancel="false"
-    ></b-loading>
-
-    <div class="is-flex is-block-mobile is-flex-wrap-wrap mb-3">
-      <download-excel
-        class="export"
-        name="incidencies"
-        :fields="excelFields"
-        :fetch="fetchExcel"
-      >
-        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
+  <!-- Redesign A (mockup A-Log-Incidencies): the incidences to solve on the
+       left, the selected one on the right with its conversation and actions
+       (it replaces the row details and the modal). -->
+  <div class="incidences-page">
+    <title-bar :title-stack="['Logística', 'Incidències']" :subtitle="headline">
+      <download-excel class="export" name="incidencies" :fields="excelFields" :fetch="fetchExcel">
+        <b-button icon-left="download">Exporta</b-button>
       </download-excel>
-      <b-button
-        class="view-button mb-3 ml-0 mr-3"
-        :class="{
-          'is-primary': stateFilter.length === 0,
-          'is-warning': stateFilter.length > 0
-        }"
-        @click="setStateFilter($event, null)"
-      >
-        TOTES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': stateFilter.includes('open'),
-          'is-warning': !stateFilter.includes('open')
-        }"
-        @click="setStateFilter($event, 'open')"
-      >
-        OBERTES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': stateFilter.includes('wip'),
-          'is-warning': !stateFilter.includes('wip')
-        }"
-        @click="setStateFilter($event, 'wip')"
-      >
-        EN PROCÉS
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': stateFilter.includes('closed'),
-          'is-warning': !stateFilter.includes('closed')
-        }"
-        @click="setStateFilter($event, 'closed')"
-      >
-        TANCADES
-      </b-button>
-    </div>
+    </title-bar>
 
-    <div class="mb-3">
-      <div class="columns is-multiline ml-0 mt-4">
-        <div class="column is-half">
-          <div class="columns is-mobile bg-white-panel">
-            <div class="column">
-              <h2 class="pr-2">Total</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ total }} (PÀG {{ this.page }}/{{ Math.ceil(total / perPage) }})
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">Obertes</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ openCount }}
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">En procés</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ wipCount }}
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">Tancades</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ closedCount }}
-                </b>
-              </div>
-            </div>
-          </div>
+    <section class="section is-main-section">
+      <div class="doc-kpis">
+        <div class="doc-kpi">
+          <span>Obertes</span>
+          <b :class="{ 'has-text-neg': openCount }">{{ openCount }}</b>
         </div>
-        <div class="column is-flex">
-          <div class="ml-auto mt-2">
-            <b-select
-              v-model="perPage"
-              @update:model-value="loadData"
-              v-if="total > 50"
-            >
-              <option value="50">50 per pàg.</option>
-              <option value="100">100 per pàg.</option>
-              <option value="250">250 per pàg.</option>
-            </b-select>
-          </div>
+        <div class="doc-kpi">
+          <span>En procés</span>
+          <b>{{ wipCount }}</b>
+        </div>
+        <div class="doc-kpi">
+          <span>Tancades</span>
+          <b>{{ closedCount }}</b>
+        </div>
+        <div class="doc-kpi">
+          <span>Temps mitjà de tancament</span>
+          <b>{{ avgCloseDays === null ? "—" : `${formatNum(avgCloseDays)} dies` }}</b>
+          <small>incidències tancades els últims 3 mesos</small>
         </div>
       </div>
-    </div>
 
-    <b-table
-      class="small-table"
-      ref="table"
-      :loading="isLoading"
-      paginated
-      backend-pagination
-      :total="total"
-      :per-page="perPage"
-      @page-change="onPageChange"
-      pagination-position="both"
-      backend-sorting
-      :default-sort-direction="defaultSortOrder"
-      :default-sort="[sortField, sortOrder]"
-      @sort="onSort"
-      :striped="true"
-      :data="incidences"
-      :debounce-search="500"
-      :row-class="rowClassFn"
-      detailed
-      detail-key="id"
-      :show-detail-icon="true"
-      @details-open="onDetailsOpen"
-    >
-      <b-table-column label="ID" field="id" sortable v-slot="props" width="80">
-        {{ props.row.id }}
-      </b-table-column>
-
-      <b-table-column
-        label="Comanda"
-        field="order.id"
-        sortable
-        v-slot="props"
-        width="100"
-      >
-        <router-link
-          v-if="props.row.order && props.row.order.id"
-          :to="{ name: 'orders.edit', params: { id: props.row.order.id } }"
-        >
-          #{{ props.row.order.id.toString().padStart(4, "0") }}
-        </router-link>
-        <span v-else>-</span>
-      </b-table-column>
-
-      <b-table-column
-        label="Punt"
-        field="order.contact_trade_name"
-        sortable
-        v-slot="props"
-        width="200"
-      >
-        {{ props.row.order && props.row.order ? props.row.order.contact_trade_name : '-' }}
-      </b-table-column>
-
-      <b-table-column
-        label="Sòcia"
-        field="order.owner"
-        sortable
-        v-slot="props"
-        width="150"
-      >
-        {{ props.row.order && props.row.order.owner ? props.row.order.owner.fullname : '-' }}
-      </b-table-column>
-
-      <b-table-column
-        label="Descripció"
-        field="description"
-        sortable
-        v-slot="props"
-      >
-        <div class="incidence-description">
-          {{ props.row.description }}
-        </div>
-      </b-table-column>
-
-      <b-table-column
-        label="Estat"
-        field="state"
-        sortable
-        v-slot="props"
-        width="120"
-      >
-        <b-tag
-          :type="getStateTagType(props.row.state)"
-        >
-          {{ getStateLabel(props.row.state) }}
-        </b-tag>
-      </b-table-column>
-
-      <b-table-column
-        label="Creada"
-        field="created_at"
-        sortable
-        v-slot="props"
-        width="110"
-      >
-        {{ formatDate(props.row.created_at) }}
-      </b-table-column>
-
-      <b-table-column
-        label="Creada per"
-        field="created_user.username"
-        sortable
-        v-slot="props"
-        width="120"
-      >
-        {{ props.row.created_user ? (props.row.created_user.fullname || props.row.created_user.username) : '-' }}
-      </b-table-column>
-
-      <b-table-column
-        label="Tancada"
-        field="closed_date"
-        sortable
-        v-slot="props"
-        width="110"
-      >
-        {{ props.row.closed_date ? formatDate(props.row.closed_date) : '-' }}
-      </b-table-column>
-
-      <b-table-column
-        label="Tancada per"
-        field="closed_user.username"
-        sortable
-        v-slot="props"
-        width="120"
-      >
-        {{ props.row.closed_user ? (props.row.closed_user.fullname || props.row.closed_user.username) : '-' }}
-      </b-table-column>
-
-      <b-table-column
-        label="Accions"
-        v-slot="props"
-        width="80"
-      >
-        <b-button
-          type="is-danger"
-          size="is-small"
-          icon-left="delete"
-          @click="deleteIncidence(props.row)"
-          v-if="canDelete(props.row)"
-        >
-        </b-button>
-      </b-table-column>
-
-      <template #empty>
-        <div class="has-text-centered">No hi ha incidències</div>
-      </template>
-
-      <template #detail="props">
-        <div class="incidence-chat-container">
-          <!-- Original incidence description -->
-          <div class="chat-message initial-message">
-            <div class="message-header">
-              <div class="message-author">
-                <b-icon icon="account" size="is-small"></b-icon>
-                <strong>{{ props.row.created_user ? (props.row.created_user.fullname || props.row.created_user.username) : 'Usuari desconegut' }}</strong>
-              </div>
-              <div class="message-date">{{ formatDateTime(props.row.created_at) }}</div>
-            </div>
-            <div class="message-content initial-content">
-              {{ props.row.description }}
-            </div>
-          </div>
-
-          <!-- Responses -->
-          <div 
-            v-for="(response, index) in (props.row.incidence_response || [])" 
-            :key="index"
-            class="chat-message"
-          >
-            <div class="message-header">
-              <div class="message-author">
-                <b-icon icon="account-arrow-right" size="is-small"></b-icon>
-                <strong>{{ response.user ? (response.user.fullname || response.user.username) : 'Usuari desconegut' }}</strong>
-              </div>
-              <div class="message-date">{{ formatDateTime(response.response_date) }}</div>
-            </div>
-            <div class="message-content">
-              {{ response.text }}
-            </div>
-          </div>
-
-          <!-- Add new response form -->
-          <div class="add-response-form" v-if="props.row.state !== 'closed'">
-            <b-field grouped>
-              <b-field expanded>
-                <b-input
-                  v-model="responseText[props.row.id]"
-                  type="textarea"
-                  placeholder="Escriu una resposta..."
-                  :rows="2"
-                  @keydown.ctrl.enter="addResponse(props.row)"
-                ></b-input>
-              </b-field>
-            </b-field>
-            <div class="is-flex is-justify-content-space-between">
-              <div class="buttons">
-                <b-button
-                  type="is-primary"
-                  size="is-small"
-                  icon-left="send"
-                  @click="addResponse(props.row)"
-                  :disabled="!responseText[props.row.id] || !responseText[props.row.id].trim()"
-                >
-                  Enviar resposta
-                </b-button>
-                <b-button
-                  v-if="props.row.state === 'open'"
-                  type="is-warning"
-                  size="is-small"
-                  icon-left="clock"
-                  @click="changeState(props.row, 'wip')"
-                >
-                  Marcar en procés
-                </b-button>
-                <b-button
-                  v-if="props.row.state === 'wip'"
-                  type="is-success"
-                  size="is-small"
-                  icon-left="check"
-                  @click="changeState(props.row, 'closed')"
-                >
-                  Tancar incidència
-                </b-button>
-              </div>
-              <small class="has-text-grey-light">Ctrl+Enter per enviar</small>
-            </div>
-          </div>
-
-          <div v-else class="notification is-light">
-            <p>Aquesta incidència està tancada.</p>
-          </div>
-        </div>
-      </template>
-    </b-table>
-
-    <!-- Modal for incidence detail -->
-    <b-modal
-      v-model="showIncidenceModal"
-      :width="800"
-      scroll="keep"
-    >
-      <div class="modal-card" v-if="modalIncidence">
-        <header class="modal-card-head">
-          <p class="modal-card-title">Incidència #{{ modalIncidence.id }}</p>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="refresh">
+        <b-field class="filter-grow">
+          <b-input v-model="search" icon="magnify" placeholder="Cerca comanda, punt o text" @update:model-value="debouncedRefresh" />
+        </b-field>
+        <div class="segmented" role="group" aria-label="Estat">
           <button
+            v-for="tab in stateTabs"
+            :key="tab.id"
             type="button"
-            class="delete"
-            @click="showIncidenceModal = false"
-          ></button>
-        </header>
-        <section class="modal-card-body">
-          <!-- Incidence summary info -->
-          <div class="incidence-summary mb-4">
-            <div class="columns is-multiline">
-              <div class="column is-half">
-                <p><strong>Comanda:</strong> 
-                  <router-link
-                    v-if="modalIncidence.order && modalIncidence.order.id"
-                    :to="{ name: 'orders.edit', params: { id: modalIncidence.order.id } }"
-                    @click="showIncidenceModal = false"
-                  >
-                    #{{ modalIncidence.order.id.toString().padStart(4, "0") }}
-                  </router-link>
-                  <span v-else>-</span>
-                </p>
-              </div>
-              <div class="column is-half">
-                <p><strong>Estat:</strong> 
-                  <b-tag :type="getStateTagType(modalIncidence.state)">
-                    {{ getStateLabel(modalIncidence.state) }}
-                  </b-tag>
-                </p>
-              </div>
-              <div class="column is-half">
-                <p><strong>Punt:</strong> {{ modalIncidence.order ? modalIncidence.order.contact_trade_name : '-' }}</p>
-              </div>
-              <div class="column is-half">
-                <p><strong>Sòcia:</strong> {{ modalIncidence.order && modalIncidence.order.owner ? modalIncidence.order.owner.fullname : '-' }}</p>
-              </div>
-              <div class="column is-half">
-                <p><strong>Creada:</strong> {{ formatDate(modalIncidence.created_at) }}</p>
-              </div>
-              <div class="column is-half">
-                <p><strong>Creada per:</strong> {{ modalIncidence.created_user ? (modalIncidence.created_user.fullname || modalIncidence.created_user.username) : '-' }}</p>
-              </div>
-              <div class="column is-half" v-if="modalIncidence.closed_date">
-                <p><strong>Tancada:</strong> {{ formatDate(modalIncidence.closed_date) }}</p>
-              </div>
-              <div class="column is-half" v-if="modalIncidence.closed_user">
-                <p><strong>Tancada per:</strong> {{ modalIncidence.closed_user ? (modalIncidence.closed_user.fullname || modalIncidence.closed_user.username) : '-' }}</p>
-              </div>
-            </div>
+            :class="{ 'is-on': tabOn(tab) }"
+            :aria-pressed="tabOn(tab) ? 'true' : 'false'"
+            @click="setTab(tab)"
+          >{{ tab.label }} <span class="count">{{ tab.count }}</span></button>
+        </div>
+        <label v-if="isAdmin" class="filter-select">
+          <span>Sòcia</span>
+          <b-select v-model="ownerFilter" @update:model-value="refresh">
+            <option :value="null">Totes</option>
+            <option v-for="u in owners" :key="u.id" :value="u.id">{{ u.fullname || u.username }}</option>
+          </b-select>
+        </label>
+      </form>
+
+      <div class="inc-layout">
+        <section class="a-box inc-list">
+          <b-loading :is-full-page="false" :model-value="isLoading" />
+          <div class="table-container">
+            <table class="table is-fullwidth inc-table">
+              <thead>
+                <tr>
+                  <th>Núm.</th>
+                  <th>Incidència</th>
+                  <th>Comanda</th>
+                  <th>Creada</th>
+                  <th>Estat</th>
+                  <th class="col-actions"><span class="is-sr-only">Accions</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="inc in incidences"
+                  :key="inc.id"
+                  class="inc-row"
+                  :class="{ 'is-selected': selected && selected.id === inc.id }"
+                  tabindex="0"
+                  @click="select(inc.id)"
+                  @keydown.enter="select(inc.id)"
+                >
+                  <td class="num"><b>#{{ inc.id }}</b></td>
+                  <td class="col-text">
+                    <b>{{ inc.description }}</b>
+                    <small>{{ [inc.order && inc.order.contact_trade_name, ownerName(inc)].filter(Boolean).join(" · ") }}</small>
+                  </td>
+                  <td class="nowrap">
+                    <router-link v-if="inc.order && inc.order.id" :to="{ name: 'orders.view.detail', params: { id: inc.order.id } }" @click.stop>#{{ inc.order.id }}</router-link>
+                    <span v-else>—</span>
+                  </td>
+                  <td class="nowrap">{{ formatDate(createdOf(inc)) }}</td>
+                  <td><span class="tag" :class="stateTag(inc.state)">{{ getStateLabel(inc.state) }}</span></td>
+                  <td class="col-actions">
+                    <button v-if="canDelete(inc)" type="button" class="row-action" title="Elimina la incidència" aria-label="Elimina la incidència" @click.stop="deleteIncidence(inc)">
+                      <b-icon icon="delete-outline" size="is-small" />
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="!isLoading && !incidences.length">
+                  <td colspan="6" class="box-empty">No hi ha incidències amb aquests filtres.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <!-- Chat detail (same as table detail) -->
-          <div class="incidence-chat-container">
-            <!-- Original incidence description -->
-            <div class="chat-message initial-message">
-              <div class="message-header">
-                <div class="message-author">
-                  <b-icon icon="account" size="is-small"></b-icon>
-                  <strong>{{ modalIncidence.created_user ? (modalIncidence.created_user.fullname || modalIncidence.created_user.username) : 'Usuari desconegut' }}</strong>
-                </div>
-                <div class="message-date">{{ formatDateTime(modalIncidence.created_at) }}</div>
-              </div>
-              <div class="message-content initial-content">
-                {{ modalIncidence.description }}
-              </div>
-            </div>
-
-            <!-- Responses -->
-            <div 
-              v-for="(response, index) in (modalIncidence.incidence_response || [])" 
-              :key="index"
-              class="chat-message"
-            >
-              <div class="message-header">
-                <div class="message-author">
-                  <b-icon icon="account-arrow-right" size="is-small"></b-icon>
-                  <strong>{{ response.user ? (response.user.fullname || response.user.username) : 'Usuari desconegut' }}</strong>
-                </div>
-                <div class="message-date">{{ formatDateTime(response.response_date) }}</div>
-              </div>
-              <div class="message-content">
-                {{ response.text }}
-              </div>
-            </div>
-
-            <!-- Add new response form -->
-            <div class="add-response-form" v-if="modalIncidence.state !== 'closed'">
-              <b-field grouped>
-                <b-field expanded>
-                  <b-input
-                    v-model="responseText[modalIncidence.id]"
-                    type="textarea"
-                    placeholder="Escriu una resposta..."
-                    :rows="2"
-                    @keydown.ctrl.enter="addResponseFromModal(modalIncidence)"
-                  ></b-input>
-                </b-field>
-              </b-field>
-              <div class="is-flex is-justify-content-space-between">
-                <div class="buttons">
-                  <b-button
-                    type="is-primary"
-                    size="is-small"
-                    icon-left="send"
-                    @click="addResponseFromModal(modalIncidence)"
-                    :disabled="!responseText[modalIncidence.id] || !responseText[modalIncidence.id].trim()"
-                  >
-                    Enviar resposta
-                  </b-button>
-                  <b-button
-                    v-if="modalIncidence.state === 'open'"
-                    type="is-warning"
-                    size="is-small"
-                    icon-left="clock"
-                    @click="changeStateFromModal(modalIncidence, 'wip')"
-                  >
-                    Marcar en procés
-                  </b-button>
-                  <b-button
-                    v-if="modalIncidence.state === 'wip'"
-                    type="is-success"
-                    size="is-small"
-                    icon-left="check"
-                    @click="changeStateFromModal(modalIncidence, 'closed')"
-                  >
-                    Tancar incidència
-                  </b-button>
-                </div>
-                <small class="has-text-grey-light">Ctrl+Enter per enviar</small>
-              </div>
-            </div>
-
-            <div v-else class="notification is-light">
-              <p>Aquesta incidència està tancada.</p>
-            </div>
-          </div>
+          <footer class="inc-foot">
+            <span>{{ total }} {{ total === 1 ? "incidència" : "incidències" }}</span>
+            <b-pagination v-if="total > perPage" v-model="page" :total="total" :per-page="perPage" size="is-small" order="is-right" @change="onPageChange" />
+          </footer>
         </section>
+
+        <aside class="a-box inc-detail">
+          <template v-if="selected">
+            <header class="box-head">
+              <h2>Incidència #{{ selected.id }}</h2>
+              <span class="tag" :class="stateTag(selected.state)">{{ getStateLabel(selected.state) }}</span>
+            </header>
+            <dl class="facts">
+              <dt>Comanda</dt>
+              <dd>
+                <router-link v-if="selected.order && selected.order.id" :to="{ name: 'orders.view.detail', params: { id: selected.order.id } }">#{{ selected.order.id }}</router-link>
+                <span v-if="selectedOrder" class="tag order-tag">{{ orderStatusLabel(selectedOrder.status) }}</span>
+              </dd>
+              <dt>Punt</dt><dd>{{ (selected.order && selected.order.contact_trade_name) || "—" }}</dd>
+              <dt>Sòcia</dt><dd>{{ ownerName(selected) || "—" }}</dd>
+              <template v-if="selectedOrder && selectedOrder.route"><dt>Ruta</dt><dd>{{ selectedOrder.route.name }}</dd></template>
+              <dt>Creada per</dt><dd>{{ userName(selected.created_user) }} · {{ formatDateTime(createdOf(selected)) }}</dd>
+              <template v-if="selected.order"><dt>Prevista / lliurada</dt><dd>{{ formatDate(selected.order.estimated_delivery_date) || "—" }} / {{ formatDate(selected.order.delivery_date) || "—" }}</dd></template>
+              <template v-if="selected.closed_date"><dt>Tancada</dt><dd>{{ formatDateTime(selected.closed_date) }} · {{ userName(selected.closed_user) }}</dd></template>
+            </dl>
+
+            <div class="conversation">
+              <div class="message is-first">
+                <div class="message-meta"><b>{{ userName(selected.created_user) }}</b><small>{{ formatDateTime(createdOf(selected)) }}</small></div>
+                <p>{{ selected.description }}</p>
+              </div>
+              <div v-for="(response, index) in selected.incidence_response || []" :key="index" class="message">
+                <div class="message-meta"><b>{{ userName(response.user) }}</b><small>{{ formatDateTime(response.response_date) }}</small></div>
+                <p>{{ response.text }}</p>
+              </div>
+            </div>
+
+            <div v-if="selected.state !== 'closed'" class="reply">
+              <b-field label="Resposta">
+                <b-input v-model="responseText[selected.id]" type="textarea" rows="3" placeholder="Escriu una resposta…" @keydown.ctrl.enter="addResponse(selected)" />
+              </b-field>
+              <small class="field-note">Ctrl+Enter per enviar</small>
+              <div class="reply-actions">
+                <b-button type="is-primary" icon-left="send" :disabled="!responseText[selected.id] || !responseText[selected.id].trim()" @click="addResponse(selected)">Envia</b-button>
+                <b-button v-if="selected.state === 'open'" icon-left="clock-outline" @click="changeState(selected, 'wip')">Marca en procés</b-button>
+                <b-button icon-left="check" @click="changeState(selected, 'closed')">Tanca</b-button>
+              </div>
+            </div>
+            <p v-else class="notification is-light">Aquesta incidència està tancada.</p>
+          </template>
+          <p v-else class="box-empty">Tria una incidència de la llista per veure-la i respondre-la.</p>
+        </aside>
       </div>
-    </b-modal>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script>
@@ -501,9 +163,14 @@ import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
+import TitleBar from "@/components/TitleBar.vue";
+import { formatNumber } from "@/helpers/format-number";
 
 export default {
   name: "IncidencesTable",
+  components: {
+    TitleBar
+  },
   data() {
     return {
       isLoading: false,
@@ -514,7 +181,15 @@ export default {
       sortField: "id",
       sortOrder: "desc",
       defaultSortOrder: "desc",
-      stateFilter: [],
+      // "Per resoldre" first
+      stateFilter: ["open", "wip"],
+      search: "",
+      searchTimer: null,
+      ownerFilter: null,
+      owners: [],
+      selected: null,
+      selectedOrder: null,
+      avgCloseDays: null,
       permissions: [],
       openCount: 0,
       wipCount: 0,
@@ -540,7 +215,21 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ["me"])
+    ...mapState(useMainStore, ["me"]),
+    stateTabs() {
+      return [
+        { id: "todo", states: ["open", "wip"], label: "Per resoldre", count: this.openCount + this.wipCount },
+        { id: "open", states: ["open"], label: "Obertes", count: this.openCount },
+        { id: "wip", states: ["wip"], label: "En procés", count: this.wipCount },
+        { id: "closed", states: ["closed"], label: "Tancades", count: this.closedCount },
+        { id: "all", states: [], label: "Totes", count: this.openCount + this.wipCount + this.closedCount }
+      ];
+    },
+    headline() {
+      const todo = this.openCount + this.wipCount;
+      const all = todo + this.closedCount;
+      return `${todo} per resoldre · ${all} en total`;
+    }
   },
   async mounted() {
     const me = await service({ requiresAuth: true, cached: true }).get(
@@ -549,174 +238,93 @@ export default {
     this.permissions = me.data.permissions.map(p => p.permission);
     this.currentUserId = me.data.id;
     this.isAdmin = (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"));
-    this.loadData();
-    
-    // Check if there's an id querystring
+    // a link to one incidence (?id=) shows it, whatever its state
     const incidenceId = this.$route.query.id;
+    if (incidenceId) this.stateFilter = [];
+    this.loadData();
+    this.loadAvgClose();
+    if (this.isAdmin) {
+      const users = (await service({ requiresAuth: true, cached: true }).get("users", { params: { _limit: -1 } })).data;
+      this.owners = users
+        .filter(u => (u.permissions || []).some(p => p.permission === "orders"))
+        .sort((a, b) => (a.fullname || a.username || "").localeCompare(b.fullname || b.username || ""));
+    }
     if (incidenceId) {
-      await this.loadIncidenceModal(incidenceId);
+      await this.select(incidenceId);
     }
   },
   methods: {
-    async loadIncidenceModal(incidenceId) {
+    // the incidence of the right panel, with its order (route, status)
+    async select(id) {
       try {
-        this.isLoading = true;
-        
-        // Fetch the specific incidence with all related data
-        const response = await service({ requiresAuth: true }).get(
-          `incidences/${incidenceId}`
-        );
-        
-        const incidence = response.data;
-        
-        // Fetch users to enrich order owner information
-        const usersResponse = await service({ requiresAuth: true, cached: true }).get(
-          "users", 
-          { params: { _limit: -1 } }
-        );
-        const users = usersResponse.data;
-        const usersMap = new Map(users.map(u => [u.id, u]));
-        
-        // Enrich order owner information
-        if (incidence.order && incidence.order.owner) {
-          const ownerId = typeof incidence.order.owner === 'object' 
-            ? incidence.order.owner.id 
-            : incidence.order.owner;
-          const owner = usersMap.get(ownerId);
-          if (owner) {
-            incidence.order.owner = owner;
+        const incidence = (await service({ requiresAuth: true }).get(`incidences/${id}`)).data;
+        const listed = this.incidences.find(i => i.id === incidence.id);
+        if (listed && listed.order && listed.order.owner && typeof listed.order.owner === "object" && incidence.order) {
+          incidence.order.owner = listed.order.owner;
+        }
+        if (!this.responseText[incidence.id]) this.responseText[incidence.id] = "";
+        this.selected = incidence;
+        this.selectedOrder = null;
+        if (incidence.order && incidence.order.id) {
+          this.selectedOrder = (await service({ requiresAuth: true }).get(`orders/${incidence.order.id}`)).data;
+          if (this.selectedOrder && this.selectedOrder.owner && typeof this.selectedOrder.owner === "object") {
+            this.selected = { ...this.selected, order: { ...this.selected.order, owner: this.selectedOrder.owner } };
           }
         }
-        
-        // Initialize response text for this incidence
-        if (!this.responseText[incidence.id]) {
-          this.responseText[incidence.id] = '';
-        }
-        
-        this.modalIncidence = incidence;
-        this.showIncidenceModal = true;
       } catch (error) {
-        console.error("Error loading incidence:", error);
-        this.$buefy.toast.open({
-          message: "Error carregant la incidència",
-          type: "is-danger"
-        });
-      } finally {
-        this.isLoading = false;
+        this.$buefy.toast.open({ message: "Error carregant la incidència", type: "is-danger" });
       }
     },
-    async addResponseFromModal(incidence) {
-      const text = this.responseText[incidence.id];
-      if (!text || !text.trim()) {
-        return;
-      }
-
+    async refreshSelected() {
+      if (this.selected) await this.select(this.selected.id);
+    },
+    tabOn(tab) {
+      return tab.states.length === this.stateFilter.length && tab.states.every(s => this.stateFilter.includes(s));
+    },
+    setTab(tab) {
+      this.stateFilter = [...tab.states];
+      this.refresh();
+    },
+    refresh() {
+      this.page = 1;
+      this.loadData();
+    },
+    debouncedRefresh() {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = setTimeout(() => this.refresh(), 400);
+    },
+    async loadAvgClose() {
       try {
-        this.isLoading = true;
-
-        // Get current user
-        const me = await service({ requiresAuth: true, cached: true }).get("users/me");
-        const currentUserId = me.data.id;
-
-        // Prepare the new response
-        const newResponse = {
-          text: text.trim(),
-          user: currentUserId,
-          response_date: new Date().toISOString()
-        };
-
-        // Get current responses and add the new one
-        const currentResponses = incidence.incidence_response || [];
-        const updatedResponses = [...currentResponses, newResponse];
-
-        // Update the incidence with the new response
-        await service({ requiresAuth: true }).put(
-          `incidences/${incidence.id}`,
-          {
-            incidence_response: updatedResponses
-          }
-        );
-
-        this.$buefy.toast.open({
-          message: "Resposta afegida correctament",
-          type: "is-success"
-        });
-
-        // Clear the input
-        this.responseText[incidence.id] = '';
-
-        // Reload the modal incidence
-        await this.loadIncidenceModal(incidence.id);
-        
-        // Also reload table data
-        await this.loadData();
-      } catch (error) {
-        console.error("Error adding response:", error);
-        this.$buefy.toast.open({
-          message: "Error afegint resposta",
-          type: "is-danger"
-        });
-      } finally {
-        this.isLoading = false;
+        const since = moment().subtract(3, "months").format("YYYY-MM-DD");
+        const params = { state: "closed", closed_date_gte: since, _limit: -1 };
+        if (!this.isAdmin && this.currentUserId) params["order.owner"] = this.currentUserId;
+        const closed = (await service({ requiresAuth: true }).get("incidences", { params })).data;
+        const days = closed
+          .filter(i => i.closed_date && this.createdOf(i))
+          .map(i => moment(i.closed_date).diff(moment(this.createdOf(i)), "hours") / 24);
+        this.avgCloseDays = days.length ? days.reduce((a, b) => a + b, 0) / days.length : null;
+      } catch (e) {
+        this.avgCloseDays = null;
       }
     },
-    async changeStateFromModal(incidence, newState) {
-      const stateLabels = {
-        open: 'oberta',
-        wip: 'en procés',
-        closed: 'tancada'
-      };
-
-      const confirmMessage = newState === 'closed' 
-        ? 'Estàs segur que vols tancar aquesta incidència?' 
-        : `Vols marcar aquesta incidència com a ${stateLabels[newState]}?`;
-
-      this.$buefy.dialog.confirm({
-        message: confirmMessage,
-        onConfirm: async () => {
-          try {
-            this.isLoading = true;
-
-            // Get current user
-            const me = await service({ requiresAuth: true, cached: true }).get("users/me");
-            const currentUserId = me.data.id;
-
-            const updateData = {
-              state: newState
-            };
-
-            // If closing, set closed_date and closed_user
-            if (newState === 'closed') {
-              updateData.closed_date = new Date().toISOString();
-              updateData.closed_user = currentUserId;
-            }
-
-            await service({ requiresAuth: true }).put(
-              `incidences/${incidence.id}`,
-              updateData
-            );
-
-            this.$buefy.toast.open({
-              message: `Incidència marcada com a ${stateLabels[newState]}`,
-              type: "is-success"
-            });
-
-            // Reload the modal incidence
-            await this.loadIncidenceModal(incidence.id);
-            
-            // Also reload table data
-            await this.loadData();
-          } catch (error) {
-            console.error("Error changing state:", error);
-            this.$buefy.toast.open({
-              message: "Error canviant l'estat de la incidència",
-              type: "is-danger"
-            });
-          } finally {
-            this.isLoading = false;
-          }
-        }
-      });
+    createdOf(incidence) {
+      return incidence.created_at || incidence.createdAt;
+    },
+    userName(user) {
+      return user ? user.fullname || user.username : "Usuari desconegut";
+    },
+    ownerName(incidence) {
+      const owner = incidence && incidence.order && incidence.order.owner;
+      return owner && typeof owner === "object" ? owner.fullname || owner.username : "";
+    },
+    stateTag(state) {
+      return { open: "is-danger is-light", wip: "is-warning is-light", closed: "is-success is-light" }[state] || "";
+    },
+    orderStatusLabel(status) {
+      return { pending: "Pendent", processed: "Processada", delivered: "Lliurada", invoiced: "Facturada", cancelled: "Anul·lada" }[status] || status;
+    },
+    formatNum(value) {
+      return formatNumber(value, 1);
     },
     async loadData() {
       this.isLoading = true;
@@ -760,6 +368,17 @@ export default {
       }
       if (!this.isAdmin && this.currentUserId) {
         params['order.owner'] = this.currentUserId;
+      } else if (this.ownerFilter) {
+        params['order.owner'] = this.ownerFilter;
+      }
+      const q = (this.search || "").trim();
+      if (q) {
+        params["_where[_or][0][description_contains]"] = q;
+        params["_where[_or][1][order.contact_trade_name_contains]"] = q;
+        if (/^\d+$/.test(q)) {
+          params["_where[_or][2][order.id]"] = q;
+          params["_where[_or][3][id]"] = q;
+        }
       }
       return params;
     },
@@ -870,9 +489,9 @@ export default {
     },
     getStateLabel(state) {
       const labels = {
-        open: "OBERTA",
-        wip: "EN PROCÉS",
-        closed: "TANCADA"
+        open: "Oberta",
+        wip: "En procés",
+        closed: "Tancada"
       };
       return labels[state] || state;
     },
@@ -885,18 +504,12 @@ export default {
       return types[state] || "is-light";
     },
     formatDate(date) {
-      if (!date) return "-";
+      if (!date) return "";
       return moment(date).format("DD/MM/YYYY");
     },
     formatDateTime(date) {
       if (!date) return "-";
       return moment(date).format("DD/MM/YYYY HH:mm");
-    },
-    onDetailsOpen(row) {
-      // Initialize response text for this row if not exists
-      if (!this.responseText[row.id]) {
-        this.responseText[row.id] = '';
-      }
     },
     async addResponse(incidence) {
       const text = this.responseText[incidence.id];
@@ -940,6 +553,7 @@ export default {
 
         // Reload data to show the new response
         await this.loadData();
+        await this.refreshSelected();
       } catch (error) {
         console.error("Error adding response:", error);
         this.$buefy.toast.open({
@@ -993,6 +607,7 @@ export default {
 
             // Reload data
             await this.loadData();
+            await this.refreshSelected();
           } catch (error) {
             console.error("Error changing state:", error);
             this.$buefy.toast.open({
@@ -1044,6 +659,7 @@ export default {
               message: "Incidència eliminada",
               type: "is-success"
             });
+            if (this.selected && this.selected.id === incidence.id) this.selected = null;
             this.loadData();
           } catch (error) {
             console.error("Error deleting incidence:", error);
@@ -1062,133 +678,148 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.bg-white-panel {
-  background-color: var(--a-surface);
-  border-radius: 4px;
-  padding: 1rem;
-}
-
-.incidence-description {
-  max-width: 400px;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.view-button {
-  margin-right: 0.5rem;
-}
-
-h2 {
-  font-size: 0.875rem;
-  font-weight: 600;
+.incidences-page .segmented .count {
+  margin-left: .25rem;
+  font-size: .75rem;
+  font-weight: 700;
   color: var(--a-muted);
-  margin-bottom: 0.25rem;
 }
-
-.incidence-chat-container {
-  padding: 1.5rem;
-  background-color: var(--a-thead);
-  border-radius: 8px;
-  margin: 1rem 0;
+.inc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 27rem;
+  gap: 1rem;
+  align-items: start;
 }
-
-.chat-message {
-  background-color: white;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  &.initial-message {
-    border-left: 0px solid #3273dc;
-  }
+.inc-list {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
 }
-
-.message-header {
+.inc-table {
+  font-size: .875rem;
+}
+.inc-table td {
+  vertical-align: middle;
+}
+.inc-row {
+  cursor: pointer;
+}
+.inc-row:hover td {
+  background: var(--a-thead);
+}
+.inc-row.is-selected td {
+  background: var(--a-accent-soft);
+}
+.col-text {
+  width: 100%;
+  max-width: 0;
+}
+.col-text b,
+.col-text small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.col-text b {
+  color: var(--a-fg);
+}
+.col-text small {
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.num,
+.nowrap {
+  white-space: nowrap;
+}
+.col-actions {
+  width: 2.5rem;
+  text-align: right;
+}
+.row-action {
+  border: 0;
+  background: none;
+  color: var(--a-muted);
+  cursor: pointer;
+}
+.row-action:hover {
+  color: var(--a-neg);
+}
+.box-empty {
+  padding: 2rem !important;
+  text-align: center;
+  color: var(--a-muted);
+}
+.inc-foot {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem 1rem;
+  border-top: 1px solid var(--a-line-soft);
+  font-size: .875rem;
+  color: var(--a-muted);
+}
+.inc-foot > :last-child {
+  margin-left: auto;
+}
+.inc-detail {
+  position: sticky;
+  top: 1rem;
+}
+.order-tag {
+  margin-left: .5rem;
+}
+.conversation {
+  display: flex;
+  flex-direction: column;
+  gap: .625rem;
+  margin: 1.25rem 0;
+}
+.message {
+  padding: .75rem .875rem;
+  border: 1px solid var(--a-line-soft);
+  border-radius: 10px;
+  background: var(--a-thead);
+}
+.message.is-first {
+  background: var(--a-chip);
+}
+.message-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--a-line);
-  background-color: transparent;
+  gap: .5rem;
+  margin-bottom: .25rem;
+  font-size: .8125rem;
 }
-
-.message-author {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-  strong {
-    color: var(--a-fg);
-  }
-}
-
-.message-date {
-  font-size: 0.875rem;
+.message-meta small {
   color: var(--a-muted);
 }
-
-.message-content {
+.message p {
   white-space: pre-wrap;
   word-break: break-word;
-  color: #4a4a4a;
-  line-height: 1.5;
-
-  &.initial-content {
-    font-weight: 500;
+  color: var(--a-fg);
+}
+.field-note {
+  display: block;
+  margin-top: -.5rem;
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.reply-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+@media screen and (max-width: 1215px) {
+  .inc-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.add-response-form {
-  background-color: white;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  .buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-}
-
-.message-author .icon {
-    color: #000;
-}
-
-.modal-card {
-  width: 100%;
-}
-
-.modal-card-head {
-  background-color: #3273dc;
-  
-  .modal-card-title {
-    color: white;
-  }
-}
-
-.modal-card-body {
-  background-color: var(--a-thead);
-}
-
-.incidence-summary {
-  background-color: white;
-  border-radius: 8px;
-  padding: 1rem;
-  
-  p {
-    margin-bottom: 0.5rem;
-    
-    strong {
-      color: var(--a-fg);
-      margin-right: 0.5rem;
-    }
+  .inc-detail {
+    position: static;
   }
 }
 </style>
-
 <style lang="scss">
 .small-table {
   font-size: 0.875rem;
