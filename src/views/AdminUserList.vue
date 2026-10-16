@@ -1,24 +1,17 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <!-- the page head lives in AdminUserList (its counts and actions) -->
     <admin-user-list />
   </div>
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar.vue';
 import AdminUserList from '@/components/AdminUserList.vue';
 
 export default {
   name: 'AdminUserListView',
   components: {
-    TitleBar,
     AdminUserList
-  },
-  computed: {
-    titleStack() {
-      return ['Administració', 'Usuaris'];
-    }
   }
 };
 </script>

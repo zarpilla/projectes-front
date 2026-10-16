@@ -1,35 +1,22 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <!-- the page head lives in AdminUserForm (name, state and summary of the user) -->
     <admin-user-form :user-id="id" />
   </div>
 </template>
 
 <script>
-import TitleBar from '@/components/TitleBar.vue';
 import AdminUserForm from '@/components/AdminUserForm.vue';
 
 export default {
   name: 'AdminUserFormView',
   components: {
-    TitleBar,
     AdminUserForm
   },
   props: {
     id: {
       type: String,
       default: null
-    }
-  },
-  computed: {
-    titleStack() {
-      const base = ['Administració', 'Usuaris'];
-      if (this.id) {
-        base.push('Editar');
-      } else {
-        base.push('Crear');
-      }
-      return base;
     }
   }
 };

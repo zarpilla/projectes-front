@@ -35,10 +35,11 @@ async function apiAs (p, method, route, body) {
 test('admin: create a user with only the hours permission', async () => {
   await visit('/admin/users/new')
   await field("Nom d'usuari").locator('input').fill(USER.username)
-  await field('Email').locator('input').fill(USER.email)
-  await field('Confirmat').locator('.switch').click()
+  await field('Correu electrònic').locator('input').fill(USER.email)
+  // access and permissions are checkboxes with a description below the name
+  await page.locator('.access-option .b-checkbox', { hasText: /^\s*Confirmat/ }).click()
   await field('Rol').locator('select').selectOption({ label: 'Authenticated' })
-  await field("Permisos d'aplicació").locator('.b-checkbox, .checkbox', { hasText: /^\s*Hores\s*$/ }).click()
+  await page.locator('.perm-option .b-checkbox', { hasText: /^\s*Hores/ }).click()
   await button('Guardar').click()
   // new users get their password in a prompt
   const prompt = page.locator('.dialog.modal.is-active')
@@ -56,7 +57,7 @@ test('admin: create a user with only the hours permission', async () => {
 test('a new user can be created without picking a role', async () => {
   await visit('/admin/users/new')
   await field("Nom d'usuari").locator('input').fill(`${USER.username}-r`)
-  await field('Email').locator('input').fill(`r-${USER.email}`)
+  await field('Correu electrònic').locator('input').fill(`r-${USER.email}`)
   await button('Guardar').click()
   const prompt = page.locator('.dialog.modal.is-active')
   await prompt.locator('input[type=password]').fill(USER.password)
