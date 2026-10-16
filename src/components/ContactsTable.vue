@@ -6,7 +6,36 @@
       @confirm="onUnifyConfirm"
     ></modal-box-unify-contacts>
 
-    <div class="is-flex">
+    <!-- Redesign A (contacts): one toolbar with search, type filter, count and actions -->
+    <div v-if="!userContacts" class="contacts-toolbar">
+      <b-input
+        v-model="search"
+        class="contacts-search"
+        type="search"
+        icon="magnify"
+        placeholder="Cerca per nom, NIF, correu o població"
+        aria-label="Cerca contactes"
+      />
+      <div v-if="contactTypeNames.length" class="segmented" role="group" aria-label="Tipus de contacte">
+        <button type="button" :class="{ 'is-on': !typeFilter }" :aria-pressed="!typeFilter ? 'true' : 'false'" @click="typeFilter = ''">Tots</button>
+        <button
+          v-for="name in contactTypeNames"
+          :key="name"
+          type="button"
+          :class="{ 'is-on': typeFilter === name }"
+          :aria-pressed="typeFilter === name ? 'true' : 'false'"
+          @click="typeFilter = name"
+        >{{ name }}</button>
+      </div>
+      <span class="contacts-count">{{ filteredContacts.length }} {{ filteredContacts.length === 1 ? "contacte" : "contactes" }}</span>
+      <div class="contacts-actions">
+        <download-excel class="export" :data="contactsCSV" :escapeCsv="false" name="contactes" :fields="csv">
+          <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
+        </download-excel>
+        <b-button type="is-primary" icon-left="plus" @click="navNew">Nou contacte</b-button>
+      </div>
+    </div>
+    <div v-else class="is-flex">
       <download-excel
         class="export"
         :data="contactsCSV"
@@ -53,84 +82,39 @@
         Unificar punts d'entrega
       </b-button>
     </div>
-    <b-table
-      :loading="isLoading"
-      :paginated="true"
-      :per-page="50"
-      pagination-position="both"
-      :striped="false"
-      :data="contacts"
-      v-if="!userContacts"
-    >
-      <b-table-column
-        label="ID"
-        field="id"
-        sortable
-        width="80"
-        searchable
-        v-slot="props"
+    <div v-if="!userContacts" class="card has-table contacts-card">
+      <b-table
+        :loading="isLoading"
+        :paginated="true"
+        :per-page="50"
+        pagination-position="bottom"
+        :striped="false"
+        :mobile-cards="false"
+        :data="filteredContacts"
+        aria-next-label="Pàgina següent"
+        aria-previous-label="Pàgina anterior"
+        aria-page-label="Pàgina"
+        aria-current-label="Pàgina actual"
       >
-        <router-link
-          :to="{ name: 'contacts.edit', params: { id: props.row.id } }"
-        >
-          {{ props.row.id }}
-        </router-link>
-      </b-table-column>
-      <b-table-column
-        label="Nom"
-        searchable
-        field="name"
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.name }}
-      </b-table-column>
-      <b-table-column
-        label="NIF"
-        field="nif"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.nif }}
-      </b-table-column>
-      <b-table-column
-        label="Correu"
-        field="email"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.email || "-" }}
-      </b-table-column>
-      <b-table-column
-        label="Telèfon"
-        field="phone"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.phone || "-" }}
-      </b-table-column>
-      <b-table-column
-        label="Població"
-        field="city"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.city || "-" }}
-      </b-table-column>
-      <b-table-column
-        label="Tipus"
-        field="contact_type_display"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.contact_type_display || "-" }}
-      </b-table-column>
-    </b-table>
+        <b-table-column label="Nom" field="name" sortable v-slot="props">
+          <router-link class="contact-name" :to="{ name: 'contacts.edit', params: { id: props.row.id } }">
+            {{ props.row.name || "(sense nom)" }}
+          </router-link>
+          <span class="contact-subline">{{ [props.row.nif, props.row.city].filter(Boolean).join(" · ") || "—" }}</span>
+        </b-table-column>
+        <b-table-column label="Contacte" field="email" sortable v-slot="props">
+          <a v-if="props.row.email" :href="'mailto:' + props.row.email" class="contact-line">{{ props.row.email }}</a>
+          <span v-if="props.row.phone" class="contact-line">{{ props.row.phone }}</span>
+          <span v-if="!props.row.email && !props.row.phone" class="has-text-muted">—</span>
+        </b-table-column>
+        <b-table-column label="Tipus" field="contact_type_display" sortable v-slot="props">
+          <span v-for="t in (props.row.contact_type_display || '').split(', ').filter(Boolean)" :key="t" class="tag mr-1">{{ t }}</span>
+        </b-table-column>
+        <template #empty>
+          <p class="has-text-muted has-text-centered py-5">Cap contacte coincideix amb la cerca.</p>
+        </template>
+      </b-table>
+    </div>
     <b-table
       :loading="isLoading"
       :paginated="true"
@@ -281,6 +265,9 @@ export default {
   },
   data() {
     return {
+      // redesign: one search and a type filter for the contacts list
+      search: "",
+      typeFilter: "",
       isLoading: false,
       isUnifyModalActive: false,
       contacts: [],
@@ -347,6 +334,21 @@ export default {
     };
   },
   computed: {
+    contactTypeNames() {
+      const names = new Set();
+      (this.contacts || []).forEach(c => (c.contact_type_display || "").split(", ").filter(Boolean).forEach(n => names.add(n)));
+      return [...names].sort((a, b) => a.localeCompare(b, "ca"));
+    },
+    filteredContacts() {
+      const words = this.search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      return (this.contacts || []).filter(c => {
+        if (this.typeFilter && !(c.contact_type_display || "").split(", ").includes(this.typeFilter)) {
+          return false;
+        }
+        const text = [c.name, c.trade_name, c.nif, c.email, c.phone, c.city].filter(Boolean).join(" ").toLowerCase();
+        return words.every(w => text.includes(w));
+      });
+    },
     ...mapState(useMainStore, ["userName"]),
     ...mapState(useMainStore, ["userId"])
   },
@@ -552,6 +554,72 @@ export default {
 };
 </script>
 <style scoped>
+.contacts-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.contacts-search {
+  flex: 1 1 18rem;
+  max-width: 24rem;
+}
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--a-seg);
+}
+.segmented button {
+  height: 2.125rem;
+  padding: 0 .75rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--a-fg-2);
+  cursor: pointer;
+}
+.segmented button.is-on {
+  background: var(--a-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.contacts-count {
+  color: var(--a-muted);
+  font-weight: 700;
+}
+.contacts-actions {
+  margin-left: auto;
+  display: flex;
+  gap: .5rem;
+}
+.contacts-actions .export {
+  display: inline-flex;
+}
+.contact-name {
+  display: block;
+  font-weight: 700;
+  color: var(--a-fg);
+}
+.contact-name:hover {
+  color: var(--a-accent);
+}
+.contact-subline {
+  display: block;
+  color: var(--a-muted);
+  font-size: .8125rem;
+}
+.contact-line {
+  display: block;
+  white-space: nowrap;
+}
 .zb-table :deep(tbody tr) {
   border-bottom: 1px solid #eee;
 }
