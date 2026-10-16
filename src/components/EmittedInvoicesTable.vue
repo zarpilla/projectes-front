@@ -169,7 +169,7 @@
       <b-table-column label="IVA" field="total_vat" v-slot="props" sortable numeric cell-class="is-nowrap">
         {{ formatMoney(props.row.total_vat) }}
       </b-table-column>
-      <b-table-column label="IRPF" v-if="!provider && hasIrpf" field="total_irpf" v-slot="props" sortable numeric cell-class="is-nowrap">
+      <b-table-column label="IRPF" :visible="!provider && hasIrpf" field="total_irpf" v-slot="props" sortable numeric cell-class="is-nowrap">
         {{ formatMoney(-1 * props.row.total_irpf) }}
       </b-table-column>
       <b-table-column label="Total" field="total" v-slot="props" sortable numeric cell-class="is-nowrap doc-total">
@@ -512,83 +512,6 @@ export default {
 };
 </script>
 <style>
-/* Redesign A: totals, actions and the list of income documents */
-.doc-kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.doc-kpi {
-  background: var(--a-surface);
-  border: 1px solid var(--a-line);
-  border-radius: 12px;
-  padding: .875rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: .125rem;
-  font-variant-numeric: tabular-nums;
-}
-.doc-kpi span {
-  font-size: .8125rem;
-  font-weight: 700;
-  color: var(--a-muted);
-}
-.doc-kpi b {
-  font-size: 1.375rem;
-  font-weight: 800;
-  color: var(--a-fg);
-}
-.doc-kpi small {
-  color: var(--a-muted);
-}
-.doc-kpi.is-warn b {
-  color: var(--a-warn-fg);
-}
-.doc-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: .5rem;
-  margin-bottom: 1rem;
-}
-.doc-actions .export {
-  display: inline-flex;
-}
-.doc-subline {
-  display: block;
-  font-size: .8125rem;
-  color: var(--a-muted);
-}
-.doc-title {
-  display: block;
-}
-td.doc-contact {
-  min-width: 10rem;
-}
-td.doc-concept {
-  min-width: 10.5rem;
-  max-width: 15rem;
-}
-td.doc-project {
-  max-width: 9rem;
-}
-.doc-clamp {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-td.is-nowrap {
-  white-space: nowrap;
-}
-.doc-unassigned {
-  color: var(--a-warn-fg);
-  font-weight: 700;
-}
-td.doc-total {
-  font-weight: 800;
-}
 .has-scroll .table-wrapper{
   overflow: auto !important;
 }

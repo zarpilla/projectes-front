@@ -2,94 +2,71 @@
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <card-component>
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Codi" class="is-narrow">
-              <b-input v-model="codeSearch" placeholder="Cerca per codi"></b-input>
-            </b-field>
-            <b-field label="Any">
-              <b-select v-model="filters.year" required>
-                <option
-                  v-for="(year, index) in years"
-                  :key="index"
-                  :value="year.year"
-                >
-                  {{ year.year }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Mes">
-              <b-select v-model="filters.month" :disabled="filters.quarter > 0">
-                <option v-for="(m, i) in months" :key="i" :value="m.month">
-                  {{ m.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Trimestre">
-              <b-select
-                v-model="filters.quarter"                
-              >
-                <option
-                  v-for="(m, i) in quarters"
-                  :key="i"
-                  :value="m.value"
-                >
-                  {{ m.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Sèrie">
-              <b-select v-model="filters.serial">
-                <option v-for="(m, i) in serials" :key="i" :value="m.id">
-                  {{ m.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Tipus">
-              <b-select v-model="filters.documentType">
-                <option v-for="(c, i) in documentTypes" :key="i" :value="c.id">
-                  {{ c.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Contacte" class="is-narrow">
-              <b-autocomplete
-                v-model="contactNameSearch"
-                placeholder="Contacte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredContacts"
-                field="name"
-                @select="option => (filters.contact = option ? option.id : 0)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Projecte" class="is-narrow">
-              <b-autocomplete
-                v-model="projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="option => (filters.project = option ? option.id : 0)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Pagada" class="is-narrow">
-              <b-select v-model="filters.paid">
-                <option v-for="(c, i) in paid" :key="i" :value="c.value">
-                  {{ c.name }}
-                </option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <b-input v-model="codeSearch" class="filter-grow" icon="magnify" placeholder="Cerca per codi" aria-label="Codi" />
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" required>
+            <option v-for="(year, index) in years" :key="index" :value="year.year">{{ year.year }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Mes</span>
+          <b-select v-model="filters.month" :disabled="filters.quarter > 0">
+            <option v-for="(m, i) in months" :key="i" :value="m.month">{{ m.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Trimestre</span>
+          <b-select v-model="filters.quarter">
+            <option v-for="(m, i) in quarters" :key="i" :value="m.value">{{ m.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Sèrie</span>
+          <b-select v-model="filters.serial">
+            <option v-for="(m, i) in serials" :key="i" :value="m.id">{{ m.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Tipus</span>
+          <b-select v-model="filters.documentType">
+            <option v-for="(c, i) in documentTypes" :key="i" :value="c.id">{{ c.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Pagada</span>
+          <b-select v-model="filters.paid">
+            <option v-for="(c, i) in paid" :key="i" :value="c.value">{{ c.name }}</option>
+          </b-select>
+        </label>
+        <b-autocomplete
+          v-model="contactNameSearch"
+          class="filter-grow"
+          placeholder="Contacte"
+          aria-label="Contacte"
+          icon="account-outline"
+          :keep-first="false"
+          :open-on-focus="true"
+          :data="filteredContacts"
+          field="name"
+          :clearable="true"
+          @select="option => (filters.contact = option ? option.id : 0)"
+        />
+        <b-autocomplete
+          v-model="projectNameSearch"
+          class="filter-grow"
+          placeholder="Projecte"
+          aria-label="Projecte"
+          icon="folder-outline"
+          :keep-first="false"
+          :open-on-focus="true"
+          :data="filteredProjects"
+          field="name"
+          :clearable="true"
+          @select="option => (filters.project = option ? option.id : 0)"
+        />
+      </form>
       <received-invoices-table
         :code="filters.code"
         :year="filters.year"
@@ -108,7 +85,6 @@
 <script>
 import TitleBar from "@/components/TitleBar.vue";
 import ReceivedInvoicesTable from "@/components/ReceivedInvoicesTable.vue";
-import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -117,7 +93,6 @@ import moment from "moment";
 export default {
   name: "ReceivedInvoices",
   components: {
-    CardComponent,
     TitleBar,
     ReceivedInvoicesTable,
   },

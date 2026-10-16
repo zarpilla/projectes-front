@@ -449,6 +449,84 @@ a {
   }
 }
 
+/* ---------- document lists (Ingressos, Despeses): totals, actions, cells ---------- */
+.doc-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.doc-kpi {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  padding: .875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .125rem;
+  font-variant-numeric: tabular-nums;
+}
+.doc-kpi span {
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.doc-kpi b {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.doc-kpi small {
+  color: var(--a-muted);
+}
+.doc-kpi.is-warn b {
+  color: var(--a-warn-fg);
+}
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.doc-actions .export {
+  display: inline-flex;
+}
+.doc-subline {
+  display: block;
+  font-size: .8125rem;
+  color: var(--a-muted);
+}
+.doc-title {
+  display: block;
+}
+td.doc-contact {
+  min-width: 9rem;
+}
+td.doc-concept {
+  min-width: 9.5rem;
+  max-width: 15rem;
+}
+td.doc-project {
+  max-width: 8.5rem;
+}
+.doc-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+td.is-nowrap {
+  white-space: nowrap;
+}
+.doc-unassigned {
+  color: var(--a-warn-fg);
+  font-weight: 700;
+}
+td.doc-total {
+  font-weight: 800;
+}
+
 /* ---------- small helpers shared by redesigned screens ---------- */
 .has-text-pos { color: $a-pos !important; }
 .has-text-neg { color: $a-neg !important; }

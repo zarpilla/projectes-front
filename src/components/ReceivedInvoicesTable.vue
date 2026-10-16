@@ -1,16 +1,13 @@
 <template>
   <div>
     <section class="xsection">
-      <tiles>
-        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_base" suffix="€"
-          label="Base" />
-        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_vat" label="IVA"
-          suffix="€" />
-        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_irpf" label="IRPF"
-          suffix="€" />
-        <card-widget class="tile is-child" type="is-primary" icon="currency-eur" :number="total_total" label="Total"
-          suffix="€" />
-      </tiles>
+      <div class="doc-kpis">
+        <div class="doc-kpi"><span>Base</span><b>{{ formatMoney(total_base) }}</b></div>
+        <div class="doc-kpi"><span>IVA</span><b>{{ formatMoney(total_vat) }}</b></div>
+        <div class="doc-kpi"><span>IRPF</span><b>{{ formatMoney(total_irpf) }}</b></div>
+        <div class="doc-kpi"><span>Total</span><b>{{ formatMoney(total_total) }}</b></div>
+      </div>
+      <div class="doc-actions">
       <!-- <pre>{{emitted}}</pre> -->
       <download-excel class="export" 
       :fields="{
@@ -91,17 +88,12 @@
         },
       }"
       :data="emittedCSV" name="despeses">
-        <b-button title="Exporta dades" class="export-button mt-0 mb-3" icon-left="file-excel" />
+        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
-      <b-button class="view-button is-primary mb-3" @click="navNew" icon-left="plus">
-        Nova factura
-      </b-button>
-      <b-button class="view-button is-primary mb-3 ml-3" @click="navNewExpense" icon-left="plus">
-        Nova despesa
-      </b-button>
-      <b-button class="view-button is-primary mb-3 ml-3" @click="navNewDiet" icon-left="plus">
-        Nova dieta
-      </b-button>
+      <b-button @click="navNewDiet" icon-left="plus">Nova dieta</b-button>
+      <b-button @click="navNewExpense" icon-left="plus">Nova despesa</b-button>
+      <b-button type="is-primary" @click="navNew" icon-left="plus">Nova factura</b-button>
+      </div>
 
       <div class="has-scroll">
       <b-table :loading="isLoading" :paginated="false" :striped="false" :data="emitted" :row-class="(row, index) =>
@@ -126,31 +118,24 @@
         }`
     }}
           </router-link>
-        </b-table-column>
-        <b-table-column label="Tipus" field="type" v-slot="props" sortable>
-          <span v-if="props.row.type === 'received-invoices'"> Factura </span>
-          <span v-if="props.row.type === 'received-expenses'">
-            {{ props.row.document_type.name }}
+          <span class="doc-subline">
+            <template v-if="props.row.type === 'received-invoices'">Factura</template>
+            <template v-else-if="props.row.type === 'received-expenses' && props.row.document_type">{{ props.row.document_type.name }}</template>
+            <template v-else-if="props.row.type === 'payrolls'">Nòmina</template>
+            <template v-if="props.row.contact_invoice_number"> · {{ props.row.contact_invoice_number }}</template>
           </span>
-          <span v-if="props.row.type === 'payrolls'"> Nòmina </span>
         </b-table-column>
-        <b-table-column label="Data" field="emitted" v-slot="props" sortable>
+        <b-table-column label="Data" field="emitted" v-slot="props" sortable cell-class="is-nowrap">
           {{ formatDate(props.row.emitted) }}
+          <span v-if="props.row.paybefore" class="doc-subline" title="Venciment">venç. {{ formatDate(props.row.paybefore) }}</span>
         </b-table-column>
-        <b-table-column label="Venciment" field="paybefore" v-slot="props" sortable>
-          {{ formatDate(props.row.paybefore) }}
-        </b-table-column>
-        <b-table-column label="Contacte" field="contact.name" v-slot="props" sortable>
-          {{ props.row.contact_info ? props.row.contact_info.name : props.row.contact ? props.row.contact.name : "-" }}
-        </b-table-column>
-        <b-table-column label="NIF Contacte" field="contact.name" v-slot="props" sortable>
-          {{ props.row.contact_info ? props.row.contact_info.nif : props.row.contact ? props.row.contact.nif : "-" }}
-        </b-table-column>
-        <b-table-column label="FProv" field="contact.name" v-slot="props" sortable>
-          {{ props.row.contact_invoice_number ? props.row.contact_invoice_number : "" }}
+        <b-table-column label="Contacte" field="contact.name" v-slot="props" sortable cell-class="doc-contact">
+          <span class="doc-title">{{ props.row.contact_info ? props.row.contact_info.name : props.row.contact ? props.row.contact.name : "—" }}</span>
+          <span class="doc-subline">{{ props.row.contact_info ? props.row.contact_info.nif : props.row.contact ? props.row.contact.nif : "" }}</span>
         </b-table-column>
 
-        <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable>
+        <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable cell-class="doc-concept">
+          <div class="doc-clamp" :title="props.row.document_concept || null">
           <span v-if="props.row.type === 'payrolls'">
             {{ props.row.users_permissions_user.username }}
           </span>
@@ -159,39 +144,37 @@
               props.row.document_concept || (props.row.lines && props.row.lines.length > 0 ? props.row.lines[0].concept : "")
             }}
           </span>
+          </div>
         </b-table-column>
-        <b-table-column label="Projecte" field="lines" v-slot="props" sortable>
-          {{
+        <b-table-column label="Projecte" field="lines" v-slot="props" sortable cell-class="doc-project">
+          <div class="doc-clamp">{{
             props.row.projects && props.row.projects.length
             ? props.row.projects[0].name
             : props.row.project
               ? props.row.project.name
-              : "-"
-          }}
+              : "—"
+          }}</div>
         </b-table-column>
-        <b-table-column label="Base" field="total_base" v-slot="props" sortable>
-          {{ formatPrice(props.row.total_base) }}€
+        <b-table-column label="Base" field="total_base" v-slot="props" sortable numeric cell-class="is-nowrap">
+          {{ formatMoney(props.row.total_base) }}
         </b-table-column>
-        <b-table-column label="IVA" field="total_vat" v-slot="props" sortable>
-          {{ formatPrice(props.row.total_vat) }}€
+        <b-table-column label="IVA" field="total_vat" v-slot="props" sortable numeric cell-class="is-nowrap">
+          {{ formatMoney(props.row.total_vat) }}
         </b-table-column>
-        <b-table-column label="IRPF" field="total_irpf" v-slot="props" sortable>
-          {{ formatPrice(-1 * props.row.total_irpf) }}€
+        <b-table-column :visible="hasIrpf" label="IRPF" field="total_irpf" v-slot="props" sortable numeric cell-class="is-nowrap">
+          {{ formatMoney(-1 * props.row.total_irpf) }}
         </b-table-column>
-        <b-table-column label="Total" field="total" v-slot="props" sortable>
-          {{ formatPrice(props.row.total) }}€
+        <b-table-column label="Total" field="total" v-slot="props" sortable numeric cell-class="is-nowrap doc-total">
+          {{ formatMoney(props.row.total) }}
         </b-table-column>
-        <b-table-column label="Pagada" field="paid_date" v-slot="props" sortable>
-          {{
-            props.row.paid_date
-            ? formatDate(props.row.paid_date)
-            : props.row.paid
-              ? "Sí (sense data)"
-              : "No"
-          }}
-        </b-table-column>
-        <b-table-column label="Assig." title="Assignada a línia de projecte" field="assigned" v-slot="props" sortable>
-          {{ props.row.assigned ? "Sí" : "No" }}
+        <b-table-column label="Pagada" field="paid_date" v-slot="props" sortable cell-class="is-nowrap">
+          <span v-if="props.row.paid_date || props.row.paid" class="tag is-success is-light">Pagada</span>
+          <span v-else-if="Number(props.row.total) < 0" class="tag">Abonament</span>
+          <span v-else-if="isOverdue(props.row)" class="tag is-danger is-light">Vençuda</span>
+          <span v-else class="tag is-warning">No pagada</span>
+          <span v-if="props.row.paid_date" class="doc-subline">{{ formatDate(props.row.paid_date) }}</span>
+          <span v-else-if="props.row.paid" class="doc-subline">sense data</span>
+          <span v-if="!props.row.assigned" class="doc-subline doc-unassigned" title="No assignada a cap línia de pressupost de projecte">Sense assignar</span>
         </b-table-column>
       </b-table>
     </div>
@@ -203,8 +186,7 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
-import Tiles from "@/components/Tiles.vue";
-import CardWidget from "@/components/CardWidget.vue";
+import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from 'pinia'
@@ -212,7 +194,7 @@ import { useMainStore } from '@/stores/main.js'
 
 export default {
   name: "ReceivedInvoices",
-  components: { Tiles, CardWidget },
+  components: {},
   props: {
     titleStack: {
       type: Array,
@@ -303,6 +285,10 @@ export default {
     },
   },
   computed: {
+    // the IRPF column only when some document of the period has it
+    hasIrpf() {
+      return (this.emitted || []).some(r => Number(r.total_irpf));
+    },
     total_base() {
       return sumBy(this.emitted, "total_base").toFixed(2);
     },
@@ -321,6 +307,11 @@ export default {
     this.getData();
   },
   methods: {
+    formatMoney,
+    // not paid, positive and past its due date ("Venciment")
+    isOverdue(row) {
+      return !row.paid_date && !row.paid && Number(row.total) > 0 && !!row.paybefore && moment(row.paybefore).isBefore(moment(), "day");
+    },
     navNew() {
       this.$router.push("/document/0/received-invoices");
     },
@@ -336,7 +327,7 @@ export default {
     },
     formatDate(value) {
       if (!value) return "";
-      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+      return moment(value, "YYYY-MM-DD").format("DD/MM/YYYY");
     },
     async getData() {
       this.isLoading = true;
