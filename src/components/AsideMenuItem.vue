@@ -56,6 +56,7 @@ export default {
   computed: {
     // an entry that stands for a group of screens (e.g. the auxiliary tables)
     isActiveGroup () {
+      if (!this.item.activeWhen || !this.$route) return false
       const path = this.$route.path
       if (this.item.activeWhen === 'admin-tables') return isAdminTablePath(path)
       if (this.item.activeWhen === 'verifactu') return /^\/admin\/(verifactu|verifactu-chain|face-queue)(\/|$)/.test(path)
