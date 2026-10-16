@@ -1,60 +1,44 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Estat projecte">
-              <b-select
-                v-model="filters.project_state"
-                placeholder="Estat"
-                required
-              >
-                <option
-                  v-for="(s, index) in project_states"
-                  :key="index"
-                  :value="s.id"
-                >
-                  {{ s.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Any">
-              <b-select v-model="filters.year" placeholder="Any">
-                <option
-                  v-for="(s, index) in years"
-                  :key="index"
-                  :value="s.year"
-                >
-                  {{ s.year }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Dades">
-              <b-select v-model="filters.dataType" placeholder="Any">
-                <option v-for="(s, index) in dataTypes" :key="index" :value="s">
-                  {{ s }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Marge (%)">
-              <b-input v-model="filters.margin" placeholder="Marge" type="numeric" />              
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
-      <b-notification aria-close-label="Close notification" type="is-warning is-light">        
-        <strong>Preu per hora:</strong> ( (cost directe + despesa laboral) + (despeses indirectes) + marge ) / (hores productives)
-      </b-notification>
-
-      <card-component title="Projectes">
-        <price-per-hour-detail
-          :project-state="filters.project_state" :year="filters.year" :data-type="filters.dataType" :margin="filters.margin"
-          v-if="!isLoading"
-        />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" aria-label="Any">
+            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ s.year }}</option>
+          </b-select>
+        </label>
+        <div class="toggle-group" role="group" aria-label="Estat projecte">
+          <span class="toggle-label">Estat projecte</span>
+          <button
+            v-for="state in project_states"
+            :key="state.id"
+            type="button"
+            class="chip-toggle"
+            :class="{ 'is-on': selectedProjectStates.includes(state.id) }"
+            :aria-pressed="selectedProjectStates.includes(state.id) ? 'true' : 'false'"
+            @click="toggleState(state)"
+          >
+            {{ state.name }}
+          </button>
+        </div>
+        <div class="segmented" role="group" aria-label="Dades">
+          <button v-for="t in dataTypes" :key="t" type="button" :class="{ 'is-on': filters.dataType === t }" @click="filters.dataType = t">{{ t }}</button>
+        </div>
+        <label class="filter-select margin-field">
+          <span>Marge</span>
+          <input v-model="filters.margin" class="input" inputmode="decimal" aria-label="Marge (%)" />
+          <span>%</span>
+        </label>
+      </form>
+      <price-per-hour-detail
+        v-if="!isLoading"
+        :project-states="selectedProjectStates"
+        :year="filters.year"
+        :data-type="filters.dataType"
+        :margin="Number(String(filters.margin).replace(',', '.')) || 0"
+      />
     </section>
   </div>
 </template>
@@ -64,6 +48,8 @@ import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import PricePerHourDetail from "@/components/PricePerHourDetail.vue";
 import service from "@/service/index";
+
+const STATES_KEY = "PricePerHour.selectedProjectStates";
 
 export default {
   name: "StatsExpenses",
@@ -82,13 +68,17 @@ export default {
         margin: 5
       },
       project_states: [],
+      selectedProjectStates: [],
       years: [],
       dataTypes: ["Previsió", "Execució"]
     };
   },
   computed: {
-    titleStack() {
-      return ["Projectes", "Preu Hora"];
+    titleStack () {
+      return ['Informes', 'Preu hora']
+    },
+    subtitle () {
+      return 'Quant costa cada hora productiva, amb les despeses d\'estructura i el marge.'
     }
   },
   async mounted() {
@@ -97,19 +87,31 @@ export default {
     this.getData();
   },
   methods: {
+    toggleState(state) {
+      this.selectedProjectStates = this.selectedProjectStates.includes(state.id)
+        ? this.selectedProjectStates.filter(id => id !== state.id)
+        : [...this.selectedProjectStates, state.id];
+      try {
+        localStorage.setItem(STATES_KEY, JSON.stringify(this.selectedProjectStates));
+      } catch (e) {
+        // private mode: not remembered
+      }
+    },
     getData() {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
           this.project_states = [...r.data];
-          this.project_states.unshift({ id: 0, name: "Tots" });
-          const name = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 3).name}`
-          this.project_states.push({ id: -1, name });
-
-          const name2 = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 2).name}`
-          this.project_states.push({ id: -2, name: name2 });
-
-          this.filters.project_state = this.project_states[this.project_states.length - 1].id;
+          // the old default was "1+2"; remembered in this browser once changed
+          let saved = null;
+          try {
+            saved = JSON.parse(localStorage.getItem(STATES_KEY) || "null");
+          } catch (e) {
+            saved = null;
+          }
+          this.selectedProjectStates = Array.isArray(saved)
+            ? saved
+            : this.project_states.filter(s => s.id === 1 || s.id === 2).map(s => s.id);
 
           service({ requiresAuth: true, cached: true })
             .get("years?_sort=year:DESC")
@@ -141,5 +143,18 @@ export default {
 .k-pivot-toolbar .k-button {
   background-color: #999 !important;
   border-color: #999 !important;
+}
+</style>
+<style scoped>
+.margin-field {
+  padding-right: .75rem;
+}
+.margin-field .input {
+  width: 3.5rem;
+  border: 0;
+  box-shadow: none;
+  text-align: right;
+  font-weight: 700;
+  background: transparent;
 }
 </style>

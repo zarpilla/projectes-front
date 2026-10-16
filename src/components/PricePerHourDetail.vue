@@ -1,104 +1,147 @@
 <template>
-  <div>
-    <table class="table is-striped">
-      <thead>
-        <th>Projecte</th>
-        <th>Despeses directes</th>
-        <th>% Indirectes</th>
-        <th>Despeses indirectes</th>
-        <th>Hores productives</th>
-        <th>Preu/Hora</th>
-      </thead>
-      <tbody>
-        <tr v-for="project in pivotDataGroupped.filter(g => g.structural_expenses !== true)">
-          <td>
-            <router-link
-              :to="{
-                name: 'project.edit',
-                params: { id: project.id }
-              }"
-              >{{ project.project_name }}</router-link>
-            
-          </td>
-          <td class="has-text-right">
-            {{
-              (
-                -1 *
-                (project[total_expense] + project[expense_vat])
-              ).toFixed(2)
-            }}
-          </td>
-          <td class="has-text-right">
-            {{
-              (
-                (100 *
-                  (project[total_expense] + project[expense_vat])) /
-                ExpenseTotal
-              ).toFixed(2)
-            }}
-          </td>
-          <td class="has-text-right">
-            {{
-              (
-                -1 *
-                ((project[total_expense] + project[expense_vat]) /
-                  ExpenseTotal) *
-                StructuralTotal
-              ).toFixed(2)
-            }}
-          </td>
-          <td class="has-text-right">
-            {{ project[total_hours].toFixed(2) }}
-          </td>
+  <div class="price-hour">
+    <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false"></b-loading>
 
-          <td class="has-text-right">
-            {{
-              (
-                ((-1 * (project[total_expense] + project[expense_vat]) +
-                  -1 *
-                    ((project[total_expense] + project[expense_vat]) /
-                      ExpenseTotal) *
-                    StructuralTotal) *
-                  (1 + margin / 100)) /
-                project[total_hours]
-              ).toFixed(2)
-            }}
-          </td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr>
-          <td><b>Total</b></td>
-          <td class="has-text-right">
-            <b>{{ (-1 * ExpenseTotal).toFixed(2) }}</b>
-          </td>
-          <td class="has-text-right"><b>100</b></td>
-          <td class="has-text-right">
-            <b>{{ (-1 * StructuralTotal).toFixed(2) }}</b>
-          </td>
-          <td class="has-text-right">
-            <b>{{ EstimatedHoursTotal.toFixed(2) }}</b>
-          </td>
-          <!-- (column 2 + column 4) / column 5 -->
-          <td class="has-text-right">
-            <b>{{
-              (
-                ((-1 * ExpenseTotal + -1 * StructuralTotal) *
-                  (1 + margin / 100)) /
-                EstimatedHoursTotal
-              ).toFixed(2)
-            }}</b>
-          </td>
-        </tr>
-      </tfoot>
-    </table>
-    
-    <b-loading
-      :is-full-page="true"
-      v-model="isLoading"
-      :can-cancel="false"
-    ></b-loading>
-    
+    <!-- Redesign A: figures, how it is computed, price distribution, overhead
+         projects and the table per project. Figures: domain/pricePerHour. -->
+    <div class="doc-kpis">
+      <div class="doc-kpi">
+        <span>Preu hora</span>
+        <b>{{ money(result.totals.price) }}/h</b>
+        <small>Mitjana de la cooperativa, amb un {{ marginText }} % de marge</small>
+      </div>
+      <div class="doc-kpi">
+        <span>Despeses directes</span>
+        <b>{{ money(result.totals.direct) }}</b>
+        <small>{{ withExpenses.length }} projectes · inclou el cost laboral</small>
+      </div>
+      <div class="doc-kpi">
+        <span>Despeses indirectes</span>
+        <b>{{ money(result.totals.indirect) }}</b>
+        <small>{{ result.overhead.length }} projectes d'estructura · {{ percent(result.totals.overheadRate) }} sobre les directes</small>
+      </div>
+      <div class="doc-kpi">
+        <span>Hores productives</span>
+        <b>{{ number(result.totals.hours) }} h</b>
+        <small>Hores {{ dataType === "Previsió" ? "previstes" : "fetes" }} als projectes</small>
+      </div>
+    </div>
+
+    <div class="notification is-info how-box">
+      <p><b>Com es calcula.</b> Preu hora = (despeses directes + despeses indirectes) × (1 + marge) ÷ hores productives</p>
+      <p class="how-numbers">({{ money(result.totals.direct) }} + {{ money(result.totals.indirect) }}) × {{ number(1 + (Number(margin) || 0) / 100, 2) }} ÷ {{ number(result.totals.hours) }} h = <b>{{ money(result.totals.price) }}/h</b></p>
+      <p class="how-note">Les indirectes (projectes marcats com a despeses d'estructura) es reparteixen entre projectes segons el seu pes en despeses directes.</p>
+    </div>
+
+    <div class="report-columns">
+      <section class="report-box">
+        <header class="report-box-head">
+          <div>
+            <h2>Distribució del preu hora</h2>
+            <span class="has-text-muted">{{ priced.length }} projectes amb hores</span>
+          </div>
+        </header>
+        <ul class="band-list">
+          <li v-for="b in bands" :key="b.label">
+            <span>{{ b.label }}</span>
+            <span class="band-bar"><i :style="{ width: (b.count / maxBand * 100) + '%' }"></i></span>
+            <b>{{ b.count }}</b>
+          </li>
+        </ul>
+        <p v-if="withoutHours.length" class="report-note">
+          {{ withoutHours.length }} projectes tenen despeses però cap hora {{ dataType === "Previsió" ? "prevista" : "feta" }} i no tenen preu hora.
+        </p>
+      </section>
+
+      <section class="report-box">
+        <header class="report-box-head">
+          <div>
+            <h2>Despeses d'estructura</h2>
+            <span class="has-text-muted">D'on surten les indirectes</span>
+          </div>
+        </header>
+        <table class="table is-fullwidth overhead-table">
+          <tbody>
+            <tr v-for="o in result.overhead" :key="o.id">
+              <td>{{ o.name }}</td>
+              <td class="has-text-right">{{ money(o.amount) }}</td>
+            </tr>
+            <tr v-if="!result.overhead.length">
+              <td colspan="2" class="has-text-muted">Cap projecte marcat com a despeses d'estructura.</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total indirectes</th>
+              <th class="has-text-right">{{ money(result.totals.indirect) }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+    </div>
+
+    <section class="report-box">
+      <header class="report-box-head">
+        <div>
+          <h2>Per projecte</h2>
+          <span class="has-text-muted">Ordenats per despeses directes</span>
+        </div>
+        <b-checkbox v-model="hideEmpty">Amaga els {{ withoutExpenses.length }} projectes sense despeses</b-checkbox>
+      </header>
+      <div class="table-wrap">
+        <table class="table is-fullwidth price-table">
+          <thead>
+            <tr>
+              <th>Projecte</th>
+              <th class="has-text-right">Despeses directes</th>
+              <th class="has-text-right">% indirectes</th>
+              <th class="has-text-right">Despeses indirectes</th>
+              <th class="has-text-right">Hores productives</th>
+              <th class="has-text-right">Preu hora</th>
+              <th class="price-bar-col"><span class="is-sr-only">Escala</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in shownRows" :key="r.id">
+              <td>
+                <router-link :to="{ name: 'project.edit', params: { id: r.id } }" class="doc-title">{{ r.name }}</router-link>
+                <div v-if="r.scope || r.state" class="doc-subline">{{ [r.scope, r.state].filter(Boolean).join(" · ") }}</div>
+              </td>
+              <td class="has-text-right is-nowrap">{{ money(r.direct) }}</td>
+              <td class="has-text-right is-nowrap">{{ percent(r.share, 2) }}</td>
+              <td class="has-text-right is-nowrap">{{ money(r.indirect) }}</td>
+              <td class="has-text-right is-nowrap">{{ number(r.hours) }} h</td>
+              <td class="has-text-right is-nowrap">
+                <template v-if="r.price !== null">{{ money(r.price) }}</template>
+                <span v-if="!r.hours" class="tag is-warning">Sense hores</span>
+                <span v-else-if="r.hours < FEW_HOURS" class="tag is-warning">Poques hores</span>
+              </td>
+              <td class="price-bar-col">
+                <span v-if="r.price !== null" class="price-bar" :title="money(r.price) + '/h'">
+                  <i :class="{ 'is-above': r.price > result.totals.price }" :style="{ width: Math.min(100, Math.max(0, r.price) / SCALE * 100) + '%' }"></i>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total · {{ result.rows.length }} projectes</th>
+              <th class="has-text-right is-nowrap">{{ money(result.totals.direct) }}</th>
+              <th class="has-text-right">100 %</th>
+              <th class="has-text-right is-nowrap">{{ money(result.totals.indirect) }}</th>
+              <th class="has-text-right is-nowrap">{{ number(result.totals.hours) }} h</th>
+              <th class="has-text-right is-nowrap">{{ money(result.totals.price) }}</th>
+              <th></th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div v-if="sortedRows.length > shownRows.length" class="report-more">
+        <span class="has-text-muted">Mostrant {{ shownRows.length }} de {{ sortedRows.length }} projectes</span>
+        <b-button size="is-small" @click="showAll = true">Mostra'ls tots</b-button>
+      </div>
+      <p class="report-note">La barra compara cada preu amb una escala fins a {{ SCALE }} €/h; en taronja, els preus per sobre de la mitjana ({{ money(result.totals.price) }}/h).</p>
+    </section>
   </div>
 </template>
 
@@ -111,16 +154,22 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
+import { pricePerHour, priceBands } from "@/domain/pricePerHour";
+import { formatNumber, formatMoney } from "@/helpers/format-number";
 
 moment.locale("ca");
+
+// rows of the table before "Mostra'ls tots"
+const ROW_LIMIT = 20;
 
 export default {
   name: "ProjectesPivot",
   components: {},
   props: {
-    projectState: {
-      type: Number,
-      default: 0
+    // ids of the project states to include
+    projectStates: {
+      type: Array,
+      default: () => []
     },
     year: {
       type: [String, Number],
@@ -155,6 +204,8 @@ export default {
         .map((rows, id) => ({
           id: id,
           project_name: rows[0].project_name,
+          project_scope: rows[0].project_scope,
+          project_state: rows[0].project_state,
           structural_expenses: rows[0].structural_expenses,
           esti:
             (_.sumBy(rows, "income_esti") || 0) +
@@ -224,6 +275,41 @@ export default {
     //     }))
     //     .value();
     // },
+    result() {
+      return pricePerHour(
+        this.pivotDataGroupped,
+        { expense: this.total_expense, vat: this.expense_vat, hours: this.total_hours },
+        this.margin
+      );
+    },
+    marginText() {
+      return formatNumber(Number(this.margin) || 0, 2);
+    },
+    withExpenses() {
+      return this.result.rows.filter(r => Math.abs(r.direct) > 0.004);
+    },
+    withoutExpenses() {
+      return this.result.rows.filter(r => !(Math.abs(r.direct) > 0.004));
+    },
+    priced() {
+      return this.result.rows.filter(r => r.price !== null);
+    },
+    withoutHours() {
+      return this.withExpenses.filter(r => !r.hours);
+    },
+    bands() {
+      return priceBands(this.result.rows);
+    },
+    maxBand() {
+      return Math.max(1, ...this.bands.map(b => b.count));
+    },
+    sortedRows() {
+      const rows = this.hideEmpty ? this.withExpenses : this.result.rows;
+      return [...rows].sort((a, b) => b.direct - a.direct);
+    },
+    shownRows() {
+      return this.showAll ? this.sortedRows : this.sortedRows.slice(0, ROW_LIMIT);
+    },
     IncomeTotal() {
       return _.sumBy(
         this.pivotDataGroupped.filter(p => p.structural_expenses !== true),
@@ -512,12 +598,19 @@ export default {
       states: [],
       leaders: [],
       contacts: [],
-      pivotData: []
+      pivotData: [],
+      hideEmpty: true,
+      showAll: false,
+      SCALE: 150,
+      FEW_HOURS: 50
     };
   },
   watch: {
-    projectState: function(newVal, oldVal) {
-      this.getActivities();
+    projectStates: {
+      handler() {
+        this.getActivities();
+      },
+      deep: true
     },
     year: function(newVal, oldVal) {
       this.getActivities();
@@ -531,19 +624,23 @@ export default {
     this.getActivities();
   },
   methods: {
+    money(value) {
+      return value === null || value === undefined || !Number.isFinite(value) ? "—" : formatMoney(value);
+    },
+    number(value, decimals = 2) {
+      return formatNumber(Number(value) || 0, decimals, decimals);
+    },
+    percent(share, decimals = 1) {
+      return formatNumber((Number(share) || 0) * 100, decimals, decimals) + " %";
+    },
     async getActivities() {
       this.isLoading = true;
-      const projectState = this.projectState !== null ? this.projectState : 1;
-      let query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
-      if (projectState === 0 || projectState === "0") {
-        query = "projects/economic-detail?_limit=-1";
-      } else if (projectState === -1) {
-        query = `projects/economic-detail?_where[project_state_in]=1,3&_limit=-1`;
-      } else if (projectState === -2) {
-        query = `projects/economic-detail?_where[project_state_in]=1,2&_limit=-1`;
-      } else {
-        query = `projects/economic-detail?_where[project_state_eq]=${projectState}&_limit=-1`;
+      if (!this.projectStates.length) {
+        this.pivotData = [];
+        this.isLoading = false;
+        return;
       }
+      const query = `projects/economic-detail?_where[project_state_in]=${this.projectStates.join(",")}&_limit=-1`;
       const yearQ = this.year !== "Tots" ? `&_where[year_eq]=${this.year}` : "";
       const { data } = await service({ requiresAuth: true }).get(query + yearQ);
       const data2 = data.map(c => {
@@ -587,5 +684,131 @@ export default {
 }
 .export-button {
   margin-top: 1rem;
+}
+</style>
+<style scoped>
+.how-box p + p {
+  margin-top: .25rem;
+}
+.how-numbers {
+  font-variant-numeric: tabular-nums;
+}
+.how-note {
+  font-size: .8125rem;
+  opacity: .85;
+}
+.report-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+.report-box {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.report-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: .875rem 1.25rem;
+  border-bottom: 1px solid var(--a-line);
+}
+.report-box-head h2 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.report-box-head span {
+  font-size: .8125rem;
+}
+.band-list {
+  padding: .75rem 1.25rem;
+}
+.band-list li {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: .75rem;
+  padding: .25rem 0;
+  font-size: .8125rem;
+}
+.band-list b {
+  text-align: right;
+}
+.band-bar,
+.price-bar {
+  display: block;
+  height: .5rem;
+  border-radius: 999px;
+  background: var(--a-chip);
+  overflow: hidden;
+}
+.band-bar i,
+.price-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--a-accent);
+}
+.price-bar i.is-above {
+  background: #D9480F;
+}
+.report-note {
+  padding: .625rem 1.25rem .875rem;
+  font-size: .8125rem;
+  color: var(--a-muted);
+  border-top: 1px solid var(--a-line-soft);
+}
+.overhead-table td,
+.overhead-table th {
+  font-size: .8125rem;
+}
+.overhead-table td:first-child,
+.overhead-table th:first-child {
+  padding-left: 1.25rem;
+}
+.overhead-table td:last-child,
+.overhead-table th:last-child {
+  padding-right: 1.25rem;
+  white-space: nowrap;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+.price-table {
+  font-variant-numeric: tabular-nums;
+}
+.price-table td:first-child {
+  min-width: 16rem;
+  max-width: 22rem;
+}
+.price-table td:first-child,
+.price-table th:first-child {
+  padding-left: 1.25rem;
+}
+.price-bar-col {
+  width: 6rem;
+  padding-right: 1.25rem !important;
+}
+.price-table .tag {
+  margin-left: .375rem;
+  font-size: .6875rem;
+}
+.report-more {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .75rem 1.25rem;
+  border-top: 1px solid var(--a-line-soft);
+  font-size: .8125rem;
+}
+@media screen and (max-width: 1023px) {
+  .report-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>
