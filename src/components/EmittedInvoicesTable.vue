@@ -175,16 +175,20 @@
       <b-table-column label="Total" field="total" v-slot="props" sortable numeric cell-class="is-nowrap doc-total">
         {{ formatMoney(props.row.total) }}
       </b-table-column>
-      <b-table-column label="Cobrada" field="paid_date" v-slot="props" sortable cell-class="is-nowrap">
+      <!-- for a member (provider) it is what she has paid -->
+      <b-table-column :label="provider ? 'Pagada' : 'Cobrada'" field="paid_date" v-slot="props" sortable cell-class="is-nowrap">
         <span v-if="props.row.state === 'draft'" class="tag is-info is-light">Esborrany</span>
-        <span v-else-if="props.row.paid_date" class="tag is-success is-light">Cobrada</span>
+        <span v-else-if="props.row.paid_date" class="tag is-success is-light">{{ provider ? "Pagada" : "Cobrada" }}</span>
         <span v-else-if="Number(props.row.total) < 0" class="tag">Abonament</span>
         <span v-else-if="isOverdue(props.row)" class="tag is-danger is-light">Vençuda</span>
-        <span v-else class="tag is-warning">No cobrada</span>
+        <span v-else class="tag is-warning">{{ provider ? "Pendent de pagar" : "No cobrada" }}</span>
         <span v-if="props.row.paid_date" class="doc-subline">{{ formatDate(props.row.paid_date) }}</span>
         <span v-else-if="!provider && props.row.estimated_payment" class="doc-subline">prev. {{ formatDate(props.row.estimated_payment) }}</span>
         <span v-if="!provider && !props.row.assigned" class="doc-subline doc-unassigned" title="No assignada a cap línia de pressupost de projecte">Sense assignar</span>
       </b-table-column>
+      <template #empty>
+        <p class="has-text-muted has-text-centered py-5">Cap factura en aquest període.</p>
+      </template>
     </b-table>
   </div>
   </section>

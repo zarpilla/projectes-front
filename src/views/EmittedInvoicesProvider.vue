@@ -1,66 +1,33 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Les factures de logística que La Diligència t'ha emès." />
     <section class="section is-main-section">
-      <card-component>
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Any">
-              <b-select v-model="filters.year">
-                <option
-                  v-for="(year, index) in years"
-                  :key="index"
-                  :value="year.year"
-                >
-                  {{ year.year }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Mes">
-              <b-select v-model="filters.month" :disabled="filters.quarter > 0">
-                <option v-for="(m, i) in months" :key="i" :value="m.month">
-                  {{ m.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Trimestre">
-              <b-select v-model="filters.quarter">
-                <option v-for="(m, i) in quarters" :key="i" :value="m.value">
-                  {{ m.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <!-- <b-field label="Tipus">
-              <b-select v-model="filters.documentType">
-                <option v-for="(c, i) in documentTypes" :key="i" :value="c.id">
-                  {{ c.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Contacte" class="is-narrow">
-              <b-select v-model="filters.contact">
-                <option v-for="(c, i) in contacts" :key="i" :value="c.id">
-                  {{ c.name }}
-                </option>
-              </b-select>
-            </b-field> -->
-            <!-- <b-field label="Ruta" class="is-narrow">
-              <b-select v-model="filters.project">
-                <option v-for="(c, i) in projects" :key="i" :value="c.id">
-                  {{ c.name }}
-                </option>
-              </b-select>
-            </b-field> -->
-            <b-field label="Cobrada" class="is-narrow">
-              <b-select v-model="filters.paid">
-                <option v-for="(c, i) in paid" :key="i" :value="c.value">
-                  {{ c.name }}
-                </option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>      
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year">
+            <option v-for="(year, index) in years" :key="index" :value="year.year">{{ year.year }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Mes</span>
+          <b-select v-model="filters.month" :disabled="filters.quarter > 0">
+            <option v-for="(m, i) in months" :key="i" :value="m.month">{{ m.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Trimestre</span>
+          <b-select v-model="filters.quarter">
+            <option v-for="(m, i) in quarters" :key="i" :value="m.value">{{ m.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Pagada</span>
+          <b-select v-model="filters.paid">
+            <option v-for="(c, i) in paid" :key="i" :value="c.value">{{ c.name }}</option>
+          </b-select>
+        </label>
+      </form>      
       <emitted-invoices-table
         :year="filters.year"
         :month="filters.month"
@@ -78,7 +45,6 @@
 <script>
 import TitleBar from "@/components/TitleBar.vue";
 import EmittedInvoicesTable from "@/components/EmittedInvoicesTable.vue";
-import CardComponent from "@/components/CardComponent.vue";
 // import DedicationSaldo from '@/components/DedicationSaldo.vue'
 import service from "@/service/index";
 import { mapState } from "pinia"
@@ -88,7 +54,6 @@ import moment from "moment";
 export default {
   name: "DedicacioSaldo",
   components: {
-    CardComponent,
     TitleBar,
     EmittedInvoicesTable,
     // DedicationSaldo
@@ -128,7 +93,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ["userName"]),
     titleStack() {
-      return ["Facturació", "Ingressos"];
+      return ["Logística", "Factures"];
     },
   },
   async mounted() {
