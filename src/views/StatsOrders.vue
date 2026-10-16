@@ -1,45 +1,28 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Les comandes de logística per any i mes. Configura la taula dinàmica per agrupar-les com vulguis." />
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Any">
-              <b-select v-model="filters.year">
-                <option
-                  v-for="(year, index) in years"
-                  :key="index"
-                  :value="year"
-                >
-                  {{ year.year }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field label="Mes">
-              <b-select v-model="filters.month">
-                <option
-                  v-for="(month, index) in months"
-                  :key="index"
-                  :value="month"
-                >
-                  {{ month.name || month.month }}
-                </option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-      <card-component title="Comandes">
-        <orders-pivot :year="filters.year" :month="filters.month" v-if="!isLoading" />
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" aria-label="Any">
+            <option v-for="(year, index) in years" :key="index" :value="year">{{ year.year }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Mes</span>
+          <b-select v-model="filters.month" aria-label="Mes">
+            <option v-for="(month, index) in months" :key="index" :value="month">{{ month.name || month.month }}</option>
+          </b-select>
+        </label>
+      </form>
+      <orders-pivot :year="filters.year" :month="filters.month" v-if="!isLoading" />
     </section>
   </div>
 </template>
 
 <script>
 import TitleBar from "@/components/TitleBar.vue";
-import CardComponent from "@/components/CardComponent.vue";
 import OrdersPivot from "@/components/OrdersPivot.vue";
 import service from "@/service/index";
 import defaultProjectState from "@/service/projectState";
@@ -49,7 +32,6 @@ import moment from "moment";
 export default {
   name: "StatsOrders",
   components: {
-    CardComponent,
     TitleBar,
     OrdersPivot
   },
@@ -68,7 +50,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ["Comandes", "Taula dinàmica"];
+      return ["Estadístiques", "Taula Comandes"];
     }
   },
   async mounted() {
