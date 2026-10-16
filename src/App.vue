@@ -17,7 +17,7 @@ import FooterBar from "@/components/FooterBar.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import service from "@/service/index";
-import menu from "@/service/menu";
+import menu, { hasMenuPermission } from "@/service/menu";
 import ModalBoxInvoice from "@/components/ModalBoxInvoice.vue";
 
 export default {
@@ -70,18 +70,7 @@ export default {
   },
   methods: {
     hasChildrenWithPermissions(items, userPermissions) {
-      return (
-        items.find(item => {
-          if (!item.permission) {
-            return true;
-          }
-          if (item.permission) {
-            if (userPermissions.includes(item.permission)) {
-              return true;
-            }
-          }
-        }) !== undefined
-      );
+      return items.some(item => hasMenuPermission(item, userPermissions));
     },
     async refreshUserData() {
       const now = Date.now();
@@ -137,12 +126,8 @@ export default {
 
               const subElements = [];
               element.forEach(subElement => {
-                if (!subElement.permission) {
+                if (hasMenuPermission(subElement, userPermissions)) {
                   subElements.push(subElement);
-                } else {
-                  if (userPermissions.includes(subElement.permission)) {
-                    subElements.push(subElement);
-                  }
                 }
               });
 

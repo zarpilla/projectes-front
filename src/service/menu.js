@@ -77,188 +77,32 @@ const menu = [
       permission: "projects"
     }
   ],
+  // Logistics: one entry per screen, shown if the person has any of its
+  // permissions (orders = member, orders_admin = office, orders_delivery = drivers)
   "Logística",
   [
-    {
-      to: "/orders",
-      icon: "truck",
-      label: "Comandes",
-      permission: "orders"
-    },
-    {
-      to: "/deposits",
-      icon: "package-down",
-      label: "Dipòsits",
-      permission: "orders"
-    },
-    {
-      to: "/provider-invoices",
-      icon: "cash-multiple",
-      label: "Factures",
-      permission: "orders"
-    },
-    {
-      to: "/user-contacts",
-      icon: "account-box",
-      label: "Punts d'entrega",
-      permission: "orders"
-    },
-    {
-      to: "/pickup-points",
-      icon: "package",
-      label: "Punt de consum",
-      permission: "orders"
-    },
-    {
-      to: "/city-route",
-      icon: "city",
-      label: "Poblacions i rutes",
-      permission: "orders"
-    },
-    {
-      to: "/route-days",
-      icon: "calendar",
-      label: "Rutes i dies",
-      permission: "orders"
-    },
-    {
-      to: "/incidences",
-      icon: "alert",
-      label: "Incidències",
-      permission: "orders"
-    },
-    {
-      to: "/contact-us",
-      icon: "email",
-      label: "Contacta",
-      permission: "orders"
-    }
+    { to: "/orders", icon: "truck-outline", label: "Comandes", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/deposits", icon: "package-down", label: "Dipòsits", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/incidences", icon: "alert-outline", label: "Incidències", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/transfers", icon: "swap-horizontal", label: "Transferències", permission: ["orders_admin", "orders_delivery"] },
+    { to: "/order-operations", icon: "format-list-checks", label: "Operacions", permission: ["orders_admin", "orders_delivery"] },
+    { to: "/orders-invoice", icon: "cash-register", label: "Facturar", permission: "orders_admin" },
+    { to: "/provider-invoices", icon: "receipt", label: "Factures", permission: "orders" },
+    { to: "/contact-us", icon: "message-text-outline", label: "Contacta", permission: "orders", itemClassName: "mb-6" }
   ],
-  "Logística · oficina",
+  "Rutes i punts",
   [
-    {
-      to: "/orders",
-      icon: "truck",
-      label: "Comandes",
-      permission: "orders_admin"
-    },
-    {
-      to: "/deposits",
-      icon: "package-down",
-      label: "Dipòsits",
-      permission: "orders_admin"
-    },
-    {
-      to: "/user-contacts",
-      icon: "account-box",
-      label: "Punts d'entrega",
-      permission: "orders_admin"
-    },
-    {
-      to: "/incidences",
-      icon: "alert",
-      label: "Incidències",
-      permission: "orders_admin"
-    },
-    {
-      to: "/transfers",
-      icon: "swap-horizontal",
-      label: "Transferències",
-      permission: "orders_admin"
-    },
-    {
-      to: "/order-operations",
-      icon: "format-list-checks",
-      label: "Operacions",
-      permission: "orders_admin"
-    },
-    {
-      to: "/city-route",
-      icon: "city",
-      label: "Poblacions i rutes",
-      permission: "orders_admin"
-    },
-    {
-      to: "/city-route-delivery",
-      icon: "map-marker",
-      label: "Poblacions i punts",
-      permission: "orders_admin"
-    },
-    {
-      to: "/route-days",
-      icon: "calendar",
-      label: "Rutes i dies",
-      permission: "orders_admin"
-    },
-    {
-      to: "/pickup-points",
-      icon: "package",
-      label: "Punts de consum",
-      permission: "orders_admin"
-    },
-    {
-      to: "/partners",
-      icon: "account",
-      label: "Sòcies",
-      permission: "orders_admin"
-    },
-    {
-      to: "/orders-invoice",
-      icon: "cash-multiple",
-      label: "Facturar",
-      permission: "orders_admin"
-    },
-    {
-      to: "/orders-stats",
-      icon: "table",
-      label: "Taula Comandes",
-      permission: "orders_admin"
-    },
-    {
-      to: "/incidences-stats",
-      icon: "table",
-      label: "Taula Incidències",
-      permission: "orders_admin"
-    }
+    { to: "/city-route", icon: "city-variant-outline", label: "Poblacions i rutes", permission: ["orders", "orders_admin"] },
+    { to: "/city-route-delivery", icon: "map-marker-outline", label: "Poblacions i punts", permission: "orders_admin" },
+    { to: "/route-days", icon: "calendar-month-outline", label: "Rutes i dies", permission: ["orders", "orders_admin"] },
+    { to: "/user-contacts", icon: "store-outline", label: "Punts d'entrega", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/pickup-points", icon: "basket-outline", label: "Punts de consum", permission: ["orders", "orders_admin"] },
+    { to: "/partners", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin", itemClassName: "mb-6" }
   ],
-  "Logística · repartiment",
+  "Estadístiques",
   [
-    {
-      to: "/orders",
-      icon: "truck",
-      label: "Comandes",
-      permission: "orders_delivery"
-    },
-    {
-      to: "/deposits",
-      icon: "package-down",
-      label: "Dipòsits",
-      permission: "orders_delivery"
-    },
-    {
-      to: "/user-contacts",
-      icon: "account-box",
-      label: "Punts d'entrega",
-      permission: "orders_delivery"
-    },
-    {
-      to: "/incidences",
-      icon: "alert",
-      label: "Incidències",
-      permission: "orders_delivery"
-    },
-    {
-      to: "/transfers",
-      icon: "swap-horizontal",
-      label: "Transferències",
-      permission: "orders_delivery"
-    },
-    {
-      to: "/order-operations",
-      icon: "format-list-checks",
-      label: "Operacions",
-      permission: "orders_delivery"
-    }
+    { to: "/orders-stats", icon: "table-eye", label: "Taula Comandes", permission: "orders_admin" },
+    { to: "/incidences-stats", icon: "table-search", label: "Taula Incidències", permission: "orders_admin", itemClassName: "mb-6" }
   ],
   "Informes",
   [
@@ -429,5 +273,13 @@ const menu = [
     }
   ]
 ];
+
+// An entry with no permission is for everybody; `permission` is one permission
+// or a list of them (any of them shows the entry).
+export const hasMenuPermission = (item, userPermissions) => {
+  if (!item || !item.permission) return true;
+  const needed = Array.isArray(item.permission) ? item.permission : [item.permission];
+  return needed.some(p => userPermissions.includes(p));
+};
 
 export default menu;

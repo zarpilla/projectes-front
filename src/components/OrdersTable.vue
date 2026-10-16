@@ -1,761 +1,328 @@
 <template>
-  <section class="xsection">
+  <!-- Redesign A (mockup A-Log-Comandes): the orders of a day (or of any dates),
+       grouped by route, with their logistics status. Filtering stays at the API. -->
+  <div class="orders-page">
     <b-loading
       :is-full-page="true"
       v-model="importing"
       :can-cancel="false"
     ></b-loading>
 
-    <div class="is-flex is-block-mobile is-flex-wrap-wrap mb-3">
-      <b-button
-        class="view-button is-primary mb-3 ml-0 mr-3"
-        @click="navNew"
-        icon-left="plus"
-      >
-        Nova Comanda
-      </b-button>
-      <b-button
-        class="view-button is-primary mb-3 ml-0"
-        @click="navNewPickup"
-        icon-left="plus"
-      >
-        Nova Comanda Punt de consum
-      </b-button>
-      <b-button
-        class="zview-button is-warning mb-3 ml-auto is-hidden-mobile"
-        @click="showExport = !showExport"
-        icon-left="plus"
-      >
-        Importar comandes amb CSV
-      </b-button>
-    </div>
+    <title-bar :title-stack="['Comandes']" :subtitle="headline">
+      <b-button v-if="!isMobile" icon-left="upload" @click="showExport = !showExport">Importa CSV</b-button>
+      <b-dropdown position="is-bottom-left" aria-role="menu" class="export-menu">
+        <template #trigger>
+          <b-button icon-left="download" icon-right="menu-down">Exporta</b-button>
+        </template>
+        <b-dropdown-item aria-role="menuitem" custom>
+          <download-excel
+            class="export-item"
+            :data="theOrdersChecked"
+            :name="comandesCSVName()"
+            :fields="{ id: 'id', date: 'route_date', ...csvFields, ...csvExportFields }"
+          >Comandes (.ods)</download-excel>
+        </b-dropdown-item>
+        <b-dropdown-item v-if="isStaff" aria-role="menuitem" @click="downloadRouterCSV">Per al planificador de rutes (.csv)</b-dropdown-item>
+        <b-dropdown-item v-if="isStaff" aria-role="menuitem" custom>
+          <download-excel class="export-item" :data="theOrdersChecked" name="ecologistica.ods" :fields="{ ...csvEcologistica }">Per a Ecologística (.ods)</download-excel>
+        </b-dropdown-item>
+        <hr class="dropdown-divider" />
+        <b-dropdown-item aria-role="menuitem" custom>
+          <download-excel class="export-item" :data="csvExample" type="csv" :escapeCsv="false" name="exemple-comandes.csv" :fields="csvFields">Exemple CSV de comandes</download-excel>
+        </b-dropdown-item>
+        <b-dropdown-item aria-role="menuitem" custom>
+          <download-excel class="export-item" :data="csvExampleContacts" type="csv" :escapeCsv="false" name="exemple-contactes.csv" :fields="csvFieldsContacts">Exemple CSV de punts d'entrega</download-excel>
+        </b-dropdown-item>
+      </b-dropdown>
+      <b-button icon-left="plus" @click="navNewPickup">Comanda punt de consum</b-button>
+      <b-button type="is-primary" icon-left="plus" @click="navNew">Nova comanda</b-button>
+    </title-bar>
 
-    <div class="is-flex" v-if="showExport">
-      <file-upload
-        class="mt-5 w-50"
-        :multiple="false"
-        entity="orders-imports"
-        :ref-id="0"
-        :field="'file'"
-        :accept="'.csv'"
-        @uploaded="uploaded($event, 'orders')"
-        :pre-upload="preUpload"
-        :message="`Crea comandes pujant arxiu CSV separat per comes`"
-      >
-      </file-upload>
-      <file-upload
-        class="mt-5 ml-4 w-50"
-        :multiple="false"
-        entity="orders-imports"
-        :ref-id="0"
-        :field="'file'"
-        :accept="'.csv'"
-        @uploaded="uploaded($event, 'contacts')"
-        :pre-upload="preUpload"
-        :message="`Crea punts d'entrega pujant arxiu CSV separat per comes`"
-      >
-      </file-upload>
-    </div>
-
-    <div class="is-flex mt-4">
-      <span v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
-        Exportar per a planificador:
-      </span>
-
-      <!-- <pre>{{ theOrdersChecked }}</pre> -->
-      <b-button
-        v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
-        title="Descarrega les dades de les teves comandes"
-        class="export-button mt-0 ml-1 mb-3"
-        icon-left="download"
-        @click="downloadRouterCSV"
-      />
-      <download-excel
-        class="export"
-        :data="theOrdersChecked"
-        :name="comandesCSVName()"
-        :fields="{
-          id: 'id',
-          date: 'route_date',
-          ...csvFields,
-          ...csvExportFields
-        }"
-      >
-        <b-button title="Descarrega les dades de les teves comandes" icon-left="download">Exporta comandes</b-button>
-      </download-excel>
-      <download-excel
-        v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
-        class="export"
-        :data="theOrdersChecked"
-        name="ecologistica.ods"
-        :fields="{
-          ...csvEcologistica
-        }"
-      >
-        <b-button title="Descarrega les dades de les teves comandes en format per a Ecologística" icon-left="download">Exporta per a Ecologística</b-button>
-      </download-excel>
-
-      <download-excel
-        class="export"
-        :data="csvExample"
-        type="csv"
-        :escapeCsv="false"
-        name="exemple-comandes.csv"
-        :fields="csvFields"
-      >
-        <b-button title="Descarrega exemple de fitxer CSV de comandes" icon-left="download">Exemple CSV de comandes</b-button>
-      </download-excel>
-
-      <download-excel
-        class="export"
-        :data="csvExampleContacts"
-        type="csv"
-        :escapeCsv="false"
-        name="exemple-contactes.csv"
-        :fields="csvFieldsContacts"
-      >
-        <b-button title="Descarrega exemple de fitxer CSV de punts d'entrega" icon-left="download">Exemple CSV de punts d'entrega</b-button>
-      </download-excel>
-    </div>
-
-    <!-- <pre>{{ theOrders }}</pre> -->
-    <h4>ESTATS <small class="has-text-grey-light">(Ctrl+clic per seleccionar múltiples)</small></h4>
-    <div class="filters">
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.length === 0,
-          'is-warning': statusFilter.length !== 0
-        }"
-        @click="setStatusFilter($event, '')"
-      >
-        TOTES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('pending'),
-          'is-warning': !statusFilter.includes('pending')
-        }"
-        @click="setStatusFilter($event, 'pending')"
-      >
-        PENDENTS
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('processed'),
-          'is-warning': !statusFilter.includes('processed')
-        }"
-        @click="setStatusFilter($event, 'processed')"
-      >
-        PROCESSADES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('lastmile'),
-          'is-warning': !statusFilter.includes('lastmile')
-        }"
-        @click="setStatusFilter($event, 'lastmile')"
-      >
-        ÚLTIMA MILLA
-      </b-button>
-
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('delivered'),
-          'is-warning': !statusFilter.includes('delivered')
-        }"
-        @click="setStatusFilter($event, 'delivered')"
-      >
-        LLIURADES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('invoiced'),
-          'is-warning': !statusFilter.includes('invoiced')
-        }"
-        @click="setStatusFilter($event, 'invoiced')"
-      >
-        FACTURADES
-      </b-button>
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': statusFilter.includes('cancelled'),
-          'is-warning': !statusFilter.includes('cancelled')
-        }"
-        @click="setStatusFilter($event, 'cancelled')"
-      >
-        ANUL·LADES
-      </b-button>
-    </div>
-    <h4 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">RUTES <small class="has-text-grey-light">(Ctrl+clic per seleccionar múltiples)</small></h4>
-    <div class="filters" v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
-      <b-button
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': routeFilter.length === 0,
-          'is-warning': routeFilter.length !== 0
-        }"
-        @click="setRouteFilter($event, 0)"
-      >
-        TOTES
-      </b-button>
-      <b-button
-        v-for="route in routes"
-        :key="route.id"
-        class="view-button mb-3 mr-3 ml-0"
-        :class="{
-          'is-primary': routeFilter.includes(route.id),
-          'is-warning': !routeFilter.includes(route.id)
-        }"
-        @click="setRouteFilter($event, route.id)"
-      >
-        {{ route.name }}
-      </b-button>
-    </div>
-
-    <pre class="mb-2" v-if="csvErrors.length">{{ csvErrors }}</pre>
-
-    <!-- <pre>{{ theOrders }}</pre> -->
-
-    <div class="mb-3">
-      <div class="columns is-multiline ml-0 mt-4">
-        <div class="column is-half">
-          <div class="columns is-mobile bg-white-panel">
-            <div class="column">
-              <h2 class="pr-2">Núm.</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ checkedRows.length ? checkedRows.length + " de " : "" }}
-                  {{ total }} (PÀG {{ this.page }}/{{
-                    Math.ceil(total / perPage)
-                  }})
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">Unitats</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{
-                    Math.ceil(total / perPage) > 1 && sumUnits > 0
-                      ? "+de "
-                      : ""
-                  }}{{ sumUnits }}
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">Kg</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{ Math.ceil(total / perPage) > 1 && sumKg > 0 ? "+de " : ""
-                  }}{{ sumKg.toFixed(2) }}
-                </b>
-              </div>
-            </div>
-            <div class="column">
-              <h2 class="pr-2">Preu</h2>
-              <div class="is-flex">
-                <b class="pt-2">
-                  {{
-                    Math.ceil(total / perPage) > 1 && sumPrice > 0
-                      ? "+de "
-                      : ""
-                  }}{{ sumPrice.toFixed(2) }} €
-                </b>
-              </div>
-            </div>
-          </div>
+    <section class="section is-main-section">
+      <div v-if="showExport" class="a-box import-box">
+        <header class="report-box-head">
+          <h2>Importa des d'un CSV</h2>
+          <button type="button" class="delete" aria-label="Tanca" @click="showExport = false"></button>
+        </header>
+        <div class="import-columns">
+          <file-upload
+            :multiple="false"
+            entity="orders-imports"
+            :ref-id="0"
+            :field="'file'"
+            :accept="'.csv'"
+            @uploaded="uploaded($event, 'orders')"
+            :pre-upload="preUpload"
+            :message="`Crea comandes pujant arxiu CSV separat per comes`"
+          />
+          <file-upload
+            :multiple="false"
+            entity="orders-imports"
+            :ref-id="0"
+            :field="'file'"
+            :accept="'.csv'"
+            @uploaded="uploaded($event, 'contacts')"
+            :pre-upload="preUpload"
+            :message="`Crea punts d'entrega pujant arxiu CSV separat per comes`"
+          />
         </div>
-        <div class="column is-flex is-multiline">
-          <div class="is-flex" v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')">
-            <div>
-              <h2>CANVIAR ESTAT</h2>
-              <b-select v-model="newState" placeholder="">
-                <option value="pending">PENDENT</option>
-                <option value="processed">PROCESSADA</option>
-                <option value="delivered">LLIURADA</option>
-                <option value="cancelled">ANUL·LADA</option>
-              </b-select>
-            </div>
-            <button
-              class="button is-primary ml-3 mt-5"
-              :disabled="!newState || !checkedRows.length"
-              @click="setBulkState"
+        <p class="import-help">Els exemples de fitxer són al menú <b>Exporta</b>. Les comandes importades surten a dalt de la llista fins que les crees.</p>
+      </div>
+
+      <div v-if="csvErrors.length" class="notification is-danger csv-errors">
+        <b>Errors al CSV</b>
+        <ul>
+          <li v-for="(e, i) in csvErrors" :key="i">Línia {{ e.line }}: {{ e.error }}</li>
+        </ul>
+        <button type="button" class="delete" aria-label="Tanca" @click="csvErrors = []"></button>
+      </div>
+
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="refresh">
+        <b-field class="filter-grow">
+          <b-input
+            v-model="search"
+            icon="magnify"
+            placeholder="Cerca núm., punt o sòcia"
+            @update:model-value="debouncedRefresh"
+          />
+        </b-field>
+        <div class="date-nav">
+          <b-button icon-left="chevron-left" aria-label="Dia anterior" @click="shiftDate(-1)" />
+          <label class="filter-select">
+            <span>Prevista</span>
+            <b-datepicker
+              v-model="dateFilterDate"
+              :show-week-number="false"
+              locale="ca-ES"
+              :first-day-of-week="1"
+              placeholder="Totes"
+              :date-formatter="formatDayShort"
+              trap-focus
             >
-              CANVIAR ESTAT
-            </button>
-          </div>
-          <div class="is-flex" v-else>
-            <div>
-              <h2>CANVIAR ESTAT</h2>
-              <b-select v-model="newState" placeholder="">
-                <option value="pending">PENDENT</option>
-              </b-select>
-            </div>
-            <button
-              class="button is-primary ml-3 mr-3 mt-5"
-              :disabled="!newState || !checkedRows.length"
-              @click="setBulkState"
-            >
-              CANVIAR ESTAT
-            </button>
-          </div>
-          <div class="ml-5">
-            <h2 class="pr-2">ALBARÀ</h2>
-            <div class="is-flex">
-              <button
-                class="button is-primary zml-3"
-                :disabled="!checkedRows.length"
-                @click="pdfOrders"
-              >
-                Imprimeix PDF
-              </button>
-            </div>
-          </div>
+              <b-button size="is-small" @click="setDate(new Date())">Avui</b-button>
+              <b-button size="is-small" @click="setDate(null)">Totes les dates</b-button>
+            </b-datepicker>
+          </label>
+          <b-button icon-left="chevron-right" aria-label="Dia següent" @click="shiftDate(1)" />
         </div>
-        <div class="column is-flex">
-          <div class="ml-auto mt-2">
-            <b-select
-              v-model="perPage"
-              @update:model-value="setStatusFilter({ ctrlKey: false, metaKey: false })"
-              v-if="total > 100"
-            >
-              <option value="150">150 per pàg.</option>
-              <option value="300">300 per pàg.</option>
-              <option value="1000">1000 per pàg.</option>
-              <option value="2500">2500 per pàgina</option>
-            </b-select>
-          </div>
+        <b-dropdown v-if="isStaff" v-model="routeFilter" multiple aria-role="list" class="filter-dropdown" @change="onRouteChange">
+          <template #trigger>
+            <button type="button" class="filter-select is-button">
+              <span>Ruta</span><b>{{ routeFilterLabel }}</b>
+              <b-icon icon="menu-down" />
+            </button>
+          </template>
+          <b-dropdown-item custom aria-role="listitem">
+            <b-button size="is-small" :disabled="!routeFilter.length" @click="setRoutes([])">Totes les rutes</b-button>
+          </b-dropdown-item>
+          <b-dropdown-item v-for="route in routes" :key="route.id" :value="route.id" aria-role="listitem">
+            <span class="route-check"><b-icon :icon="routeFilter.includes(route.id) ? 'checkbox-marked' : 'checkbox-blank-outline'" size="is-small" />{{ route.name }}</span>
+          </b-dropdown-item>
+        </b-dropdown>
+        <label v-if="isStaff" class="filter-select">
+          <span>Sòcia</span>
+          <b-select v-model="ownerFilter" @update:model-value="refresh">
+            <option :value="null">Totes</option>
+            <option v-for="u in sortedUsers" :key="u.id" :value="u.id">{{ u.fullname || u.username }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Recollida</span>
+          <b-select v-model="pickupFilter" @update:model-value="refresh">
+            <option :value="null">Tots els punts</option>
+            <option v-for="p in pickups" :key="p.id" :value="p.id">{{ p.alias || p.name }}</option>
+          </b-select>
+        </label>
+      </form>
+
+      <div class="segmented status-tabs" role="group" aria-label="Estat">
+        <button
+          v-for="s in statusTabs"
+          :key="s.id"
+          type="button"
+          :class="{ 'is-on': s.id ? statusFilter.includes(s.id) : statusFilter.length === 0 }"
+          :aria-pressed="(s.id ? statusFilter.includes(s.id) : statusFilter.length === 0) ? 'true' : 'false'"
+          :title="s.id ? 'Ctrl+clic per triar-ne més d\'un' : ''"
+          @click="setStatusFilter($event, s.id)"
+        >
+          {{ s.label }} <span v-if="statusCounts[s.id || 'all'] != null" class="count">{{ formatCount(statusCounts[s.id || 'all']) }}</span>
+        </button>
+      </div>
+
+      <div class="doc-kpis">
+        <div class="doc-kpi">
+          <span>Comandes actives</span>
+          <b>{{ morePages ? "+" : "" }}{{ kpis.active }}</b>
+          <small>{{ kpis.cancelled ? `${kpis.cancelled} anul·lades no compten` : "sense anul·lades" }}</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Caixes · kg</span>
+          <b>{{ formatNum(kpis.units) }} · {{ formatNum(kpis.kg) }} kg</b>
+          <small>{{ kpis.refrigerated }} refrigerades</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Import</span>
+          <b>{{ money(kpis.price) }}</b>
+          <small>amb descomptes aplicats</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Transferències · recollides</span>
+          <b>{{ kpis.transfers }} · {{ kpis.pickups }}</b>
+          <small>{{ kpis.deposited }} de {{ kpis.active }} dipositades</small>
         </div>
       </div>
-    </div>
 
-    <b-table
-      class="small-table"
-      ref="table"
-      :loading="isLoading"
-      paginated
-      backend-pagination
-      :total="total"
-      :per-page="perPage"
-      @page-change="onPageChange"
-      backend-filtering
-      @filters-change="onFiltersChange"
-      pagination-position="both"
-      backend-sorting
-      :default-sort-direction="defaultSortOrder"
-      :default-sort="[sortField, sortOrder]"
-      @sort="onSort"
-      :striped="false"
-      :data="theOrders"
-      v-model:checked-rows="checkedRows"
-      :is-row-checkable="row => true"
-      :debounce-search="500"
-      :checkable="true || permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
-      :row-class="rowClassFn"
-    >
-      <b-table-column label="ID" field="idx" sortable v-slot="props" searchable>
-        <router-link
-          v-if="props.row.id"
-          :to="{ name: 'orders.edit', params: { id: props.row.id } }"
-        >
-          {{ props.row.idx }}
-        </router-link>
-        <div v-else>
-          <button
-            class="button is-danger zbutton-small"
-            @click="createCSVOrder(props.row)"
-          >
-            NOVA
-          </button>
-        </div>
-      </b-table-column>
-      <b-table-column
-        label="Proveïdora"
-        field="owner.fullname"
-        sortable
-        searchable
-        cell-class="opacity-50"
-        v-slot="props"
-      >
-        {{ props.row.owner.fullname }}
-      </b-table-column>
-      <b-table-column
-        label="Ruta"
-        searchable
-        field="route.name"
-        sortable
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-select
-            v-model="editForm.route"
-            placeholder=""
-            size="is-small"
-            @update:model-value="updateCalculatedPrice"
-          >
-            <option
-              v-for="r in routes"
-              :key="r.id"
-              :value="r.id"
-            >
-              {{ r.name }}
-            </option>
-          </b-select>
-        </div>
-        <span v-else>{{ props.row.route.name }}</span>
-      </b-table-column>
-      <!-- <b-table-column
-        label="Creada"
-        searchable
-        field="route_date"
-        sortable
-        cell-class="opacity-50"
-        v-slot="props"
-      >
-        {{ props.row.route_date }}
-      </b-table-column> -->
-      <b-table-column
-        label="Prevista"
-        searchable
-        field="estimated_delivery_date"
-        sortable
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-datepicker
-            v-model="editForm.estimated_delivery_date"
-            :show-week-number="false"
-            :locale="'ca-ES'"
-            placeholder="Selecciona data"
-            icon="calendar-today"
-            size="is-small"
-          >
-          </b-datepicker>
-        </div>
-        <span v-else>{{ props.row.estimated_delivery_date }}</span>
-      </b-table-column>
-      <b-table-column
-        label="Lliurada"
-        searchable
-        field="delivery_date"
-        sortable
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-datepicker
-            v-model="editForm.delivery_date"
-            :show-week-number="false"
-            :locale="'ca-ES'"
-            placeholder="Selecciona data"
-            icon="calendar-today"
-            size="is-small"
-          >
-          </b-datepicker>
-        </div>
-        <span v-else>{{ props.row.delivery_date }}</span>
-      </b-table-column>
-      <b-table-column
-        label="Punt d'entrega"
-        searchable
-        field="contact.trade_name"
-        sortable
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-autocomplete
-            v-model="contactSearch"
-            placeholder="Punt d'entrega"
-            :keep-first="false"
-            :open-on-focus="true"
-            :data="filteredContacts"
-            field="display"
-            @select="option => editForm.contact = option ? option.id : null"
-            :clearable="true"
-            size="is-small"
-          >
-          </b-autocomplete>
-        </div>
-        <span v-else>{{
-          props.row.contact
-            ? props.row.contact.trade_name
-            : props.row.contact_name
-        }}</span>
-      </b-table-column>
-      <b-table-column
-        label="Unitats"
-        field="units"
-        sortable
-        searchable
-        number
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-input
-            v-model="editForm.units"
-            type="number"
-            size="is-small"
-          />
-        </div>
-        <span v-else>{{ props.row.units }}</span>
-      </b-table-column>
-      <b-table-column
-        label="Kilos"
-        field="kilograms"
-        sortable
-        searchable
-        number
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-input
-            v-model="editForm.kilograms"
-            type="number"
-            size="is-small"
-            @update:model-value="updateCalculatedPrice"
-          />
-        </div>
-        <span v-else>{{ props.row.kilograms }}</span>
-      </b-table-column>
-      <b-table-column
-        label="Entrega"
-        searchable
-        field="delivery_type.name"
-        sortable
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-select
-            v-model="editForm.delivery_type"
-            placeholder=""
-            size="is-small"
-            @update:model-value="updateCalculatedPrice"
-          >
-            <option
-              v-for="dt in deliveryTypes"
-              :key="dt.id"
-              :value="dt.id"
-            >
-              {{ dt.name }}
-            </option>
-          </b-select>
-        </div>
-        <span v-else>{{ props.row.delivery_type ? props.row.delivery_type.name : "-" }}</span>
-      </b-table-column>
-      <b-table-column
-        label="Recollida"
-        searchable
-        field="pickup.name"
-        sortable
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-select
-            v-model="editForm.pickup"
-            placeholder=""
-            size="is-small"
-          >
-            <option
-              v-for="p in pickups"
-              :key="p.id"
-              :value="p.id"
-            >
-              {{ p.name }}
-            </option>
-          </b-select>
-        </div>
-        <span v-else>{{ props.row.pickup ? props.row.pickup.alias || props.row.pickup.name : "-" }}
-          <b-icon
-            v-if="props.row.deposit_date"
-            icon="circle"
-            class="has-text-success"
-            custom-size="default"
-            title="Depositada"
-          />
-          <b-icon
-            v-else
-            icon="circle"
-            class="has-text-danger"
-            custom-size="default"
-            title="No depositada"
-          />
+      <div v-if="checkedRows.length" class="selection-bar" role="region" aria-label="Selecció">
+        <b>{{ checkedRows.length }} {{ checkedRows.length === 1 ? "seleccionada" : "seleccionades" }}</b>
+        <b-select v-model="newState" placeholder="Canvia l'estat a…" size="is-small" aria-label="Nou estat">
+          <option value="pending">Pendent</option>
+          <template v-if="isStaff">
+            <option value="processed">Processada</option>
+            <option value="delivered">Lliurada</option>
+            <option value="cancelled">Anul·lada</option>
+          </template>
+        </b-select>
+        <b-button size="is-small" :disabled="!newState" @click="setBulkState">Aplica</b-button>
+        <span class="selection-actions">
+          <b-button size="is-small" icon-left="printer" @click="pdfOrders">Imprimeix albarans</b-button>
+          <download-excel :data="theOrdersChecked" :name="comandesCSVName()" :fields="{ id: 'id', date: 'route_date', ...csvFields, ...csvExportFields }">
+            <b-button size="is-small" icon-left="download">Exporta selecció</b-button>
+          </download-excel>
+          <b-button size="is-small" type="is-text" @click="checkedRows = []">Desmarca</b-button>
         </span>
-      </b-table-column>
-      <b-table-column
-        label="Ú.milla"
-        searchable
-        field="last_mile_display"
-        sortable
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id">
-          <b-select
-            v-model="editForm.last_mile"
-            placeholder=""
-            size="is-small"
-          >
-            <option :value="true">Sí</option>
-            <option :value="false">No</option>
-          </b-select>
-        </div>
-        <span v-else>{{ props.row.last_mile_display }}</span>
-      </b-table-column>
-      <b-table-column
-        label="Preu"
-        field="price"
-        sortable
-        searchable
-        cell-class="opacity-50"
-        v-slot="props"
-      >
-        <div v-if="editingRowId === props.row.id" class="is-flex">
-          <money-format
-            v-if="calculatedPrice !== null"
-            class="has-text-left has-text-weight-bold"
-            :value="calculatedPrice"
-            :locale="'es'"
-            :currency-code="'EUR'"
-            :subunits-value="false"
-            :hide-subunits="false"
-          >
-          </money-format>
-          <span v-else>?</span>
-        </div>
-        <div v-else class="is-flex">
-          <money-format
-            v-if="props.row.finalPrice"
-            class="has-text-left"
-            :value="props.row.finalPrice"
-            :locale="'es'"
-            :currency-code="'EUR'"
-            :subunits-value="false"
-            :hide-subunits="false"
-          >
-          </money-format>
-          <span v-else>?</span>
-          <b-icon
-            v-if="
-              props.row.finalPrice !== props.row.price &&
-                props.row.multidelivery_discount
-            "
-            icon="circle"
-            class="has-text-success"
-            custom-size="default"
-            title="Descompte multientrega"
-          />
-          <b-icon
-            v-if="
-              props.row.finalPrice !== props.row.price &&
-                props.row.volume_discount
-            "
-            icon="circle"
-            class="has-text-grey-light"
-            custom-size="default"
-            title="Descompte volum"
-          />
-          <b-icon
-            v-if="
-              props.row.finalPrice !== props.row.price &&
-                props.row.contact_pickup_discount
-            "
-            icon="circle"
-            class="has-text-warning"
-            custom-size="default"
-            title="Descompte recollida"
-          />
-        </div>
-      </b-table-column>
-      <b-table-column
-        label="Estat"
-        field="status"
-        sortable
-        searchable
-        cell-class="opacity-100"
-        v-slot="props"
-      >
-        <span
-          v-if="props.row.status === 'pending'"
-          class="tag is-warning bg-pending"
-          >PENDENT</span
-        >
-        <span
-          v-else-if="props.row.status === 'invoiced'"
-          class="tag is-success bg-invoiced"
-          >FACTURADA</span
-        >
-        <span
-          v-else-if="props.row.status === 'delivered'"
-          class="tag is-success"
-          >LLIURADA</span
-        >
-        <span
-          v-else-if="props.row.status === 'processed'"
-          class="tag is-warning"
-          >PROCESSADA</span
-        >
-        <span
-          v-else-if="props.row.status === 'lastmile'"
-          class="tag is-info bg-distributing"
-          >ÚLTIMA MILLA</span
-        >
-        <span v-else-if="props.row.status === 'cancelled'" class="tag is-danger"
-          >ANUL·LADA</span
-        >
-        <span v-else class="tag is-info">{{ props.row.status }}</span>
-      </b-table-column>
+      </div>
 
-      <b-table-column
-        label="Accions..."
-        v-slot="props"        
-        centered
-        cell-class="opacity-100"
-        v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
-      >
-        <div v-if="editingRowId === props.row.id" class="buttons">
-          <b-button
-            size="is-small"
-            type="is-primary"
-            icon-left="content-save"
-            @click.prevent="saveOrder(props.row)"
-          >
-          </b-button>
-          <b-button
-            size="is-small"
-            type="is-light"
-            icon-left="close"
-            @click.prevent="cancelEdit"
-          >
-          </b-button>
+      <div class="a-box orders-box">
+        <b-loading :is-full-page="false" :model-value="isLoading" />
+        <div class="table-container">
+          <table class="table is-fullwidth orders-table">
+            <thead>
+              <tr>
+                <th class="col-check">
+                  <b-checkbox :model-value="allChecked" :indeterminate="someChecked" aria-label="Selecciona-les totes" @update:model-value="toggleAll" />
+                </th>
+                <th>Núm.</th>
+                <th>Punt d'entrega</th>
+                <th v-if="isStaff">Sòcia</th>
+                <th v-if="groupBy !== 'route'">Ruta</th>
+                <th v-if="showDateCol">Prevista</th>
+                <th>Recollida</th>
+                <th class="has-text-right">Caixes</th>
+                <th class="has-text-right">Kg</th>
+                <th class="has-text-right">Preu</th>
+                <th>Estat</th>
+                <th class="col-actions"><span class="is-sr-only">Accions</span></th>
+              </tr>
+            </thead>
+            <tbody v-for="group in groups" :key="group.key">
+              <tr v-if="groupBy !== 'none'" class="group-row" :class="{ 'is-collapsed': collapsed[group.key] }">
+                <td class="col-check">
+                  <b-checkbox :model-value="groupChecked(group)" :indeterminate="groupSomeChecked(group)" :aria-label="`Selecciona ${group.label}`" @update:model-value="toggleGroup(group, $event)" />
+                </td>
+                <td :colspan="groupLabelSpan">
+                  <button type="button" class="group-toggle" :aria-expanded="collapsed[group.key] ? 'false' : 'true'" @click="toggleCollapsed(group.key)">
+                    <b-icon :icon="collapsed[group.key] ? 'chevron-right' : 'chevron-down'" size="is-small" />
+                    <b>{{ group.label }}</b>
+                  </button>
+                  <span class="group-meta"> · {{ group.rows.length }} {{ group.rows.length === 1 ? "comanda" : "comandes" }}</span>
+                  <span v-if="group.pending" class="tag is-warning group-tag">{{ group.pending }} {{ group.pending === 1 ? "pendent" : "pendents" }}</span>
+                </td>
+                <td class="has-text-right num"><b>{{ formatNum(group.units) }}</b></td>
+                <td class="has-text-right num"><b>{{ formatNum(group.kg) }}</b></td>
+                <td class="has-text-right num"><b>{{ money(group.price) }}</b></td>
+                <td colspan="2"></td>
+              </tr>
+              <template v-if="!collapsed[group.key]">
+                <tr
+                  v-for="(order, i) in group.rows"
+                  :key="order.id || 'new-' + i"
+                  class="order-row"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id }"
+                >
+                  <td class="col-check">
+                    <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
+                  </td>
+                  <td class="num">
+                    <router-link v-if="order.id" :to="{ name: 'orders.view.detail', params: { id: order.id } }" class="order-num">{{ order.idx }}</router-link>
+                    <b-button v-else size="is-small" type="is-primary" @click="createCSVOrder(order)">Crea</b-button>
+                  </td>
+                  <td class="col-point">
+                    <b>{{ order.fullName || "—" }}</b>
+                    <small>{{ order.contact_city || (order.contact && order.contact.city) || "" }}</small>
+                    <span class="order-tags">
+                      <span v-if="order.pickup && order.pickup.pickup" class="tag is-success is-light">{{ order.pickup.alias === "Finca" ? "Recollida en finca" : (order.pickup.alias || order.pickup.name) }}</span>
+                      <span v-if="order.refrigerated" class="tag is-info is-light">Refrigerada</span>
+                      <span v-if="order.fragile" class="tag is-warning is-light">Fràgil</span>
+                      <span v-if="order.transfer" class="tag">Transferència</span>
+                      <span v-if="order.last_mile" class="tag is-link is-light">Última milla</span>
+                      <span v-if="order.is_collection_order" class="tag">Comanda de recollida</span>
+                    </span>
+                  </td>
+                  <td v-if="isStaff">{{ order.owner ? order.owner.fullname || order.owner.username : "—" }}</td>
+                  <td v-if="groupBy !== 'route'">{{ order.route ? order.route.name : "—" }}</td>
+                  <td v-if="showDateCol" class="nowrap">{{ formatDay(order.estimated_delivery_date) }}</td>
+                  <td class="col-pickup">
+                    <span>{{ order.pickup ? order.pickup.alias || order.pickup.name : "—" }}</span>
+                    <small :class="order.deposit_date ? 'is-deposited' : ''">{{ order.deposit_date ? "● dipositada" : "○ sense dipositar" }}</small>
+                  </td>
+                  <td class="has-text-right num">{{ formatNum(order.units) }}</td>
+                  <td class="has-text-right num">{{ formatNum(order.kilograms) }}</td>
+                  <td class="has-text-right num col-price">
+                    <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
+                    <small v-if="discountLabel(order)">{{ discountLabel(order) }}</small>
+                  </td>
+                  <td><span class="tag" :class="statusTag(order.status)">{{ statusLabel(order.status) }}</span></td>
+                  <td class="col-actions">
+                    <router-link
+                      v-if="order.id && canEditOrder(order)"
+                      :to="{ name: 'orders.edit', params: { id: order.id } }"
+                      class="row-action"
+                      title="Edita la comanda"
+                      aria-label="Edita la comanda"
+                    ><b-icon icon="pencil-outline" size="is-small" /></router-link>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+            <tbody v-if="!isLoading && !groups.length">
+              <tr><td :colspan="columnCount" class="empty-row">Cap comanda amb aquests filtres.</td></tr>
+            </tbody>
+            <tfoot v-if="groups.length">
+              <tr>
+                <td></td>
+                <td :colspan="groupLabelSpan"><b>Total {{ kpis.active }} comandes actives</b><span v-if="morePages" class="has-text-muted"> (aquesta pàgina)</span></td>
+                <td class="has-text-right num"><b>{{ formatNum(kpis.units) }}</b></td>
+                <td class="has-text-right num"><b>{{ formatNum(kpis.kg) }}</b></td>
+                <td class="has-text-right num"><b>{{ money(kpis.price) }}</b></td>
+                <td colspan="2"></td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
-        <div v-else>
-          <b-button
-            v-if="canEditOrder(props.row)"
+        <footer class="orders-foot">
+          <span>{{ footNote }}</span>
+          <b-pagination
+            v-if="total > perPageEffective"
+            v-model="page"
+            :total="total"
+            :per-page="perPageEffective"
             size="is-small"
-            type="is-info"
-            icon-left="pencil"
-            @click.prevent="startEdit(props.row)"
-          >
-          </b-button>
-        </div>
-      </b-table-column>
-
-      <!-- <b-table-column
-        label="Correu"
-        field="email"
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.email }}
-      </b-table-column>       -->
-    </b-table>
-  </section>
+            order="is-right"
+            @change="onPageChange"
+          />
+          <label class="filter-select">
+            <span>Agrupa per</span>
+            <b-select v-model="groupBy" @update:model-value="saveGroupBy">
+              <option value="route">Ruta</option>
+              <option value="date">Data prevista</option>
+              <option v-if="isStaff" value="owner">Sòcia</option>
+              <option value="none">Sense agrupar</option>
+            </b-select>
+          </label>
+        </footer>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script>
@@ -764,6 +331,7 @@ import { parse } from "csv-parse/browser/esm";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import FileUpload from "@/components/FileUpload.vue";
+import TitleBar from "@/components/TitleBar.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import {
   assignRouteRate,
@@ -787,12 +355,14 @@ function idOf(value) {
 }
 import _ from "lodash";
 import getConfig from '@/config'
+import { formatMoney, formatNumber } from "@/helpers/format-number";
 
 export default {
-  name: "Tresoreria",
+  name: "OrdersTable",
   components: {
     FileUpload,
-    MoneyFormat
+    MoneyFormat,
+    TitleBar
   },
   props: {
     titleStack: {
@@ -1146,10 +716,149 @@ export default {
       contacts: [],
       contactSearch: '',
       calculatedPrice: null,
-      editingOrder: null
+      editingOrder: null,
+      // redesign A: filters above the list and the grouping
+      search: "",
+      dateFilter: null,
+      ownerFilter: null,
+      pickupFilter: null,
+      statusCounts: {},
+      collapsed: {},
+      groupBy: "route",
+      isMobile: typeof window !== "undefined" && window.innerWidth < 769,
+      searchTimer: null
     };
   },
   computed: {
+    isStaff() {
+      return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
+    },
+    statusTabs() {
+      return [
+        { id: "", label: "Totes" },
+        { id: "pending", label: "Pendents" },
+        { id: "processed", label: "Processades" },
+        { id: "lastmile", label: "Última milla" },
+        { id: "delivered", label: "Lliurades" },
+        { id: "invoiced", label: "Facturades" },
+        { id: "cancelled", label: "Anul·lades" }
+      ];
+    },
+    dateFilterDate: {
+      get() {
+        return this.dateFilter ? moment(this.dateFilter, "YYYY-MM-DD").toDate() : null;
+      },
+      set(value) {
+        this.setDate(value);
+      }
+    },
+    routeFilterLabel() {
+      if (!this.routeFilter.length) return "Totes";
+      if (this.routeFilter.length === 1) {
+        const route = this.routes.find(r => r.id === this.routeFilter[0]);
+        return route ? route.name : "1 ruta";
+      }
+      return `${this.routeFilter.length} rutes`;
+    },
+    sortedUsers() {
+      return [...this.users].sort((a, b) => (a.fullname || a.username || "").localeCompare(b.fullname || b.username || ""));
+    },
+    perPageEffective() {
+      // a single day fits in one page; other ranges are paged
+      return this.dateFilter ? 1000 : Number(this.perPage);
+    },
+    morePages() {
+      return this.total > this.perPageEffective;
+    },
+    kpis() {
+      const rows = this.theOrders;
+      const active = rows.filter(o => o.status !== "cancelled");
+      return {
+        active: active.length,
+        cancelled: rows.length - active.length,
+        units: _.sumBy(active, o => Number(o.units) || 0),
+        kg: _.sumBy(active, o => Number(o.kilograms) || 0),
+        price: _.sumBy(active, o => Number(o.finalPrice) || 0),
+        refrigerated: active.filter(o => o.refrigerated).length,
+        transfers: active.filter(o => o.transfer).length,
+        pickups: active.filter(o => o.pickup && o.pickup.pickup).length,
+        deposited: active.filter(o => o.deposit_date).length
+      };
+    },
+    headline() {
+      const routes = new Set(this.theOrders.filter(o => o.route).map(o => o.route.id)).size;
+      const orders = `${this.total} ${this.total === 1 ? "comanda" : "comandes"}`;
+      const where = routes ? ` en ${routes} ${routes === 1 ? "ruta" : "rutes"}` : "";
+      if (this.dateFilter) {
+        return `Entrega prevista ${moment(this.dateFilter).locale("ca").format("dddd DD/MM/YYYY")} · ${orders}${where}`;
+      }
+      return `Totes les dates · ${orders}${where}`;
+    },
+    groups() {
+      const rows = this.theOrders;
+      const unsaved = rows.filter(o => !o.id);
+      const saved = rows.filter(o => o.id);
+      const keyOf = {
+        route: o => (o.route ? `r${o.route.id}` : "r-"),
+        date: o => `d${o.estimated_delivery_date || ""}`,
+        owner: o => (o.owner ? `o${o.owner.id}` : "o-"),
+        none: () => "all"
+      }[this.groupBy] || (() => "all");
+      const labelOf = {
+        route: o => (o.route ? o.route.name : "Sense ruta"),
+        date: o => (o.estimated_delivery_date ? this.formatDay(o.estimated_delivery_date) : "Sense data"),
+        owner: o => (o.owner ? o.owner.fullname || o.owner.username : "Sense sòcia"),
+        none: () => "Comandes"
+      }[this.groupBy] || (() => "Comandes");
+      const sortOf = {
+        route: o => (o.route ? String(o.route.order ?? 9999).padStart(6, "0") + o.route.name : "~"),
+        date: o => o.estimated_delivery_date || "~",
+        owner: o => (o.owner ? (o.owner.fullname || o.owner.username || "").toLowerCase() : "~"),
+        none: () => ""
+      }[this.groupBy] || (() => "");
+      const map = new Map();
+      for (const o of saved) {
+        const key = keyOf(o);
+        if (!map.has(key)) map.set(key, { key, label: labelOf(o), sort: sortOf(o), rows: [] });
+        map.get(key).rows.push(o);
+      }
+      const list = [...map.values()].sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0));
+      if (unsaved.length) list.unshift({ key: "unsaved", label: "Importades, encara sense crear", rows: unsaved });
+      return list.map(g => {
+        const active = g.rows.filter(o => o.status !== "cancelled");
+        return {
+          ...g,
+          units: _.sumBy(active, o => Number(o.units) || 0),
+          kg: _.sumBy(active, o => Number(o.kilograms) || 0),
+          price: _.sumBy(active, o => Number(o.finalPrice) || 0),
+          pending: g.rows.filter(o => o.status === "pending").length
+        };
+      });
+    },
+    showDateCol() {
+      // one day shown: every row has the same date
+      return this.groupBy !== "date" && !this.dateFilter;
+    },
+    groupLabelSpan() {
+      // núm. + punt + optional sòcia / ruta / prevista + recollida
+      return 3 + (this.isStaff ? 1 : 0) + (this.groupBy !== "route" ? 1 : 0) + (this.showDateCol ? 1 : 0);
+    },
+    columnCount() {
+      return this.groupLabelSpan + 6;
+    },
+    allChecked() {
+      return this.theOrders.length > 0 && this.checkedRows.length === this.theOrders.length;
+    },
+    someChecked() {
+      return this.checkedRows.length > 0 && !this.allChecked;
+    },
+    footNote() {
+      if (this.groupBy === "none") return `${this.theOrders.length} comandes`;
+      const open = this.groups.filter(g => !this.collapsed[g.key]).length;
+      const closed = this.groups.length - open;
+      const by = { route: "ruta", date: "data prevista", owner: "sòcia" }[this.groupBy];
+      return `Agrupat per ${by} · ${open} ${open === 1 ? "grup obert" : "oberts"}${closed ? `, ${closed} ${closed === 1 ? "plegat" : "plegats"}` : ""}`;
+    },
     ...mapState(useMainStore, ["userName"]),
     ...mapState(useMainStore, ["userId"]),
     theOrders() {
@@ -1247,6 +956,17 @@ export default {
       }
     }
     
+    // redesign A filters (kept per browser, like the status and routes)
+    try {
+      const saved = JSON.parse(localStorage.getItem("OrdersTable.filters") || "{}");
+      this.dateFilter = saved.date || null;
+      this.ownerFilter = saved.owner || null;
+      this.pickupFilter = saved.pickup || null;
+      if (["route", "date", "owner", "none"].includes(saved.groupBy)) this.groupBy = saved.groupBy;
+    } catch (e) {
+      // defaults
+    }
+
     // Ensure filters are always arrays
     if (!Array.isArray(this.statusFilter)) {
       this.statusFilter = [];
@@ -1458,6 +1178,7 @@ export default {
       }
       
       localStorage.setItem("OrdersTable.statusFilter", JSON.stringify(this.statusFilter));
+      if (status !== undefined) this.page = 1;
 
       const where = [];
       
@@ -1542,6 +1263,29 @@ export default {
         }
       }
 
+      // redesign A filters: search, expected date, member, pickup point
+      const q = (this.search || "").trim();
+      if (q) {
+        const v = encodeURIComponent(q);
+        const or = [
+          `_where[_or][0][contact_trade_name_contains]=${v}`,
+          `_where[_or][1][contact_name_contains]=${v}`,
+          `_where[_or][2][owner.fullname_contains]=${v}`,
+          `_where[_or][3][contact_city_contains]=${v}`
+        ];
+        if (/^\d+$/.test(q)) or.push(`_where[_or][4][id]=${q.replace(/^0+/, "") || 0}`);
+        where.push(...or);
+      }
+      if (this.dateFilter) where.push(`_where[estimated_delivery_date]=${this.dateFilter}`);
+      if (this.ownerFilter) where.push(`_where[owner]=${this.ownerFilter}`);
+      if (this.pickupFilter) where.push(`_where[pickup.id]=${this.pickupFilter}`);
+      localStorage.setItem("OrdersTable.filters", JSON.stringify({
+        date: this.dateFilter,
+        owner: this.ownerFilter,
+        pickup: this.pickupFilter,
+        groupBy: this.groupBy
+      }));
+
       // For routes: Use multiple _where[route.id] for OR condition
       if (this.routeFilter.length === 1) {
         where.push(`_where[route.id]=${this.routeFilter[0]}`);
@@ -1556,10 +1300,13 @@ export default {
       // /orders but only populates the relations the table renders (drops
       // emitted_invoice and other deep relations, which were ~96% of the
       // payload and not used here).
+      // the counts of the status tabs: same filters, each status
+      this.loadStatusCounts(where.filter(w => !w.startsWith("_where[status]") && w !== "_where[last_mile]=true"));
+
       this.orders = (
         await service({ requiresAuth: true }).get(
-          `orders/table?_limit=${this.perPage}&_start=${(this.page - 1) *
-            this.perPage}&_sort=${this.sortField}:${this.sortOrder}${
+          `orders/table?_limit=${this.perPageEffective}&_start=${(this.page - 1) *
+            this.perPageEffective}&_sort=${this.sortField}:${this.sortOrder}${
             this.userFilter
           }&${where.join("&")}`
         )
@@ -2652,6 +2399,121 @@ export default {
       // Helper function to get nested property value
       return path.split('.').reduce((current, prop) => current?.[prop], obj);
     },
+    async loadStatusCounts(baseWhere) {
+      const count = extra =>
+        service({ requiresAuth: true })
+          .get(`orders/count?${this.userFilter}&${[...baseWhere, ...extra].join("&")}`)
+          .then(r => r.data)
+          .catch(() => null);
+      const ids = ["pending", "processed", "delivered", "invoiced", "cancelled"];
+      const [all, lastmile, ...byStatus] = await Promise.all([
+        count([]),
+        count(["_where[last_mile]=true"]),
+        ...ids.map(id => count([`_where[status]=${id}`]))
+      ]);
+      const counts = { all, lastmile };
+      ids.forEach((id, i) => { counts[id] = byStatus[i]; });
+      this.statusCounts = counts;
+    },
+    refresh() {
+      this.page = 1;
+      this.setStatusFilter({ ctrlKey: false, metaKey: false });
+    },
+    debouncedRefresh() {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = setTimeout(() => this.refresh(), 400);
+    },
+    setDate(value) {
+      this.dateFilter = value ? moment(value).format("YYYY-MM-DD") : null;
+      this.refresh();
+    },
+    shiftDate(days) {
+      const from = this.dateFilter ? moment(this.dateFilter, "YYYY-MM-DD") : moment().startOf("day");
+      this.setDate(from.add(this.dateFilter ? days : 0, "days").toDate());
+    },
+    formatDayShort(date) {
+      return date ? moment(date).locale("ca").format("dd DD/MM/YYYY") : "";
+    },
+    formatDay(value) {
+      return value ? moment(value, "YYYY-MM-DD").locale("ca").format("dd DD/MM") : "—";
+    },
+    setRoutes(list) {
+      this.routeFilter = list;
+      this.onRouteChange();
+    },
+    onRouteChange() {
+      localStorage.setItem("OrdersTable.routeFilterId", JSON.stringify(this.routeFilter));
+      this.checkedRows = [];
+      this.refresh();
+    },
+    isChecked(order) {
+      return this.checkedRows.includes(order);
+    },
+    toggleRow(order, on) {
+      if (on && !this.isChecked(order)) this.checkedRows = [...this.checkedRows, order];
+      if (!on) this.checkedRows = this.checkedRows.filter(o => o !== order);
+    },
+    toggleAll(on) {
+      this.checkedRows = on ? [...this.theOrders] : [];
+    },
+    groupChecked(group) {
+      return group.rows.length > 0 && group.rows.every(o => this.isChecked(o));
+    },
+    groupSomeChecked(group) {
+      return !this.groupChecked(group) && group.rows.some(o => this.isChecked(o));
+    },
+    toggleGroup(group, on) {
+      const others = this.checkedRows.filter(o => !group.rows.includes(o));
+      this.checkedRows = on ? [...others, ...group.rows] : others;
+    },
+    toggleCollapsed(key) {
+      this.collapsed = { ...this.collapsed, [key]: !this.collapsed[key] };
+    },
+    saveGroupBy() {
+      this.collapsed = {};
+      localStorage.setItem("OrdersTable.filters", JSON.stringify({
+        date: this.dateFilter,
+        owner: this.ownerFilter,
+        pickup: this.pickupFilter,
+        groupBy: this.groupBy
+      }));
+    },
+    discountLabel(order) {
+      if (order.finalPrice === undefined || order.finalPrice === null || !order.price || order.finalPrice >= order.price) return "";
+      if (Number(order.contact_pickup_discount)) return `−${this.formatNum(order.contact_pickup_discount)}% recollida`;
+      if (Number(order.multidelivery_discount)) return `−${this.formatNum(order.multidelivery_discount)}% multientrega`;
+      if (Number(order.volume_discount)) return "descompte volum";
+      return "amb descompte";
+    },
+    statusLabel(status) {
+      return {
+        pending: "Pendent",
+        processed: "Processada",
+        lastmile: "Última milla",
+        delivered: "Lliurada",
+        invoiced: "Facturada",
+        cancelled: "Anul·lada"
+      }[status] || status;
+    },
+    statusTag(status) {
+      return {
+        pending: "is-warning",
+        processed: "is-info is-light",
+        lastmile: "is-link is-light",
+        delivered: "is-success is-light",
+        invoiced: "",
+        cancelled: "is-danger is-light"
+      }[status] || "";
+    },
+    formatCount(value) {
+      return formatNumber(Number(value) || 0, 0);
+    },
+    formatNum(value) {
+      return formatNumber(Number(value) || 0, 2);
+    },
+    money(value) {
+      return formatMoney(Number(value) || 0);
+    },
     onPageChange(page) {
       this.page = page;
       this.setStatusFilter({ ctrlKey: false, metaKey: false });
@@ -2671,55 +2533,235 @@ export default {
   }
 };
 </script>
-<style>
-.button.button-small {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  line-height: 20px;
-  max-height: 24px;
+<style scoped>
+.orders-page :deep(.title-bar .actions) {
+  flex-wrap: wrap;
 }
-/* Highlight future week orders */
-.future-week-row {
-  background-color: var(--a-thead) !important;  
+.export-item {
+  display: block;
+  cursor: pointer;
 }
-.future-week-row :not(.opacity-100) a, 
-.future-week-row :not(.opacity-100) span,
-.future-week-row .opacity-50 {
-  opacity: 0.5;
+.import-box {
+  margin-bottom: 1rem;
 }
-.tag.bg-invoiced {
-  background-color: grey !important;
-  color: white !important;
+.report-box-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .75rem;
 }
-.tag.bg-pending {
-  background-color: #c9b460 !important;
-  color: white !important;
+.report-box-head h2 {
+  font-weight: 800;
 }
-.tag.bg-deposited {
-  background-color: green !important;
-  color: white !important;
+.import-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
-.tag.bg-distributing {
-  background-color: #ff7300 !important;
-  color: white !important;
+.import-help {
+  margin-top: .75rem;
+  font-size: .8125rem;
+  color: var(--a-muted);
 }
-.w-50 {
-  width: 50%;
+.csv-errors ul {
+  margin: .25rem 0 0 1rem;
+  list-style: disc;
+  font-size: .875rem;
 }
-.ml-auto {
+.date-nav .filter-select :deep(.datepicker) {
+  width: 8.75rem;
+}
+.date-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+}
+.filter-select.is-button {
+  gap: .5rem;
+  padding-right: .5rem;
+  font: inherit;
+  cursor: pointer;
+}
+.filter-select.is-button b {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--a-fg);
+}
+.route-check {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  white-space: nowrap;
+}
+.filter-dropdown :deep(.dropdown-content) {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.status-tabs {
+  margin-bottom: 1rem;
+}
+.status-tabs .count {
+  margin-left: .25rem;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .625rem;
+  margin-bottom: 1rem;
+  padding: .625rem 1rem;
+  border: 1px solid var(--a-accent);
+  border-radius: 10px;
+  background: var(--a-accent-soft);
+  color: var(--a-accent-hover);
+}
+.selection-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: .5rem;
   margin-left: auto;
 }
-.mr-mobile-3 {
-  @media screen and (max-width: 768px) {
-    margin-right: 1rem !important;
+.orders-box {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+.orders-table {
+  font-size: .875rem;
+}
+.orders-table th {
+  white-space: nowrap;
+}
+.orders-table td {
+  vertical-align: middle;
+}
+.col-check {
+  width: 2.5rem;
+}
+.col-check :deep(.checkbox) {
+  margin: 0;
+}
+.num {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.order-num {
+  font-weight: 800;
+}
+.col-point b,
+.col-point small,
+.col-pickup span,
+.col-pickup small,
+.col-price b,
+.col-price small {
+  display: block;
+}
+.col-point {
+  min-width: 14rem;
+}
+.col-point small,
+.col-pickup small,
+.col-price small {
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.col-pickup small {
+  white-space: nowrap;
+}
+.filter-bar :deep(.filter-select .select select) {
+  max-width: 13rem;
+}
+.col-pickup small.is-deposited {
+  color: var(--a-pos);
+  font-weight: 700;
+}
+.order-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+  margin-top: .25rem;
+}
+.order-tags .tag {
+  height: 1.375rem;
+  font-size: .6875rem;
+}
+.group-row td {
+  background: var(--a-thead);
+}
+.group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--a-fg);
+  font: inherit;
+  cursor: pointer;
+}
+.group-meta {
+  color: var(--a-muted);
+}
+.group-tag {
+  margin-left: .5rem;
+  height: 1.375rem;
+  font-size: .6875rem;
+}
+.order-row.is-checked td {
+  background: var(--a-accent-soft);
+}
+.order-row.is-cancelled td {
+  color: var(--a-muted);
+}
+.order-row.is-cancelled td b {
+  color: var(--a-muted);
+  font-weight: 600;
+}
+.order-row.is-unsaved td {
+  background: var(--a-warn-bg);
+}
+.col-actions {
+  width: 2.5rem;
+  text-align: right;
+}
+.row-action {
+  color: var(--a-muted);
+}
+.row-action:hover {
+  color: var(--a-accent);
+}
+.empty-row {
+  padding: 2rem !important;
+  text-align: center;
+  color: var(--a-muted);
+}
+.orders-table tfoot td {
+  border-top: 2px solid var(--a-line);
+}
+.orders-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem 1rem;
+  border-top: 1px solid var(--a-line-soft);
+  font-size: .875rem;
+  color: var(--a-muted);
+}
+.orders-foot > :last-child {
+  margin-left: auto;
+}
+@media screen and (max-width: 768px) {
+  .import-columns {
+    grid-template-columns: minmax(0, 1fr);
   }
-}
-.bg-white-panel {
-  background-color: var(--a-surface) !important;
-  border: 1px solid rgb(219, 219, 219) !important;
-  border-radius: 4px;
-}
-.small-table .table td {
-  padding: 0.25rem 0.25rem;
 }
 </style>
