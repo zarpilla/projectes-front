@@ -2483,7 +2483,15 @@
           {{ dirty ? "Canvis sense desar" : "Sense canvis pendents" }}
         </span>
         <div class="savebar-actions">
-          <b-button @click="duplicateProject">Duplicar projecte</b-button>
+          <b-dropdown position="is-top-left" aria-role="menu" class="savebar-more">
+            <template #trigger>
+              <b-button icon-left="dots-horizontal" title="Més accions" aria-label="Més accions" />
+            </template>
+            <b-dropdown-item aria-role="menuitem" @click="duplicateProject">
+              <b-icon icon="content-copy" size="is-small" />
+              Duplicar projecte
+            </b-dropdown-item>
+          </b-dropdown>
           <b-button :loading="isLoading" @click="submitAndExit">Guardar i sortir</b-button>
           <b-button type="is-primary" :loading="isLoading" @click="submitAndContinue">Guardar</b-button>
         </div>
@@ -5300,6 +5308,13 @@ body:has(.project-form .savebar) .notices.is-bottom {
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
+}
+.project-form .savebar-more .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding-right: 1.25rem;
+  white-space: nowrap;
 }
 @media screen and (max-width: 768px) {
   .project-form .savebar {
