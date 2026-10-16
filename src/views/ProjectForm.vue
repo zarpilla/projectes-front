@@ -820,8 +820,19 @@
           </card-component>
         </div>
         <div v-show="showTab('resum')" class="column" :class="tabsEnabled || (isCreationMode && !isDuplicating) ? 'is-12 project-summary' : 'is-one-third'" v-if="!isLoading && (!isCreationMode || (isCreationMode && currentStep > 2))">
+          <template v-if="isProfileExists && newSummary">
+            <div v-if="form.dirty || hasBeenDirty" class="notification is-warning summary-dirty" role="status">
+              <span v-if="form.dirty">
+                Els totals del projecte s'estan actualitzant en un procés extern. Pot ser que temporalment no
+                siguin correctes. Torna a carregar el projecte en una estona.
+              </span>
+              <span v-else>Recarrega el projecte per veure els totals correctes.</span>
+              <b-button v-if="!form.dirty && hasBeenDirty" size="is-small" icon-left="refresh" @click.prevent="refresh">Recarrega</b-button>
+            </div>
+            <project-summary-cards v-model:year="allByYearYear" :totals="totals" :years="summaryYears" />
+          </template>
           <card-component
-            v-if="isProfileExists"
+            v-if="isProfileExists && !newSummary"
             title="RESUM FINANCER PROJECTE"
             class="tile is-child summary-card"
           >
@@ -2489,6 +2500,7 @@ const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum
 // Project components
 import TitleBar from "@/components/TitleBar.vue";
 import WizardSteps from "@/components/WizardSteps.vue";
+import ProjectSummaryCards from "@/components/ProjectSummaryCards.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing.vue";
 import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
@@ -2511,6 +2523,7 @@ export default {
     CardComponent,
     TitleBar,
     WizardSteps,
+    ProjectSummaryCards,
     MoneyFormat,
     FinancialDiffTooltip,
     ModalBoxInvoicing,
@@ -2686,6 +2699,15 @@ export default {
         { title: "Planificació", description: "Qui hi dedica hores i quan." },
         { title: "Confirmació", description: "Tanca el pressupost: es crea el d'execució." }
       ];
+    },
+    // the redesigned summary (tabs and wizard); duplicating keeps the old card
+    newSummary() {
+      return this.tabsEnabled || (this.isCreationMode && !this.isDuplicating);
+    },
+    summaryYears() {
+      return (this.allByYear || [])
+        .filter(a => a.year !== "undefined")
+        .map(a => ({ value: a.year, label: this.periodificationYearLabel(a.year) }));
     },
     tabsEnabled() {
       return !this.isCreationMode && !this.isDuplicating && !!this.form.id;
@@ -5322,6 +5344,13 @@ html .project-form .subphase-detail-input.readonly {
   grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
+}
+.project-form .summary-dirty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  margin: 0;
 }
 .project-form .project-summary > .card {
   margin: 0 !important;
