@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Saldo, previsió per mesos i moviments dels comptes bancaris." />
     <section class="section is-main-section">
       <tresoreria-table />
     </section>
@@ -40,7 +40,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Tresoreria']
+      return ['Diners', 'Tresoreria']
     },
     filteredUsers () {
       return this.users.filter(option => {

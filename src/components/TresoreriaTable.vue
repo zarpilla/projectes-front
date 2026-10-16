@@ -150,120 +150,107 @@
       :can-cancel="false"
     ></b-loading>
 
-    <card-component
-      title="PREVISIÓ DE TRESORERIA"
-      class="ztile is-child mt-2"
-      header-icon="view-column"
-      @header-icon-click="toogleView"
-    >
-      <section class="section">
-        <div class="b-table treasury-table">
-          <div
-            class="
-              table-wrapper
-              has-mobile-cards has-sticky-header
-              table-container
-            "
-          >
-            <table class="table">
-              <thead>
-                <th></th>
-                <th class="has-text-right">
-                  <div class="zth-wrap has-text-right">
-                    <span class="is-relative" v-if="view === 'today'">
-                      Avui
-                    </span>
-                    <span class="is-relative" v-else> Inici Any </span>
-                  </div>
-                </th>
-                <th
-                  class="has-text-right"
-                  v-for="(column, i) in pivotData"
-                  :key="i"
-                >
-                  <div class="zth-wrap has-text-right">
-                    <span
-                      class="is-relative"
-                      v-if="column.month !== '00' && column.month !== '99'"
-                    >
-                      {{ column.month }} / {{ column.year }}
-                    </span>
-                    <span class="is-relative" v-if="column.month == '00'">
-                      TOTAL {{ column.year }}
-                      <b-icon
-                        class="has-text-danger"
-                        icon="star"
-                        size="is-small"
-                      >
-                      </b-icon>
-                    </span>
-                    <span class="is-relative" v-if="column.month == '99'">
-                      SENSE DATA
-                      <b-icon
-                        class="has-text-danger"
-                        icon="alert-circle"
-                        size="is-small"
-                      >
-                      </b-icon>
-                    </span>
-                  </div>
-                </th>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="has-text-weight-bold">Cobraments</td>
-                  <td class="has-text-right"></td>
-                  <td
-                    class="has-text-right"
-                    v-for="(data, i) in pivotData"
-                    :key="i"
-                  >
-                    {{ formatPrice(data.total_incomes) }} €
-                  </td>
-                </tr>
-                <tr>
-                  <td class="has-text-weight-bold">Pagaments</td>
-                  <td class="has-text-right"></td>
-                  <td
-                    class="has-text-right"
-                    v-for="(data, i) in pivotData"
-                    :key="i"
-                  >
-                    {{ formatPrice(data.total_expenses) }} €
-                  </td>
-                </tr>
-                <tr>
-                  <td class="has-text-weight-bold">Resultat</td>
-                  <td class="has-text-right"></td>
-                  <td
-                    class="has-text-right"
-                    v-for="(data, i) in pivotData"
-                    :key="i"
-                  >
-                    {{ formatPrice(data.total_amount) }} €
-                  </td>
-                </tr>
-                <tr>
-                  <td class="has-text-weight-bold">Saldo</td>
-                  <td class="has-text-right">
-                    {{ formatPrice(todaySubTotal) }}€
-                  </td>
-                  <td
-                    class="has-text-right has-text-weight-bold"
-                    v-for="(data, i) in pivotData"
-                    :key="i"
-                  >
-                    {{ formatPrice(data.subtotal) }} €
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </card-component>
+    <!-- Redesign A: figures, month-end balance chart and the monthly forecast.
+         Same figures as the old "PREVISIÓ DE TRESORERIA" table (pivotData). -->
+    <div class="doc-kpis">
+      <div class="doc-kpi">
+        <span>Saldo avui</span>
+        <b :class="'has-text-' + sign(todayBalance)">{{ money(todayBalance) }}</b>
+        <small>{{ isSingleAccountView ? singleAccountName : "suma dels comptes" }}, amb els previstos pendents</small>
+      </div>
+      <div class="doc-kpi">
+        <span>Punt més baix previst</span>
+        <b :class="'has-text-' + sign(lowestMonth ? lowestMonth.subtotal : 0)">{{ lowestMonth ? money(lowestMonth.subtotal) : "—" }}</b>
+        <small>{{ lowestMonth ? "a final de " + monthName(lowestMonth.month) : "sense mesos previstos" }}</small>
+      </div>
+      <div class="doc-kpi">
+        <span>Saldo a 31/12/{{ selectedYear }}</span>
+        <b :class="'has-text-' + sign(yearEnd ? yearEnd.subtotal : 0)">{{ yearEnd ? money(yearEnd.subtotal) : "—" }}</b>
+        <small v-if="yearEnd">resultat de l'any {{ money(yearEnd.total_amount) }}</small>
+      </div>
+      <div class="doc-kpi" :class="{ 'is-warn': overdueCount }">
+        <span>Previstos endarrerits</span>
+        <b>{{ overdueCount }}</b>
+        <small>moviments previstos amb data passada sense executar</small>
+      </div>
+    </div>
 
-    <card-component title="PER PROJECTE" class="ztile is-child mt-2">
+    <div v-if="noDate && (noDate.total_incomes || noDate.total_expenses)" class="notification is-warning tres-nodate">
+      <b>Moviments previstos sense data:</b>
+      {{ money(noDate.total_incomes) }} de cobraments i {{ money(noDate.total_expenses) }} de pagaments no entren a la previsió.
+    </div>
+
+    <section class="report-box">
+      <header class="report-box-head">
+        <h2>Saldo a final de mes · {{ selectedYear }}</h2>
+        <span class="chart-legend" aria-hidden="true">
+          <span><i class="c-pos"></i>positiu</span>
+          <span><i class="c-neg"></i>negatiu</span>
+          <span><i class="c-fut"></i>previst</span>
+        </span>
+      </header>
+      <div class="month-bars" role="img" :aria-label="chartMonths.map(m => monthName(m.month) + ': ' + money(m.subtotal)).join(', ')">
+        <div class="zero-line" :style="{ bottom: zeroPos }"></div>
+        <div v-for="m in chartMonths" :key="m.ym" class="mb-col" :class="{ 'is-now': m.ym === currentYm }" :title="monthName(m.month) + ': ' + money(m.subtotal)">
+          <div class="mb-area">
+            <i
+              :class="[m.subtotal < 0 ? 'c-neg' : 'c-pos', { 'is-future': m.ym > currentYm }]"
+              :style="barStyle(m.subtotal)"
+            ></i>
+          </div>
+          <span class="mb-label">{{ monthShort(m.month) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="report-box">
+      <header class="report-box-head">
+        <h2>Previsió mensual {{ selectedYear }}</h2>
+        <div class="segmented" role="group" aria-label="Saldo des de">
+          <button type="button" :class="{ 'is-on': view !== 'today' }" @click="view !== 'today' || toogleView()">Des de l'inici d'any</button>
+          <button type="button" :class="{ 'is-on': view === 'today' }" @click="view === 'today' || toogleView()">Des d'avui</button>
+        </div>
+      </header>
+      <div class="table-wrap">
+        <table class="table is-fullwidth forecast-months">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th class="has-text-right">Cobraments</th>
+              <th class="has-text-right">Pagaments</th>
+              <th class="has-text-right">Resultat</th>
+              <th class="has-text-right">Saldo final</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="is-start">
+              <th>{{ view === "today" ? "Avui" : "Inici d'any" }}</th>
+              <td></td><td></td><td></td>
+              <td class="has-text-right"><b>{{ money(todaySubTotal) }}</b></td>
+            </tr>
+            <tr v-for="data in tableMonths" :key="data.ym" :class="{ 'is-year': data.month === '00', 'is-now': data.ym === currentYm }">
+              <th>
+                <template v-if="data.month === '00'">Total {{ data.year }}</template>
+                <template v-else-if="data.month === '99'">Sense data</template>
+                <template v-else>{{ monthName(data.month) }}<span v-if="data.year !== selectedYear"> {{ data.year }}</span></template>
+                <span v-if="data.ym === currentYm" class="tag is-info is-light">Mes en curs</span>
+              </th>
+              <td class="has-text-right">{{ money(data.total_incomes) }}</td>
+              <td class="has-text-right has-text-neg">{{ money(data.total_expenses) }}</td>
+              <td class="has-text-right" :class="'has-text-' + sign(data.total_amount)">{{ money(data.total_amount, true) }}</td>
+              <td class="has-text-right" :class="['has-text-' + sign(data.subtotal), { 'has-text-weight-bold': data.month === '00' }]">{{ money(data.subtotal) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-if="laterCount" class="tres-more">
+        <button type="button" class="button is-small" @click="showLater = !showLater">
+          {{ showLater ? "Amaga els anys següents" : "Mostra els anys següents (" + laterCount + " mesos)" }}
+        </button>
+      </div>
+    </section>
+
+    <card-component title="Per projecte" class="ztile is-child mt-2">
       <!-- Pivot Views Component -->
       <pivot-views
         :pivot-views="pivotViews"
@@ -283,7 +270,7 @@
     </card-component>
 
     <card-component
-      title="OPERACIONS DE TRESORERIA"
+      title="Operacions de tresoreria"
       class="ztile is-child mt-2"
     >
       <section class="section pt-2 pb-2">
@@ -294,7 +281,7 @@
       </section>
     </card-component>
 
-    <card-component title="MOVIMENTS BANCARIS" class="ztile is-child mt-2">
+    <card-component title="Moviments bancaris" class="ztile is-child mt-2">
       <section class="section">
         <!-- paginated (the whole year was one ~60.000 px table); opens on the page with "Avui" -->
         <b-table
@@ -532,6 +519,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
+import { formatMoney, sign } from "@/helpers/format-number";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
@@ -584,6 +572,7 @@ export default {
       projectStates: [],
       selectedProjectStates: [],
       selectedYear: null,
+      showLater: false,
       selectedBankAccountIds: [],
       pivotIdentifier: "tresoreria-pivot",
       projectSearch: "",
@@ -744,6 +733,49 @@ export default {
     },
     pivotData() {
       return this.monthlySummaryTotal;
+    },
+    // the shown year (and the months without date); later years on request
+    tableMonths() {
+      return this.showLater ? this.pivotData : this.pivotData.filter(d => d.year <= String(this.selectedYear) || d.month === "99");
+    },
+    laterCount() {
+      return this.pivotData.filter(d => d.year > String(this.selectedYear) && d.month !== "00" && d.month !== "99").length;
+    },
+    currentYm() {
+      return moment().format("YYYYMM");
+    },
+    // months of the shown year, in order
+    chartMonths() {
+      return this.pivotData.filter(d => d.year === String(this.selectedYear) && d.month !== "00" && d.month !== "99");
+    },
+    chartRange() {
+      const values = this.chartMonths.map(m => m.subtotal);
+      return { max: Math.max(0, ...values), min: Math.min(0, ...values) };
+    },
+    zeroPos() {
+      const { max, min } = this.chartRange;
+      const span = max - min || 1;
+      return ((-min) / span * 100) + "%";
+    },
+    todayBalance() {
+      const today = this.treasuryData.find(t => t.type === "Avui");
+      if (!today) return 0;
+      return this.isSingleAccountView && today.account_subtotal !== undefined ? today.account_subtotal : today.subtotal;
+    },
+    lowestMonth() {
+      const future = this.pivotData.filter(d => d.month !== "00" && d.month !== "99" && d.ym >= this.currentYm);
+      return future.reduce((low, d) => (!low || d.subtotal < low.subtotal ? d : low), null);
+    },
+    yearEnd() {
+      return this.pivotData.find(d => d.month === "00" && d.year === String(this.selectedYear)) || null;
+    },
+    noDate() {
+      return this.pivotData.find(d => d.month === "99") || null;
+    },
+    overdueCount() {
+      return this.treasuryData.filter(t =>
+        t.type !== "Avui" && t.type !== "Inici Any" && !t.is_balance_annotation && !t.is_real_balance_adjustment &&
+        !(t.paid || t.real) && t.datef && this.isBeforeToday(t.datef)).length;
     },
     pivotData2() {
       return this.monthlySummaryForPivot;
@@ -972,6 +1004,27 @@ export default {
 
       this.getData();
     },
+    money(value, signed = false) {
+      const n = Number(value) || 0;
+      return (signed && n > 0.004 ? "+" : "") + formatMoney(n);
+    },
+    sign,
+    monthName(month) {
+      const name = moment(month, "MM").format("MMMM");
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    },
+    monthShort(month) {
+      return moment(month, "MM").format("MMM").replace(".", "");
+    },
+    barStyle(value) {
+      const { max, min } = this.chartRange;
+      const span = max - min || 1;
+      const zero = (-min) / span * 100;
+      const h = Math.abs(value) / span * 100;
+      return value >= 0
+        ? { bottom: zero + "%", height: Math.max(h, .5) + "%" }
+        : { bottom: (zero - h) + "%", height: Math.max(h, .5) + "%" };
+    },
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -1188,16 +1241,142 @@ export default {
   }
 };
 </script>
+<style scoped>
+/* Redesign A */
+.tres-nodate {
+  font-size: .875rem;
+}
+.report-box {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.report-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  padding: .875rem 1.25rem;
+  border-bottom: 1px solid var(--a-line);
+}
+.report-box-head h2 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.chart-legend {
+  display: inline-flex;
+  gap: 1rem;
+  font-size: .8125rem;
+  color: var(--a-fg-2);
+}
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+}
+.chart-legend i {
+  width: .75rem;
+  height: .75rem;
+  border-radius: 3px;
+  display: inline-block;
+}
+.c-pos { background: var(--a-accent); }
+.c-neg { background: #C2410C; }
+.c-fut { background: #9FD3C7; }
+.month-bars {
+  position: relative;
+  display: flex;
+  gap: .75rem;
+  height: 14rem;
+  padding: 1.25rem 1.25rem .5rem;
+}
+.zero-line {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  height: 1px;
+  background: var(--a-line);
+  margin-bottom: 1.75rem;
+}
+.mb-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .375rem;
+}
+.mb-area {
+  position: relative;
+  flex: 1;
+  width: 70%;
+  max-width: 3rem;
+}
+.mb-area i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 3px;
+}
+.mb-area i.is-future.c-pos {
+  background: #9FD3C7;
+}
+.mb-area i.is-future.c-neg {
+  background: #F2B8A0;
+}
+.mb-label {
+  font-size: .75rem;
+  color: var(--a-muted);
+  text-transform: capitalize;
+}
+.mb-col.is-now .mb-label {
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.table-wrap {
+  overflow-x: auto;
+}
+.forecast-months {
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+}
+.forecast-months th:first-child {
+  padding-left: 1.25rem;
+}
+.forecast-months td:last-child,
+.forecast-months th:last-child {
+  padding-right: 1.25rem;
+}
+.forecast-months td {
+  white-space: nowrap;
+}
+.forecast-months tr.is-year > * {
+  background: var(--a-thead);
+  font-weight: 800;
+}
+.forecast-months tr.is-now > * {
+  background: var(--a-accent-soft);
+}
+.forecast-months tr.is-start > * {
+  color: var(--a-fg-2);
+}
+.tres-more {
+  padding: .75rem 1.25rem;
+  border-top: 1px solid var(--a-line-soft);
+}
+.forecast-months .tag {
+  margin-left: .5rem;
+  font-size: .6875rem;
+}
+</style>
 <style>
 .treasury-filters {
   display: flex;
   flex-direction: column;
   gap: .75rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background: var(--a-surface);
-  border: 1px solid var(--a-line);
-  border-radius: 12px;
+  margin-bottom: 1.25rem;
 }
 .treasury-row {
   display: flex;
