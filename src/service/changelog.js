@@ -3,6 +3,15 @@
 // { to, label } links.
 export const CHANGELOG = [
 {
+  date: "2026.10.17",
+  items: [
+    {
+      type: "Correccions",
+      text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", mentre es desa «Fi de l'activitat» el botó queda desactivat. Abans, si es tornava a clicar perquè tardava, es podia desar l'activitat dues vegades."]
+    }
+  ]
+},
+{
   date: "2026.10.15",
   items: [
     {

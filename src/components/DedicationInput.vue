@@ -12,6 +12,7 @@
       :projects="projects"
       :users="users"
       :counter="counterClicked ? counter : null"
+      :saving="saving"
       @submit="modalSubmit"
       @cancel="modalCancel"
       @delete="modalDelete"
@@ -348,6 +349,8 @@ export default {
       firstTime: true,
       isModalActive: false,
       isModalEditActive: false,
+      // a save of the hours modal is running: further clicks send nothing (issues/098)
+      saving: false,
       dedicationObject: null,
       festiveObject: null,
       isModalFestiveActive: false,
@@ -854,7 +857,17 @@ export default {
       this.isModalEditActive = true;
     },
     async modalSubmit(activity) {
-      console.log("activity", activity);
+      if (this.saving) {
+        return;
+      }
+      this.saving = true;
+      try {
+        await this.saveActivity(activity);
+      } finally {
+        this.saving = false;
+      }
+    },
+    async saveActivity(activity) {
       if (activity.counter) {
         await service({ requiresAuth: true }).delete(
           `time-counters/${activity.counter.id}`
@@ -909,10 +922,18 @@ export default {
           queue: false
         });
       } else if (activity.counter && activity.counter.id) {
+        if (this.saving) {
+          return;
+        }
+        this.saving = true;
         this.counterClicked = false;
-        await service({ requiresAuth: true }).delete(
-          `time-counters/${activity.counter.id}`
-        );
+        try {
+          await service({ requiresAuth: true }).delete(
+            `time-counters/${activity.counter.id}`
+          );
+        } finally {
+          this.saving = false;
+        }
         this.isModalEditActive = false;
         this.$buefy.snackbar.open({
           message: "Esborrat",

@@ -158,7 +158,8 @@
           <button
             v-if="counter == null"
             class="button is-primary"
-            :disabled="!enabled"
+            :class="{ 'is-loading': saving }"
+            :disabled="!enabled || saving"
             native-type="submit"
           >
             D'acord
@@ -168,6 +169,7 @@
             v-if="counter !== null"
             class="button is-danger"
             type="button"
+            :disabled="saving"
             @click="trashModal(form)"
           >
             Elimina Comptador
@@ -183,7 +185,8 @@
           <button
             v-if="counter !== null"
             class="button is-primary"
-            :disabled="!enabled"
+            :class="{ 'is-loading': saving }"
+            :disabled="!enabled || saving"
             native-type="submit"
           >
             Fi de l'activitat
@@ -238,6 +241,11 @@ export default {
     users: {
       type: Array,
       default: []
+    },
+    // the parent is saving: the action buttons wait (issues/098)
+    saving: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
@@ -457,6 +465,9 @@ export default {
       this.$emit("cancel");
     },
     submit() {
+      if (this.saving) {
+        return;
+      }
       // console.log('this.form.date', this.form)
       // if (typeof this.form.date.getMonth === 'function') {
       //   this.form.date = moment(this.form.date).format('YYYY-MM-DD')
