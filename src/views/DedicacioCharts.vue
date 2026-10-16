@@ -1,68 +1,60 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent="submit2">
-          <b-field horizontal>
-            <b-field label="Persona">
-              <b-autocomplete
-                v-model="userNameSearch"
-                placeholder="Persona"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredUsers"
-                field="username"
-                @select="option => (filters.user = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Projecte">
-              <b-autocomplete
-                v-model="projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="option => (filters.project = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Inici">
-              <b-datepicker
-                v-model="filters.date1"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                :editable="true"
-                trap-focus>
-              </b-datepicker>
-            </b-field>
-            <b-field label="Final">
-              <b-datepicker
-                v-model="filters.date2"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                :disabled="filters.lastUpdated"
-                :editable="true"
-                trap-focus>
-              </b-datepicker>
-            </b-field>
-            <b-field label="Últimes">
-              <b-checkbox
-                v-model="filters.lastUpdated">
-              </b-checkbox>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="submit2">
+        <label class="filter-select">
+          <span>Persona</span>
+          <b-autocomplete
+            v-model="userNameSearch"
+            placeholder="Totes"
+            :keep-first="false"
+            :open-on-focus="true"
+            :data="filteredUsers"
+            field="username"
+            :clearable="true"
+            @select="option => (filters.user = option ? option.id : null)"
+          />
+        </label>
+        <label class="filter-select">
+          <span>Projecte</span>
+          <b-autocomplete
+            v-model="projectNameSearch"
+            placeholder="Tots"
+            :keep-first="false"
+            :open-on-focus="true"
+            :data="filteredProjects"
+            field="name"
+            :clearable="true"
+            @select="option => (filters.project = option ? option.id : null)"
+          />
+        </label>
+        <label class="filter-select">
+          <span>Des de</span>
+          <b-datepicker
+            v-model="filters.date1"
+            :show-week-number="false"
+            :locale="'ca-ES'"
+            :first-day-of-week="1"
+            :disabled="filters.lastUpdated"
+            :editable="true"
+            trap-focus
+          />
+        </label>
+        <label class="filter-select">
+          <span>Fins a</span>
+          <b-datepicker
+            v-model="filters.date2"
+            :show-week-number="false"
+            :locale="'ca-ES'"
+            :first-day-of-week="1"
+            :disabled="filters.lastUpdated"
+            :editable="true"
+            trap-focus
+          />
+        </label>
+        <b-checkbox v-model="filters.lastUpdated">Últimes</b-checkbox>
+      </form>
       <dedication-widget :user="filters.user" :date1="filters.date1" :date2="filters.date2" :project="filters.project" :last="filters.lastUpdated" />
     </section>
   </div>
@@ -110,7 +102,10 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Projectes', 'Gràfiques']
+      return ['Informes', 'Dedicació']
+    },
+    subtitle () {
+      return 'On van les hores: per persona, projecte i tipus de dedicació en el període triat.'
     },
     filteredUsers () {
       return this.users.filter(option => {

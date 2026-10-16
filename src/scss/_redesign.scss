@@ -444,10 +444,14 @@ a {
   }
 
   // an autocomplete or a date picker as the value
-  .autocomplete,
+  .autocomplete {
+    flex: 1 1 9rem;
+    min-width: 8rem;
+    max-width: 14rem;
+  }
   .datepicker {
-    flex: 1;
-    min-width: 9rem;
+    flex: none;
+    width: 7.5rem;
   }
   .autocomplete .input,
   .datepicker .input {

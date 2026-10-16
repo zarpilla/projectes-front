@@ -1,40 +1,29 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Persona">
-              <b-autocomplete
-                v-model="userNameSearch"
-                placeholder="Persona"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredUsers"
-                field="username"
-                @select="option => (filters.user = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Any">
-              <b-select
-                v-model="filters.year"
-                required
-              >
-                <option
-                  v-for="(year, index) in years"
-                  :key="index"
-                  :value="year"
-                >
-                  {{ year.year }}
-                </option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Persona</span>
+          <b-autocomplete
+            v-model="userNameSearch"
+            placeholder="Tria una persona"
+            :keep-first="false"
+            :open-on-focus="true"
+            :data="filteredUsers"
+            field="username"
+            :clearable="true"
+            @select="option => (filters.user = option ? option.id : null)"
+          />
+        </label>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" aria-label="Any">
+            <option v-for="(year, index) in years" :key="index" :value="year">{{ year.year }}</option>
+          </b-select>
+        </label>
+      </form>
+      <p v-if="!filters.user" class="notification is-info">Tria una persona per veure-ho.</p>
       <dedication-summary :user="filters.user" :year="filters.year ? filters.year.year : null" />
     </section>
   </div>
@@ -71,7 +60,10 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Dedicació', 'Hores anuals']
+      return ['Informes', 'Hores anuals']
+    },
+    subtitle () {
+      return 'Resum de l\'any d\'una persona: jornada, hores fetes, festius i vacances, mes a mes.'
     },
     filteredUsers () {
       return this.users.filter(option => {
