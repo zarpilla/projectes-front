@@ -31,6 +31,29 @@
             </div>
           </section>
 
+          <section id="cfg-logo" class="form-box">
+            <h2>Logo</h2>
+            <p class="form-box-sub">Surt a les factures, pressupostos i comandes impreses. Millor en PNG o JPG, amb fons transparent o blanc.</p>
+            <div
+              class="logo-drop"
+              :class="{ 'is-over': logoDragOver }"
+              @dragover.prevent="logoDragOver = true"
+              @dragleave.prevent="logoDragOver = false"
+              @drop.prevent="onLogoDrop"
+            >
+              <div class="logo-preview">
+                <img v-if="logoUrl" :src="logoUrl" alt="Logo de l'entitat" @error="logoBroken = true" />
+                <span v-else>Sense logo</span>
+              </div>
+              <div class="logo-text">
+                <p v-if="logoBroken" class="has-text-danger">El fitxer del logo no es troba al servidor. Puja'l de nou (mentrestant els PDF surten sense logo).</p>
+                <p>Arrossega una imatge aquí o <label class="logo-pick">tria-la<input type="file" accept="image/png,image/jpeg,image/svg+xml" hidden @change="onLogoPick" /></label>.</p>
+              </div>
+              <b-button v-if="logo" size="is-small" class="is-danger is-outlined" :loading="logoSaving" @click="removeLogo">Treu el logo</b-button>
+              <b-loading :is-full-page="false" v-model="logoSaving" />
+            </div>
+          </section>
+
           <section id="cfg-comptes" class="form-box">
             <h2>Comptes bancaris</h2>
             <p class="form-box-sub">Compte que es proposa per a cada tipus de moviment a Tresoreria, nòmines i bestretes.</p>
@@ -148,6 +171,7 @@
 
 <script>
 import service from '@/service/index';
+import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
 
 export default {
@@ -157,9 +181,14 @@ export default {
   },
   data() {
     return {
+      logo: null,
+      logoBroken: false,
+      logoSaving: false,
+      logoDragOver: false,
       activeSection: "cfg-entitat",
       sections: [
         { id: "cfg-entitat", label: "Entitat" },
+        { id: "cfg-logo", label: "Logo" },
         { id: "cfg-comptes", label: "Comptes bancaris" },
         { id: "cfg-facturacio", label: "Facturació" },
         { id: "cfg-face", label: "FACe" },
@@ -210,7 +239,57 @@ export default {
     await this.loadBankAccounts();
     await this.loadData();
   },
+  computed: {
+    logoUrl() {
+      return this.logo && this.logo.url ? getConfig().VUE_APP_API_URL + this.logo.url : null;
+    }
+  },
   methods: {
+    onLogoPick(e) {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (file) this.uploadLogo(file);
+    },
+    onLogoDrop(e) {
+      this.logoDragOver = false;
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) this.uploadLogo(file);
+    },
+    // upload the image, then point the settings' logo to it (Guardar doesn't send logo)
+    async uploadLogo(file) {
+      if (!/^image\//.test(file.type)) {
+        this.$buefy.toast.open({ message: "El logo ha de ser una imatge (PNG, JPG o SVG)", type: "is-danger" });
+        return;
+      }
+      this.logoSaving = true;
+      try {
+        const formData = new FormData();
+        formData.append('files', file, file.name);
+        const uploaded = (await service({ requiresAuth: true, multipart: true }).post('upload', formData)).data;
+        const image = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+        await service({ requiresAuth: true }).put('/me', { logo: image.id });
+        this.logo = image;
+        this.logoBroken = false;
+        this.$buefy.snackbar.open({ message: 'Logo actualitzat', queue: false });
+      } catch (error) {
+        this.$buefy.toast.open({ message: `No s'ha pogut pujar el logo: ${error.message}`, type: 'is-danger' });
+      } finally {
+        this.logoSaving = false;
+      }
+    },
+    async removeLogo() {
+      this.logoSaving = true;
+      try {
+        await service({ requiresAuth: true }).put('/me', { logo: null });
+        this.logo = null;
+        this.logoBroken = false;
+        this.$buefy.snackbar.open({ message: 'Logo tret', queue: false });
+      } catch (error) {
+        this.$buefy.toast.open({ message: `No s'ha pogut treure el logo: ${error.message}`, type: 'is-danger' });
+      } finally {
+        this.logoSaving = false;
+      }
+    },
     goTo(id) {
       const el = document.getElementById(id);
       if (el) {
@@ -233,6 +312,8 @@ export default {
       try {
         this.isLoading = true;
         const response = await service({ requiresAuth: true }).get('/me');
+        this.logo = response.data.logo || null;
+        this.logoBroken = false;
         
         // Merge response data with form, extracting IDs from relations
         Object.keys(this.form).forEach(key => {
@@ -353,6 +434,48 @@ export default {
 }
 .cfg-grid.is-two {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.logo-drop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px dashed var(--a-input);
+  border-radius: 10px;
+}
+.logo-drop.is-over {
+  border-color: var(--a-accent);
+  background: var(--a-accent-soft);
+}
+.logo-preview {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 9rem;
+  height: 4.5rem;
+  border-radius: 8px;
+  background: var(--a-thead);
+  font-size: .8125rem;
+  color: var(--a-muted);
+  overflow: hidden;
+}
+.logo-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.logo-text {
+  flex: 1;
+  font-size: .875rem;
+  color: var(--a-fg-2);
+}
+.logo-pick {
+  color: var(--a-accent);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }
 .cfg-note {
   display: flex;
