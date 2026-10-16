@@ -2,11 +2,14 @@
   <b-modal v-model="isModalActive" has-modal-card @cancel="cancel">
     <div class="modal-card modal-card-dedication">
       <header class="modal-card-head">
-        <p class="modal-card-title">Entrada hores</p>
+        <div>
+          <p class="modal-card-title">Entrada hores</p>
+          <p v-if="headSubtitle" class="dedication-sub">{{ headSubtitle }}</p>
+        </div>
       </header>
       <form @submit.prevent="submit">
-        <section class="modal-card-body">
-          <b-field label="Data" horizontal>
+        <section class="modal-card-body a-form dedication-form">
+          <b-field label="Data" horizontal class="is-half">
             <b-datepicker
               v-model="form.date"
               :show-week-number="false"
@@ -18,7 +21,7 @@
             >
             </b-datepicker>
           </b-field>
-          <b-field label="Hores" v-if="counter === null" horizontal>
+          <b-field label="Hores" v-if="counter === null" horizontal class="is-half">
             <b-field>
               <b-input
                 v-if="counter === null"
@@ -29,7 +32,7 @@
               />
             </b-field>
           </b-field>
-          <b-field label="Començament" v-if="counter != null" horizontal>
+          <b-field label="Començament" v-if="counter != null" horizontal class="is-half">
             <b-field>
               <b-input
                 v-model="counterDisplayStartTime"
@@ -39,7 +42,7 @@
               />
             </b-field>
           </b-field>
-          <b-field label="Temps dedicat" v-if="counter != null" horizontal>
+          <b-field label="Temps dedicat" v-if="counter != null" horizontal class="is-half">
             <b-field>
               <b-input
                 v-model="counterDisplayTime"
@@ -272,6 +275,12 @@ export default {
     };
   },
   computed: {
+    headSubtitle() {
+      const parts = [];
+      if (this.userNameSearch) parts.push(this.userNameSearch);
+      if (this.form && this.form.date) parts.push(moment(this.form.date).format("dddd D [de] MMMM [de] YYYY"));
+      return parts.join(" · ");
+    },
     ...mapState(useMainStore, ["userName"]),
     enabled() {
       return (
@@ -557,5 +566,28 @@ export default {
 }
 .modal-card-dedication .modal-card-body {
   max-height: calc(100vh - 200px);
+}
+/* Redesign A: labels on top, date and hours side by side */
+.modal-card-dedication .dedication-form {
+  gap: 1rem 1.25rem;
+}
+.modal-card-dedication .dedication-form > .field {
+  margin-bottom: 0 !important;
+}
+.modal-card-dedication .dedication-form > .field.is-half {
+  grid-column: auto;
+}
+.modal-card-dedication .modal-card-foot {
+  justify-content: flex-end;
+}
+.modal-card-dedication .dedication-sub {
+  margin-top: .125rem;
+  font-size: .875rem;
+  color: var(--a-muted);
+}
+@media screen and (max-width: 768px) {
+  .modal-card-dedication .dedication-form > .field.is-half {
+    grid-column: 1 / -1;
+  }
 }
 </style>
