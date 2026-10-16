@@ -147,7 +147,10 @@ test('a manual treasury movement can be validated and deleted', async () => {
   test.skip(!state.projectId, 'needs the project')
   const concept = `${NAME} moviment`
   await visit('/tresoreria')
-  const form = card('OPERACIONS DE TRESORERIA')
+  // the operations open in a modal from "Nova operació"
+  await button('Nova operació').click()
+  const form = modal('Operacions de tresoreria')
+  await expect(form).toBeVisible()
   await field('Data', form).locator('input').first().click()
   await page.locator('.datepicker .datepicker-cell.is-today').filter({ visible: true }).first().click()
   await field('Import', form).locator('input').first().fill('-123.45')

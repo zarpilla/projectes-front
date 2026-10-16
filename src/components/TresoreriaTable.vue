@@ -289,18 +289,21 @@
       <div id="project-stats"></div>
     </card-component>
 
-    <card-component
-      ref="operations"
-      title="Operacions de tresoreria"
-      class="ztile is-child mt-2"
-    >
-      <section class="section pt-2 pb-2">
-        <treasury-annotation-input
-          :projects="projects"
-          @annotation="getData"
-        ></treasury-annotation-input>
-      </section>
-    </card-component>
+    <!-- Treasury operations (manual movement, real balance) in a modal: "Nova operació" -->
+    <b-modal v-model="opsOpen" has-modal-card :can-cancel="['escape', 'outside', 'x']">
+      <div class="modal-card ops-modal">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Operacions de tresoreria</p>
+          <button type="button" class="delete" aria-label="Tanca" @click="opsOpen = false"></button>
+        </header>
+        <section class="modal-card-body">
+          <treasury-annotation-input
+            :projects="projects"
+            @annotation="onAnnotation"
+          ></treasury-annotation-input>
+        </section>
+      </div>
+    </b-modal>
 
     <card-component title="Moviments bancaris" class="ztile is-child mt-2">
       <section class="section">
@@ -605,6 +608,7 @@ export default {
       showLater: false,
       hoverYm: null,
       movementsTab: "all",
+      opsOpen: false,
       movementsSearch: "",
       selectedBankAccountIds: [],
       pivotIdentifier: "tresoreria-pivot",
@@ -1073,8 +1077,12 @@ export default {
       });
     },
     goToOperations() {
-      const el = this.$refs.operations && (this.$refs.operations.$el || this.$refs.operations);
-      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      this.opsOpen = true;
+    },
+    // a movement or a real balance was saved: reload and close
+    onAnnotation() {
+      this.opsOpen = false;
+      this.getData();
     },
     money(value, signed = false) {
       const n = Number(value) || 0;
@@ -1474,6 +1482,9 @@ export default {
 }
 .forecast-months tr.is-start > * {
   color: var(--a-fg-2);
+}
+.ops-modal {
+  width: min(44rem, calc(100vw - 2rem));
 }
 .movements-bar {
   margin-bottom: .75rem;

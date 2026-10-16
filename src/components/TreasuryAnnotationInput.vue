@@ -1,7 +1,9 @@
 <template>
-  <div>
-    <div>
+  <!-- Redesign A: the two forms side by side, labels on top -->
+  <div class="treasury-ops">
+    <div class="ops-block">
       <h5 class="title is-6">Afegir moviment</h5>
+      <p class="ops-help">Un cobrament o pagament que no ve d'una factura (import negatiu per als pagaments).</p>
       <b-field label="" horizontal class="field-no-label" v-if="!summitting">
         <b-field label="Data" horizontal>
           <b-datepicker
@@ -61,8 +63,9 @@
         >
       </b-field>
     </div>
-    <div>
+    <div class="ops-block">
       <h5 class="title is-6">Afegir saldo real</h5>
+      <p class="ops-help">Corregeix el saldo d'un compte a una data amb el que diu el banc.</p>
       <b-field label="" horizontal class="field-no-label" v-if="!summitting">
         <b-field label="Data" horizontal>
           <b-datepicker
@@ -231,6 +234,59 @@ export default {
   }
 };
 </script>
+<style scoped>
+.treasury-ops {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+.ops-block {
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+.ops-block .title {
+  margin-bottom: .25rem;
+}
+.ops-help {
+  font-size: .8125rem;
+  color: var(--a-fg-2);
+  margin-bottom: .75rem;
+}
+.ops-block :deep(.field-no-label > .field-label) {
+  display: none;
+}
+.ops-block :deep(.field-no-label > .field-body) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem 1rem;
+}
+.ops-block :deep(.field-no-label > .field-body > .field) {
+  margin: 0;
+}
+.ops-block :deep(.field-no-label .field.is-horizontal) {
+  display: block;
+  margin: 0;
+}
+.ops-block :deep(.field-no-label .field.is-horizontal > .field-label) {
+  text-align: left;
+  padding: 0;
+  margin: 0 0 .375rem;
+}
+.ops-block :deep(.field-no-label .field.is-horizontal > .field-label .label) {
+  font-size: .875rem;
+}
+.ops-block :deep(.select),
+.ops-block :deep(.select select),
+.ops-block :deep(.datepicker) {
+  width: 100%;
+}
+@media screen and (max-width: 600px) {
+  .ops-block :deep(.field-no-label > .field-body) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+</style>
 <style>
 .field-no-label > .field-label {
   display: none !important;
