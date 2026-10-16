@@ -1,6 +1,6 @@
 // "Poblacions i rutes": the towns of each route and the routes of each town
 import { describe, it, expect } from 'vitest'
-import { indexLinks, groupByWeekday, routeDays, searchTowns, normalizeName } from '@/domain/cityRoutes.js'
+import { indexLinks, groupByWeekday, routeDays, searchTowns, normalizeName, unknownPointTowns, editDistance } from '@/domain/cityRoutes.js'
 
 const cities = [{ id: 1, name: 'Girona' }, { id: 2, name: 'Artés' }, { id: 3, name: 'Arbúcies' }, { id: 4, name: 'Vic' }]
 const routes = [
@@ -44,5 +44,15 @@ describe('cityRoutes', () => {
     expect(searchTowns(cities, 'ar').map(c => c.name)).toEqual(['Arbúcies', 'Artés'])
     expect(searchTowns(cities, 'ONA').map(c => c.name)).toEqual(['Girona'])
     expect(searchTowns(cities, '')).toEqual([])
+  })
+
+  it('lists the delivery points\' towns missing from the list, with a likely match', () => {
+    const towns = ['Girona', 'girona ', 'Artes', 'Esparraguera', 'Esparraguera', 'Sant Quirze del Vallès', '', null]
+    const list = [...cities, { id: 5, name: 'Esparreguera' }, { id: 6, name: 'Sant Quirze de Besora' }]
+    expect(unknownPointTowns(towns, list).map(t => [t.name, t.points, t.similar && t.similar.name])).toEqual([
+      ['Esparraguera', 2, 'Esparreguera'],
+      ['Sant Quirze del Vallès', 1, 'Sant Quirze de Besora']
+    ])
+    expect(editDistance('kitten', 'sitting')).toBe(3)
   })
 })

@@ -78,3 +78,46 @@ export const searchTowns = (cities, text, limit = 8) => {
   const byName = (a, b) => normalizeName(a.name).localeCompare(normalizeName(b.name));
   return [...starts.sort(byName), ...contains.sort(byName)].slice(0, limit);
 };
+
+// the towns written in delivery points that are not in the towns list:
+// [{ name, points, similar }] (`similar`: an existing town that is probably
+// the same one, misspelled), the most used first
+export const unknownPointTowns = (pointTowns, cities) => {
+  const known = new Set(cities.map(c => normalizeName(c.name)));
+  const byKey = new Map();
+  for (const name of pointTowns) {
+    const key = normalizeName(name);
+    if (!key || known.has(key)) continue;
+    if (!byKey.has(key)) byKey.set(key, { name: String(name).trim(), points: 0 });
+    byKey.get(key).points += 1;
+  }
+  const similarTo = key => {
+    const words = key.split(/[\s'-]+/).filter(w => w.length > 3);
+    let best = null;
+    for (const c of cities) {
+      const name = normalizeName(c.name);
+      const d = editDistance(name, key);
+      const shares = words.some(w => name.includes(w));
+      if ((d <= 2 || shares) && (!best || d < best.d)) best = { city: c, d };
+    }
+    return best ? best.city : null;
+  };
+  return [...byKey.entries()]
+    .map(([key, v]) => ({ ...v, similar: similarTo(key) }))
+    .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+};
+
+// Levenshtein distance (short strings: town names)
+export const editDistance = (a, b) => {
+  const prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    let diag = prev[0];
+    prev[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j];
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
+      diag = tmp;
+    }
+  }
+  return prev[b.length];
+};

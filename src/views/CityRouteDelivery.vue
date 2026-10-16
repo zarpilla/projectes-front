@@ -1,146 +1,124 @@
 <template>
-  <div>
-    <title-bar :title-stack="titleStack" />
+  <!-- Redesign A: towns written in delivery points that are not in the towns
+       list (orders to them get no route). Add them, or see the likely match. -->
+  <div class="point-towns">
+    <title-bar :title-stack="['Rutes i punts', 'Poblacions i punts']" :subtitle="headline" />
 
-    <b-loading
-      :is-full-page="true"
-      v-model="isLoading"
-      :can-cancel="false"
-    ></b-loading>
-    <card-component :title="formCardTitle" class="tile is-child">
+    <section class="section is-main-section">
+      <routes-tabs :is-staff="true" />
+      <b-loading :is-full-page="false" :model-value="isLoading" />
 
-      <div class="help">
-        <p>
-          Aquesta pàgina mostra les poblacions trobades en punts d'entrega que no estan a la llista de poblacions de la base de dades.
-        </p>
-        <p>
-          Pots afegir una població a la base de dades fent clic al botó "Afegeix població".
-        </p>
+      <div class="notification is-info">
+        Poblacions escrites als punts d'entrega que no són a la llista de poblacions: les comandes cap a aquests punts no troben ruta.
+        Si és una població nova, afegeix-la i dona-li rutes a <router-link to="/city-route">Poblacions i rutes</router-link>.
+        Si és la mateixa que una altra però mal escrita, corregeix el punt d'entrega.
       </div>
-      
 
-      <section class="section zis-main-section" v-if="orders_admin">        
-        <div v-if="!isLoading" class="mt-4">
-          <b-table :data="contactCitiesNotFoundInCities">
-              <b-table-column field="name" label="Població" width="10%">
-                <template v-slot="props">
-                  {{ props.row.name }}
-                </template>
-              </b-table-column>
-              <b-table-column field="name" label="Afegeix població" width="20%">
-                <template v-slot="props">
-                  <button class="button is-primary" @click="addCityName(props.row.name)" title="Afegeix població">
-                    <b-icon icon="plus"></b-icon>
-                  </button>
-                </template>
-              </b-table-column>
-            </b-table>
+      <section class="a-box pt-box">
+        <div class="table-container">
+          <table class="table is-fullwidth">
+            <thead>
+              <tr>
+                <th>Població als punts</th>
+                <th class="has-text-right">Punts</th>
+                <th>Potser és</th>
+                <th class="has-text-right"><span class="is-sr-only">Accions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="town in towns" :key="town.name">
+                <td><b>{{ town.name }}</b></td>
+                <td class="has-text-right">{{ town.points }}</td>
+                <td>
+                  <span v-if="town.similar" class="similar">{{ town.similar.name }}</span>
+                  <span v-else class="has-text-muted">—</span>
+                </td>
+                <td class="has-text-right">
+                  <b-button size="is-small" icon-left="plus" :loading="adding === town.name" title="Afegeix població" @click="addCityName(town.name)">Afegeix la població</b-button>
+                </td>
+              </tr>
+              <tr v-if="!isLoading && !towns.length">
+                <td colspan="4" class="box-empty">Totes les poblacions dels punts d'entrega són a la llista.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
-    </card-component>
+    </section>
   </div>
 </template>
 
 <script>
 import TitleBar from "@/components/TitleBar.vue";
-import CardComponent from "@/components/CardComponent.vue";
+import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
+import { unknownPointTowns } from "@/domain/cityRoutes.js";
 
 export default {
-  name: "CityRoute",
+  name: "CityRouteDelivery",
   components: {
-    CardComponent,
-    TitleBar
+    TitleBar,
+    RoutesTabs
   },
   data() {
     return {
       isLoading: false,
+      adding: null,
       cities: [],
-      routes: [],
-      cityRoutes: [],
-      newCity: "",
-      orders_admin: false,
-      tableHeight: '60vh',
-      contactCities: [],
-      contactCitiesNotFoundInCities: []
+      pointTowns: []
     };
   },
   computed: {
-    titleStack() {
-      return ["Noves poblacions trobades a punts d'entrega"];
+    towns() {
+      return unknownPointTowns(this.pointTowns, this.cities);
+    },
+    headline() {
+      if (this.isLoading) return "";
+      return this.towns.length
+        ? `${this.towns.length} ${this.towns.length === 1 ? "població" : "poblacions"} dels punts d'entrega no ${this.towns.length === 1 ? "és" : "són"} a la llista`
+        : "Totes les poblacions dels punts d'entrega són a la llista";
     }
   },
-  async mounted() {    
-    const me = await service({ requiresAuth: true, cached: true }).get(
-      "users/me"
-    );
-    const permissions = me.data.permissions.map(p => p.permission);    
-    if (permissions.includes("orders_admin") || permissions.includes("orders_delivery")) {
-      this.orders_admin = true;
-    }
+  async mounted() {
+    this.isLoading = true;
     await this.getData();
-    this.tableHeight = window.innerHeight - 400 + 'px';
-
+    this.isLoading = false;
   },
   methods: {
     async getData() {
-      this.isLoading = true;
-
-      const cities = await service({ requiresAuth: true, cached: false })
-        .get("cities?_sort=name&_limit=-1")
-        .then(r => r.data);
-      // this.routes = await service({ requiresAuth: true, cached: true })
-      //   .get("routes?_sort=order&_where[active]=true")
-      //   .then(r => r.data);
-      this.cities = cities.map(c => ({ id: c.id, name: c.name, routes: [] }));
-      // this.cityRoutes = await service({ requiresAuth: true, cached: false })
-      //   .get("city-routes")
-      //   .then(r => r.data);
-
-      for (const city of cities) {
-        const cityRoutes = this.cityRoutes.filter(
-          cr => cr.city && cr.city.id === city.id
-        );
-        const routes = cityRoutes.map(cr => cr.route.id);
-        this.cities.find(c => c.id === city.id).routes = routes;
-      }
-
-      if (this.orders_admin) {
-        this.contactCitiesNotFoundInCities = []
-        this.contactCities = await service({ requiresAuth: true, cached: true })
-        .get("/contacts/basic?_limit=-1&_sort=name:ASC&_where[owner_ne]=null")
-        .then(r => r.data);
-
-        this.contactCities = this.contactCities.map(c => { return { name: c.city, safeName: this.removeAccents(c.city) }})
-
-        const contactCitiesNotFoundInCities = this.contactCities.filter(cc => !this.cities.find(c => this.removeAccents(c.name) === cc.safeName));
-        const distinctContactCitiesNotFoundInCitiesSafeName = contactCitiesNotFoundInCities.map(cc => cc.safeName).filter((value, index, self) => self.indexOf(value) === index);
-        for (const citySafeName of distinctContactCitiesNotFoundInCitiesSafeName) {
-          const city = contactCitiesNotFoundInCities.find(cc => cc.safeName === citySafeName);
-          this.contactCitiesNotFoundInCities.push(city)          
-        }
-      }
-      
-
-      this.isLoading = false;
-    },
-    removeAccents(name) {
-      return name
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+      const [cities, contacts] = await Promise.all([
+        service({ requiresAuth: true, cached: false }).get("cities?_sort=name&_limit=-1").then(r => r.data),
+        service({ requiresAuth: true, cached: true }).get("/contacts/basic?_limit=-1&_sort=name:ASC&_where[owner_ne]=null").then(r => r.data)
+      ]);
+      this.cities = cities.map(c => ({ id: c.id, name: c.name }));
+      this.pointTowns = contacts.map(c => c.city);
     },
     async addCityName(name) {
-      await service({ requiresAuth: true })
-              .post("cities", { name })
-              .then(() => {
-                this.$buefy.snackbar.open({
-                  message: "Població afegida correctament",
-                  type: "is-success"
-                });
-                this.getData();
-              });
+      this.adding = name;
+      try {
+        await service({ requiresAuth: true }).post("cities", { name });
+        this.$buefy.snackbar.open({ message: "Població afegida correctament", type: "is-success", queue: false });
+        await this.getData();
+      } finally {
+        this.adding = null;
+      }
     }
   }
 };
 </script>
+
+<style scoped>
+.pt-box {
+  padding: 0;
+  overflow: hidden;
+}
+.similar {
+  font-weight: 700;
+  color: var(--a-over);
+}
+.box-empty {
+  padding: 2rem !important;
+  text-align: center;
+  color: var(--a-muted);
+}
+</style>
