@@ -17,145 +17,58 @@
         me.options.deductible_vat_pct > 0
       "
     >
-      <div class="content mb-4">
-        <p class="has-text-grey">
-          <b-icon icon="information" size="is-small"></b-icon>
-          <strong>EXECUTAT:</strong> IVA de factures i documents reals ja pagats/cobrats però amb l'IVA encara pendent de saldar amb Hisenda.
-        </p>
-        <p class="has-text-grey">
-          <b-icon icon="information" size="is-small"></b-icon>
-          <strong>PREVIST:</strong> IVA estimat de despeses i ingressos previstos en projectes però encara no executats (factures no emeses/rebudes).
-        </p>
-      </div>
-      <div class="columns">
-        <div class="column">
-          <b-field label="EXECUTAT" grouped class="column">
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Suportat" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat.paid"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Repercutit" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat.received"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Deduïble" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              {{ vat.deductible_vat_pct }}%
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldo" grouped class="column">
-            <money-format
-              :value="vat.deductible_vat"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldar" class="column">
-            <div>
-            <b-datepicker
-              v-model="vat_paid_date"
-              placeholder="Data de pagament"
-              icon="calendar-today"
-            ></b-datepicker>          
-            </br>
-            <button
-              class="button is-primary"
-              @click="payVatIds"
-              :disabled="(vat.paid - (vat.received * me.options.deductible_vat_pct / 100)) === 0 || payingVat || checkedRows.length === 0"
-            >
-              {{ payingVat ? "..." : "Saldar" }}
-            </button>
-            </div>
-          </b-field>
-        </div>
-      </div>
-      
-      <div class="columns">
-        <div class="column">
-          <b-field label="PREVIST" grouped class="column">
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Suportat" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat_expected.paid"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Repercutit" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat_expected.received"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Deduïble" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              {{ me.options.deductible_vat_pct }}%
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldo" grouped class="column">
-            <money-format
-              :value="
-                -1*(vat_expected.received - (vat_expected.paid * me.options.deductible_vat_pct / 100))
-              "
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-          </b-field>
-        </div>
-        <div class="column">
-        </div>
+      <p class="vat-help"><b>Executat:</b> IVA de factures i documents ja pagats o cobrats, encara pendent de saldar amb Hisenda.</p>
+      <p class="vat-help"><b>Previst:</b> IVA estimat de despeses i ingressos previstos als projectes, encara no executats (factures no emeses ni rebudes).</p>
+      <div class="table-wrap">
+        <table class="table vat-pending">
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col" class="has-text-right">Suportat</th>
+              <th scope="col" class="has-text-right">Repercutit</th>
+              <th scope="col" class="has-text-right">Deduïble</th>
+              <th scope="col" class="has-text-right">Saldo</th>
+              <th scope="col">Saldar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Executat</th>
+              <td class="has-text-right">{{ formatMoney(vat.paid) }}</td>
+              <td class="has-text-right">{{ formatMoney(vat.received) }}</td>
+              <td class="has-text-right">{{ vat.deductible_vat_pct }} %</td>
+              <td class="has-text-right vat-balance">{{ formatMoney(vat.deductible_vat) }}</td>
+              <td>
+                <div class="vat-settle">
+                  <b-datepicker
+                    v-model="vat_paid_date"
+                    aria-label="Data de pagament"
+                    placeholder="Data de pagament"
+                    icon="calendar-today"
+                    :locale="'ca-ES'"
+                    :first-day-of-week="1"
+                  />
+                  <button
+                    class="button is-primary"
+                    type="button"
+                    :disabled="(vat.paid - (vat.received * me.options.deductible_vat_pct / 100)) === 0 || payingVat || checkedRows.length === 0"
+                    @click="payVatIds"
+                  >
+                    {{ payingVat ? "…" : "Saldar" }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th scope="row">Previst</th>
+              <td class="has-text-right">{{ formatMoney(vat_expected.paid) }}</td>
+              <td class="has-text-right">{{ formatMoney(vat_expected.received) }}</td>
+              <td class="has-text-right">{{ me.options.deductible_vat_pct }} %</td>
+              <td class="has-text-right vat-balance">{{ formatMoney(-1 * (vat_expected.received - (vat_expected.paid * me.options.deductible_vat_pct / 100))) }}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </card-component>
 
@@ -344,7 +257,7 @@
           </b-table-column>
         </b-table>
         
-        <div class="columns mt-4" v-if="filteredExpectedDocuments.length > 0">
+        <div class="columns mt-4 vat-totals" v-if="filteredExpectedDocuments.length > 0">
           <div class="column is-offset-4">
             <b-field label="Total Import Base Suportat" grouped class="column">
               <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
@@ -431,7 +344,7 @@
           </b-table-column>          
         </b-table>
         
-        <div class="columns mt-4" v-if="filteredDocuments.length > 0">
+        <div class="columns mt-4 vat-totals" v-if="filteredDocuments.length > 0">
           <div class="column is-offset-6">
             <b-field label="Total Import Base Suportat" grouped class="column">
               <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
@@ -483,6 +396,7 @@ import CardComponent from "./CardComponent.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import { formatMoney } from "@/helpers/format-number";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
@@ -826,6 +740,7 @@ export default {
     },
   },
   methods: {
+    formatMoney,
     getTypeLabel(type) {
       switch(type) {
         case 'emitted-invoices':
@@ -909,6 +824,48 @@ export default {
 };
 </script>
 <style>
+/* totals under the document tables: wrap instead of overflowing the page */
+.vat-totals {
+  flex-wrap: wrap;
+}
+.vat-totals > .column {
+  flex: 1 1 11rem;
+}
+.vat-totals > .column > .field.column {
+  padding: 0;
+}
+.vat-totals .label {
+  font-size: .8125rem;
+  color: var(--a-muted);
+}
+.vat-help {
+  color: var(--a-muted);
+  margin-bottom: .375rem;
+  max-width: 60rem;
+}
+.vat-pending {
+  width: 100%;
+  margin-top: .75rem;
+}
+.vat-pending tbody th {
+  font-weight: 800;
+}
+.vat-pending td {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.vat-pending .vat-balance {
+  font-weight: 800;
+}
+.vat-settle {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.vat-settle .datepicker {
+  width: 10rem;
+}
+
 .treasury-table.b-table .table th,
 .treasury-table.b-table td {
   min-width: 150px;
