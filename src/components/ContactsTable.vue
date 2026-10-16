@@ -35,44 +35,31 @@
         <b-button type="is-primary" icon-left="plus" @click="navNew">Nou contacte</b-button>
       </div>
     </div>
-    <div v-else class="is-flex">
-      <download-excel
-        class="export"
-        :data="contactsCSV"
-        :escapeCsv="false"
-        name="punts-entrega"
-        :fields="csv2"
-        v-if="userContacts"
-      >
-        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
-      </download-excel>
-      <download-excel
-        class="export"
-        :data="contactsCSV"
-        :escapeCsv="false"
-        name="contactes"
-        :fields="csv"
-        v-else
-      >
-        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
-      </download-excel>
-      <b-button
-        class="view-button is-primary mb-3"
-        @click="navNew"
-        icon-left="plus"
-      >
-        <span v-if="userContacts">Nou punt d'entrega</span>
-        <span v-else>Nou Contacte</span>
-      </b-button>
-      <b-button
-        v-if="userContacts && orders_admin"
-        class="view-button is-warning mb-3 ml-2"
-        @click="openUnifyModal"
-        icon-left="call-merge"
-        title="Unificar punts d'entrega"
-      >
-        Unificar punts d'entrega
-      </b-button>
+    <!-- Redesign A (delivery points of logistics): the same toolbar -->
+    <div v-else class="contacts-toolbar">
+      <b-input
+        v-model="search"
+        class="contacts-search"
+        type="search"
+        icon="magnify"
+        placeholder="Cerca per nom, NIF, població o ruta"
+        aria-label="Cerca punts d'entrega"
+      />
+      <label v-if="orders_admin && pointOwners.length" class="filter-select">
+        <span>Sòcia</span>
+        <b-select v-model="pointOwner">
+          <option :value="null">Totes</option>
+          <option v-for="name in pointOwners" :key="name" :value="name">{{ name }}</option>
+        </b-select>
+      </label>
+      <span class="contacts-count">{{ filteredPoints.length }} {{ filteredPoints.length === 1 ? "punt" : "punts" }}</span>
+      <div class="contacts-actions">
+        <download-excel class="export" :data="contactsCSV" :escapeCsv="false" name="punts-entrega" :fields="csv2">
+          <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
+        </download-excel>
+        <b-button v-if="orders_admin" icon-left="call-merge" title="Unificar punts d'entrega" @click="openUnifyModal">Unifica punts</b-button>
+        <b-button type="is-primary" icon-left="plus" @click="navNew">Nou punt d'entrega</b-button>
+      </div>
     </div>
     <div v-if="!userContacts" class="card has-table contacts-card">
       <b-table
@@ -107,134 +94,55 @@
         </template>
       </b-table>
     </div>
-    <b-table
-      :loading="isLoading"
-      :paginated="true"
-      :per-page="50"
-      pagination-position="both"
-      :striped="false"
-      :data="contacts"
-      v-else
-    >
-      <b-table-column
-        label="ID"
-        field="id"
-        sortable
-        width="80"
-        searchable
-        v-slot="props"
+    <div v-else class="card has-table contacts-card">
+      <b-table
+        :loading="isLoading"
+        :paginated="true"
+        :per-page="50"
+        pagination-position="bottom"
+        :striped="false"
+        :mobile-cards="false"
+        :data="filteredPoints"
+        default-sort="trade_name"
+        aria-next-label="Pàgina següent"
+        aria-previous-label="Pàgina anterior"
+        aria-page-label="Pàgina"
+        aria-current-label="Pàgina actual"
       >
-        <router-link
-          :to="{ name: 'contactsuser.edit', params: { id: props.row.id } }"
-        >
-          {{ props.row.id }}
-        </router-link>
-      </b-table-column>
-      <b-table-column
-        label="Nom comercial"
-        searchable
-        field="trade_name"
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.trade_name }}
-      </b-table-column>
-      <b-table-column
-        label="NIF"
-        searchable
-        field="nif"
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.nif }}
-      </b-table-column>
-      <b-table-column
-        v-if="userContacts"
-        label="Població"
-        field="city"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.city || "-" }}
-      </b-table-column>
-      <b-table-column
-        label="Sector"
-        field="sector.name"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.sector ? props.row.sector.name : "-" }}
-      </b-table-column>
-      <b-table-column
-        label="Horari"
-        field="timeSlot1And2"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.timeSlot1And2 || "-" }}
-      </b-table-column>
-      <b-table-column
-        v-if="orders_admin"
-        label="Contacte de"
-        field="contact_of_display"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        <span v-if="props.row.multidelivery">MULTIENTREGA</span>
-        <span v-else-if="props.row.multiowner">TOTES</span>
-        <span
-          v-else-if="
-            props.row.owner &&
-              (props.row.owner.fullname || props.row.owner.username)
-          "
-          >{{ props.row.owner.fullname || props.row.owner.username }}</span
-        >
-      </b-table-column>      
-      <b-table-column
-        v-if="orders_admin"
-        label="Rutes"
-        field="routes_flattened"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.routes_flattened || "-" }}
-      </b-table-column>
-      <b-table-column
-        v-if="orders_admin"
-        label="Sòcies"
-        field="owners_flattened"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.owners_flattened || "-" }}
-      </b-table-column>
-      <b-table-column
-        v-if="orders_admin"
-        label="Comandes 1any"
-        field="num_orders"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.num_orders || 0 }}
-      </b-table-column>
-      <b-table-column
-        v-else
-        label="Núm comandes"
-        field="num_orders"
-        searchable
-        sortable
-        v-slot="props"
-      >
-        {{ props.row.num_orders || 0 }}
-      </b-table-column>
-    </b-table>
+        <b-table-column label="Punt d'entrega" field="trade_name" sortable v-slot="props">
+          <router-link class="contact-name" :to="{ name: 'contactsuser.edit', params: { id: props.row.id } }">
+            {{ props.row.trade_name || props.row.name || "(sense nom)" }}
+          </router-link>
+          <span class="contact-subline">{{ [props.row.trade_name && props.row.name !== props.row.trade_name ? props.row.name : "", props.row.nif].filter(Boolean).join(" · ") || "—" }}</span>
+        </b-table-column>
+        <b-table-column label="Població" field="city" sortable v-slot="props">
+          {{ props.row.city || "—" }}
+          <span v-if="props.row.sector" class="contact-subline">{{ props.row.sector.name }}</span>
+        </b-table-column>
+        <b-table-column label="Horari" field="timeSlot1And2" sortable v-slot="props">
+          <span class="nowrap">{{ props.row.timeSlot1And2 || "—" }}</span>
+        </b-table-column>
+        <b-table-column v-if="orders_admin" label="Contacte de" field="contact_of_display" sortable v-slot="props">
+          <span v-if="props.row.multidelivery" class="tag is-info is-light">Multientrega</span>
+          <span v-else-if="props.row.multiowner" class="tag">Totes</span>
+          <span v-else-if="props.row.owner && (props.row.owner.fullname || props.row.owner.username)">{{ props.row.owner.fullname || props.row.owner.username }}</span>
+          <span v-else class="has-text-muted">—</span>
+        </b-table-column>
+        <b-table-column v-if="orders_admin" label="Rutes" field="routes_flattened" sortable v-slot="props">
+          <span v-for="r in splitList(props.row.routes_flattened)" :key="r" class="tag route-tag">{{ r }}</span>
+          <span v-if="!splitList(props.row.routes_flattened).length" class="has-text-muted">—</span>
+        </b-table-column>
+        <b-table-column v-if="orders_admin" label="Sòcies" field="owners_flattened" sortable v-slot="props">
+          <span class="contact-subline">{{ props.row.owners_flattened || "—" }}</span>
+        </b-table-column>
+        <b-table-column :label="orders_admin ? 'Comandes (1 any)' : 'Comandes'" field="num_orders" sortable numeric v-slot="props">
+          {{ props.row.num_orders || 0 }}
+        </b-table-column>
+        <template #empty>
+          <p class="has-text-muted has-text-centered py-5">Cap punt d'entrega coincideix amb la cerca.</p>
+        </template>
+      </b-table>
+    </div>
   </section>
 </template>
 
@@ -260,6 +168,7 @@ export default {
       // redesign: one search and a type filter for the contacts list
       search: "",
       typeFilter: "",
+      pointOwner: null,
       isLoading: false,
       isUnifyModalActive: false,
       contacts: [],
@@ -331,6 +240,26 @@ export default {
       (this.contacts || []).forEach(c => (c.contact_type_display || "").split(", ").filter(Boolean).forEach(n => names.add(n)));
       return [...names].sort((a, b) => a.localeCompare(b, "ca"));
     },
+    // delivery points: the search also looks at their routes and members
+    filteredPoints() {
+      const words = this.search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      return (this.contacts || []).filter(c => {
+        if (this.pointOwner) {
+          const owner = c.owner ? c.owner.fullname || c.owner.username : "";
+          if (owner !== this.pointOwner && !(c.owners_flattened || "").split(/,\s*/).includes(this.pointOwner)) return false;
+        }
+        const owner = c.owner ? c.owner.fullname || c.owner.username : "";
+        const text = [c.name, c.trade_name, c.nif, c.city, owner, c.routes_flattened, c.owners_flattened].filter(Boolean).join(" ").toLowerCase();
+        return words.every(w => text.includes(w));
+      });
+    },
+    pointOwners() {
+      const names = new Set();
+      for (const c of this.contacts || []) {
+        if (c.owner && (c.owner.fullname || c.owner.username)) names.add(c.owner.fullname || c.owner.username);
+      }
+      return [...names].sort((a, b) => a.localeCompare(b));
+    },
     filteredContacts() {
       const words = this.search.trim().toLowerCase().split(/\s+/).filter(Boolean);
       return (this.contacts || []).filter(c => {
@@ -348,6 +277,9 @@ export default {
     this.getData();
   },
   methods: {
+    splitList(text) {
+      return [...new Set(String(text || "").split(/,\s*/).map(t => t.trim()).filter(Boolean))];
+    },
     navNew() {
       if (this.$route.meta.userContacts) {
         this.$router.push("/contact-user/0");
@@ -602,6 +534,17 @@ export default {
 }
 .contact-name:hover {
   color: var(--a-accent);
+}
+.contacts-toolbar :deep(.filter-select select) {
+  max-width: 14rem;
+}
+.route-tag {
+  height: 1.375rem;
+  margin: 0 .25rem .25rem 0;
+  font-size: .6875rem;
+}
+.nowrap {
+  white-space: nowrap;
 }
 .contact-subline {
   display: block;

@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="On s'entreguen les comandes: botigues, restaurants, cooperatives de consum…" />
     <section class="section is-main-section">
       <contacts-table v-if="!isLoading" />
     </section>
@@ -37,7 +37,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return [!this.userContacts ? 'Clientes' : 'Punts d\'entrega']
+      return [!this.userContacts ? 'Clientes' : 'Rutes i punts', ...(this.userContacts ? ['Punts d\'entrega'] : [])]
     }
   },
   mounted () {    
