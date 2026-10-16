@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Dades de l'entitat i valors per defecte de factures, pressupostos, comandes i tresoreria." />
     <me-form />
   </div>
 </template>
@@ -17,7 +17,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ['Administració', 'Configuració General'];
+      return ['Administració', 'Configuració general'];
     }
   }
 };
