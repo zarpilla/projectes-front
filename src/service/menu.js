@@ -6,37 +6,37 @@ const menu = [
   [
     {
       to: "/projectes",
-      icon: "table",
+      icon: "folder-outline",
       label: "Projectes",
       permission: "projects"
     },
     {
       to: "/contacts",
-      icon: "account-box",
+      icon: "account-box-outline",
       label: "Contactes",
       permission: "projects"
     },
     {
       to: "/dedicacio",
       label: "Hores dedicades",
-      icon: "calendar",
+      icon: "calendar-blank-outline",
       permission: "hours"
     },
     {
       to: "/registre-jornades",
-      icon: "clock",
-      label: "Registre Jornades",
+      icon: "clock-outline",
+      label: "Registre jornades",
       permission: "hours"
     },
     {
       to: "/working-day",
-      icon: "account-multiple",
+      icon: "account-multiple-outline",
       label: "Persones",
       permission: "projects"
     },
     {
       to: "/tasks",
-      icon: "view-column",
+      icon: "trello",
       label: "Tasques",
       permission: "projects"
     }
@@ -45,37 +45,37 @@ const menu = [
   [
     {
       to: "/emitted-invoices",
-      icon: "import",
+      icon: "download-outline",
       label: "Ingressos",
       permission: "projects"
     },
     {
       to: "/received-invoices",
-      icon: "export",
+      icon: "upload-outline",
       label: "Despeses",
       permission: "projects"
     },
     {
       to: "/salary",
-      icon: "cash-multiple",
+      icon: "wallet-outline",
       label: "Bestretes",
       permission: "projects"
     },
     {
       to: "/vat",
-      icon: "bank",
+      icon: "percent-outline",
       label: "IVA",
       permission: "projects"
     },
     {
       to: "/tresoreria",
-      icon: "bank",
+      icon: "bank-outline",
       label: "Tresoreria",
       permission: "projects"
     },
     {
       to: "/quotes",
-      icon: "calculator",
+      icon: "file-document-outline",
       label: "Pressupostos",
       permission: "projects"
     }
@@ -267,8 +267,8 @@ const menu = [
   [
     {
       to: "/stats-projectes",
-      icon: "table",
-      label: "Projectes",
+      icon: "view-dashboard-outline",
+      label: "Panell de projectes",
       permission: "projects"
     },
     // {
@@ -285,7 +285,7 @@ const menu = [
     },
     {
       to: "/stats-dedicacio",
-      icon: "table",
+      icon: "table-large",
       label: "Dedicació (taula)",
       permission: "hours"
     },
@@ -297,68 +297,68 @@ const menu = [
     },
     {
       to: "/stats-previsio-gantt",
-      icon: "chart-timeline",
+      icon: "chart-timeline-variant",
       label: "Previsió dedicació",
       permission: "projects"
     },
     
     {
       to: "/stats-previsio-hores",
-      icon: "table",
-      label: "Prev./Real Dedicació",
+      icon: "chart-bar",
+      label: "Prev./Real dedicació",
       permission: "projects"
     },
     {
       to: "/stats-economic-detail",
-      icon: "table",
+      icon: "scale-balance",
       label: "Ingressos/Despeses",
       permission: "projects"
     },
     {
       to: "/price-hour",
-      icon: "table",
-      label: "Preu Hora",
+      icon: "currency-eur",
+      label: "Preu hora",
       permission: "projects"
     },
     {
       to: "/forecast",
-      icon: "table",
-      label: "Previsió Econòmica",
+      icon: "chart-line",
+      label: "Previsió econòmica",
       permission: "projects"
     },
     {
       to: "/stats-estrategies",
-      icon: "table",
+      icon: "target",
       label: "Estratègies",
       permission: "projects"
     },
     {
       to: "/stats-intercoop",
-      icon: "table",
+      icon: "sitemap",
       label: "Intercooperació",
       permission: "projects"
     },
     {
       to: "/dedicacio-saldo",
-      icon: "table",
+      icon: "timer-sand",
       label: "Saldo hores",
       permission: "projects"
     },
     {
       to: "/dedicacio-summary",
-      icon: "table",
+      icon: "calendar-check-outline",
       label: "Hores anuals",
       permission: "projects"
     },
     {
       to: "/justifications",
-      icon: "table",
+      icon: "clipboard-check-outline",
       label: "Justificacions",
       permission: "projects"
     },
     {
       to: "/grants",
-      icon: "table",
+      icon: "gift-outline",
       label: "Subvencions",
       permission: "projects"
     }
@@ -367,20 +367,20 @@ const menu = [
   [
     {
       to: "/admin/me",
-      icon: "settings",
+      icon: "settings-outline",
       label: "Configuració general",
       permission: "admin"
     },
     {
       to: "/admin/users",
-      icon: "account-multiple",
+      icon: "account-key-outline",
       label: "Usuaris",
       permission: "admin"
     },
     {
       // Verifactu's configuration, its register and the FACe queue share one head
       to: "/admin/verifactu",
-      icon: "certificate",
+      icon: "certificate-outline",
       label: "Verifactu i FACe",
       permission: "admin",
       activeWhen: "verifactu"
@@ -388,7 +388,7 @@ const menu = [
     {
       // the 19 auxiliary tables (service/adminTables.js) share one screen
       to: "/admin/project-scope",
-      icon: "table-large",
+      icon: "table-settings",
       label: "Taules auxiliars",
       permission: "admin",
       activeWhen: "admin-tables",

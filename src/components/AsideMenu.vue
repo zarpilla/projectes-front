@@ -301,6 +301,29 @@ aside.aside .menu-list a {
 aside.aside .menu-list a .icon {
   color: inherit;
   width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+/* line icons at the size of the mockups (MDI defaults to 24px glyphs in a small box) */
+aside.aside .menu-list a .icon .mdi::before {
+  font-size: 1.125rem;
+}
+aside.aside .menu-list a {
+  gap: .75rem;
+}
+aside.aside .menu-list a:not(.is-active) .icon {
+  color: var(--a-muted);
+}
+aside.aside .menu-list a:hover .icon {
+  color: inherit;
+}
+/* reports and other long groups: compact rows, smaller icons (mockup) */
+aside.aside .is-submenu-group a {
+  min-height: 2rem;
+  font-weight: 600;
+}
+aside.aside .is-submenu-group a .icon .mdi::before {
+  font-size: 1rem;
 }
 aside.aside .menu-list a:hover {
   background: var(--a-chip);
