@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
       <previsio-table />
     </section>
@@ -27,7 +27,10 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Previsió Econòmica']
+      return ['Informes', 'Previsió econòmica']
+    },
+    subtitle () {
+      return 'Ingressos, despeses i resultat previstos per any, a partir del pla dels projectes i de les nòmines.'
     },
   }  
 }
