@@ -1,6 +1,20 @@
 <template>
-  <div>
-    <title-bar :title-stack="titleStack" />
+  <!-- Redesign A (mockup A-Log-Comanda): the order in cards (member, where and
+       when, what, where to leave it, office data), the price, the moves and the
+       incidences on the side, and a save bar. Same fields and logic as before. -->
+  <div class="order-form">
+    <title-bar :title-stack="titleStack" :subtitle="headSubtitle">
+      <template v-if="form.id" #badges>
+        <span class="tag" :class="statusTag(form.status)">{{ statusLabel(form.status) }}</span>
+        <span v-if="form.transfer" class="tag">Transferència · {{ transferStatus.toLowerCase() }}</span>
+        <span v-if="form.is_collection_order" class="tag">Comanda de recollida</span>
+      </template>
+      <template v-if="form.id">
+        <b-button v-if="!form.is_collection_order" icon-left="printer" :loading="isLoading" @click="getPDF">Imprimeix albarà</b-button>
+        <b-button tag="router-link" :to="{ name: 'orders.view.detail', params: { id: form.id } }" icon-left="timeline-text-outline">Veure seguiment</b-button>
+        <b-button v-if="canCancel" class="is-danger" :loading="isLoading" @click="deleteOrder">Anul·la la comanda</b-button>
+      </template>
+    </title-bar>
 
     <modal-box-contact-user
       :is-active="isModalActive"
@@ -18,72 +32,71 @@
       @cancel="isIncidenceModalActive = false"
     ></modal-box-incidence>
 
-    <section class="section is-main-section section-adapted">
-      <div class="columns">
-        <div class="column is-full">
-          <card-component class="tile is-child">
-            <b-message
-              v-if="firstStatus !== 'pending'"
-              title="Comanda ja procesada"
-              type="is-warning"
-            >
-              <span v-if="!canEdit"
-                >Si hi ha algun canvi d'última hora, contacta si us plau amb La
-                Diligència.</span
-              >
-              <span v-else
-                >Atenció amb els canvis, doncs podria afectar a entregues ja
-                fetes o a factures emeses.</span
-              >
-            </b-message>
+    <section class="section is-main-section">
+      <div v-if="firstStatus !== 'pending'" class="notification is-warning">
+        <b>Comanda ja processada.</b>
+        <span v-if="!canEdit"> Si hi ha algun canvi d'última hora, contacta si us plau amb La Diligència.</span>
+        <span v-else> Atenció amb els canvis: poden afectar entregues ja fetes o factures emeses.</span>
+      </div>
 
-            <form @submit.prevent="submit(false)" v-if="!isLoading">
-              <!-- BLOC ZERO: Sòcia -->
-              <b-field
-                label="Sòcia *"
-                horizontal
-                :type="{ 'is-danger': errors['owner'] && submitted }"
-              >
-                <b-select
-                  :disabled="!canEdit"
-                  v-model="form.owner"
-                  placeholder=""
-                  @update:model-value="changeOwner"
-                >
-                  <option
-                    v-for="(s, index) in users"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.fullname || s.username }}
-                  </option>
+      <b-loading :is-full-page="false" :model-value="isLoading" />
+
+      <form v-if="!isLoading" class="order-layout" @submit.prevent="submit(false)">
+        <div class="order-main">
+          <!-- member -->
+          <section class="a-box">
+            <header class="box-head"><h2>Sòcia</h2></header>
+            <div class="a-form">
+              <b-field label="Sòcia *" :type="{ 'is-danger': errors['owner'] && submitted }">
+                <b-select :disabled="!canEdit" v-model="form.owner" placeholder="Tria la sòcia" expanded @update:model-value="changeOwner">
+                  <option v-for="(s, index) in users" :key="index" :value="s.id">{{ s.fullname || s.username }}</option>
                 </b-select>
               </b-field>
+            </div>
+          </section>
 
-              <hr />
-
-              <!-- PRIMER BLOC: A ON VA I QUIN DIA? -->
-              <h3 class="title is-5 mt-4 mb-3">
-                {{
-                  form.is_collection_order
-                    ? "A ON I QUIN DIA S'HA DE RECOLLIR?"
-                    : "A ON VA I QUIN DIA?"
-                }}
-              </h3>
-              <p class="help mb-4">
-                <strong>Recorda!</strong> Has d'informar les comandes com a
-                límit a les 13h del dia abans.
-              </p>
-
-              <!-- <b-field
-                label="Data comanda *"
-                horizontal
-                :type="{ 'is-danger': errors['route_date'] && submitted }"
-                message="Data de creació de la comanda"
+          <!-- where and when -->
+          <section class="a-box">
+            <header class="box-head">
+              <h2>{{ form.is_collection_order ? "A on i quin dia s'ha de recollir?" : "A on va i quin dia?" }}</h2>
+            </header>
+            <p class="box-help"><b>Recorda:</b> s'han d'informar les comandes com a límit a les 13 h del dia abans.</p>
+            <div class="a-form">
+              <b-field
+                :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
+                :type="{ 'is-danger': errors['contact'] && submitted }"
+                class="full"
               >
+                <div class="field-stack">
+                <div class="contact-row">
+                  <b-autocomplete
+                    v-model="contactSearch"
+                    placeholder="Punt d'entrega"
+                    :keep-first="false"
+                    :open-on-focus="true"
+                    :data="filteredContacts"
+                    field="display"
+                    :disabled="!canEdit"
+                    :clearable="true"
+                    @select="contactChanged"
+                    @update:model-value="onContactInput"
+                  />
+                  <b-button v-if="form.contact" icon-left="pencil-outline" :disabled="!canEdit && !canEditContact" @click="isModalActive = true">
+                    {{ isPickupPoint ? "Veure el punt" : "Edita el punt" }}
+                  </b-button>
+                  <b-button v-if="!isPickupPoint && !form.contact" icon-left="plus" :disabled="!canEdit" title="Nou punt d'entrega" @click="isModalActive = true">Nou punt</b-button>
+                </div>
+                <p v-if="form.contact && contactSummary" class="field-note">{{ contactSummary }}</p>
+                <p v-else class="field-note">{{ !isPickupPoint ? "Cerca el punt d'entrega si ja existeix, o crea'n un de nou." : "Cerca el punt de consum." }}</p>
+                </div>
+              </b-field>
+
+              <b-field label="Data comanda" :type="{ 'is-danger': errors['route_date'] && submitted }" message="Data de creació de la comanda">
+                <b-input v-if="form.id" :model-value="formatDateTime(form.created_at)" type="text" disabled />
                 <b-datepicker
-                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
+                  v-else
                   v-model="form.route_date"
+                  :disabled="!isStaff"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -91,96 +104,13 @@
                   placeholder="Data"
                   trap-focus
                   editable
-                >
-                </b-datepicker>
-              </b-field> -->
-
-              <b-field
-                :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
-                horizontal
-                :type="{ 'is-danger': errors['contact'] && submitted }"
-                :message="
-                  !isPickupPoint
-                    ? 'Cerca el punt d`entrega si ja existeix, o crea un nou punt'
-                    : 'Cerca el punt de consum'
-                "
-              >
-                <b-autocomplete
-                  v-model="contactSearch"
-                  placeholder="Punt d'entrega"
-                  :keep-first="false"
-                  :open-on-focus="true"
-                  :data="filteredContacts"
-                  field="display"
-                  @select="contactChanged"
-                  @update:model-value="onContactInput"
-                  :disabled="!canEdit"
-                  :clearable="true"
-                >
-                </b-autocomplete>
+                />
               </b-field>
 
-              <b-field
-                horizontal
-                v-if="!form.contact && !contactSearch && !isPickupPoint"
-              >
-                <b-button
-                  :disabled="!canEdit"
-                  class="view-button is-primary mb-3"
-                  title="Nou punt d'entrega"
-                  @click="isModalActive = true"
-                >
-                  Nou punt d'entrega
-                </b-button>
-              </b-field>
-              <b-field horizontal v-else-if="form.contact">
-                <b-button
-                  :disabled="!canEdit"
-                  class="view-button is-primary mb-3 ml-0"
-                  title="Nou punt d'entrega"
-                  @click="isModalActive = true"
-                >
-                  {{
-                    isPickupPoint
-                      ? "Veure punt de recollida"
-                      : "Veure punt d'entrega"
-                  }}
-                </b-button>
-              </b-field>
-
-              <b-field
-                v-if="form.owner && form.contact"
-                label="Ruta *"
-                horizontal
-                :type="{ 'is-danger': errors['route'] && submitted }"
-                message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t'aplicarà la tarifa corresponent. En cas de dubte, consulta'ns"
-              >
-                <div class="is-flex-desktop is-flex-wrap-wrap">
-                  <button
-                    class="button mr-2 mb-2"
-                    type="button"
-                    v-for="(s, index) in routes"
-                    :key="index"
-                    :class="{
-                      'is-warning': form.route === s.id,
-                      'is-outlined': form.route !== s.id
-                    }"
-                    @click="form.route = s.id; changeRoute();"
-                    :disabled="!canEdit"
-                  >
-                    {{ s.name }}
-                  </button>
-                </div>
-              </b-field>
-
-              <b-field
-                label="Data prevista d'entrega"
-                horizontal
-                message="Si prefereixis que s'entregui més endavant, tria una data del calendari."
-              >
+              <b-field label="Data prevista d'entrega" message="Tria una data posterior si es pot entregar més endavant.">
                 <b-datepicker
-                  :disabled="!canEdit"
                   v-model="form.estimated_delivery_date"
+                  :disabled="!canEdit"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -189,299 +119,147 @@
                   trap-focus
                   editable
                   @update:model-value="checkEstimatedDeliveryDate"
-                >
-                </b-datepicker>
+                />
               </b-field>
 
-              <b-message v-if="dateWarningMessage" type="is-warning">
-                {{ dateWarningMessage }}
-              </b-message>
-
-              <!-- SEGON BLOC: QUÈ HEM DE PORTAR? -->
-              <div class="hr"></div>
-              <h3 class="title is-5 mt-4 mb-3">
-                {{
-                  form.is_collection_order
-                    ? "QUÈ HEM DE RECOLLIR?"
-                    : "QUÈ HEM DE PORTAR?"
-                }}
-              </h3>
-
               <b-field
-                label="Tipus de servei *"
-                horizontal
-                :type="{ 'is-danger': errors['delivery_type'] && submitted }"
-                :message="
-                  form.is_collection_order
-                    ? 'Calculat automàticament des de les comandes associades'
-                    : 'Indica refrigerat si almenys una caixa de la comanda ha d\'anar refrigerada'
-                "
+                v-if="form.owner && form.contact"
+                label="Ruta *"
+                class="full"
+                :type="{ 'is-danger': errors['route'] && submitted }"
               >
-                <div class="is-flex">
+                <div class="field-stack">
+                <div class="pill-group">
                   <button
-                    class="button mr-2"
+                    v-for="(s, index) in routes"
+                    :key="index"
                     type="button"
-                    v-for="(s, index) in deliveryTypes"
-                    :class="{
-                      'is-warning': form.delivery_type === s.id,
-                      'is-outlined': form.delivery_type !== s.id
-                    }"
-                    @click="form.delivery_type = s.id"
-                    :disabled="!canEdit || form.is_collection_order"
-                  >
-                    {{ s.name }}
-                  </button>
+                    class="button pill"
+                    :class="{ 'is-warning': form.route === s.id, 'is-outlined': form.route !== s.id }"
+                    :data-day="routeDays(s)"
+                    :disabled="!canEdit"
+                    @click="form.route = s.id; changeRoute();"
+                  >{{ s.name }}</button>
+                </div>
+                <p class="field-note">Rutes que passen per {{ form.contact_city || "la població del punt" }}. Tria-la segons el dia de la setmana i la destinació: en depèn la tarifa.</p>
                 </div>
               </b-field>
 
-              <!-- Pickup Point Lines Section -->
-              <div v-if="isPickupPoint" class="mb-3">
-                <b-field
-                  label="Línies *"
-                  horizontal
-                  message="Afegeix les línies amb la informació de cada destinatari"
-                  :type="{ 'is-danger': errors['lines'] && submitted }"
-                >
-                  <div class="is-full-width mt-2">
-                    <div
-                      v-for="(line, index) in form.lines"
-                      :key="index"
-                      class="zbox mb-1"
-                    >
-                      <div class="columns">
-                        <div class="column is-3 p-2">
-                          <b-field :label="index === 0 ? 'Caixes' : null">
-                            <b-input
-                              v-model="line.units"
-                              type="number"
-                              :disabled="!canEdit"
-                              @update:model-value="calculateTotals"
-                            />
-                          </b-field>
-                        </div>
-                        <div class="column is-3 p-2">
-                          <b-field :label="index === 0 ? 'Kilograms' : null">
-                            <b-input
-                              v-model="line.kilograms"
-                              type="number"
-                              :disabled="!canEdit"
-                              @update:model-value="calculateTotals"
-                            />
-                          </b-field>
-                        </div>
-                        <div class="column is-3 p-2">
-                          <b-field :label="index === 0 ? 'Nom' : null">
-                            <b-input v-model="line.name" :disabled="!canEdit" />
-                          </b-field>
-                        </div>
-                        <div class="column is-2 p-2">
-                          <b-field :label="index === 0 ? 'NIF' : null">
-                            <b-input v-model="line.nif" :disabled="!canEdit" />
-                          </b-field>
-                        </div>
-                        <div class="column is-1">
-                          <b-field :label="index === 0 ? 'Accions' : null">
-                            <b-button
-                              type="is-danger"
-                              size="is-small"
-                              icon-left="delete"
-                              :disabled="!canEdit"
-                              @click="removeLine(index)"
-                            >
-                            </b-button>
-                          </b-field>
-                        </div>
-                      </div>
-                    </div>
+              <div v-if="dateWarningMessage" class="notification is-warning full">{{ dateWarningMessage }}</div>
+            </div>
+          </section>
 
-                    <b-button
-                      v-if="canEdit"
-                      type="is-primary"
-                      icon-left="plus"
-                      @click="addLine"
-                      class="mb-3 mt-3"
-                    >
-                      Afegir línia
-                    </b-button>
+          <!-- what -->
+          <section class="a-box">
+            <header class="box-head">
+              <h2>{{ form.is_collection_order ? "Què hem de recollir?" : "Què hem de portar?" }}</h2>
+            </header>
+            <div class="a-form">
+              <b-field label="Tipus de servei *" class="full" :type="{ 'is-danger': errors['delivery_type'] && submitted }">
+                <div class="field-stack">
+                <div class="pill-group">
+                  <button
+                    v-for="(s, index) in deliveryTypes"
+                    :key="index"
+                    type="button"
+                    class="button pill"
+                    :class="{ 'is-warning': form.delivery_type === s.id, 'is-outlined': form.delivery_type !== s.id }"
+                    :disabled="!canEdit || form.is_collection_order"
+                    @click="form.delivery_type = s.id"
+                  >{{ s.name }}</button>
+                </div>
+                <p class="field-note">{{ form.is_collection_order ? "Calculat des de les comandes associades." : "Refrigerada si almenys una caixa ha d'anar refrigerada." }}</p>
+                </div>
+              </b-field>
+
+              <!-- consumption point: one line per recipient -->
+              <div v-if="isPickupPoint" class="full">
+                <b-field label="Línies *" :type="{ 'is-danger': errors['lines'] && submitted }" message="Una línia per cada destinatari">
+                  <div class="table-container">
+                    <table class="table is-fullwidth lines-table">
+                      <thead><tr><th>Caixes</th><th>Kilograms</th><th>Nom</th><th>NIF</th><th></th></tr></thead>
+                      <tbody>
+                        <tr v-for="(line, index) in form.lines" :key="index">
+                          <td><b-input v-model="line.units" type="number" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
+                          <td><b-input v-model="line.kilograms" type="number" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
+                          <td><b-input v-model="line.name" size="is-small" :disabled="!canEdit" /></td>
+                          <td><b-input v-model="line.nif" size="is-small" :disabled="!canEdit" /></td>
+                          <td class="has-text-right">
+                            <button type="button" class="row-action" :disabled="!canEdit" title="Treu la línia" aria-label="Treu la línia" @click="removeLine(index)"><b-icon icon="close" size="is-small" /></button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </b-field>
-
-                <!-- Totals calculated from lines -->
-                <b-field
-                  label="Total Caixes"
-                  horizontal
-                  message="Calculat automàticament des de les línies"
-                >
-                  <b-input :model-value="form.units" type="number" disabled />
-                </b-field>
-
-                <b-field
-                  label="Total Kilograms"
-                  horizontal
-                  message="Calculat automàticament des de les línies"
-                >
-                  <b-input :model-value="form.kilograms" type="number" disabled />
-                </b-field>
+                <b-button v-if="canEdit" size="is-small" icon-left="plus" @click="addLine">Afegeix una línia</b-button>
+                <p class="field-note">Total {{ form.units || 0 }} caixes · {{ form.kilograms || 0 }} kg, calculat des de les línies.</p>
               </div>
 
-              <!-- Regular fields for non-pickup points -->
-              <div v-else>
-                <b-field
-                  label="Número de caixes *"
-                  horizontal
-                  :message="
-                    form.is_collection_order
-                      ? 'Calculat automàticament des de les comandes associades'
-                      : 'Nombre de caixes que inclou la comanda'
-                  "
-                  :type="{ 'is-danger': errors['units'] && submitted }"
-                >
-                  <b-input
-                    v-model="form.units"
-                    type="number"
-                    :disabled="!canEdit || form.is_collection_order"
-                  />
+              <template v-else>
+                <b-field label="Número de caixes *" :type="{ 'is-danger': errors['units'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
+                  <b-input v-model="form.units" type="number" :disabled="!canEdit || form.is_collection_order" />
                 </b-field>
+                <b-field label="Kilograms *" :type="{ 'is-danger': errors['kilograms'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
+                  <b-input v-model="form.kilograms" type="number" :disabled="!canEdit || form.is_collection_order" />
+                </b-field>
+              </template>
 
-                <b-field
-                  :type="{ 'is-danger': errors['kilograms'] && submitted }"
-                  label="Kilograms *"
-                  horizontal
-                  :message="
-                    form.is_collection_order
-                      ? 'Calculat automàticament des de les comandes associades'
-                      : 'Kilograms totals'
-                  "
-                >
-                  <b-input
-                    v-model="form.kilograms"
-                    type="number"
-                    :disabled="!canEdit || form.is_collection_order"
-                  />
-                </b-field>
+              <div class="full check-row">
+                <b-checkbox v-model="form.fragile" :disabled="!canEdit || form.is_collection_order">
+                  <b>Fràgil</b>
+                  <small>{{ form.is_collection_order ? "Calculat des de les comandes associades." : "Marca-ho si la comanda és fràgil." }}</small>
+                </b-checkbox>
               </div>
 
-              <b-field
-                label="Fràgil"
-                horizontal
-                :message="
-                  form.is_collection_order
-                    ? 'Calculat automàticament des de les comandes associades'
-                    : 'Si la comanda és fràgil, marca aquesta casella'
-                "
-              >
-                <b-switch
-                  v-model="form.fragile"
-                  :disabled="!canEdit || form.is_collection_order"
-                ></b-switch>
+              <b-field v-if="form.is_collection_order" label="Informació important" class="full">
+                <b-input v-model="form.comments" type="textarea" placeholder="Mides poc habituals, on es pot deixar si hi ha cap incidència…" :disabled="!canEdit" />
+              </b-field>
+            </div>
+          </section>
+
+          <!-- where to leave it -->
+          <section v-if="!form.is_collection_order" class="a-box">
+            <header class="box-head"><h2>On ho deixaràs?</h2></header>
+            <div class="a-form">
+              <b-field v-if="pickups && pickups.length > 0" label="Recollida de la comanda *" class="full" :type="{ 'is-danger': errors['pickup'] && submitted }">
+                <div class="field-stack">
+                <div class="pill-group">
+                  <button
+                    v-for="(s, index) in allowedPickups"
+                    :key="index"
+                    type="button"
+                    class="button pill"
+                    :class="{ 'is-warning': form.pickup === s.id, 'is-outlined': form.pickup !== s.id }"
+                    :disabled="!canEdit || form.is_collection_order"
+                    @click="form.pickup = s.id; updatePickup();"
+                  >{{ s.name }}</button>
+                </div>
+                <p v-if="selectedPickupMessage" class="field-note">{{ selectedPickupMessage }}</p>
+                </div>
               </b-field>
 
-              <hr />
-
-              <template v-if="!form.is_collection_order">
-                <h3 class="title is-5 mt-4 mb-3">ON HO DEIXARÀS?</h3>
-                <b-field
-                  v-if="pickups && pickups.length > 0"
-                label="Recollida comanda *"
-                horizontal
-                :type="{ 'is-danger': errors['pickup'] && submitted }"
-                class="zmessage-alert"
-                :message="
-                  form.is_collection_order
-                    ? 'Calculat automàticament des de les comandes associades'
-                    : form.pickup && pickups.find(p => p.id === form.pickup)
-                    ? pickups.find(p => p.id === form.pickup).message
-                    : ''
-                "
-              >
-                <div class="is-flex-desktop is-flex-wrap-wrap">
-                  <button
-                    class="button mr-2 mb-2"
-                    type="button"
-                    v-for="(s, index) in allowedPickups"
-                    :class="{
-                      'is-warning': form.pickup === s.id,
-                      'is-outlined': form.pickup !== s.id
-                    }"
-                    @click="
-                      form.pickup = s.id;
-                      updatePickup();
-                    "
-                    :disabled="!canEdit || form.is_collection_order"
-                  >
-                    {{ s.name }}
-                  </button>
-                </div>
-                </b-field>
-
-                <b-field
-                  v-if="collectionPoints && collectionPoints.length > 0"
-                label="Punt de recollida en finca *"
-                horizontal
-                :type="{ 'is-danger': errors['collection_point'] && submitted }"
-                :message="
-                  form.is_collection_order
-                    ? 'Calculat automàticament des de les comandes associades'
-                    : 'Selecciona el punt de recollida concret dins de la finca'
-                "
-              >
-                <div class="is-flex-desktop is-flex-wrap-wrap">
-                  <button
-                    class="button mr-2 mb-2"
-                    type="button"
-                    v-for="(cp, index) in collectionPoints"
-                    :key="cp.id"
-                    :class="{
-                      'is-warning': form.collection_point === cp.id,
-                      'is-outlined': form.collection_point !== cp.id
-                    }"
-                    @click="
-                      form.collection_point = cp.id;
-                      onCollectionPointChange();
-                    "
-                    :disabled="!canEdit || form.is_collection_order"
-                  >
-                    {{ cp.name }}
-                  </button>
-                </div>
-                </b-field>
-
-                <b-field
-                  v-if="
-                    form.collection_point && collectionPickupRoutes.length > 0
-                  "
-                label="Ruta de recollida *"
-                horizontal
-                :type="{
-                  'is-danger': errors['collection_pickup_route'] && submitted
-                }"
-                message="Selecciona la ruta que farà la recollida en finca (determina el dia de recollida). Si canvies la ruta o data, es pot crear una nova comanda de recollida automàticament."
-              >
-                <b-select
-                  v-model="form.collection_pickup_route"
-                  placeholder="Selecciona ruta de recollida"
-                  :disabled="!canEdit || form.is_collection_order"
-                  @update:model-value="onCollectionPickupRouteChange"
-                >
-                  <option
-                    v-for="r in collectionPickupRoutes"
-                    :key="r.id"
-                    :value="r.id"
-                  >
-                    {{ r.name }}
-                  </option>
+              <b-field v-if="collectionPoints && collectionPoints.length > 0" label="Punt de recollida en finca *" class="full" :type="{ 'is-danger': errors['collection_point'] && submitted }" message="El punt concret de la finca on es recull">
+                <b-select v-model="form.collection_point" expanded :disabled="!canEdit || form.is_collection_order" @update:model-value="onCollectionPointChange">
+                  <option v-for="cp in collectionPoints" :key="cp.id" :value="cp.id">{{ cp.name }}</option>
                 </b-select>
-                </b-field>
+              </b-field>
 
-                <b-field
-                  v-if="form.collection_point && form.collection_pickup_route"
-                label="Data de recollida"
-                horizontal
-                message="Data prevista per la recollida en finca. Aquest camp determina a quina comanda de recollida s'afegirà aquesta comanda."
+              <b-field
+                v-if="form.collection_point && collectionPickupRoutes.length > 0"
+                label="Ruta de recollida *"
+                :type="{ 'is-danger': errors['collection_pickup_route'] && submitted }"
+                message="Determina el dia de recollida a la finca."
               >
+                <b-select v-model="form.collection_pickup_route" placeholder="Tria la ruta" expanded :disabled="!canEdit || form.is_collection_order" @update:model-value="onCollectionPickupRouteChange">
+                  <option v-for="r in collectionPickupRoutes" :key="r.id" :value="r.id">{{ r.name }}</option>
+                </b-select>
+              </b-field>
+
+              <b-field v-if="form.collection_point && form.collection_pickup_route" label="Data de recollida" message="Decideix a quina comanda de recollida s'afegeix.">
                 <b-datepicker
-                  :disabled="!canEdit || form.is_collection_order"
                   v-model="form.collection_pickup_date"
+                  :disabled="!canEdit || form.is_collection_order"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -490,1011 +268,251 @@
                   trap-focus
                   editable
                   @update:model-value="onCollectionPickupDateChange"
-                >
-                </b-datepicker>
-                </b-field>
+                />
+              </b-field>
 
-                <b-message
-                  v-if="collectionPickupDateWarningMessage"
-                  type="is-warning"
-                >
-                  {{ collectionPickupDateWarningMessage }}
-                </b-message>
+              <div v-if="collectionPickupDateWarningMessage" class="notification is-warning full">{{ collectionPickupDateWarningMessage }}</div>
+
+              <b-field label="Informació important" class="full" message="Mides poc habituals, on es pot deixar a prop si hi ha cap incidència…">
+                <b-input v-model="form.comments" type="textarea" placeholder="Notes" :disabled="!canEdit" />
+              </b-field>
+            </div>
+          </section>
+
+          <!-- the orders of a collection order / the collection order of an order -->
+          <section v-if="form.id && form.is_collection_order" class="a-box">
+            <header class="box-head">
+              <h2>Comandes a recollir</h2>
+              <span class="box-hint">{{ (form.collection_orders || []).length }} comandes</span>
+            </header>
+            <p v-if="!form.collection_orders || !form.collection_orders.length" class="box-empty">Encara no hi ha comandes associades.</p>
+            <div v-else class="table-container">
+              <table class="table is-fullwidth">
+                <thead>
+                  <tr><th>Comanda</th><th>Entrega</th><th class="has-text-right">Caixes</th><th class="has-text-right">Kg</th><th>Estat</th><th>Dipòsit</th><th>Recollida</th></tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in form.collection_orders" :key="row.id">
+                    <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
+                    <td>{{ (row.contact && row.contact.trade_name) || row.contact_trade_name || "—" }}</td>
+                    <td class="has-text-right">{{ row.units || 0 }}</td>
+                    <td class="has-text-right">{{ row.kilograms || 0 }}</td>
+                    <td><span class="tag" :class="statusTag(row.status)">{{ statusLabel(row.status) }}</span></td>
+                    <td>
+                      <b-icon v-if="row.deposit_date" icon="check-circle" type="is-success" />
+                      <b-button v-else size="is-small" :loading="isLoadingDeposit[row.id]" @click="depositCollectionOrder(row.id)">Dipositar</b-button>
+                    </td>
+                    <td>
+                      <b-icon v-if="row.pickup_date" icon="check-circle" type="is-success" />
+                      <b-button v-else size="is-small" :loading="isLoadingPickup[row.id]" :disabled="!isStaff" @click="pickupCollectionOrder(row.id)">Recollir</b-button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section v-else-if="form.id && form.collection_order" class="a-box">
+            <header class="box-head"><h2>Comanda de recollida</h2></header>
+            <div v-if="isCollectionOrderDateAfterMainOrder" class="notification is-warning">
+              <b>Atenció!</b> La data prevista d'entrega és anterior a la data prevista de recollida.
+            </div>
+            <dl class="facts">
+              <dt>Comanda</dt>
+              <dd><router-link :to="`/order/${form.collection_order.id || form.collection_order}`">#{{ String(form.collection_order.id || form.collection_order).padStart(4, "0") }}-R</router-link></dd>
+              <template v-if="form.collection_order.estimated_delivery_date"><dt>Data prevista</dt><dd>{{ formatDate(form.collection_order.estimated_delivery_date) }}</dd></template>
+              <template v-if="form.collection_order.route"><dt>Ruta</dt><dd>{{ form.collection_order.route.short_name || form.collection_order.route.name }}</dd></template>
+              <template v-if="form.collection_order.status"><dt>Estat</dt><dd><span class="tag" :class="statusTag(form.collection_order.status)">{{ statusLabel(form.collection_order.status) }}</span></dd></template>
+              <dt>Caixes · kg</dt><dd>{{ form.collection_order.units || "—" }} · {{ form.collection_order.kilograms || "—" }} kg</dd>
+              <dt>Preu</dt><dd>{{ money(calculateFinalPrice(form.collection_order)) }}</dd>
+            </dl>
+          </section>
+
+          <!-- office data -->
+          <section class="a-box">
+            <header class="box-head">
+              <h2>Altres dades</h2>
+              <span class="box-hint">Només per a l'oficina i el repartiment</span>
+            </header>
+            <div class="a-form">
+              <b-field label="Estat" class="full">
+                <div class="segmented" role="group" aria-label="Estat">
+                  <button
+                    v-for="s in statuses"
+                    :key="s.id"
+                    type="button"
+                    :class="{ 'is-on': form.status === s.id }"
+                    :aria-pressed="form.status === s.id ? 'true' : 'false'"
+                    :disabled="!isStaff"
+                    @click="form.status = s.id"
+                  >{{ statusLabel(s.id) }}</button>
+                </div>
+              </b-field>
+
+              <template v-if="isStaff && form.transfer">
+                <b-field>
+                  <template #label>
+                    Ruta de transferència
+                  </template>
+                  <b-select v-model="form.transfer_route" expanded placeholder="Tria una ruta" :disabled="!canEdit" @update:model-value="onTransferRouteManualChange">
+                    <option :value="null">— Cap —</option>
+                    <option v-for="route in transferRoutes" :key="route.id" :value="route.id">{{ route.short_name || route.name }}</option>
+                  </b-select>
+                </b-field>
+                <b-field label="Data de transferència">
+                  <b-datepicker
+                    v-model="form.transfer_route_date"
+                    :show-week-number="false"
+                    :locale="'ca-ES'"
+                    :first-day-of-week="1"
+                    placeholder="Tria una data"
+                    icon="calendar-today"
+                    :disabled="!canEdit"
+                    trap-focus
+                    editable
+                    @update:model-value="onTransferDateManualChange"
+                  />
+                </b-field>
+                <div class="full transfer-manual">
+                  <b-switch v-model="form.manual_transfer_route" size="is-small" :disabled="!canEdit">Edició manual de la transferència</b-switch>
+                  <span class="field-note">Es calcula sola; si l'edites, el càlcul automàtic es desactiva.</span>
+                  <b-button v-if="form.manual_transfer_route" size="is-small" icon-left="refresh" :disabled="!canEdit" @click="recalculateTransferRoute">Recalcula</b-button>
+                </div>
+                <b-field v-if="form.transfer_pickup_origin" label="Origen de la transferència">
+                  <span class="readonly-value">{{ getPickupName(form.transfer_pickup_origin) }}</span>
+                </b-field>
+                <b-field v-if="form.transfer_pickup_destination" label="Destinació de la transferència">
+                  <span class="readonly-value">{{ getPickupName(form.transfer_pickup_destination) }}</span>
+                </b-field>
               </template>
 
-              <b-field
-                label="Informació important"
-                horizontal
-                class="line-notes is-full-width mb-5"
-                message="Si hi ha res més a tenir en compte, com si els paquets són de mides poc habituals o hi ha possibilitats d’entrega en un altre lloc proper si hi ha cap incidència..."
-              >
-                <b-input
-                  type="textarea"
-                  v-model="form.comments"
-                  placeholder="Notes"
-                  :disabled="!canEdit"
-                />
+              <b-field v-if="isStaff && completeRouteText" label="Ruta completa" class="full">
+                <span class="readonly-value">{{ completeRouteText }}</span>
               </b-field>
 
-              <!-- <b-field
-                label="Referència proveïdora"
-                horizontal
-                message="Si al teu ERP té un nom/codi de comanda concret, pots posar-lo aquí"
-              >
-                <b-input v-model="form.provider_order_number" />
-              </b-field> -->
-
-              <hr />
-
-              <h3 class="title is-5 mt-4 mb-3">HI HA INCIDÈNCIES?</h3>
-              <b-field
-                v-if="form.id"
-                horizontal
-                message="Gestiona les incidències d'aquesta comanda"
-              >
-                <template #label>
-                  Incidències
-                  <b-tag
-                    v-if="openIncidencesCount > 0"
-                    type="is-warning"
-                    class="ml-2"
-                  >
-                    {{ openIncidencesCount }}
-                    {{ openIncidencesCount === 1 ? "oberta" : "obertes" }}
-                  </b-tag>
-                </template>
-                <div class="is-full-width">
-                  <div
-                    v-for="(incidence, index) in form.incidences"
-                    :key="incidence.id || `new-${index}`"
-                    class="zbox mb-3"
-                  >
-                    <div class="columns">
-                      <div class="column is-9 p-2">
-                        <b-field :label="index === 0 ? 'Descripció' : null">
-                          <b-input
-                            type="textarea"
-                            v-model="incidence.description"
-                            :disabled="incidence.id"
-                            placeholder="Descripció de la incidència"
-                          />
-                        </b-field>
-                        <b-field
-                          :label="index === 0 ? 'Estat' : null"
-                          class="mt-3"
-                        >
-                          <b-select v-model="incidence.state" :disabled="true">
-                            <option value="open">Oberta</option>
-                            <option value="wip">En procés</option>
-                            <option value="closed">Tancada</option>
-                          </b-select>
-                        </b-field>
-                      </div>
-                      <div class="column is-2 p-2">
-                        <b-field
-                          :label="index === 0 ? 'Creada / Accions' : null"
-                        >
-                          <div class="is-flex is-flex-direction-column">
-                            <span
-                              v-if="incidence.created_at"
-                              class="is-size-7 mb-2"
-                            >
-                              {{ formatDate(incidence.created_at) }}
-                            </span>
-                            <span
-                              v-else
-                              class="is-size-7 has-text-grey-light mb-2"
-                              >Nova</span
-                            >
-                            <div class="buttons">
-                              <b-button
-                                v-if="!incidence.id && canEdit"
-                                type="is-danger"
-                                size="is-small"
-                                icon-left="delete"
-                                @click="removeIncidence(index)"
-                              >
-                              </b-button>
-                              <a
-                                v-if="incidence.id"
-                                :href="`/stats/#/incidences?id=${incidence.id}`"
-                                target="_blank"
-                                class="button is-info is-small"
-                                title="Veure incidència"
-                              >
-                                <b-icon icon="eye" size="is-small"></b-icon>
-                              </a>
-                            </div>
-                          </div>
-                        </b-field>
-                      </div>
-                    </div>
-                  </div>
-
-                  <b-button
-                    v-if="form.id"
-                    type="is-info"
-                    outlined
-                    icon-left="alert-circle"
-                    @click="openIncidenceModal"
-                    class="mb-3 ml-2"
-                  >
-                    Crear incidència
-                  </b-button>
-                </div>
-              </b-field>
-
-              <hr />
-
-              <!-- COLLECTION ORDERS SECTION -->
-              <div v-if="form.id">
-                <!-- Show collection orders for collection order -->
-                <div v-if="form.is_collection_order">
-                  <h3 class="title is-5 mt-4 mb-3">
-                    COMANDES A RECOLLIR ({{ form.collection_orders.length }})
-                  </h3>
-                  <b-field
-                    horizontal
-                    message="Comandes que formen part d'aquesta comanda de recollida"
-                  >
-                    <div class="is-full-width">
-                      <b-table
-                        v-if="
-                          form.collection_orders &&
-                            form.collection_orders.length > 0
-                        "
-                        :data="form.collection_orders"
-                        :striped="true"
-                        :hoverable="true"
-                        :mobile-cards="false"
-                      >
-                        <b-table-column
-                          field="id"
-                          label="Comanda"
-                          width="120"
-                          v-slot="props"
-                        >
-                          <router-link :to="`/order/${props.row.id}`">
-                            <strong
-                              >#{{
-                                String(props.row.id).padStart(4, "0")
-                              }}</strong
-                            >
-                          </router-link>
-                        </b-table-column>
-
-                        <b-table-column
-                          field="contact"
-                          label="Entrega"
-                          v-slot="props"
-                        >
-                          {{
-                            (props.row.contact &&
-                              props.row.contact.trade_name) ||
-                              props.row.contact_trade_name ||
-                              "-"
-                          }}
-                        </b-table-column>
-
-                        <b-table-column
-                          field="units"
-                          label="Caixes"
-                          width="100"
-                          numeric
-                          v-slot="props"
-                        >
-                          {{ props.row.units || 0 }}
-                        </b-table-column>
-
-                        <b-table-column
-                          field="kilograms"
-                          label="Kg"
-                          width="100"
-                          numeric
-                          v-slot="props"
-                        >
-                          {{ props.row.kilograms || 0 }}
-                        </b-table-column>
-
-                        <b-table-column
-                          field="status"
-                          label="Estat"
-                          width="150"
-                          v-slot="props"
-                        >
-                          <b-tag :type="getStatusColor(props.row.status)">
-                            {{ getStatusName(props.row.status) }}
-                          </b-tag>
-                        </b-table-column>
-
-                        <b-table-column
-                          label="Dipositat"
-                          width="120"
-                          v-slot="props"
-                        >
-                          <div v-if="props.row.deposit_date">
-                            <b-icon
-                              icon="check-circle"
-                              type="is-success"
-                            ></b-icon>
-                          </div>
-                          <div v-else>
-                            <b-button
-                              type="is-info"
-                              size="is-small"
-                              @click="depositCollectionOrder(props.row.id)"
-                              :loading="isLoadingDeposit[props.row.id]"
-                            >
-                              Dipositar
-                            </b-button>
-                          </div>
-                        </b-table-column>
-
-                        <b-table-column
-                          label="Recollit"
-                          width="120"
-                          v-slot="props"
-                        >
-                          <div v-if="props.row.pickup_date">
-                            <b-icon
-                              icon="check-circle"
-                              type="is-success"
-                            ></b-icon>
-                          </div>
-                          <div v-else>
-                            <b-button
-                              type="is-info"
-                              size="is-small"
-                              @click="pickupCollectionOrder(props.row.id)"
-                              :loading="isLoadingPickup[props.row.id]"
-                              :disabled="
-                                !(
-                                  permissions.includes('orders_admin') ||
-                                  permissions.includes('orders_delivery')
-                                )
-                              "
-                            >
-                              Recollir
-                            </b-button>
-                          </div>
-                        </b-table-column>
-
-                        <template #empty>
-                          <div
-                            class="has-text-centered has-text-grey-light p-4"
-                          >
-                            No hi ha comandes associades encara
-                          </div>
-                        </template>
-                      </b-table>
-                      <div
-                        v-else
-                        class="has-text-grey-light has-text-centered p-4"
-                      >
-                        No hi ha comandes associades encara
-                      </div>
-                    </div>
-                  </b-field>
-                </div>
-
-                <!-- Show collection order for regular order -->
-                <div v-else-if="form.collection_order">
-                  <h3 class="title is-5 mt-4 mb-3">COMANDA DE RECOLLIDA</h3>
-
-                  <b-message
-                    v-if="isCollectionOrderDateBeforeMainOrder"
-                    type="is-warning"
-                    class="mb-4"
-                  >
-                    <strong>Atenció!</strong> La data prevista d'entrega és
-                    anterior a la data prevista de recollida.
-                  </b-message>
-
-                  <b-field
-                    horizontal
-                    message="Aquesta comanda forma part d'una recollida en finca"
-                  >
-                    <div class="is-full-width">
-                      <b-table
-                        :data="[form.collection_order]"
-                        :striped="true"
-                        :hoverable="true"
-                        :mobile-cards="false"
-                      >
-                        <b-table-column
-                          field="id"
-                          label="Comanda"
-                          width="150"
-                          v-slot="props"
-                        >
-                          <router-link
-                            :to="`/order/${props.row.id || props.row}`"
-                          >
-                            <strong
-                              >#{{
-                                String(props.row.id || props.row).padStart(
-                                  4,
-                                  "0"
-                                )
-                              }}-R</strong
-                            >
-                          </router-link>
-                        </b-table-column>
-
-                        <b-table-column
-                          field="estimated_delivery_date"
-                          width="120"
-                          label="Data prevista"
-                          v-slot="props"
-                        >
-                          {{ props.row.estimated_delivery_date || "-" }}
-                        </b-table-column>
-
-                        <!-- <b-table-column field="contact" label="Punt de recollida" v-slot="props">
-                          {{ (props.row.contact_trade_name || props.row.contact_name) || '-' }}
-                        </b-table-column> -->
-
-                        <b-table-column
-                          field="route"
-                          label="Ruta"
-                          width="250"
-                          v-slot="props"
-                        >
-                          {{
-                            (props.row.route &&
-                              (props.row.route.short_name ||
-                                props.row.route.name)) ||
-                              "-"
-                          }}
-                        </b-table-column>
-
-                        <b-table-column
-                          field="units"
-                          width="120"
-                          label="Unitats"
-                          v-slot="props"
-                        >
-                          {{ props.row.units || "-" }}
-                        </b-table-column>
-
-                        <b-table-column
-                          field="kilograms"
-                          width="120"
-                          label="Kg"
-                          v-slot="props"
-                        >
-                          {{ props.row.kilograms || "-" }}
-                        </b-table-column>
-
-                        <b-table-column
-                          field="status"
-                          label="Estat"
-                          width="120"
-                          v-slot="props"
-                        >
-                          <b-tag
-                            v-if="props.row.status"
-                            :type="getStatusColor(props.row.status)"
-                          >
-                            {{ getStatusName(props.row.status) }}
-                          </b-tag>
-                        </b-table-column>
-
-                        <b-table-column
-                          field="finalPrice"
-                          label="Preu"
-                          width="100"
-                          numeric
-                          v-slot="props"
-                        >
-                          <money-format
-                            :value="calculateFinalPrice(props.row)"
-                            :locale="'es'"
-                            :currency-code="'EUR'"
-                            :subunits-value="false"
-                            :hide-subunits="false"
-                          />
-                        </b-table-column>
-                      </b-table>
-                    </div>
-                  </b-field>
-                </div>
-              </div>
-
-              <hr
-                v-if="
-                  form.id && (form.is_collection_order || form.collection_order)
-                "
-              />
-
-              <!-- <b-field
-                label="Ruta *"
-                horizontal
-                :type="{ 'is-danger': errors['route'] && submitted }"
-                message="Escull la ruta tenint en compte el dia de la setmana i la destinació de la comanda. Així se t’aplicarà la tarifa corresponent. En cas de dubte, consulta’ns"
-              >
-                <b-select
-                  @update:model-value="changeRoute"
-                  v-model="form.route"
-                  placeholder=""
-                  :disabled="!canEdit"
-                >
-                  <option
-                    v-for="(s, index) in routes"
-                    :key="index"
-                    :value="s.id"
-                  >
-                    {{ s.name }}
-                  </option>
-                </b-select>
-              </b-field> -->
-
-              <h3 class="title is-5 mt-4 mb-3">ALTRES DADES</h3>
-
-              <b-field
-                label="Estat"
-                horizontal
-                message="Estat actual de la comanda"
-              >
-                <div class="is-flex-desktop is-flex-wrap-wrap">
-                  <button
-                    class="button mr-2 mb-2"
-                    type="button"
-                    v-for="(s, index) in statuses"
-                    :class="{
-                      'is-warning': form.status === s.id,
-                      'is-outlined': form.status !== s.id
-                    }"
-                    @click="form.status = s.id"
-                    :disabled="
-                      !(
-                        permissions.includes('orders_admin') ||
-                        permissions.includes('orders_delivery')
-                      )
-                    "
-                  >
-                    {{ s.name }}
-                  </button>
-                </div>
-              </b-field>
-
-              <b-field
-                label="Última milla"
-                horizontal
-                message="En cas de que la comanda passi per última milla, aquesta casella es marcarà automàticament, però també pots marcar-la manualment si ja ho saps"
-                v-if="
-                  permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')
-                "
-              >
-                <b-switch
-                  v-model="form.last_mile"
-                  :disabled="!canEdit"
-                ></b-switch>
-              </b-field>
-
-              <b-field
-                label="Transferència"
-                horizontal
-                message="Indica si la comanda necessita una transferència"
-                v-if="
-                  permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')
-                "
-              >
-                <div class="is-flex is-align-items-center">
-                  <b-switch v-model="form.transfer" :disabled="true"></b-switch>
-                  <b-tag
-                    v-if="form.transfer"
-                    :type="transferStatusType"
-                    class="ml-3"
-                  >
-                    {{ transferStatus }}
-                  </b-tag>
-                </div>
-              </b-field>
-
-              <b-field
-                label="Origen transferència"
-                horizontal
-                message="Punt de recollida on es diposita la comanda"
-                v-if="
-                  (permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')) &&
-                    form.transfer &&
-                    form.transfer_pickup_origin
-                "
-              >
-                <span>{{ getPickupName(form.transfer_pickup_origin) }}</span>
-              </b-field>
-
-              <b-field
-                label="Destinació transferència"
-                horizontal
-                message="Punt de recollida on es farà la transferència"
-                v-if="
-                  (permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')) &&
-                    form.transfer &&
-                    form.transfer_pickup_destination
-                "
-              >
-                <span>{{
-                  getPickupName(form.transfer_pickup_destination)
-                }}</span>
-              </b-field>
-
-              <b-field
-                label="Ruta completa"
-                horizontal
-                message="Recorregut complet desde la recollida fins l'entrega"
-                v-if="
-                  (permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')) &&
-                    completeRouteText
-                "
-              >
-                <span>{{ completeRouteText }}</span>
-              </b-field>
-
-              <b-field
-                label="Ruta transferència"
-                horizontal
-                v-if="
-                  (permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')) &&
-                    form.transfer
-                "
-              >
-                <template #label>
-                  Ruta transferència
-                  <b-tooltip
-                    label="Quan s'edita manualment, el càlcul automàtic es desactiva"
-                    type="is-dark"
-                    class="ml-2"
-                  >
-                    <b-icon icon="information" size="is-small"></b-icon>
-                  </b-tooltip>
-                </template>
-                <template #message>
-                  <div class="is-flex is-align-items-center">
-                    <span>Ruta que farà la transferència</span>
-                    <b-switch
-                      v-model="form.manual_transfer_route"
-                      class="ml-3"
-                      size="is-small"
-                      :disabled="!canEdit"
-                    >
-                      Edició manual
-                    </b-switch>
-                    <b-button
-                      v-if="form.manual_transfer_route"
-                      type="is-info"
-                      size="is-small"
-                      outlined
-                      icon-left="refresh"
-                      class="ml-3"
-                      @click="recalculateTransferRoute"
-                      :disabled="!canEdit"
-                    >
-                      Recalcular
-                    </b-button>
-                  </div>
-                </template>
-                <b-select
-                  v-model="form.transfer_route"
-                  placeholder="Selecciona una ruta de transferència"
-                  :disabled="!canEdit"
-                  @update:model-value="onTransferRouteManualChange"
-                >
-                  <option :value="null">-- Cap --</option>
-                  <option
-                    v-for="route in transferRoutes"
-                    :value="route.id"
-                    :key="route.id"
-                  >
-                    {{ route.short_name || route.name }}
-                  </option>
-                </b-select>
-              </b-field>
-
-              <b-field
-                label="Data transferència"
-                horizontal
-                message="Data en què es farà la transferència"
-                v-if="
-                  (permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')) &&
-                    form.transfer
-                "
-              >
+              <b-field v-if="isStaff" label="Data de lliurament">
                 <b-datepicker
-                  v-model="form.transfer_route_date"
-                  placeholder="Selecciona una data"
-                  icon="calendar-today"
-                  :disabled="!canEdit"
-                  :readonly="false"
-                  trap-focus
-                  editable
-                  @update:model-value="onTransferDateManualChange"
-                >
-                </b-datepicker>
-              </b-field>
-
-              <b-field
-                label="Data comanda *"
-                horizontal
-                :type="{ 'is-danger': errors['route_date'] && submitted }"
-                message="Data de creació de la comanda"
-              >
-                <b-input
-                  v-if="form.id"
-                  :model-value="formatDateTime(form.created_at)"
-                  type="text"
-                  disabled
-                />
-                <b-datepicker
-                  v-else
-                  :disabled="
-                    !(
-                      permissions.includes('orders_admin') ||
-                      permissions.includes('orders_delivery')
-                    )
-                  "
-                  v-model="form.route_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
-              </b-field>
-
-              <!-- <b-field
-                label="Data prevista d'entrega"
-                horizontal
-                message="Si prefereixis que s'entregui més endavant, tria una data del calendari."
-              >
-                <b-datepicker
-                  :disabled="!canEdit"
-                  v-model="form.estimated_delivery_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data"
-                  trap-focus
-                  editable
-                  @update:model-value="checkEstimatedDeliveryDate"
-                >
-                </b-datepicker>
-              </b-field> -->
-
-              <b-message v-if="dateWarningMessage" type="is-warning">
-                {{ dateWarningMessage }}
-              </b-message>
-              <b-field
-                label="Data lliurament"
-                horizontal
-                message="Data en la que la comanda ha estat entregada"
-                v-if="
-                  permissions.includes('orders_admin') ||
-                    permissions.includes('orders_delivery')
-                "
-              >
-                <b-datepicker
-                  :disabled="
-                    !(
-                      permissions.includes('orders_admin') ||
-                      permissions.includes('orders_delivery')
-                    )
-                  "
                   v-model="form.delivery_date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
                   icon="calendar-today"
-                  placeholder="Data"
+                  placeholder="dd/mm/aaaa"
                   trap-focus
                   editable
-                >
-                </b-datepicker>
+                />
               </b-field>
 
-              <b-field
-                label="Data facturació"
-                horizontal
-                message="Data en la que la comanda ha estat facturada"
-                v-if="form.emitted_invoice_datetime"
-              >
-                <b-datetimepicker
-                  :disabled="true"
-                  v-model="form.emitted_invoice_datetime"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data"
-                  trap-focus
-                >
-                </b-datetimepicker>
-              </b-field>
-
-              <b-field label="Tarifa" horizontal class="line-notes mb-5">
-                <span>{{ route_rate ? route_rate.name : "no trobada" }}</span>
-              </b-field>
-
-              <b-field label="Preu" horizontal class="line-notes mb-5">
-                <div class="is-flex mt-1">
-                  <money-format
-                    class="has-text-left"
-                    :value="route_price"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  >
-                  </money-format>
-                  <button
-                    v-if="
-                      permissions.includes('orders_admin') ||
-                        permissions.includes('orders_delivery')
-                    "
-                    class="button is-warning is-small ml-4 mt--6"
-                    type="button"
-                    @click="changeRate"
-                    title="Recalcular preu"
-                  >
-                    <b-icon icon="refresh"></b-icon>
-                  </button>
-                </div>
-              </b-field>
-
-              <b-field
-                label="Descompte multientrega / recollida / volum"
-                horizontal
-                class="mb-5"
-                v-if="
-                  form.multidelivery_discount ||
-                    form.contact_pickup_discount ||
-                    form.volume_discount
-                "
-              >
-                <b-input
-                  :model-value="(form.multidelivery_discount || 0) + '%'"
-                  type="text"
-                  :disabled="true"
-                ></b-input>
-                <b-input
-                  :model-value="(form.contact_pickup_discount || 0) + '%'"
-                  type="text"
-                  :disabled="true"
-                ></b-input>
-                <b-input
-                  :model-value="(-1 * form.volume_discount || 0) + ' €'"
-                  type="text"
-                  :disabled="true"
-                ></b-input>
-              </b-field>
-
-              <b-field
-                label="Preu amb descompte"
-                horizontal
-                class="mb-5"
-                v-if="
-                  form.multidelivery_discount ||
-                    form.contact_pickup_discount ||
-                    form.volume_discount
-                "
-              >
-                <b-input
-                  :model-value="
-                    (
-                      (route_price + (-1 * form.volume_discount || 0)) *
-                      (1 - form.multidelivery_discount / 100) *
-                      (1 - form.contact_pickup_discount / 100)
-                    ).toFixed(2) + ' €'
-                  "
-                  type="text"
-                  :disabled="true"
-                ></b-input>
-              </b-field>
-
-              <div class="hr"></div>
-              <h3 class="title is-5 mt-4 mb-3">ACCIONS</h3>
-
-              <b-field
-                v-if="form.id && !form.is_collection_order"
-                horizontal
-                label="Albarà"
-                message="Imprimeix l'albarà i enganxa'n un full a cada caixa. El teu albarà propi posa'l a dins d'una de les caixes"
-              >
-                <b-button type="is-primary" :loading="isLoading" @click="getPDF"
-                  >Imprimeix albarà</b-button
-                >
-              </b-field>
-
-              <!-- depositar i recollir -->
-
-              <b-field
-                v-if="!form.is_collection_order"
-                horizontal
-                label="Dipòsit"
-                message="Informa que has dipositat els paquets"
-              >
-                <div v-if="form.deposit_date && form.deposit_user">
-                  <p>
-                    <strong>Data:</strong> {{ formatDateTime(form.deposit_date)
-                    }}<br />
-                    <strong>Usuari:</strong>
-                    {{
-                      form.deposit_user.username || form.deposit_user.fullname
-                    }}
-                  </p>
-                  <b-button
-                    type="is-danger"
-                    size="is-small"
-                    :loading="isLoading"
-                    @click="removeDeposit"
-                    v-if="canEdit"
-                    >Eliminar</b-button
-                  >
-                </div>
-                <div v-else>
-                  <b-button
-                    type="is-info"
-                    :loading="isLoading"
-                    @click="depositOrder"
-                    v-if="canEdit && form.id"
-                    >Dipositar</b-button
-                  >
-                </div>
-              </b-field>
-
-              <b-field
-                v-if="!form.is_collection_order"
-                horizontal
-                label="Recollida"
-                message="Informa que has recollit els paquets"
-              >
-                <div v-if="form.pickup_date && form.pickup_user">
-                  <p>
-                    <strong>Data:</strong> {{ formatDateTime(form.pickup_date)
-                    }}<br />
-                    <strong>Usuari:</strong>
-                    {{ form.pickup_user.username || form.pickup_user.fullname }}
-                  </p>
-                  <b-button
-                    type="is-danger"
-                    size="is-small"
-                    :loading="isLoading"
-                    @click="removePickup"
-                    v-if="canEdit"
-                    >Eliminar</b-button
-                  >
-                </div>
-                <div v-else>
-                  <b-button
-                    type="is-info"
-                    :loading="isLoading"
-                    @click="pickupOrder"
-                    v-if="canEdit && form.id"
-                    >Recollir</b-button
-                  >
-                </div>
-              </b-field>
-
-              <b-field
-                horizontal
-                label="Inici transferència"
-                message="Informa que has iniciat la transferència"
-                v-if="form.transfer"
-              >
-                <div
-                  v-if="form.transfer_start_date && form.transfer_start_user"
-                >
-                  <p>
-                    <strong>Data:</strong>
-                    {{ formatDateTime(form.transfer_start_date) }}<br />
-                    <strong>Usuari:</strong>
-                    {{
-                      form.transfer_start_user.username ||
-                        form.transfer_start_user.fullname
-                    }}
-                  </p>
-                  <b-button
-                    type="is-danger"
-                    size="is-small"
-                    :loading="isLoading"
-                    @click="removeTransferStart"
-                    v-if="canEdit"
-                    >Eliminar</b-button
-                  >
-                </div>
-                <div v-else>
-                  <b-button
-                    type="is-info"
-                    :loading="isLoading"
-                    @click="startTransfer"
-                    v-if="canEdit && form.id"
-                    >Iniciar transferència</b-button
-                  >
-                </div>
-              </b-field>
-
-              <b-field
-                horizontal
-                label="Fi transferència"
-                message="Informa que has finalitzat la transferència"
-                v-if="form.transfer"
-              >
-                <div v-if="form.transfer_end_date && form.transfer_end_user">
-                  <p>
-                    <strong>Data:</strong>
-                    {{ formatDateTime(form.transfer_end_date) }}<br />
-                    <strong>Usuari:</strong>
-                    {{
-                      form.transfer_end_user.username ||
-                        form.transfer_end_user.fullname
-                    }}
-                  </p>
-                  <b-button
-                    type="is-danger"
-                    size="is-small"
-                    :loading="isLoading"
-                    @click="removeTransferEnd"
-                    v-if="canEdit"
-                    >Eliminar</b-button
-                  >
-                </div>
-                <div v-else>
-                  <b-button
-                    type="is-info"
-                    :loading="isLoading"
-                    @click="endTransfer"
-                    v-if="canEdit && form.id && form.transfer_start_date"
-                    >Finalitzar transferència</b-button
-                  >
-                </div>
-              </b-field>
-
-              <hr />
-
-              <b-field horizontal label="Accions">
-                <b-button
-                  type="is-primary"
-                  :loading="isLoading"
-                  @click="submit(false)"
-                  >Guardar</b-button
-                >
-
-                <b-button
-                  type="is-primary"
-                  :loading="isLoading"
-                  @click="submit(true)"
-                  >Guardar i sortir</b-button
-                >
-
-                <b-button type="is-warning" :loading="isLoading" @click="exit"
-                  >Sortir</b-button
-                >
-
-                <b-button
-                  type="is-danger"
-                  :loading="isLoading"
-                  @click="deleteOrder"
-                  v-if="canCancel"
-                  >Anul·lar Comanda</b-button
-                >
-              </b-field>
-            </form>
-          </card-component>
+              <div v-if="isStaff" class="full check-row">
+                <b-checkbox v-model="form.last_mile" :disabled="!canEdit">
+                  <b>Última milla</b>
+                  <small>Es marca sola quan la comanda passa per última milla; també es pot marcar a mà.</small>
+                </b-checkbox>
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
+
+        <aside class="order-side">
+          <section class="a-box">
+            <header class="box-head">
+              <h2>Preu</h2>
+              <b-button v-if="isStaff" size="is-small" icon-left="refresh" title="Recalcula el preu" @click="changeRate">Recalcula</b-button>
+            </header>
+            <dl class="facts">
+              <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
+              <dt>Preu</dt><dd>{{ money(route_price) }}</dd>
+              <template v-if="hasDiscount">
+                <dt>Descompte multientrega</dt><dd>−{{ form.multidelivery_discount || 0 }} %</dd>
+                <dt>Descompte recollida</dt><dd>−{{ form.contact_pickup_discount || 0 }} %</dd>
+                <dt>Descompte volum</dt><dd>{{ money(-1 * (form.volume_discount || 0)) }}</dd>
+              </template>
+              <dt>Preu amb descompte</dt><dd class="is-total">{{ money(discountedPrice) }}</dd>
+              <template v-if="form.emitted_invoice_datetime"><dt>Facturada</dt><dd>{{ formatDateTime(form.emitted_invoice_datetime) }}</dd></template>
+            </dl>
+          </section>
+
+          <section v-if="form.id" class="a-box">
+            <header class="box-head">
+              <h2>Moviments</h2>
+              <span v-if="completeRouteText" class="box-hint">{{ completeRouteText }}</span>
+            </header>
+            <ul class="moves">
+              <li v-if="!form.is_collection_order">
+                <span class="move-dot" :class="{ 'is-done': form.deposit_date }"><b-icon :icon="form.deposit_date ? 'check' : 'package-down'" size="is-small" /></span>
+                <div class="move-text">
+                  <b>{{ form.deposit_date ? "Dipositada" : "Dipòsit" }}</b>
+                  <small>{{ form.deposit_date ? `${formatDateTime(form.deposit_date)}${form.deposit_user ? " · " + (form.deposit_user.username || form.deposit_user.fullname) : ""}` : "Informa que has dipositat els paquets" }}</small>
+                </div>
+                <b-button v-if="form.deposit_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeDeposit">Desfés</b-button>
+                <b-button v-else-if="!form.deposit_date && canEdit" size="is-small" :loading="isLoading" @click="depositOrder">Dipositar</b-button>
+              </li>
+              <li v-if="form.transfer">
+                <span class="move-dot" :class="{ 'is-done': form.transfer_start_date }"><b-icon :icon="form.transfer_start_date ? 'check' : 'swap-horizontal'" size="is-small" /></span>
+                <div class="move-text">
+                  <b>Inici de transferència</b>
+                  <small>{{ form.transfer_start_date ? `${formatDateTime(form.transfer_start_date)}${form.transfer_start_user ? " · " + (form.transfer_start_user.username || form.transfer_start_user.fullname) : ""}` : form.transfer_route_date ? `Prevista ${formatDate(form.transfer_route_date)}` : "Pendent" }}</small>
+                </div>
+                <b-button v-if="form.transfer_start_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferStart">Desfés</b-button>
+                <b-button v-else-if="!form.transfer_start_date && canEdit" size="is-small" :loading="isLoading" @click="startTransfer">Iniciar transferència</b-button>
+              </li>
+              <li v-if="form.transfer">
+                <span class="move-dot" :class="{ 'is-done': form.transfer_end_date }"><b-icon :icon="form.transfer_end_date ? 'check' : 'swap-horizontal'" size="is-small" /></span>
+                <div class="move-text">
+                  <b>Fi de transferència</b>
+                  <small>{{ form.transfer_end_date ? `${formatDateTime(form.transfer_end_date)}${form.transfer_end_user ? " · " + (form.transfer_end_user.username || form.transfer_end_user.fullname) : ""}` : "Quan s'hagi iniciat" }}</small>
+                </div>
+                <b-button v-if="form.transfer_end_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferEnd">Desfés</b-button>
+                <b-button v-else-if="!form.transfer_end_date && canEdit" size="is-small" :loading="isLoading" :disabled="!form.transfer_start_date" @click="endTransfer">Finalitzar transferència</b-button>
+              </li>
+              <li v-if="!form.is_collection_order">
+                <span class="move-dot" :class="{ 'is-done': form.pickup_date }"><b-icon :icon="form.pickup_date ? 'check' : 'truck-outline'" size="is-small" /></span>
+                <div class="move-text">
+                  <b>Recollida (càrrega)</b>
+                  <small>{{ form.pickup_date ? `${formatDateTime(form.pickup_date)}${form.pickup_user ? " · " + (form.pickup_user.username || form.pickup_user.fullname) : ""}` : "Informa que has recollit els paquets" }}</small>
+                </div>
+                <b-button v-if="form.pickup_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removePickup">Desfés</b-button>
+                <b-button v-else-if="!form.pickup_date && canEdit" size="is-small" :loading="isLoading" @click="pickupOrder">Recollir</b-button>
+              </li>
+            </ul>
+          </section>
+
+          <section v-if="form.id" class="a-box">
+            <header class="box-head">
+              <h2>
+                Incidències
+                <span v-if="openIncidencesCount > 0" class="tag is-warning">{{ openIncidencesCount }} {{ openIncidencesCount === 1 ? "oberta" : "obertes" }}</span>
+              </h2>
+              <b-button size="is-small" icon-left="plus" @click="openIncidenceModal">Crear incidència</b-button>
+            </header>
+            <p v-if="!form.incidences || !form.incidences.length" class="box-empty">Aquesta comanda no té cap incidència.</p>
+            <ul v-else class="incidences">
+              <li v-for="(incidence, index) in form.incidences" :key="incidence.id || `new-${index}`">
+                <template v-if="incidence.id">
+                  <div class="incidence-head">
+                    <span class="tag" :class="incidence.state === 'closed' ? 'is-success is-light' : incidence.state === 'open' ? 'is-danger is-light' : 'is-warning is-light'">{{ incidenceState(incidence.state) }}</span>
+                    <small>{{ formatDate(incidence.created_at) }}</small>
+                    <router-link :to="`/incidences?id=${incidence.id}`" class="incidence-link">Obre</router-link>
+                  </div>
+                  <p>{{ incidence.description }}</p>
+                </template>
+                <template v-else>
+                  <b-input v-model="incidence.description" type="textarea" placeholder="Descripció de la incidència" />
+                  <b-button v-if="canEdit" size="is-small" type="is-text" icon-left="close" @click="removeIncidence(index)">Treu-la</b-button>
+                </template>
+              </li>
+            </ul>
+          </section>
+        </aside>
+      </form>
     </section>
+
+    <div class="savebar">
+      <span class="savebar-state">{{ form.id ? (canEdit ? "Desa els canvis quan acabis" : "Només lectura") : isPickupPoint ? "Nova comanda punt de consum" : "Nova comanda" }}</span>
+      <b-button :loading="isLoading" @click="exit">Sortir</b-button>
+      <b-button :loading="isLoading" @click="submit(true)">Guardar i sortir</b-button>
+      <b-button type="is-primary" :loading="isLoading" @click="submit(false)">Guardar</b-button>
+    </div>
   </div>
 </template>
 
@@ -1519,6 +537,7 @@ import {
 import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import getConfig from "@/config";
+import { formatMoney } from "@/helpers/format-number";
 
 export default {
   name: "OrdersForm",
@@ -1615,6 +634,38 @@ export default {
             this.permissions.includes("orders_delivery")
           ))
       );
+    },
+    isStaff() {
+      return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
+    },
+    headSubtitle() {
+      const owner = this.users.find(u => u.id === this.form.owner);
+      const point = this.form.contact_trade_name || this.form.contact_name || this.contactSearch;
+      const parts = [];
+      if (owner || point) {
+        parts.push([owner ? owner.fullname || owner.username : null, point ? `${point}${this.form.contact_city ? ` (${this.form.contact_city})` : ""}` : null].filter(Boolean).join(" → "));
+      }
+      if (this.form.id && this.form.created_at) parts.push(`creada el ${moment(this.form.created_at).format("DD/MM/YYYY")}`);
+      return parts.join(" · ");
+    },
+    contactSummary() {
+      const f = this.form;
+      const slots = [this.slotText(f.contact_time_slot_1_ini, f.contact_time_slot_1_end), this.slotText(f.contact_time_slot_2_ini, f.contact_time_slot_2_end)].filter(Boolean).join(" i ");
+      return [f.contact_address, [f.contact_postcode, f.contact_city].filter(Boolean).join(" "), slots ? `horari ${slots}` : "", f.contact_phone].filter(Boolean).join(" · ");
+    },
+    selectedPickupMessage() {
+      const pickup = this.form.pickup && this.pickups.find(p => p.id === this.form.pickup);
+      return pickup ? pickup.message : "";
+    },
+    hasDiscount() {
+      return !!(this.form.multidelivery_discount || this.form.contact_pickup_discount || this.form.volume_discount);
+    },
+    // same as the old "Preu amb descompte" field
+    discountedPrice() {
+      if (!this.hasDiscount) return this.route_price;
+      return (this.route_price + (-1 * this.form.volume_discount || 0)) *
+        (1 - this.form.multidelivery_discount / 100) *
+        (1 - this.form.contact_pickup_discount / 100);
     },
     canEditContact() {
       return (
@@ -3324,6 +2375,27 @@ export default {
       if (!date) return "";
       return moment(date).format("DD/MM/YYYY");
     },
+    routeDays(route) {
+      const days = [["monday", "dilluns"], ["tuesday", "dimarts"], ["wednesday", "dimecres"], ["thursday", "dijous"], ["friday", "divendres"], ["saturday", "dissabte"], ["sunday", "diumenge"]];
+      return days.filter(([key]) => route[key]).map(([, name]) => name).join(", ");
+    },
+    slotText(ini, end) {
+      if (ini === null || ini === undefined || end === null || end === undefined) return "";
+      const hh = t => `${Math.floor(t)}:${String(Math.round((t % 1) * 60)).padStart(2, "0")}`;
+      return `${hh(ini)}–${hh(end)}`;
+    },
+    money(value) {
+      return formatMoney(Number(value) || 0);
+    },
+    statusLabel(status) {
+      return { pending: "Pendent", processed: "Processada", delivered: "Lliurada", invoiced: "Facturada", cancelled: "Anul·lada" }[status] || status;
+    },
+    statusTag(status) {
+      return { pending: "is-warning", processed: "is-info is-light", delivered: "is-success is-light", invoiced: "", cancelled: "is-danger is-light" }[status] || "";
+    },
+    incidenceState(state) {
+      return { open: "Oberta", wip: "En procés", closed: "Tancada" }[state] || state;
+    },
     getStatusColor(status) {
       const statusColors = {
         pending: "is-warning",
@@ -3615,39 +2687,187 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.line .field.medium-field {
-  width: 10%;
+.order-form {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-.line .field.subphase-detail-input-large-field {
-  width: 30%;
+.order-form > .section.is-main-section {
+  flex: 1;
 }
-.summary-card .column {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+.order-form :deep(.title-bar .actions) {
+  flex-wrap: wrap;
 }
-.summary-card .label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.8rem;
+.order-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  gap: 1rem;
+  align-items: start;
 }
-.ulist .tag {
-  margin-right: 3px;
-  margin-bottom: 3px;
+.order-main,
+.order-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
 }
-.summary label {
-  margin-right: 0.5rem;
+.box-help {
+  margin: -.25rem 0 1rem;
+  font-size: .875rem;
+  color: var(--a-fg-2);
 }
-.line-notes .control {
-  width: 50%;
+.order-form .a-form {
+  max-width: none;
 }
-@media screen and (max-width: 1024px) {
-  .line-notes .control {
-    width: 100%;
+.order-form .a-form > .field:not(.full) {
+  grid-column: auto;
+}
+.contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  width: 100%;
+}
+.contact-row .autocomplete {
+  flex: 1 1 16rem;
+}
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.field-note {
+  margin-top: .375rem;
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.pill.button {
+  height: auto;
+  min-height: 2.5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: .375rem .75rem;
+  white-space: normal;
+  text-align: left;
+}
+// the weekdays of a route under its name (CSS, so the button text stays the name)
+.pill.button[data-day]:not([data-day=""])::after {
+  content: attr(data-day);
+  font-size: .6875rem;
+  font-weight: 600;
+  color: var(--a-muted);
+}
+.check-row :deep(.checkbox) {
+  align-items: flex-start;
+}
+.check-row :deep(.control-label) b,
+.check-row :deep(.control-label) small {
+  display: block;
+}
+.check-row :deep(.control-label) small {
+  font-size: .8125rem;
+  color: var(--a-muted);
+}
+.lines-table td {
+  vertical-align: middle;
+}
+.row-action {
+  border: 0;
+  background: none;
+  color: var(--a-muted);
+  cursor: pointer;
+}
+.transfer-manual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+.readonly-value {
+  font-weight: 700;
+  color: var(--a-fg);
+}
+.moves li {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  gap: .625rem;
+  align-items: center;
+  padding: .625rem 0;
+}
+.moves li + li {
+  border-top: 1px solid var(--a-line-soft);
+}
+.move-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--a-chip);
+  color: var(--a-fg-2);
+}
+.move-dot.is-done {
+  background: var(--a-accent);
+  color: var(--a-on-accent);
+}
+.move-text b,
+.move-text small {
+  display: block;
+}
+.move-text small {
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.incidences li + li {
+  margin-top: .75rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--a-line-soft);
+}
+.incidence-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .25rem;
+  color: var(--a-muted);
+}
+.incidence-link {
+  margin-left: auto;
+  font-size: .8125rem;
+  font-weight: 700;
+}
+.savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  padding: .875rem 2rem;
+  background: var(--a-surface);
+  border-top: 1px solid var(--a-line);
+  box-shadow: 0 -6px 16px rgba(16, 32, 30, .06);
+}
+.savebar-state {
+  margin-right: auto;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+@media screen and (max-width: 1215px) {
+  .order-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
-.line-notes textarea {
-  width: 100%;
+@media screen and (max-width: 768px) {
+  .savebar {
+    padding: .75rem 1rem;
+  }
 }
 </style>
 <style lang="scss">

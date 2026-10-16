@@ -197,7 +197,7 @@ test('the invoice is in the member\'s "Factures"', async () => {
   await expect(page.locator('table tbody')).toContainText(String(state.invoice.code || 'ESBORRANY'))
 })
 
-test('"Anul·lar Comanda" cancels an order', async () => {
+test('"Anul·la la comanda" cancels an order', async () => {
   test.skip(!state.orderId, 'needs a first order to copy')
   const first = await api('GET', `orders/${state.orderId}`)
   const copy = { ...first, status: 'pending', emitted_invoice: null, delivery_date: null, invoiced: false }
@@ -206,7 +206,7 @@ test('"Anul·lar Comanda" cancels an order', async () => {
   const second = await api('POST', 'orders', { data: copy })
 
   await visit(`/order/${second.id}`)
-  await button('Anul·lar Comanda').click()
+  await button('Anul·la la comanda').click()
   await confirmDialog('anul·lar la comanda')
   await settle()
   expect((await api('GET', `orders/${second.id}`)).status).toBe('cancelled')
