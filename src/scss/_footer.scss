@@ -14,3 +14,9 @@ footer.footer {
     text-align: center;
   }
 }
+
+// the footer is empty: on pages with a sticky save bar it only showed up as a
+// strip under the bar at the end of the scroll, as if the bar grew
+body:has(.savebar) footer.footer {
+  display: none;
+}
