@@ -1,45 +1,23 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
-      <b-loading
-        :is-full-page="true"
-        v-model="loading"
-        :can-cancel="false"
-      ></b-loading>
-
-      <card-component title="Filtres">
-        
-          <b-field horizontal label="Estat projecte">
-            <b-select
-              v-model="filters.project_state"
-              placeholder="Estat"
-              required
-              @update:model-value="getData"
-            >
-              <option
-                v-for="(s, index) in project_states"
-                :key="index"
-                :value="s.id"
-              >
-                {{ s.name }}
-              </option>
-            </b-select>
-          </b-field>
-      </card-component>
-
-      <card-component
-        title="SUBVENCIONS"
-        class="has-table has-mobile-sort-spaced"
-      >
+      <b-loading :is-full-page="true" v-model="loading" :can-cancel="false"></b-loading>
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Estat projecte</span>
+          <b-select v-model="filters.project_state" aria-label="Estat projecte" @update:model-value="getData">
+            <option v-for="(s, index) in project_states" :key="index" :value="s.id">{{ s.name }}</option>
+          </b-select>
+        </label>
+      </form>
+      <div class="card has-table">
         <b-table :striped="false" :data="projects">
           <b-table-column label="Nom" field="name" sortable v-slot="props">
             <router-link
               :to="{ name: 'project.edit', params: { id: props.row.id } }"
             >
-              <span class="project-name has-text-info">
-                {{ props.row.name }}
-              </span>
+              <span class="doc-title">{{ props.row.name }}</span>
             </router-link>
           </b-table-column>
           <b-table-column
@@ -60,7 +38,7 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.date_start }}
+            {{ formatDate(props.row.date_start) }}
           </b-table-column>
           <b-table-column
             label="Final"
@@ -68,7 +46,7 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.date_end }}
+            {{ formatDate(props.row.date_end) }}
           </b-table-column>
           <b-table-column
             label="Expedient"
@@ -105,7 +83,7 @@
             date
             v-slot="props"
           >
-            {{ props.row.grantable_date }}
+            {{ formatDate(props.row.grantable_date) }}
           </b-table-column>
           <b-table-column
             label="Justificació"
@@ -114,7 +92,7 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.justification_date }}
+            {{ formatDate(props.row.justification_date) }}
           </b-table-column>
 
           <b-table-column
@@ -126,7 +104,7 @@
             {{ props.row.project_state ? props.row.project_state.name : "" }}
           </b-table-column>
         </b-table>
-      </card-component>
+      </div>
     </section>
   </div>
 </template>
@@ -167,8 +145,11 @@ export default {
   },
   computed: {
     ...mapState(useMainStore, ["userName"]),
-    titleStack() {
-      return ["Subvencions"];
+    titleStack () {
+      return ['Informes', 'Subvencions']
+    },
+    subtitle () {
+      return 'Projectes subvencionables: òrgan convocant, expedient, imports i dates de sol·licitud i justificació.'
     }
   },
   async mounted() {
@@ -185,6 +166,9 @@ export default {
     this.loading = false;
   },
   methods: {
+    formatDate(value) {
+      return value ? moment(value).format("DD/MM/YYYY") : "";
+    },
     async getData() {
       const query = `projects/basic?_limit=-1&grantable=true`;
       const queryState =

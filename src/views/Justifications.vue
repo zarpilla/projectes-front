@@ -1,87 +1,31 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">
-      <card-component title="Filtres">
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Any">
-              <b-select
-                v-model="filters.year"
-                required
-              >
-                <option
-                  v-for="(year, index) in years"
-                  :key="index"
-                  :value="year"
-                >
-                  {{ year.year  }}
-                </option>
-              </b-select>
-            </b-field>
-
-            <b-field label="Estat projecte">
-              <b-select
-                v-model="filters.project_state"
-                required
-              >
-                <option
-                  v-for="(state, index) in projectStates"
-                  :key="index"
-                  :value="state.id"
-                >
-                  {{ state.name }}
-                </option>
-              </b-select>
-            </b-field>
-
-            <b-field label="Hores">
-              <b-select
-                v-model="filters.type"
-                required
-              >                
-                <option
-                  value="Manuals previstes"
-                >
-                Manuals previstes
-                </option>
-                <option
-                  value="Previstes"
-                >
-                Previstes
-                </option>
-                <option
-                  value="Reals"
-                >
-                Reals
-                </option>
-              </b-select>
-            </b-field>
-
-            <b-field label="Visualització">
-              <b-select
-                v-model="filters.view"
-                required
-              >                
-                <option
-                  value="Bestretes"
-                >
-                Bestretes
-                </option>
-                <option
-                  value="Factures"
-                >
-                Factures
-                </option>
-              </b-select>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-      <justification 
-        :type="filters.type" 
-        :year="filters.year ? filters.year.year : null" 
-        :view="filters.view" 
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" aria-label="Any">
+            <option v-for="(year, index) in years" :key="index" :value="year">{{ year.year }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Estat projecte</span>
+          <b-select v-model="filters.project_state" aria-label="Estat projecte">
+            <option v-for="(state, index) in projectStates" :key="index" :value="state.id">{{ state.name }}</option>
+          </b-select>
+        </label>
+        <div class="segmented" role="group" aria-label="Hores">
+          <button v-for="t in ['Manuals previstes', 'Previstes', 'Reals']" :key="t" type="button" :class="{ 'is-on': filters.type === t }" @click="filters.type = t">{{ t }}</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Visualització">
+          <button v-for="v in ['Bestretes', 'Factures']" :key="v" type="button" :class="{ 'is-on': filters.view === v }" @click="filters.view = v">{{ v }}</button>
+        </div>
+      </form>
+      <justification
+        :type="filters.type"
+        :year="filters.year ? filters.year.year : null"
+        :view="filters.view"
         :project-state="filters.project_state"
       />
     </section>
@@ -123,8 +67,11 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Justificacions de projectes subvencionables']
-    },    
+      return ['Informes', 'Justificacions']
+    },
+    subtitle () {
+      return 'Cost de les hores i despeses justificables dels projectes subvencionables.'
+    },
   },
   
   mounted () {
