@@ -200,6 +200,8 @@
             <b-icon icon="lock-outline" custom-size="default" />
             <span><b>Factura emesa:</b> la clienta, la sèrie, les dates, el mètode de cobrament, les línies i les notes visibles ja no es poden canviar. Per corregir-les, anul·la-la i crea'n una de rectificativa.</span>
           </div>
+          <div class="doc-layout">
+          <div class="doc-main">
           <card-component class="tile is-child" title="Document">
             <div class="a-form is-compact document-fields">
             <!-- PDF invoice parser (Z.ai): for new received invoices/expenses -->
@@ -418,108 +420,7 @@
               >
               </b-datepicker>
             </b-field>
-            <b-field
-              label="Previsió cobrament"
-              horizontal
-              v-if="type === 'received-incomes' || type === 'emitted-invoices'"
-            >
-              <b-datepicker
-                @update:model-value="
-                  input;
-                  calculateIRPF();
-                "
-                v-model="form.estimated_payment"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                placeholder="Data prevista de cobrament"
-                trap-focus
-                editable
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field
-              label="Enviada"
-              horizontal
-              v-if="
-                type !== 'received-incomes' &&
-                  type !== 'received-expenses' &&
-                  type !== 'received-invoices' &&
-                  type !== 'payrolls'
-              "
-            >
-              <b-checkbox v-model="form.sent" class="checkbox-inline">
-              </b-checkbox>
-              <b-datepicker
-                v-model="form.sent_date"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                placeholder="Data Enviament"
-                trap-focus
-                editable
-              >
-              </b-datepicker>
-            </b-field>
-            <b-field
-              v-if="type !== 'quotes'"
-              :label="
-                type !== 'received-incomes' && type !== 'emitted-invoices'
-                  ? 'Pagada'
-                  : 'Cobrada'
-              "
-              horizontal
-            >
-              <b-checkbox v-model="form.paid" class="checkbox-inline">
-              </b-checkbox>
-              <b-datepicker
-                v-if="type !== 'quotes'"
-                v-model="form.paid_date"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                placeholder="Data Pagament"
-                trap-focus
-                editable
-              >
-              </b-datepicker>
-            </b-field>
-
-            <b-field v-if="type === 'quotes'" label="Acceptat" horizontal>
-              <b-checkbox v-model="form.accepted" class="checkbox-inline">
-              </b-checkbox>
-              <b-datepicker
-                v-model="form.accepted_date"
-                :show-week-number="false"
-                :locale="'ca-ES'"
-                :first-day-of-week="1"
-                icon="calendar-today"
-                placeholder="Data Acceptació"
-                trap-focus
-                editable
-              >
-              </b-datepicker>
-            </b-field>
-
-            <b-field
-              label="Modificable"
-              horizontal
-              v-if="type !== 'payrolls' && type !== 'quotes'"
-            >
-              <b-switch v-model="form.updatable"> </b-switch>
-            </b-field>
-
-            <b-field
-              label="Factura proforma"
-              horizontal
-              v-if="type === 'quotes'"
-            >
-              <b-checkbox v-model="form.proforma" class="checkbox-inline">
-              </b-checkbox>
-            </b-field>
+            
 
             <b-field
               v-if="type !== 'quotes' && type !== 'payrolls'"
@@ -722,7 +623,124 @@
               </div>
             </b-field>
 
+            
+
+            </div>
+          </card-component>
+
+          <hr />
+          </div>
+          <aside class="doc-side">
+            <card-component class="tile is-child" :title="type === 'quotes' ? 'Enviament i acceptació' : isIncome ? 'Cobrament i enviament' : 'Pagament'">
+              <div class="a-form side-fields">
+<b-field
+              label="Previsió cobrament"
+              horizontal
+              v-if="type === 'received-incomes' || type === 'emitted-invoices'"
+            >
+              <b-datepicker
+                @update:model-value="
+                  input;
+                  calculateIRPF();
+                "
+                v-model="form.estimated_payment"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data prevista de cobrament"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
             <b-field
+              label="Enviada"
+              horizontal
+              v-if="
+                type !== 'received-incomes' &&
+                  type !== 'received-expenses' &&
+                  type !== 'received-invoices' &&
+                  type !== 'payrolls'
+              "
+            >
+              <b-checkbox v-model="form.sent" class="checkbox-inline">
+              </b-checkbox>
+              <b-datepicker
+                v-model="form.sent_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Enviament"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
+            <b-field
+              v-if="type !== 'quotes'"
+              :label="
+                type !== 'received-incomes' && type !== 'emitted-invoices'
+                  ? 'Pagada'
+                  : 'Cobrada'
+              "
+              horizontal
+            >
+              <b-checkbox v-model="form.paid" class="checkbox-inline">
+              </b-checkbox>
+              <b-datepicker
+                v-if="type !== 'quotes'"
+                v-model="form.paid_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Pagament"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
+
+            <b-field v-if="type === 'quotes'" label="Acceptat" horizontal>
+              <b-checkbox v-model="form.accepted" class="checkbox-inline">
+              </b-checkbox>
+              <b-datepicker
+                v-model="form.accepted_date"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                placeholder="Data Acceptació"
+                trap-focus
+                editable
+              >
+              </b-datepicker>
+            </b-field>
+
+            <b-field
+              label="Modificable"
+              horizontal
+              v-if="type !== 'payrolls' && type !== 'quotes'"
+            >
+              <b-switch v-model="form.updatable"> </b-switch>
+            </b-field>
+
+            <b-field
+              label="Factura proforma"
+              horizontal
+              v-if="type === 'quotes'"
+            >
+              <b-checkbox v-model="form.proforma" class="checkbox-inline">
+              </b-checkbox>
+            </b-field>
+              </div>
+            </card-component>
+            <card-component class="tile is-child" title="Adjunts">
+              <p v-if="!form.id" class="has-text-muted side-hint">Els adjunts es poden afegir un cop desat el document.</p>
+              <div class="a-form side-fields no-labels">
+<b-field
               horizontal
               label="Adjunts"
               style="width: 100%"
@@ -767,6 +785,7 @@
                 </div>
               </div>
             </b-field>
+              </div>
             <file-upload
               :multiple="true"
               :entity="entity"
@@ -777,10 +796,26 @@
               v-if="form.id"
             >
             </file-upload>
-            </div>
-          </card-component>
-
-          <hr />
+            </card-component>
+            <card-component class="tile is-child" title="Notes internes">
+              <div class="a-form side-fields no-labels">
+<b-field
+              label="Notes internes"
+             
+              message="No visibles a la factura"
+            >
+              <b-input
+                type="textarea"
+                v-model="form.comments_internal"
+                placeholder="Notes internes"
+                :maxlength="1000"
+              />
+            </b-field>
+              </div>
+            </card-component>
+          </aside>
+          </div>
+          <div class="doc-below">
           <card-component title="Línies" v-if="form.lines">
             <document-lines
               v-model:lines="form.lines"
@@ -802,18 +837,7 @@
                 :maxlength="1000"
               />
             </b-field>
-            <b-field
-              label="Notes internes"
-             
-              message="No visibles a la factura"
-            >
-              <b-input
-                type="textarea"
-                v-model="form.comments_internal"
-                placeholder="Notes internes"
-                :maxlength="1000"
-              />
-            </b-field>
+            
             </div>
           </card-component>
           <card-component
@@ -927,6 +951,8 @@
             </b-field>
           </card-component>
 
+
+          </div>
 
           <hr />
 
@@ -3126,12 +3152,52 @@ export default {
 .doc-notes {
   padding: 1rem 1.25rem 0;
 }
-@media screen and (min-width: 769px) {
-  .doc-notes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .doc-notes > .field {
-    grid-column: auto;
+
+.doc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  gap: 1rem;
+  align-items: start;
+}
+.doc-main,
+.doc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+.doc-main > *,
+.doc-side > * {
+  margin: 0 !important;
+}
+.side-hint {
+  font-size: .875rem;
+}
+.doc-below {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.doc-below > * {
+  margin: 0 !important;
+}
+.no-labels :deep(.field-label),
+.no-labels :deep(.field > .label) {
+  display: none;
+}
+.side-fields {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.side-fields > :deep(.field) {
+  grid-column: 1 / -1 !important;
+}
+.side-fields :deep(.file-documents) {
+  margin: 0;
+}
+@media screen and (max-width: 1215px) {
+  .doc-layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .savebar-state {
