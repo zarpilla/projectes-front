@@ -23,8 +23,9 @@
       nav.navbar, body {
         @include transition(padding-left);
       }
+      // flex (not block): the menu area must take the remaining height and scroll
       aside.is-placed-left {
-        display: block;
+        display: flex;
       }
     }
   }
@@ -139,7 +140,7 @@ aside.aside {
     }
     aside.aside {
       width: $aside-mobile-width;
-      display: block;
+      display: flex;
       left: $aside-mobile-width * -1;
 
       .image {

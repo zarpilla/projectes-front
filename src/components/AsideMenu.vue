@@ -236,6 +236,9 @@ aside.aside {
 }
 .aside-content-scrollable {
   flex: 1;
+  /* a flex item won't shrink below its content without this, so the menu
+     overflowed the window (clipped) instead of scrolling */
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 .75rem 1rem;
