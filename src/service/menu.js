@@ -1,6 +1,3 @@
-import getConfig from "@/config";
-const config = getConfig();
-const apiUrl = config.VUE_APP_API_URL;
 const menu = [
   "Projectes",
   [
@@ -397,12 +394,6 @@ const menu = [
   ],
   "Altres",
   [
-    {
-      href: `${apiUrl}/admin`,
-      icon: "open-in-new",
-      label: "Strapi",
-      permission: "projects"
-    },
     {
       to: "/import-export",
       icon: "swap-vertical",
