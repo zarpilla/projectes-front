@@ -8,48 +8,36 @@
       @delete="modalDelete"
       :dedications="dedications"
     />
-    <div class="toolbox">
-      <!-- <button @click='updateFirstRow'>Update first row</button> -->
-      <b-field grouped>
-        <!-- <button class="button zis-small is-primary mr-1" type="button" @click="changeZoomLevel(-1)">
-          <b-icon icon="magnify-minus" size="is-small"/>
-        </button>
-        <button class="button zis-small is-primary mr-1" type="button" @click="changeZoomLevel(+1)">
-          <b-icon icon="magnify-plus" size="is-small"/>
-        </button> -->
-        <b-select v-if="editable" v-model="user" placeholder="Persona">
+    <div class="gantt-toolbar">
+      <div class="segmented" role="group" aria-label="Planificació">
+        <button type="button" :class="{ 'is-on': viewMode === 'original' }" @click="setViewMode('original')">Original</button>
+        <button type="button" :class="{ 'is-on': viewMode !== 'original' }" @click="setViewMode('estimated')">Prevista</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Escala">
+        <button type="button" :class="{ 'is-on': view === 'week' }" @click="view !== 'week' && toggleView()">Setmanes</button>
+        <button type="button" :class="{ 'is-on': view === 'month' }" @click="view !== 'month' && toggleView()">Mesos</button>
+      </div>
+      <label v-if="editable" class="gantt-person" title="Persona de les dedicacions noves que dibuixis arrossegant sobre una fila">
+        <span>Persona</span>
+        <b-select v-model="user" placeholder="Tria" size="is-small">
           <option v-for="(s, index) in users" :key="index" :value="s">
             {{ s.username }}
           </option>
         </b-select>
-        <span v-else class="has-text-grey-light mr-2">
-          <b-icon icon="eye" size="is-small"></b-icon>
-          Mode només lectura
-        </span>
-        <button
-          class="button zis-small is-primary is-outlined ml-1"
-          type="button"
-          @click="collapse"
-        >
-          {{ collapsed ? "Obrir detall" : "Tancar detall" }}
-        </button>
-        <button
-          class="button zis-small is-primary is-outlined ml-1"
-          type="button"
-          @click="toggleSubphases"
-        >
-          {{ showSubPhases ? "Mostrar només fases" : "Mostrar subfases" }}
-        </button>
-        <button
-          class="button zis-small is-primary is-outlined ml-1"
-          type="button"
-          @click="toggleView"
-        >
-          {{
-            view == "month" ? "Visualització setmanal" : "Visualització mensual"
-          }}
-        </button>
-      </b-field>
+      </label>
+      <span v-else class="has-text-muted">
+        <b-icon icon="eye" size="is-small"></b-icon>
+        Mode només lectura
+      </span>
+      <label class="gantt-check">
+        <input type="checkbox" :checked="collapsed" @change="collapse" />
+        Només fases
+      </label>
+      <label class="gantt-check">
+        <input type="checkbox" :checked="showSubPhases" @change="toggleSubphases" />
+        Línies d'ingrés
+      </label>
+      <span v-if="editable" class="gantt-hint">Arrossega sobre una fila per afegir una dedicació · clica-la per editar-la</span>
     </div>
     <div class="gannt-container" v-if="showGantt">
       <!-- <div v-for="(g, i) in gantts" :key="i" class="gantt" :ref="g"></div> -->
@@ -74,7 +62,7 @@ import _ from "lodash";
 // main component
 export default {
   name: "ProjectGannt",
-  emits: ["gantt-item-delete", "gantt-item-update"],
+  emits: ["gantt-item-delete", "gantt-item-update", "update:viewMode"],
   props: {
     project: Object,
     users: Array,
@@ -353,16 +341,34 @@ export default {
       this.gantt.config.details_on_dblclick = this.editable;
       this.gantt.config.details_on_create = this.editable;
 
+      // display only: task.text stays as it was (it is what gets edited and saved)
       this.gantt.config.columns = [
         {
           name: "text",
           label: "Fases i dedicacions",
           tree: true,
-          width: "300",
+          width: 260,
+          template: (task) =>
+            task._hours ? this.escape(this.hoursPerson(task._hours)) : this.escape(task.text),
+        },
+        {
+          name: "hours",
+          label: "Hores",
+          align: "right",
+          width: 90,
+          template: (task) => (task._hours ? this.hoursAmount(task._hours) : ""),
         },
       ];
 
-      this.gantt.config.scroll_size = 30;
+      this.gantt.config.row_height = 34;
+      this.gantt.config.bar_height = 20;
+      this.gantt.config.scale_height = 52;
+      this.gantt.config.scroll_size = 12;
+
+      this.gantt.templates.task_text = (start, end, task) =>
+        task._hours ? this.hoursAmount(task._hours) : this.escape(task.text);
+      this.gantt.templates.grid_row_class = (start, end, task) =>
+        task._hours ? "is-dedication-row" : task.type === "project" ? "is-group-row" : "";
 
       this.gantt.plugins({ click_drag: true, tooltip: true });
 
@@ -382,6 +388,7 @@ export default {
         return this.getWeekTemplate(date);
       };
 
+      this.gantt.i18n.setLocale("ca");
       this.gantt.config.xml_date = "%Y-%m-%d";
       this.gantt.config.duration_unit = this.view;
       this.gantt.config.scales = [
@@ -398,7 +405,13 @@ export default {
       }
 
       this.gantt.templates.task_class = (start, end, task) => {
-          return "";
+        if (task._hours) {
+          return "is-dedication";
+        }
+        if (task.type === "project") {
+          return task.parent ? "is-income" : "is-phase";
+        }
+        return "";
       };
 
       if (this.editable) {
@@ -505,7 +518,27 @@ export default {
         // stack a second copy of every row on top of the first.
         this.gantt.clearAll();
         this.gantt.parse(this.tasks);
+        // the timeline starts years before the project; open it where the work is
+        // (parse() turns start_date into Date objects: compare them as timestamps)
+        const starts = this.tasks.data
+          .filter((t) => t._hours && t.start_date)
+          .map((t) => moment(t.start_date).valueOf());
+        const focus = starts.length ? Math.min(...starts) : this.project.date_start;
+        if (focus) {
+          this.gantt.showDate(moment(focus).startOf("month").toDate());
+        }
       }
+    },
+    hoursPerson(hours) {
+      return hours.users_permissions_user ? hours.users_permissions_user.username : "—";
+    },
+    hoursAmount(hours) {
+      const unit =
+        hours.quantity_type === "week" ? " h/setm." : hours.quantity_type === "month" ? " h/mes" : " h";
+      return (hours.quantity === undefined || hours.quantity === null ? "" : String(hours.quantity).replace(".", ",")) + unit;
+    },
+    escape(text) {
+      return String(text === undefined || text === null ? "" : text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     },
 
     onDragEnd(
@@ -686,6 +719,11 @@ export default {
         }, 250);
       }, 250);
     },
+    setViewMode(mode) {
+      if (mode !== this.viewMode) {
+        this.$emit("update:viewMode", mode);
+      }
+    },
     toggleView() {
       this.view = this.view === "month" ? "week" : "month";
       // console.log("this.view", this.view);
@@ -781,8 +819,34 @@ export default {
   margin: 0;
   padding: 0;
 }
-.toolbox {
-  padding: 10px;
+.gantt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .625rem 1rem;
+  margin-bottom: 1rem;
+}
+.gantt-person {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.gantt-check {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--a-fg-2);
+  cursor: pointer;
+}
+.gantt-hint {
+  margin-left: auto;
+  font-size: .8125rem;
+  color: var(--a-muted);
 }
 </style>
 <style>
@@ -795,9 +859,105 @@ export default {
       min-width: 300px;
     } */
 
-.gantt_task_line.gantt_project,
+/* redesign A: quiet grid, bars coloured by level (phase, income line, dedication) */
+.gannt-container .gantt_container {
+  font-family: inherit;
+  font-size: .8125rem;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  overflow: hidden;
+  color: var(--a-fg);
+}
+.gannt-container .gantt_grid_scale,
+.gannt-container .gantt_task_scale {
+  background: var(--a-thead);
+  border-bottom: 1px solid var(--a-line);
+  color: var(--a-muted);
+}
+.gannt-container .gantt_grid_head_cell {
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+  text-align: left;
+  padding-left: .75rem;
+}
+.gannt-container .gantt_grid_head_cell[data-column-name="hours"] {
+  text-align: right;
+  padding-right: .75rem;
+}
+.gannt-container .gantt_scale_cell {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--a-fg-2);
+  border-right-color: var(--a-line-soft);
+}
+.gannt-container .gantt_scale_line {
+  border-top-color: var(--a-line-soft);
+}
+.gannt-container .gantt_grid_data .gantt_row,
+.gannt-container .gantt_task_row {
+  border-bottom-color: var(--a-line-soft);
+}
+.gannt-container .gantt_task_cell {
+  border-right-color: var(--a-line-soft);
+}
+.gannt-container .gantt_grid,
+.gannt-container .gantt_grid_scale {
+  border-right: 1px solid var(--a-line);
+}
+.gannt-container .gantt_row.is-group-row .gantt_cell {
+  font-weight: 800;
+}
+.gannt-container .gantt_row.is-dedication-row .gantt_cell {
+  font-weight: 600;
+  color: var(--a-fg-2);
+}
+.gannt-container .gantt_row.gantt_selected,
+.gannt-container .gantt_task_row.gantt_selected {
+  background: var(--a-accent-soft);
+}
+.gannt-container .gantt_row:hover,
+.gannt-container .gantt_task_row:hover {
+  background: var(--a-chip);
+}
 .gantt_task_line {
-  border-radius: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  box-shadow: none;
+  font-size: .75rem;
+  font-weight: 800;
+}
+.gantt_task_line .gantt_task_content {
+  text-align: left;
+  padding: 0 .5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gantt_task_line.is-phase {
+  background: var(--a-accent);
+  border-color: var(--a-accent);
+}
+.gantt_task_line.is-phase .gantt_task_content {
+  color: #fff;
+}
+.gantt_task_line.is-income {
+  background: var(--a-accent-soft);
+  border-color: color-mix(in srgb, var(--a-accent) 35%, transparent);
+}
+.gantt_task_line.is-income .gantt_task_content {
+  color: var(--a-accent-hover);
+}
+.gantt_task_line.is-dedication {
+  background: var(--a-info-bg);
+  border-color: color-mix(in srgb, var(--a-info-fg) 30%, transparent);
+}
+.gantt_task_line.is-dedication .gantt_task_content {
+  color: var(--a-info-fg);
+}
+.gantt_task_line.gantt_selected {
+  box-shadow: 0 0 0 2px var(--a-focus);
 }
 
 /* Hide progress bar inside gantt items */

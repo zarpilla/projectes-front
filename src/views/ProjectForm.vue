@@ -2108,10 +2108,8 @@
 
       <card-component
         v-if="!isLoading && !isUpdating && !form.children && (!isCreationMode || currentStep >= 3)"
-        :title="'PLANIFICACIÓ' + (ganttViewMode === 'original' ? ' ORIGINAL' : ' PREVISTA')"
+        :title="ganttViewMode === 'original' ? 'Planificació original' : 'Planificació prevista'"
         v-show="showTab('planificacio')"
-        header-icon="swap-horizontal"
-        @header-icon-click="toggleGanttView"
       >
         <button
           v-if="needsUpdate"
@@ -2137,6 +2135,7 @@
           :users="leaders"
           :tasks="{}"
           :view-mode="ganttViewMode"
+          @update:view-mode="toggleGanttView"
           @gantt-item-update="ganttItemUpdate"
           @gantt-item-delete="ganttItemDelete"
         />
@@ -2238,6 +2237,7 @@
             :tasks="{}"
             :view-mode="ganttViewMode"
             :editable="true"
+            @update:view-mode="toggleGanttView"
             @gantt-item-update="item => childGanttItemUpdate(child.id, item)"
             @gantt-item-delete="item => childGanttItemDelete(child.id, item)"
           />
