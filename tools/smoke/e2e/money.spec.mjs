@@ -29,7 +29,7 @@ function irpfDate (iso) {
 // the "MOVIMENTS BANCARIS" rows of the e2e project
 async function movementsOfProject () {
   await visit('/tresoreria')
-  const filter = page.getByPlaceholder('Filtrar per projecte...')
+  const filter = page.getByPlaceholder('Filtra per projecte')
   await filter.click()
   await filter.pressSequentially(PROJECT, { delay: 20 })
   await page.locator('.autocomplete .dropdown-item', { hasText: PROJECT }).filter({ visible: true }).first().click()

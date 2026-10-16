@@ -69,7 +69,8 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
   test.skip(!state.user, 'needs the user')
   const other = await openSession(browser, USER.email, USER.password)
   try {
-    const aside = other.locator('aside')
+    // the menu (the logo above it links to the first screen of the menu too)
+    const aside = other.locator('aside nav')
     await expect(aside.locator('a[href="#/dedicacio"]')).toBeVisible()
     await expect(aside.locator('a[href="#/registre-jornades"]')).toBeVisible()
     for (const hidden of ['#/projectes', '#/contacts', '#/emitted-invoices', '#/tresoreria', '#/admin/users']) {
@@ -129,7 +130,8 @@ test('login errors are explained', async ({ browser }) => {
     await anon.locator('input[type=email]').fill(USER.email)
     await anon.locator('input[type=password]').fill('not-the-password')
     await anon.locator('[type=submit]').first().click()
-    await expect(anon.locator('.snackbar', { hasText: 'Correu electrònic o clau de pas incorrectes' })).toBeVisible()
+    // shown in the form (redesign), formerly in a snackbar
+    await expect(anon.locator('.login-error, .snackbar', { hasText: 'Correu electrònic o clau de pas incorrectes' })).toBeVisible()
     expect(await anon.evaluate(() => localStorage.getItem('jwt'))).toBeNull()
 
     // an unconfirmed user is told so and not let in
@@ -138,7 +140,7 @@ test('login errors are explained', async ({ browser }) => {
     await anon.locator('input[type=email]').fill(unconfirmed.email)
     await anon.locator('input[type=password]').fill(unconfirmed.password)
     await anon.locator('[type=submit]').first().click()
-    await expect(anon.locator('.toast, .snackbar', { hasText: 'no està confirmat' })).toBeVisible()
+    await expect(anon.locator('.login-error, .toast, .snackbar', { hasText: 'no està confirmat' })).toBeVisible()
     expect(await anon.evaluate(() => localStorage.getItem('jwt'))).toBeNull()
   } finally {
     await anon.context().close()

@@ -92,7 +92,7 @@
 
 <script>
 import { projectSummary } from '@/domain/projectSummary.js'
-import { formatMoney, formatHours, formatNumber, sign } from '@/helpers/format-number'
+import { formatMoney, formatNumber, sign } from '@/helpers/format-number'
 
 export default {
   name: 'ProjectSummaryCards',
@@ -137,7 +137,8 @@ export default {
   methods: {
     sign,
     money: formatMoney,
-    hours: formatHours,
+    // up to 2 decimals: 4,75 h, not 4,8 h
+    hours: value => formatNumber(value, 2) + ' h',
     percent (value, of) {
       return of ? formatNumber((value / of) * 100, 0) + ' %' : '—'
     }

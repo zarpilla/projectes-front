@@ -27,12 +27,13 @@ async function removeMyLogsOfToday () {
   }
 }
 
-// today's row of the log (the only one once the leftovers are gone)
-const row = () => page.locator('.table-view .card-body', { hasText: TODAY }).filter({ has: page.locator('input[placeholder="Hora..."]') }).first()
+// today's row of the log: one row per day, its slots inside
+const row = () => page.locator(`.wl-day[data-date="${TODAY}"]`)
+const hourInputs = () => row().locator('input[placeholder="hh"]')
 
-// types a time in the "Entrada" (0) or "Sortida" (1) column; each part is saved on blur
+// types a time in the "Entrada" (0) or "Sortida" (1) field; each part is saved on blur
 async function typeTime (column, hour, minute) {
-  for (const [placeholder, value] of [['Hora...', hour], ['Minut...', minute]]) {
+  for (const [placeholder, value] of [['hh', hour], ['mm', minute]]) {
     const input = row().locator(`input[placeholder="${placeholder}"]`).nth(column)
     await input.fill(String(value))
     await input.press('Tab')
@@ -51,17 +52,17 @@ test('a day is logged by typing when it started and ended', async () => {
   await visit('/registre-jornades')
   // the list opens on the logged-in user and the current month
   await expect(row()).toBeVisible({ timeout: 20_000 })
-  // an empty day can't be typed in until a period is added to it
-  await expect(row().locator('input[placeholder="Hora..."]').first()).toBeDisabled()
-  await row().locator('button.is-warning').click()
-  await expect(row().locator('input[placeholder="Hora..."]').first()).toBeEnabled()
+  // an empty day has no time fields until a slot is added to it
+  await expect(hourInputs()).toHaveCount(0)
+  await row().getByRole('button', { name: 'Afegeix tram' }).click()
+  await expect(hourInputs().first()).toBeEnabled()
 
   await typeTime(0, 9, 0)
   // the start alone is saved already
   await expect.poll(async () => (await myLogsOfToday()).map(l => [l.hour_in, l.hour_out])).toEqual([['09:00:00.000', null]])
   await typeTime(1, 13, 30)
 
-  await expect(row()).toContainText('4h 30m')
+  await expect(row()).toContainText('4 h 30')
   const logs = await myLogsOfToday()
   expect(logs.map(l => [l.hour_in, l.hour_out])).toEqual([['09:00:00.000', '13:30:00.000']])
   state.logId = logs[0].id
@@ -70,9 +71,9 @@ test('a day is logged by typing when it started and ended', async () => {
 test('the log is still there after reloading', async () => {
   test.skip(!state.logId, 'needs the log')
   await visit('/registre-jornades')
-  await expect(row()).toContainText('4h 30m')
-  await expect(row().locator('input[placeholder="Hora..."]').nth(0)).toHaveValue('09')
-  await expect(row().locator('input[placeholder="Minut..."]').nth(1)).toHaveValue('30')
+  await expect(row()).toContainText('4 h 30')
+  await expect(hourInputs().nth(0)).toHaveValue('09')
+  await expect(row().locator('input[placeholder="mm"]').nth(1)).toHaveValue('30')
 })
 
 test('assigning the log to a project turns its hours into an activity', async () => {
@@ -103,7 +104,7 @@ test('changing the time of the log changes the hours of its activity', async () 
   await expect(row().locator('.autocomplete input')).toHaveValue(PROJECT)
   await typeTime(1, 14, 0)
 
-  await expect(row()).toContainText('5h 0m')
+  await expect(row()).toContainText('5 h 00')
   await expect.poll(async () => (await activitiesOfProject()).map(a => [a.id, Number(a.hours)])).toEqual([[state.activityId, 5]])
 })
 
@@ -116,5 +117,5 @@ test('deleting the log deletes its activity', async () => {
   expect(await myLogsOfToday()).toEqual([])
   expect(await activitiesOfProject()).toEqual([])
   // the day is an empty row again
-  await expect(row().locator('input[placeholder="Hora..."]').first()).toBeDisabled()
+  await expect(hourInputs()).toHaveCount(0)
 })

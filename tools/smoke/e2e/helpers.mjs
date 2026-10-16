@@ -274,7 +274,8 @@ export async function createProject (name, { incomes = [], expenses = [] } = {})
   const phase = await addPhase(original, `${name} fase`)
   for (const line of incomes) await addLine(phase, 'income', line)
   for (const line of expenses) await addLine(phase, 'expense', line)
-  await button('Continuar', original).click()
+  // the wizard's Continuar is in the sticky bar at the bottom, not in the card
+  await visible('button', { hasText: /^\s*Continuar\s*$/ }).click()
   await expectSnackbar('Guardat')
   await settle()
   await expect(page.locator('.gantt_container').first()).toBeVisible({ timeout: 20_000 })
@@ -285,19 +286,18 @@ export async function createProject (name, { incomes = [], expenses = [] } = {})
   return id
 }
 
-// a value of the project's "RESUM FINANCER PROJECTE" card, as a number
-export async function summaryValue (label) {
-  const box = field(escapeRegExp(label), card('RESUM FINANCER PROJECTE'))
-  // hours are in a .has-text-right div, money in a money-format; the diff tooltip
-  // around them may add more numbers, so take the first one after the label
-  const value = box.locator('.has-text-right')
-  const text = await value.count()
-    ? await value.first().innerText()
-    : (await box.innerText()).replace(await box.locator('.label').first().innerText(), '')
-  return parseNumber(text.match(/-?\d[\d.,]*/)?.[0] ?? '')
+// an executed value of the project's summary ("Resum" tab: the table under the
+// figure cards), as a number. Rows: 'Hores', 'Cost de les hores', 'Ingressos'...
+export async function summaryValue (row) {
+  const cells = page.locator('.project-summary-cards .summary-table tr')
+    .filter({ has: page.locator('th', { hasText: new RegExp(`^\\s*${escapeRegExp(row)}\\s*$`) }) })
+    .first().locator('td')
+  // columns: Original, Previst, Executat
+  const text = await cells.nth(2).innerText()
+  return parseNumber(text.match(/[-−]?\d[\d.,]*/)?.[0]?.replace('−', '-') ?? '')
 }
 
-export const executedHours = () => summaryValue('Hores executades (h)')
+export const executedHours = () => summaryValue('Hores')
 
 // Shows the month of `isoDate` in the #/dedicacio calendar (the filters follow it)
 export async function calendarMonth (isoDate) {
@@ -322,7 +322,9 @@ export async function addActivity ({ project, hours, description, day }) {
   const input = field('Projecte', box).locator('input')
   await input.click()
   await input.pressSequentially(project, { delay: 20 })
-  await box.locator('.autocomplete .dropdown-item', { hasText: project }).first().click()
+  // exact name: specs running in parallel share the run stamp, so one spec's project
+  // name can be the start of another's ("E2E <stamp>" / "E2E <stamp> hores A")
+  await box.locator('.autocomplete .dropdown-item', { hasText: new RegExp(`^\\s*${escapeRegExp(project)}\\s*$`) }).first().click()
   await field('Descripció', box).locator('input').fill(description)
   await button("D'acord", box).click()
   await expectSnackbar('Guardat')
@@ -342,6 +344,17 @@ export async function periodsFrom (userId, from) {
 export async function openNewPeriod (username) {
   await visit('/working-day')
   await page.locator('.gantt_grid_data .gantt_row', { hasText: username }).first().click()
+  const box = modal('Jornada')
+  await expect(box).toBeVisible()
+  return box
+}
+
+// Opens the "Jornada" modal of an existing period from its bar in #/working-day.
+// The chart shows one year: switch to the period's year first.
+export async function openPeriod (period) {
+  await visit('/working-day')
+  await page.getByRole('group', { name: 'Any' }).getByRole('button', { name: period.from.slice(0, 4), exact: true }).click()
+  await page.locator(`.dedication-bar[data-dedication-id="${period.id}"]`).click()
   const box = modal('Jornada')
   await expect(box).toBeVisible()
   return box

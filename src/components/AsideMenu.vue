@@ -1,7 +1,7 @@
 <template>
   <aside v-show="isAsideVisible" class="aside is-placed-left" :class="{ 'is-expanded': !isCollapsed, 'is-collapsed': isCollapsed }">
     <div class="aside-head">
-      <router-link to="/projectes" class="aside-logo" title="ESSTRAPIS">
+      <router-link :to="homeLink" class="aside-logo" title="ESSTRAPIS">
         <b>ESS</b><span v-if="!isCollapsed">TRAPIS</span>
       </router-link>
       <button type="button" class="collapse-toggle" :title="isCollapsed ? 'Expandir menú' : 'Contraure menú'" :aria-label="isCollapsed ? 'Expandir menú' : 'Contraure menú'" @click="toggleCollapse">
@@ -76,6 +76,16 @@ export default {
   },
   computed: {
     ...mapState(useMainStore, ['isAsideVisible', 'userName']),
+    // the first screen this user's menu offers (an hours-only user has no projects list)
+    homeLink () {
+      for (const group of this.menu) {
+        if (Array.isArray(group)) {
+          const item = group.find(i => i && i.to)
+          if (item) return item.to
+        }
+      }
+      return '/projectes'
+    },
     initials () {
       const words = (this.userName || '').split(/[\s._@-]+/).filter(Boolean)
       return words.slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?'

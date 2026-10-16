@@ -11,7 +11,7 @@ import { test, expect } from '@playwright/test'
 import {
   useE2E, onCleanup, page, state, api, NAME, visit, settle, field, button, modal, expectSnackbar, confirmDialog,
   createProject, summaryValue, executedHours, calendarMonth, addActivity,
-  periodsFrom, openNewPeriod, fillPeriod, modalCostByHour
+  periodsFrom, openNewPeriod, openPeriod, fillPeriod, modalCostByHour
 } from './helpers.mjs'
 
 useE2E()
@@ -83,16 +83,14 @@ test('a work period prices the hours dedicated in it', async () => {
 
   await visit(`/project/${state.projectA}`)
   expect(await executedHours()).toBe(4)
-  expect(await summaryValue('Hores executades')).toBe(round2(4 * round2(expected)))
+  expect(await summaryValue('Cost de les hores')).toBe(round2(4 * round2(expected)))
   const project = await api('GET', `projects/${state.projectA}`)
   expect(project.total_real_hours_price).toBeCloseTo(4 * round2(expected), 2)
 })
 
 test('changing the period re-prices its activities', async () => {
   test.skip(!state.period, 'needs the period')
-  await visit('/working-day')
-  await page.locator(`.dedication-bar[data-dedication-id="${state.period.id}"]`).click()
-  const box = modal('Jornada')
+  const box = await openPeriod(state.period)
   await expect(field('Hores', box).locator('input')).toHaveValue('6')
   await fillPeriod(box, { salary: 2100, general: false })
   const expected = costByHour({ salary: 2100, pctQuota: 30 }, state.workingHours)
@@ -103,7 +101,7 @@ test('changing the period re-prices its activities', async () => {
   const [activity] = await myMarchActivities()
   expect(Number(activity.cost_by_hour)).toBeCloseTo(expected, 2)
   await visit(`/project/${state.projectA}`)
-  expect(await summaryValue('Hores executades')).toBe(round2(4 * round2(expected)))
+  expect(await summaryValue('Cost de les hores')).toBe(round2(4 * round2(expected)))
 })
 
 test('overlapping work periods are refused', async () => {
@@ -146,7 +144,8 @@ test('hours move between projects ("Moure hores entre projectes")', async () => 
   test.skip(!state.projectB, 'needs the projects and the activity')
   await visit('/dedicacio')
   await calendarMonth(DAY)
-  const project = field('Projecte').locator('input').first()
+  // the filter row of the list (labelled by aria-label, no visible label)
+  const project = page.locator('.filter-bar input[aria-label="Projecte"]').first()
   await project.click()
   await project.pressSequentially(PROJECT_A, { delay: 20 })
   await page.locator('.autocomplete .dropdown-item', { hasText: PROJECT_A }).filter({ visible: true }).first().click()

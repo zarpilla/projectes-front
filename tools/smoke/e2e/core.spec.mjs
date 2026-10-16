@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test'
 import {
   useE2E, page, state, api, NAME, visit, settle, visible, field, button, card, modal,
   expectSnackbar, selectByLabel, pickAutocomplete, typeDate, today,
-  phaseNamed, addPhase, addLine, executedHours, addActivity,
+  phaseNamed, addPhase, addLine, executedHours, addActivity, openPeriod,
   contactWithNif, assignBudgetLine, fillLine
 } from './helpers.mjs'
 
@@ -45,7 +45,8 @@ test('project phases: original budget and closing it', async () => {
   const phase = await addPhase(original, `${NAME} fase A`)
   await addLine(phase, 'income', { concept: 'Ingrés e2e', quantity: 10, price: 50 })
   await addLine(phase, 'expense', { concept: 'Despesa e2e', quantity: 2, price: 30 })
-  await button('Continuar', original).click()
+  // the wizard's Continuar is in the sticky bar at the bottom, not in the card
+  await visible('button', { hasText: /^\s*Continuar\s*$/ }).click()
   await expectSnackbar('Guardat')
   await settle()
 
@@ -72,11 +73,17 @@ test('project phases: original budget and closing it', async () => {
 
 test('project edition', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
-  await visit(`/project/${state.projectId}`)
+  await visit(`/project/${state.projectId}?tab=dades`)
+  // wait for the loaded project: under load it can arrive after typing and overwrite it
+  await expect(field('Descripció').locator('textarea')).toHaveValue('Creat per les proves e2e')
   await field('Descripció').locator('textarea').fill('Descripció editada per les proves e2e')
   await field('Propòsit').locator('textarea').fill('Comprovar que l\'edició es guarda')
   await selectByLabel('Estat', 'Sol·licitat')
-  await button('Guardar', card('DADES BÀSIQUES PROJECTE')).click()
+  // the save bar at the bottom of the project. Wait for the save itself: a "Guardat"
+  // toast of the previous test can still be on screen
+  const saved = page.waitForResponse(r => r.request().method() === 'PUT' && r.url().endsWith(`/projects/${state.projectId}`))
+  await button('Guardar').click()
+  await saved
   await expectSnackbar('Guardat')
   await settle()
 
@@ -86,13 +93,13 @@ test('project edition', async () => {
   expect(project.purpose).toBe('Comprovar que l\'edició es guarda')
   expect(project.project_state?.name).toBe('Sol·licitat')
   // the reloaded form shows what was saved
-  await visit(`/project/${state.projectId}`)
+  await visit(`/project/${state.projectId}?tab=dades`)
   await expect(field('Descripció').locator('textarea')).toHaveValue('Descripció editada per les proves e2e')
 })
 
 test('project phases: editing the execution budget', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
-  await visit(`/project/${state.projectId}`)
+  await visit(`/project/${state.projectId}?tab=pressupost`)
   const execution = card('EXECUCIÓ PRESSUPOST')
   const phaseA = await phaseNamed(execution, `${NAME} fase A`)
   await phaseA.locator('.phase-detail-input input').fill(`${NAME} fase A editada`)
@@ -100,7 +107,7 @@ test('project phases: editing the execution budget', async () => {
   const phaseB = await addPhase(execution, `${NAME} fase B`)
   await addLine(phaseB, 'income', { concept: 'Ingrés fase B', quantity: 1, price: 200 })
   await addLine(phaseB, 'expense', { concept: 'Despesa fase B', quantity: 1, price: 80 })
-  await button('Guardar', execution).click()
+  await button('Guardar').click()
   await expectSnackbar('Guardat')
   await settle()
 
@@ -115,7 +122,7 @@ test('project phases: editing the execution budget', async () => {
   expect(originals.map(p => p.name)).toEqual([`${NAME} fase A`])
 
   // and the form shows the saved phases after a reload
-  await visit(`/project/${state.projectId}`)
+  await visit(`/project/${state.projectId}?tab=pressupost`)
   await phaseNamed(card('EXECUCIÓ PRESSUPOST'), `${NAME} fase A editada`)
   await phaseNamed(card('EXECUCIÓ PRESSUPOST'), `${NAME} fase B`)
 })
@@ -173,8 +180,7 @@ test('persones: create, edit and delete a work period', async () => {
     .toEqual([PERIOD.to, 6, 2000, 'general', 30])
 
   // edit it from its bar in the chart
-  await visit('/working-day')
-  await page.locator(`.dedication-bar[data-dedication-id="${period.id}"]`).click()
+  await openPeriod(period)
   await expect(modal).toBeVisible()
   await expect(field('Hores', modal).locator('input')).toHaveValue('6')
   // the modal clears its "changed" flag 100 ms after opening: an edit before that is
@@ -190,8 +196,7 @@ test('persones: create, edit and delete a work period', async () => {
   expect(Number(period.costByHour)).toBeGreaterThan(0)
 
   // and delete it
-  await visit('/working-day')
-  await page.locator(`.dedication-bar[data-dedication-id="${period.id}"]`).click()
+  await openPeriod(period)
   await button('Esborra', modal).click()
   const confirm = page.locator('.modal.is-active, .dialog.is-active').filter({ hasText: /Esborrar|esborrar/ }).last()
   if (await confirm.isVisible().catch(() => false)) await confirm.locator('.button.is-danger, .button.is-primary').last().click()
