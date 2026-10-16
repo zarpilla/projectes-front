@@ -1,364 +1,439 @@
 <template>
-  <div>
-    <title-bar :title-stack="titleStack" />
+  <!-- Redesign A (mockup A-Log-Rutes): the routes by weekday and four weeks of
+       their days; a click opens or closes a route on a day (office). Holidays
+       with open routes are warned about. -->
+  <div class="route-days">
+    <title-bar :title-stack="['Rutes i punts', 'Rutes i dies']" :subtitle="headline">
+      <b-button icon-left="chevron-left" aria-label="Setmanes anteriors" @click="shift(-1)" />
+      <b-button @click="goToday">Avui</b-button>
+      <b-button icon-left="chevron-right" aria-label="Setmanes següents" @click="shift(1)" />
+    </title-bar>
 
-    <b-loading
-      :is-full-page="true"
-      v-model="isLoading"
-      :can-cancel="false"
-    ></b-loading>
+    <section class="section is-main-section">
+      <routes-tabs :is-staff="canEdit" />
 
-    <!-- <card-component title="Filtres">
+      <div v-for="h in holidayWarnings" :key="h.date" class="notification is-warning holiday-note">
+        <span>
+          <b>{{ longDay(h.date) }} és festiu</b> i {{ h.routes.length === 1 ? "la ruta" : `les ${h.routes.length} rutes` }} d'aquell dia
+          {{ h.routes.length === 1 ? "hi és oberta" : "hi són obertes" }}<template v-if="h.orders">, amb {{ h.orders }} {{ h.orders === 1 ? "comanda prevista" : "comandes previstes" }}</template>.
+        </span>
+        <b-button v-if="canEdit" size="is-small" :loading="saving" @click="closeAll(h)">Tanca les rutes del {{ shortDay(h.date) }}</b-button>
+      </div>
 
-      <form @submit.prevent>
-        <b-field horizontal>
-          <b-field label="Any">
-            <b-select v-model="filters.year" required @update:model-value="getData">
-              <option v-for="(year, index) in years" :key="index" :value="year">
-                {{ year.year }}
-              </option>
-            </b-select>
-          </b-field>
-        </b-field>
-      </form>
-
-      
-    </card-component> -->
-
-    
-    <div class="notification help mt-4">
-      <span v-if="orders_admin">Marca o desmarca les rutes per tancar-les o obrir-les per aquell dia. </span>
-        Les rutes amb fons blanc són rutes tancades per aquell dia.
-    </div>
-    
-
-    <v-calendar
-      ref="calendar"
-      locale="ca"
-      class="custom-calendar max-w-full mb-5"
-      :first-day-of-week="2"
-      :masks="masks"
-      :attributes="attributes"
-      title-position="left"
-      expanded
-    >
-      <template v-slot:day-content="{ day, attributes }">
-        <div class="flex flex-col h-full z-10 overflow-hidden">
-          <span
-            class="day-label text-sm text-gray-900"            
-            >{{ day.day }}</span
-          >
-
-          <div class="flex-grow overflow-y-auto overflow-x-auto">
-            <span
-              v-for="attr in attributes"
-              :key="attr.key"
-              class="
-                text-xs
-                leading-tight
-                rounded-sm
-                p-1
-                mt-0
-                mb-1
-                tag tag-hours
-              "
-              :class="attr && attr.customData ? attr.customData.class : null"
-              :style="{
-                cursor: 'pointer',
-                backgroundColor: attr.customData && !attr.customData.route.festive
-                  ? attr.customData.bg_project
-                  : 'transparent',                  
-                  border: '1px solid #b8c2cc',
-                  borderColor: attr.customData && !attr.customData.route.festive ? 'transparent' : attr.customData.bg_project,
-              }"
-              :title="attr.customData.route.festive ? 'Ruta tancada' : 'Ruta oberta'"
-            >
-              <span
-                v-if="attr.customData && attr.customData.type === 'activity'"
-                @click="checkDateRoute(!attr.customData.route.festive, day.date, attr.customData.route)"
-              >
-                {{ attr.customData.route.name }}
-                
-              </span>
-            </span>
+      <div class="rd-layout">
+        <section class="a-box rd-table-box">
+          <b-loading :is-full-page="false" :model-value="isLoading" />
+          <header class="rd-legend">
+            <span><i class="sw is-open"></i>Oberta</span>
+            <span><i class="sw is-closed"></i>Tancada</span>
+            <span><i class="sw is-holiday"></i>Oberta en dia festiu</span>
+            <span class="rd-asof">Dades a {{ shortDay(today) }}</span>
+          </header>
+          <div class="table-container">
+            <table class="table is-fullwidth rd-table">
+              <thead>
+                <tr>
+                  <th>Ruta</th>
+                  <th v-for="w in weeks" :key="w.start">Setm. {{ w.number }}</th>
+                </tr>
+              </thead>
+              <tbody v-for="group in groups" :key="group.key">
+                <tr class="rd-day-row">
+                  <td :colspan="weeks.length + 1"><b>{{ group.label }}</b> · {{ group.routes.length }} {{ group.routes.length === 1 ? "ruta" : "rutes" }}</td>
+                </tr>
+                <tr v-for="route in group.routes" :key="route.id">
+                  <th scope="row" class="rd-route">
+                    <b>{{ route.name }}</b>
+                    <small>{{ routeNote(route) }}</small>
+                  </th>
+                  <td v-for="w in weeks" :key="w.start" class="rd-week">
+                    <component
+                      :is="canEdit ? 'button' : 'div'"
+                      v-for="cell in cellsOf(route, w)"
+                      :key="cell.date"
+                      :type="canEdit ? 'button' : undefined"
+                      class="rd-cell"
+                      :class="{ 'is-closed': !cell.open, 'is-holiday': cell.open && cell.holiday, 'is-past': cell.past }"
+                      :disabled="canEdit && saving"
+                      :title="canEdit ? (cell.open ? 'Clica per tancar la ruta aquest dia' : 'Clica per obrir la ruta aquest dia') : ''"
+                      @click="canEdit && toggle(route, cell)"
+                    >
+                      <b>{{ shortDay(cell.date) }}</b>
+                      <span>{{ cell.open ? (cell.holiday ? "Oberta · festiu" : "Oberta") : "Tancada" }}</span>
+                      <small>{{ cell.orders ? `${cell.orders} com.` : "—" }}</small>
+                    </component>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-      </template>
-    </v-calendar>
+        </section>
 
-
+        <aside class="rd-side">
+          <section class="a-box">
+            <header class="box-head"><h2>Quina ruta passa per…?</h2></header>
+            <b-input v-model="lookup" icon="magnify" placeholder="Escriu una població" />
+            <ul v-if="lookupResults.length" class="lookup-list">
+              <li v-for="town in lookupResults" :key="town.id">
+                <b>{{ town.name }}</b>
+                <div class="route-chips">
+                  <span v-for="r in index.routesByTown.get(town.id) || []" :key="r.id" class="route-chip" :title="routeDaysText(r)">{{ r.short_name || r.name }}</span>
+                  <span v-if="!(index.routesByTown.get(town.id) || []).length" class="no-route">Cap ruta hi passa</span>
+                </div>
+              </li>
+            </ul>
+            <p v-else-if="lookup" class="box-empty">Cap població amb aquest nom.</p>
+            <router-link to="/city-route" class="all-towns">Totes les poblacions ({{ cities.length }}) →</router-link>
+          </section>
+          <div v-if="unroutedCount" class="notification is-info">
+            {{ unroutedCount }} {{ unroutedCount === 1 ? "població no té" : "poblacions no tenen" }} cap ruta assignada.
+          </div>
+        </aside>
+      </div>
+    </section>
   </div>
 </template>
 
 <script>
-import TitleBar from "@/components/TitleBar.vue";
-import CardComponent from "@/components/CardComponent.vue";
-import service from "@/service/index";
 import moment from "moment";
-import * as chartConfig from "@/components/Charts/chart.config";
+import TitleBar from "@/components/TitleBar.vue";
+import RoutesTabs from "@/components/RoutesTabs.vue";
+import service from "@/service/index";
+import { formatMoney } from "@/helpers/format-number";
+import { indexLinks, groupByWeekday, routeDays, searchTowns } from "@/domain/cityRoutes.js";
+import { weekStart, weeksFrom, routeDatesInWeek, dayCell, countOrders, openOnHolidays } from "@/domain/routeDays.js";
 
-moment.locale("ca");
+const WEEKS = 4;
 
 export default {
   name: "RouteDays",
   components: {
-    CardComponent,
     TitleBar,
-    
+    RoutesTabs
   },
   data() {
     return {
       isLoading: false,
+      saving: false,
+      canEdit: false,
       routes: [],
-      orders_admin: false,
-      years: [],
-      filters: {
-        year: null
-      },
-      days: [],
-      masks: {
-        weekdays: "WWW"
-      },
-      attributes: []
+      closures: [],
+      holidays: [],
+      orders: [],
+      cities: [],
+      cityRoutes: [],
+      offset: 0,
+      lookup: "",
+      today: moment().format("YYYY-MM-DD")
     };
   },
   computed: {
-    titleStack() {
-      return ["Rutes i dies"];
+    weeks() {
+      return weeksFrom(weekStart(this.today, this.offset), WEEKS);
+    },
+    from() {
+      return this.weeks[0].start;
+    },
+    to() {
+      return moment(this.weeks[WEEKS - 1].start).add(6, "days").format("YYYY-MM-DD");
+    },
+    groups() {
+      return groupByWeekday(this.routes);
+    },
+    orderCounts() {
+      return countOrders(this.orders);
+    },
+    index() {
+      return indexLinks(this.cities, this.routes, this.cityRoutes);
+    },
+    lookupResults() {
+      return searchTowns(this.cities, this.lookup, 6);
+    },
+    unroutedCount() {
+      return this.cities.filter(c => !(this.index.routesByTown.get(c.id) || []).length).length;
+    },
+    holidayWarnings() {
+      return openOnHolidays({
+        routes: this.routes,
+        holidays: this.holidays,
+        closures: this.closures,
+        orderCounts: this.orderCounts,
+        from: this.today > this.from ? this.today : this.from,
+        to: this.to
+      });
+    },
+    headline() {
+      const range = `setmanes del ${moment(this.from).format("DD/MM")} al ${moment(this.to).format("DD/MM/YYYY")}`;
+      return `${this.routes.length} rutes actives · ${range}${this.canEdit ? " · clica un dia per obrir o tancar la ruta" : ""}`;
     }
   },
   async mounted() {
-    const me = await service({ requiresAuth: true, cached: true }).get(
-      "users/me"
-    );
+    const me = await service({ requiresAuth: true, cached: true }).get("users/me");
     const permissions = me.data.permissions.map(p => p.permission);
-    if (permissions.includes("orders_admin") || permissions.includes("orders_delivery")) {
-      this.orders_admin = true;
-    }
-
-    this.years = await service({ requiresAuth: true, cached: true })
-      .get("years?_sort=year:DESC")
-      .then(r => r.data);
-    if (!this.filters.year) {
-      this.filters.year = this.years[0];
-    }
+    this.canEdit = permissions.includes("orders_admin") || permissions.includes("orders_delivery");
+    this.isLoading = true;
+    const [routes, cities, cityRoutes] = await Promise.all([
+      service({ requiresAuth: true, cached: true }).get("routes?_sort=order&_where[active]=true&_limit=-1").then(r => r.data),
+      service({ requiresAuth: true, cached: true }).get("cities?_sort=name&_limit=-1").then(r => r.data),
+      service({ requiresAuth: true, cached: false }).get("city-routes/basic").then(r => r.data)
+    ]);
+    this.routes = routes;
+    this.cities = cities.map(c => ({ id: c.id, name: c.name }));
+    this.cityRoutes = cityRoutes;
     await this.getData();
+    this.isLoading = false;
   },
-
   methods: {
     async getData() {
-      this.isLoading = true;
-
-      this.routes = await service({ requiresAuth: true, cached: true })
-        .get("routes?_sort=order&_where[active]=true")
-        .then(r => r.data);
-
-      this.routesFestives = await service({ requiresAuth: true, cached: false })
-        .get("route-festives?_limit=-1")
-        .then(r => r.data);
-
-      // push into this.days all the days of the this.filters.year
-      this.days = this.enumerateDaysBetweenDates().map(d => {
-        return {
-          date: d,
-          routes: this.routes
-            .filter(
-              r =>
-                (r.monday && moment(d, "YYYY-MM-DD").day() === 1) ||
-                (r.tuesday && moment(d, "YYYY-MM-DD").day() === 2) ||
-                (r.wednesday && moment(d, "YYYY-MM-DD").day() === 3) ||
-                (r.thursday && moment(d, "YYYY-MM-DD").day() === 4) ||
-                (r.friday && moment(d, "YYYY-MM-DD").day() === 5) ||
-                (r.saturday && moment(d, "YYYY-MM-DD").day() === 6) ||
-                (r.sunday && moment(d, "YYYY-MM-DD").day() === 0)
-            )
-            .map(r => {
-              return {
-                ...r,
-                festive: this.routesFestives.find(
-                  rf =>
-                    rf.route &&
-                    rf.route.id === r.id &&
-                    rf.date === moment(d).format("YYYY-MM-DD")
-                )
-              };
-            })
-        };
-      });
-
-      this.attributes = [];
-      let i = 0;
-      for (const day of this.days) {
-        for (const route of day.routes) {
-          const item = {
-            key: i,
-            dates: day.date,
-            customData: {
-              bg_project: this.getChartColor(
-                this.routes.findIndex(r => r.id === route.id)
-              ),
-              class: "tag zis-primary",
-              type: "activity",
-              route: route,
-              festive: route.festive
-            }
-          };
-          i++;
-          this.attributes.push(item);
-
-          // if (route.festive) {
-          //   route.festive = true;
-          // } else {
-          //   route.festive = false;
-          // }
-        }
+      const range = `_where[date_gte]=${this.from}&_where[date_lte]=${this.to}&_limit=-1`;
+      const [closures, festives, orders] = await Promise.all([
+        service({ requiresAuth: true, cached: false }).get(`route-festives?${range}`).then(r => r.data),
+        service({ requiresAuth: true, cached: true }).get(`festives?${range}`).then(r => r.data).catch(() => []),
+        service({ requiresAuth: true, cached: false })
+          .get(`orders/table?_where[estimated_delivery_date_gte]=${this.from}&_where[estimated_delivery_date_lte]=${this.to}&_limit=-1`)
+          .then(r => r.data)
+          .catch(() => [])
+      ]);
+      this.closures = closures;
+      // the entity's holidays (a person's days off have a user)
+      this.holidays = festives.filter(f => !f.users_permissions_user).map(f => f.date);
+      this.orders = orders;
+    },
+    cellsOf(route, week) {
+      return routeDatesInWeek(route, week.start).map(date =>
+        dayCell({ route, date, closures: this.closures, holidays: this.holidays, orderCounts: this.orderCounts, today: this.today })
+      );
+    },
+    routeDaysText(route) {
+      return routeDays(route).join(", ");
+    },
+    routeNote(route) {
+      const towns = (this.index.townsByRoute.get(route.id) || []).length;
+      const parts = [`${towns} ${towns === 1 ? "població" : "poblacions"}`];
+      if (route.volume_discount_price && route.volume_discount_number_of_orders) {
+        parts.push(`−${formatMoney(route.volume_discount_price)} a partir de ${route.volume_discount_number_of_orders} comandes`);
       }
-
-      // this.attributes.unshift({
-      //   key: "today",
-      //   highlight: "red",
-      //   dates: new Date()
-      // });
-
-      // for (const city of cities) {
-      //   const cityRoutes = this.cityRoutes.filter(
-      //     cr => cr.city && cr.city.id === city.id
-      //   );
-      //   const routes = cityRoutes.map(cr => cr.route.id);
-      //   this.cities.find(c => c.id === city.id).routes = routes;
-      // }
-
+      if (route.is_transfer_route) parts.push("fa transferències");
+      return parts.join(" · ");
+    },
+    shortDay(date) {
+      return moment(date).locale("ca").format("dd DD/MM");
+    },
+    longDay(date) {
+      const text = moment(date).locale("ca").format("dddd DD/MM/YYYY");
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    },
+    async shift(weeks) {
+      this.offset += weeks;
+      this.isLoading = true;
+      await this.getData();
       this.isLoading = false;
     },
-    enumerateDaysBetweenDates() {
-      var dates = [];
-      if (!this.filters.year) {
-        return dates;
-      }
-      var currDate = moment(this.filters.year.year, "YYYY").startOf("year");
-      const endOfYear = moment(this.filters.year.year, "YYYY").add(1, "year").endOf("year");
-
-      dates.push(currDate.clone().toDate());
-      while (currDate.add(1, "days").diff(endOfYear) < 0) {
-        dates.push(currDate.clone().toDate());
-      }
-
-      return dates;
+    async goToday() {
+      this.offset = 0;
+      await this.shift(0);
     },
-    formatDate(date, format) {
-      return moment(date).format(format);
-    },
-    async checkDateRoute(add, date, route) {
-      if (!this.orders_admin) {
-        return;
-      }
-      if (add) {
-        await service({ requiresAuth: true }).post("route-festives", {
-          // `date` is a JS Date at LOCAL midnight. Posting it raw serialises to
-          // UTC ("2026-09-08T22:00:00.000Z" for a CEST Wednesday), and the
-          // backend truncates that to the UTC day — storing the festive one day
-          // early, so it never matched the route's own weekday. Send the same
-          // local YYYY-MM-DD string the lookup and delete paths below compare on.
-          date: moment(date).format("YYYY-MM-DD"),
-          route: route.id
-        });
-      } else {
-        const dateRoute = this.routesFestives.find(
-          cr =>
-            cr.route &&
-            cr.date === moment(date).format("YYYY-MM-DD") &&
-            cr.route.id === route.id
-        );
-        if (!dateRoute) {
-          return;
+    async toggle(route, cell) {
+      this.saving = true;
+      try {
+        if (cell.open) {
+          // the date as the local YYYY-MM-DD: a Date would be sent as UTC and
+          // stored one day early
+          await service({ requiresAuth: true }).post("route-festives", { date: cell.date, route: route.id });
+        } else if (cell.closure) {
+          await service({ requiresAuth: true }).delete(`route-festives/${cell.closure.id}`);
         }
-        await service({ requiresAuth: true }).delete(
-          `route-festives/${dateRoute.id}`
-        );
-        this.routesFestives = this.routesFestives.filter(
-          cr => cr.id !== dateRoute.id
-        );
+        await this.getData();
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut desar", type: "is-danger", queue: false });
+      } finally {
+        this.saving = false;
       }
-      //console.log(add, city, route);
-      await this.getData();
     },
-    getChartColor(n) {
-      return chartConfig.chartDataColors[n];
+    async closeAll(holiday) {
+      this.saving = true;
+      try {
+        for (const route of holiday.routes) {
+          await service({ requiresAuth: true }).post("route-festives", { date: holiday.date, route: route.id });
+        }
+        await this.getData();
+        this.$buefy.snackbar.open({ message: `Rutes tancades el ${this.shortDay(holiday.date)}`, queue: false });
+      } finally {
+        this.saving = false;
+      }
     }
   }
 };
 </script>
 
-<style lang="postcss">
-.vc-container {
-  font-family: "Nunito";
+<style scoped>
+.holiday-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  justify-content: space-between;
 }
-::-webkit-scrollbar {
-  width: 0px;
+.rd-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: 1rem;
+  align-items: start;
 }
-::-webkit-scrollbar-track {
-  display: none;
-}
-.custom-calendar.vc-container {
-  --day-border: 1px solid var(--a-line);
-  --day-border-highlight: 1px solid var(--a-line);
-  --day-width: 90px;
-  --day-height: 90px;
-  --weekday-bg: #f8fafc;
-  --weekday-border: 1px solid var(--a-line-soft);
-  border-radius: 0.25rem;
-  border: 0;
-  width: 100%;
-}
-/* v-calendar 3 overlays the arrows header on the month header: only the
-   month header gets the background, both get the same box so they line up */
-.custom-calendar.vc-container .vc-header {
-  height: auto;
-  margin-top: 0;
-  padding: 10px 0;
-}
-.custom-calendar.vc-container .vc-pane > .vc-header {
-  background-color: var(--a-chip);
-  border-top-right-radius: 0.25rem;
-  border-top-left-radius: 0.25rem;
-}
-.custom-calendar.vc-container .vc-weeks {
+.rd-table-box {
+  position: relative;
   padding: 0;
+  overflow: hidden;
 }
-.custom-calendar.vc-container .vc-weekday {
-  background-color: var(--a-thead);
+.rd-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding: .875rem 1rem;
   border-bottom: 1px solid var(--a-line-soft);
-  border-top: 1px solid var(--a-line-soft);
-  padding: 5px 0;
+  font-size: .8125rem;
+  color: var(--a-fg-2);
 }
-.custom-calendar.vc-container .vc-day {
-  padding: 0 5px 3px 5px;
+.rd-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+}
+.rd-asof {
+  margin-left: auto;
+  color: var(--a-muted);
+}
+.sw {
+  width: .875rem;
+  height: .875rem;
+  border-radius: 3px;
+}
+.sw.is-open {
+  background: var(--a-accent-soft);
+  border: 1px solid var(--a-accent-soft);
+}
+.sw.is-closed {
+  border: 1px dashed var(--a-input);
+}
+.sw.is-holiday {
+  background: var(--a-warn-bg);
+  border: 1px solid var(--a-warn-line);
+}
+.rd-table th,
+.rd-table td {
+  vertical-align: middle;
+}
+.rd-day-row td {
+  background: var(--a-thead);
+  font-size: .875rem;
+  color: var(--a-fg-2);
+}
+.rd-route {
+  min-width: 13rem;
+  font-weight: 400;
+}
+.rd-route b,
+.rd-route small {
+  display: block;
+}
+.rd-route b {
+  color: var(--a-fg);
+}
+.rd-route small {
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.rd-week {
+  min-width: 7.5rem;
+}
+.rd-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: .375rem .625rem;
+  border: 1px solid var(--a-accent-soft);
+  border-radius: 8px;
+  background: var(--a-accent-soft);
+  font: inherit;
+  font-size: .75rem;
   text-align: left;
-  height: auto;
-  min-height: 90px;
-  min-width: 90px;
-  background-color: var(--a-surface);
+  color: var(--a-accent-hover);
 }
-.custom-calendar.vc-container .vc-day.weekday-1,
-.custom-calendar.vc-container .vc-day.weekday-7 {
-  background-color: #eff8ff;
+.rd-cell + .rd-cell {
+  margin-top: .25rem;
+}
+button.rd-cell {
+  cursor: pointer;
+}
+button.rd-cell:hover {
+  border-color: var(--a-accent);
+}
+.rd-cell b {
+  font-size: .8125rem;
+}
+.rd-cell small {
+  color: var(--a-muted);
+}
+.rd-cell.is-closed {
+  border: 1px dashed var(--a-input);
+  background: transparent;
+  color: var(--a-muted);
+}
+.rd-cell.is-holiday {
+  border-color: var(--a-warn-line);
+  background: var(--a-warn-bg);
+  color: var(--a-warn-fg);
+}
+.rd-cell.is-past {
+  opacity: .6;
+}
+.rd-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.lookup-list li {
+  padding: .75rem 0;
+  border-top: 1px solid var(--a-line-soft);
+}
+.lookup-list b {
+  display: block;
+  margin-bottom: .375rem;
+  color: var(--a-fg);
+}
+.route-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem;
+}
+.route-chip {
+  padding: .1875rem .625rem;
+  border: 1px solid var(--a-line);
+  border-radius: 999px;
   background: var(--a-chip);
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--a-fg-2);
 }
-.custom-calendar.vc-container .vc-day:not(.on-bottom) {
-  border-bottom: 1px solid var(--a-line);
+.no-route {
+  font-size: .8125rem;
+  color: var(--a-over);
 }
-.custom-calendar.vc-container .vc-day:not(.on-bottom).weekday-1 {
-  border-bottom: 1px solid var(--a-line);
+.lookup-list {
+  margin-top: .75rem;
 }
-
-.custom-calendar.vc-container .vc-day:not(.on-right) {
-  border-right: 1px solid var(--a-line);
+.all-towns {
+  display: inline-block;
+  margin-top: .75rem;
+  font-size: .875rem;
+  font-weight: 700;
+  text-decoration: underline;
 }
-
-.custom-calendar.vc-container .vc-day .vc-day-dots {
-  margin-bottom: 5px;
-}
-.custom-calendar .vc-title {
-  margin-left: 1rem;
+@media screen and (max-width: 1215px) {
+  .rd-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>
