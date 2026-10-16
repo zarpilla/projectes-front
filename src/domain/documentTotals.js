@@ -31,3 +31,19 @@ export const totalIrpf = lines => -1 * sumBy(lines, l => (lineBase(l) * l.irpf) 
 export const hasDiscount = lines => lines.some(l => l.discount && l.discount > 0)
 
 export const totalBaseWithoutDiscount = lines => sumBy(lines, l => l.quantity * l.base)
+
+/**
+ * VAT (or IRPF) per rate, for the totals block: [{ rate, base, amount }] sorted
+ * by rate, only rates with some base. `field` is 'vat' or 'irpf'.
+ */
+export const byRate = (lines, field = 'vat') => {
+  const groups = new Map()
+  ;(lines || []).forEach(l => {
+    const rate = Number(l[field]) || 0
+    const g = groups.get(rate) || { rate, base: 0, amount: 0 }
+    g.base += lineBase(l)
+    g.amount += (lineBase(l) * l[field]) / 100
+    groups.set(rate, g)
+  })
+  return [...groups.values()].filter(g => g.base).sort((a, b) => a.rate - b.rate)
+}

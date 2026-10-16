@@ -1,84 +1,36 @@
 <template>
-  <div class="summary has-background-white-ter p-4">
-    <div
-      class="is-flex is-justify-content-flex-end"
-      v-if="totals.hasDiscount"
-    >
-      <label>Base sense descompte: </label>
-      <money-format
-        :value="totals.baseWithoutDiscount"
-        :locale="'es'"
-        :currency-code="'EUR'"
-        :subunits-value="false"
-        :hide-subunits="false"
-      >
-      </money-format>
+  <!-- Redesign A: base, VAT and IRPF per rate, and the total -->
+  <div class="summary doc-totals">
+    <div v-if="totals.hasDiscount" class="t-row">
+      <span class="t-label">Base sense descompte </span>
+      <span>{{ money(totals.baseWithoutDiscount) }}</span>
     </div>
-    <div
-      class="is-flex is-justify-content-flex-end"
-      v-if="totals.hasDiscount"
-    >
-      <label>Descompte: </label>
-      <money-format
-        :value="totals.discount"
-        :locale="'es'"
-        :currency-code="'EUR'"
-        :subunits-value="false"
-        :hide-subunits="false"
-      >
-      </money-format>
+    <div v-if="totals.hasDiscount" class="t-row">
+      <span class="t-label">Descompte </span>
+      <span>{{ money(totals.discount) }}</span>
     </div>
-    <div class="is-flex is-justify-content-flex-end">
-      <label>Base: </label>
-      <money-format
-        :value="totals.base"
-        :locale="'es'"
-        :currency-code="'EUR'"
-        :subunits-value="false"
-        :hide-subunits="false"
-      >
-      </money-format>
+    <div class="t-row">
+      <span class="t-label">Base imposable </span>
+      <span>{{ money(totals.base) }}</span>
     </div>
-    <div class="is-flex is-justify-content-flex-end">
-      <label>IVA: </label>
-      <money-format
-        :value="totals.vat"
-        :locale="'es'"
-        :currency-code="'EUR'"
-        :subunits-value="false"
-        :hide-subunits="false"
-      >
-      </money-format>
+    <div v-for="g in totals.vatRates" :key="'vat' + g.rate" class="t-row">
+      <span class="t-label">IVA {{ rate(g.rate) }} <small v-if="totals.vatRates.length > 1">sobre {{ money(g.base) }}</small> </span>
+      <span>{{ money(g.amount) }}</span>
     </div>
-    <div class="is-flex is-justify-content-flex-end">
-      <label>IRPF: </label>
-      <money-format
-        :value="totals.irpf"
-        :locale="'es'"
-        :currency-code="'EUR'"
-        :subunits-value="false"
-        :hide-subunits="false"
-      >
-      </money-format>
+    <div v-for="g in totals.irpfRates" :key="'irpf' + g.rate" class="t-row">
+      <span class="t-label">IRPF {{ rate(g.rate) }} <small>sobre {{ money(g.base) }}</small> </span>
+      <span>{{ money(-g.amount) }}</span>
     </div>
-    <div
-      class="is-flex is-justify-content-flex-end has-text-weight-bold mt-5"
-    >
+    <div class="t-row is-total">
       <label>Total </label>
-      <money-format
-        :value="totals.total"
-        :locale="'es'"
-        :currency-code="'EUR'"
-        :subunits-value="false"
-        :hide-subunits="false"
-      >
-      </money-format>
+      <span>{{ money(totals.total) }}</span>
     </div>
   </div>
 </template>
 
 <script>
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import { formatMoney, formatNumber } from "@/helpers/format-number";
 import * as documentTotals from "@/domain/documentTotals.js";
 
 // The totals block under a document's lines (DocumentForm)
@@ -100,10 +52,53 @@ export default {
         irpf,
         total: base + vat + irpf,
         hasDiscount: documentTotals.hasDiscount(this.lines),
+        vatRates: documentTotals.byRate(this.lines, "vat"),
+        irpfRates: documentTotals.byRate(this.lines, "irpf").filter(g => g.rate),
         baseWithoutDiscount,
         discount: baseWithoutDiscount - base
       };
     }
+  },
+  methods: {
+    money(value) {
+      return formatMoney(value);
+    },
+    rate(value) {
+      return formatNumber(value, 2) + " %";
+    }
   }
 };
 </script>
+
+<style scoped>
+.doc-totals {
+  margin-left: auto;
+  max-width: 26rem;
+  padding: 1rem 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+.t-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .1875rem 0;
+  font-size: .9375rem;
+}
+.t-row span:last-child {
+  font-weight: 700;
+}
+.t-label small {
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.t-row.is-total {
+  margin-top: .5rem;
+  padding-top: .625rem;
+  border-top: 1px solid var(--a-line);
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+.t-row.is-total span:last-child {
+  font-weight: 800;
+}
+</style>

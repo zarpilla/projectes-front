@@ -81,3 +81,19 @@ describe('DocumentForm totals', () => {
     expect(totalsOf([])).toEqual({ base: 0, vat: 0, irpf: -0, total: 0, hasDiscount: false, baseWithoutDiscount: 0, discount: 0 })
   })
 })
+
+describe('byRate', () => {
+  it('splits VAT by rate and adds up to totalVat', async () => {
+    const { byRate, totalVat } = await import('@/domain/documentTotals.js')
+    const lines = [
+      { quantity: 1, base: 1044, discount: 0, vat: 0, irpf: 0 },
+      { quantity: '1', base: '1099.25', discount: 0, vat: 10, irpf: 0 },
+      { quantity: 2, base: 50, discount: 10, vat: 21, irpf: 15 },
+      { quantity: 1, base: 30, discount: 0, vat: 21, irpf: 0 }
+    ]
+    const vat = byRate(lines)
+    expect(vat.map(g => [g.rate, Math.round(g.base * 100) / 100])).toEqual([[0, 1044], [10, 1099.25], [21, 120]])
+    expect(vat.reduce((a, g) => a + g.amount, 0)).toBeCloseTo(totalVat(lines), 10)
+    expect(byRate(lines, 'irpf').map(g => g.rate)).toEqual([0, 15])
+  })
+})
