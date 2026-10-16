@@ -402,6 +402,53 @@ a {
   }
 }
 
+/* ---------- filter rows of lists ----------
+   <div class="filter-bar"> with <label class="filter-select"><span>Any</span><b-select…></label>,
+   searches and autocompletes side by side, wrapping on small screens. */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .625rem;
+  margin-bottom: 1rem;
+}
+.filter-bar .field {
+  margin: 0;
+}
+.filter-bar .filter-grow {
+  flex: 1 1 12rem;
+  max-width: 18rem;
+}
+.filter-select {
+  display: inline-flex;
+  align-items: center;
+  height: 2.5rem;
+  padding-left: .75rem;
+  border: 1px solid $a-input;
+  border-radius: 8px;
+  background: $a-surface;
+
+  > span {
+    color: $a-muted;
+    font-weight: 600;
+    font-size: .875rem;
+    white-space: nowrap;
+  }
+
+  .select select {
+    border: 0;
+    box-shadow: none;
+    height: 2.375rem;
+    font-weight: 700;
+    background: transparent;
+  }
+
+  &:focus-within {
+    border-color: $a-accent;
+    box-shadow: 0 0 0 3px $a-focus;
+  }
+}
+
 /* ---------- small helpers shared by redesigned screens ---------- */
 .has-text-pos { color: $a-pos !important; }
 .has-text-neg { color: $a-neg !important; }

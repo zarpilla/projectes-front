@@ -1,41 +1,15 @@
 <template>
   <section class="xsection">
-    <tiles>
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_base"
-        suffix="€"
-        label="Base"
-      />
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_vat"
-        label="IVA"
-        suffix="€"
-      />
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_irpf"
-        label="IRPF"
-        suffix="€"
-      />
-      <card-widget
-        class="tile is-child"
-        type="is-primary"
-        icon="currency-eur"
-        :number="total_total"
-        label="Total"
-        suffix="€"
-      />
-    </tiles>
+    <!-- Redesign A: totals as figure cards -->
+    <div class="doc-kpis">
+      <div class="doc-kpi"><span>Base</span><b>{{ formatMoney(total_base) }}</b></div>
+      <div class="doc-kpi"><span>IVA</span><b>{{ formatMoney(total_vat) }}</b></div>
+      <div v-if="!provider" class="doc-kpi"><span>IRPF</span><b>{{ formatMoney(total_irpf) }}</b></div>
+      <div class="doc-kpi"><span>Total</span><b>{{ formatMoney(total_total) }}</b></div>
+    </div>
     <!-- <pre>{{emittedCSV}}</pre> -->
 
+    <div class="doc-actions">
     <download-excel class="export" :data="emittedCSV" 
     
     :fields="{
@@ -117,26 +91,25 @@
     name="ingressos">
       <b-button
         title="Exporta dades"
-        class="export-button mt-0 mb-3"
-        icon-left="file-excel"
-      />
+        icon-left="download"
+      >Exporta</b-button>
     </download-excel>
     <b-button
       v-if="!provider"
-      class="view-button is-primary mb-3"
-      @click="navNew"
-      icon-left="plus"
-    >
-      Nova factura
-    </b-button>
-    <b-button
-      v-if="!provider"
-      class="view-button is-primary mb-3 ml-3"
       @click="navNewIncome"
       icon-left="plus"
     >
       Nou ingrés
     </b-button>
+    <b-button
+      v-if="!provider"
+      type="is-primary"
+      @click="navNew"
+      icon-left="plus"
+    >
+      Nova factura
+    </b-button>
+    </div>
     <div class="has-scroll">
     <b-table    
       :loading="isLoading"
@@ -162,25 +135,14 @@
           {{ props.row.code }}
       </a>
         <b v-else>{{ props.row.code }}</b>
-      </b-table-column>
-      <b-table-column label="Tipus" field="type" v-slot="props" sortable>
-        <span v-if="props.row.type === 'emitted-invoices'">
-          Factura
-        </span>
-        <span v-if="props.row.type === 'received-incomes'">
-          {{props.row.document_type.name }}
+        <span class="doc-subline">
+          <template v-if="props.row.type === 'emitted-invoices'">Factura</template>
+          <template v-else-if="props.row.type === 'received-incomes' && props.row.document_type">{{ props.row.document_type.name }}</template>
         </span>
       </b-table-column>
-      <b-table-column label="Data" field="emitted" v-slot="props" sortable>
+      <b-table-column label="Data" field="emitted" v-slot="props" sortable cell-class="is-nowrap">
         {{ props.row.emitted ? formatDate(props.row.emitted) : "" }}
-      </b-table-column>
-      <b-table-column
-        label="Venciment"
-        field="paybefore"
-        v-slot="props"
-        sortable
-      >
-        {{ props.row.paybefore ? formatDate(props.row.paybefore) : "" }}
+        <span v-if="props.row.paybefore" class="doc-subline" title="Venciment">venç. {{ formatDate(props.row.paybefore) }}</span>
       </b-table-column>
       <b-table-column
         v-if="!provider"
@@ -188,47 +150,41 @@
         field="contact.name"
         v-slot="props"
         sortable
+        cell-class="doc-contact"
       >
-        {{ props.row.contact_info ? props.row.contact_info.name : props.row.contact ? props.row.contact.name : "" }}
+        <span class="doc-title">{{ props.row.contact_info ? props.row.contact_info.name : props.row.contact ? props.row.contact.name : "" }}</span>
+        <span class="doc-subline">{{ props.row.contact_info ? props.row.contact_info.nif : props.row.contact ? props.row.contact.nif : "" }}</span>
       </b-table-column>
-      <b-table-column
-        v-if="!provider"
-        label="NIF Contacte"
-        field="contact.name"
-        v-slot="props"
-        sortable
-      >
-        {{ props.row.contact_info ? props.row.contact_info.nif : props.row.contact ? props.row.contact.nif : null }}
-      </b-table-column>
-      <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable v-if="!provider">
-        {{
+      <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable v-if="!provider" cell-class="doc-concept">
+        <div class="doc-clamp" :title="props.row.document_concept || null">{{
           props.row.document_concept || (props.row.lines && props.row.lines.length > 0 ? props.row.lines[0].concept : "")
-        }}
+        }}</div>
       </b-table-column>
-      <b-table-column :label="!provider ? 'Projecte' : 'Ruta'" field="lines" v-slot="props" sortable>
-        <span v-for="project in props.row.projects" :key="project.id">{{project.name}}&nbsp;</span>        
+      <b-table-column :label="!provider ? 'Projecte' : 'Ruta'" field="lines" v-slot="props" sortable cell-class="doc-project">
+        <div class="doc-clamp"><span v-for="project in props.row.projects" :key="project.id">{{project.name}}&nbsp;</span></div>
       </b-table-column>
-      <b-table-column label="Base" field="total_base" v-slot="props" sortable>
-        {{ formatPrice(props.row.total_base) }} €
+      <b-table-column label="Base" field="total_base" v-slot="props" sortable numeric cell-class="is-nowrap">
+        {{ formatMoney(props.row.total_base) }}
       </b-table-column>
-      <b-table-column label="IVA" field="total_vat" v-slot="props" sortable>
-        {{ formatPrice(props.row.total_vat) }} €
+      <b-table-column label="IVA" field="total_vat" v-slot="props" sortable numeric cell-class="is-nowrap">
+        {{ formatMoney(props.row.total_vat) }}
       </b-table-column>
-      <b-table-column label="IRPF" v-if="!provider" field="total_irpf" v-slot="props" sortable>
-        {{ formatPrice(-1 * props.row.total_irpf) }} €
+      <b-table-column label="IRPF" v-if="!provider && hasIrpf" field="total_irpf" v-slot="props" sortable numeric cell-class="is-nowrap">
+        {{ formatMoney(-1 * props.row.total_irpf) }}
       </b-table-column>
-      <b-table-column label="Total" field="total" v-slot="props" sortable>
-        {{ formatPrice(props.row.total) }} €
+      <b-table-column label="Total" field="total" v-slot="props" sortable numeric cell-class="is-nowrap doc-total">
+        {{ formatMoney(props.row.total) }}
       </b-table-column>
-      <b-table-column label="Cobrada" field="paid_date" v-slot="props" sortable>
-        {{ props.row.paid_date ? formatDate(props.row.paid_date) : "No" }}
+      <b-table-column label="Cobrada" field="paid_date" v-slot="props" sortable cell-class="is-nowrap">
+        <span v-if="props.row.state === 'draft'" class="tag is-info is-light">Esborrany</span>
+        <span v-else-if="props.row.paid_date" class="tag is-success is-light">Cobrada</span>
+        <span v-else-if="Number(props.row.total) < 0" class="tag">Abonament</span>
+        <span v-else-if="isOverdue(props.row)" class="tag is-danger is-light">Vençuda</span>
+        <span v-else class="tag is-warning">No cobrada</span>
+        <span v-if="props.row.paid_date" class="doc-subline">{{ formatDate(props.row.paid_date) }}</span>
+        <span v-else-if="!provider && props.row.estimated_payment" class="doc-subline">prev. {{ formatDate(props.row.estimated_payment) }}</span>
+        <span v-if="!provider && !props.row.assigned" class="doc-subline doc-unassigned" title="No assignada a cap línia de pressupost de projecte">Sense assignar</span>
       </b-table-column>
-      <b-table-column label="Prev. cobr." v-if="!provider" field="estimated_payment" v-slot="props" sortable>
-        {{ props.row.estimated_payment ? formatDate(props.row.estimated_payment) : "-" }}
-      </b-table-column>
-      <b-table-column label="Assig." title="Assignada a línia de projecte" field="assigned" v-slot="props" sortable>
-          {{ props.row.assigned ? "Sí" : "No" }}
-        </b-table-column>
     </b-table>
   </div>
   </section>
@@ -238,8 +194,7 @@
 import service from "@/service/index";
 import moment from "moment";
 import sumBy from "lodash/sumBy";
-import Tiles from "@/components/Tiles.vue";
-import CardWidget from "@/components/CardWidget.vue";
+import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from 'pinia'
@@ -248,7 +203,7 @@ import getConfig from '@/config'
 
 export default {
   name: "EmittedInvoices",
-  components: { Tiles, CardWidget },
+  components: {},
   props: {
     titleStack: {
       type: Array,
@@ -296,6 +251,11 @@ export default {
     },
   },
   computed: {
+    // the IRPF column only when some document of the period has it
+    hasIrpf() {
+      return (this.emitted || []).some(r => Number(r.total_irpf));
+    },
+
     total_base() {
       return sumBy(this.emitted, "total_base").toFixed(2);
     },
@@ -364,6 +324,11 @@ export default {
     this.getData();
   },
   methods: {
+    formatMoney,
+    // not collected, positive and past its due date ("Venciment")
+    isOverdue(row) {
+      return !row.paid_date && Number(row.total) > 0 && !!row.paybefore && moment(row.paybefore, "YYYY-MM-DD").isBefore(moment(), "day");
+    },
     navNew() {
       this.$router.push("/document/0/emitted-invoices");
     },
@@ -376,7 +341,7 @@ export default {
     },
     formatDate(value) {
       if (!value) return ''
-      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+      return moment(value, "YYYY-MM-DD").format("DD/MM/YYYY");
     },
     async getData() {
       this.isLoading = true;
@@ -547,6 +512,83 @@ export default {
 };
 </script>
 <style>
+/* Redesign A: totals, actions and the list of income documents */
+.doc-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.doc-kpi {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  padding: .875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .125rem;
+  font-variant-numeric: tabular-nums;
+}
+.doc-kpi span {
+  font-size: .8125rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.doc-kpi b {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.doc-kpi small {
+  color: var(--a-muted);
+}
+.doc-kpi.is-warn b {
+  color: var(--a-warn-fg);
+}
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.doc-actions .export {
+  display: inline-flex;
+}
+.doc-subline {
+  display: block;
+  font-size: .8125rem;
+  color: var(--a-muted);
+}
+.doc-title {
+  display: block;
+}
+td.doc-contact {
+  min-width: 10rem;
+}
+td.doc-concept {
+  min-width: 10.5rem;
+  max-width: 15rem;
+}
+td.doc-project {
+  max-width: 9rem;
+}
+.doc-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+td.is-nowrap {
+  white-space: nowrap;
+}
+.doc-unassigned {
+  color: var(--a-warn-fg);
+  font-weight: 700;
+}
+td.doc-total {
+  font-weight: 800;
+}
 .has-scroll .table-wrapper{
   overflow: auto !important;
 }
