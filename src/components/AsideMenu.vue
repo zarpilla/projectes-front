@@ -1,66 +1,54 @@
 <template>
   <aside v-show="isAsideVisible" class="aside is-placed-left" :class="{ 'is-expanded': !isCollapsed, 'is-collapsed': isCollapsed }">
-    <aside-tools :is-main-menu="true">
-      <template #label>
-        <span>
-          <img v-if="!isCollapsed" class="main-logo" src="@/assets/esstrapis.svg" alt="ESSTRAPIS"  />
-          <img v-else class="main-logo-collapsed" src="@/assets/esstrapis-collapsed.svg" alt="ESSTRAPIS" title="ESSTRAPIS" />
-        </span>
-      </template>
-      <button class="button is-primary is-small collapse-toggle" @click="toggleCollapse" :title="isCollapsed ? 'Expandir menú' : 'Contraure menú'">
+    <div class="aside-head">
+      <router-link to="/projectes" class="aside-logo" title="ESSTRAPIS">
+        <b>ESS</b><span v-if="!isCollapsed">TRAPIS</span>
+      </router-link>
+      <button type="button" class="collapse-toggle" :title="isCollapsed ? 'Expandir menú' : 'Contraure menú'" :aria-label="isCollapsed ? 'Expandir menú' : 'Contraure menú'" @click="toggleCollapse">
         <b-icon :icon="isCollapsed ? 'chevron-right' : 'chevron-left'" custom-size="default" />
       </button>
-    </aside-tools>
+    </div>
     <div class="aside-content-scrollable">
-      <div class="menu is-menu-main">
-      <template v-for="(menuGroup, index) in menu" :key="index">
-        <p v-if="typeof menuGroup === 'string'" class="menu-label" v-show="!isCollapsed">
-          {{ menuGroup }}
-        </p>
-        <aside-menu-list
-          v-else
-          :menu="menuGroup"
-          :is-collapsed="isCollapsed"
-          @menu-click="menuClick"
-        />
-      </template>
-    </div>
-    <div class="user-section" v-if="!isCollapsed">
-      <div class="user-info">
-        <!-- <user-avatar /> -->
-        <div class="user-name">
-          <b-icon icon="account" custom-size="default"></b-icon>
-          <span>{{ userName }}</span>
-        </div>
-      </div>
-      <a class="logout-button" @click="logout">
-        <b-icon icon="logout" custom-size="default"></b-icon>
-        <span>Sortir</span>
-      </a>
-    </div>
-    <div class="user-section-collapsed" v-if="isCollapsed" :title="userName">
-      <user-avatar />
-      <a class="logout-button-collapsed" @click="logout" title="Sortir">
-        <b-icon icon="logout" custom-size="default"></b-icon>
-      </a>
-    </div>
-    <div class="logos-support" v-if="logos.length && !isCollapsed">      
-      Amb el suport de:
-    </div>
-    <div class="logos-support logos" v-if="logos.length && !isCollapsed">      
-      <div v-for="logo in logos" :key="'expanded-' + logo.id" class="mt-5 mb-5 has-text-centered">
-        <figure class="image is-190w is-inline-block">
+      <nav class="menu is-menu-main" aria-label="Menú principal">
+        <template v-for="(menuGroup, index) in menu" :key="index">
+          <template v-if="typeof menuGroup === 'string'">
+            <button
+              v-if="isCollapsible(menuGroup)"
+              v-show="!isCollapsed"
+              type="button"
+              class="menu-label menu-group-toggle"
+              :aria-expanded="isGroupOpen(index) ? 'true' : 'false'"
+              @click="toggleGroup(menuGroup)"
+            >
+              <span>{{ menuGroup }} · {{ groupSize(index) }}</span>
+              <b-icon :icon="isGroupOpen(index) ? 'chevron-up' : 'chevron-down'" custom-size="default" />
+            </button>
+            <p v-else v-show="!isCollapsed" class="menu-label">{{ menuGroup }}</p>
+          </template>
+          <aside-menu-list
+            v-else
+            v-show="isCollapsed || !isCollapsible(menu[index - 1]) || isGroupOpen(index - 1)"
+            :menu="menuGroup"
+            :is-collapsed="isCollapsed"
+            :class="{ 'is-submenu-group': isCollapsible(menu[index - 1]) }"
+            @menu-click="menuClick"
+          />
+        </template>
+      </nav>
+      <div v-if="logos.length && !isCollapsed" class="logos-support">
+        <span>Amb el suport de</span>
+        <figure v-for="logo in logos" :key="'expanded-' + logo.id" class="image">
           <img :src="logo.url" :alt="logo.name" />
         </figure>
       </div>
     </div>
-    <div class="logos-support logos-collapsed" v-if="logos.length && isCollapsed" :title="'Amb el suport de: ' + logos.map(l => l.name).join(', ')">
-      <div v-for="logo in logos" :key="'collapsed-' + logo.id" class="logo-item-collapsed">
-        <figure class="image">
-          <img :src="logo.url" :alt="logo.name" :title="logo.name" />
-        </figure>
-      </div>
-    </div>
+    <div class="aside-user" :class="{ 'is-collapsed': isCollapsed }">
+      <span class="aside-avatar" :title="userName">{{ initials }}</span>
+      <span v-if="!isCollapsed" class="aside-user-name">{{ userName }}</span>
+      <button type="button" class="logout-button" title="Sortir" aria-label="Sortir" @click="logout">
+        <b-icon icon="logout" custom-size="default" />
+        <span v-if="!isCollapsed">Sortir</span>
+      </button>
     </div>
   </aside>
 </template>
@@ -68,17 +56,18 @@
 <script>
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
-import AsideTools from '@/components/AsideTools.vue'
 import AsideMenuList from '@/components/AsideMenuList.vue'
-import UserAvatar from '@/components/UserAvatar.vue'
 import { logout } from '@/service/auth'
 import service from "@/service/index";
 import getConfig from "@/config";
 import { openTickets, ticketsErrorMessage } from "@/service/tickets";
 
+// Long groups start folded; they open by themselves when the current page is in them
+const COLLAPSIBLE_GROUPS = ['Informes', 'Altres']
+
 export default {
   name: 'AsideMenu',
-  components: { AsideTools, AsideMenuList, UserAvatar },
+  components: { AsideMenuList },
   props: {
     menu: {
       type: Array,
@@ -86,12 +75,17 @@ export default {
     }
   },
   computed: {
-    ...mapState(useMainStore, ['isAsideVisible', 'userName'])
+    ...mapState(useMainStore, ['isAsideVisible', 'userName']),
+    initials () {
+      const words = (this.userName || '').split(/[\s._@-]+/).filter(Boolean)
+      return words.slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?'
+    }
   },
   data() {
     return {
       logos: [],
-      isCollapsed: false
+      isCollapsed: false,
+      openGroups: {}
     }
   },
   created() {
@@ -102,6 +96,27 @@ export default {
     document.documentElement.classList.remove('has-aside-collapsed');
   },
   methods: {
+    isCollapsible (label) {
+      return typeof label === 'string' && COLLAPSIBLE_GROUPS.includes(label)
+    },
+    groupItems (labelIndex) {
+      const items = this.menu[labelIndex + 1]
+      return Array.isArray(items) ? items.filter(item => item && item.label) : []
+    },
+    groupSize (labelIndex) {
+      return this.groupItems(labelIndex).length
+    },
+    isGroupOpen (labelIndex) {
+      const label = this.menu[labelIndex]
+      if (this.openGroups[label] !== undefined) {
+        return this.openGroups[label]
+      }
+      return this.groupItems(labelIndex).some(item => item.to && item.to === this.$route.path)
+    },
+    toggleGroup (label) {
+      const labelIndex = this.menu.indexOf(label)
+      this.openGroups = { ...this.openGroups, [label]: !this.isGroupOpen(labelIndex) }
+    },
     async menuClick (item) {
       if (item.action === 'tickets') {
         try {
@@ -156,176 +171,230 @@ export default {
   }
 }
 </script>
+
 <style>
-.menu-list a{
-  padding: 0.3rem 0;
-}
-aside.aside{
-    overflow-y: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s ease;
-}
-.aside-content-scrollable {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: calc(100vh - 3.25rem);
-}
-/* Custom scrollbar styling */
-.aside-content-scrollable::-webkit-scrollbar {
-    width: 8px;
-}
-.aside-content-scrollable::-webkit-scrollbar-track {
-    background: transparent;
-}
-.aside-content-scrollable::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-}
-.aside-content-scrollable::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-/* Firefox scrollbar */
-.aside-content-scrollable {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-@media screen and (min-width: 1024px) {
-  aside.aside.is-collapsed {
-    width: 60px !important;
-  }
-}
-@media screen and (min-width: 1024px) {
-  aside.aside.is-collapsed .aside-tools-label {
-    justify-content: center;
-  }
-  aside.aside.is-collapsed .menu-item-label {
-    display: none;
-  }
-  aside.aside.is-collapsed .dropdown-icon {
-    display: none;
-  }
-  aside.aside.is-collapsed .menu-list {
-    text-align: center;
-  }
-  aside.aside.is-collapsed .menu-list a {
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
-.logos-support {
-  padding: 0 1rem;
-  color: #bbbbbb;
-}
-.logos-collapsed {
+aside.aside {
+  overflow-y: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 0.5rem 0;
+  transition: width 0.3s ease;
+  background: var(--a-surface);
+  border-right: 1px solid var(--a-line);
 }
-.logo-item-collapsed {
-  width: 40px;
-  height: 40px;
-  margin: 0.25rem 0;
-}
-.logo-item-collapsed .image {
-  width: 100%;
-  height: 100%;
-}
-.logo-item-collapsed img {
-  object-fit: contain;
-  width: 100%;
-  height: 100%;
-}
-.is-190w {
-    width: 100%;
-}
-.user-section {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 1rem;
-}
-.user-info {
+.aside-head {
+  position: relative;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  height: 4rem;
+  padding: 0 1.25rem;
 }
-.user-name {
-  display: flex;
+.aside-logo {
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #ffffff;
-  font-weight: 500;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: .02em;
+  line-height: 1;
+  color: var(--a-fg);
 }
-.logout-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0;
-  color: #bbbbbb;
-  cursor: pointer;
+.aside-logo b {
+  background: var(--a-brand);
+  color: #fff;
+  padding: 3px 5px 2px;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  font-weight: 800;
 }
-.logout-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+.aside-logo span {
+  padding-left: 3px;
+  color: var(--a-fg);
 }
-.user-section-collapsed {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 1rem;
-}
-.logout-button-collapsed {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  color: #bbbbbb;
-  cursor: pointer;
-  margin-top: 0.5rem;
-}
-.logout-button-collapsed:hover {
-  color: #ffffff;
-}
-.main-logo {
-  height: 1.75rem;
-  margin-top: 0.75rem;
-}
-.main-logo-collapsed {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  margin-top: 0.5rem;
+.aside-logo:hover {
+  color: var(--a-fg);
 }
 .collapse-toggle {
   position: absolute;
-  right: 0.5rem;
-  top: 0.675rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: inherit;
-  padding: 0.25rem;
+  right: .5rem;
+  top: 1.125rem;
+  width: 1.75rem;
+  height: 1.75rem;
   display: none;
-}
-aside.aside.is-collapsed .collapse-toggle {
-  top: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--a-muted);
+  cursor: pointer;
 }
 .collapse-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: var(--a-chip);
 }
-.aside:hover .collapse-toggle {
-  display: block;
+.aside:hover .collapse-toggle,
+.collapse-toggle:focus-visible {
+  display: inline-flex;
 }
-.aside-tools {
-  position: relative;
+.aside-content-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 .75rem 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--a-line) transparent;
+}
+aside.aside .menu-label {
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+  margin: 1.125rem 0 .375rem;
+  padding: 0 .625rem;
+}
+aside.aside .menu-label:first-child {
+  margin-top: .25rem;
+}
+aside.aside .menu-group-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  height: 2.25rem;
+  border-radius: 8px;
+}
+aside.aside .menu-group-toggle:hover {
+  background: var(--a-chip);
+}
+aside.aside .menu-list li + li {
+  margin-top: 2px;
+}
+aside.aside .menu-list a {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  min-height: 2.25rem;
+  padding: 0 .625rem;
+  border-radius: 8px;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--a-fg-2);
+}
+aside.aside .menu-list a .icon {
+  color: inherit;
+  width: 1.25rem;
+}
+aside.aside .menu-list a:hover {
+  background: var(--a-chip);
+  color: var(--a-fg);
+}
+aside.aside .menu-list a.is-active {
+  background: var(--a-accent-soft);
+  color: var(--a-accent);
+  font-weight: 800;
+}
+aside.aside .is-submenu-group a {
+  font-size: .84rem;
+}
+.logos-support {
+  margin-top: 1.5rem;
+  padding: 1rem .625rem 0;
+  border-top: 1px solid var(--a-line);
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  color: var(--a-muted);
+  font-size: .75rem;
+  font-weight: 600;
+}
+.logos-support img {
+  max-height: 3rem;
+  width: auto;
+  object-fit: contain;
+}
+.aside-user {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  padding: .75rem 1rem;
+  border-top: 1px solid var(--a-line);
+}
+.aside-user.is-collapsed {
+  flex-direction: column;
+  padding: .75rem 0;
+}
+.aside-avatar {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--a-accent-soft);
+  color: var(--a-accent);
+  font-weight: 800;
+  font-size: .75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.aside-user-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.logout-button {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: var(--a-muted);
+  cursor: pointer;
+  padding: .25rem .375rem;
+  border-radius: 6px;
+}
+.logout-button:hover {
+  background: var(--a-chip);
+  color: var(--a-fg);
+}
+@media screen and (min-width: 1024px) {
+  aside.aside.is-collapsed {
+    width: 64px !important;
+  }
+  aside.aside.is-collapsed .aside-head {
+    justify-content: center;
+    padding: 0;
+  }
+  aside.aside.is-collapsed .collapse-toggle {
+    position: static;
+    display: none;
+  }
+  aside.aside.is-collapsed:hover .collapse-toggle {
+    display: inline-flex;
+    position: absolute;
+    right: -.875rem;
+    background: var(--a-surface);
+    border: 1px solid var(--a-line);
+  }
+  aside.aside.is-collapsed .aside-content-scrollable {
+    padding: 0 .5rem 1rem;
+  }
+  aside.aside.is-collapsed .menu-item-label,
+  aside.aside.is-collapsed .dropdown-icon {
+    display: none;
+  }
+  aside.aside.is-collapsed .menu-list a {
+    justify-content: center;
+    padding: 0;
+  }
 }
 </style>

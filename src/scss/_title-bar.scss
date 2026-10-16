@@ -1,41 +1,61 @@
 @use "theme-default" as *;
 
+// Page head of the redesign (TitleBar.vue): breadcrumb, h1, subtitle, actions.
+// It scrolls with the page; on touch screens it leaves room for the fixed navbar.
 section.section.is-title-bar {
-  padding: $default-padding;
-  border-bottom: $light-border;
-  margin-top: 3.25rem;  
+  padding: 1.5rem 2rem 0;
+  margin-top: 3.25rem;
 
   @media screen and (min-width: 1024px) {
-    background-color: white;
-    padding: 0.5rem 1.5rem;
-    position: fixed;
-    z-index: 5;
-    width: 100%;    
-    margin-top: 0rem;
+    margin-top: 0;
   }
 
-  ul {
-    li {
-      display: inline-block;
-      padding: 0 $default-padding * .5 0 0;
-      font-size: $default-padding;
-      color: $title-bar-color;
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    color: $a-muted;
+    font-weight: 600;
+    font-size: .875rem;
+    margin-bottom: .5rem;
+  }
 
-      &:after {
-        display: inline-block;
-        content: '/';
-        padding-left: $default-padding * .5;
-      }
+  .title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
 
-      &:last-child {
-        padding-right: 0;
-        font-weight: 900;
-        color: $title-bar-active-color;
+  .title-text {
+    min-width: 0;
+  }
 
-        &:after {
-          display: none;
-        }
-      }
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: $a-fg;
+  }
+
+  .subtitle-line {
+    color: $a-muted;
+    margin-top: .125rem;
+  }
+
+  .title-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  @media screen and (max-width: 768px) {
+    padding: 1rem 1rem 0;
+
+    h1 {
+      font-size: 1.5rem;
     }
   }
 }

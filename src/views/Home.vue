@@ -1,102 +1,57 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle">
+      <download-excel :data="projectsCSV">
+        <b-button icon-left="download">Exporta</b-button>
+      </download-excel>
+      <b-button @click="switchToMotherProjects">Projectes mare</b-button>
+      <b-button type="is-primary" icon-left="plus" @click="navNewProject">
+        Nou projecte
+      </b-button>
+    </title-bar>
     <section class="section is-main-section">
-
-      <card-component title="FILTRES">
-        <form @submit.prevent>
-          <b-field grouped>
-            <b-field horizontal label="Estat">
-              <b-select
-                v-model="filters.project_state"
-                placeholder="Estat"
-                @change="onChange($event)"
-              >
-                <option
-                  v-for="(s, index) in project_states"
-                  :key="index"
-                  :value="s.id"
-                >
-                  {{ s.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field horizontal label="Coordina">
-              <b-select
-                v-model="filters.user"
-                placeholder="Coordina"
-                @change="onUserChange($event)"
-              >
-                <option value="0">--</option>
-                <option v-for="(s, index) in users" :key="index" :value="s.id">
-                  {{ s.username }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field horizontal label="Nom">
-              <b-input
-                :model-value="filters.q"
-                @keyup="queryProjects($event.target.value)"
-                placeholder="Nom del projecte"
-              >
-              </b-input>
-            </b-field>
-          </b-field>
-          <b-field grouped v-if="scopes && scopes.length">
-            <div class="columns is-multiline mt-5">
-              <div class="column">
-                <b-button
-                  class="zis-warning scope"
-                  @click="setScope(0)"
-                  :class="0 === filters.scopeId ? 'is-warning' : 'is-light'"
-                >
-                  Tots
-                </b-button>
-              </div>
-              <div class="column" v-for="(scope, i) in scopes" :key="i">
-                <b-button
-                  class="scope"
-                  @click="setScope(scope.id)"
-                  :class="
-                    scope.id === filters.scopeId ? 'is-warning' : 'is-light'
-                  "
-                >
-                  {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : "" }}
-                </b-button>
-              </div>
-            </div>
-          </b-field>
-        </form>
-      </card-component>
-
-      <div class="actions is-flex mb-5" style="justify-content: space-between;">
-        <div class="is-flex">
-          <b-button
-            class="zview-button is-primary"
-            @click="navNewProject"
-            icon-left="plus"
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <b-input
+          class="filter-search"
+          :model-value="filters.q"
+          icon="magnify"
+          placeholder="Cerca per nom"
+          aria-label="Cerca per nom"
+          @keyup="queryProjects($event.target.value)"
+        />
+        <label class="filter-select">
+          <span>Estat</span>
+          <b-select v-model="filters.project_state" @change="onChange($event)">
+            <option v-for="(s, index) in project_states" :key="index" :value="s.id">
+              {{ s.name }}
+            </option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Coordina</span>
+          <b-select v-model="filters.user" @change="onUserChange($event)">
+            <option value="0">Totes</option>
+            <option v-for="(s, index) in users" :key="index" :value="s.id">
+              {{ s.username }}
+            </option>
+          </b-select>
+        </label>
+        <div v-if="scopes && scopes.length" class="segmented" role="group" aria-label="Àmbit">
+          <button type="button" :class="{ 'is-on': 0 === filters.scopeId }" :aria-pressed="0 === filters.scopeId ? 'true' : 'false'" @click="setScope(0)">
+            Tots
+          </button>
+          <button
+            v-for="(scope, i) in scopes"
+            :key="i"
+            type="button"
+            :class="{ 'is-on': scope.id === filters.scopeId }"
+            :aria-pressed="scope.id === filters.scopeId ? 'true' : 'false'"
+            @click="setScope(scope.id)"
           >
-            Nou projecte
-          </b-button>
-          <download-excel :data="projectsCSV">
-            <b-button
-              title="Exporta dades"
-              class="export-button mt-0 mt-0 ml-4"
-              icon-left="file-excel"
-            />
-          </download-excel>
-          <div class="projects-number ml-4 mt-2 has-text-weight-bold">
-            {{ projectsNumber }} PROJECTES
-          </div>
+            {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : "" }}
+          </button>
         </div>
-        <b-button
-          class="is-info"
-          @click="switchToMotherProjects"
-          icon-left="folder-multiple"
-        >
-          Projectes Mare
-        </b-button>
-      </div>
+      </form>
 
       <b-loading
         :is-full-page="true"
@@ -104,12 +59,15 @@
         :can-cancel="false"
       ></b-loading>
 
-      <card-component
-        title="PROJECTES"
-        :header-icon="projectsEditMode ? 'table' : 'pencil'"
-        @header-icon-click="toggleProjectsEditMode"
-        class="has-table has-mobile-sort-spaced"
-      >
+      <div class="card has-table projects-card">
+        <header class="card-header">
+          <p class="card-header-title">{{ projectsEditMode ? "Edició ràpida" : "Projectes" }}</p>
+          <div class="card-header-actions">
+            <b-button size="is-small" :icon-left="projectsEditMode ? 'table' : 'pencil'" @click="toggleProjectsEditMode">
+              {{ projectsEditMode ? "Torna al llistat" : "Edició ràpida" }}
+            </b-button>
+          </div>
+        </header>
         <projects-table
           :project_state="filters.project_state"
           :projects="projects"
@@ -120,7 +78,7 @@
           :project-likelihoods="project_likelihoods"
           :edit-mode="projectsEditMode"
         />
-      </card-component>
+      </div>
     </section>
   </div>
 </template>
@@ -131,7 +89,6 @@ import * as chartConfig from "@/components/Charts/chart.config";
 import TitleBar from "@/components/TitleBar.vue";
 import Tiles from "@/components/Tiles.vue";
 import CardWidget from "@/components/CardWidget.vue";
-import CardComponent from "@/components/CardComponent.vue";
 import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
@@ -145,7 +102,6 @@ export default {
   components: {
     ProjectsTable,
     // BarChart,
-    CardComponent,
     CardWidget,
     Tiles,
     // HeroBar,
@@ -170,7 +126,7 @@ export default {
       estimatedDedication: 0,
       project_states: [],
       project_types: [],
-      filters: { project_state: 1, q: "", user: "", scopeId: 0 },
+      filters: { project_state: 1, q: "", user: "0", scopeId: 0 },
       queryChanged: 0,
       users: [],
       loading: false,
@@ -180,7 +136,12 @@ export default {
   computed: {
     ...mapState(useMainStore, ["userName"]),
     titleStack() {
-      return ["Projectes", "General"];
+      return ["Projectes"];
+    },
+    subtitle() {
+      const state = this.project_states.find(s => s.id === this.filters.project_state);
+      const count = `${this.projectsNumber} ${this.projectsNumber === 1 ? "projecte" : "projectes"}`;
+      return state && state.id ? `${count} · ${state.name.toLowerCase()}` : count;
     },
     projectsCSV() {
       // return this.projects
@@ -441,3 +402,75 @@ export default {
   }
 };
 </script>
+<style scoped>
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+.filter-bar .field {
+  margin: 0;
+}
+.filter-search {
+  flex: 1 1 16rem;
+  max-width: 21rem;
+}
+.filter-select {
+  display: inline-flex;
+  align-items: center;
+  height: 2.5rem;
+  padding-left: .75rem;
+  border: 1px solid var(--a-input);
+  border-radius: 8px;
+  background: var(--a-surface);
+}
+.filter-select > span {
+  color: var(--a-muted);
+  font-weight: 600;
+  font-size: .875rem;
+}
+.filter-select :deep(.select select) {
+  border: 0;
+  box-shadow: none;
+  height: 2.375rem;
+  font-weight: 700;
+  background: transparent;
+}
+.filter-select:focus-within {
+  border-color: var(--a-accent);
+  box-shadow: 0 0 0 3px var(--a-focus);
+}
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--a-seg);
+}
+.segmented button {
+  height: 2.125rem;
+  padding: 0 .75rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--a-fg-2);
+  cursor: pointer;
+}
+.segmented button.is-on {
+  background: var(--a-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.card-header-actions {
+  display: flex;
+  align-items: center;
+  padding-right: 1rem;
+}
+</style>

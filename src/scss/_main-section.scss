@@ -1,13 +1,11 @@
 @use "theme-default" as *;
 
+// The page head (TitleBar) is no longer fixed, so the content just follows it
 section.section.is-main-section {
-  padding-top: $default-padding;
+  padding: 1.25rem 2rem 3rem;
 }
-@media screen and (min-width: 1024px) {
+@media screen and (max-width: 768px) {
   section.section.is-main-section {
-    padding-top: calc(4.75rem);  
-  }
-  .section {
-    padding: 3rem 1.5rem;
+    padding: 1rem 1rem 2.5rem;
   }
 }

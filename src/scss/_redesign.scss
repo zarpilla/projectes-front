@@ -1,0 +1,337 @@
+@use "theme-default" as *;
+
+/* Redesign "A · Clar" (docs/redisseny-v2): global look of the Bulma/Buefy
+   components, so every screen gets it before being restructured one by one.
+   Tokens: _theme-default.scss ($a-*), also exposed here as --a-* for components. */
+
+:root {
+  --a-bg: #{$a-bg};
+  --a-surface: #{$a-surface};
+  --a-fg: #{$a-fg};
+  --a-fg-2: #{$a-fg-2};
+  --a-muted: #{$a-muted};
+  --a-line: #{$a-line};
+  --a-line-soft: #{$a-line-soft};
+  --a-input: #{$a-input};
+  --a-thead: #{$a-thead};
+  --a-chip: #{$a-chip};
+  --a-seg: #{$a-seg};
+  --a-accent: #{$a-accent};
+  --a-accent-hover: #{$a-accent-hover};
+  --a-accent-soft: #{$a-accent-soft};
+  --a-focus: #{$a-focus};
+  --a-brand: #{$a-brand};
+  --a-pos: #{$a-pos};
+  --a-neg: #{$a-neg};
+  --a-over: #{$a-over};
+  --a-warn-bg: #{$a-warn-bg};
+  --a-warn-line: #{$a-warn-line};
+  --a-warn-fg: #{$a-warn-fg};
+  --a-danger-bg: #{$a-danger-bg};
+  --a-danger-fg: #{$a-danger-fg};
+  --a-info-bg: #{$a-info-bg};
+  --a-info-fg: #{$a-info-fg};
+}
+
+body {
+  color: $a-fg;
+  background: $a-bg;
+}
+
+a {
+  color: $a-accent;
+
+  &:hover {
+    color: $a-accent-hover;
+  }
+}
+
+/* ---------- buttons ---------- */
+.button {
+  border-color: $a-input;
+  color: $a-fg;
+
+  &:hover {
+    border-color: $a-input;
+    background-color: $a-thead;
+    color: $a-fg;
+  }
+
+  &.is-primary {
+    background-color: $a-accent;
+    border-color: $a-accent;
+    color: #fff;
+
+    &:hover, &.is-hovered {
+      background-color: $a-accent-hover;
+      border-color: $a-accent-hover;
+      color: #fff;
+    }
+
+    &.is-outlined {
+      background-color: #fff;
+      color: $a-accent;
+      border-color: $a-accent;
+
+      &:hover {
+        background-color: $a-accent-soft;
+        color: $a-accent-hover;
+      }
+    }
+
+    &.is-light {
+      background-color: $a-accent-soft;
+      border-color: transparent;
+      color: $a-accent;
+    }
+  }
+
+  // The old theme used yellow buttons for secondary actions; the redesign has
+  // one primary action per screen and neutral secondary buttons.
+  &.is-warning {
+    background-color: $a-surface;
+    border-color: $a-input;
+    color: $a-fg;
+
+    &:hover, &.is-hovered, &:focus {
+      background-color: $a-thead;
+      border-color: $a-input;
+      color: $a-fg;
+    }
+
+    &.is-selected, &.is-active {
+      background-color: $a-accent-soft;
+      border-color: $a-accent;
+      color: $a-accent;
+    }
+  }
+
+  &.is-danger:not(.is-outlined):not(.is-light) {
+    background-color: $a-surface;
+    border-color: $a-input;
+    color: $a-danger-fg;
+
+    &:hover {
+      background-color: $a-danger-bg;
+      border-color: #F2B8B0;
+    }
+  }
+
+  &.is-text {
+    color: $a-accent;
+  }
+}
+
+/* ---------- form controls ---------- */
+.input, .textarea, .select select, .taginput .taginput-container {
+  border-color: $a-input;
+  box-shadow: none;
+  color: $a-fg;
+
+  &:focus, &.is-focused, &:focus-within {
+    border-color: $a-accent;
+    box-shadow: 0 0 0 3px $a-focus;
+  }
+
+  &::placeholder {
+    color: #8A9799;
+  }
+}
+
+.select:not(.is-multiple):not(.is-loading)::after {
+  border-color: $a-muted;
+}
+
+.label {
+  color: $a-fg;
+  font-weight: 700;
+}
+
+.field.is-horizontal .field-label .label {
+  font-weight: 700;
+}
+
+.help {
+  color: $a-muted;
+}
+
+.b-checkbox.checkbox input[type=checkbox]:checked + .check,
+.b-radio.radio input[type=radio]:checked + .check {
+  background-color: $a-accent;
+  border-color: $a-accent;
+}
+
+.switch input[type=checkbox]:checked + .check {
+  background: $a-accent;
+}
+
+/* ---------- cards ---------- */
+.card {
+  border-radius: 12px;
+  border: 1px solid $a-line;
+  box-shadow: none;
+
+  .card-header {
+    border-bottom: 1px solid $a-line;
+    box-shadow: none;
+  }
+
+  .card-header-title {
+    padding: .875rem 1.125rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: $a-fg;
+    letter-spacing: 0;
+  }
+
+  .card-header-icon {
+    color: $a-muted;
+  }
+}
+
+/* ---------- tables ---------- */
+.table {
+  color: $a-fg;
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+
+  thead th, thead td {
+    background: $a-thead;
+    color: $a-fg-2;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    border-bottom: 1px solid $a-line;
+    border-width: 0 0 1px;
+    vertical-align: bottom;
+  }
+
+  td, th {
+    border-color: $a-line-soft;
+    vertical-align: middle;
+  }
+
+  tfoot td, tfoot th {
+    background: $a-thead;
+    font-weight: 800;
+    border-top: 1px solid $a-line;
+  }
+
+  &.is-hoverable tbody tr:not(.is-selected):hover {
+    background-color: $a-thead;
+  }
+
+  tr.is-selected {
+    background-color: $a-accent-soft;
+    color: $a-fg;
+  }
+}
+
+.b-table .table-wrapper {
+  border-radius: 12px;
+}
+
+// pagination of a b-table inside a card: part of the card, not a grey strip
+.card.has-table .b-table > .level,
+.card.has-table .b-table .level:last-child {
+  margin: 0;
+  padding: .75rem 1rem;
+  background: $a-surface;
+  border-top: 1px solid $a-line;
+  border-radius: 0 0 12px 12px;
+}
+
+.table tfoot .table-footer th {
+  font-weight: 800;
+  color: $a-fg;
+}
+
+.pagination .pagination-link, .pagination .pagination-previous, .pagination .pagination-next {
+  border-color: $a-line;
+  border-radius: 8px;
+  min-width: 2.25rem;
+
+  &.is-current {
+    background-color: $a-accent-soft;
+    border-color: $a-accent-soft;
+    color: $a-accent;
+    font-weight: 800;
+  }
+}
+
+/* ---------- tags, notices, tabs ---------- */
+.tag:not(body) {
+  border-radius: 999px;
+  font-weight: 700;
+
+  &.is-warning {
+    background-color: $a-warn-bg;
+    color: $a-warn-fg;
+  }
+}
+
+.notification {
+  border-radius: 10px;
+
+  &.is-warning {
+    background-color: $a-warn-bg;
+    border: 1px solid $a-warn-line;
+    color: $a-warn-fg;
+  }
+
+  &.is-danger {
+    background-color: $a-danger-bg;
+    border: 1px solid #F2B8B0;
+    color: $a-danger-fg;
+  }
+
+  &.is-info {
+    background-color: $a-info-bg;
+    border: 1px solid #BCD3EE;
+    color: $a-info-fg;
+  }
+}
+
+.tabs {
+  a {
+    color: $a-fg-2;
+    font-weight: 700;
+    border-bottom-color: $a-line;
+  }
+
+  li.is-active a {
+    color: $a-accent;
+    border-bottom: 3px solid $a-accent;
+    font-weight: 800;
+  }
+
+  ul {
+    border-bottom-color: $a-line;
+  }
+}
+
+/* ---------- modals ---------- */
+.modal-card {
+  border-radius: 12px;
+}
+
+.modal-card-head {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.modal-card-title {
+  font-weight: 800;
+  color: $a-fg;
+}
+
+.modal-card-foot {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* ---------- small helpers shared by redesigned screens ---------- */
+.has-text-pos { color: $a-pos !important; }
+.has-text-neg { color: $a-neg !important; }
+.has-text-muted { color: $a-muted !important; }

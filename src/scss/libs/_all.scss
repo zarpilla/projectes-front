@@ -4,10 +4,10 @@
 // no-dark-mode: Bulma 1 otherwise follows prefers-color-scheme, which the
 // rest of the theme doesn't support
 @use "bulma/versions/bulma-no-dark-mode" with (
-  // Bulma 0.9 / Buefy 0.9 look: neutral greys (Bulma 1 tints them blue),
-  // the 0.9 palette and radii, regular-weight buttons with white text
-  $scheme-h: 0,
-  $scheme-s: 0%,
+  // Redesign "A · Clar": greys slightly tinted towards the teal accent,
+  // 8px radii, bold buttons (see docs/redisseny-v2/assets/a.css)
+  $scheme-h: 185,
+  $scheme-s: 12%,
   $black: theme.$black,
   $black-bis: theme.$black-bis,
   $black-ter: theme.$black-ter,
@@ -23,20 +23,22 @@
   $green: hsl(141, 53%, 53%),
   $cyan: hsl(204, 71%, 53%),
   $red: hsl(348, 86%, 61%),
-  $info: #167df0,
-  $radius-small: 2px,
-  $radius: 4px,
-  $radius-large: theme.$radius-large,
-  $card-radius: 0.25rem,
-  $button-weight: 400,
-  $title-weight: 600,
+  $info: #2F6FB0,
+  $radius-small: 4px,
+  $radius: 8px,
+  $radius-large: 12px,
+  $card-radius: 12px,
+  $button-weight: 700,
+  $title-weight: 800,
+  $text: theme.$a-fg,
+  $text-strong: theme.$a-fg,
   $custom-colors: (
     "primary": (theme.$primary, theme.$white),
     "link": (theme.$link, theme.$white),
-    "info": (#167df0, theme.$white),
-    "success": (hsl(141, 53%, 53%), theme.$white),
-    "warning": (theme.$yellow, rgba(0, 0, 0, .7)),
-    "danger": (hsl(348, 86%, 61%), theme.$white)
+    "info": (#2F6FB0, theme.$white),
+    "success": (#1F8A5B, theme.$white),
+    "warning": (#E8B23A, theme.$a-warn-fg),
+    "danger": (#C2412D, theme.$white)
   ),
   $family-sans-serif: theme.$family-sans-serif,
   $primary: theme.$primary,
@@ -50,7 +52,7 @@
   $menu-label-color: theme.$menu-label-color,
   $card-shadow: theme.$card-shadow,
   $card-header-shadow: theme.$card-header-shadow,
-  $table-cell-border-color: theme.$white-bis,
+  $table-cell-border-color: theme.$a-line-soft,
   $modal-card-head-background-color: theme.$modal-card-head-background-color,
   $modal-card-title-size: theme.$modal-card-title-size,
   $modal-card-body-padding: theme.$modal-card-body-padding,

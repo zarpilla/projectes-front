@@ -4,14 +4,15 @@
 
 @include desktop {
   html {
-    &.has-aside-left {
+    // only with a session: the login and password pages have no sidebar (App.vue)
+    &.has-aside-left.has-session {
       &.has-aside-expanded {
         nav.navbar, body {
           padding-left: $aside-width;
         }
         &.has-aside-collapsed {
           nav.navbar, body {
-            padding-left: 60px;
+            padding-left: 64px;
             @media screen and (min-width: 1024px) {
               height: 0;
               min-height: 0;

@@ -8,17 +8,46 @@ $size-base: 1rem;
 $default-padding: $size-base * 1.5;
 
 /* Default font */
-$family-sans-serif: "Nunito", sans-serif;
+$family-sans-serif: "Nunito", system-ui, sans-serif;
+
+/* Redesign "A · Clar" tokens (docs/redisseny-v2/assets/a.css). Also exposed as
+   --a-* custom properties in _redesign.scss for components. */
+$a-bg: #F5F7F7;
+$a-surface: #FFFFFF;
+$a-fg: #1A2426;
+$a-fg-2: #3E4E51;
+$a-muted: #56676A;
+$a-line: #DFE6E7;
+$a-line-soft: #EDF1F2;
+$a-input: #C9D3D4;
+$a-thead: #F8FAFA;
+$a-chip: #EEF2F3;
+$a-seg: #E9EEEF;
+$a-accent: #0B7A6C;
+$a-accent-hover: #075E53;
+$a-accent-soft: #E3F4F1;
+$a-focus: #CDEDE7;
+$a-brand: #00B89C;
+$a-pos: #146C4F;
+$a-neg: #B03A1C;
+$a-over: #C2561F;
+$a-warn-bg: #FFF6DE;
+$a-warn-line: #EDD48A;
+$a-warn-fg: #5C4200;
+$a-danger-bg: #FDECEA;
+$a-danger-fg: #8A1C12;
+$a-info-bg: #E8F1FB;
+$a-info-fg: #1D4E89;
 
 /* Base color */
-$base-color: #2e323a;
-$base-color-light: rgba(24, 28, 33, .06);
+$base-color: $a-fg;
+$base-color-light: $a-line;
 
 /* General overrides */
-$primary: $turquoise;
-$body-background-color: #f8f8f8;
-$link: $blue;
-$link-visited: $purple;
+$primary: $a-accent;
+$body-background-color: $a-bg;
+$link: $a-accent;
+$link-visited: $a-accent;
 $light-border: 1px solid $base-color-light;
 $hr-height: 1px;
 
@@ -30,25 +59,25 @@ $navbar-divider-border: 1px solid rgba($grey-lighter, .25);
 $navbar-item-h-padding: $default-padding * .75;
 $navbar-avatar-size: 1.75rem;
 
-/* Aside: Bulma override */
-$menu-item-radius: 0;
-$menu-list-link-padding: $size-base * .5 0;
-$menu-label-color: color.adjust($base-color, $lightness: 25%);
-$menu-item-color: color.adjust($base-color, $lightness: 30%);
-$menu-item-hover-color: $white;
-$menu-item-hover-background-color: color.adjust($base-color, $lightness: -3.5%);
-$menu-item-active-color: $white;
-$menu-item-active-background-color: color.adjust($base-color, $lightness: -2.5%);
+/* Aside: Bulma override (light sidebar of the redesign) */
+$menu-item-radius: 8px;
+$menu-list-link-padding: 0 10px;
+$menu-label-color: $a-muted;
+$menu-item-color: $a-fg-2;
+$menu-item-hover-color: $a-fg;
+$menu-item-hover-background-color: $a-chip;
+$menu-item-active-color: $a-accent;
+$menu-item-active-background-color: $a-accent-soft;
 
 /* Aside: specifics */
-$aside-width: $size-base * 14;
-$aside-mobile-width: $size-base * 15;
-$aside-icon-width: $size-base * 3;
-$aside-submenu-font-size: $size-base * .95;
+$aside-width: $size-base * 15.5;
+$aside-mobile-width: $size-base * 15.5;
+$aside-icon-width: $size-base * 2;
+$aside-submenu-font-size: $size-base * .875;
 $aside-box-shadow: none;
-$aside-background-color: $base-color;
-$aside-tools-background-color: color.adjust($aside-background-color, $lightness: -10%);
-$aside-tools-color: $white;
+$aside-background-color: $a-surface;
+$aside-tools-background-color: $a-surface;
+$aside-tools-color: $a-fg;
 
 /* Title Bar: specifics */
 $title-bar-color: $grey;
@@ -62,30 +91,30 @@ $card-shadow: none;
 $card-header-shadow: none;
 
 /* Card: specifics */
-$card-border: 1px solid $base-color-light;
+$card-border: 1px solid $a-line;
 $card-header-border-bottom-color: $base-color-light;
 
 /* Table: Bulma override */
-$table-cell-border: 1px solid $white-bis;
+$table-cell-border: 1px solid $a-line-soft;
 
 /* Table: specifics */
 $table-avatar-size: $size-base * 1.5;
 $table-avatar-size-mobile: 25vw;
 
 /* Form */
-$checkbox-border: 1px solid $base-color;
+$checkbox-border: 1px solid $a-input;
 
 /* Modal card: Bulma override */
-$modal-card-head-background-color: $white-ter;
+$modal-card-head-background-color: $a-surface;
 $modal-card-title-size: $size-base;
 $modal-card-body-padding: $default-padding 20px;
-$modal-card-head-border-bottom: 1px solid $white-ter;
-$modal-card-foot-border-top: 0;
+$modal-card-head-border-bottom: 1px solid $a-line;
+$modal-card-foot-border-top: 1px solid $a-line;
 
 /* Modal card: specifics */
 $modal-card-width: 40vw;
 $modal-card-width-mobile: 90vw;
-$modal-card-foot-background-color: $white-ter;
+$modal-card-foot-background-color: $a-surface;
 
 /* Notification: Bulma override */
 $notification-padding: $default-padding * .75 $default-padding;

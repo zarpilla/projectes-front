@@ -17,22 +17,32 @@
       :striped="false"
       :hoverable="false"
       :data="projectsData"
+      pagination-position="bottom"
+      :mobile-cards="false"
+      aria-next-label="Pàgina següent"
+      aria-previous-label="Pàgina anterior"
+      aria-page-label="Pàgina"
+      aria-current-label="Pàgina actual"
     >
       <template v-if="!editMode">
-        <b-table-column label="Nom" field="name" sortable v-slot="props">
+        <b-table-column label="Nom" field="name" sortable v-slot="props" cell-class="project-name-cell">
           <router-link
             :to="{ name: 'project.edit', params: { id: props.row.id } }"
+            class="project-name"
+            :title="props.row.name"
           >
-            <span class="project-name has-text-info">
-              {{ props.row.name }}
-            </span>
+            {{ props.row.name }}
           </router-link>
+          <span class="project-subline">
+            {{ props.row.clients && props.row.clients.length ? props.row.clients[0].name : "Sense clienta" }}
+          </span>
         </b-table-column>
         <b-table-column
           label="Coordina"
           field="leader.username"
           sortable
           v-slot="props"
+          cell-class="is-nowrap"
         >
           {{ props.row.leader ? props.row.leader.username : "" }}
         </b-table-column>
@@ -42,46 +52,22 @@
           sortable
           v-slot="props"
         >
-          {{ props.row.project_scope ? props.row.project_scope.name : "" }}
+          <span v-if="props.row.project_scope" class="tag">{{ props.row.project_scope.name }}</span>
         </b-table-column>
         <b-table-column
-          label="Hores dedicades"
+          label="Hores fetes / previstes"
           field="total_real_hours"
           sortable
-          numeric
           v-slot="props"
+          cell-class="hours-cell"
         >
-          {{
-            props.row.total_real_hours
-              ? props.row.total_real_hours.toFixed(2)
-              : ""
-          }}
-        </b-table-column>
-        <b-table-column
-          label="Hores previstes"
-          field="total_estimated_hours"
-          sortable
-          numeric
-          v-slot="props"
-        >
-          {{
-            props.row.total_estimated_hours
-              ? props.row.total_estimated_hours.toFixed(2)
-              : ""
-          }}
-        </b-table-column>
-        <b-table-column
-          label="Hores originals"
-          field="total_original_hours"
-          sortable
-          numeric
-          v-slot="props"
-        >
-          {{
-            props.row.total_original_hours
-              ? props.row.total_original_hours.toFixed(2)
-              : ""
-          }}
+          <div class="hours-line">
+            <b>{{ formatHours(props.row.total_real_hours || 0) }}</b>
+            <span>{{ props.row.total_estimated_hours ? "/ " + formatHours(props.row.total_estimated_hours) : "sense previsió" }}</span>
+          </div>
+          <div class="hours-bar" :title="hoursPercent(props.row) === null ? '' : hoursPercent(props.row) + ' %'">
+            <span :class="{ over: hoursPercent(props.row) > 100 }" :style="{ width: Math.min(100, hoursPercent(props.row) || 0) + '%' }"></span>
+          </div>
         </b-table-column>
         <b-table-column
           label="Resultat executat"
@@ -90,10 +76,9 @@
           numeric
           v-slot="props"
         >
-          {{
-            formatPrice(props.row.total_real_incomes_expenses || 0)
-          }}
-          €
+          <span class="amount" :class="'has-text-' + sign(props.row.total_real_incomes_expenses)">
+            {{ formatMoney(props.row.total_real_incomes_expenses) }}
+          </span>
         </b-table-column>
         <b-table-column
           label="Resultat previst"
@@ -102,41 +87,18 @@
           numeric
           v-slot="props"
         >
-          {{
-            formatPrice(
-              props.row.incomes_expenses ||
-                props.row.estimated_incomes_expenses ||
-                0
-            )
-          }}
-          €
-        </b-table-column>
-        <b-table-column
-          label="Resultat original"
-          field="original_incomes_expenses"
-          sortable
-          numeric
-          v-slot="props"
-        >
-          {{
-            formatPrice(props.row.original_incomes_expenses || 0)
-          }}
-          €
+          <span class="amount" :class="'has-text-' + sign(estimatedResult(props.row))">
+            {{ formatMoney(estimatedResult(props.row)) }}
+          </span>
         </b-table-column>
         <b-table-column
           label="Estat"
           v-slot="props"
           sortable
           field="project_state.name"
+          :visible="!project_state"
         >
-          {{ props.row.project_state ? props.row.project_state.name : "" }}
-        </b-table-column>
-        <b-table-column label="Clienta" field="clients.name" v-slot="props">
-          {{
-            props.row.clients && props.row.clients.length
-              ? props.row.clients[0].name
-              : ""
-          }}
+          <span v-if="props.row.project_state" class="tag">{{ props.row.project_state.name }}</span>
         </b-table-column>
         <b-table-column
           label="Modificat"
@@ -144,13 +106,13 @@
           sortable
           v-slot="props"
           date
+          numeric
         >
           <span :title="formatDateTime(props.row.updated_at)">{{
             formatDate(props.row.updated_at)
           }}</span>
         </b-table-column>
       </template>
-
       <template v-else>
         <b-table-column label="Nom" field="name" sortable v-slot="props">
           <template v-if="isEditingRow(props.row.id)">
@@ -396,6 +358,19 @@
           </div>
         </section>
       </template>
+      <template v-if="!editMode && projectsData.length" #footer>
+        <th>Total · {{ projectsData.length }} projectes</th>
+        <th></th>
+        <th></th>
+        <th class="hours-cell">
+          {{ formatHours(totals.realHours) }}
+          <span class="has-text-muted">/ {{ formatHours(totals.estimatedHours) }}</span>
+        </th>
+        <th class="has-text-right" :class="'has-text-' + sign(totals.realResult)">{{ formatMoney(totals.realResult) }}</th>
+        <th class="has-text-right" :class="'has-text-' + sign(totals.estimatedResult)">{{ formatMoney(totals.estimatedResult) }}</th>
+        <th v-if="!project_state"></th>
+        <th></th>
+      </template>
     </b-table>
   </div>
 </template>
@@ -404,6 +379,7 @@
 import ModalBox from "@/components/ModalBox.vue";
 import service from "@/service/index";
 import moment from "moment";
+import { formatHours, formatMoney, sign } from "@/helpers/format-number";
 
 export default {
   name: "ProjectsTable",
@@ -457,8 +433,8 @@ export default {
       trashObject: null,
       projectsData: [],
       isLoading: false,
-      paginated: false,
-      perPage: 10,
+      paginated: true,
+      perPage: 25,
       checkedRows: [],
       project_states: [],
       editingRowId: null,
@@ -486,6 +462,15 @@ export default {
     }
   },
   computed: {
+    totals() {
+      const sum = field => this.projectsData.reduce((total, p) => total + (Number(field(p)) || 0), 0);
+      return {
+        realHours: sum(p => p.total_real_hours),
+        estimatedHours: sum(p => p.total_estimated_hours),
+        realResult: sum(p => p.total_real_incomes_expenses),
+        estimatedResult: sum(p => this.estimatedResult(p))
+      };
+    },
     editableProjectStates() {
       return this.projectStates.filter(s => s.id !== 0);
     },
@@ -673,6 +658,18 @@ export default {
     trashCancel() {
       this.isModalActive = false;
     },
+    formatHours,
+    formatMoney,
+    sign,
+    estimatedResult(project) {
+      return project.incomes_expenses || project.estimated_incomes_expenses || 0;
+    },
+    hoursPercent(project) {
+      if (!project.total_estimated_hours) {
+        return null;
+      }
+      return Math.round(((project.total_real_hours || 0) / project.total_estimated_hours) * 100);
+    },
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -694,6 +691,55 @@ export default {
 </script>
 <style scoped>
 .project-name {
-  font-weight: bold;
+  display: block;
+  max-width: 22rem;
+  font-weight: 700;
+  color: var(--a-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.project-name:hover {
+  color: var(--a-accent);
+}
+.project-subline {
+  display: block;
+  color: var(--a-muted);
+  font-size: .8125rem;
+}
+:deep(.is-nowrap) {
+  white-space: nowrap;
+}
+:deep(.hours-cell) {
+  min-width: 11rem;
+}
+.hours-line {
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  font-size: .8125rem;
+}
+.hours-line span {
+  color: var(--a-muted);
+}
+.hours-bar {
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 3px;
+  background: var(--a-seg);
+  overflow: hidden;
+}
+.hours-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--a-accent);
+}
+.hours-bar span.over {
+  background: var(--a-over);
+}
+.amount {
+  font-weight: 700;
+  white-space: nowrap;
 }
 </style>

@@ -29,6 +29,13 @@ export default {
     ModalBoxInvoice
   },
   watch: {
+    // the sidebar (and the room the layout keeps for it) only exists with a session
+    userName: {
+      immediate: true,
+      handler(name) {
+        document.documentElement.classList.toggle("has-session", !!name);
+      }
+    },
     // Login.vue commits the new jwt on a successful login
     userJwt(jwt) {
       if (jwt) {

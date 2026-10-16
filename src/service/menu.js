@@ -80,7 +80,7 @@ const menu = [
       permission: "projects"
     }
   ],
-  "LOGÍSTICA",
+  "Logística",
   [
     {
       to: "/orders",
@@ -137,7 +137,7 @@ const menu = [
       permission: "orders"
     }
   ],
-  "LOGÍSTICA ADM",
+  "Logística · oficina",
   [
     {
       to: "/orders",
@@ -224,7 +224,7 @@ const menu = [
       permission: "orders_admin"
     }
   ],
-  "LOGÍSTICA",
+  "Logística · repartiment",
   [
     {
       to: "/orders",
@@ -263,7 +263,7 @@ const menu = [
       permission: "orders_delivery"
     }
   ],
-  "Consulta dades",
+  "Informes",
   [
     {
       to: "/stats-projectes",
@@ -279,14 +279,14 @@ const menu = [
     // },
     {
       to: "/dedicacio-charts",
-      label: "Dedicació",
+      label: "Dedicació (gràfic)",
       icon: "chart-pie",
       permission: "hours"
     },
     {
       to: "/stats-dedicacio",
       icon: "table",
-      label: "Dedicació",
+      label: "Dedicació (taula)",
       permission: "hours"
     },
     {
@@ -363,7 +363,7 @@ const menu = [
       permission: "projects"
     }
   ],
-  "ADMINISTRACIÓ",
+  "Administració",
   [
     {
       to: "/admin/me",
