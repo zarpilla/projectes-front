@@ -240,8 +240,9 @@ test('emitted invoice: create a draft assigned to a budget line', async () => {
 test('emitted invoice: saving the draft again keeps its project and its budget line', async () => {
   test.skip(!state.emittedId, 'needs the draft from the earlier test')
   await visit(`/document/${state.emittedId}/emitted-invoices`)
-  await expect(card('Línies').locator('input[name="SubFase"]').first()).toHaveValue(`${NAME} servei`)
-  // a saved draft is locked until it is opened for editing
+  // a saved draft is locked until it is opened for editing: its lines are a read-only table
+  await expect(card('Línies').locator('.lines-readonly')).toContainText(`${NAME} servei`)
+  await expect(card('Línies').locator('input[name="SubFase"]')).toHaveCount(0)
   await button("Editar dades de l'ESBORRANY").click()
   await expect(card('Línies').locator('input[name="SubFase"]').first()).toBeEnabled()
   await fillLine({ concept: `${NAME} servei`, quantity: 3, price: 100, vat: 21, irpf: 15 })

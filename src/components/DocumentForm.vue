@@ -204,6 +204,32 @@
           <div class="doc-main">
           <card-component class="tile is-child" title="Document">
             <div class="a-form is-compact document-fields">
+            <!-- issued invoice: the locked data as text (mockup A-Factura-emesa) -->
+            <div v-if="readOnly" class="doc-readonly">
+              <p v-if="form.state === 'draft'" class="ro-item is-full ro-draft-note">
+                Esborrany desat. Per canviar-ne les dades, clica «Editar dades de l'ESBORRANY».
+              </p>
+              <div class="ro-item is-full">
+                <span class="ro-label">Clienta <span class="ro-lock"><b-icon icon="lock-outline" custom-size="mdi-14px" />bloquejat</span></span>
+                <p class="ro-client">
+                  <b>{{ contact && contact.name ? contact.name : clientSearch || "—" }}</b>
+                  <span v-if="contactDetails" class="ro-sub"> · {{ contactDetails }}</span>
+                </p>
+                <router-link v-if="contact && contact.id" :to="{ name: 'contacts.edit', params: { id: contact.id } }" class="ro-link">Obre el contacte</router-link>
+              </div>
+              <div class="ro-item"><span class="ro-label">Sèrie</span><span class="ro-value">{{ serialName || "—" }}</span></div>
+              <div class="ro-item"><span class="ro-label">Número</span><span class="ro-value">{{ form.code || "—" }}</span></div>
+              <div class="ro-item"><span class="ro-label">Emissió</span><span class="ro-value">{{ formatDate(form.emitted) }}</span></div>
+              <div class="ro-item"><span class="ro-label">Venciment</span><span class="ro-value">{{ formatDate(form.paybefore) }}</span></div>
+              <div class="ro-item"><span class="ro-label">Mètode de cobrament</span><span class="ro-value">{{ paymentMethodName || "—" }}</span></div>
+              <div v-if="form.state === 'real' && (form.verifactu_chain || form.face_queue)" class="ro-item">
+                <span class="ro-label">Verifactu i FACe</span>
+                <span class="ro-value ro-tags">
+                  <span v-if="form.verifactu_chain" class="tag is-light" :class="form.verifactu_chain === 'ok' ? 'is-success' : 'is-warning'">Verifactu: {{ form.verifactu_chain }}</span>
+                  <span v-if="form.face_queue" class="tag is-light" :class="form.face_queue === 'ok' ? 'is-success' : 'is-warning'">FACe: {{ form.face_queue }}</span>
+                </span>
+              </div>
+            </div>
             <!-- PDF invoice parser (Z.ai): for new received invoices/expenses -->
             <b-field
               v-if="
@@ -216,7 +242,7 @@
               label=""
             >
               <b-button
-                class="view-button is-info"
+                class="view-button"
                 icon-left="file-upload"
                 :loading="isParsingInvoice"
                 @click="onInvoiceUploadClick"
@@ -233,7 +259,7 @@
             </b-field>
 
             <b-field
-              v-if="type === 'emitted-invoices'"
+              v-if="type === 'emitted-invoices' && !readOnly"
               label="Estat"
               horizontal
             >
@@ -268,7 +294,7 @@
               </div>
             </b-field>
 
-            <b-field label="Número" horizontal v-if="form.state !== 'draft'">
+            <b-field label="Número" horizontal v-if="form.state !== 'draft' && !readOnly">
               <b-input
                 v-model="form.code"
                 placeholder=""
@@ -296,7 +322,7 @@
                 PDF
               </b-button>
             </b-field>
-            <b-field label="Sèrie *" horizontal v-if="type !== 'payrolls'">
+            <b-field label="Sèrie *" horizontal v-if="type !== 'payrolls' && !readOnly">
               <b-select
                 v-model="form.serial"
                 placeholder=""
@@ -376,7 +402,7 @@
                 </option>
               </b-select>
             </b-field>
-            <b-field label="Emissió *" horizontal>
+            <b-field v-if="!readOnly" label="Emissió *" horizontal>
               <b-datepicker
                 @update:model-value="
                   input;
@@ -403,7 +429,8 @@
               v-if="
                 type !== 'received-incomes' &&
                   type !== 'received-expenses' &&
-                  type !== 'payrolls'
+                  type !== 'payrolls' &&
+                  !readOnly
               "
             >
               <b-datepicker
@@ -423,7 +450,7 @@
             
 
             <b-field
-              v-if="type !== 'quotes' && type !== 'payrolls'"
+              v-if="type !== 'quotes' && type !== 'payrolls' && !readOnly"
               :label="
                 type !== 'received-incomes' && type !== 'emitted-invoices'
                   ? 'Mètode de pagament'
@@ -456,7 +483,7 @@
             </b-field>
 
             <b-field
-              v-if="type == 'emitted-invoices' || type == 'quotes'"
+              v-if="(type == 'emitted-invoices' || type == 'quotes') && !readOnly"
               label="Clienta *"
               horizontal
             >
@@ -545,14 +572,14 @@
               </b-autocomplete>
               <div class="is-flex">
                 <b-button
-                  class="view-button is-warning mb-3"
+                  class="view-button mb-3"
                   @click="navNew"
                   icon-left="plus"
                   title="Nou Contacte"
                 >
                 </b-button>
                 <b-button
-                  class="view-button is-warning mb-3 ml-3"
+                  class="view-button mb-3 ml-3"
                   @click="refreshClients"
                   icon-left="refresh"
                   title="Refrescar Contactes"
@@ -594,7 +621,7 @@
                 >
                 </b-autocomplete>
                 <b-button
-                  class="view-button is-warning mb-0 ml-3"
+                  class="view-button mb-0 ml-3"
                   @click="refreshProjects"
                   icon-left="refresh"
                   title="Refrescar Projectes"
@@ -625,6 +652,15 @@
 
             
 
+            </div>
+          </card-component>
+
+          <card-component v-if="readOnly && form.lines" title="Línies" class="tile is-child lines-readonly-card">
+            <document-lines-read-only :lines="form.lines" :is-diet="form.document_type == '4'" />
+            <document-totals :lines="form.lines" />
+            <div class="doc-notes-readonly">
+              <span class="ro-label">Notes <small>visibles a la factura</small></span>
+              <p :class="{ 'has-text-muted': !form.comments }">{{ form.comments || "Cap nota" }}</p>
             </div>
           </card-component>
 
@@ -816,7 +852,7 @@
           </aside>
           </div>
           <div class="doc-below">
-          <card-component title="Línies" v-if="form.lines">
+          <card-component title="Línies" v-if="form.lines && !readOnly">
             <document-lines
               v-model:lines="form.lines"
               :new-line="getNewLine"
@@ -1030,6 +1066,7 @@ import ModalBoxDiet from "@/components/ModalBoxDiet.vue";
 import ProjectPhases from "@/components/ProjectPhases.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import DocumentLines from "@/components/DocumentLines.vue";
+import DocumentLinesReadOnly from "@/components/DocumentLinesReadOnly.vue";
 import DocumentTotals from "@/components/DocumentTotals.vue";
 import FileUpload from "@/components/FileUpload.vue";
 
@@ -1045,6 +1082,7 @@ export default {
     TitleBar,
     MoneyFormat,
     DocumentLines,
+    DocumentLinesReadOnly,
     DocumentTotals,
     ModalBoxEmittedInvoices,
     ModalBoxSplit,
@@ -1309,6 +1347,25 @@ export default {
           !this.canEditDraft)
       );
     },
+    // An issued invoice (or a draft that is not being edited) shows its locked
+    // data as text: same data, same save, just not as disabled inputs
+    readOnly() {
+      return this.type === "emitted-invoices" && !!this.emittedInvoiceEditDisabled;
+    },
+    serialName() {
+      const serie = (this.series || []).find(s => s.id === this.form.serial);
+      return serie ? serie.name : "";
+    },
+    paymentMethodName() {
+      const id = this.form.payment_method && this.form.payment_method.id ? this.form.payment_method.id : this.form.payment_method;
+      const method = (this.paymentMethods || []).find(m => m.id === id);
+      return method ? method.name : "";
+    },
+    contactDetails() {
+      const c = this.contact || {};
+      const place = [c.postcode, c.city].filter(Boolean).join(" ");
+      return [c.nif, c.address, place].filter(Boolean).join(" · ");
+    },
     emittedInvoiceSerieDisabled() {
       return (
         (this.type === "emitted-invoices" &&
@@ -1375,6 +1432,9 @@ export default {
   },
   methods: {
     formatMoney,
+    formatDate(date) {
+      return date ? moment(date).format("DD/MM/YYYY") : "—";
+    },
     getClearFormObject() {
       return {
         id: null,
@@ -3151,6 +3211,79 @@ export default {
 }
 .doc-notes {
   padding: 1rem 1.25rem 0;
+}
+/* issued invoice: locked data as text */
+.doc-readonly {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.ro-item.is-full {
+  grid-column: 1 / -1;
+}
+.ro-draft-note {
+  margin: 0;
+  font-size: .875rem;
+  color: var(--a-fg-2);
+}
+.ro-label {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .25rem;
+  font-size: .875rem;
+  font-weight: 700;
+  color: var(--a-fg);
+}
+.ro-label small {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--a-muted);
+}
+.ro-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: .125rem;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--a-muted);
+}
+.ro-value {
+  display: block;
+  font-weight: 700;
+  color: var(--a-fg);
+}
+.ro-client {
+  margin: 0;
+  color: var(--a-fg);
+}
+.ro-sub {
+  color: var(--a-fg-2);
+}
+.ro-link {
+  font-size: .875rem;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.ro-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem;
+}
+.lines-readonly-card :deep(.card-content) {
+  padding-bottom: 1.25rem;
+}
+.doc-notes-readonly {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--a-line-soft);
+}
+.doc-notes-readonly p {
+  margin: 0;
+  white-space: pre-line;
+  color: var(--a-fg);
 }
 
 .doc-layout {
