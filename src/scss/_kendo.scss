@@ -39,7 +39,7 @@ html body {
     font-weight: 700;
     font-size: .75rem;
     /* room for the ⋮ and × that Kendo places on the right */
-    padding: .125rem 2.75rem .125rem .625rem;
+    padding: .125rem 2.25rem .125rem .625rem;
     position: relative;
     margin: .125rem;
     box-shadow: none;
@@ -48,8 +48,23 @@ html body {
     border-color: $a-accent !important;
     color: $a-accent-hover !important;
   }
-  .k-pivot-toolbar .k-icon {
+  /* the ⋮ and × of a chip: small and quiet */
+  .k-pivot-toolbar .k-icon,
+  .k-pivot-rowheaders .k-button .k-icon {
     color: $a-muted;
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+  }
+  .k-pivot-toolbar .k-field-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    right: .375rem;
+  }
+  .k-pivot-toolbar .k-icon:hover {
+    color: $a-fg;
   }
 
   /* headers */
