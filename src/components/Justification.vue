@@ -1,6 +1,34 @@
 <template>
   <div>
     <div class="table-view">
+      <!-- Redesign A: figures and what's missing, from the same totals as the tables -->
+      <div v-if="kpi.rows.length" class="doc-kpis">
+        <div class="doc-kpi">
+          <span>Import justificat</span>
+          <b>{{ money(kpi.justified) }}</b>
+          <small>{{ kpi.withCost }} {{ kpi.withCost === 1 ? "projecte" : "projectes" }} · {{ view === "Factures" ? "factures" : "hores " + (type || "").toLowerCase() }}</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Import a justificar</span>
+          <b>{{ kpi.withGrantable ? money(kpi.grantable) : "—" }}</b>
+          <small>{{ kpi.withGrantable ? kpi.withGrantable + " projectes en tenen" + (year ? " per al " + year : "") : "Cap projecte en té" + (year ? " per al " + year : "") }}</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Pendent</span>
+          <b>{{ kpi.withGrantable ? money(kpi.grantable - kpi.justifiedWithGrantable) : "—" }}</b>
+          <small>{{ kpi.withGrantable ? percent(kpi.justifiedWithGrantable, kpi.grantable) + " justificat" : "Cal l'import a justificar" }}</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Projectes</span>
+          <b>{{ kpi.withCost }} <small>de {{ kpi.rows.length }}</small></b>
+          <small>amb import justificat</small>
+        </div>
+      </div>
+      <div v-if="kpi.withoutGrantable" class="notification is-warning just-warning">
+        <span><b>{{ kpi.withoutGrantable }} {{ kpi.withoutGrantable === 1 ? "projecte no té" : "projectes no tenen" }} import a justificar{{ year ? " per al " + year : "" }}</b>, així que no se'n pot calcular el pendent ni el percentatge. Es defineix a la fitxa del projecte, a «Subvencions», per a cada any.</span>
+        <router-link to="/grants" class="just-link">Obre Subvencions</router-link>
+      </div>
+
       <!-- <div class="info-help mb-4">
         <b-icon icon="information" size="is-small" />
         Desplega les seccions que vulguis consultar
@@ -28,79 +56,30 @@
           </b-table-column>
 
           <b-table-column field="grantable_amount" label="Import a justificar" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
-            <money-format
-              :value="props.row.grantable_amount ? props.row.grantable_amount : 0"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            />
+            <template v-if="props.row.grantable_amount">{{ money(props.row.grantable_amount) }}</template>
+            <span v-else class="tag is-warning is-light">Sense import</span>
           </b-table-column>
 
           <b-table-column field="cost" label="Import justificat" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
-            <money-format
-              :value="props.row.cost"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            />
+            <b>{{ money(props.row.cost) }}</b>
           </b-table-column>
 
           <b-table-column label="Pendent" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.grantable_amount - a.cost) - (b.grantable_amount - b.cost)">
-            <money-format
-              :value="props.row.grantable_amount ? props.row.grantable_amount - props.row.cost : -props.row.cost"
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            />
+            <template v-if="props.row.grantable_amount">{{ money(props.row.grantable_amount - props.row.cost) }}</template>
+            <span v-else class="has-text-muted">—</span>
           </b-table-column>
 
           <b-table-column label="%" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.grantable_amount ? (a.cost / a.grantable_amount) * 100 : 0) - (b.grantable_amount ? (b.cost / b.grantable_amount) * 100 : 0)">
-            <money-format
-              :value="props.row.grantable_amount ? (props.row.cost / props.row.grantable_amount) * 100 : 0"
-              :locale="'es'"
-              :currency-code="'%'"
-              :subunits-value="false"
-              :hide-subunits="false"
-              currency="%"
-            />
+            <template v-if="props.row.grantable_amount">{{ percent(props.row.cost, props.row.grantable_amount) }}</template>
+            <span v-else class="has-text-muted">—</span>
           </b-table-column>
 
           <template #footer>
-            <div class="has-text-weight-bold">
-              <div class="columns">
-                <div class="column is-5">TOTAL</div>
-                <div class="column is-2 has-text-right">
-                  <money-format
-                    :value="summaryAllGrantable"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  />
-                </div>
-                <div class="column is-2 has-text-right">
-                  <money-format
-                    :value="summaryAll"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  />
-                </div>
-                <div class="column is-2 has-text-right">
-                  <money-format
-                    :value="summaryAllGrantable - summaryAll"
-                    :locale="'es'"
-                    :currency-code="'EUR'"
-                    :subunits-value="false"
-                    :hide-subunits="false"
-                  />
-                </div>
-                <div class="column is-2"></div>
-              </div>
+            <div class="just-total">
+              <span>Total · {{ kpi.rows.length }} projectes</span>
+              <span>{{ kpi.withGrantable ? money(kpi.grantable) : "—" }}</span>
+              <span>{{ money(kpi.justified) }}</span>
+              <span>{{ kpi.withGrantable ? money(kpi.grantable - kpi.justifiedWithGrantable) : "—" }}</span>
             </div>
           </template>
         </b-table>
@@ -215,20 +194,20 @@
           </b-table-column>
 
           <b-table-column field="quantity" label="Hores (€)" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right">
-            {{ props.row.quantity.toFixed(2) }} €
+            {{ money(props.row.quantity) }}
           </b-table-column>
 
           <b-table-column label="Hores (h)" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.dedication && a.dedication.costByHour ? a.quantity / a.dedication.costByHour : 0) - (b.dedication && b.dedication.costByHour ? b.quantity / b.dedication.costByHour : 0)">
-            {{ props.row.dedication && props.row.dedication.costByHour ? (props.row.quantity / props.row.dedication.costByHour).toFixed(2) : 0 }}
+            {{ props.row.dedication && props.row.dedication.costByHour ? number(props.row.quantity / props.row.dedication.costByHour) + " h" : "—" }}
           </b-table-column>
 
           <b-table-column label="Bestreta (€)" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.payroll ? a.payroll.total : 0) - (b.payroll ? b.payroll.total : 0)">
-            {{ props.row.payroll ? props.row.payroll.total.toFixed(2) : "0" }} €
+            {{ props.row.payroll ? money(props.row.payroll.total) : "—" }}
           </b-table-column>
 
           <b-table-column label="% Hores/Bestreta" sortable numeric v-slot="props" header-class="has-text-right" cell-class="has-text-right" :custom-sort="(a, b) => (a.payroll && a.payroll.total ? (100 * a.quantity) / a.payroll.total : 0) - (b.payroll && b.payroll.total ? (100 * b.quantity) / b.payroll.total : 0)">
             <span v-if="props.row.payroll && props.row.payroll.total">
-              {{ ((100 * props.row.quantity) / props.row.payroll.total).toFixed(2) }} %
+              {{ percent(props.row.quantity, props.row.payroll.total) }}
             </span>
             <b-icon
               v-if="isJustificationExceeding100(props.row)"
@@ -551,6 +530,8 @@ import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
+import { formatMoney, formatNumber } from "@/helpers/format-number";
+import { grantableAmountForYear } from "@/domain/grantable";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -904,6 +885,20 @@ export default {
         })
         .value();
       return _.orderBy(activities, "project");
+    },
+    // figures of the shown view (bestretes or factures), from the totals tables
+    kpi() {
+      const rows = (this.view === "Factures" ? this.summaryByProjectInvoices : this.summaryByProjectAll) || [];
+      const withGrantable = rows.filter(r => Number(r.grantable_amount));
+      return {
+        rows,
+        justified: _.sumBy(rows, r => Number(r.cost) || 0),
+        grantable: _.sumBy(withGrantable, r => Number(r.grantable_amount)),
+        justifiedWithGrantable: _.sumBy(withGrantable, r => Number(r.cost) || 0),
+        withGrantable: withGrantable.length,
+        withCost: rows.filter(r => Number(r.cost)).length,
+        withoutGrantable: rows.filter(r => !Number(r.grantable_amount) && Number(r.cost)).length
+      };
     },
     summaryAll() {
       return _.sumBy(this.summaryByProjectAll, "cost");
@@ -1357,25 +1352,18 @@ export default {
     this.getActivities();
   },
   methods: {
+    money(value) {
+      return formatMoney(Number(value) || 0);
+    },
+    number(value) {
+      return formatNumber(Number(value) || 0, 2, 2);
+    },
+    percent(part, whole) {
+      return whole ? formatNumber((Number(part) || 0) / whole * 100, 1, 1) + " %" : "—";
+    },
     // Helper function to get grantable amount for a specific year and field
     getGrantableAmountForYear(project, year, field = "grantable_amount") {
-      if (
-        !project ||
-        !project.grantable_years ||
-        !project.grantable_years.length
-      ) {
-        // Fallback to old structure if grantable_years not available
-        return project[field] || 0;
-      }
-
-      // Find the grantable year data for the specified year
-      const grantableYear = project.grantable_years.find(gy => {
-        // Handle both cases: year as object or year as ID
-        const gyYear = typeof gy.year === "object" ? gy.year.year : gy.year;
-        return gyYear.toString() === year.toString();
-      });
-
-      return grantableYear ? grantableYear[field] || 0 : 0;
+      return grantableAmountForYear(project, year, field);
     },
 
     // Helper function to get total grantable amount for all years
@@ -1801,6 +1789,34 @@ export default {
   },
 };
 </script>
+<style scoped>
+.just-warning {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: .875rem;
+}
+.just-total {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10rem 10rem 10rem 3rem;
+  gap: .5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.just-total span:not(:first-child) {
+  text-align: right;
+}
+.just-link {
+  font-weight: 800;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.doc-kpi b small {
+  font-size: .875rem;
+  color: var(--a-muted);
+}
+</style>
 <style scoped>
 .separator {
   margin-right: 0.5rem;
