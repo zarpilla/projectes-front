@@ -191,7 +191,26 @@
       </header>
       <div class="month-bars" role="img" :aria-label="chartMonths.map(m => monthName(m.month) + ': ' + money(m.subtotal)).join(', ')">
         <div class="zero-line" :style="{ bottom: zeroPos }"></div>
-        <div v-for="m in chartMonths" :key="m.ym" class="mb-col" :class="{ 'is-now': m.ym === currentYm }" :title="monthName(m.month) + ': ' + money(m.subtotal)">
+        <div
+          v-for="(m, k) in chartMonths"
+          :key="m.ym"
+          class="mb-col"
+          :class="{ 'is-now': m.ym === currentYm, 'is-hover': hoverYm === m.ym }"
+          tabindex="0"
+          @mouseenter="hoverYm = m.ym"
+          @mouseleave="hoverYm = null"
+          @focus="hoverYm = m.ym"
+          @blur="hoverYm = null"
+        >
+          <div v-if="hoverYm === m.ym" class="mb-tip" :class="{ 'is-left': k > chartMonths.length - 4 }" role="tooltip">
+            <b>{{ monthName(m.month) }} {{ m.year }}<span v-if="m.ym > currentYm"> · previst</span></b>
+            <dl>
+              <dt>Cobraments</dt><dd>{{ money(m.total_incomes) }}</dd>
+              <dt>Pagaments</dt><dd class="has-text-neg">{{ money(m.total_expenses) }}</dd>
+              <dt>Resultat</dt><dd :class="'has-text-' + sign(m.total_amount)">{{ money(m.total_amount, true) }}</dd>
+              <dt class="is-strong">Saldo final</dt><dd class="is-strong" :class="'has-text-' + sign(m.subtotal)">{{ money(m.subtotal) }}</dd>
+            </dl>
+          </div>
           <div class="mb-area">
             <i
               :class="[m.subtotal < 0 ? 'c-neg' : 'c-pos', { 'is-future': m.ym > currentYm }]"
@@ -573,6 +592,7 @@ export default {
       selectedProjectStates: [],
       selectedYear: null,
       showLater: false,
+      hoverYm: null,
       selectedBankAccountIds: [],
       pivotIdentifier: "tresoreria-pivot",
       projectSearch: "",
@@ -1290,7 +1310,7 @@ export default {
   position: relative;
   display: flex;
   gap: .75rem;
-  height: 14rem;
+  height: 15rem;
   padding: 1.25rem 1.25rem .5rem;
 }
 .zero-line {
@@ -1325,6 +1345,47 @@ export default {
 }
 .mb-area i.is-future.c-neg {
   background: #F2B8A0;
+}
+.mb-col {
+  position: relative;
+  cursor: default;
+  outline: none;
+}
+.mb-col.is-hover .mb-area i {
+  filter: brightness(.9);
+}
+.mb-tip {
+  position: absolute;
+  top: 0;
+  left: calc(50% + 1.75rem);
+  z-index: 5;
+  min-width: 13rem;
+  padding: .625rem .75rem;
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(16, 32, 30, .14);
+  font-size: .8125rem;
+  pointer-events: none;
+}
+.mb-tip.is-left {
+  left: auto;
+  right: calc(50% + 1.75rem);
+}
+.mb-tip dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: .125rem 1rem;
+  margin-top: .375rem;
+  font-variant-numeric: tabular-nums;
+}
+.mb-tip dd {
+  text-align: right;
+}
+.mb-tip .is-strong {
+  font-weight: 800;
+  padding-top: .25rem;
+  border-top: 1px solid var(--a-line-soft);
 }
 .mb-label {
   font-size: .75rem;
