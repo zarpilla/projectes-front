@@ -81,8 +81,8 @@ describe('Excel export of Incidències', () => {
       ['ID', 'Comanda', 'Punt', 'Sòcia', 'Descripció', 'Estat', 'Creada', 'Creada per', 'Tancada', 'Tancada per']
     )
     expect(cells(excel, rows)).toEqual([
-      [9, 12, 'El Rebost', 'Anna Puig', 'Caixa trencada', 'TANCADA', '01/09/2026', 'Anna Puig', '03/09/2026', 'admin'],
-      [8, '', '', '', 'Falta un paquet', 'OBERTA', '20/08/2026', '', '', '']
+      [9, 12, 'El Rebost', 'Anna Puig', 'Caixa trencada', 'Tancada', '01/09/2026', 'Anna Puig', '03/09/2026', 'admin'],
+      [8, '', '', '', 'Falta un paquet', 'Oberta', '20/08/2026', '', '', '']
     ])
   })
 
@@ -109,7 +109,7 @@ describe('Excel export of Punts de recollida', () => {
     expect(cells(excel, excel.props('data'))).toEqual([
       [12, 'Pendent', 'El Rebost', 'Bages', '2026-10-14', 'Hort de la Vall', 'F12345678', 2, 14, 'Sí'],
       [12, 'Pendent', 'El Rebost', 'Bages', '2026-10-14', 'Formatges Serra', 'B87654321', 1, 5, 'No'],
-      [13, 'Entregada', 'La Fleca', '', '2026-10-15', '', '', '', '', '']
+      [13, 'Lliurada', 'La Fleca', '', '2026-10-15', '', '', '', '', '']
     ])
   })
 })

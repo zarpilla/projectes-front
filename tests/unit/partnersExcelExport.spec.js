@@ -1,5 +1,5 @@
 // issues/018 — the Sòcies page (/partners) exports the member list to Excel:
-// the rows and columns shown in the table.
+// the members shown in the table, with every piece of data it shows.
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -38,8 +38,11 @@ describe('UsersTable Excel export', () => {
     expect(excel.props('name')).toBe('socies')
     expect(excel.props('data').map(u => u.id)).toEqual([3, 4])
 
+    // the table shows member, access and contribution in three columns; the file
+    // keeps each piece of them in its own column (and the permissions)
     const fields = excel.props('fields')
-    expect(Object.keys(fields)).toEqual(w.findAll('th').map(th => th.text()).filter(Boolean))
+    expect(w.findAll('th').map(th => th.text()).filter(Boolean)).toEqual(['Sòcia', 'Accés', 'Aportació'])
+    expect(Object.keys(fields)).toEqual(['ID Usuària', 'Sòcia', 'Nom', 'Nom complet', 'Correu accès', 'Permisos', 'Import aportació', 'Data aportació'])
 
     // what the file gets for a member with and without a contact
     const value = (row, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k]), row)
