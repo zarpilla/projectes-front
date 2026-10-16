@@ -7,191 +7,126 @@
     ></b-loading>
     
     <div class="table-view">
-      <div class="mb-4">
-        <button
-          v-if="!isLoading"
-          class="button is-primary zmt-5"
-          @click="generatePDF"
+      <div v-if="!isLoading && showToday" class="wl-today">
+        <span class="wl-today-label">Avui</span>
+        <b>{{ todayLong }}</b>
+        <span class="has-text-muted">{{ personName }} · {{ todayStatus }}</span>
+        <b-button
+          class="ml-auto"
+          type="is-primary"
+          :icon-left="openSlotToday ? 'stop' : 'play'"
+          @click="clockToday"
         >
-          Descarrega PDF
-        </button>
-
-        <!-- <button
-          v-if="!isLoading && generatedPDF"
-          class="button is-primary zmt-5 ml-3"
-          @click="downloadPDF"
-          
-        >
-          Descarrega PDF
-        </button> -->
+          {{ openSlotToday ? "Fitxa la sortida" : "Fitxa l'entrada" }}
+        </b-button>
       </div>
 
-      <card-component
-        class="has-table has-mobile-sort-spaced"
-        v-if="!isLoading"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Data</div>
-          <div class="column has-text-weight-bold">Entrada</div>
-          <div class="column has-text-weight-bold">Sortida</div>
-          <div class="column has-text-weight-bold">
-            Hores treballades (total)
-          </div>
-          <div class="column has-text-weight-bold">
-            Projecte
-          </div>
-          <div class="column has-text-weight-bold"></div>
+      <div v-if="!isLoading" class="doc-kpis wl-kpis">
+        <div class="doc-kpi">
+          <span>Hores treballades</span>
+          <b>{{ formatDuration(totalMinutes) }}</b>
+          <small>total {{ periodLabelOf }}</small>
         </div>
-        <div v-for="(a, i) in activities" v-bind:key="i" class="card-body">
-          <div v-if="a._type !== 'total'" class="columns">
-            <div class="column ">
-              {{ a.date }}
-              <button
-                class="button is-small is-warning ml-5"
-                type="button"
-                @click="addPeriod(a, i)"
-              >
-                <b-icon icon="plus" size="is-small" />
-              </button>              
-            </div>
-            <div class="column">
-              <div class="is-flex">
-                <b-input
-                  class="time-part-input mr-1"
-                  placeholder="Hora..."
-                  v-model="a.hour_in_h"
-                  type="number"
-                  min="0"
-                  max="23"
-                  @change="changeHourIn(a, i)"
-                  :disabled="a.id === 0"
-                >
-                </b-input>
-                <b-input
-                  class="time-part-input"
-                  placeholder="Minut..."
-                  v-model="a.hour_in_m"
-                  type="number"
-                  min="0"
-                  max="59"
-                  @change="changeHourIn(a, i)"
-                  :disabled="a.id === 0"
-                >
-                </b-input>
+        <div class="doc-kpi">
+          <span>Jornada prevista</span>
+          <b>{{ formatExpected(expectedTotal) }}</b>
+          <small>{{ expectedDays }} dies laborables</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Diferència</span>
+          <b :class="'has-text-' + (balanceMinutes > 0 ? 'pos' : balanceMinutes < 0 ? 'neg' : 'muted')">{{ balanceMinutes > 0 ? "+" : "" }}{{ formatDuration(balanceMinutes) }}</b>
+          <small>respecte a la jornada fins avui</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Dies registrats</span>
+          <b>{{ loggedWorkingDays }} de {{ expectedDaysToDate }}</b>
+          <small>{{ festivesLabel }}</small>
+        </div>
+      </div>
+
+      <div v-if="!isLoading" class="wl-table">
+        <div class="wl-head">
+          <span>Dia</span>
+          <span>Trams (entrada – sortida) · projecte</span>
+          <span class="has-text-right">Hores</span>
+        </div>
+        <template v-for="row in rows" :key="row.key">
+          <div v-if="row.type === 'week'" class="wl-sum">
+            <span>Setmana {{ row.week }}</span>
+            <span class="has-text-muted">{{ row.expected ? "de " + formatExpected(row.expected) + " previstes" : "" }}</span>
+            <b class="has-text-right">{{ formatDuration(row.minutes) }}</b>
+          </div>
+          <div v-else-if="row.type === 'month'" class="wl-sum is-month">
+            <span>Total {{ row.name }}</span>
+            <span class="has-text-muted">{{ row.expected ? "de " + formatExpected(row.expected) + " previstes" : "" }}</span>
+            <b class="has-text-right">{{ formatDuration(row.minutes) }}</b>
+          </div>
+          <div
+            v-else
+            class="wl-day"
+            :class="{ 'is-quiet': !row.slots.length && (row.weekend || row.festive), 'is-festive': row.festive, 'is-today': row.date === todayF }"
+            :data-date="row.date"
+          >
+            <span class="wl-date">{{ row.label }}</span>
+            <div class="wl-slots">
+              <div v-for="slot in row.slots" :key="slot.key" class="wl-slot">
+                <span class="wl-time" :class="{ 'is-empty': !slot.a.hour_in }">
+                  <input v-model="slot.a.hour_in_h" class="wl-num" inputmode="numeric" maxlength="2" placeholder="hh" aria-label="Hora d'entrada" @change="changeHourIn(slot.a, slot.i)" />
+                  <span>:</span>
+                  <input v-model="slot.a.hour_in_m" class="wl-num" inputmode="numeric" maxlength="2" placeholder="mm" aria-label="Minut d'entrada" @change="changeHourIn(slot.a, slot.i)" />
+                </span>
+                <span class="wl-dash">–</span>
+                <span class="wl-time" :class="{ 'is-empty': !slot.a.hour_out }">
+                  <input v-model="slot.a.hour_out_h" class="wl-num" inputmode="numeric" maxlength="2" placeholder="hh" aria-label="Hora de sortida" @change="changeHourOut(slot.a, slot.i)" />
+                  <span>:</span>
+                  <input v-model="slot.a.hour_out_m" class="wl-num" inputmode="numeric" maxlength="2" placeholder="mm" aria-label="Minut de sortida" @change="changeHourOut(slot.a, slot.i)" />
+                </span>
+                <span class="wl-dur">{{ slot.a.hour_in && slot.a.hour_out ? formatDuration(slotMinutes(slot.a.hour_in, slot.a.hour_out)) : slot.a.hour_in ? "en curs" : "" }}</span>
+                <b-autocomplete
+                  v-if="slot.a.projectNameSearch !== undefined"
+                  v-model="slot.a.projectNameSearch"
+                  class="wl-project"
+                  size="is-small"
+                  placeholder="Projecte (opcional)"
+                  :keep-first="false"
+                  :open-on-focus="true"
+                  :data="filteredProjects(slot.a.projectNameSearch)"
+                  field="name"
+                  :disabled="!slot.a.id || slot.a.id <= 0"
+                  :clearable="true"
+                  @select="option => selectProject(option, slot.a, slot.i)"
+                />
                 <button
-                  v-if="a.date === todayF"
-                  class="button is-small is-success ml-5"
+                  v-if="slot.a.id && slot.a.id > 0"
+                  class="wl-icon"
                   type="button"
-                  @click.prevent="hourin(a, i)"
-                  title="Entrada"
-                  :disabled="
-                    a.hour_in_h !== null &&
-                      a.hour_in_m != null &&
-                      a.hour_in_h !== '' &&
-                      a.hour_in_m != ''
-                  "
+                  title="Esborrar"
+                  aria-label="Esborra el tram"
+                  @click.prevent="deleteWorkLog(slot.a)"
                 >
-                  <b-icon icon="arrow-right" size="is-small" />
+                  <b-icon icon="trash-can-outline" custom-size="default" />
                 </button>
               </div>
+              <span v-if="!row.slots.length" class="wl-none">
+                {{ row.festive ? row.festiveName : row.weekend ? "cap de setmana" : "sense trams" }}
+              </span>
             </div>
-            <div class="column">
-              <div class="is-flex">
-                <b-input
-                  class="time-part-input mr-1"
-                  placeholder="Hora..."
-                  v-model="a.hour_out_h"
-                  type="number"
-                  min="0"
-                  max="23"
-                  @change="changeHourOut(a, i)"
-                  :disabled="a.id === 0"
-                >
-                </b-input>
-                <b-input
-                  class="time-part-input"
-                  placeholder="Minut..."
-                  v-model="a.hour_out_m"
-                  type="number"
-                  min="0"
-                  max="59"
-                  @change="changeHourOut(a, i)"
-                  :disabled="a.id === 0"
-                >
-                </b-input>
-                <button
-                  v-if="a.date === todayF"
-                  class="button is-small is-danger ml-5"
-                  type="button"
-                  @click.prevent="hourout(a, i)"
-                  title="Sortida"
-                  :disabled="
-                    a.hour_out_h !== null &&
-                      a.hour_out_m != null &&
-                      a.hour_out_h !== '' &&
-                      a.hour_out_m != ''
-                  "
-                >
-                  <b-icon icon="arrow-left" size="is-small" />
-                </button>
-              </div>
-
-              <!-- <button class="button is-small is-danger mr-5" type="button" @click.prevent="hourout(a)" title="Entrada">
-                <b-icon icon="arrow-left" size="is-small" />
-              </button>
-              {{ formatHour(a.hour_out) }} -->
-            </div>
-            <div class="column">
-              {{ formatHourDiff(a) }}
-              <b
-                >({{ formatHourMonth(daily.find(d => d.date === a.date)) }})</b
-              >
-            </div>
-            <div class="column">
-         
-              <b-autocomplete
-                v-if="a.projectNameSearch !== undefined"
-                v-model="a.projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects(a.projectNameSearch)"
-                field="name"
-                @select="option => selectProject(option, a, i)"
-                :disabled="a.id === 0"
-                :clearable="true"                
-              >
-              </b-autocomplete>
-              
-            </div>
-
-            <div class="column">
-              <button
-                v-if="a.id && a.id > 0"
-                class="button is-small is-danger mr-5"
-                type="button"
-                @click.prevent="deleteWorkLog(a)"
-                title="Esborrar"
-              >
-                <b-icon icon="trash-can" size="is-small" />
-              </button>
-            </div>   
+            <button class="wl-add" type="button" title="Afegeix tram" @click="addSlot(row)">
+              <b-icon icon="plus" custom-size="default" />
+              <span v-if="!row.slots.length">Afegeix tram</span>
+            </button>
+            <b class="wl-total">{{ row.slots.length ? formatDuration(row.minutes) : "" }}</b>
           </div>
-          <div class="columns" v-else>
-            <div class="column">
-              <b>TOTAL {{ formatMonthName(a.date) }}: </b>
-              {{ formatHourMonth(monthly.find(m => m.month === a.month)) }}
-            </div>
-            <div class="column"></div>
-            <div class="column"></div>
-            <div class="column"></div>
-            <div class="column"></div>
-            <div class="column"></div>
-          </div>
+        </template>
+        <div class="wl-sum is-total">
+          <span>Total {{ periodLabelOf.replace(/^de |^d'/, "") }}</span>
+          <span></span>
+          <b class="has-text-right">{{ formatDuration(totalMinutes) }}</b>
         </div>
-      </card-component>
+      </div>
 
-      <div v-if="(generatedPDF || true) && me" class="invoice-box-container">
+      <!-- source of the PDF: rendered (html2pdf clones it) but kept off screen -->
+      <div v-if="(generatedPDF || true) && me" class="invoice-box-container pdf-source" aria-hidden="true">
         <div class="invoice-box" id="pdf">
           <table>
             <tr class="is-total bordered-2t">
@@ -268,12 +203,14 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import html2pdf from "html3pdf";
 import getConfig from '@/config'
+import { slotMinutes, formatDuration, formatExpected, expectedHours, festiveOn } from "@/domain/workdayLog.js";
 
 moment.locale("ca");
 
 export default {
   name: "JornadaDiaria",
   components: { CardComponent },
+  emits: ["summary"],
   props: {
     user: {
       type: Number,
@@ -315,10 +252,18 @@ export default {
       apiUrl: import.meta.env.VUE_APP_API_URL,
       imageUrl: null,
       projects: [],
+      periods: [],
+      festives: [],
     };
   },
 
   watch: {
+    summary: {
+      handler(value) {
+        this.$emit("summary", value);
+      },
+      immediate: true
+    },
     user: function(newVal, oldVal) {
       this.getWorkDayLogs();
     },
@@ -342,6 +287,145 @@ export default {
     this.getWorkDayLogs();
   },
   computed: {
+    // one row per day (oldest first) with its slots, week subtotals and, over a
+    // whole year, month totals. Slots keep their index in `activities`, which the
+    // save methods work with.
+    rows() {
+      const byDate = {};
+      this.activities.forEach((a, i) => {
+        if (a._type === "total") return;
+        (byDate[a.date] = byDate[a.date] || []).push({ a, i, key: a.id > 0 ? a.id : "n" + i });
+      });
+      const rows = [];
+      let week = null;
+      let month = null;
+      const today = this.todayF;
+      const closeWeek = () => {
+        if (week && week.days) rows.push(week);
+      };
+      const closeMonth = () => {
+        if (!this.month && month && month.days) rows.push(month);
+      };
+      Object.keys(byDate).sort().forEach(date => {
+        const d = moment(date, "YYYY-MM-DD");
+        const isoWeek = d.isoWeek();
+        const monthNumber = d.month();
+        if (week && week.week !== isoWeek) {
+          closeWeek();
+          week = null;
+        }
+        if (month && month.month !== monthNumber) {
+          closeWeek();
+          week = null;
+          closeMonth();
+          month = null;
+        }
+        week = week || { type: "week", key: "w" + date, week: isoWeek, minutes: 0, expected: 0, days: 0 };
+        month = month || { type: "month", key: "m" + date, month: monthNumber, name: d.format("MMMM"), minutes: 0, expected: 0, days: 0 };
+        const slots = byDate[date]
+          .filter(s => s.a.id !== 0)
+          .sort((x, y) => (x.a.hour_in || "99") < (y.a.hour_in || "99") ? -1 : 1);
+        const minutes = slots.reduce((acc, s) => acc + slotMinutes(s.a.hour_in, s.a.hour_out), 0);
+        const festive = festiveOn(date, this.festives);
+        const expected = expectedHours(date, this.periods, this.festives);
+        rows.push({
+          type: "day",
+          key: date,
+          date,
+          label: d.format("ddd D"),
+          weekend: d.isoWeekday() > 5,
+          festive: !!festive,
+          festiveName: festive ? "Festiu" + (festive.festive_type && festive.festive_type.name ? " · " + festive.festive_type.name : "") : "",
+          slots,
+          minutes,
+          placeholder: byDate[date].find(s => s.a.id === 0)
+        });
+        [week, month].forEach(group => {
+          group.minutes += minutes;
+          group.expected += date <= today ? expected : 0;
+          group.days++;
+        });
+      });
+      closeWeek();
+      closeMonth();
+      return rows;
+    },
+    dayRows() {
+      return this.rows.filter(r => r.type === "day");
+    },
+    totalMinutes() {
+      return this.dayRows.reduce((acc, r) => acc + r.minutes, 0);
+    },
+    slotCount() {
+      return this.dayRows.reduce((acc, r) => acc + r.slots.length, 0);
+    },
+    loggedDays() {
+      return this.dayRows.filter(r => r.slots.length).length;
+    },
+    loggedWorkingDays() {
+      return this.dayRows.filter(r => r.slots.length && expectedHours(r.date, this.periods, this.festives) > 0).length;
+    },
+    // every date of the chosen month or year (the list stops at today)
+    periodDates() {
+      if (!this.year) return [];
+      const from = this.month ? moment({ year: this.year, month: this.month - 1 }) : moment({ year: this.year });
+      const to = from.clone().endOf(this.month ? "month" : "year");
+      const dates = [];
+      for (const d = from.clone(); d.isSameOrBefore(to, "day"); d.add(1, "day")) {
+        dates.push(d.format("YYYY-MM-DD"));
+      }
+      return dates;
+    },
+    expectedTotal() {
+      return this.periodDates.reduce((acc, d) => acc + expectedHours(d, this.periods, this.festives), 0);
+    },
+    expectedDays() {
+      return this.periodDates.filter(d => expectedHours(d, this.periods, this.festives) > 0).length;
+    },
+    expectedDaysToDate() {
+      return this.periodDates.filter(d => d <= this.todayF && expectedHours(d, this.periods, this.festives) > 0).length;
+    },
+    balanceMinutes() {
+      const expected = this.periodDates
+        .filter(d => d <= this.todayF)
+        .reduce((acc, d) => acc + expectedHours(d, this.periods, this.festives), 0);
+      return this.totalMinutes - Math.round(expected * 60);
+    },
+    festivesLabel() {
+      const days = this.periodDates
+        .map(d => festiveOn(d, this.festives))
+        .filter(f => f && moment(f.date).isoWeekday() <= 5);
+      if (!days.length) return "cap festiu entre setmana";
+      const list = days.slice(0, 3).map(f => moment(f.date).format("D MMM")).join(", ");
+      return `${days.length} ${days.length === 1 ? "festiu" : "festius"}: ${list}${days.length > 3 ? "…" : ""}`;
+    },
+    periodLabelOf() {
+      if (!this.year) return "";
+      if (!this.month) return "de " + this.year;
+      const name = moment({ year: this.year, month: this.month - 1 }).format("MMMM");
+      return (/^[aeiouà-ú]/i.test(name) ? "d'" : "de ") + name;
+    },
+    summary() {
+      if (this.isLoading || !this.year || !this.user) return null;
+      return { person: this.personName, slots: this.slotCount, days: this.loggedDays };
+    },
+    showToday() {
+      return this.activities.some(a => a.date === this.todayF);
+    },
+    todayLong() {
+      return moment().format("dddd D [de] MMMM [de] YYYY");
+    },
+    openSlotToday() {
+      const row = this.dayRows.find(r => r.date === this.todayF);
+      return row ? row.slots.find(s => s.a.hour_in && !s.a.hour_out && s.a.id > 0) || null : null;
+    },
+    todayStatus() {
+      const row = this.dayRows.find(r => r.date === this.todayF);
+      const slots = row ? row.slots.filter(s => s.a.id > 0) : [];
+      if (!slots.length) return "encara no hi ha cap tram";
+      if (this.openSlotToday) return `entrada a les ${this.openSlotToday.a.hour_in.slice(0, 5)} · en curs`;
+      return `${slots.length} ${slots.length === 1 ? "tram" : "trams"} · ${formatDuration(row.minutes)}`;
+    },
     trashObjectName() {
       if (this.trashObject) {
         return this.trashObject.name;
@@ -449,6 +533,32 @@ export default {
     },    
   },
   methods: {
+    slotMinutes,
+    formatDuration,
+    formatExpected,
+    addSlot(row) {
+      if (row.slots.length) {
+        const last = row.slots[row.slots.length - 1];
+        this.addPeriod(last.a, last.i);
+      } else if (row.placeholder) {
+        this.addPeriod(row.placeholder.a, row.placeholder.i);
+      }
+    },
+    clockToday() {
+      if (this.openSlotToday) {
+        this.hourout(this.openSlotToday.a, this.openSlotToday.i);
+        return;
+      }
+      let index = this.activities.findIndex(a => a.date === this.todayF && a.id <= 0 && !a.hour_in);
+      if (index > -1 && this.activities[index].id === 0) {
+        this.addPeriod(this.activities[index], index);
+      } else if (index === -1) {
+        const anyToday = this.activities.findIndex(a => a.date === this.todayF);
+        this.addPeriod(this.activities[anyToday], anyToday);
+        index = this.activities.findIndex(a => a.date === this.todayF && a.id === -1 && !a.hour_in);
+      }
+      this.hourin(this.activities[index], index);
+    },
     async getWorkDayLogs() {
       this.isLoading = true;
       this.generatedPDF = false;
@@ -466,6 +576,15 @@ export default {
       this.projects = (
         await service({ requiresAuth: true }).get("projects/basic?_limit=-1")
       ).data;
+
+      const [periods, festives] = await Promise.all([
+        service({ requiresAuth: true }).get(`daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`),
+        service({ requiresAuth: true, cached: true }).get("festives?_limit=-1")
+      ]);
+      this.periods = periods.data;
+      this.festives = festives.data.filter(
+        f => !f.users_permissions_user || (f.users_permissions_user.id || f.users_permissions_user) === this.user
+      );
 
       const from = this.month 
         ? moment(this.year + "-" + this.month, "YYYY-MM")
@@ -924,6 +1043,212 @@ export default {
 .day-label {
   cursor: pointer;
 }
+
+/* ---- redesign A ---- */
+.wl-today {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  padding: .875rem 1.25rem;
+  margin-bottom: 1rem;
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+}
+.wl-today-label {
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--a-accent);
+}
+.wl-today b:first-letter {
+  text-transform: uppercase;
+}
+.wl-table {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.wl-head,
+.wl-day,
+.wl-sum {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, max-content) auto minmax(0, 1fr) 5.5rem;
+  align-items: center;
+  gap: .75rem;
+  padding: .5rem 1rem;
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.wl-head {
+  grid-template-columns: 5rem minmax(0, 1fr) 5.5rem;
+  background: var(--a-thead);
+  border-bottom-color: var(--a-line);
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+.wl-sum {
+  grid-template-columns: minmax(0, 1fr) auto 5.5rem;
+  background: var(--a-thead);
+  font-weight: 800;
+}
+.wl-sum span:nth-child(2) {
+  font-weight: 600;
+}
+.wl-sum.is-month,
+.wl-sum.is-total {
+  border-top: 1px solid var(--a-line);
+}
+.wl-sum.is-total {
+  border-bottom: 0;
+}
+.wl-day {
+  align-items: start;
+}
+.wl-date {
+  font-weight: 800;
+  line-height: 2rem;
+}
+.wl-total {
+  grid-column: 5;
+  line-height: 2rem;
+}
+.wl-day.is-quiet .wl-date,
+.wl-day.is-quiet .wl-none {
+  line-height: 1.75rem;
+}
+.wl-date:first-letter {
+  text-transform: uppercase;
+}
+.wl-day.is-quiet {
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  color: var(--a-muted);
+}
+.wl-day.is-quiet .wl-date {
+  font-weight: 600;
+}
+.wl-day.is-festive {
+  background: var(--a-info-bg);
+  color: var(--a-info-fg);
+}
+.wl-day.is-today .wl-date {
+  color: var(--a-accent);
+}
+.wl-slots {
+  display: flex;
+  flex-direction: column;
+  gap: .375rem;
+  min-width: 0;
+}
+.wl-slot {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: .375rem;
+}
+.wl-time {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 .375rem;
+  border: 1px solid var(--a-input);
+  border-radius: 7px;
+  background: var(--a-surface);
+}
+.wl-time:focus-within {
+  border-color: var(--a-accent);
+  box-shadow: 0 0 0 3px var(--a-focus);
+}
+.wl-num {
+  width: 1.375rem;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-size: .875rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--a-fg);
+  outline: none;
+}
+.wl-num::placeholder {
+  color: var(--a-line);
+}
+.wl-dash {
+  color: var(--a-muted);
+}
+.wl-dur {
+  min-width: 3.75rem;
+  font-size: .75rem;
+  font-weight: 800;
+  color: var(--a-muted);
+}
+.wl-project {
+  flex: none;
+  width: 16rem;
+}
+.wl-icon,
+.wl-add {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  border: 0;
+  background: transparent;
+  color: var(--a-muted);
+  font: inherit;
+  font-size: .8125rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: .25rem;
+  cursor: pointer;
+}
+.wl-icon:hover {
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
+}
+.wl-add {
+  color: var(--a-accent);
+  justify-self: start;
+  height: 2rem;
+}
+.wl-day.is-quiet .wl-add {
+  height: 1.75rem;
+}
+.wl-add:hover {
+  background: var(--a-accent-soft);
+}
+.wl-none {
+  font-size: .8125rem;
+  line-height: 2rem;
+}
+.wl-total {
+  text-align: right;
+}
+@media screen and (max-width: 768px) {
+  .wl-slot {
+    flex-wrap: wrap;
+  }
+  .wl-project {
+    width: 100%;
+  }
+  .wl-day {
+    grid-template-columns: 4rem minmax(0, 1fr) 4.5rem;
+  }
+  .wl-day .wl-add {
+    grid-column: 2;
+  }
+  .wl-day .wl-total {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
 </style>
 <style>
 .card-body {
@@ -965,6 +1290,12 @@ export default {
   margin-top: -4px;
 }
 
+.invoice-box-container.pdf-source {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 800px;
+}
 .invoice-box-container {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   border: 1px solid #eee;
