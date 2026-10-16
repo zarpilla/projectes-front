@@ -15,24 +15,44 @@
       v-model="loading"
       :can-cancel="false"
     ></b-loading>
-    <div class="gannt-container" v-if="showGantt">
+    <div class="filter-bar persons-toolbar">
+      <b-input
+        v-model="search"
+        class="filter-search"
+        icon="magnify"
+        placeholder="Cerca una persona"
+        aria-label="Cerca una persona"
+      />
+      <div class="segmented" role="group" aria-label="Any">
+        <button
+          v-for="y in yearChoices"
+          :key="y"
+          type="button"
+          :class="{ 'is-on': y === year }"
+          :aria-pressed="y === year ? 'true' : 'false'"
+          @click="setYear(y)"
+        >{{ y }}</button>
+      </div>
+      <div class="persons-legend" aria-hidden="true">
+        <span><i class="lg-bar"></i>Jornada (hores/dia)</span>
+        <span><i class="lg-zero"></i>Sense jornada (0 h)</span>
+        <span><i class="lg-today"></i>Avui</span>
+      </div>
+    </div>
+    <div class="notification is-warning persons-warning">
+      <b>Compte:</b> canviar jornades, salaris o costos de períodes passats
+      recalcula el cost de les hores ja dedicades als projectes i pot afectar
+      les bestretes.
+    </div>
+    <div class="gannt-container persons-gantt" v-if="showGantt">
       <div class="gantt" :id="ganttId"></div>
+      <p class="persons-foot">
+        Clica una barra per editar el període (dates, hores per dia,
+        distribució setmanal, salari, Seguretat Social i cost/hora), o
+        arrossega'n les vores per canviar-ne les dates. Clica el nom d'una
+        persona o arrossega sobre la seva fila per afegir-li un període.
+      </p>
     </div>
-    <div class="help">
-      <b-icon icon="help-circle-outline" custom-size="default" />
-      <b>Com funciona?</b><br />
-      Fent click sobre el nom de la persona o en cadascun dels períodes ja
-      definits (blau) es pot editar el període, les hores diaries de treball, el
-      salari i el cost hora.
-      <br /><br />
-      <b-icon icon="help-circle-outline" custom-size="default" />
-      <b>Atenció</b><br />
-      Modificar les jornades laborals o els salaris o els costos laborals de
-      períodes passats pot afectar a les bestretes i sobretot, als costos dels
-      projectes amb hores dedicades, per això cal que estiguis segura del que
-      vas a fer.
-    </div>
-
     <card-component
       class="has-table has-mobile-sort-spaced mt-5"
       v-if="true"
@@ -110,14 +130,27 @@ import moment from "moment";
 import service from "@/service/index";
 import _ from "lodash";
 import CardComponent from "@/components/CardComponent.vue";
+import { formatNumber } from "@/helpers/format-number.js";
 
 // main component
 export default {
   name: "DedicationWorkingDay",
   components: { ModalBoxWorkingDay, CardComponent },
+  emits: ["summary"],
   computed: {
     ...mapState(useMainStore, ["userName"]),
-    ...mapState(useMainStore, ["me"])
+    ...mapState(useMainStore, ["me"]),
+    yearChoices() {
+      const now = moment().year();
+      return [now - 1, now, now + 1];
+    }
+  },
+  watch: {
+    search() {
+      if (this.gantt && this.ganttReady) {
+        this.gantt.render();
+      }
+    }
   },
   data() {
     return {
@@ -135,6 +168,10 @@ export default {
       },
       summary: [],
       loading: false,
+      search: "",
+      year: moment().year(),
+      payrollsByUser: {},
+      ganttReady: false,
       gantt: null // Will be initialized with separate instance
     };
   },
@@ -202,6 +239,9 @@ export default {
           "years?_limit=-1&_sort=year:DESC"
         )
       ).data;
+      if (!this.filters.year) {
+        this.filters.year = this.years.find(y => String(y.year) === String(this.year)) || null;
+      }
 
       var minStartDate = moment().format("YYYY-MM-DD");
 
@@ -240,8 +280,8 @@ export default {
               minStartDate = moment(minUserDate).format("YYYY-MM-DD");
             }
           } else {
-            minUserDate = moment().format("YYYY-MM-DD");
-            maxUserDate = minUserDate;
+            // placeholder for "Defineix la primera jornada" (see emptyRange)
+            [minUserDate, maxUserDate] = this.emptyRange();
           }
 
           // NOTE: dhtmlx-gantt Community edition does NOT support inline
@@ -269,40 +309,77 @@ export default {
         }
       }
 
+      this.gantt.i18n.setLocale("ca");
       this.gantt.config.columns = [
         {
           name: "text",
-          label: "Jornada",
-          tree: true,
-          width: "150",
-          resize: true
+          label: "Persona · jornada actual",
+          tree: false,
+          width: 230,
+          template: task =>
+            `<div class="person-cell"><b>${this.escape(task.text)}</b>` +
+            `<span>${this.escape(this.personSubline(task))}</span></div>`
         }
       ];
+      // a second grid on the right: payroll advances of the shown year
+      this.payrollColumn = {
+        name: "payrolls",
+        label: "Bestretes " + this.year,
+        align: "right",
+        width: 130,
+        template: task => this.payrollTag(task)
+      };
+      this.gantt.config.layout = {
+        css: "gantt_container",
+        rows: [
+          {
+            cols: [
+              { view: "grid", width: 230, scrollX: "scrollHor", scrollY: "scrollVer" },
+              { view: "timeline", scrollX: "scrollHor", scrollY: "scrollVer" },
+              {
+                view: "grid",
+                id: "payrollGrid",
+                bind: "task",
+                width: 130,
+                scrollY: "scrollVer",
+                config: {
+                  columns: [this.payrollColumn]
+                }
+              },
+              { view: "scrollbar", id: "scrollVer" }
+            ]
+          },
+          { view: "scrollbar", id: "scrollHor", height: 12 }
+        ]
+      };
 
-      this.gantt.config.scroll_size = 30;
+      this.gantt.config.row_height = 54;
+      this.gantt.config.bar_height = 22;
+      this.gantt.config.scale_height = 40;
+      this.gantt.config.autosize = "y";
+      this.gantt.config.show_tasks_outside_timescale = true;
       this.gantt.config.xml_date = "%Y-%m-%d";
       this.gantt.config.duration_unit = "day";
-      this.gantt.config.scales = [
-        { unit: "year", step: 1, format: "%Y" },
-        { unit: "month", step: 1, format: "%M" }
-      ];
+      this.gantt.config.scales = [{ unit: "month", step: 1, format: "%M" }];
+      this.applyYearRange();
 
-      this.gantt.config.start_date = moment(minStartDate, "YYYY-MM-DD").toDate();
-      this.gantt.config.end_date = moment()
-        .add(2, "year")
-        .endOf("year")
-        .toDate();
+      this.gantt.attachEvent("onBeforeTaskDisplay", (id, task) => {
+        const q = this.search.trim().toLowerCase();
+        return !q || String(task.text || "").toLowerCase().includes(q);
+      });
+
+      this.gantt.plugins({ click_drag: true });
+      // "today" line (the marker plugin is not in the free edition)
+      this.gantt.attachEvent("onGanttRender", () => this.drawToday());
 
       this.gantt.showLightbox = function(id) {
         // code of the custom form
       };
 
-      this.gantt.plugins({ click_drag: true });
-
       // Render dedication bars inside each person's task bar.
       this.gantt.templates.task_text = (start, end, task) => {
         if (!task._dedications || !task._dedications.length) {
-          return "";
+          return `<span class="first-period">+ Defineix la primera jornada</span>`;
         }
         const taskStart = +task.start_date;
         const taskEnd = +task.end_date;
@@ -318,7 +395,9 @@ export default {
             Math.max(0, ((dEnd - dStart) / span) * 100)
           );
           html +=
-            `<div class="dedication-bar" data-dedication-id="` +
+            `<div class="dedication-bar` +
+            (Number(d.hours) ? "" : " is-zero") +
+            `" data-dedication-id="` +
             d.id +
             `" style="left:` +
             left.toFixed(2) +
@@ -327,7 +406,7 @@ export default {
             `%">` +
             `<div class="dedication-resize-handle dedication-handle-left"></div>` +
             `<span class="dedication-bar-label">` +
-            (d.hours != null ? d.hours + " h" : "") +
+            (d.hours != null ? this.formatHours(d.hours) + " h" : "") +
             `</span>` +
             `<div class="dedication-resize-handle dedication-handle-right"></div>` +
             `</div>`;
@@ -337,7 +416,10 @@ export default {
 
       // Hide the default task content text (we draw our own bars)
       this.gantt.templates.task_class = (start, end, task) => {
-        return task._dedications ? "dedication-row" : "";
+        if (!task._dedications) {
+          return "";
+        }
+        return task._dedications.length ? "dedication-row" : "dedication-row is-empty";
       };
 
       this.gantt.attachEvent(
@@ -389,12 +471,9 @@ export default {
       this.gantt.init(this.ganttId);
 
       this.gantt.parse(this.tasks);
-
-      var date = moment()
-        .startOf("year")
-        .toDate();
-      var position = this.gantt.posFromDate(date);
-      this.gantt.scrollTo(position);
+      this.ganttReady = true;
+      this.emitSummary();
+      this.loadPayrolls();
 
       // Enable drag-to-resize / drag-to-move on the dedication bars
       this.setupResizeHandlers();
@@ -795,6 +874,137 @@ export default {
       this.loading = false;
       this.isModalActive = false;
     },
+    setYear(year) {
+      if (year === this.year) {
+        return;
+      }
+      this.year = year;
+      const y = this.years.find(item => String(item.year) === String(year));
+      if (y) {
+        this.filters.year = y;
+      }
+      this.applyYearRange();
+      this.tasks.data
+        .filter(t => t._dedications && !t._dedications.length && this.gantt.isTaskExists(t.id))
+        .forEach(t => {
+          const [from, to] = this.emptyRange();
+          t.start_date = moment(from).toDate();
+          t.end_date = moment(to).add(1, "day").toDate();
+          Object.assign(this.gantt.getTask(t.id), { start_date: t.start_date, end_date: t.end_date });
+        });
+      this.gantt.render();
+      this.loadPayrolls();
+    },
+    drawToday() {
+      const area = this.gantt.$task_data;
+      if (!area) {
+        return;
+      }
+      let line = area.querySelector(".today-marker");
+      const now = new Date();
+      if (now < this.gantt.config.start_date || now >= this.gantt.config.end_date) {
+        if (line) line.remove();
+        return;
+      }
+      if (!line) {
+        line = document.createElement("div");
+        line.className = "today-marker";
+        line.title = "Avui";
+        area.appendChild(line);
+      }
+      line.style.left = this.gantt.posFromDate(now) + "px";
+    },
+    // the timeline shows one year, its twelve months filling the width
+    applyYearRange() {
+      const start = moment({ year: this.year }).startOf("year");
+      this.gantt.config.start_date = start.toDate();
+      this.gantt.config.end_date = start.clone().add(1, "year").toDate();
+      const el = document.getElementById(this.ganttId);
+      const width = el ? el.clientWidth : 1100;
+      // person grid + payroll grid + vertical scrollbar
+      const timeline = Math.max(width - 230 - 130 - 20, 480);
+      this.gantt.config.min_column_width = Math.floor(timeline / 12);
+    },
+    emptyRange() {
+      const from = moment({ year: this.year }).startOf("year");
+      return [from.format("YYYY-MM-DD"), from.clone().add(3, "month").subtract(1, "day").format("YYYY-MM-DD")];
+    },
+    currentDedication(task) {
+      const today = moment().format("YYYY-MM-DD");
+      return (task._dedications || []).find(d => d.from <= today && (!d.to || d.to >= today));
+    },
+    personSubline(task) {
+      if (!task._dedications) {
+        return "";
+      }
+      if (!task._dedications.length) {
+        return "Sense cap període definit";
+      }
+      const current = this.currentDedication(task);
+      if (current && Number(current.hours)) {
+        const cost = Number(current.costByHour);
+        return `${this.formatHours(current.hours)} h/dia · ` +
+          (cost ? `${formatNumber(cost, 2, 2)} €/h` : "cost/hora sense definir");
+      }
+      if (current) {
+        return "0 h ara · sense jornada activa";
+      }
+      const last = task._dedications[task._dedications.length - 1];
+      if (last.to && last.to < moment().format("YYYY-MM-DD")) {
+        return `Sense jornada activa · fins al ${moment(last.to).format("DD/MM/YYYY")}`;
+      }
+      return "Sense jornada activa";
+    },
+    formatHours(hours) {
+      return formatNumber(hours, 2);
+    },
+    escape(text) {
+      return String(text === undefined || text === null ? "" : text).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    },
+    emitSummary() {
+      const people = this.tasks.data.filter(t => t._dedications);
+      const active = people.filter(t => {
+        const current = this.currentDedication(t);
+        return current && Number(current.hours);
+      });
+      this.$emit("summary", { people: people.length, active: active.length });
+    },
+    async loadPayrolls() {
+      const y = this.years.find(item => String(item.year) === String(this.year));
+      const counts = {};
+      if (y) {
+        const payrolls = (
+          await service({ requiresAuth: true }).get(`payrolls?_where[year]=${y.id}&_limit=-1`)
+        ).data;
+        payrolls.forEach(p => {
+          const user = p.users_permissions_user && (p.users_permissions_user.id || p.users_permissions_user);
+          if (user) {
+            counts[user] = (counts[user] || 0) + 1;
+          }
+        });
+      }
+      this.payrollsByUser = y ? counts : null;
+      // the grid keeps its own copy of the columns
+      const grid = this.gantt && this.gantt.$ui && this.gantt.$ui.getView("payrollGrid");
+      const columns = grid && grid.$getConfig ? grid.$getConfig().columns : null;
+      [this.payrollColumn, ...(columns || [])].forEach(c => {
+        if (c && c.name === "payrolls") c.label = "Bestretes " + this.year;
+      });
+      if (this.gantt && this.ganttReady) {
+        this.gantt.render();
+      }
+    },
+    payrollTag(task) {
+      if (!task._dedications) {
+        return "";
+      }
+      if (!this.payrollsByUser) {
+        return `<span class="payroll-tag">—</span>`;
+      }
+      const n = this.payrollsByUser[task.id] || 0;
+      const css = n >= 12 ? "is-full" : n > 0 ? "is-partial" : "";
+      return `<span class="payroll-tag ${css}" title="Bestretes de ${this.year}">${n} / 12</span>`;
+    },
     recomputeTaskRange(task) {
       if (!task._dedications || !task._dedications.length) return;
       let minD = null;
@@ -887,47 +1097,221 @@ export default {
 };
 </script>
 <style scoped>
-.gstc-component {
-  margin: 0;
-  padding: 0;
+.persons-toolbar .filter-search {
+  flex: 0 1 22rem;
 }
-.toolbox {
-  padding: 10px;
+.persons-legend {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem 1rem;
+  font-size: .8125rem;
+  font-weight: 600;
+  color: var(--a-fg-2);
+}
+.persons-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+}
+.persons-legend i {
+  display: inline-block;
+  width: 1rem;
+  height: .5rem;
+  border-radius: 3px;
+}
+.persons-legend .lg-bar {
+  background: var(--a-accent);
+}
+.persons-legend .lg-zero {
+  background: repeating-linear-gradient(135deg, var(--a-line) 0 3px, var(--a-chip) 3px 6px);
+}
+.persons-legend .lg-today {
+  width: 2px;
+  height: .875rem;
+  background: #D9480F;
+}
+.persons-warning {
+  padding: .75rem 1rem;
+  font-size: .875rem;
+}
+.persons-gantt {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.persons-foot {
+  padding: .75rem 1rem;
+  border-top: 1px solid var(--a-line);
+  font-size: .8125rem;
+  color: var(--a-fg-2);
 }
 </style>
 <style>
 @import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 
-.gantt > div {
-  min-height: 600px;
+/* ---- Persones chart (redesign A) ---- */
+.persons-gantt .gantt_container {
+  font-family: inherit;
+  font-size: .8125rem;
+  border: 0;
+  color: var(--a-fg);
+}
+.persons-gantt .gantt_grid_scale,
+.persons-gantt .gantt_task_scale {
+  background: var(--a-thead);
+  border-bottom: 1px solid var(--a-line);
+}
+.persons-gantt .gantt_grid_head_cell,
+.persons-gantt .gantt_scale_cell {
+  font-size: .6875rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+.persons-gantt .gantt_grid_head_cell {
+  text-align: left;
+  padding-left: 1rem;
+}
+.persons-gantt .gantt_grid_head_cell[data-column-name="payrolls"] {
+  text-align: right;
+  padding-right: 1rem;
+}
+.persons-gantt .gantt_scale_cell {
+  text-align: left;
+  padding-left: .375rem;
+  border-right-color: var(--a-line-soft);
+}
+.persons-gantt .gantt_grid,
+.persons-gantt .gantt_grid_scale {
+  border-right: 0;
+}
+.persons-gantt .gantt_row,
+.persons-gantt .gantt_task_row {
+  border-bottom-color: var(--a-line-soft);
+}
+.persons-gantt .gantt_task_cell {
+  border-right-color: var(--a-line-soft);
+}
+.persons-gantt .gantt_row:hover,
+.persons-gantt .gantt_task_row:hover,
+.persons-gantt .gantt_row.gantt_selected,
+.persons-gantt .gantt_task_row.gantt_selected {
+  background: var(--a-chip);
+}
+.persons-gantt .gantt_row {
+  cursor: pointer;
+}
+.persons-gantt .gantt_cell {
+  padding: 0 1rem;
+}
+.person-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.3;
+  height: 100%;
+  white-space: normal;
+}
+.person-cell b {
+  font-weight: 700;
+  font-size: .875rem;
+  color: var(--a-fg);
+}
+.person-cell span {
+  font-size: .75rem;
+  color: var(--a-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.payroll-tag {
+  display: inline-block;
+  padding: .125rem .5rem;
+  border-radius: 999px;
+  background: var(--a-chip);
+  color: var(--a-fg-2);
+  font-size: .75rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.payroll-tag.is-partial {
+  background: var(--a-warn-bg);
+  color: var(--a-warn-fg);
+}
+.payroll-tag.is-full {
+  background: var(--a-accent-soft);
+  color: var(--a-accent-hover);
+}
+.today-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #D9480F;
+  z-index: 5;
+  pointer-events: none;
 }
 
-/* The person row: make the default bar transparent so only the
-   dedication periods (rendered via task_text) are visible. */
+/* The person row: the default bar is only a container, the dedication
+   periods are drawn inside it (rendered via task_text). */
 .dedication-row.gantt_task_line {
-  background: rgba(83, 124, 250, 0.08);  
-  border-radius: 30px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 .dedication-row .gantt_task_content {
   position: absolute;
   padding: 0;
   overflow: visible;
 }
+.dedication-row.is-empty .gantt_task_content {
+  position: static;
+  display: flex;
+  align-items: center;
+}
+.first-period {
+  display: inline-block;
+  padding: 0 .625rem;
+  border: 1px dashed var(--a-input);
+  border-radius: 6px;
+  background: var(--a-surface);
+  color: var(--a-accent);
+  font-size: .75rem;
+  font-weight: 800;
+  line-height: 1.6;
+  cursor: pointer;
+}
 
 /* Individual dedication periods drawn inside the person's row */
 .dedication-bar {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
+  top: 0;
+  bottom: 0;
   min-width: 4px;
-  background: var(--dhx-gantt-base-colors-primary, #537cfa);
-  border-radius: 30px;
+  background: var(--a-accent);
+  border: 1px solid var(--a-surface);
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: move;
   transition: filter 0.15s ease;
   box-sizing: border-box;
+}
+/* narrow periods (e.g. one per month) hide their label instead of clipping it */
+.dedication-bar {
+  container-type: inline-size;
+}
+@container (max-width: 34px) {
+  .dedication-bar-label {
+    display: none;
+  }
+}
+.dedication-bar.is-zero {
+  background: repeating-linear-gradient(135deg, var(--a-line) 0 4px, var(--a-chip) 4px 8px);
 }
 .dedication-bar:hover {
   filter: brightness(1.1);
@@ -950,20 +1334,21 @@ export default {
 }
 .dedication-handle-left {
   left: 0;
-  border-radius: 30px 0 0 30px;
 }
 .dedication-handle-right {
   right: 0;
-  border-radius: 0 30px 30px 0;
 }
 .dedication-bar-label {
   color: #fff;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: .6875rem;
+  font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
-  padding: 0 10px;
+  padding: 0 .5rem;
+}
+.dedication-bar.is-zero .dedication-bar-label {
+  color: var(--a-fg-2);
 }
 </style>

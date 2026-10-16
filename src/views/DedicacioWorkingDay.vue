@@ -1,8 +1,8 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
     <section class="section is-main-section">      
-      <dedication-working-day :key="1" />
+      <dedication-working-day :key="1" @summary="summary = $event" />
     </section>
   </div>
 </template>
@@ -24,13 +24,20 @@ export default {
   },
   data () {
     return {
-      isLoading: false      
+      isLoading: false,
+      summary: null
     }
   },
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Persones', 'Jornades']
+      return ['Persones']
+    },
+    subtitle () {
+      const base = 'Jornada laboral, salari i cost hora per períodes'
+      return this.summary
+        ? `${base} · ${this.summary.people} persones, ${this.summary.active} amb jornada activa avui`
+        : base
     }
   },
   mounted () {
