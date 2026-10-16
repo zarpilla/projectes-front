@@ -1,48 +1,38 @@
 <template>
-  <div class="container">
-    <div class="columns pr-4 pl-4">
-      <div class="column is-one-third">
-        <h4 class="subtitle">
-          <img
-            class="main-logo"
-            src="@/assets/esstrapis-dark.svg"
-            alt="ESSTRAPIS"
-          />
-        </h4>
-        <h4 class="title mt-5">Canviar clau de pas</h4>
-        <form @submit="resetPassword">
-          <div class="field">
-            <label class="label" for="pwd">Clau de pas</label>
-            <input type="password" v-model="password" required class="input" />
-          </div>
-          <div class="field">
-            <label class="label" for="pwd">Confirma clau de pas</label>
-            <input
-              type="password"
-              v-model="confirmPassword"
-              required
-              class="input"
-            />
-          </div>
-          <button
-            type="submit"
-            :disabled="password.length < 3 || password !== confirmPassword"
-            class="button is-primary mt-4"
-          >
-            Envia
-          </button>
-        </form>
+  <!-- Redesign A: the login page's card -->
+  <div class="login-page">
+    <main class="login-main">
+      <div class="login-logo" aria-label="ESSTRAPIS"><b>ESS</b><span>TRAPIS</span></div>
 
-        <p v-show="done" class="has-text-primary">{{ message }}</p>
-        <p v-show="error" class="has-text-danger">
-          Oh oh, hi ha hagut un error...
-        </p>
-
-        <div class="mt-4">
-          <router-link to="/"> Torna </router-link>
+      <form class="login-card" @submit.prevent="resetPassword">
+        <div>
+          <h1>Tria una clau nova</h1>
+          <p class="login-lead">Com a mínim 6 caràcters. La faràs servir a partir d'ara per entrar.</p>
         </div>
-      </div>
-    </div>
+        <div class="field">
+          <label class="label" for="password">Clau nova</label>
+          <div class="password-wrap">
+            <input id="password" v-model="password" :type="show ? 'text' : 'password'" autocomplete="new-password" required class="input" />
+            <button type="button" class="password-toggle" :aria-label="show ? 'Amaga la clau' : 'Mostra la clau'" @click="show = !show">
+              <b-icon :icon="show ? 'eye-off' : 'eye'" />
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="password2">Repeteix la clau</label>
+          <input id="password2" v-model="confirmPassword" :type="show ? 'text' : 'password'" autocomplete="new-password" required class="input" />
+          <p v-if="confirmPassword && password !== confirmPassword" class="help is-danger">Les dues claus no coincideixen.</p>
+        </div>
+        <div v-if="error" class="notification is-danger login-error" role="alert">
+          No s'ha pogut canviar la clau. L'enllaç pot haver caducat: demana'n un de nou.
+        </div>
+        <button type="submit" class="button is-primary login-submit" :disabled="!valid || sending">
+          {{ sending ? "Desant…" : "Desa la clau nova" }}
+        </button>
+      </form>
+
+      <router-link to="/forgotten-password" class="auth-back">Demana un enllaç nou</router-link>
+    </main>
   </div>
 </template>
 
@@ -55,33 +45,33 @@ export default {
     return {
       password: "",
       confirmPassword: "",
-      done: false,
-      error: false,
-      message: ""
+      show: false,
+      sending: false,
+      error: false
     };
   },
+  computed: {
+    valid() {
+      return this.password.length >= 6 && this.password === this.confirmPassword;
+    }
+  },
   methods: {
-    async resetPassword(e) {
-      e.preventDefault();
-      service()
-        .post("auth/reset-password", {
+    async resetPassword() {
+      this.error = false;
+      this.sending = true;
+      try {
+        await service().post("auth/reset-password", {
           code: this.$route.query.code,
           password: this.password,
           passwordConfirmation: this.confirmPassword
-        })
-        .then(() => {
-          this.done = true;
-          this.$buefy.snackbar.open({
-            position: "is-top",
-            message: "Clau de pas canviada",
-            cancelText: "No"
-          });
-          this.$router.push("/");
-        })
-        .catch(e => {
-          e;
-          this.error = true;
         });
+        this.$buefy.snackbar.open({ position: "is-top", message: "Clau de pas canviada", queue: false });
+        this.$router.push("/");
+      } catch (e) {
+        this.error = true;
+      } finally {
+        this.sending = false;
+      }
     }
   }
 };

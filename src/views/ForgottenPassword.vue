@@ -1,42 +1,43 @@
 <template>
-  <div class="container">
-    <div class="columns pr-4 pl-4">
-      <div class="column is-one-third">
-        <h4 class="subtitle">
-          <img
-            class="main-logo"
-            src="@/assets/esstrapis-dark.svg"
-            alt="ESSTRAPIS"
-          />
-        </h4>
-        <h4 class="title mt-5">Recuperar clau de pas</h4>
-        <form @submit="forgotPassword">
-          <div class="field">
-            <label class="label" for="email">Correu electrònic</label>
-            <input
-              type="email"
-              v-model="email"
-              autofocus
-              required
-              class="input"
-            />
-          </div>
+  <!-- Redesign A: the login page's card -->
+  <div class="login-page">
+    <main class="login-main">
+      <div class="login-logo" aria-label="ESSTRAPIS"><b>ESS</b><span>TRAPIS</span></div>
 
-          <button v-show="!sent" type="submit" class="button is-primary mt-4">
-            Envia
-          </button>
-        </form>
-
-        <p v-show="done" class="has-text-primary mt-4">{{ message }}</p>
-        <p v-show="error" class="has-text-danger mt-4">
-          Oh oh, hi ha hagut un error...
-        </p>
-
-        <div class="mt-4">
-          <router-link to="/"> Torna </router-link>
+      <form v-if="!done" class="login-card" @submit.prevent="forgotPassword">
+        <div>
+          <h1>Recupera la clau de pas</h1>
+          <p class="login-lead">Escriu el correu amb què entres i t'enviarem un enllaç per triar-ne una de nova.</p>
         </div>
+        <div class="field">
+          <label class="label" for="email">Correu electrònic</label>
+          <input id="email" v-model="email" type="email" autocomplete="username" autofocus required class="input" />
+        </div>
+        <div v-if="error" class="notification is-danger login-error" role="alert">
+          No hem pogut enviar el correu. Torna-ho a provar d'aquí a una estona o contacta amb l'equip.
+        </div>
+        <button type="submit" class="button is-primary login-submit" :disabled="sending">
+          {{ sending ? "Enviant…" : "Envia l'enllaç" }}
+        </button>
+      </form>
+
+      <div v-else class="login-card">
+        <span class="auth-icon"><b-icon icon="email-outline" /></span>
+        <div>
+          <h1>Revisa el correu</h1>
+          <p class="login-lead">
+            T'hem enviat un enllaç per canviar la clau de pas a <b>{{ email }}</b>. Pot trigar uns minuts; si no el veus, mira la carpeta de correu brossa.
+          </p>
+        </div>
+        <router-link to="/" class="button is-primary login-submit">Torna a l'inici de sessió</router-link>
+        <p class="auth-note">
+          No t'ha arribat? <button type="button" @click="forgotPassword">Torna-ho a enviar</button>
+          o <button type="button" @click="done = false">canvia el correu</button>.
+        </p>
       </div>
-    </div>
+
+      <router-link v-if="!done" to="/" class="auth-back">← Torna a l'inici de sessió</router-link>
+    </main>
   </div>
 </template>
 
@@ -49,35 +50,25 @@ export default {
     return {
       email: "",
       done: false,
-      sent: false,
-      error: false,
-      message0: "S'ha enviat un enllaç per canviar la clau de pas a",
-      message: "S'ha enviat un enllaç per canviar la clau de pas a"
+      sending: false,
+      error: false
     };
   },
   methods: {
-    async forgotPassword(e) {
-      e.preventDefault();
-      this.done = false;
+    async forgotPassword() {
       this.error = false;
-      this.sent = true;
-      service()
+      this.sending = true;
+      try {
         // Strapi 5 takes the reset link from its own settings and refuses
         // other keys (issues/021)
-        .post("auth/forgot-password", { email: this.email })
-        .then(res => {
-          this.done = true;
-          this.message = `${this.message0} ${this.email}`;
-          this.$buefy.snackbar.open({
-            position: "is-top",
-            message: this.message,
-            cancelText: "No"
-          });
-        })
-        .catch(e => {
-          e;
-          this.error = true;
-        });
+        await service().post("auth/forgot-password", { email: this.email });
+        this.done = true;
+      } catch (e) {
+        this.done = false;
+        this.error = true;
+      } finally {
+        this.sending = false;
+      }
     }
   }
 };

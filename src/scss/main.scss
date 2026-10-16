@@ -20,6 +20,7 @@
 @use "misc";
 @use "redesign";
 @use "kendo";
+@use "auth";
 
 /* Animate.css custom build (just selected animations to minimize bundle size) */
 @import "../css/animate.min.css";
