@@ -1,0 +1,649 @@
+// What changed in the app, newest first (shown at "Registre de canvis" and,
+// the latest entry, on the profile). `text` is a string or a list of strings and
+// { to, label } links.
+export const CHANGELOG = [
+{
+  date: "2026.10.15",
+  items: [
+    {
+      type: "Correccions",
+      text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", en fer «Continua» al comptador es perdia la Funció triada (i també el tipus de dedicació i la tasca). Ara es guarden i hi són quan el tornes a obrir."]
+    },
+    {
+      type: "Correccions",
+      text: "A «Assignació de documents» (fases del projecte i tresoreria), en triar un tiquet ara es buiden la factura rebuda i la dieta, com ja passava amb els altres camps: cada línia queda lligada a un sol document."
+    },
+    {
+      type: "Correccions",
+      text: ["A les ", { to: "/received-invoices", label: "despeses" }, ", el botó «Cancel·lar» de «Nova Dieta» no feia res. Ara tanca la finestra i et deixa a la despesa nova."]
+    },
+    {
+      type: "Correccions",
+      text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", si es tancava la finestra d'entrada d'hores clicant fora o amb Esc, ja no s'obria més fins a recarregar la pàgina: ni per afegir hores a mà, ni per aturar el comptador, ni per modificar una entrada. Ara es torna a obrir sempre. També passava amb altres finestres de l'aplicació."]
+    },
+    {
+      type: "Correccions",
+      text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", en aturar el comptador («Fi de l'activitat») les hores es desaven a 0. Ara es desa el temps que ha estat en marxa."]
+    },
+    {
+      type: "Correccions",
+      text: ["Algunes factures rebudes desades a finals de setembre sortien amb l'import doble a la llista de ", { to: "/received-invoices", label: "despeses" }, " i als informes. Ara mostren l'import correcte de les seves línies."]
+    },
+    {
+      type: "Correccions",
+      text: ["A les dietes de ", { to: "/received-invoices", label: "despeses" }, ", els botons de cada línia (també el d'afegir-ne una de nova) quedaven fora de la pantalla. Ara les línies s'ajusten a l'amplada i els botons sempre es veuen."]
+    }
+  ]
+},
+{
+  date: "2026.10.14",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Ara es pot triar el compte bancari de cada nòmina o bestreta (per defecte, el de nòmines). A ", { to: "/tresoreria", label: "Tresoreria" }, " la bestreta surt al compte triat."]
+    },
+    {
+      type: "Correccions",
+      text: ["A l'entrada d'", { to: "/dedicacio", label: "hores dedicades" }, ", es torna a poder triar la funció del projecte (per exemple Licitacions o Propostes) i es guarda amb les hores."]
+    },
+    {
+      type: "Correccions",
+      text: "La fitxa del projecte ja no es penja en guardar-la sense «Àmbit territorial» o sense «Tipus de dedicació», ni quan no es pot guardar perquè hi falta alguna dada obligatòria."
+    },
+    {
+      type: "Correccions",
+      text: "La vista per imprimir d'una factura o d'un pressupost ja no falla quan l'entitat encara no té logo."
+    },
+    {
+      type: "Correccions",
+      text: ["A les ", { to: "/orders-stats", label: "estadístiques de comandes" }, " i d'incidències, triar «Tots» els anys amb un mes mostra aquell mes de tots els anys, en lloc de fallar o no mostrar res."]
+    }
+  ]
+},
+{
+  date: "2026.10.12",
+  items: [
+    {
+      type: "Correccions",
+      text: ["A la ", { to: "/orders", label: "llista de comandes" }, ", les caselles per seleccionar comandes tornen a marcar-se."]
+    },
+    {
+      type: "Correccions",
+      text: "El botó «Imprimeix PDF» de les comandes torna a funcionar. El PDF torna a mostrar també les caixes de les recollides i la ruta amb els punts de transferència."
+    },
+    {
+      type: "Correccions",
+      text: "Al pressupost dels projectes, les despeses d'un tipus de despesa amb 0% d'IVA (per exemple «Ma d'obra») ja no sumen un 21% d'IVA. Els tipus «Quotes», «Comissions bancàries» i «Ajustament salarial final d'any», que no tenien IVA indicat, passen a tenir un 0%; un tipus de despesa sense IVA indicat continua comptant un 21%. Els totals dels projectes afectats es recalculen sols."
+    },
+    {
+      type: "Millores",
+      text: "Les descàrregues de dades (botó «Exporta dades» de les taules i estadístiques, comandes, Ecologística i Contasol) ara són fulls de càlcul en format obert OpenDocument (.ods), que s'obren amb LibreOffice, OpenOffice i Microsoft Excel. Els números hi van com a números, amb tots els decimals, i ja no depenen del camp «Decimal Excel» de la usuària."
+    }
+  ]
+},
+{
+  date: "2026.10.11",
+  items: [
+    {
+      type: "Correccions",
+      text: ["Els botons d'opció no seleccionats tornen a mostrar el text: a la fitxa d'una ", { to: "/orders", label: "comanda" }, " (Ruta, Tipus de servei, Punt de recollida, Estat), als contactes i als filtres de tresoreria i estadístiques es veien en blanc."]
+    },
+    {
+      type: "Novetats",
+      text: ["Les pàgines ", { to: "/incidences", label: "Incidències" }, ", ", { to: "/pickup-points", label: "Punts de recollida" }, " i ", { to: "/admin/users", label: "Usuàries" }, " tenen un botó per exportar la llista a Excel. A Incidències i Usuàries el fitxer porta totes les files, no només la pàgina que es veu."]
+    },
+    {
+      type: "Novetats",
+      text: ["La pàgina ", { to: "/partners", label: "Sòcies" }, " té un botó per exportar la llista de sòcies a Excel."]
+    },
+    {
+      type: "Novetats",
+      text: ["Administració d'usuàries: des de la fitxa d'una usuària a ", { to: "/admin/users", label: "Usuàries" }, " es pot posar-li una contrasenya nova i, amb el permís Logística (Admin), activar o desactivar el seu descompte multientrega."]
+    }
+  ]
+},
+{
+  date: "2026.10.10",
+  items: [
+    {
+      type: "Millores",
+      text: "Guardar un projecte amb moltes hores dedicades, i assignar-hi una factura o una despesa, torna a ser ràpid: en els projectes més grans passa de més de 7 segons a mig segon."
+    },
+    {
+      type: "Millores",
+      text: ["Les pàgines carreguen menys dades: els projectes, les factures i les taules dinàmiques de ", { to: "/stats-projectes", label: "Projectes" }, " i ", { to: "/stats-dedicacio", label: "Dedicació" }, " s'obren més de pressa, sobretot amb connexions lentes."]
+    }
+  ]
+},
+{
+  date: "2026.10.09",
+  items: [
+    {
+      type: "Correccions",
+      text: "Administració d'usuàries: les noves usuàries reben el rol Authenticated per defecte i ja no cal triar-lo perquè es puguin crear."
+    },
+    {
+      type: "Correccions",
+      text: "Administració: les pantalles de Comptes bancaris i de Regions tornen a obrir-se."
+    },
+    {
+      type: "Correccions",
+      text: "El botó + (Nou Contacte) de les factures i despeses torna a obrir sempre un contacte nou, també des d'un document ja guardat."
+    },
+    {
+      type: "Correccions",
+      text: "Els pressupostos tornen a guardar-se amb els seus imports (base, IVA i total); els que s'havien guardat a zero es recalculen."
+    },
+    {
+      type: "Correccions",
+      text: "Torna a funcionar «He oblidat la clau de pas»: rebràs el correu amb l'enllaç per canviar-la."
+    },
+    {
+      type: "Correccions",
+      text: "Només les persones administradores poden crear usuàries o canviar-ne els permisos, el rol o l'estat."
+    },
+    {
+      type: "Novetats",
+      text: "Nou enllaç Tiquets al menú lateral (a Altres): obre el web de tiquets, ja identificat amb el teu usuari, per comunicar errors, millores i suggeriments."
+    },
+    {
+      type: "Correccions",
+      text: "Les hores executades dels projectes tornen a calcular-se amb el cost/hora de cada persona i s'actualitzen en afegir, modificar o eliminar dedicacions."
+    },
+    {
+      type: "Correccions",
+      text: ["Després de visitar ", { to: "/tresoreria", label: "Tresoreria" }, " ja es pot tornar a navegar a altres pàgines quan hi ha moviments bancaris sense projecte."]
+    },
+    {
+      type: "Correccions",
+      text: ["La columna Concepte de la llista d'", { to: "/emitted-invoices", label: "ingressos" }, " i la seva exportació a Excel tornen a mostrar el concepte de cada factura."]
+    },
+    {
+      type: "Millores",
+      text: "Els projectes avisen de les línies d'ingrés o despesa sense data. A la periodificació, els seus imports surten a la fila \"Sense data\" en lloc de l'any 9999."
+    }
+  ]
+},
+{
+  date: "2026.07.16",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Nova taula de dedicació real amb gràfic de Gantt, que mostra les hores dedicades a projectes per persona i per setmana ", { to: "/stats-real-gantt", label: "% Dedicació real" }]
+    }
+  ]
+},
+{
+  date: "2026.07.06",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nova funcionalitat per a la creació de factures de proveïdores i despeses a partir de lectura automàtica de PDFs."
+    }
+  ]
+},
+{
+  date: "2026.06.05",
+  items: [
+    {
+      type: "Novetats",
+      text: "Integració amb FACe per a l'enviament automàtic de factures electròniques a l'Administració Pública."
+    },
+    {
+      type: "Novetats",
+      text: "Noves pàgines d'administració per gestionar la configuració del sistema i els paràmetres globals."
+    }
+  ]
+},
+{
+  date: "2026.05.12",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nova funcionalitat per validar moviments de tresoreria reals."
+    },
+    {
+      type: "Novetats",
+      text: "Nova funcionalitat per exportar i importar contactes en format CSV."
+    },
+    {
+      type: "Millores",
+      text: ["Afegida la periodificació a la taula de ", { to: "/forecast", label: "previsió econòmica" }, "."]
+    }
+  ]
+},
+{
+  date: "2026.04.22",
+  items: [
+    {
+      type: "Correccions",
+      text: "Correcció d'errors en esborrar hores planificades al gantt de projecte."
+    },
+    {
+      type: "Millores",
+      text: ["Possibilitat de descarregar el ", { to: "/registre-jornades", label: "registre de jornades" }, " anual."]
+    }
+  ]
+},
+{
+  date: "2026.04.15",
+  items: [
+    {
+      type: "Millores",
+      text: "Millores en la gestió i visualització de projectes mare, amb una nova vista de llistat i una nova vista de fitxa de projecte mare."
+    }
+  ]
+},
+{
+  date: "2026.02.15",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nou assistent per passos en la creació de projectes."
+    }
+  ]
+},
+{
+  date: "2026.02.09",
+  items: [
+    {
+      type: "Novetats",
+      text: "Possibiltat d'afegir moviments de tresoreria de saldo real per compte bancari."
+    },
+    {
+      type: "Novetats",
+      text: "Nou càlcul de previsions a partir de les fases d'execució al resum financer de projectes. Nova columna de pressupost original."
+    },
+    {
+      type: "Millores",
+      text: "Millores en l'assignació de documents a projectes: Assignació semiautomàtica i millor detecció d'imports mal assignats tenint en compte documents assignats a varis projectes."
+    },
+    {
+      type: "Millores",
+      text: "Assignació de justificacions a previsions."
+    }
+  ]
+},
+{
+  date: "2026.02.02",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nou logo"
+    },
+    {
+      type: "Millores",
+      text: "Calculs trimestrals d'IVA a tresoreria"
+    }
+  ]
+},
+{
+  date: "2026.01.26",
+  items: [
+    {
+      type: "Millores",
+      text: "Millores en projectes mare, per calcular i visualitzar les dades dels projectes fills."
+    },
+    {
+      type: "Millores",
+      text: "Afegits filtres a tresoreria"
+    },
+    {
+      type: "Millores",
+      text: "Millores al mòdul de justificacions"
+    }
+  ]
+},
+{
+  date: "2025.11.28",
+  items: [
+    {
+      type: "Novetats",
+      text: "Múltiples comptes bancaris"
+    },
+    {
+      type: "Novetats",
+      text: "Justificació de subvencions anual"
+    },
+    {
+      type: "Novetats",
+      text: "Nou formulari per facilitar la introducció de dietes"
+    },
+    {
+      type: "Correccions",
+      text: "Correccions a la importació d'hores a partir de calendaris"
+    }
+  ]
+},
+{
+  date: "2025.10.07",
+  items: [
+    {
+      type: "Novetats",
+      text: "Possibilitat de desactivar àmbits de projecte."
+    }
+  ]
+},
+{
+  date: "2025.09.18",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nou camp de tipus de projecte a la fitxa de projecte."
+    },
+    {
+      type: "Millores",
+      text: "La importació de calendaris iCal permet importar esdeveniments recurrents."
+    },
+    {
+      type: "Correccions",
+      text: "Correcció de camps buits a la taula dinàmica d'ingressos i despeses."
+    },
+    {
+      type: "Correccions",
+      text: "Ja no es mostren anys 9999 en projectes amb periodificació, sempre que totes les fases tinguin dates assignades."
+    }
+  ]
+},
+{
+  date: "2025.09.12",
+  items: [
+    {
+      type: "Novetats",
+      text: "Possibilitat de definir vistes personalitzades a les taules dinàmiques."
+    },
+    {
+      type: "Millores",
+      text: "Millores de rendiment en la visualització de dades d'ingressos i despeses i preus/hora."
+    }
+  ]
+},
+{
+  date: "2025.08.02",
+  items: [
+    {
+      type: "Millores",
+      text: "Millores de rendiment en la visualització de factures amb més de 50 línies."
+    }
+  ]
+},
+{
+  date: "2025.06.28",
+  items: [
+    {
+      type: "Novetats",
+      text: "Adaptació a normativa VERIFACTU."
+    },
+    {
+      type: "Novetats",
+      text: "Nova funcionalitat per crear factures rectificatives a partir de factures emeses."
+    }
+  ]
+},
+{
+  date: "2025.02.09",
+  items: [
+    {
+      type: "Millores",
+      text: "Millores de rendiment a l'actualitzar projectes i factures."
+    }
+  ]
+},
+{
+  date: "2024.11.26",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Es permet modificar la distribució setmanal d'hores treballades a les jornades de ", { to: "/working-day", label: "persones." }]
+    }
+  ]
+},
+{
+  date: "2024.09.19",
+  items: [
+    {
+      type: "Correccions",
+      text: ["Correcció dels saldos d'inici d'any per anys que no son l'actual a la ", { to: "/tresoreria", label: "taula de tresoreria." }]
+    },
+    {
+      type: "Millores",
+      text: ["Incorporació del camp 'projecte mare' a la taula dinàmica ", { to: "/stats-economic-detail", label: "d'ingressos i despeses." }]
+    }
+  ]
+},
+{
+  date: "2024.10.07",
+  items: [
+    {
+      type: "Millores",
+      text: ["Millora en la velocitat de càrrega del calendari de ", { to: "/dedicacio", label: "dedicacions." }]
+    }
+  ]
+},
+{
+  date: "2024.10.07",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Filtre múltiple d'estats de projectes a ", { to: "/stats-economic-detail", label: "Detall d'ingressos i despeses" }, ", ", { to: "/tresoreria", label: "Tresoreria" }, " i ", { to: "/forecast", label: "Previsió Econòmica" }, "."]
+    }
+  ]
+},
+{
+  date: "2024.09.06",
+  items: [
+    {
+      type: "Novetats",
+      text: "Es permet l'entrada d'hores dedicades a projectes des del registre de jornades."
+    },
+    {
+      type: "Novetats",
+      text: "Nous camps de tipus de contacte, import aportació i data de seguiment a la fitxa de contacte."
+    },
+    {
+      type: "Millores",
+      text: "Petites correccions a la vista mòbil d'entrada d'hores dedicades."
+    }
+  ]
+},
+{
+  date: "2024.06.28",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Canvi de nom, a partir d'ara: ", { tag: "b", text: "ESS" }, "TRAPIS"]
+    }
+  ]
+},
+{
+  date: "2024.06.11",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Nou camp d'", { tag: "b", text: "Hores previstes avui" }, " a la ", { to: "/stats-previsio-hores", label: "taula dinámica de dedicació" }, "."]
+    }
+  ]
+},
+{
+  date: "2024.06.06",
+  items: [
+    {
+      type: "Novetats",
+      text: "Possibilitat de triar a quins estats de projecte es poden assignar hores, no només a actius."
+    },
+    {
+      type: "Novetats",
+      text: ["Camp subvencionable a ", { to: "/stats-economic-detail", label: "taula dinàmica d'ingressos i despeses." }]
+    },
+    {
+      type: "Novetats",
+      text: ["Nous camps al ", { to: "/grants", label: "llistat de subvencions." }]
+    }
+  ]
+},
+{
+  date: "2024.05.31",
+  items: [
+    {
+      type: "Millores",
+      text: "Millores en la importació d'hores des de calendaris .ics amb claudàtors."
+    }
+  ]
+},
+{
+  date: "2024.05.30",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Filtres a la taula de ", { to: "/contacts", label: "contactes" }, "."]
+    },
+    {
+      type: "Novetats",
+      text: "Nous camps per a subvencions a la fitxa de projecte: Número d'expedient, Entitat líder i Agrupada."
+    },
+    {
+      type: "Novetats",
+      text: "Data de previsió de cobrament a factures i ingressos"
+    }
+  ]
+},
+{
+  date: "2024.05.27",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Nou mòdul (experimental) per al càlcul del ", { to: "/price-hour", label: "preu/hora" }, " dels serveis."]
+    }
+  ]
+},
+{
+  date: "2024.05.15",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Possibilitat de visualització de ", { to: "/tresoreria", label: "tresoreria" }, " per anys."]
+    }
+  ]
+},
+{
+  date: "2024.05.06",
+  items: [
+    {
+      type: "Correccions",
+      text: ["Corregits colors de les ", { to: "/dedicacio-charts", label: "gràfiques de dedicació" }, ", que en alguns casos no corresponia amb la llegenda."]
+    }
+  ]
+},
+{
+  date: "2024.04.30",
+  items: [
+    {
+      type: "Novetats",
+      text: 'Camp "CCC" a l\'organització. Camp "NAF" (número d\'afiliació a la SS) a les persones. Camp "Despeses indirectes" a la secció de subvencions dels projectes.'
+    },
+    {
+      type: "Novetats",
+      text: "Check múltiple de canvi de'stat al mòdul de comandes i logística. Algunes correccions i millores."
+    }
+  ]
+},
+{
+  date: "2024.04.18",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nou mòdul de comandes i logística."
+    }
+  ]
+},
+{
+  date: "2024.04.16",
+  items: [
+    {
+      type: "Novetats",
+      text: "Previsions de tresoreria d'IVA amb prorata."
+    },
+    {
+      type: "Novetats",
+      text: ["Totals per dia a ", { to: "/registre-jornades", label: "registre de jornades" }, "."]
+    },
+    {
+      type: "Novetats",
+      text: "Els ingressos i despeses es guarden amb la seva corresponent prorrata d'IVA al saldar-se."
+    }
+  ]
+},
+{
+  date: "2024.03.27",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Generació de PDFs de ", { to: "/registre-jornades", label: "registre de jornades" }, " per mesos."]
+    },
+    {
+      type: "Novetats",
+      text: ["Filtre de cobrat/pagat a ", { to: "/emitted-invoices", label: "ingressos" }, " i ", { to: "/received-invoices", label: "despeses" }, "."]
+    },
+    {
+      type: "Novetats",
+      text: "Subtotals per fases al detall de projectes."
+    },
+    {
+      type: "Novetats",
+      text: ["Filtre de projectes actius i tancats al ", { to: "/stats-economic-detail", label: "detall d'ingressos i despeses" }, "."]
+    },
+    {
+      type: "Novetats",
+      text: "Afegida data de justificació als projectes subvencionables."
+    },
+    {
+      type: "Correccions",
+      text: "Solucionat error amb l'importació de calendaris .ics"
+    }
+  ]
+},
+{
+  date: "2024.03.21",
+  items: [
+    {
+      type: "Novetats",
+      text: "Enviament de factures de clientes per correu electrònic."
+    },
+    {
+      type: "Novetats",
+      text: ["Funcionalitat per saldar l'IVA amb prorrata a ", { to: "/tresoreria", label: "tresoreria" }, "."]
+    },
+    {
+      type: "Novetats",
+      text: ["Camp de número de factura de proveïdora al llistat de ", { to: "/received-invoices", label: "despeses" }, "."]
+    },
+    {
+      type: "Novetats",
+      text: ["Generació de PDFs de ", { to: "/registre-jornades", label: "registre de jornades" }, "."]
+    },
+    {
+      type: "Millores",
+      text: "Es permet definir un calendari (en format .ical) per a tota l'organització per tal d'importar automàticament dedicacions, a part de tenir calendaris per persona com fins ara."
+    }
+  ]
+},
+{
+  date: "2024.01.10",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nova secció de registre de canvis (aquesta)."
+    },
+    {
+      type: "Novetats",
+      text: ["El mòdul de ", { to: "/justifications", label: "justificacions" }, " es pot consultar també en funció de les hores previstes, a més a més de les reals."]
+    },
+    {
+      type: "Correccions",
+      text: ["A les ", { to: "/working-day", label: "jornades de persones" }, ", s'agafa l'últim dia del més com a data final en nous períodes."]
+    }
+  ]
+}
+      ]
+
+export default CHANGELOG

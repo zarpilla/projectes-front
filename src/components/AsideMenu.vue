@@ -43,8 +43,10 @@
       </div>
     </div>
     <div class="aside-user" :class="{ 'is-collapsed': isCollapsed }">
-      <span class="aside-avatar" :title="userName">{{ initials }}</span>
-      <span v-if="!isCollapsed" class="aside-user-name">{{ userName }}</span>
+      <router-link to="/profile" class="aside-me" :title="'El meu compte · ' + userName">
+        <span class="aside-avatar">{{ initials }}</span>
+        <span v-if="!isCollapsed" class="aside-user-name">{{ userName }}</span>
+      </router-link>
       <button type="button" class="logout-button" title="Sortir" aria-label="Sortir" @click="logout">
         <b-icon icon="logout" custom-size="default" />
         <span v-if="!isCollapsed">Sortir</span>
@@ -339,6 +341,21 @@ aside.aside .is-submenu-group a {
 .aside-user.is-collapsed {
   flex-direction: column;
   padding: .75rem 0;
+}
+.aside-me {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  color: var(--a-fg);
+  border-radius: 8px;
+}
+.aside-me:hover .aside-user-name {
+  color: var(--a-accent);
+}
+.aside-user.is-collapsed .aside-me {
+  flex: none;
 }
 .aside-avatar {
   flex: none;
