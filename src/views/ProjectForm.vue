@@ -1,5 +1,10 @@
 <template>
   <div class="project-form">
+    <modal-box-duplicate-project
+      :is-active="isDuplicateModalActive"
+      @confirm="duplicateConfirmed"
+      @cancel="isDuplicateModalActive = false"
+    />
     <title-bar :title-stack="titleStack" :subtitle="isCreationMode && !isDuplicating ? `Projecte nou · pas ${currentStep} de 4` : ''">
       <template v-if="tabsEnabled && projectMeta" #subtitle>
         <span v-if="form.project_state && form.project_state.name" class="tag project-state-tag">{{ form.project_state.name }}</span>
@@ -2540,6 +2545,7 @@ const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum
 import TitleBar from "@/components/TitleBar.vue";
 import WizardSteps from "@/components/WizardSteps.vue";
 import ProjectSummaryCards from "@/components/ProjectSummaryCards.vue";
+import ModalBoxDuplicateProject from "@/components/ModalBoxDuplicateProject.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxInvoicing from "@/components/ModalBoxInvoicing.vue";
 import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
@@ -2563,6 +2569,7 @@ export default {
     TitleBar,
     WizardSteps,
     ProjectSummaryCards,
+    ModalBoxDuplicateProject,
     MoneyFormat,
     FinancialDiffTooltip,
     ModalBoxInvoicing,
@@ -2613,6 +2620,7 @@ export default {
       phaseToAdd: "",
       // redesign: the page is split in tabs (only for existing projects)
       activeTab: "resum",
+      isDuplicateModalActive: false,
       showOptionalFields: false,
       updatingGantt: false,
       updatingGanttTimer: 0,
@@ -4838,26 +4846,13 @@ export default {
     updateGrantableYears(years) {
       this.form.grantable_years = years;
     },
+    // opens the "Duplicar projecte" dialog; it calls performDuplicate or nothing
     duplicateProject() {
-      this.$buefy.dialog.confirm({
-        title: 'Duplicar projecte',
-        message: `<p><strong>Es duplicarà el projecte amb:</strong></p>
-          <ul style="margin-left: 20px; margin-top: 10px;">
-            <li>✓ Nom + " (còpia)"</li>
-            <li>✓ Totes les fases originals i d'execució</li>
-            <li>✓ Tots els ingressos i despeses previstos</li>
-            <li>✓ Totes les hores planificades</li>
-            <li>✗ Sense documents adjunts</li>
-            <li>✗ Sense factures ni justificacions</li>
-          </ul>
-          <p style="margin-top: 15px;"><strong>Vols moure totes les dates +1 any o mantenir-les?</strong></p>`,
-        confirmText: 'Moure dates +1 any',
-        cancelText: 'Mantenir dates originals',
-        type: 'is-info',
-        hasIcon: true,
-        onConfirm: () => this.performDuplicate(true),
-        onCancel: () => this.performDuplicate(false)
-      });
+      this.isDuplicateModalActive = true;
+    },
+    duplicateConfirmed(moveDates) {
+      this.isDuplicateModalActive = false;
+      this.performDuplicate(moveDates);
     },
     performDuplicate(moveDates) {
       // Create a deep copy of the current form
