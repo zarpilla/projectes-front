@@ -1,42 +1,56 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" :subtitle="subtitle">
+      <b-button type="is-primary" icon-left="plus" @click="$refs.board && $refs.board.addTask($refs.board.lists[0])">
+        Nova tasca
+      </b-button>
+    </title-bar>
     <section class="section is-main-section" v-if="!isLoading">
-      <card-component>
-        <form @submit.prevent>
-          <b-field horizontal>
-            <b-field label="Persona">
-              <b-autocomplete
-                v-model="userNameSearch"
-                placeholder="Persona"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredUsers"
-                field="username"
-                @select="(option) => (filters.user = option ? option.id : null)"
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-            <b-field label="Projecte">
-              <b-autocomplete
-                v-model="projectNameSearch"
-                placeholder="Projecte"
-                :keep-first="false"
-                :open-on-focus="true"
-                :data="filteredProjects"
-                field="name"
-                @select="
-                  (option) => (filters.project = option ? option.id : null)
-                "
-                :clearable="true"
-              >
-              </b-autocomplete>
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-      <tasks :projects="projects" :users="users" :user="filters.user" :project="filters.project" view="state" />
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
+        <b-input
+          v-model="search"
+          class="filter-search"
+          icon="magnify"
+          placeholder="Cerca una tasca"
+          aria-label="Cerca una tasca"
+        />
+        <label class="filter-select filter-auto-label">
+          <span>Persona</span>
+          <b-autocomplete
+            v-model="userNameSearch"
+            placeholder="Totes"
+            :keep-first="false"
+            :open-on-focus="true"
+            :data="filteredUsers"
+            field="username"
+            :clearable="true"
+            @select="(option) => (filters.user = option ? option.id : null)"
+          />
+        </label>
+        <label class="filter-select filter-auto-label">
+          <span>Projecte</span>
+          <b-autocomplete
+            v-model="projectNameSearch"
+            placeholder="Tots"
+            :keep-first="false"
+            :open-on-focus="true"
+            :data="filteredProjects"
+            field="name"
+            :clearable="true"
+            @select="(option) => (filters.project = option ? option.id : null)"
+          />
+        </label>
+      </form>
+      <tasks
+        ref="board"
+        :projects="projects"
+        :users="users"
+        :user="filters.user"
+        :project="filters.project"
+        :search="search"
+        view="state"
+        @summary="summary = $event"
+      />
     </section>
   </div>
 </template>
@@ -77,12 +91,20 @@ export default {
       },
       dragOver: -1,
       dragOverState: -1,
-      cardOrder: []
+      cardOrder: [],
+      search: "",
+      summary: null
     };
   },
   computed: {
     titleStack() {
-      return ["Projectes", "Tasques"];
+      return ["Tasques"];
+    },
+    subtitle() {
+      if (!this.summary) return "";
+      const { total, overdue } = this.summary;
+      return `${total} ${total === 1 ? "tasca no arxivada" : "tasques no arxivades"}` +
+        (overdue ? ` · ${overdue} ${overdue === 1 ? "de vençuda" : "de vençudes"}` : "");
     },
     ...mapState(useMainStore, ["userName"]),
     filteredUsers() {
@@ -234,5 +256,21 @@ export default {
 .empty-zone-no-card-first.drop-zone-active{
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+</style>
+<style scoped>
+.filter-auto-label {
+  min-width: 15rem;
+}
+.filter-auto-label :deep(.autocomplete) {
+  flex: 1;
+}
+.filter-auto-label :deep(.input) {
+  border: 0;
+  box-shadow: none;
+  font-weight: 700;
+}
+.filter-search {
+  flex: 0 1 22rem;
 }
 </style>

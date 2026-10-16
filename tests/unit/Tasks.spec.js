@@ -47,7 +47,7 @@ async function dragAndDrop (card, zone) {
 }
 
 const columns = w => w.findAll('.task-list-body')
-const names = col => col.findAll('.card-and-drop .card-header').map(h => h.text())
+const names = col => col.findAll('.card-and-drop .task-title').map(h => h.text())
 
 describe('Tasks kanban', () => {
   it('renders cards as draggable="true"', async () => {
