@@ -9,6 +9,7 @@ vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
 
 import menu from '@/service/menu'
 import router from '@/router'
+import { ADMIN_TABLES } from '@/service/adminTables'
 
 // projectes-v5 src/api/entity-metadata/controllers/entity-metadata.js ADMIN_ENTITIES
 const BACKEND_ENTITIES = [
@@ -18,7 +19,11 @@ const BACKEND_ENTITIES = [
   'user-festive', 'year'
 ]
 
-const links = menu.flat().filter(item => item && typeof item === 'object' && item.to && item.to.startsWith('/admin/'))
+// the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"
+const links = [
+  ...menu.flat().filter(item => item && typeof item === 'object' && item.to && item.to.startsWith('/admin/')),
+  ...ADMIN_TABLES.map(t => ({ to: `/admin/${t.entity}` }))
+]
 
 describe('admin menu links', () => {
   it('only name entities the backend serves', () => {
@@ -28,6 +33,10 @@ describe('admin menu links', () => {
       .map(route => route.params.entityName)
     expect(generic.length).toBeGreaterThan(10)
     expect(generic.filter(name => !BACKEND_ENTITIES.includes(name))).toEqual([])
+  })
+
+  it('"Taules auxiliars" lists every entity the backend serves', () => {
+    expect(ADMIN_TABLES.map(t => t.entity).sort()).toEqual([...BACKEND_ENTITIES].sort())
   })
 
   it('redirect the old plural paths (bookmarks)', () => {
