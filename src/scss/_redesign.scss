@@ -626,3 +626,17 @@ td.doc-total {
 .k-pivot ~ .download-excel {
   margin-top: .75rem;
 }
+
+/* ---------- links in tables ----------
+   one look for every text link in a table (project, document, contact…):
+   bold and green, darker and underlined on hover */
+.table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item),
+.table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item) {
+  font-weight: 700;
+  color: $a-accent;
+}
+.table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):hover,
+.table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):hover {
+  color: $a-accent-hover;
+  text-decoration: underline;
+}

@@ -694,13 +694,14 @@ export default {
   display: block;
   max-width: 22rem;
   font-weight: 700;
-  color: var(--a-fg);
+  color: var(--a-accent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .project-name:hover {
-  color: var(--a-accent);
+  color: var(--a-accent-hover);
+  text-decoration: underline;
 }
 .project-subline {
   display: block;
