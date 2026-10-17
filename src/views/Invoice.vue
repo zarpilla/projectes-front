@@ -174,9 +174,7 @@
                           {{ line.concept }}
                           <div v-if="line.comments" class="comments">
                             <span
-                              v-html="
-                                line.comments.replace(/(?:\r\n|\r|\n)/g, '<br>')
-                              "
+                              v-html="richText(line.comments)"
                             ></span>
                           </div>
                         </td>
@@ -249,7 +247,7 @@
                       </tr>
                       <tr>
                         <td>
-                          <span v-html="paymentText"></span>
+                          <span v-html="sanitizeHtml(paymentText)"></span>
                         </td>
                       </tr>
                     </table>
@@ -261,7 +259,7 @@
                 <div class="more notes">{{ texts[locale]["Notes"] }}</div>
                 <div
                   class="notes-content"
-                  v-html="quote.comments.replace(/(?:\r\n|\r|\n)/g, '<br>')"
+                  v-html="richText(quote.comments)"
                 ></div>
               </div>
               <div
@@ -269,7 +267,7 @@
                 class="comments global-comments quote-footer"
               >
                 <span
-                  v-html="me.invoice_footer.replace(/(?:\r\n|\r|\n)/g, '<br>')"
+                  v-html="richText(me.invoice_footer)"
                 ></span>
               </div>
             </div>
@@ -292,6 +290,7 @@
 import TitleBar from "@/components/TitleBar.vue";
 import HeroBar from "@/components/HeroBar.vue";
 import service from "@/service/index";
+import { richText, sanitizeHtml } from "@/helpers/safeHtml";
 import moment from "moment";
 import html2pdf from "html2pdf.js";
 import sumBy from "lodash/sumBy";
@@ -518,6 +517,8 @@ export default {
     }
   },
   methods: {
+    richText,
+    sanitizeHtml,
     lineBase,
     lineDiscount,
     lineIrpf,

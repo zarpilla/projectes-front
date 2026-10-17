@@ -63,7 +63,8 @@ test('issuing an invoice numbers it in its series and locks it', async () => {
   await button("D'acord", summary).click()
   await expectSnackbar('Factura emesa correctament')
   await settle()
-  await expect(page.locator('.tag', { hasText: /^\s*EMESA\s*$/ }).first()).toBeVisible()
+  // an issued invoice is read-only: its state is a tag in the head
+  await expect(page.locator('.title-badges .tag', { hasText: /^\s*Emesa\s*$/ }).first()).toBeVisible()
   await expect(button('Eliminar esborrany')).toHaveCount(0)
   await expect(button('Anul·la i rectifica…')).toBeVisible()
 
@@ -73,8 +74,8 @@ test('issuing an invoice numbers it in its series and locks it', async () => {
   expect(invoice.code).toBe(`${serie.name}-${String(number).padStart(Number(serie.leadingZeros) || 1, '0')}`)
   expect([invoice.total_base, invoice.total_vat, invoice.total_irpf, invoice.total]).toEqual([200, 42, 30, 212])
   expect(Number((await api('GET', `series/${serie.id}`)).emitted_invoice_number)).toBe(number)
-  // the number shows in the form
-  await expect(field('Número').locator('input')).toHaveValue(invoice.code)
+  // the number shows in the form (as text: the invoice is locked)
+  await expect(page.locator('.doc-readonly .ro-item', { hasText: 'Número' })).toContainText(invoice.code)
   // VeriFactu is off in the e2e copy: nothing is queued for the tax agency
   expect(invoice.verifactu_chain ?? null).toBeNull()
 

@@ -27,12 +27,12 @@
           </form>
         </section>
         <aside v-if="config.contact_form_text" class="a-box contact-help">
-          <div class="content" v-html="config.contact_form_text" />
+          <div class="content" v-html="sanitizeHtml(config.contact_form_text)" />
         </aside>
       </div>
       <div v-else class="a-box contact-thanks">
         <b-icon icon="check-circle-outline" size="is-large" />
-        <div class="content" v-html="config.contact_form_thankyou || 'Gràcies! Hem rebut el teu missatge.'" />
+        <div class="content" v-html="sanitizeHtml(config.contact_form_thankyou || 'Gràcies! Hem rebut el teu missatge.')" />
       </div>
     </section>
   </div>
@@ -42,6 +42,7 @@
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
+import { richText, sanitizeHtml } from "@/helpers/safeHtml";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import concat from "lodash/concat";
@@ -83,6 +84,8 @@ export default {
     this.getData();
   },
   methods: {
+    richText,
+    sanitizeHtml,
     async getData() {
       const me = await service({ requiresAuth: true, cached: true }).get(
         "users/me"

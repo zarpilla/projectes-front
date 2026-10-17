@@ -30,6 +30,8 @@ import 'v-calendar/style.css'
 /* Excel / CSV export */
 import DownloadExcel from '@/components/DownloadExcel.vue'
 
+import { guardBuefyMessages } from '@/helpers/safeHtml'
+
 /* Light / dark mode */
 import { applyTheme, watchSystemTheme } from '@/service/theme'
 applyTheme()
@@ -73,6 +75,8 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.use(Buefy)
+// messages can carry names from the database: never as raw HTML
+guardBuefyMessages(app.config.globalProperties.$buefy)
 app.use(VCalendar, {
   componentPrefix: 'v'
 })

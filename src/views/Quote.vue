@@ -72,7 +72,7 @@
                       <tr class="item" v-for="(line, i) in quote.lines" v-bind:key="line.id" :class="{ last: i == line.length}">
                         <td>{{ line.concept }}
                           <div v-if="line.comments" class="comments">
-                            <span v-html="line.comments.replace(/(?:\r\n|\r|\n)/g, '<br>')"></span>
+                            <span v-html="richText(line.comments)"></span>
                           </div>
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
@@ -96,10 +96,10 @@
               </table>
               <div v-if="quote.comments" class="comments global-comments">
                 <div class="more notes">Notes</div>
-                <div class="notes-content" v-html="quote.comments"></div>
+                <div class="notes-content" v-html="richText(quote.comments)"></div>
               </div>
               <div v-if="me.quote_footer" class="comments global-comments quote-footer">
-                <span v-html="me.quote_footer.replace(/(?:\r\n|\r|\n)/g, '<br>')"></span>
+                <span v-html="richText(me.quote_footer)"></span>
               </div>
             </div>
           </div>
@@ -121,6 +121,7 @@
 import TitleBar from '@/components/TitleBar.vue'
 import HeroBar from '@/components/HeroBar.vue'
 import service from '@/service/index'
+import { richText, sanitizeHtml } from "@/helpers/safeHtml";
 import moment from 'moment'
 import html2pdf from 'html2pdf.js'
 import { lineBase, lineDiscount, lineVat, hasDiscount } from '@/domain/documentTotals'
@@ -224,6 +225,8 @@ export default {
     }
   },
   methods: {
+    richText,
+    sanitizeHtml,
     lineBase,
     lineDiscount,
     lineVat,
