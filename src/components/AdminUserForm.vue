@@ -43,9 +43,6 @@
               <b-field label="NAF">
                 <b-input v-model="form.naf" placeholder="Número d'afiliació a la Seguretat Social" />
               </b-field>
-              <b-field label="Decimal Excel" message="Separador decimal de les exportacions (, o .)">
-                <b-input v-model="form.excel_decimal" maxlength="1" />
-              </b-field>
             </form>
           </section>
 
@@ -197,7 +194,6 @@ export default {
         fullname: '',
         identity_number: '',
         naf: '',
-        excel_decimal: '',
         confirmed: false,
         blocked: false,
         hidden: false,
@@ -320,7 +316,6 @@ export default {
         this.form.fullname = user.fullname || '';
         this.form.identity_number = user.identity_number || '';
         this.form.naf = user.naf || '';
-        this.form.excel_decimal = user.excel_decimal || '';
         this.form.confirmed = user.confirmed || false;
         this.form.blocked = user.blocked || false;
         this.form.hidden = user.hidden || false;
@@ -351,7 +346,6 @@ export default {
           fullname: this.form.fullname,
           identity_number: this.form.identity_number,
           naf: this.form.naf,
-          excel_decimal: this.form.excel_decimal,
           confirmed: this.form.confirmed,
           blocked: this.form.blocked,
           hidden: this.form.hidden,
