@@ -17,6 +17,8 @@ q() { mysql -h127.0.0.1 -u"$USER_" -N -B "$SRC" -e "$1"; }
   # the footers repeat the entity's data in free text (issues/056)
   q "select quote_footer from us union select invoice_footer from us union select order_footer from us"
   q "select iban from bank_accounts"
+  # the strategic plan is free text too (issues/125)
+  q "select name from strategies union select description from strategies"
 } | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | awk 'length($0) >= 6 && $0 != "NULL"' | sort -u > "$TMP/real.txt"
 
 mysqldump -h127.0.0.1 -u"$USER_" --skip-extended-insert --no-create-info "$DST" > "$TMP/dump.sql"

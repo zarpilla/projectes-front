@@ -169,6 +169,26 @@ UPDATE components_grantable_grantable_years SET grantable_amount = grantable_amo
   grantable_structural_expenses = grantable_structural_expenses * @f,
   grantable_structural_expenses_justify_invoices = grantable_structural_expenses_justify_invoices * @f;
 
+-- strategies: the names were the source cooperative's strategic plan, with its
+-- name in one of them (issues/125). Generic goals by row, codes kept.
+-- Safe to run again.
+UPDATE strategies SET
+  name = ELT(1 + MOD(id, 12),
+    'Enfortir la governança democràtica de la cooperativa',
+    'Diversificar els ingressos i reduir la dependència de subvencions',
+    'Millorar les condicions laborals i la conciliació de l''equip',
+    'Créixer en projectes d''intercooperació amb altres entitats',
+    'Consolidar l''acompanyament a entitats de l''economia social',
+    'Reforçar la comunicació i la presència al territori',
+    'Impulsar la formació interna i el relleu de coneixement',
+    'Ampliar la base social i la participació de les sòcies',
+    'Reduir l''impacte ambiental de l''activitat',
+    'Desenvolupar serveis nous a partir de la demanda',
+    'Ordenar la gestió econòmica i la tresoreria',
+    'Treballar en xarxa amb les administracions locals'),
+  description = NULL;
+UPDATE strategies SET code_name = CONCAT_WS(' - ', NULLIF(code, ''), name);
+
 -- stored project totals (money only; *_hours without "price" are hours)
 UPDATE projects SET
   balance = balance * @f, estimated_balance = estimated_balance * @f,
