@@ -20,9 +20,9 @@ Quote.methods.toDataUrl = vi.fn()
 const discounted = { id: 2, concept: 'Lloguer', quantity: 300, base: 0.23, discount: 10, vat: 21, irpf: 15 }
 const plain = { id: 1, concept: 'Desplaçaments', quantity: 1, base: 30.45, discount: 0, vat: 21, irpf: 0 }
 
-async function render (view, type, lines) {
+async function render (view, type, lines, extra = {}) {
   docs.current = {
-    id: 1, code: '2025-039', emitted: '2025-04-30', contact: {}, lines,
+    id: 1, code: '2025-039', emitted: '2025-04-30', contact: {}, lines, ...extra,
     total_base: 92.55, total_vat: 19.44, total_irpf: 9.32, total: 102.67
   }
   const w = mount(view, {
@@ -53,6 +53,31 @@ describe('Invoice view', () => {
     expect(w.find('tr.t-heading').text()).not.toContain('Descompte')
     expect(cells(w, 0).slice(1)).toEqual(['30,45€', '30,45€', '6,39 (21%)', '36,84€'])
     expect(w.find('tr.total').text()).not.toContain('Base sense descompte')
+  })
+})
+
+// issues/100: without a saved contact_info, the preview showed the client's NIF
+// and address (from the contact) but not its name
+describe('Invoice counterparty', () => {
+  it('falls back to the contact for every field, the name too', async () => {
+    const w = await render(Invoice, 'emitted-invoices', [plain], {
+      contact_info: null,
+      contact: { name: 'Fundació Món-3', nif: 'G60669579', address: 'Avda Diagonal 690', postcode: '08034', city: 'Barcelona' }
+    })
+    const client = w.find('.client-td').text()
+    expect(client).toContain('Fundació Món-3')
+    expect(client).toContain('G60669579')
+  })
+
+  it('prefers what the document saved', async () => {
+    const w = await render(Invoice, 'emitted-invoices', [plain], {
+      contact_info: { name: 'Nom a la factura', nif: 'B1' },
+      contact: { name: 'Nom actual', nif: 'B2', city: 'Vic' }
+    })
+    const client = w.find('.client-td').text()
+    expect(client).toContain('Nom a la factura')
+    expect(client).not.toContain('Nom actual')
+    expect(client).toContain('B1')
   })
 })
 

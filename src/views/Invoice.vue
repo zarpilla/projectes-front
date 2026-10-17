@@ -82,62 +82,16 @@
                           <div class="client">
                             {{ texts[locale][type]["CLIENT"] }}
                           </div>
-                          <div
-                            v-if="quote.contact_info && quote.contact_info.name"
-                          >
-                            {{ quote.contact_info.name }}
+                          <!-- the data saved on the document, else the contact's
+                               (the name was left out of that fallback, issues/100) -->
+                          <div v-if="party.name">{{ party.name }}</div>
+                          <div v-if="party.nif">{{ party.nif }}</div>
+                          <div v-if="party.email">{{ party.email }}</div>
+                          <div v-if="party.address">
+                            {{ party.address }}<br />{{ party.postcode }}
+                            {{ party.city }}
                           </div>
-                          <div
-                            v-else-if="
-                              quote.contact &&
-                                quote.contact &&
-                                quote.contact.name
-                            "
-                          ></div>
-                          <div
-                            v-if="quote.contact_info && quote.contact_info.nif"
-                          >
-                            {{ quote.contact_info.nif }}
-                          </div>
-                          <div v-else-if="quote.contact.nif">
-                            {{ quote.contact.nif }}
-                          </div>
-                          <div
-                            v-if="
-                              quote.contact_info && quote.contact_info.email
-                            "
-                          >
-                            {{ quote.contact_info.email }}
-                          </div>
-                          <div v-else-if="quote.contact.email">
-                            {{ quote.contact.email }}
-                          </div>
-                          <div
-                            v-if="
-                              quote.contact_info && quote.contact_info.address
-                            "
-                          >
-                            {{ quote.contact_info.address }}<br />{{
-                              quote.contact_info.postcode
-                            }}
-                            {{ quote.contact_info.city }}
-                          </div>
-                          <div v-else-if="quote.contact.address">
-                            {{ quote.contact.address }}<br />{{
-                              quote.contact.postcode
-                            }}
-                            {{ quote.contact.city }}
-                          </div>
-                          <div
-                            v-if="
-                              quote.contact_info && quote.contact_info.phone
-                            "
-                          >
-                            {{ quote.contact_info.phone }}
-                          </div>
-                          <div v-else-if="quote.contact.phone">
-                            {{ quote.contact.phone }}
-                          </div>
+                          <div v-if="party.phone">{{ party.phone }}</div>
                         </td>
                       </tr>
                     </table>
@@ -472,6 +426,14 @@ export default {
     };
   },
   computed: {
+    // the counterparty: what the document saved (contact_info), field by
+    // field, else the linked contact (issues/100)
+    party() {
+      const info = (this.quote && this.quote.contact_info) || {};
+      const contact = (this.quote && this.quote.contact) || {};
+      const fields = ["name", "nif", "email", "address", "postcode", "city", "phone"];
+      return Object.fromEntries(fields.map(f => [f, info[f] || contact[f] || ""]));
+    },
     titleStack() {
       return [
         "Facturació",
