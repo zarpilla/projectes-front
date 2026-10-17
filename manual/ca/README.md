@@ -10,7 +10,7 @@ Generat a partir de [TOPICS.md](../TOPICS.md). Els capítols encara no escrits n
 - 02. Usuaris, rols i permisos
 
 ## B. Projectes
-- 03. Llistat de projectes · 04. Crear i editar un projecte · 05. Fases i pressupost · 06. Projectes mare i fills · 07. Subvencions i justificacions · 08. Documents del projecte · 09. Planificació (Gantt) · 10. Tasques · 11. Contactes · 12. Pressupostos
+- 03. Llistat de projectes · 04. Crear i editar un projecte · 05. Fases i pressupost · 06. Projectes mare i fills · 07. Subvencions i justificacions · 08. Documents del projecte · 09. Planificació (Gantt) · [10. Tasques](10-tasques.md) · 11. Contactes · 12. Pressupostos
 
 ## C. Hores i persones
 - 13. Imputar hores dedicades · 14. Registre de jornada · 15. Persones i jornades laborals · 16. Saldo d'hores i hores anuals

@@ -24,7 +24,7 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 | 07 | Subvencions i justificacions | Expedient, imports per any, import a justificar (nòmines, factures indirectes), cofinançament, entitat líder, dates; pantalles de justificació i de subvencions. | `/project/:id`, `/justifications`, `/grants` | projects | pending |
 | 08 | Documents del projecte | Adjuntar i consultar documents d'un projecte. | `/project/:id` | projects | pending |
 | 09 | Planificació (Gantt) | Diagrama de Gantt del projecte i previsió de dedicació. | `/project/:id`, `/stats-previsio-gantt` | projects | pending |
-| 10 | Tasques (kanban) | Tauler de tasques, estats, assignar persones, vistes desades. | `/tasks` | projects | pending |
+| 10 | Tasques | Tauler, llista i calendari; fitxa de tasca (descripció, checklist, documents, comentaris i mencions, prioritat, dates, hores estimades i fetes, imputar hores); tasques recurrents; plantilles; avisos per correu i l'opció de Configuració general; tasques al Gantt. | `/tasks`, `/project/:id` | projects | done (2026-10-17) |
 | 11 | Contactes | Clients i proveïdors, tipus de contacte, unificar duplicats, DIR3 per a l'administració pública. | `/contacts`, `/contact/:id`, `/client/:id` | projects | pending |
 | 12 | Pressupostos | Crear un pressupost, línies, PDF, convertir-lo en projecte/factura. | `/quotes`, `/quote/:id` | projects | pending |
 

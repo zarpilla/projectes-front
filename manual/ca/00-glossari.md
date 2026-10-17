@@ -8,6 +8,8 @@ Administració.
 **Bestreta** — Import que la cooperativa paga a les persones sòcies treballadores a compte del resultat
 de l'exercici, semblant a una nòmina. A ESSTRAPIS es registren per mes i persona.
 
+**Checklist** — Llista de passos d'una tasca, cadascun amb una casella de fet. Vegeu [10. Tasques](10-tasques.md).
+
 **Cost per hora** — El que costa a l'entitat una hora de treball d'una persona. Es defineix a la seva
 jornada laboral i s'aplica a les hores que imputa als projectes.
 
@@ -15,6 +17,9 @@ jornada laboral i s'aplica a les hores que imputa als projectes.
 Vegeu també *Original* i *Previst*.
 
 **Fase** — Part d'un projecte. Cada fase té els seus ingressos, despeses i hores previstes.
+
+**Funció** — Tipus d'activitat dins d'un projecte (per exemple, coordinació o disseny). Les hores i les
+tasques es poden classificar per funció.
 
 **Hores dedicades** — Hores que una persona imputa a un projecte en un dia concret.
 
@@ -29,6 +34,9 @@ cada projecte i consultar-ne un informe.
 **Periodificació** — Repartiment d'un ingrés o una despesa entre diversos períodes (mesos o anys) per
 reflectir quan es produeix realment, i no només quan es factura.
 
+**Plantilla de tasques** — Llista de tasques desada per crear-les de cop en un altre projecte, amb les
+dates comptades en dies. Vegeu [10. Tasques](10-tasques.md#plantilles).
+
 **Previst** — Pressupost actualitzat d'un projecte, que es va ajustant mentre avança.
 
 **Projecte d'estructura** — Projecte que recull les despeses i hores generals de l'entitat (gestió,
@@ -38,6 +46,8 @@ local, administració) que no són de cap projecte concret.
 
 **Sèrie** — Numeració de les factures o pressupostos (per exemple, una sèrie per a cada any o per a les
 factures rectificatives).
+
+**Tasca recurrent** — Tasca que es repeteix cada cert temps: en acabar-la, se'n crea la següent.
 
 **Tresoreria** — Previsió dels diners que hi haurà als comptes bancaris segons els cobraments i
 pagaments previstos.
