@@ -44,7 +44,7 @@
         numeric
         v-slot="props"
       >
-        {{ formatNumber(props.row.total_real_hours || 0, 2) }}
+        {{ formatNumber(props.row.total_real_hours || 0, 2) }} h
       </b-table-column>
       
       <b-table-column
@@ -54,7 +54,7 @@
         numeric
         v-slot="props"
       >
-        {{ formatNumber(props.row.total_estimated_hours || 0, 2) }}
+        {{ formatNumber(props.row.total_estimated_hours || 0, 2) }} h
       </b-table-column>
       
       <b-table-column
@@ -65,7 +65,7 @@
         v-slot="props"
       >
         <span :class="getResultClass(props.row.total_real_incomes_expenses || 0)">
-          {{ formatPrice(props.row.total_real_incomes_expenses || 0) }}€
+          {{ formatMoney(props.row.total_real_incomes_expenses || 0) }}
         </span>
       </b-table-column>
       
@@ -77,7 +77,7 @@
         v-slot="props"
       >
         <span :class="getResultClass(props.row.estimated_incomes_expenses || 0)">
-          {{ formatPrice(props.row.estimated_incomes_expenses || 0) }}€
+          {{ formatMoney(props.row.estimated_incomes_expenses || 0) }}
         </span>
       </b-table-column>
       
@@ -114,7 +114,7 @@
 
 <script>
 import moment from "moment";
-import { formatNumber } from "@/helpers/format-number";
+import { formatNumber, formatMoney } from "@/helpers/format-number";
 
 export default {
   name: "MotherProjectsTable",
@@ -142,6 +142,7 @@ export default {
   },
   methods: {
     formatNumber,
+    formatMoney,
     formatPrice(value) {
       const val = (value / 1).toFixed(2).replace(".", ",");
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");

@@ -1,0 +1,40 @@
+// issues/104: values still printed with a decimal point or without unit/space:
+// «Setmana: 0.00h», the gantt tooltip «114.99h», kilos «22.5», «97.96 %»,
+// Projectes mare «-2.677,97€» and hours without «h».
+import { describe, it, expect, vi } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import Buefy from 'buefy'
+vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
+import DedicationTooltip from '@/components/DedicationTooltip.vue'
+import DedicationInput from '@/components/DedicationInput.vue'
+import VatTable from '@/components/VatTable.vue'
+import MotherProjectsTable from '@/components/MotherProjectsTable.vue'
+
+describe('Catalan numbers (issues/104)', () => {
+  it('dedication tooltip hours', () => {
+    expect(DedicationTooltip.methods.formatHours(114.99)).toBe('114,99')
+    expect(DedicationTooltip.computed.totalHoursFormatted.call({ hasBreakdown: false, cell: { hours: '34.66' }, formatHours: DedicationTooltip.methods.formatHours })).toBe('34,66')
+  })
+
+  it('Hores dedicades week and day sums', () => {
+    const ctx = { attributes: [{ dates: '2026-10-07', customData: { hours: 7.5 } }, { dates: '2026-10-08', customData: { hours: 0.25 } }] }
+    expect(DedicationInput.methods.weekSum.call(ctx, 41)).toBe('7,75')
+    expect(DedicationInput.methods.daySum.call({}, [{ customData: { hours: 7.5 } }])).toBe('7,50')
+  })
+
+  it('IVA percentages', () => {
+    expect(VatTable.methods.pct(97.96)).toBe('97,96 %')
+    expect(VatTable.methods.pct(0)).toBe('0 %')
+  })
+
+  it('Projectes mare money and hours', async () => {
+    const w = mount(MotherProjectsTable, {
+      props: { projects: [{ id: 1, name: 'M', is_mother: true, total_real_hours: 272.1, total_real_incomes_expenses: -2677.97, estimated_incomes_expenses: 2940 }] },
+      global: { plugins: [Buefy], stubs: { 'router-link': { template: '<a><slot /></a>' } } }
+    })
+    await flushPromises()
+    expect(w.text()).toContain('272,1 h')
+    expect(w.text()).toMatch(/2\.677,97\s€/)
+    expect(w.text()).not.toMatch(/\d€/)
+  })
+})

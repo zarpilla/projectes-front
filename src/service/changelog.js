@@ -28,6 +28,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: "Més números amb el format català: les hores del calendari d'hores dedicades i del detall dels gràfics de dedicació (114,99 h), els quilos de transferències i dipòsits, els percentatges de l'IVA (97,96 %) i els imports i hores dels projectes mare."
+    },
+    {
+      type: "Correccions",
       text: ["A ", { to: "/tresoreria", label: "tresoreria" }, ", els moviments sense data surten com a «Sense data» (abans «Invalid date»), el gràfic ja no ratlla el títol quan tots els mesos són negatius i el text de «Saldo avui» ja no comença amb «-,»."]
     },
     {

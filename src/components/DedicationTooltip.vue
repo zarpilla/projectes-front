@@ -3,7 +3,7 @@
     <!-- Header: total worked/estimated for the period -->
     <div class="dt-header">
       <span class="dt-header-label">Total hores</span>
-      <span class="dt-header-hours">{{ totalHoursFormatted }}h</span>
+      <span class="dt-header-hours">{{ totalHoursFormatted }} h</span>
     </div>
 
     <!-- Breakdown: flat project rows, or collapsible groups -->
@@ -18,7 +18,7 @@
           >
             <span class="dt-row-label" :title="item.project">{{ item.project }}</span>
             <span class="dt-row-hours">
-              {{ formatHours(item.hours) }}h<span
+              {{ formatHours(item.hours) }} h<span
                 v-if="hasPercentages"
                 class="dt-row-pct"
                 > ({{ percentage(item.hours) }}%)</span
@@ -47,7 +47,7 @@
                 <span class="dt-group-name">{{ group.key }}</span>
               </span>
               <span class="dt-group-hours">
-                {{ formatHours(group.total) }}h<span
+                {{ formatHours(group.total) }} h<span
                   v-if="hasPercentages"
                   class="dt-row-pct"
                   > ({{ percentage(group.total) }}%)</span
@@ -63,7 +63,7 @@
               >
                 <span class="dt-row-label" :title="item.project">{{ item.project }}</span>
                 <span class="dt-row-hours">
-                  {{ formatHours(item.hours) }}h<span
+                  {{ formatHours(item.hours) }} h<span
                     v-if="hasPercentages"
                     class="dt-row-pct"
                     > ({{ percentage(item.hours) }}%)</span
@@ -84,19 +84,19 @@
       <div class="dt-footer">
         <div class="dt-row dt-capacity">
           <span class="dt-row-label">Hores període</span>
-          <span class="dt-row-hours">{{ formatHours(cell.expected) }}h</span>
+          <span class="dt-row-hours">{{ formatHours(cell.expected) }} h</span>
         </div>
         <div v-if="festive !== null" class="dt-row dt-festive">
           <span class="dt-row-label">Festius</span>
-          <span class="dt-row-hours">{{ formatHours(festive) }}h</span>
+          <span class="dt-row-hours">{{ formatHours(festive) }} h</span>
         </div>
         <div v-if="diff !== null && diff > 0" class="dt-row dt-excedent dt-falten">
           <span class="dt-row-label">Falten</span>
-          <span class="dt-row-hours">{{ formatHours(diff) }}h</span>
+          <span class="dt-row-hours">{{ formatHours(diff) }} h</span>
         </div>
         <div v-else-if="diff !== null && diff < 0" class="dt-row dt-excedent dt-sobren">
           <span class="dt-row-label">Sobren</span>
-          <span class="dt-row-hours">{{ formatHours(Math.abs(diff)) }}h</span>
+          <span class="dt-row-hours">{{ formatHours(Math.abs(diff)) }} h</span>
         </div>
       </div>
     </template>
@@ -104,6 +104,7 @@
 </template>
 
 <script>
+import { formatNumber } from "@/helpers/format-number";
 const GROUP_LABELS = {
   type: "Tipus de projecte",
   likelihood: "Probabilitat",
@@ -148,7 +149,7 @@ export default {
       if (this.hasBreakdown) {
         return this.formatHours(this.totalHours);
       }
-      return this.cell.hours != null ? this.cell.hours : "0.00";
+      return this.formatHours(this.cell.hours);
     },
     totalHours() {
       return this.breakdown.reduce((s, r) => s + (r.hours || 0), 0);
@@ -197,10 +198,10 @@ export default {
     },
   },
   methods: {
+    // Catalan decimals («114,99»), like the cells (issues/104)
     formatHours(h) {
       const n = Number(h);
-      if (isNaN(n)) return "0.00";
-      return n.toFixed(2);
+      return formatNumber(isNaN(n) ? 0 : n, 2, 2);
     },
     // Percentage of an item/group relative to totalHours, rounded to the
     // nearest integer. Used for both project rows and group headers.

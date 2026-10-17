@@ -168,7 +168,7 @@
         v-slot="props"
         width="80"
       >
-        {{ props.row.kilograms }}
+        {{ formatNumber(Number(props.row.kilograms) || 0, 2) }}
       </b-table-column>
 
       <b-table-column
@@ -347,6 +347,7 @@
 </template>
 
 <script>
+import { formatNumber } from "@/helpers/format-number";
 import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -412,6 +413,7 @@ export default {
     this.loadData();
   },
   methods: {
+    formatNumber,
     applyAllowedOrderStatusParams(params) {
       params['_where[_or][0][status]'] = 'pending';
       params['_where[_or][2][status]'] = 'processed';

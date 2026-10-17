@@ -36,7 +36,7 @@
               <th scope="row">Executat</th>
               <td class="has-text-right">{{ formatMoney(vat.paid) }}</td>
               <td class="has-text-right">{{ formatMoney(vat.received) }}</td>
-              <td class="has-text-right">{{ vat.deductible_vat_pct }} %</td>
+              <td class="has-text-right">{{ pct(vat.deductible_vat_pct) }}</td>
               <td class="has-text-right vat-balance">{{ formatMoney(vat.deductible_vat) }}</td>
               <td>
                 <div class="vat-settle">
@@ -63,7 +63,7 @@
               <th scope="row">Previst</th>
               <td class="has-text-right">{{ formatMoney(vat_expected.paid) }}</td>
               <td class="has-text-right">{{ formatMoney(vat_expected.received) }}</td>
-              <td class="has-text-right">{{ me.options.deductible_vat_pct }} %</td>
+              <td class="has-text-right">{{ pct(me.options.deductible_vat_pct) }}</td>
               <td class="has-text-right vat-balance">{{ formatMoney(-1 * (vat_expected.received - (vat_expected.paid * me.options.deductible_vat_pct / 100))) }}</td>
               <td></td>
             </tr>
@@ -107,7 +107,7 @@
             {{ formatPrice(props.row.paid) }} €
           </b-table-column>
           <b-table-column label="% Deduïble" numeric v-slot="props" class="has-text-right">
-            {{ props.row.deductible_pct }}%
+            {{ pct(props.row.deductible_pct) }}
           </b-table-column>
           <b-table-column label="IVA Deduïble" numeric v-slot="props" class="has-text-right">
             {{ formatPrice(props.row.deductible_vat) }} €
@@ -254,7 +254,7 @@
             {{ formatPrice(props.row.total) }} €
           </b-table-column>
           <b-table-column sortable searchable label="% IVA" numeric field="vat_pct" v-slot="props" class="has-text-right">
-            {{ props.row.vat_pct }}%
+            {{ pct(props.row.vat_pct) }}
           </b-table-column>
           <b-table-column sortable searchable label="Import IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
             {{ formatPrice(props.row.total_vat) }} €
@@ -344,7 +344,7 @@
             {{ formatPrice(props.row.total_vat) }} €
           </b-table-column>
           <b-table-column sortable searchable label="Deduïble" numeric field="theoretical_deductible_vat_pct" v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.theoretical_deductible_vat_pct) }}%
+            {{ pct(props.row.theoretical_deductible_vat_pct) }}
           </b-table-column>          
         </b-table>
         
@@ -400,7 +400,7 @@ import CardComponent from "./CardComponent.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
-import { formatMoney } from "@/helpers/format-number";
+import { formatMoney, formatNumber } from "@/helpers/format-number";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
@@ -749,6 +749,11 @@ export default {
     },
   },
   methods: {
+    // «97,96 %» (it printed «97.96 %» and «0,00%», issues/104)
+    pct(value) {
+      const n = Number(value);
+      return `${formatNumber(isNaN(n) ? 0 : n, 2)} %`;
+    },
     formatMoney,
     getTypeLabel(type) {
       switch(type) {

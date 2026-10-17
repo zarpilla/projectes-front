@@ -136,18 +136,18 @@
           <span
             class="day-sum-label text-sm text-gray-900 week-total"
             v-if="day && (day.weekdayPosition === 7 || day.dayFromEnd === 1)"
-            >Setmana: {{ weekSum(day.isoWeeknumber) }}h</span
+            >Setmana: {{ weekSum(day.isoWeeknumber) }} h</span
           >
           <span
             class="day-sum-label text-sm text-gray-900"
             v-if="daySum(attributes)"
-            >{{ daySum(attributes) }}h<span
+            >{{ daySum(attributes) }} h<span
               v-if="
                 daySumPending(attributes) &&
                   daySumPending(attributes) !== daySum(attributes)
               "
             >
-              / {{ daySumPending(attributes) }}h</span
+              / {{ daySumPending(attributes) }} h</span
             >
           </span>
           <div class="flex-grow overflow-y-auto overflow-x-auto">
@@ -297,7 +297,7 @@ import ModalBoxFestive from "@/components/ModalBoxFestive.vue";
 import ModalBoxMoveProject from "@/components/ModalBoxMoveProject.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
-import { formatHours } from "@/helpers/format-number";
+import { formatHours, formatNumber } from "@/helpers/format-number";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
@@ -984,7 +984,8 @@ export default {
       if (!attributes || (attributes && attributes.length === 0)) {
         return false;
       }
-      return sumBy(
+      // Catalan decimals, «7,50 h» (issues/104)
+      return formatNumber(sumBy(
         attributes.map(a => {
           return {
             hours:
@@ -994,7 +995,7 @@ export default {
           };
         }),
         "hours"
-      ).toFixed(2);
+      ), 2, 2);
     },
     daySumPending(attributes) {
       if (!attributes || (attributes && attributes.length === 0)) {
@@ -1006,12 +1007,13 @@ export default {
       if (pendingAttributes.length === 0) {
         return false;
       }
-      return sumBy(
+      // Catalan decimals, «7,50 h» (issues/104)
+      return formatNumber(sumBy(
         pendingAttributes.map(a => {
           return { hours: a.customData ? a.customData.hours : 0 };
         }),
         "hours"
-      ).toFixed(2);
+      ), 2, 2);
     },
     weekSum(weekNumber) {
       const weekActivities = this.attributes
@@ -1025,7 +1027,7 @@ export default {
           return { ...a, weekNumber: moment(a.dates, "YYYY-MM-DD").isoWeek() };
         });
       const weeksum = sumBy(weekActivities, a => a.customData.hours);
-      return weeksum.toFixed(2);
+      return formatNumber(weeksum, 2, 2);
     },
     async counterContinue(info) {
       if (info) {
