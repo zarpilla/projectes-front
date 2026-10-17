@@ -1,7 +1,7 @@
 <template>
   <div>
     <title-bar :title-stack="titleStack" :subtitle="subtitle">
-      <b-button type="is-primary" icon-left="plus" @click="$refs.board && $refs.board.addTask($refs.board.lists[0])">
+      <b-button type="is-primary" icon-left="plus" @click="newTask">
         Nova tasca
       </b-button>
     </title-bar>
@@ -40,7 +40,50 @@
             @select="(option) => (filters.project = option ? option.id : null)"
           />
         </label>
+        <span class="filter-spacer"></span>
+        <div class="segmented" role="group" aria-label="Vista">
+          <button type="button" :class="{ 'is-on': mode === 'board' }" :aria-pressed="mode === 'board'" @click="setMode('board')">Tauler</button>
+          <button type="button" :class="{ 'is-on': mode === 'list' }" :aria-pressed="mode === 'list'" @click="setMode('list')">Llista</button>
+        </div>
       </form>
+      <div v-if="mode === 'list'" class="filter-bar" role="group" aria-label="Filtres de la llista">
+        <label class="filter-select">
+          <span>Estat</span>
+          <b-select v-model="listFilters.state">
+            <option value="open">Obertes</option>
+            <option value="all">Totes</option>
+            <option v-for="s in states" :key="s.id" :value="s.id">{{ s.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Venciment</span>
+          <b-select v-model="listFilters.due">
+            <option value="all">Tots</option>
+            <option value="late">Vençudes</option>
+            <option value="week">Vençudes i pròxims 7 dies</option>
+            <option value="none">Sense data</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Funció</span>
+          <b-select v-model="listFilters.activityType">
+            <option value="all">Totes</option>
+            <option :value="0">Sense funció</option>
+            <option v-for="a in activityTypes" :key="a.id" :value="a.id">{{ a.name }}</option>
+          </b-select>
+        </label>
+        <b-checkbox v-model="showArchived">Mostra les arxivades</b-checkbox>
+        <span class="filter-spacer"></span>
+        <label class="filter-select">
+          <span>Agrupa per</span>
+          <b-select v-model="groupBy">
+            <option value="due">Venciment</option>
+            <option value="state">Estat</option>
+            <option value="project">Projecte</option>
+            <option value="person">Persona</option>
+          </b-select>
+        </label>
+      </div>
       <tasks
         ref="board"
         :projects="projects"
@@ -49,6 +92,10 @@
         :project="filters.project"
         :search="search"
         view="state"
+        :mode="mode"
+        :list-filters="listFilters"
+        :group-by="groupBy"
+        :show-archived="showArchived"
         @summary="summary = $event"
       />
     </section>
@@ -63,10 +110,18 @@ import HeroBar from "@/components/HeroBar.vue";
 import Tasks from "@/components/Tasks.vue";
 import service from "@/service/index";
 import { findCurrentUser } from "@/domain/currentUser";
-import moment from "moment";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
-import _ from "lodash";
+
+// Tauler or Llista, remembered per browser
+const MODE_KEY = "tasksMode";
+function savedMode() {
+  try {
+    return localStorage.getItem(MODE_KEY) === "list" ? "list" : "board";
+  } catch {
+    return "board";
+  }
+}
 
 export default {
   name: "TasksView",
@@ -80,8 +135,8 @@ export default {
   data() {
     return {
       isLoading: false,
-      tasks: [],
       states: [],
+      activityTypes: [],
       userNameSearch: "",
       projectNameSearch: "",
       users: [],
@@ -90,9 +145,10 @@ export default {
         user: null,
         project: null
       },
-      dragOver: -1,
-      dragOverState: -1,
-      cardOrder: [],
+      mode: savedMode(),
+      listFilters: { state: "open", due: "all", activityType: "all" },
+      groupBy: "due",
+      showArchived: false,
       search: "",
       summary: null
     };
@@ -103,9 +159,10 @@ export default {
     },
     subtitle() {
       if (!this.summary) return "";
-      const { total, overdue } = this.summary;
-      return `${total} ${total === 1 ? "tasca no arxivada" : "tasques no arxivades"}` +
-        (overdue ? ` · ${overdue} ${overdue === 1 ? "de vençuda" : "de vençudes"}` : "");
+      const { open, done, overdue } = this.summary;
+      return `${open} ${open === 1 ? "tasca oberta" : "tasques obertes"}` +
+        (overdue ? ` · ${overdue} ${overdue === 1 ? "de vençuda" : "de vençudes"}` : "") +
+        (done ? ` · ${done} ${done === 1 ? "acabada" : "acabades"}` : "");
     },
     ...mapState(useMainStore, ["userName"]),
     filteredUsers() {
@@ -128,24 +185,15 @@ export default {
         );
       });
     },
-    maxCardsInState() {
-      const max = this.states.map(s => 0)
-      this.states.forEach((s, i) => {
-        max[i] = this.tasks.filter(t => t.task_state && t.task_state.id === s.id).length
-      });
-      return max
-    },
-    maxCards() {
-      return _.max(this.maxCardsInState)
-    },
-    cardOrderView() {
-
-    }
   },
   async mounted() {
     this.isLoading = true;
 
     this.projects = (await service({ requiresAuth: true }).get("projects/basic?_limit=-1")).data.filter((p) => p.project_state !== 2)
+
+    this.states = (await service({ requiresAuth: true, cached: true }).get("task-states?_sort=order")).data
+    this.activityTypes = (await service({ requiresAuth: true, cached: true }).get("activity-types/basic?_limit=-1")).data
+      .slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "ca"))
 
     const allUsers = (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data
     this.users = allUsers.filter((u) => u.hidden !== true)
@@ -158,105 +206,23 @@ export default {
     this.isLoading = false;
   },
   methods: {
-    startDrag(evt, item) {
-      evt.dataTransfer.dropEffect = "move";
-      evt.dataTransfer.effectAllowed = "move";
-      evt.dataTransfer.setData("itemID", item.id);
-    },
-    async onDrop(i, j, evt, state) {
-      const itemID = evt.dataTransfer.getData("itemID");
-      const item = this.tasks.find((item) => item.id == itemID);
-      if (!item) {
-        return
-      }
-      this.removeFromOrder(item)
-      item.task_state = state;
-      this.addToOrder(item, j)
-      this.dragOver = -1
-      this.dragOverState = -1
+    setMode(mode) {
+      this.mode = mode;
       try {
-        await service({ requiresAuth: true }).put(`tasks/${item.id}`, item)
+        localStorage.setItem(MODE_KEY, mode);
+      } catch {
+        // private window: the choice lasts until reload
       }
-      catch (e) {
-        this.$buefy.snackbar.open({
-          message: "Error",
-          queue: false,
-        });
-      }
-      
-      // this.$buefy.snackbar.open({
-      //   message: "Tasca guardada",
-      //   queue: false,
-      // });
     },
-    onDragEnter(evt, state) {
-    },
-    onDragOver(i, j, evt, state) {
-      this.dragOverState = i
-      this.dragOver = j
-    },
-    removeFromOrder(item) {
-      this.cardOrder[item.task_state.order] = this.cardOrder[item.task_state.order].filter(o => o.id !== item.id)
-    },
-    addToOrder(item, position) {      
-      // if (position < 0) {
-      //   this.cardOrder[item.task_state.order] = [item]
-      // } else {
-      //   const stateCardOrder = JSON.parse(JSON.stringify(this.cardOrder[item.task_state.order]))
-      //   this.cardOrder[item.task_state.order] = _.concat(_.concat(stateCardOrder.filter((it, i) => i <= position), item), stateCardOrder.filter((it, i) => i > position) )
-      // }
-
-      const stateCardOrder = JSON.parse(JSON.stringify(this.cardOrder[item.task_state.order]))
-      this.cardOrder[item.task_state.order] = _.concat(_.concat(stateCardOrder.filter((it, i) => i <= position), item), stateCardOrder.filter((it, i) => i > position) )
-
+    newTask() {
+      const board = this.$refs.board;
+      if (!board) return;
+      if (this.mode === "list") board.addTask(null);
+      else board.addTask(board.lists[0]);
     }
   }
 };
 </script>
-<style scoped>
-.task-list-content {
-  border-radius: 4px;
-}
-.task-list-header {
-  padding: 1rem 0.5rem;
-  font-weight: bold;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-}
-.task-list-body {
-  padding: 0rem 0.5rem 1rem;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-.task-list-body .content {
-  padding: 1rem 0.5rem;
-}
-.empty-card{
-  min-height: 200px;
-}
-.drop-zone {
-  margin-bottom: 1.5rem;
-  padding-bottom: 0rem;
-}
-.drop-zone-active .empty-zone, .drop-zone-active.empty-zone-no-card {
-  margin-top: 1rem;
-  background: var(--a-chip);
-  padding-bottom: 10rem;
-  border-radius: 4px;
-}
-.empty-zone-no-card{
-  min-height: 160px;
-}
-.empty-zone-no-card-first{
-  min-height: 1rem;
-  margin-top: 0rem;
-  margin-bottom: 0rem;
-}
-.empty-zone-no-card-first.drop-zone-active{
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-</style>
 <style scoped>
 .filter-auto-label {
   min-width: 15rem;
@@ -271,5 +237,13 @@ export default {
 }
 .filter-search {
   flex: 0 1 22rem;
+}
+.filter-spacer {
+  flex: 1;
+}
+/* long Funció names: the select shrinks, the option list keeps them whole */
+.filter-select :deep(.select select) {
+  max-width: 14rem;
+  text-overflow: ellipsis;
 }
 </style>

@@ -255,6 +255,7 @@ import moment from "moment";
 import RadioPicker from "@/components/RadioPicker.vue";
 import FileUpload from "@/components/FileUpload.vue";
 import getConfig from "@/config";
+import { currentUserId } from "@/domain/currentUser";
 
 export default {
   name: "ModalBoxTask",
@@ -284,10 +285,6 @@ export default {
     states: {
       type: Array,
       default: [],
-    },
-    user: {
-      type: Object,
-      default: null,
     },
   },
   data() {
@@ -477,8 +474,9 @@ export default {
       if (this.form.due_date) {
         form.due_date = moment(this.form.due_date).format("YYYY-MM-DD");
       }
-      if (this.form.activity_type && !this.form.activity_type.id) {
-        this.form.activity_type = null;
+      // no Funció: 0 or { id: 0 } from the board (it cleared this.form, not the copy sent)
+      if (!form.activity_type || (typeof form.activity_type === "object" && !form.activity_type.id)) {
+        form.activity_type = null;
       }
       this.$emit("submit", form);
     },
@@ -592,7 +590,9 @@ export default {
         done: false,
         user: "",
         due_date: null,
-        created: this.user,
+        // who adds it (the `user` prop it read was the board's Persona filter, an id
+        // in a prop declared as an object, and empty on a project's board)
+        created: currentUserId(),
         created_date: new Date()
       });
       this.checklistToAdd = "";

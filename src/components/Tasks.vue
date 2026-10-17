@@ -7,14 +7,23 @@
       @cancel="modalCancel"
       @delete="modalDelete"
       :users="users"
-      :user="user"
       :projects="projects"
       :project="project"
       :states="states"
     />
+    <tasks-list
+      v-if="mode === 'list'"
+      :tasks="listTasks"
+      :states="states"
+      :users="users"
+      :group-by="groupBy"
+      @open="showTask"
+      @add="addTask(null, $event)"
+      @update="updateTasks"
+    />
     <!-- Redesign A: one column per state (or activity type), quiet cards; the
          drag and drop zones are the same as before -->
-    <div class="tasks-board">
+    <div v-else class="tasks-board">
       <div v-for="(state, i) in lists" :key="state.id" class="task-list-content">
         <div class="task-list-header">
           <span class="task-list-name">{{ state.name }}</span>
@@ -107,6 +116,7 @@
 <script>
 import Notification from "@/components/Notification.vue";
 import ModalBoxTask from "@/components/ModalBoxTask.vue";
+import TasksList from "@/components/TasksList.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import HeroBar from "@/components/HeroBar.vue";
@@ -117,6 +127,8 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import _ from "lodash";
 import getConfig from '@/config'
+import { currentUserId } from "@/domain/currentUser";
+import { isOverdue, isDone, filterTasks, tasksQuery, kanbanViewQuery } from "@/domain/tasks";
 
 moment.locale("ca");
 
@@ -130,7 +142,7 @@ export default {
     CardComponent,
     ModalBoxTask,
     Notification,
-    ModalBoxTask,
+    TasksList,
   },
   data() {
     return {
@@ -187,6 +199,25 @@ export default {
     search: {
       type: String,
       default: ''
+    },
+    // 'board' (columns) or 'list' (grouped table, TasksList)
+    mode: {
+      type: String,
+      default: 'board'
+    },
+    // list only: { state, due, activityType } (see filterTasks) and its grouping
+    listFilters: {
+      type: Object,
+      default: () => ({})
+    },
+    groupBy: {
+      type: String,
+      default: 'due'
+    },
+    // list only: archived tasks too, to restore them
+    showArchived: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ["summary"],
@@ -200,6 +231,12 @@ export default {
     view: function (newVal, oldVal) {
       this.getData();
     },
+    showArchived() {
+      this.getData();
+    },
+    mode() {
+      if (this.showArchived) this.getData();
+    },
     summary: {
       handler(value) {
         this.$emit("summary", value);
@@ -210,10 +247,19 @@ export default {
   computed: {
     summary() {
       const tasks = this.activeTasks;
+      const done = tasks.filter(t => isDone(t, this.states)).length;
       return {
         total: tasks.length,
+        open: tasks.length - done,
+        done,
         overdue: tasks.filter(t => this.isOverdue(t)).length
       };
+    },
+    listTasks() {
+      const tasks = this.showArchived
+        ? this.tasks.map(t => ({ ...t, activity_type: t.activity_type && t.activity_type.id ? t.activity_type : { id: 0 } }))
+        : this.activeTasks;
+      return filterTasks(tasks, { ...this.listFilters, search: this.search }, this.states, this.today);
     },
     titleStack() {
       return ["Projectes", "Tasques"];
@@ -308,20 +354,11 @@ export default {
         await service({ requiresAuth: true, cached: true }).get("task-states?_sort=order")
       ).data;
 
-      let query = "tasks?_limit=-1&_where[archived_eq]=false";
-      
-      if (this.project) {
-        query += "&_where[project_eq]=" + this.project;
-      }
+      // the person filter runs on the server (it loaded every task and filtered here)
+      const query = tasksQuery({ project: this.project, user: this.user, archived: this.mode === 'list' && this.showArchived })
+      const tasks = (await service({ requiresAuth: true }).get(query)).data
 
-      let tasks = (await service({ requiresAuth: true }).get(query)).data
-      if (this.user) {
-        tasks = tasks.filter(t => t.users_permissions_users && t.users_permissions_users.filter(u => u.id === this.user).length > 0)
-      } else {
-        // tasks = tasks
-      }
-
-      let kanbanQuery = `kanban-views?_limit=1&_where[projectId_eq]=${this.project ? this.project : 0}&[userId_eq]=${this.user ? this.user : 0}&[view_eq]=${this.view}`
+      const kanbanQuery = kanbanViewQuery({ project: this.project, user: this.user, view: this.view })
 
       this.kanbanViewDb = (await service({ requiresAuth: true }).get(kanbanQuery)).data
 
@@ -422,10 +459,45 @@ export default {
         await service({ requiresAuth: true }).post(`kanban-views`, this.kanbanView);
       }
     },
-    addTask(state) {
-      const initial = this.view === 'state' ? { activity_type: 0, task_state: state } : { activity_type: state, task_state: this.states[0] }
-      this.taskObject = { ...initial, project: this.projects.find(p => p.id === this.project), users_permissions_users: this.user ? [this.users.find(u => u.id === this.user)] : [] };
+    // state: the board column; prefill: what the list group gives (state, project, person)
+    addTask(state, prefill = {}) {
+      const initial = !state
+        ? { activity_type: 0, task_state: this.states[0] }
+        : this.view === 'state' ? { activity_type: 0, task_state: state } : { activity_type: state, task_state: this.states[0] }
+      const filterUser = this.user ? this.users.find(u => u.id === this.user) : null
+      this.taskObject = {
+        ...initial,
+        project: this.projects.find(p => p.id === this.project),
+        users_permissions_users: filterUser ? [filterUser] : [],
+        ...prefill
+      };
       this.isModalActive = true;
+    },
+    // changes from the list (one task or the selected ones); patch is an object or a
+    // function of the task
+    async updateTasks({ tasks, patch }) {
+      if (!tasks.length) return;
+      let failed = 0;
+      for (const task of tasks) {
+        try {
+          const data = typeof patch === 'function' ? patch(task) : patch;
+          const updated = (await service({ requiresAuth: true }).put(`tasks/${task.id}`, data)).data;
+          const item = this.tasks.find(t => t.id === task.id);
+          if (item && updated) {
+            Object.assign(item, updated);
+            if (!this.showArchived && item.archived) this.tasks = this.tasks.filter(t => t.id !== item.id);
+          }
+        } catch (e) {
+          failed++;
+        }
+      }
+      this.$buefy.snackbar.open({
+        message: failed
+          ? `No s'han pogut desar ${failed} de ${tasks.length} tasques`
+          : tasks.length === 1 ? "Tasca guardada" : `${tasks.length} tasques guardades`,
+        type: failed ? "is-danger" : undefined,
+        queue: false,
+      });
     },
     showTask(task) {
       this.taskObject = task;
@@ -442,7 +514,8 @@ export default {
         this.reOrderCards()
         await this.saveKanbanView()
       } else {
-        task.created = this.user
+        // the person who creates it (it was the Persona filter, or nobody on a project)
+        task.created = currentUserId()
         task.archived = false
         task.order = -10
         task = (await service({ requiresAuth: true }).post(`tasks`, task)).data;        
@@ -512,11 +585,8 @@ export default {
       return Math.max(0, (this.cardOrderViewSorted[i] || []).length - this.shownCards(i).length);
     },
     // the last state counts as "done" (no overdue warning for finished tasks)
-    isDoneState(state) {
-      return !!state && this.states.length > 1 && state.id === this.states[this.states.length - 1].id;
-    },
     isOverdue(task) {
-      return !!task.due_date && task.due_date < this.today && !this.isDoneState(task.task_state);
+      return isOverdue(task, this.states, this.today);
     },
     initials(name) {
       const words = String(name || "").split(/[\s._@-]+/).filter(Boolean);

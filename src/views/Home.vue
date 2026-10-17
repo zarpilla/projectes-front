@@ -96,6 +96,7 @@ import sortBy from "lodash/sortBy";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
+import { isDone } from "@/domain/tasks";
 
 export default {
   name: "Home",
@@ -251,16 +252,20 @@ export default {
         this.applyProjects();
       });
 
-    service({ requiresAuth: true })
-      .get("tasks?_limit=-1&_where[archived_eq]=false")
-      .then(r => {
+    // "done" is the last state by order, as on the Tasques board (it was the id 3)
+    Promise.all([
+      service({ requiresAuth: true }).get("tasks?_limit=-1&_where[archived_eq]=false"),
+      service({ requiresAuth: true, cached: true }).get("task-states?_sort=order")
+    ])
+      .then(([r, statesResponse]) => {
         const allTasks = r.data;
+        const states = statesResponse.data || [];
         const myTasks = allTasks.filter(
           t =>
             t.users_permissions_users &&
             t.users_permissions_users.length &&
             t.task_state &&
-            t.task_state.id !== 3 &&
+            !isDone(t, states) &&
             t.users_permissions_users.find(u => u.username === this.userName) &&
             t.due_date &&
             t.due_date <= moment().format("YYYY-MM-DD")
