@@ -417,6 +417,19 @@ export const CHANGELOG = [
   ]
 },
 {
+  date: "2025.12.10",
+  items: [
+    {
+      type: "Millores",
+      text: "Calendari de festius del 2026 carregat."
+    },
+    {
+      type: "Millores",
+      text: "Millores al formulari de dietes."
+    }
+  ]
+},
+{
   date: "2025.11.28",
   items: [
     {
@@ -432,8 +445,47 @@ export const CHANGELOG = [
       text: "Nou formulari per facilitar la introducció de dietes"
     },
     {
+      type: "Millores",
+      text: "No es poden esborrar persones usuàries que tenen dades associades (hores, jornades, documents…)."
+    },
+    {
       type: "Correccions",
       text: "Correccions a la importació d'hores a partir de calendaris"
+    }
+  ]
+},
+{
+  date: "2025.11.20",
+  items: [
+    {
+      type: "Millores",
+      text: "La importació d'hores des de calendaris ja no importa els esdeveniments que has rebutjat."
+    },
+    {
+      type: "Millores",
+      text: "Logística: les comandes noves prenen una forma de pagament per defecte i els descomptes de les comandes s'envien correctament a Verifactu."
+    }
+  ]
+},
+{
+  date: "2025.11.03",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Nova pantalla d'", { to: "/vat", label: "IVA" }, ": suportat, repercutit, deduïble i saldo, executat i previst, i la llista de documents pendents de saldar, que es poden saldar indicant la data de pagament."]
+    }
+  ]
+},
+{
+  date: "2025.10.21",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Exportació a ", { to: "/contasol", label: "Contasol" }, ": factures, proveïdors i efectes a pagar, per portar-los al programa de comptabilitat."]
+    },
+    {
+      type: "Millores",
+      text: "Millores al gantt de dedicacions."
     }
   ]
 },
@@ -443,6 +495,32 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       text: "Possibilitat de desactivar àmbits de projecte."
+    },
+    {
+      type: "Novetats",
+      text: "Logística: notes d'entrega als punts d'entrega, visibles a les comandes."
+    },
+    {
+      type: "Millores",
+      text: "En importar hores des del calendari, el tipus de dedicació es detecta pel nom de l'esdeveniment."
+    }
+  ]
+},
+{
+  date: "2025.09.24",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nou mòdul de justificacions de subvencions, amb la possibilitat de justificar les despeses d'estructura amb factures."
+    }
+  ]
+},
+{
+  date: "2025.09.19",
+  items: [
+    {
+      type: "Millores",
+      text: "Quan hi ha una versió nova de l'aplicació, es carrega sola o t'ho avisa, sense haver de buidar la memòria cau del navegador."
     }
   ]
 },
@@ -475,8 +553,25 @@ export const CHANGELOG = [
       text: "Possibilitat de definir vistes personalitzades a les taules dinàmiques."
     },
     {
+      type: "Novetats",
+      text: "Logística: descompte per volum a les comandes, que se suma als de multientrega i recollida. La factura mostra la base sense descompte, el descompte i el preu final."
+    },
+    {
+      type: "Millores",
+      text: "Les factures en PDF de més d'una pàgina repeteixen la capçalera de la taula de línies."
+    },
+    {
       type: "Millores",
       text: "Millores de rendiment en la visualització de dades d'ingressos i despeses i preus/hora."
+    }
+  ]
+},
+{
+  date: "2025.09.02",
+  items: [
+    {
+      type: "Millores",
+      text: "Logística: el descompte de multientrega es calcula automàticament en desar la comanda, i es pot analitzar a l'estadística de comandes."
     }
   ]
 },
@@ -486,6 +581,36 @@ export const CHANGELOG = [
     {
       type: "Millores",
       text: "Millores de rendiment en la visualització de factures amb més de 50 línies."
+    },
+    {
+      type: "Millores",
+      text: "Logística: la llista de comandes carrega més ràpid."
+    }
+  ]
+},
+{
+  date: "2025.07.16",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Logística: comandes de ", { to: "/pickup-points", label: "punts de recollida" }, ", amb una línia per destinatari (caixes, quilos, nom i NIF) i els totals calculats automàticament, i descompte per recollida en finca."]
+    },
+    {
+      type: "Millores",
+      text: "Logística: la llista de comandes s'adapta al mòbil."
+    }
+  ]
+},
+{
+  date: "2025.07.07",
+  items: [
+    {
+      type: "Novetats",
+      text: "Notes internes a les factures, que no surten al document, a més de les notes visibles."
+    },
+    {
+      type: "Millores",
+      text: "Les factures en esborrany es poden editar directament."
     }
   ]
 },
@@ -499,6 +624,58 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       text: "Nova funcionalitat per crear factures rectificatives a partir de factures emeses."
+    },
+    {
+      type: "Novetats",
+      text: "Factures en esborrany: es poden desar i modificar fins que es validen i s'emeten amb número."
+    },
+    {
+      type: "Millores",
+      text: "Logística: totals a la llista de comandes."
+    }
+  ]
+},
+{
+  date: "2025.05.21",
+  items: [
+    {
+      type: "Novetats",
+      text: "Logística: descomptes de multientrega a les comandes i noves tarifes per ruta."
+    },
+    {
+      type: "Novetats",
+      text: "Logística: en entrar, avís si tens factures pendents de pagar, i data de facturació a cada comanda."
+    }
+  ]
+},
+{
+  date: "2025.03.20",
+  items: [
+    {
+      type: "Millores",
+      text: "Logística: la fitxa dels punts d'entrega demana les dades imprescindibles (NIF, telèfon, adreça) i l'horari d'entrega en dos trams."
+    },
+    {
+      type: "Millores",
+      text: "Logística: millores al PDF de les comandes."
+    }
+  ]
+},
+{
+  date: "2025.03.07",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Exportació dels ", { to: "/contacts", label: "contactes" }, " i dels punts d'entrega a CSV."]
+    }
+  ]
+},
+{
+  date: "2025.02.26",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Saldo d'hores anual i saldo d'hores a avui a ", { to: "/dedicacio-saldo", label: "saldo hores" }, "."]
     }
   ]
 },
@@ -508,6 +685,19 @@ export const CHANGELOG = [
     {
       type: "Millores",
       text: "Millores de rendiment a l'actualitzar projectes i factures."
+    },
+    {
+      type: "Millores",
+      text: "Logística: filtres a la llista de comandes, ara molt més ràpida amb moltes comandes."
+    }
+  ]
+},
+{
+  date: "2025.01.29",
+  items: [
+    {
+      type: "Millores",
+      text: "Logística: notes dels contactes visibles a les comandes."
     }
   ]
 },

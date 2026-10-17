@@ -823,6 +823,9 @@ td.doc-total {
 .a-box.list-box .b-table .table-wrapper {
   margin-bottom: 0;
 }
+.a-box.list-box > .box-head {
+  margin: 0;
+}
 .segmented .count {
   margin-left: .25rem;
   font-size: .75rem;

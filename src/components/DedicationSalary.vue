@@ -1,168 +1,107 @@
 <template>
-  <div>
-    <div class="table-view">
-      <b-loading
-        :is-full-page="true"
-        v-if="user"
-        v-model="isLoading"
-        :can-cancel="false"
-      ></b-loading>
+  <!-- Redesign A: the year's figures as KPIs, then a month table with the payroll
+       state and its actions -->
+  <div class="salary-view">
+    <b-loading
+      :is-full-page="true"
+      v-if="user"
+      v-model="isLoading"
+      :can-cancel="false"
+    ></b-loading>
 
-      <div class="alert" v-if="warn">
-        <b-icon icon="alert-circle"></b-icon>
-        Atenció, abans de consultar les nòmines cal definir la
-        <a href="/stats/#/working-day" target="_blank">jornada laboral</a> de
-        tot l'any.
-      </div>
-
-      <card-component
-        class="has-table has-mobile-sort-spaced is-striped"
-        v-if="!isLoading && !warn"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Tipus</div>
-          <div class="column has-text-weight-bold has-text-right">Hores</div>
-          <div class="column has-text-weight-bold has-text-right"></div>
-        </div>
-        <div v-for="(value, key) in summary" v-bind:key="key" class="card-body">
-          <div class="columns">
-            <div class="column">
-              {{ key }}
-            </div>
-            <div class="column has-text-right">{{ value }} h</div>
-            <div class="column has-text-right"></div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="columns">
-            <div class="column">
-              Salari total
-            </div>
-            <div class="column has-text-right">
-              <money-format
-                :value="xsalary"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-            <div class="column"></div>
-          </div>
-        </div>
-      </card-component>
-
-      <card-component
-        class="has-table has-mobile-sort-spaced zis-striped"
-        v-if="!isLoading"
-      >
-        <div class="columns card-body">
-          <div class="column has-text-weight-bold">Mes</div>
-          <!-- <div class="column has-text-weight-bold">Obj</div> -->
-          <div class="column has-text-weight-bold">Treballades</div>
-          <div class="column has-text-weight-bold">Teòriques</div>
-          <div class="column has-text-weight-bold">Saldo</div>
-          <div class="column has-text-weight-bold">Saldo Acumulat</div>
-          <div class="column has-text-weight-bold">Salari</div>
-          <div class="column has-text-weight-bold">Nòmina</div>
-        </div>
-        <div v-for="(value, key) in months" v-bind:key="key" class="card-body">
-          <div class="columns">
-            <div class="column month-name">
-              {{ monthName(key) }}
-            </div>
-            <div class="column">{{ hours(value.worked) }}</div>
-            <div class="column">{{ hours(value.theoricHours) }}</div>
-            <div class="column" :class="'has-text-' + sign(value.balance)">{{ hours(value.balance, true) }}</div>
-            <div class="column" :class="'has-text-' + sign(value.balanceTotal)">{{ hours(value.balanceTotal, true) }}</div>
-            <div class="column">
-              <span>
-                {{ salary(value.dailySalary / value.theoricDays) }}
-                <span
-                  v-if="
-                    hasPayroll(key) &&
-                      (value.dailySalary / value.theoricDays).toFixed(2) !==
-                        hasPayroll(key).total_base.toFixed(2)
-                  "
-                >
-                  (Teòric)
-                </span>
-              </span>
-              <br
-                v-if="
-                  hasPayroll(key) &&
-                    (value.dailySalary / value.theoricDays).toFixed(2) !==
-                      hasPayroll(key).total_base.toFixed(2)
-                "
-              />
-              <span
-                class="has-text-danger"
-                v-if="
-                  hasPayroll(key) &&
-                    (value.dailySalary / value.theoricDays).toFixed(2) !==
-                      hasPayroll(key).total_base.toFixed(2)
-                "
-              >
-                {{ salary(hasPayroll(key).total_base) }} (Nòmina)
-              </span>
-            </div>
-            <div class="column">
-              <div class="is-flex">
-                <b-button
-                  v-if="!hasPayroll(key)"
-                  @click="
-                    createPayroll(
-                      key,
-                      (value.dailySalary / value.theoricDays).toFixed(2)
-                    )
-                  "
-                  type="is-primary"
-                  icon="edit"
-                  >Crear</b-button
-                >
-                <b-button
-                  v-if="hasPayroll(key) && !payrollDetail(key).paid"
-                  @click="
-                    payPayroll(
-                      key,
-                      (value.dailySalary / value.theoricDays).toFixed(2)
-                    )
-                  "
-                  class="is-primary mr-3"
-                  icon="edit"
-                  >Pagar</b-button
-                >
-                <b-button
-                  v-if="hasPayroll(key)"
-                  @click="
-                    deletePayroll(
-                      key,
-                      (value.dailySalary / value.theoricDays).toFixed(2) !==
-                        hasPayroll(key).total_base.toFixed(2)
-                    )
-                  "
-                  class="mr-2"
-                  title="Esborra la nòmina"
-                  aria-label="Esborra la nòmina"
-                >
-                  <b-icon icon="trash-can" size="is-small" />
-                </b-button>
-                <b-button
-                  v-if="hasPayroll(key)"
-                  @click="viewPayroll(key)"
-                  class="mr-2"
-                  title="Mostra la nòmina"
-                  aria-label="Mostra la nòmina"
-                >
-                  <b-icon icon="eye" size="is-small" />
-                </b-button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </card-component>
+    <div class="notification is-warning is-light" v-if="warn">
+      Abans de consultar les nòmines cal definir la
+      <router-link to="/working-day">jornada laboral</router-link> de tot l'any.
     </div>
+
+    <div v-if="!isLoading && !warn" class="doc-kpis">
+      <div v-for="(value, key) in summary" :key="key" class="doc-kpi">
+        <span>{{ key }}</span>
+        <b>{{ hours(value, /saldo/i.test(key)) }}</b>
+      </div>
+      <div class="doc-kpi">
+        <span>Salari total</span>
+        <b>{{ salary(xsalary) }}</b>
+      </div>
+    </div>
+
+    <section v-if="!isLoading" class="a-box list-box">
+      <header class="box-head">
+        <h2>Nòmines per mes</h2>
+        <span class="box-hint">Hores treballades i teòriques, saldo i salari de cada mes</span>
+      </header>
+      <div class="table-wrap">
+        <table class="table is-fullwidth salary-table">
+          <thead>
+            <tr>
+              <th scope="col">Mes</th>
+              <th scope="col" class="has-text-right">Treballades</th>
+              <th scope="col" class="has-text-right">Teòriques</th>
+              <th scope="col" class="has-text-right">Saldo</th>
+              <th scope="col" class="has-text-right">Saldo acumulat</th>
+              <th scope="col" class="has-text-right">Salari</th>
+              <th scope="col">Nòmina</th>
+              <th scope="col"><span class="is-sr-only">Accions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(value, key) in months" :key="key">
+              <th scope="row" class="month-name">{{ monthName(key) }}</th>
+              <td class="has-text-right">{{ hours(value.worked) }}</td>
+              <td class="has-text-right">{{ hours(value.theoricHours) }}</td>
+              <td class="has-text-right" :class="'has-text-' + sign(value.balance)">{{ hours(value.balance, true) }}</td>
+              <td class="has-text-right" :class="'has-text-' + sign(value.balanceTotal)">{{ hours(value.balanceTotal, true) }}</td>
+              <td class="has-text-right">
+                {{ salary(value.dailySalary / value.theoricDays) }}
+                <template v-if="payrollDiffers(key, value)">
+                  <small class="has-text-muted"> teòric</small>
+                  <br />
+                  <span class="has-text-danger">{{ salary(hasPayroll(key).total_base) }} <small>a la nòmina</small></span>
+                </template>
+              </td>
+              <td>
+                <span v-if="!hasPayroll(key)" class="tag">Sense nòmina</span>
+                <span v-else-if="payrollDetail(key).paid" class="tag is-success is-light">Pagada</span>
+                <span v-else class="tag is-warning is-light">Per pagar</span>
+              </td>
+              <td>
+                <div class="row-actions">
+                  <b-button
+                    v-if="!hasPayroll(key)"
+                    size="is-small"
+                    type="is-primary"
+                    icon-left="plus"
+                    @click="createPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2))"
+                  >Crea</b-button>
+                  <b-button
+                    v-if="hasPayroll(key) && !payrollDetail(key).paid"
+                    size="is-small"
+                    type="is-primary"
+                    @click="payPayroll(key, (value.dailySalary / value.theoricDays).toFixed(2))"
+                  >Paga</b-button>
+                  <b-button
+                    v-if="hasPayroll(key)"
+                    size="is-small"
+                    icon-left="eye"
+                    title="Mostra la nòmina"
+                    aria-label="Mostra la nòmina"
+                    @click="viewPayroll(key)"
+                  />
+                  <b-button
+                    v-if="hasPayroll(key)"
+                    size="is-small"
+                    icon-left="trash-can"
+                    title="Esborra la nòmina"
+                    aria-label="Esborra la nòmina"
+                    @click="deletePayroll(key, payrollDiffers(key, value))"
+                  />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -173,15 +112,13 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import { festivesBetween } from "@/domain/workdayLog.js";
-import CardComponent from "@/components/CardComponent.vue";
-import MoneyFormat from "@/components/MoneyFormat.vue";
 import { formatNumber, formatMoney, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
 
 export default {
   name: "DedicationSalary",
-  components: { CardComponent, MoneyFormat },
+  components: {},
   props: {
     user: {
       type: Number,
@@ -241,6 +178,11 @@ export default {
     this.getActivities();
   },
   methods: {
+    // the payroll saved for the month has another base than the theoretical salary
+    payrollDiffers(key, value) {
+      const payroll = this.hasPayroll(key);
+      return !!payroll && (value.dailySalary / value.theoricDays).toFixed(2) !== payroll.total_base.toFixed(2);
+    },
     sign,
     monthName(key) {
       const names = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
@@ -637,6 +579,33 @@ export default {
 };
 </script>
 <style scoped>
+.salary-view .doc-kpis {
+  margin-bottom: 1rem;
+}
+.salary-table {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.salary-table td,
+.salary-table th {
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.salary-table tr > :first-child {
+  padding-left: 1.25rem;
+}
+.salary-table tr > :last-child {
+  padding-right: 1.25rem;
+}
+.salary-table .month-name {
+  text-transform: capitalize;
+  font-weight: 700;
+}
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .375rem;
+}
 .separator {
   margin-right: 0.5rem;
   display: inline-block;

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="L'IVA pendent de saldar amb Hisenda: el ja executat, el previst als projectes i el detall per trimestre i per document." />
     <section class="section is-main-section">
       <vat-table />
     </section>

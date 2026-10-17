@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Nòmines i bestretes de cada persona: hores fetes, saldo i salari mes a mes." />
     <section class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
         <b-autocomplete

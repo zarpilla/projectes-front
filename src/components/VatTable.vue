@@ -1,392 +1,306 @@
 <template>
-  <div>
+  <!-- Redesign A: the balance to settle, then one view at a time (documents pending,
+       quarters executed / expected, expected documents) -->
+  <div class="vat-page">
+    <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false" />
 
-    <b-loading
-      :is-full-page="true"
-      v-model="isLoading"
-      :can-cancel="false"
-    ></b-loading>
-
-    <card-component
-      title="IVA PENDENT DE SALDAR"
-      class="ztile is-child mt-2"
-      v-if="
-        me &&
-        me.options &&
-        me.options.deductible_vat_pct &&
-        me.options.deductible_vat_pct > 0
-      "
-    >
-      <p class="vat-help"><b>Executat:</b> IVA de factures i documents ja pagats o cobrats, encara pendent de saldar amb Hisenda.</p>
-      <p class="vat-help"><b>Previst:</b> IVA estimat de despeses i ingressos previstos als projectes, encara no executats (factures no emeses ni rebudes).</p>
-      <div class="table-wrap">
-        <table class="table vat-pending">
-          <thead>
-            <tr>
-              <th scope="col"></th>
-              <th scope="col" class="has-text-right">Suportat</th>
-              <th scope="col" class="has-text-right">Repercutit</th>
-              <th scope="col" class="has-text-right">Deduïble</th>
-              <th scope="col" class="has-text-right">Saldo</th>
-              <th scope="col">Saldar</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">Executat</th>
-              <td class="has-text-right">{{ formatMoney(vat.paid) }}</td>
-              <td class="has-text-right">{{ formatMoney(vat.received) }}</td>
-              <td class="has-text-right">{{ pct(vat.deductible_vat_pct) }}</td>
-              <td class="has-text-right vat-balance">{{ formatMoney(vat.deductible_vat) }}</td>
-              <td>
-                <div class="vat-settle">
-                  <b-datepicker
-                    v-model="vat_paid_date"
-                    aria-label="Data de pagament"
-                    placeholder="Data de pagament"
-                    icon="calendar-today"
-                    :locale="'ca-ES'"
-                    :first-day-of-week="1"
-                  />
-                  <button
-                    class="button is-primary"
-                    type="button"
-                    :disabled="(vat.paid - (vat.received * me.options.deductible_vat_pct / 100)) === 0 || payingVat || checkedRows.length === 0"
-                    @click="payVatIds"
-                  >
-                    {{ payingVat ? "…" : "Saldar" }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">Previst</th>
-              <td class="has-text-right">{{ formatMoney(vat_expected.paid) }}</td>
-              <td class="has-text-right">{{ formatMoney(vat_expected.received) }}</td>
-              <td class="has-text-right">{{ pct(me.options.deductible_vat_pct) }}</td>
-              <td class="has-text-right vat-balance">{{ formatMoney(-1 * (vat_expected.received - (vat_expected.paid * me.options.deductible_vat_pct / 100))) }}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
+    <template v-if="hasDeductible">
+      <div class="doc-kpis">
+        <div class="doc-kpi">
+          <span>Saldo executat</span>
+          <b :class="vat.deductible_vat < 0 ? 'has-text-danger' : ''">{{ formatMoney(vat.deductible_vat) }}</b>
+          <small>{{ vat.deductible_vat < 0 ? "a pagar a Hisenda" : "a favor" }}</small>
+        </div>
+        <div class="doc-kpi">
+          <span>IVA suportat</span>
+          <b>{{ formatMoney(vat.paid) }}</b>
+          <small>deduïble al {{ pct(vat.deductible_vat_pct) }}</small>
+        </div>
+        <div class="doc-kpi">
+          <span>IVA repercutit</span>
+          <b>{{ formatMoney(vat.received) }}</b>
+          <small>de factures cobrades</small>
+        </div>
+        <div class="doc-kpi">
+          <span>Saldo previst</span>
+          <b>{{ formatMoney(expectedBalance) }}</b>
+          <small>dels documents previstos als projectes</small>
+        </div>
       </div>
-    </card-component>
 
-    <card-component 
-      title="IVA EXECUTAT PER TRIMESTRE (AMB CÀLCUL ACUMULAT)" 
-      class="ztile is-child mt-2" 
-      v-if="executedVatQuarters.length > 0"
-      :content-visible="false"
-    >
-      <section class="section">
-        <div class="content">
-          <p class="has-text-info mb-2">
-            Aquesta taula mostra l'IVA de factures i documents reals ja pagats/cobrats però amb l'IVA encara pendent de saldar.
-          </p>
-          <p class="has-text-grey mb-4">
-            <strong>Sistema acumulat:</strong> El saldo negatiu (deute a pagar) d'un trimestre es trasllada al següent. 
-            Només es genera un pagament a Tresoreria quan el saldo acumulat és negatiu (deute a pagar). 
-            Els saldos positius (crèdit a favor) es mostren com "(es traspassa)" i descompten del proper trimestre.
-          </p>
-        </div>
-        
-        <b-table
-          :data="executedVatQuarters"
-          :striped="true"
-        >
-          <b-table-column label="Any" field="year" v-slot="props">
-            {{ props.row.year }}
-          </b-table-column>
-          <b-table-column label="Trimestre" field="quarter" v-slot="props">
-            T{{ props.row.quarter }}
-          </b-table-column>
-          <b-table-column label="IVA Repercutit" numeric v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.received) }} €
-          </b-table-column>
-          <b-table-column label="IVA Suportat" numeric v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.paid) }} €
-          </b-table-column>
-          <b-table-column label="% Deduïble" numeric v-slot="props" class="has-text-right">
-            {{ pct(props.row.deductible_pct) }}
-          </b-table-column>
-          <b-table-column label="IVA Deduïble" numeric v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.deductible_vat) }} €
-          </b-table-column>
-          <b-table-column label="Saldo Trimestre" numeric v-slot="props" class="has-text-right">
-            <span :class="props.row.quarterBalance < 0 ? 'has-text-danger' : 'has-text-success'">
-              {{ formatPrice(props.row.quarterBalance) }} €
-            </span>
-          </b-table-column>
-          <b-table-column label="Saldo Acumulat" numeric v-slot="props" class="has-text-right">
-            <span :class="props.row.cumulativeBalance < 0 ? 'has-text-danger has-text-weight-bold' : 'has-text-success'">
-              {{ formatPrice(props.row.cumulativeBalance) }} €
-            </span>
-          </b-table-column>
-          <b-table-column label="Import a Pagar" numeric v-slot="props" class="has-text-right">
-            <span v-if="props.row.willCreateEntry" class="has-text-weight-bold has-text-danger">
-              {{ formatPrice(props.row.paymentAmount) }} €
-            </span>
-            <span v-else class="has-text-grey-light">
-              (es traspassa)
-            </span>
-          </b-table-column>
-          <b-table-column label="Data de pagament" field="paymentDate" v-slot="props">
-            <span v-if="props.row.willCreateEntry" class="has-text-weight-bold">
-              {{ props.row.paymentDate }}
-            </span>
-            <span v-else class="has-text-grey-light">-</span>
-          </b-table-column>
-        </b-table>
-      </section>
-    </card-component>
-
-    <card-component 
-      title="IVA PREVIST PER TRIMESTRE (AMB CÀLCUL ACUMULAT)" 
-      class="ztile is-child mt-2" 
-      v-if="expectedVatQuarters.length > 0"
-      :content-visible="false"
-    >
-      <section class="section">
-        <div class="content">
-          <p class="has-text-info mb-2">
-            <b-icon icon="alert-circle" size="is-small"></b-icon>
-            <strong>Dades previstes:</strong> Aquesta taula mostra l'IVA estimat de despeses i ingressos futurs definits als projectes (encara no executats).
-          </p>
-          <p class="has-text-grey mb-4">
-            <b-icon icon="calculator" size="is-small"></b-icon>
-            <strong>Sistema acumulat:</strong> com a la taula de l'IVA executat, un saldo negatiu és IVA a pagar i un de positiu, crèdit a favor.
-            El crèdit d'un trimestre es trasllada al següent ("(es traspassa)"); només es genera un pagament a Tresoreria quan el saldo acumulat és negatiu.
-          </p>
-          <p v-if="outdatedExpectedDocuments.length" class="notification is-warning is-light">
-            {{ outdatedExpectedDocuments.length }} {{ outdatedExpectedDocuments.length === 1 ? "línia prevista té" : "línies previstes tenen" }} una data anterior al trimestre actual i no compten a la previsió:
-            {{ outdatedExpectedDocuments.slice(0, 5).map(d => `${d.project_name} · ${d.concept} (${formatDate(d.date)})`).join(", ") }}{{ outdatedExpectedDocuments.length > 5 ? "…" : "" }}.
-            Corregeix-ne la data al projecte.
-          </p>
-        </div>
-        
-        <b-table
-          :data="expectedVatQuarters"
-          :striped="true"
-        >
-          <b-table-column label="Any" field="year" v-slot="props">
-            {{ props.row.year }}
-          </b-table-column>
-          <b-table-column label="Trimestre" field="quarter" v-slot="props">
-            T{{ props.row.quarter }}
-          </b-table-column>
-          <b-table-column label="IVA Repercutit" numeric v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.received) }} €
-          </b-table-column>
-          <b-table-column label="IVA Suportat" numeric v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.paid) }} €
-          </b-table-column>
-          <b-table-column label="IVA Deduïble" numeric v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.deductible_paid) }} €
-          </b-table-column>
-          <b-table-column label="Saldo Trimestre" numeric v-slot="props" class="has-text-right">
-            <span :class="props.row.quarterBalance < 0 ? 'has-text-danger' : 'has-text-success'">
-              {{ formatPrice(props.row.quarterBalance) }} €
-            </span>
-          </b-table-column>
-          <b-table-column label="Saldo Acumulat" numeric v-slot="props" class="has-text-right">
-            <span :class="props.row.cumulativeBalance < 0 ? 'has-text-danger has-text-weight-bold' : 'has-text-success'">
-              {{ formatPrice(props.row.cumulativeBalance) }} €
-            </span>
-          </b-table-column>
-          <b-table-column label="Import a Pagar" numeric v-slot="props" class="has-text-right">
-            <span v-if="props.row.willCreateEntry" class="has-text-weight-bold has-text-danger">
-              {{ formatPrice(props.row.paymentAmount) }} €
-            </span>
-            <span v-else class="has-text-grey-light">
-              (es traspassa)
-            </span>
-          </b-table-column>
-          <b-table-column label="Data de pagament" field="paymentDate" v-slot="props">
-            <span v-if="props.row.willCreateEntry" class="has-text-weight-bold">
-              {{ props.row.paymentDate }}
-            </span>
-            <span v-else class="has-text-grey-light">-</span>
-          </b-table-column>
-        </b-table>
-      </section>
-    </card-component>
-
-    <card-component 
-      title="DOCUMENTS PREVISTOS (NO EXECUTATS)" 
-      class="ztile is-child mt-2"
-      :content-visible="false"
-    >
-      <section class="section">
-        <div class="content mb-4">
-          <p class="has-text-info">
-            <strong>Documents previstos:</strong> Llistat de despeses i ingressos definits als projectes però encara no executats (sense factura emesa/rebuda).
-            Aquests documents corresponen a l'apartat "PREVIST" de dalt.
-          </p>
-        </div>
-        <b-table
-          :loading="isLoading"
-          :paginated="false"
-          :striped="false"
-          :data="expectedDocumentsWithSearchableFields"
-          ref="expectedDocumentsTable"
-        >
-          <b-table-column sortable searchable label="Projecte" field="project_name" v-slot="props">
-            <router-link :to="`/project/${props.row.project_id}`">
-              {{ props.row.project_name }}
-            </router-link>
-          </b-table-column>
-          <b-table-column sortable searchable label="Concepte" field="concept" v-slot="props">            
-            {{ props.row.concept }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Tipus" field="typeLabel" v-slot="props">            
-            {{ props.row.typeLabel }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Data estimada" field="date" v-slot="props">
-            {{ formatDate(props.row.date) }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Any" field="year" v-slot="props">
-            {{ props.row.year }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Trimestre" field="quarter" v-slot="props">
-            {{ props.row.quarter }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Import Base" numeric field="total" v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.total) }} €
-          </b-table-column>
-          <b-table-column sortable searchable label="% IVA" numeric field="vat_pct" v-slot="props" class="has-text-right">
-            {{ pct(props.row.vat_pct) }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Import IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.total_vat) }} €
-          </b-table-column>
-        </b-table>
-        
-        <div class="columns mt-4 vat-totals" v-if="filteredExpectedDocuments.length > 0">
-          <div class="column is-offset-4">
-            <b-field label="Total Import Base Suportat" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalExpectedBaseSuportat) }} €
-              </div>
-            </b-field>
+      <section class="a-box vat-settle-box">
+        <header class="box-head">
+          <h2>IVA pendent de saldar</h2>
+          <div class="vat-settle">
+            <b-datepicker
+              v-model="vat_paid_date"
+              aria-label="Data de pagament"
+              placeholder="Data de pagament"
+              icon="calendar-today"
+              :locale="'ca-ES'"
+              :first-day-of-week="1"
+            />
+            <b-button
+              type="is-primary"
+              :loading="payingVat"
+              :disabled="(vat.paid - (vat.received * me.options.deductible_vat_pct / 100)) === 0 || payingVat || checkedRows.length === 0"
+              @click="payVatIds"
+            >
+              Salda {{ checkedRows.length ? `${checkedRows.length} ${checkedRows.length === 1 ? "document" : "documents"}` : "" }}
+            </b-button>
           </div>
-          <div class="column">
-            <b-field label="Total Import Base Repercutit" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalExpectedBaseRepercutit) }} €
-              </div>
-            </b-field>
-          </div>
-          <div class="column">
-            <b-field label="Total Import IVA Suportat" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalExpectedVatSuportat) }} €
-              </div>
-            </b-field>
-          </div>
-          <div class="column">
-            <b-field label="Total Import IVA Repercutit" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalExpectedVatRepercutit) }} €
-              </div>
-            </b-field>
-          </div>
-          <div class="column">
-            <b-field label="Total Import IVA" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalExpectedVatDifference) }} €
-              </div>
-            </b-field>
-          </div>
+        </header>
+        <p class="box-hint"><b>Executat:</b> IVA de factures i documents ja pagats o cobrats, encara pendent de saldar amb Hisenda. <b>Previst:</b> IVA estimat de les despeses i els ingressos previstos als projectes (factures encara no emeses ni rebudes).</p>
+        <p class="box-hint">Marca els documents a «Documents pendents» i tria la data del pagament per saldar-los.</p>
+        <div class="table-wrap">
+          <table class="table vat-pending">
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col" class="has-text-right">Suportat</th>
+                <th scope="col" class="has-text-right">Repercutit</th>
+                <th scope="col" class="has-text-right">Deduïble</th>
+                <th scope="col" class="has-text-right">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Executat</th>
+                <td class="has-text-right">{{ formatMoney(vat.paid) }}</td>
+                <td class="has-text-right">{{ formatMoney(vat.received) }}</td>
+                <td class="has-text-right">{{ pct(vat.deductible_vat_pct) }}</td>
+                <td class="has-text-right vat-balance">{{ formatMoney(vat.deductible_vat) }}</td>
+              </tr>
+              <tr>
+                <th scope="row">Previst</th>
+                <td class="has-text-right">{{ formatMoney(vat_expected.paid) }}</td>
+                <td class="has-text-right">{{ formatMoney(vat_expected.received) }}</td>
+                <td class="has-text-right">{{ pct(me.options.deductible_vat_pct) }}</td>
+                <td class="has-text-right vat-balance">{{ formatMoney(expectedBalance) }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
-    </card-component>
+    </template>
 
-    <card-component title="DOCUMENTS EXECUTATS PENDENTS DE SALDAR" class="ztile is-child mt-2">
-      <section class="section">
-        <div class="content mb-4">
-          <p class="has-text-info">
-            <strong>Documents reals:</strong> Llistat de factures i documents ja pagats/cobrats amb IVA pendent de saldar amb Hisenda.
-            Aquests documents corresponen a l'apartat "EXECUTAT" de dalt.
-          </p>
-        </div>
-        <b-table
-          :loading="isLoading"
-          :paginated="false"
-          :striped="false"
-          :data="documentsWithSearchableFields"
-          v-model:checked-rows="checkedRows"
-          :checkable="true"
-          ref="documentsTable"
-        >
-          <b-table-column sortable searchable label="Codi" field="code" v-slot="props">
-             <router-link :to="`/document/${props.row.id}/${props.row.type.replace('_', '-')}`">
-            {{ props.row.code }}
-            </router-link>            
-          </b-table-column>
-          <b-table-column sortable searchable label="Tipus" field="typeLabel" v-slot="props">            
-            {{ props.row.typeLabel }}
-          </b-table-column>
-          
-          
-          <b-table-column sortable searchable label="Data emissió" field="date" v-slot="props">
-            {{ formatDate(props.row.date) }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Any" field="year" v-slot="props">
-            {{ props.row.year }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Trimestre" field="quarter" v-slot="props">
-            {{ props.row.quarter }}
-          </b-table-column>
-          <b-table-column sortable searchable label="Import Base" numeric field="total" v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.total) }} €
-          </b-table-column>
-          <b-table-column sortable searchable label="Import IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
-            {{ formatPrice(props.row.total_vat) }} €
-          </b-table-column>
-          <b-table-column sortable searchable label="Deduïble" numeric field="theoretical_deductible_vat_pct" v-slot="props" class="has-text-right">
-            {{ pct(props.row.theoretical_deductible_vat_pct) }}
-          </b-table-column>          
-        </b-table>
-        
-        <div class="columns mt-4 vat-totals" v-if="filteredDocuments.length > 0">
-          <div class="column is-offset-6">
-            <b-field label="Total Import Base Suportat" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalBaseSuportat) }} €
-              </div>
-            </b-field>
-          </div>
-          <div class="column">
-            <b-field label="Total Import Base Repercutit" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalBaseRepercutit) }} €
-              </div>
-            </b-field>
-          </div>
-          <div class="column">
-            <b-field label="Total Import IVA Suportat" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalVatSuportat) }} €
-              </div>
-            </b-field>
-          </div>
-          <div class="column">
-            <b-field label="Total Import IVA Repercutit" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalVatRepercutit) }} €
-              </div>
-            </b-field>
-          </div>
-          <div class="column">
-            <b-field label="Total Import IVA" grouped class="column">
-              <div class="readonly subphase-detail-input has-text-right has-text-weight-bold">
-                {{ formatPrice(totalVatDifference) }} €
-              </div>
-            </b-field>
-          </div>
-        </div>
-      </section>
-    </card-component>
+    <div class="segmented vat-views" role="tablist" aria-label="Vista">
+      <button
+        v-for="v in views"
+        :key="v.id"
+        type="button"
+        role="tab"
+        :class="{ 'is-on': vatView === v.id }"
+        :aria-selected="vatView === v.id ? 'true' : 'false'"
+        @click="vatView = v.id"
+      >
+        {{ v.label }}<span v-if="v.count !== undefined" class="count">{{ v.count }}</span>
+      </button>
+    </div>
+
+    <section v-show="vatView === 'documents'" class="a-box list-box">
+      <p class="box-hint list-hint">Factures i documents ja pagats o cobrats amb l'IVA pendent de saldar amb Hisenda: és l'apartat «Executat».</p>
+      <b-table
+        :loading="isLoading"
+        :paginated="false"
+        :striped="false"
+        :data="documentsWithSearchableFields"
+        v-model:checked-rows="checkedRows"
+        :checkable="true"
+        ref="documentsTable"
+      >
+        <b-table-column sortable searchable label="Codi" field="code" v-slot="props">
+           <router-link :to="`/document/${props.row.id}/${props.row.type.replace('_', '-')}`">
+          {{ props.row.code }}
+          </router-link>
+        </b-table-column>
+        <b-table-column sortable searchable label="Tipus" field="typeLabel" v-slot="props">
+          {{ props.row.typeLabel }}
+        </b-table-column>
+
+        <b-table-column sortable searchable label="Emissió" field="date" v-slot="props">
+          {{ formatDate(props.row.date) }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Any" field="year" v-slot="props">
+          {{ props.row.year }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Trimestre" field="quarter" v-slot="props">
+          {{ props.row.quarter }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Base" numeric field="total" v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.total) }} €
+        </b-table-column>
+        <b-table-column sortable searchable label="IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.total_vat) }} €
+        </b-table-column>
+        <b-table-column sortable searchable label="Deduïble" numeric field="theoretical_deductible_vat_pct" v-slot="props" class="has-text-right">
+          {{ pct(props.row.theoretical_deductible_vat_pct) }}
+        </b-table-column>
+      </b-table>
+      <dl v-if="filteredDocuments.length > 0" class="vat-totals">
+        <div><dt>Base suportada</dt><dd>{{ formatPrice(totalBaseSuportat) }} €</dd></div>
+        <div><dt>Base repercutida</dt><dd>{{ formatPrice(totalBaseRepercutit) }} €</dd></div>
+        <div><dt>IVA suportat</dt><dd>{{ formatPrice(totalVatSuportat) }} €</dd></div>
+        <div><dt>IVA repercutit</dt><dd>{{ formatPrice(totalVatRepercutit) }} €</dd></div>
+        <div class="is-total"><dt>IVA</dt><dd>{{ formatPrice(totalVatDifference) }} €</dd></div>
+      </dl>
+    </section>
+
+    <section v-show="vatView === 'executed-quarters'" class="a-box list-box">
+      <p class="box-hint list-hint">IVA executat per trimestre amb càlcul acumulat: el saldo negatiu (a pagar) d'un trimestre passa al següent, i només es crea un pagament a Tresoreria quan el saldo acumulat és negatiu. Un saldo a favor surt com «(es traspassa)» i descompta del trimestre següent.</p>
+      <p v-if="!executedVatQuarters.length" class="box-empty">No hi ha IVA executat pendent.</p>
+      <b-table
+        v-else
+        :data="executedVatQuarters"
+        :striped="true"
+      >
+        <b-table-column label="Any" field="year" v-slot="props">
+          {{ props.row.year }}
+        </b-table-column>
+        <b-table-column label="Trimestre" field="quarter" v-slot="props">
+          T{{ props.row.quarter }}
+        </b-table-column>
+        <b-table-column label="IVA repercutit" numeric v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.received) }} €
+        </b-table-column>
+        <b-table-column label="IVA suportat" numeric v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.paid) }} €
+        </b-table-column>
+        <b-table-column label="% deduïble" numeric v-slot="props" class="has-text-right">
+          {{ pct(props.row.deductible_pct) }}
+        </b-table-column>
+        <b-table-column label="IVA deduïble" numeric v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.deductible_vat) }} €
+        </b-table-column>
+        <b-table-column label="Saldo del trimestre" numeric v-slot="props" class="has-text-right">
+          <span :class="props.row.quarterBalance < 0 ? 'has-text-danger' : 'has-text-success'">
+            {{ formatPrice(props.row.quarterBalance) }} €
+          </span>
+        </b-table-column>
+        <b-table-column label="Saldo acumulat" numeric v-slot="props" class="has-text-right">
+          <span :class="props.row.cumulativeBalance < 0 ? 'has-text-danger has-text-weight-bold' : 'has-text-success'">
+            {{ formatPrice(props.row.cumulativeBalance) }} €
+          </span>
+        </b-table-column>
+        <b-table-column label="A pagar" numeric v-slot="props" class="has-text-right">
+          <span v-if="props.row.willCreateEntry" class="has-text-weight-bold has-text-danger">
+            {{ formatPrice(props.row.paymentAmount) }} €
+          </span>
+          <span v-else class="has-text-grey-light">
+            (es traspassa)
+          </span>
+        </b-table-column>
+        <b-table-column label="Data de pagament" field="paymentDate" v-slot="props">
+          <span v-if="props.row.willCreateEntry" class="has-text-weight-bold">
+            {{ props.row.paymentDate }}
+          </span>
+          <span v-else class="has-text-grey-light">-</span>
+        </b-table-column>
+      </b-table>
+    </section>
+
+    <section v-show="vatView === 'expected-quarters'" class="a-box list-box">
+      <p class="box-hint list-hint">IVA previst per trimestre, de les despeses i els ingressos futurs dels projectes, amb el mateix càlcul acumulat.</p>
+      <p v-if="outdatedExpectedDocuments.length" class="notification is-warning is-light list-hint">
+        {{ outdatedExpectedDocuments.length }} {{ outdatedExpectedDocuments.length === 1 ? "línia prevista té" : "línies previstes tenen" }} una data anterior al trimestre actual i no compten a la previsió:
+        {{ outdatedExpectedDocuments.slice(0, 5).map(d => `${d.project_name} · ${d.concept} (${formatDate(d.date)})`).join(", ") }}{{ outdatedExpectedDocuments.length > 5 ? "…" : "" }}.
+        Corregeix-ne la data al projecte.
+      </p>
+      <p v-if="!expectedVatQuarters.length" class="box-empty">No hi ha IVA previst.</p>
+      <b-table
+        v-else
+        :data="expectedVatQuarters"
+        :striped="true"
+      >
+        <b-table-column label="Any" field="year" v-slot="props">
+          {{ props.row.year }}
+        </b-table-column>
+        <b-table-column label="Trimestre" field="quarter" v-slot="props">
+          T{{ props.row.quarter }}
+        </b-table-column>
+        <b-table-column label="IVA repercutit" numeric v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.received) }} €
+        </b-table-column>
+        <b-table-column label="IVA suportat" numeric v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.paid) }} €
+        </b-table-column>
+        <b-table-column label="IVA deduïble" numeric v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.deductible_paid) }} €
+        </b-table-column>
+        <b-table-column label="Saldo del trimestre" numeric v-slot="props" class="has-text-right">
+          <span :class="props.row.quarterBalance < 0 ? 'has-text-danger' : 'has-text-success'">
+            {{ formatPrice(props.row.quarterBalance) }} €
+          </span>
+        </b-table-column>
+        <b-table-column label="Saldo acumulat" numeric v-slot="props" class="has-text-right">
+          <span :class="props.row.cumulativeBalance < 0 ? 'has-text-danger has-text-weight-bold' : 'has-text-success'">
+            {{ formatPrice(props.row.cumulativeBalance) }} €
+          </span>
+        </b-table-column>
+        <b-table-column label="A pagar" numeric v-slot="props" class="has-text-right">
+          <span v-if="props.row.willCreateEntry" class="has-text-weight-bold has-text-danger">
+            {{ formatPrice(props.row.paymentAmount) }} €
+          </span>
+          <span v-else class="has-text-grey-light">
+            (es traspassa)
+          </span>
+        </b-table-column>
+        <b-table-column label="Data de pagament" field="paymentDate" v-slot="props">
+          <span v-if="props.row.willCreateEntry" class="has-text-weight-bold">
+            {{ props.row.paymentDate }}
+          </span>
+          <span v-else class="has-text-grey-light">-</span>
+        </b-table-column>
+      </b-table>
+    </section>
+
+    <section v-show="vatView === 'expected-documents'" class="a-box list-box">
+      <p class="box-hint list-hint">Despeses i ingressos definits als projectes però encara sense factura: és l'apartat «Previst».</p>
+      <b-table
+        :loading="isLoading"
+        :paginated="false"
+        :striped="false"
+        :data="expectedDocumentsWithSearchableFields"
+        ref="expectedDocumentsTable"
+      >
+        <b-table-column sortable searchable label="Projecte" field="project_name" v-slot="props">
+          <router-link :to="`/project/${props.row.project_id}`">
+            {{ props.row.project_name }}
+          </router-link>
+        </b-table-column>
+        <b-table-column sortable searchable label="Concepte" field="concept" v-slot="props">
+          {{ props.row.concept }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Tipus" field="typeLabel" v-slot="props">
+          {{ props.row.typeLabel }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Data estimada" field="date" v-slot="props">
+          {{ formatDate(props.row.date) }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Any" field="year" v-slot="props">
+          {{ props.row.year }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Trimestre" field="quarter" v-slot="props">
+          {{ props.row.quarter }}
+        </b-table-column>
+        <b-table-column sortable searchable label="Base" numeric field="total" v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.total) }} €
+        </b-table-column>
+        <b-table-column sortable searchable label="% IVA" numeric field="vat_pct" v-slot="props" class="has-text-right">
+          {{ pct(props.row.vat_pct) }}
+        </b-table-column>
+        <b-table-column sortable searchable label="IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.total_vat) }} €
+        </b-table-column>
+      </b-table>
+      <dl v-if="filteredExpectedDocuments.length > 0" class="vat-totals">
+        <div><dt>Base suportada</dt><dd>{{ formatPrice(totalExpectedBaseSuportat) }} €</dd></div>
+        <div><dt>Base repercutida</dt><dd>{{ formatPrice(totalExpectedBaseRepercutit) }} €</dd></div>
+        <div><dt>IVA suportat</dt><dd>{{ formatPrice(totalExpectedVatSuportat) }} €</dd></div>
+        <div><dt>IVA repercutit</dt><dd>{{ formatPrice(totalExpectedVatRepercutit) }} €</dd></div>
+        <div class="is-total"><dt>IVA</dt><dd>{{ formatPrice(totalExpectedVatDifference) }} €</dd></div>
+      </dl>
+    </section>
   </div>
 </template>
 
@@ -460,6 +374,7 @@ export default {
       pivotIdentifier: 'tresoreria-pivot',
       checkedRows: [],
       vat_paid_date: new Date(),
+      vatView: "documents",
     };
   },
   async mounted() {
@@ -493,6 +408,21 @@ export default {
     }, 100);
   },
   computed: {
+    hasDeductible() {
+      return !!(this.me && this.me.options && this.me.options.deductible_vat_pct > 0);
+    },
+    expectedBalance() {
+      const pct = this.hasDeductible ? this.me.options.deductible_vat_pct : 0;
+      return -1 * (this.vat_expected.received - (this.vat_expected.paid * pct / 100));
+    },
+    views() {
+      return [
+        { id: "documents", label: "Documents pendents", count: this.filteredDocuments.length },
+        { id: "executed-quarters", label: "Trimestres executats", count: this.executedVatQuarters.length },
+        { id: "expected-quarters", label: "Trimestres previstos", count: this.expectedVatQuarters.length },
+        { id: "expected-documents", label: "Documents previstos", count: this.filteredExpectedDocuments.length }
+      ];
+    },
     ...mapState(useMainStore, ["userName", "user"]),
     treasuryDataDesc() {
       const treasuryDataOfYear = this.treasuryData.filter(d => moment(d.datex, 'dd-MM-YYYY').year() == this.selectedYear)
@@ -838,24 +768,51 @@ export default {
 };
 </script>
 <style>
-/* totals under the document tables: wrap instead of overflowing the page */
+.vat-settle-box {
+  margin-bottom: 1rem;
+}
+.vat-settle-box .box-hint {
+  max-width: 60rem;
+  margin-bottom: .375rem;
+}
+.vat-views {
+  margin-bottom: .75rem;
+}
+.vat-page .list-box .list-hint {
+  padding: .875rem 1.25rem 0;
+  margin-bottom: .75rem;
+  max-width: 64rem;
+}
+.vat-page .list-box .notification.list-hint {
+  margin: .75rem 1.25rem;
+  padding: .75rem 1rem;
+}
+.vat-page .list-box .box-empty {
+  padding: 1.5rem 1rem;
+}
+/* totals under the document tables */
 .vat-totals {
+  display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .5rem 2rem;
+  margin: 0;
+  padding: .875rem 1.25rem;
+  border-top: 1px solid var(--a-line);
+  font-variant-numeric: tabular-nums;
 }
-.vat-totals > .column {
-  flex: 1 1 11rem;
-}
-.vat-totals > .column > .field.column {
-  padding: 0;
-}
-.vat-totals .label {
+.vat-totals dt {
   font-size: .8125rem;
   color: var(--a-muted);
 }
-.vat-help {
-  color: var(--a-muted);
-  margin-bottom: .375rem;
-  max-width: 60rem;
+.vat-totals dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+.vat-totals .is-total dd {
+  font-weight: 800;
+  font-size: 1.0625rem;
 }
 .vat-pending {
   width: 100%;
