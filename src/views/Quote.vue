@@ -302,8 +302,14 @@ export default {
 .preview-page {
   max-width: 860px;
 }
+@media screen and (max-width: 768px) {
+  .invoice-box {
+    margin: 12px;
+  }
+}
 .invoice-box-container {
   border-radius: 4px;
+  overflow-x: auto;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   border: 1px solid #eee;
   background: #fff;
