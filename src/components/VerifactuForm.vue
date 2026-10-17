@@ -1,105 +1,80 @@
 <template>
+  <!-- Redesign A: the sending mode, then the software data of the declaration -->
   <div>
     <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false"></b-loading>
 
-    <section class="section is-main-section">
-      <!-- Verifactu Configuration -->
-      <card-component title="CONFIGURACIÓ VERIFACTU">
-        <form @submit.prevent="submit">
-          <b-field label="Mode" horizontal>
-            <b-select v-model="form.mode">
-              <option value="no">No</option>
-              <option value="test">Test</option>
-              <option value="real">Real</option>
-            </b-select>
-          </b-field>
-
-          <b-field label="Contrasenya certificat" horizontal>
-            <b-message type="is-info" has-icon size="is-small">
+    <section class="section is-main-section verifactu-config">
+      <form @submit.prevent="submit">
+        <section class="a-box">
+          <header class="box-head"><h2>Enviament a l'AEAT</h2></header>
+          <div class="a-form">
+            <b-field label="Mode" message="«Test» envia les factures a l'entorn de proves de l'AEAT; «Real», a l'entorn de producció.">
+              <b-select v-model="form.mode">
+                <option value="no">No s'envien</option>
+                <option value="test">Test</option>
+                <option value="real">Real</option>
+              </b-select>
+            </b-field>
+            <div class="notification is-info is-light full">
               La contrasenya del certificat s'ha d'actualitzar a l'àrea d'administració del servidor (Strapi) per motius de seguretat.
-            </b-message>
-          </b-field>
-        </form>
-      </card-component>
+            </div>
+          </div>
+        </section>
 
-      <!-- Software Information -->
-      <card-component title="INFORMACIÓ DEL PROGRAMARI" class="mt-4">
-        <form @submit.prevent="submit">
-          <b-field label="Nom desenvolupador" horizontal>
-            <b-input v-model="form.software_developerName" />
-          </b-field>
+        <section class="a-box">
+          <header class="box-head">
+            <h2>Informació del programari</h2>
+            <span class="box-hint">Surt a la declaració responsable</span>
+          </header>
+          <div class="a-form is-compact">
+            <b-field label="Nom desenvolupador">
+              <b-input v-model="form.software_developerName" />
+            </b-field>
+            <b-field label="NIF desenvolupador">
+              <b-input v-model="form.software_developerIrsId" />
+            </b-field>
+            <b-field label="Nom programari">
+              <b-input v-model="form.software_name" />
+            </b-field>
+            <b-field label="ID programari">
+              <b-input v-model="form.software_id" />
+            </b-field>
+            <b-field label="Versió">
+              <b-input v-model="form.software_version" />
+            </b-field>
+            <b-field label="Número">
+              <b-input v-model="form.software_number" />
+            </b-field>
+            <b-field label="Ubicació">
+              <b-input v-model="form.software_location" />
+            </b-field>
+            <b-field label="Data">
+              <b-input v-model="form.software_date" />
+            </b-field>
+            <b-field label="Adreça" class="full">
+              <b-input v-model="form.software_address" />
+            </b-field>
+            <div class="full verifactu-switches">
+              <b-switch v-model="form.software_useOnlyVerifactu">Usa només Verifactu</b-switch>
+              <b-switch v-model="form.software_useMulti">Ús múltiple</b-switch>
+              <b-switch v-model="form.software_useCurrentMulti">Ús múltiple actual</b-switch>
+            </div>
+          </div>
+        </section>
 
-          <b-field label="NIF desenvolupador" horizontal>
-            <b-input v-model="form.software_developerIrsId" />
-          </b-field>
-
-          <b-field label="Nom programari" horizontal>
-            <b-input v-model="form.software_name" />
-          </b-field>
-
-          <b-field label="ID programari" horizontal>
-            <b-input v-model="form.software_id" />
-          </b-field>
-
-          <b-field label="Versió" horizontal>
-            <b-input v-model="form.software_version" />
-          </b-field>
-
-          <b-field label="Número" horizontal>
-            <b-input v-model="form.software_number" />
-          </b-field>
-
-          <b-field label="Ubicació" horizontal>
-            <b-input v-model="form.software_location" />
-          </b-field>
-
-          <b-field label="Adreça" horizontal>
-            <b-input v-model="form.software_address" />
-          </b-field>
-
-          <b-field label="Data" horizontal>
-            <b-input v-model="form.software_date" />
-          </b-field>
-
-          <b-field label="Usa només Verifactu" horizontal>
-            <b-switch v-model="form.software_useOnlyVerifactu" />
-          </b-field>
-
-          <b-field label="Ús múltiple" horizontal>
-            <b-switch v-model="form.software_useMulti" />
-          </b-field>
-
-          <b-field label="Ús múltiple actual" horizontal>
-            <b-switch v-model="form.software_useCurrentMulti" />
-          </b-field>
-        </form>
-      </card-component>
-
-      <!-- Save Button -->
-      <card-component class="mt-4">
-        <b-field horizontal>
-          <b-button
-            type="is-primary"
-            :loading="submitting"
-            @click="submit"
-          >
-            Guardar
-          </b-button>
-        </b-field>
-      </card-component>
+        <div class="verifactu-actions">
+          <b-button type="is-primary" native-type="submit" :loading="submitting">Guardar</b-button>
+        </div>
+      </form>
     </section>
   </div>
 </template>
 
 <script>
 import service from '@/service/index';
-import CardComponent from '@/components/CardComponent.vue';
 
 export default {
   name: 'VerifactuForm',
-  components: {
-    CardComponent
-  },
   data() {
     return {
       isLoading: false,
@@ -178,3 +153,23 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.verifactu-config .a-box + .a-box {
+  margin-top: 1rem;
+}
+.verifactu-config .notification {
+  margin: 0;
+  align-self: end;
+}
+.verifactu-switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 2rem;
+}
+.verifactu-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+</style>

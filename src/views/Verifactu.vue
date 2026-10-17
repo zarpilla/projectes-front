@@ -19,7 +19,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ['Altres', 'Verifactu'];
+      return ['Administració', 'Verifactu i FACe'];
     }
   }
 };

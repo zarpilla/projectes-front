@@ -4,7 +4,7 @@
 
     <section class="a-box entity-form-box">
       <header class="box-head"><h2>{{ formTitle }}</h2></header>
-        <form v-if="metadata && metadata.attributes" class="a-form" @submit.prevent="submit">
+        <form v-if="metadata && metadata.attributes" class="a-form is-compact" @submit.prevent="submit">
           <!-- Dynamic form fields based on attributes -->
           <b-field
             v-for="(attrConfig, attrName) in formAttributes"
