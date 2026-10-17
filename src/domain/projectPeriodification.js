@@ -52,3 +52,31 @@ export function dropEmptyUndatedRows (periodification, hasUndatedLines) {
   if (hasUndatedLines) return periodification
   return periodification.filter(p => !(isUndatedYear(p.year) && isEmptyRow(p)))
 }
+
+const PERIOD_FIELDS = ['incomes', 'expenses', 'real_incomes', 'real_expenses']
+const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100
+
+/**
+ * Rows in a fixed order whose last row is the one that balances the others
+ * (issues/066): dated years ascending, the latest dated year last, and the
+ * undated bucket just before it. Rows were kept in arrival order, so a year
+ * added later or «Sense data» could become the balancing row.
+ */
+export function orderPeriodification (rows) {
+  const dated = (rows || []).filter(p => !isUndatedYear(p.year))
+    .sort((a, b) => String(a.year).localeCompare(String(b.year)))
+  const undated = (rows || []).filter(p => isUndatedYear(p.year))
+  if (!dated.length) return undated
+  return [...dated.slice(0, -1), ...undated, dated[dated.length - 1]]
+}
+
+/** Sets the last row to minus the sum of the others, in cents (it showed 1163.6000000000022). */
+export function balancePeriodification (rows) {
+  if (!rows || !rows.length) return rows
+  const last = rows[rows.length - 1]
+  const others = rows.slice(0, -1)
+  PERIOD_FIELDS.forEach(f => {
+    last[f] = round2(-1 * others.reduce((acc, p) => acc + (parseFloat(p[f]) || 0), 0)) || 0
+  })
+  return rows
+}

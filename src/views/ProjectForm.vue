@@ -2524,8 +2524,10 @@ import sortBy from "lodash/sortBy";
 import { projectDocuments, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
 import {
+  balancePeriodification,
   dropEmptyUndatedRows,
   isUndatedYear,
+  orderPeriodification,
   periodificationYearLabel,
   undatedProjectLines
 } from "@/domain/projectPeriodification.js";
@@ -3504,10 +3506,12 @@ export default {
             }
           }
         }
-        this.form.periodification = dropEmptyUndatedRows(
+        this.form.periodification = orderPeriodification(dropEmptyUndatedRows(
           this.form.periodification || [],
           this.undatedLines.length > 0
-        );
+        ));
+        // the rows add up to 0, so the latest year rebalanced keeps its value
+        this.updatePeriodification();
 
         // Re-enable dirty tracking and reset dirty flag in proper sequence
         // Use nextTick to ensure all Vue reactivity updates are complete
@@ -4780,32 +4784,7 @@ export default {
     },
     async updatePeriodification() {
       if (this.form.periodification && this.form.periodification.length) {
-        const last = this.form.periodification.find(
-          (p, i) => i === this.form.periodification.length - 1
-        );
-        const others = this.form.periodification.filter(
-          (p, i) => i < this.form.periodification.length - 1
-        );
-        last.incomes =
-          -1 *
-          parseFloat(sumBy(others, e => parseFloat(e.incomes ? e.incomes : 0)));
-        last.expenses =
-          -1 *
-          parseFloat(
-            sumBy(others, e => parseFloat(e.expenses ? e.expenses : 0))
-          );
-        last.real_incomes =
-          -1 *
-          parseFloat(
-            sumBy(others, e => parseFloat(e.real_incomes ? e.real_incomes : 0))
-          );
-        last.real_expenses =
-          -1 *
-          parseFloat(
-            sumBy(others, e =>
-              parseFloat(e.real_expenses ? e.real_expenses : 0)
-            )
-          );
+        balancePeriodification(this.form.periodification);
       }
     },
     async uploaded(info) {

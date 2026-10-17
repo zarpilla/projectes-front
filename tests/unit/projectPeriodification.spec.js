@@ -4,7 +4,9 @@
 // empty and no line is undated.
 import { describe, it, expect } from 'vitest'
 import {
+  balancePeriodification,
   dropEmptyUndatedRows,
+  orderPeriodification,
   isUndatedYear,
   periodificationYearLabel,
   undatedProjectLines
@@ -72,5 +74,36 @@ describe('dropEmptyUndatedRows', () => {
     const r = rows()
     r[1].real_incomes = '-435'
     expect(dropEmptyUndatedRows(r, false).map(x => x.year)).toEqual(['2025', '9999', '2026'])
+  })
+})
+
+// issues/066: the balancing row was whatever row came last (a year added
+// later, or «Sense data»), and its value was not rounded (1163.6000000000022)
+describe('balancing row (issues/066)', () => {
+  it('sorts the years and keeps the latest dated year last', () => {
+    const rows = [{ year: '2026' }, { year: '9999' }, { year: '2025' }, { year: '2027' }]
+    expect(orderPeriodification(rows).map(r => r.year)).toEqual(['2025', '2026', '9999', '2027'])
+    expect(orderPeriodification([{ year: '9999' }]).map(r => r.year)).toEqual(['9999'])
+  })
+
+  it('balances in cents', () => {
+    const rows = orderPeriodification([
+      { year: '2025', incomes: '0.1', expenses: 0, real_incomes: 0, real_expenses: 0 },
+      { year: '2024', incomes: 0.2, expenses: '-1163.6000000000022', real_incomes: 0, real_expenses: 0 },
+      { year: '2026', incomes: 5, expenses: 5, real_incomes: 5, real_expenses: 5 }
+    ])
+    balancePeriodification(rows)
+    expect(rows[2]).toEqual({ year: '2026', incomes: -0.3, expenses: 1163.6, real_incomes: 0, real_expenses: 0 })
+  })
+
+  it('keeps the values of rows that already add up to 0', () => {
+    // «Sense data» used to balance; now 2025 does and keeps the value it had
+    const rows = orderPeriodification([
+      { year: '2024', incomes: 100, expenses: 0, real_incomes: 0, real_expenses: 0 },
+      { year: '2025', incomes: 50, expenses: 0, real_incomes: 0, real_expenses: 0 },
+      { year: '9999', incomes: -150, expenses: 0, real_incomes: 0, real_expenses: 0 }
+    ])
+    balancePeriodification(rows)
+    expect(rows.map(r => [r.year, r.incomes])).toEqual([['2024', 100], ['9999', -150], ['2025', 50]])
   })
 })
