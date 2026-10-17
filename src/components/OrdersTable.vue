@@ -255,7 +255,8 @@
                   v-for="(order, i) in group.rows"
                   :key="order.id || 'new-' + i"
                   class="order-row"
-                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id }"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-future-week': isFutureWeek(order) }"
+                  :title="isFutureWeek(order) ? 'Entrega prevista una setmana vinent' : null"
                 >
                   <td class="col-check">
                     <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
@@ -328,7 +329,10 @@
                     <template v-else-if="col.key === 'units'">{{ formatNum(order.units) }}</template>
                     <template v-else-if="col.key === 'kilograms'">{{ formatNum(order.kilograms) }}</template>
                     <template v-else-if="col.key === 'price'">
-                      <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
+                      <span class="price-line">
+                        <span v-for="d in discountsOf(order)" :key="d.key" class="discount-dot" :class="d.key" :title="d.title" :aria-label="d.title"></span>
+                        <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
+                      </span>
                       <small v-if="discountLabel(order)">{{ discountLabel(order) }}</small>
                     </template>
                     <template v-else-if="col.key === 'status'"><span class="tag" :class="statusTag(order.status)">{{ statusLabel(order.status) }}</span></template>
@@ -367,6 +371,12 @@
         </div>
         <footer class="orders-foot">
           <span>{{ footNote }}</span>
+          <span class="legend">
+            <span><i class="discount-dot multidelivery"></i>Multientrega</span>
+            <span><i class="discount-dot volume"></i>Volum</span>
+            <span><i class="discount-dot pickup"></i>Recollida</span>
+            <span><i class="legend-future"></i>Setmanes vinents</span>
+          </span>
           <b-pagination
             v-if="total > perPageEffective"
             v-model="page"
@@ -2562,12 +2572,27 @@ export default {
         groupBy: this.groupBy
       }));
     },
+    // like the old list: orders of a coming week look lighter
+    isFutureWeek(order) {
+      if (!order.estimated_delivery_date) return false;
+      const date = moment(order.estimated_delivery_date, ["YYYY-MM-DD", "YYYYMMDD"]);
+      return date.isValid() && !date.isBefore(moment().startOf("isoWeek").add(1, "week"));
+    },
+    // the old coloured circles of the price: which discounts apply
+    discountsOf(order) {
+      if (order.finalPrice === undefined || order.finalPrice === null || order.finalPrice === order.price) return [];
+      return [
+        Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${order.multidelivery_discount} %)` } : null,
+        Number(order.volume_discount) ? { key: "volume", title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
+        Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${order.contact_pickup_discount} %)` } : null
+      ].filter(Boolean);
+    },
     discountLabel(order) {
       if (order.finalPrice === undefined || order.finalPrice === null || !order.price || order.finalPrice >= order.price) return "";
-      if (Number(order.contact_pickup_discount)) return `−${this.formatNum(order.contact_pickup_discount)}% recollida`;
-      if (Number(order.multidelivery_discount)) return `−${this.formatNum(order.multidelivery_discount)}% multientrega`;
-      if (Number(order.volume_discount)) return "descompte volum";
-      return "amb descompte";
+      // short: the coloured dots say which discount it is
+      const pct = [order.multidelivery_discount, order.contact_pickup_discount].map(Number).filter(Boolean);
+      if (pct.length) return pct.map(p => `−${this.formatNum(p)} %`).join(" ");
+      return Number(order.volume_discount) ? "volum" : "amb descompte";
     },
     statusLabel: orderStatusLabel,
     statusTag: orderStatusTag,
@@ -2727,8 +2752,8 @@ export default {
 }
 .orders-table th,
 .orders-table td {
-  padding-left: .375rem;
-  padding-right: .375rem;
+  padding-left: .3125rem;
+  padding-right: .3125rem;
 }
 .orders-table td.col-owner {
   max-width: 8rem;
@@ -2939,6 +2964,55 @@ select.col-filter {
   border-top: 1px solid var(--a-line-soft);
   font-size: .875rem;
   color: var(--a-muted);
+}
+.price-line {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+.discount-dot {
+  display: inline-block;
+  width: .5625rem;
+  height: .5625rem;
+  border-radius: 50%;
+}
+.discount-dot.multidelivery {
+  background: var(--a-pos);
+}
+.discount-dot.volume {
+  background: var(--a-muted);
+}
+.discount-dot.pickup {
+  background: #E8B23A;
+}
+.order-row.is-future-week td {
+  background: var(--a-thead);
+}
+.order-row.is-future-week td:not(.col-check) {
+  opacity: .55;
+}
+.order-row.is-future-week.is-checked td,
+.order-row.is-future-week.is-editing td {
+  opacity: 1;
+}
+.legend {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  font-size: .75rem;
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+.legend-future {
+  display: inline-block;
+  width: .875rem;
+  height: .625rem;
+  border: 1px solid var(--a-line);
+  border-radius: 2px;
+  background: var(--a-thead);
 }
 .orders-foot > :last-child {
   margin-left: auto;
