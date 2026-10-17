@@ -307,7 +307,11 @@
       </div>
     </section>
 
-    <card-component title="Per projecte" class="ztile is-child mt-2">
+    <section class="report-box tres-pivot">
+      <header class="report-box-head">
+        <h2>Per projecte</h2>
+        <span class="has-text-muted">Cobraments, pagaments i resultat per any, mes i projecte · configura la taula dinàmica per agrupar-los com vulguis</span>
+      </header>
       <!-- Pivot Views Component -->
       <pivot-views
         :pivot-views="pivotViews"
@@ -324,7 +328,7 @@
       />
 
       <div id="project-stats"></div>
-    </card-component>
+    </section>
 
     <!-- Treasury operations (manual movement, real balance) in a modal: "Nova operació" -->
     <b-modal v-model="opsOpen" has-modal-card :can-cancel="['escape', 'outside', 'x']">
@@ -342,7 +346,13 @@
       </div>
     </b-modal>
 
-    <card-component title="Moviments bancaris" class="ztile is-child mt-2">
+    <section class="report-box">
+      <header class="report-box-head">
+        <h2>Moviments bancaris</h2>
+        <b-button size="is-small" icon-left="filter-variant" :class="{ 'is-selected': columnFilters }" :aria-pressed="columnFilters ? 'true' : 'false'" @click="columnFilters = !columnFilters">
+          {{ columnFilters ? "Amaga els filtres per columna" : "Filtres per columna" }}
+        </b-button>
+      </header>
       <section class="movements-section">
         <!-- Redesign A: what to list and a search over concept, project and contact -->
         <div class="filter-bar movements-bar">
@@ -379,7 +389,7 @@
             label="Data"
             field="datef"
             sortable
-            searchable
+            :searchable="columnFilters"
             cell-class="is-nowrap"
             v-slot="props"
           >
@@ -396,8 +406,10 @@
           <b-table-column
             label="Import"
             field="total_amount"
+            numeric
+            cell-class="is-nowrap"
             sortable
-            searchable
+            :searchable="columnFilters"
             v-slot="props"
           >
             <span v-if="props.row.is_balance_annotation">
@@ -414,8 +426,10 @@
           </b-table-column>
           <b-table-column
             field="subtotal"
+            numeric
+            cell-class="is-nowrap"
             sortable
-            searchable
+            :searchable="columnFilters"
           >
             <template #header>
               <span>
@@ -433,7 +447,7 @@
             label="Moviment"
             field="type"
             sortable
-            searchable
+            :searchable="columnFilters"
             v-slot="props"
           >
             <span
@@ -468,12 +482,12 @@
             label="Concepte"
             field="concept"
             sortable
-            searchable
+            :searchable="columnFilters"
             v-slot="props"
           >
             <template v-if="props.row.to" :to="props.row.to">
               <router-link v-if="props.row.to" :to="props.row.to">
-                <span class="project-name has-text-info">
+                <span class="project-name">
                   {{ props.row.concept }}
                 </span>
               </router-link>
@@ -487,7 +501,7 @@
             label="Projecte"
             field="project_name"
             sortable
-            searchable
+            :searchable="columnFilters"
             v-slot="props"
           >
             <!-- No project: Vue Router 4 throws on a missing id (issues/014) -->
@@ -498,7 +512,7 @@
                 params: { id: props.row.project_id }
               }"
             >
-              <span class="project-name has-text-info">
+              <span class="project-name">
                 {{ props.row.project_name }}
               </span>
             </router-link>
@@ -508,7 +522,7 @@
             label="Contacte"
             field="contact"
             sortable
-            searchable
+            :searchable="columnFilters"
             v-slot="props"
           >
             {{ props.row.contact }}
@@ -517,7 +531,7 @@
             label="Compte bancari"
             field="bank_account"
             sortable
-            searchable
+            :searchable="columnFilters"
             v-slot="props"
             v-if="bankAccounts && bankAccounts.length > 0"
           >
@@ -570,7 +584,7 @@
           </b-table-column>
         </b-table>
       </section>
-    </card-component>
+    </section>
   </div>
 </template>
 
@@ -582,7 +596,6 @@ import sortBy from "lodash/sortBy";
 import _ from "lodash";
 import configPivot from "@/service/configStatsTreasury";
 import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
-import CardComponent from "./CardComponent.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
@@ -599,7 +612,6 @@ export default {
   name: "Tresoreria",
   components: {
     ModalBoxInvoicing,
-    CardComponent,
     MoneyFormat,
     TreasuryAnnotationInput,
     PivotViews
@@ -613,6 +625,8 @@ export default {
   },
   data() {
     return {
+      // the per-column filter row of Moviments bancaris, folded by default (issues/114)
+      columnFilters: false,
       movementsPage: 1,
       movementsPerPage: 50,
       isLoading: false,
@@ -1409,6 +1423,15 @@ export default {
   font-size: 1rem;
   font-weight: 800;
 }
+.report-box-head > span {
+  font-size: .8125rem;
+}
+.tres-pivot > :not(.report-box-head) {
+  margin: 0 1.25rem;
+}
+.tres-pivot #project-stats {
+  margin-bottom: 1.25rem;
+}
 .chart-legend {
   display: inline-flex;
   gap: 1rem;
@@ -1606,7 +1629,10 @@ export default {
   padding: 0;
 }
 .movements-bar {
-  margin-bottom: .75rem;
+  margin: .875rem 1.25rem .5rem;
+}
+.movements-section :deep(.pagination) {
+  padding: 0 1.25rem;
 }
 .movements-bar .filter-search {
   flex: 0 1 22rem;

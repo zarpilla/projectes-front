@@ -181,7 +181,9 @@ export async function hoursListView () {
   await page.locator('button[title="Vista taula"]').click()
   await page.waitForTimeout(300)
 }
-export const card = title => page.locator('.card').filter({ has: page.locator('.card-header-title', { hasText: title }) }).first()
+// a titled box: an old .card or a redesign box (.report-box, .a-box); the title matches case-insensitively
+export const card = title => page.locator('.card, .report-box, .a-box')
+  .filter({ has: page.locator('.card-header-title, .report-box-head h2, .box-head h2', { hasText: title }) }).first()
 export const modal = title => page.locator('.modal.is-active').filter({ hasText: title }).last()
 
 // accepts the Buefy confirm dialog that reads `text`
