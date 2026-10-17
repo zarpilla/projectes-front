@@ -207,66 +207,36 @@ export default {
     },
   },
   methods: {
-    // Expands the phases of a single collection (either project_phases for
-    // "Hores previstes" or project_original_phases for "Hores originals") into
-    // one activity row per month, applying the same month/week/total quantity
-    // logic the inline code previously had. `hoursField` controls which column
-    // the per-month quantity is written to so the two measures stay separate
-    // in the pivot (estimated_hours vs original_estimated_hours).
-    expandPhases (activities, p, phases, hoursField) {
-      phases.forEach(ph => {
-        if (ph.incomes && ph.incomes.length > 0) {
-          ph.incomes.forEach(sph => {
-            if (sph.estimated_hours && sph.estimated_hours.length > 0) {
-              sph.estimated_hours.forEach(h => {
-                const mdiff = Math.round(moment.duration(moment(h.to, 'YYYY-MM-DD').diff(moment(h.from, 'YYYY-MM-DD'))).asMonths())
-                let estimated_hours = h.quantity && mdiff > 0 ? h.quantity / mdiff : 0
-
-                if (h.quantity_type === 'month') {
-                  estimated_hours = h.quantity
-                }
-                else if (h.quantity_type === 'week') {
-                  estimated_hours = h.quantity * (52 / 12)
-                }
-
-                for (var i = 0; i < mdiff; i++) {
-                  const from = moment(h.from, 'YYYY-MM-DD').add(i, 'M')
-                  const year = from.format('YYYY')
-                  const mult = from.isBefore(moment()) ? 1 : 0
-                  const numberOfDaysOfFromMonth = from.daysInMonth()
-                  const numberOfDayOfMonthOfToday = moment().date()
-                  const ratio = from.format('YYYY-MM') === moment().format('YYYY-MM') ? numberOfDayOfMonthOfToday / numberOfDaysOfFromMonth : 1
-
-                  if ((year.toString() === this.year.toString() || this.year === 0) &&
-                  (this.person === 0 || (this.person > 0 && h.users_permissions_user && h.users_permissions_user.id && h.users_permissions_user.id.toString() === this.person.toString()))) {
-                    const activity = {
-                      project_name: p.name,
-                      project_leader: p.leader ? p.leader.username : '-',
-                      project_state: p.project_state ? p.project_state.name : '-',
-                      project_scope: p.project_scope ? p.project_scope.short_name : '-',
-                      project_scope_name: p.project_scope ? p.project_scope.name : '-',
-                      project_client: p.client ? p.client.name : '-',
-                      total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-                      total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
-                      count: 1,
-                      month: from.format('MM'),
-                      year: from.format('YYYY'),
-                      day: 0,
-                      date: '-',
-                      hours: 0,
-                      [hoursField]: estimated_hours,
-                      // "today" proration only makes sense for the planned
-                      // (previstes) hours, so it follows the previstes field.
-                      estimated_hours_today: hoursField === 'estimated_hours' ? estimated_hours * mult * ratio : 0,
-                      username: h.users_permissions_user && h.users_permissions_user.id ? h.users_permissions_user.username : '-',
-                      dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
-                      real_cost: 0
-                    }
-                    activities.push(activity)
-                  }
-                }
-              })
-            }
+    // One row per person and month of the project's planned hours. They come
+    // from the backend (`planned_hours`), computed like the project's stored
+    // total in the projects panel (working days, festives, only lines with a
+    // person), so both screens give the same hours (issues/067).
+    plannedHoursRows (activities, p) {
+      (p.planned_hours || []).forEach(h => {
+        if ((this.year === 0 || h.year === this.year.toString()) &&
+          (this.person === 0 || (h.user && h.user.toString() === this.person.toString()))) {
+          const user = this.leaders.find(u => u.id === h.user)
+          activities.push({
+            project_name: p.name,
+            project_leader: p.leader ? p.leader.username : '-',
+            project_state: p.project_state ? p.project_state.name : '-',
+            project_scope: p.project_scope ? p.project_scope.short_name : '-',
+            project_scope_name: p.project_scope ? p.project_scope.name : '-',
+            project_client: p.client ? p.client.name : '-',
+            total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
+            total_real_hours: p.total_real_hours ? p.total_real_hours : 0,
+            count: 1,
+            month: h.month,
+            year: h.year,
+            day: 0,
+            date: '-',
+            hours: 0,
+            estimated_hours: h.estimated_hours,
+            original_estimated_hours: h.original_estimated_hours,
+            estimated_hours_today: h.estimated_hours_today,
+            username: user ? user.username : '-',
+            dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
+            real_cost: 0
           })
         }
       })
@@ -287,9 +257,9 @@ export default {
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
       const projectState = this.projectState !== null ? this.projectState : 1
-      let query = `projects/phases-both?_where[project_state_in]=${projectState}&_limit=-1&activities=true`
+      let query = `projects/phases-both?_where[project_state_in]=${projectState}&_limit=-1&activities=true&plannedHours=true`
       if (projectState === 0 || projectState === '0') {
-        query = 'projects/phases-both?_limit=-1&activities=true'
+        query = 'projects/phases-both?_limit=-1&activities=true&plannedHours=true'
       }
       service({ requiresAuth: true }).get(query).then((r) => {
         const activities = []
@@ -324,12 +294,7 @@ export default {
               }
             })
           }
-          if (p.project_phases && p.project_phases.length > 0) {
-            this.expandPhases(activities, p, p.project_phases, 'estimated_hours')
-          }
-          if (p.project_original_phases && p.project_original_phases.length > 0) {
-            this.expandPhases(activities, p, p.project_original_phases, 'original_estimated_hours')
-          }
+          this.plannedHoursRows(activities, p)
           if (!(p.project_phases && p.project_phases.length > 0) && !(p.project_original_phases && p.project_original_phases.length > 0) && p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
               if ((this.year === 0 || (this.year > 0 && a.year && a.year.year && a.year.year === this.year)) && (this.month === 0 || (this.month > 0 && a.month && a.month.month && a.month.month === this.month))) {

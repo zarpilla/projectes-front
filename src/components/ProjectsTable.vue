@@ -659,7 +659,9 @@ export default {
     formatMoney,
     sign,
     estimatedResult(project) {
-      return project.incomes_expenses || project.estimated_incomes_expenses || 0;
+      // The panel's planned result: no fallback, so the list, its sorting
+      // and the projects panel agree (issues/067)
+      return project.incomes_expenses || 0;
     },
     hoursPercent(project) {
       if (!project.total_estimated_hours) {

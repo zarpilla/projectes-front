@@ -88,10 +88,7 @@ export default {
       return ['Informes', 'Previsió i execució de la dedicació']
     },
     subtitle () {
-      // The planned hours are spread month by month from the phase lines, an
-      // approximation that can differ from the project's total in the projects
-      // panel, which counts working days and holidays (issues/067)
-      return 'Hores previstes i fetes per projecte i persona. Les previstes es reparteixen per mesos a partir de les fases (aproximació mensual): poden no coincidir amb el total del projecte del panell, que compta dies feiners i festius. Tria els filtres i aplica-ho.'
+      return 'Hores previstes i fetes per projecte i persona. Tria els filtres i aplica-ho.'
     }
   },
   async mounted () {
