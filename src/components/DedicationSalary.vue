@@ -330,7 +330,6 @@ export default {
               var salary = 0;
               var theoricHoursTotal = 0;
               allDates.forEach(d => {
-                // console.log('date', d)
                 const date = moment(d).format("YYYY-MM-DD");
                 const displayDate = moment(d).format("ddd DD-MM-YYYY");
                 const day = moment(d).day();

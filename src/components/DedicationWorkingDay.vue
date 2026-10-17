@@ -183,7 +183,6 @@ export default {
     this.initializeAll();
   },
   beforeUnmount() {
-    // console.log('beforeDestroy')
     if (this.gantt) {
       this.gantt.detachEvent("onTaskClick");
       // Remove custom drag listeners
@@ -220,7 +219,6 @@ export default {
     async getQuotes() {
       const me = (await service({ requiresAuth: true, cached: true }).get("me"))
         .data;
-      // console.log('me!', me)
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;
       }

@@ -144,7 +144,6 @@ export default {
         "contacts?users_permissions_user=" + me.data.id
       ).then((r) => r.data);
 
-      console.log(contacts);
       if (contacts.length === 0) {        
         this.$buefy.snackbar.open({
               message: "Error. No hi ha cap contacte associat a aquest usuari",

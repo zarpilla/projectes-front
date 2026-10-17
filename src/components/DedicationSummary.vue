@@ -270,7 +270,6 @@ export default {
   mounted() {
     this.getActivities();
 
-    // this.$on('update:page', () => { console.log('update:page') })
   },
   methods: {
     sign,
@@ -426,7 +425,6 @@ export default {
               this.summary[festive.festive_type.name].days++;
               if (moment(d).isBefore(moment())) {
                 this.summary[festive.festive_type.name].daysCurrent++;
-                // console.log('daysCurrent', d, festive.festive_type.name)
               }
             }
             // A laborable weekday counts toward the contractual average even

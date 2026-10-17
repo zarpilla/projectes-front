@@ -82,7 +82,6 @@ export default {
     this.isLoading = true
 
     service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-      // console.log('r.data', r.data)
       this.years = r.data
       this.filters.year = defaultYear(this.years)
     })

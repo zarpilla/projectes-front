@@ -159,15 +159,12 @@ export default {
       }
     },
     dedicationObject (newValue) {
-      // console.log('dedicationObject', newValue)
-      // console.log('dedicationObject this', this.dedicationObject)
     }
   },
   methods: {
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
-      // console.log('show this.dedicationObject', this.dedicationObject)
       if (this.dedicationObject) {
         this.form.id = this.dedicationObject.id
         this.form._hours = this.dedicationObject._hours
@@ -177,7 +174,6 @@ export default {
         this.form.quantity = this.dedicationObject._hours.quantity
         this.form.amount = this.dedicationObject._hours.amount
         this.form.quantity_type = this.dedicationObject._hours.quantity_type || 'total'
-        // console.log('this.dedicationObject.users_permissions_user', this.dedicationObject.users_permissions_user)
         this.form.users_permissions_user = null // this.dedicationObject.users_permissions_user ? this.dedicationObject.users_permissions_user : null
         // this.form.id = this.dedicationObject._hours.id
         this.form._uuid = this.dedicationObject._uuid
@@ -194,7 +190,6 @@ export default {
       service({ requiresAuth: true, cached: true }).get('users').then((r) => {
         this.users = r.data.filter(u => !u.hidden)
         const allUsers = r.data
-        // console.log('this.dedicationObject._hours.users_permissions_user', this.dedicationObject)
         if (this.dedicationObject && this.dedicationObject._hours && this.dedicationObject._hours.users_permissions_user && this.dedicationObject._hours.users_permissions_user.username) {
           const user = allUsers.find(u => u.username.toLowerCase() === this.dedicationObject._hours.users_permissions_user.username.toLowerCase())
           this.form.users_permissions_user = user
@@ -213,7 +208,6 @@ export default {
           if (this.form.amount === undefined && dedication.costByHour) {
             this.form.amount = dedication.costByHour
           }
-          // // console.log('this.form.amount 2', this.form.amount, user.cost_by_hour)
           // if (this.form.amount === undefined && user.cost_by_hour) {
           //   this.form.amount = user.cost_by_hour
           // }

@@ -235,13 +235,11 @@ export default {
         service({ requiresAuth: true })
           .get(`quotes/${this.$route.params.id}`)
           .then((r) => {
-            console.log('quote', r.data)
             this.quote = r.data
           })
         service({ requiresAuth: true, cached: true })
           .get('me')
           .then((r) => {
-            console.log('me', r.data)
             this.me = r.data
             // a new tenant has no logo yet (issues/044)
             if (this.me.logo && this.me.logo.url) {

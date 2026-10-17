@@ -74,7 +74,6 @@ export default {
   },
   watch: {
     // user: function (newVal, oldVal) {
-    //   console.log('user newVal', newVal)
     //   this.getActivities()
     // },
     date1: function (newVal, oldVal) {
@@ -91,7 +90,6 @@ export default {
     }
   },
   mounted () {
-    // console.log('mounted')
     this.getActivities()
   },
   methods: {
@@ -117,7 +115,6 @@ export default {
       //   query = `${query}&[project.id]=${this.project}`
       // }
       service({ requiresAuth: true }).get(query).then((r) => {
-        // console.log('r.data', r.data)
         const data = []
         r.data.forEach(p => {
           if (p.project_phases) {

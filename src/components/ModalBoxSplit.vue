@@ -192,7 +192,6 @@ export default {
       this.$emit("cancel");
     },
     submit() {
-      console.log('submit!')
       const action = {
         action: 'split',
         phase: this.invoicingObject.phase,

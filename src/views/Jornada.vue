@@ -123,7 +123,6 @@ export default {
     })
 
     service({ requiresAuth: true, cached: true }).get('months?_sort=month:ASC').then((r) => {
-      // console.log('r.data', r.data)
       this.months = [{ month: null, month_number: null, name: '-- Tots --' }, ...r.data]
       // Match on the integer `month` (what JornadaDiaria receives) rather than
       // the zero-padded `month_number` string, which must match exactly.

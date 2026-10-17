@@ -824,7 +824,6 @@ export default {
           this.updating = false;
 
           // this.activities[i] = db.data
-          // console.log('activity 1', activity)
         }
       } catch {
         this.updating = false;

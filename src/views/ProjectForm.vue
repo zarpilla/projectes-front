@@ -4787,16 +4787,13 @@ export default {
       }
     },
     async uploaded(info) {
-      // console.log('uploaded', info)
 
       if (info.refId && info.refId > 0) {
         const project = (
           await service({ requiresAuth: true }).get(`projects/${info.refId}`)
         ).data;
-        // console.log('task', task)
         this.form.documents = project.documents;
       } else {
-        // console.log("info", info);
         this.form.documents = info.documents;
       }
     },

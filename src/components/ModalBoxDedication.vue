@@ -347,8 +347,6 @@ export default {
       }
     },
     dedicationObject(newValue) {
-      // console.log('dedicationObject', newValue)
-      // console.log('dedicationObject this', this.dedicationObject)
     }
   },
   methods: {
@@ -468,7 +466,6 @@ export default {
       if (this.saving) {
         return;
       }
-      // console.log('this.form.date', this.form)
       // if (typeof this.form.date.getMonth === 'function') {
       //   this.form.date = moment(this.form.date).format('YYYY-MM-DD')
       // }
@@ -536,8 +533,6 @@ export default {
 
         this.isLoading2 = false;
       }
-      if (this.counter !== null) {
-      }
     },
     counterContinue() {
       this.$emit("counter-continue", {
@@ -566,7 +561,6 @@ export default {
       clearInterval(this.counterInterval);
     },
     updateCounter(info) {
-      console.log("updateCounter", info);
     }
   }
 };

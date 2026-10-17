@@ -485,7 +485,6 @@ export default {
     }
   },
   async mounted() {
-    // console.log('mounted')
     this.getActivities();
     // this.users = (await service({ requiresAuth: true, cached: true }).get('users')).data.filter(u => u.hidden !== true)
     this.festiveTypes = (
@@ -787,7 +786,6 @@ export default {
       return chartConfig.chartDataColors[n];
     },
     showModal(activity) {
-      // console.log('activity', activity)
 
       this.counterClicked = false;
       if (activity) {
@@ -843,7 +841,6 @@ export default {
         uid_word: firstWord
       };
 
-      // console.log('activity', activity)
 
       this.counterClicked = false;
       if (activity) {
@@ -892,7 +889,6 @@ export default {
         this.counter = null;
       }
       this.counterClicked = false;
-      // console.log('activity dt', moment(activity.date).format('YYYY-MM-DD'))
       const activity2 = { ...activity };
       activity2.date = moment(activity.date).format("YYYY-MM-DD");
       activity2.hours = activity.hours
@@ -982,8 +978,6 @@ export default {
       }
     },
     dayClicked(day) {
-      // console.log('day', day)
-      // console.log('mm', moment(day.date).format('YYYY-MM-DD'))
       this.showModal({ date: moment(day.date).format("YYYY-MM-DD") });
     },
     daySum(attributes) {
@@ -1280,7 +1274,6 @@ export default {
                   );
                   if (found.length === 1) {
                     countFound++;
-                    console.log("project found!", projectName2);
                   } else {
                     countNotFound++;
                   }
@@ -1295,7 +1288,6 @@ export default {
           if (project) {
             countFound++;
           } else {
-            console.log("project not found", projectName);
             if (projectName.includes("-")) {
               const indexOfDash = projectName.indexOf("-");
               const projectName2 = projectName.substring(indexOfDash + 1) || "";
@@ -1315,14 +1307,11 @@ export default {
                     projectName2 === "")
               );
               if (projects2.length === 1) {
-                console.log("project?", projectName, projects2);
                 countFound++;
               } else {
-                console.log("project not found", projectName, projects2);
                 countNotFound++;
               }
             } else {
-              console.log("project not found", projectName);
               countNotFound++;
             }
           }
@@ -1342,8 +1331,6 @@ export default {
         });
       }
 
-      // console.log('projects', this.projects)
-      // console.log('icalAdded', icalAdded)
     },
 
     async createICalEvents() {
@@ -1459,7 +1446,6 @@ export default {
           );
           if (project) {
             const eventData = event.customData.a;
-            console.log("project found", projectName, event, eventData);
 
             const dedication_type = event.customData.project
               .toString()
@@ -1524,7 +1510,6 @@ export default {
                     projectName2 === "")
               );
               if (projects2.length === 1) {
-                console.log("project?", projectName, projects2);
 
                 const eventData = event.customData.a;
                 const activity = {

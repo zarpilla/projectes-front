@@ -188,7 +188,6 @@ export default {
       //   message: "Tasca guardada",
       //   queue: false,
       // });
-      // console.log('onDrop', j)
     },
     onDragEnter(evt, state) {
     },

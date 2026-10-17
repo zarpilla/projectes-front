@@ -1198,7 +1198,6 @@ export default {
       this.getData();
     },
     trashModal(trashObject) {
-      // console.log('trashObject', trashObject)
 
       const invoicingObject = {
         origin: "treasury",
@@ -1226,7 +1225,6 @@ export default {
         contacts: this.contacts
       };
 
-      // console.log("invoicingObject", invoicingObject);
 
       // this.invoicingObject = {
       //   type,

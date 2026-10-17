@@ -151,7 +151,6 @@ export default {
 
       service({ requiresAuth: true, multipart: true }).post("upload", formData)
         .then((res) => {
-          console.log("upload", res);
           this.$emit("uploaded", {
             entity: this.entity,
             refId: this.realRefId,
@@ -166,7 +165,7 @@ export default {
           })
         })
         .catch(err => {
-          console.log(err);
+          console.error(err);
           this.currentStatus = STATUS_INITIAL
           this.$buefy.snackbar.open({
             message: 'Error pujant arxiu',
@@ -176,7 +175,6 @@ export default {
       
     },
     async filesChange(event, fieldName, fileList) {
-      // console.log('(event, fieldName, fileList)', event, fieldName, fileList)
       // handle file changes
       const formData = new FormData();
 

@@ -620,7 +620,6 @@ export default {
     // }
   },
   mounted() {
-    console.log("mounted");
     this.getActivities();
   },
   methods: {

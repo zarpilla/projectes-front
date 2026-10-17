@@ -172,7 +172,6 @@ export default {
 
     setTimeout(() => {
       this.showGantt = true;
-      // console.log('gantt', gantt)
       this.gantt.clearAll();
       this.tasks = { data: [] };
       setTimeout(() => {
@@ -181,7 +180,6 @@ export default {
     }, 250);
   },
   beforeUnmount() {
-    console.log("beforeDestroy");
     if (this.gantt) {
       this.gantt.detachEvent("onTaskClick");
       this.gantt.detachEvent("onAfterTaskUpdate");
@@ -195,7 +193,6 @@ export default {
   },
   methods: {
     initializeGannt() {
-      // console.log('initializeGannt!!!')
 
       // this.tasks = {
       //   data: [
@@ -207,7 +204,6 @@ export default {
       //   ]
       // }
 
-      // console.log('initializeGannt', this.project)
       this.tasks = { data: [] };
       let minDate = moment().format("YYYY-MM-DD");
       let maxDate = moment().format("YYYY-MM-DD");
@@ -320,8 +316,6 @@ export default {
         ? moment(this.project.date_end).add(1, "year").endOf("year").toDate()
         : moment().add(3, "year").endOf("year").toDate();
 
-        // console.log('initialDate', initialDate)
-        // console.log('minDate', minDate)
 
       if (moment(initialDate).isBefore(moment(minDate))) {
         minDate = initialDate
@@ -373,7 +367,6 @@ export default {
       this.gantt.plugins({ click_drag: true, tooltip: true });
 
       this.gantt.templates.tooltip_text = (start, end, task) => {
-        // console.log('task', task)
         var children = this.tasks.data.filter((t) => t.parent === task.id);
         if (!children || !children.length) {
           return;
@@ -458,7 +451,6 @@ export default {
         this.gantt.attachEvent(
           "onAfterTaskUpdate",
           (id, item) => {
-            // console.log('onAfterTaskUpdate', item, this.project)
             if (
               moment(item.start_date).format("YYYYMMDD") <
                 moment(this.project.date_start).format("YYYYMMDD") ||
@@ -474,8 +466,6 @@ export default {
             // this.dedicationObject = this.tasks.data.find(t => t.id.toString() === id.toString())
             // this.isModalActive = true
             if (!this.updating) {
-              // console.log('onAfterTaskUpdate', item)
-              // console.log('onAfterTaskUpdate', this.tasks.data)
               const task = this.tasks.data.find(
                 (t) => t.id.toString() === id.toString()
               );
@@ -485,8 +475,6 @@ export default {
               task.start_date = item.start_date;
               task.end_date = item.end_date;
               task.end_date = item.end_date;
-              // console.log('onAfterTaskUpdate item', item)
-              // console.log('onAfterTaskUpdate task', task)
               this.$emit("gantt-item-update", task);
             }
           },
@@ -653,7 +641,6 @@ export default {
           },
         };
 
-        // console.log('currentTask!!', currentTask)
         taskId = this.gantt.addTask(
           {
             text: taskName,
@@ -702,7 +689,6 @@ export default {
           if (task2open.$level == 0) {
             //is a project, not a task
             this.gantt.open(task2open.id);
-            console.log(task2open.id);
           } //endif
         }.bind(this));
       }
@@ -726,7 +712,6 @@ export default {
     },
     toggleView() {
       this.view = this.view === "month" ? "week" : "month";
-      // console.log("this.view", this.view);
       setTimeout(() => {
         this.gantt.clearAll();
         this.tasks = { data: [] };
@@ -748,7 +733,6 @@ export default {
       const task = this.tasks.data.find(
         (t) => t.id.toString() === activity.id.toString()
       );
-      // console.log('task', task)
       const taskName = `${
         activity.users_permissions_user
           ? activity.users_permissions_user.username
@@ -769,7 +753,6 @@ export default {
       this.updating = false;
     },
     async modalDelete(activity) {
-      // console.log('modalDelete activity', activity, this.tasks.data)
       this.tasks.data = this.tasks.data.filter(
         (t) => t.id.toString() !== activity.id.toString()
       );
@@ -783,8 +766,6 @@ export default {
       this.tasks.data = this.tasks.data.filter(
         (t) => t.id.toString() !== this.taskToAddId.toString()
       );
-      // console.log('this.taskToAddId', this.taskToAddId)
-      // console.log('this.tasks.data', this.tasks.data)
       if (this.taskToAddId) {
         this.gantt.deleteTask(this.taskToAddId);
       }

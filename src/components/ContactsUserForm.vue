@@ -785,7 +785,6 @@ export default {
             "contacts",
             this.form
           );
-          // console.log('newProject', newProject.data)
 
           if (this.modal) {
             this.$emit("confirm", { id: newProject.data.id });

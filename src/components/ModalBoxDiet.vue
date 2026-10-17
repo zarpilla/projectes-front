@@ -212,10 +212,8 @@ export default {
     isActive: {
       immediate: true,
       handler(newValue) {
-        console.log('ModalBoxDiet isActive changed to:', newValue);
         this.isModalActive = newValue;
         if (newValue) {
-          console.log('Calling show() method');
           this.show();
         } else {
           this.cancel();
@@ -231,9 +229,6 @@ export default {
   },
   methods: {
     async show() {
-      console.log('ModalBoxDiet show() called');
-      console.log('currentUser:', this.currentUser);
-      console.log('quotes:', this.quotes);
       
       // Set default user to current user if available
       if (this.currentUser && this.currentUser.id) {
@@ -242,7 +237,6 @@ export default {
       
       // Load users that have permission (users_permissions_user)
       await this.loadAvailableUsers();
-      console.log('availableUsers loaded:', this.availableUsers);
       
       // Calculate IRPF for default user if set
       if (this.form.user) {
@@ -277,7 +271,6 @@ export default {
         // Convert map to array
         this.availableUsers = Array.from(userMap.values());
         
-        console.log('Available users after deduplication:', this.availableUsers);
 
         // If current user is available, set as default
         if (this.currentUser) {
@@ -302,7 +295,6 @@ export default {
       }
     },
     userSelected(user) {
-      console.log('User selected via autocomplete:', user);
       if (user) {
         this.form.user = user.id;
         this.userSearch = user.displayName;
@@ -310,23 +302,18 @@ export default {
       }
     },
     async onUserSelected(userId) {
-      console.log('User selected:', userId);
       await this.calculateUserIRPF(userId);
     },
     async calculateUserIRPF(userId) {
       this.selectedUserIrpf = 0;
       
       if (!userId || !this.form.date) {
-        console.log('Missing userId or date:', { userId, date: this.form.date });
         return;
       }
 
       try {
         // Find the selected user in availableUsers
         const selectedUser = this.availableUsers.find(u => u.id === userId);
-        console.log('Looking for user ID:', userId);
-        console.log('Available users:', this.availableUsers.map(u => ({ id: u.id, username: u.username })));
-        console.log('Selected user:', selectedUser);
         
         if (!selectedUser) {
           console.warn('User not found in availableUsers list');
@@ -338,29 +325,19 @@ export default {
           `daily-dedications?_limit=-1&users_permissions_user.id=${userId}`
         );
         
-        console.log('Dedications:', dedications.data);
         
         if (dedications.data && dedications.data.length > 0) {
           // Find dedication that matches the selected date
           // Local day: toISOString() gives the UTC day, i.e. the previous day for a
           // datepicker (local-midnight) date.
           const formattedDate = moment(this.form.date).format('YYYY-MM-DD');
-          console.log('Looking for dedication matching date:', formattedDate);
           
           const dedication = dedications.data.find(d => 
             d.from <= formattedDate && d.to >= formattedDate
           );
-          
-          console.log('Matching dedication:', dedication);
-          
           if (dedication && dedication.pct_irpf) {
             this.selectedUserIrpf = dedication.pct_irpf;
-            console.log('Set IRPF to:', this.selectedUserIrpf);
-          } else {
-            console.log('No matching dedication found or no IRPF percentage');
           }
-        } else {
-          console.log('No dedications found for user');
         }
       } catch (error) {
         console.error("Error calculating user IRPF:", error);

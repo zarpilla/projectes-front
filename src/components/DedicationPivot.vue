@@ -71,7 +71,6 @@ export default {
   },
   watch: {
     // user: function (newVal, oldVal) {
-    //   console.log('user newVal', newVal)
     //   this.getActivities()
     // },
     // date1: function (newVal, oldVal) {
@@ -84,12 +83,10 @@ export default {
       this.getActivities()
     },
     projectState: function (newVal, oldVal) {
-      // console.log('filter state', newVal)
       this.getActivities()
     }
   },
   mounted () {
-    // console.log('mounted')
     this.getActivities()
   },
   methods: {
@@ -112,7 +109,6 @@ export default {
       this.activityTypes = (await service({ requiresAuth: true }).get('activity-types/basic?_limit=-1')).data
 
       service({ requiresAuth: true }).get(query).then((r) => {
-        // console.log('r.data', r.data)
         const activities = []
 
         const projects = r.data.forEach(p => {

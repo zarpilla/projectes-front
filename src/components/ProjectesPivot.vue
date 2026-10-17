@@ -64,7 +64,6 @@ export default {
   },
   watch: {
     // user: function (newVal, oldVal) {
-    //   console.log('user newVal', newVal)
     //   this.getActivities()
     // },
     date1: function (newVal, oldVal) {
@@ -86,7 +85,6 @@ export default {
     }
   },
   mounted () {
-    // console.log('mounted')
   },
   methods: {
     async getActivities () {
@@ -142,13 +140,11 @@ export default {
 
         this.projects = r.data
         this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
-        console.log('pivotData', this.pivotData)
         configPivot.dataSource.data = this.pivotData
         this.initializePivotWithViews('#project-stats', configPivot)
         // setTimeout(() => {
         //   const b1 = window.jQuery('.k-button[data-name=project_state]')
         //   b1.text(b1.text().replace('project_state', 'Estat'))
-        //   console.log('b1', b1.text())
         // }, 500)
         this.isLoading = false
       })

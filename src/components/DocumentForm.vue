@@ -1744,21 +1744,14 @@ export default {
         }
 
         // Check if document_type=4 (diet) is specified in query parameters
-        console.log(
-          "this.$route.query.document_type",
-          this.$route.query.document_type
-        );
         if (
           this.$route.query.document_type === "4" &&
           this.type === "received-expenses"
         ) {
           this.form.document_type = 4;
           // Show diet modal after a short delay to ensure component is ready
-          console.log("About to show diet modal...");
           this.$nextTick(() => {
-            console.log("Setting isDietModalActive to true");
             this.isDietModalActive = true;
-            console.log("isDietModalActive is now:", this.isDietModalActive);
           });
         }
 
@@ -1791,7 +1784,6 @@ export default {
       }
     },
     async getAuxiliarData() {
-      // console.log("getAuxiliarData");
       this.series = (
         await service({ requiresAuth: true }).get("series?_sort=name:DESC")
       ).data;
@@ -1811,7 +1803,6 @@ export default {
 
       const me = (await service({ requiresAuth: true, cached: true }).get("me"))
         .data;
-      // console.log('me!', me)
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;
       }
@@ -1881,7 +1872,6 @@ export default {
     },
     input(v) {},
     async submit(exit) {
-      console.log("submit", this.form);
 
       this.isLoading = true;
       this.canEditDraft = false;
@@ -1956,7 +1946,6 @@ export default {
             this.getData();
           }
         } else {
-          // console.log("this.form", this.form);
           if (
             !this.form.emitted ||
             !this.form.contact ||
@@ -2143,9 +2132,7 @@ export default {
     },
     productSelected(option, line) {
       // this.form.payment_method = option;
-      console.log("line", line);
       // const option = line.productSearch
-      console.log("option", option);
       line.product = option.id;
       line.concept = option.name;
       line.base = option.base;
@@ -2155,7 +2142,6 @@ export default {
       //   }, 100);
     },
     phasesUpdated(info) {
-      console.log("Phases updated:", info);
       this.shouldSaveProject = true;
       const project = this.form.projects.find(p => p.id === info.projectId);
 
@@ -2177,12 +2163,6 @@ export default {
         return;
       }
 
-      console.log("=== calculateDocumentWarnings ===", {
-        documentId: this.form.id,
-        documentType: this.type,
-        totalBase: this.totalBase,
-        projectCount: this.form.projects.length
-      });
 
       // Sum all phase lines that reference this document across ALL projects
       let totalAssignedIncomes = 0;
@@ -2304,15 +2284,6 @@ export default {
       const diff = Math.abs(this.totalBase - totalAssigned);
       const hasWarning = Math.round(diff * 100) > 1;
 
-      console.log("Document warning calculation:", {
-        documentId: this.form.id,
-        documentType: this.type,
-        totalBase: this.totalBase,
-        totalAssigned,
-        matchedLineCount: matchedLines.length,
-        diff,
-        hasWarning
-      });
 
       // Update warning field on all matched lines
       matchedLines.forEach(match => {
@@ -2547,26 +2518,14 @@ export default {
               projectToRemove.project_phases.forEach(phase => {
                 // Check incomes
                 if (phase.incomes) {
-                  console.log(
-                    "Filtering incomes for phase",
-                    phase.incomes.length
-                  );
                   deletedIncomes = phase.incomes.filter(income => {
                     return income.invoice && income.invoice.id === this.form.id;
                   });
-                  console.log(
-                    "Deleted incomes for phase",
-                    deletedIncomes.length
-                  );
                   phase.incomes = phase.incomes.filter(income => {
                     return !(
                       income.invoice && income.invoice.id === this.form.id
                     );
                   });
-                  console.log(
-                    "Remaining incomes for phase",
-                    phase.incomes.length
-                  );
                 }
 
                 // Check expenses
@@ -2774,7 +2733,6 @@ export default {
       // Populate the form with diet data
       this.isDietModalActive = false;
 
-      console.log("Diet data received:", dietData);
 
       // Find the selected user contact
       const selectedContact = this.clients.find(
@@ -2846,14 +2804,12 @@ export default {
     },
     async uploaded(info) {
       this.editingDocuments = true;
-      // console.log('uploaded', info)
       if (info.refId && info.refId > 0) {
         const document = (
           await service({ requiresAuth: true }).get(
             `${this.type}/${info.refId}`
           )
         ).data;
-        console.log("document", document);
         this.form.documents = document.documents;
       } else {
         this.form.documents = info.documents;
@@ -2902,7 +2858,6 @@ export default {
         ).data;
         this.pdf = true;
 
-        console.log("pdf", pdf);
 
         await service({ requiresAuth: true }).post(
           `/emitted-invoices/send-email/${this.form.id}`
@@ -2969,7 +2924,6 @@ export default {
 
       setTimeout(() => {
         this.form.projects = [...previousForm.projects];
-        console.log("this.form.projects", this.form.projects);
         scrollTo(0, 0);
       }, 300);
     },

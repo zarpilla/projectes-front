@@ -279,11 +279,9 @@ export default {
       this.lastScannedCode = decodedText;
       this.lastScanTime = now;
       
-      console.debug("Scanned QR code:", decodedText);
       // Extract order ID from URL
       const orderId = this.extractOrderId(decodedText);
 
-      console.debug("Extracted order ID:", orderId);
       
       if (orderId) {
         // Visual feedback
@@ -300,7 +298,6 @@ export default {
     onScanError(error) {
       // Ignore scan errors (they happen constantly while scanning)
       // Only log to console for debugging
-      // console.debug("Scan error:", error);
     },
     
     extractOrderId(url) {
@@ -355,7 +352,6 @@ export default {
         oscillator.stop(audioContext.currentTime + 0.1);
       } catch (err) {
         // Ignore audio errors
-        console.debug("Could not play beep:", err);
       }
     },
     

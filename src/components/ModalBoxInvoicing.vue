@@ -279,13 +279,10 @@ export default {
       }
     },
     dedicationObject (newValue) {
-      // console.log('dedicationObject', newValue)
-      // console.log('dedicationObject this', this.dedicationObject)
     }
   },
   methods: {
     show () {
-      //console.log('invoicingObject', this.invoicingObject)
       this.form.type = this.invoicingObject.type
       this.emittedSearch = ''
       this.grantSearch = ''
@@ -427,7 +424,6 @@ export default {
       }
     },
     getContactName (invoice) {
-      // console.log('invoice contacts', this.contacts)
       const contact = invoice.contact && invoice.contact.id ? invoice.contact.id : invoice.contact
       if (!contact) {
         return '-'

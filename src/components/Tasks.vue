@@ -338,7 +338,6 @@ export default {
           // init tasks order
           tasksWithDatabaseOrder.forEach(sit => {
             const theTask = tasks.find(tk => tk.id === sit.taskId)
-            // console.log('theTask', theTask)
             if (theTask) {
               theTask.order = sit.order
             }
@@ -426,12 +425,10 @@ export default {
     addTask(state) {
       const initial = this.view === 'state' ? { activity_type: 0, task_state: state } : { activity_type: state, task_state: this.states[0] }
       this.taskObject = { ...initial, project: this.projects.find(p => p.id === this.project), users_permissions_users: this.user ? [this.users.find(u => u.id === this.user)] : [] };
-      // console.log('this.taskObject', this.taskObject)
       this.isModalActive = true;
     },
     showTask(task) {
       this.taskObject = task;
-      // console.log('showTask', task)
       this.isModalActive = true;
     },
     async modalSubmit (task) {

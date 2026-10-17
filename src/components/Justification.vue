@@ -774,17 +774,6 @@ export default {
             project,
             "grantable_structural_expenses_justify_invoices"
           );
-          console.log(`Project ${project.name}:`, {
-            grantable_years: project.grantable_years,
-            grantable_years_details: project.grantable_years.map(gy => ({
-              year: typeof gy.year === "object" ? gy.year.year : gy.year,
-              grantable_structural_expenses_justify_invoices:
-                gy.grantable_structural_expenses_justify_invoices,
-              allFields: Object.keys(gy)
-            })),
-            totalGrantable,
-            hasGrantableInvoices: totalGrantable > 0
-          });
           return totalGrantable > 0;
         })
         .map(project => ({
@@ -795,11 +784,6 @@ export default {
             "grantable_structural_expenses_justify_invoices"
           )
         }));
-      console.log(
-        "projectsWithGrantableInvoices",
-        projectsWithGrantableInvoices
-      );
-      console.log("invoiceJustifications", invoiceJustifications);
       // Merge both arrays, giving priority to actual justifications
       const combined = _.concat(
         projectsWithGrantableInvoices,

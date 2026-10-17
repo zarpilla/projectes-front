@@ -444,12 +444,10 @@ export default {
   },
   watch: {
     // project_state: function (newVal, oldVal) {
-    //   console.log('newVal', newVal)
     //   this.getProjects()
     // },
     projects: {
       handler (newVal, oldVal) {
-        // console.log('newVal', newVal)
         // this.setProjects(newVal)
         this.projectsData = this.projects;
       },
@@ -630,7 +628,6 @@ export default {
     //         created_at_dt: moment(d.created_at).format('DD-MM-YYYY HH:mm')
     //       }
     //     })
-    //     console.log('this.projects', this.projects)
     //   })
     // },
     // setProjects (projects) {

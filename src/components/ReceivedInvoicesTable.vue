@@ -511,7 +511,6 @@ export default {
       });
 
       // this.emittedCSV = this.emitted.map((e) => {
-      //   console.log("e", e);
       //   return {
       //     num: e.code,
       //     num_document_proveidor: e.contact_invoice_number

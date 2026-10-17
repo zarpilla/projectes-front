@@ -421,7 +421,6 @@ export default {
       this.form.costByHour = this.calcCostByHour();
       // this.isLoading1 = true
       //setTimeout(() => this.isLoading1 = false, 50)
-      // console.log('this.field', this.field)
       // if (this.field === 'monthly_salary') {
       //   this.form.costByHour = value * 12 /1864
       // }

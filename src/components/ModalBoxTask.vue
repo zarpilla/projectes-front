@@ -393,7 +393,6 @@ export default {
     },
     show() {
       this.initializing = true;
-      // console.log('this.taskObject',this.taskObject)
 
       if (!this.taskObject) {
         return;
@@ -543,7 +542,6 @@ export default {
       }, 100);
     },
     addUser(user) {
-      // console.log('addUser', user)
       if (!user) {
         return;
       }
@@ -574,16 +572,13 @@ export default {
         this.form.users_permissions_users.filter((u) => u.id !== user.id);
     },
     async uploaded(info) {
-      // console.log('uploaded', info)
 
       if (info.refId && info.refId > 0) {
         const task = (
           await service({ requiresAuth: true }).get(`tasks/${info.refId}`)
         ).data;
-        // console.log('task', task)
         this.form.documents = task.documents;
       } else {
-        // console.log("info", info);
         this.form.documents = info.documents;
       }
     },

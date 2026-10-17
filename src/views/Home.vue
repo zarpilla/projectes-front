@@ -145,7 +145,6 @@ export default {
     },
     projectsCSV() {
       // return this.projects
-      // console.log('this.projects', this.projects)
       const projectsCSV = this.projects.map(p => {
         return {
           id: p.id,
@@ -224,7 +223,6 @@ export default {
     // service({ requiresAuth: true })
     //   .get("contacts/count")
     //   .then((r) => {
-    //     // console.log('contacts', r.data)
     //     this.contactsNumber = r.data;
     //   });
 

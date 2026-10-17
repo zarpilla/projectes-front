@@ -114,7 +114,6 @@ export default {
     }
   },
   mounted () {
-    // console.log('mounted')
     this.getData()
   },
   methods: {

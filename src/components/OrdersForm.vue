@@ -688,7 +688,6 @@ export default {
       );
     },
     canChangeRate() {
-      // console.log('this.form.status', this.form.status)
       return ["pending"].includes(this.form.status);
     },
     isPickupPoint() {
@@ -1423,7 +1422,6 @@ export default {
       if (this.form.route && this.form.estimated_delivery_date) {
         const route = this.routes.find(r => r.id === this.form.route);
         const dayOfWeek = this.form.estimated_delivery_date.getDay();
-        //console.log("dayOfWeek", dayOfWeek, route);
         let error = false;
         if (dayOfWeek === 0 && !route.sunday) {
           error = "La ruta seleccionada no es fa en diumenge";
@@ -1468,8 +1466,6 @@ export default {
         }
         return true;
       }
-      // console.log('this.route', this.form.route)
-      // console.log('this.form.estimated_delivery_date', this.form.estimated_delivery_date)
     },
     async submit(exit) {
       this.isLoading = true;
@@ -1482,7 +1478,6 @@ export default {
         this.form.owner = me.data.id;
       }
 
-      //console.log("this.form", this.form);
       if (this.form.status === "delivered" && !this.form.delivery_date) {
         this.form.delivery_date = moment().format("YYYY-MM-DD");
       }

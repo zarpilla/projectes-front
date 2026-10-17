@@ -1066,12 +1066,6 @@ export default {
       // When document total changes in assignment mode, recalculate warnings
       // This happens when you change the document line amounts in DocumentForm
       if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId && newVal !== oldVal) {
-        console.log('documentTotal changed:', {
-          old: oldVal,
-          new: newVal,
-          documentId: this.documentId,
-          mode: this.mode
-        });
         this.updateWarningFields();
       }
     }
@@ -1198,7 +1192,6 @@ export default {
       this.updateWarningFields();
     }
 
-    // console.log('this.phases', this.phases)
     this.isLoading = false;
   },
   methods: {
@@ -1447,7 +1440,6 @@ export default {
     },
     createSubPhase(phase, autoAssign) {
       this.needsUpdate = true;
-      // console.log('this.form', this.form)
       
       let concept = "";
       let amount = 0;
@@ -1688,7 +1680,6 @@ export default {
       }
     },
     async modalSubmit(invoicing) {
-      // console.log("invoicing", invoicing);
       if (this.invoicingObject.type === "incomes") {
         const phase = this.phases.find(
           (p, idx) => idx === this.invoicingObject.i
@@ -1745,7 +1736,6 @@ export default {
       // this.$emit('phases-updated', { phases: this.phases, projectId: this.form.id })
     },
     async modalSplitSubmit(action) {
-      // console.log('action',action)
 
       var max = 0;
       var divider = 1;
@@ -1775,7 +1765,6 @@ export default {
       if (action.type === "income") {
         if (max > 0) {
           for (let i = 0; i < max - 1; i++) {
-            console.log("action.subphase", action.subphase);
             const newIncome = {
               income_type: action.subphase.income_type,
               bank_account: action.subphase.bank_account,
@@ -1946,31 +1935,15 @@ export default {
           }
         });
       });
-      console.log('calculateDocumentTotal - RESULT:', {
-        documentId,
-        documentType,
-        lineType,
-        matchCount,
-        total
-      });
       return total;
     },
     updateWarningFields() {
-      console.log('=== updateWarningFields called ===', {
-        mode: this.mode,
-        documentId: this.documentId,
-        documentTotal: this.documentTotal,
-        documentType: this.documentType
-      });
       
       // In assignment mode, we can't calculate warnings accurately because each ProjectPhases
       // component only sees lines from ONE project, but documents can be split across MULTIPLE projects.
       // The backend will calculate and store the correct warning when saving.
       // So in assignment mode, just display the stored warning value from database.
       if ((this.mode === 'incomes' || this.mode === 'expenses') && this.documentId) {
-        console.log('=== Assignment mode - skipping warning calculation ===');
-        console.log('Using stored warning values from database');
-        console.log('Backend will recalculate warnings when saving');
         return;
       }
       
@@ -2025,20 +1998,10 @@ export default {
           });
         });
         
-        console.log('ALL income lines in phases:', allLines);
         
         const diff = Math.abs(this.documentTotal - totalAssigned);
         const hasWarning = diff > 0.01;
         
-        console.log('updateWarningFields - assignment mode (incomes):', {
-          documentId: this.documentId,
-          documentType: this.documentType,
-          documentTotal: this.documentTotal,
-          totalAssigned,
-          matchedLines,
-          diff,
-          hasWarning
-        });
         
         // Update warning for all matched lines
         this.phases.forEach(phase => {
@@ -2108,15 +2071,6 @@ export default {
         const diff = Math.abs(this.documentTotal - totalAssigned);
         const hasWarning = diff > 0.01;
         
-        console.log('updateWarningFields - assignment mode (expenses):', {
-          documentId: this.documentId,
-          documentType: this.documentType,
-          documentTotal: this.documentTotal,
-          totalAssigned,
-          matchedLines,
-          diff,
-          hasWarning
-        });
         
         // Update warning for all matched lines
         this.phases.forEach(phase => {
@@ -2154,9 +2108,6 @@ export default {
       // Normal project view mode: Trust the stored warning field from database
       // Don't recalculate because we only have phases from ONE project here,
       // but documents might be split across multiple projects
-      console.log('=== updateWarningFields - Normal project view mode ===');
-      console.log('Trusting stored warning fields from database - not recalculating');
-      console.log('=== updateWarningFields completed ===');
     }
   }
 };

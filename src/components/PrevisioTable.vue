@@ -642,7 +642,6 @@ export default {
       return Math.max(0, (Number(amount) || 0) / this.chartMax * 100) + "%";
     },
     async onStateChanged() {
-      console.log("onStateChanged");
     },
     async getInitialData() {
       this.isLoading = true;

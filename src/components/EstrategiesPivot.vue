@@ -63,7 +63,6 @@ export default {
   },
   watch: {
     // user: function (newVal, oldVal) {
-    //   console.log('user newVal', newVal)
     //   this.getActivities()
     // },
     // date1: function (newVal, oldVal) {
@@ -76,12 +75,10 @@ export default {
     //   this.getActivities()
     // },
     projectState: function (newVal, oldVal) {
-      // console.log('filter state', newVal)
       this.getActivities()
     }
   },
   mounted () {
-    // console.log('mounted')
     this.getActivities()
   },
   methods: {
@@ -107,9 +104,7 @@ export default {
       //   query = `${query}&[project.id]=${this.project}`
       // }
       service({ requiresAuth: true }).get(query).then((r) => {
-        // console.log('r.data', r.data)
         const strategies = strategyRows(r.data)
-        // console.log('activities', activities)
         this.projects = r.data
         this.pivotData = Object.freeze(strategies)
         configPivot.dataSource.data = this.pivotData

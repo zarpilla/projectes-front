@@ -1574,7 +1574,6 @@ export default {
 
       this.setStatusFilter({ ctrlKey: false, metaKey: false });
 
-      // console.log("this.orders", this.orders);
 
       // this.orders = this.orders.map(o => {
       //   return {
@@ -1629,7 +1628,6 @@ export default {
       });
     },
     uploaded(e, fileType) {
-      console.log("uploaded", e);
       if (e.fileList && e.fileList[0]) {
         const file = e.fileList[0];
 
@@ -1655,7 +1653,6 @@ export default {
           
           // Check if the text contains replacement characters (encoding issues)
           if (text.includes('�')) {
-            console.log("Detected encoding issues, trying Windows-1252...");
             // Try again with Windows-1252 encoding
             const readerRetry = new FileReader();
             readerRetry.onload = async e => {
@@ -1722,7 +1719,6 @@ export default {
         return false;
       }
 
-      // console.log("records", records);
 
       const owner = (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))
         ? this.users.find(
@@ -1730,14 +1726,12 @@ export default {
           )
         : this.me;
 
-      // console.log("owner", owner);
       const contacts = await this.getContactsForImport(owner.id);
       // closed days of each route, skipped when dating the orders (issues/082)
       const closures = (await service({ requiresAuth: true }).get(
         `route-festives?_where[date_gte]=${moment().format("YYYY-MM-DD")}&_limit=-1`
       )).data;
 
-      // console.log("contacts", contacts);
 
       for await (const record of records) {
         if (!record.route_name) {
@@ -1994,10 +1988,6 @@ export default {
           // });
         }
 
-        // console.log("assignRouteRate");
-        // console.log("order", order);
-        // console.log("routeRates", this.routeRates);
-        // console.log("orders", this.orders);
 
         const orderWithRate = {
           ...this.withNotes(order),
@@ -2074,7 +2064,6 @@ export default {
             parseFloat(record.contact_time_slot_1_ini) >=
             parseFloat(record.contact_time_slot_1_end)
           ) {
-            console.log("record");
             this.csvErrors.push({
               line: i,
               error: `L'hora d'inici del tram horari 1 no pot ser més gran que l'hora de finalització`
@@ -2404,7 +2393,6 @@ export default {
       this.checkedRows = [];
       this.getData();
 
-      //console.log("response", response);
     },
     async pdfOrders() {
       this.importing = true;

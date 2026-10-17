@@ -754,7 +754,6 @@ export default {
             "contacts",
             this.form
           );
-          // console.log('newProject', newProject.data)
           this.$router.push({
             name: `contacts.edit`,
             params: { id: newProject.data.id }

@@ -269,7 +269,6 @@ export default {
   mounted() {
     this.getActivities();
 
-    // this.$on('update:page', () => { console.log('update:page') })
   },
   methods: {
     sign,
@@ -349,7 +348,6 @@ export default {
               var laborableDays = 0
               var salary = 0
               allDates.forEach((d) => {
-                // console.log('date', moment(d).day)
                 const date = moment(d).format("YYYY-MM-DD");
                 const displayDate = moment(d).format("ddd DD-MM-YYYY");
                 const day = moment(d).day();

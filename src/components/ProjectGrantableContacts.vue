@@ -59,7 +59,6 @@ export default {
     };
   },
   mounted() {
-    console.log("mounted");
     this.rows = [...this.grantables];
   },
   methods: {

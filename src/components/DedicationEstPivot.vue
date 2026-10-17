@@ -158,7 +158,6 @@ export default {
   },
   watch: {
     // user: function (newVal, oldVal) {
-    //   console.log('user newVal', newVal)
     //   this.getActivities()
     // },
     // date1: function (newVal, oldVal) {
@@ -179,7 +178,6 @@ export default {
     }
   },
   mounted () {
-    // console.log('mounted')
     this.getActivities()
   },
   computed: {
@@ -294,7 +292,6 @@ export default {
         query = 'projects/phases-both?_limit=-1&activities=true'
       }
       service({ requiresAuth: true }).get(query).then((r) => {
-        // console.log('r.data', r.data)
         const activities = []
         const projects = r.data.forEach(p => {          
           if (p.activities) {
@@ -335,9 +332,6 @@ export default {
           }
           if (!(p.project_phases && p.project_phases.length > 0) && !(p.project_original_phases && p.project_original_phases.length > 0) && p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
-              // console.log('a.users_permissions_user', a.users_permissions_user)
-              // console.log('this.month', this.month)
-              // console.log('a.month', a.month)
               if ((this.year === 0 || (this.year > 0 && a.year && a.year.year && a.year.year === this.year)) && (this.month === 0 || (this.month > 0 && a.month && a.month.month && a.month.month === this.month))) {
                 const activity = {
                   project_name: p.name,
@@ -365,8 +359,6 @@ export default {
             })
           }
         })
-        // console.log('projects', projects)
-        // console.log('activities', activities)
         this.projects = projects
         // this.pivotData = Object.freeze(activities)
         this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'project_name'], ['asc', 'asc', 'asc']))
