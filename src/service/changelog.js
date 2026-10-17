@@ -35,6 +35,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: ["El PDF dels ", { to: "/quotes", label: "pressupostos" }, " mostra l'IRPF quan alguna línia en té, i el total el descompta com a les factures. També hi surt la data del pressupost i els preus amb format."]
+    },
+    {
+      type: "Correccions",
       text: [{ to: "/stats-previsio-hores", label: "Previsió i execució de la dedicació" }, " compta les hores previstes com el panell de projectes (dies feiners, festius i només línies amb persona), i els totals coincideixen. A la llista de projectes, el «Resultat previst» és el mateix que al panell."]
     },
     {
