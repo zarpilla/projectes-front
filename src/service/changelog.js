@@ -34,6 +34,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Correccions",
+      text: [{ to: "/stats-previsio-hores", label: "Previsió i execució de la dedicació" }, " compta les hores previstes com el panell de projectes (dies feiners, festius i només línies amb persona), i els totals coincideixen. A la llista de projectes, el «Resultat previst» és el mateix que al panell."]
+    },
+    {
       type: "Millores",
       text: "Diversos textos corregits: «Província», «Línies», «Clients», «Sortir», «Nou projecte», «Factures FACe», dates de pagament, venciment, enviament i acceptació en minúscula, i singulars quan n'hi ha un (1 bloquejat, 1 sòcia, 1 projecte d'estructura)."
     },
