@@ -3,17 +3,7 @@
        charts (per month or year, per project, per kind of expense) -->
   <div class="ed-charts">
     <div class="ed-head">
-      <div v-if="dataType === 'Totes'" class="segmented" role="group" aria-label="Escenari dels gràfics">
-        <button
-          v-for="s in scenarioOptions"
-          :key="s.id"
-          type="button"
-          :class="{ 'is-on': scenario === s.id }"
-          :aria-pressed="scenario === s.id ? 'true' : 'false'"
-          @click="chosen = s.id"
-        >{{ s.label }}</button>
-      </div>
-      <span v-else class="ed-scenario">{{ scenarioLabel }}</span>
+      <span class="ed-scenario">{{ scenarioLabel }}<span v-if="compare" class="has-text-muted"> · amb el previst al costat</span></span>
       <span class="has-text-muted ed-count">{{ rows.length }} línies · {{ projectCount }} projectes</span>
     </div>
 
@@ -101,19 +91,16 @@ export default {
   },
   data () {
     return {
-      chosen: 'exec',
       themeTick: 0
     }
   },
   computed: {
+    // the header's Previsió / Execució; with «Totes», the executed figures
     scenario () {
-      return SCENARIO_OF[this.dataType] || this.chosen
+      return SCENARIO_OF[this.dataType] || 'exec'
     },
     scenarioLabel () {
       return SCENARIOS[this.scenario].label
-    },
-    scenarioOptions () {
-      return [{ id: 'exec', label: 'Executat' }, { id: 'prev', label: 'Previst' }]
     },
     byYear () {
       return this.year === 'Tots' || new Set(this.rows.map(r => r.year)).size > 1
@@ -127,10 +114,10 @@ export default {
     // with «Totes», the other scenario next to the KPIs
     compare () {
       if (this.dataType !== 'Totes') return null
-      return totals(this.rows, this.scenario === 'exec' ? 'prev' : 'exec')
+      return totals(this.rows, 'prev')
     },
     compareLabel () {
-      return this.scenario === 'exec' ? 'previst' : 'executat'
+      return 'previst'
     },
     periods () {
       return byPeriod(this.rows, this.scenario, { byYear: this.byYear })
