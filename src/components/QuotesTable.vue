@@ -52,7 +52,7 @@
       <b-table-column label="Base" field="total_base" v-slot="props" sortable numeric cell-class="is-nowrap doc-total">
         {{ formatMoney(props.row.total_base) }}
       </b-table-column>
-      <b-table-column label="Estat" field="accepted" v-slot="props" sortable cell-class="is-nowrap">
+      <b-table-column label="Estat" field="accepted" v-slot="props" sortable :custom-sort="sortByAcceptance" cell-class="is-nowrap">
         <span v-if="props.row.accepted || props.row.accepted_date" class="tag is-success is-light">Acceptat</span>
         <span v-else class="tag is-warning">Pendent</span>
         <span v-if="props.row.accepted_date" class="doc-subline">{{ formatDate(props.row.accepted_date) }}</span>
@@ -131,6 +131,12 @@ export default {
     this.getData();
   },
   methods: {
+    // a quote with only an acceptance date is accepted too (issues/085)
+    sortByAcceptance(a, b, isAsc) {
+      const key = q => (q.accepted || q.accepted_date ? "1" + (q.accepted_date || "") : "0");
+      const order = key(a).localeCompare(key(b));
+      return isAsc ? order : -order;
+    },
     formatMoney,
     navNew() {
       this.$router.push("/document/0/quotes");

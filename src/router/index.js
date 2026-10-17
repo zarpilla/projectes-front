@@ -33,20 +33,19 @@ const routes = [
   },
   {
     meta: {
-      title: "Projectes"
+      title: "Projectes",
+      requiresAuth: true
     },
     path: "/projectes",
     name: "projectes.view",
     component: () =>
       import("../views/Home.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Projectes"
+      title: "Panell Projectes",
+      requiresAuth: true
     },
     path: "/stats-projectes",
     name: "stats.projectes",
@@ -55,25 +54,21 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/StatsProjectes.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Projectes Mare"
+      title: "Projectes Mare",
+      requiresAuth: true
     },
     path: "/mother-projects",
     name: "mother.projects",
     component: () =>
       import("../views/MotherProjectsList.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Dedicacio"
+      title: "Panell Dedicacio",
+      requiresAuth: true
     },
     path: "/stats-dedicacio",
     name: "stats.dedicacio",
@@ -82,13 +77,11 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/StatsDedicacio.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Detall econòmic"
+      title: "Panell Detall econòmic",
+      requiresAuth: true
     },
     path: "/stats-economic-detail",
     name: "stats.economic-detail",
@@ -99,25 +92,21 @@ const routes = [
       import(
         "../views/StatsEconomicDetail.vue"
       ),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Preu Hora"
+      title: "Panell Preu Hora",
+      requiresAuth: true
     },
     path: "/price-hour",
     name: "stats.price-hour",
     component: () =>
       import("../views/PricePerHour.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Despeses"
+      title: "Panell Despeses",
+      requiresAuth: true
     },
     path: "/stats-despeses",
     name: "stats.despeses",
@@ -126,13 +115,11 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/StatsExpenses.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Previsió Dedicacio"
+      title: "Panell Previsió Dedicacio",
+      requiresAuth: true
     },
     path: "/stats-previsio-hores",
     name: "stats.previsiohores",
@@ -141,13 +128,11 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/StatsDedicacioEst.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Previsió Dedicacio"
+      title: "Panell Previsió Dedicacio",
+      requiresAuth: true
     },
     path: "/stats-previsio-gantt",
     name: "stats.previsiogantt",
@@ -158,13 +143,11 @@ const routes = [
       import(
         "../views/StatsDedicacioGantt.vue"
       ),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Dedicació Real"
+      title: "Panell Dedicació Real",
+      requiresAuth: true
     },
     path: "/stats-real-gantt",
     name: "stats.realgantt",
@@ -175,14 +158,12 @@ const routes = [
       import(
         "../views/StatsRealDedicacioGantt.vue"
       ),
-    meta: {
-      requiresAuth: true
-    }
   },
 
   {
     meta: {
-      title: "Panell Estratègies"
+      title: "Panell Estratègies",
+      requiresAuth: true
     },
     path: "/stats-estrategies",
     name: "stats.estrategies",
@@ -191,13 +172,11 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/StatsEstrategies.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Panell Intercooperació"
+      title: "Panell Intercooperació",
+      requiresAuth: true
     },
     path: "/stats-intercoop",
     name: "stats.intercoop",
@@ -206,26 +185,22 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/StatsIntercoop.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Edita Projecte"
+      title: "Edita Projecte",
+      requiresAuth: true
     },
     path: "/project/:id",
     name: "project.edit",
     component: () =>
       import("../views/ProjectForm.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Edita document"
+      title: "Edita document",
+      requiresAuth: true
     },
     path: "/document/:id/:type",
     name: "document.edit",
@@ -234,13 +209,11 @@ const routes = [
         "../views/EmittedInvoiceForm.vue"
       ),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Tables"
+      title: "Tables",
+      requiresAuth: true
     },
     path: "/tables",
     name: "tables",
@@ -249,75 +222,63 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/Tables.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Forms"
+      title: "Forms",
+      requiresAuth: true
     },
     path: "/forms",
     name: "forms",
     component: () =>
       import("../views/Forms.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Profile"
+      title: "Profile",
+      requiresAuth: true
     },
     path: "/profile",
     name: "profile",
     component: () =>
       import("../views/Profile.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "New Client"
+      title: "New Client",
+      requiresAuth: true
     },
     path: "/client/new",
     name: "client.new",
     component: () =>
       import("../views/ClientForm.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Edit Client"
+      title: "Edit Client",
+      requiresAuth: true
     },
     path: "/client/:id",
     name: "client.edit",
     component: () =>
       import("../views/ClientForm.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Dedicació"
+      title: "Dedicació",
+      requiresAuth: true
     },
     path: "/dedicacio",
     name: "dedicacio",
     component: () =>
       import("../views/Dedicacio.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Gràfiques Dedicació"
+      title: "Gràfiques Dedicació",
+      requiresAuth: true
     },
     path: "/dedicacio-charts",
     name: "dedicacio-charts",
@@ -326,37 +287,31 @@ const routes = [
         "../views/DedicacioCharts.vue"
       ),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Saldo Projectes"
+      title: "Saldo Projectes",
+      requiresAuth: true
     },
     path: "/dedicacio-saldo",
     name: "dedicacio-saldo",
     component: () =>
       import("../views/DedicacioSaldo.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Jornada diària"
+      title: "Jornada diària",
+      requiresAuth: true
     },
     path: "/registre-jornades",
     name: "jornada",
     component: () =>
       import("../views/Jornada.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Resum Hores"
+      title: "Resum Hores",
+      requiresAuth: true
     },
     path: "/dedicacio-summary",
     name: "dedicacio-summary",
@@ -364,13 +319,11 @@ const routes = [
       import(
         "../views/DedicacioSummary.vue"
       ),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Jornada"
+      title: "Jornada",
+      requiresAuth: true
     },
     path: "/working-day",
     name: "dedicacio-working-day",
@@ -378,13 +331,11 @@ const routes = [
       import(
         "../views/DedicacioWorkingDay.vue"
       ),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Bestretes"
+      title: "Bestretes",
+      requiresAuth: true
     },
     path: "/salary",
     name: "dedicacio-salary",
@@ -392,313 +343,265 @@ const routes = [
       import(
         "../views/DedicacioSalary.vue"
       ),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Justificacions"
+      title: "Justificacions",
+      requiresAuth: true
     },
     path: "/justifications",
     name: "justifications",
     component: () =>
       import("../views/Justifications.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Subvencions"
+      title: "Subvencions",
+      requiresAuth: true
     },
     path: "/grants",
     name: "subvencions",
     component: () =>
       import("../views/Grants.vue"),
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Pressupost"
+      title: "Pressupost",
+      requiresAuth: true
     },
     path: "/quote/:id",
     name: "quote.view",
     component: () =>
       import("../views/Quote.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Factura"
+      title: "Factura",
+      requiresAuth: true
     },
     path: "/invoice/:id/:type",
     name: "invoice.old.view",
     component: () =>
       import("../views/Invoice.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Document"
+      title: "Document",
+      requiresAuth: true
     },
     path: "/pdf/:id/:type",
     name: "invoice.view",
     component: () =>
       import("../views/Invoice.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Tresoreria"
+      title: "Tresoreria",
+      requiresAuth: true
     },
     path: "/tresoreria",
     name: "tresoreria.view",
     component: () =>
       import("../views/Tresoreria.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "IVA"
+      title: "IVA",
+      requiresAuth: true
     },
     path: "/vat",
     name: "vat.view",
     component: () =>
       import("../views/Vat.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Factures emeses"
+      title: "Factures emeses",
+      requiresAuth: true
     },
     path: "/emitted-invoices",
     name: "emitted.invoices.view",
     component: () =>
       import("../views/EmittedInvoices.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Factures rebudes"
+      title: "Factures rebudes",
+      requiresAuth: true
     },
     path: "/received-invoices",
     name: "received.invoices.view",
     component: () =>
       import("../views/ReceivedInvoices.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Pressupostos"
+      title: "Pressupostos",
+      requiresAuth: true
     },
     path: "/quotes",
     name: "quotes.view",
     component: () =>
       import("../views/Quotes.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Previsió"
+      title: "Previsió",
+      requiresAuth: true
     },
     path: "/forecast",
     name: "forecast.view",
     component: () =>
       import("../views/Forecast.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Contactes"
+      title: "Contactes",
+      requiresAuth: true,
+      userContacts: false
     },
     path: "/contacts",
     name: "contacts.view",
     component: () =>
       import("../views/Contacts.vue"),
     props: true,
-    meta: {
-      requiresAuth: true,
-      userContacts: false
-    }
   },
   {
     meta: {
-      title: "Clientes"
+      title: "Clientes",
+      requiresAuth: true,
+      userContacts: true
     },
     path: "/user-contacts",
     name: "user-contacts.view",
     component: () =>
       import("../views/ContactsUser.vue"),
     props: true,
-    meta: {
-      requiresAuth: true,
-      userContacts: true
-    }
   },
   {
     meta: {
-      title: "Comandes"
+      title: "Comandes",
+      requiresAuth: true
     },
     path: "/orders",
     name: "orders.view",
     component: () =>
       import("../views/Orders.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Comandes per facturar"
+      title: "Comandes per facturar",
+      requiresAuth: true
     },
     path: "/orders-invoice",
     name: "orders-invoice.view",
     component: () =>
       import("../views/OrdersInvoice.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Veure Comanda"
+      title: "Veure Comanda",
+      requiresAuth: true
     },
     path: "/order/view/:id",
     name: "orders.view.detail",
     component: () =>
       import("../views/OrderView.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Comanda"
+      title: "Comanda",
+      requiresAuth: true
     },
     path: "/order/:id",
     name: "orders.edit",
     component: () =>
       import("../views/OrderForm.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Poblacions i rutes"
+      title: "Poblacions i rutes",
+      requiresAuth: true
     },
     path: "/city-route",
     name: "cityroute.edit",
     component: () =>
       import("../views/CityRoute.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Poblacions i punts d'entrega"
+      title: "Poblacions i punts d'entrega",
+      requiresAuth: true
     },
     path: "/city-route-delivery",
     name: "cityroutedelivery.edit",
     component: () =>
       import("../views/CityRouteDelivery.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Rutes i dies"
+      title: "Rutes i dies",
+      requiresAuth: true
     },
     path: "/route-days",
     name: "routedays.edit",
     component: () =>
       import("../views/RouteDays.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Punts de recollida"
+      title: "Punts de recollida",
+      requiresAuth: true
     },
     path: "/pickup-points",
     name: "pickup-points.edit",
     component: () =>
       import("../views/PickupPointsOrders.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
 
   {
     meta: {
-      title: "Comandes TD"
+      title: "Comandes TD",
+      requiresAuth: true
     },
     path: "/orders-stats",
     name: "orders.stats",
     component: () =>
       import("../views/StatsOrders.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Incidències TD"
+      title: "Incidències TD",
+      requiresAuth: true
     },
     path: "/incidences-stats",
     name: "incidences.stats",
     component: () =>
       import("../views/StatsIncidences.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Factures"
+      title: "Factures",
+      requiresAuth: true
     },
     path: "/provider-invoices",
     name: "provider.invoices",
@@ -707,104 +610,88 @@ const routes = [
         "../views/EmittedInvoicesProvider.vue"
       ),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Contacta amb nosaltres"
+      title: "Contacta amb nosaltres",
+      requiresAuth: true
     },
     path: "/contact-us",
     name: "contact-us",
     component: () =>
       import("../views/ContactUs.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Contacte"
+      title: "Contacte",
+      requiresAuth: true
     },
     path: "/contact/:id",
     name: "contacts.edit",
     component: () =>
       import("../views/ContactForm.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Punt d'entrega"
+      title: "Punt d'entrega",
+      requiresAuth: true
     },
     path: "/contact-user/:id",
     name: "contactsuser.edit",
     component: () =>
       import("../views/ContactUserForm.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Documentació"
+      title: "Documentació",
+      requiresAuth: true
     },
     path: "/documentacio",
     name: "documentation.view",
     component: () =>
       import("../views/Documentation.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Tasques"
+      title: "Tasques",
+      requiresAuth: true
     },
     path: "/tasks",
     name: "tasks.view",
     component: () =>
       import("../views/TasksView.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Recàlcul"
+      title: "Recàlcul",
+      requiresAuth: true
     },
     path: "/recalculate",
     name: "projects.recalculate",
     component: () =>
       import("../views/Recalculate.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Changelog"
+      title: "Changelog",
+      requiresAuth: true
     },
     path: "/changelog",
     name: "changelog",
     component: () =>
       import("../views/ChangeLog.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Verifactu"
+      title: "Verifactu",
+      requiresAuth: true
     },
     path: "/verifactu",
     name: "VerifactuDeclaration",
@@ -813,87 +700,72 @@ const routes = [
         "../views/VerifactuDeclaration.vue"
       ),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     meta: {
-      title: "Usuàries"
+      title: "Usuàries",
+      requiresAuth: true
     },
     path: "/partners",
     name: "partners.list",
     component: () =>
       import("../views/Partners.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    },
   },
   {
     meta: {
-      title: "Incidències"
+      title: "Incidències",
+      requiresAuth: true
     },
     path: "/incidences",
     name: "incidences.list",
     component: () =>
       import("../views/Incidences.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    },
   },
   {
     meta: {
-      title: "Transferències"
+      title: "Transferències",
+      requiresAuth: true
     },
     path: "/transfers",
     name: "transfers.list",
     component: () =>
       import("../views/Transfers.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    },
   },
   {
     meta: {
-      title: "Dipòsits"
+      title: "Dipòsits",
+      requiresAuth: true
     },
     path: "/deposits",
     name: "deposits.list",
     component: () =>
       import("../views/Deposits.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    },
   },
   {
     meta: {
-      title: "Operacions"
+      title: "Operacions",
+      requiresAuth: true
     },
     path: "/order-operations",
     name: "order-operations.list",
     component: () =>
       import("../views/OrderOperations.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    },
   },
   {
     meta: {
-      title: "Importar/Exportar"
+      title: "Importar/Exportar",
+      requiresAuth: true
     },
     path: "/import-export",
     name: "import-export.view",
     component: () =>
       import("../views/ImportExport.vue"),
     props: true,
-    meta: {
-      requiresAuth: true
-    }
   },
   {
     path: "/contasol",
