@@ -69,16 +69,17 @@
           </span>
         </b-table-column>
 
+        <!-- `actions` is the Verifactu record kind, not the row's buttons (issues/088) -->
         <b-table-column
-          label="Accions"
+          label="Tipus de registre"
           field="actions"
           v-slot="props"
         >
-          {{ props.row.actions }}
+          {{ props.row.actions === "replacement" ? "Substitució" : "Normal" }}
         </b-table-column>
 
         <b-table-column
-          label="Accions"
+          label=""
           custom-key="actions-buttons"
           cell-class="is-actions-cell"
           v-slot="props"
@@ -87,6 +88,7 @@
             <router-link
               :to="{ name: 'admin.verifactu-chain.edit', params: { id: props.row.id } }"
               class="button is-small is-primary"
+              aria-label="Edita"
             >
               <b-icon icon="pencil" size="is-small" />
             </router-link>
