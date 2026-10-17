@@ -790,23 +790,6 @@
               </div>
               <hr v-if="!isCreationMode" />
               <div class="is-flex">
-                <!-- Duplicate mode: single confirm button -->
-                <b-field horizontal v-if="isDuplicating">
-                  <b-button
-                    type="is-success"
-                    :loading="isLoading"
-                    @click="submitAndContinue"
-                    icon-left="content-save"
-                    >Confirmar duplicat</b-button
-                  >
-                  <b-button
-                    type="is-light"
-                    @click="cancelDuplicate"
-                    class="ml-2"
-                    icon-left="close"
-                    >Cancel·lar</b-button
-                  >
-                </b-field>
                 <!-- Normal mode: regular save buttons (with tabs: the save bar) -->
                 <template v-if="!isDuplicating && !isCreationMode && !tabsEnabled">
                   <b-field horizontal>
@@ -2491,7 +2474,15 @@
       </div>
 
       <!-- Redesign A: one save bar for every tab (same actions as the old buttons in each card) -->
-      <div v-if="tabsEnabled && !isLoading" class="savebar">
+      <!-- a copy being reviewed: confirm it (it's saved as a new project) or drop it -->
+      <div v-if="tabsEnabled && isDuplicating && !isLoading" class="savebar">
+        <span class="savebar-state is-dirty">Còpia sense desar · revisa-la i confirma-la per crear el projecte</span>
+        <div class="savebar-actions">
+          <b-button icon-left="close" @click="cancelDuplicate">Cancel·lar</b-button>
+          <b-button type="is-primary" icon-left="content-save" :loading="isLoading" @click="submitAndContinue">Confirmar duplicat</b-button>
+        </div>
+      </div>
+      <div v-else-if="tabsEnabled && !isLoading" class="savebar">
         <span class="savebar-state" :class="{ 'is-dirty': dirty }">
           {{ dirty ? "Canvis sense desar" : "Sense canvis pendents" }}
         </span>
@@ -2758,10 +2749,19 @@ export default {
         .filter(a => a.year !== "undefined")
         .map(a => ({ value: a.year, label: this.periodificationYearLabel(a.year) }));
     },
+    // a saved project, or the copy being reviewed before it's saved (issues/114)
     tabsEnabled() {
-      return !this.isCreationMode && !this.isDuplicating && !!this.form.id;
+      return !this.isCreationMode && (this.isDuplicating || !!this.form.id);
     },
     projectTabs() {
+      // a copy not saved yet has no totals, documents, movements or tasks
+      if (this.isDuplicating) {
+        return [
+          { id: "dades", label: "Dades" },
+          { id: "pressupost", label: "Pressupost i fases" },
+          { id: "planificacio", label: "Planificació" }
+        ];
+      }
       return [
         { id: "resum", label: "Resum" },
         { id: "dades", label: "Dades" },
@@ -5205,8 +5205,9 @@ export default {
         deletedHours: []
       };
 
-      // Enter duplicate mode
+      // Enter duplicate mode, on the copy's data
       this.isDuplicating = true;
+      this.selectTab("dades");
 
       // Increment formKey to force complete re-render of the entire form
       this.formKey++;
