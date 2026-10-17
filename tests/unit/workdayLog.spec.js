@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { slotMinutes, formatDuration, formatExpected, expectedHours } from '@/domain/workdayLog.js'
+import { slotMinutes, formatDuration, formatExpected, formatHoursMinutes, expectedHours } from '@/domain/workdayLog.js'
 
 describe('workday log', () => {
   it('measures a slot in minutes', () => {
@@ -7,6 +7,15 @@ describe('workday log', () => {
     expect(slotMinutes('07:52', '13:27')).toBe(335)
     expect(slotMinutes('09:00:00.000', null)).toBe(0)
     expect(slotMinutes(null, '13:00')).toBe(0)
+  })
+
+  // issues/069: whole minutes dropped the seconds of every slot, so slots of
+  // 30 s added up to nothing
+  it('keeps the seconds until the total is shown', () => {
+    expect(slotMinutes('09:00:00', '09:00:59')).toBeCloseTo(59 / 60)
+    const day = slotMinutes('09:00:00', '09:00:30') + slotMinutes('10:00:00', '10:00:30')
+    expect(formatDuration(day)).toBe('0 h 01')
+    expect(formatHoursMinutes(slotMinutes('08:00:20', '12:30:50') + slotMinutes('13:00:00', '15:00:00'))).toBe('6h 31m')
   })
 
   it('formats durations as "h mm"', () => {

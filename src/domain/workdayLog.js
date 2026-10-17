@@ -5,12 +5,20 @@
 // daily hours from Monday to Friday.
 import moment from 'moment'
 
-// minutes between "HH:mm[:ss]" times; 0 when one is missing
+// minutes between "HH:mm[:ss]" times, with the seconds as a fraction (whole
+// minutes dropped them on every slot, issues/069); 0 when one is missing.
+// Round once, when showing a total (formatDuration).
 export const slotMinutes = (hourIn, hourOut) => {
   if (!hourIn || !hourOut) {
     return 0
   }
-  return moment(hourOut, 'HH:mm:ss').diff(moment(hourIn, 'HH:mm:ss'), 'minutes')
+  return moment(hourOut, 'HH:mm:ss').diff(moment(hourIn, 'HH:mm:ss'), 'seconds') / 60
+}
+
+// 270 → "4h 30m": the printed summary's format
+export const formatHoursMinutes = (minutes) => {
+  const m = Math.round(Math.abs(Number(minutes) || 0))
+  return `${Math.floor(m / 60)}h ${m % 60}m`
 }
 
 // 270 → "4 h 30", 480 → "8 h 00", negatives keep their sign

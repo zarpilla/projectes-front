@@ -203,7 +203,7 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import html2pdf from "html3pdf";
 import getConfig from '@/config'
-import { slotMinutes, formatDuration, formatExpected, expectedHours, festiveOn, festivesBetween } from "@/domain/workdayLog.js";
+import { slotMinutes, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween } from "@/domain/workdayLog.js";
 
 moment.locale("ca");
 
@@ -469,70 +469,20 @@ export default {
       return user.naf;
     },
     monthly() {
-      const totals = _(
-        this.activities
-          .filter(a => a._type !== "total" && a.hour_in !== null && a.hour_out)
-          .map(a => {
-            return {
-              ...a,
-              month: (moment(a.date).month() + 1).toString(),
-              m: moment(a.hour_in, "HH:mm:ss").diff(
-                moment(a.hour_out, "HH:mm:ss"),
-                "minutes"
-              )
-            };
-          })
-      )
-        .groupBy("month")
-        .map((rows, id) => ({
-          month: id,
-          m: _.sumBy(
-            rows,
-            a =>
-              -1 *
-              moment(a.hour_in, "HH:mm:ss").diff(
-                moment(a.hour_out, "HH:mm:ss"),
-                "minutes"
-              )
-          )
-          // rows: rows
-        }))
+      return _(this.activities.filter(a => a._type !== "total" && a.hour_in !== null && a.hour_out))
+        .groupBy(a => (moment(a.date).month() + 1).toString())
+        .map((rows, id) => ({ month: id, m: _.sumBy(rows, a => slotMinutes(a.hour_in, a.hour_out)) }))
         .value();
-
-      return totals;
     },
     daily() {
-      const totals = _(
-        this.activities
-          .filter(a => a._type !== "total" && a.hour_in !== null && a.hour_out)
-          .map(a => {
-            return {
-              ...a,
-              day: a.date,
-              m: moment(a.hour_in, "HH:mm:ss").diff(
-                moment(a.hour_out, "HH:mm:ss"),
-                "minutes"
-              )
-            };
-          })
-      )
-        .groupBy("day")
-        .map((rows, id) => ({
-          date: id,
-          m: _.sumBy(rows, a => a.m)
-          // rows: rows
-        }))
+      return _(this.activities.filter(a => a._type !== "total" && a.hour_in !== null && a.hour_out))
+        .groupBy("date")
+        .map((rows, id) => ({ date: id, m: _.sumBy(rows, a => slotMinutes(a.hour_in, a.hour_out)) }))
         .value();
-
-      return totals;
     },
     superTotal() {
-      const totalMinutes = this.monthly.reduce((acc, m) => acc + m.m, 0);
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-      const formattedTime = `${hours}h ${minutes}m`;
-      return formattedTime;
-    },    
+      return formatHoursMinutes(this.monthly.reduce((acc, m) => acc + m.m, 0));
+    },
   },
   methods: {
     slotMinutes,
@@ -1002,27 +952,10 @@ export default {
       if (!activity.hour_in || !activity.hour_out) {
         return "0h";
       }
-      const hours =
-        -1 *
-        moment(activity.hour_in, "HH:mm:ss").diff(
-          moment(activity.hour_out, "HH:mm:ss"),
-          "hours"
-        );
-      const minutes =
-        -1 *
-        moment(activity.hour_in, "HH:mm:ss").diff(
-          moment(activity.hour_out, "HH:mm:ss"),
-          "minutes"
-        );
-
-      return `${hours}h ${minutes - hours * 60}m`;
+      return formatHoursMinutes(slotMinutes(activity.hour_in, activity.hour_out));
     },
     formatHourMonth(m) {
-      if (m && m.m) {
-        m.m = Math.abs(m.m);
-        return `${parseInt(m.m / 60)}h ${m.m - parseInt(m.m / 60) * 60}m`;
-      }
-      return "0h";
+      return m && m.m ? formatHoursMinutes(m.m) : "0h";
     },
     formatMonthName(dt) {
       return moment(dt)
