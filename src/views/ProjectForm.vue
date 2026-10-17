@@ -2797,7 +2797,7 @@ export default {
     },
     heroRouterLinkTo() {
       if (this.isProfileExists) {
-        return { name: "project.new" };
+        return { name: "project.edit", params: { id: 0 } };
       } else {
         return "/";
       }
@@ -2927,7 +2927,9 @@ export default {
     id(newValue) {
       this.isProfileExists = false;
       this.userHasInteracted = false;
-      if (!newValue || newValue === 0) {
+      // the route gives the id as a string: "0" is a new project, whose form
+      // must not keep the last project's data (issues/068)
+      if (!newValue || Number(newValue) === 0) {
         this.dirtyEnabled = false;
         this.isInitialLoad = true;
         this.form = this.getClearFormObject();
@@ -3299,7 +3301,7 @@ export default {
               // Reset dirty flag AFTER all data is loaded and dirtyEnabled is re-enabled
               // This is handled in getAuxiliarData() to ensure proper sequencing
             } else {
-              this.$router.push({ name: "project.new" });
+              this.$router.push({ name: "project.edit", params: { id: 0 } });
             }
           });
       } else {
