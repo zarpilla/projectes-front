@@ -1505,16 +1505,33 @@ export default {
         productSearch: ""
       };
     },
-    async getData() {
-      const user = await service({ requiresAuth: true }).get("/users/me");
-      this.user = user.data;
-
-      const me = await service({ requiresAuth: true }).get("me");
-
-      this.options = me.data;
-      useMainStore().setMe({
-        me: me.data
+    warnSettingsMissing() {
+      this.$buefy.snackbar.open({
+        message: "No s'han pogut carregar les dades de la sessió o de l'entitat. Si no pots desar, torna a entrar.",
+        type: "is-warning",
+        queue: false
       });
+    },
+    async getData() {
+      // A failed /users/me or /me (e.g. a 403) left the form blank: the
+      // document wasn't loaded at all (issues/063). Fall back to the session
+      // and keep going.
+      try {
+        this.user = (await service({ requiresAuth: true }).get("/users/me")).data;
+      } catch (error) {
+        this.user = useMainStore().user || JSON.parse(localStorage.getItem("user") || "null") || {};
+        this.warnSettingsMissing();
+      }
+      try {
+        const me = await service({ requiresAuth: true }).get("me");
+        this.options = me.data;
+        useMainStore().setMe({
+          me: me.data
+        });
+      } catch (error) {
+        this.options = useMainStore().me || {};
+        this.warnSettingsMissing();
+      }
 
       this.isLoading = true;
 
