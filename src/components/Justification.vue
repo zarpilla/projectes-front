@@ -1171,8 +1171,8 @@ export default {
       }
       return this.invoices.filter(option => {
         return (
-          option.code
-            .toString()
+          // invoices without a code (drafts) threw here (issues/059)
+          String(option.code ?? "")
             .toLowerCase()
             .indexOf(this.invoiceSearch.toLowerCase()) >= 0 ||
           (option.total_base &&
