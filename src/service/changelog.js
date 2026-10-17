@@ -28,6 +28,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: ["A ", { to: "/tresoreria", label: "tresoreria" }, ", els moviments sense data surten com a «Sense data» (abans «Invalid date»), el gràfic ja no ratlla el títol quan tots els mesos són negatius i el text de «Saldo avui» ja no comença amb «-,»."]
+    },
+    {
+      type: "Correccions",
       text: "Les factures i despeses sense línies (sobretot les importades del sistema anterior) mostren el total desat a la capçalera i a les línies, en lloc de 0,00 €. A la vista de la factura, un import de 0 surt com a 0,00 € i no com a «-»."
     },
     {

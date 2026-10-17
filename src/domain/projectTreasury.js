@@ -63,3 +63,12 @@ export function treasurySums (treasury) {
     expensesDone: sum(t => t.multiplier < 0 && t.document.paid)
   }
 }
+
+// Year / month / year-month of a treasury movement (Tresoreria pivot) from its
+// YYYYMMDD date. An undated movement is grouped as «Sense data»; it showed up as
+// the year «Invalid date» (issues/102).
+export const treasuryPeriod = datef => {
+  const s = String(datef || '')
+  if (!/^\d{8}$/.test(s)) return { year: 'Sense data', month: '—', ym: '' }
+  return { year: s.slice(0, 4), month: s.slice(4, 6), ym: s.slice(0, 6) }
+}

@@ -157,12 +157,12 @@
       <div class="doc-kpi">
         <span>Saldo avui</span>
         <b :class="'has-text-' + sign(todayBalance)">{{ money(todayBalance) }}</b>
-        <small>{{ isSingleAccountView ? singleAccountName : "suma dels comptes" }}, amb els previstos pendents</small>
+        <small>{{ todayBalanceScope }}, amb els previstos pendents</small>
       </div>
       <div class="doc-kpi">
         <span>Punt més baix previst</span>
         <b :class="'has-text-' + sign(lowestMonth ? lowestMonth.subtotal : 0)">{{ lowestMonth ? money(lowestMonth.subtotal) : "—" }}</b>
-        <small>{{ lowestMonth ? "a final de " + monthName(lowestMonth.month) : "sense mesos previstos" }}</small>
+        <small>{{ lowestMonth ? "a final de " + monthName(lowestMonth.month).toLowerCase() : "sense mesos previstos" }}</small>
       </div>
       <div class="doc-kpi">
         <span>Saldo a 31/12/{{ selectedYear }}</span>
@@ -593,6 +593,7 @@ import { formatMoney, sign } from "@/helpers/format-number";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
+import { treasuryPeriod } from "@/domain/projectTreasury.js";
 
 export default {
   name: "Tresoreria",
@@ -768,9 +769,7 @@ export default {
       treasuryData = treasuryData.map(t => {
         return {
           ...t,
-          year: moment(t.datef, "YYYYMMDD").format("YYYY"),
-          month: moment(t.datef, "YYYYMMDD").format("MM"),
-          ym: moment(t.datef, "YYYYMMDD").format("YYYYMM")
+          ...treasuryPeriod(t.datef)
         };
       });
 
@@ -865,10 +864,18 @@ export default {
       const values = this.chartMonths.map(m => m.subtotal);
       return { max: Math.max(0, ...values), min: Math.min(0, ...values) };
     },
+    // within the bars area (3rem: top padding + month labels), so with every
+    // month negative the line sits on top of the bars, not across the card
+    // title (issues/102)
     zeroPos() {
       const { max, min } = this.chartRange;
       const span = max - min || 1;
-      return ((-min) / span * 100) + "%";
+      return `calc((100% - 3rem) * ${(-min) / span})`;
+    },
+    todayBalanceScope() {
+      if (!this.isSingleAccountView) return "suma dels comptes";
+      const name = (this.singleAccountName || "").trim();
+      return name && name !== "-" ? name : "el compte";
     },
     todayBalance() {
       const today = this.treasuryData.find(t => t.type === "Avui");
@@ -1146,6 +1153,8 @@ export default {
     },
     sign,
     monthName(month) {
+      // "99" holds the movements without a date (issues/102)
+      if (!/^(0[1-9]|1[0-2])$/.test(String(month))) return "Sense data";
       const name = moment(month, "MM").format("MMMM");
       return name.charAt(0).toUpperCase() + name.slice(1);
     },
