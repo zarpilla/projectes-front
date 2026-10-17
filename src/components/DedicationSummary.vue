@@ -283,11 +283,12 @@ export default {
       return (n > 0.004 ? "+" : "") + formatNumber(n, decimals, decimals);
     },
     async getActivities() {
-      this.isLoading = true;
-
-      if (!this.year) {
+      // nothing to show without a year and a person: no spinner left on (issues/078)
+      if (!this.year || !this.user) {
+        this.isLoading = false;
         return;
       }
+      this.isLoading = true;
 
       const from = moment(this.year, "YYYY")
         .startOf("year")
@@ -486,6 +487,9 @@ export default {
           this.summary["Treballades"] = { hours: sumBy(this.activities, 'hours') , days: this.activities.filter(a => a.hours > 0).length};
           this.calc = { baseDays, baseHours, pending, ratio };
 
+          this.isLoading = false;
+        })
+        .catch(() => {
           this.isLoading = false;
         });
     },

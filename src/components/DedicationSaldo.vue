@@ -296,11 +296,12 @@ export default {
       return moment(iso).format("ddd DD/MM");
     },
     async getActivities() {
-      this.isLoading = true;
-
-      if (!this.year) {
+      // nothing to show without a year and a person: no spinner left on (issues/078)
+      if (!this.year || !this.user) {
+        this.isLoading = false;
         return;
       }
+      this.isLoading = true;
 
       const from = moment(this.year, "YYYY")
         .startOf("year")
@@ -413,6 +414,9 @@ export default {
               // this.summary['Bestreta'] = `${salary.toFixed(2)} €`
               this.isLoading = false;
             });
+        })
+        .catch(() => {
+          this.isLoading = false;
         });
     },
     enumerateDaysBetweenDates() {
