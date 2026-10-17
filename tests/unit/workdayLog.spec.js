@@ -45,3 +45,13 @@ describe('workday log', () => {
     expect(expectedHours('2026-07-02', periods, festives)).toBe(8) // Thursday
   })
 })
+
+// issues/128: a slot 08:00–02:00 counted «−6 h 00» without any warning
+describe('slotIsInverted (issues/128)', () => {
+  it('flags a slot that ends before it starts', async () => {
+    const { slotIsInverted } = await import('@/domain/workdayLog')
+    expect(slotIsInverted('08:00:00', '02:00:00')).toBe(true)
+    expect(slotIsInverted('08:00:00', '12:00:00')).toBe(false)
+    expect(slotIsInverted('08:00:00', null)).toBe(false)
+  })
+})

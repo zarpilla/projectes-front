@@ -89,9 +89,12 @@ export function byLeader (rows) {
     groups.set(key, g)
   }
   return [...groups.values()]
-    .map(g => ({ name: g.name, projects: g.projects.size, base: cents(g.base) }))
+    .map(g => ({ name: g.name, projects: g.projects.size, base: cents(g.base), ...(g.name === '—' ? { noLeader: true } : {}) }))
     .sort((a, b) => b.base - a.base)
 }
+
+// people in byLeader's groups: the «—» group (no responsible) is not a person (issues/128)
+export const leaderCount = groups => groups.filter(g => !g.noLeader).length
 
 // per month, from `back` months ago to the end of the horizon: what was invoiced,
 // what was planned for a past date and has no invoice yet, and what is planned

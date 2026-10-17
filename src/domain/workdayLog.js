@@ -15,6 +15,10 @@ export const slotMinutes = (hourIn, hourOut) => {
   return moment(hourOut, 'HH:mm:ss').diff(moment(hourIn, 'HH:mm:ss'), 'seconds') / 60
 }
 
+// the exit is before the entry (08:00–02:00): the slot counts negative, so it's
+// shown as a mistake to fix (issues/128)
+export const slotIsInverted = (hourIn, hourOut) => slotMinutes(hourIn, hourOut) < 0
+
 // 270 → "4h 30m": the printed summary's format
 export const formatHoursMinutes = (minutes) => {
   const m = Math.round(Math.abs(Number(minutes) || 0))

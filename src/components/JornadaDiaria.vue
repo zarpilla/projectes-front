@@ -81,7 +81,12 @@
                   <span>:</span>
                   <input v-model="slot.a.hour_out_m" class="wl-num" inputmode="numeric" maxlength="2" placeholder="mm" aria-label="Minut de sortida" @change="changeHourOut(slot.a, slot.i)" />
                 </span>
-                <span class="wl-dur">{{ slot.a.hour_in && slot.a.hour_out ? formatDuration(slotMinutes(slot.a.hour_in, slot.a.hour_out)) : slot.a.hour_in ? "en curs" : "" }}</span>
+                <span
+                  class="wl-dur"
+                  :class="{ 'has-text-danger': slotIsInverted(slot.a.hour_in, slot.a.hour_out) }"
+                  :title="slotIsInverted(slot.a.hour_in, slot.a.hour_out) ? 'La sortida és abans de l\'entrada' : null"
+                >{{ slot.a.hour_in && slot.a.hour_out ? formatDuration(slotMinutes(slot.a.hour_in, slot.a.hour_out)) : slot.a.hour_in ? "en curs" : "" }}</span>
+                <span v-if="slotIsInverted(slot.a.hour_in, slot.a.hour_out)" class="wl-slot-warning has-text-danger">La sortida és abans de l'entrada</span>
                 <b-autocomplete
                   v-if="slot.a.projectNameSearch !== undefined"
                   v-model="slot.a.projectNameSearch"
@@ -203,7 +208,7 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import html2pdf from "html3pdf";
 import getConfig from '@/config'
-import { slotMinutes, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween } from "@/domain/workdayLog.js";
+import { slotMinutes, slotIsInverted, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween } from "@/domain/workdayLog.js";
 
 moment.locale("ca");
 
@@ -486,6 +491,7 @@ export default {
   },
   methods: {
     slotMinutes,
+    slotIsInverted,
     formatDuration,
     formatExpected,
     addSlot(row) {
@@ -1117,6 +1123,10 @@ export default {
 }
 .wl-dash {
   color: var(--a-muted);
+}
+.wl-slot-warning {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
 }
 .wl-dur {
   min-width: 3.75rem;

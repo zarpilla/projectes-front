@@ -2,7 +2,7 @@
 // the figures of the KPIs, chart and per-person table.
 import { describe, it, expect } from 'vitest'
 import {
-  addMonths, monthName, isGrant, filterRows, sections, byProject, byLeader,
+  addMonths, monthName, isGrant, filterRows, sections, byProject, byLeader, leaderCount,
   monthlyChart, lateness, closedPending, sumOf
 } from '@/domain/invoicingForecast'
 
@@ -69,7 +69,7 @@ describe('invoicing forecast', () => {
     ])).toEqual([
       { name: 'Pau', projects: 1, base: 30 },
       { name: 'Laia', projects: 2, base: 25 },
-      { name: '—', projects: 1, base: 1 }
+      { name: '—', projects: 1, base: 1, noLeader: true }
     ])
   })
 
@@ -104,5 +104,19 @@ describe('invoicing forecast', () => {
       row(4, null, 1)
     ], [2])).toEqual({ projects: 2, lines: 2, base: 15 })
     expect(sumOf([row(1, null, 0.1), row(2, null, 0.2)])).toBe(0.3)
+  })
+})
+
+// issues/128: «Endarrerit per responsable · 3 persones» counted the row of the
+// projects without a responsible («—») as a person
+describe('leaderCount (issues/128)', () => {
+  it('counts people, not the «—» group', () => {
+    const groups = byLeader([
+      { project_id: 1, leader_name: 'Anna', base: 10 },
+      { project_id: 2, leader_name: null, base: 5 },
+      { project_id: 3, leader_name: 'Pau', base: 1 }
+    ])
+    expect(groups.find(g => g.name === '—').noLeader).toBe(true)
+    expect(leaderCount(groups)).toBe(2)
   })
 })

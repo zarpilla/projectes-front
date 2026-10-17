@@ -133,6 +133,7 @@ export default {
       tasks: {},
       updating: false,
       showGantt: false,
+      ganttDestroyed: false,
       ganttId: "",
       dedications: [],
       showSubPhases: false,
@@ -170,16 +171,12 @@ export default {
 
     this.ganttId = "gantt-" + this.create_UUID();
 
-    setTimeout(() => {
-      this.showGantt = true;
-      this.gantt.clearAll();
-      this.tasks = { data: [] };
-      setTimeout(() => {
-        this.initializeGannt();
-      }, 250);
-    }, 250);
+    this.showGantt = true;
+    this.rebuildGantt();
   },
   beforeUnmount() {
+    // the delayed rebuilds must not touch the destroyed gantt (issues/128)
+    this.ganttDestroyed = true;
     if (this.gantt) {
       this.gantt.detachEvent("onTaskClick");
       this.gantt.detachEvent("onAfterTaskUpdate");
@@ -192,6 +189,18 @@ export default {
     this.showGantt = false;
   },
   methods: {
+    // clear and draw again once the DOM settled; nothing if the gantt was
+    // destroyed meanwhile (leaving the tab, issues/128)
+    rebuildGantt() {
+      setTimeout(() => {
+        if (this.ganttDestroyed) return;
+        this.gantt.clearAll();
+        this.tasks = { data: [] };
+        setTimeout(() => {
+          if (!this.ganttDestroyed) this.initializeGannt();
+        }, 250);
+      }, 250);
+    },
     initializeGannt() {
 
       // this.tasks = {
@@ -708,13 +717,7 @@ export default {
     toggleSubphases() {
       this.showSubPhases = !this.showSubPhases;
 
-      setTimeout(() => {
-        this.gantt.clearAll();
-        this.tasks = { data: [] };
-        setTimeout(() => {
-          this.initializeGannt();
-        }, 250);
-      }, 250);
+      this.rebuildGantt();
     },
     setViewMode(mode) {
       if (mode !== this.viewMode) {
@@ -723,13 +726,7 @@ export default {
     },
     toggleView() {
       this.view = this.view === "month" ? "week" : "month";
-      setTimeout(() => {
-        this.gantt.clearAll();
-        this.tasks = { data: [] };
-        setTimeout(() => {
-          this.initializeGannt();
-        }, 250);
-      }, 250);
+      this.rebuildGantt();
     },
     async trashConfirm() {
       this.isModalActive = false;

@@ -25,7 +25,8 @@
       </div>
     </div>
 
-    <section v-if="!isLoading" class="a-box list-box">
+    <!-- without the working day there is nothing to pay yet (issues/128) -->
+    <section v-if="!isLoading && !warn" class="a-box list-box">
       <header class="box-head">
         <h2>Nòmines per mes</h2>
         <span class="box-hint">Hores treballades i teòriques, saldo i salari de cada mes</span>

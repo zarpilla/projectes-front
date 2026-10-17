@@ -121,7 +121,7 @@
         <section class="a-box list-box if-people">
           <header class="box-head">
             <h2>Endarrerit per responsable</h2>
-            <span class="box-hint">{{ plural(overdueByLeader.length, 'persona', 'persones') }}</span>
+            <span class="box-hint">{{ plural(leaderCount(overdueByLeader), 'persona', 'persones') }}</span>
           </header>
           <div class="table-wrap">
             <table class="table is-fullwidth">
@@ -234,7 +234,7 @@ import service from '@/service/index'
 import { formatMoney } from '@/helpers/format-number'
 import {
   addMonths, monthName, monthShort, formatDate, ymOf, filterRows, sections, byProject,
-  byLeader, monthlyChart, lateness, closedPending, sumOf, isGrant
+  byLeader, leaderCount, monthlyChart, lateness, closedPending, sumOf, isGrant
 } from '@/domain/invoicingForecast'
 
 const STORAGE_KEY = 'InvoicingForecast.selectedStates'
@@ -446,6 +446,7 @@ export default {
     }
   },
   methods: {
+    leaderCount,
     money (v) {
       return formatMoney(v)
     },

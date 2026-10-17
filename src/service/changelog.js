@@ -74,6 +74,11 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Correccions",
+      modules: ["Informes", "Hores"],
+      text: ["El ", { to: "/stats-projectes", label: "panell de projectes" }, " ja no compta els projectes esborrats. Al ", { to: "/registre-jornades", label: "registre de jornades" }, " es marca en vermell un tram amb la sortida abans de l'entrada; ", { to: "/salary", label: "bestretes" }, " no ofereix crear nòmines mentre falti la jornada laboral; i la ", { to: "/invoicing-forecast", label: "previsió de facturació" }, " ja no compta «—» com una persona."]
+    },
+    {
       type: "Millores",
       modules: ["Plataforma"],
       text: "Més dates i números amb el format català: totes les dates dels calendaris (05/02/2026), la vista «Taula» de les hores (1,00 h), els documents de la fitxa del projecte, el detall per dies de bestretes i saldo d'hores, els quilos de les comandes i el nombre de contactes (1.053). Les hores del resum del projecte porten sempre dos decimals, i la previsió econòmica d'un sol any ja no diu «2026–2026»."
