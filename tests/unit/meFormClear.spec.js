@@ -49,4 +49,21 @@ describe('MeForm load', () => {
     await MeForm.methods.loadData.call(c)
     expect(c.form.task_emails).toBe(false)
   })
+
+  it('sends the whole options block back with the Gantt switch (keeps the other options)', async () => {
+    const c = {
+      form: { ...MeForm.data.call({}).form },
+      $buefy: { toast: { open: vi.fn() } }
+    }
+    const options = { id: 1, deductible_vat_pct: 79, treasury: true, showTasksInGantt: null }
+    const get = vi.fn().mockResolvedValue({ data: { name: 'Coop', options } })
+    const service = await import('@/service/index')
+    vi.spyOn(service, 'default').mockReturnValue({ get, put })
+    await MeForm.methods.loadData.call(c)
+    const computed = MeForm.computed.showTasksInGantt
+    expect(computed.get.call(c)).toBe(true)
+    computed.set.call(c, false)
+    await MeForm.methods.submit.call({ ...c, $buefy: { snackbar: { open: vi.fn() }, toast: { open: vi.fn() } } })
+    expect(put.mock.calls.at(-1)[1].options).toEqual({ id: 1, deductible_vat_pct: 79, treasury: true, showTasksInGantt: false })
+  })
 })

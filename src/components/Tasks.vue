@@ -184,6 +184,7 @@ import getConfig from '@/config'
 import { currentUserId } from "@/domain/currentUser";
 import { isOverdue, isDone, filterTasks, tasksQuery, kanbanViewQuery, taskHours, formatHours, recurrenceLabel } from "@/domain/tasks";
 import { markdownToText } from "@/domain/markdown";
+import { useTaskAlerts } from "@/stores/taskAlerts";
 
 moment.locale("ca");
 
@@ -461,6 +462,8 @@ export default {
       // go
       this.tasks = tasks
       this.loadLoggedHours()
+      // the menu dot follows what is shown here (a task done, a date moved…)
+      useTaskAlerts().refresh()
 
       this.cardOrderViewSorted = this.cardOrderView.map(c => [])
       this.reOrderCards()
@@ -622,6 +625,7 @@ export default {
         await service({ requiresAuth: true }).put(`tasks/${item.id}`, item);
         await this.saveKanbanView()
         if (item.recurrence && this.listKey === 'task_state') await this.getData()
+        else useTaskAlerts().refresh()
 
         this.$buefy.snackbar.open({
           message: "Tasca guardada",
@@ -694,6 +698,7 @@ export default {
           failed++;
         }
       }
+      useTaskAlerts().refresh();
       // a recurring task finished here has its next occurrence on the server
       const p = typeof patch === 'function' ? null : patch
       if (p && p.task_state && tasks.some(t => t.recurrence)) await this.getData();
@@ -747,6 +752,7 @@ export default {
       }
       // a recurring task finished on this save has a new occurrence on the server
       if (task.recurrence) await this.getData()
+      else useTaskAlerts().refresh()
 
       this.$buefy.snackbar.open({
         message: "Tasca guardada",
@@ -768,6 +774,7 @@ export default {
 
       this.reOrderCards()
       await this.saveKanbanView()
+      useTaskAlerts().refresh()
 
       // const task = this.tasks.data.find(t => t._dedication && t._dedication.id && t._dedication.id.toString() === activity.id.toString())
       // this.tasks.data = this.tasks.data.filter(t => t.id.toString() !== task.id.toString())

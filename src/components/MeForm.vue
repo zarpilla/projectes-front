@@ -158,6 +158,12 @@
               </b-checkbox>
             </label>
             <label class="option-row">
+              <b-checkbox v-model="showTasksInGantt">
+                <b>Mostra les tasques al Gantt dels projectes</b>
+                <small>A la pestanya Planificació de cada projecte, les tasques amb data surten al final del Gantt: com una barra si tenen data d'inici i data límit, o com un punt si només tenen data límit.</small>
+              </b-checkbox>
+            </label>
+            <label class="option-row">
               <b-checkbox v-model="form.task_emails">
                 <b>Avisos de tasques per correu</b>
                 <small>Cada matí, un correu a cada persona amb les seves tasques vençudes i les que li han assignat. Desactiva-ho perquè no se n'enviï cap.</small>
@@ -236,7 +242,10 @@ export default {
         bank_account_irpf: null,
         bank_account_vat: null,
         pdf_invoice_parser: true,
-        task_emails: true
+        task_emails: true,
+        // the `options` component: sent back whole, with its id, so the other
+        // options are kept
+        options: null
       },
       bankAccounts: [],
       loadingBankAccounts: false
@@ -247,6 +256,15 @@ export default {
     await this.loadData();
   },
   computed: {
+    // empty counts as on (the option's default)
+    showTasksInGantt: {
+      get() {
+        return !this.form.options || this.form.options.showTasksInGantt !== false;
+      },
+      set(value) {
+        this.form.options = { ...(this.form.options || {}), showTasksInGantt: value };
+      }
+    },
     logoUrl() {
       return this.logo && this.logo.url ? getConfig().VUE_APP_API_URL + this.logo.url : null;
     }

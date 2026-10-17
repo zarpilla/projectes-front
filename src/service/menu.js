@@ -35,7 +35,9 @@ const menu = [
       to: "/tasks",
       icon: "trello",
       label: "Tasques",
-      permission: "projects"
+      permission: "projects",
+      // dot with the person's overdue and new tasks (stores/taskAlerts.js)
+      badge: "tasks"
     }
   ],
   "Diners",

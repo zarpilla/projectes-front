@@ -16,6 +16,9 @@ import AsideMenu from "@/components/AsideMenu.vue";
 import FooterBar from "@/components/FooterBar.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
+import { useTaskAlerts } from "@/stores/taskAlerts";
+
+const TASK_ALERTS_EVERY_MS = 5 * 60 * 1000;
 import service from "@/service/index";
 import menu, { hasMenuPermission } from "@/service/menu";
 import ModalBoxInvoice from "@/components/ModalBoxInvoice.vue";
@@ -41,14 +44,24 @@ export default {
       if (jwt) {
         this.loadUserData();
       }
+    },
+    // the Tasques menu dot: opening Tasques sees what was new; leaving it recounts
+    "$route.path"(path, from) {
+      if (!this.hasTaskAlerts) return;
+      if (path === "/tasks") useTaskAlerts().markSeen();
+      else if (from === "/tasks") useTaskAlerts().refresh();
     }
   },
   mounted() {
     // Refresh user data when tab/window regains focus
     window.addEventListener("focus", this.refreshUserData);
+    this.taskAlertsTimer = setInterval(() => {
+      if (this.hasTaskAlerts && !document.hidden) useTaskAlerts().refresh();
+    }, TASK_ALERTS_EVERY_MS);
   },
   beforeUnmount() {
     window.removeEventListener("focus", this.refreshUserData);
+    clearInterval(this.taskAlertsTimer);
   },
   computed: {
     ...mapState(useMainStore, ["userName", "userJwt"]),
@@ -62,7 +75,9 @@ export default {
       menuList: [],
       isModalActive: false,
       invoices: [],
-      lastRefresh: 0
+      lastRefresh: 0,
+      // people with the projects permission see the Tasques entry and its dot
+      hasTaskAlerts: false
     };
   },
   async created() {
@@ -133,6 +148,12 @@ export default {
 
               this.menuList.push(subElements);
             });
+
+            this.hasTaskAlerts = userPermissions.includes("projects");
+            if (this.hasTaskAlerts) {
+              if (this.$route && this.$route.path === "/tasks") useTaskAlerts().markSeen();
+              useTaskAlerts().refresh();
+            }
 
             if (userPermissions.includes("orders")) {
               const pending = (

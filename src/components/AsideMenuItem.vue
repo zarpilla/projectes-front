@@ -11,12 +11,18 @@
       <b-icon
         v-if="item.icon"
         :icon="item.icon"
-        :class="{ 'has-update-mark': item.updateMark }"
+        :class="{ 'has-update-mark': item.updateMark || (isCollapsed && badge), 'is-late-mark': isCollapsed && badge && badge.late }"
         custom-size="default"
       />
       <span v-if="item.label" :class="{ 'menu-item-label': !!item.icon }">{{
         item.label
       }}</span>
+      <span
+        v-if="badge && !isCollapsed"
+        class="menu-badge"
+        :class="{ 'is-late': badge.late }"
+        :title="badge.title"
+      ><span aria-hidden="true">{{ badge.count }}</span><span class="is-sr-only">{{ badge.title }}</span></span>
       <div v-if="hasDropdown" class="dropdown-icon">
         <b-icon :icon="dropdownIcon" custom-size="default" />
       </div>
@@ -32,6 +38,7 @@
 
 <script>
 import { isAdminTablePath } from '@/service/adminTables'
+import { useTaskAlerts } from '@/stores/taskAlerts'
 export default {
   name: 'AsideMenuItem',
   emits: ["menu-click"],
@@ -61,6 +68,13 @@ export default {
       if (this.item.activeWhen === 'admin-tables') return isAdminTablePath(path)
       if (this.item.activeWhen === 'verifactu') return /^\/admin\/(verifactu|verifactu-chain|face-queue)(\/|$)/.test(path)
       return false
+    },
+    // a count next to the label (the Tasques entry: overdue and new tasks)
+    badge () {
+      if (this.item.badge !== 'tasks') return null
+      const alerts = useTaskAlerts()
+      if (!alerts.count) return null
+      return { count: alerts.count, late: alerts.overdue > 0, title: alerts.title }
     },
     componentIs () {
       return this.item.to ? 'router-link' : 'a'
@@ -93,3 +107,25 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.menu-badge {
+  margin-left: auto;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 .375rem;
+  border-radius: 999px;
+  background: var(--a-accent);
+  color: #fff;
+  font-size: .6875rem;
+  font-weight: 800;
+  line-height: 1.25rem;
+  text-align: center;
+}
+.menu-badge.is-late {
+  background: var(--a-neg);
+}
+.is-late-mark:after {
+  background-color: var(--a-neg) !important;
+}
+</style>
