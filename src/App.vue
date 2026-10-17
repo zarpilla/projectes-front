@@ -160,21 +160,10 @@ export default {
           this.$router.push("/");
         }
       } else {
-        const meOptions = (
-          await service({ requiresAuth: true, cached: true }).get("me")
-        ).data;
-
-        // if (meOptions.options.show_forecast) {
-        //   menu[3].push({
-        //     to: "/forecast",
-        //     icon: "table",
-        //     label: "Previsió"
-        //   });
-        // }
-
+        // Logged out (the login page): nothing to load. It used to ask /me
+        // without a JWT, which the API answers 403 (issues/063), for options
+        // nothing read.
         this.loaded = true;
-
-        console.log("else!");
       }
     }
   }

@@ -34,3 +34,18 @@ describe('DocumentForm without /me (issues/063)', () => {
     expect(ctx.$buefy.snackbar.open).toHaveBeenCalled()
   })
 })
+
+// The 403s on /api/me: App.vue asked /me while logged out (login page), i.e.
+// without a JWT, for options nothing read.
+describe('App while logged out (issues/063)', () => {
+  it('does not ask /me', async () => {
+    const App = (await import('@/App.vue')).default
+    localStorage.removeItem('user')
+    localStorage.removeItem('jwt')
+    get.mockReset()
+    const ctx = { loaded: false }
+    await App.methods.loadUserData.call(ctx)
+    expect(get).not.toHaveBeenCalled()
+    expect(ctx.loaded).toBe(true)
+  })
+})
