@@ -6,6 +6,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Millores",
+      text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, " la pàgina s'obre amb el calendari (la vista «Tot» feia una pàgina molt llarga), i si no hi ha cap persona triada no es carreguen les hores de tothom: tria una persona o «Totes»."]
+    },
+    {
       type: "Correccions",
       text: "Els totals de factures, despeses, ingressos i pressupostos sumen cada línia ja arrodonida als cèntims, tal com es mostra i com s'envia a FACe. Abans la base podia diferir d'un cèntim de la suma de les línies. Els documents existents no canvien fins que es tornen a desar."
     },

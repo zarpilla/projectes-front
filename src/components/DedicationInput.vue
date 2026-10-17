@@ -113,6 +113,7 @@
       </div>
     </card-component>
 
+    <p v-if="needsPerson" class="notification is-light">Tria una persona, o «Totes», per veure'n les hores.</p>
     <v-calendar
       ref="calendar"
       locale="ca"
@@ -382,7 +383,8 @@ export default {
         chartData: null,
         extraOptions: chartConfig.chartOptionsPie
       },
-      viewType: "all",
+      // the calendar: «Tot» renders a card per activity per day (~54.000 px a month, issues/070)
+      viewType: "calendar",
       colorType: "project",
       masks: {
         weekdays: "WWW"
@@ -406,6 +408,10 @@ export default {
     };
   },
   computed: {
+    // no person picked (not even «Totes», id 0): nobody's hours are loaded (issues/070)
+    needsPerson() {
+      return (this.user === null || this.user === undefined) && !this.last;
+    },
     trashObjectName() {
       if (this.trashObject) {
         return this.trashObject.name;
@@ -499,6 +505,11 @@ export default {
         !this.projects ||
         !this.projects.length
       ) {
+        this.isLoading = false;
+        return;
+      }
+      if (this.needsPerson) {
+        this.activities = [];
         this.isLoading = false;
         return;
       }

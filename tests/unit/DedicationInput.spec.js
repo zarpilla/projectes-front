@@ -43,6 +43,7 @@ describe('DedicationInput', () => {
     vi.useFakeTimers({ now: new Date('2026-10-08T10:00:00+02:00'), toFake: ['Date'] })
     const errors = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const w = await mountInput()
+    await w.find('button[title="Vista taula"]').trigger('click')
     const titles = w.findAll('.table-view span.is-total').map(s => s.text())
     expect(titles).toEqual(['dimecres 07/10/2026 (fa un dia)', 'dilluns 05/10/2026 (fa 3 dies)'])
     expect(errors.mock.calls.map(c => String(c[0])).filter(m => m.includes('formatTitle'))).toEqual([])
@@ -71,5 +72,21 @@ describe('DedicationInput', () => {
     await flushPromises()
     expect(get.mock.calls.map(c => c[0]).filter(u => u.startsWith('activities/calendar')))
       .toEqual(['activities/calendar?_where[date_gte]=2026-09-01&[date_lte]=2026-09-30&[users_permissions_user.id]=5&_limit=-1'])
+  })
+
+  // issues/070: «Tot» (a card per activity per day) was the default view, and
+  // without a person every person's hours were loaded
+  it('opens on the calendar and loads nobody\'s hours without a person', async () => {
+    const w = await mountInput({ user: null })
+    expect(w.vm.viewType).toBe('calendar')
+    expect(get.mock.calls.map(c => c[0]).filter(u => u.startsWith('activities/calendar'))).toEqual([])
+    expect(w.text()).toContain('Tria una persona')
+  })
+
+  it('«Totes» (0) loads everybody', async () => {
+    await mountInput({ user: 0 })
+    const urls = get.mock.calls.map(c => c[0]).filter(u => u.startsWith('activities/calendar'))
+    expect(urls).toHaveLength(1)
+    expect(urls[0]).not.toContain('users_permissions_user')
   })
 })
