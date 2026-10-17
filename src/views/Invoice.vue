@@ -463,8 +463,10 @@ export default {
   },
   created() {
     this.getData();
-    if (this.$route.query.locale) {
-      this.locale = this.$route.query.locale;
+    // ?locale=es, es-ES or EN; a language without texts stays in Catalan (issues/071)
+    const lang = String(this.$route.query.locale || "").slice(0, 2).toLowerCase();
+    if (this.texts[lang]) {
+      this.locale = lang;
     }
   },
   methods: {

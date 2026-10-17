@@ -65,8 +65,9 @@
                       <tr class="t-heading">
                         <td>{{ texts[locale]['Concepte'] }}</td>
                         <td v-if="showQuantity">{{ texts[locale]['Q.'] }}</td>
-                        <td v-if="showQuantity || showVat">{{ texts[locale]['Preu'] }}</td>
+                        <td v-if="showQuantity || showVat || showIrpf">{{ texts[locale]['Preu'] }}</td>
                         <td v-if="showDiscount">{{ texts[locale]['Descompte'] }}</td>
+                        <td v-if="showIrpf">{{ texts[locale]['IRPF'] }}</td>
                         <td v-if="showVat">{{ texts[locale]['IVA'] }}</td>
                         <td>{{ texts[locale]['Total'] }}</td>
                       </tr>
@@ -77,14 +78,16 @@
                           </div>
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
-                        <td v-if="showQuantity || showVat">{{ formatCurrency(line.base) }}€</td>
+                        <td v-if="showQuantity || showVat || showIrpf">{{ formatCurrency(line.base) }}€</td>
                         <td v-if="showDiscount">{{ formatCurrency(-1 * lineDiscount(line)) }}€ ({{ line.discount || 0 }}%)</td>
+                        <td v-if="showIrpf">{{ formatCurrency(-1 * lineIrpf(line)) }}€ ({{ line.irpf || 0 }}%)</td>
                         <td v-if="showVat">{{ formatCurrency(lineVat(line)) }}€ ({{ line.vat }}%)</td>
-                        <td>{{ formatCurrency(lineBase(line) + lineVat(line)) }}€</td>
+                        <td>{{ formatCurrency(lineTotal(line)) }}€</td>
                       </tr>
                       <tr class="total">
                         <td :colspan="6">
-                          <div class="zmt-3" v-if="showVat">{{ texts[locale]['Total (sense IVA):'] }} {{ formatCurrency(quote.total_base) }}€</div>
+                          <div class="zmt-3" v-if="showVat || showIrpf">{{ texts[locale]['Total (sense IVA):'] }} {{ formatCurrency(quote.total_base) }}€</div>
+                          <div v-if="showIrpf">{{ texts[locale]['IRPF'] }}: {{ formatCurrency(-1 * quote.total_irpf) }}€</div>
                           <div v-if="showVat">{{ texts[locale]['IVA'] }}: {{ formatCurrency(quote.total_vat)}}€</div>
                           <div class="mt-3">
                           {{ texts[locale]['Total'] }}: {{ formatCurrency(quote.total)}}€
@@ -118,7 +121,7 @@ import service from '@/service/index'
 import { richText, sanitizeHtml } from "@/helpers/safeHtml";
 import moment from 'moment'
 import html2pdf from 'html2pdf.js'
-import { lineBase, lineDiscount, lineVat, hasDiscount } from '@/domain/documentTotals'
+import { lineBase, lineDiscount, lineVat, lineIrpf, lineTotal, hasDiscount } from '@/domain/documentTotals'
 
 export default {
   name: 'ClientForm',
@@ -150,6 +153,7 @@ export default {
           'Q.': 'Q.',
           'Preu': 'Preu',
           'Descompte': 'Descompte',
+          'IRPF': 'IRPF',
           'IVA': 'IVA',
           'Total': 'Total',
           'Total:': 'Total:',
@@ -166,6 +170,7 @@ export default {
           'Q.': 'Cant.',
           'Preu': 'Precio',
           'Descompte': 'Descuento',
+          'IRPF': 'IRPF',
           'IVA': 'IVA',
           'Total': 'Total',
           'Total:': 'Total:',
@@ -182,6 +187,7 @@ export default {
           'Q.': 'Q.',
           'Preu': 'Price',
           'Descompte': 'Discount',
+          'IRPF': 'IRPF',
           'IVA': 'VAT',
           'Total': 'Total',
           'Total:': 'Total:',
@@ -212,14 +218,20 @@ export default {
     showDiscount () {
       return hasDiscount(this.quote.lines)
     },
+    // only when some line withholds IRPF (issues/011)
+    showIrpf () {
+      return this.quote.lines.some(l => l.irpf > 0)
+    },
     columnsShown () {
       return this.showQuantity && this.showVat ? 5 : (this.showQuantity ? 3 : 4)
     }
   },
   created () {
     this.getData()
-    if (this.$route.query.locale) {
-      this.locale = this.$route.query.locale
+    // ?locale=es, es-ES or EN; a language without texts stays in Catalan (issues/071)
+    const lang = String(this.$route.query.locale || '').slice(0, 2).toLowerCase()
+    if (this.texts[lang]) {
+      this.locale = lang
     }
   },
   methods: {
@@ -228,6 +240,8 @@ export default {
     lineBase,
     lineDiscount,
     lineVat,
+    lineIrpf,
+    lineTotal,
     getData () {
       if (this.$route.params.id) {
         service({ requiresAuth: true })

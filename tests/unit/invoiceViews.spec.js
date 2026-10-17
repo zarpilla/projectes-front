@@ -20,7 +20,7 @@ Quote.methods.toDataUrl = vi.fn()
 const discounted = { id: 2, concept: 'Lloguer', quantity: 300, base: 0.23, discount: 10, vat: 21, irpf: 15 }
 const plain = { id: 1, concept: 'Desplaçaments', quantity: 1, base: 30.45, discount: 0, vat: 21, irpf: 0 }
 
-async function render (view, type, lines, extra = {}) {
+async function render (view, type, lines, extra = {}, query = {}) {
   docs.current = {
     id: 1, code: '2025-039', emitted: '2025-04-30', contact: {}, lines, ...extra,
     total_base: 92.55, total_vat: 19.44, total_irpf: 9.32, total: 102.67
@@ -29,7 +29,7 @@ async function render (view, type, lines, extra = {}) {
     props: { id: 1, type },
     global: {
       stubs: { TitleBar: true, HeroBar: true },
-      mocks: { $route: { params: { id: 1, type }, query: {} } }
+      mocks: { $route: { params: { id: 1, type }, query } }
     }
   })
   await flushPromises()
@@ -97,9 +97,38 @@ describe('Quote view', () => {
     expect(cells(w, 1)[2]).toBe('1.234,50€')
   })
 
-  it('applies the line discount to the line VAT and total', async () => {
+  it('applies the line discount to the line IRPF, VAT and total', async () => {
     const w = await render(Quote, undefined, [plain, discounted])
+    // Concepte, Q., Preu, Descompte, IRPF, IVA, Total
+    expect(cells(w, 1).slice(3)).toEqual(['-6,90€ (10%)', '-9,32€ (15%)', '13,04€ (21%)', '65,82€'])
+  })
+
+  // issues/011: quotes left IRPF out of the PDF; the column and row only show
+  // when some line withholds it
+  it('shows the IRPF column and total only when a line has IRPF', async () => {
+    const withIrpf = await render(Quote, undefined, [plain, discounted])
+    expect(withIrpf.find('tr.t-heading').text()).toContain('IRPF')
+    expect(withIrpf.find('tr.total').text()).toContain('IRPF: -9,32€')
+
+    const without = await render(Quote, undefined, [plain, { ...discounted, irpf: 0 }], { total_irpf: 0 })
+    expect(without.find('tr.t-heading').text()).not.toContain('IRPF')
+    expect(without.find('tr.total').text()).not.toContain('IRPF')
     // Concepte, Q., Preu, Descompte, IVA, Total
-    expect(cells(w, 1).slice(3)).toEqual(['-6,90€ (10%)', '13,04€ (21%)', '75,14€'])
+    expect(cells(without, 1).slice(3)).toEqual(['-6,90€ (10%)', '13,04€ (21%)', '75,14€'])
+  })
+})
+
+// issues/071: the language comes from ?locale= (contacts have no language yet);
+// a regional or unknown value used to leave texts[locale] undefined and break the view
+describe('Document language', () => {
+  it('follows ?locale= and reads a regional value by its language', async () => {
+    expect((await render(Quote, undefined, [plain], {}, { locale: 'es' })).text()).toContain('Fecha: 30/04/2025')
+    expect((await render(Quote, undefined, [plain], {}, { locale: 'en-GB' })).text()).toContain('Date: 30/04/2025')
+    expect((await render(Invoice, 'emitted-invoices', [plain], {}, { locale: 'ES' })).text()).toContain('Fecha')
+  })
+
+  it('falls back to Catalan for a language it has no texts for', async () => {
+    expect((await render(Quote, undefined, [plain], {}, { locale: 'fr' })).text()).toContain('Data: 30/04/2025')
+    expect((await render(Invoice, 'emitted-invoices', [plain], {}, { locale: 'fr' })).find('tr.item').exists()).toBe(true)
   })
 })
