@@ -164,8 +164,9 @@ export default {
       }
 
 
-      this.filters.date1 = moment().clone().startOf('month').toDate()
-      this.filters.date2 = moment().clone().endOf('month').toDate()    
+      // the year so far: the current month is often still empty (issues/077)
+      this.filters.date1 = moment().clone().startOf('year').toDate()
+      this.filters.date2 = moment().clone().endOf('day').toDate()
       service({ requiresAuth: true }).get('dedication-types').then((r) => {
         for (var i in r.data) {
           this.dedicationTypes[r.data[i].id] = r.data[i].name

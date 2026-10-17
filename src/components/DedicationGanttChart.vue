@@ -39,7 +39,7 @@
               >
                 <div v-if="Number(cell(leader.id, period.key).hours)" class="cell-content">
                   <div class="hours">{{ hoursText(cell(leader.id, period.key).hours) }}</div>
-                  <div class="percentage">{{ percentText(cell(leader.id, period.key).percentage, cell(leader.id, period.key).hours) }}</div>
+                  <div class="percentage">{{ percentText(cell(leader.id, period.key)) }}</div>
                 </div>
                 <div v-else class="cell-content is-none">—</div>
               </td>
@@ -192,15 +192,20 @@ export default {
       return formatNumber(Number(value) || 0, 1, 1);
     },
     // "↓ 56 %" under 85 %, "↑ 172 %" over 105 %
-    percentText(value, hours) {
-      const n = Math.round(Number(value) || 0);
-      // hours but no working day to compare with
-      if (!n && Number(hours)) return "s/j";
+    // hours but no working day to compare with: the backend says so
+    // (noSchedule, issues/077); older answers only had a 0 percentage
+    noSchedule(c) {
+      if (!Number(c.hours)) return false;
+      return c.noSchedule !== undefined ? !!c.noSchedule : !Math.round(Number(c.percentage) || 0);
+    },
+    percentText(c) {
+      if (this.noSchedule(c)) return "s/j";
+      const n = Math.round(Number(c.percentage) || 0);
       return (n < 85 ? "↓ " : n > 105 ? "↑ " : "") + n + " %";
     },
     cellClass(c) {
       if (!Number(c.hours)) return "dedication-empty";
-      return Math.round(Number(c.percentage) || 0) ? c.cssClass : "dedication-nojornada";
+      return this.noSchedule(c) ? "dedication-nojornada" : c.cssClass;
     },
     cell(leaderId, periodKey) {
       const row = this.cells ? this.cells[leaderId] : null;
