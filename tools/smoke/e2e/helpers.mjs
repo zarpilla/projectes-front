@@ -175,6 +175,12 @@ export const field = (label, scope = page) => scope.locator('.field').filter({
   has: page.locator(':scope > .label, :scope > .field-label > .label', { hasText: new RegExp(`^\\s*${label}\\s*\\*?\\s*$`) })
 }).filter({ visible: true }).first()
 export const button = (text, scope = page) => scope.locator('button, a.button').filter({ hasText: new RegExp(`^\\s*${escapeRegExp(text)}\\s*$`) }).filter({ visible: true }).first()
+// #/dedicacio opens on the calendar (issues/070): the list of activities per day
+// is in the "Taula" (and "Tot") view
+export async function hoursListView () {
+  await page.locator('button[title="Vista taula"]').click()
+  await page.waitForTimeout(300)
+}
 export const card = title => page.locator('.card').filter({ has: page.locator('.card-header-title', { hasText: title }) }).first()
 export const modal = title => page.locator('.modal.is-active').filter({ hasText: title }).last()
 

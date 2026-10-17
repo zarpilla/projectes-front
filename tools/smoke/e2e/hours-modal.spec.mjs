@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test'
 import {
   useE2E, page, state, NAME, api, visit, settle, visible, field, button, modal,
-  expectSnackbar, addActivity, createProject, onCleanup
+  expectSnackbar, addActivity, createProject, onCleanup, hoursListView
 } from './helpers.mjs'
 
 useE2E()
@@ -48,6 +48,7 @@ for (const how of Object.keys(closers)) {
 
     const description = `${NAME} manual ${how}`
     await addActivity({ project: PROJECT, hours: '1,5', description })
+    await hoursListView()
     await expect(entry(description)).toBeVisible()
     expect((await myActivities()).filter(a => a.description === description).map(a => Number(a.hours))).toEqual([1.5])
   })
@@ -57,6 +58,7 @@ test('an existing entry can be opened again and edited after closing it', async 
   test.skip(!state.projectId, 'needs the project from setup')
   const description = `${NAME} manual clicking outside`
   await visit('/dedicacio')
+  await hoursListView()
   await entry(description).locator('.column').first().click()
   await close('pressing Escape')
   await entry(description).locator('.column').first().click()
@@ -125,5 +127,6 @@ test('the counter: start, continue, close the modal, reopen it and stop it', asy
 
   // and a manual entry right after it, still without a reload
   await addActivity({ project: PROJECT, hours: '0,5', description: `${NAME} després del comptador` })
+  await hoursListView()
   await expect(entry(`${NAME} després del comptador`)).toBeVisible()
 })
