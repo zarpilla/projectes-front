@@ -304,6 +304,8 @@ window.setImmediate = window.setTimeout;
 
 moment.locale("ca");
 
+
+const NO_PROJECT = "Sense projecte";
 export default {
   name: "DedicationInput",
   emits: ["calendar-changed"],
@@ -553,7 +555,11 @@ export default {
       service({ requiresAuth: true })
         .get(query)
         .then(r => {
-          this.activities = r.data.filter(a => a.project && a.project.id);
+          // hours without a project count too, under «Sense projecte»: the
+          // calendar and the totals left them out (issues/062)
+          this.activities = r.data.map(a =>
+            a.project && a.project.id ? a : { ...a, project: { id: null, name: NO_PROJECT } }
+          );
           this.hoursTotal = sumBy(this.activities, "hours") || 0;
           this.distinctDays = uniq(map(this.activities, "date"));
           this.distinctDays.sort();
@@ -620,7 +626,7 @@ export default {
                   this.colorType === "user"
                     ? this.getChartColor(
                         this.distinctUsers.findIndex(
-                          p => p === a.users_permissions_user.username
+                          p => p === (a.users_permissions_user && a.users_permissions_user.username)
                         )
                       )
                     : this.getChartColor(
@@ -630,7 +636,7 @@ export default {
                       ),
                 class: "tag zis-primary",
                 project: a.project ? a.project.name : "",
-                username: a.users_permissions_user.username,
+                username: a.users_permissions_user ? a.users_permissions_user.username : "",
                 hours: a.hours,
                 type: "activity"
               },
@@ -681,7 +687,7 @@ export default {
             return {
               date: a.date,
               project: a.project ? a.project.name : "",
-              username: a.users_permissions_user.username,
+              username: a.users_permissions_user ? a.users_permissions_user.username : "",
               hours: a.hours,
               description: a.description,
               activity: a.activity_type ? a.activity_type.name : "",

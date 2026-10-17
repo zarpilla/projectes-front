@@ -89,4 +89,19 @@ describe('DedicationInput', () => {
     expect(urls).toHaveLength(1)
     expect(urls[0]).not.toContain('users_permissions_user')
   })
+
+  // issues/062: hours without a project were dropped from the calendar, the
+  // day and week sums and the total (Laia Puig, Oct 2025: 7 h shown, 9 h logged)
+  it('counts hours without a project, under «Sense projecte»', async () => {
+    get.mockImplementation(async url => ({
+      data: url.startsWith('activities/calendar')
+        ? [...activities, { id: 4, date: '2026-10-07', hours: 2, project: null, users_permissions_user: { id: 5, username: 'anna' } }]
+        : []
+    }))
+    const w = await mountInput()
+    expect(w.vm.hoursTotal).toBe(8.5)
+    expect(w.vm.distinctTotals.find(d => d.day === '2026-10-07').hours).toBe(5.5)
+    expect(w.vm.distinctProjectsObj.map(p => p.name)).toContain('Sense projecte')
+    get.mockImplementation(async url => ({ data: url.startsWith('activities/calendar') ? activities : [] }))
+  })
 })

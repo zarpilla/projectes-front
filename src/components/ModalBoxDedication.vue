@@ -384,7 +384,8 @@ export default {
         this.userNameSearch = this.dedicationObject.users_permissions_user
           ? this.dedicationObject.users_permissions_user.username
           : "";
-        this.projectNameSearch = this.dedicationObject.project
+        // an hour without a project comes as { id: null, name: "Sense projecte" } (issues/062)
+        this.projectNameSearch = this.dedicationObject.project && this.dedicationObject.project.id
           ? this.dedicationObject.project.name
           : this.dedicationObject.uid_word
           ? this.dedicationObject.uid_word

@@ -6,6 +6,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Correccions",
+      text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", les hores registrades sense projecte ara surten al calendari i compten als totals del dia, de la setmana i del mes, com a «Sense projecte»."]
+    },
+    {
       type: "Millores",
       text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, " la pàgina s'obre amb el calendari (la vista «Tot» feia una pàgina molt llarga), i si no hi ha cap persona triada no es carreguen les hores de tothom: tria una persona o «Totes»."]
     },
