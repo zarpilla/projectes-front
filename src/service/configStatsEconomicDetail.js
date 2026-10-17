@@ -173,9 +173,8 @@ const config = {
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem
               var expense_orig = dataItem.expense_orig || 0
-              var total_original_hours_price = dataItem.total_original_hours_price || 0
               var expense_orig_vat = dataItem.expense_orig_vat || 0
-              state.expenses_orig = (state.expenses_orig || 0) + expense_orig + total_original_hours_price + expense_orig_vat
+              state.expenses_orig = (state.expenses_orig || 0) + expense_orig + expense_orig_vat
             },
             result: function (state) {
               return state.expenses_orig
@@ -188,9 +187,8 @@ const config = {
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem
               var expense_esti = dataItem.expense_esti || 0
-              var total_estimated_hours_price = dataItem.total_estimated_hours_price || 0
               var expense_esti_vat = dataItem.expense_esti_vat || 0
-              state.expenses = (state.expenses || 0) + expense_esti + total_estimated_hours_price + expense_esti_vat
+              state.expenses = (state.expenses || 0) + expense_esti + expense_esti_vat
             },
             result: function (state) {
               return state.expenses
@@ -208,9 +206,8 @@ const config = {
             aggregate: function (value, state, context) {
               var dataItem = context.dataItem
               var expense_real = dataItem.expense_real || 0
-              var total_real_hours_price = dataItem.total_real_hours_price || 0
               var expense_real_vat = dataItem.expense_real_vat || 0
-              state.expense_real = (state.expense_real || 0) + expense_real + total_real_hours_price + expense_real_vat
+              state.expense_real = (state.expense_real || 0) + expense_real + expense_real_vat
             },
             result: function (state) {
               return state.expense_real
