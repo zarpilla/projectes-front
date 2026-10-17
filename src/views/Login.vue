@@ -64,6 +64,7 @@
 <script>
 import service from "@/service/index";
 import { clearCache } from "@/service/cache";
+import { landingPath, userPermissions } from "@/domain/routeAccess";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
@@ -107,6 +108,26 @@ export default {
     }
   },
   methods: {
+    // the login answer has no app permissions: read them before choosing the
+    // page, so the router lets her in where she belongs (issues/121)
+    async goToLanding(user) {
+      let permissions = null;
+      try {
+        const me = await service({ requiresAuth: true }).get("users/me");
+        if (me && me.data && me.data.username) {
+          localStorage.setItem("user", JSON.stringify(me.data));
+          permissions = userPermissions(me.data);
+        }
+      } catch (e) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+      if (this.$route.query.nextUrl != null) {
+        this.$router.push(this.$route.query.nextUrl);
+      } else {
+        // unknown permissions: the projects panel, as before (Home.vue sends her on)
+        this.$router.push(permissions ? landingPath(permissions) : "/projectes");
+      }
+    },
     handleSubmit() {
       this.error = "";
       if (!this.email || !this.password) {
@@ -121,7 +142,6 @@ export default {
             password: this.password
           })
           .then(response => {
-            let is_admin = response.data.user.is_admin;
             let user = response.data.user;
 
             if (!user.confirmed) {
@@ -143,15 +163,7 @@ export default {
               jwt: response.data.jwt
             });
 
-            if (this.$route.query.nextUrl != null) {
-              this.$router.push(this.$route.query.nextUrl);
-            } else {
-              if (is_admin == 1) {
-                this.$router.push("admin");
-              } else {
-                this.$router.push("projectes");
-              }
-            }
+            return this.goToLanding(user);
           })
           .catch(error => {
             this.sending = false;

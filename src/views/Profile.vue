@@ -85,7 +85,8 @@
                   <template v-if="typeof item.text === 'string'">{{ item.text }}</template>
                   <template v-else>
                     <template v-for="(part, k) in item.text" :key="k">
-                      <router-link v-if="typeof part === 'object'" :to="part.to">{{ part.label }}</router-link>
+                      <router-link v-if="typeof part === 'object' && canOpenLink(part.to)" :to="part.to">{{ part.label }}</router-link>
+                      <template v-else-if="typeof part === 'object'">{{ part.label }}</template>
                       <template v-else>{{ part }}</template>
                     </template>
                   </template>
@@ -101,6 +102,7 @@
 </template>
 
 <script>
+import { canOpenPath, storedPermissions } from "@/domain/routeAccess";
 import service from '@/service/index'
 import { logout } from '@/service/auth'
 import { CHANGELOG, changelogDate } from '@/service/changelog'
@@ -146,6 +148,10 @@ export default {
     }
   },
   methods: {
+    // a page the user can't open is named, not linked (issues/121)
+    canOpenLink(to) {
+      return canOpenPath(to, storedPermissions());
+    },
     chooseTheme (choice) {
       this.themeChoice = choice
       setThemeChoice(choice)

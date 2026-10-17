@@ -37,7 +37,8 @@
                   <template v-else>
                     <template v-for="(segment, segIndex) in item.text" :key="segIndex">
                       <template v-if="typeof segment === 'string'">{{ segment }}</template>
-                      <router-link v-else-if="segment.to" :to="segment.to">{{ segment.label }}</router-link>
+                      <router-link v-else-if="segment.to && canOpenLink(segment.to)" :to="segment.to">{{ segment.label }}</router-link>
+                      <template v-else-if="segment.to">{{ segment.label }}</template>
                       <b v-else-if="segment.tag === 'b'">{{ segment.text }}</b>
                     </template>
                   </template>
@@ -69,6 +70,7 @@
 </template>
 
 <script>
+import { canOpenPath, storedPermissions } from "@/domain/routeAccess";
 import TitleBar from "@/components/TitleBar.vue";
 import { CHANGELOG, CHANGELOG_MODULES, changelogDate } from "@/service/changelog";
 import { openTickets, ticketsErrorMessage } from "@/service/tickets";
@@ -145,6 +147,10 @@ export default {
     year() { this.limit = 10; }
   },
   methods: {
+    // a page the user can't open is named, not linked (issues/121)
+    canOpenLink(to) {
+      return canOpenPath(to, storedPermissions());
+    },
     dateLabel: changelogDate,
     tagClass(type) {
       return { Novetats: "is-success is-light", Millores: "is-info is-light", Correccions: "is-warning is-light" }[type] || "";

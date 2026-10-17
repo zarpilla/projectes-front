@@ -75,6 +75,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Plataforma"],
+      text: "Cada pàgina només s'obre amb el permís del seu apartat del menú: qui no el té (per exemple, una sòcia de logística o una persona que només registra hores) va a la seva pàgina d'inici. En entrar, cadascú arriba a la seva pàgina, i les novetats ja no enllacen pàgines que no pot obrir."
+    },
+    {
+      type: "Correccions",
       modules: ["Informes", "Hores"],
       text: ["El ", { to: "/stats-projectes", label: "panell de projectes" }, " ja no compta els projectes esborrats. Al ", { to: "/registre-jornades", label: "registre de jornades" }, " es marca en vermell un tram amb la sortida abans de l'entrada; ", { to: "/salary", label: "bestretes" }, " no ofereix crear nòmines mentre falti la jornada laboral; i la ", { to: "/invoicing-forecast", label: "previsió de facturació" }, " ja no compta «—» com una persona."]
     },

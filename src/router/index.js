@@ -1,3 +1,4 @@
+import { canOpen, landingPath, userPermissions } from "@/domain/routeAccess";
 import { createRouter, createWebHashHistory } from "vue-router";
 import Home from "../views/Home.vue";
 import Login from "../views/Login.vue";
@@ -886,29 +887,18 @@ router.beforeEach((to, from, next) => {
         query: { nextUrl: to.fullPath }
       });
     } else {
-      let user = JSON.parse(localStorage.getItem("user"));
-      if (to.matched.some(record => record.meta.is_admin)) {
-        if (user.is_admin == 1) {
-          next();
-        } else {
-          next({ name: "projectes.view" });
-        }
-      }
-      // Check for permission-based routes
-      else if (to.matched.some(record => record.meta.requiresPermission)) {
-        // Find the matched route with requiresPermission
-        const matchedRoute = to.matched.find(record => record.meta.requiresPermission);
-        const requiredPermission = matchedRoute.meta.requiresPermission;
-        const userPermissions = (user.permissions || []).map(p => p.permission);
-        
-        if (userPermissions.includes(requiredPermission)) {
-          next();
-        } else {
-          next({ name: "projectes.view" });
-        }
-      }
-      else {
+      // every page asks the permissions of its menu entry (issues/121): a user
+      // without them goes to her own landing page
+      const user = JSON.parse(localStorage.getItem("user"));
+      // permissions not loaded yet (just logged in): App.vue loads /users/me
+      // and the API refuses what isn't hers anyway
+      const known = !!(user && Array.isArray(user.permissions));
+      const permissions = userPermissions(user);
+      if (!known || canOpen(to.matched, permissions)) {
         next();
+      } else {
+        const landing = landingPath(permissions);
+        next(landing === to.path ? "/profile" : landing);
       }
     }
   } else if (to.matched.some(record => record.meta.guest)) {
