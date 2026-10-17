@@ -44,9 +44,10 @@
         <div class="segmented" role="group" aria-label="Vista">
           <button type="button" :class="{ 'is-on': mode === 'board' }" :aria-pressed="mode === 'board'" @click="setMode('board')">Tauler</button>
           <button type="button" :class="{ 'is-on': mode === 'list' }" :aria-pressed="mode === 'list'" @click="setMode('list')">Llista</button>
+          <button type="button" :class="{ 'is-on': mode === 'calendar' }" :aria-pressed="mode === 'calendar'" @click="setMode('calendar')">Calendari</button>
         </div>
       </form>
-      <div v-if="mode === 'list'" class="filter-bar" role="group" aria-label="Filtres de la llista">
+      <div v-if="mode !== 'board'" class="filter-bar" role="group" aria-label="Filtres de la llista">
         <label class="filter-select">
           <span>Estat</span>
           <b-select v-model="listFilters.state">
@@ -83,7 +84,7 @@
         </label>
         <b-checkbox v-model="showArchived">Mostra les arxivades</b-checkbox>
         <span class="filter-spacer"></span>
-        <label class="filter-select">
+        <label v-if="mode === 'list'" class="filter-select">
           <span>Agrupa per</span>
           <b-select v-model="groupBy">
             <option value="due">Venciment</option>
@@ -126,7 +127,8 @@ import { useMainStore } from "@/stores/main.js";
 const MODE_KEY = "tasksMode";
 function savedMode() {
   try {
-    return localStorage.getItem(MODE_KEY) === "list" ? "list" : "board";
+    const mode = localStorage.getItem(MODE_KEY);
+    return mode === "list" || mode === "calendar" ? mode : "board";
   } catch {
     return "board";
   }
@@ -213,8 +215,22 @@ export default {
     }
 
     this.isLoading = false;
+
+    // link from a task email
+    await this.$nextTick();
+    this.openLinkedTask();
+  },
+  watch: {
+    "$route.query.task"() {
+      this.openLinkedTask();
+    }
   },
   methods: {
+    // #/tasks?task=12 (the link of the task emails) opens that task
+    openLinkedTask() {
+      const taskId = Number(this.$route && this.$route.query && this.$route.query.task);
+      if (taskId && this.$refs.board) this.$refs.board.openTaskById(taskId);
+    },
     setMode(mode) {
       this.mode = mode;
       try {
@@ -226,7 +242,7 @@ export default {
     newTask() {
       const board = this.$refs.board;
       if (!board) return;
-      if (this.mode === "list") board.addTask(null);
+      if (this.mode !== "board") board.addTask(null);
       else board.addTask(board.lists[0]);
     }
   }

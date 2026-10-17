@@ -296,7 +296,18 @@ export default {
 
       if (this.meOptions.showTasksInGantt) {
         this.projectTasks.forEach((pt, i) => {
-          if (pt.due_date) {
+          // a task with a start date is a bar up to its due date; with only the
+          // due date, a milestone as before
+          if (pt.start_date && pt.due_date && pt.start_date <= pt.due_date) {
+            this.tasks.data.push({
+              id: 9999999999 + i,
+              text: pt.name,
+              start_date: pt.start_date,
+              end_date: moment(pt.due_date, "YYYY-MM-DD").add(1, "day").format("YYYY-MM-DD"),
+              readonly: true,
+              color: "var(--a-info-fg)",
+            });
+          } else if (pt.due_date) {
             const milestone = {
               id: 9999999999 + i,
               text: pt.name,

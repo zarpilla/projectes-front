@@ -23,6 +23,9 @@
       @cancel="isHoursModalActive = false"
       @delete="isHoursModalActive = false"
     />
+    <div v-if="project" class="tasks-tools">
+      <task-templates :project="project" :tasks="openTasks" :states="states" :users="users" @applied="getData" />
+    </div>
     <tasks-list
       v-if="mode === 'list'"
       :tasks="listTasks"
@@ -33,6 +36,13 @@
       @open="showTask"
       @add="addTask(null, $event)"
       @update="updateTasks"
+    />
+    <tasks-calendar
+      v-else-if="mode === 'calendar'"
+      :tasks="listTasks"
+      :states="states"
+      @open="showTask"
+      @add="addTask(null, $event)"
     />
     <!-- Redesign A: one column per state (or activity type), quiet cards; the
          drag and drop zones are the same as before -->
@@ -55,6 +65,9 @@
           <div
             v-if="maxCardsInState[i] > 0"
             class="empty-zone-no-card-first drop-zone"
+            :data-list="i"
+            :data-over="-10"
+            :data-pos="-10"
             :class="{ 'drop-zone-active': dragOver === -10 && dragOverState == i }"
             @drop="onDrop(i, -10, $event, state)"
             @dragover.prevent="onDragOver(i, -10, $event, state)"
@@ -65,12 +78,24 @@
             v-for="{ task, j } in shownCards(i)"
             :key="task.id"
             class="card-and-drop drop-zone"
+            :data-list="i"
+            :data-over="j"
+            :data-pos="j * 10"
             :class="{ 'drop-zone-active': dragOver === j && dragOverState == i }"
             @drop="onDrop(i, j * 10, $event, state)"
             @dragover.prevent="onDragOver(i, j, $event, state)"
             @dragenter.prevent="onDragEnter($event, state)"
           >
-            <div class="card task-card" draggable="true" @dragstart="startDrag($event, task)">
+            <div
+              class="card task-card"
+              :class="{ 'is-touch-dragging': touch && touch.dragging && touch.task.id === task.id }"
+              draggable="true"
+              @dragstart="startDrag($event, task)"
+              @touchstart="touchStart($event, task)"
+              @touchmove="touchMove"
+              @touchend="touchEnd"
+              @touchcancel="touchCancel"
+            >
               <div class="content clickable" @click.prevent="showTask(task)">
                 <img
                   v-if="task.documents && task.documents.length && task.documents[0].mime && task.documents[0].mime.startsWith('image')"
@@ -122,6 +147,9 @@
 
           <div
             class="empty-zone-no-card drop-zone"
+            :data-list="i"
+            :data-over="99999"
+            :data-pos="99999"
             :class="{ 'drop-zone-active': dragOver === 99999 && dragOverState == i }"
             @drop="onDrop(i, 99999, $event, state)"
             @dragover.prevent="onDragOver(i, 99999, $event, state)"
@@ -141,6 +169,8 @@ import Notification from "@/components/Notification.vue";
 import ModalBoxTask from "@/components/ModalBoxTask.vue";
 import TasksList from "@/components/TasksList.vue";
 import ModalBoxDedication from "@/components/ModalBoxDedication.vue";
+import TasksCalendar from "@/components/TasksCalendar.vue";
+import TaskTemplates from "@/components/TaskTemplates.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import HeroBar from "@/components/HeroBar.vue";
@@ -169,6 +199,8 @@ export default {
     Notification,
     TasksList,
     ModalBoxDedication,
+    TasksCalendar,
+    TaskTemplates,
   },
   data() {
     return {
@@ -198,7 +230,9 @@ export default {
       loggedHours: {},
       isHoursModalActive: false,
       hoursObject: null,
-      savingHours: false
+      savingHours: false,
+      // touch drag on the board (HTML5 drag and drop does not work with fingers)
+      touch: null
     };
   },
   props: {
@@ -231,7 +265,7 @@ export default {
       type: String,
       default: ''
     },
-    // 'board' (columns) or 'list' (grouped table, TasksList)
+    // 'board' (columns), 'list' (grouped table, TasksList) or 'calendar' (TasksCalendar)
     mode: {
       type: String,
       default: 'board'
@@ -285,6 +319,12 @@ export default {
         done,
         overdue: tasks.filter(t => this.isOverdue(t)).length
       };
+    },
+    // the project's open tasks, for "Desa com a plantilla"
+    openTasks() {
+      return this.activeTasks
+        .filter(t => !isDone(t, this.states))
+        .map(t => ({ ...t, activity_type: t.activity_type && t.activity_type.id ? t.activity_type : null }));
     },
     listTasks() {
       const tasks = this.showArchived
@@ -386,7 +426,7 @@ export default {
       ).data;
 
       // the person filter runs on the server (it loaded every task and filtered here)
-      const query = tasksQuery({ project: this.project, user: this.user, archived: this.mode === 'list' && this.showArchived })
+      const query = tasksQuery({ project: this.project, user: this.user, archived: this.mode !== 'board' && this.showArchived })
       const tasks = (await service({ requiresAuth: true }).get(query)).data
 
       const kanbanQuery = kanbanViewQuery({ project: this.project, user: this.user, view: this.view })
@@ -500,7 +540,73 @@ export default {
       if (!item) {
         return;
       }
-      
+      await this.dropItem(item, j, state);
+    },
+    // Touch drag: hold a card for a moment, then move the finger; a short swipe
+    // still scrolls the page. The drop zone under the finger is the same as with
+    // the mouse (data-list / data-over / data-pos).
+    touchStart(evt, task) {
+      if (evt.touches.length !== 1) return;
+      const t = evt.touches[0];
+      const card = evt.currentTarget;
+      this.touch = { task, x: t.clientX, y: t.clientY, dragging: false, ghost: null, timer: null };
+      this.touch.timer = setTimeout(() => {
+        if (!this.touch) return;
+        this.touch.dragging = true;
+        const rect = card.getBoundingClientRect();
+        const ghost = card.cloneNode(true);
+        Object.assign(ghost.style, {
+          position: 'fixed', left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px',
+          pointerEvents: 'none', opacity: '.9', zIndex: 50, boxShadow: '0 8px 24px rgba(0,0,0,.18)', transform: 'rotate(2deg)'
+        });
+        document.body.appendChild(ghost);
+        this.touch.ghost = { el: ghost, dx: this.touch.x - rect.left, dy: this.touch.y - rect.top };
+        if (navigator.vibrate) navigator.vibrate(15);
+      }, 350);
+    },
+    touchMove(evt) {
+      if (!this.touch) return;
+      const t = evt.touches[0];
+      if (!this.touch.dragging) {
+        // moving before the hold ends is a scroll
+        if (Math.abs(t.clientX - this.touch.x) > 8 || Math.abs(t.clientY - this.touch.y) > 8) this.touchCancel();
+        return;
+      }
+      evt.preventDefault();
+      const { el, dx, dy } = this.touch.ghost;
+      el.style.left = t.clientX - dx + 'px';
+      el.style.top = t.clientY - dy + 'px';
+      const zone = this.zoneAt(t.clientX, t.clientY);
+      this.dragOverState = zone ? zone.list : -1;
+      this.dragOver = zone ? zone.over : -1;
+      this.touch.zone = zone;
+    },
+    async touchEnd(evt) {
+      if (!this.touch) return;
+      const { dragging, zone, task } = this.touch;
+      this.touchCancel();
+      if (!dragging) return;
+      evt.preventDefault();
+      this.dragOver = -1;
+      this.dragOverState = -1;
+      if (!zone) return;
+      const item = this.tasks.find(t => t.id === task.id);
+      if (item) await this.dropItem(item, zone.pos, this.lists[zone.list]);
+    },
+    touchCancel() {
+      if (!this.touch) return;
+      clearTimeout(this.touch.timer);
+      if (this.touch.ghost) this.touch.ghost.el.remove();
+      this.touch = null;
+    },
+    zoneAt(x, y) {
+      const el = document.elementFromPoint(x, y);
+      const zone = el && el.closest('.drop-zone');
+      if (!zone || zone.dataset.list === undefined) return null;
+      return { list: Number(zone.dataset.list), over: Number(zone.dataset.over), pos: Number(zone.dataset.pos) };
+    },
+    async dropItem(item, j, state) {
+
       item[this.listKey] = state;
       if (item && item.activity_type && !item.activity_type.id) {
         item.activity_type = null
@@ -596,6 +702,15 @@ export default {
         type: failed ? "is-danger" : undefined,
         queue: false,
       });
+    },
+    // the link in the task emails (#/tasks?task=12)
+    async openTaskById(id) {
+      try {
+        const task = (await service({ requiresAuth: true }).get(`tasks/${id}`)).data
+        if (task && task.id) this.showTask(task)
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: "No s'ha trobat la tasca", type: 'is-danger', queue: false })
+      }
     },
     showTask(task) {
       this.taskObject = task;
@@ -833,6 +948,18 @@ export default {
   font-size: .9375rem;
   line-height: 1.3;
   color: var(--a-fg);
+}
+.tasks-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: .75rem;
+}
+.task-card {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+.task-card.is-touch-dragging {
+  opacity: .35;
 }
 .task-prio {
   display: inline-block;
