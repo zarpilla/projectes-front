@@ -1,7 +1,12 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
-    <admin-entity-form :entity-name="entityName" :id="id" />
+    <title-bar :title-stack="titleStack" :subtitle="id ? 'Edita aquest registre de la llista.' : 'Afegeix un registre nou a la llista.'" />
+    <section class="section is-main-section">
+      <admin-tables-layout v-if="isTable" :entity-name="entityName">
+        <admin-entity-form :entity-name="entityName" :id="id" />
+      </admin-tables-layout>
+      <admin-entity-form v-else :entity-name="entityName" :id="id" />
+    </section>
   </div>
 </template>
 
@@ -9,13 +14,15 @@
 import TitleBar from '@/components/TitleBar.vue';
 import { ADMIN_TABLES } from '@/service/adminTables';
 import AdminEntityForm from '@/components/AdminEntityForm.vue';
+import AdminTablesLayout from '@/components/AdminTablesLayout.vue';
 import service from '@/service/index';
 
 export default {
   name: 'AdminEntityFormView',
   components: {
     TitleBar,
-    AdminEntityForm
+    AdminEntityForm,
+    AdminTablesLayout
   },
   props: {
     entityName: {
@@ -33,15 +40,16 @@ export default {
     };
   },
   computed: {
+    isTable() {
+      return ADMIN_TABLES.some(t => t.entity === this.entityName);
+    },
     titleStack() {
       const entityDisplay = (this.metadata && this.metadata.displayNameSingular) || 
                            (this.metadata && this.metadata.displayName) || 
                            this.formatEntityName(this.entityName);
-      const action = this.id ? 'Editar' : 'Crear';
-      const isTable = ADMIN_TABLES.some(t => t.entity === this.entityName);
-      return isTable
-        ? ['Administració', 'Taules auxiliars', entityDisplay, action]
-        : ['Administració', entityDisplay, action];
+      return this.isTable
+        ? ['Administració', 'Taules auxiliars', entityDisplay]
+        : ['Administració', entityDisplay];
     }
   },
   async mounted() {

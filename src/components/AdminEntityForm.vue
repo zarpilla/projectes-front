@@ -2,15 +2,15 @@
   <div>
     <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false"></b-loading>
 
-    <section class="section is-main-section">
-      <card-component :title="formTitle">
-        <form @submit.prevent="submit" v-if="metadata && metadata.attributes">
+    <section class="a-box entity-form-box">
+      <header class="box-head"><h2>{{ formTitle }}</h2></header>
+        <form v-if="metadata && metadata.attributes" class="a-form" @submit.prevent="submit">
           <!-- Dynamic form fields based on attributes -->
           <b-field
             v-for="(attrConfig, attrName) in formAttributes"
             :key="attrName"
             :label="(attrConfig.label || formatLabel(attrName)) + (attrConfig.required ? ' *' : '')"
-            horizontal
+            :class="{ full: ['text', 'richtext'].includes(attrConfig.type) }"
             :type="{ 'is-danger': errors[attrName] }"
             :message="errors[attrName]"
           >
@@ -132,31 +132,11 @@
             />
           </b-field>
 
-          <hr />
-          
-          <b-field horizontal>
-            <b-field grouped>
-              <div class="control">
-                <b-button
-                  type="is-primary"
-                  native-type="submit"
-                  :loading="submitting"
-                >
-                  Guardar
-                </b-button>
-              </div>
-              <div class="control">
-                <b-button
-                  type="is-light"
-                  @click="cancel"
-                >
-                  Cancel·lar
-                </b-button>
-              </div>
-            </b-field>
-          </b-field>
+          <div class="full entity-form-actions">
+            <b-button @click="cancel">Cancel·lar</b-button>
+            <b-button type="is-primary" native-type="submit" :loading="submitting">Guardar</b-button>
+          </div>
         </form>
-      </card-component>
     </section>
   </div>
 </template>
@@ -164,13 +144,9 @@
 <script>
 import { normalizeEntity } from '@/service/adminMetadata';
 import service from '@/service/index';
-import CardComponent from '@/components/CardComponent.vue';
 
 export default {
   name: 'AdminEntityForm',
-  components: {
-    CardComponent
-  },
   props: {
     entityName: {
       type: String,
@@ -209,7 +185,7 @@ export default {
       const displayName = (this.metadata && this.metadata.displayNameSingular) || 
                          (this.metadata && this.metadata.displayName) || 
                          this.entityName;
-      return this.isEdit ? `Editar ${displayName}` : `Crear ${displayName}`;
+      return this.isEdit ? `${displayName} #${this.id}` : `Nou registre: ${displayName.toLowerCase()}`;
     }
   },
   async mounted() {
@@ -440,3 +416,13 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.entity-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--a-line-soft);
+}
+</style>
