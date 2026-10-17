@@ -5269,6 +5269,10 @@ export default {
 body:has(.project-form .savebar) .notices.is-bottom {
   padding-bottom: 4.75rem;
 }
+/* an open menu of the bar (⋯) goes over any notice */
+.project-form .savebar:has(.dropdown.is-active) {
+  z-index: 1001;
+}
 /* the save / wizard bar sits at the bottom of the window even on short pages */
 .project-form {
   min-height: 100vh;

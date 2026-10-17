@@ -279,13 +279,17 @@ export default {
             )
         );
         if (myTasks.length || myChecklists.length) {
-          this.$buefy.snackbar.open({
+          // a notice of this list: closed when leaving it (it covered the project's save bar)
+          this.overdueNotice = this.$buefy.snackbar.open({
             message: "Atenció, tens tasques amb la data límit superada!",
             queue: false,
             indefinite: true
           });
         }
       });
+  },
+  beforeUnmount() {
+    if (this.overdueNotice) this.overdueNotice.close();
   },
   methods: {
     toggleProjectsEditMode() {
