@@ -108,7 +108,8 @@ const config = {
           },
           invoice_hours_price: {
             field: 'invoice_hours_price',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} €'
           },
           'Ingressos previstos': {
             field: 'incomes',
@@ -132,11 +133,13 @@ const config = {
           },
           total_real_hours: {
             field: 'total_real_hours',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} h'
           },
           total_incomes: {
             field: 'total_incomes',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} €'
           },
           'Resultat previst': {
             field: 'incomes_expenses',

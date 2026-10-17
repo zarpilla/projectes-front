@@ -192,11 +192,13 @@ const config = {
           },
           'Caixes': {
             field: 'units',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n0}'
           },
           'Kg': {
             field: 'kilograms',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} kg'
           }
         }
       }

@@ -79,19 +79,23 @@ const config = {
           },
           'Balanç (€)': {
             field: 'incomes_expenses',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} €'
           },
           estimated_balance: {
             field: 'estimated_balance',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} €'
           },
           'Hores previstes': {
             field: 'total_estimated_hours',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} h'
           },
           'Hores reals': {
             field: 'total_real_hours',
-            aggregate: 'sum'
+            aggregate: 'sum',
+            format: '{0:n2} h'
           }
         }
       }
