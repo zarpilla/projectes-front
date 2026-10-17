@@ -89,6 +89,21 @@ export default {
       return 'Ingressos i despeses previstos i executats dels projectes: un resum en gràfics i, a sota, el detall a la taula dinàmica.'
     }
   },
+  watch: {
+    // the table follows the filters right away, like the charts (it waited for «Refrescar»)
+    "filters.year"(value, old) {
+      if (old !== null) this.scheduleRefresh();
+    },
+    "filters.dataType"() {
+      this.scheduleRefresh();
+    },
+    selectedProjectStates: {
+      deep: true,
+      handler(value, old) {
+        if (old && old.length) this.scheduleRefresh();
+      }
+    }
+  },
   async mounted() {
     this.isLoading = true;
 
@@ -176,6 +191,11 @@ export default {
         JSON.stringify(this.selectedProjectStates)
       );
       //this.getData()
+    },
+    // several clicks on the state chips reload once
+    scheduleRefresh() {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = setTimeout(() => this.refreshData(), 400);
     },
     refreshData() {
       this.show = false;

@@ -36,7 +36,7 @@
       <section class="a-box ed-wide">
         <header class="box-head">
           <h2>Ingressos i despeses per {{ byYear ? "any" : "mes" }}</h2>
-          <span class="box-hint">Les despeses inclouen el cost de les hores · la línia és el resultat acumulat</span>
+          <span class="box-hint">Les despeses inclouen el cost de les hores · la línia és el resultat acumulat{{ compare ? " (discontínua: el previst)" : "" }}</span>
         </header>
         <div class="ed-chart is-tall">
           <bar-chart v-if="rows.length" chart-id="ed-periods" :chart-data="periodChart" :extra-options="periodOptions" />
@@ -147,12 +147,17 @@ export default {
       const last = this.periods.reduce((l, p, i) => (has(p) ? i : l), -1)
       return this.periods.map((p, i) => (i <= last ? p.accumulated : null))
     },
+    // with «Totes»: the forecast's accumulated result, to compare with the executed one
+    plannedLine () {
+      return byPeriod(this.rows, 'prev', { byYear: this.byYear }).map(p => p.accumulated)
+    },
     periodChart () {
       const c = this.colors
       return {
         labels: this.periods.map(p => p.label),
         datasets: [
           { type: 'line', label: 'Resultat acumulat', data: this.accumulatedLine, borderColor: c.line, backgroundColor: c.line, borderWidth: 2, pointRadius: 2, tension: 0.25, yAxisID: 'y', order: 0 },
+          ...(this.compare ? [{ type: 'line', label: 'Resultat previst acumulat', data: this.plannedLine, borderColor: c.line, backgroundColor: 'transparent', borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, tension: 0.25, order: 0 }] : []),
           { label: 'Ingressos', data: this.periods.map(p => p.income), backgroundColor: c.income, stack: 'income', borderRadius: 3, order: 1 },
           { label: 'Despeses', data: this.periods.map(p => -p.expenses), backgroundColor: c.expense, stack: 'expenses', borderRadius: 3, order: 1 },
           { label: 'Hores', data: this.periods.map(p => -p.hours), backgroundColor: c.hours, stack: 'expenses', borderRadius: 3, order: 1 }
