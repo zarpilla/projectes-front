@@ -81,6 +81,13 @@ describe('Invoice counterparty', () => {
   })
 })
 
+describe('Quote counterparty (issues/100)', () => {
+  it('shows the contact\'s name when the quote saved none', async () => {
+    const w = await render(Quote, undefined, [plain], { contact_info: null, contact: { id: 9, name: 'Generalitat de Catalunya', nif: 'S0811001G' } })
+    expect(w.find('.client-td').text()).toContain('Generalitat de Catalunya')
+  })
+})
+
 describe('Quote view', () => {
   // issues/071: the date came from updated_at (quotes have no `date`) and the
   // unit price was printed raw (0.23€, 1234.5€)

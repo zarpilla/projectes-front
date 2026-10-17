@@ -47,11 +47,11 @@
                         </td>
                         <td class="client-td" v-if="quote.contact && quote.contact.id">
                           <div class="client">{{ texts[locale]['CLIENT'] }}</div>
-                          <div v-if="quote.contact_info && quote.contact_info.name">{{ quote.contact_info.name }}</div>
-                          <div v-else-if="quote.contact && quote.contact && quote.contact.name"></div>
-                          <div v-if="quote.contact_info && quote.contact_info.nif">{{ quote.contact_info.nif }}</div>                          
-                          <div v-if="quote.contact_info && quote.contact_info.address">{{ quote.contact_info.address }}<br />{{ quote.contact_info.postcode }} {{ quote.contact_info.city }}</div>
-                          <div v-if="quote.contact_info && quote.contact_info.phone">{{ quote.contact_info.phone }}</div>
+                          <!-- the document's data, else the contact's (issues/100) -->
+                          <div v-if="party.name">{{ party.name }}</div>
+                          <div v-if="party.nif">{{ party.nif }}</div>
+                          <div v-if="party.address">{{ party.address }}<br />{{ party.postcode }} {{ party.city }}</div>
+                          <div v-if="party.phone">{{ party.phone }}</div>
                           <!-- <div v-if="quote.contact_info && quote.contact_info.email">{{ quote.contact_info.email }}</div> -->
                         </td>
                       </tr>
@@ -199,6 +199,14 @@ export default {
     }
   },
   computed: {
+    // the client: what the quote saved (contact_info), field by field, else
+    // the linked contact (issues/100)
+    party () {
+      const info = (this.quote && this.quote.contact_info) || {}
+      const contact = (this.quote && this.quote.contact) || {}
+      const fields = ['name', 'nif', 'address', 'postcode', 'city', 'phone']
+      return Object.fromEntries(fields.map(f => [f, info[f] || contact[f] || '']))
+    },
     titleStack () {
       return ['Facturació', 'Pressupost']
     },

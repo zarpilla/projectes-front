@@ -28,6 +28,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: "A la vista de les factures i dels pressupostos, el bloc del client (o del proveïdor) ara mostra sempre el nom, també quan el document no en té les dades desades i es prenen del contacte."
+    },
+    {
+      type: "Correccions",
       text: "Hores dedicades, Registre jornades, Bestretes, Saldo hores, Hores anuals i Tasques tornen a obrir-se amb la teva persona triada al filtre «Persona», també després de recarregar la pàgina."
     },
     {
