@@ -54,7 +54,8 @@
             <span :class="{ 'has-text-muted': !props.row.organ }">{{ props.row.organ || "—" }}</span>
           </b-table-column>
           <b-table-column label="Període" field="date_start" sortable v-slot="props">
-            <span class="is-nowrap">{{ date(props.row.date_start) }} – {{ date(props.row.date_end) }}</span>
+            <span v-if="props.row.date_start || props.row.date_end" class="is-nowrap">{{ date(props.row.date_start) }} – {{ date(props.row.date_end) }}</span>
+            <span v-else class="has-text-muted">—</span>
           </b-table-column>
           <b-table-column label="Import total" field="grantable_amount_total" sortable numeric v-slot="props">
             <b v-if="Number(props.row.grantable_amount_total)">{{ money(props.row.grantable_amount_total) }}</b>
