@@ -1,31 +1,43 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack" subtitle="Vídeos que expliquen com fer servir cada part de l'aplicació." />
     <section class="section is-main-section">
-      <card-component title="Vídeos">
-          <ul>
-              <li><a href="/stats/docum/01.intro.mkv" target="_blank">Introducció</a></li>
-              <li><a href="/stats/docum/02.01.projectes.mkv" target="_blank">Projectes</a></li>
-              <li><a href="/stats/docum/02.02.projectes-contactes.mkv" target="_blank">Projectes: Contactes</a></li>
-              <li><a href="/stats/docum/02.03.projectes-ingressos-despeses-fases-planificacio.mkv" target="_blank">Projectes: Fases i pressupost intern</a></li>
-              <li><a href="/stats/docum/03.hores-entrada.mkv" target="_blank">Entrada d'hores dedicades</a></li>
-              <li><a href="/stats/docum/03.hores-saldo.mkv" target="_blank">Saldo d'hores</a></li>
-              <li><a href="/stats/docum/04.informacio-economica.mkv" target="_blank">Entrada d'informació econòmica</a></li>
-              <li><a href="/stats/docum/05.tresoreria.mkv" target="_blank">Tresoreria</a></li>
-              <li><a href="/stats/docum/06.tasques.mp4" target="_blank">Tasques</a></li>
-          </ul>
-      </card-component>
+      <section class="a-box docs-box">
+        <header class="box-head"><h2>Vídeos</h2></header>
+        <ul class="docs-list">
+          <li v-for="video in videos" :key="video.file">
+            <a :href="`/stats/docum/${video.file}`" target="_blank" rel="noopener">
+              <b-icon icon="play-circle-outline" />
+              <span>{{ video.title }}</span>
+            </a>
+          </li>
+        </ul>
+      </section>
     </section>
   </div>
 </template>
 <script>
 import TitleBar from '@/components/TitleBar.vue'
-import CardComponent from '@/components/CardComponent.vue'
+
 export default {
   name: 'Documentation',
   components: {
-    CardComponent,
     TitleBar
+  },
+  data () {
+    return {
+      videos: [
+        { file: '01.intro.mkv', title: 'Introducció' },
+        { file: '02.01.projectes.mkv', title: 'Projectes' },
+        { file: '02.02.projectes-contactes.mkv', title: 'Projectes: contactes' },
+        { file: '02.03.projectes-ingressos-despeses-fases-planificacio.mkv', title: 'Projectes: fases i pressupost intern' },
+        { file: '03.hores-entrada.mkv', title: "Entrada d'hores dedicades" },
+        { file: '03.hores-saldo.mkv', title: "Saldo d'hores" },
+        { file: '04.informacio-economica.mkv', title: "Entrada d'informació econòmica" },
+        { file: '05.tresoreria.mkv', title: 'Tresoreria' },
+        { file: '06.tasques.mp4', title: 'Tasques' }
+      ]
+    }
   },
   computed: {
     titleStack () {
@@ -34,9 +46,24 @@ export default {
   }
 }
 </script>
+
 <style scoped>
-ul{
-    list-style: disc;
-    margin-left: 0.5rem;
+.docs-box {
+  max-width: 40rem;
+}
+.docs-list {
+  display: grid;
+  gap: .25rem;
+}
+.docs-list a {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .375rem .5rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.docs-list a:hover {
+  background: var(--a-accent-soft);
 }
 </style>

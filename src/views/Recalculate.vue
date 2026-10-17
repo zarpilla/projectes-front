@@ -1,20 +1,15 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
-    <!-- <hero-bar :has-right-visible="false">
-      General
-    </hero-bar> -->
+    <title-bar :title-stack="titleStack" subtitle="Torna a calcular els totals de tots els projectes, un per un.">
+      <b-button type="is-primary" icon-left="refresh" :disabled="all == count" @click="updateAll">Actualitza tot</b-button>
+    </title-bar>
     <section class="section is-main-section">
-      <b-button @click="updateAll" class="is-primary mb-3" :disabled="all == count"
-        >Actualitzar tot
-      </b-button>
-
-      <h3 class="subtitle">{{ count }} / {{ all }}</h3>
-
-      <card-component
-        title="PROJECTES"
-        class="has-table has-mobile-sort-spaced"
-      >
+      <section class="a-box list-box">
+        <header class="box-head">
+          <h2>Projectes</h2>
+          <span class="recalc-count">{{ count }} de {{ all }} actualitzats</span>
+        </header>
+        <progress class="progress is-small recalc-progress" :value="count" :max="all || 1">{{ count }} / {{ all }}</progress>
         <b-table
           :loading="isLoading"
           :striped="false"
@@ -22,26 +17,16 @@
           :data="projects"
         >
           <b-table-column label="Nom" field="name" sortable v-slot="props">
-            <router-link
-              :to="{ name: 'project.edit', params: { id: props.row.id } }"
-            >
-              <span class="project-name has-text-info">
-                {{ props.row.name }}
-              </span>
+            <router-link :to="{ name: 'project.edit', params: { id: props.row.id } }">
+              {{ props.row.name }}
             </router-link>
           </b-table-column>
-          <b-table-column
-            label="Actualitzat"
-            field="updated"
-            sortable
-            v-slot="props"
-          >
-            {{ props.row.updated ? "SÍ" : "NO" }}
+          <b-table-column label="Estat" field="updated" sortable v-slot="props">
+            <span v-if="props.row.updated" class="tag is-success is-light">Actualitzat</span>
+            <span v-else class="tag">Pendent</span>
           </b-table-column>
         </b-table>
-
-        <!-- <pre>{{projects}}</pre> -->
-      </card-component>
+      </section>
     </section>
   </div>
 </template>
@@ -52,7 +37,6 @@ import * as chartConfig from "@/components/Charts/chart.config";
 import TitleBar from "@/components/TitleBar.vue";
 import Tiles from "@/components/Tiles.vue";
 import CardWidget from "@/components/CardWidget.vue";
-import CardComponent from "@/components/CardComponent.vue";
 import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
@@ -66,7 +50,6 @@ export default {
   components: {
     ProjectsTable,
     // BarChart,
-    CardComponent,
     CardWidget,
     Tiles,
     // HeroBar,
@@ -117,3 +100,16 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.recalc-count {
+  font-size: .875rem;
+  font-weight: 700;
+  color: var(--a-muted);
+}
+.recalc-progress {
+  margin: 0 !important;
+  border-radius: 0;
+  height: 4px;
+}
+</style>

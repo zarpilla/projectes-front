@@ -1,17 +1,18 @@
 <template>
-  <section class="section">
+  <div>
+    <title-bar :title-stack="['Altres', 'Importar i exportar']" subtitle="Contactes i punts d'entrega en fitxers CSV, per treballar-los fora de l'aplicació o carregar-ne de nous." />
+    <section class="section is-main-section">
     <b-loading
       :is-full-page="true"
       v-model="isLoading"
       :can-cancel="false"
     ></b-loading>
 
-    <h1 class="title">Importar/Exportar Dades</h1>
-
+    <div class="io-columns">
     <!-- Export Section -->
-    <div class="box mb-5">
-      <h2 class="subtitle">Exportar Dades</h2>
-      <p class="mb-4">
+    <section class="a-box">
+      <header class="box-head"><h2>Exportar</h2></header>
+      <p class="box-hint mb-4">
         Exporta les dades en format CSV per poder-les importar més tard o
         treballar-les externament.
       </p>
@@ -23,7 +24,7 @@
           :loading="isLoadingExport"
           @click="exportContactsCSV"
         >
-          Exportar Contactes
+          Exporta els contactes
         </b-button>
 
         <!-- <download-excel
@@ -44,12 +45,12 @@
           </b-button>
         </download-excel> -->
       </div>
-    </div>
+    </section>
 
     <!-- Import Section -->
-    <div class="box">
-      <h2 class="subtitle">Importar Dades</h2>
-      <p class="mb-4">
+    <section class="a-box">
+      <header class="box-head"><h2>Importar</h2></header>
+      <p class="box-hint mb-4">
         Importa dades des d'un fitxer CSV. El sistema detectarà automàticament
         el tipus de dades segons el nom del fitxer (contacts-*, user-contacts-*).
       </p>
@@ -68,7 +69,7 @@
 
       <!-- Preview and Warnings -->
       <div v-if="previewData.length && !importComplete" class="mt-5">
-        <h3 class="subtitle is-4">Previsualització de les Dades</h3>
+        <h3 class="io-subhead">Previsualització de les dades</h3>
 
         <div class="notification is-info mb-4">
           <p>
@@ -84,7 +85,7 @@
 
         <!-- Warnings -->
         <div v-if="warnings.length" class="notification is-warning mb-4">
-          <h4 class="subtitle is-5">Avisos</h4>
+          <h4 class="io-subhead">Avisos</h4>
           <ul>
             <li v-for="(warning, idx) in warnings" :key="idx" class="mb-2">
               <b-icon icon="alert" size="is-small"></b-icon>
@@ -138,7 +139,7 @@
             @click="confirmImport"
             :loading="isImporting"
           >
-            Confirmar Importació
+            Confirma la importació
           </b-button>
         </div>
       </div>
@@ -153,21 +154,25 @@
           S'han importat {{ importStats.created }} nous registres i s'han
           actualitzat {{ importStats.updated }} registres existents.
         </p>
-        <b-button class="mt-3" @click="resetImport">Importar més dades</b-button>
+        <b-button class="mt-3" @click="resetImport">Importa més dades</b-button>
       </div>
+    </section>
     </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <script>
 import service from "@/service/index";
 import FileUpload from "@/components/FileUpload.vue";
+import TitleBar from "@/components/TitleBar.vue";
 import moment from "moment";
 
 export default {
   name: "ImportExport",
   components: {
     FileUpload,
+    TitleBar,
   },
   data() {
     return {
@@ -650,11 +655,21 @@ export default {
 </script>
 
 <style scoped>
-.box {
-  background-color: var(--a-surface);
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+.io-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 1rem;
+  align-items: start;
+}
+@media screen and (max-width: 1023px) {
+  .io-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.io-subhead {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: .5rem;
 }
 
 .table-container {
@@ -663,6 +678,6 @@ export default {
 }
 
 .has-background-warning-light {
-  background-color: #fffbeb !important;
+  background-color: var(--a-warn-bg) !important;
 }
 </style>

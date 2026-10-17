@@ -955,6 +955,510 @@ export const CHANGELOG = [
       text: ["A les ", { to: "/working-day", label: "jornades de persones" }, ", s'agafa l'últim dia del més com a data final en nous períodes."]
     }
   ]
+},
+{
+  date: "2023.12.20",
+  items: [
+    {
+      type: "Novetats",
+      text: "Integració automàtica amb calendaris iCal: les hores dels esdeveniments es poden importar com a dedicació sense haver de pujar el fitxer."
+    },
+    {
+      type: "Millores",
+      text: ["Filtres a la taula dinàmica ", { to: "/stats-economic-detail", label: "d'ingressos i despeses" }, "."]
+    }
+  ]
+},
+{
+  date: "2023.11.23",
+  items: [
+    {
+      type: "Novetats",
+      text: "Projectes d'estructura, per recollir les despeses i hores que no són d'un projecte concret."
+    },
+    {
+      type: "Millores",
+      text: "Resum de la càrrega de feina diària a les dedicacions, i cerca exacta de projectes."
+    }
+  ]
+},
+{
+  date: "2023.10.09",
+  items: [
+    {
+      type: "Millores",
+      text: "La fitxa de projecte mostra els documents assignats, amb enllaç a cadascun."
+    }
+  ]
+},
+{
+  date: "2023.09.22",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Resum de ", { to: "/forecast", label: "previsió econòmica" }, " dels projectes."]
+    }
+  ]
+},
+{
+  date: "2023.07.24",
+  items: [
+    {
+      type: "Novetats",
+      text: "Periodificació de projectes: els ingressos i despeses es reparteixen entre els anys que dura el projecte, tant els reals com els previstos."
+    }
+  ]
+},
+{
+  date: "2023.07.06",
+  items: [
+    {
+      type: "Millores",
+      text: "Pressupostos amb productes, i dades bàsiques del client a la fitxa de projecte."
+    }
+  ]
+},
+{
+  date: "2023.06.16",
+  items: [
+    {
+      type: "Novetats",
+      text: "Gestió de productes a les factures i pressupostos emesos."
+    },
+    {
+      type: "Novetats",
+      text: "Generació de les factures en PDF des de l'aplicació, amb el logo de l'entitat i el peu de factura o de pressupost."
+    }
+  ]
+},
+{
+  date: "2023.06.08",
+  items: [
+    {
+      type: "Millores",
+      text: "Totals per any als projectes i data estimada dels documents."
+    }
+  ]
+},
+{
+  date: "2023.05.23",
+  items: [
+    {
+      type: "Novetats",
+      text: "Cost real per persona i any."
+    },
+    {
+      type: "Millores",
+      text: "Descàrrega de les hores a Excel amb totals, i la dedicació ja no es mostra en dies festius."
+    }
+  ]
+},
+{
+  date: "2023.05.16",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Nou ", { to: "/registre-jornades", label: "registre de jornades" }, ": entrada i sortida de cada dia de feina."]
+    }
+  ]
+},
+{
+  date: "2023.03.01",
+  items: [
+    {
+      type: "Novetats",
+      text: "Dietes amb retenció d'IRPF."
+    },
+    {
+      type: "Millores",
+      text: "Exportació de les factures rebudes a CSV amb les línies, i persona usuària vinculada als contactes."
+    }
+  ]
+},
+{
+  date: "2023.02.07",
+  items: [
+    {
+      type: "Millores",
+      text: "Les nòmines i els seus pagaments surten a tresoreria."
+    }
+  ]
+},
+{
+  date: "2023.01.24",
+  items: [
+    {
+      type: "Millores",
+      text: "Els càlculs dels projectes es fan en segon pla: desar un projecte o un document és molt més ràpid."
+    }
+  ]
+},
+{
+  date: "2023.01.16",
+  items: [
+    {
+      type: "Novetats",
+      text: "Creació de totes les nòmines del mes d'un sol cop, amb els camps calculats protegits."
+    }
+  ]
+},
+{
+  date: "2022.12.19",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Llista de ", { to: "/grants", label: "subvencions" }, " i camps de subvencionable i documents a la fitxa de projecte."]
+    },
+    {
+      type: "Millores",
+      text: "Les dedicacions es vinculen al calendari, i el detall d'ingressos i despeses es pot exportar a Excel per any."
+    }
+  ]
+},
+{
+  date: "2022.11.14",
+  items: [
+    {
+      type: "Novetats",
+      text: "Documents en PDF, i filtre per trimestre a les llistes."
+    },
+    {
+      type: "Millores",
+      text: "Taula dinàmica de tresoreria amb l'estat de pagament."
+    }
+  ]
+},
+{
+  date: "2022.10.19",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Anotacions manuals a ", { to: "/tresoreria", label: "tresoreria" }, "."]
+    },
+    {
+      type: "Millores",
+      text: "Adjunts als projectes, i botó «Desa i surt»."
+    }
+  ]
+},
+{
+  date: "2022.09.26",
+  items: [
+    {
+      type: "Novetats",
+      text: "Dietes, i pujada de fitxers als documents (factures, ingressos i despeses)."
+    },
+    {
+      type: "Novetats",
+      text: "Import subvencionable i valors per defecte als projectes nous."
+    }
+  ]
+},
+{
+  date: "2022.09.05",
+  items: [
+    {
+      type: "Novetats",
+      text: "Fases d'execució amb dates, separades del pressupost original."
+    },
+    {
+      type: "Millores",
+      text: "Exportacions a Excel amb més camps i amb el format de decimals que triï cada persona."
+    }
+  ]
+},
+{
+  date: "2022.07.26",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Preu per hora dels projectes, i hores al detall d'", { to: "/stats-economic-detail", label: "ingressos i despeses" }, "."]
+    },
+    {
+      type: "Millores",
+      text: "Exportació a Excel de la llista d'ingressos i despeses."
+    }
+  ]
+},
+{
+  date: "2022.07.18",
+  items: [
+    {
+      type: "Novetats",
+      text: "Importació d'hores des de calendaris iCal."
+    },
+    {
+      type: "Millores",
+      text: "Tipus d'hores a les dedicacions previstes, i festius de diversos dies d'un sol cop."
+    }
+  ]
+},
+{
+  date: "2022.06.08",
+  items: [
+    {
+      type: "Novetats",
+      text: "Es guarden les fases del pressupost original per comparar-les amb l'execució."
+    },
+    {
+      type: "Millores",
+      text: "Un document es pot repartir entre diverses línies de projecte, i avís per correu a les persones implicades en una tasca."
+    }
+  ]
+},
+{
+  date: "2022.05.24",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Taula dinàmica de detall d'", { to: "/stats-economic-detail", label: "ingressos i despeses" }, "."]
+    },
+    {
+      type: "Millores",
+      text: "Dedicació setmanal amb totals per setmana, i avís abans de sortir d'un formulari amb canvis sense desar."
+    }
+  ]
+},
+{
+  date: "2022.05.10",
+  items: [
+    {
+      type: "Novetats",
+      text: "Tresoreria anual, tenint en compte les factures rectificatives."
+    }
+  ]
+},
+{
+  date: "2022.04.05",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Mòdul de ", { to: "/justifications", label: "justificacions" }, " de projectes, per hores i per quantitat, amb exportació a CSV."]
+    },
+    {
+      type: "Millores",
+      text: "Factures i pressupostos en català i castellà, i noves tasques assignades a una persona i una activitat."
+    }
+  ]
+},
+{
+  date: "2022.03.29",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Gestió de ", { to: "/tasks", label: "tasques" }, " dels projectes, amb llista de comprovació i imatges."]
+    },
+    {
+      type: "Novetats",
+      text: "Liquidació de l'IVA a tresoreria."
+    }
+  ]
+},
+{
+  date: "2022.03.17",
+  items: [
+    {
+      type: "Novetats",
+      text: [{ to: "/quotes", label: "Pressupostos" }, " dels projectes."]
+    }
+  ]
+},
+{
+  date: "2022.03.09",
+  items: [
+    {
+      type: "Novetats",
+      text: "Projectes mare, i documents assignats a diversos projectes."
+    },
+    {
+      type: "Millores",
+      text: "Camp de territori als projectes."
+    }
+  ]
+},
+{
+  date: "2022.03.01",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Nòmines i pagaments de nòmines a ", { to: "/salary", label: "salaris" }, "."]
+    },
+    {
+      type: "Millores",
+      text: "Resum d'hores i de la feina feta avui."
+    }
+  ]
+},
+{
+  date: "2022.02.16",
+  items: [
+    {
+      type: "Novetats",
+      text: "Ingressos rebuts i despeses de projecte, a més de les factures."
+    },
+    {
+      type: "Millores",
+      text: "Tipus de dedicació a la taula dinàmica d'hores, i resultats dels projectes tenint en compte els documents no assignats."
+    }
+  ]
+},
+{
+  date: "2022.02.02",
+  items: [
+    {
+      type: "Novetats",
+      text: [{ to: "/working-day", label: "Jornades" }, " de les persones i resum anual d'hores, ajustat a les hores diàries de cada jornada."]
+    },
+    {
+      type: "Novetats",
+      text: "Festius generals i personals, visibles al gantt de dedicacions."
+    }
+  ]
+},
+{
+  date: "2022.01.27",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Factures dels projectes: ", { to: "/emitted-invoices", label: "emeses" }, " i ", { to: "/received-invoices", label: "rebudes" }, "."]
+    },
+    {
+      type: "Novetats",
+      text: "Salaris i cotitzacions de cada persona, per calcular el cost per hora."
+    }
+  ]
+},
+{
+  date: "2022.01.10",
+  items: [
+    {
+      type: "Novetats",
+      text: "Gantt de dedicacions per persona."
+    },
+    {
+      type: "Millores",
+      text: "Millores de rendiment en la càrrega de projectes."
+    }
+  ]
+},
+{
+  date: "2021.11.27",
+  items: [
+    {
+      type: "Novetats",
+      text: "Comptador de temps per registrar les hores mentre treballes."
+    }
+  ]
+},
+{
+  date: "2021.11.23",
+  items: [
+    {
+      type: "Novetats",
+      text: "Gestió dels tipus d'activitat, i repartiment del pressupost."
+    },
+    {
+      type: "Millores",
+      text: "Filtres per àmbit."
+    }
+  ]
+},
+{
+  date: "2021.11.03",
+  items: [
+    {
+      type: "Novetats",
+      text: "Exportació a Excel de la tresoreria i dels projectes."
+    }
+  ]
+},
+{
+  date: "2021.10.26",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nou gantt de projecte, amb subfases i hores previstes a les fases."
+    },
+    {
+      type: "Millores",
+      text: "Cost per hora a partir de les dedicacions diàries."
+    }
+  ]
+},
+{
+  date: "2021.10.07",
+  items: [
+    {
+      type: "Novetats",
+      text: ["Control de ", { to: "/tresoreria", label: "tresoreria" }, " a partir de les fases dels projectes."]
+    },
+    {
+      type: "Novetats",
+      text: [{ to: "/documentacio", label: "Documentació" }, " d'ajuda dins l'aplicació."]
+    }
+  ]
+},
+{
+  date: "2021.09.25",
+  items: [
+    {
+      type: "Novetats",
+      text: "Ingressos i despeses a les fases del projecte."
+    },
+    {
+      type: "Millores",
+      text: "L'aplicació avisa quan hi ha una versió nova."
+    }
+  ]
+},
+{
+  date: "2021.09.13",
+  items: [
+    {
+      type: "Novetats",
+      text: "Fases de projecte, amb gantt i cost de les hores."
+    }
+  ]
+},
+{
+  date: "2021.07.05",
+  items: [
+    {
+      type: "Millores",
+      text: "Exportació a CSV, i hores amb decimals amb coma."
+    }
+  ]
+},
+{
+  date: "2021.06.09",
+  items: [
+    {
+      type: "Novetats",
+      text: "Taula dinàmica de projectes per any, i despeses indirectes."
+    },
+    {
+      type: "Novetats",
+      text: "Contactes i intercooperació."
+    }
+  ]
+},
+{
+  date: "2021.06.01",
+  items: [
+    {
+      type: "Novetats",
+      text: "Factures, amb peu de factura configurable, i estats de projecte."
+    }
+  ]
+},
+{
+  date: "2021.05.21",
+  items: [
+    {
+      type: "Novetats",
+      text: "Primera versió: projectes, hores dedicades i quadres de comandament de projectes."
+    }
+  ]
 }
       ]
 
