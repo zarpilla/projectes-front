@@ -34,6 +34,7 @@ import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
 import DedicationSummary from '@/components/DedicationSummary.vue'
 import service from '@/service/index'
+import { defaultYear } from '@/domain/years'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 
@@ -82,7 +83,7 @@ export default {
     service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
       // console.log('r.data', r.data)
       this.years = r.data
-      this.filters.year = this.years[0]
+      this.filters.year = defaultYear(this.years)
     })
 
     service({ requiresAuth: true, cached: true }).get('users').then((r) => {

@@ -43,6 +43,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import EconomicDetailPivot from "@/components/EconomicDetailPivot.vue";
 import service from "@/service/index";
+import { defaultYear } from "@/domain/years";
 import defaultProjectState from "@/service/projectState";
 import { addScript, addStyle } from "@/helpers/addScript";
 import moment from "moment";
@@ -143,9 +144,9 @@ export default {
               this.years.unshift({ id: 0, year: parseInt(y) + 2 });
               this.years.unshift({ id: 0, year: "Tots" });
               // this.filters.year = "Tots";
-              this.filters.year = this.years.find(
-                y => y.year.toString() === moment().format("YYYY")
-              ).year;
+              // this year; next years are offered above, so they are not a fallback
+              const current = defaultYear(this.years.filter(y => Number(y.year) <= moment().year()));
+              this.filters.year = current ? current.year : "Tots";
 
               this.isLoading = false;
             });

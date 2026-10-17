@@ -48,6 +48,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import PricePerHourDetail from "@/components/PricePerHourDetail.vue";
 import service from "@/service/index";
+import { defaultYear } from "@/domain/years";
 
 const STATES_KEY = "PricePerHour.selectedProjectStates";
 
@@ -117,11 +118,9 @@ export default {
             .get("years?_sort=year:DESC")
             .then(r => {
               this.years = [...r.data]/*  */;
-              const y = this.years[0].year;
-              //this.years.unshift({ id: 0, year: parseInt(y) + 1 });
-              //this.years.unshift({ id: 0, year: parseInt(y) + 2 });
+              const y = defaultYear(this.years);
               this.years.unshift({ id: 0, year: "Tots" });
-              this.filters.year = parseInt(y);
+              this.filters.year = y ? parseInt(y.year) : "Tots";
 
               this.isLoading = false;
             });
