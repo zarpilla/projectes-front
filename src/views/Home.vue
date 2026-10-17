@@ -180,14 +180,11 @@ export default {
       "users/me"
     );
     const permissions = me.data.permissions.map(p => p.permission);
+    // The landing page is the projects panel: anyone else goes to her screen
+    // and nothing below is loaded (the API refuses those reads, issues/099).
     if (!permissions.includes("projects")) {
-      if (permissions.includes("orders")) {
-        this.$router.push("/orders");
-      } else if (!permissions.includes("projects")) {
-        this.$router.push("/dedicacio");
-      } else {
-        return;
-      }
+      this.$router.push(permissions.includes("orders") ? "/orders" : "/dedicacio");
+      return;
     }
 
     this.fillChartData();
