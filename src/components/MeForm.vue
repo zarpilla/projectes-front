@@ -339,12 +339,17 @@ export default {
       try {
         this.submitting = true;
         
-        // Prepare data - only send non-null values
+        if (!String(this.form.name || '').trim()) {
+          this.$buefy.toast.open({ message: "Cal el nom de l'entitat", type: 'is-danger' });
+          return;
+        }
+        // Every field, a cleared one as null: skipping the empty ones meant a
+        // field (or a bank account set back to «Selecciona…») could never be
+        // emptied (issues/080)
         const data = {};
         Object.keys(this.form).forEach(key => {
-          if (this.form[key] !== null && this.form[key] !== '' && this.form[key] !== undefined) {
-            data[key] = this.form[key];
-          }
+          const value = this.form[key];
+          data[key] = value === '' || value === undefined ? null : value;
         });
         
         await service({ requiresAuth: true }).put('/me', data);

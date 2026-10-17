@@ -6,6 +6,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Correccions",
+      text: ["A ", { to: "/admin/me", label: "Configuració general" }, ", ara es pot buidar un camp (per exemple un peu de factura) o tornar a deixar un compte bancari sense triar. Abans el valor antic es mantenia en desar."]
+    },
+    {
       type: "Millores",
       text: ["La pàgina ", { to: "/order-operations", label: "Operacions" }, " s'obre molt més de pressa: només demana les comandes i transferències de les rutes de la repartidora i del dia triat, i no totes les comandes."]
     },
