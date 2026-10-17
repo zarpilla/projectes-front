@@ -70,6 +70,7 @@
 
 <script>
 import service from '@/service/index'
+import { findCurrentUser } from '@/domain/currentUser'
 import RadioPicker from '@/components/RadioPicker.vue'
 import moment from 'moment'
 import { mapState } from 'pinia'
@@ -179,7 +180,7 @@ export default {
       }
 
 
-      const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+      const user = findCurrentUser(this.users)
       if (user && user.id && this.form.users_permissions_user === null) {
         this.userNameSearch = user.username
         this.form.users_permissions_user = user.id

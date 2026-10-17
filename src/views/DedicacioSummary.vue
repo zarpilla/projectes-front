@@ -34,6 +34,7 @@ import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
 import DedicationSummary from '@/components/DedicationSummary.vue'
 import service from '@/service/index'
+import { findCurrentUser } from '@/domain/currentUser'
 import { defaultYear } from '@/domain/years'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
@@ -90,7 +91,7 @@ export default {
       this.users = r.data.filter(u => !u.hidden)
       this.usersList = JSON.parse(JSON.stringify(r.data.filter(u => u.username !== 'app')))
       this.usersList.unshift({ id: 0, username: 'Totes' })
-      const user = this.users.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+      const user = findCurrentUser(r.data)
       if (user && user.id) {
         this.userNameSearch = user.username
         this.filters.user = user.id

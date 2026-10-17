@@ -2560,6 +2560,7 @@ import getConfig from "@/config";
 
 // Services
 import service from "@/service/index";
+import { findCurrentUser } from "@/domain/currentUser";
 
 export default {
   name: "ProjectForm",
@@ -2849,9 +2850,7 @@ export default {
       return treasurySums(this.treasury).expensesDone;
     },
     user() {
-      return this.leaders.find(
-        u => u.username.toLowerCase() === this.userName.toLowerCase()
-      );
+      return findCurrentUser(this.leaders);
     },
     hasLegacyMotherPhases() {
       // Check if this is a mother project and has its own phases (legacy data)

@@ -216,6 +216,7 @@ import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
 import TimeCounter from "@/components/TimeCounter.vue";
 import { counterElapsed, relationId } from "@/service/timeCounter";
+import { findCurrentUser } from "@/domain/currentUser";
 
 export default {
   name: "ModalBoxDedication",
@@ -438,9 +439,7 @@ export default {
           this.isLoading1 = false;
         });
 
-      const user = this.users.find(
-        u => u.username.toLowerCase() === this.userName.toLowerCase()
-      );
+      const user = findCurrentUser(this.users);
       if (user && user.id && this.form.users_permissions_user === null) {
         this.userNameSearch = user.username;
         this.form.users_permissions_user = user.id;

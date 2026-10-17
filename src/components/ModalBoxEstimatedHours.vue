@@ -77,6 +77,7 @@
 
 <script>
 import service from '@/service/index'
+import { findCurrentUser } from '@/domain/currentUser'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import ModalBox from '@/components/ModalBox.vue'
@@ -204,7 +205,7 @@ export default {
           }
           return
         }
-        const user = allUsers.find(u => u.username.toLowerCase() === this.userName.toLowerCase())
+        const user = findCurrentUser(allUsers)
         if (user && user.id && this.form.users_permissions_user === null) {          
           this.form.users_permissions_user = user
           const today = moment().format('YYYY-MM-DD')

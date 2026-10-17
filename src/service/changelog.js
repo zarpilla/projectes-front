@@ -7,6 +7,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: "Hores dedicades, Registre jornades, Bestretes, Saldo hores, Hores anuals i Tasques tornen a obrir-se amb la teva persona triada al filtre «Persona», també després de recarregar la pàgina."
+    },
+    {
+      type: "Correccions",
       text: ["A ", { to: "/dedicacio", label: "hores dedicades" }, ", les hores registrades sense projecte ara surten al calendari i compten als totals del dia, de la setmana i del mes, com a «Sense projecte»."]
     },
     {

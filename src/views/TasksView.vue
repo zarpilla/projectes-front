@@ -62,6 +62,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import HeroBar from "@/components/HeroBar.vue";
 import Tasks from "@/components/Tasks.vue";
 import service from "@/service/index";
+import { findCurrentUser } from "@/domain/currentUser";
 import moment from "moment";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -146,10 +147,9 @@ export default {
 
     this.projects = (await service({ requiresAuth: true }).get("projects/basic?_limit=-1")).data.filter((p) => p.project_state !== 2)
 
-    this.users = (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data.filter((u) => u.hidden !== true)
-    const user = this.users.find(
-      (u) => u.username.toLowerCase() === this.userName.toLowerCase()
-    );
+    const allUsers = (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data
+    this.users = allUsers.filter((u) => u.hidden !== true)
+    const user = findCurrentUser(allUsers);
     if (user && user.id) {
       this.userNameSearch = user.username;
       this.filters.user = user.id

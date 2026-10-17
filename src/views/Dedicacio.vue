@@ -76,6 +76,7 @@ import TitleBar from "@/components/TitleBar.vue";
 // import HeroBar from '@/components/HeroBar.vue'
 import DedicationInput from "@/components/DedicationInput.vue";
 import service from "@/service/index";
+import { findCurrentUser } from "@/domain/currentUser";
 import moment from "moment";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -168,9 +169,7 @@ export default {
           JSON.stringify(r.data.filter((u) => u.username !== "app"))
         );
         this.usersList.unshift({ id: 0, username: "Totes" });
-        const user = this.users.find(
-          (u) => u.username.toLowerCase() === this.userName.toLowerCase()
-        );
+        const user = findCurrentUser(r.data);
         if (user && user.id) {
           this.userNameSearch = user.username;
           this.filters.user = user.id;
