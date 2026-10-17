@@ -162,6 +162,7 @@ import moment from "moment";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatNumber } from "@/helpers/format-number";
+import { operationsQueries, mergeOrders } from "@/domain/orderOperations";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
 
@@ -332,26 +333,15 @@ export default {
           return;
         }
 
-        // Build query parameters
-        let params = {
-          _limit: -1
-        };
-
-        // Add status filter
-        if (this.statusFilter.length > 0) {
-          this.statusFilter.forEach((status, index) => {
-            params[`_where[_or][${index}][status]`] = status;
-          });
-        }
-
-        // Note: Date filter is applied client-side after fetching orders
-        // because we need to filter by different fields (estimated_delivery_date or transfer_route_date)
-
-        // Fetch all orders
-        const response = await service({ requiresAuth: true }).get("orders", {
-          params
-        });
-        let allOrders = response.data || [];
+        // Only this driver's routes (and the day, when one is picked): the
+        // date of a transfer is its transfer_route_date (issues/081)
+        const date = this.selectedDate ? moment(this.selectedDate).format("YYYY-MM-DD") : null;
+        const answers = await Promise.all(
+          operationsQueries({ routeIds, statuses: this.statusFilter, date }).map(params =>
+            service({ requiresAuth: true }).get("orders", { params })
+          )
+        );
+        let allOrders = mergeOrders(...answers.map(r => r.data || []));
 
         // Filter orders that match our criteria:
         // 1. Direct orders: route is in routeIds
