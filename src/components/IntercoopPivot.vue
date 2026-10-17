@@ -23,6 +23,7 @@
 </template>
 
 <script>
+import { intercoopRows } from '@/domain/projectPivotRows'
 import service from '@/service/index'
 // import sumBy from 'lodash/sumBy'
 import moment from 'moment'
@@ -107,29 +108,9 @@ export default {
       // }
       service({ requiresAuth: true }).get(query).then((r) => {
         // console.log('r.data', r.data)
-        const strategies = []
-        const projects = r.data.forEach(p => {
-          if (p.intercooperations) {
-            p.intercooperations.forEach(a => {
-              const intercooperation = {
-                project_name: p.name,
-                project_state: p.project_state ? p.project_state.name : '-',
-                project_leader: p.leader ? p.leader.username : '-',
-                project_scope: p.project_scope ? p.project_scope.short_name : '-',
-                project_client: p.client ? p.client.name : '-',
-                total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-                hours: a.hours,
-                incomes_expenses: p.incomes_expenses ? p.incomes_expenses : 0,
-                intercooperation_name: a.name,
-                count: 1
-              }
-              strategies.push(intercooperation)
-            })
-          }
-        })
-        // console.log('projects', projects)
+        const strategies = intercoopRows(r.data)
         // console.log('activities', activities)
-        this.projects = projects
+        this.projects = r.data
         this.pivotData = Object.freeze(strategies)
         configPivot.dataSource.data = this.pivotData
         this.initializePivotWithViews('#project-stats', configPivot)

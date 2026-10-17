@@ -82,7 +82,7 @@ const config = {
             aggregate: 'sum',
             format: '{0:n2} €'
           },
-          estimated_balance: {
+          'Balanç previst (€)': {
             field: 'estimated_balance',
             aggregate: 'sum',
             format: '{0:n2} €'
