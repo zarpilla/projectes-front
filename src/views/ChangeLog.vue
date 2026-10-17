@@ -216,7 +216,10 @@ export default {
 .news-tags .tag {
   font-size: .6875rem;
 }
+/* starts where the type's text starts, not at the edge of its badge
+   (Bulma's tag padding is .75em of the tag's .6875rem) */
 .news-modules {
+  padding-left: calc(.6875rem * .75);
   font-size: .75rem;
   line-height: 1.3;
 }
@@ -278,6 +281,9 @@ export default {
     flex-direction: row;
     align-items: center;
     gap: .5rem;
+  }
+  .news-modules {
+    padding-left: 0;
   }
 }
 </style>
