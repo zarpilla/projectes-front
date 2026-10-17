@@ -227,15 +227,15 @@ const menu = [
   "Altres",
   [
     {
-      to: "/import-export",
-      icon: "swap-vertical",
-      label: "Importar/Exportar",
-      permission: "projects"
-    },
-    {
       to: "/changelog",
       icon: "math-log",
       label: "Registre de canvis",
+      permission: "projects"
+    },
+    {
+      to: "/import-export",
+      icon: "swap-vertical",
+      label: "Importar/Exportar",
       permission: "projects"
     },
     {
