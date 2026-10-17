@@ -103,19 +103,8 @@ const routes = [
     component: () =>
       import("../views/PricePerHour.vue"),
   },
-  {
-    meta: {
-      title: "Panell Despeses",
-      requiresAuth: true
-    },
-    path: "/stats-despeses",
-    name: "stats.despeses",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import("../views/StatsExpenses.vue"),
-  },
+  // the old «Panell Despeses» (empty since Strapi 5): the same figures, in detail (issues/114)
+  { path: "/stats-despeses", redirect: "/stats-economic-detail" },
   {
     meta: {
       title: "Panell Previsió Dedicacio",

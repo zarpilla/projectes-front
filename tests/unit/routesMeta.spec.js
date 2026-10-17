@@ -44,3 +44,14 @@ describe('Pressupostos «Estat» sort (issues/085)', () => {
     expect([...rows].sort((a, b) => sort(a, b, false)).map(r => r.id)).toEqual([2, 3, 1])
   })
 })
+
+// issues/114: «Panell Despeses» read the phase lines from the project list, which
+// Strapi 5 no longer includes, so it was always empty. Ingressos i despeses shows
+// the same figures.
+describe('old Panell Despeses (issues/114)', () => {
+  it('opens Ingressos i despeses', () => {
+    const old = router.getRoutes().find(r => r.path === '/stats-despeses')
+    expect(old.redirect).toBe('/stats-economic-detail')
+    expect(router.resolve('/stats-economic-detail').name).toBeTruthy()
+  })
+})
