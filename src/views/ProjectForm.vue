@@ -1856,7 +1856,7 @@
       <!-- <pre>{{documents}}</pre> -->
 
       <div
-        v-if="tabsEnabled && showTab('periodificacio') && !isLoading && !(periodification && form.periodification && form.periodification.length)"
+        v-if="tabsEnabled && showTab('periodificacio') && !isLoading && !hasPeriodificationRows"
         class="card tab-empty"
       >
         <p><b>Aquest projecte no periodifica manualment els ingressos i les despeses.</b></p>
@@ -1864,7 +1864,7 @@
         <b-button size="is-small" @click="selectTab('dades')">Ves a Dades</b-button>
       </div>
       <card-component
-        v-if="!isLoading && periodification && form.periodification.length && !isCreationMode"
+        v-if="!isLoading && hasPeriodificationRows && !isCreationMode"
         title="Periodificació d'ingressos i despeses"
         v-show="showTab('periodificacio')"
       >
@@ -2663,6 +2663,10 @@ export default {
     };
   },
   computed: {
+    // a new project has no `form.periodification` yet (issues/126)
+    hasPeriodificationRows() {
+      return !!(this.periodification && this.form.periodification && this.form.periodification.length);
+    },
     ...mapState(useMainStore, ["me"]),
     undatedLines() {
       return undatedProjectLines(this.form);

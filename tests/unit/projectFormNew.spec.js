@@ -42,3 +42,17 @@ describe('ProjectForm new project (issues/068)', () => {
     expect(c.form.creation_step).toBe('basic_data')
   })
 })
+
+// issues/126: a new project has no `form.periodification` yet, and the
+// periodification card read its length unguarded (TypeError on /project/0)
+describe('ProjectForm periodification card (issues/126)', () => {
+  const has = ctx => ProjectForm.computed.hasPeriodificationRows.call(ctx)
+  it('is off, without throwing, when the project has no periodification rows', () => {
+    expect(has({ periodification: true, form: {} })).toBe(false)
+    expect(has({ periodification: true, form: { periodification: [] } })).toBe(false)
+    expect(has({ periodification: false, form: { periodification: [{}] } })).toBe(false)
+  })
+  it('is on when the project periodifies and has rows', () => {
+    expect(has({ periodification: true, form: { periodification: [{ year: 1 }] } })).toBe(true)
+  })
+})
