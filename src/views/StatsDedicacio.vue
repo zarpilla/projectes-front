@@ -1,14 +1,9 @@
 <template>
+  <!-- Informes › Dedicació: one report for the hours, planned and worked. It merged
+       «Dedicació (gràfic)», «Dedicació (taula)» and «Prev./Real dedicació»: charts on
+       top, the pivot below, both from the same rows. -->
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" :subtitle="subtitle" />
-    <!-- <hero-bar>
-      Dedicació
-      <template #right>
-        <router-link to="/" class="button">
-          Dashboard
-        </router-link>
-      </template>
-    </hero-bar> -->
     <section class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
         <label class="filter-select">
@@ -17,85 +12,139 @@
             <option v-for="(s, index) in project_states" :key="index" :value="s.id">{{ s.name }}</option>
           </b-select>
         </label>
+        <label class="filter-select">
+          <span>Any</span>
+          <b-select v-model="filters.year" aria-label="Any">
+            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ s.display }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Persona</span>
+          <b-select v-model="filters.user" aria-label="Persona">
+            <option v-for="(s, index) in users" :key="index" :value="s.id">{{ s.username }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Projecte</span>
+          <b-autocomplete
+            v-model="projectSearch"
+            placeholder="Tots"
+            aria-label="Projecte"
+            :keep-first="false"
+            :open-on-focus="true"
+            :data="filteredProjects"
+            field="name"
+            :clearable="true"
+            @select="option => (filters.project = option ? option.id : 0)"
+          />
+        </label>
       </form>
-      <dedication-pivot v-if="!isLoading" :project-state="filters.project_state" :year="filters.year" />
+      <dedication-charts v-if="chartRows" :rows="chartRows" :year="appliedFilters.year" :show-cost="showCost" />
+      <dedication-est-pivot
+        v-if="ready"
+        :project-state="appliedFilters.project_state"
+        :year="appliedFilters.year"
+        :person="appliedFilters.user"
+        :project="appliedFilters.project"
+        :show-cost="showCost"
+        @loaded="rows => (chartRows = rows)"
+      />
     </section>
   </div>
 </template>
 
 <script>
 import TitleBar from '@/components/TitleBar.vue'
-import CardComponent from '@/components/CardComponent.vue'
-import DedicationPivot from '@/components/DedicationPivot.vue'
+import DedicationEstPivot from '@/components/DedicationEstPivot.vue'
+import DedicationCharts from '@/components/DedicationCharts.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
+import { defaultYear } from '@/domain/years'
 import { addScript, addStyle } from '@/helpers/addScript'
 import moment from 'moment'
-import getConfig from '@/config'
 
 export default {
   name: 'StatsDedicacio',
   components: {
-    // HeroBar,
-    CardComponent,
     TitleBar,
-    // DedicationWidget,
-    DedicationPivot
+    DedicationEstPivot,
+    DedicationCharts
   },
   data () {
     return {
       isLoading: true,
-      filters: {
-        project_state: null,
-        year: null
-      },
+      ready: false,
+      filters: { project_state: null, year: null, user: 0, project: 0 },
+      appliedFilters: { project_state: null, year: null, user: 0, project: 0 },
       project_states: [],
-      years: []
+      years: [],
+      users: [],
+      projects: [],
+      projectSearch: '',
+      // the cost of the hours (from salaries) only for people with the projects permission;
+      // the report is open to hours-only people too, as «Dedicació (gràfic/taula)» were
+      showCost: false,
+      // rows loaded by the pivot, for the charts
+      chartRows: null
     }
   },
   computed: {
     titleStack () {
-      return ['Informes', 'Dedicació per projecte']
+      return ['Informes', 'Dedicació']
     },
     subtitle () {
-      return 'Hores reals de cada projecte. Configura la taula dinàmica per veure-les per persona, tipus de dedicació o funció.'
+      return 'Hores previstes i fetes per projecte i persona: un resum en gràfics i, a sota, el detall a la taula dinàmica.'
+    },
+    filteredProjects () {
+      const q = (this.projectSearch || '').toLowerCase()
+      return this.projects.filter(p => p.name && p.name.toLowerCase().includes(q))
+    }
+  },
+  watch: {
+    // the report follows the filters right away (several changes in a row reload once)
+    filters: {
+      deep: true,
+      handler () {
+        if (!this.ready) return
+        clearTimeout(this.applyTimer)
+        this.applyTimer = setTimeout(() => { this.appliedFilters = { ...this.filters } }, 400)
+      }
     }
   },
   async mounted () {
-    this.isLoading = true
-
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        const config = getConfig();
-        const basePath = config.VUE_APP_PATH || '';
-        await addScript(basePath + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle(basePath + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle(basePath + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle(basePath + '/vendor/kendo/custom.css', 'custom-css')        
-        this.getData()
-        setTimeout(() => {
-          this.isLoading = false
-        }, 250)
+        const path = import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : ''
+        await addScript(path + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
+        await addStyle(path + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
+        await addStyle(path + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
+        await addStyle(path + '/vendor/kendo/custom.css', 'custom-css')
+        await this.getData()
+        this.isLoading = false
       }
     }, 100)
-
   },
   methods: {
-    getData () {
-      service({ requiresAuth: true }).get('project-states').then((r) => {
-        this.project_states = [...r.data];
-        this.project_states.unshift({ id: 0, name: 'Tots' })
-        this.filters.project_state = defaultProjectState
-      })
-      service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC').then((r) => {
-        this.years = r.data
-        this.years.unshift({ id: 0, year: 0 })
-        // this.filters.year = 0
-        this.filters.year = this.years.find(y => y.year.toString() === moment().format('YYYY')).year
-        this.isLoading = false
-      })
-    },
+    async getData () {
+      const me = await service({ requiresAuth: true, cached: true }).get('users/me')
+      this.showCost = (me.data.permissions || []).map(p => p.permission).includes('projects')
+      const [states, years, users, projects] = await Promise.all([
+        service({ requiresAuth: true }).get('project-states'),
+        service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC'),
+        service({ requiresAuth: true, cached: true }).get('users'),
+        service({ requiresAuth: true }).get('projects/basic?_limit=-1&_sort=name:ASC')
+      ])
+      this.project_states = [{ id: 0, name: 'Tots' }, ...states.data]
+      this.years = [{ id: 0, year: 0, display: 'Tots' }, ...years.data.map(y => ({ ...y, display: y.year }))]
+      this.users = [{ id: 0, username: 'Totes' }, ...users.data.filter(u => !u.hidden)]
+      this.projects = projects.data
+      // this year by default, so the charts go month by month
+      const current = defaultYear(years.data.filter(y => Number(y.year) <= moment().year()))
+      this.filters = { project_state: defaultProjectState, year: current ? Number(current.year) : 0, user: 0, project: 0 }
+      this.appliedFilters = { ...this.filters }
+      this.$nextTick(() => { this.ready = true })
+    }
   }
 }
 </script>

@@ -67,14 +67,11 @@ const routes = [
   },
   {
     meta: {
-      title: "Panell Dedicacio",
+      title: "Dedicació",
       requiresAuth: true
     },
     path: "/stats-dedicacio",
     name: "stats.dedicacio",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: () =>
       import("../views/StatsDedicacio.vue"),
   },
@@ -105,19 +102,9 @@ const routes = [
   },
   // the old «Panell Despeses» (empty since Strapi 5): the same figures, in detail (issues/114)
   { path: "/stats-despeses", redirect: "/stats-economic-detail" },
-  {
-    meta: {
-      title: "Panell Previsió Dedicacio",
-      requiresAuth: true
-    },
-    path: "/stats-previsio-hores",
-    name: "stats.previsiohores",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import("../views/StatsDedicacioEst.vue"),
-  },
+  // «Prev./Real dedicació» and «Dedicació (gràfic)» became Informes › Dedicació
+  { path: "/stats-previsio-hores", redirect: "/stats-dedicacio" },
+  { path: "/dedicacio-charts", redirect: "/stats-dedicacio" },
   {
     meta: {
       title: "Panell Previsió Dedicacio",
@@ -223,19 +210,6 @@ const routes = [
     name: "dedicacio",
     component: () =>
       import("../views/Dedicacio.vue"),
-    props: true,
-  },
-  {
-    meta: {
-      title: "Gràfiques Dedicació",
-      requiresAuth: true
-    },
-    path: "/dedicacio-charts",
-    name: "dedicacio-charts",
-    component: () =>
-      import(
-        "../views/DedicacioCharts.vue"
-      ),
     props: true,
   },
   {

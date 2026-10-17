@@ -119,16 +119,11 @@ const menu = [
     //   permission: "projects"
     // },
     {
-      to: "/dedicacio-charts",
-      label: "Dedicació (gràfic)",
-      icon: "chart-pie",
-      permission: "hours"
-    },
-    {
+      // previst i fet, gràfics i taula (it merged three reports)
       to: "/stats-dedicacio",
-      icon: "table-large",
-      label: "Dedicació (taula)",
-      permission: "hours"
+      icon: "chart-bar",
+      label: "Dedicació",
+      permission: ["hours", "projects"]
     },
     {
       to: "/stats-real-gantt",
@@ -140,13 +135,6 @@ const menu = [
       to: "/stats-previsio-gantt",
       icon: "chart-timeline-variant",
       label: "Previsió dedicació",
-      permission: "projects"
-    },
-    
-    {
-      to: "/stats-previsio-hores",
-      icon: "chart-bar",
-      label: "Prev./Real dedicació",
       permission: "projects"
     },
     {

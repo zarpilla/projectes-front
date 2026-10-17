@@ -35,6 +35,10 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       text: ["L'informe ", { to: "/stats-projectes", label: "Projectes" }, " també comença amb gràfics: el resultat previst i el real de cada projecte, les hores fetes contra les previstes i el resultat per àmbit o per qui coordina."]
+    },
+    {
+      type: "Millores",
+      text: ["Un sol informe de ", { to: "/stats-dedicacio", label: "Dedicació" }, " en lloc de tres (Dedicació gràfic, Dedicació taula i Prev./Real): hores previstes i fetes per mes, per persona i per projecte, per tipus de dedicació i per funció, amb la taula dinàmica a sota. El cost de les hores només el veuen les persones amb accés a Projectes."]
     }
   ]
 },

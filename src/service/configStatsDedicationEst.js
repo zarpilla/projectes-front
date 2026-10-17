@@ -9,7 +9,10 @@ const fieldCaptions = {
   project_leader: 'Líder',
   project_scope: 'Àmbit',
   project_client: 'Client',
-  dedication_type: 'Tipus Dedicació',
+  dedication_type: 'Tipus dedicació',
+  project_type: 'Tipus de projecte',
+  project_likelihood: 'Probabilitat',
+  activity_type: 'Funció',
   year: 'Any',
   month: 'Mes',
   username: 'Persona',
@@ -34,6 +37,15 @@ const config = {
       expand: false
     }, {
       name: 'dedication_type',
+      expand: false
+    }, {
+      name: 'activity_type',
+      expand: false
+    }, {
+      name: 'project_type',
+      expand: false
+    }, {
+      name: 'project_likelihood',
       expand: false
     }, {
       name: 'year',
@@ -121,7 +133,16 @@ const config = {
             caption: 'Persones (TOTES)'
           },
           dedication_type: {
-            caption: 'Tipus Dedicació (TOTES)'
+            caption: 'Tipus dedicació (TOTES)'
+          },
+          project_type: {
+            caption: 'Tipus de projecte (TOTS)'
+          },
+          project_likelihood: {
+            caption: 'Probabilitats (TOTES)'
+          },
+          activity_type: {
+            caption: 'Funcions (TOTES)'
           }
         },
         measures: {

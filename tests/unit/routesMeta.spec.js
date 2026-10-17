@@ -55,3 +55,14 @@ describe('old Panell Despeses (issues/114)', () => {
     expect(router.resolve('/stats-economic-detail').name).toBeTruthy()
   })
 })
+
+// «Dedicació (gràfic)», «Dedicació (taula)» and «Prev./Real dedicació» showed the same
+// hours three ways; they became one report, Informes › Dedicació
+describe('one dedication report', () => {
+  it('opens Dedicació from the old addresses', () => {
+    for (const path of ['/stats-previsio-hores', '/dedicacio-charts']) {
+      expect(router.getRoutes().find(r => r.path === path).redirect).toBe('/stats-dedicacio')
+    }
+    expect(router.getRoutes().find(r => r.path === '/stats-dedicacio').meta.title).toBe('Dedicació')
+  })
+})

@@ -55,7 +55,7 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 |---|------|-----------|-----------|--------|-------|
 | 24 | Com funcionen les taules dinàmiques | Files, columnes, filtres, valors, desar vistes, exportar a Excel. Base per a tots els informes. | `/stats-projectes` | projects | pending |
 | 25 | Informes de projectes i econòmics | Projectes, ingressos/despeses, despeses, previsió econòmica, preu hora, estratègies, intercooperació. | `/stats-projectes`, `/stats-economic-detail`, `/stats-despeses`, `/forecast`, `/price-hour`, `/stats-estrategies`, `/stats-intercoop` | projects | pending |
-| 26 | Informes de dedicació | Gràfics i taula de dedicació, % de dedicació real, previsió vs. real. | `/dedicacio-charts`, `/stats-dedicacio`, `/stats-real-gantt`, `/stats-previsio-hores` | hours / projects | pending |
+| 26 | Informes de dedicació | Dedicació (previst i fet, gràfics i taula), % de dedicació real. | `/stats-dedicacio`, `/stats-real-gantt` | hours / projects | pending |
 
 ## F. Logística (comandes)
 

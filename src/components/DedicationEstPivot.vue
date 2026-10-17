@@ -21,7 +21,7 @@
         v-model="isLoading"
         :can-cancel="false"
       ></b-loading>
-    <download-excel name="previsio-execucio-dedicacio-detall" :data="pivotData"
+    <download-excel name="dedicacio" :data="pivotData"
     
     :fields="{
         project_name: 'project_name',
@@ -31,6 +31,9 @@
         project_client: 'project_client',        
         username: 'username',
         dedication_type: 'dedication_type',
+        activity_type: 'activity_type',
+        project_type: 'project_type',
+        project_likelihood: 'project_likelihood',
         date: 'date',
         year: 'year',
         month: 'month',
@@ -118,10 +121,13 @@ import PivotViews from '@/components/PivotViews.vue'
 import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
 
 moment.locale('ca')
+// the pivot's measures as configured (the config object is shared and gets modified)
+const DEFAULT_MEASURES = [...configPivot.dataSource.measures]
 
 export default {
-  name: 'DedicationPivot',
+  name: 'DedicationEstPivot',
   components: { PivotViews },
+  emits: ['loaded'],
   mixins: [pivotViewsMixin],
   props: {
     projectState: {
@@ -135,6 +141,16 @@ export default {
     person: {
       type: Number,
       default: 0
+    },
+    // one project (id), or 0 for all
+    project: {
+      type: Number,
+      default: 0
+    },
+    // without it, no «Cost real» (the cost of the hours comes from salaries)
+    showCost: {
+      type: Boolean,
+      default: true
     }
   },
   data () {
@@ -143,7 +159,7 @@ export default {
       projects: [],
       projectsList: [],
       dedicationTypes: [],
-      activityTypes: {},
+      activityTypes: [],
       users: [],
       usersList: [],
       modalObjectName: '',
@@ -186,7 +202,7 @@ export default {
     // change to several of them (e.g. when the parent commits them together
     // on "Aplicar") only triggers one getActivities() instead of one per prop.
     filterSignature () {
-      return `${this.projectState}|${this.year}|${this.person}`
+      return `${this.projectState}|${this.year}|${this.person}|${this.project}`
     },
     pivotDataGroupped() {
       return _(this.pivotData.map(p => { return { ...p, pyu: `${p.project_name}.${p.username}.${p.year}` } }))
@@ -211,7 +227,7 @@ export default {
     // from the backend (`planned_hours`), computed like the project's stored
     // total in the projects panel (working days, festives, only lines with a
     // person), so both screens give the same hours (issues/067).
-    plannedHoursRows (activities, p) {
+    plannedHoursRows (activities, p, projectFields = {}) {
       (p.planned_hours || []).forEach(h => {
         if ((this.year === 0 || h.year === this.year.toString()) &&
           (this.person === 0 || (h.user && h.user.toString() === this.person.toString()))) {
@@ -236,10 +252,17 @@ export default {
             estimated_hours_today: h.estimated_hours_today,
             username: user ? user.username : '-',
             dedication_type: p.default_dedication_type && p.default_dedication_type.id ? p.default_dedication_type.name : '-',
-            real_cost: 0
+            real_cost: 0,
+            ...projectFields,
+            activity_type: '-'
           })
         }
       })
+    },
+    activityTypeName (activityType) {
+      const id = activityType && activityType.id ? activityType.id : activityType
+      const found = id && Array.isArray(this.activityTypes) ? this.activityTypes.find(t => t.id === id) : null
+      return found ? found.name : '-'
     },
     async getActivities () {
       this.isLoading = true
@@ -253,6 +276,7 @@ export default {
       this.dedicationTypes = (await service({ requiresAuth: true }).get('dedication-types')).data
       this.leaders = (await service({ requiresAuth: true, cached: true }).get('users')).data
       this.contacts = (await service({ requiresAuth: true }).get('contacts/basic?_limit=-1&_sort=name:ASC')).data
+      this.activityTypes = (await service({ requiresAuth: true, cached: true }).get('activity-types/basic?_limit=-1')).data
 
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
@@ -263,7 +287,12 @@ export default {
       }
       service({ requiresAuth: true }).get(query).then((r) => {
         const activities = []
-        const projects = r.data.forEach(p => {          
+        const projects = r.data.filter(p => !this.project || p.id === this.project).forEach(p => {
+          // fields of «Dedicació (taula)», merged into this report
+          const projectFields = {
+            project_type: p.project_type && p.project_type.name ? p.project_type.name : '-',
+            project_likelihood: p.project_likelihood && p.project_likelihood.name ? p.project_likelihood.name : '-'
+          }
           if (p.activities) {
             p.activities.forEach(a => {
               if ((this.year === 0 || (this.year > 0 && a.date && parseInt(moment(a.date).format('YYYY')) === this.year)) 
@@ -288,13 +317,15 @@ export default {
                   username: a.users_permissions_user && this.leaders.find(u => u.id === a.users_permissions_user) ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-',
                   count: 1,
                   dedication_type: a.dedication_type && this.dedicationTypes.length && this.dedicationTypes.find(d => d.id === a.dedication_type) ? this.dedicationTypes.find(d => d.id === a.dedication_type).name : '-',
-                  real_cost: a.cost_by_hour * a.hours
+                  real_cost: a.cost_by_hour * a.hours,
+                  ...projectFields,
+                  activity_type: this.activityTypeName(a.activity_type)
                 }
                 activities.push(activity)
               }
             })
           }
-          this.plannedHoursRows(activities, p)
+          this.plannedHoursRows(activities, p, projectFields)
           if (!(p.project_phases && p.project_phases.length > 0) && !(p.project_original_phases && p.project_original_phases.length > 0) && p.estimated_hours && p.estimated_hours.length > 0) {
             p.estimated_hours.forEach(a => {
               if ((this.year === 0 || (this.year > 0 && a.year && a.year.year && a.year.year === this.year)) && (this.month === 0 || (this.month > 0 && a.month && a.month.month && a.month.month === this.month))) {
@@ -326,8 +357,12 @@ export default {
         })
         this.projects = projects
         // this.pivotData = Object.freeze(activities)
+        if (!this.showCost) activities.forEach(a => { delete a.real_cost })
         this.pivotData = Object.freeze(sortBy(activities, ['year', 'month', 'project_name'], ['asc', 'asc', 'asc']))
+        // the charts above the pivot use the same rows
+        this.$emit('loaded', this.pivotData)
         configPivot.dataSource.data = this.pivotData
+        configPivot.dataSource.measures = DEFAULT_MEASURES.filter(m => this.showCost || m !== 'Cost real')
         this.initializePivotWithViews('#project-stats', configPivot)
         this.isLoading = false
       })
