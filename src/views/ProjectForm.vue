@@ -2931,10 +2931,8 @@ export default {
       // the route gives the id as a string: "0" is a new project, whose form
       // must not keep the last project's data (issues/068)
       if (!newValue || Number(newValue) === 0) {
-        this.dirtyEnabled = false;
-        this.isInitialLoad = true;
         this.form = this.getClearFormObject();
-        this.getAuxiliarData();
+        this.startNewProject();
         // dirty flag will be reset in getAuxiliarData() after all async operations complete
       } else {
         this.getData();
@@ -3306,22 +3304,27 @@ export default {
             }
           });
       } else {
-        // New project - disable dirty tracking during initialization
-        this.dirtyEnabled = false;
-        this.isInitialLoad = true;
-        this.userHasInteracted = false;
-        this.project_scopes = this.project_scopes.filter(s => !s.disabled)
-        this.project_likelihoods = this.project_likelihoods.filter(s => !s.disabled)
-        this.form.date_start = new Date();
-        this.form.date_end = moment()
-          .endOf("year")
-          .toDate();
-        // Enable creation mode for new projects and set initial creation_step
-        this.isCreationMode = true;
-        this.currentStep = 1;
-        this.form.creation_step = 'basic_data';
-        this.getAuxiliarData();
+        this.startNewProject();
       }
+    },
+    // A new project opens the creation wizard, also when the form is reused
+    // coming from another project (it showed the old one-page form, issues/110)
+    startNewProject() {
+      // New project - disable dirty tracking during initialization
+      this.dirtyEnabled = false;
+      this.isInitialLoad = true;
+      this.userHasInteracted = false;
+      this.project_scopes = this.project_scopes.filter(s => !s.disabled)
+      this.project_likelihoods = this.project_likelihoods.filter(s => !s.disabled)
+      this.form.date_start = new Date();
+      this.form.date_end = moment()
+        .endOf("year")
+        .toDate();
+      // Enable creation mode for new projects and set initial creation_step
+      this.isCreationMode = true;
+      this.currentStep = 1;
+      this.form.creation_step = 'basic_data';
+      this.getAuxiliarData();
     },
     async getAuxiliarData() {
       service({ requiresAuth: true, cached: true })

@@ -9,7 +9,10 @@ const vm = () => ({
   form: { id: 5, name: 'Projecte vell' },
   getClearFormObject: ProjectForm.methods.getClearFormObject,
   getAuxiliarData: vi.fn(),
-  getData: vi.fn()
+  getData: vi.fn(),
+  project_scopes: [],
+  project_likelihoods: [],
+  startNewProject: ProjectForm.methods.startNewProject
 })
 
 describe('ProjectForm new project (issues/068)', () => {
@@ -26,5 +29,16 @@ describe('ProjectForm new project (issues/068)', () => {
     const c = vm()
     ProjectForm.watch.id.call(c, '7')
     expect(c.getData).toHaveBeenCalled()
+  })
+
+  // issues/110: coming from a project, «new project» showed the old one-page
+  // form instead of the creation wizard
+  it('opens the creation wizard', () => {
+    const c = vm()
+    c.isCreationMode = false
+    ProjectForm.watch.id.call(c, '0')
+    expect(c.isCreationMode).toBe(true)
+    expect(c.currentStep).toBe(1)
+    expect(c.form.creation_step).toBe('basic_data')
   })
 })
