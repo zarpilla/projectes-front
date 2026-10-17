@@ -119,6 +119,25 @@ test('the order is listed in "Comandes" and shown in its view', async () => {
   await expect(page.getByText(POINT).first()).toBeVisible()
 })
 
+test('the column filters and the quick edit of "Comandes"', async () => {
+  test.skip(!state.orderId, 'needs the order')
+  await visit('/orders')
+  // a column filter goes to the API: only this order's point is left
+  await page.getByLabel("Filtra Punt d'entrega").fill(POINT)
+  await settle()
+  const row = page.locator('tr.order-row', { hasText: POINT }).first()
+  await expect(row).toBeVisible()
+  await expect(page.locator('tr.order-row')).toHaveCount(1)
+  // quick edit in the row: 3 boxes
+  await row.locator('button[title="Edició ràpida"]').click()
+  const editing = page.locator('tr.order-row.is-editing')
+  await editing.locator('input[type="number"]').first().fill('3')
+  await editing.locator('button[aria-label="Desa"]').click()
+  await expectSnackbar('Comanda actualitzada correctament')
+  await settle()
+  expect((await api('GET', `orders/${state.orderId}`)).units).toBe(3)
+})
+
 test('an incidence is created from the order', async () => {
   test.skip(!state.orderId, 'needs the order')
   await visit(`/order/${state.orderId}`)

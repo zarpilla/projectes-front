@@ -201,17 +201,35 @@
                 <th class="col-check">
                   <b-checkbox :model-value="allChecked" :indeterminate="someChecked" aria-label="Selecciona-les totes" @update:model-value="toggleAll" />
                 </th>
-                <th>Núm.</th>
-                <th>Punt d'entrega</th>
-                <th v-if="isStaff">Sòcia</th>
-                <th v-if="groupBy !== 'route'">Ruta</th>
-                <th v-if="showDateCol">Prevista</th>
-                <th>Recollida</th>
-                <th class="has-text-right">Caixes</th>
-                <th class="has-text-right">Kg</th>
-                <th class="has-text-right">Preu</th>
-                <th>Estat</th>
+                <th v-for="col in visibleCols" :key="col.key" :class="{ 'has-text-right': col.num }">
+                  <button type="button" class="sort-head" :aria-label="`Ordena per ${col.label}`" @click="sortBy(col)">
+                    {{ col.label }}
+                    <b-icon v-if="sortField === col.sort" :icon="sortOrder === 'ASC' ? 'arrow-up' : 'arrow-down'" size="is-small" />
+                  </button>
+                </th>
                 <th class="col-actions"><span class="is-sr-only">Accions</span></th>
+              </tr>
+              <!-- one filter per column, as the old table (they go to the API) -->
+              <tr class="filter-row">
+                <th class="col-check">
+                  <button v-if="hasColumnFilters" type="button" class="clear-filters" title="Treu els filtres de les columnes" aria-label="Treu els filtres de les columnes" @click="clearColumnFilters"><b-icon icon="filter-remove-outline" size="is-small" /></button>
+                </th>
+                <th v-for="col in visibleCols" :key="col.key">
+                  <select v-if="col.options" v-model="filters[col.key]" class="col-filter" :aria-label="`Filtra ${col.label}`" @change="refresh">
+                    <option value="">Tots</option>
+                    <option v-for="o in col.options()" :key="o.value" :value="o.value">{{ o.label }}</option>
+                  </select>
+                  <input
+                    v-else
+                    v-model="filters[col.key]"
+                    class="col-filter"
+                    type="search"
+                    :placeholder="col.date ? 'aaaa-mm-dd' : 'Filtra'"
+                    :aria-label="`Filtra ${col.label}`"
+                    @input="debouncedRefresh"
+                  />
+                </th>
+                <th></th>
               </tr>
             </thead>
             <tbody v-for="group in groups" :key="group.key">
@@ -219,7 +237,7 @@
                 <td class="col-check">
                   <b-checkbox :model-value="groupChecked(group)" :indeterminate="groupSomeChecked(group)" :aria-label="`Selecciona ${group.label}`" @update:model-value="toggleGroup(group, $event)" />
                 </td>
-                <td :colspan="groupLabelSpan">
+                <td :colspan="sumColsBefore">
                   <button type="button" class="group-toggle" :aria-expanded="collapsed[group.key] ? 'false' : 'true'" @click="toggleCollapsed(group.key)">
                     <b-icon :icon="collapsed[group.key] ? 'chevron-right' : 'chevron-down'" size="is-small" />
                     <b>{{ group.label }}</b>
@@ -230,71 +248,119 @@
                 <td class="has-text-right num"><b>{{ formatNum(group.units) }}</b></td>
                 <td class="has-text-right num"><b>{{ formatNum(group.kg) }}</b></td>
                 <td class="has-text-right num"><b>{{ money(group.price) }}</b></td>
-                <td colspan="2"></td>
+                <td :colspan="sumColsAfter"></td>
               </tr>
               <template v-if="!collapsed[group.key]">
                 <tr
                   v-for="(order, i) in group.rows"
                   :key="order.id || 'new-' + i"
                   class="order-row"
-                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id }"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id }"
                 >
                   <td class="col-check">
                     <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
                   </td>
-                  <td class="num">
-                    <router-link v-if="order.id" :to="{ name: 'orders.view.detail', params: { id: order.id } }" class="order-num">{{ order.idx }}</router-link>
-                    <b-button v-else size="is-small" type="is-primary" @click="createCSVOrder(order)">Crea</b-button>
+                  <td v-for="col in visibleCols" :key="col.key" :class="cellClass(col)">
+                    <!-- quick edit (pencil) -->
+                    <template v-if="editingRowId && editingRowId === order.id && col.edit">
+                      <b-select v-if="col.edit === 'route'" v-model="editForm.route" size="is-small" @update:model-value="updateCalculatedPrice">
+                        <option v-for="r in routes" :key="r.id" :value="r.id">{{ r.name }}</option>
+                      </b-select>
+                      <b-datepicker v-else-if="col.edit === 'estimated'" v-model="editForm.estimated_delivery_date" size="is-small" :show-week-number="false" locale="ca-ES" :first-day-of-week="1" placeholder="Data" />
+                      <b-datepicker v-else-if="col.edit === 'delivered'" v-model="editForm.delivery_date" size="is-small" :show-week-number="false" locale="ca-ES" :first-day-of-week="1" placeholder="Data" />
+                      <b-autocomplete
+                        v-else-if="col.edit === 'contact'"
+                        v-model="contactSearch"
+                        size="is-small"
+                        placeholder="Punt d'entrega"
+                        :keep-first="false"
+                        :open-on-focus="true"
+                        :data="filteredContacts"
+                        field="display"
+                        :clearable="true"
+                        @select="option => editForm.contact = option ? option.id : null"
+                      />
+                      <b-input v-else-if="col.edit === 'units'" v-model="editForm.units" type="number" size="is-small" />
+                      <b-input v-else-if="col.edit === 'kilograms'" v-model="editForm.kilograms" type="number" size="is-small" @update:model-value="updateCalculatedPrice" />
+                      <b-select v-else-if="col.edit === 'pickup'" v-model="editForm.pickup" size="is-small">
+                        <option v-for="p in pickups" :key="p.id" :value="p.id">{{ p.alias || p.name }}</option>
+                      </b-select>
+                      <div v-else-if="col.edit === 'delivery_type'" class="edit-stack">
+                        <b-select v-model="editForm.delivery_type" size="is-small" @update:model-value="updateCalculatedPrice">
+                          <option v-for="dt in deliveryTypes" :key="dt.id" :value="dt.id">{{ dt.name }}</option>
+                        </b-select>
+                        <b-checkbox v-model="editForm.last_mile" size="is-small">Última milla</b-checkbox>
+                      </div>
+                      <b-select v-else-if="col.edit === 'last_mile'" v-model="editForm.last_mile" size="is-small">
+                        <option :value="true">Sí</option>
+                        <option :value="false">No</option>
+                      </b-select>
+                      <b v-else-if="col.edit === 'price'">{{ calculatedPrice !== null ? money(calculatedPrice) : "?" }}</b>
+                    </template>
+                    <!-- read -->
+                    <template v-else-if="col.key === 'idx'">
+                      <router-link v-if="order.id" :to="{ name: 'orders.view.detail', params: { id: order.id } }" class="order-num">{{ order.idx }}</router-link>
+                      <b-button v-else size="is-small" type="is-primary" @click="createCSVOrder(order)">Crea</b-button>
+                    </template>
+                    <template v-else-if="col.key === 'contact.trade_name'">
+                      <b>{{ order.fullName || "—" }}</b>
+                      <small>{{ order.contact_city || (order.contact && order.contact.city) || "" }}</small>
+                      <span class="order-tags">
+                        <span v-if="order.fragile" class="tag is-warning is-light">Fràgil</span>
+                        <span v-if="order.transfer" class="tag">Transferència</span>
+                        <span v-if="order.last_mile" class="tag is-link is-light">Última milla</span>
+                        <span v-if="order.is_collection_order" class="tag">Comanda de recollida</span>
+                      </span>
+                    </template>
+                    <template v-else-if="col.key === 'owner.fullname'">{{ order.owner ? order.owner.fullname || order.owner.username : "—" }}</template>
+                    <template v-else-if="col.key === 'route.name'">{{ order.route ? order.route.name : "—" }}</template>
+                    <template v-else-if="col.key === 'estimated_delivery_date'">{{ formatDay(order.estimated_delivery_date) }}</template>
+                    <template v-else-if="col.key === 'delivery_date'">{{ order.delivery_date ? formatDay(order.delivery_date) : "—" }}</template>
+                    <template v-else-if="col.key === 'pickup.name'">
+                      <span>{{ order.pickup ? order.pickup.alias || order.pickup.name : "—" }}</span>
+                      <small :class="order.deposit_date ? 'is-deposited' : ''">{{ order.deposit_date ? "● dipositada" : "○ no dipositada" }}</small>
+                    </template>
+                    <template v-else-if="col.key === 'delivery_type.name'">
+                      <span v-if="order.delivery_type" :class="{ 'is-cold': order.refrigerated || (order.delivery_type.name || '').toLowerCase().startsWith('refr') }">{{ order.delivery_type.name }}</span>
+                      <span v-else>—</span>
+                    </template>
+                    <template v-else-if="col.key === 'last_mile_display'">{{ order.last_mile ? "Sí" : "No" }}</template>
+                    <template v-else-if="col.key === 'units'">{{ formatNum(order.units) }}</template>
+                    <template v-else-if="col.key === 'kilograms'">{{ formatNum(order.kilograms) }}</template>
+                    <template v-else-if="col.key === 'price'">
+                      <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
+                      <small v-if="discountLabel(order)">{{ discountLabel(order) }}</small>
+                    </template>
+                    <template v-else-if="col.key === 'status'"><span class="tag" :class="statusTag(order.status)">{{ statusLabel(order.status) }}</span></template>
                   </td>
-                  <td class="col-point">
-                    <b>{{ order.fullName || "—" }}</b>
-                    <small>{{ order.contact_city || (order.contact && order.contact.city) || "" }}</small>
-                    <span class="order-tags">
-                      <span v-if="order.pickup && order.pickup.pickup" class="tag is-success is-light">{{ order.pickup.alias === "Finca" ? "Recollida en finca" : (order.pickup.alias || order.pickup.name) }}</span>
-                      <span v-if="order.refrigerated" class="tag is-info is-light">Refrigerada</span>
-                      <span v-if="order.fragile" class="tag is-warning is-light">Fràgil</span>
-                      <span v-if="order.transfer" class="tag">Transferència</span>
-                      <span v-if="order.last_mile" class="tag is-link is-light">Última milla</span>
-                      <span v-if="order.is_collection_order" class="tag">Comanda de recollida</span>
-                    </span>
-                  </td>
-                  <td v-if="isStaff">{{ order.owner ? order.owner.fullname || order.owner.username : "—" }}</td>
-                  <td v-if="groupBy !== 'route'">{{ order.route ? order.route.name : "—" }}</td>
-                  <td v-if="showDateCol" class="nowrap">{{ formatDay(order.estimated_delivery_date) }}</td>
-                  <td class="col-pickup">
-                    <span>{{ order.pickup ? order.pickup.alias || order.pickup.name : "—" }}</span>
-                    <small :class="order.deposit_date ? 'is-deposited' : ''">{{ order.deposit_date ? "● dipositada" : "○ sense dipositar" }}</small>
-                  </td>
-                  <td class="has-text-right num">{{ formatNum(order.units) }}</td>
-                  <td class="has-text-right num">{{ formatNum(order.kilograms) }}</td>
-                  <td class="has-text-right num col-price">
-                    <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
-                    <small v-if="discountLabel(order)">{{ discountLabel(order) }}</small>
-                  </td>
-                  <td><span class="tag" :class="statusTag(order.status)">{{ statusLabel(order.status) }}</span></td>
                   <td class="col-actions">
-                    <router-link
-                      v-if="order.id && canEditOrder(order)"
-                      :to="{ name: 'orders.edit', params: { id: order.id } }"
-                      class="row-action"
-                      title="Edita la comanda"
-                      aria-label="Edita la comanda"
-                    ><b-icon icon="pencil-outline" size="is-small" /></router-link>
+                    <template v-if="editingRowId && editingRowId === order.id">
+                      <b-button size="is-small" type="is-primary" icon-left="content-save" title="Desa" aria-label="Desa" @click.prevent="saveOrder(order)" />
+                      <b-button size="is-small" icon-left="close" title="Cancel·la" aria-label="Cancel·la" @click.prevent="cancelEdit" />
+                    </template>
+                    <template v-else-if="order.id">
+                      <button v-if="canEditOrder(order)" type="button" class="row-action" title="Edició ràpida" aria-label="Edició ràpida" :disabled="!!editingRowId" @click="startEdit(order)">
+                        <b-icon icon="pencil-outline" size="is-small" />
+                      </button>
+                      <router-link v-if="canEditOrder(order)" :to="{ name: 'orders.edit', params: { id: order.id } }" class="row-action" title="Obre la fitxa" aria-label="Obre la fitxa">
+                        <b-icon icon="open-in-new" size="is-small" />
+                      </router-link>
+                    </template>
                   </td>
                 </tr>
               </template>
             </tbody>
             <tbody v-if="!isLoading && !groups.length">
-              <tr><td :colspan="columnCount" class="empty-row">Cap comanda amb aquests filtres.</td></tr>
+              <tr><td :colspan="visibleCols.length + 2" class="empty-row">Cap comanda amb aquests filtres.</td></tr>
             </tbody>
             <tfoot v-if="groups.length">
               <tr>
                 <td></td>
-                <td :colspan="groupLabelSpan"><b>Total {{ kpis.active }} comandes actives</b><span v-if="morePages" class="has-text-muted"> (aquesta pàgina)</span></td>
+                <td :colspan="sumColsBefore"><b>Total {{ kpis.active }} comandes actives</b><span v-if="morePages" class="has-text-muted"> (aquesta pàgina)</span></td>
                 <td class="has-text-right num"><b>{{ formatNum(kpis.units) }}</b></td>
                 <td class="has-text-right num"><b>{{ formatNum(kpis.kg) }}</b></td>
                 <td class="has-text-right num"><b>{{ money(kpis.price) }}</b></td>
-                <td colspan="2"></td>
+                <td :colspan="sumColsAfter"></td>
               </tr>
             </tfoot>
           </table>
@@ -410,7 +476,21 @@ export default {
       defaultSortOrder: "DESC",
       page: 1,
       perPage: 150,
-      filters: {},
+      // the filters of the table columns (same keys as the old searchable columns)
+      filters: {
+        idx: "",
+        "contact.trade_name": "",
+        "owner.fullname": "",
+        "route.name": "",
+        estimated_delivery_date: "",
+        delivery_date: "",
+        "pickup.name": "",
+        "delivery_type.name": "",
+        units: "",
+        kilograms: "",
+        price: "",
+        status: ""
+      },
       csvAlias: {
         route_name: "route_name",
         owner_id: "owner_id",
@@ -836,16 +916,37 @@ export default {
         };
       });
     },
-    showDateCol() {
-      // one day shown: every row has the same date
-      return this.groupBy !== "date" && !this.dateFilter;
+    // the columns: header (sort), filter (old searchable columns, same API
+    // fields) and quick-edit control
+    columns() {
+      const statuses = [["pending", "Pendent"], ["processed", "Processada"], ["delivered", "Lliurada"], ["invoiced", "Facturada"], ["cancelled", "Anul·lada"]];
+      return [
+        { key: "idx", label: "Núm.", sort: "id" },
+        { key: "contact.trade_name", label: "Punt d'entrega", sort: "contact_trade_name", edit: "contact" },
+        { key: "owner.fullname", label: "Sòcia", sort: "owner.fullname", staff: true },
+        { key: "route.name", label: "Ruta", sort: "route.name", edit: "route" },
+        { key: "estimated_delivery_date", label: "Prevista", sort: "estimated_delivery_date", date: true, edit: "estimated" },
+        { key: "delivery_date", label: "Lliurada", sort: "delivery_date", date: true, edit: "delivered" },
+        { key: "pickup.name", label: "Recollida", sort: "pickup.name", edit: "pickup", options: () => this.pickups.map(p => ({ value: p.name, label: p.alias || p.name })) },
+        { key: "delivery_type.name", label: "Entrega", sort: "delivery_type.name", edit: "delivery_type", options: () => this.deliveryTypes.map(d => ({ value: d.name, label: d.name })) },
+        { key: "units", label: "Caixes", sort: "units", num: true, edit: "units" },
+        { key: "kilograms", label: "Kg", sort: "kilograms", num: true, edit: "kilograms" },
+        { key: "price", label: "Preu", sort: "price", num: true, edit: "price" },
+        { key: "status", label: "Estat", sort: "status", options: () => statuses.map(([value, label]) => ({ value, label })) }
+      ];
     },
-    groupLabelSpan() {
-      // núm. + punt + optional sòcia / ruta / prevista + recollida
-      return 3 + (this.isStaff ? 1 : 0) + (this.groupBy !== "route" ? 1 : 0) + (this.showDateCol ? 1 : 0);
+    visibleCols() {
+      return this.columns.filter(c => !c.staff || this.isStaff);
     },
-    columnCount() {
-      return this.groupLabelSpan + 6;
+    // the group and total rows: label up to the boxes, then boxes, kg, price
+    sumColsBefore() {
+      return this.visibleCols.findIndex(c => c.key === "units");
+    },
+    sumColsAfter() {
+      return this.visibleCols.length - this.sumColsBefore - 3 + 1;
+    },
+    hasColumnFilters() {
+      return this.columns.some(c => this.filters[c.key]);
     },
     allChecked() {
       return this.theOrders.length > 0 && this.checkedRows.length === this.theOrders.length;
@@ -1299,8 +1400,9 @@ export default {
         return {
           ...this.withNotes(o),
           idx: o.id.toString().padStart(4, "0") + (o.is_collection_order ? `-R` : ""),
-          route_name: o.route.name,
-          owner_id: o.owner.id,
+          // some old orders have no route or member
+          route_name: o.route ? o.route.name : "",
+          owner_id: o.owner ? o.owner.id : null,
           timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(
             o.contact_time_slot_1_ini
           )} - ${o.estimated_delivery_date} ${this.formatSlot(
@@ -2469,6 +2571,31 @@ export default {
     },
     statusLabel: orderStatusLabel,
     statusTag: orderStatusTag,
+    sortBy(col) {
+      if (this.sortField === col.sort) {
+        this.sortOrder = this.sortOrder === "ASC" ? "DESC" : "ASC";
+      } else {
+        this.sortField = col.sort;
+        this.sortOrder = col.num || col.date ? "DESC" : "ASC";
+      }
+      this.refresh();
+    },
+    cellClass(col) {
+      return {
+        "has-text-right": col.num,
+        num: col.num,
+        nowrap: col.date,
+        "col-point": col.key === "contact.trade_name",
+        "col-pickup": col.key === "pickup.name",
+        "col-price": col.key === "price",
+        "col-route": col.key === "route.name",
+        "col-owner": col.key === "owner.fullname"
+      };
+    },
+    clearColumnFilters() {
+      Object.keys(this.filters).forEach(k => { this.filters[k] = ""; });
+      this.refresh();
+    },
     formatCount(value) {
       return formatNumber(Number(value) || 0, 0);
     },
@@ -2596,7 +2723,26 @@ export default {
   overflow: hidden;
 }
 .orders-table {
-  font-size: .875rem;
+  font-size: .8125rem;
+}
+.orders-table th,
+.orders-table td {
+  padding-left: .375rem;
+  padding-right: .375rem;
+}
+.orders-table td.col-owner {
+  max-width: 8rem;
+}
+.orders-table td.col-route {
+  min-width: 7rem;
+  max-width: 10rem;
+}
+.order-row.is-editing :deep(select),
+.order-row.is-editing :deep(.select) {
+  max-width: 10rem;
+}
+.order-row.is-editing :deep(input[type="number"]) {
+  width: 4.5rem;
 }
 .orders-table th {
   white-space: nowrap;
@@ -2606,6 +2752,68 @@ export default {
 }
 .col-check {
   width: 2.5rem;
+}
+.sort-head {
+  display: inline-flex;
+  align-items: center;
+  gap: .125rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sort-head:hover {
+  color: var(--a-accent);
+}
+.filter-row th {
+  padding-top: 0;
+  padding-bottom: .5rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.col-filter {
+  width: 100%;
+  min-width: 3rem;
+  height: 1.75rem;
+  padding: 0 .375rem;
+  border: 1px solid var(--a-input);
+  border-radius: 6px;
+  background: var(--a-surface);
+  font: inherit;
+  font-size: .75rem;
+  color: var(--a-fg);
+}
+select.col-filter {
+  max-width: 5.5rem;
+}
+.col-filter:focus {
+  outline: none;
+  border-color: var(--a-accent);
+  box-shadow: 0 0 0 2px var(--a-focus);
+}
+.clear-filters {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--a-neg);
+  cursor: pointer;
+}
+.order-row.is-editing td {
+  background: var(--a-warn-bg);
+  vertical-align: middle;
+}
+.order-row.is-editing :deep(.datepicker) {
+  min-width: 7.5rem;
+  max-width: 8.5rem;
+}
+.col-actions {
+  white-space: nowrap;
 }
 .col-check :deep(.checkbox) {
   margin: 0;
@@ -2629,7 +2837,12 @@ export default {
   display: block;
 }
 .col-point {
-  min-width: 14rem;
+  min-width: 9rem;
+}
+.edit-stack {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
 }
 .col-point small,
 .col-pickup small,
@@ -2639,6 +2852,10 @@ export default {
 }
 .col-pickup small {
   white-space: nowrap;
+}
+.is-cold {
+  font-weight: 700;
+  color: var(--a-info-fg);
 }
 .filter-bar :deep(.filter-select .select select) {
   max-width: 13rem;
@@ -2693,8 +2910,11 @@ export default {
   background: var(--a-warn-bg);
 }
 .col-actions {
-  width: 2.5rem;
+  width: 4.5rem;
   text-align: right;
+}
+.col-actions .row-action + .row-action {
+  margin-left: .375rem;
 }
 .row-action {
   color: var(--a-muted);
