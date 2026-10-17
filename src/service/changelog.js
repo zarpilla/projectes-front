@@ -2,6 +2,11 @@
 // the latest entry, on the profile). `text` is a string or a list of strings and
 // { to, label } links. `modules` says which parts of the app it touches, the
 // main one first (one of CHANGELOG_MODULES, which follow the side menu).
+// `type`: "Novetats" when you can now do something you couldn't before (a new
+// screen, report, document, field to fill in or action); "Millores" when
+// something you already did works better (faster, more filters or columns, an
+// export, clearer, redesigned) and for technical changes nobody sees;
+// "Correccions" when it didn't work as it should.
 // "2026.10.20" → "20/10/2026", as the Registre de canvis and the profile show it
 // (the profile printed "2026/10/20", issues/112)
 export const changelogDate = date => {
@@ -19,7 +24,7 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Plataforma", "Diners"],
       text: "Nou disseny de tota l'aplicació: menú lateral per seccions, capçaleres amb les accions de cada pantalla, xifres destacades, filtres en una sola barra, taules més clares i fitxes per apartats amb una barra de desar sempre visible. Les factures emeses es mostren en mode de només lectura, amb Verifactu i FACe al costat."
     },
@@ -34,22 +39,22 @@ export const CHANGELOG = [
       text: ["Nou informe ", { to: "/invoicing-forecast", label: "Previsió facturació" }, ": què cal facturar aquest mes i els propers, i què s'havia de facturar i encara no té factura, per projecte i responsable. Surt de la «Previsió fac.» de les línies d'ingrés de cada projecte."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Logística"],
       text: ["Logística redissenyada: ", { to: "/orders", label: "comandes" }, " agrupades per ruta i per dia, la vista de cada comanda amb el seu recorregut i seguiment, ", { to: "/order-operations", label: "operacions" }, " pensades per al mòbil, ", { to: "/incidences", label: "incidències" }, " amb la conversa al costat i ", { to: "/orders-invoice", label: "facturar" }, " amb el projecte del trimestre."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Logística"],
       text: [{ to: "/city-route", label: "Poblacions i rutes" }, " es fa d'una altra manera: cada ruta amb les seves poblacions, i «Quina ruta passa per…?» per trobar les rutes d'una població."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Informes"],
       text: ["L'informe ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " comença amb gràfics: ingressos, despeses i hores per mes (o per any) amb el resultat acumulat, el resultat de cada projecte i on van les despeses. Segueixen els filtres de la pàgina (amb «Totes», l'executat amb el previst al costat)."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Informes"],
       text: ["L'informe ", { to: "/stats-projectes", label: "Projectes" }, " també comença amb gràfics: el resultat previst i el real de cada projecte, les hores fetes contra les previstes i el resultat per àmbit o per qui coordina."]
     },
@@ -274,12 +279,12 @@ export const CHANGELOG = [
       text: ["Els botons d'opció no seleccionats tornen a mostrar el text: a la fitxa d'una ", { to: "/orders", label: "comanda" }, " (Ruta, Tipus de servei, Punt de recollida, Estat), als contactes i als filtres de tresoreria i estadístiques es veien en blanc."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Logística", "Administració"],
       text: ["Les pàgines ", { to: "/incidences", label: "Incidències" }, ", ", { to: "/pickup-points", label: "Punts de recollida" }, " i ", { to: "/admin/users", label: "Usuàries" }, " tenen un botó per exportar la llista a Excel. A Incidències i Usuàries el fitxer porta totes les files, no només la pàgina que es veu."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Logística"],
       text: ["La pàgina ", { to: "/partners", label: "Sòcies" }, " té un botó per exportar la llista de sòcies a Excel."]
     },
@@ -309,12 +314,12 @@ export const CHANGELOG = [
   date: "2026.10.09",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Plataforma"],
       text: "Nova versió de la interfície: l'aplicació passa de Vue 2 a Vue 3 (amb les noves versions de Buefy i Bulma). Es veu igual, però és més ràpida i està al dia."
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Plataforma"],
       text: "Nou desplegament: cada entitat funciona en contenidors Docker darrere d'un servidor Caddy, i les actualitzacions es fan sense aturar el servei."
     },
@@ -379,7 +384,7 @@ export const CHANGELOG = [
   date: "2026.09.26",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Plataforma"],
       text: "Nova versió del servidor: l'aplicació passa de Strapi 3 a Strapi 5. Totes les entitats s'han migrat amb les seves dades; els dies següents es van corregir els detalls que van sortir."
     }
@@ -469,7 +474,7 @@ export const CHANGELOG = [
   date: "2026.02.15",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Projectes"],
       text: "Nou assistent per passos en la creació de projectes."
     }
@@ -494,7 +499,7 @@ export const CHANGELOG = [
       text: "Millores en l'assignació de documents a projectes: Assignació semiautomàtica i millor detecció d'imports mal assignats tenint en compte documents assignats a varis projectes."
     },
     {
-      type: "Millores",
+      type: "Novetats",
       modules: ["Subvencions"],
       text: "Assignació de justificacions a previsions."
     }
@@ -504,12 +509,12 @@ export const CHANGELOG = [
   date: "2026.02.02",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Plataforma"],
       text: "Nou logo"
     },
     {
-      type: "Millores",
+      type: "Novetats",
       modules: ["Diners"],
       text: "Calculs trimestrals d'IVA a tresoreria"
     }
@@ -564,7 +569,7 @@ export const CHANGELOG = [
       text: "Justificació de subvencions anual"
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Diners"],
       text: "Nou formulari per facilitar la introducció de dietes"
     },
@@ -824,7 +829,7 @@ export const CHANGELOG = [
   date: "2025.03.07",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Projectes", "Logística"],
       text: ["Exportació dels ", { to: "/contacts", label: "contactes" }, " i dels punts d'entrega a CSV."]
     }
@@ -904,7 +909,7 @@ export const CHANGELOG = [
   date: "2024.10.07",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Informes", "Diners"],
       text: ["Filtre múltiple d'estats de projectes a ", { to: "/stats-economic-detail", label: "Detall d'ingressos i despeses" }, ", ", { to: "/tresoreria", label: "Tresoreria" }, " i ", { to: "/forecast", label: "Previsió Econòmica" }, "."]
     }
@@ -934,7 +939,7 @@ export const CHANGELOG = [
   date: "2024.06.28",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Plataforma"],
       text: ["Canvi de nom, a partir d'ara: ", { tag: "b", text: "ESS" }, "TRAPIS"]
     }
@@ -944,7 +949,7 @@ export const CHANGELOG = [
   date: "2024.06.11",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Informes"],
       text: ["Nou camp d'", { tag: "b", text: "Hores previstes avui" }, " a la ", { to: "/stats-previsio-hores", label: "taula dinámica de dedicació" }, "."]
     }
@@ -959,12 +964,12 @@ export const CHANGELOG = [
       text: "Possibilitat de triar a quins estats de projecte es poden assignar hores, no només a actius."
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Informes"],
       text: ["Camp subvencionable a ", { to: "/stats-economic-detail", label: "taula dinàmica d'ingressos i despeses." }]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Subvencions"],
       text: ["Nous camps al ", { to: "/grants", label: "llistat de subvencions." }]
     }
@@ -984,7 +989,7 @@ export const CHANGELOG = [
   date: "2024.05.30",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Projectes"],
       text: ["Filtres a la taula de ", { to: "/contacts", label: "contactes" }, "."]
     },
@@ -1014,7 +1019,7 @@ export const CHANGELOG = [
   date: "2024.05.15",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Diners"],
       text: ["Possibilitat de visualització de ", { to: "/tresoreria", label: "tresoreria" }, " per anys."]
     }
@@ -1064,7 +1069,7 @@ export const CHANGELOG = [
       text: "Previsions de tresoreria d'IVA amb prorata."
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Hores"],
       text: ["Totals per dia a ", { to: "/registre-jornades", label: "registre de jornades" }, "."]
     },
@@ -1079,22 +1084,22 @@ export const CHANGELOG = [
   date: "2024.03.27",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Hores"],
       text: ["Generació de PDFs de ", { to: "/registre-jornades", label: "registre de jornades" }, " per mesos."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Diners"],
       text: ["Filtre de cobrat/pagat a ", { to: "/emitted-invoices", label: "ingressos" }, " i ", { to: "/received-invoices", label: "despeses" }, "."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Projectes"],
       text: "Subtotals per fases al detall de projectes."
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Informes"],
       text: ["Filtre de projectes actius i tancats al ", { to: "/stats-economic-detail", label: "detall d'ingressos i despeses" }, "."]
     },
@@ -1124,7 +1129,7 @@ export const CHANGELOG = [
       text: ["Funcionalitat per saldar l'IVA amb prorrata a ", { to: "/tresoreria", label: "tresoreria" }, "."]
     },
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Diners"],
       text: ["Camp de número de factura de proveïdora al llistat de ", { to: "/received-invoices", label: "despeses" }, "."]
     },
@@ -1134,7 +1139,7 @@ export const CHANGELOG = [
       text: ["Generació de PDFs de ", { to: "/registre-jornades", label: "registre de jornades" }, "."]
     },
     {
-      type: "Millores",
+      type: "Novetats",
       modules: ["Hores"],
       text: "Es permet definir un calendari (en format .ical) per a tota l'organització per tal d'importar automàticament dedicacions, a part de tenir calendaris per persona com fins ara."
     }
@@ -1319,7 +1324,7 @@ export const CHANGELOG = [
   date: "2023.01.16",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Diners"],
       text: "Creació de totes les nòmines del mes d'un sol cop, amb els camps calculats protegits."
     }
@@ -1364,7 +1369,7 @@ export const CHANGELOG = [
       text: ["Anotacions manuals a ", { to: "/tresoreria", label: "tresoreria" }, "."]
     },
     {
-      type: "Millores",
+      type: "Novetats",
       modules: ["Projectes"],
       text: "Adjunts als projectes, i botó «Desa i surt»."
     }
@@ -1439,7 +1444,7 @@ export const CHANGELOG = [
       text: "Es guarden les fases del pressupost original per comparar-les amb l'execució."
     },
     {
-      type: "Millores",
+      type: "Novetats",
       modules: ["Projectes"],
       text: "Un document es pot repartir entre diverses línies de projecte, i avís per correu a les persones implicades en una tasca."
     }
@@ -1479,7 +1484,7 @@ export const CHANGELOG = [
       text: ["Mòdul de ", { to: "/justifications", label: "justificacions" }, " de projectes, per hores i per quantitat, amb exportació a CSV."]
     },
     {
-      type: "Millores",
+      type: "Novetats",
       modules: ["Diners", "Projectes"],
       text: "Factures i pressupostos en català i castellà, i noves tasques assignades a una persona i una activitat."
     }
@@ -1519,7 +1524,7 @@ export const CHANGELOG = [
       text: "Projectes mare, i documents assignats a diversos projectes."
     },
     {
-      type: "Millores",
+      type: "Novetats",
       modules: ["Projectes"],
       text: "Camp de territori als projectes."
     }
@@ -1629,7 +1634,7 @@ export const CHANGELOG = [
   date: "2021.11.03",
   items: [
     {
-      type: "Novetats",
+      type: "Millores",
       modules: ["Diners", "Projectes"],
       text: "Exportació a Excel de la tresoreria i dels projectes."
     }
