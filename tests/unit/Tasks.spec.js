@@ -75,4 +75,22 @@ describe('Tasks kanban', () => {
     expect(names(columns(w)[1])).toEqual(['T13', 'T11'])
     expect(api.put).toHaveBeenCalledWith('tasks/11', expect.objectContaining({ task_state: states[1] }))
   })
+
+  // issues/090: the due date of a finished task was shown in red as overdue
+  it('marks only unfinished tasks past their due date as overdue', async () => {
+    api.get.mockImplementation(async url => {
+      if (url.startsWith('task-states')) return { data: states }
+      if (url.startsWith('tasks')) {
+        return { data: [{ ...task(21, 1, 0), due_date: '2020-01-01' }, { ...task(22, 2, 0), due_date: '2020-01-01' }] }
+      }
+      return { data: [] }
+    })
+    const w = await mountBoard()
+    const chip = name => w.findAll('.card-and-drop > .card')
+      .find(c => c.find('.task-title').text() === name).find('.task-chip')
+    expect(chip('T21').classes()).toContain('is-overdue')
+    expect(chip('T21').text()).toContain('Vençuda')
+    expect(chip('T22').classes()).not.toContain('is-overdue')
+    expect(chip('T22').text()).not.toContain('Vençuda')
+  })
 })
