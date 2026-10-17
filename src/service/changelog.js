@@ -7,6 +7,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: ["A ", { to: "/orders", label: "comandes" }, ", si es tria «Última milla» juntament amb altres estats (Ctrl+clic), ara surten les comandes de tots, i no només les que compleixen tot alhora. La fitxa d'una comanda en un estat poc habitual (última milla, dipositada…) el mostra amb el seu nom."]
+    },
+    {
+      type: "Correccions",
       text: "A la fitxa del projecte, la pestanya de moviments mostra sempre les targetes d'ingressos i despeses i de cobraments i pagaments, amb un avís si encara no n'hi ha cap (abans no sortien). Als projectes mare, les hores surten amb el format de la resta de l'aplicació."
     },
     {

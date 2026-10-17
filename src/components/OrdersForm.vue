@@ -338,14 +338,14 @@
               <b-field label="Estat" class="full">
                 <div class="segmented" role="group" aria-label="Estat">
                   <button
-                    v-for="s in statuses"
-                    :key="s.id"
+                    v-for="s in statusOptions"
+                    :key="s"
                     type="button"
-                    :class="{ 'is-on': form.status === s.id }"
-                    :aria-pressed="form.status === s.id ? 'true' : 'false'"
+                    :class="{ 'is-on': form.status === s }"
+                    :aria-pressed="form.status === s ? 'true' : 'false'"
                     :disabled="!isStaff"
-                    @click="form.status = s.id"
-                  >{{ statusLabel(s.id) }}</button>
+                    @click="form.status = s"
+                  >{{ statusLabel(s) }}</button>
                 </div>
               </b-field>
 
@@ -538,6 +538,7 @@ import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
+import { orderStatusLabel, orderStatusTag, formStatuses } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersForm",
@@ -575,13 +576,6 @@ export default {
       permissions: [],
       orders: [],
       firstStatus: "pending",
-      statuses: [
-        { id: "pending", name: "PENDENT" },
-        { id: "processed", name: "PROCESSADA" },
-        { id: "delivered", name: "LLIURADA" },
-        { id: "invoiced", name: "FACTURADA" },
-        { id: "cancelled", name: "ANUL·LADA" }
-      ],
       legalForms: [],
       // array from 0 to 23 with 15 minutes intervals
       contact_time_slots: Array.from({ length: 96 }, (_, i) => i / 4),
@@ -600,6 +594,9 @@ export default {
     };
   },
   computed: {
+    statusOptions() {
+      return formStatuses(this.form.status);
+    },
     ...mapState(useMainStore, ["me"]),
     titleStack() {
       return ["Comandes", this.formCardTitle];
@@ -2387,30 +2384,10 @@ export default {
     money(value) {
       return formatMoney(Number(value) || 0);
     },
-    statusLabel(status) {
-      return { pending: "Pendent", processed: "Processada", delivered: "Lliurada", invoiced: "Facturada", cancelled: "Anul·lada" }[status] || status;
-    },
-    statusTag(status) {
-      return { pending: "is-warning", processed: "is-info is-light", delivered: "is-success is-light", invoiced: "", cancelled: "is-danger is-light" }[status] || "";
-    },
+    statusLabel: orderStatusLabel,
+    statusTag: orderStatusTag,
     incidenceState(state) {
       return { open: "Oberta", wip: "En procés", closed: "Tancada" }[state] || state;
-    },
-    getStatusColor(status) {
-      const statusColors = {
-        pending: "is-warning",
-        deposited: "is-info",
-        processed: "is-primary",
-        lastmile: "is-link",
-        delivered: "is-success",
-        invoiced: "is-dark",
-        cancelled: "is-danger"
-      };
-      return statusColors[status] || "is-light";
-    },
-    getStatusName(status) {
-      const statusObj = this.statuses.find(s => s.id === status);
-      return statusObj ? statusObj.name : status;
     },
     calculateTotals() {
       if (!this.form.lines || this.form.lines.length === 0) {

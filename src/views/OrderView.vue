@@ -12,7 +12,7 @@
     <title-bar :title-stack="titleStack" :subtitle="headSubtitle">
       <template #badges>
         <template v-if="order">
-          <span class="tag" :class="statusTag(order.status)">{{ getStatusName(order.status) }}</span>
+          <span class="tag" :class="statusTag(order.status)">{{ statusLabel(order.status) }}</span>
           <span v-if="order.refrigerated" class="tag is-info is-light">Refrigerada</span>
           <span v-if="order.fragile" class="tag is-warning is-light">Fràgil</span>
           <span v-if="order.is_collection_order" class="tag">Comanda de recollida</span>
@@ -144,7 +144,7 @@
                       <td class="has-text-right">{{ row.kilograms || 0 }}</td>
                       <td><span class="tag" :class="row.deposit_date ? 'is-success is-light' : ''">{{ row.deposit_date ? "Sí" : "No" }}</span></td>
                       <td><span class="tag" :class="row.pickup_date ? 'is-success is-light' : ''">{{ row.pickup_date ? "Sí" : "No" }}</span></td>
-                      <td><span class="tag" :class="statusTag(row.status)">{{ getStatusName(row.status) }}</span></td>
+                      <td><span class="tag" :class="statusTag(row.status)">{{ statusLabel(row.status) }}</span></td>
                     </tr>
                   </tbody>
                 </table>
@@ -242,6 +242,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
+import { orderStatusLabel, orderStatusTag } from "@/domain/orderStatus";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
 const myId = () => {
@@ -1300,33 +1301,14 @@ export default {
       };
       return colors[status] || "";
     },
-    getStatusName(status) {
-      const names = {
-        pending: "Pendent",
-        processed: "Processada",
-        deposited: "Dipositada",
-        delivered: "Lliurada",
-        invoiced: "Facturada",
-        cancelled: "Anul·lada",
-        collected: "Recollida"
-      };
-      return names[status] || status;
-    },
+    statusLabel: orderStatusLabel,
     shortDay(date) {
       return date ? moment(date).locale("ca").format("dd DD/MM/YYYY") : "";
     },
     money(value) {
       return formatMoney(Number(value) || 0);
     },
-    statusTag(status) {
-      return {
-        pending: "is-warning",
-        processed: "is-info is-light",
-        delivered: "is-success is-light",
-        invoiced: "",
-        cancelled: "is-danger is-light"
-      }[status] || "";
-    },
+    statusTag: orderStatusTag,
     async printOrder() {
       this.printing = true;
       try {

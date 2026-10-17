@@ -356,6 +356,7 @@ function idOf(value) {
 import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
+import { orderStatusLabel, orderStatusTag, statusWhere } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersTable",
@@ -1182,31 +1183,7 @@ export default {
 
       const where = [];
       
-      // Handle multiple status filters using multiple _where parameters for OR
-      if (this.statusFilter.length > 0) {
-        // Check if lastmile is included
-        const hasLastMile = this.statusFilter.includes('lastmile');
-        const regularStatuses = this.statusFilter.filter(s => s !== 'lastmile');
-        
-        if (regularStatuses.length === 1 && !hasLastMile) {
-          // Single regular status - use simple query
-          where.push(`_where[status]=${regularStatuses[0]}`);
-        } else if (regularStatuses.length > 1 && !hasLastMile) {
-          // Multiple regular statuses - use multiple _where[status] for OR
-          regularStatuses.forEach(status => {
-            where.push(`_where[status]=${status}`);
-          });
-        } else if (hasLastMile && regularStatuses.length === 0) {
-          // Only lastmile
-          where.push(`_where[last_mile]=true`);
-        } else if (hasLastMile && regularStatuses.length > 0) {
-          // Mix of lastmile and regular statuses
-          regularStatuses.forEach(status => {
-            where.push(`_where[status]=${status}`);
-          });
-          where.push(`_where[last_mile]=true`);
-        }
-      }
+      where.push(...statusWhere(this.statusFilter));
 
       for (const key in this.filters) {
         if (this.filters[key]) {
@@ -2485,26 +2462,8 @@ export default {
       if (Number(order.volume_discount)) return "descompte volum";
       return "amb descompte";
     },
-    statusLabel(status) {
-      return {
-        pending: "Pendent",
-        processed: "Processada",
-        lastmile: "Última milla",
-        delivered: "Lliurada",
-        invoiced: "Facturada",
-        cancelled: "Anul·lada"
-      }[status] || status;
-    },
-    statusTag(status) {
-      return {
-        pending: "is-warning",
-        processed: "is-info is-light",
-        lastmile: "is-link is-light",
-        delivered: "is-success is-light",
-        invoiced: "",
-        cancelled: "is-danger is-light"
-      }[status] || "";
-    },
+    statusLabel: orderStatusLabel,
+    statusTag: orderStatusTag,
     formatCount(value) {
       return formatNumber(Number(value) || 0, 0);
     },
