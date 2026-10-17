@@ -7,6 +7,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: "A la fitxa del projecte, la pestanya de moviments mostra sempre les targetes d'ingressos i despeses i de cobraments i pagaments, amb un avís si encara no n'hi ha cap (abans no sortien). Als projectes mare, les hores surten amb el format de la resta de l'aplicació."
+    },
+    {
+      type: "Correccions",
       text: "A les fases del projecte, l'avís «Imports diferents» d'una línia lligada a una factura o a un ingrés/despesa s'actualitza quan es desa el projecte. Abans només es calculava en desar el document, i si després es canviaven les línies quedava desfasat. Una diferència d'un cèntim ja no surt com a avís."
     },
     {

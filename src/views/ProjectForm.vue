@@ -1996,13 +1996,13 @@
         </div>
       </card-component>
       <card-component
-        v-if="documents && documents.length && !isLoading && !isCreationMode"
+        v-if="!isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
         v-show="showTab('moviments')"
         class="ztile is-child mt-2"
         :content-visible="true"
       >
-        <b-table :data="documents">
+        <b-table :data="documents || []">
           <b-table-column
             label="Tipus"
             field="docTypeDesc"
@@ -2110,6 +2110,9 @@
               }}
             </span>
           </b-table-column>
+          <template #empty>
+            <p class="has-text-grey">Encara no hi ha cap document d'ingrés o despesa lligat a aquest projecte.</p>
+          </template>
         </b-table>
       </card-component>
 
@@ -2255,7 +2258,7 @@
       </div>
 
       <card-component
-        v-if="treasury && treasury.length && !isLoading && !isCreationMode"
+        v-if="!isLoading && !isCreationMode"
         title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
         v-show="showTab('moviments')"
         class="ztile is-child mt-2"
@@ -2274,7 +2277,7 @@
         </b-field>
 
         <b-table
-          :data="treasury"
+          :data="treasury || []"
           :per-page="parseInt(perPage)"
           :paginated="isPaginated"
           pagination-position="both"
@@ -2443,6 +2446,9 @@
               {{ formatMoney(props.row.document.total_amount * props.row.multiplier) }}
             </span>
           </b-table-column>
+          <template #empty>
+            <p class="has-text-grey">Encara no hi ha cap cobrament ni pagament d'aquest projecte.</p>
+          </template>
         </b-table>
       </card-component>
 
