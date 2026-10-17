@@ -273,7 +273,7 @@ export default {
               var theoricHoursTotal = 0;
               allDates.forEach(d => {
                 const date = moment(d).format("YYYY-MM-DD");
-                const displayDate = moment(d).format("ddd DD-MM-YYYY");
+                const displayDate = moment(d).format("ddd DD/MM/YYYY");
                 const day = moment(d).day();
                 const week = moment(d).week();
                 const month = moment(d).format("M");

@@ -170,7 +170,7 @@
               <dl class="facts">
                 <dt>Tipus de servei</dt><dd>{{ deliveryTypeName || "—" }}</dd>
                 <dt>Caixes</dt><dd>{{ order.units || 0 }}</dd>
-                <dt>Kilograms</dt><dd>{{ order.kilograms || 0 }} kg</dd>
+                <dt>Kilograms</dt><dd>{{ formatNumber(order.kilograms || 0, 2) }} kg</dd>
                 <dt>Fràgil</dt><dd>{{ order.fragile ? "Sí" : "No" }}</dd>
               </dl>
               <div v-if="isPickupPoint && order.lines && order.lines.length" class="table-container lines-table">
@@ -241,7 +241,7 @@ import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
-import { formatMoney } from "@/helpers/format-number";
+import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag } from "@/domain/orderStatus";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
@@ -871,6 +871,7 @@ export default {
     }
   },
   methods: {
+    formatNumber,
     async getPermissions() {
       try {
         const me = await service({ requiresAuth: true, cached: true }).get(

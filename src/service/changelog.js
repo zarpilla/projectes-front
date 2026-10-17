@@ -74,6 +74,11 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Millores",
+      modules: ["Plataforma"],
+      text: "Més dates i números amb el format català: totes les dates dels calendaris (05/02/2026), la vista «Taula» de les hores (1,00 h), els documents de la fitxa del projecte, el detall per dies de bestretes i saldo d'hores, els quilos de les comandes i el nombre de contactes (1.053). Les hores del resum del projecte porten sempre dos decimals, i la previsió econòmica d'un sol any ja no diu «2026–2026»."
+    },
+    {
       type: "Correccions",
       modules: ["Projectes", "Diners"],
       text: ["A la fitxa del ", { to: "/projectes", label: "projecte" }, ", «Cobraments i pagaments» torna a llistar les factures, ingressos i despeses lligats al projecte a «Moviments d'ingressos i despeses», i també els que no estan assignats a cap línia del pressupost."]

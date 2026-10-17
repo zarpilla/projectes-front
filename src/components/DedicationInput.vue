@@ -246,7 +246,7 @@
               :class="{ 'has-text-weight-bold': a.project.name === 'Total' }"
               @click="showModal(a)"
             >
-              {{ a.hours ? a.hours.toFixed(2) : 0 }} h
+              {{ hoursLabel(a.hours) }}
             </div>
             <div
               class="column auxiliar"
@@ -1549,16 +1549,17 @@ export default {
       this.getActivities();
       this.isLoadingImport = false;
     },
+    // «1,00 h», as the calendar view (issues/127)
+    hoursLabel(hours) {
+      return formatNumber(hours || 0, 2, 2) + " h";
+    },
+    // «Dimarts 30/06/2026 (d'aquí 13 dies)»: only the first letter in capitals (issues/127)
     formatTitle(val) {
       if (!val) {
         return "-";
       }
-      return (
-        moment(val).format("dddd DD/MM/YYYY") +
-        " (" +
-        moment(val).fromNow() +
-        ")"
-      );
+      const title = moment(val).format("dddd DD/MM/YYYY") + " (" + moment(val).fromNow() + ")";
+      return title.charAt(0).toUpperCase() + title.slice(1);
     }
   }
 };
@@ -1650,7 +1651,6 @@ export default {
 }
 .is-total {
   background: var(--a-chip);
-  text-transform: capitalize;
 }
 .auxiliar {
   color: var(--a-muted);

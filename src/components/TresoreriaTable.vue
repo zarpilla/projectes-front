@@ -1197,7 +1197,7 @@ export default {
       return row.subtotal;
     },
     formatDate(value) {
-      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+      return moment(value, "YYYY-MM-DD").format("DD/MM/YYYY");
     },
     async trashManual(treasuryId) {
       this.$buefy.dialog.confirm({

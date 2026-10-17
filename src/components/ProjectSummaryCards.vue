@@ -137,8 +137,8 @@ export default {
   methods: {
     sign,
     money: formatMoney,
-    // up to 2 decimals: 4,75 h, not 4,8 h
-    hours: value => formatNumber(value, 2) + ' h',
+    // always two decimals: «3.307,60 h» next to «3.574,33 h» (issues/127)
+    hours: value => formatNumber(value, 2, 2) + ' h',
     percent (value, of) {
       return of ? formatNumber((value / of) * 100, 0) + ' %' : '—'
     }

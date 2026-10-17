@@ -45,7 +45,7 @@ describe('DedicationInput', () => {
     const w = await mountInput()
     await w.find('button[title="Vista taula"]').trigger('click')
     const titles = w.findAll('.table-view span.is-total').map(s => s.text())
-    expect(titles).toEqual(['dimecres 07/10/2026 (fa un dia)', 'dilluns 05/10/2026 (fa 3 dies)'])
+    expect(titles).toEqual(['Dimecres 07/10/2026 (fa un dia)', 'Dilluns 05/10/2026 (fa 3 dies)'])
     expect(errors.mock.calls.map(c => String(c[0])).filter(m => m.includes('formatTitle'))).toEqual([])
     errors.mockRestore()
   })

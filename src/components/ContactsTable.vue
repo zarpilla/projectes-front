@@ -27,7 +27,7 @@
           @click="typeFilter = name"
         >{{ name }}</button>
       </div>
-      <span class="contacts-count">{{ filteredContacts.length }} {{ filteredContacts.length === 1 ? "contacte" : "contactes" }}</span>
+      <span class="contacts-count">{{ formatNumber(filteredContacts.length) }} {{ filteredContacts.length === 1 ? "contacte" : "contactes" }}</span>
       <div class="contacts-actions">
         <download-excel class="export" :data="contactsCSV" :escapeCsv="false" name="contactes" :fields="csv">
           <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
@@ -151,6 +151,7 @@ import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import ModalBoxUnifyContacts from "@/components/ModalBoxUnifyContacts.vue";
+import { formatNumber } from "@/helpers/format-number";
 
 export default {
   name: "ContactsTable",
@@ -277,6 +278,7 @@ export default {
     this.getData();
   },
   methods: {
+    formatNumber,
     splitList(text) {
       return [...new Set(String(text || "").split(/,\s*/).map(t => t.trim()).filter(Boolean))];
     },

@@ -2068,7 +2068,7 @@
             sortable
             v-slot="props"
           >
-            {{ props.row.document.paid_date }}
+            {{ formatDate(props.row.document.paid_date) }}
           </b-table-column>
           <b-table-column label="Assignat" v-slot="props">
             <span
@@ -4553,7 +4553,8 @@ export default {
         : "";
     },
     formatDate(value) {
-      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+      // dd/mm/aaaa, as the rest of the app (issues/127)
+      return value ? moment(value, "YYYY-MM-DD").format("DD/MM/YYYY") : "";
     },
     async addActivity() {
       if (this.activityTypeSearch) {

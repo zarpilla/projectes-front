@@ -65,7 +65,7 @@
         <small>{{ percent(yearRows[1].expenses ? yearRows[1].payroll / yearRows[1].expenses : 0) }} de les despeses del {{ yearRows[1].year }}</small>
       </div>
       <div class="doc-kpi">
-        <span>Resultat {{ yearRows[0].year }}–{{ yearRows[yearRows.length - 1].year }}</span>
+        <span>Resultat {{ yearSpan }}</span>
         <b :class="'has-text-' + sign(total.result)">{{ money(total.result) }}</b>
         <small>marge del {{ percent(total.incomes ? total.result / total.incomes : 0) }} sobre ingressos</small>
       </div>
@@ -116,7 +116,7 @@
             <tr>
               <th>Concepte</th>
               <th v-for="y in yearRows" :key="y.year" class="has-text-right">{{ y.year }}</th>
-              <th v-if="yearRows.length" class="has-text-right">Total {{ yearRows[0].year }}–{{ yearRows[yearRows.length - 1].year }}</th>
+              <th v-if="yearRows.length" class="has-text-right">Total {{ yearSpan }}</th>
             </tr>
           </thead>
           <tbody>
@@ -565,6 +565,14 @@ export default {
     },
     // one entry per year: incomes and the expenses split into invoices and
     // expenses, non-deductible VAT and payroll (negative), as in yearlySummary
+    // «2026–2028», or «2026» for a single year, not «2026–2026» (issues/127)
+    yearSpan() {
+      const rows = this.yearRows;
+      if (!rows.length) return "";
+      const first = rows[0].year;
+      const last = rows[rows.length - 1].year;
+      return first === last ? `${first}` : `${first}–${last}`;
+    },
     yearRows() {
       return this.yearlyForecast.map(d => {
         const fy = this.forecastByYear[d.year] || {};
@@ -770,7 +778,7 @@ export default {
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
     formatDate(value) {
-      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+      return moment(value, "YYYY-MM-DD").format("DD/MM/YYYY");
     },
     toggleState(state) {
       if (this.selectedProjectStates.includes(state.id)) {
