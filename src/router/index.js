@@ -698,7 +698,7 @@ const routes = [
   },
   {
     meta: {
-      title: "Factures Proveïdora"
+      title: "Factures"
     },
     path: "/provider-invoices",
     name: "provider.invoices",
