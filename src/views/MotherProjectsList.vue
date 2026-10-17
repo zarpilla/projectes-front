@@ -70,7 +70,7 @@ export default {
       scopes: [],
       project_states: [],
       users: [],
-      filters: { project_state: 0, q: "", user: "", scopeId: 0 },
+      filters: { project_state: 0, q: "", user: "0", scopeId: 0 },
       queryChanged: 0
     };
   },
