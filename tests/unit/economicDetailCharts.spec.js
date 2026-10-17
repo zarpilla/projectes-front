@@ -58,4 +58,13 @@ describe('economic detail charts', () => {
       { label: 'Altres', amount: 542 }
     ])
   })
+
+  // projects/economic-detail sends the planned dedication as «Hores previstes» rows
+  // (projectes-v5 projectFinancials pushHoursRows): the forecast counts their cost
+  it('counts the planned hours in the forecast', () => {
+    const planned = { type: 'estimated_hours', project_name: 'A', year: '2026', month: '04', row_type: 'Hores previstes', total_estimated_hours_price: -250, total_real_hours_price: 0 }
+    expect(totals([...rows, planned], 'prev')).toEqual({ income: 1080, expenses: 600, hours: 250, result: 230 })
+    expect(totals([...rows, planned], 'exec').hours).toBe(300)
+    expect(byExpenseType([planned], 'prev')).toEqual([{ label: 'Hores', amount: 250 }])
+  })
 })

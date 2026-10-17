@@ -21,7 +21,8 @@
       <div class="doc-kpi">
         <span>Cost de les hores</span>
         <b>{{ money(total.hours) }}</b>
-        <small v-if="total.income">{{ pct(total.hours / total.income) }} dels ingressos</small>
+        <small v-if="!total.hours && scenario === 'prev'">cap hora planificada als projectes: el resultat previst no en compta el cost</small>
+        <small v-else-if="total.income">{{ pct(total.hours / total.income) }} dels ingressos</small>
       </div>
       <div class="doc-kpi">
         <span>Resultat</span>
