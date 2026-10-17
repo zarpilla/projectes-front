@@ -115,11 +115,6 @@ export default {
     }
   },
   mounted() {
-    this.$buefy.snackbar.open({
-      message: "Benvinguda",
-      queue: false
-    });
-
     service({ requiresAuth: true, cached: true })
       .get("project-states")
       .then(r => {
