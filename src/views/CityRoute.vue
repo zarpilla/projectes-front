@@ -72,7 +72,7 @@
               </div>
             </section>
           </div>
-          <p v-if="!isLoading && !visibleGroups.length" class="a-box box-empty">Cap ruta amb aquest filtre.</p>
+          <p v-if="!isLoading && !visibleGroups.length" class="a-box box-empty">{{ routeFilter && routeFilter.trim() ? "Cap ruta amb aquest filtre." : "Encara no hi ha cap ruta activa." }}</p>
         </div>
 
         <aside class="cr-side">

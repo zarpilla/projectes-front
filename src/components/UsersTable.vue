@@ -46,7 +46,7 @@
           <span v-if="props.row.contact && props.row.contact.partner_amount_date" class="subline">{{ formatDate(props.row.contact.partner_amount_date) }}</span>
         </b-table-column>
         <template #empty>
-          <p class="has-text-muted has-text-centered py-5">Cap sòcia coincideix amb la cerca.</p>
+          <p class="has-text-muted has-text-centered py-5">{{ search.trim() ? "Cap sòcia coincideix amb la cerca." : "Encara no hi ha cap sòcia." }}</p>
         </template>
       </b-table>
     </div>

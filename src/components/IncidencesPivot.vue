@@ -15,7 +15,9 @@
       @update:viewName="newViewName = $event"
     />
     
-    <div id="incidences-stats"></div>
+    <div id="incidences-stats" v-show="!pivotEmpty"></div>
+    <!-- with no rows the pivot drew an empty frame (issues/108) -->
+    <p v-if="pivotEmpty" class="pivot-empty">No hi ha dades per a aquests filtres.</p>
     <download-excel name="estadistiques-incidencies" class="export" 
       :fields="{
         id: 'id',
@@ -78,6 +80,7 @@ export default {
     return {
       incidences: [],
       pivotData: [],
+      pivotEmpty: false,
       isLoading: false,
       pivotIdentifier: 'incidences-pivot'
     }
@@ -105,6 +108,7 @@ export default {
       const qMonth = this.month.id === 0 ? '' : `&month=${this.month.month}`
       this.incidences = (await service({ requiresAuth: true }).get(`incidences/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.incidences, ['id'], ['asc']))
+      this.pivotEmpty = this.pivotData.length === 0
       configPivot.dataSource.data = this.pivotData
       this.initializePivotWithViews('#incidences-stats', configPivot)
       this.isLoading = false

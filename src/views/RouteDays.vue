@@ -37,6 +37,10 @@
                   <th v-for="w in weeks" :key="w.start">Setm. {{ w.number }}</th>
                 </tr>
               </thead>
+              <!-- no active routes: say it instead of headers alone (issues/108) -->
+              <tbody v-if="!groups.length">
+                <tr><td :colspan="weeks.length + 1" class="has-text-muted has-text-centered py-5">Encara no hi ha cap ruta activa.</td></tr>
+              </tbody>
               <tbody v-for="group in groups" :key="group.key">
                 <tr class="rd-day-row">
                   <td :colspan="weeks.length + 1"><b>{{ group.label }}</b> · {{ group.routes.length }} {{ group.routes.length === 1 ? "ruta" : "rutes" }}</td>

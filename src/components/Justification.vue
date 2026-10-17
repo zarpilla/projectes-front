@@ -34,6 +34,14 @@
         Desplega les seccions que vulguis consultar
       </div> -->
 
+      <!-- nothing to justify for these filters (no grant projects…): say so
+           instead of an empty page (issues/108) -->
+      <p
+        v-if="!isLoading && !monthlyActivitiesTotal.length && !justifications.length"
+        class="pivot-empty"
+      >
+        No hi ha cap projecte subvencionat amb dades per a aquests filtres.
+      </p>
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="

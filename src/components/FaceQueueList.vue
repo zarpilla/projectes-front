@@ -101,6 +101,9 @@
             </router-link>
           </div>
         </b-table-column>
+        <template #empty>
+          <p class="has-text-muted has-text-centered py-5">Encara no hi ha cap factura enviada a FACe.</p>
+        </template>
       </b-table>
     </card-component>
   </section>

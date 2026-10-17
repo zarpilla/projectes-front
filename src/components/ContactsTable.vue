@@ -90,7 +90,7 @@
           <span v-for="t in (props.row.contact_type_display || '').split(', ').filter(Boolean)" :key="t" class="tag mr-1">{{ t }}</span>
         </b-table-column>
         <template #empty>
-          <p class="has-text-muted has-text-centered py-5">Cap contacte coincideix amb la cerca.</p>
+          <p class="has-text-muted has-text-centered py-5">{{ search.trim() ? "Cap contacte coincideix amb la cerca." : "Encara no hi ha cap contacte." }}</p>
         </template>
       </b-table>
     </div>
@@ -139,7 +139,7 @@
           {{ props.row.num_orders || 0 }}
         </b-table-column>
         <template #empty>
-          <p class="has-text-muted has-text-centered py-5">Cap punt d'entrega coincideix amb la cerca.</p>
+          <p class="has-text-muted has-text-centered py-5">{{ search.trim() ? "Cap punt d'entrega coincideix amb la cerca." : "Encara no hi ha cap punt d'entrega." }}</p>
         </template>
       </b-table>
     </div>

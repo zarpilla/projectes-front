@@ -15,7 +15,9 @@
       @update:viewName="newViewName = $event"
     />
     
-    <div id="project-stats"></div>
+    <div id="project-stats" v-show="!pivotEmpty"></div>
+    <!-- with no rows the pivot drew an empty frame (issues/108) -->
+    <p v-if="pivotEmpty" class="pivot-empty">No hi ha dades per a aquests filtres.</p>
     <download-excel name="estadistiques-comandes" class="export" 
       :fields="{
         id: 'id',
@@ -98,6 +100,7 @@ export default {
     return {
       orders: [],
       pivotData: [],
+      pivotEmpty: false,
       isLoading: false,
       pivotIdentifier: 'orders-pivot'
     }
@@ -125,6 +128,7 @@ export default {
       const qMonth = this.month.id === 0 ? '' : `&month=${this.month.month}`
       this.orders = (await service({ requiresAuth: true }).get(`orders/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.orders, ['id'], ['asc']))
+      this.pivotEmpty = this.pivotData.length === 0
       configPivot.dataSource.data = this.pivotData
       this.initializePivotWithViews('#project-stats', configPivot)
       this.isLoading = false

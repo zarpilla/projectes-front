@@ -57,7 +57,10 @@
         <span v-else class="tag is-warning">Pendent</span>
         <span v-if="props.row.accepted_date" class="doc-subline">{{ formatDate(props.row.accepted_date) }}</span>
       </b-table-column>      
-    </b-table>
+      <template #empty>
+          <p class="has-text-muted has-text-centered py-5">No hi ha cap pressupost amb aquests filtres.</p>
+        </template>
+      </b-table>
   </section>
 </template>
 

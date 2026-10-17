@@ -15,7 +15,9 @@
       @update:viewName="newViewName = $event"
     />
     
-    <div id="project-stats"></div>
+    <div id="project-stats" v-show="!pivotEmpty"></div>
+    <!-- with no rows the pivot drew an empty frame (issues/108) -->
+    <p v-if="pivotEmpty" class="pivot-empty">No hi ha dades per a aquests filtres.</p>
     <download-excel name="intercooperacio" class="export" :data="pivotData">
       <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
     </download-excel>
@@ -58,6 +60,7 @@ export default {
       leaders: [],
       contacts: [],
       pivotData: [],
+      pivotEmpty: false,
       pivotIdentifier: 'intercoop-pivot'
     }
   },
@@ -107,6 +110,7 @@ export default {
         const strategies = intercoopRows(r.data)
         this.projects = r.data
         this.pivotData = Object.freeze(strategies)
+        this.pivotEmpty = this.pivotData.length === 0
         configPivot.dataSource.data = this.pivotData
         this.initializePivotWithViews('#project-stats', configPivot)
         this.isLoading = false
