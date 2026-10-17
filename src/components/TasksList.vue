@@ -20,6 +20,14 @@
           {{ u.username }}
         </b-dropdown-item>
       </b-dropdown>
+      <b-dropdown aria-role="list">
+        <template #trigger>
+          <b-button size="is-small" icon-right="menu-down">Prioritat</b-button>
+        </template>
+        <b-dropdown-item v-for="p in priorities" :key="p.value" aria-role="listitem" @click="bulk({ priority: p.value })">
+          {{ p.label }}
+        </b-dropdown-item>
+      </b-dropdown>
       <label class="tl-bulk-date">
         <span>Data límit</span>
         <input type="date" class="input is-small" aria-label="Data límit de les seleccionades" @change="bulkDate($event)">
@@ -83,9 +91,27 @@
                   <span v-if="task.documents && task.documents.length" class="tl-meta" title="Documents">
                     <b-icon icon="paperclip" custom-size="default" />{{ task.documents.length }}
                   </span>
+                  <span v-if="task.task_comments && task.task_comments.length" class="tl-meta" title="Comentaris">
+                    <b-icon icon="comment-outline" custom-size="default" />{{ task.task_comments.length }}
+                  </span>
+                  <span v-if="task.recurrence" class="tl-meta" :title="recurrenceLabel(task.recurrence)">
+                    <b-icon icon="repeat" custom-size="default" />{{ recurrenceLabel(task.recurrence) }}
+                  </span>
                   <span v-if="task.archived" class="tag">Arxivada</span>
                   <a v-if="task.archived" href="#" class="tl-restore" @click.prevent="$emit('update', { tasks: [task], patch: { archived: false } })">Recupera</a>
                 </span>
+              </td>
+              <td>
+                <b-dropdown aria-role="list" :mobile-modal="false">
+                  <template #trigger>
+                    <button type="button" class="tl-prio" :class="'is-' + priority(task)" :aria-label="'Prioritat: ' + priorityLabel(priority(task)) + '. Canvia-la'">
+                      {{ priorityLabel(priority(task)) }}
+                    </button>
+                  </template>
+                  <b-dropdown-item v-for="p in priorities" :key="p.value" aria-role="listitem" @click="change(task, { priority: p.value })">
+                    {{ p.label }}
+                  </b-dropdown-item>
+                </b-dropdown>
               </td>
               <td>
                 <b-dropdown aria-role="list" :mobile-modal="false">
@@ -129,6 +155,16 @@
                   @blur="editingDate = null"
                 >
               </td>
+              <td class="tl-hours">
+                <template v-if="hours(task).estimate !== null || hours(task).done">
+                  <div class="tl-hours-row">
+                    <b>{{ formatHours(hours(task).done) }}</b>
+                    <span v-if="hours(task).estimate !== null" class="has-text-muted">/ {{ formatHours(hours(task).estimate) }}</span>
+                  </div>
+                  <div v-if="hours(task).estimate" class="tl-bar"><span :class="{ over: hours(task).over }" :style="{ width: hours(task).ratio * 100 + '%' }"></span></div>
+                </template>
+                <span v-else class="has-text-muted">—</span>
+              </td>
               <td class="tl-updated">
                 <span :class="{ 'is-stale': stale(task) }" :title="stale(task) ? 'Fa més de 15 dies que no es toca' : ''">{{ updated(task) }}</span>
               </td>
@@ -164,7 +200,10 @@
 
 <script>
 import moment from "moment";
-import { groupTasks, sortTasks, isOverdue, isDone, isStale, updatedLabel } from "@/domain/tasks";
+import {
+  groupTasks, sortTasks, isOverdue, isDone, isStale, updatedLabel,
+  PRIORITIES, priorityOf, priorityLabel, recurrenceLabel, taskHours, formatHours
+} from "@/domain/tasks";
 
 const GROUP_LIMIT = 25;
 
@@ -174,7 +213,8 @@ export default {
     tasks: { type: Array, default: () => [] },
     states: { type: Array, default: () => [] },
     users: { type: Array, default: () => [] },
-    groupBy: { type: String, default: "due" }
+    groupBy: { type: String, default: "due" },
+    loggedHours: { type: Object, default: () => ({}) }
   },
   emits: ["open", "update", "add"],
   data() {
@@ -187,11 +227,14 @@ export default {
       collapsed: {},
       expanded: {},
       today: moment().format("YYYY-MM-DD"),
+      priorities: PRIORITIES,
       columns: [
         { key: "name", title: "Tasca", sort: true },
+        { key: "priority", title: "Prioritat", sort: true },
         { key: "state", title: "Estat", sort: true },
         { key: "people", title: "Persones" },
         { key: "due", title: "Data límit", sort: true },
+        { key: "hours", title: "Hores fetes / estimades" },
         { key: "updated", title: "Actualitzada", sort: true }
       ]
     };
@@ -216,6 +259,13 @@ export default {
     }
   },
   methods: {
+    priority: priorityOf,
+    priorityLabel,
+    recurrenceLabel,
+    formatHours,
+    hours(task) {
+      return taskHours(task, this.loggedHours);
+    },
     shown(g) {
       return this.expanded[g.key] ? g.tasks : g.tasks.slice(0, GROUP_LIMIT);
     },
@@ -289,7 +339,8 @@ export default {
       });
     },
     hasMeta(task) {
-      return (task.checklist && task.checklist.length) || (task.documents && task.documents.length) || task.archived;
+      return (task.checklist && task.checklist.length) || (task.documents && task.documents.length) ||
+        (task.task_comments && task.task_comments.length) || task.recurrence || task.archived;
     },
     stateName(task) {
       const id = task.task_state && task.task_state.id;
@@ -353,7 +404,7 @@ export default {
 }
 .tl-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 980px;
   margin: 0;
 }
 .tl-table td {
@@ -484,6 +535,62 @@ th.sorted {
 }
 .tl-updated {
   white-space: nowrap;
+}
+.tl-prio {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  border: 0;
+  padding: .125rem .25rem;
+  margin-left: -.25rem;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.tl-prio::before {
+  content: "";
+  width: .5rem;
+  height: .5rem;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.tl-prio:hover {
+  background: var(--a-chip);
+}
+.tl-prio.is-high { color: var(--a-neg); }
+.tl-prio.is-high::before { background: var(--a-neg); }
+.tl-prio.is-normal { color: var(--a-fg-2); }
+.tl-prio.is-normal::before { background: var(--a-muted); }
+.tl-prio.is-low { color: var(--a-muted); }
+.tl-prio.is-low::before { background: var(--a-input); }
+.tl-hours {
+  min-width: 8rem;
+}
+.tl-hours-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .375rem;
+  font-size: .8125rem;
+  white-space: nowrap;
+}
+.tl-bar {
+  height: 6px;
+  margin-top: .25rem;
+  border-radius: 3px;
+  background: var(--a-seg);
+  overflow: hidden;
+}
+.tl-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--a-accent);
+}
+.tl-bar > span.over {
+  background: var(--a-over);
 }
 .is-stale {
   color: var(--a-over);

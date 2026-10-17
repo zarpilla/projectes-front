@@ -10,6 +10,18 @@
       :projects="projects"
       :project="project"
       :states="states"
+      :logged-hours="loggedHours"
+      @log-hours="logHours"
+    />
+    <modal-box-dedication
+      :is-active="isHoursModalActive"
+      :dedication-object="hoursObject"
+      :projects="projects"
+      :users="users"
+      :saving="savingHours"
+      @submit="saveHours"
+      @cancel="isHoursModalActive = false"
+      @delete="isHoursModalActive = false"
     />
     <tasks-list
       v-if="mode === 'list'"
@@ -17,6 +29,7 @@
       :states="states"
       :users="users"
       :group-by="groupBy"
+      :logged-hours="loggedHours"
       @open="showTask"
       @add="addTask(null, $event)"
       @update="updateTasks"
@@ -65,9 +78,12 @@
                   class="task-img"
                   alt=""
                 />
-                <p class="task-title">{{ task.name }}</p>
+                <p class="task-title">
+                  <span v-if="task.priority === 'high'" class="task-prio" title="Prioritat alta">Alta</span>
+                  {{ task.name }}
+                </p>
                 <p v-if="!projectInfo" class="task-project">{{ task.project ? task.project.name : "Sense projecte" }}</p>
-                <p v-if="task.description" class="task-desc">{{ task.description }}</p>
+                <p v-if="task.description" class="task-desc">{{ plainText(task.description) }}</p>
                 <div class="task-foot">
                   <span v-if="task.due_date" class="task-chip" :class="{ 'is-overdue': isOverdue(task) }">
                     {{ isOverdue(task) ? "Vençuda " : "" }}{{ formatShortDate(task.due_date) }}
@@ -81,6 +97,13 @@
                     <b-icon icon="check" custom-size="default" />
                     {{ task.checklist.filter(c => c.done).length }}/{{ task.checklist.length }}
                   </span>
+                  <span v-if="task.task_comments && task.task_comments.length" class="task-chip" title="Comentaris">
+                    <b-icon icon="comment-outline" custom-size="default" />{{ task.task_comments.length }}
+                  </span>
+                  <span v-if="loggedHours[task.id] || task.estimated_hours" class="task-chip" :class="{ 'is-overdue': hoursOf(task).over }" title="Hores fetes / estimades">
+                    <b-icon icon="clock-outline" custom-size="default" />{{ formatHours(hoursOf(task).done) }}<template v-if="hoursOf(task).estimate !== null">/{{ formatHours(hoursOf(task).estimate) }}</template>
+                  </span>
+                  <span v-if="task.recurrence" class="task-chip" :title="recurrenceLabel(task.recurrence)"><b-icon icon="repeat" custom-size="default" /></span>
                   <span v-if="view === 'state' && task.activity_type && task.activity_type.name" class="task-chip is-type">{{ task.activity_type.name }}</span>
                   <span v-if="view === 'list' && task.task_state" class="task-chip is-type">{{ task.task_state.name }}</span>
                   <span class="task-people">
@@ -117,6 +140,7 @@
 import Notification from "@/components/Notification.vue";
 import ModalBoxTask from "@/components/ModalBoxTask.vue";
 import TasksList from "@/components/TasksList.vue";
+import ModalBoxDedication from "@/components/ModalBoxDedication.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import HeroBar from "@/components/HeroBar.vue";
@@ -128,7 +152,8 @@ import { useMainStore } from "@/stores/main.js";
 import _ from "lodash";
 import getConfig from '@/config'
 import { currentUserId } from "@/domain/currentUser";
-import { isOverdue, isDone, filterTasks, tasksQuery, kanbanViewQuery } from "@/domain/tasks";
+import { isOverdue, isDone, filterTasks, tasksQuery, kanbanViewQuery, taskHours, formatHours, recurrenceLabel } from "@/domain/tasks";
+import { markdownToText } from "@/domain/markdown";
 
 moment.locale("ca");
 
@@ -143,6 +168,7 @@ export default {
     ModalBoxTask,
     Notification,
     TasksList,
+    ModalBoxDedication,
   },
   data() {
     return {
@@ -167,7 +193,12 @@ export default {
       kanbanViewDb: null,
       // columns showing all their cards (the others show the first CARD_LIMIT)
       expanded: {},
-      apiUrl: import.meta.env.VUE_APP_API_URL
+      apiUrl: import.meta.env.VUE_APP_API_URL,
+      // hours logged per task (GET tasks/hours), and the "Imputa hores" modal
+      loggedHours: {},
+      isHoursModalActive: false,
+      hoursObject: null,
+      savingHours: false
     };
   },
   props: {
@@ -389,11 +420,74 @@ export default {
       
       // go
       this.tasks = tasks
+      this.loadLoggedHours()
 
       this.cardOrderViewSorted = this.cardOrderView.map(c => [])
       this.reOrderCards()
 
       this.isLoading = false;
+    },
+    async loadLoggedHours() {
+      const ids = this.tasks.map(t => t.id)
+      if (!ids.length) {
+        this.loggedHours = {}
+        return
+      }
+      try {
+        const totals = {}
+        for (let i = 0; i < ids.length; i += 300) {
+          const part = (await service({ requiresAuth: true }).get(`tasks/hours?ids=${ids.slice(i, i + 300).join(',')}`)).data
+          Object.assign(totals, part || {})
+        }
+        this.loggedHours = totals
+      } catch (e) {
+        this.loggedHours = {}
+      }
+    },
+    // "Imputa hores" in a task: the Hores dedicades modal with the task's project,
+    // Funció and the task itself, for the logged-in person, today
+    logHours(task) {
+      const project = this.projects.find(p => p.id === task.project) || null
+      const me = this.users.find(u => u.id === currentUserId()) || null
+      this.hoursObject = {
+        date: moment().format('YYYY-MM-DD'),
+        project: project ? { id: project.id, name: project.name } : null,
+        activity_type: task.activity_type ? { id: task.activity_type } : null,
+        task: { id: task.id },
+        users_permissions_user: me ? { id: me.id, username: me.username } : null,
+        hours: null,
+        description: task.name
+      }
+      this.isHoursModalActive = true
+    },
+    async saveHours(activity) {
+      if (this.savingHours) return
+      this.savingHours = true
+      try {
+        const data = { ...activity, counter: undefined }
+        delete data.id
+        data.date = moment(activity.date).format('YYYY-MM-DD')
+        data.hours = activity.hours ? activity.hours.toString().replace(',', '.') : activity.hours
+        data.task = activity.task || null
+        await service({ requiresAuth: true }).post('activities', data)
+        this.isHoursModalActive = false
+        await this.loadLoggedHours()
+        this.$buefy.snackbar.open({ message: 'Hores imputades', queue: false })
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: "No s'han pogut desar les hores", type: 'is-danger', queue: false })
+      } finally {
+        this.savingHours = false
+      }
+    },
+    // files added in the modal before the task existed
+    async uploadFiles(taskId, files) {
+      const formData = new FormData()
+      files.forEach(f => formData.append('files', f, f.name))
+      formData.append('ref', 'task')
+      formData.append('refId', taskId)
+      formData.append('field', 'documents')
+      await service({ requiresAuth: true, multipart: true }).post('upload', formData)
+      return (await service({ requiresAuth: true }).get(`tasks/${taskId}`)).data
     },
     startDrag(evt, item) {
       evt.dataTransfer.dropEffect = "move";
@@ -419,6 +513,7 @@ export default {
       try {
         await service({ requiresAuth: true }).put(`tasks/${item.id}`, item);
         await this.saveKanbanView()
+        if (item.recurrence && this.listKey === 'task_state') await this.getData()
 
         this.$buefy.snackbar.open({
           message: "Tasca guardada",
@@ -491,6 +586,9 @@ export default {
           failed++;
         }
       }
+      // a recurring task finished here has its next occurrence on the server
+      const p = typeof patch === 'function' ? null : patch
+      if (p && p.task_state && tasks.some(t => t.recurrence)) await this.getData();
       this.$buefy.snackbar.open({
         message: failed
           ? `No s'han pogut desar ${failed} de ${tasks.length} tasques`
@@ -504,25 +602,34 @@ export default {
       this.isModalActive = true;
     },
     async modalSubmit (task) {
+      const files = task._files || []
+      delete task._files
       if (task.id && task.id > 0) {
-        const updatedTask = (await service({ requiresAuth: true }).put(`tasks/${task.id}`, task)).data;
+        let updatedTask = (await service({ requiresAuth: true }).put(`tasks/${task.id}`, task)).data;
+        if (files.length) updatedTask = await this.uploadFiles(task.id, files)
         let item = this.tasks.find(t => t.id === task.id)
-        for(var i in updatedTask) {
-          item[i] = updatedTask[i]
-        }        
-        item.order++
+        if (item) {
+          for (var i in updatedTask) {
+            item[i] = updatedTask[i]
+          }
+          item.order++
+        }
         this.reOrderCards()
         await this.saveKanbanView()
       } else {
+        delete task.id
         // the person who creates it (it was the Persona filter, or nobody on a project)
         task.created = currentUserId()
         task.archived = false
         task.order = -10
-        task = (await service({ requiresAuth: true }).post(`tasks`, task)).data;        
+        task = (await service({ requiresAuth: true }).post(`tasks`, task)).data;
+        if (files.length) task = await this.uploadFiles(task.id, files)
         this.tasks.push(task)
         this.reOrderCards()
         await this.saveKanbanView()
       }
+      // a recurring task finished on this save has a new occurrence on the server
+      if (task.recurrence) await this.getData()
 
       this.$buefy.snackbar.open({
         message: "Tasca guardada",
@@ -587,6 +694,12 @@ export default {
     // the last state counts as "done" (no overdue warning for finished tasks)
     isOverdue(task) {
       return isOverdue(task, this.states, this.today);
+    },
+    plainText: markdownToText,
+    formatHours,
+    recurrenceLabel,
+    hoursOf(task) {
+      return taskHours(task, this.loggedHours);
     },
     initials(name) {
       const words = String(name || "").split(/[\s._@-]+/).filter(Boolean);
@@ -720,6 +833,17 @@ export default {
   font-size: .9375rem;
   line-height: 1.3;
   color: var(--a-fg);
+}
+.task-prio {
+  display: inline-block;
+  margin-right: .25rem;
+  padding: 0 .375rem;
+  border-radius: 4px;
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
+  font-size: .6875rem;
+  font-weight: 800;
+  vertical-align: 2px;
 }
 .task-project {
   margin-top: .25rem !important;

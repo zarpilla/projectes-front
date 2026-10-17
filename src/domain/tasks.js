@@ -47,10 +47,11 @@ export function dueBucket (task, states, today = moment().format('YYYY-MM-DD')) 
 /**
  * Filters of the list. `state`: 'open' (not done, the default), 'all', 'done' or a
  * state id; `due`: 'all', 'late', 'week' (late or in the next 7 days) or 'none';
- * `activityType`: an id, 0 for "no Funció", 'all' (or null) for all; `search` matches the name,
+ * `activityType`: an id, 0 for "no Funció", 'all' (or null) for all; `priority`:
+ * 'high' | 'normal' | 'low' or 'all'; `search` matches the name,
  * the description and the project.
  */
-export function filterTasks (tasks, { state = 'open', due = 'all', activityType = null, search = '' } = {}, states = [], today = moment().format('YYYY-MM-DD')) {
+export function filterTasks (tasks, { state = 'open', due = 'all', activityType = null, priority = 'all', search = '' } = {}, states = [], today = moment().format('YYYY-MM-DD')) {
   const q = (search || '').trim().toLowerCase()
   return tasks.filter(t => {
     if (state === 'open' && isDone(t, states)) return false
@@ -66,6 +67,7 @@ export function filterTasks (tasks, { state = 'open', due = 'all', activityType 
       const id = stateId(t.activity_type) || 0
       if (id !== activityType) return false
     }
+    if (priority && priority !== 'all' && (t.priority || 'normal') !== priority) return false
     if (q && ![t.name, t.description, t.project && t.project.name].some(x => x && String(x).toLowerCase().includes(q))) return false
     return true
   })
@@ -74,7 +76,8 @@ export function filterTasks (tasks, { state = 'open', due = 'all', activityType 
 const SORTS = {
   name: t => (t.name || '').toLowerCase(),
   project: t => (t.project && t.project.name ? t.project.name.toLowerCase() : '￿'),
-  updated: t => t.updatedAt || t.updated_at || ''
+  updated: t => t.updatedAt || t.updated_at || '',
+  priority: t => ({ high: 0, normal: 1, low: 2 })[t.priority] ?? 1
 }
 
 /**
@@ -170,4 +173,147 @@ export function tasksQuery ({ project = null, user = null, archived = false } = 
 /** Saved card order of the board, per project, person and view. */
 export function kanbanViewQuery ({ project = null, user = null, view }) {
   return `kanban-views?_limit=1&_where[projectId_eq]=${project || 0}&_where[userId_eq]=${user || 0}&_where[view_eq]=${view}`
+}
+
+// ---------- phase 2: priority, hours, mentions, calendar, templates ----------
+
+export const PRIORITIES = [
+  { value: 'high', label: 'Alta' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'low', label: 'Baixa' }
+]
+const PRIORITY_RANK = { high: 0, normal: 1, low: 2 }
+export const priorityOf = task => (task && PRIORITY_RANK[task.priority] !== undefined ? task.priority : 'normal')
+export const priorityLabel = value => (PRIORITIES.find(p => p.value === value) || PRIORITIES[1]).label
+export const priorityRank = task => PRIORITY_RANK[priorityOf(task)]
+
+export const RECURRENCES = [
+  { value: null, label: 'No es repeteix' },
+  { value: 'weekly', label: 'Cada setmana' },
+  { value: 'biweekly', label: 'Cada 2 setmanes' },
+  { value: 'monthly', label: 'Cada mes' },
+  { value: 'quarterly', label: 'Cada 3 mesos' },
+  { value: 'yearly', label: 'Cada any' }
+]
+export const recurrenceLabel = value => (RECURRENCES.find(r => r.value === value) || RECURRENCES[0]).label
+
+/** Hours logged and estimated, rounded for display: { done, estimate, ratio, over }. */
+export function taskHours (task, logged = {}) {
+  const done = Number(logged[task.id] || 0)
+  const estimate = task.estimated_hours === null || task.estimated_hours === undefined || task.estimated_hours === ''
+    ? null
+    : Number(task.estimated_hours)
+  return {
+    done,
+    estimate,
+    ratio: estimate ? Math.min(1, done / estimate) : 0,
+    over: estimate !== null && done > estimate
+  }
+}
+
+export const formatHours = h => {
+  const n = Math.round(Number(h || 0) * 100) / 100
+  return String(n).replace('.', ',') + ' h'
+}
+
+/**
+ * The person being mentioned at the caret ("…@Lai|" → "Lai"), or null.
+ * Usernames have spaces ("Laia Puig"), so up to two words are taken.
+ */
+export function mentionQuery (text, caret) {
+  const before = String(text || '').slice(0, caret)
+  const m = before.match(/(?:^|\s)@([^\s@]*(?:\s[^\s@]*)?)$/)
+  return m ? m[1] : null
+}
+
+/** Replaces the "@query" before the caret with "@Username ". */
+export function insertMention (text, caret, username) {
+  const before = String(text || '').slice(0, caret)
+  const after = String(text || '').slice(caret)
+  const start = before.search(/@[^@]*$/)
+  const head = before.slice(0, start) + '@' + username + ' '
+  return { text: head + after, caret: head.length }
+}
+
+/** Ids of the people whose "@Username" is in the text. */
+export function mentionedIds (text, users) {
+  const t = String(text || '')
+  return (users || []).filter(u => u.username && t.includes('@' + u.username)).map(u => u.id)
+}
+
+/**
+ * Month grid of the calendar view: weeks (Monday first) of { date, inMonth, tasks }.
+ * A task with start and due date shows on every day in between; with only one of
+ * them, on that day.
+ */
+export function calendarWeeks (month, tasks) {
+  const first = moment(month, 'YYYY-MM').startOf('month')
+  const start = first.clone().startOf('isoWeek')
+  const end = first.clone().endOf('month').endOf('isoWeek')
+  const byDay = new Map()
+  tasks.forEach(t => {
+    const from = t.start_date || t.due_date
+    const to = t.due_date || t.start_date
+    if (!from) return
+    const d = moment.max(moment(from), start.clone())
+    const last = moment.min(moment(to), end.clone())
+    for (; d.isSameOrBefore(last, 'day'); d.add(1, 'day')) {
+      const key = d.format('YYYY-MM-DD')
+      if (!byDay.has(key)) byDay.set(key, [])
+      byDay.get(key).push(t)
+    }
+  })
+  const weeks = []
+  for (const d = start.clone(); d.isSameOrBefore(end, 'day'); d.add(1, 'week')) {
+    const week = []
+    for (let i = 0; i < 7; i++) {
+      const day = d.clone().add(i, 'days')
+      const key = day.format('YYYY-MM-DD')
+      week.push({ date: key, day: day.date(), inMonth: day.month() === first.month(), tasks: byDay.get(key) || [] })
+    }
+    weeks.push(week)
+  }
+  return weeks
+}
+
+/**
+ * Template items from tasks: their dates become days from the earliest one, so the
+ * template can be applied from any day.
+ */
+export function templateItems (tasks) {
+  const dates = tasks.flatMap(t => [t.start_date, t.due_date]).filter(Boolean).sort()
+  const base = dates.length ? moment(dates[0]) : null
+  const days = d => (d && base ? moment(d).diff(base, 'days') : null)
+  return tasks.map(t => ({
+    name: t.name,
+    description: t.description || null,
+    activity_type: t.activity_type && t.activity_type.id ? t.activity_type.id : null,
+    priority: priorityOf(t),
+    estimated_hours: t.estimated_hours ?? null,
+    recurrence: t.recurrence || null,
+    start_days: days(t.start_date),
+    due_days: days(t.due_date),
+    checklist: (t.checklist || []).map(c => c.name).filter(Boolean)
+  }))
+}
+
+/** Tasks to create from a template in a project, starting on `from`. */
+export function tasksFromTemplate (items, { project, from, stateId, users = [], createdBy = null }) {
+  const at = days => (days === null || days === undefined ? null : moment(from).add(days, 'days').format('YYYY-MM-DD'))
+  return (items || []).map(i => ({
+    name: i.name,
+    description: i.description || null,
+    project,
+    activity_type: i.activity_type || null,
+    priority: i.priority || 'normal',
+    estimated_hours: i.estimated_hours ?? null,
+    recurrence: i.recurrence || null,
+    start_date: at(i.start_days),
+    due_date: at(i.due_days),
+    task_state: stateId,
+    archived: false,
+    created: createdBy,
+    users_permissions_users: users,
+    checklist: (i.checklist || []).map(name => ({ name, done: false }))
+  }))
 }

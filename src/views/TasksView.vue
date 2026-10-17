@@ -65,6 +65,15 @@
           </b-select>
         </label>
         <label class="filter-select">
+          <span>Prioritat</span>
+          <b-select v-model="listFilters.priority">
+            <option value="all">Totes</option>
+            <option value="high">Alta</option>
+            <option value="normal">Normal</option>
+            <option value="low">Baixa</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
           <span>Funció</span>
           <b-select v-model="listFilters.activityType">
             <option value="all">Totes</option>
@@ -146,7 +155,7 @@ export default {
         project: null
       },
       mode: savedMode(),
-      listFilters: { state: "open", due: "all", activityType: "all" },
+      listFilters: { state: "open", due: "all", priority: "all", activityType: "all" },
       groupBy: "due",
       showArchived: false,
       search: "",
