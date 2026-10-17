@@ -154,9 +154,13 @@
           </p>
           <p class="has-text-grey mb-4">
             <b-icon icon="calculator" size="is-small"></b-icon>
-            <strong>Sistema acumulat:</strong> El saldo positiu (crèdit a favor) d'un trimestre es trasllada al següent. 
-            Només es genera un pagament a Tresoreria quan el saldo acumulat és positiu (deute a pagar). 
-            Els saldos negatius (crèdit) es mostren com "(es traspassa)" i descompten del proper trimestre.
+            <strong>Sistema acumulat:</strong> com a la taula de l'IVA executat, un saldo negatiu és IVA a pagar i un de positiu, crèdit a favor.
+            El crèdit d'un trimestre es trasllada al següent ("(es traspassa)"); només es genera un pagament a Tresoreria quan el saldo acumulat és negatiu.
+          </p>
+          <p v-if="outdatedExpectedDocuments.length" class="notification is-warning is-light">
+            {{ outdatedExpectedDocuments.length }} {{ outdatedExpectedDocuments.length === 1 ? "línia prevista té" : "línies previstes tenen" }} una data anterior al trimestre actual i no compten a la previsió:
+            {{ outdatedExpectedDocuments.slice(0, 5).map(d => `${d.project_name} · ${d.concept} (${formatDate(d.date)})`).join(", ") }}{{ outdatedExpectedDocuments.length > 5 ? "…" : "" }}.
+            Corregeix-ne la data al projecte.
           </p>
         </div>
         
@@ -180,12 +184,12 @@
             {{ formatPrice(props.row.deductible_paid) }} €
           </b-table-column>
           <b-table-column label="Saldo Trimestre" numeric v-slot="props" class="has-text-right">
-            <span :class="props.row.quarterBalance > 0 ? 'has-text-danger' : 'has-text-success'">
+            <span :class="props.row.quarterBalance < 0 ? 'has-text-danger' : 'has-text-success'">
               {{ formatPrice(props.row.quarterBalance) }} €
             </span>
           </b-table-column>
           <b-table-column label="Saldo Acumulat" numeric v-slot="props" class="has-text-right">
-            <span :class="props.row.cumulativeBalance > 0 ? 'has-text-danger has-text-weight-bold' : 'has-text-success'">
+            <span :class="props.row.cumulativeBalance < 0 ? 'has-text-danger has-text-weight-bold' : 'has-text-success'">
               {{ formatPrice(props.row.cumulativeBalance) }} €
             </span>
           </b-table-column>
@@ -571,10 +575,14 @@ export default {
         return sum + ((doc.total_vat || 0) * multiplier);
       }, 0);
     },
+    // lines dated before the current quarter: listed apart, not forecast (issues/072)
+    outdatedExpectedDocuments() {
+      return ((this.vat_expected && this.vat_expected.documents) || []).filter(doc => doc.outdated);
+    },
     expectedDocumentsWithSearchableFields() {
       if (!this.vat_expected || !this.vat_expected.documents) return [];
       
-      return this.vat_expected.documents.map(doc => {
+      return this.vat_expected.documents.filter(doc => !doc.outdated).map(doc => {
         const typeLabel = doc.type === 'phase-expense' ? 'Despesa prevista' : 'Ingrés previst';
         const year = moment(doc.date, 'YYYY-MM-DD').format("YYYY");
         const quarter = `T${moment(doc.date, 'YYYY-MM-DD').format("Q")}`;
@@ -702,7 +710,8 @@ export default {
       const result = [];
       
       for (let qData of sortedQuarters) {
-        const quarterBalance = qData.received - (qData.paid * this.me.options.deductible_vat_pct / 100);
+        // negative = VAT to pay, like the executed table (issues/072)
+        const quarterBalance = (qData.paid * this.me.options.deductible_vat_pct / 100) - qData.received;
         cumulativeBalance += quarterBalance;
         
         // Calculate payment date
@@ -725,13 +734,13 @@ export default {
           deductible_paid: qData.paid * this.me.options.deductible_vat_pct / 100,
           quarterBalance: quarterBalance,
           cumulativeBalance: cumulativeBalance,
-          paymentAmount: cumulativeBalance > 0 ? -cumulativeBalance : 0,
+          paymentAmount: cumulativeBalance < 0 ? cumulativeBalance : 0,
           paymentDate: paymentDate.format('DD-MM-YYYY'),
-          willCreateEntry: cumulativeBalance > 0
+          willCreateEntry: cumulativeBalance < 0
         });
         
         // Reset cumulative balance after payment (same as backend)
-        if (cumulativeBalance > 0) {
+        if (cumulativeBalance < 0) {
           cumulativeBalance = 0;
         }
       }
