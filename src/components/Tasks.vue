@@ -488,7 +488,9 @@ export default {
     // Funció and the task itself, for the logged-in person, today
     logHours(task) {
       const project = this.projects.find(p => p.id === task.project) || null
-      const me = this.users.find(u => u.id === currentUserId()) || null
+      // the project tab only lists the project's coordinators
+      const me = this.users.find(u => u.id === currentUserId()) ||
+        (currentUserId() ? { id: currentUserId(), username: this.userName || '' } : null)
       this.hoursObject = {
         date: moment().format('YYYY-MM-DD'),
         project: project ? { id: project.id, name: project.name } : null,

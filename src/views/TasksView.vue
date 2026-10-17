@@ -207,8 +207,10 @@ export default {
       .slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "ca"))
 
     const allUsers = (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data
-    this.users = allUsers.filter((u) => u.hidden !== true)
     const user = findCurrentUser(allUsers);
+    // hidden people are left out of the lists, but not the logged-in person: «Imputa
+    // hores», the templates and the checklist preselect them
+    this.users = allUsers.filter((u) => u.hidden !== true || (user && u.id === user.id))
     if (user && user.id) {
       this.userNameSearch = user.username;
       this.filters.user = user.id

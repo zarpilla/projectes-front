@@ -29,8 +29,8 @@
               </div>
             </div>
             <div class="field">
-              <label class="label" for="tt-from">Comença el</label>
-              <input id="tt-from" v-model="from" type="date" class="input tt-date">
+              <span class="label">Comença el</span>
+              <date-field v-model="from" label="Comença el" class="tt-date" />
               <p class="help">Les dates de les tasques es compten a partir d'aquest dia.</p>
             </div>
             <div class="field">
@@ -66,11 +66,13 @@
 <script>
 import moment from "moment";
 import service from "@/service/index";
+import DateField from "@/components/DateField.vue";
 import { currentUserId } from "@/domain/currentUser";
 import { templateItems, tasksFromTemplate } from "@/domain/tasks";
 
 export default {
   name: "TaskTemplates",
+  components: { DateField },
   props: {
     project: { type: Number, required: true },
     // the project's open tasks, saved by "Desa…"

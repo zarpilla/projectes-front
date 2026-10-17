@@ -28,10 +28,14 @@
           {{ p.label }}
         </b-dropdown-item>
       </b-dropdown>
-      <label class="tl-bulk-date">
-        <span>Data límit</span>
-        <input type="date" class="input is-small" aria-label="Data límit de les seleccionades" @change="bulkDate($event)">
-      </label>
+      <date-field
+        :key="bulkDateKey"
+        class="tl-bulk-date"
+        placeholder="Data límit"
+        size="is-small"
+        label="Data límit de les seleccionades"
+        @change="bulkDate"
+      />
       <b-button size="is-small" @click="bulkArchive">Arxiva</b-button>
       <span class="tl-spacer"></span>
       <b-button size="is-small" type="is-ghost" @click="selected = []">Desselecciona</b-button>
@@ -135,25 +139,15 @@
                   <span v-for="u in task.users_permissions_users" :key="u.id" class="tl-avatar" :title="u.username">{{ initials(u.username) }}</span>
                 </span>
               </td>
-              <td class="tl-due">
-                <button
-                  v-if="!task.due_date && editingDate !== task.id"
-                  type="button"
-                  class="tl-link is-muted"
-                  :aria-label="'Afegeix la data límit de «' + task.name + '»'"
-                  @click="editDate(task)"
-                >Afegeix data</button>
-                <input
-                  v-else
-                  :ref="'date-' + task.id"
-                  type="date"
-                  class="tl-date"
-                  :class="{ 'is-late': overdue(task) }"
-                  :value="task.due_date || ''"
-                  :aria-label="'Data límit de «' + task.name + '»'"
-                  @change="change(task, { due_date: $event.target.value || null })"
-                  @blur="editingDate = null"
-                >
+              <td class="tl-due" :class="{ 'is-late': overdue(task), 'is-empty': !task.due_date }">
+                <date-field
+                  :model-value="task.due_date"
+                  placeholder="Afegeix data"
+                  icon=""
+                  size="is-small"
+                  :label="'Data límit de «' + task.name + '»'"
+                  @change="change(task, { due_date: $event })"
+                />
               </td>
               <td class="tl-hours">
                 <template v-if="hours(task).estimate !== null || hours(task).done">
@@ -200,6 +194,7 @@
 
 <script>
 import moment from "moment";
+import DateField from "@/components/DateField.vue";
 import {
   groupTasks, sortTasks, isOverdue, isDone, isStale, updatedLabel,
   PRIORITIES, priorityOf, priorityLabel, recurrenceLabel, taskHours, formatHours
@@ -209,6 +204,7 @@ const GROUP_LIMIT = 25;
 
 export default {
   name: "TasksList",
+  components: { DateField },
   props: {
     tasks: { type: Array, default: () => [] },
     states: { type: Array, default: () => [] },
@@ -222,8 +218,7 @@ export default {
       sortKey: "due",
       sortDir: "asc",
       selected: [],
-      // the row whose empty date is being set (the others show "Afegeix data")
-      editingDate: null,
+      bulkDateKey: 0,
       collapsed: {},
       expanded: {},
       today: moment().format("YYYY-MM-DD"),
@@ -234,7 +229,7 @@ export default {
         { key: "state", title: "Estat", sort: true },
         { key: "people", title: "Persones" },
         { key: "due", title: "Data límit", sort: true },
-        { key: "hours", title: "Hores fetes / estimades" },
+        { key: "hours", title: "Hores" },
         { key: "updated", title: "Actualitzada", sort: true }
       ]
     };
@@ -295,19 +290,6 @@ export default {
     toggleAll(on) {
       this.selected = on ? this.tasks.map(t => t.id) : [];
     },
-    async editDate(task) {
-      this.editingDate = task.id;
-      await this.$nextTick();
-      const ref = this.$refs['date-' + task.id];
-      const input = Array.isArray(ref) ? ref[0] : ref;
-      if (!input) return;
-      input.focus();
-      try {
-        input.showPicker();
-      } catch {
-        // browsers without showPicker: the focused field is typed in
-      }
-    },
     change(task, patch) {
       this.$emit("update", { tasks: [task], patch });
     },
@@ -320,10 +302,10 @@ export default {
         patch: t => ({ users_permissions_users: [...(t.users_permissions_users || []).map(u => u.id), user.id] })
       });
     },
-    bulkDate(event) {
-      const value = event.target.value;
+    bulkDate(value) {
       if (value) this.bulk({ due_date: value });
-      event.target.value = "";
+      // back to the empty «Data límit» button
+      this.bulkDateKey++;
     },
     bulkArchive() {
       const n = this.selected.length;
@@ -388,16 +370,6 @@ export default {
 .tl-bulk > b {
   color: var(--a-accent);
   margin-right: .5rem;
-}
-.tl-bulk-date {
-  display: inline-flex;
-  align-items: center;
-  gap: .375rem;
-  font-size: .8125rem;
-  font-weight: 700;
-}
-.tl-bulk-date .input {
-  width: 9.5rem;
 }
 .tl-spacer {
   flex: 1;
@@ -508,26 +480,32 @@ th.sorted {
 .tl-due {
   white-space: nowrap;
 }
-.tl-date {
+.tl-due :deep(.input) {
+  width: 7.5rem;
   height: 1.875rem;
-  width: 8.75rem;
   padding: 0 .375rem;
-  margin: -.25rem 0 0 -.375rem;
-  border: 1px solid transparent;
-  border-radius: 6px;
+  margin-top: -.25rem;
+  border-color: transparent;
   background: transparent;
-  font: inherit;
+  box-shadow: none;
   font-weight: 700;
   color: var(--a-fg);
   cursor: pointer;
 }
-.tl-date:hover,
-.tl-date:focus {
+.tl-due :deep(.input:hover),
+.tl-due :deep(.input:focus) {
   border-color: var(--a-input);
   background: var(--a-surface);
 }
-.tl-date.is-late {
+.tl-due.is-late :deep(.input) {
   color: var(--a-danger-fg);
+}
+.tl-due.is-empty :deep(.input::placeholder) {
+  color: var(--a-muted);
+  font-weight: 600;
+}
+.tl-bulk-date {
+  width: 8.5rem;
 }
 .tl-link.is-muted {
   color: var(--a-muted);

@@ -67,13 +67,11 @@ describe('Tasques · Llista', () => {
 
   it('changes the due date of a row with a partial save', async () => {
     const w = await mountList()
-    // an empty date shows "Afegeix data"; the field appears on click
-    const add = w.findAll('.tl-due button')
-    expect(add.map(b => b.text())).toEqual(['Afegeix data'])
-    await add[0].trigger('click')
-    const input = w.findAll('input.tl-date')[2]
-    await input.setValue(day(10))
-    await input.trigger('change')
+    // the app's date picker (dd/mm/aaaa), «Afegeix data» when empty
+    const fields = w.findAllComponents({ name: 'DateField' })
+    expect(fields.map(f => f.props('modelValue'))).toEqual([day(-3), day(2), null])
+    expect(fields[2].find('input').attributes('placeholder')).toBe('Afegeix data')
+    fields[2].vm.onInput(moment(day(10)).toDate())
     await flushPromises()
     expect(api.put).toHaveBeenCalledWith('tasks/13', { due_date: day(10) })
     expect(groupTitles(w)).toEqual(['Vençudes', 'Pròxims 7 dies', 'Més endavant'])
@@ -144,5 +142,15 @@ describe('task modal', () => {
     w.vm.form = { name: 'T', task_state: 1, activity_type: 7, checklist: [] }
     w.vm.submit()
     expect(w.emitted('submit')[2][0].activity_type).toBe(7)
+  })
+
+  it('keeps the person of a checklist item who is not in the list (hidden)', async () => {
+    const w = mountModal()
+    const hidden = { id: 15, username: 'Quim Puig' }
+    await w.setProps({ taskObject: { id: 3, name: 'T', task_state: { id: 1 }, checklist: [{ name: 'a', user: hidden }, { name: 'b', user: anna }] } })
+    await w.setProps({ isActive: true })
+    expect(w.vm.form.checklist.map(c => c.user)).toEqual([15, 8])
+    expect(w.vm.checkUsers(w.vm.form.checklist[0]).map(u => u.id)).toEqual([8, 15])
+    expect(w.vm.checkUsers(w.vm.form.checklist[1]).map(u => u.id)).toEqual([8])
   })
 })

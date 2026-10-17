@@ -58,10 +58,17 @@
                 <li v-for="(check, j) in form.checklist" :key="j" :class="{ 'is-done': check.done }">
                   <input v-model="check.done" type="checkbox" :aria-label="'Fet: ' + (check.name || '')">
                   <input v-model="check.name" class="tm-check-name" :aria-label="'Element ' + (j + 1)">
-                  <input v-model="check.due_date" type="date" class="tm-check-date" :aria-label="'Data de l\'element ' + (j + 1)">
+                  <date-field
+                    v-model="check.due_date"
+                    class="tm-check-date"
+                    placeholder="Data"
+                    icon=""
+                    size="is-small"
+                    :label="'Data de l\'element ' + (j + 1)"
+                  />
                   <select v-model="check.user" class="tm-check-user" :aria-label="'Persona de l\'element ' + (j + 1)">
                     <option :value="null">Ningú</option>
-                    <option v-for="u in users" :key="u.id" :value="u.id">{{ u.username }}</option>
+                    <option v-for="u in checkUsers(check)" :key="u.id" :value="u.id">{{ u.username }}</option>
                   </select>
                   <button type="button" class="tm-icon" title="Duplica" @click="duplicatePhase(j)"><b-icon icon="content-copy" custom-size="default" /></button>
                   <button type="button" class="tm-icon" title="Elimina" @click="removePhase(j)"><b-icon icon="close" custom-size="default" /></button>
@@ -228,12 +235,12 @@
 
             <div class="tm-dates">
               <div class="field">
-                <label class="label" for="tm-start">Inici</label>
-                <input id="tm-start" v-model="form.start_date" type="date" class="input" :max="form.due_date || null">
+                <span class="label">Inici</span>
+                <date-field v-model="form.start_date" label="Inici" placeholder="—" icon="" :max="form.due_date" />
               </div>
               <div class="field">
-                <label class="label" for="tm-due">Data límit</label>
-                <input id="tm-due" v-model="form.due_date" type="date" class="input" :min="form.start_date || null">
+                <span class="label">Data límit</span>
+                <date-field v-model="form.due_date" label="Data límit" placeholder="—" icon="" :min="form.start_date" />
               </div>
             </div>
 
@@ -293,6 +300,7 @@
 <script>
 import service from "@/service/index";
 import ModalBox from "@/components/ModalBox.vue";
+import DateField from "@/components/DateField.vue";
 import moment from "moment";
 import getConfig from "@/config";
 import { currentUserId } from "@/domain/currentUser";
@@ -323,7 +331,7 @@ const emptyForm = () => ({
 export default {
   name: "ModalBoxTask",
   emits: ["cancel", "delete", "submit", "log-hours"],
-  components: { ModalBox },
+  components: { ModalBox, DateField },
   props: {
     isActive: { type: Boolean, default: false },
     taskObject: { type: Object, default: null },
@@ -346,6 +354,7 @@ export default {
       apiUrl: "",
       checklistToAdd: "",
       editingDescription: false,
+      checklistPeople: [],
       pendingFiles: [],
       comments: [],
       newComment: "",
@@ -418,6 +427,11 @@ export default {
   methods: {
     formatHours,
     markdown: renderMarkdown,
+    checkUsers(check) {
+      if (!check.user || this.users.some(u => u.id === check.user)) return this.users;
+      const person = this.checklistPeople.find(u => u.id === check.user);
+      return person ? [...this.users, person] : this.users;
+    },
     initials(name) {
       const words = String(name || "").split(/[\s._@-]+/).filter(Boolean);
       return words.slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
@@ -435,6 +449,8 @@ export default {
       form.recurrence = t.recurrence || null;
       form.description = t.description || "";
       form.users_permissions_users = (t.users_permissions_users || []).filter(Boolean);
+      // people of the checklist that are not in the list (hidden ones), so the select shows them
+      this.checklistPeople = (t.checklist || []).map(c => c.user).filter(u => u && typeof u === "object" && u.id);
       form.checklist = (t.checklist || []).map(c => ({ ...c, user: idOf(c.user), due_date: c.due_date || null }));
       form.documents = t.documents || [];
       const project = t.project && typeof t.project === "object" ? t.project : this.projects.find(p => p.id === t.project);
@@ -841,7 +857,24 @@ export default {
   text-decoration: line-through;
   color: var(--a-muted);
 }
-.tm-check-date,
+.tm-check-date {
+  width: 7.5rem;
+  flex: none;
+}
+.tm-check-date :deep(.input) {
+  height: 1.875rem;
+  padding: 0 .375rem;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  font-size: .8125rem;
+  color: var(--a-fg-2);
+}
+.tm-check-date :deep(.input:hover),
+.tm-check-date :deep(.input:focus) {
+  border-color: var(--a-input);
+  background: var(--a-surface);
+}
 .tm-check-user {
   height: 1.875rem;
   border: 1px solid transparent;
@@ -854,8 +887,6 @@ export default {
 }
 .tm-check-name:hover,
 .tm-check-name:focus,
-.tm-check-date:hover,
-.tm-check-date:focus,
 .tm-check-user:hover,
 .tm-check-user:focus {
   border-color: var(--a-input);
@@ -1027,9 +1058,9 @@ export default {
   grid-template-columns: 1fr 1fr;
   gap: .5rem;
 }
-.tm-dates .input {
-  padding: 0 .375rem;
-  font-size: .8125rem;
+.tm-dates :deep(.input) {
+  padding: 0 .5rem;
+  font-size: .875rem;
 }
 .tm-hours-row {
   display: flex;
