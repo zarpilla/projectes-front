@@ -156,6 +156,12 @@ const menu = [
       permission: "projects"
     },
     {
+      to: "/invoicing-forecast",
+      icon: "receipt",
+      label: "Previsió facturació",
+      permission: "projects"
+    },
+    {
       to: "/stats-estrategies",
       icon: "target",
       label: "Estratègies",

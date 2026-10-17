@@ -389,6 +389,16 @@ const routes = [
   },
   {
     meta: {
+      title: "Previsió facturació",
+      requiresAuth: true
+    },
+    path: "/invoicing-forecast",
+    name: "invoicing-forecast.view",
+    component: () =>
+      import("../views/InvoicingForecast.vue"),
+  },
+  {
+    meta: {
       title: "Contactes",
       requiresAuth: true,
       userContacts: false
