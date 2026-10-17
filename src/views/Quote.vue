@@ -26,7 +26,7 @@
                           <span v-if="quote.proforma">{{ texts[locale]['Factura proforma'] }}</span>
                           <span v-else>{{ texts[locale]['Pressupost'] }} </span>
                           {{ quote.code }}<br />
-                          {{ texts[locale]['Data:'] }} {{ formatDMYDate(quote.date ? quote.date : quote.updated_at) }}<br />
+                          {{ texts[locale]['Data:'] }} {{ formatDMYDate(quote.emitted || quote.created_at) }}<br />
                         </td>
                       </tr>
                     </table>
@@ -76,10 +76,10 @@
                           </div>
                         </td>
                         <td v-if="showQuantity">{{ line.quantity }}</td>
-                        <td v-if="showQuantity || showVat">{{ line.base }}€</td>
+                        <td v-if="showQuantity || showVat">{{ formatCurrency(line.base) }}€</td>
                         <td v-if="showDiscount">{{ formatCurrency(-1 * lineDiscount(line)) }}€ ({{ line.discount || 0 }}%)</td>
                         <td v-if="showVat">{{ formatCurrency(lineVat(line)) }}€ ({{ line.vat }}%)</td>
-                        <td>{{ formatCurrency(lineBase(line) * (1 + line.vat / 100)) }}€</td>
+                        <td>{{ formatCurrency(lineBase(line) + lineVat(line)) }}€</td>
                       </tr>
                       <tr class="total">
                         <td :colspan="6">

@@ -57,6 +57,14 @@ describe('Invoice view', () => {
 })
 
 describe('Quote view', () => {
+  // issues/071: the date came from updated_at (quotes have no `date`) and the
+  // unit price was printed raw (0.23€, 1234.5€)
+  it('dates the quote by its issue date and formats the unit price', async () => {
+    const w = await render(Quote, undefined, [plain, { ...discounted, base: 1234.5, quantity: 2 }])
+    expect(w.text()).toContain('Data: 30/04/2025')
+    expect(cells(w, 1)[2]).toBe('1.234,50€')
+  })
+
   it('applies the line discount to the line VAT and total', async () => {
     const w = await render(Quote, undefined, [plain, discounted])
     // Concepte, Q., Preu, Descompte, IVA, Total
