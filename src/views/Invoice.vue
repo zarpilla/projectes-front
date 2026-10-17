@@ -238,6 +238,7 @@
 // import find from 'lodash/find'
 import TitleBar from "@/components/TitleBar.vue";
 import service from "@/service/index";
+import getConfig from "@/config";
 import { richText, sanitizeHtml } from "@/helpers/safeHtml";
 import moment from "moment";
 import html2pdf from "html2pdf.js";
@@ -272,7 +273,8 @@ export default {
       isLoading: false,
       quote: null,
       me: null,
-      baseUrl: import.meta.env.VUE_APP_API_URL || "http://localhost:1337",
+      // each site's runtime config, not the build (issues/122)
+      baseUrl: getConfig().VUE_APP_API_URL,
       imageUrl: null,
       locale: "ca",
       texts: {

@@ -75,6 +75,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Diners"],
+      text: ["La vista prèvia i el PDF de les ", { to: "/emitted-invoices", label: "factures" }, " i dels ", { to: "/quotes", label: "pressupostos" }, " tornen a portar el logo de l'entitat."]
+    },
+    {
+      type: "Correccions",
       modules: ["Logística", "Projectes"],
       text: ["La fitxa d'un ", { to: "/contacts", label: "contacte" }, " amb data d'aportació de sòcia es tornava a obrir buida: ara es veu i es pot editar."]
     },
