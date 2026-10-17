@@ -344,13 +344,14 @@
                 <b-field 
                   label="Punts de recollida en finca" 
                   horizontal
+                  class="cp-list"
                   v-if="form.collection_points && form.collection_points.length > 0"
                 >
                   <div class="tags">
                     <span 
                       v-for="cpId in form.collection_points" 
                       :key="cpId" 
-                      class="tag is-info is-medium"
+                      class="tag is-primary is-light is-medium cp-tag"
                     >
                       {{ getCollectionPointName(cpId) }}
                       <button 
@@ -366,7 +367,7 @@
                   horizontal
                   v-if="!form.collection_points || form.collection_points.length === 0"
                 >
-                  <p class="help">No hi ha punts d'entrega associats</p>
+                  <p class="help">No hi ha punts de recollida en finca associats</p>
                 </b-field>
               </div>
 
@@ -961,6 +962,14 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 0.8rem;
+}
+.cp-list {
+  margin-top: 1rem;
+}
+.cp-tag {
+  height: auto;
+  min-height: 2rem;
+  white-space: normal;
 }
 .ulist .tag {
   margin-right: 3px;
