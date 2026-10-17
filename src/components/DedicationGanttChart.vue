@@ -137,8 +137,13 @@ export default {
     ...mapState(useMainStore, ["userName"]),
     ...mapState(useMainStore, ["me"]),
 
+    // not hidden, and able to log hours (works; older answers lack it) or
+    // with hours anyway: logistics members were listed as «persones sense
+    // hores» (issues/109)
     visibleLeaders() {
-      return this.leaders ? this.leaders.filter((l) => !l.hidden) : [];
+      return this.leaders
+        ? this.leaders.filter((l) => !l.hidden && (l.works !== false || this.totalOf(l.id) > 0))
+        : [];
     },
     withHours() {
       return this.visibleLeaders.filter((l) => this.totalOf(l.id) > 0);

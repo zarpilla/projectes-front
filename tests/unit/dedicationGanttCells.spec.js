@@ -26,3 +26,23 @@ describe('dedication gantt cells (issues/077)', () => {
     expect(cls({ hours: '0.00', percentage: '0' })).toBe('dedication-empty')
   })
 })
+
+// issues/109: logistics members (no hours permission) were listed as
+// «persones sense hores»
+describe('people of the dedication gantt (issues/109)', () => {
+  it('leaves out who cannot log hours, unless she has some', () => {
+    const ctx = {
+      leaders: [
+        { id: 1, username: 'Anna', works: true },
+        { id: 2, username: 'Sòcia SCCL', works: false },
+        { id: 3, username: 'Antiga', works: false },
+        { id: 4, username: 'Oculta', works: true, hidden: true },
+        { id: 5, username: 'Sense dada' }
+      ],
+      totalOf: id => (id === 3 ? 5 : 0)
+    }
+    const visible = DedicationGanttChart.computed.visibleLeaders.call(ctx).map(l => l.username)
+    expect(visible).toEqual(['Anna', 'Antiga', 'Sense dada'])
+  })
+})
+
