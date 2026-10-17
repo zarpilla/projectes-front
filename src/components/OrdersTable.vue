@@ -2796,7 +2796,7 @@ export default {
   color: var(--a-accent);
 }
 .filter-row th {
-  padding-top: 0;
+  padding-top: .5rem;
   padding-bottom: .5rem;
   font-weight: 400;
   text-transform: none;
