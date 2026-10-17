@@ -6,6 +6,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Millores",
+      text: ["La pàgina ", { to: "/order-operations", label: "Operacions" }, " s'obre molt més de pressa: només demana les comandes i transferències de les rutes de la repartidora i del dia triat, i no totes les comandes."]
+    },
+    {
       type: "Correccions",
       text: ["En una comanda, tancar un dia a «Rutes i dies» per a una ruta ja no fa que la data surti com a no vàlida a les altres rutes. La data de lliurament que es proposa automàticament (també en importar un CSV) se salta els dies en què la ruta està tancada."]
     },
