@@ -1304,14 +1304,20 @@ export default {
       }
       return "x";
     },
+    // A saved document without lines (many migrated ones) keeps the totals
+    // stored on it; computing them from no lines showed 0,00 € (issues/101)
+    usesStoredTotals() {
+      return !!this.form.id && !(this.form.lines || []).length;
+    },
     totalBase() {
-      return documentTotals.totalBase(this.form.lines);
+      return this.usesStoredTotals ? Number(this.form.total_base) || 0 : documentTotals.totalBase(this.form.lines);
     },
     totalVat() {
-      return documentTotals.totalVat(this.form.lines);
+      return this.usesStoredTotals ? Number(this.form.total_vat) || 0 : documentTotals.totalVat(this.form.lines);
     },
     totalIrpf() {
-      return documentTotals.totalIrpf(this.form.lines);
+      // stored positive, shown (like the computed one) as negative
+      return this.usesStoredTotals ? -(Number(this.form.total_irpf) || 0) : documentTotals.totalIrpf(this.form.lines);
     },
     total() {
       return this.totalBase + this.totalVat + this.totalIrpf;

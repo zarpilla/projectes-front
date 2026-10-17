@@ -561,10 +561,11 @@ export default {
       return moment(val).format("DD/MM/YYYY");
     },
     formatCurrency(val) {
-      if (!val) {
+      // 0 is an amount (a 0 € total showed «-€», issues/101); only no value is «-»
+      if (val === null || val === undefined || val === "" || isNaN(Number(val))) {
         return "-";
       }
-      return val
+      return Number(val)
         .toFixed(2)
         .replace(/\d(?=(\d{3})+\.)/g, "$&;")
         .replace(/\./g, ",")

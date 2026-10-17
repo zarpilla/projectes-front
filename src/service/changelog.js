@@ -28,6 +28,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: "Les factures i despeses sense línies (sobretot les importades del sistema anterior) mostren el total desat a la capçalera i a les línies, en lloc de 0,00 €. A la vista de la factura, un import de 0 surt com a 0,00 € i no com a «-»."
+    },
+    {
+      type: "Correccions",
       text: "A la vista de les factures i dels pressupostos, el bloc del client (o del proveïdor) ara mostra sempre el nom, també quan el document no en té les dades desades i es prenen del contacte."
     },
     {
