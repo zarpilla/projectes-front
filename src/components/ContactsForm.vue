@@ -419,7 +419,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
-import moment from "moment";
+import { contactDatesForPickers } from "@/domain/contactDates";
 import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
 
@@ -623,12 +623,7 @@ export default {
                 this.form.collection_points = [];
               }
 
-              if (this.form.followup_date) {
-                this.form.followup_date = moment(
-                  this.form.followup_date,
-                  "YYYY-MM-DD"
-                ).toDate();
-              }
+              contactDatesForPickers(this.form);
 
               this.isLoading = false;
             } else {

@@ -75,6 +75,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Logística", "Projectes"],
+      text: ["La fitxa d'un ", { to: "/contacts", label: "contacte" }, " amb data d'aportació de sòcia es tornava a obrir buida: ara es veu i es pot editar."]
+    },
+    {
+      type: "Correccions",
       modules: ["Diners"],
       text: ["El PDF dels ", { to: "/quotes", label: "pressupostos" }, " mostra l'IRPF quan alguna línia en té, i el total el descompta com a les factures. També hi surt la data del pressupost i els preus amb format."]
     },
