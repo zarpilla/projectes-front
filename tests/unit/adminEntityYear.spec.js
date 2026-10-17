@@ -10,6 +10,9 @@ describe('Taules auxiliars cells (issues/103)', () => {
   it('shows years as they are written', () => {
     expect(cell({ year: 2019 }, 'year', { type: 'integer' })).toBe('2019')
   })
+  it('shows a year relation by its year (Festius d\'usuari)', () => {
+    expect(String(cell({ year: { id: 8, year: 2026 } }, 'year', { type: 'relation', model: 'year' }))).toBe('2026')
+  })
   it('keeps formatting quantities', () => {
     expect(cell({ working_hours: 1764 }, 'working_hours', { type: 'decimal' })).toBe('1.764')
   })

@@ -261,7 +261,7 @@ export default {
       const value = row[name];
       if (value === null || value === undefined || value === '') return '';
       // a year is not a quantity: «2019», not «2.019» (issues/103)
-      if (name === 'year') return String(value);
+      if (name === 'year' && typeof value !== 'object') return String(value);
       if (['decimal', 'integer', 'float'].includes(config.type)) return this.formatNumber(value);
       if (config.type === 'date' || config.type === 'datetime') return this.formatDate(value);
       if (config.model || typeof value === 'object') {
