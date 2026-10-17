@@ -4,9 +4,16 @@
       <b-button icon-left="message-alert-outline" @click="report">Comunica un error o una idea</b-button>
     </title-bar>
     <section class="section is-main-section">
-      <!-- Redesign A: search, filter by type, dates as cards and an index by year -->
+      <!-- Redesign A: search, filter by type and module, dates as cards and an index by year -->
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
         <b-input v-model="search" class="filter-search" icon="magnify" placeholder="Cerca (p. ex. tresoreria, factures…)" aria-label="Cerca" />
+        <label class="filter-select">
+          <span>Mòdul</span>
+          <b-select v-model="module" aria-label="Mòdul">
+            <option value="all">Tots</option>
+            <option v-for="m in modules" :key="m.id" :value="m.id">{{ m.id }} · {{ m.count }}</option>
+          </b-select>
+        </label>
         <div class="segmented" role="group" aria-label="Tipus">
           <button v-for="t in types" :key="t.id" type="button" :class="{ 'is-on': type === t.id }" @click="type = t.id">{{ t.label }} · {{ t.count }}</button>
         </div>
@@ -21,7 +28,10 @@
             </header>
             <ul>
               <li v-for="(item, index) in entry.items" :key="index">
-                <span class="tag" :class="tagClass(item.type)">{{ item.type }}</span>
+                <div class="news-tags">
+                  <span class="tag" :class="tagClass(item.type)">{{ item.type }}</span>
+                  <span v-if="item.modules" class="news-modules has-text-muted">{{ item.modules.join(" · ") }}</span>
+                </div>
                 <p>
                   <template v-if="typeof item.text === 'string'">{{ item.text }}</template>
                   <template v-else>
@@ -60,7 +70,7 @@
 
 <script>
 import TitleBar from "@/components/TitleBar.vue";
-import { CHANGELOG, changelogDate } from "@/service/changelog";
+import { CHANGELOG, CHANGELOG_MODULES, changelogDate } from "@/service/changelog";
 import { openTickets, ticketsErrorMessage } from "@/service/tickets";
 
 const textOf = item =>
@@ -76,6 +86,7 @@ export default {
       changeLog: CHANGELOG,
       search: "",
       type: "all",
+      module: "all",
       year: null,
       limit: 10
     };
@@ -93,6 +104,10 @@ export default {
         { id: "Correccions", label: "Correccions", count: count("Correccions") }
       ];
     },
+    // an item counts for every module it touches, not only the main one
+    modules() {
+      return CHANGELOG_MODULES.map(id => ({ id, count: this.allItems.filter(i => (i.modules || []).includes(id)).length }));
+    },
     years() {
       const counts = {};
       this.changeLog.forEach(e => {
@@ -108,7 +123,9 @@ export default {
         .map(e => ({
           ...e,
           items: e.items.filter(i =>
-            (this.type === "all" || i.type === this.type) && (!q || textOf(i).toLowerCase().includes(q)))
+            (this.type === "all" || i.type === this.type) &&
+            (this.module === "all" || (i.modules || []).includes(this.module)) &&
+            (!q || textOf(i).toLowerCase().includes(q)))
         }))
         .filter(e => e.items.length);
     },
@@ -124,6 +141,7 @@ export default {
   watch: {
     search() { this.limit = 10; },
     type() { this.limit = 10; },
+    module() { this.limit = 10; },
     year() { this.limit = 10; }
   },
   methods: {
@@ -189,9 +207,18 @@ export default {
 .news-day li:last-child {
   border-bottom: 0;
 }
-.news-day li .tag {
-  justify-self: start;
+.news-tags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .25rem;
+}
+.news-tags .tag {
   font-size: .6875rem;
+}
+.news-modules {
+  font-size: .75rem;
+  line-height: 1.3;
 }
 .news-day a {
   font-weight: 700;
@@ -246,6 +273,11 @@ export default {
   .news-day li {
     grid-template-columns: minmax(0, 1fr);
     gap: .375rem;
+  }
+  .news-tags {
+    flex-direction: row;
+    align-items: center;
+    gap: .5rem;
   }
 }
 </style>
