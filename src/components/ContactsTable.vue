@@ -522,6 +522,7 @@ export default {
 .contacts-actions {
   margin-left: auto;
   display: flex;
+  flex-wrap: wrap;
   gap: .5rem;
 }
 .contacts-actions .export {

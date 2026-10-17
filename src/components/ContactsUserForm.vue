@@ -1087,6 +1087,7 @@ export default {
   border-top: 1px solid var(--a-line-soft);
 }
 .form-actions .is-flex {
+  flex-wrap: wrap;
   gap: .5rem;
 }
 </style>

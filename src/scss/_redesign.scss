@@ -469,6 +469,12 @@ a {
   }
 }
 
+/* a plain table in a box: scrolls sideways on a narrow screen instead of widening the page */
+.table-wrap {
+  position: relative; // keeps the .is-sr-only labels of its headers inside it
+  overflow-x: auto;
+}
+
 /* ---------- filter rows of lists ----------
    <div class="filter-bar"> with <label class="filter-select"><span>Any</span><b-select…></label>,
    searches and autocompletes side by side, wrapping on small screens. */
@@ -532,6 +538,27 @@ a {
   &:focus-within {
     border-color: var(--a-accent);
     box-shadow: 0 0 0 3px var(--a-focus);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  // never wider than the screen: a long option (a person, a route) shrinks the select
+  .filter-bar > * {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .filter-select {
+    max-width: 100%;
+    min-width: 0;
+    .control,
+    .select,
+    .select select {
+      min-width: 0;
+      max-width: 100%;
+    }
+    .control {
+      flex: 1 1 auto;
+    }
   }
 }
 

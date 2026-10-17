@@ -441,6 +441,15 @@ export default {
   flex: 1;
   min-width: 0;
 }
+@media screen and (max-width: 768px) {
+  /* the avatar and the name on a row, the button below */
+  .user-head-row {
+    flex-wrap: wrap;
+  }
+  .user-head-text {
+    flex-basis: calc(100% - 4.5rem);
+  }
+}
 .user-head h1 {
   font-size: 1.75rem;
   font-weight: 800;

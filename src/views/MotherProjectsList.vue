@@ -1,113 +1,40 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
+    <title-bar :title-stack="titleStack">
+      <download-excel name="projectes-mare" :data="projectsCSV">
+        <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
+      </download-excel>
+      <b-button icon-left="folder" @click="switchToRegularProjects">Tots els projectes</b-button>
+      <b-button type="is-primary" icon-left="plus" @click="navNewProject">Nou projecte</b-button>
+    </title-bar>
     <section class="section is-main-section">
-      <!-- <tiles>
-        <card-widget
-          class="tile is-child"
-          type="is-primary"
-          icon="account-multiple"
-          :number="projectsNumber"
-          label="Projectes Mare"
+      <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="applyFilters">
+        <b-input
+          class="filter-search"
+          :model-value="filters.q"
+          icon="magnify"
+          placeholder="Cerca per nom"
+          aria-label="Cerca per nom"
+          @keyup="queryProjects($event.target.value)"
         />
-        <card-widget
-          class="tile is-child"
-          type="is-danger"
-          icon="clock-outline"
-          :number="dedication"
-          label="Hores reals"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-success"
-          icon="clock"
-          :number="estimatedDedication"
-          label="Hores previstes"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-info"
-          icon="currency-eur"
-          :number="realBalance.toFixed(2)"
-          suffix="€"
-          label="Resultat actual"
-        />
-        <card-widget
-          class="tile is-child"
-          type="is-info"
-          icon="currency-eur"
-          :number="estimatedBalance.toFixed(2)"
-          suffix="€"
-          label="Resultat previst"
-        />
-      </tiles> -->
-
-      <card-component title="FILTRES">
-        <form @submit.prevent="applyFilters">
-          <b-field grouped>
-            <b-field horizontal label="Estat">
-              <b-select
-                v-model="filters.project_state"
-                placeholder="Estat"
-                @change="onFilterChange"
-              >
-                <option
-                  v-for="(s, index) in project_states"
-                  :key="index"
-                  :value="s.id"
-                >
-                  {{ s.name }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field horizontal label="Coordina">
-              <b-select
-                v-model="filters.user"
-                placeholder="Coordina"
-                @change="onFilterChange"
-              >
-                <option value="0">--</option>
-                <option
-                  v-for="(s, index) in users"
-                  :key="index"
-                  :value="s.id"
-                >
-                  {{ s.username }}
-                </option>
-              </b-select>
-            </b-field>
-            <b-field horizontal label="Nom">
-              <b-input
-                :model-value="filters.q"
-                @keyup="queryProjects($event.target.value)"
-                placeholder="Nom del projecte"
-              />
-            </b-field>
-          </b-field>
-        </form>
-      </card-component>
-
-      <div class="actions is-flex mb-5" style="justify-content: space-between;">
-        <div class="is-flex">
-          <b-button
-            class="view-button is-primary"
-            @click="navNewProject"
-            icon-left="plus"
-          >
-            Nou projecte
-          </b-button>
-          <download-excel name="projectes-mare" :data="projectsCSV">
-            <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
-          </download-excel>
-        </div>
-        <b-button
-          class="is-info"
-          @click="switchToRegularProjects"
-          icon-left="folder"
-        >
-          Tots els Projectes
-        </b-button>
-      </div>
+        <label class="filter-select">
+          <span>Estat</span>
+          <b-select v-model="filters.project_state" @change="onFilterChange">
+            <option v-for="(s, index) in project_states" :key="index" :value="s.id">
+              {{ s.name }}
+            </option>
+          </b-select>
+        </label>
+        <label class="filter-select">
+          <span>Coordina</span>
+          <b-select v-model="filters.user" @change="onFilterChange">
+            <option value="0">Totes</option>
+            <option v-for="(s, index) in users" :key="index" :value="s.id">
+              {{ s.username }}
+            </option>
+          </b-select>
+        </label>
+      </form>
 
       <card-component
         title="PROJECTES MARE"

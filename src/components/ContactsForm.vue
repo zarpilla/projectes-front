@@ -23,7 +23,7 @@
                 <b-input v-model="form.nif" required />
               </b-field>
               <b-field label="Tipus de contacte" horizontal class="full">
-                <div class="is-flex">
+                <div class="is-flex is-flex-wrap-wrap">
                   <div
                     v-for="(contactType, index) in contactTypes"
                     :key="index"

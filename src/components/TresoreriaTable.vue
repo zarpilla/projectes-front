@@ -1427,6 +1427,12 @@ export default {
   height: 15rem;
   padding: 1.25rem 1.25rem .5rem;
 }
+@media screen and (max-width: 768px) {
+  .month-bars {
+    gap: .25rem;
+    padding: 1rem .75rem .5rem;
+  }
+}
 .zero-line {
   position: absolute;
   left: 1.25rem;
@@ -1437,6 +1443,7 @@ export default {
 }
 .mb-col {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1505,6 +1512,11 @@ export default {
   font-size: .75rem;
   color: var(--a-muted);
   text-transform: capitalize;
+}
+@media screen and (max-width: 768px) {
+  .mb-label {
+    font-size: .625rem;
+  }
 }
 .mb-col.is-now .mb-label {
   font-weight: 800;
