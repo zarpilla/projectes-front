@@ -18,7 +18,7 @@
         <label class="filter-select">
           <span>Responsable</span>
           <b-select v-model="leaderId" aria-label="Responsable">
-            <option :value="null">Tothom</option>
+            <option :value="null">Totes</option>
             <option v-for="l in leaders" :key="l.id" :value="l.id">{{ l.name }}</option>
           </b-select>
         </label>
