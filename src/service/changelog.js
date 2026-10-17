@@ -3,6 +3,27 @@
 // { to, label } links.
 export const CHANGELOG = [
 {
+  date: "2026.10.20",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nou disseny de tota l'aplicació: menú lateral per seccions, capçaleres amb les accions de cada pantalla, xifres destacades, filtres en una sola barra, taules més clares i fitxes per apartats amb una barra de desar sempre visible. Les factures emeses es mostren en mode de només lectura, amb Verifactu i FACe al costat."
+    },
+    {
+      type: "Novetats",
+      text: ["Mode fosc: tria'l a ", { to: "/profile", label: "el teu perfil" }, " (Clar, Fosc o com el sistema). Es guarda en aquest navegador."]
+    },
+    {
+      type: "Novetats",
+      text: ["Logística redissenyada: ", { to: "/orders", label: "comandes" }, " agrupades per ruta i per dia, la vista de cada comanda amb el seu recorregut i seguiment, ", { to: "/order-operations", label: "operacions" }, " pensades per al mòbil, ", { to: "/incidences", label: "incidències" }, " amb la conversa al costat i ", { to: "/orders-invoice", label: "facturar" }, " amb el projecte del trimestre."]
+    },
+    {
+      type: "Novetats",
+      text: [{ to: "/city-route", label: "Poblacions i rutes" }, " es fa d'una altra manera: cada ruta amb les seves poblacions, i «Quina ruta passa per…?» per trobar les rutes d'una població."]
+    }
+  ]
+},
+{
   date: "2026.10.17",
   items: [
     {
@@ -176,6 +197,14 @@ export const CHANGELOG = [
   date: "2026.10.09",
   items: [
     {
+      type: "Novetats",
+      text: "Nova versió de la interfície: l'aplicació passa de Vue 2 a Vue 3 (amb les noves versions de Buefy i Bulma). Es veu igual, però és més ràpida i està al dia."
+    },
+    {
+      type: "Novetats",
+      text: "Nou desplegament: cada entitat funciona en contenidors Docker darrere d'un servidor Caddy, i les actualitzacions es fan sense aturar el servei."
+    },
+    {
       type: "Correccions",
       text: "Administració d'usuàries: les noves usuàries reben el rol Authenticated per defecte i ja no cal triar-lo perquè es puguin crear."
     },
@@ -218,6 +247,15 @@ export const CHANGELOG = [
     {
       type: "Millores",
       text: "Els projectes avisen de les línies d'ingrés o despesa sense data. A la periodificació, els seus imports surten a la fila \"Sense data\" en lloc de l'any 9999."
+    }
+  ]
+},
+{
+  date: "2026.09.26",
+  items: [
+    {
+      type: "Novetats",
+      text: "Nova versió del servidor: l'aplicació passa de Strapi 3 a Strapi 5. Totes les entitats s'han migrat amb les seves dades; els dies següents es van corregir els detalls que van sortir."
     }
   ]
 },
