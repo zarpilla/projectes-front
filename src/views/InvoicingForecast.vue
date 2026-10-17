@@ -121,7 +121,7 @@
         <section class="a-box list-box if-people">
           <header class="box-head">
             <h2>Endarrerit per responsable</h2>
-            <span class="box-hint">{{ plural(overdueByLeader.length, 'persona') }}</span>
+            <span class="box-hint">{{ plural(overdueByLeader.length, 'persona', 'persones') }}</span>
           </header>
           <div class="table-wrap">
             <table class="table is-fullwidth">
