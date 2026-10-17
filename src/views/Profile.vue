@@ -76,7 +76,7 @@
           <section v-if="latest" class="form-box">
             <header class="side-head">
               <h2>Novetats</h2>
-              <span class="has-text-muted">{{ latest.date.replace(/\./g, "/") }}</span>
+              <span class="has-text-muted">{{ changelogDate(latest.date) }}</span>
             </header>
             <ul class="news-list">
               <li v-for="(item, i) in latest.items.slice(0, 3)" :key="i">
@@ -103,7 +103,7 @@
 <script>
 import service from '@/service/index'
 import { logout } from '@/service/auth'
-import { CHANGELOG } from '@/service/changelog'
+import { CHANGELOG, changelogDate } from '@/service/changelog'
 import { getThemeChoice, setThemeChoice } from '@/service/theme'
 import { permissionLabel } from '@/domain/permissions'
 
@@ -151,6 +151,7 @@ export default {
       setThemeChoice(choice)
     },
     permissionLabel,
+    changelogDate,
     async sendReset () {
       this.sending = true
       this.sent = false

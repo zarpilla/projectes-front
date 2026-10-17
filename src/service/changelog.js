@@ -1,6 +1,13 @@
 // What changed in the app, newest first (shown at "Registre de canvis" and,
 // the latest entry, on the profile). `text` is a string or a list of strings and
 // { to, label } links.
+// "2026.10.20" → "20/10/2026", as the Registre de canvis and the profile show it
+// (the profile printed "2026/10/20", issues/112)
+export const changelogDate = date => {
+  const [y, m, d] = String(date).split('.')
+  return d ? `${d}/${m}/${y}` : date
+}
+
 export const CHANGELOG = [
 {
   date: "2026.10.20",

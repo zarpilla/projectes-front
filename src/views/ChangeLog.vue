@@ -60,7 +60,7 @@
 
 <script>
 import TitleBar from "@/components/TitleBar.vue";
-import { CHANGELOG } from "@/service/changelog";
+import { CHANGELOG, changelogDate } from "@/service/changelog";
 import { openTickets, ticketsErrorMessage } from "@/service/tickets";
 
 const textOf = item =>
@@ -127,10 +127,7 @@ export default {
     year() { this.limit = 10; }
   },
   methods: {
-    dateLabel(date) {
-      const [y, m, d] = String(date).split(".");
-      return d ? `${d}/${m}/${y}` : date;
-    },
+    dateLabel: changelogDate,
     tagClass(type) {
       return { Novetats: "is-success is-light", Millores: "is-info is-light", Correccions: "is-warning is-light" }[type] || "";
     },
