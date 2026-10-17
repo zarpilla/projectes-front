@@ -1,7 +1,8 @@
 // Invoice/expense totals, as DocumentForm shows them and saves them.
 // The recorded values were produced by DocumentForm's computed properties
-// before the calculation moved to src/domain/documentTotals.js; they must stay
-// bit-for-bit identical (same floating-point operation order).
+// before the calculation moved to src/domain/documentTotals.js, and recorded
+// again when lines started being rounded to cents (issues/073); they must
+// stay identical.
 import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
@@ -68,10 +69,11 @@ describe('DocumentForm totals', () => {
       { quantity: 3, base: 12.5, discount: 10, vat: 21, irpf: 15 },
       { quantity: '2', base: '10', discount: null, vat: 10, irpf: 0 }
     ])
-    expect(t.base).toBeCloseTo(53.75)
-    expect(t.vat).toBeCloseTo(7.0875 + 2)
-    expect(t.irpf).toBeCloseTo(-5.0625)
-    expect(t.total).toBeCloseTo(53.75 + 9.0875 - 5.0625)
+    // each line rounded to cents before adding them up (issues/073)
+    expect(t.base).toBe(53.75)
+    expect(t.vat).toBe(9.09) // 7.09 + 2
+    expect(t.irpf).toBe(-5.06)
+    expect(t.total).toBe(57.78)
     expect(t.hasDiscount).toBe(true)
     expect(t.baseWithoutDiscount).toBeCloseTo(57.5)
     expect(t.discount).toBeCloseTo(3.75)
@@ -80,6 +82,15 @@ describe('DocumentForm totals', () => {
   it('is zero for a document without lines', () => {
     expect(totalsOf([])).toEqual({ base: 0, vat: 0, irpf: -0, total: 0, hasDiscount: false, baseWithoutDiscount: 0, discount: 0 })
   })
+})
+
+// issues/073: emitted invoice 642 had a base of 2.452,41 while its lines, as
+// shown, added up to 2.452,40
+it('gives a base equal to the sum of the lines as shown', async () => {
+  const { totalBase, lineBase } = await import('@/domain/documentTotals.js')
+  const lines = [1, 2, 3].map(() => ({ quantity: 1, base: 2.004, vat: 21, irpf: 0 }))
+  expect(lines.map(lineBase)).toEqual([2, 2, 2])
+  expect(totalBase(lines)).toBe(6)
 })
 
 describe('byRate', () => {

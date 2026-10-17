@@ -42,7 +42,8 @@ describe('Invoice view', () => {
   it('applies the line discount to the line amount, IRPF, VAT and total', async () => {
     const w = await render(Invoice, 'emitted-invoices', [plain, discounted])
     // Concepte, Q., Base, Descompte, Base imposable, IRPF, IVA, Total
-    expect(cells(w, 1).slice(3)).toEqual(['-6,90 (10%)', '62,10€', '-9,31 (15%)', '13,04 (21%)', '65,83€'])
+    // 62,10 × 15 % = 9,315 rounds to 9,32 once lines are rounded to cents (issues/073)
+    expect(cells(w, 1).slice(3)).toEqual(['-6,90 (10%)', '62,10€', '-9,32 (15%)', '13,04 (21%)', '65,82€'])
     expect(w.find('tr.total').text()).toContain('Base sense descompte: 99,45€')
     expect(w.find('tr.total').text()).toContain('Descompte: -6,90€')
   })

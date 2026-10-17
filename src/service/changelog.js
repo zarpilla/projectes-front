@@ -7,6 +7,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: "Els totals de factures, despeses, ingressos i pressupostos sumen cada línia ja arrodonida als cèntims, tal com es mostra i com s'envia a FACe. Abans la base podia diferir d'un cèntim de la suma de les línies. Els documents existents no canvien fins que es tornen a desar."
+    },
+    {
+      type: "Correccions",
       text: ["A ", { to: "/admin/me", label: "Configuració general" }, ", ara es pot buidar un camp (per exemple un peu de factura) o tornar a deixar un compte bancari sense triar. Abans el valor antic es mantenia en desar."]
     },
     {

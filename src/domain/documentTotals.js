@@ -4,29 +4,32 @@ import sumBy from 'lodash/sumBy'
 // quotes). Each line: { quantity, base (unit price), discount %, vat %, irpf % }.
 // Quantities and prices may arrive as strings from the form inputs.
 //
-// The arithmetic order matches what DocumentForm always did, so results are
-// bit-for-bit the same (tests/unit/documentTotals.spec.js).
+// Each line's base, VAT and IRPF are rounded to cents before adding them up,
+// as the views show them and as the backend and Facturae compute them; adding
+// unrounded lines gave a base a cent away from its lines (issues/073).
 
-/** Line amount after its discount. */
-export const lineBase = l => l.quantity * l.base * (1 - (l.discount || 0) / 100)
+const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100
+
+/** Line amount after its discount, in cents. */
+export const lineBase = l => round2(l.quantity * l.base * (1 - (l.discount || 0) / 100))
 
 /** Amount the line's discount takes off. */
 export const lineDiscount = l => (l.quantity * l.base * (l.discount || 0)) / 100
 
 /** Line VAT and IRPF (withheld, positive) on the discounted amount. */
-export const lineVat = l => (lineBase(l) * l.vat) / 100
+export const lineVat = l => round2((lineBase(l) * (l.vat || 0)) / 100)
 
-export const lineIrpf = l => (lineBase(l) * l.irpf) / 100
+export const lineIrpf = l => round2((lineBase(l) * (l.irpf || 0)) / 100)
 
 /** Line total as the invoice views show it: base - IRPF + VAT. */
 export const lineTotal = l => lineBase(l) - lineIrpf(l) + lineVat(l)
 
-export const totalBase = lines => sumBy(lines, lineBase)
+export const totalBase = lines => round2(sumBy(lines, lineBase))
 
-export const totalVat = lines => sumBy(lines, l => (lineBase(l) * l.vat) / 100)
+export const totalVat = lines => round2(sumBy(lines, lineVat))
 
 /** IRPF is withheld, so it is returned as a negative amount. */
-export const totalIrpf = lines => -1 * sumBy(lines, l => (lineBase(l) * l.irpf) / 100)
+export const totalIrpf = lines => -1 * round2(sumBy(lines, lineIrpf))
 
 export const hasDiscount = lines => lines.some(l => l.discount && l.discount > 0)
 
@@ -41,8 +44,8 @@ export const byRate = (lines, field = 'vat') => {
   ;(lines || []).forEach(l => {
     const rate = Number(l[field]) || 0
     const g = groups.get(rate) || { rate, base: 0, amount: 0 }
-    g.base += lineBase(l)
-    g.amount += (lineBase(l) * l[field]) / 100
+    g.base = round2(g.base + lineBase(l))
+    g.amount = round2(g.amount + (field === 'irpf' ? lineIrpf(l) : lineVat(l)))
     groups.set(rate, g)
   })
   return [...groups.values()].filter(g => g.base).sort((a, b) => a.rate - b.rate)
