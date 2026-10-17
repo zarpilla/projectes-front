@@ -347,20 +347,22 @@
                   class="cp-list"
                   v-if="form.collection_points && form.collection_points.length > 0"
                 >
-                  <div class="tags">
-                    <span 
-                      v-for="cpId in form.collection_points" 
-                      :key="cpId" 
-                      class="tag is-primary is-light is-medium cp-tag"
-                    >
-                      {{ getCollectionPointName(cpId) }}
-                      <button 
-                        class="delete is-small" 
+                  <ul class="cp-items">
+                    <li v-for="cpId in form.collection_points" :key="cpId">
+                      <b-icon icon="map-marker-outline" size="is-small" class="cp-icon" />
+                      <div class="cp-text">
+                        <b>{{ collectionPointParts(cpId).name }}</b>
+                        <small>{{ [collectionPointParts(cpId).hours, `contacte ${cpId}`].filter(Boolean).join(" · ") }}</small>
+                      </div>
+                      <button
                         type="button"
+                        class="cp-remove"
+                        :title="`Treu ${collectionPointParts(cpId).name}`"
+                        :aria-label="`Treu ${collectionPointParts(cpId).name}`"
                         @click="removeCollectionPoint(cpId)"
-                      ></button>
-                    </span>
-                  </div>
+                      ><b-icon icon="close" size="is-small" /></button>
+                    </li>
+                  </ul>
                 </b-field>
 
                 <b-field 
@@ -913,6 +915,14 @@ export default {
         cp => (typeof cp === 'object' ? cp.id : cp) !== cpId
       );
     },
+    // "Recollida en Finca - Mas Alba [Dt 10h, Dj 11h]" → name and hours
+    collectionPointParts(cpId) {
+      const cp = this.availableCollectionPoints.find(c => c.id === cpId);
+      const full = cp ? cp.trade_name || cp.name || "" : `ID: ${cpId}`;
+      const hours = (full.match(/\[([^\]]*)\]\s*$/) || [])[1] || "";
+      const name = full.replace(/\s*\[[^\]]*\]\s*$/, "").replace(/^recollida en finca\s*-\s*/i, "").trim() || full;
+      return { name, hours };
+    },
     getCollectionPointName(cpId) {
       const cp = this.availableCollectionPoints.find(c => c.id === cpId);
       return cp ? `${cp.trade_name || cp.name} (${cp.id})` : `ID: ${cpId}`;
@@ -966,10 +976,49 @@ export default {
 .cp-list {
   margin-top: 1rem;
 }
-.cp-tag {
-  height: auto;
-  min-height: 2rem;
-  white-space: normal;
+.cp-items {
+  width: 100%;
+  max-width: 40rem;
+  border: 1px solid var(--a-line);
+  border-radius: 10px;
+  background: var(--a-surface);
+}
+.cp-items li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: .625rem;
+  align-items: center;
+  padding: .5rem .75rem;
+}
+.cp-items li + li {
+  border-top: 1px solid var(--a-line-soft);
+}
+.cp-icon {
+  color: var(--a-accent);
+}
+.cp-text b,
+.cp-text small {
+  display: block;
+}
+.cp-text b {
+  color: var(--a-fg);
+}
+.cp-text small {
+  font-size: .75rem;
+  color: var(--a-muted);
+}
+.cp-remove {
+  display: inline-flex;
+  padding: .25rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--a-muted);
+  cursor: pointer;
+}
+.cp-remove:hover {
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
 }
 .ulist .tag {
   margin-right: 3px;
