@@ -1,6 +1,7 @@
 <template>
   <div>
-    <document-form v-if="type" :id="id" :type="type" />
+    <!-- a new type is a new form (issues/123); the form follows id changes itself -->
+    <document-form v-if="type" :key="type" :id="id" :type="type" />
   </div>
 </template>
 
@@ -24,15 +25,16 @@ export default {
   },
   data() {
     return {
-      isLoading: false,
-      type: null
+      isLoading: false
     };
   },
   computed: {
-    ...mapState(useMainStore, ["me"]),    
-  },
-  created() {
-    this.type = this.$route.params.type
+    ...mapState(useMainStore, ["me"]),
+    // read from the route each time: it was set once in created() and kept
+    // when going to a document of another type (issues/123)
+    type() {
+      return this.$route.params.type;
+    }
   },
 };
 </script>

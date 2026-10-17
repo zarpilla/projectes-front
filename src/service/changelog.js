@@ -76,6 +76,11 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
+      text: "Passar d'un document a un altre de tipus diferent (d'una factura a un pressupost, o tornar enrere) ja no deixa la pàgina en blanc ni mostra un altre document."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
       text: ["La vista prèvia i el PDF de les ", { to: "/emitted-invoices", label: "factures" }, " i dels ", { to: "/quotes", label: "pressupostos" }, " tornen a portar el logo de l'entitat."]
     },
     {
