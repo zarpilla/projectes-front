@@ -75,6 +75,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Projectes", "Diners"],
+      text: ["A la fitxa del ", { to: "/projectes", label: "projecte" }, ", «Cobraments i pagaments» torna a llistar les factures, ingressos i despeses lligats al projecte a «Moviments d'ingressos i despeses», i també els que no estan assignats a cap línia del pressupost."]
+    },
+    {
+      type: "Correccions",
       modules: ["Diners"],
       text: "Passar d'un document a un altre de tipus diferent (d'una factura a un pressupost, o tornar enrere) ja no deixa la pàgina en blanc ni mostra un altre document."
     },
