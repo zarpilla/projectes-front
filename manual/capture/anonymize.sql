@@ -84,6 +84,19 @@ UPDATE us SET name = 'Cooperativa Demo SCCL', nif = 'F00000000', address = 'Carr
   phone = '930 000 000', email = 'hola@exemple.coop', invoice_email = 'factures@exemple.coop',
   contact_form_email = 'hola@exemple.coop', ccc = NULL, ical = NULL,
   certificate_pwd = NULL, face_certificate_password = NULL, dir_3_api_token = NULL, invoice_parser_api_token = NULL;
+-- the footers, subject and templates are free text: they carried the real IBAN,
+-- bank and address and the quote/invoice views print them (issues/056)
+UPDATE us SET
+  invoice_footer = 'Cooperativa Demo SCCL · Carrer de l''Exemple, 1 · 08000 Vilafranca de Prova · IBAN ES00 0000 0000 0000 0000 0000',
+  quote_footer = 'Cooperativa Demo SCCL · Pressupost vàlid durant 30 dies · IBAN ES00 0000 0000 0000 0000 0000',
+  order_footer = IF(order_footer IS NULL, NULL, 'Cooperativa Demo SCCL · hola@exemple.coop'),
+  invoice_subject = IF(invoice_subject IS NULL, NULL, 'Factura {code} de Cooperativa Demo'),
+  invoice_template = NULL,
+  contact_form_text = IF(contact_form_text IS NULL, NULL, 'Escriu-nos i et respondrem aviat.'),
+  contact_form_thankyou = IF(contact_form_thankyou IS NULL, NULL, 'Gràcies pel missatge.'),
+  front_url = NULL;
+-- the entity's logo and Google credentials files (media links of the single type)
+DELETE FROM files_related_mph WHERE related_type = 'api::me.me';
 UPDATE verifactus SET certificate_password = NULL;
 
 -- ── people ─────────────────────────────────────────────────────────────────

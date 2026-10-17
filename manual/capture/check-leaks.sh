@@ -14,6 +14,8 @@ q() { mysql -h127.0.0.1 -u"$USER_" -N -B "$SRC" -e "$1"; }
   q "select username from \`users-permissions_user\` union select email from \`users-permissions_user\`
      union select fullname from \`users-permissions_user\`"
   q "select name from us union select nif from us union select email from us union select address from us"
+  # the footers repeat the entity's data in free text (issues/056)
+  q "select quote_footer from us union select invoice_footer from us union select order_footer from us"
   q "select iban from bank_accounts"
 } | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | awk 'length($0) >= 6 && $0 != "NULL"' | sort -u > "$TMP/real.txt"
 
@@ -28,5 +30,10 @@ N="$(wc -l < "$TMP/patterns.txt")"
 echo "checking $N real values against $DST"
 if grep -oFf "$TMP/patterns.txt" "$TMP/dump.sql" | sort | uniq -c | sort -rn > "$TMP/hits.txt" && [ -s "$TMP/hits.txt" ]; then
   echo "LEAKS:"; cat "$TMP/hits.txt"; exit 1
+fi
+# an IBAN in free text may be spaced differently from the stored one: any
+# Spanish IBAN in the dump other than the ES00… placeholder is a leak (issues/056)
+if tr -d ' ' < "$TMP/dump.sql" | grep -oP 'ES\d{22}' | grep -v '^ES00' | sort -u > "$TMP/ibans.txt" && [ -s "$TMP/ibans.txt" ]; then
+  echo "IBAN LEAKS:"; cat "$TMP/ibans.txt"; exit 1
 fi
 echo "no leaks found"
