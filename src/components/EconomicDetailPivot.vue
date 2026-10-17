@@ -72,6 +72,7 @@ moment.locale("ca");
 export default {
   name: "ProjectesPivot",
   components: { PivotViews },
+  emits: ["loaded"],
   mixins: [pivotViewsMixin],
   props: {
     projectStates: {
@@ -674,6 +675,8 @@ export default {
         return omit(c, ["document"]);
       });
       this.pivotData = Object.freeze(sortBy(data2, ["project_name"]));
+      // the charts above the pivot use the same rows
+      this.$emit("loaded", this.pivotData);
 
       const currentConfigPivot = configPivot;
 

@@ -28,11 +28,18 @@
         </div>
         <b-button icon-left="refresh" @click="refreshData">Refrescar</b-button>
       </form>
+      <economic-detail-charts
+        v-if="show && chartRows"
+        :rows="chartRows"
+        :year="filters.year"
+        :data-type="filters.dataType"
+      />
       <economic-detail-pivot
         v-if="show && !isLoading"
         :project-states="selectedProjectStates"
         :year="filters.year"
         :data-type="filters.dataType"
+        @loaded="rows => (chartRows = rows)"
       />
     </section>
   </div>
@@ -42,6 +49,7 @@
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import EconomicDetailPivot from "@/components/EconomicDetailPivot.vue";
+import EconomicDetailCharts from "@/components/EconomicDetailCharts.vue";
 import service from "@/service/index";
 import { defaultYear } from "@/domain/years";
 import defaultProjectState from "@/service/projectState";
@@ -53,7 +61,8 @@ export default {
   components: {
     CardComponent,
     TitleBar,
-    EconomicDetailPivot
+    EconomicDetailPivot,
+    EconomicDetailCharts
   },
   data() {
     return {
@@ -67,6 +76,8 @@ export default {
       years: [],
       dataTypes: ["Totes", "Previsió", "Execució"],
       selectedProjectStates: [],
+      // rows loaded by the pivot, for the charts
+      chartRows: null,
       show: true
     };
   },
@@ -75,7 +86,7 @@ export default {
       return ['Informes', 'Ingressos i despeses']
     },
     subtitle () {
-      return 'Ingressos i despeses previstos i executats dels projectes, en detall. Configura la taula dinàmica per agrupar-los.'
+      return 'Ingressos i despeses previstos i executats dels projectes: un resum en gràfics i, a sota, el detall a la taula dinàmica.'
     }
   },
   async mounted() {
