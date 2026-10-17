@@ -71,10 +71,7 @@
           <h2>{{ split.title }}</h2>
           <span class="box-hint">Hores fetes</span>
         </header>
-        <p v-if="split.list.length === 1 && split.list[0].label === 'Sense assignar'" class="box-empty">
-          Cap hora feta té {{ split.noun }}: s'indica en registrar les hores, a «Hores dedicades».
-        </p>
-        <ul v-else-if="split.list.length" class="share-list">
+        <ul v-if="split.list.length" class="share-list">
           <li v-for="g in split.list" :key="g.label" :class="{ 'is-none': g.label === 'Sense assignar' }">
             <span class="share-name" :title="g.label">{{ g.label }}</span>
             <span class="share-bar"><i :style="{ width: (g.share * 100) + '%' }"></i></span>
@@ -132,11 +129,12 @@ export default {
     byProject () {
       return byGroup(this.rows, 'project_name', 10)
     },
+    // a split only when some hours have a value (a tenant may not use dedication types)
     splits () {
       return [
-        { field: 'dedication_type', title: 'Per tipus de dedicació', noun: 'tipus de dedicació', list: workedShare(this.rows, 'dedication_type', 6) },
-        { field: 'activity_type', title: 'Per funció', noun: 'funció', list: workedShare(this.rows, 'activity_type', 6) }
-      ]
+        { field: 'dedication_type', title: 'Per tipus de dedicació', list: workedShare(this.rows, 'dedication_type', 6) },
+        { field: 'activity_type', title: 'Per funció', list: workedShare(this.rows, 'activity_type', 8) }
+      ].filter(split => split.list.some(g => g.label !== 'Sense assignar'))
     },
     colors () {
       // eslint-disable-next-line no-unused-expressions
