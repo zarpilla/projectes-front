@@ -122,6 +122,30 @@ describe('checkIfDateIsValidInroute', () => {
   })
 })
 
+// issues/082: a closure of one route closed the date for every route, and
+// the automatic date ignored the closures
+describe('route closures', () => {
+  afterEach(() => vi.useRealTimers())
+  const a = { id: 1, monday: true, thursday: true }
+  const b = { id: 2, monday: true }
+
+  it('a closure only closes its own route (one without a route closes all)', () => {
+    const closures = [{ date: '2026-10-12', route: { id: 1 } }]
+    expect(checkIfDateIsValidInroute(a, moment('2026-10-12'), closures)).toBe(false)
+    expect(checkIfDateIsValidInroute(b, moment('2026-10-12'), closures)).toBe(true)
+    expect(checkIfDateIsValidInroute(b, moment('2026-10-12'), [{ date: '2026-10-12', route: 2 }])).toBe(false)
+    expect(checkIfDateIsValidInroute(b, moment('2026-10-12'), [{ date: '2026-10-12', route: null }])).toBe(false)
+  })
+
+  it('the next route day skips the days the route is closed', () => {
+    vi.useFakeTimers({ now: new Date('2026-10-09T09:00:00+02:00'), toFake: ['Date'] }) // Friday
+    const closures = [{ date: '2026-10-12', route: { id: 1 } }]
+    expect(assignRouteDate(a, { closures }).nextDay.format('YYYY-MM-DD')).toBe('2026-10-15')
+    expect(assignRouteDate(b, { closures }).nextDay.format('YYYY-MM-DD')).toBe('2026-10-12')
+    expect(assignRouteDate(a).nextDay.format('YYYY-MM-DD')).toBe('2026-10-12')
+  })
+})
+
 describe('calculateRoutePrice', () => {
   const v1 = { ratev2: false, less15: 5, less30: 8, additional30: 0.2 }
   const v2 = {

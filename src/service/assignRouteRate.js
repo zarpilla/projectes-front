@@ -99,8 +99,22 @@ const assignRouteRate = (form, routeRates, orders) => {
   return form.route_rate;
 };
 
+// A route closure (route-festive) closes its own route; one without a route
+// closes them all. Closing one route made the date invalid for every route
+// (issues/082).
+const idOf = value => (value && typeof value === "object" ? value.id : value);
+const isRouteClosed = (route, day, closures = []) => {
+  const date = day.format("YYYY-MM-DD");
+  return (closures || []).some(
+    f => f.date === date && (!f.route || !route || idOf(f.route) === route.id)
+  );
+};
+
 const assignRouteDate = (route, options = {}) => {
-  const { nextDayLimitHour = 14, isAdmin = false } = options;
+  const { nextDayLimitHour = 14, isAdmin = false, closures = [] } = options;
+  // a route day, not closed for this route; a year of closures at most
+  const isOpenDay = day =>
+    routeDaysOfWeek.includes(day.day()) && !isRouteClosed(route, day, closures);
   let nextDay = moment();
   let warning = "";
   const todayDayOfWeek = moment().day();
@@ -123,11 +137,9 @@ const assignRouteDate = (route, options = {}) => {
   
   // Find the next available day that matches any of the route days
   let found = false;
-  while (!found) {
+  for (let i = 0; i < 366 && !found; i++) {
     nextDay = nextDay.add(1, "day");
-    if (routeDaysOfWeek.includes(nextDay.day())) {
-      found = true;
-    }
+    found = isOpenDay(nextDay);
   }
   
   // Check if it's tomorrow and past the next-day cutoff (admins are exempt)
@@ -139,11 +151,9 @@ const assignRouteDate = (route, options = {}) => {
       nextDay = moment().add(1, "week").startOf("day");
       nextDay.subtract(nextDay.day(), "days");
       found = false;
-      while (!found) {
+      for (let i = 0; i < 366 && !found; i++) {
         nextDay = nextDay.add(1, "day");
-        if (routeDaysOfWeek.includes(nextDay.day())) {
-          found = true;
-        }
+        found = isOpenDay(nextDay);
       }
       warning =
         "Ruta tancada per demà. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
@@ -154,7 +164,7 @@ const assignRouteDate = (route, options = {}) => {
 };
 
 const checkIfDateIsValidInroute = (route, date, routeFestives) => {
-  if (routeFestives.map(f => f.date).includes(date.format("YYYY-MM-DD"))) {
+  if (isRouteClosed(route, date, routeFestives)) {
     return false;
   }
   const routeDayOfWeek = [];

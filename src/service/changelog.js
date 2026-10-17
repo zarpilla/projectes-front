@@ -7,6 +7,10 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      text: ["En una comanda, tancar un dia a «Rutes i dies» per a una ruta ja no fa que la data surti com a no vàlida a les altres rutes. La data de lliurament que es proposa automàticament (també en importar un CSV) se salta els dies en què la ruta està tancada."]
+    },
+    {
+      type: "Correccions",
       text: ["A ", { to: "/orders", label: "comandes" }, ", si es tria «Última milla» juntament amb altres estats (Ctrl+clic), ara surten les comandes de tots, i no només les que compleixen tot alhora. La fitxa d'una comanda en un estat poc habitual (última milla, dipositada…) el mostra amb el seu nom."]
     },
     {

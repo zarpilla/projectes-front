@@ -1356,7 +1356,8 @@ export default {
         } else {
           const routeDate = assignRouteDate(route, {
             nextDayLimitHour: this.nextDayLimitHour,
-            isAdmin: this.permissions.includes("orders_admin")
+            isAdmin: this.permissions.includes("orders_admin"),
+            closures: this.routeFestives
           });
           const nextDay = routeDate.nextDay;
           

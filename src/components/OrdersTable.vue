@@ -1620,6 +1620,10 @@ export default {
 
       // console.log("owner", owner);
       const contacts = await this.getContactsForImport(owner.id);
+      // closed days of each route, skipped when dating the orders (issues/082)
+      const closures = (await service({ requiresAuth: true }).get(
+        `route-festives?_where[date_gte]=${moment().format("YYYY-MM-DD")}&_limit=-1`
+      )).data;
 
       // console.log("contacts", contacts);
 
@@ -1792,7 +1796,8 @@ export default {
 
         const routeDate = assignRouteDate(route, {
           nextDayLimitHour: this.nextDayLimitHour,
-          isAdmin: this.permissions.includes("orders_admin")
+          isAdmin: this.permissions.includes("orders_admin"),
+          closures
         });
 
         const pickup = record.pickup
