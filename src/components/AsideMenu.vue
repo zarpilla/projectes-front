@@ -431,12 +431,18 @@ aside.aside .is-submenu-group a {
     position: static;
     display: none;
   }
-  aside.aside.is-collapsed:hover .collapse-toggle {
+  /* collapsed: the 64px rail has no room for logo + toggle side by side (and
+     the aside clips overflow), so on hover the toggle takes the logo's place */
+  aside.aside.is-collapsed:hover .aside-logo {
+    display: none;
+  }
+  aside.aside.is-collapsed:hover .collapse-toggle,
+  aside.aside.is-collapsed .collapse-toggle:focus-visible {
     display: inline-flex;
-    position: absolute;
-    right: -.875rem;
-    background: var(--a-surface);
-    border: 1px solid var(--a-line);
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--a-fg);
+    background: var(--a-chip);
   }
   aside.aside.is-collapsed .aside-content-scrollable {
     padding: 0 .5rem 1rem;
