@@ -2,7 +2,7 @@
   <aside v-show="isAsideVisible" class="aside is-placed-left" :class="{ 'is-expanded': !isCollapsed, 'is-collapsed': isCollapsed }">
     <div class="aside-head">
       <router-link :to="homeLink" class="aside-logo" title="ESSTRAPIS">
-        <b>ESS</b><span v-if="!isCollapsed">TRAPIS</span>
+        <brand-logo :compact="isCollapsed" />
       </router-link>
       <button type="button" class="collapse-toggle" :title="isCollapsed ? 'Expandir menú' : 'Contraure menú'" :aria-label="isCollapsed ? 'Expandir menú' : 'Contraure menú'" @click="toggleCollapse">
         <b-icon :icon="isCollapsed ? 'chevron-right' : 'chevron-left'" custom-size="default" />
@@ -59,6 +59,7 @@
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import AsideMenuList from '@/components/AsideMenuList.vue'
+import BrandLogo from '@/components/BrandLogo.vue'
 import { logout } from '@/service/auth'
 import service from "@/service/index";
 import getConfig from "@/config";
@@ -69,7 +70,7 @@ const COLLAPSIBLE_GROUPS = ['Informes', 'Altres']
 
 export default {
   name: 'AsideMenu',
-  components: { AsideMenuList },
+  components: { AsideMenuList, BrandLogo },
   props: {
     menu: {
       type: Array,
@@ -204,21 +205,6 @@ aside.aside {
 .aside-logo {
   display: inline-flex;
   align-items: center;
-  font-weight: 800;
-  font-size: 1.25rem;
-  letter-spacing: .02em;
-  line-height: 1;
-  color: var(--a-fg);
-}
-.aside-logo b {
-  background: var(--a-brand);
-  color: #fff;
-  padding: 3px 5px 2px;
-  border-radius: 4px;
-  font-weight: 800;
-}
-.aside-logo span {
-  padding-left: 3px;
   color: var(--a-fg);
 }
 .aside-logo:hover {

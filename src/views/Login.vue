@@ -1,7 +1,7 @@
 <template>
   <div class="login-page">
     <main class="login-main">
-      <div class="login-logo" aria-label="ESSTRAPIS"><b>ESS</b><span>TRAPIS</span></div>
+      <brand-logo class="login-logo" />
       <form class="login-card" novalidate @submit.prevent="handleSubmit">
         <div>
           <h1>Accedeix</h1>
@@ -67,8 +67,10 @@ import { clearCache } from "@/service/cache";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
+import BrandLogo from "@/components/BrandLogo.vue";
 
 export default {
+  components: { BrandLogo },
   data() {
     return {
       email: "",

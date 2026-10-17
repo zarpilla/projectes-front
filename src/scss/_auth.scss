@@ -18,22 +18,8 @@
 }
 .login-logo {
   align-self: center;
-  display: flex;
-  align-items: center;
-  font-weight: 800;
-  font-size: 1.875rem;
-  letter-spacing: .02em;
-  line-height: 1;
+  height: 2.5rem;
   color: var(--a-fg);
-}
-.login-logo b {
-  background: var(--a-brand);
-  color: #fff;
-  padding: 4px 6px 3px;
-  border-radius: 4px;
-}
-.login-logo span {
-  padding-left: 4px;
 }
 .login-card {
   background: var(--a-surface);
