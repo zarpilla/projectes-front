@@ -9,12 +9,6 @@
     </section>
   </div>
 </template>
-        </nav>
-        <admin-entity-list :entity-name="entityName" />
-      </div>
-    </section>
-  </div>
-</template>
 
 <script>
 import TitleBar from '@/components/TitleBar.vue';
