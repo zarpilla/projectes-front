@@ -329,7 +329,7 @@
           
           
           <b-table-column sortable searchable label="Data emissió" field="date" v-slot="props">
-            {{ props.row.date }}
+            {{ formatDate(props.row.date) }}
           </b-table-column>
           <b-table-column sortable searchable label="Any" field="year" v-slot="props">
             {{ props.row.year }}
@@ -683,7 +683,7 @@ export default {
           quarterBalance: quarterBalance,
           cumulativeBalance: cumulativeBalance,
           paymentAmount: cumulativeBalance < 0 ? cumulativeBalance : 0,
-          paymentDate: paymentDate.format('DD-MM-YYYY'),
+          paymentDate: paymentDate.format('DD/MM/YYYY'),
           willCreateEntry: cumulativeBalance < 0
         });
         
@@ -735,7 +735,7 @@ export default {
           quarterBalance: quarterBalance,
           cumulativeBalance: cumulativeBalance,
           paymentAmount: cumulativeBalance < 0 ? cumulativeBalance : 0,
-          paymentDate: paymentDate.format('DD-MM-YYYY'),
+          paymentDate: paymentDate.format('DD/MM/YYYY'),
           willCreateEntry: cumulativeBalance < 0
         });
         
@@ -814,7 +814,7 @@ export default {
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
     formatDate(value) {
-      return moment(value, "YYYY-MM-DD").format("DD-MM-YYYY");
+      return value ? moment(value, "YYYY-MM-DD").format("DD/MM/YYYY") : "—";
     },
     async payVat() {
       this.payingVat = true;

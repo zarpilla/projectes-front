@@ -38,3 +38,13 @@ describe('Catalan numbers (issues/104)', () => {
     expect(w.text()).not.toMatch(/\d€/)
   })
 })
+
+// issues/105: the IVA documents table showed «2024-05-31»
+describe('IVA dates (issues/105)', () => {
+  it('formats the documents\' dates', async () => {
+    const VatTable = (await import('@/components/VatTable.vue')).default
+    const src = (await import('node:fs')).readFileSync(require('node:path').resolve(process.cwd(), 'src/components/VatTable.vue'), 'utf8')
+    expect(src).not.toMatch(/\{\{\s*props\.row\.date\s*\}\}/)
+    expect(VatTable.methods.formatDate('2024-05-31')).toBe('31/05/2024')
+  })
+})
