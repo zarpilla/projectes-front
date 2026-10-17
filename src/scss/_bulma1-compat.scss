@@ -174,3 +174,14 @@ $tile-spacing: 0.75rem;
   padding-left: .25em;
   padding-right: .25em;
 }
+
+// Buefy draws the sort arrow absolutely at the edge of the header: in a
+// narrow column it sat on the label («COMANDA», «CODI»). Keep room for it
+// (issues/115)
+.b-table .table th.is-sortable .th-wrap {
+  padding-right: 1.25rem;
+}
+.b-table .table th.is-sortable .th-wrap.is-numeric {
+  padding-right: 0;
+  padding-left: 1.25rem;
+}
