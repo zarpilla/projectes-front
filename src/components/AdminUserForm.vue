@@ -147,6 +147,7 @@ import service from '@/service/index';
 import CardComponent from '@/components/CardComponent.vue';
 import moment from 'moment';
 import { formatNumber } from '@/helpers/format-number';
+import { permissionCodes } from '@/domain/permissions';
 
 const PERMISSION_GROUPS = [
   {
@@ -324,7 +325,7 @@ export default {
         
         // Extract permissions
         if (user.permissions && user.permissions.length > 0) {
-          this.selectedPermissions = user.permissions.map(p => p.permission);
+          this.selectedPermissions = permissionCodes(user.permissions);
         }
       } catch (error) {
         this.$buefy.toast.open({
@@ -350,7 +351,7 @@ export default {
           blocked: this.form.blocked,
           hidden: this.form.hidden,
           role: this.form.role,
-          permissions: this.selectedPermissions.map(permission => ({ permission }))
+          permissions: permissionCodes(this.selectedPermissions).map(permission => ({ permission }))
         };
         // only orders_admin sees the switch, so nobody else overwrites it (issues/017)
         if (this.ordersAdmin) {

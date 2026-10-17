@@ -129,7 +129,7 @@ describe('Excel export of Usuàries (admin)', () => {
       ["Nom d'usuari", 'Nom complet', 'Email', 'Confirmat', 'Bloquejat', 'Ocult', 'Permisos']
     )
     expect(cells(excel, rows)).toEqual([
-      ['admin', 'Admin', 'admin@exemple.coop', 'Sí', 'No', 'Sí', 'orders_admin, admin'],
+      ['admin', 'Admin', 'admin@exemple.coop', 'Sí', 'No', 'Sí', 'Logística (oficina), Administració'], // names, issues/087
       ['anna', 'Anna Puig', 'anna@exemple.coop', 'Sí', 'Sí', 'No', '']
     ])
   })

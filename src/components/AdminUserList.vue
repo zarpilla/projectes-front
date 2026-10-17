@@ -73,15 +73,7 @@
 import CardComponent from "@/components/CardComponent.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import service from "@/service/index";
-
-const PERMISSION_LABELS = {
-  projects: "Projectes",
-  hours: "Hores",
-  admin: "Admin",
-  orders: "Comandes",
-  orders_admin: "Logística oficina",
-  orders_delivery: "Repartiment"
-};
+import { permissionLabel, permissionCodes as codesOf } from "@/domain/permissions";
 
 export default {
   name: "AdminUserList",
@@ -115,7 +107,7 @@ export default {
       return this.users.map(u => ({
         ...u,
         name: u.fullname || u.username,
-        codes: (u.permissions || []).map(p => p.permission).filter(Boolean)
+        codes: codesOf(u.permissions)
       }));
     },
     permissionCodes() {
@@ -186,7 +178,7 @@ export default {
           confirmed: yesNo(user.confirmed),
           blocked: yesNo(user.blocked),
           hidden: yesNo(user.hidden),
-          permissions: (user.permissions || []).map(p => p.permission).join(", ")
+          permissions: codesOf(user.permissions).map(permissionLabel).join(", ")
         }));
       } catch (error) {
         this.$buefy.toast.open({
@@ -198,9 +190,7 @@ export default {
         this.isLoading = false;
       }
     },
-    permissionLabel(code) {
-      return PERMISSION_LABELS[code] || code;
-    },
+    permissionLabel,
     initials(row) {
       const words = String(row.name || "").split(/[\s._@-]+/).filter(Boolean);
       return words.slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";

@@ -105,15 +105,7 @@ import service from '@/service/index'
 import { logout } from '@/service/auth'
 import { CHANGELOG } from '@/service/changelog'
 import { getThemeChoice, setThemeChoice } from '@/service/theme'
-
-const PERMISSION_LABELS = {
-  projects: 'Projectes',
-  hours: 'Hores',
-  admin: 'Administració',
-  orders: 'Logística',
-  orders_admin: 'Logística (oficina)',
-  orders_delivery: 'Repartiment'
-}
+import { permissionLabel } from '@/domain/permissions'
 
 export default {
   name: 'Profile',
@@ -158,9 +150,7 @@ export default {
       this.themeChoice = choice
       setThemeChoice(choice)
     },
-    permissionLabel (code) {
-      return PERMISSION_LABELS[code] || code
-    },
+    permissionLabel,
     async sendReset () {
       this.sending = true
       this.sent = false
