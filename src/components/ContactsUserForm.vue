@@ -115,7 +115,7 @@
 
               
               
-              <!-- <b-field label="Provincia">
+              <!-- <b-field label="Província">
                 <b-input v-model="form.state" />
               </b-field>
               <b-field label="País">

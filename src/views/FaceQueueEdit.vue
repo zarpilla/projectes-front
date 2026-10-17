@@ -23,7 +23,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ['Administració', 'Factures FACE', `Editar #${this.id}`];
+      return ['Administració', 'Factures FACe', `Editar #${this.id}`];
     }
   }
 };

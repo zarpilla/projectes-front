@@ -18,7 +18,7 @@
       <div class="doc-kpi">
         <span>Despeses indirectes</span>
         <b>{{ money(result.totals.indirect) }}</b>
-        <small>{{ result.overhead.length }} projectes d'estructura · {{ percent(result.totals.overheadRate) }} sobre les directes</small>
+        <small>{{ result.overhead.length }} {{ result.overhead.length === 1 ? "projecte d'estructura" : "projectes d'estructura" }} · {{ percent(result.totals.overheadRate) }} sobre les directes</small>
       </div>
       <div class="doc-kpi">
         <span>Hores productives</span>

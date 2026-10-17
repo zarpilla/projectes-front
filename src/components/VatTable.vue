@@ -130,7 +130,7 @@
               (es traspassa)
             </span>
           </b-table-column>
-          <b-table-column label="Data Pagament" field="paymentDate" v-slot="props">
+          <b-table-column label="Data de pagament" field="paymentDate" v-slot="props">
             <span v-if="props.row.willCreateEntry" class="has-text-weight-bold">
               {{ props.row.paymentDate }}
             </span>
@@ -201,7 +201,7 @@
               (es traspassa)
             </span>
           </b-table-column>
-          <b-table-column label="Data Pagament" field="paymentDate" v-slot="props">
+          <b-table-column label="Data de pagament" field="paymentDate" v-slot="props">
             <span v-if="props.row.willCreateEntry" class="has-text-weight-bold">
               {{ props.row.paymentDate }}
             </span>

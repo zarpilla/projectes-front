@@ -12,7 +12,7 @@
           name="CLI.ods"
           :fields="contasolClientFields"
         >
-          <b-button icon-left="download" class="mb-2">Clientes (CLI)</b-button>
+          <b-button icon-left="download" class="mb-2">Clients (CLI)</b-button>
         </download-excel>
         <download-excel
           class="export"
@@ -39,7 +39,7 @@
           name="LFA.ods"
           :fields="contasolInvoiceLinesFields"
         >
-          <b-button icon-left="download" class="mb-2">Linies de factures emeses (LFA)</b-button>
+          <b-button icon-left="download" class="mb-2">Línies de factures emeses (LFA)</b-button>
         </download-excel>
         <download-excel
           class="export"

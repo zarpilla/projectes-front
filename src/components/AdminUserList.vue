@@ -137,7 +137,7 @@ export default {
       const visible = this.rows.filter(r => !r.hidden).length;
       const blocked = this.rows.filter(r => r.blocked).length;
       const admins = this.rows.filter(r => r.codes.includes("admin")).length;
-      return `${this.rows.length} comptes · ${visible} visibles a les llistes de persones · ${blocked} bloquejats · ${admins} amb permís d'administració`;
+      return `${this.rows.length} comptes · ${visible} visibles a les llistes de persones · ${blocked} ${blocked === 1 ? "bloquejat" : "bloquejats"} · ${admins} amb permís d'administració`;
     }
   },
   watch: {

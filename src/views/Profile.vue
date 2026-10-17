@@ -11,7 +11,7 @@
           <h1>{{ displayName }}</h1>
           <p class="has-text-muted">{{ me.email }} · les teves dades, la clau de pas i les novetats</p>
         </div>
-        <b-button icon-left="logout" @click="doLogout">Surt</b-button>
+        <b-button icon-left="logout" @click="doLogout">Sortir</b-button>
       </div>
     </section>
 

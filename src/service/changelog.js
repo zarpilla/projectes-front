@@ -34,6 +34,10 @@ export const CHANGELOG = [
   date: "2026.10.17",
   items: [
     {
+      type: "Millores",
+      text: "Diversos textos corregits: «Província», «Línies», «Clients», «Sortir», «Nou projecte», «Factures FACe», dates de pagament, venciment, enviament i acceptació en minúscula, i singulars quan n'hi ha un (1 bloquejat, 1 sòcia, 1 projecte d'estructura)."
+    },
+    {
       type: "Correccions",
       text: "Més números amb el format català: les hores del calendari d'hores dedicades i del detall dels gràfics de dedicació (114,99 h), els quilos de transferències i dipòsits, els percentatges de l'IVA (97,96 %) i els imports i hores dels projectes mare."
     },

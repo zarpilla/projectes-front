@@ -2080,7 +2080,7 @@
             </span>
           </b-table-column>
           <b-table-column
-            label="Data Pagament"
+            label="Data de pagament"
             field="document.paid_date"
             sortable
             v-slot="props"
@@ -2786,7 +2786,7 @@ export default {
       if (this.isProfileExists) {
         lastCrumb = this.form.name;
       } else {
-        lastCrumb = "Nou Projecte";
+        lastCrumb = "Nou projecte";
       }
 
       return ["Projectes", lastCrumb];
@@ -2807,7 +2807,7 @@ export default {
     },
     heroRouterLinkLabel() {
       if (this.isProfileExists) {
-        return "Nou Projecte";
+        return "Nou projecte";
       } else {
         return "Inici";
       }

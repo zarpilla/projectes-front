@@ -2,7 +2,7 @@
   <section class="section">
     <b-loading :is-full-page="true" v-model="isLoading" :can-cancel="false"></b-loading>
 
-    <card-component title="Factures FACE" v-if="!isLoading" class="mt-5">
+    <card-component title="Factures FACe" v-if="!isLoading" class="mt-5">
       <b-table
         :data="items"
         :loading="isLoading"

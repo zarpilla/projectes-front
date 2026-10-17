@@ -9,7 +9,7 @@
       <div class="doc-kpi">
         <span>Aportacions</span>
         <b>{{ money(totalAmount) }}</b>
-        <small>{{ withAmount }} sòcies amb aportació</small>
+        <small>{{ withAmount }} {{ withAmount === 1 ? "sòcia" : "sòcies" }} amb aportació</small>
       </div>
       <div class="doc-kpi" :class="{ 'is-warn': withoutContact }">
         <span>Sense fitxa de contacte</span>

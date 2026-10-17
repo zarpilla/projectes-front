@@ -768,7 +768,7 @@ const routes = [
     component: () =>
       import("../views/FaceQueueList.vue"),
     meta: {
-      title: "Factures FACE",
+      title: "Factures FACe",
       requiresAuth: true,
       requiresPermission: "admin"
     }

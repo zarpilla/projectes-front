@@ -433,7 +433,7 @@
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
                 icon="calendar-today"
-                placeholder="Data Venciment"
+                placeholder="Data de venciment"
                 trap-focus
                 editable
                 :min-date="minEmittedDate"
@@ -701,7 +701,7 @@
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
                 icon="calendar-today"
-                placeholder="Data Enviament"
+                placeholder="Data d'enviament"
                 trap-focus
                 editable
               >
@@ -725,7 +725,7 @@
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
                 icon="calendar-today"
-                placeholder="Data Pagament"
+                placeholder="Data de pagament"
                 trap-focus
                 editable
               >
@@ -741,7 +741,7 @@
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
                 icon="calendar-today"
-                placeholder="Data Acceptació"
+                placeholder="Data d'acceptació"
                 trap-focus
                 editable
               >
@@ -1272,7 +1272,7 @@ export default {
       const date = d => (d ? moment(d).format("DD/MM/YYYY") : null);
       const contactName = this.contact && this.contact.name;
       const parts = [
-        { label: this.isIncome ? "Clienta" : "Proveïdor", value: contactName },
+        { label: this.isIncome ? "Clienta" : "Proveïdora", value: contactName },
         { label: this.type === "quotes" ? "Data" : "Emesa", value: date(this.form.emitted) },
         { label: "Venciment", value: date(this.form.paybefore) },
         { label: "Total", value: this.total !== undefined && this.total !== null ? this.formatMoney(this.total) : null }

@@ -19,7 +19,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ['Administració', 'Factures FACE'];
+      return ['Administració', 'Factures FACe'];
     }
   }
 };

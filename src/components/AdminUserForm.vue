@@ -149,6 +149,9 @@ import moment from 'moment';
 import { formatNumber } from '@/helpers/format-number';
 import { permissionCodes } from '@/domain/permissions';
 
+// Strapi's users-permissions role types, in Catalan (issues/113)
+const ROLE_LABELS = { authenticated: 'usuària', public: 'públic' };
+
 const PERMISSION_GROUPS = [
   {
     title: 'Projectes i temps',
@@ -234,7 +237,7 @@ export default {
       const role = this.roles.find(r => r.id === this.form.role);
       const labels = PERMISSION_GROUPS.flatMap(g => g.items).filter(p => this.selectedPermissions.includes(p.value)).map(p => p.label);
       const parts = [this.form.email];
-      if (role) parts.push(`rol ${role.name}`);
+      if (role) parts.push(`rol ${ROLE_LABELS[role.type] || role.name}`);
       parts.push(labels.length ? `permisos ${labels.join(', ')}` : 'cap permís');
       return parts.filter(Boolean).join(' · ');
     }

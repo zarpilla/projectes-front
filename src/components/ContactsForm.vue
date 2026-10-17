@@ -80,7 +80,7 @@
               <b-field label="Població *" horizontal>
                 <b-input v-model="form.city" required />
               </b-field>
-              <b-field label="Provincia" horizontal>
+              <b-field label="Província" horizontal>
                 <b-input v-model="form.state" />
               </b-field>
               <b-field label="País" horizontal>
