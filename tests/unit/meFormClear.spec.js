@@ -25,4 +25,28 @@ describe('MeForm save (issues/080)', () => {
     expect(put).not.toHaveBeenCalled()
     expect(c.$buefy.toast.open).toHaveBeenCalled()
   })
+
+  it('sends the task notices switch off as false (null would read as on)', async () => {
+    await MeForm.methods.submit.call(vm({ task_emails: false }))
+    expect(put.mock.calls.at(-1)[1].task_emails).toBe(false)
+  })
+})
+
+describe('MeForm load', () => {
+  it('shows the task notices on when the setting is still empty', async () => {
+    const c = {
+      form: { ...MeForm.data.call({}).form },
+      $buefy: { toast: { open: vi.fn() } }
+    }
+    const get = vi.fn().mockResolvedValue({ data: { name: 'Coop', task_emails: null } })
+    const service = await import('@/service/index')
+    vi.spyOn(service, 'default').mockReturnValue({ get, put })
+    await MeForm.methods.loadData.call(c)
+    expect(get).toHaveBeenCalledWith('/me')
+    expect(c.$buefy.toast.open).not.toHaveBeenCalled()
+    expect(c.form.task_emails).toBe(true)
+    get.mockResolvedValue({ data: { name: 'Coop', task_emails: false } })
+    await MeForm.methods.loadData.call(c)
+    expect(c.form.task_emails).toBe(false)
+  })
 })

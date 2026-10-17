@@ -157,6 +157,12 @@
                 <small>Mostra el botó «Omple dades a partir de PDF» a les factures i despeses rebudes. El PDF s'envia a un servei extern per llegir-ne les dades: activa-ho només si hi confieu.</small>
               </b-checkbox>
             </label>
+            <label class="option-row">
+              <b-checkbox v-model="form.task_emails">
+                <b>Avisos de tasques per correu</b>
+                <small>Cada matí, un correu a cada persona amb les seves tasques vençudes i les que li han assignat. Desactiva-ho perquè no se n'enviï cap.</small>
+              </b-checkbox>
+            </label>
           </section>
         </form>
       </div>
@@ -229,7 +235,8 @@ export default {
         bank_account_ss: null,
         bank_account_irpf: null,
         bank_account_vat: null,
-        pdf_invoice_parser: true
+        pdf_invoice_parser: true,
+        task_emails: true
       },
       bankAccounts: [],
       loadingBankAccounts: false
@@ -326,6 +333,8 @@ export default {
             }
           }
         });
+        // empty (saved before the option existed) means on, as the server reads it
+        this.form.task_emails = response.data.task_emails !== false;
       } catch (error) {
         this.$buefy.toast.open({
           message: `Error carregant dades: ${error.message}`,
