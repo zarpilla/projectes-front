@@ -1,7 +1,15 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" subtitle="Les factures de logística que La Diligència t'ha emès." />
-    <section class="section is-main-section">
+    <title-bar :title-stack="titleStack" :subtitle="subtitle" />
+    <!-- a user without a linked contact (an administrator…) has no invoices
+         of her own: say so instead of a blank page (issues/107) -->
+    <section v-if="noContact" class="section is-main-section">
+      <div class="notification is-warning is-light">
+        Aquesta pàgina mostra les factures de logística d'una sòcia, i el teu usuari no té cap contacte de sòcia vinculat.
+        Una administradora el pot vincular des de la fitxa del contacte (camp «Usuària»).
+      </div>
+    </section>
+    <section v-else class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
         <label class="filter-select">
           <span>Any</span>
@@ -50,6 +58,7 @@ import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
+import { defaultYear } from "@/domain/years";
 
 export default {
   name: "DedicacioSaldo",
@@ -61,6 +70,7 @@ export default {
   data() {
     return {
       isLoading: false,
+      noContact: false,
       filters: {
         year: null,
         month: 0,
@@ -91,9 +101,14 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["userName", "me"]),
     titleStack() {
       return ["Logística", "Factures"];
+    },
+    // the entity's name, not always «La Diligència»
+    subtitle() {
+      const entity = this.me && this.me.name ? this.me.name : "l'entitat";
+      return `Les factures de logística que ${entity} t'ha emès.`;
     },
   },
   async mounted() {
@@ -132,9 +147,8 @@ export default {
       .then((r) => r.data)
       
 
-    this.filters.year = this.years.find(
-        (y) => y.year.toString() === moment().format("YYYY")
-      ).year;
+    const year = defaultYear(this.years);
+    this.filters.year = year ? year.year : null;
       
 
       const me = await service({ requiresAuth: true }).get("users/me");
@@ -144,13 +158,8 @@ export default {
         "contacts?users_permissions_user=" + me.data.id
       ).then((r) => r.data);
 
-      if (contacts.length === 0) {        
-        this.$buefy.snackbar.open({
-              message: "Error. No hi ha cap contacte associat a aquest usuari",
-              queue: false,
-              type: "is-danger"
-            });
-            return
+      if (contacts.length === 0) {
+        this.noContact = true;
       } else {
         this.filters.contact = contacts[0].id;
       }
