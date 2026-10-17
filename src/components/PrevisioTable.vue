@@ -146,16 +146,16 @@
               <td class="has-text-right">{{ total.incomes ? percent(total.result / total.incomes) : "—" }}</td>
             </tr>
             <tr class="is-quiet">
-              <th>Cobraments ÷ pagaments (tresoreria)</th>
+              <th>Ingressos ÷ despeses previstes</th>
               <td v-for="y in yearRows" :key="y.year" class="has-text-right">{{ y.coverage === null ? "—" : formatPrice(y.coverage) + " %" }}</td>
-              <td></td>
+              <td class="has-text-right">{{ total.expenses ? formatPrice((total.incomes / total.expenses) * -100) + " %" : "—" }}</td>
             </tr>
           </tbody>
         </table>
       </div>
       <p class="report-note">
         Ingressos: línies d'ingrés previstes al pla de cada projecte. Despeses: factures i despeses previstes, la part no deduïble de l'IVA i les nòmines previstes de la cooperativa.
-        L'última fila compara cobraments i pagaments previstos a la tresoreria de cada any.
+        L'última fila diu quina part de les despeses previstes cobreixen els ingressos previstos.
       </p>
     </section>
 
@@ -579,7 +579,9 @@ export default {
           vat,
           payroll,
           result: d.forecast_amount,
-          coverage: d.total_expenses ? (d.total_incomes / d.total_expenses) * -100 : null
+          // forecast incomes over forecast expenses, like the rows above; it
+          // was the treasury's collections over payments (13.973 %, issues/074)
+          coverage: d.forecast_expenses ? (d.forecast_incomes / d.forecast_expenses) * -100 : null
         };
       });
     },
