@@ -27,6 +27,10 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       text: [{ to: "/city-route", label: "Poblacions i rutes" }, " es fa d'una altra manera: cada ruta amb les seves poblacions, i «Quina ruta passa per…?» per trobar les rutes d'una població."]
+    },
+    {
+      type: "Novetats",
+      text: ["L'informe ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " comença amb gràfics: ingressos, despeses i hores per mes (o per any) amb el resultat acumulat, el resultat de cada projecte i on van les despeses. Mostren l'executat o el previst, amb els mateixos filtres que la taula dinàmica."]
     }
   ]
 },

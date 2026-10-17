@@ -153,7 +153,8 @@
         <span v-for="part in headSummary" :key="part.label" class="head-part">{{ part.label }} <b>{{ part.value }}</b></span>
       </template>
       <template v-if="form.id">
-        <b-button icon-left="file-pdf-box" @click="getPDF">PDF</b-button>
+        <!-- payrolls: the PDF prints like an invoice, hidden for now -->
+        <b-button v-if="type !== 'payrolls'" icon-left="file-pdf-box" @click="getPDF">PDF</b-button>
         <b-button
           v-if="entity === 'emitted-invoice' && form.state === 'real'"
           icon-left="content-copy"
@@ -287,7 +288,8 @@
               </div>
             </b-field>
 
-            <b-field label="Número" horizontal v-if="form.state !== 'draft' && !readOnly">
+            <!-- payrolls: the number is built from year, month and id (it's in the head) -->
+            <b-field label="Número" horizontal v-if="form.state !== 'draft' && !readOnly && type !== 'payrolls'">
               <b-input
                 v-model="form.code"
                 placeholder=""
@@ -306,7 +308,7 @@
                 @icon-right-click="editNumber"
               />
               <b-button
-                v-if="form.id"
+                v-if="form.id && type !== 'payrolls'"
                 class="view-button is-primary ml-3"
                 @click="getPDF"
                 size="is-small"
@@ -330,35 +332,21 @@
             </b-field>
 
             <b-field label="Any" horizontal v-if="type === 'payrolls'">
-              <b-input v-model="form.year.year" placeholder="" disabled />
+              <b-input :model-value="form.year?.year" placeholder="" disabled />
             </b-field>
 
             <b-field label="Mes" horizontal v-if="type === 'payrolls'">
-              <b-input v-model="form.month.month" placeholder="" disabled />
+              <b-input :model-value="form.month?.month" placeholder="" disabled />
             </b-field>
 
             <b-field label="Persona" horizontal v-if="type === 'payrolls'">
               <b-input
-                v-model="form.users_permissions_user.username"
+                :model-value="form.users_permissions_user?.username"
                 placeholder=""
                 disabled
               />
             </b-field>
 
-            <b-field label="Compte bancari" horizontal v-if="type === 'payrolls'">
-              <b-select
-                v-model="payrollBankAccount"
-                placeholder="-- Compte --"
-              >
-                <option
-                  v-for="account in bankAccounts"
-                  :key="account.id"
-                  :value="account.id"
-                >
-                  {{ account.name }}
-                </option>
-              </b-select>
-            </b-field>
 
             <b-field
               label="Tipus"
@@ -467,7 +455,8 @@
               </b-select>
             </b-field>
 
-            <b-field label="Concepte del document" horizontal>
+            <!-- payrolls have no concept, attachments or internal notes -->
+            <b-field v-if="type !== 'payrolls'" label="Concepte del document" horizontal>
               <b-input
                 placeholder="Concepte intern del document"
                 v-model="form.document_concept"
@@ -732,6 +721,22 @@
               </b-datepicker>
             </b-field>
 
+            <b-field label="Compte bancari" horizontal v-if="type === 'payrolls'">
+              <b-select
+                expanded
+                v-model="payrollBankAccount"
+                placeholder="-- Compte --"
+              >
+                <option
+                  v-for="account in bankAccounts"
+                  :key="account.id"
+                  :value="account.id"
+                >
+                  {{ account.name }}
+                </option>
+              </b-select>
+            </b-field>
+
             <b-field v-if="type === 'quotes'" label="Acceptat" horizontal>
               <b-checkbox v-model="form.accepted" class="checkbox-inline">
               </b-checkbox>
@@ -772,7 +777,7 @@
               :verifactu="form.verifactu_chain"
               :face="form.face_queue"
             />
-            <card-component class="tile is-child" title="Adjunts">
+            <card-component v-if="type !== 'payrolls'" class="tile is-child" title="Adjunts">
               <p v-if="!form.id" class="has-text-muted side-hint">Els adjunts es poden afegir un cop desat el document.</p>
               <div class="a-form side-fields no-labels">
 <b-field
@@ -832,7 +837,7 @@
             >
             </file-upload>
             </card-component>
-            <card-component class="tile is-child" title="Notes internes">
+            <card-component v-if="type !== 'payrolls'" class="tile is-child" title="Notes internes">
               <div class="a-form side-fields no-labels">
 <b-field
               label="Notes internes"
@@ -1270,6 +1275,14 @@ export default {
     },
     headSummary() {
       const date = d => (d ? moment(d).format("DD/MM/YYYY") : null);
+      if (this.type === "payrolls") {
+        const u = this.form.users_permissions_user;
+        return [
+          { label: "Persona", value: u && u.username },
+          { label: "Emesa", value: date(this.form.emitted) },
+          { label: "Despesa total", value: this.form.total ? this.formatMoney(this.form.total) : null }
+        ].filter(p => p.value);
+      }
       const contactName = this.contact && this.contact.name;
       const parts = [
         { label: this.isIncome ? "Clienta" : "Proveïdora", value: contactName },
@@ -2176,7 +2189,8 @@ export default {
       const matchedIncomeLines = [];
       const matchedExpenseLines = [];
 
-      this.form.projects.forEach(project => {
+      // payrolls have no projects
+      (this.form.projects || []).forEach(project => {
         if (!project.project_phases) return;
 
         project.project_phases.forEach(phase => {
