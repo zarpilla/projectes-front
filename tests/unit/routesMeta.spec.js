@@ -23,6 +23,20 @@ describe('route meta (issues/085)', () => {
   })
 })
 
+// issues/084: the admin template's demo pages were still reachable
+describe('template leftovers (issues/084)', () => {
+  it('has no demo routes, and old client links open the contact', () => {
+    const paths = router.getRoutes().map(r => r.path)
+    expect(paths).not.toContain('/tables')
+    expect(paths).not.toContain('/forms')
+    expect(paths).not.toContain('/client/new')
+    expect(router.resolve('/client/5').fullPath).toBe('/client/5')
+    const client = router.getRoutes().find(r => r.path === '/client/:id')
+    expect(client.redirect({ params: { id: '5' } })).toBe('/contact/5')
+    expect(router.getRoutes().find(r => r.name === 'profile').meta.title).toBe('El meu compte')
+  })
+})
+
 describe('Pressupostos «Estat» sort (issues/085)', () => {
   it('sorts a quote with only an acceptance date as accepted', () => {
     const sort = QuotesTable.methods.sortByAcceptance

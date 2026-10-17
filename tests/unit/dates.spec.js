@@ -9,7 +9,6 @@ vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
 
 import OrderView from '@/views/OrderView.vue'
 import OrdersForm from '@/components/OrdersForm.vue'
-import ClientForm from '@/views/ClientForm.vue'
 import ProjectPhases from '@/components/ProjectPhases.vue'
 import DocumentForm from '@/components/DocumentForm.vue'
 import FooterBar from '@/components/FooterBar.vue'
@@ -47,7 +46,6 @@ describe.each([
 })
 
 describe.each([
-  ['ClientForm', ClientForm],
   ['ProjectPhases', ProjectPhases]
 ])('%s readable creation date', (_, component) => {
   it('stays in English, as dayjs formatted it', () => {

@@ -212,30 +212,7 @@ const routes = [
   },
   {
     meta: {
-      title: "Tables",
-      requiresAuth: true
-    },
-    path: "/tables",
-    name: "tables",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import("../views/Tables.vue"),
-  },
-  {
-    meta: {
-      title: "Forms",
-      requiresAuth: true
-    },
-    path: "/forms",
-    name: "forms",
-    component: () =>
-      import("../views/Forms.vue"),
-  },
-  {
-    meta: {
-      title: "Profile",
+      title: "El meu compte",
       requiresAuth: true
     },
     path: "/profile",
@@ -244,25 +221,9 @@ const routes = [
       import("../views/Profile.vue"),
   },
   {
-    meta: {
-      title: "New Client",
-      requiresAuth: true
-    },
-    path: "/client/new",
-    name: "client.new",
-    component: () =>
-      import("../views/ClientForm.vue"),
-  },
-  {
-    meta: {
-      title: "Edit Client",
-      requiresAuth: true
-    },
+    // the template's demo client form used to answer here (issues/084)
     path: "/client/:id",
-    name: "client.edit",
-    component: () =>
-      import("../views/ClientForm.vue"),
-    props: true,
+    redirect: to => `/contact/${to.params.id}`
   },
   {
     meta: {
