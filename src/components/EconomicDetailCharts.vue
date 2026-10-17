@@ -73,14 +73,9 @@
 import BarChart from '@/components/Charts/BarChart.js'
 import { SCENARIOS, totals, byPeriod, byProject, byExpenseType } from '@/domain/economicDetailCharts'
 import { formatMoney } from '@/helpers/format-number'
+import { chartColors, shortAmount, shortLabel } from '@/components/Charts/chartTheme'
 
 const SCENARIO_OF = { Previsió: 'prev', Execució: 'exec' }
-
-// chart colours from the theme tokens (they change with the dark theme)
-const token = (name, fallback) => {
-  const v = typeof document !== 'undefined' && getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-  return v || fallback
-}
 
 export default {
   name: 'EconomicDetailCharts',
@@ -132,14 +127,7 @@ export default {
     colors () {
       // eslint-disable-next-line no-unused-expressions
       this.themeTick
-      return {
-        income: token('--a-accent', '#0F7B6C'),
-        expense: '#C2410C',
-        hours: '#F2B8A0',
-        line: token('--a-fg', '#1F2A2E'),
-        pos: token('--a-pos', '#15803D'),
-        neg: token('--a-neg', '#C2410C')
-      }
+      return chartColors()
     },
     // the accumulated result stops at the last period with figures (not flat to December)
     accumulatedLine () {
@@ -203,7 +191,7 @@ export default {
         },
         scales: {
           x: { ticks: { callback: v => this.short(v) } },
-          y: { grid: { display: false }, ticks: { callback (v) { const l = this.getLabelForValue(v); return l.length > 28 ? l.slice(0, 27) + '…' : l } } }
+          y: { grid: { display: false }, ticks: { callback (v) { return shortLabel(this.getLabelForValue(v)) } } }
         }
       }
     }
@@ -224,13 +212,7 @@ export default {
     pct (v) {
       return `${Math.round(v * 1000) / 10} %`.replace('.', ',')
     },
-    // axis ticks: 12.500 → 12,5k
-    short (v) {
-      const a = Math.abs(v)
-      if (a >= 1000000) return `${(v / 1000000).toFixed(1).replace('.', ',')}M`
-      if (a >= 1000) return `${(v / 1000).toFixed(a >= 10000 ? 0 : 1).replace('.', ',')}k`
-      return String(v)
-    },
+    short: shortAmount,
     barsHeight (n) {
       return `${Math.max(160, n * 30 + 40)}px`
     }

@@ -31,6 +31,10 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       text: ["L'informe ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " comença amb gràfics: ingressos, despeses i hores per mes (o per any) amb el resultat acumulat, el resultat de cada projecte i on van les despeses. Segueixen els filtres de la pàgina (amb «Totes», l'executat amb el previst al costat)."]
+    },
+    {
+      type: "Novetats",
+      text: ["L'informe ", { to: "/stats-projectes", label: "Projectes" }, " també comença amb gràfics: el resultat previst i el real de cada projecte, les hores fetes contra les previstes i el resultat per àmbit o per qui coordina."]
     }
   ]
 },

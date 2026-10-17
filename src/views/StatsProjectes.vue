@@ -10,7 +10,8 @@
           </b-select>
         </label>
       </form>
-      <projectes-pivot v-if="!isLoading" :project-state="filters.project_state" />
+      <project-stats-charts v-if="chartRows" :rows="chartRows" />
+      <projectes-pivot v-if="!isLoading" :project-state="filters.project_state" @loaded="rows => (chartRows = rows)" />
     </section>
   </div>
 </template>
@@ -19,6 +20,7 @@
 import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
 import ProjectesPivot from '@/components/ProjectesPivot.vue'
+import ProjectStatsCharts from '@/components/ProjectStatsCharts.vue'
 import service from '@/service/index'
 import moment from 'moment'
 import defaultProjectState from '@/service/projectState'
@@ -31,7 +33,8 @@ export default {
     CardComponent,
     TitleBar,
     // DedicationWidget,
-    ProjectesPivot
+    ProjectesPivot,
+    ProjectStatsCharts
   },
   data () {
     return {
@@ -39,7 +42,9 @@ export default {
       filters: {
         project_state: null,
       },
-      project_states: []
+      project_states: [],
+      // rows loaded by the pivot, for the charts
+      chartRows: null
     }
   },
   computed: {
@@ -47,7 +52,7 @@ export default {
       return ['Informes', 'Projectes']
     },
     subtitle () {
-      return 'Hores, ingressos, despeses i resultats dels projectes. Configura la taula dinàmica per agrupar-los com vulguis.'
+      return 'Hores, ingressos, despeses i resultats dels projectes: un resum en gràfics i, a sota, el detall a la taula dinàmica.'
     }
   },
   async mounted () {
