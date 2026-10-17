@@ -41,7 +41,7 @@ test('project creation', async () => {
 test('project phases: original budget and closing it', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
   await visit(`/project/${state.projectId}`)
-  const original = card('FASES I PRESSUPOST ORIGINAL')
+  const original = card('Fases i pressupost original')
   const phase = await addPhase(original, `${NAME} fase A`)
   await addLine(phase, 'income', { concept: 'Ingrés e2e', quantity: 10, price: 50 })
   await addLine(phase, 'expense', { concept: 'Despesa e2e', quantity: 2, price: 30 })
@@ -100,7 +100,7 @@ test('project edition', async () => {
 test('project phases: editing the execution budget', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
   await visit(`/project/${state.projectId}?tab=pressupost`)
-  const execution = card('EXECUCIÓ PRESSUPOST')
+  const execution = card('Execució del pressupost')
   const phaseA = await phaseNamed(execution, `${NAME} fase A`)
   await phaseA.locator('.phase-detail-input input').fill(`${NAME} fase A editada`)
   await phaseA.locator('input[name="PreuUnitari"]').first().fill('60')
@@ -123,8 +123,8 @@ test('project phases: editing the execution budget', async () => {
 
   // and the form shows the saved phases after a reload
   await visit(`/project/${state.projectId}?tab=pressupost`)
-  await phaseNamed(card('EXECUCIÓ PRESSUPOST'), `${NAME} fase A editada`)
-  await phaseNamed(card('EXECUCIÓ PRESSUPOST'), `${NAME} fase B`)
+  await phaseNamed(card('Execució del pressupost'), `${NAME} fase A editada`)
+  await phaseNamed(card('Execució del pressupost'), `${NAME} fase B`)
 })
 
 test('hours: activities add up in the project', async () => {

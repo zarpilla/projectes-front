@@ -37,7 +37,7 @@
       </form>
 
       <card-component
-        title="PROJECTES MARE"
+        title="Projectes mare"
         class="has-table has-mobile-sort-spaced"
       >
         <mother-projects-table :projects="projects" />

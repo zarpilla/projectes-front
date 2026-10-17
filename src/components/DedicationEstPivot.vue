@@ -394,9 +394,6 @@ export default {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--a-line-soft);
 }
-.card-header-title{
-  text-transform: capitalize;
-}
 .is-activity{
   cursor: pointer;
 }

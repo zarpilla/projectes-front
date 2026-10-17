@@ -837,7 +837,7 @@
           </template>
           <card-component
             v-if="isProfileExists && !newSummary"
-            title="RESUM FINANCER PROJECTE"
+            title="Resum financer"
             class="tile is-child summary-card"
           >
             <div class="panel-warning mb-4" v-if="form.dirty || hasBeenDirty">
@@ -1604,7 +1604,7 @@
           </section>
           <card-component
             v-if="isProfileExists && !isCreationMode && !newSummary"
-            title="RESUM TRESORERIA PROJECTE"
+            title="Resum de tresoreria"
             class="ztile is-child summary-card mt-4"
           >
             <div class="columns">
@@ -1695,7 +1695,7 @@
           !isLoading && phasesVisible && form && form.project_original_phases &&
           (!isCreationMode || currentStep >= 2)
         "
-        title="GESTIÓ ECONÒMICA - FASES I PRESSUPOST ORIGINAL"
+        title="Fases i pressupost original"
         v-show="showTab('pressupost')"
         :closeIcon="true"
         :content-visible="isCreationMode"
@@ -1777,7 +1777,7 @@
             form.project_phases.length &&
             !isCreationMode
         "
-        :title="'GESTIÓ ECONÒMICA - EXECUCIÓ PRESSUPOST'"
+        title="Execució del pressupost"
         v-show="showTab('pressupost')"
         :closeIcon="true"
         :content-visible="true"
@@ -1865,7 +1865,7 @@
       </div>
       <card-component
         v-if="!isLoading && periodification && form.periodification.length && !isCreationMode"
-        title="PERIODIFICACIÓ D'INGRESSOS I DESPESES"
+        title="Periodificació d'ingressos i despeses"
         v-show="showTab('periodificacio')"
       >
         <p class="period-help">
@@ -1980,7 +1980,7 @@
       </card-component>
       <card-component
         v-if="!isLoading && !isCreationMode"
-        title="GESTIÓ ECONÒMICA - MOVIMENTS D'INGRESSOS I DESPESES"
+        title="Moviments d'ingressos i despeses"
         v-show="showTab('moviments')"
         class="ztile is-child mt-2"
         :content-visible="true"
@@ -2166,7 +2166,7 @@
         <!-- Control buttons for non-open child projects -->
         <card-component
           v-if="closedChildren.length > 0"
-          title="PROJECTES FILLS NO ACTIUS"
+          title="Projectes fills no actius"
           class="mt-4"
         >
           <div class="notification is-info is-light">
@@ -2191,7 +2191,7 @@
         <card-component
           v-for="child in visibleChildren"
           :key="'child-gantt-' + child.id"
-          :title="'PLANIFICACIÓ DEL PROJECTE FILL: ' + child.name + (ganttViewMode === 'original' ? ' - ORIGINAL' : ' - PREVISTA')"
+          :title="'Planificació del projecte fill: ' + child.name + (ganttViewMode === 'original' ? ' · original' : ' · prevista')"
           class="mt-4"
           header-icon="swap-horizontal"
           @header-icon-click="toggleGanttView"
@@ -2242,7 +2242,7 @@
 
       <card-component
         v-if="!isLoading && !isCreationMode"
-        title="GESTIÓ ECONÒMICA - MOVIMENTS DE COBRAMENTS I PAGAMENTS"
+        title="Cobraments i pagaments"
         v-show="showTab('moviments')"
         class="ztile is-child mt-2"
       >
@@ -2437,7 +2437,7 @@
 
       <card-component
         v-if="!isLoading && !form.children && !isCreationMode"
-        title="TASQUES"
+        title="Tasques"
         v-show="showTab('tasques')"
         header-icon="view-column"
         @header-icon-click="toogleTasksView"
@@ -2813,11 +2813,7 @@ export default {
       }
     },
     formCardTitle() {
-      if (this.isProfileExists) {
-        return "DADES BÀSIQUES PROJECTE";
-      } else {
-        return "DADES BÀSIQUES PROJECTE";
-      }
+      return "Dades bàsiques";
     },
     transitionName() {
       if (this.useTransition) {

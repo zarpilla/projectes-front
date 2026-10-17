@@ -877,7 +877,7 @@
           </card-component>
           <card-component
             v-if="type === 'payrolls' && dedication"
-            title="DETALL"
+            title="Detall"
           >
             <b-field label="Salari base" horizontal>
               <b-input
