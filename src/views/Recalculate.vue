@@ -81,7 +81,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ["userName"]),
     titleStack() {
-      return ["Projectes", "Recàlcul"];
+      return ["Altres", "Recàlcul"];
     },
     count() {
       return this.projects.filter((p) => p.updated).length;

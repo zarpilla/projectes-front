@@ -71,7 +71,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ["me"]),
     titleStack() {
-      return ["Contacta amb nosaltres"];
+      return ["Logística", "Contacta amb nosaltres"];
     },
     transitionName() {
       if (this.useTransition) {

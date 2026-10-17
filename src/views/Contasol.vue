@@ -88,7 +88,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ["Contasol", "Exportació de dades"];
+      return ["Altres", "Exportació a Contasol"];
     }
   },
   data() {

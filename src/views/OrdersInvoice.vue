@@ -35,7 +35,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Facturar comandes']
+      return ['Logística', 'Facturar']
     }
   },
   mounted () {    

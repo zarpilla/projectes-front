@@ -38,7 +38,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['IVA']
+      return ['Diners', 'IVA']
     }
   }  
 }

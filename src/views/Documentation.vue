@@ -29,7 +29,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Ajuda', 'Documentació']
+      return ['Altres', 'Documentació']
     }
   }
 }

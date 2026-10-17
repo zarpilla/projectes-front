@@ -72,7 +72,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Dedicació', 'Bestretes']
+      return ['Diners', 'Bestretes']
     },
     filteredUsers () {
       return this.users.filter(option => {

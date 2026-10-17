@@ -1,12 +1,13 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" />
-    <hero-bar>
-      {{ heroTitle }}
-    </hero-bar>
+    <title-bar :title-stack="titleStack" subtitle="Vista prèvia del document tal com surt al PDF.">
+      <router-link v-if="quote" :to="`/document/${id}/${type}`" class="button">
+        <b-icon icon="arrow-left" size="is-small" /><span>Torna al document</span>
+      </router-link>
+      <b-button type="is-primary" icon-left="file-pdf-box" @click="getPDF">Descarrega PDF</b-button>
+    </title-bar>
     <section class="section is-main-section">
-      <div class="columns">
-        <div class="column">
+      <div class="preview-page">
           <div class="invoice-box-container">
             <div id="quote" class="invoice-box" v-if="me && quote">
               <table cellpadding="0" cellspacing="0">
@@ -226,12 +227,6 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="column">
-          <button class="button is-primary" @click="getPDF">
-            Descarrega PDF
-          </button>
-        </div>
       </div>
     </section>
   </div>
@@ -242,7 +237,6 @@
 // import dayjs from 'dayjs'
 // import find from 'lodash/find'
 import TitleBar from "@/components/TitleBar.vue";
-import HeroBar from "@/components/HeroBar.vue";
 import service from "@/service/index";
 import { richText, sanitizeHtml } from "@/helpers/safeHtml";
 import moment from "moment";
@@ -261,8 +255,7 @@ import {
 export default {
   name: "ClientForm",
   components: {
-    TitleBar,
-    HeroBar
+    TitleBar
   },
   props: {
     id: {
@@ -435,13 +428,9 @@ export default {
       return Object.fromEntries(fields.map(f => [f, info[f] || contact[f] || ""]));
     },
     titleStack() {
-      return [
-        "Facturació",
-        this.type === "emitted-invoices" ? "Factures emeses" : "Despeses"
-      ];
-    },
-    heroTitle() {
-      return this.quote ? this.quote.code : "";
+      const list = ["emitted-invoices", "received-incomes"].includes(this.type) ? "Ingressos" : "Despeses";
+      const name = (this.texts.ca[this.type] || {}).documentName || "Document";
+      return ["Diners", list, this.quote ? `${name} ${this.quote.code || ""}`.trim() : name];
     },
     showDate() {
       return this.quote.lines.filter(l => l.date).length > 0;
@@ -575,7 +564,12 @@ export default {
 };
 </script>
 <style scoped>
+/* the document as a sheet of paper; it stays white in the dark theme */
+.preview-page {
+  max-width: 860px;
+}
 .invoice-box-container {
+  border-radius: 4px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   border: 1px solid #eee;
   background: #fff;

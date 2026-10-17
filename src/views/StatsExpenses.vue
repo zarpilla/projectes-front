@@ -55,7 +55,7 @@ export default {
   },
   computed: {
     titleStack () {
-      return ['Projectes', 'Ingressos i Despeses']
+      return ['Informes', 'Panell d\'ingressos i despeses']
     }
   },
   async mounted () {

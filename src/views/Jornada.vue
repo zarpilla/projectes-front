@@ -85,7 +85,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Registre de jornades']
+      return ['Projectes', 'Registre de jornades']
     },
     wholeYear () {
       return !this.filters.month || this.filters.month.month === null

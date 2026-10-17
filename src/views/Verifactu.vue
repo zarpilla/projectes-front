@@ -19,7 +19,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ['Administració', 'Configuració Verifactu'];
+      return ['Altres', 'Verifactu'];
     }
   }
 };

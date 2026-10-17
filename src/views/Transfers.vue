@@ -27,7 +27,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Transferències']
+      return ['Logística', 'Transferències']
     }
   },
   mounted () {    

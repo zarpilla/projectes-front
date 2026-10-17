@@ -143,7 +143,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ["userName"]),
     titleStack() {
-      return ["Facturació", "Despeses"];
+      return ["Diners", "Despeses"];
     },
     filteredContacts () {
       return this.contacts.filter(option => {

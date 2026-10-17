@@ -31,7 +31,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ['userName']),
     titleStack () {
-      return ['Persones']
+      return ['Projectes', 'Persones']
     },
     subtitle () {
       const base = 'Jornada laboral, salari i cost hora per períodes'

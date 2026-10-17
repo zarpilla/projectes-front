@@ -99,7 +99,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ["Tasques"];
+      return ["Projectes", "Tasques"];
     },
     subtitle() {
       if (!this.summary) return "";

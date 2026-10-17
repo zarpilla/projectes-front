@@ -136,7 +136,7 @@ export default {
   computed: {
     ...mapState(useMainStore, ["userName"]),
     titleStack() {
-      return ["Projectes"];
+      return ["Projectes", "Projectes"];
     },
     subtitle() {
       const state = this.project_states.find(s => s.id === this.filters.project_state);
