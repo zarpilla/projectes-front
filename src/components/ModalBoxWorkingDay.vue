@@ -154,13 +154,13 @@
           </b-field>
 
           <b-field
-            label="Cost/hora (€)"
+            label="Cost/hora"
             horizontal
             message="Cost soportat per la cooperativa"
             v-if="!isLoading1"
           >
-            <div class="readonly-fake">
-              {{ form.costByHour ? form.costByHour.toFixed(2) : "" }}
+            <div class="readonly-fake cost-by-hour">
+              {{ form.costByHour ? formatMoney(form.costByHour) : "" }}
             </div>
             <!-- <b-input
                 v-model="form.costByHour"
@@ -206,6 +206,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
+import { formatMoney } from "@/helpers/format-number";
 
 export default {
   name: "ModalBoxWorkingDay",
@@ -308,6 +309,7 @@ export default {
     }
   },
   methods: {
+    formatMoney,
     calcCostByHour() {
       const yyyy = moment(this.form.from).format("YYYY");
       const year = this.years.find((y) => y.year.toString() === yyyy);

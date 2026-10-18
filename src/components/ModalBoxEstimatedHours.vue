@@ -36,14 +36,11 @@
                 </option>
               </b-select>
             </b-field>
-            <b-field label="Cost/hora (€)" horizontal v-if="me.options && me.options.userHasCostByHour">
-              <b-input
-                v-model="form.amount"
-                placeholder="Cost/hora (€)"
-                name="hours"
-                disabled
-                @update:model-value="fixDecimals('amount', form.amount)"
-              />
+            <!-- read-only: the cost comes from the person's working day (issues/133) -->
+            <b-field label="Cost/hora" horizontal v-if="me.options && me.options.userHasCostByHour">
+              <div class="readonly-fake cost-by-hour">
+                {{ form.amount != null && form.amount !== '' ? formatMoney(form.amount) : '' }}
+              </div>
             </b-field>
             <b-field label="Descripció" horizontal>
               <b-field>
@@ -83,6 +80,7 @@ import { useMainStore } from '@/stores/main.js'
 import ModalBox from '@/components/ModalBox.vue'
 import RadioPicker from '@/components/RadioPicker.vue'
 import moment from 'moment'
+import { formatMoney } from '@/helpers/format-number'
 
 export default {
   name: 'ModalBoxEstimatedHours',
@@ -162,6 +160,7 @@ export default {
     }
   },
   methods: {
+    formatMoney,
     show () {
       this.isLoading1 = true
       this.isLoading2 = true
