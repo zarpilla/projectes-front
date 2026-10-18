@@ -1,3 +1,15 @@
+---
+title: "Persones i jornades laborals"
+description: "Els períodes de jornada de cada persona, el salari, la Seguretat Social i el cost per hora."
+product: esstrapis
+manual: usuari
+module: hores
+order: 15
+roles: [projects]
+routes: ["/working-day", "/admin/user-festive"]
+lang: ca
+updated: 2026-10-18
+---
 # 15. Persones i jornades laborals
 
 > Permís necessari: `projects`

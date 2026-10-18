@@ -1,3 +1,15 @@
+---
+title: "Informes de dedicació"
+description: "Les hores previstes i fetes per persona i projecte, i l'ocupació real de cada persona."
+product: esstrapis
+manual: usuari
+module: informes
+order: 26
+roles: [projects, hours]
+routes: ["/stats-dedicacio", "/stats-real-gantt"]
+lang: ca
+updated: 2026-10-18
+---
 # 26. Informes de dedicació
 
 > Permís necessari: `projects` (Dedicació també amb `hours`)

@@ -1,3 +1,15 @@
+---
+title: "Imputar hores dedicades"
+description: "Apuntar cada dia les hores dedicades a cada projecte, amb el calendari, la taula o el comptador."
+product: esstrapis
+manual: usuari
+module: hores
+order: 13
+roles: [hours]
+routes: ["/dedicacio"]
+lang: ca
+updated: 2026-10-18
+---
 # 13. Imputar hores dedicades
 
 > Permís necessari: `hours`

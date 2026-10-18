@@ -1,3 +1,15 @@
+---
+title: "Saldo d'hores i hores anuals"
+description: "Les hores fetes de cada persona comparades amb la seva jornada i amb el màxim anual del conveni."
+product: esstrapis
+manual: usuari
+module: hores
+order: 16
+roles: [projects]
+routes: ["/dedicacio-saldo", "/dedicacio-summary"]
+lang: ca
+updated: 2026-10-18
+---
 # 16. Saldo d'hores i hores anuals
 
 > Permís necessari: `projects`

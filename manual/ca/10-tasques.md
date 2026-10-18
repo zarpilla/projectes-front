@@ -1,3 +1,15 @@
+---
+title: "Tasques"
+description: "Tauler, llista i calendari de tasques, la fitxa de tasca, les tasques recurrents i les plantilles."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 10
+roles: [projects]
+routes: ["/tasks", "/project/:id"]
+lang: ca
+updated: 2026-10-17
+---
 # 10. Tasques
 
 > Permís necessari: `projects`

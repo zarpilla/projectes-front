@@ -1,3 +1,15 @@
+---
+title: "Bestretes (nòmines)"
+description: "Les bestretes i nòmines de cada persona i mes, i com entren al cost dels projectes."
+product: esstrapis
+manual: usuari
+module: diners
+order: 20
+roles: [projects]
+routes: ["/salary"]
+lang: ca
+updated: 2026-10-18
+---
 # 20. Bestretes (nòmines)
 
 > Permís necessari: `projects`

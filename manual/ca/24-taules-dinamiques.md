@@ -1,3 +1,15 @@
+---
+title: "Com funcionen les taules dinàmiques"
+description: "Com es fan servir les taules dinàmiques dels informes: files, columnes, filtres, valors i vistes desades."
+product: esstrapis
+manual: usuari
+module: informes
+order: 24
+roles: [projects]
+routes: ["/stats-projectes"]
+lang: ca
+updated: 2026-10-18
+---
 # 24. Com funcionen les taules dinàmiques
 
 > Permís necessari: `projects`

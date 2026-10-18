@@ -1,3 +1,15 @@
+---
+title: "Punts d'entrega i de consum"
+description: "Els llocs on es porten les comandes i els punts de consum on es recullen les caixes."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 29
+roles: [orders, orders_admin, orders_delivery]
+routes: ["/user-contacts", "/contact-user/:id", "/pickup-points"]
+lang: ca
+updated: 2026-10-18
+---
 # 29. Punts d'entrega i de consum
 
 > Permís necessari: `orders` (sòcia), `orders_admin` (oficina) o `orders_delivery` (repartidora)

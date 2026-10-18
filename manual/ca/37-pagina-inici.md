@@ -1,3 +1,15 @@
+---
+title: "La pàgina d'inici"
+description: "Els accessos fixats amb l'estrella i quina pantalla s'obre en entrar."
+product: esstrapis
+manual: usuari
+module: introduccio
+order: 37
+roles: []
+routes: ["/inici"]
+lang: ca
+updated: 2026-10-18
+---
 # 37. La pàgina d'inici
 
 > Permís necessari: cap

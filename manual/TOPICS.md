@@ -1,6 +1,7 @@
 # Manual d'ESSTRAPIS — temes
 
 Pla del manual (vegeu la skill `manual` a `.claude/skills/manual/`). Un tema = un capítol (`ca/NN-slug.md`) amb les seves captures (`ca/img/NN-slug/`).
+Cada capítol comença amb un bloc de metadades (títol, descripció, mòdul, rols, rutes…) definit a `manual.json`; es comprova amb `node manual/check-meta.mjs`.
 Estat: `pending` · `partial` · `done (AAAA-MM-DD)`. Permís = permís d'usuari que dona accés a la pantalla.
 
 Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, hores; blocs A–E, G) · **diligencia** (logística, bloc F; còpia `projectes_v5_manual_logistica`, API 1340, front 8082).

@@ -1,3 +1,15 @@
+---
+title: "Visió general de la logística"
+description: "Les peces del mòdul de logística, el camí d'una comanda i què veu cada perfil."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 27
+roles: [orders, orders_admin, orders_delivery]
+routes: []
+lang: ca
+updated: 2026-10-18
+---
 # 27. Visió general de la logística
 
 > Permís necessari: `orders`, `orders_admin` o `orders_delivery`

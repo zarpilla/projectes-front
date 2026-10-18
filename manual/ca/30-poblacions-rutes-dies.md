@@ -1,3 +1,15 @@
+---
+title: "Poblacions, rutes i dies"
+description: "Les rutes de repartiment, les poblacions per on passen, els dies que no surten i les tarifes."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 30
+roles: [orders, orders_admin]
+routes: ["/city-route", "/city-route-delivery", "/route-days", "/routes"]
+lang: ca
+updated: 2026-10-18
+---
 # 30. Poblacions, rutes i dies
 
 > Permís necessari: `orders` (sòcia, només consulta) o `orders_admin` (oficina)

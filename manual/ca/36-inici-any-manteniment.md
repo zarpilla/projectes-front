@@ -1,3 +1,15 @@
+---
+title: "Inici d'any i manteniment"
+description: "Preparar un any nou (anys, festius, sèries) i tornar a calcular els totals dels projectes."
+product: esstrapis
+manual: usuari
+module: administracio
+order: 36
+roles: [admin, projects]
+routes: ["/admin/year", "/recalculate"]
+lang: ca
+updated: 2026-10-18
+---
 # 36. Inici d'any i manteniment
 
 > Permís necessari: `admin` (anys i festius); `projects` (recàlcul)

@@ -1,3 +1,15 @@
+---
+title: "Guia per a sòcies (logística)"
+description: "Guia curta per a les sòcies productores: punts d'entrega, comandes, albarans, seguiment, incidències i factures."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 38
+roles: [orders]
+routes: ["/orders", "/order/:id", "/user-contacts", "/deposits", "/incidences", "/provider-invoices", "/contact-us"]
+lang: ca
+updated: 2026-10-18
+---
 # 38. Guia per a sòcies (logística)
 
 > Permís necessari: `orders` (sòcia)

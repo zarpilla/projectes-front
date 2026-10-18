@@ -1,3 +1,15 @@
+---
+title: "Projectes mare i fills"
+description: "Agrupar projectes que es repeteixen en un projecte mare i veure'n la suma."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 6
+roles: [projects]
+routes: ["/project/:id"]
+lang: ca
+updated: 2026-10-17
+---
 # 06. Projectes mare i fills
 
 > Permís necessari: `projects`

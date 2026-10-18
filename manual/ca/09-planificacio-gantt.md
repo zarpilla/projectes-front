@@ -1,3 +1,15 @@
+---
+title: "Planificació (Gantt)"
+description: "Planificar qui dedica hores a cada part del projecte i quan, al diagrama de Gantt."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 9
+roles: [projects]
+routes: ["/project/:id", "/stats-previsio-gantt"]
+lang: ca
+updated: 2026-10-17
+---
 # 09. Planificació (Gantt)
 
 > Permís necessari: `projects`

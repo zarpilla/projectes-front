@@ -1,3 +1,15 @@
+---
+title: "Crear i editar un projecte"
+description: "L'assistent per crear un projecte, la pestanya Dades i com es desa, es duplica i s'esborra."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 4
+roles: [projects]
+routes: ["/project/:id"]
+lang: ca
+updated: 2026-10-17
+---
 # 04. Crear i editar un projecte
 
 > Permís necessari: `projects`

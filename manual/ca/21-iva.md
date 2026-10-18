@@ -1,3 +1,15 @@
+---
+title: "IVA"
+description: "L'IVA repercutit i suportat pendent de saldar amb Hisenda, executat i previst, per trimestre."
+product: esstrapis
+manual: usuari
+module: diners
+order: 21
+roles: [projects]
+routes: ["/vat"]
+lang: ca
+updated: 2026-10-18
+---
 # 21. IVA
 
 > Permís necessari: `projects`
