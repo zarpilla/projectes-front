@@ -27,9 +27,9 @@ test('project creation', async () => {
   await field('Àmbit').locator('select').selectOption({ index: 0 })
   await field('Descripció').locator('textarea').fill('Creat per les proves e2e')
   await button('Continuar').click()
-  await expect(page).toHaveURL(/#\/project\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/project\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.projectId = Number(page.url().match(/#\/project\/(\d+)/)[1])
+  state.projectId = Number(page.url().match(/\/project\/(\d+)/)[1])
 
   const project = await api('GET', `projects/${state.projectId}`)
   expect(project.name).toBe(NAME)
@@ -220,9 +220,9 @@ test('emitted invoice: create a draft assigned to a budget line', async () => {
   // a new emitted invoice is confirmed in a summary of the draft
   const summary = page.locator('.modal.is-active').filter({ hasText: 'Esborranys de factures' })
   await button("D'acord", summary).click()
-  await expect(page).toHaveURL(/#\/document\/[1-9]\d*\/emitted-invoices/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/document\/[1-9]\d*\/emitted-invoices/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.emittedId = Number(page.url().match(/#\/document\/(\d+)\//)[1])
+  state.emittedId = Number(page.url().match(/\/document\/(\d+)\//)[1])
 
   const invoice = await api('GET', `emitted-invoices/${state.emittedId}`)
   expect([invoice.state, invoice.code]).toEqual(['draft', 'ESBORRANY'])
@@ -277,9 +277,9 @@ test('received invoice: create one assigned to a budget line', async () => {
   await fillLine({ concept: `${NAME} material`, quantity: 1, price: 80, vat: 21 })
   await assignBudgetLine('Despesa fase B')
   await button('Guardar').click()
-  await expect(page).toHaveURL(/#\/document\/[1-9]\d*\/received-invoices/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/document\/[1-9]\d*\/received-invoices/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.receivedId = Number(page.url().match(/#\/document\/(\d+)\//)[1])
+  state.receivedId = Number(page.url().match(/\/document\/(\d+)\//)[1])
 
   const invoice = await api('GET', `received-invoices/${state.receivedId}`)
   expect(invoice.contact_invoice_number).toBe(`${NAME}-P1`)

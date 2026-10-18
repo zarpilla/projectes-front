@@ -83,7 +83,7 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
 
     // admin screens send them back to the projects list
     await other.goto('#/admin/users')
-    await expect(other).toHaveURL(/#\/projectes/)
+    await expect(other).toHaveURL(/\/projectes/)
 
     // and the backend refuses the admin-only operations
     for (const [method, route, body] of ADMIN_ONLY) {
@@ -174,7 +174,7 @@ test('an expired access token is refreshed without logging out', async () => {
   const after = await page.evaluate(() => localStorage.getItem('jwt'))
   expect(after).not.toBe('expired.e2e.token')
   expect(after).not.toBe(before)
-  await expect(page).toHaveURL(/#\/contacts/)
+  await expect(page).toHaveURL(/\/contacts/)
   await expect(page.getByText('Nou Contacte').first()).toBeVisible()
 })
 
@@ -191,8 +191,8 @@ test('contacts: create, edit and delete', async () => {
   await field('Població').locator('input').fill('Barcelona')
   await button('Guardar').click()
   await expectSnackbar('Guardat')
-  await expect(page).toHaveURL(/#\/contact\/[1-9]\d*/)
-  const id = Number(page.url().match(/#\/contact\/(\d+)/)[1])
+  await expect(page).toHaveURL(/\/contact\/[1-9]\d*/)
+  const id = Number(page.url().match(/\/contact\/(\d+)/)[1])
   let contact = await api('GET', `contacts/${id}`)
   expect([contact.name, contact.nif, contact.postcode, contact.city]).toEqual([name, `F${STAMP.slice(-8)}`, '08001', 'Barcelona'])
 
@@ -300,12 +300,12 @@ test('admin entities: a new strategy gets its code name', async () => {
   const code = `E2E${STAMP.slice(-6)}`
   await visit('/admin/strategy')
   await page.locator('button', { hasText: /^\s*Crear / }).first().click()
-  await expect(page).toHaveURL(/#\/admin\/strategy\/new/)
+  await expect(page).toHaveURL(/\/admin\/strategy\/new/)
   await field('Codi').locator('input').fill(code)
   await field('Nom').locator('input').fill(`${NAME} estratègia`)
   await button('Guardar').click()
   // back to the list, which shows it
-  await expect(page).toHaveURL(/#\/admin\/strategy$/)
+  await expect(page).toHaveURL(/\/admin\/strategy$/)
   await expect(page.getByText(`${NAME} estratègia`).first()).toBeVisible()
   const [strategy] = await api('GET', `strategies?_where[code]=${code}&_limit=1`)
   expect(strategy.code_name).toBe(`${code} - ${NAME} estratègia`)

@@ -83,7 +83,7 @@ for (const route of routes) {
     for (const to of paths) {
       failures.length = 0
       await visit(to)
-      await expect(page, `${to} sends a logged-in user back to the login`).not.toHaveURL(/#\/?$/)
+      await expect(page, `${to} sends a logged-in user back to the login`).not.toHaveURL(/\/(#\/?)?$/)
       const toast = page.locator('.toast.is-danger, .snackbar, .notification.is-danger').filter({ hasText: /error/i })
       const shown = await toast.count() ? (await toast.first().innerText()).trim() : null
       expect.soft(shown, `${to} shows an error`).toBeNull()
