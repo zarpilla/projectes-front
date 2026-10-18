@@ -212,6 +212,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import QRScannerModal from "@/components/QRScannerModal.vue";
+import { canDeposit, orderStatusLabel } from "@/domain/orderStatus";
 import TitleBar from "@/components/TitleBar.vue";
 
 export default {
@@ -522,6 +523,18 @@ export default {
               message: `Comanda #${orderId} ja està dipositada`,
               type: 'is-warning',
               duration: 2000
+            });
+            return;
+          }
+
+          // a delivered, invoiced or cancelled order is past its deposit (issues/149)
+          if (!canDeposit(order)) {
+            const label = orderStatusLabel(order.status).toLowerCase();
+            addToHistory(orderId, 'error', `No es pot dipositar: està ${label}`);
+            this.$buefy.toast.open({
+              message: `Comanda #${orderId} ${label}: no es pot dipositar`,
+              type: 'is-danger',
+              duration: 3000
             });
             return;
           }

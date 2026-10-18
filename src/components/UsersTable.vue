@@ -1,5 +1,5 @@
 <template>
-  <!-- Redesign A: the members (users with only the "orders" permission) -->
+  <!-- Redesign A: the members (users with the "orders" permission) -->
   <div>
     <div class="doc-kpis">
       <div class="doc-kpi">
@@ -126,6 +126,8 @@ export default {
       this.users = this.users
         .filter(user => user.confirmed === true && user.blocked === false)
         .map(user => {
+          // a member is anyone with `orders`, whatever else she has (issues/155)
+          user.isMember = user.permissions.some(p => p.permission === 'orders');
           user.permissions = user.permissions.map(p => p.permission)
           .map(
             // alias hours as Hores
@@ -149,7 +151,7 @@ export default {
           user.amount = Number(user.contact && user.contact.partner_amount) || 0;
           return user;
         })
-        .filter(user => user.permissions === 'Sòcia');
+        .filter(user => user.isMember);
         
       
 

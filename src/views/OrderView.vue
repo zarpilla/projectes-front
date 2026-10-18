@@ -242,7 +242,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, canDeposit as canDepositOrder } from "@/domain/orderStatus";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
 const myId = () => {
@@ -928,6 +928,8 @@ export default {
         if (this.order.is_collection_order && this.order.collection_orders && this.order.collection_orders.length > 0) {
           // For collection orders, deposit all inner orders first
           for (const innerOrder of this.order.collection_orders) {
+            // a cancelled or delivered one isn't deposited (issues/149)
+            if (!canDepositOrder(innerOrder) || innerOrder.deposit_date) continue;
             await service({ requiresAuth: true }).put(`orders/${innerOrder.id}`, updateData);
           }
           
