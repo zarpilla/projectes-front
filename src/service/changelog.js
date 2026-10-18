@@ -149,6 +149,11 @@ export const CHANGELOG = [
   date: "2026.10.18",
   items: [
     {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/emitted-invoices", label: "Ingressos" }, " hi ha un filtre «Estat» per veure només els esborranys o només les factures emeses."]
+    },
+    {
       type: "Novetats",
       modules: ["Diners"],
       text: ["Historial a les ", { to: "/emitted-invoices", label: "factures emeses" }, ", les factures rebudes, els ingressos, les despeses i els ", { to: "/quotes", label: "pressupostos" }, ": «Mostra l'historial», a la columna de la dreta, ensenya els estats pels quals ha passat el document (emesa, enviada, cobrada, IVA liquidat, VeriFactu, FACe, rectificada…) i cada canvi, amb qui l'ha fet i quan. Els canvis a les línies es mostren línia per línia. Enviar una factura per correu la marca com a enviada i en desa l'adreça. Només el veuen les persones amb el permís de projectes o d'administració."]
