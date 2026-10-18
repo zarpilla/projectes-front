@@ -150,6 +150,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Hores"],
+      text: ["Al ", { to: "/registre-jornades", label: "registre de jornades" }, ", en desar l'entrada d'un tram nou ja no es perd el que escrius a la sortida. Una hora impossible (25:00) no es desa i surt un avís, i si un tram no es pot desar, ara ho diu."]
+    },
+    {
+      type: "Correccions",
       modules: ["Projectes", "Logística"],
       text: ["Els codis postals de 4 xifres (8225 en lloc de 08225), que venien d'una importació de 2024, recuperen el zero. Les fitxes de ", { to: "/contacts", label: "contactes" }, " i de punts d'entrega ja no deixen desar un codi postal d'Espanya sense les 5 xifres, i les importacions posen el zero que el full de càlcul havia tret."]
     },
