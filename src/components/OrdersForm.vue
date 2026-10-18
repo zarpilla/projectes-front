@@ -2179,43 +2179,19 @@ export default {
       );
       if (!route) return;
 
-      // Calculate next available date for this route
-      const routeDayOfWeek = route.monday
-        ? 1
-        : route.tuesday
-        ? 2
-        : route.wednesday
-        ? 3
-        : route.thursday
-        ? 4
-        : route.friday
-        ? 5
-        : route.saturday
-        ? 6
-        : route.sunday
-        ? 7
-        : 0;
-
-      if (routeDayOfWeek === 0) return;
-
-      let nextDay = moment();
-      let found = false;
-      let maxIterations = 7;
-      let iterations = 0;
-
-      while (!found && iterations < maxIterations) {
-        nextDay = nextDay.add(1, "day");
-        if (routeDayOfWeek === nextDay.day()) {
-          found = true;
-        }
-        iterations++;
-      }
-
-      if (found) {
-        this.form.collection_pickup_date = nextDay.toDate();
-        // Validate the calculated date
-        this.checkCollectionPickupDate();
-      }
+      // The route's next open day, as for the delivery date: any of its
+      // weekdays (not only the first; a Sunday never matched), not a day it
+      // is closed, the same cutoff (issues/156).
+      const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+      if (!days.some(d => route[d])) return;
+      const { nextDay } = assignRouteDate(route, {
+        nextDayLimitHour: this.nextDayLimitHour,
+        isAdmin: this.permissions.includes("orders_admin"),
+        closures: this.routeFestives
+      });
+      this.form.collection_pickup_date = nextDay.toDate();
+      // Validate the calculated date
+      this.checkCollectionPickupDate();
     },
     checkTransferNeeded() {
       // Only check if we have both a route and a pickup selected
