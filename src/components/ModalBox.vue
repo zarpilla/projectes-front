@@ -79,3 +79,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.modal-box-detail {
+  margin-top: .5rem;
+}
+</style>

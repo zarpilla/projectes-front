@@ -7,7 +7,7 @@
       <form @submit.prevent="submit" v-if="invoicingObject && invoicingObject.subphase">
         <section class="modal-card-body">
           <!-- {{ invoicingObject.subphase }} -->
-          <b-field grouped>
+          <b-field grouped group-multiline>
             <b-field label="Quantitat" class="medium-field">
               <div class="readonly subphase-detail-input">
                 {{ invoicingObject.subphase.quantity }}
@@ -42,7 +42,7 @@
               </div>
             </b-field>
           </b-field>
-          <b-field grouped>
+          <b-field grouped group-multiline>
             <b-field label="Quantitat" class="medium-field">
               <div class="readonly subphase-detail-input">
                 {{ invoicingObject.subphase.quantity }}
