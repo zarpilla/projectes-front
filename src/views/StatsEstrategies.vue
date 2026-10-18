@@ -18,27 +18,32 @@
           </b-select>
         </label>
       </form>
-      <estrategies-pivot v-if="!isLoading" :project-state="filters.project_state" />
+      <strategies-stats
+        v-if="projects"
+        :projects="projects"
+        :strategies="strategies"
+        :state-name="stateName"
+        @show-all="filters.project_state = 0"
+      />
+      <estrategies-pivot v-if="!isLoading" :project-state="filters.project_state" @loaded="rows => (projects = rows)" />
     </section>
   </div>
 </template>
 
 <script>
 import TitleBar from '@/components/TitleBar.vue'
-import CardComponent from '@/components/CardComponent.vue'
 import EstrategiesPivot from '@/components/EstrategiesPivot.vue'
+import StrategiesStats from '@/components/StrategiesStats.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { addScript, addStyle } from '@/helpers/addScript'
 
 export default {
-  name: 'StatsDedicacio',
+  name: 'StatsEstrategies',
   components: {
-    // HeroBar,
-    CardComponent,
     TitleBar,
-    // DedicationWidget,
-    EstrategiesPivot
+    EstrategiesPivot,
+    StrategiesStats
   },
   data () {
     return {
@@ -46,7 +51,10 @@ export default {
       filters: {
         project_state: null
       },
-      project_states: []
+      project_states: [],
+      // the pivot's projects, for the tables above it
+      projects: null,
+      strategies: []
     }
   },
   computed: {
@@ -54,7 +62,12 @@ export default {
       return ['Informes', 'Estratègies']
     },
     subtitle () {
-      return 'Hores, ingressos i resultats per estratègia. Configura la taula dinàmica per agrupar-los com vulguis.'
+      return 'Quins projectes treballen cada línia estratègica, amb les hores previstes i el balanç. A sota, la taula dinàmica per agrupar-los com vulguis.'
+    },
+    // null for «Tots»
+    stateName () {
+      const state = this.project_states.find(s => s.id === this.filters.project_state)
+      return state && state.id ? state.name : null
     }
   },
   async mounted () {
@@ -79,6 +92,12 @@ export default {
         this.project_states = r.data
         this.project_states.unshift({ id: 0, name: 'Tots' })
         this.filters.project_state = defaultProjectState
+      })
+      // all of them, for «Estratègies en ús · X de Y»
+      service({ requiresAuth: true }).get('strategies?_limit=-1').then((r) => {
+        this.strategies = r.data || []
+      }).catch(() => {
+        this.strategies = []
       })
     },
   }

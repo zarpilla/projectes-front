@@ -39,6 +39,7 @@ export default {
   name: 'EstrategiesPivot',
   components: { PivotViews },
   mixins: [pivotViewsMixin],
+  emits: ['loaded'],
   props: {
     projectState: {
       type: Number,
@@ -109,6 +110,7 @@ export default {
       service({ requiresAuth: true }).get(query).then(async (r) => {
         const strategies = strategyRows(r.data)
         this.projects = r.data
+        this.$emit('loaded', r.data)
         this.pivotData = Object.freeze(strategies)
         this.pivotEmpty = this.pivotData.length === 0
         // the container was hidden (v-show) if the last filters had no rows: Kendo
