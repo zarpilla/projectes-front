@@ -108,7 +108,7 @@
                   <td class="has-text-right num">{{ g.discounts ? money(g.discounts) : "—" }}</td>
                   <td class="has-text-right num"><b>{{ money(g.amount) }}</b></td>
                   <td class="has-text-right">
-                    <b-button size="is-small" :disabled="importing || !projectSearch" @click="invoiceOrders(g.orders)">Factura</b-button>
+                    <b-button size="is-small" :disabled="importing || !projectId" @click="invoiceGroup(g)">Factura</b-button>
                   </td>
                 </tr>
               </tbody>
@@ -211,8 +211,10 @@ export default {
       const sum = key => this.visibleGroups.reduce((a, g) => a + g[key], 0);
       return { amount: sum("amount"), count: sum("count"), units: sum("units"), kg: sum("kg"), discounts: sum("discounts") };
     },
+    // only the ticked rows of the month shown: rows ticked under another
+    // month are not invoiced behind the user's back (issues/153)
     selectedGroups() {
-      return this.groups.filter(g => this.selected.includes(g.key));
+      return this.visibleGroups.filter(g => this.selected.includes(g.key));
     },
     selectedOrders() {
       return this.selectedGroups.reduce((a, g) => a + g.count, 0);
@@ -235,6 +237,17 @@ export default {
     },
     exportRows() {
       return this.visibleGroups.map(g => ({ month: g.month, owner: this.ownerName(g), count: g.count, units: g.units, kg: g.kg, discounts: g.discounts.toFixed(2), amount: g.amount.toFixed(2) }));
+    }
+  },
+  watch: {
+    // typing in the project field after picking one unpicks it (issues/153)
+    projectSearch(text) {
+      if (!this.projectId) return;
+      const picked = this.projects.find(p => p.id === this.projectId);
+      if (!picked || picked.name !== text) {
+        this.projectId = null;
+        this.lastInvoices = [];
+      }
     }
   },
   async mounted() {
@@ -304,13 +317,41 @@ export default {
       }
       return ok;
     },
+    projectName() {
+      const p = this.projects.find(x => x.id === this.projectId);
+      return p ? p.name : "";
+    },
+    // ask first, with what will be created (issues/153)
+    confirmInvoicing(groups, onConfirm) {
+      const count = groups.reduce((a, g) => a + g.count, 0);
+      const amount = groups.reduce((a, g) => a + g.amount, 0);
+      const invoices = groups.length === 1 ? `1 factura (a ${this.ownerName(groups[0])}, ${this.monthLabel(groups[0].month).toLowerCase()})` : `${groups.length} factures`;
+      this.$buefy.dialog.confirm({
+        title: "Facturar comandes",
+        message: `Es crearan ${invoices} en esborrany amb ${count} comandes per ${this.money(amount)}, al projecte <b>${this.projectName()}</b>. Vols continuar?`,
+        confirmText: "Factura",
+        cancelText: "Cancel·la",
+        onConfirm
+      });
+    },
+    invoiceGroup(g) {
+      if (!this.projectId) {
+        this.triedWithoutProject = true;
+        return;
+      }
+      this.confirmInvoicing([g], () => this.invoiceOrders(g.orders));
+    },
     // one invoice per member and month, as with the row buttons
-    async invoiceSelection() {
+    invoiceSelection() {
       if (!this.projectId) {
         this.triedWithoutProject = true;
         return;
       }
       const groups = this.selectedGroups;
+      if (!groups.length) return;
+      this.confirmInvoicing(groups, () => this.runInvoiceSelection(groups));
+    },
+    async runInvoiceSelection(groups) {
       let done = 0;
       for (const g of groups) {
         if (await this.invoiceOrders(g.orders, { quiet: true })) done++;
