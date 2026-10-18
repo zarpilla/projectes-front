@@ -66,8 +66,8 @@
               :class="{ 'a-form': newSummary }"
             >
               <h3 v-if="newSummary" class="form-section-title">Identificació</h3>
-              <b-field label="Codi *" horizontal>
-                <b-input v-model="form.name" placeholder="Codi" required />
+              <b-field label="Codi *" horizontal :type="nameError ? 'is-danger' : null" :message="nameError">
+                <b-input v-model="form.name" placeholder="Codi" required @update:model-value="nameError = ''" />
               </b-field>
               <b-field label="Estat *" horizontal>
                 <b-select
@@ -2513,6 +2513,7 @@
 import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
 import { projectDocuments, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
+import { isDuplicateCodeError, projectSaveErrorMessage, DUPLICATE_CODE_FIELD_MESSAGE } from "@/domain/projectSaveError";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
 import {
   balancePeriodification,
@@ -2633,6 +2634,7 @@ export default {
       allByYear: [],
       allByYearYear: "TOTS",
       calculatedTotals: null,
+      nameError: "",
       periodification: false,
       dirtyEnabled: true,
       originalEditable: true,
@@ -3988,35 +3990,16 @@ export default {
         console.error('Error config:', err.config);
         console.error('=== END ERROR INFO ===');
         
-        // console.error("projects error", err);
-        // This lookup must not throw: if it did, isLoading would never reset
-        // and the page would look stuck after a failed save.
-        let oldProjectData = null;
-        try {
-          oldProjectData = await service({ requiresAuth: true }).get(
-            `projects?name=${encodeURIComponent(this.form.name)}`
-          );
-        } catch (lookupErr) {
-          console.error("project name lookup failed", lookupErr);
+        // a repeated Codi is told in Catalan, next to the field (issues/130)
+        if (isDuplicateCodeError(err)) {
+          this.nameError = DUPLICATE_CODE_FIELD_MESSAGE;
         }
-        const backendMessage = err.response?.data?.error?.message;
-        if (
-          oldProjectData &&
-          oldProjectData.data &&
-          oldProjectData.data.length
-        ) {
-          this.$buefy.snackbar.open({
-            message: backendMessage
-              ? `S'ha produït un error al guardar el projecte: ${backendMessage}`
-              : "S'ha produït un error al guardar el projecte",
-            queue: false
-          });
-        } else {
-          this.$buefy.snackbar.open({
-            message: backendMessage ? `Error: ${backendMessage}` : "Error",
-            queue: false
-          });
-        }
+        this.$buefy.snackbar.open({
+          message: projectSaveErrorMessage(err, this.form.name),
+          type: "is-danger",
+          duration: 8000,
+          queue: false
+        });
         this.isLoading = false;
       }
     },
