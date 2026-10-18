@@ -110,6 +110,9 @@ export default {
       this.incidences = (await service({ requiresAuth: true }).get(`incidences/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.incidences, ['id'], ['asc']))
       this.pivotEmpty = this.pivotData.length === 0
+      // the container was hidden (v-show) if the last filters had no rows: Kendo
+      // measured it at 0 px and drew a broken table, so draw once it is shown again
+      await this.$nextTick()
       this.$emit('loaded', this.pivotData)
       configPivot.dataSource.data = this.pivotData
       this.initializePivotWithViews('#incidences-stats', configPivot)

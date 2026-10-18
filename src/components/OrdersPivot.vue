@@ -130,6 +130,9 @@ export default {
       this.orders = (await service({ requiresAuth: true }).get(`orders/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.orders, ['id'], ['asc']))
       this.pivotEmpty = this.pivotData.length === 0
+      // the container was hidden (v-show) if the last filters had no rows: Kendo
+      // measured it at 0 px and drew a broken table, so draw once it is shown again
+      await this.$nextTick()
       this.$emit('loaded', this.pivotData)
       configPivot.dataSource.data = this.pivotData
       this.initializePivotWithViews('#project-stats', configPivot)

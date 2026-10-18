@@ -106,11 +106,14 @@ export default {
       // if (this.project) {
       //   query = `${query}&[project.id]=${this.project}`
       // }
-      service({ requiresAuth: true }).get(query).then((r) => {
+      service({ requiresAuth: true }).get(query).then(async (r) => {
         const strategies = strategyRows(r.data)
         this.projects = r.data
         this.pivotData = Object.freeze(strategies)
         this.pivotEmpty = this.pivotData.length === 0
+        // the container was hidden (v-show) if the last filters had no rows: Kendo
+        // measured it at 0 px and drew a broken table, so draw once it is shown again
+        await this.$nextTick()
         configPivot.dataSource.data = this.pivotData
         this.initializePivotWithViews('#project-stats', configPivot)
         this.isLoading = false
