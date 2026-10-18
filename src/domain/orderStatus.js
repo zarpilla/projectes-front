@@ -27,6 +27,17 @@ const TAGS = {
 // What the office picks from in the order form
 export const FORM_STATUSES = ['pending', 'processed', 'delivered', 'invoiced', 'cancelled']
 
+// The states the Comandes selection bar offers (issues/144): the office sets
+// any of them; a member only cancels her own pending orders, like the order
+// form's «Anul·la la comanda» (the API refuses the rest too).
+const STAFF_BULK_STATUSES = ['pending', 'processed', 'delivered', 'cancelled']
+export const bulkStatuses = isStaff => (isStaff ? STAFF_BULK_STATUSES : ['cancelled'])
+
+export function canSetStatus (order, status, isStaff) {
+  if (isStaff) return true
+  return Boolean(order) && order.status === 'pending' && status === 'cancelled'
+}
+
 export const orderStatusLabel = status => ORDER_STATUS_LABELS[status] || status
 export const orderStatusTag = status => TAGS[status] || ''
 

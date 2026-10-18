@@ -175,12 +175,7 @@
       <div v-if="checkedRows.length" class="selection-bar" role="region" aria-label="Selecció">
         <b>{{ checkedRows.length }} {{ checkedRows.length === 1 ? "seleccionada" : "seleccionades" }}</b>
         <b-select v-model="newState" placeholder="Canvia l'estat a…" size="is-small" aria-label="Nou estat">
-          <option value="pending">Pendent</option>
-          <template v-if="isStaff">
-            <option value="processed">Processada</option>
-            <option value="delivered">Lliurada</option>
-            <option value="cancelled">Anul·lada</option>
-          </template>
+          <option v-for="s in bulkStatusOptions" :key="s" :value="s">{{ statusLabel(s) }}</option>
         </b-select>
         <b-button size="is-small" :disabled="!newState" @click="setBulkState">Aplica</b-button>
         <span class="selection-actions">
@@ -432,7 +427,7 @@ function idOf(value) {
 import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag, statusWhere } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersTable",
@@ -823,6 +818,9 @@ export default {
   computed: {
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
+    },
+    bulkStatusOptions() {
+      return bulkStatuses(this.isStaff);
     },
     statusTabs() {
       return [
@@ -2339,14 +2337,25 @@ export default {
       return '"' + slots + '"';
     },
     async setBulkState() {
+      // a member only cancels her pending orders (issues/144)
+      const rows = this.checkedRows.filter(row => canSetStatus(row, this.newState, this.isStaff));
+      const skipped = this.checkedRows.length - rows.length;
+      if (!rows.length) {
+        this.$buefy.snackbar.open({
+          message: `Cap de les ${skipped} comandes seleccionades no es pot canviar a «${orderStatusLabel(this.newState)}»: només es poden anul·lar les pendents`,
+          type: "is-warning",
+          duration: 5000
+        });
+        return;
+      }
       this.importing = true;
       // Get current user for tracking
       const currentUser = await service({ requiresAuth: true }).get("users/me");
       
-      const total = this.checkedRows.length;
+      const total = rows.length;
       let current = 0;
       
-      for await (const row of this.checkedRows) {
+      for await (const row of rows) {
         current++;
         this.$buefy.snackbar.open({
           message: `Processant comanda ${current}/${total}...`,
@@ -2362,9 +2371,11 @@ export default {
       }
       
       this.$buefy.snackbar.open({
-        message: `Totes les comandes processades correctament (${total})`,
-        type: "is-success",
-        duration: 3000
+        message: skipped
+          ? `Comandes canviades: ${total}. No s'han canviat les ${skipped} que no eren pendents`
+          : `Totes les comandes processades correctament (${total})`,
+        type: skipped ? "is-warning" : "is-success",
+        duration: skipped ? 5000 : 3000
       });
       
       this.checkedRows = [];
