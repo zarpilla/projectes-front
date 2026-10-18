@@ -1,3 +1,15 @@
+---
+title: "Glossari"
+description: "Els termes d'ESSTRAPIS i del manual, per ordre alfabètic."
+product: esstrapis
+manual: usuari
+module: introduccio
+order: 100
+roles: []
+routes: []
+lang: ca
+updated: 2026-10-18
+---
 # Glossari
 
 Termes que apareixen a ESSTRAPIS i al manual, per ordre alfabètic. Cada capítol hi afegeix els seus.

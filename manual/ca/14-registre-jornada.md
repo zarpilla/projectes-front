@@ -1,3 +1,15 @@
+---
+title: "Registre de jornada"
+description: "Fitxar l'entrada i la sortida, corregir trams i treure el registre de jornada en PDF."
+product: esstrapis
+manual: usuari
+module: hores
+order: 14
+roles: [hours]
+routes: ["/registre-jornades"]
+lang: ca
+updated: 2026-10-18
+---
 # 14. Registre de jornada
 
 > Permís necessari: `hours`

@@ -1,3 +1,15 @@
+---
+title: "Què és ESSTRAPIS"
+description: "Què és ESSTRAPIS, per a qui és i com es relacionen els projectes, les hores, els diners i la logística."
+product: esstrapis
+manual: usuari
+module: introduccio
+order: 0
+roles: []
+routes: []
+lang: ca
+updated: 2026-10-17
+---
 # 00. Què és ESSTRAPIS
 
 > Permís necessari: cap

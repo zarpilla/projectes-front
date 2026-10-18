@@ -1,3 +1,15 @@
+---
+title: "Facturació electrònica: Verifactu i FACe"
+description: "Com s'envien les factures a l'Agència Tributària (Verifactu) i a les administracions públiques (FACe)."
+product: esstrapis
+manual: usuari
+module: diners
+order: 18
+roles: [admin, projects]
+routes: ["/verifactu", "/admin/verifactu*", "/admin/face-queue"]
+lang: ca
+updated: 2026-10-18
+---
 # 18. Facturació electrònica: Verifactu i FACe
 
 > Permís necessari: `admin` per a la configuració; `projects` per a la declaració responsable

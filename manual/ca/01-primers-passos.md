@@ -1,3 +1,15 @@
+---
+title: "Primers passos"
+description: "Com s'entra a l'aplicació, com es mou pel menú i què hi ha a El meu compte."
+product: esstrapis
+manual: usuari
+module: introduccio
+order: 1
+roles: []
+routes: ["/", "/forgotten-password", "/reset-password", "/profile", "/changelog", "/documentacio"]
+lang: ca
+updated: 2026-10-18
+---
 # 01. Primers passos
 
 > Permís necessari: cap

@@ -1,3 +1,15 @@
+---
+title: "Subvencions i justificacions"
+description: "Les dades de les subvencions d'un projecte i com es calcula què es pot justificar."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 7
+roles: [projects]
+routes: ["/project/:id", "/justifications", "/grants"]
+lang: ca
+updated: 2026-10-18
+---
 # 07. Subvencions i justificacions
 
 > Permís necessari: `projects`

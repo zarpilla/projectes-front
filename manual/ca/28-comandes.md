@@ -1,3 +1,15 @@
+---
+title: "Comandes"
+description: "Fer, importar i seguir comandes de transport, i imprimir-ne els albarans."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 28
+roles: [orders, orders_admin, orders_delivery]
+routes: ["/orders", "/order/:id", "/order/view/:id"]
+lang: ca
+updated: 2026-10-18
+---
 # 28. Comandes
 
 > Permís necessari: `orders`, `orders_admin` o `orders_delivery`

@@ -1,3 +1,15 @@
+---
+title: "Importar, exportar i Contasol"
+description: "Carregar i treure contactes en CSV i passar les dades al programa de comptabilitat Contasol."
+product: esstrapis
+manual: usuari
+module: diners
+order: 23
+roles: [projects]
+routes: ["/import-export", "/contasol"]
+lang: ca
+updated: 2026-10-18
+---
 # 23. Importar, exportar i Contasol
 
 > Permís necessari: `projects`

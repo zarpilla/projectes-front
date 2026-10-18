@@ -1,3 +1,15 @@
+---
+title: "Pressupostos"
+description: "Fer un pressupost per a una clienta, enviar-lo, marcar-lo acceptat i treure'n el PDF o la proforma."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 12
+roles: [projects]
+routes: ["/quotes", "/quote/:id"]
+lang: ca
+updated: 2026-10-18
+---
 # 12. Pressupostos
 
 > Permís necessari: `projects`

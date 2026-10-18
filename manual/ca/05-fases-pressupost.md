@@ -1,3 +1,15 @@
+---
+title: "Fases i pressupost del projecte"
+description: "Les fases, els ingressos i despeses previstos, el pressupost original i d'execució i la periodificació."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 5
+roles: [projects]
+routes: ["/project/:id"]
+lang: ca
+updated: 2026-10-17
+---
 # 05. Fases i pressupost del projecte
 
 > Permís necessari: `projects`

@@ -1,3 +1,15 @@
+---
+title: "Dipòsits, transferències i operacions"
+description: "Apuntar quan es dipositen, es transfereixen i es carreguen les caixes, també amb el codi QR."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 31
+roles: [orders, orders_admin, orders_delivery]
+routes: ["/deposits", "/transfers", "/order-operations"]
+lang: ca
+updated: 2026-10-18
+---
 # 31. Dipòsits, transferències i operacions
 
 > Permís necessari: `orders` (Dipòsits), `orders_admin` o `orders_delivery` (Dipòsits, Transferències i Operacions)

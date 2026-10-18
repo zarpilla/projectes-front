@@ -1,3 +1,15 @@
+---
+title: "Configuració general de l'entitat"
+description: "Les dades de l'entitat i els valors per defecte de factures, pressupostos, comandes i tresoreria."
+product: esstrapis
+manual: usuari
+module: administracio
+order: 34
+roles: [admin]
+routes: ["/admin/me"]
+lang: ca
+updated: 2026-10-18
+---
 # 34. Configuració general de l'entitat
 
 > Permís necessari: `admin`

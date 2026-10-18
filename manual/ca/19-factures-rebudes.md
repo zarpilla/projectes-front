@@ -1,3 +1,15 @@
+---
+title: "Despeses: factures rebudes"
+description: "Registrar les factures de proveïdores, les altres despeses i les dietes, i lligar-les als projectes."
+product: esstrapis
+manual: usuari
+module: diners
+order: 19
+roles: [projects]
+routes: ["/received-invoices", "/document/:id/:type"]
+lang: ca
+updated: 2026-10-18
+---
 # 19. Despeses: factures rebudes
 
 > Permís necessari: `projects`

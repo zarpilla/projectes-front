@@ -1,3 +1,15 @@
+---
+title: "Tresoreria"
+description: "Els diners que hi ha als comptes avui i la previsió dels pròxims mesos."
+product: esstrapis
+manual: usuari
+module: diners
+order: 22
+roles: [projects]
+routes: ["/tresoreria"]
+lang: ca
+updated: 2026-10-18
+---
 # 22. Tresoreria
 
 > Permís necessari: `projects`

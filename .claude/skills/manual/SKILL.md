@@ -15,6 +15,8 @@ Everything lives in `manual/`:
 ```
 manual/
   TOPICS.md              # the topic list and its status — the plan; read it first
+  manual.json            # product, manuals, their modules and the roles (metadata vocabulary)
+  check-meta.mjs         # checks every chapter's metadata block: `node manual/check-meta.mjs`
   ca/NN-slug.md          # one chapter per topic, in Catalan
   ca/img/NN-slug/*.png   # its screenshots
   capture/               # Playwright package that takes the screenshots
@@ -32,8 +34,9 @@ manual/
    Note the real UI labels (they are already in Catalan) and use them verbatim.
 3. Write the capture script (see *Screenshots*), run it, look at the screenshots.
 4. Write the chapter (see *Chapter*) around those screenshots.
-5. Set the topic to `done` in `TOPICS.md` with today's date, or `partial` with a note of what is missing.
-6. Report: files written, anything in the app that looked broken or confusing (offer to record it with
+5. Fill or update the chapter's metadata block (see *Metadata*) and run `node manual/check-meta.mjs`.
+6. Set the topic to `done` in `TOPICS.md` with today's date, or `partial` with a note of what is missing.
+7. Report: files written, anything in the app that looked broken or confusing (offer to record it with
    the `issue` skill — don't fix app code from this skill).
 
 ## Environment and data safety
@@ -161,6 +164,18 @@ After running, read every PNG: it shows what the chapter says, the data has load
 `manual/ca/NN-slug.md`, written in Catalan for end users (cooperative workers, not developers):
 
 ```markdown
+---
+title: "Títol del tema"
+description: "Una frase: què s'hi explica."
+product: esstrapis
+manual: usuari
+module: projectes
+order: NN
+roles: [projects]
+routes: ["/projectes"]
+lang: ca
+updated: AAAA-MM-DD
+---
 # NN. Títol del tema
 
 > Permís necessari: `projects`
@@ -185,6 +200,29 @@ Taula amb cada camp: nom exacte a la pantalla, què vol dir, si és obligatori.
 ## Vegeu també
 Enllaços a capítols relacionats.
 ```
+
+## Metadata
+
+Every chapter starts with a metadata block, so a future documentation viewer (inside ESSTRAPIS, and a single
+portal for all the docs) can list, filter and link chapters without reading their text. The levels are
+**product › manual › module › chapter**; `manual/manual.json` lists the allowed manuals, modules and roles.
+
+| Key | Value |
+|---|---|
+| `title` | The chapter title without its number, in double quotes. |
+| `description` | One sentence in Catalan for lists and search results, in double quotes. |
+| `product` | `esstrapis`. |
+| `manual` | `usuari` (the user manual). A new kind of manual (admin, technical…) is added to `manual.json` first. |
+| `module` | The TOPICS.md block: `introduccio`, `projectes`, `hores`, `diners`, `informes`, `logistica`, `administracio`. |
+| `order` | The chapter number (the glossary is `100`, last of `introduccio`). Unique within a manual and language. |
+| `roles` | Permissions that may read it: any of them is enough. The union of the permissions in the chapter's «Permís necessari» line; `[]` = any logged-in user. |
+| `routes` | The app routes the chapter explains (TOPICS.md *Pantalles*), as in `src/router/index.js` (`:id` params; a trailing `*` = every route with that prefix). For contextual help. |
+| `lang` | `ca` (same as the folder). |
+| `updated` | Date of the last content change (`YYYY-MM-DD`). |
+
+Keep the block a plain YAML subset (one `key: value` per line, quoted strings, inline lists) — the checker reads
+it without a YAML library. The «> Permís necessari» line stays in the text: it explains the nuances that
+`roles` can't.
 
 Style: informal "tu" or impersonal — pick impersonal and keep it; UI labels in **bold** and exactly as
 shown; no code, field API names or English jargon; explain domain terms (bestreta, periodificació,

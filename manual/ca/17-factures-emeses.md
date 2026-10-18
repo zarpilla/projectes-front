@@ -1,3 +1,15 @@
+---
+title: "Ingressos: factures emeses"
+description: "Fer, emetre, enviar i cobrar factures, les rectificatives i els altres ingressos."
+product: esstrapis
+manual: usuari
+module: diners
+order: 17
+roles: [projects]
+routes: ["/emitted-invoices", "/document/:id/:type", "/invoice/:id/:type", "/pdf/:id/:type"]
+lang: ca
+updated: 2026-10-18
+---
 # 17. Ingressos: factures emeses
 
 > Permís necessari: `projects`

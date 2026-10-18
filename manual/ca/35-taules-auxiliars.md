@@ -1,3 +1,15 @@
+---
+title: "Taules auxiliars"
+description: "Les llistes que omplen els desplegables de l'aplicació i com s'adapten a cada entitat."
+product: esstrapis
+manual: usuari
+module: administracio
+order: 35
+roles: [admin]
+routes: ["/admin/*"]
+lang: ca
+updated: 2026-10-18
+---
 # 35. Taules auxiliars
 
 > Permís necessari: `admin`

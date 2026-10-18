@@ -1,3 +1,15 @@
+---
+title: "Informes de projectes i econòmics"
+description: "Els informes per analitzar el conjunt de projectes: panell, ingressos i despeses, previsions, preu hora."
+product: esstrapis
+manual: usuari
+module: informes
+order: 25
+roles: [projects]
+routes: ["/stats-projectes", "/stats-economic-detail", "/stats-despeses", "/forecast", "/price-hour", "/stats-estrategies", "/stats-intercoop"]
+lang: ca
+updated: 2026-10-18
+---
 # 25. Informes de projectes i econòmics
 
 > Permís necessari: `projects`

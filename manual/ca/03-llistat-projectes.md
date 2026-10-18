@@ -1,3 +1,15 @@
+---
+title: "Llistat de projectes"
+description: "Buscar, filtrar, ordenar i exportar els projectes, i canviar-ne dades de cop."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 3
+roles: [projects]
+routes: ["/projectes"]
+lang: ca
+updated: 2026-10-17
+---
 # 03. Llistat de projectes
 
 > Permís necessari: `projects`

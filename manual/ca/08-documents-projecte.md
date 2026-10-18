@@ -1,3 +1,15 @@
+---
+title: "Documents del projecte"
+description: "Els documents adjunts d'un projecte i els seus cobraments i pagaments."
+product: esstrapis
+manual: usuari
+module: projectes
+order: 8
+roles: [projects]
+routes: ["/project/:id"]
+lang: ca
+updated: 2026-10-18
+---
 # 08. Documents del projecte
 
 > Permís necessari: `projects`

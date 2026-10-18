@@ -1,3 +1,15 @@
+---
+title: "Incidències i contacte"
+description: "Obrir, respondre i tancar incidències de les comandes, i el formulari per escriure a l'oficina."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 32
+roles: [orders, orders_admin, orders_delivery]
+routes: ["/incidences", "/contact-us", "/incidences-stats"]
+lang: ca
+updated: 2026-10-18
+---
 # 32. Incidències i contacte
 
 > Permís necessari: `orders`, `orders_admin` o `orders_delivery` (Incidències); `orders` (Contacta);

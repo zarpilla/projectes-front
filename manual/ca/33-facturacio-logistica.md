@@ -1,3 +1,15 @@
+---
+title: "Facturació de la logística"
+description: "Les sòcies, la facturació mensual del transport, les factures de la sòcia i l'informe de comandes."
+product: esstrapis
+manual: usuari
+module: logistica
+order: 33
+roles: [orders_admin, orders]
+routes: ["/partners", "/orders-invoice", "/provider-invoices", "/orders-stats"]
+lang: ca
+updated: 2026-10-18
+---
 # 33. Facturació de la logística
 
 > Permís necessari: `orders_admin` (Sòcies, Facturar, Informe de comandes) · `orders` (Factures de la sòcia)
