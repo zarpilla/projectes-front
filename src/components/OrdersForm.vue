@@ -979,7 +979,6 @@ export default {
 
     // check if url has pickup_point=true
     if (this.$route.query.pickup_point === "true") {
-      this.isPickupPoint = this.$route.query.pickup_point === "true";
       this.form.pickup_point = true;
       this.form.picked_up = false;
     }
@@ -2065,15 +2064,16 @@ export default {
       const selectedPickup = this.allowedPickups.find(
         p => p.id === this.form.pickup
       );
-      this.form.pickup_point =
-        (selectedPickup && selectedPickup.is_pickup_point) || false;
+      // The pickup doesn't decide whether this is a consumption-point order
+      // (pickups have no such field): the mode comes from the order itself
+      // (issues/146), so its lines are kept.
 
       // Clear collection_point if not a pickup point or pickup doesn't have collection points
       if (!selectedPickup || !selectedPickup.pickup) {
         this.form.collection_point = null;
       }
 
-      // Clear units and kilograms when switching to pickup point
+      // A consumption-point order has lines instead of boxes and kilos
       if (this.form.pickup_point) {
         this.form.units = null;
         this.form.kilograms = null;
@@ -2089,7 +2089,7 @@ export default {
           ];
         }
       } else {
-        // Clear lines when switching to regular order
+        // a normal order has no lines
         this.form.lines = [];
       }
 
