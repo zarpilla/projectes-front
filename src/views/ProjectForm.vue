@@ -1581,25 +1581,33 @@
                 <thead>
                   <tr>
                     <th scope="col">Moviment</th>
-                    <th scope="col" class="has-text-right">Previst</th>
-                    <th scope="col" class="has-text-right">Realitzat</th>
-                    <th scope="col" class="has-text-right">Diferència</th>
+                    <th scope="col" class="has-text-right">Cobrat / pagat</th>
+                    <th scope="col" class="has-text-right">Pendent</th>
+                    <th scope="col" class="has-text-right">Total previst</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <th scope="row">Cobraments</th>
-                    <td class="has-text-right">{{ formatMoney(treasuryIncomesPending) }}</td>
-                    <td class="has-text-right">{{ formatMoney(treasuryIncomesDone) }}</td>
-                    <td class="has-text-right">{{ formatMoney(-1 * (treasuryIncomesPending - treasuryIncomesDone)) }}</td>
+                    <td class="has-text-right" :class="'has-text-' + sign(treasuryTotals.collected)" :aria-label="'Cobrat ' + formatMoney(treasuryTotals.collected)">{{ formatMoney(treasuryTotals.collected) }}</td>
+                    <td class="has-text-right" :aria-label="'Pendent de cobrar ' + formatMoney(treasuryTotals.toCollect)">{{ formatMoney(treasuryTotals.toCollect) }}</td>
+                    <td class="has-text-right">{{ formatMoney(treasuryTotals.collected + treasuryTotals.toCollect) }}</td>
                   </tr>
                   <tr>
                     <th scope="row">Pagaments</th>
-                    <td class="has-text-right">{{ formatMoney(treasuryExpensesPending) }}</td>
-                    <td class="has-text-right">{{ formatMoney(treasuryExpensesDone) }}</td>
-                    <td class="has-text-right">{{ formatMoney(-1 * (treasuryExpensesPending - treasuryExpensesDone)) }}</td>
+                    <td class="has-text-right" :class="'has-text-' + sign(-treasuryTotals.paid)" :aria-label="'Pagat ' + formatMoney(-treasuryTotals.paid)">{{ formatMoney(-treasuryTotals.paid) }}</td>
+                    <td class="has-text-right" :aria-label="'Pendent de pagar ' + formatMoney(-treasuryTotals.toPay)">{{ formatMoney(-treasuryTotals.toPay) }}</td>
+                    <td class="has-text-right">{{ formatMoney(-(treasuryTotals.paid + treasuryTotals.toPay)) }}</td>
                   </tr>
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <th scope="row">Saldo</th>
+                    <td class="has-text-right" :class="'has-text-' + sign(treasuryTotals.collected - treasuryTotals.paid)">{{ formatMoney(treasuryTotals.collected - treasuryTotals.paid) }}</td>
+                    <td class="has-text-right">{{ formatMoney(treasuryTotals.toCollect - treasuryTotals.toPay) }}</td>
+                    <td class="has-text-right" :class="'has-text-' + sign(treasuryTotals.collected + treasuryTotals.toCollect - treasuryTotals.paid - treasuryTotals.toPay)">{{ formatMoney(treasuryTotals.collected + treasuryTotals.toCollect - treasuryTotals.paid - treasuryTotals.toPay) }}</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </section>
@@ -2851,6 +2859,9 @@ export default {
     },
     unassignedDocuments() {
       return unassignedProjectDocuments(this.form);
+    },
+    treasuryTotals() {
+      return treasurySums(this.treasury);
     },
     treasuryIncomesPending() {
       return treasurySums(this.treasury).incomesPending;
