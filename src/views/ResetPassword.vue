@@ -2,7 +2,7 @@
   <!-- Redesign A: the login page's card -->
   <div class="login-page">
     <main class="login-main">
-      <div class="login-logo" aria-label="ESSTRAPIS"><b>ESS</b><span>TRAPIS</span></div>
+      <brand-logo class="login-logo" />
 
       <form class="login-card" @submit.prevent="resetPassword">
         <div>
@@ -38,9 +38,11 @@
 
 <script>
 import service from "@/service/index";
+import BrandLogo from "@/components/BrandLogo.vue";
 
 export default {
   name: "ResetPassword",
+  components: { BrandLogo },
   data() {
     return {
       password: "",

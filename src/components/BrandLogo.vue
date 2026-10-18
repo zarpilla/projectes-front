@@ -7,7 +7,7 @@
     class="brand-logo"
     :class="{ 'is-compact': compact }"
     xmlns="http://www.w3.org/2000/svg"
-    :viewBox="compact ? '0 0 2586.3 1105.9' : '0 0 6165.6 1105.9'"
+    :viewBox="compact ? '0 0 2586.3 1105.9' : '0 0 6200 1105.9'"
     role="img"
     aria-label="ESSTRAPIS"
   >
