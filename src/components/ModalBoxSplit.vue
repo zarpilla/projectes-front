@@ -49,14 +49,9 @@
               </div>
             </b-field>
             <b-field label="Preu" class="medium-field">
-              <b-input
-                disabled
-                name="PreuUnitari"
-                placeholder="Preu per unitat"
-                v-model="newAmount2"                
-                class="subphase-detail-input"
-              >
-              </b-input>
+              <div class="readonly subphase-detail-input split-rest">
+                {{ formatNumber(newAmount2, 2, 2) }}
+              </div>
             </b-field>
             <b-field label="Total" class="medium-field">
               <div class="readonly subphase-detail-input">
@@ -77,45 +72,49 @@
               </div>
             </b-field>
           </b-field>
+          <!-- the repeat / divide actions, with what each does: they were ten
+               buttons in the footer that overflowed it and hid Cancel·la (issues/132) -->
+          <div class="split-actions">
+            <div class="split-action-group">
+              <p class="split-action-label">Repeteix cada mes</p>
+              <p class="split-action-hint">Còpies de la línia als mesos següents; el total es multiplica.</p>
+              <div class="buttons">
+                <button
+                  v-for="n in repeatOptions"
+                  :key="'x' + n"
+                  class="button is-small"
+                  type="button"
+                  :title="`Repeteix la línia ${n} vegades, una per mes: el total es multiplica per ${n}`"
+                  @click="split('x' + n)"
+                >×{{ n }}</button>
+              </div>
+            </div>
+            <div class="split-action-group">
+              <p class="split-action-label">Reparteix en mesos</p>
+              <p class="split-action-hint">Divideix l'import en línies mensuals; el total no canvia.</p>
+              <div class="buttons">
+                <button
+                  v-for="n in repeatOptions"
+                  :key="'d' + n"
+                  class="button is-small"
+                  type="button"
+                  :title="`Reparteix l'import en ${n} línies, una per mes: el total no canvia`"
+                  @click="split('d' + n)"
+                >÷{{ n }}</button>
+              </div>
+            </div>
+          </div>
         </section>
-        <footer class="modal-card-foot">
+        <footer class="modal-card-foot split-foot">
           <button class="button" type="button" @click="cancel">
             Cancel·la
           </button>
-          <!-- <button
-            v-if="form.id > 0"
-            class="button"
-            type="button"
-            @click="trashModal(form)"
+          <button
+            class="button is-primary"
+            native-type="submit"
+            title="Separa la línia en dues: la primera amb el preu indicat, la segona amb la resta"
           >
-            Esborra
-          </button> -->
-          <button class="button is-primary" native-type="submit">
-            Separa
-          </button>
-          <button class="button is-primary" type="button" @click="split('x2')">
-            x2
-          </button>
-          <button class="button is-primary" type="button" @click="split('x3')">
-            x3
-          </button>
-          <button class="button is-primary" type="button" @click="split('x4')">
-            x4
-          </button>
-          <button class="button is-primary" type="button" @click="split('x12')">
-            x12
-          </button>
-          <button class="button is-primary" type="button" @click="split('d2')">
-            /2
-          </button>
-          <button class="button is-primary" type="button" @click="split('d3')">
-            /3
-          </button>
-          <button class="button is-primary" type="button" @click="split('d4')">
-            /4
-          </button>
-          <button class="button is-primary" type="button" @click="split('d12')">
-            /12
+            Separa en dues línies
           </button>
         </footer>
       </form>
@@ -136,6 +135,7 @@
 <script>
 import ModalBox from "@/components/ModalBox.vue";
 import MoneyFormat from "@/components/MoneyFormat.vue";
+import { formatNumber } from "@/helpers/format-number";
 
 export default {
   name: "ModalBoxInvoicing",
@@ -156,7 +156,8 @@ export default {
       isModalActive: false,
       newAmount: 0,
       trashObject: null,
-      isDeleteModalActive: false,      
+      isDeleteModalActive: false,
+      repeatOptions: [2, 3, 4, 12],
     };
   },
   computed: {
@@ -185,6 +186,7 @@ export default {
     },
   },
   methods: {
+    formatNumber,
     show() {
       // this.newAmount = invoicingObject.subphase.amount
     },
@@ -254,6 +256,26 @@ export default {
 <style scoped>
 .modal-card-body {
   min-height: 150px;
+}
+.split-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  border-top: 1px solid var(--a-line-soft);
+  padding-top: 1rem;
+}
+.split-action-label {
+  font-weight: 600;
+}
+.split-action-hint {
+  font-size: 0.85em;
+  color: var(--a-muted);
+  margin-bottom: 0.5rem;
+}
+.split-foot {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 /* Global styles for modal card dedication */
