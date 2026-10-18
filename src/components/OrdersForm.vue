@@ -699,7 +699,7 @@ export default {
       if (this.form.is_collection_order || !this.canChangeRate) {
         return this.form.route_rate;
       }
-      const rr = assignRouteRate(this.form, this.routeRates, this.orders);
+      const rr = assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
       this.form.route_rate = rr;
       return this.form.route_rate;
     },
@@ -1157,7 +1157,7 @@ export default {
                 )
               ).data;
 
-              await assignRouteRate(this.form, this.routeRates, this.orders);
+              await assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
 
               // Ensure incidences is always an array
               if (
@@ -2050,7 +2050,7 @@ export default {
       }
 
       this.form.multidelivery_discount = 0;
-      const rate = assignRouteRate(this.form, this.routeRates, this.orders);
+      const rate = assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
       this.form.route_rate = rate;
       this.form.price = calculateRoutePrice(
         rate,
