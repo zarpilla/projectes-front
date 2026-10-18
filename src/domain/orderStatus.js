@@ -38,6 +38,11 @@ export function canSetStatus (order, status, isStaff) {
   return Boolean(order) && order.status === 'pending' && status === 'cancelled'
 }
 
+// An order is deposited only while it is still on its way: a delivered,
+// invoiced or cancelled one is past it (issues/149; the API refuses it too)
+const NOT_DEPOSITABLE = ['delivered', 'invoiced', 'cancelled']
+export const canDeposit = order => Boolean(order) && !NOT_DEPOSITABLE.includes(order.status)
+
 export const orderStatusLabel = status => ORDER_STATUS_LABELS[status] || status
 export const orderStatusTag = status => TAGS[status] || ''
 

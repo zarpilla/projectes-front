@@ -445,7 +445,7 @@
                   <small>{{ form.deposit_date ? `${formatDateTime(form.deposit_date)}${form.deposit_user ? " · " + (form.deposit_user.username || form.deposit_user.fullname) : ""}` : "Informa que has dipositat els paquets" }}</small>
                 </div>
                 <b-button v-if="form.deposit_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeDeposit">Desfés</b-button>
-                <b-button v-else-if="!form.deposit_date && canEdit" size="is-small" :loading="isLoading" @click="depositOrder">Dipositar</b-button>
+                <b-button v-else-if="!form.deposit_date && canEdit && canDepositOrder(form)" size="is-small" :loading="isLoading" @click="depositOrder">Dipositar</b-button>
               </li>
               <li v-if="form.transfer">
                 <span class="move-dot" :class="{ 'is-done': form.transfer_start_date }"><b-icon :icon="form.transfer_start_date ? 'check' : 'swap-horizontal'" size="is-small" /></span>
@@ -538,7 +538,7 @@ import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag, formStatuses } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, formStatuses, canDeposit as canDepositOrder } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersForm",
@@ -2381,6 +2381,7 @@ export default {
       return formatMoney(Number(value) || 0);
     },
     statusLabel: orderStatusLabel,
+    canDepositOrder,
     statusTag: orderStatusTag,
     incidenceState(state) {
       return { open: "Oberta", wip: "En procés", closed: "Tancada" }[state] || state;
