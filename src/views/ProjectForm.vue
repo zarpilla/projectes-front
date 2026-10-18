@@ -3118,6 +3118,10 @@ export default {
 
               this.ganttViewMode = (phases && phases.length > 0) ? 'estimated' : 'original';
 
+              // the route reuses this component: nothing of the last project stays (issues/129)
+              this.calculatedTotals = null;
+              this.allByYearYear = "TOTS";
+
               // Load children data if this project is a mother project
               if (this.form.is_mother) {
                 const childrenData = (
@@ -3238,13 +3242,7 @@ export default {
                 ).toDate();
               }
 
-              if (
-                this.form.periodification &&
-                this.form.periodification.length
-              ) {
-                this.periodification = true;
-                this.updatePeriodification();
-              }
+              this.applyLoadedPeriodification();
 
               this.grantable_contacts = this.form.grantable_contacts || [];
               
@@ -3635,6 +3633,15 @@ export default {
     // },
     async submitAndExit() {
       this.submit("exit");
+    },
+    // The switch follows the loaded project: it was only ever turned on, so
+    // the next project opened without a reload showed the last one's
+    // periodification table, and saving it stored those rows (issues/129)
+    applyLoadedPeriodification() {
+      this.periodification = !!(this.form.periodification && this.form.periodification.length);
+      if (this.periodification) {
+        this.updatePeriodification();
+      }
     },
     async submitAndContinue() {
       this.submit("continue");

@@ -56,3 +56,22 @@ describe('ProjectForm periodification card (issues/126)', () => {
     expect(has({ periodification: true, form: { periodification: [{ year: 1 }] } })).toBe(true)
   })
 })
+
+// issues/129: opening a project that periodifies and then one that doesn't,
+// without a reload, kept the switch on (the component is reused by the route)
+describe('ProjectForm periodification switch between projects (issues/129)', () => {
+  const load = (periodification, rows) => {
+    const ctx = { periodification, form: { periodification: rows }, updatePeriodification: vi.fn() }
+    ProjectForm.methods.applyLoadedPeriodification.call(ctx)
+    return ctx
+  }
+  it('turns off for a project without periodification rows', () => {
+    expect(load(true, []).periodification).toBe(false)
+    expect(load(true, undefined).periodification).toBe(false)
+  })
+  it('turns on for a project with rows', () => {
+    const ctx = load(false, [{ year: 2026 }])
+    expect(ctx.periodification).toBe(true)
+    expect(ctx.updatePeriodification).toHaveBeenCalled()
+  })
+})
