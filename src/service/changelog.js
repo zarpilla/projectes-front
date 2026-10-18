@@ -150,6 +150,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Projectes", "Logística"],
+      text: ["Els codis postals de 4 xifres (8225 en lloc de 08225), que venien d'una importació de 2024, recuperen el zero. Les fitxes de ", { to: "/contacts", label: "contactes" }, " i de punts d'entrega ja no deixen desar un codi postal d'Espanya sense les 5 xifres, i les importacions posen el zero que el full de càlcul havia tret."]
+    },
+    {
+      type: "Correccions",
       modules: ["Logística"],
       text: ["A ", { to: "/orders", label: "Comandes" }, ", les xifres de dalt (caixes, kg, import, refrigerades, dipositades…) i l'exportació «Comandes (.ods)» compten totes les comandes dels filtres, no només les 150 de la pàgina. A l'.ods, les adreces i les notes ja no surten entre cometes i la recollida porta el número i el nom del punt."]
     },
