@@ -52,7 +52,7 @@
                 :key="option"
                 :value="option"
               >
-                {{ option }}
+                {{ (attrConfig.enumLabels && attrConfig.enumLabels[option]) || option }}
               </option>
             </b-select>
 
@@ -316,8 +316,9 @@ export default {
             // Handle plugin relations (e.g., users-permissions)
             let apiPath;
             if (attrConfig.plugin === 'users-permissions') {
-              // Special case for users-permissions plugin
-              apiPath = attrConfig.model === 'user' ? 'users' : attrConfig.model;
+              // Special case for users-permissions plugin (a to-one or an
+              // editable to-many: a pickup point's users, issues/159)
+              apiPath = target === 'user' ? 'users' : target;
             } else {
               // Use entityToApiPath mapping to get correct API endpoint
               apiPath = this.entityToApiPath[target] || target;
@@ -325,9 +326,9 @@ export default {
             
             // Determine sort field based on the model
             let sortField = 'name:ASC';
-            if (attrConfig.model === 'user') {
+            if (target === 'user') {
               sortField = 'username:ASC';
-            } else if (attrConfig.model === 'year') {
+            } else if (target === 'year') {
               sortField = 'year:DESC';
             }
             

@@ -22,8 +22,8 @@
         </div>
         <div class="doc-kpi">
           <span>Certificats</span>
-          <b class="is-small">A l'àrea del servidor</b>
-          <small>El certificat i la contrasenya es posen a l'àrea d'administració del servidor</small>
+          <b class="is-small">{{ certificatesTitle }}</b>
+          <small>AEAT: {{ certificateText(certificates.verifactu) }} · FACe: {{ certificateText(certificates.face) }}</small>
         </div>
         <div class="doc-kpi">
           <span>Programari</span>
@@ -46,6 +46,21 @@
 import TitleBar from '@/components/TitleBar.vue';
 import service from '@/service/index';
 
+const DAY = 24 * 60 * 60 * 1000;
+const expiresSoon = c => !!(c.certificate && c.certificate.notAfter) && new Date(c.certificate.notAfter) - Date.now() < 30 * DAY;
+
+// One certificate's state for the head card: "vàlid fins 05/11/2026", "no n'hi ha"…
+export function certificateText(status) {
+  if (!status) return "—";
+  if (!status.configured) return "no n'hi ha";
+  if (!status.valid) return "amb errors";
+  const until = status.certificate && status.certificate.notAfter;
+  if (!until) return "configurat";
+  const d = new Date(until);
+  const date = [d.getDate(), d.getMonth() + 1].map(n => String(n).padStart(2, "0")).join("/") + "/" + d.getFullYear();
+  return d <= new Date() ? `caducat el ${date}` : `vàlid fins ${date}`;
+}
+
 export default {
   name: 'VerifactuHead',
   components: { TitleBar },
@@ -59,7 +74,9 @@ export default {
   data() {
     return {
       verifactu: {},
-      me: {}
+      me: {},
+      // GET /certificates/:kind (issues/159); null while loading or refused
+      certificates: { verifactu: null, face: null }
     };
   },
   computed: {
@@ -69,6 +86,13 @@ export default {
         { id: 'chain', label: 'Registre Verifactu', to: '/admin/verifactu-chain' },
         { id: 'face', label: 'Cua FACe', to: '/admin/face-queue' }
       ];
+    },
+    certificatesTitle() {
+      const list = Object.values(this.certificates).filter(Boolean);
+      if (!list.length) return "—";
+      if (list.some(c => c.configured && !c.valid)) return "Amb errors";
+      if (list.some(c => c.configured && expiresSoon(c))) return "Caduca aviat";
+      return list.some(c => c.configured) ? "Configurats" : "Sense certificat";
     },
     verifactuText() {
       if (this.verifactu.mode === 'real') return "Les factures s'envien a l'AEAT";
@@ -84,11 +108,15 @@ export default {
       ]);
       this.verifactu = verifactu.data || {};
       this.me = me.data || {};
+      const [aeat, face] = await Promise.all(['verifactu', 'face'].map(kind =>
+        service({ requiresAuth: true }).get(`/certificates/${kind}`).then(r => r.data).catch(() => null)));
+      this.certificates = { verifactu: aeat, face };
     } catch (e) {
       // the cards just stay empty
     }
   },
   methods: {
+    certificateText,
     modeName(mode) {
       return mode === 'real' ? 'Real' : mode === 'test' ? 'Test' : 'No';
     },

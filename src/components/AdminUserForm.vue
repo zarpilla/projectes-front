@@ -43,6 +43,9 @@
               <b-field label="NAF">
                 <b-input v-model="form.naf" placeholder="Número d'afiliació a la Seguretat Social" />
               </b-field>
+              <b-field label="Calendari personal (iCal)" message="Les cites d'aquest calendari es poden importar com a hores dedicades." class="is-full">
+                <b-input v-model="form.ical" placeholder="https://…/calendari.ics" />
+              </b-field>
             </form>
           </section>
 
@@ -198,6 +201,7 @@ export default {
         fullname: '',
         identity_number: '',
         naf: '',
+        ical: '',
         confirmed: false,
         blocked: false,
         hidden: false,
@@ -320,6 +324,7 @@ export default {
         this.form.fullname = user.fullname || '';
         this.form.identity_number = user.identity_number || '';
         this.form.naf = user.naf || '';
+        this.form.ical = user.ical || '';
         this.form.confirmed = user.confirmed || false;
         this.form.blocked = user.blocked || false;
         this.form.hidden = user.hidden || false;
@@ -350,6 +355,7 @@ export default {
           fullname: this.form.fullname,
           identity_number: this.form.identity_number,
           naf: this.form.naf,
+          ical: this.form.ical || null,
           confirmed: this.form.confirmed,
           blocked: this.form.blocked,
           hidden: this.form.hidden,

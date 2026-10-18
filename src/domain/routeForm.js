@@ -13,6 +13,17 @@ export const WEEKDAYS = [
   { key: 'sunday', label: 'Diumenge', short: 'Dg' }
 ]
 
+// When a transfer route may carry an order (order lifecycles,
+// calculateTransferRoute): any day before its delivery, or only one of them
+// (issues/159)
+export const TRANSFER_DATE_OPTIONS = [
+  { value: null, label: "Qualsevol dia fins a l'entrega" },
+  { value: 'only_same_day', label: "Només el mateix dia de l'entrega" },
+  { value: 'only_previous_days', label: "Només els dies abans de l'entrega" }
+]
+
+const TRANSFER_DATES = TRANSFER_DATE_OPTIONS.map(o => o.value)
+
 const idOf = value => (value && typeof value === 'object' ? value.id : value) || null
 
 const numberOrNull = value => {
@@ -32,7 +43,10 @@ export function routeToForm (route, routes = []) {
     active: route ? Boolean(r.active) : true,
     is_transfer_route: Boolean(r.is_transfer_route),
     transfer_pickup: idOf(r.transfer_pickup),
+    is_transfer_route_date: r.is_transfer_route_date || null,
     delivery_user: idOf(r.delivery_user),
+    project: idOf(r.project),
+    pickup: idOf(r.pickup),
     volume_discount_number_of_orders: r.volume_discount_number_of_orders ?? null,
     volume_discount_price: r.volume_discount_price ?? null
   }
@@ -66,7 +80,8 @@ export function validateRoute (form, routes = []) {
  * The body saved: trimmed text, numbers, relation ids. The transfer point is
  * always kept: on a delivery route it is where the transfers of its orders go
  * (OrdersForm.checkTransferNeeded), even when the route doesn't transfer
- * itself (issues/148).
+ * itself (issues/148). Its project, pickup point and the days a transfer
+ * route may carry an order are saved too (issues/159).
  */
 export function routePayload (form) {
   const data = {
@@ -76,7 +91,10 @@ export function routePayload (form) {
     active: Boolean(form.active),
     is_transfer_route: Boolean(form.is_transfer_route),
     transfer_pickup: idOf(form.transfer_pickup),
+    is_transfer_route_date: TRANSFER_DATES.includes(form.is_transfer_route_date) ? form.is_transfer_route_date : null,
     delivery_user: idOf(form.delivery_user),
+    project: idOf(form.project),
+    pickup: idOf(form.pickup),
     volume_discount_number_of_orders: numberOrNull(form.volume_discount_number_of_orders),
     volume_discount_price: numberOrNull(form.volume_discount_price)
   }

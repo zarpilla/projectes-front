@@ -39,7 +39,8 @@
       <div v-if="logos.length && !isCollapsed" class="logos-support">
         <span>Amb el suport de</span>
         <figure v-for="logo in logos" :key="'expanded-' + logo.id" class="image">
-          <img :src="logo.url" :alt="logo.name" />
+          <a v-if="logo.href" :href="logo.href" target="_blank" rel="noopener"><img :src="logo.src" alt="" /></a>
+          <img v-else :src="logo.src" alt="" />
         </figure>
       </div>
     </div>
@@ -64,6 +65,7 @@ import BrandLogo from '@/components/BrandLogo.vue'
 import { logout } from '@/service/auth'
 import service from "@/service/index";
 import getConfig from "@/config";
+import { logosForDisplay } from "@/domain/logos";
 import { openTickets, ticketsErrorMessage } from "@/service/tickets";
 
 // Long groups start folded; they open by themselves when the current page is in them
@@ -161,15 +163,9 @@ export default {
       }
     },
     fetchLogos() {
+      // without the trashed ones (Administració › Logos, issues/159)
       service({ cached: true }).get("logos?_sort=order:ASC").then(response => {
-        const config = getConfig();
-        const apiUrl = config.VUE_APP_API_URL;
-        this.logos = response.data.map(logo => {
-          return {
-            ...logo,
-            url: logo.logo ? apiUrl + logo.logo.url : ""
-          };
-        });
+        this.logos = logosForDisplay(response.data, getConfig().VUE_APP_API_URL);
       }).catch(error => {
         console.error("Error fetching logos:", error);
       });

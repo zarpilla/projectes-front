@@ -102,8 +102,28 @@
             </b-field>
           </b-field>
 
+          <div class="columns">
+            <b-field class="column" label="Projecte" message="El projecte de la ruta">
+              <b-select v-model="form.project" expanded>
+                <option :value="null">— Cap —</option>
+                <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.name }}</option>
+              </b-select>
+            </b-field>
+            <b-field class="column" label="Punt de recollida" message="El punt de recollida de la ruta">
+              <b-select v-model="form.pickup" expanded>
+                <option :value="null">— Cap —</option>
+                <option v-for="p in pickups" :key="p.id" :value="p.id">{{ p.alias || p.name }}</option>
+              </b-select>
+            </b-field>
+          </div>
+
           <b-field>
             <b-checkbox v-model="form.is_transfer_route">Fa transferències</b-checkbox>
+          </b-field>
+          <b-field v-if="form.is_transfer_route" label="Dies que porta transferències" message="Quins dies pot portar una comanda que s'ha de transferir, respecte al dia de l'entrega">
+            <b-select v-model="form.is_transfer_route_date" expanded>
+              <option v-for="o in transferDateOptions" :key="String(o.value)" :value="o.value">{{ o.label }}</option>
+            </b-select>
           </b-field>
           <b-field
             :label="form.is_transfer_route ? 'Les transferències van a' : 'Destinació de les transferències'"
@@ -136,6 +156,7 @@ import service from "@/service/index";
 import { formatMoney } from "@/helpers/format-number";
 import {
   WEEKDAYS,
+  TRANSFER_DATE_OPTIONS,
   routeToForm,
   validateRoute,
   routePayload,
@@ -162,6 +183,7 @@ export default {
       switchResets: 0,
       routes: [],
       pickups: [],
+      projects: [],
       users: [],
       form: routeToForm(null)
     };
@@ -169,6 +191,9 @@ export default {
   computed: {
     weekdays() {
       return WEEKDAYS;
+    },
+    transferDateOptions() {
+      return TRANSFER_DATE_OPTIONS;
     },
     sorted() {
       return sortRoutes(this.routes);
@@ -193,13 +218,15 @@ export default {
   async mounted() {
     this.isLoading = true;
     try {
-      const [pickups, users] = await Promise.all([
+      const [pickups, users, projects] = await Promise.all([
         service({ requiresAuth: true, cached: true }).get("pickups?_limit=-1&_sort=name:ASC").then(r => r.data),
         service({ requiresAuth: true, cached: true }).get("users?_limit=-1").then(r => r.data).catch(() => []),
+        service({ requiresAuth: true, cached: true }).get("projects/basic?_limit=-1&_sort=name:ASC").then(r => r.data).catch(() => []),
         this.getData()
       ]);
       this.pickups = pickups;
       this.users = users;
+      this.projects = projects;
     } finally {
       this.isLoading = false;
     }
