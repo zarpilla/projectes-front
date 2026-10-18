@@ -8,7 +8,7 @@
       <div class="config-layout">
         <nav class="config-index" aria-label="En aquesta pàgina">
           <p class="config-index-title">En aquesta pàgina</p>
-          <a v-for="sec in sections" :key="sec.id" :href="'#' + sec.id" :class="{ 'is-active': activeSection === sec.id }" @click.prevent="goTo(sec.id)">{{ sec.label }}</a>
+          <a v-for="sec in indexSections" :key="sec.id" :href="'#' + sec.id" :class="{ 'is-active': activeSection === sec.id }" @click.prevent="goTo(sec.id)">{{ sec.label }}</a>
         </nav>
 
         <form class="config-forms" @submit.prevent="submit">
@@ -149,6 +149,79 @@
             </div>
           </section>
 
+          <!-- the entity options that could only be set on the server (issues/139) -->
+          <section id="cfg-projectes" class="form-box">
+            <h2>Projectes</h2>
+            <p class="form-box-sub">Què es mostra als projectes i com es compta l'IVA.</p>
+            <label class="option-row">
+              <b-checkbox v-model="form.options.structuralExpenses">
+                <b>Despesa indirecta als projectes</b>
+                <small>Mostra el camp «Despesa Indirecta (%)» a les dades de cada projecte, per aplicar-hi un percentatge de despeses d'estructura.</small>
+              </b-checkbox>
+            </label>
+            <label class="option-row">
+              <b-checkbox v-model="form.options.treasury">
+                <b>Lligar el pressupost amb les factures</b>
+                <small>Mostra a les línies del pressupost d'execució les columnes «Fact.» i «Doc» (la factura que paga cada línia) i «Compte», el compte bancari previst.</small>
+              </b-checkbox>
+            </label>
+            <label class="option-row">
+              <b-checkbox v-model="form.options.userHasCostByHour">
+                <b>Cost/hora a la planificació</b>
+                <small>Mostra el cost per hora de la persona a la finestra «Planificació» del Gantt.</small>
+              </b-checkbox>
+            </label>
+            <label class="option-row">
+              <b-checkbox v-model="form.options.showEstimatedHoursInPhases">
+                <b>Gantt sense les línies d'ingrés</b>
+                <small>La pestanya Planificació s'obre amb «Línies d'ingrés» desmarcat: les dedicacions surten directament a sota de cada fase.</small>
+              </b-checkbox>
+            </label>
+            <div class="cfg-grid">
+              <b-field label="% IVA deduïble" message="La prorrata: la part de l'IVA suportat que es pot descomptar. Cada any en pot tenir un de propi a Taules auxiliars › Anys, que és el que es fa servir en saldar l'IVA i a la tresoreria d'aquell any.">
+                <b-input v-model.number="form.options.deductible_vat_pct" type="number" step="0.01" min="0" max="100" />
+              </b-field>
+            </div>
+          </section>
+
+          <section id="cfg-persones" class="form-box">
+            <h2>Persones i dietes</h2>
+            <p class="form-box-sub">Valors que es proposen en crear un període de jornada a Persones (es poden canviar a cada període) i les tarifes de les dietes.</p>
+            <table class="table cfg-ss">
+              <thead>
+                <tr><th></th><th>Treballadora autònoma</th><th>Règim general</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="f in ssFields" :key="f.key">
+                  <th scope="row">{{ f.label }}</th>
+                  <td><b-input v-model.number="form.quotes['autonoma_' + f.key]" type="number" step="0.01" :aria-label="f.label + ' (autònoma)'" /></td>
+                  <td><b-input v-model.number="form.quotes['general_' + f.key]" type="number" step="0.01" :aria-label="f.label + ' (règim general)'" /></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="cfg-grid">
+              <b-field label="Dieta: import per km" message="El que es paga per cada quilòmetre («Nova dieta», a Despeses).">
+                <b-input v-model.number="form.quotes.diet_amount_total" type="number" step="0.0001" />
+              </b-field>
+              <b-field label="Dieta: part sense IRPF per km" message="La part de l'import per km que no porta retenció; la resta va amb l'IRPF de la persona.">
+                <b-input v-model.number="form.quotes.diet_amount_without_irpf" type="number" step="0.0001" />
+              </b-field>
+            </div>
+          </section>
+
+          <section v-if="logistics" id="cfg-logistica" class="form-box">
+            <h2>Logística</h2>
+            <p class="form-box-sub">Les tarifes de les rutes es gestionen a part. <router-link to="/admin/route-rate">Tarifes de ruta →</router-link></p>
+            <div class="cfg-grid">
+              <b-field label="Descompte multientrega (%)" message="Quan una sòcia té més d'una comanda per al mateix punt d'entrega i dia.">
+                <b-input v-model.number="form.orders_options.multidelivery_discount" type="number" step="0.01" min="0" max="100" />
+              </b-field>
+              <b-field label="Hora límit per a l'endemà" message="Les comandes fetes després d'aquesta hora ja no es poden entregar l'endemà.">
+                <b-input v-model.number="form.orders_options.next_day_limit_hour" type="number" step="1" min="0" max="23" />
+              </b-field>
+            </div>
+          </section>
+
           <section id="cfg-opcions" class="form-box">
             <h2>Opcions</h2>
             <label class="option-row">
@@ -186,6 +259,9 @@ import service from '@/service/index';
 import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
 
+// the settings components of `me` edited here (issues/139)
+const COMPONENTS = ['options', 'quotes', 'orders_options'];
+
 export default {
   name: 'MeForm',
   components: {
@@ -206,8 +282,19 @@ export default {
         { id: "cfg-face", label: "FACe" },
         { id: "cfg-peus", label: "Textos de peu" },
         { id: "cfg-contacte", label: "Formulari de contacte" },
+        { id: "cfg-projectes", label: "Projectes" },
+        { id: "cfg-persones", label: "Persones i dietes" },
+        { id: "cfg-logistica", label: "Logística", logistics: true },
         { id: "cfg-opcions", label: "Opcions" }
       ],
+      ssFields: [
+        { key: "quota", label: "Quota fixa (€)" },
+        { key: "pct_quota", label: "Quota (%)" },
+        { key: "pct_irpf", label: "% IRPF" },
+        { key: "pct_other", label: "% Altres" }
+      ],
+      // the Logística block, for entities with logistics (people with a logistics permission)
+      logistics: false,
       isLoading: false,
       submitting: false,
       form: {
@@ -243,9 +330,11 @@ export default {
         bank_account_vat: null,
         pdf_invoice_parser: true,
         task_emails: true,
-        // the `options` component: sent back whole, with its id, so the other
-        // options are kept
-        options: null
+        // the settings components (options, Seguretat Social and diets, logistics):
+        // sent back whole, with their id, so nothing else in them is lost
+        options: {},
+        quotes: {},
+        orders_options: {}
       },
       bankAccounts: [],
       loadingBankAccounts: false
@@ -256,6 +345,9 @@ export default {
     await this.loadData();
   },
   computed: {
+    indexSections() {
+      return this.sections.filter(sec => !sec.logistics || this.logistics);
+    },
     // empty counts as on (the option's default)
     showTasksInGantt: {
       get() {
@@ -353,6 +445,14 @@ export default {
         });
         // empty (saved before the option existed) means on, as the server reads it
         this.form.task_emails = response.data.task_emails !== false;
+        for (const key of COMPONENTS) this.form[key] = { ...(response.data[key] || {}) };
+        try {
+          const user = (await service({ requiresAuth: true, cached: true }).get('users/me')).data;
+          const perms = ((user && user.permissions) || []).map(p => p.permission);
+          this.logistics = perms.some(p => ['orders', 'orders_admin', 'orders_delivery'].includes(p));
+        } catch (e) {
+          this.logistics = false;
+        }
       } catch (error) {
         this.$buefy.toast.open({
           message: `Error carregant dades: ${error.message}`,
@@ -378,6 +478,10 @@ export default {
           const value = this.form[key];
           data[key] = value === '' || value === undefined ? null : value;
         });
+        // inside the components too: a cleared number is null, not ''
+        for (const key of COMPONENTS) {
+          data[key] = Object.fromEntries(Object.entries(this.form[key] || {}).map(([k, v]) => [k, v === '' || v === undefined ? null : v]));
+        }
         
         await service({ requiresAuth: true }).put('/me', data);
         
@@ -463,6 +567,14 @@ export default {
 }
 .cfg-grid .is-wide {
   grid-column: span 2;
+}
+.cfg-ss {
+  max-width: 40rem;
+  margin-bottom: 1rem;
+}
+.cfg-ss th[scope="row"] {
+  vertical-align: middle;
+  font-weight: 600;
 }
 .cfg-grid.is-two {
   grid-template-columns: repeat(2, minmax(0, 1fr));

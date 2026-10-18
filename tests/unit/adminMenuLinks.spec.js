@@ -16,7 +16,7 @@ const BACKEND_ENTITIES = [
   'bank-account', 'contact-type', 'dedication-type', 'expense-type', 'income-type',
   'legal-form', 'payment-method', 'project-likelihood', 'project-state', 'project-type',
   'region', 'project-scope', 'sector', 'serie', 'social-entity', 'strategy', 'task-state',
-  'user-festive', 'year', 'festive-type'
+  'user-festive', 'year', 'festive-type', 'route-rate'
 ]
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"
@@ -37,6 +37,15 @@ describe('admin menu links', () => {
 
   it('"Taules auxiliars" lists every entity the backend serves', () => {
     expect(ADMIN_TABLES.map(t => t.entity).sort()).toEqual([...BACKEND_ENTITIES].sort())
+  })
+
+  // issues/139, issues/140
+  it('lists «Tarifes de ruta» only to people with logistics', async () => {
+    const { adminTableGroupsFor } = await import('@/service/adminTables')
+    const entities = perms => adminTableGroupsFor(perms).flatMap(g => g.items.map(t => t.entity))
+    expect(entities(['admin', 'projects'])).not.toContain('route-rate')
+    expect(entities(['admin', 'orders_admin'])).toContain('route-rate')
+    expect(entities(['admin'])).toContain('festive-type')
   })
 
   it('redirect the old plural paths (bookmarks)', () => {

@@ -10,9 +10,9 @@
             v-for="(attrConfig, attrName) in formAttributes"
             :key="attrName"
             :label="(attrConfig.label || formatLabel(attrName)) + (attrConfig.required ? ' *' : '')"
-            :class="{ full: ['text', 'richtext'].includes(attrConfig.type) }"
+            :class="{ full: ['text', 'richtext'].includes(attrConfig.type) || !!attrConfig.collection }"
             :type="{ 'is-danger': errors[attrName] }"
-            :message="errors[attrName]"
+            :message="errors[attrName] || attrConfig.help"
           >
             <!-- String input -->
             <b-input
@@ -106,6 +106,17 @@
               :required="attrConfig.required"
             />
 
+            <!-- Editable to-many relation (e.g. a route rate's routes): one checkbox per option -->
+            <div v-else-if="attrConfig.collection" class="entity-checks">
+              <b-checkbox
+                v-for="item in relationOptions[attrName]"
+                :key="item.id"
+                v-model="form[attrName]"
+                :native-value="item.id"
+              >{{ item.name || item.username || `ID ${item.id}` }}</b-checkbox>
+              <span v-if="!loadingRelations[attrName] && !(relationOptions[attrName] || []).length" class="has-text-muted">Cap opció</span>
+            </div>
+
             <!-- Relation select -->
             <b-select
               v-else-if="attrConfig.model"
@@ -170,11 +181,12 @@ export default {
     };
   },
   computed: {
-    // to-many relations (e.g. a strategy's projects) are edited from the other side
+    // to-many relations (e.g. a strategy's projects) are edited from the other side,
+    // unless the backend marks them editable (a route rate's routes)
     formAttributes() {
       const out = {};
       for (const [name, config] of Object.entries((this.metadata && this.metadata.attributes) || {})) {
-        if (!config.collection) out[name] = config;
+        if (!config.collection || config.editable) out[name] = config;
       }
       return out;
     },
@@ -252,6 +264,9 @@ export default {
                 formData[attrName] = formData[attrName].id;
               }
             }
+            if (attrConfig.collection && attrConfig.editable) {
+              formData[attrName] = (formData[attrName] || []).map(item => (item && typeof item === 'object' ? item.id : item));
+            }
           }
         }
         
@@ -275,6 +290,8 @@ export default {
             this.form[attrName] = attrConfig.default;
           } else if (attrConfig.type === 'boolean') {
             this.form[attrName] = false;
+          } else if (attrConfig.collection && attrConfig.editable) {
+            this.form[attrName] = [];
           } else {
             this.form[attrName] = null;
           }
@@ -291,7 +308,8 @@ export default {
       this.loadingRelations = {};
       
       for (const [attrName, attrConfig] of Object.entries(this.metadata.attributes)) {
-        if (attrConfig.model) {
+        const target = attrConfig.model || (attrConfig.editable && attrConfig.collection);
+        if (target) {
           try {
             this.loadingRelations[attrName] = true;
             
@@ -302,7 +320,7 @@ export default {
               apiPath = attrConfig.model === 'user' ? 'users' : attrConfig.model;
             } else {
               // Use entityToApiPath mapping to get correct API endpoint
-              apiPath = this.entityToApiPath[attrConfig.model] || attrConfig.model;
+              apiPath = this.entityToApiPath[target] || target;
             }
             
             // Determine sort field based on the model
@@ -418,6 +436,11 @@ export default {
 </script>
 
 <style scoped>
+.entity-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .375rem 1.25rem;
+}
 .entity-form-actions {
   display: flex;
   justify-content: flex-end;

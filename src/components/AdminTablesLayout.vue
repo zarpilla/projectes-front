@@ -21,7 +21,8 @@
 </template>
 
 <script>
-import { ADMIN_TABLE_GROUPS } from '@/service/adminTables';
+import { adminTableGroupsFor } from '@/service/adminTables';
+import service from '@/service/index';
 
 export default {
   name: 'AdminTablesLayout',
@@ -31,9 +32,20 @@ export default {
       required: true
     }
   },
+  data() {
+    return { permissions: [] };
+  },
   computed: {
     groups() {
-      return ADMIN_TABLE_GROUPS;
+      return adminTableGroupsFor(this.permissions);
+    }
+  },
+  async mounted() {
+    try {
+      const me = (await service({ requiresAuth: true, cached: true }).get('users/me')).data;
+      this.permissions = ((me && me.permissions) || []).map(p => p.permission);
+    } catch (e) {
+      this.permissions = [];
     }
   }
 };

@@ -41,8 +41,20 @@ export const ADMIN_TABLE_GROUPS = [
       { entity: 'sector', label: 'Sectors' },
       { entity: 'social-entity', label: 'Entitats socials' }
     ]
+  },
+  {
+    // only for entities with logistics: shown to people with a logistics permission
+    title: 'Logística',
+    permissions: ['orders', 'orders_admin', 'orders_delivery'],
+    items: [
+      { entity: 'route-rate', label: 'Tarifes de ruta' }
+    ]
   }
 ]
+
+// The groups a person with these app permissions sees
+export const adminTableGroupsFor = permissions =>
+  ADMIN_TABLE_GROUPS.filter(g => !g.permissions || g.permissions.some(p => (permissions || []).includes(p)))
 
 export const ADMIN_TABLES = ADMIN_TABLE_GROUPS.flatMap(g => g.items)
 

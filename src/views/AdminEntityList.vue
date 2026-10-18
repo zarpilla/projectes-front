@@ -45,7 +45,7 @@ export default {
       return ['Administració', displayName];
     },
     subtitle() {
-      return this.isTable ? `${ADMIN_TABLES.length} llistes que alimenten els desplegables de l'aplicació. Tria'n una per veure-la i editar-la.` : '';
+      return this.isTable ? `Les llistes que alimenten els desplegables de l'aplicació. Tria'n una per veure-la i editar-la.` : '';
     }
   },
   async mounted() {

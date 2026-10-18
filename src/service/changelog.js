@@ -40,6 +40,11 @@ export const CHANGELOG = [
     },
     {
       type: "Novetats",
+      modules: ["Administració", "Projectes", "Logística"],
+      text: ["A ", { to: "/admin/me", label: "Configuració general" }, " ara es poden canviar les opcions que fins ara només configurava qui manté el servidor: la despesa indirecta als projectes, la tresoreria, el cost/hora a la planificació, el % d'IVA deduïble, les quotes de Seguretat Social i les tarifes de les dietes i, amb logística, el descompte multientrega i l'hora límit. Les tarifes de ruta es gestionen a ", { to: "/admin/route-rate", label: "Taules auxiliars › Tarifes de ruta" }, "."]
+    },
+    {
+      type: "Novetats",
       modules: ["Hores", "Administració"],
       text: ["Festius de tothom (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/admin/festive-type", label: "Taules auxiliars › Tipus de festiu" }, "."]
     },
