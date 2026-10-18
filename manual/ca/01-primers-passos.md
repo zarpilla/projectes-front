@@ -99,7 +99,7 @@ cada capítol, saltar als relacionats.
 **No puc entrar.** Comproveu el correu i la clau (les majúscules compten). Si el compte està **bloquejat**, cal
 parlar amb una persona administradora.
 
-**No veig una pantalla que veu una companya.** Els permisos són diferents. Vegeu el capítol 02.
+**No veig una pantalla que veu una companya.** Els permisos són diferents. Vegeu [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md).
 
 ## Vegeu també
 

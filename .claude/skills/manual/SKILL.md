@@ -220,6 +220,11 @@ portal for all the docs) can list, filter and link chapters without reading thei
 | `lang` | `ca` (same as the folder). |
 | `updated` | Date of the last content change (`YYYY-MM-DD`). |
 
+Readers don't see the file numbers: the docs viewer numbers the chapters itself, module.chapter («2.3»), in the
+order of `manual.json` and of `order`, and rewrites the chapter H1 and every link labelled with a file number
+(`[05](05-x.md)`, `[05. Fases…](05-x.md)`) to match. So refer to another chapter only through such a link, never
+as bare text («vegeu el capítol 05»). Chapters with order 100+ (the glossary) have no number.
+
 Keep the block a plain YAML subset (one `key: value` per line, quoted strings, inline lists) — the checker reads
 it without a YAML library. The «> Permís necessari» line stays in the Markdown for the team (it explains the nuances that `roles`
 can't), but the docs viewer (esstrapis-docs) hides it and shows `roles` as badges, named by each role's
