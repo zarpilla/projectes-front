@@ -54,7 +54,8 @@
       <span>Amb el suport de</span>
       <div class="login-logos-list">
         <figure v-for="logo in logos" :key="logo.id" class="image">
-          <img :src="logo.url" :alt="logo.name" />
+          <a v-if="logo.href" :href="logo.href" target="_blank" rel="noopener"><img :src="logo.src" alt="" /></a>
+          <img v-else :src="logo.src" alt="" />
         </figure>
       </div>
     </footer>
@@ -72,6 +73,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
 import BrandLogo from "@/components/BrandLogo.vue";
+import { logosForDisplay } from "@/domain/logos";
 
 export default {
   components: { BrandLogo },
@@ -94,17 +96,9 @@ export default {
       this.$router.push(permissions ? landingForUser(currentUserId(), permissions) : HOME_PATH);
     } else {
       try {
+        // without the trashed ones (Administració › Logos, issues/159)
         const response = await service({ cached: true }).get("logos?_sort=order:ASC");
-        this.logos = response.data;
-
-        const config = getConfig();
-        const apiUrl = config.VUE_APP_API_URL;
-        this.logos = this.logos.map(logo => {
-          return {
-            ...logo,
-            url: logo.logo ? apiUrl + logo.logo.url : ""
-          };
-        });
+        this.logos = logosForDisplay(response.data, getConfig().VUE_APP_API_URL);
       } catch (error) {
         console.error("Error fetching logos:", error);
       }

@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import {
+  TRANSFER_DATE_OPTIONS,
   routeToForm,
   validateRoute,
   routePayload,
@@ -80,6 +81,25 @@ describe('route form (issues/141)', () => {
     const form = routeToForm({ ...ROUTES[0], is_transfer_route: false, transfer_pickup: { id: 4 } }, ROUTES)
     expect(routePayload(form).transfer_pickup).toBe(4)
     expect(routePayload({ ...form, transfer_pickup: null }).transfer_pickup).toBe(null)
+  })
+
+  // issues/159: the project, the pickup point and the days a transfer route
+  // carries an order could only be set from the Strapi admin
+  it('loads and saves the project, the pickup point and the transfer days', () => {
+    const form = routeToForm({ ...ROUTES[0], project: { id: 30, name: 'Logística' }, pickup: { id: 5 }, is_transfer_route: true, is_transfer_route_date: 'only_previous_days' })
+    expect(form).toMatchObject({ project: 30, pickup: 5, is_transfer_route_date: 'only_previous_days' })
+    expect(routePayload(form)).toMatchObject({ project: 30, pickup: 5, is_transfer_route_date: 'only_previous_days' })
+    expect(routePayload({ ...form, project: null, pickup: null, is_transfer_route_date: 'only_same_day' }))
+      .toMatchObject({ project: null, pickup: null, is_transfer_route_date: 'only_same_day' })
+  })
+
+  it('saves an unknown or empty transfer day choice as «any day»', () => {
+    const form = { ...routeToForm(null, ROUTES), name: 'Nova', monday: true }
+    expect(form).toMatchObject({ project: null, pickup: null, is_transfer_route_date: null })
+    expect(routePayload(form).is_transfer_route_date).toBe(null)
+    expect(routePayload({ ...form, is_transfer_route_date: '' }).is_transfer_route_date).toBe(null)
+    expect(routePayload({ ...form, is_transfer_route_date: 'sometimes' }).is_transfer_route_date).toBe(null)
+    expect(TRANSFER_DATE_OPTIONS.map(o => o.value)).toEqual([null, 'only_same_day', 'only_previous_days'])
   })
 
   it('lists the active routes first, by order', () => {

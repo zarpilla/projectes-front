@@ -11,6 +11,7 @@ export const ADMIN_TABLE_GROUPS = [
       { entity: 'project-type', label: 'Tipus de projecte' },
       { entity: 'strategy', label: 'Estratègies' },
       { entity: 'dedication-type', label: 'Tipus de dedicació' },
+      { entity: 'activity-type', label: "Tipus d'activitat" },
       { entity: 'task-state', label: 'Estats de tasca' }
     ]
   },
@@ -21,7 +22,10 @@ export const ADMIN_TABLE_GROUPS = [
       { entity: 'payment-method', label: 'Mètodes de pagament' },
       { entity: 'serie', label: 'Sèries' },
       { entity: 'expense-type', label: 'Tipus de despesa' },
-      { entity: 'income-type', label: "Tipus d'ingrés" }
+      { entity: 'income-type', label: "Tipus d'ingrés" },
+      { entity: 'document-type', label: 'Tipus de document' },
+      { entity: 'vat-type', label: "Tipus d'IVA" },
+      { entity: 'product', label: 'Productes' }
     ]
   },
   {
@@ -47,6 +51,9 @@ export const ADMIN_TABLE_GROUPS = [
     title: 'Logística',
     permissions: ['orders', 'orders_admin', 'orders_delivery'],
     items: [
+      { entity: 'pickup', label: 'Punts de recollida' },
+      { entity: 'delivery-type', label: 'Tipus de lliurament' },
+      { entity: 'city', label: 'Poblacions' },
       { entity: 'route-rate', label: 'Tarifes de ruta' }
     ]
   }
