@@ -26,7 +26,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["La fitxa de cada comanda té un «Historial»: qui l'ha creada i qui l'ha canviada, quan, i què ha canviat (l'estat i qualsevol altra dada, de què a què), també quan es factura o s'esborra l'esborrany de factura. Es veu des de ", { to: "/orders", label: "Comandes" }, " obrint una comanda; el veu l'oficina, no les sòcies. Comença a omplir-se a partir d'ara."]
+      text: ["La fitxa de cada comanda té un «Historial»: qui l'ha creada i qui l'ha canviada, quan, i què ha canviat (l'estat i qualsevol altra dada, de què a què), també quan es factura, quan s'esborra l'esborrany de factura i els canvis que l'aplicació hi fa sola (descomptes, comandes de recollida). Es veu des de ", { to: "/orders", label: "Comandes" }, " obrint una comanda; el veu l'oficina, no les sòcies. Comença a omplir-se a partir d'ara."]
     },
     {
       type: "Millores",
