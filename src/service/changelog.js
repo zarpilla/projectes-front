@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["La fitxa de cada comanda té un «Historial»: qui l'ha creada i qui l'ha canviada, quan, i què ha canviat (l'estat i qualsevol altra dada, de què a què), també quan es factura o s'esborra l'esborrany de factura. Es veu des de ", { to: "/orders", label: "Comandes" }, " obrint una comanda; el veu l'oficina, no les sòcies. Comença a omplir-se a partir d'ara."]
+    },
+    {
       type: "Millores",
       modules: ["Plataforma", "Diners"],
       text: "Nou disseny de tota l'aplicació: menú lateral per seccions, capçaleres amb les accions de cada pantalla, xifres destacades, filtres en una sola barra, taules més clares i fitxes per apartats amb una barra de desar sempre visible. Les factures emeses es mostren en mode de només lectura, amb Verifactu i FACe al costat."

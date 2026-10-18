@@ -503,6 +503,8 @@
               </li>
             </ul>
           </section>
+
+          <order-history v-if="form.id && canSeeHistory" :order-id="form.id" :refresh-key="historyKey" />
         </aside>
       </form>
     </section>
@@ -537,6 +539,7 @@ import {
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
+import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, formStatuses, canDeposit as canDepositOrder } from "@/domain/orderStatus";
@@ -548,7 +551,8 @@ export default {
     TitleBar,
     MoneyFormat,
     ModalBoxContactUser,
-    ModalBoxIncidence
+    ModalBoxIncidence,
+    OrderHistory
   },
   props: {
     id: {
@@ -575,6 +579,7 @@ export default {
       pickups: [],
       deliveryTypes: [],
       permissions: [],
+      historyKey: 0,
       orders: [],
       firstStatus: "pending",
       legalForms: [],
@@ -635,6 +640,10 @@ export default {
     },
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
+    },
+    // the logistics staff and the entity's own staff, not members (issues/119)
+    canSeeHistory() {
+      return this.isStaff || this.permissions.includes("projects") || this.permissions.includes("admin");
     },
     headSubtitle() {
       const owner = this.users.find(u => u.id === this.form.owner);
@@ -1046,6 +1055,7 @@ export default {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
               this.form = r.data;
+              this.historyKey++;
               this.firstStatus = this.form.status;
 
               this.normalizeIdsInForm("owner");
