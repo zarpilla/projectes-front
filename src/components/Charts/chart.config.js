@@ -18,11 +18,8 @@ export const baseChartOptions = {
   responsive: true
 }
 
+// drawn by ./tooltip.js; only which points it shows is set here
 const tooltip = {
-  titleColor: '#333',
-  bodyColor: '#666',
-  bodySpacing: 4,
-  padding: 12,
   mode: 'nearest',
   intersect: false,
   position: 'nearest'
@@ -32,7 +29,7 @@ export const chartOptionsMain = {
   ...baseChartOptions,
   plugins: {
     ...baseChartOptions.plugins,
-    tooltip: { ...tooltip, backgroundColor: '#f5f5f5' }
+    tooltip
   },
   datasets: {
     bar: { barPercentage: 1.2 }

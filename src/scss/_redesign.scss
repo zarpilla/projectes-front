@@ -835,3 +835,73 @@ td.doc-total {
   font-weight: 700;
   color: var(--a-muted);
 }
+// the tooltip of every chart (src/components/Charts/tooltip.js)
+.chart-tip {
+  position: fixed;
+  z-index: 60;
+  max-width: min(320px, calc(100vw - 16px));
+  padding: .5rem .625rem;
+  border: 1px solid var(--a-line);
+  border-radius: 6px;
+  background: var(--a-surface);
+  color: var(--a-fg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .14);
+  font-size: .8125rem;
+  line-height: 1.35;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .12s;
+  &.is-visible {
+    opacity: 1;
+  }
+  .tip-title {
+    margin-bottom: .3rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .tip-row {
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+    padding: .0625rem 0;
+  }
+  .tip-swatch {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    align-self: center;
+    &.is-line {
+      height: 0;
+      border-top: 2px solid;
+      border-radius: 0;
+    }
+  }
+  .tip-name {
+    flex: 1;
+    color: var(--a-muted);
+    overflow-wrap: anywhere;
+  }
+  .tip-value {
+    margin-left: auto;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .tip-share {
+    min-width: 3.5em;
+    color: var(--a-muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .tip-footer {
+    margin-top: .3rem;
+    padding-top: .3rem;
+    border-top: 1px solid var(--a-line-soft);
+    font-weight: 700;
+    .tip-name {
+      color: var(--a-fg);
+    }
+  }
+}

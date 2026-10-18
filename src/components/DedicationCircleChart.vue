@@ -44,6 +44,7 @@ import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import CardComponent from '@/components/CardComponent.vue'
 import * as chartConfig from '@/components/Charts/chart.config'
+import { formatHours } from '@/helpers/format-number'
 
 moment.locale('ca')
 
@@ -76,7 +77,13 @@ export default {
       hoursTotal: 0,
       mainChart: {
         chartData: null,
-        extraOptions: chartConfig.chartOptionsPie
+        extraOptions: {
+          ...chartConfig.chartOptionsPie,
+          plugins: {
+            ...chartConfig.chartOptionsPie.plugins,
+            tooltip: { ...chartConfig.chartOptionsPie.plugins.tooltip, callbacks: { label: ctx => formatHours(ctx.raw) } }
+          }
+        }
       },
       viewType: 'all'
     }
