@@ -127,7 +127,7 @@
       v-if="viewType == 'all' || viewType == 'calendar'"
     >
       <template v-slot:day-content="{ day, attributes }">
-        <div class="flex flex-col h-full z-10 overflow-hidden">
+        <div class="flex flex-col h-full z-10 overflow-hidden" @click="dayTapped(day)">
           <span
             class="day-label text-sm text-gray-900"
             @click="dayClicked(day)"
@@ -150,7 +150,16 @@
               / {{ daySumPending(attributes) }} h</span
             >
           </span>
-          <div class="flex-grow overflow-y-auto overflow-x-auto">
+          <!-- on a phone: one colour stripe per entry, the names are in the list below -->
+          <span class="day-stripes" aria-hidden="true">
+            <i
+              v-for="attr in (attributes || []).filter(a => a.customData)"
+              :key="attr.key"
+              :class="{ 'is-pending': attr.customData.pending }"
+              :style="{ backgroundColor: attr.customData.bg_project }"
+            />
+          </span>
+          <div class="day-entries flex-grow overflow-y-auto overflow-x-auto">
             <span
               v-for="attr in attributes"
               :key="attr.key"
@@ -198,6 +207,58 @@
     </v-calendar>
 
     <!-- <week-calendar :events="events"></week-calendar> -->
+    <!-- on a phone the month grid only shows stripes: the entries, listed by day -->
+    <section
+      v-if="(viewType == 'all' || viewType == 'calendar') && !needsPerson"
+      class="hours-agenda"
+      aria-label="Hores del mes per dia"
+    >
+      <p v-if="!agenda.length" class="agenda-empty">Cap hora en aquestes dates.</p>
+      <div v-for="week in agenda" :key="week.key" class="agenda-week">
+        <div class="agenda-week-title">
+          <span>Setmana {{ week.week }}</span>
+          <b>{{ hoursLabel(week.hours) }}</b>
+        </div>
+        <div
+          v-for="d in week.days"
+          :key="d.date"
+          :id="'agenda-' + d.date"
+          class="agenda-day"
+          :class="{ 'is-today': d.date === today }"
+        >
+          <div class="agenda-day-title">
+            <span class="agenda-day-name">{{ agendaDayTitle(d.date) }}</span>
+            <span class="agenda-day-hours">{{ hoursLabel(d.hours) }}</span>
+            <button
+              type="button"
+              class="agenda-add"
+              :aria-label="'Afegeix hores el ' + agendaDayTitle(d.date)"
+              @click="showModal({ date: d.date })"
+            >
+              <b-icon icon="plus" size="is-small" />
+            </button>
+          </div>
+          <button
+            v-for="e in d.entries"
+            :key="e.key"
+            type="button"
+            class="agenda-entry"
+            :class="{ 'is-pending': e.pending }"
+            @click="openAgendaEntry(e)"
+          >
+            <i class="agenda-color" :style="{ backgroundColor: e.color }" />
+            <span class="agenda-text">
+              <span class="agenda-project">{{ e.project }}</span>
+              <span v-if="e.type === 'festive' || !user || e.pending" class="agenda-sub">
+                {{ e.type === "festive" ? "Festiu · " + e.username : e.pending ? "Calendari, per importar" : e.username }}
+              </span>
+            </span>
+            <span v-if="e.type !== 'festive'" class="agenda-hours">{{ hoursLabel(e.hours) }}</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
 
     <div class="table-view" v-if="viewType == 'all' || viewType == 'table'">
       <card-component
@@ -299,6 +360,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { formatHours, formatNumber } from "@/helpers/format-number";
 
+import { hoursAgenda } from "@/domain/hoursAgenda";
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
 
@@ -413,6 +475,13 @@ export default {
     // no person picked (not even «Totes», id 0): nobody's hours are loaded (issues/070)
     needsPerson() {
       return (this.user === null || this.user === undefined) && !this.last;
+    // the list under the grid, on a phone
+    agenda() {
+      return hoursAgenda(this.attributes);
+    },
+    today() {
+      return moment().format("YYYY-MM-DD");
+    },
     },
     trashObjectName() {
       if (this.trashObject) {
@@ -976,7 +1045,29 @@ export default {
         this.colorType = colorType;
         this.getActivities();
       }
+    // the grid is too narrow on a phone to show the entries: dayTapped handles it
+    isPhone() {
+      return typeof window !== "undefined" && !!window.matchMedia &&
+        window.matchMedia("(max-width: 768px)").matches;
     },
+    // on a phone, a day with entries scrolls to them in the list; an empty day adds hours
+    dayTapped(day) {
+      if (!this.isPhone()) return;
+      const date = moment(day.date).format("YYYY-MM-DD");
+      const el = document.getElementById("agenda-" + date);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      else this.showModal({ date });
+    },
+    agendaDayTitle(date) {
+      return moment(date, "YYYY-MM-DD").format("dddd D MMMM");
+    },
+    openAgendaEntry(entry) {
+      if (entry.type === "festive") this.showModalFestive(entry.attr.customData.a);
+      else if (entry.type === "ical") this.showModalICal(entry.attr);
+      else this.showModal(entry.attr.customData.a);
+    },
+    },
+      if (this.isPhone()) return;
     dayClicked(day) {
       this.showModal({ date: moment(day.date).format("YYYY-MM-DD") });
     },
@@ -1642,6 +1733,133 @@ export default {
 }
 </style>
 <style>
+
+/* the list under the grid: phones only */
+.hours-agenda {
+  display: none;
+  margin: -0.5rem 0 1.25rem;
+}
+.agenda-empty {
+  color: var(--a-muted);
+  padding: 0.75rem 0;
+}
+.agenda-week + .agenda-week {
+  margin-top: 1rem;
+}
+.agenda-week-title {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.25rem 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--a-muted);
+}
+.agenda-day {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow: hidden;
+  scroll-margin-top: 4.5rem;
+}
+.agenda-day + .agenda-day {
+  margin-top: 0.5rem;
+}
+.agenda-day.is-today {
+  border-color: var(--a-accent);
+}
+.agenda-day-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  background: var(--a-thead);
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.agenda-day-name {
+  flex: 1;
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.agenda-day-name::first-letter {
+  text-transform: uppercase;
+}
+.agenda-day-hours {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--a-fg-2);
+}
+.agenda-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--a-accent);
+  cursor: pointer;
+}
+.agenda-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.5rem 0.875rem;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--a-fg);
+  cursor: pointer;
+}
+.agenda-entry + .agenda-entry {
+  border-top: 1px solid var(--a-line-soft);
+}
+.agenda-entry.is-pending {
+  opacity: 0.75;
+}
+.agenda-entry.is-pending .agenda-color {
+  background: repeating-linear-gradient(-45deg, var(--a-muted) 0 3px, transparent 3px 6px) !important;
+}
+.agenda-color {
+  flex: none;
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+}
+.agenda-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.agenda-project {
+  font-weight: 600;
+  line-height: 1.3;
+  /* two lines at most: a whole name almost always fits */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.agenda-sub {
+  font-size: 0.8125rem;
+  color: var(--a-muted);
+}
+.agenda-hours {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 768px) {
+  .hours-agenda {
+    display: block;
+  }
+}
 .card-body {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--a-line-soft);
@@ -1777,7 +1995,44 @@ export default {
 
 @media (max-width: 768px) {
   .custom-calendar.vc-container .vc-day {
-    min-width: calc(100% / 7 - 5px);
+.custom-calendar .day-stripes {
+  display: none;
+}
+
+/* a phone: the grid shows the day's total and a stripe per entry; the entries
+   themselves are in the list under it (.hours-agenda) */
+    min-width: 0;
+    min-height: 58px;
+    padding: 0 3px 4px;
+    cursor: pointer;
+  }
+  .custom-calendar .day-entries,
+  .custom-calendar .day-sum-label span,
+  .custom-calendar .day-sum-label.week-total {
+    display: none;
+  }
+  .custom-calendar .day-sum-label {
+    float: none;
+    display: block;
+    padding-top: 0;
+    font-size: 11px;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .custom-calendar .day-stripes {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 3px;
+  }
+  .custom-calendar .day-stripes i {
+    display: block;
+    height: 4px;
+    border-radius: 2px;
+  }
+  .custom-calendar .day-stripes i.is-pending {
+    opacity: 0.4;
   }
 }
 </style>

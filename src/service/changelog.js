@@ -34,6 +34,11 @@ export const CHANGELOG = [
       text: ["Mode fosc: tria'l a ", { to: "/profile", label: "el teu perfil" }, " (Clar, Fosc o com el sistema). Es guarda en aquest navegador."]
     },
     {
+      type: "Millores",
+      modules: ["Hores"],
+      text: ["Al mòbil, el calendari d'", { to: "/dedicacio", label: "Hores dedicades" }, " mostra la suma de cada dia i, a sota, la llista del mes per dies amb el nom sencer de cada projecte. Tocant un dia, la llista hi salta; tocant una entrada, s'obre per canviar-la."]
+    },
+    {
       type: "Novetats",
       modules: ["Informes"],
       text: ["Nou informe ", { to: "/invoicing-forecast", label: "Previsió facturació" }, ": què cal facturar aquest mes i els propers, i què s'havia de facturar i encara no té factura, per projecte i responsable. Surt de la «Previsió fac.» de les línies d'ingrés de cada projecte."]

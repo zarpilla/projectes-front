@@ -23,14 +23,15 @@ import DedicationInput from '@/components/DedicationInput.vue'
 
 const october = { date1: new Date(2026, 9, 1), date2: new Date(2026, 9, 31) }
 
-async function mountInput (props = {}) {
+async function mountInput (props = {}, options = {}) {
   const w = mount(DedicationInput, {
     props: { ...october, user: 5, users: [], projects: [{ id: 1, name: 'Web' }, { id: 2, name: 'App' }], ...props },
     global: {
       plugins: [createPinia(), Buefy, [VCalendar, { componentPrefix: 'v' }]],
       // the real <transition>: v-calendar's move() waits for it to end
-      stubs: { 'download-excel': true, 'kk-progress': true, 'b-modal': true, transition: false }
-    }
+      stubs: { 'download-excel': true, 'kk-progress': true, 'b-modal': true, 'modal-box-dedication': true, transition: false }
+    },
+    ...options
   })
   await flushPromises()
   return w
@@ -103,5 +104,48 @@ describe('DedicationInput', () => {
     expect(w.vm.distinctTotals.find(d => d.day === '2026-10-07').hours).toBe(5.5)
     expect(w.vm.distinctProjectsObj.map(p => p.name)).toContain('Sense projecte')
     get.mockImplementation(async url => ({ data: url.startsWith('activities/calendar') ? activities : [] }))
+  })
+
+  // on a phone the grid leaves ~50 px per day: the entries are listed under it, whole
+  describe('on a phone', () => {
+    const phone = matches => { window.matchMedia = vi.fn(() => ({ matches })) }
+    afterEach(() => { delete window.matchMedia })
+
+    it('lists the month by week and day, with the whole project names', async () => {
+      const w = await mountInput()
+      const days = w.findAll('.agenda-day')
+      expect(days.map(d => d.find('.agenda-day-name').text())).toEqual(["dilluns 5 d'octubre", "dimecres 7 d'octubre"])
+      expect(days.map(d => d.find('.agenda-day-hours').text())).toEqual(['3,00 h', '3,50 h'])
+      expect(w.findAll('.agenda-week-title b').map(b => b.text())).toEqual(['6,50 h'])
+      expect(days[1].findAll('.agenda-project').map(p => p.text())).toEqual(['Web', 'App'])
+      await days[1].findAll('.agenda-entry')[1].trigger('click')
+      expect(w.vm.isModalEditActive).toBe(true)
+      expect(w.vm.dedicationObject.id).toBe(2)
+    })
+
+    it('a day with hours scrolls to them; an empty day adds hours', async () => {
+      phone(true)
+      const w = await mountInput({}, { attachTo: document.body })
+      const scroll = vi.fn()
+      document.getElementById('agenda-2026-10-07').scrollIntoView = scroll
+      w.vm.dayTapped({ date: new Date(2026, 9, 7) })
+      expect(scroll).toHaveBeenCalled()
+      expect(w.vm.isModalEditActive).toBe(false)
+      w.vm.dayClicked({ date: new Date(2026, 9, 7) })
+      expect(w.vm.isModalEditActive).toBe(false)
+      w.vm.dayTapped({ date: new Date(2026, 9, 9) })
+      expect(w.vm.isModalEditActive).toBe(true)
+      expect(w.vm.dedicationObject).toEqual({ date: '2026-10-09', counter: null })
+      w.unmount()
+    })
+
+    it('does nothing different on a desktop', async () => {
+      phone(false)
+      const w = await mountInput()
+      w.vm.dayTapped({ date: new Date(2026, 9, 9) })
+      expect(w.vm.isModalEditActive).toBe(false)
+      w.vm.dayClicked({ date: new Date(2026, 9, 9) })
+      expect(w.vm.isModalEditActive).toBe(true)
+    })
   })
 })
