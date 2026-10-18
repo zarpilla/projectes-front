@@ -13,7 +13,10 @@ export const ORDER_MEASURES = {
   kilograms: { label: 'Quilos', value: r => num(r.kilograms) }
 }
 
-export const isRefrigerated = r => r.delivery_type === 'Refrigerada'
+// by the order's flag, as Comandes counts them (issues/178): the one the delivery
+// note and the invoice print. It comes from the delivery type, except on a
+// collection order, which is refrigerated when an order it collects is.
+export const isRefrigerated = r => !!r.refrigerated
 
 export function orderTotals (rows) {
   const t = { count: 0, amount: 0, kilograms: 0, units: 0, refrigerated: 0, lastmile: 0 }

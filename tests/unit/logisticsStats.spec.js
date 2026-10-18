@@ -5,8 +5,8 @@ import {
   incidenceTotals, incidencePeriods, resolutionBuckets, routeRates
 } from '@/domain/logisticsStats'
 
-const order = (date, { price = 10, kilograms = 5, units = 1, delivery_type = 'Normal', route = 'R1', owner = 'A', lastmile = 'No' } = {}) =>
-  ({ date, price, kilograms, units, delivery_type, route, owner, lastmile, year: date.slice(0, 4), month: date.slice(5, 7) })
+const order = (date, { price = 10, kilograms = 5, units = 1, delivery_type = 'Normal', refrigerated = delivery_type === 'Refrigerada', route = 'R1', owner = 'A', lastmile = 'No' } = {}) =>
+  ({ date, price, kilograms, units, delivery_type, refrigerated, route, owner, lastmile, year: date.slice(0, 4), month: date.slice(5, 7) })
 
 const incidence = (created_at, closed_date, { state_raw = 'closed', route_name = 'R1', order_id = 1 } = {}) =>
   ({ created_at, closed_date, state_raw, route_name, order_id })
@@ -105,5 +105,21 @@ describe('logistics stats: incidences in progress (issues/154)', () => {
     expect(incidenceTotals(rows)).toMatchObject({ count: 3, open: 2, closed: 1, solved: 1 })
     const days = incidencePeriods(rows, { mode: 'day', year: 2026, month: 9 })
     expect(days[1]).toMatchObject({ open: 1, closed: 0 })
+  })
+})
+
+// issues/178: the report counted delivery_type 'Refrigerada' and Comandes the
+// refrigerated flag: October 2026 on Diligència gave 82 and 83, the odd one a
+// collection order with a refrigerated order in it and type Normal.
+describe('refrigerated orders (issues/178)', () => {
+  it('counts the flag, as Comandes does', () => {
+    const rows = [
+      order('2026-10-20', { delivery_type: 'Normal', refrigerated: true }),
+      order('2026-10-20'),
+      order('2026-10-21', { delivery_type: 'Refrigerada' })
+    ]
+    expect(orderTotals(rows).refrigerated).toBe(2)
+    const days = orderPeriods(rows, { mode: 'day', year: 2026, month: 10 })
+    expect(days[19]).toMatchObject({ normal: 1, refrigerated: 1 })
   })
 })
