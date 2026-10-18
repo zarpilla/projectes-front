@@ -853,6 +853,12 @@
             </b-field>
               </div>
             </card-component>
+            <document-history
+              v-if="form.id && entity && canSeeHistory"
+              :entity="entity"
+              :document-id="form.id"
+              :refresh-key="historyKey"
+            />
           </aside>
           </div>
           <div class="doc-below">
@@ -1074,6 +1080,7 @@ import DocumentLinesReadOnly from "@/components/DocumentLinesReadOnly.vue";
 import DocumentTotals from "@/components/DocumentTotals.vue";
 import FileUpload from "@/components/FileUpload.vue";
 import InvoiceSubmissionCard from "@/components/InvoiceSubmissionCard.vue";
+import DocumentHistory from "@/components/DocumentHistory.vue";
 
 // Services
 import service from "@/service/index";
@@ -1094,7 +1101,8 @@ export default {
     ModalBoxDiet,
     ProjectPhases,
     FileUpload,
-    InvoiceSubmissionCard
+    InvoiceSubmissionCard,
+    DocumentHistory
   },
   props: {
     id: {
@@ -1111,6 +1119,8 @@ export default {
       appPath: import.meta.env.VUE_APP_PATH,
       isProfileExists: false,
       isLoading: false,
+      // bumped when the document is read again (after a save, an email)
+      historyKey: 0,
       isLoadingProject: false,
       series: [],
       bankAccounts: [],
@@ -1233,6 +1243,11 @@ export default {
         type = "Factures Rebudes";
       }
       return ["Facturació", type, this.formCardTitle];
+    },
+    // the «Historial» (issues/161): the API answers only projects/admin
+    canSeeHistory() {
+      const permissions = ((this.user && this.user.permissions) || []).map(p => p.permission || p);
+      return permissions.includes("projects") || permissions.includes("admin");
     },
     entity() {
       if (this.type === "emitted-invoices") {
@@ -1562,6 +1577,7 @@ export default {
           .then(async r => {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
+              this.historyKey++;
 
               if (r.data.lines) {
                 r.data.lines.forEach(l => {
@@ -2891,6 +2907,8 @@ export default {
 
         this.form.sent_date = new Date();
         this.form.sent = true;
+        // the backend recorded the email (issues/161)
+        this.historyKey++;
 
         this.canEditDocument(false);
       } catch (err) {
