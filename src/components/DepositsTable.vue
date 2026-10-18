@@ -42,7 +42,7 @@
         >{{ pickup.alias || pickup.name || pickup.trade_name }}</button>
         <button type="button" class="chip-toggle" :class="{ 'is-on': pickupFilter === 'finca' }" @click="setPickupFilter('finca')">Finca</button>
       </div>
-      <b-select v-if="total > 50" v-model="perPage" size="is-small" class="ml-auto" @update:model-value="loadData">
+      <b-select v-if="total > 50" v-model="perPage" size="is-small" class="ml-auto">
         <option value="50">50 per pàgina</option>
         <option value="100">100 per pàgina</option>
         <option value="200">200 per pàgina</option>
@@ -55,10 +55,8 @@
       ref="table"
       :loading="isLoading"
       paginated
-      backend-pagination
-      :total="total"
-      :per-page="perPage"
-      @page-change="onPageChange"
+      v-model:current-page="page"
+      :per-page="Number(perPage)"
       pagination-position="bottom"
       backend-sorting
       :default-sort-direction="defaultSortOrder"
@@ -228,7 +226,6 @@ export default {
       orders: [],
       nonPickupLocations: [], // Pickups with pickup=false (Girona, Artés, etc.)
       fincaPickupIds: [], // IDs of pickups with pickup=true
-      total: 0,
       page: 1,
       perPage: 50,
       sortField: "id",
@@ -245,7 +242,10 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ["me"])
+    ...mapState(useMainStore, ["me"]),
+    total() {
+      return this.orders.length;
+    }
   },
   async mounted() {
     const me = await service({ requiresAuth: true, cached: true }).get(
@@ -271,10 +271,12 @@ export default {
     async loadData() {
       this.isLoading = true;
       try {
-        // Build query string manually for duplicate keys
+        // Build query string manually for duplicate keys.
+        // Every matching order: the Punt filter runs here, on the rows received,
+        // and the table pages them. It loaded the first 50 and took their number
+        // as the total, so nothing past them was reachable (issues/147).
         let queryParts = [
-          `_limit=${this.perPage}`,
-          `_start=${(this.page - 1) * this.perPage}`,
+          `_limit=-1`,
           `_sort=${this.sortField}:${this.sortOrder.toUpperCase()}`,
           `_where[status]=pending`,
           `_where[status]=processed`,
@@ -326,7 +328,6 @@ export default {
         }
         
         this.orders = orders;
-        this.total = response.data.length;
 
         // Get counts for different statuses
         await this.loadStatusCounts();
@@ -370,10 +371,6 @@ export default {
       } catch (error) {
         console.error("Error loading status counts:", error);
       }
-    },
-    onPageChange(page) {
-      this.page = page;
-      this.loadData();
     },
     onSort(field, order) {
       this.sortField = field;

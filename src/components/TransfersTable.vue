@@ -418,36 +418,6 @@ export default {
       params['_where[_or][0][status]'] = 'pending';
       params['_where[_or][2][status]'] = 'processed';
     },
-    applyTransferStatusParams(params, transferStatuses) {
-      if (!transferStatuses || transferStatuses.length === 0) {
-        return;
-      }
-
-      const conditions = [];
-      if (transferStatuses.includes('pending')) {
-        conditions.push({
-          transfer_start_date_null: true,
-          transfer_end_date_null: true
-        });
-      }
-      if (transferStatuses.includes('in_progress')) {
-        conditions.push({
-          transfer_start_date_null: false,
-          transfer_end_date_null: true
-        });
-      }
-      if (transferStatuses.includes('completed')) {
-        conditions.push({
-          transfer_end_date_null: false
-        });
-      }
-
-      conditions.forEach((condition, index) => {
-        Object.keys(condition).forEach(key => {
-          params[`_where[_and][1][_or][${index}][${key}]`] = condition[key];
-        });
-      });
-    },
     isAllowedOrderStatus(order) {
       return ['pending', 'processed'].includes(order.status);
     },
@@ -461,7 +431,6 @@ export default {
         };
 
         this.applyAllowedOrderStatusParams(params);
-        this.applyTransferStatusParams(params, this.statusFilter);
 
         const response = await service({ requiresAuth: true }).get("orders", { params });
         let allOrders = response.data || [];
@@ -469,14 +438,8 @@ export default {
         // Fallback if backend does not fully apply one of the filters
         allOrders = allOrders.filter(order => this.isAllowedOrderStatus(order));
 
-        if (this.statusFilter.length > 0) {
-          allOrders = allOrders.filter(order => {
-            const status = this.getTransferStatus(order);
-            return this.statusFilter.includes(status);
-          });
-        }
-
-        // Keep all transfer orders to maintain coherent counters
+        // Every state is loaded and counted before the state filter: the KPIs
+        // and tab counts read 0 for the states not selected (issues/156).
         this.allTransferOrders = allOrders;
         this.pendingCount = allOrders.filter(
           o => this.getTransferStatus(o) === 'pending'
@@ -489,6 +452,12 @@ export default {
         ).length;
 
         let filteredOrders = allOrders;
+
+        if (this.statusFilter.length > 0) {
+          filteredOrders = filteredOrders.filter(order =>
+            this.statusFilter.includes(this.getTransferStatus(order))
+          );
+        }
 
         // Apply pickup filter if needed
         if (this.pickupFilter !== null) {

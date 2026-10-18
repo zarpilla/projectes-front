@@ -30,7 +30,7 @@
         v-if="treasuryDataDesc && treasuryDataDesc.length"
         name="tresoreria"
         :fields="{
-          data: 'datex',
+          data: { field: 'datef', callback: value => treasuryDisplayDate({ datef: value }) },
           import: {
             field: 'total_amount',
             callback: (value, row) => {
@@ -393,7 +393,7 @@
             cell-class="is-nowrap"
             v-slot="props"
           >
-            {{ props.row.datex }}
+            {{ treasuryDisplayDate(props.row) }}
             <b-icon
               v-if="props.row.date_error"
               class="has-text-danger"
@@ -606,7 +606,7 @@ import { formatMoney, sign } from "@/helpers/format-number";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
-import { treasuryPeriod } from "@/domain/projectTreasury.js";
+import { treasuryPeriod, treasuryDisplayDate } from "@/domain/projectTreasury.js";
 
 export default {
   name: "Tresoreria",
@@ -997,8 +997,9 @@ export default {
     },
     treasuryDataDesc() {
       //return _.reverse(this.treasuryData)
+      // by the YYYYMMDD date, not by the display string (issues/136)
       let treasuryDataOfYear = this.treasuryData.filter(
-        d => moment(d.datex, "dd-MM-YYYY").year() == this.selectedYear
+        d => String(d.datef || "").slice(0, 4) == this.selectedYear
       );
 
       // Apply project filter (exclude balance annotations from filtering)
@@ -1019,28 +1020,24 @@ export default {
 
       // Apply date filters (exclude balance annotations from filtering)
       if (this.filterDateStart) {
-        const startDate = moment(this.filterDateStart).format("DD-MM-YYYY");
+        const startDate = moment(this.filterDateStart).format("YYYYMMDD");
         treasuryDataOfYear = treasuryDataOfYear.filter(d => {
           // Always include "Inici Any" entries regardless of date filter
           if (d.type === "Inici Any" || d.is_balance_annotation || d.is_real_balance_adjustment) {
             return true;
           }
-          return moment(d.datex, "DD-MM-YYYY").isSameOrAfter(
-            moment(startDate, "DD-MM-YYYY")
-          );
+          return d.datef >= startDate;
         });
       }
 
       if (this.filterDateEnd) {
-        const endDate = moment(this.filterDateEnd).format("DD-MM-YYYY");
+        const endDate = moment(this.filterDateEnd).format("YYYYMMDD");
         treasuryDataOfYear = treasuryDataOfYear.filter(d => {
           // Always include "Inici Any" entries regardless of date filter
           if (d.type === "Inici Any" || d.is_balance_annotation || d.is_real_balance_adjustment) {
             return true;
           }
-          return moment(d.datex, "DD-MM-YYYY").isSameOrBefore(
-            moment(endDate, "DD-MM-YYYY")
-          );
+          return d.datef <= endDate;
         });
       }
 
@@ -1074,6 +1071,7 @@ export default {
     }
   },
   methods: {
+    treasuryDisplayDate,
     async getData() {
       this.isLoading = true;
       const year = this.$route.query.year
