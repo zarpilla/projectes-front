@@ -417,7 +417,7 @@
           <section class="a-box">
             <header class="box-head">
               <h2>Preu</h2>
-              <b-button v-if="isStaff" size="is-small" icon-left="refresh" title="Recalcula el preu" @click="changeRate">Recalcula</b-button>
+              <b-button v-if="isOffice" size="is-small" icon-left="refresh" title="Recalcula el preu" @click="changeRate">Recalcula</b-button>
             </header>
             <dl class="facts">
               <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
@@ -444,8 +444,8 @@
                   <b>{{ form.deposit_date ? "Dipositada" : "Dipòsit" }}</b>
                   <small>{{ form.deposit_date ? `${formatDateTime(form.deposit_date)}${form.deposit_user ? " · " + (form.deposit_user.username || form.deposit_user.fullname) : ""}` : "Informa que has dipositat els paquets" }}</small>
                 </div>
-                <b-button v-if="form.deposit_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeDeposit">Desfés</b-button>
-                <b-button v-else-if="!form.deposit_date && canEdit && canDepositOrder(form)" size="is-small" :loading="isLoading" @click="depositOrder">Dipositar</b-button>
+                <b-button v-if="form.deposit_date && canDeposit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeDeposit">Desfés</b-button>
+                <b-button v-else-if="!form.deposit_date && canDeposit && canDepositOrder(form)" size="is-small" :loading="isLoading" @click="depositOrder">Dipositar</b-button>
               </li>
               <li v-if="form.transfer">
                 <span class="move-dot" :class="{ 'is-done': form.transfer_start_date }"><b-icon :icon="form.transfer_start_date ? 'check' : 'swap-horizontal'" size="is-small" /></span>
@@ -453,8 +453,8 @@
                   <b>Inici de transferència</b>
                   <small>{{ form.transfer_start_date ? `${formatDateTime(form.transfer_start_date)}${form.transfer_start_user ? " · " + (form.transfer_start_user.username || form.transfer_start_user.fullname) : ""}` : form.transfer_route_date ? `Prevista ${formatDate(form.transfer_route_date)}` : "Pendent" }}</small>
                 </div>
-                <b-button v-if="form.transfer_start_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferStart">Desfés</b-button>
-                <b-button v-else-if="!form.transfer_start_date && canEdit" size="is-small" :loading="isLoading" @click="startTransfer">Iniciar transferència</b-button>
+                <b-button v-if="form.transfer_start_date && canMove" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferStart">Desfés</b-button>
+                <b-button v-else-if="!form.transfer_start_date && canMove" size="is-small" :loading="isLoading" @click="startTransfer">Iniciar transferència</b-button>
               </li>
               <li v-if="form.transfer">
                 <span class="move-dot" :class="{ 'is-done': form.transfer_end_date }"><b-icon :icon="form.transfer_end_date ? 'check' : 'swap-horizontal'" size="is-small" /></span>
@@ -462,8 +462,8 @@
                   <b>Fi de transferència</b>
                   <small>{{ form.transfer_end_date ? `${formatDateTime(form.transfer_end_date)}${form.transfer_end_user ? " · " + (form.transfer_end_user.username || form.transfer_end_user.fullname) : ""}` : "Quan s'hagi iniciat" }}</small>
                 </div>
-                <b-button v-if="form.transfer_end_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferEnd">Desfés</b-button>
-                <b-button v-else-if="!form.transfer_end_date && canEdit" size="is-small" :loading="isLoading" :disabled="!form.transfer_start_date" @click="endTransfer">Finalitzar transferència</b-button>
+                <b-button v-if="form.transfer_end_date && canMove" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferEnd">Desfés</b-button>
+                <b-button v-else-if="!form.transfer_end_date && canMove" size="is-small" :loading="isLoading" :disabled="!form.transfer_start_date" @click="endTransfer">Finalitzar transferència</b-button>
               </li>
               <li v-if="!form.is_collection_order">
                 <span class="move-dot" :class="{ 'is-done': form.pickup_date }"><b-icon :icon="form.pickup_date ? 'check' : 'truck-outline'" size="is-small" /></span>
@@ -471,8 +471,8 @@
                   <b>Recollida (càrrega)</b>
                   <small>{{ form.pickup_date ? `${formatDateTime(form.pickup_date)}${form.pickup_user ? " · " + (form.pickup_user.username || form.pickup_user.fullname) : ""}` : "Informa que has recollit els paquets" }}</small>
                 </div>
-                <b-button v-if="form.pickup_date && canEdit" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removePickup">Desfés</b-button>
-                <b-button v-else-if="!form.pickup_date && canEdit" size="is-small" :loading="isLoading" @click="pickupOrder">Recollir</b-button>
+                <b-button v-if="form.pickup_date && canMove" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removePickup">Desfés</b-button>
+                <b-button v-else-if="!form.pickup_date && canMove" size="is-small" :loading="isLoading" @click="pickupOrder">Recollir</b-button>
               </li>
             </ul>
           </section>
@@ -512,8 +512,10 @@
     <div class="savebar">
       <span class="savebar-state">{{ form.id ? (canEdit ? "Desa els canvis quan acabis" : "Només lectura") : isPickupPoint ? "Nova comanda punt de consum" : "Nova comanda" }}</span>
       <b-button :loading="isLoading" @click="exit">Sortir</b-button>
-      <b-button :loading="isLoading" @click="submit(true)">Guardar i sortir</b-button>
-      <b-button type="is-primary" :loading="isLoading" @click="submit(false)">Guardar</b-button>
+      <template v-if="canEdit">
+        <b-button :loading="isLoading" @click="submit(true)">Guardar i sortir</b-button>
+        <b-button type="is-primary" :loading="isLoading" @click="submit(false)">Guardar</b-button>
+      </template>
     </div>
   </div>
 </template>
@@ -526,6 +528,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
+import { isOffice as isLogisticsOffice, canEditOrder, canMoveOrder, canDepositOrderMove } from "@/domain/orderPermissions.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -641,6 +644,18 @@ export default {
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
     },
+    // the logistics office: the order itself and its price (issues/163)
+    isOffice() {
+      return isLogisticsOffice(this.permissions);
+    },
+    // transfers and loading are the logistics staff's, not the members' (issues/163)
+    canMove() {
+      return canMoveOrder(this.form, this.permissions);
+    },
+    // the member deposits her boxes; the staff record deposits too
+    canDeposit() {
+      return canDepositOrderMove(this.form, this.permissions);
+    },
     // the logistics staff and the entity's own staff, not members (issues/119)
     canSeeHistory() {
       return this.isStaff || this.permissions.includes("projects") || this.permissions.includes("admin");
@@ -681,19 +696,10 @@ export default {
           this.permissions.includes("orders_delivery")
       );
     },
+    // the office, a member on her pending order, and whoever may create one
+    // on a new one (issues/163)
     canEdit() {
-      return (
-        (this.form.id &&
-          this.form.status !== "cancelled" &&
-          (this.permissions.includes("orders_admin") ||
-            this.permissions.includes("orders_delivery"))) ||
-        (this.form.status === "pending" &&
-          !(
-            this.permissions.includes("orders_admin") ||
-            this.permissions.includes("orders_delivery")
-          )) ||
-        !this.form.id
-      );
+      return canEditOrder(this.form, this.permissions);
     },
     canChangeRate() {
       return ["pending"].includes(this.form.status);

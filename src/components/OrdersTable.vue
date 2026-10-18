@@ -9,7 +9,7 @@
     ></b-loading>
 
     <title-bar :title-stack="['Comandes']" :subtitle="headline">
-      <b-button v-if="!isMobile" icon-left="upload" @click="showExport = !showExport">Importa CSV</b-button>
+      <b-button v-if="!isMobile && canCreate" icon-left="upload" @click="showExport = !showExport">Importa CSV</b-button>
       <b-dropdown position="is-bottom-left" aria-role="menu" class="export-menu">
         <template #trigger>
           <b-button icon-left="download" icon-right="menu-down">Exporta</b-button>
@@ -34,8 +34,10 @@
           <download-excel class="export-item" :data="csvExampleContacts" type="csv" :escapeCsv="false" name="exemple-contactes.csv" :fields="csvFieldsContacts">Exemple CSV de punts d'entrega</download-excel>
         </b-dropdown-item>
       </b-dropdown>
-      <b-button icon-left="plus" @click="navNewPickup">Comanda punt de consum</b-button>
-      <b-button type="is-primary" icon-left="plus" @click="navNew">Nova comanda</b-button>
+      <template v-if="canCreate">
+        <b-button icon-left="plus" @click="navNewPickup">Comanda punt de consum</b-button>
+        <b-button type="is-primary" icon-left="plus" @click="navNew">Nova comanda</b-button>
+      </template>
     </title-bar>
 
     <section class="section is-main-section">
@@ -341,7 +343,7 @@
                       <button v-if="canEditOrder(order)" type="button" class="row-action" title="Edició ràpida" aria-label="Edició ràpida" :disabled="!!editingRowId" @click="startEdit(order)">
                         <b-icon icon="pencil-outline" size="is-small" />
                       </button>
-                      <router-link v-if="canEditOrder(order)" :to="{ name: 'orders.edit', params: { id: order.id } }" class="row-action" title="Obre la fitxa" aria-label="Obre la fitxa">
+                      <router-link v-if="canOpenOrder(order)" :to="{ name: 'orders.edit', params: { id: order.id } }" class="row-action" title="Obre la fitxa" aria-label="Obre la fitxa">
                         <b-icon icon="open-in-new" size="is-small" />
                       </router-link>
                     </template>
@@ -430,6 +432,7 @@ import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus } from "@/domain/orderStatus";
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
+import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder } from "@/domain/orderPermissions";
 
 export default {
   name: "OrdersTable",
@@ -818,6 +821,10 @@ export default {
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
     },
+    // a driver makes the moves of the orders, not the orders, unless she is a member too (issues/163)
+    canCreate() {
+      return canCreateOrders(this.permissions);
+    },
     bulkStatusOptions() {
       return bulkStatuses(this.isStaff);
     },
@@ -1117,15 +1124,14 @@ export default {
     this.getData();
   },
   methods: {
+    // the quick edit: OrdersForm's canEdit (the office, or a member on her
+    // pending order; a driver only makes the moves, issues/163)
     canEditOrder(order) {
-      // Similar logic to OrdersForm's canEdit
-      return (
-        (order.id &&
-          order.status !== "cancelled" &&
-          (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery"))) ||
-        (order.status === "pending" &&
-          !(this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")))
-      );
+      return Boolean(order.id) && mayEditOrder(order, this.permissions);
+    },
+    // the order's card: the staff open it for the moves too
+    canOpenOrder(order) {
+      return mayOpenOrder(order, this.permissions);
     },
     startEdit(order) {
       this.editingRowId = order.id;
