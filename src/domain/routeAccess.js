@@ -71,6 +71,7 @@ export const ROUTE_PERMISSIONS = {
   '/order-operations': STAFF,
   '/orders-invoice': OFFICE,
   '/city-route-delivery': OFFICE,
+  '/routes': OFFICE,
   '/partners': OFFICE,
   '/orders-stats': OFFICE,
   '/incidences-stats': OFFICE,

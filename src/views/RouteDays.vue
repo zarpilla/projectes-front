@@ -10,7 +10,7 @@
     </title-bar>
 
     <section class="section is-main-section">
-      <routes-tabs :is-staff="canEdit" />
+      <routes-tabs :is-staff="canEdit" :is-office="isOffice" />
 
       <div v-for="h in holidayWarnings" :key="h.date" class="notification is-warning holiday-note">
         <span>
@@ -120,6 +120,7 @@ export default {
       isLoading: false,
       saving: false,
       canEdit: false,
+      isOffice: false,
       routes: [],
       closures: [],
       holidays: [],
@@ -175,6 +176,7 @@ export default {
     const me = await service({ requiresAuth: true, cached: true }).get("users/me");
     const permissions = me.data.permissions.map(p => p.permission);
     this.canEdit = permissions.includes("orders_admin") || permissions.includes("orders_delivery");
+    this.isOffice = permissions.includes("orders_admin");
     this.isLoading = true;
     const [routes, cities, cityRoutes] = await Promise.all([
       service({ requiresAuth: true, cached: true }).get("routes?_sort=order&_where[active]=true&_limit=-1").then(r => r.data),

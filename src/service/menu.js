@@ -100,6 +100,7 @@ const menu = [
     { to: "/city-route", icon: "city-variant-outline", label: "Poblacions i rutes", permission: ["orders", "orders_admin"] },
     { to: "/city-route-delivery", icon: "map-marker-outline", label: "Poblacions i punts", permission: "orders_admin" },
     { to: "/route-days", icon: "calendar-month-outline", label: "Rutes i dies", permission: ["orders", "orders_admin"] },
+    { to: "/routes", icon: "map-marker-path", label: "Rutes", permission: "orders_admin" },
     { to: "/user-contacts", icon: "store-outline", label: "Punts d'entrega", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/pickup-points", icon: "basket-outline", label: "Punts de consum", permission: ["orders", "orders_admin"] },
     { to: "/partners", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin", itemClassName: "mb-6" }

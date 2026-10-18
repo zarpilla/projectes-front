@@ -45,6 +45,11 @@ export const CHANGELOG = [
     },
     {
       type: "Novetats",
+      modules: ["Logística"],
+      text: ["L'oficina de logística ja pot crear rutes, canviar-ne els dies, el repartidor, les transferències i el descompte per volum, i desactivar-les, a ", { to: "/routes", label: "Rutes i punts › Rutes" }, ". Una ruta desactivada no surt en fer comandes ni a Rutes i dies; les comandes que ja la tenen la mantenen."]
+    },
+    {
+      type: "Novetats",
       modules: ["Hores", "Administració"],
       text: ["Festius de tothom (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/admin/festive-type", label: "Taules auxiliars › Tipus de festiu" }, "."]
     },

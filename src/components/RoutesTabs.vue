@@ -1,5 +1,5 @@
 <template>
-  <!-- The three screens about routes share these tabs (mockup A-Log-Rutes) -->
+  <!-- The screens about routes share these tabs (mockup A-Log-Rutes) -->
   <nav class="tabs routes-tabs" aria-label="Rutes">
     <ul>
       <li v-for="tab in visibleTabs" :key="tab.to" :class="{ 'is-active': $route.path === tab.to }">
@@ -13,7 +13,9 @@
 const TABS = [
   { to: "/route-days", label: "Rutes i dies" },
   { to: "/city-route", label: "Poblacions i rutes" },
-  { to: "/city-route-delivery", label: "Poblacions i punts", staff: true }
+  { to: "/city-route-delivery", label: "Poblacions i punts", staff: true },
+  // the office creates and disables routes (issues/141)
+  { to: "/routes", label: "Rutes", office: true }
 ];
 
 export default {
@@ -22,11 +24,15 @@ export default {
     isStaff: {
       type: Boolean,
       default: false
+    },
+    isOffice: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
     visibleTabs() {
-      return TABS.filter(tab => !tab.staff || this.isStaff);
+      return TABS.filter(tab => (!tab.staff || this.isStaff) && (!tab.office || this.isOffice));
     }
   }
 };

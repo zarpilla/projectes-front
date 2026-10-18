@@ -7,7 +7,7 @@
     <title-bar :title-stack="['Rutes i punts', 'Poblacions i rutes']" :subtitle="headline" />
 
     <section class="section is-main-section">
-      <routes-tabs :is-staff="canEdit" />
+      <routes-tabs :is-staff="canEdit" :is-office="isOffice" />
       <b-loading :is-full-page="false" :model-value="isLoading" />
 
       <div class="cr-layout">
@@ -174,6 +174,7 @@ export default {
       cityRoutes: [],
       newCity: "",
       canEdit: false,
+      isOffice: false,
       routeFilter: "",
       lookup: "",
       open: {},
@@ -224,6 +225,7 @@ export default {
     const me = await service({ requiresAuth: true, cached: true }).get("users/me");
     const permissions = me.data.permissions.map(p => p.permission);
     this.canEdit = permissions.includes("orders_admin") || permissions.includes("orders_delivery");
+    this.isOffice = permissions.includes("orders_admin");
     this.isLoading = true;
     await this.getData();
     this.isLoading = false;

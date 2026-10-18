@@ -511,6 +511,16 @@ const routes = [
   },
   {
     meta: {
+      title: "Rutes",
+      requiresAuth: true
+    },
+    path: "/routes",
+    name: "routes.edit",
+    component: () =>
+      import("../views/Routes.vue"),
+  },
+  {
+    meta: {
       title: "Punts de recollida",
       requiresAuth: true
     },

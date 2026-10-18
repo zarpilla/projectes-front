@@ -5,7 +5,7 @@
     <title-bar :title-stack="['Rutes i punts', 'Poblacions i punts']" :subtitle="headline" />
 
     <section class="section is-main-section">
-      <routes-tabs :is-staff="true" />
+      <routes-tabs :is-staff="true" :is-office="true" />
       <b-loading :is-full-page="false" :model-value="isLoading" />
 
       <div class="notification is-info">
