@@ -4,6 +4,7 @@
     <section class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="submit2">
         <b-autocomplete
+          v-if="canPickPerson"
           v-model="userNameSearch"
           class="filter-auto"
           placeholder="Persona"
@@ -76,7 +77,8 @@ import TitleBar from "@/components/TitleBar.vue";
 // import HeroBar from '@/components/HeroBar.vue'
 import DedicationInput from "@/components/DedicationInput.vue";
 import service from "@/service/index";
-import { findCurrentUser } from "@/domain/currentUser";
+import { findCurrentUser, currentUserId } from "@/domain/currentUser";
+import { canPickPerson, storedPermissions } from "@/domain/routeAccess";
 import moment from "moment";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -92,6 +94,7 @@ export default {
     return {
       isModalActive: false,
       isLoading: false,
+      canPickPerson: canPickPerson(storedPermissions()),
       filters: {
         date1: null,
         date2: null,
@@ -173,6 +176,8 @@ export default {
         if (user && user.id) {
           this.userNameSearch = user.username;
           this.filters.user = user.id;
+        } else if (!this.canPickPerson) {
+          this.filters.user = currentUserId();
         }
         this.isLoading = false;
       });

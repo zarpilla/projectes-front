@@ -107,6 +107,14 @@ export function canOpen (matched, permissions) {
   })
 }
 
+/**
+ * Whether the hours screens (Hores dedicades, Registre jornades) let her pick
+ * another person: only `projects` and `admin`. The API gives a worker (`hours`)
+ * only her own rows (issues/099). Unknown permissions (null) keep the picker.
+ */
+export const canPickPerson = permissions =>
+  !permissions || permissions.includes('projects') || permissions.includes('admin')
+
 /** Where a user lands after login, or when a page is not hers. */
 export function landingPath (permissions) {
   if (permissions.includes('projects')) return '/projectes'

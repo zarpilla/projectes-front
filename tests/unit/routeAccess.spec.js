@@ -3,7 +3,7 @@
 // Tresoreria, Bestretes, Persones or Facturar by URL or through links.
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
-import { routePermissions, canOpen, landingPath, ROUTE_PERMISSIONS, OPEN_ROUTES } from '@/domain/routeAccess'
+import { routePermissions, canOpen, landingPath, canPickPerson, ROUTE_PERMISSIONS, OPEN_ROUTES } from '@/domain/routeAccess'
 import menuList from '@/service/menu'
 
 const rec = path => [{ path, meta: {} }]
@@ -92,5 +92,13 @@ describe('changelog links (issues/121)', () => {
     expect(canOpenPath('/profile', ['orders'])).toBe(true)
     expect(canOpenPath('/admin/users', ['projects'])).toBe(false)
     expect(canOpenPath('/tresoreria', null)).toBe(true)
+  })
+
+  it('shows the «Persona» picker of the hours screens to projects and admin only (issues/099)', () => {
+    expect(canPickPerson(['hours'])).toBe(false)
+    expect(canPickPerson(['hours', 'orders_admin'])).toBe(false)
+    expect(canPickPerson(['hours', 'projects'])).toBe(true)
+    expect(canPickPerson(['admin'])).toBe(true)
+    expect(canPickPerson(null)).toBe(true)
   })
 })

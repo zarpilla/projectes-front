@@ -67,7 +67,7 @@
             >
             </b-autocomplete>
           </b-field>
-          <b-field label="Persona" horizontal>
+          <b-field v-if="canPickPerson" label="Persona" horizontal>
             <b-autocomplete
               v-model="userNameSearch"
               placeholder="Persona"
@@ -216,7 +216,8 @@ import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
 import TimeCounter from "@/components/TimeCounter.vue";
 import { counterElapsed, relationId } from "@/service/timeCounter";
-import { findCurrentUser } from "@/domain/currentUser";
+import { findCurrentUser, currentUserId } from "@/domain/currentUser";
+import { canPickPerson, storedPermissions } from "@/domain/routeAccess";
 
 export default {
   name: "ModalBoxDedication",
@@ -251,6 +252,7 @@ export default {
   },
   data() {
     return {
+      canPickPerson: canPickPerson(storedPermissions()),
       isModalActive: false,
       isLoading1: false,
       isLoading2: false,
@@ -441,6 +443,8 @@ export default {
       if (user && user.id && this.form.users_permissions_user === null) {
         this.userNameSearch = user.username;
         this.form.users_permissions_user = user.id;
+      } else if (!this.canPickPerson && this.form.users_permissions_user === null) {
+        this.form.users_permissions_user = currentUserId();
       }
 
       if (this.counter) {
