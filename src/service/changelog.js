@@ -149,6 +149,11 @@ export const CHANGELOG = [
   date: "2026.10.18",
   items: [
     {
+      type: "Correccions",
+      modules: ["Informes", "Projectes"],
+      text: ["L'informe ", { to: "/stats-projectes", label: "Projectes" }, " ja no compta dues vegades els projectes fills: els sumava sols i també dins dels totals del projecte mare. Ara els totals coincideixen amb els de la llista de projectes."]
+    },
+    {
       type: "Millores",
       modules: ["Diners"],
       text: ["A ", { to: "/emitted-invoices", label: "Ingressos" }, " hi ha un filtre «Estat» per veure només els esborranys o només les factures emeses."]
