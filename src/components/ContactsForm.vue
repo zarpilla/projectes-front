@@ -74,7 +74,12 @@
               <b-field label="Adreça *" horizontal class="full">
                 <b-input v-model="form.address" required type="text" />
               </b-field>
-              <b-field label="CP *" horizontal>
+              <b-field
+                label="CP *"
+                horizontal
+                :type="postcodeError ? 'is-danger' : ''"
+                :message="postcodeError ? postcodeMessage : ''"
+              >
                 <b-input v-model="form.postcode" required />
               </b-field>
               <b-field label="Població *" horizontal>
@@ -422,6 +427,7 @@ import { useMainStore } from "@/stores/main.js";
 import { contactDatesForPickers } from "@/domain/contactDates";
 import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
+import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
 
 export default {
   name: "ContactsForm",
@@ -458,6 +464,11 @@ export default {
     };
   },
   computed: {
+    // a Spanish postcode needs its 5 digits (issues/179)
+    postcodeError() {
+      return !!this.form.postcode && postcodeInvalid(this.form.postcode, this.form.country);
+    },
+    postcodeMessage: () => POSTCODE_MESSAGE,
     titleStack() {
       return ["Contactes", this.formCardTitle];
     },
@@ -690,6 +701,11 @@ export default {
       this.isLoading = true;
 
       try {
+        if (this.postcodeError) {
+          this.$buefy.snackbar.open({ message: POSTCODE_MESSAGE, queue: false, type: "is-danger" });
+          this.isLoading = false;
+          return;
+        }
         if (this.form.id) {
           if (
             !this.form.name ||

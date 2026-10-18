@@ -167,6 +167,7 @@ import service from "@/service/index";
 import FileUpload from "@/components/FileUpload.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import moment from "moment";
+import { importedPostcode } from "@/domain/postcode";
 
 export default {
   name: "ImportExport",
@@ -594,7 +595,7 @@ export default {
         email: record.email || null,
         address: record.address || null,
         city: record.city || null,
-        postcode: record.postcode || null,
+        postcode: importedPostcode(record.postcode || null, record.country, { blankIsSpanish: false }),
         state: record.state || null,
         country: record.country || null,
         contact_person: record.contact_person || null,

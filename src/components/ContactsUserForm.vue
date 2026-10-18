@@ -54,6 +54,7 @@
               <b-field
                 label="CP *"
                 :type="{ 'is-danger': errors['postcode'] && submitted }"
+                :message="errors['postcode'] && submitted && form.postcode ? postcodeMessage : ''"
               >
                 <b-input v-model="form.postcode" required />
               </b-field>
@@ -389,6 +390,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import moment from "moment";
 import concat from "lodash/concat";
 import { pick } from "lodash";
+import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
 
 export default {
   name: "ContactUsersForm",
@@ -440,6 +442,7 @@ export default {
     };
   },
   computed: {
+    postcodeMessage: () => POSTCODE_MESSAGE,
     titleStack() {
       return ["Punts d'entrega", this.formCardTitle];
     },
@@ -481,7 +484,8 @@ export default {
         address: !this.form.address,
         city: !this.form.city || !isCityValid,
         sector: !this.form.sector,
-        postcode: !this.form.postcode,
+        // a Spanish postcode needs its 5 digits (issues/179)
+        postcode: !this.form.postcode || postcodeInvalid(this.form.postcode, this.form.country),
         owner: !this.form.owner,
         time_slot_1_ini: this.slotErrors.some(
           e => e.time_slot_1_ini || e.time_slot_1_end || e.time_slots

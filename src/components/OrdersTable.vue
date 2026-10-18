@@ -429,6 +429,7 @@ import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus } from "@/domain/orderStatus";
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
+import { importedPostcode } from "@/domain/postcode";
 
 export default {
   name: "OrdersTable",
@@ -2189,7 +2190,7 @@ export default {
           trade_name: record.contact_trade_name,
           address: record.contact_address,
           phone: record.contact_phone,
-          postcode: record.contact_postcode,
+          postcode: importedPostcode(record.contact_postcode),
           nif: record.contact_nif,
           city: record.contact_city,
           time_slot_1_ini: record.contact_time_slot_1_ini || null,
