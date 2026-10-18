@@ -35,6 +35,12 @@
           </b-select>
         </label>
         <label class="filter-select">
+          <span>Estat</span>
+          <b-select v-model="filters.state">
+            <option v-for="(c, i) in states" :key="i" :value="c.value">{{ c.name }}</option>
+          </b-select>
+        </label>
+        <label class="filter-select">
           <span>Cobrada</span>
           <b-select v-model="filters.paid">
             <option v-for="(c, i) in paid" :key="i" :value="c.value">{{ c.name }}</option>
@@ -76,6 +82,7 @@
         :document-type="filters.documentType"
         :project="filters.project"
         :paid="filters.paid"
+        :state="filters.state"
         :serial="filters.serial"
       />
     </section>
@@ -90,6 +97,7 @@ import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
+import { STATE_OPTIONS } from "@/domain/incomeListFilters";
 
 export default {
   name: "DedicacioSaldo",
@@ -112,6 +120,7 @@ export default {
         documentType: 0,
         project: 0,
         paid: 0,
+        state: 0,
         serial: 0
       },
       years: [],
@@ -129,6 +138,7 @@ export default {
       documentTypes: [],
       treasury: [],
       treasuryData: [],
+      states: STATE_OPTIONS,
       paid: [
         { name: "Totes", value: 0 },
         { name: "Sí", value: 1 },

@@ -204,6 +204,7 @@ import { format } from "@/helpers/excelFormatter";
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import getConfig from '@/config'
+import { stateFilter } from '@/domain/incomeListFilters'
 
 export default {
   name: "EmittedInvoices",
@@ -244,6 +245,11 @@ export default {
     paid: {
       type: Number,
       default: null,
+    },
+    // «Estat»: 0 all, 1 drafts, 2 issued (incomeListFilters)
+    state: {
+      type: Number,
+      default: 0,
     },
     provider: {
       type: Boolean,
@@ -318,6 +324,9 @@ export default {
     paid: function (newVal, oldVal) {
       this.getData();
     },
+    state: function () {
+      this.getData();
+    },
     serial: function (newVal, oldVal) {
       this.getData();
     },
@@ -370,9 +379,11 @@ export default {
       
       const codeQuery = this.code ? `&[code_contains]=${this.code}` : '';
 
+      const { invoiceQuery: stateQuery, includeIncomes } = stateFilter(this.state);
+
       let invoices = (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
+          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}${stateQuery}`
         )
       ).data;
 
@@ -381,11 +392,11 @@ export default {
       });
 
       const typeQuery = this.documentType !== 0 ? `&[document_type_eq]=${this.documentType}` : '';
-      let incomes = (
+      let incomes = includeIncomes ? (
         await service({ requiresAuth: true }).get(
           `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
         )
-      ).data;
+      ).data : [];
 
       incomes = incomes.map((element) => {
         return { ...element, type: 'received-incomes' };
