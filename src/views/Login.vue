@@ -20,10 +20,7 @@
           />
         </div>
         <div class="field">
-          <div class="label-row">
-            <label class="label" for="password">Clau de pas</label>
-            <router-link to="/forgotten-password">He oblidat la clau</router-link>
-          </div>
+          <label class="label" for="password">Clau de pas</label>
           <div class="password-wrap">
             <input
               id="password"
@@ -48,6 +45,7 @@
         <button class="button is-primary is-fullwidth login-submit" type="submit" :class="{ 'is-loading': sending }">
           Entra
         </button>
+        <router-link class="login-forgot" to="/forgotten-password">He oblidat la clau</router-link>
       </form>
     </main>
     <footer v-if="logos.length" class="login-logos">

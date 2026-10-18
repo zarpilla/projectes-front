@@ -48,16 +48,6 @@
   font-size: .875rem;
   margin-bottom: .375rem;
 }
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: .5rem;
-}
-.label-row a {
-  font-size: .875rem;
-  font-weight: 600;
-}
 .login-card .input {
   height: 2.75rem;
 }
@@ -88,6 +78,11 @@
 .login-submit {
   height: 2.75rem;
   font-size: 1rem;
+}
+.login-forgot {
+  align-self: center;
+  font-size: .875rem;
+  font-weight: 600;
 }
 .login-logos {
   display: flex;
