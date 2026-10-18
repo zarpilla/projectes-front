@@ -201,6 +201,9 @@ export default {
         mother: "mother",
         type: "type",
         date: "date",
+        // forecast dates and whole VAT of the budget line (issues/142, issues/143)
+        previsio_facturacio: "forecast_invoice_date",
+        previsio_pagament: "forecast_payment_date",
         year: "year",
         month: "month",
         paid: "paid",
@@ -229,7 +232,7 @@ export default {
             return this.excelFormat(value);
           }
         },
-        expense_orig_vat: {
+        expense_orig_iva_no_deduible: {
           field: "expense_orig_vat",
           callback: value => {
             return this.excelFormat(value);
@@ -241,7 +244,7 @@ export default {
             return this.excelFormat(value);
           }
         },
-        expense_esti_vat: {
+        expense_esti_iva_no_deduible: {
           field: "expense_esti_vat",
           callback: value => {
             return this.excelFormat(value);
@@ -253,8 +256,16 @@ export default {
             return this.excelFormat(value);
           }
         },
-        expense_real_vat: {
+        expense_real_iva_no_deduible: {
           field: "expense_real_vat",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        // the whole VAT; `*_iva_no_deduible` is only the non-deductible part
+        iva_pct: "vat_pct",
+        iva: {
+          field: "vat",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -300,9 +311,9 @@ export default {
         delete fields.income_orig
         delete fields.income_real
         delete fields.expense_orig
-        delete fields.expense_orig_vat
+        delete fields.expense_orig_iva_no_deduible
         delete fields.expense_real
-        delete fields.expense_real_vat
+        delete fields.expense_real_iva_no_deduible
         delete fields.total_original_hours_price
         delete fields.total_real_hours_price
         delete fields.total_original_hours
@@ -312,9 +323,9 @@ export default {
         delete fields.income_orig
         delete fields.income_esti
         delete fields.expense_orig
-        delete fields.expense_orig_vat
+        delete fields.expense_orig_iva_no_deduible
         delete fields.expense_esti
-        delete fields.expense_esti_vat
+        delete fields.expense_esti_iva_no_deduible
         delete fields.total_original_hours_price
         delete fields.total_estimated_hours_price
         delete fields.total_original_hours
@@ -387,7 +398,7 @@ export default {
             return this.excelFormat(value);
           }
         },
-        "Despeses orig iva": {
+        "Despeses orig IVA no deduïble": {
           field: "expense_orig_vat",
           callback: value => {
             return this.excelFormat(value);
@@ -399,7 +410,7 @@ export default {
             return this.excelFormat(value);
           }
         },
-        "Despeses prev iva": {
+        "Despeses prev IVA no deduïble": {
           field: "expense_esti_vat",
           callback: value => {
             return this.excelFormat(value);
@@ -411,7 +422,7 @@ export default {
             return this.excelFormat(value);
           }
         },
-        "Despeses exec iva": {
+        "Despeses exec IVA no deduïble": {
           field: "expense_real_vat",
           callback: value => {
             return this.excelFormat(value);
@@ -463,9 +474,9 @@ export default {
         delete fields["Despeses tot orig"]
         delete fields["Despeses tot exec"]
         delete fields["Despeses orig"]
-        delete fields["Despeses orig iva"]
+        delete fields["Despeses orig IVA no deduïble"]
         delete fields["Despeses exec"]
-        delete fields["Despeses exec iva"]
+        delete fields["Despeses exec IVA no deduïble"]
         delete fields["Hores orig"]
         delete fields["Hores exec"]
         delete fields["Hores orig (h)"]
@@ -479,9 +490,9 @@ export default {
         delete fields["Despeses tot orig"]
         delete fields["Despeses tot prev"]
         delete fields["Despeses orig"]
-        delete fields["Despeses orig iva"]
+        delete fields["Despeses orig IVA no deduïble"]
         delete fields["Despeses prev"]
-        delete fields["Despeses prev iva"]
+        delete fields["Despeses prev IVA no deduïble"]
         delete fields["Hores orig"]
         delete fields["Hores prev"]
         delete fields["Hores orig (h)"]

@@ -79,6 +79,16 @@ export const CHANGELOG = [
   date: "2026.10.18",
   items: [
     {
+      type: "Millores",
+      modules: ["Informes"],
+      text: ["«Exporta detall» d'", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " inclou la previsió de facturació i la previsió de pagament de cada línia del pressupost."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Informes"],
+      text: ["«Exporta detall» d'", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " té les columnes «iva_pct» i «iva» amb l'IVA de cada moviment, ingressos inclosos. Les columnes que abans es deien «…_vat» (i «Despeses … iva» a les exportacions de totals) ara es diuen «…_iva_no_deduible» («Despeses … IVA no deduïble»): són només l'IVA no deduïble, que és 0 si l'IVA es dedueix tot. Els totals dels projectes i la ", { to: "/tresoreria", label: "Tresoreria" }, " (pagaments i cobraments previstos i l'IVA previst) ja fan servir l'IVA de cada línia del pressupost, no el del tipus."]
+    },
+    {
       type: "Correccions",
       modules: ["Projectes"],
       text: ["A la fitxa del ", { to: "/projectes", label: "projecte" }, ", passar d'un projecte a un altre sense recarregar ja no arrossega la periodificació, els totals ni l'any del resum de l'anterior. Un codi que ja existeix es diu en català al costat del camp «Codi», i esborrar un projecte explica que va a la paperera."]
