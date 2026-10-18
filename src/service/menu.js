@@ -227,12 +227,26 @@ const menu = [
       activeWhen: "verifactu"
     },
     {
-      // the 19 auxiliary tables (service/adminTables.js) share one screen
+      // the auxiliary tables (service/adminTables.js) share one screen
       to: "/admin/project-scope",
       icon: "table-settings",
       label: "Taules auxiliars",
       permission: "admin",
-      activeWhen: "admin-tables",
+      activeWhen: "admin-tables"
+    },
+    {
+      // «Amb el suport de» of the login page and the menu (issues/159)
+      to: "/admin/logos",
+      icon: "image-multiple-outline",
+      label: "Logos",
+      permission: "admin"
+    },
+    {
+      // the members' «Contacta» form (issues/159)
+      to: "/admin/form-submissions",
+      icon: "email-outline",
+      label: "Missatges",
+      permission: "admin",
       itemClassName: "mb-6"
     }
   ],

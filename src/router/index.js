@@ -837,6 +837,30 @@ const routes = [
       requiresPermission: "admin"
     }
   },
+  // the supporters' logos and the «Contacta» messages (issues/159), before
+  // the generic /admin/:entityName
+  {
+    path: "/admin/logos",
+    name: "admin.logos",
+    component: () =>
+      import("../views/AdminLogos.vue"),
+    meta: {
+      title: "Logos",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
+    path: "/admin/form-submissions",
+    name: "admin.form-submissions",
+    component: () =>
+      import("../views/AdminFormSubmissions.vue"),
+    meta: {
+      title: "Missatges",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
   // Admin entity management routes
   // Strapi 3 names of two entities, kept for bookmarks (issues/026)
   { path: "/admin/bank-accounts", redirect: "/admin/bank-account" },

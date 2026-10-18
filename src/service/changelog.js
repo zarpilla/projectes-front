@@ -55,6 +55,11 @@ export const CHANGELOG = [
     },
     {
       type: "Novetats",
+      modules: ["Administració", "Logística"],
+      text: ["Les taules que només es podien canviar des de l'administrador del servidor ja són a Taules auxiliars: ", { to: "/admin/pickup", label: "Punts de recollida" }, ", ", { to: "/admin/delivery-type", label: "Tipus de lliurament" }, ", ", { to: "/admin/city", label: "Poblacions" }, " (no s'esborra una població que fan servir rutes, punts o contactes), ", { to: "/admin/product", label: "Productes" }, ", ", { to: "/admin/document-type", label: "Tipus de document" }, ", ", { to: "/admin/vat-type", label: "Tipus d'IVA" }, " i ", { to: "/admin/activity-type", label: "Tipus d'activitat" }, ". A ", { to: "/routes", label: "Rutes" }, " es pot triar el projecte i el punt de recollida de cada ruta, i quins dies porta transferències. Els logos d'«Amb el suport de» s'afegeixen, s'ordenen i s'esborren a ", { to: "/admin/logos", label: "Administració › Logos" }, ", i els missatges del formulari «Contacta» es llegeixen a ", { to: "/admin/form-submissions", label: "Missatges" }, "."]
+    },
+    {
+      type: "Novetats",
       modules: ["Hores", "Administració"],
       text: ["Festius de tothom (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/admin/festive-type", label: "Taules auxiliars › Tipus de festiu" }, "."]
     },
