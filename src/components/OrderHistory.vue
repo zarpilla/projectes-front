@@ -77,6 +77,12 @@ export default {
 </script>
 
 <style scoped>
+/* an <ol> (newest first) without the numbers: they sat in the box padding */
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 .history > li + li {
   margin-top: .75rem;
   padding-top: .75rem;
