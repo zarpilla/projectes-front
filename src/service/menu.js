@@ -103,8 +103,8 @@ const menu = [
   ],
   "Estadístiques",
   [
-    { to: "/orders-stats", icon: "table-eye", label: "Taula Comandes", permission: "orders_admin" },
-    { to: "/incidences-stats", icon: "table-search", label: "Taula Incidències", permission: "orders_admin", itemClassName: "mb-6" }
+    { to: "/orders-stats", icon: "chart-bar", label: "Informe de comandes", permission: "orders_admin" },
+    { to: "/incidences-stats", icon: "alert-box-outline", label: "Informe d'incidències", permission: "orders_admin", itemClassName: "mb-6" }
   ],
   "Informes",
   [

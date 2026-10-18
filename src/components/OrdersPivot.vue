@@ -86,6 +86,7 @@ export default {
   name: 'OrdersPivot',
   components: { PivotViews },
   mixins: [pivotViewsMixin],
+  emits: ['loaded'],
   props: {
     year: {
       type: Number,
@@ -129,6 +130,7 @@ export default {
       this.orders = (await service({ requiresAuth: true }).get(`orders/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.orders, ['id'], ['asc']))
       this.pivotEmpty = this.pivotData.length === 0
+      this.$emit('loaded', this.pivotData)
       configPivot.dataSource.data = this.pivotData
       this.initializePivotWithViews('#project-stats', configPivot)
       this.isLoading = false

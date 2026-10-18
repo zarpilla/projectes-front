@@ -513,7 +513,7 @@ const routes = [
 
   {
     meta: {
-      title: "Comandes TD",
+      title: "Estadístiques de comandes",
       requiresAuth: true
     },
     path: "/orders-stats",
@@ -524,7 +524,7 @@ const routes = [
   },
   {
     meta: {
-      title: "Incidències TD",
+      title: "Estadístiques d'incidències",
       requiresAuth: true
     },
     path: "/incidences-stats",

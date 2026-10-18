@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" subtitle="Les comandes de logística per any i mes. Configura la taula dinàmica per agrupar-les com vulguis." />
+    <title-bar :title-stack="titleStack" subtitle="Les comandes de logística per any i mes, en gràfics i en una taula dinàmica que pots agrupar com vulguis." />
     <section class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
         <label class="filter-select">
@@ -16,7 +16,13 @@
           </b-select>
         </label>
       </form>
-      <orders-pivot :year="filters.year" :month="filters.month" v-if="!isLoading" />
+      <orders-stats-charts
+        v-if="!isLoading && chartRows"
+        :rows="chartRows"
+        :year="filters.year && filters.year.year"
+        :month="filters.month && filters.month.month"
+      />
+      <orders-pivot :year="filters.year" :month="filters.month" v-if="!isLoading" @loaded="rows => (chartRows = rows)" />
     </section>
   </div>
 </template>
@@ -24,6 +30,7 @@
 <script>
 import TitleBar from "@/components/TitleBar.vue";
 import OrdersPivot from "@/components/OrdersPivot.vue";
+import OrdersStatsCharts from "@/components/OrdersStatsCharts.vue";
 import service from "@/service/index";
 import defaultProjectState from "@/service/projectState";
 import { addScript, addStyle } from "@/helpers/addScript";
@@ -33,11 +40,14 @@ export default {
   name: "StatsOrders",
   components: {
     TitleBar,
-    OrdersPivot
+    OrdersPivot,
+    OrdersStatsCharts
   },
   data() {
     return {
       isLoading: true,
+      // rows loaded by the pivot, for the charts
+      chartRows: null,
       filters: {
         project_state: null,
         year: null,
@@ -50,7 +60,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ["Estadístiques", "Taula Comandes"];
+      return ["Estadístiques", "Informe de comandes"];
     }
   },
   async mounted() {

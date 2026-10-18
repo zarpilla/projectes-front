@@ -66,6 +66,7 @@ export default {
   name: 'IncidencesPivot',
   components: { PivotViews },
   mixins: [pivotViewsMixin],
+  emits: ['loaded'],
   props: {
     year: {
       type: Number,
@@ -109,6 +110,7 @@ export default {
       this.incidences = (await service({ requiresAuth: true }).get(`incidences/infoall?_limit=-1${qYear}${qMonth}`)).data      
       this.pivotData = Object.freeze(sortBy(this.incidences, ['id'], ['asc']))
       this.pivotEmpty = this.pivotData.length === 0
+      this.$emit('loaded', this.pivotData)
       configPivot.dataSource.data = this.pivotData
       this.initializePivotWithViews('#incidences-stats', configPivot)
       this.isLoading = false

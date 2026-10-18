@@ -6,6 +6,8 @@ export const token = (name, fallback) => {
   return v || fallback
 }
 
+const isDark = () => typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark'
+
 export const chartColors = () => ({
   income: token('--a-accent', '#0F7B6C'),
   expense: '#C2410C',
@@ -13,7 +15,12 @@ export const chartColors = () => ({
   planned: token('--a-line', '#D5DDDA'),
   line: token('--a-fg', '#1F2A2E'),
   pos: token('--a-pos', '#15803D'),
-  neg: token('--a-neg', '#C2410C')
+  neg: token('--a-neg', '#C2410C'),
+  // two series side by side (logistics: normal / refrigerated); checked for
+  // colour-blind separation against each theme's surface
+  first: isDark() ? '#21A08B' : '#00876F',
+  second: isDark() ? '#5E88D8' : '#3B6FD4',
+  warn: token('--a-over', '#C2410C')
 })
 
 // axis ticks: 12500 → 12,5k (or 13k), 1.2M

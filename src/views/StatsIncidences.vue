@@ -1,6 +1,6 @@
 <template>
   <div v-if="!isLoading">
-    <title-bar :title-stack="titleStack" subtitle="Les incidències de logística per any i mes. Configura la taula dinàmica per agrupar-les com vulguis." />
+    <title-bar :title-stack="titleStack" subtitle="Les incidències de logística per any i mes, en gràfics i en una taula dinàmica que pots agrupar com vulguis." />
     <section class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent>
         <label class="filter-select">
@@ -16,7 +16,13 @@
           </b-select>
         </label>
       </form>
-      <incidences-pivot :year="filters.year" :month="filters.month" v-if="!isLoading" />
+      <incidences-stats-charts
+        v-if="!isLoading && chartRows"
+        :rows="chartRows"
+        :year="filters.year && filters.year.year"
+        :month="filters.month && filters.month.month"
+      />
+      <incidences-pivot :year="filters.year" :month="filters.month" v-if="!isLoading" @loaded="rows => (chartRows = rows)" />
     </section>
   </div>
 </template>
@@ -24,6 +30,7 @@
 <script>
 import TitleBar from "@/components/TitleBar.vue";
 import IncidencesPivot from "@/components/IncidencesPivot.vue";
+import IncidencesStatsCharts from "@/components/IncidencesStatsCharts.vue";
 import service from "@/service/index";
 import { addScript, addStyle } from "@/helpers/addScript";
 import moment from "moment";
@@ -32,11 +39,14 @@ export default {
   name: "StatsIncidences",
   components: {
     TitleBar,
-    IncidencesPivot
+    IncidencesPivot,
+    IncidencesStatsCharts
   },
   data() {
     return {
       isLoading: true,
+      // rows loaded by the pivot, for the charts
+      chartRows: null,
       filters: {
         year: null,
         month: null
@@ -47,7 +57,7 @@ export default {
   },
   computed: {
     titleStack() {
-      return ["Estadístiques", "Taula Incidències"];
+      return ["Estadístiques", "Informe d'incidències"];
     }
   },
   async mounted() {

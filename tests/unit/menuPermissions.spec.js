@@ -36,7 +36,7 @@ describe('menu permissions', () => {
     expect(section(['orders_delivery'], 'Logística')).toEqual(['Comandes', 'Dipòsits', 'Incidències', 'Transferències', 'Operacions'])
     expect(section(['orders_delivery'], 'Rutes i punts')).toEqual(["Punts d'entrega"])
     expect(section(['orders_admin'], 'Logística')).toEqual(['Comandes', 'Dipòsits', 'Incidències', 'Transferències', 'Operacions', 'Facturar'])
-    expect(section(['orders_admin'], 'Estadístiques')).toEqual(['Taula Comandes', 'Taula Incidències'])
+    expect(section(['orders_admin'], 'Estadístiques')).toEqual(['Informe de comandes', "Informe d'incidències"])
     expect(section(['projects'], 'Logística')).toEqual([])
   })
 })
