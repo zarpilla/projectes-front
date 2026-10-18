@@ -17,14 +17,14 @@
         <b-dropdown-item aria-role="menuitem" custom>
           <download-excel
             class="export-item"
-            :data="theOrdersChecked"
+            :fetch="rowsToExport"
             :name="comandesCSVName()"
-            :fields="{ id: 'id', date: 'route_date', ...csvFields, ...csvExportFields }"
+            :fields="{ id: 'id', date: 'route_date', ...odsFields, ...csvExportFields }"
           >Comandes (.ods)</download-excel>
         </b-dropdown-item>
         <b-dropdown-item v-if="isStaff" aria-role="menuitem" @click="downloadRouterCSV">Per al planificador de rutes (.csv)</b-dropdown-item>
         <b-dropdown-item v-if="isStaff" aria-role="menuitem" custom>
-          <download-excel class="export-item" :data="theOrdersChecked" name="ecologistica.ods" :fields="{ ...csvEcologistica }">Per a Ecologística (.ods)</download-excel>
+          <download-excel class="export-item" :fetch="rowsToExport" name="ecologistica.ods" :fields="{ ...csvEcologistica }">Per a Ecologística (.ods)</download-excel>
         </b-dropdown-item>
         <hr class="dropdown-divider" />
         <b-dropdown-item aria-role="menuitem" custom>
@@ -152,7 +152,7 @@
       <div class="doc-kpis">
         <div class="doc-kpi">
           <span>Comandes actives</span>
-          <b>{{ morePages ? "+" : "" }}{{ kpis.active }}</b>
+          <b>{{ kpis.active }}</b>
           <small>{{ kpis.cancelled ? `${kpis.cancelled} anul·lades no compten` : "sense anul·lades" }}</small>
         </div>
         <div class="doc-kpi">
@@ -180,7 +180,7 @@
         <b-button size="is-small" :disabled="!newState" @click="setBulkState">Aplica</b-button>
         <span class="selection-actions">
           <b-button size="is-small" icon-left="printer" @click="pdfOrders">Imprimeix albarans</b-button>
-          <download-excel :data="theOrdersChecked" :name="comandesCSVName()" :fields="{ id: 'id', date: 'route_date', ...csvFields, ...csvExportFields }">
+          <download-excel :data="theOrdersChecked" :name="comandesCSVName()" :fields="{ id: 'id', date: 'route_date', ...odsFields, ...csvExportFields }">
             <b-button size="is-small" icon-left="download">Exporta selecció</b-button>
           </download-excel>
           <b-button size="is-small" type="is-text" @click="checkedRows = []">Desmarca</b-button>
@@ -355,10 +355,10 @@
             <tfoot v-if="groups.length">
               <tr>
                 <td></td>
-                <td :colspan="sumColsBefore"><b>Total {{ kpis.active }} comandes actives</b><span v-if="morePages" class="has-text-muted"> (aquesta pàgina)</span></td>
-                <td class="has-text-right num"><b>{{ formatNum(kpis.units) }}</b></td>
-                <td class="has-text-right num"><b>{{ formatNum(kpis.kg) }}</b></td>
-                <td class="has-text-right num"><b>{{ money(kpis.price) }}</b></td>
+                <td :colspan="sumColsBefore"><b>Total {{ pageKpis.active }} comandes actives</b><span v-if="morePages" class="has-text-muted"> (aquesta pàgina)</span></td>
+                <td class="has-text-right num"><b>{{ formatNum(pageKpis.units) }}</b></td>
+                <td class="has-text-right num"><b>{{ formatNum(pageKpis.kg) }}</b></td>
+                <td class="has-text-right num"><b>{{ money(pageKpis.price) }}</b></td>
                 <td :colspan="sumColsAfter"></td>
               </tr>
             </tfoot>
@@ -428,6 +428,7 @@ import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus } from "@/domain/orderStatus";
+import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 
 export default {
   name: "OrdersTable",
@@ -691,12 +692,7 @@ export default {
             return "?";
           }
         },
-        "dropoff.address": {
-          field: "contact_address",
-          callback: value => {
-            return this.addressFormatted(value);
-          }
-        },
+        "dropoff.address": "contact_address",
         "dropoff.address.description": "contact_legal_form.name",
         "dropoff.address.name": "contact_trade_name",
         "dropoff.address.telephone": "contact_phone",
@@ -809,6 +805,8 @@ export default {
       ownerFilter: null,
       pickupFilter: null,
       statusCounts: {},
+      totals: null,
+      lastWhere: [],
       collapsed: {},
       groupBy: "route",
       isMobile: typeof window !== "undefined" && window.innerWidth < 769,
@@ -859,7 +857,12 @@ export default {
     morePages() {
       return this.total > this.perPageEffective;
     },
+    // the figures above the list: every matching order (orders/totals,
+    // issues/177); the loaded rows until the answer comes
     kpis() {
+      return this.totals || this.pageKpis;
+    },
+    pageKpis() {
       const rows = this.theOrders;
       const active = rows.filter(o => o.status !== "cancelled");
       return {
@@ -975,6 +978,9 @@ export default {
       // Filtering is done at API level. The rows must stay the same objects:
       // the table matches the checked rows by identity (issues/038)
       return this.orders;
+    },
+    odsFields() {
+      return orderOdsFields(this.csvFields);
     },
     theOrdersChecked() {
       return this.checkedRows.length
@@ -1400,6 +1406,8 @@ export default {
       // payload and not used here).
       // the counts of the status tabs: same filters, each status
       this.loadStatusCounts(where.filter(w => !w.startsWith("_where[status]") && w !== "_where[last_mile]=true"));
+      this.lastWhere = where;
+      this.loadTotals(where);
 
       this.orders = (
         await service({ requiresAuth: true }).get(
@@ -1416,39 +1424,66 @@ export default {
         )
       ).data;
 
-      this.orders = this.orders.map(o => {
-        return {
-          ...this.withNotes(o),
-          idx: o.id.toString().padStart(4, "0") + (o.is_collection_order ? `-R` : ""),
-          // some old orders have no route or member
-          route_name: o.route ? o.route.name : "",
-          owner_id: o.owner ? o.owner.id : null,
-          timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(
-            o.contact_time_slot_1_ini
-          )} - ${o.estimated_delivery_date} ${this.formatSlot(
-            o.contact_time_slot_1_end
-          )}`,
-          timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(
-            o.contact_time_slot_2_ini
-          )} -${o.estimated_delivery_date} ${this.formatSlot(
-            o.contact_time_slot_2_end
-          )}`,
-          fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
-          timeslot1And2: `${this.formatSlot2(
-            o.contact_time_slot_1_ini,
-            o.contact_time_slot_1_end,
-            ""
-          )}${this.formatSlot2(
-            o.contact_time_slot_2_ini,
-            o.contact_time_slot_2_end,
-            ", "
-          )}`,
-          fullName: o.contact_trade_name || o.contact_name,
-          last_mile_display: o.last_mile ? "Sí" : "No"
-        };
-      });
+      this.orders = this.orders.map(o => this.decorateOrder(o));
 
       this.checkedRows = [];
+    },
+    // the columns the table and the exports read, from an orders/table row
+    decorateOrder(o) {
+      return {
+        ...this.withNotes(o),
+        idx: o.id.toString().padStart(4, "0") + (o.is_collection_order ? `-R` : ""),
+        // some old orders have no route or member
+        route_name: o.route ? o.route.name : "",
+        owner_id: o.owner ? o.owner.id : null,
+        timeslot1: `${o.estimated_delivery_date} ${this.formatSlot(
+          o.contact_time_slot_1_ini
+        )} - ${o.estimated_delivery_date} ${this.formatSlot(
+          o.contact_time_slot_1_end
+        )}`,
+        timeslot2: `${o.estimated_delivery_date} ${this.formatSlot(
+          o.contact_time_slot_2_ini
+        )} -${o.estimated_delivery_date} ${this.formatSlot(
+          o.contact_time_slot_2_end
+        )}`,
+        fullAddress: `${o.contact_address}, ${o.contact_postcode} ${o.contact_city}`,
+        timeslot1And2: `${this.formatSlot2(
+          o.contact_time_slot_1_ini,
+          o.contact_time_slot_1_end,
+          ""
+        )}${this.formatSlot2(
+          o.contact_time_slot_2_ini,
+          o.contact_time_slot_2_end,
+          ", "
+        )}`,
+        fullName: o.contact_trade_name || o.contact_name,
+        last_mile_display: o.last_mile ? "Sí" : "No"
+      };
+    },
+    async loadTotals(where) {
+      // only the answer to the last filters counts
+      const seq = (this.totalsSeq = (this.totalsSeq || 0) + 1);
+      this.totals = null;
+      try {
+        const { data } = await service({ requiresAuth: true }).get(`orders/totals?${this.userFilter}&${where.join("&")}`);
+        if (seq === this.totalsSeq) this.totals = data;
+      } catch (e) {
+        // the loaded rows' figures stay
+      }
+    },
+    // what the export menu downloads: the selection, else every matching order
+    rowsToExport() {
+      return exportRows({
+        checked: this.checkedRows.length ? this.theOrdersChecked : [],
+        rows: this.theOrders,
+        morePages: this.morePages,
+        fetchAll: async () =>
+          (
+            await service({ requiresAuth: true }).get(
+              `orders/table?_limit=-1&_sort=${this.sortField}:${this.sortOrder}${this.userFilter}&${this.lastWhere.join("&")}`
+            )
+          ).data.map(o => this.decorateOrder(o))
+      });
     },
     withNotes(o) {
       return {
@@ -2445,7 +2480,7 @@ export default {
     comandesRouterCSVName() {
       return `comandes-${moment().format("YYYYMMDD-HHmmss")}.csv`;
     },
-    downloadRouterCSV() {
+    async downloadRouterCSV() {
       // Generate CSV with UTF-8 BOM for proper encoding in Excel
       const BOM = '\uFEFF';
       
@@ -2453,7 +2488,7 @@ export default {
       const headers = Object.keys(this.csvFieldsRouter);
       
       // Generate CSV rows
-      const rows = this.theOrdersChecked.map(row => {
+      const rows = (await this.rowsToExport()).map(row => {
         return headers.map(header => {
           const fieldDef = this.csvFieldsRouter[header];
           let value = '';
