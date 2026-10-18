@@ -52,7 +52,7 @@
           sortable
           v-slot="props"
         >
-          <span v-if="props.row.project_scope" class="tag">{{ props.row.project_scope.name }}</span>
+          <span v-if="props.row.project_scope" class="tag scope-tag">{{ props.row.project_scope.name }}</span>
         </b-table-column>
         <b-table-column
           label="Hores fetes / previstes"
@@ -693,7 +693,7 @@ export default {
 <style scoped>
 .project-name {
   display: block;
-  max-width: 22rem;
+  max-width: 18rem;
   font-weight: 700;
   color: var(--a-accent);
   white-space: nowrap;
@@ -713,7 +713,18 @@ export default {
   white-space: nowrap;
 }
 :deep(.hours-cell) {
-  min-width: 11rem;
+  min-width: 10rem;
+}
+/* a long scope («Entitats, cooperatives i empreses») wraps instead of widening
+   the table: with «Estat» and «Modificat» it must fit at 1440px */
+.scope-tag {
+  max-width: 9rem;
+  height: auto;
+  white-space: normal;
+  line-height: 1.25;
+  border-radius: 6px;
+  padding-top: .25em;
+  padding-bottom: .25em;
 }
 .hours-line {
   display: flex;

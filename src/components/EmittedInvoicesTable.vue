@@ -160,7 +160,7 @@
           props.row.document_concept || (props.row.lines && props.row.lines.length > 0 ? props.row.lines[0].concept : "")
         }}</div>
       </b-table-column>
-      <b-table-column :label="!provider ? 'Projecte' : 'Ruta'" field="lines" v-slot="props" sortable cell-class="doc-project">
+      <b-table-column label="Projecte" field="lines" v-slot="props" sortable cell-class="doc-project">
         <div class="doc-clamp"><span v-for="project in props.row.projects" :key="project.id">{{project.name}}&nbsp;</span></div>
       </b-table-column>
       <b-table-column label="Base" field="total_base" v-slot="props" sortable numeric cell-class="is-nowrap">

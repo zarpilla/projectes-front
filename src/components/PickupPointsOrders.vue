@@ -219,7 +219,7 @@ export default {
         // Find the order in our data
         const order = this.ordersData.find(o => o.id === orderId);
         if (!order || !order.lines || !order.lines[lineIndex]) {
-          throw new Error("Línea no trobada");
+          throw new Error("Línia no trobada");
         }
 
         // Update the line to mark as picked up
@@ -248,13 +248,13 @@ export default {
         // }
 
         this.$buefy.toast.open({
-          message: "Línea marcada com recollida correctament",
+          message: "Línia marcada com recollida correctament",
           type: "is-success"
         });
       } catch (error) {
         console.error("Error updating pickup status:", error);
         this.$buefy.toast.open({
-          message: "Error al marcar la línea com recollida",
+          message: "Error al marcar la línia com recollida",
           type: "is-danger"
         });
       } finally {
@@ -269,7 +269,7 @@ export default {
         // Find the order in our data
         const order = this.ordersData.find(o => o.id === orderId);
         if (!order || !order.lines || !order.lines[lineIndex]) {
-          throw new Error("Línea no trobada");
+          throw new Error("Línia no trobada");
         }
 
         // Update the line to mark as not picked up
@@ -289,13 +289,13 @@ export default {
         order.lines = updatedLines;
 
         this.$buefy.toast.open({
-          message: "Línea marcada com NO recollida correctament",
+          message: "Línia marcada com NO recollida correctament",
           type: "is-success"
         });
       } catch (error) {
         console.error("Error updating pickup status:", error);
         this.$buefy.toast.open({
-          message: "Error al marcar la línea com NO recollida",
+          message: "Error al marcar la línia com NO recollida",
           type: "is-danger"
         });
       } finally {

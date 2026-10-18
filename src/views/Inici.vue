@@ -437,6 +437,8 @@ export default {
 .is-editing .home-tile:not(.home-tile-add) {
   cursor: grab;
   border-style: dashed;
+  /* room for the arrows (.5rem + 1.625rem) so they don't cover a long label */
+  padding-bottom: 2.5rem;
 }
 .is-editing .home-tile-link::after {
   display: none;

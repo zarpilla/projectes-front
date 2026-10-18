@@ -72,6 +72,26 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Plataforma"],
       text: ["El ", { to: "/changelog", label: "Registre de canvis" }, " es pot filtrar per mòdul (Projectes, Hores, Diners, Subvencions, Informes, Logística, Integracions, Administració i Plataforma), i cada canvi indica els mòduls que toca."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["El «Peu de les comandes» de ", { to: "/admin/me", label: "Configuració general" }, " ara surt al peu de cada albarà, sota les dades de l'entitat. Abans no s'imprimia enlloc."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["A ", { to: "/provider-invoices", label: "Factures" }, " de la sòcia, el subtítol diu el nom de l'entitat (deia «l'entitat») i la columna dels projectes es diu «Projecte» (deia «Ruta»)."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["A l'", { to: "/orders-stats", label: "informe de comandes" }, " el total diu «caixes» (deia «bultos») i els avisos dels punts de consum diuen «línia» (deien «línea»). L'assumpte dels correus d'incidències, del resum de tasques i del formulari de contacte escrivia ESSTRAPIS amb una S de més."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: ["La taula de ", { to: "/mother-projects", label: "Projectes mare" }, " (i la de Projectes amb l'estat «Tots») ja hi cap sencera en una pantalla de 1440 px: la columna «Estat» quedava tallada a la dreta. Els àmbits llargs ocupen dues línies."]
     }
   ]
 },

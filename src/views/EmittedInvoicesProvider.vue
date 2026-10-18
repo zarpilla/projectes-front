@@ -149,7 +149,18 @@ export default {
 
     const year = defaultYear(this.years);
     this.filters.year = year ? year.year : null;
-      
+
+    // the entity's name for the subtitle: the store only has it once a
+    // projects screen loaded it, never for a member (`orders` only)
+    if (!this.me || !this.me.name) {
+      try {
+        const entity = (await service({ requiresAuth: true, cached: true }).get("me")).data;
+        useMainStore().setMe({ me: entity && entity.data ? entity.data : entity });
+      } catch (e) {
+        // keep the generic «l'entitat»
+      }
+    }
+
 
       const me = await service({ requiresAuth: true }).get("users/me");
 

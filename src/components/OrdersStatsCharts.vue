@@ -6,7 +6,7 @@
       <div class="doc-kpi">
         <span>Comandes</span>
         <b>{{ int(total.count) }}</b>
-        <small>{{ int(total.units) }} bultos · {{ total.owners }} sòcies</small>
+        <small>{{ int(total.units) }} caixes · {{ total.owners }} sòcies</small>
       </div>
       <div class="doc-kpi">
         <span>Import</span>

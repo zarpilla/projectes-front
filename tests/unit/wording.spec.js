@@ -12,7 +12,9 @@ const sources = files(path.resolve(process.cwd(), 'src'))
 const BANNED = [
   'Data Pagament', 'Data Venciment', 'Data Enviament', 'Data Acceptació',
   'label="Provincia"', 'Linies de factures', 'Clientes (CLI)', '>Surt<',
-  'Nou Projecte', 'Factures FACE', '"Proveïdor", value'
+  'Nou Projecte', 'Factures FACE', '"Proveïdor", value',
+  // Spanish words found while writing the manual (2026-10): orders KPI, Punts de consum
+  'bultos', 'bults', 'Línea', 'línea'
 ]
 
 describe('wording (issues/113)', () => {
