@@ -1,7 +1,15 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" subtitle="Vídeos que expliquen com fer servir cada part de l'aplicació." />
+    <title-bar :title-stack="titleStack" subtitle="El manual d'usuari i vídeos que expliquen com fer servir cada part de l'aplicació." />
     <section class="section is-main-section">
+      <section class="a-box docs-box">
+        <header class="box-head"><h2>Manual d'usuari</h2></header>
+        <p class="docs-lead">
+          Com es fa servir cada pantalla, pas a pas, amb captures i un cercador. S'obre en una pestanya nova
+          amb els capítols que corresponen als teus permisos.
+        </p>
+        <b-button type="is-primary" icon-left="book-open-variant" @click="openManual">Obre el manual</b-button>
+      </section>
       <section class="a-box docs-box">
         <header class="box-head"><h2>Vídeos</h2></header>
         <ul class="docs-list">
@@ -18,6 +26,7 @@
 </template>
 <script>
 import TitleBar from '@/components/TitleBar.vue'
+import { openDocs, docsErrorMessage } from '@/service/docs'
 
 export default {
   name: 'Documentation',
@@ -43,6 +52,15 @@ export default {
     titleStack () {
       return ['Altres', 'Documentació']
     }
+  },
+  methods: {
+    async openManual () {
+      try {
+        await openDocs()
+      } catch (error) {
+        this.$buefy.snackbar.open({ message: docsErrorMessage(error), type: 'is-danger', queue: false })
+      }
+    }
   }
 }
 </script>
@@ -50,6 +68,12 @@ export default {
 <style scoped>
 .docs-box {
   max-width: 40rem;
+}
+.docs-box + .docs-box {
+  margin-top: 1rem;
+}
+.docs-lead {
+  margin: 0 0 .75rem;
 }
 .docs-list {
   display: grid;
