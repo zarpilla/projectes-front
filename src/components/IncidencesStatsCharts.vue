@@ -1,6 +1,6 @@
 <template>
   <!-- Informes › Incidències: the rows of the pivot below as KPIs and charts; the
-       rate per 100 orders loads the orders of the same period -->
+       rate per 100 orders asks the API how many orders each route had -->
   <div class="ls-charts">
     <div class="doc-kpis">
       <div class="doc-kpi">
@@ -21,7 +21,7 @@
       <div class="doc-kpi">
         <span>Per cada 100 comandes</span>
         <b>{{ total.rate === null ? '–' : number(total.rate, 2) }}</b>
-        <small v-if="orders">{{ int(total.orders) }} comandes en el període</small>
+        <small v-if="routeOrders">{{ int(total.orders) }} comandes en el període</small>
         <small v-else-if="ordersFailed">no s'han pogut carregar les comandes</small>
         <small v-else>carregant les comandes…</small>
       </div>
@@ -46,7 +46,7 @@
         </header>
         <div class="ls-chart" :style="{ height: barsHeight(routes.length) }">
           <bar-chart v-if="routes.length" chart-id="ls-inc-routes" :chart-data="routeChart" :extra-options="routeOptions" />
-          <p v-else-if="!orders && rows.length" class="box-empty">Carregant les comandes…</p>
+          <p v-else-if="!routeOrders && rows.length" class="box-empty">Carregant les comandes…</p>
           <p v-else class="box-empty">Cap incidència.</p>
         </div>
       </section>
@@ -107,14 +107,14 @@ export default {
   },
   data () {
     return {
-      orders: null,
+      routeOrders: null,
       ordersFailed: false,
       themeTick: 0
     }
   },
   computed: {
     total () {
-      return incidenceTotals(this.rows, this.orders)
+      return incidenceTotals(this.rows, this.routeOrders)
     },
     mode () {
       return periodMode(this.year, this.month)
@@ -126,7 +126,7 @@ export default {
       return incidencePeriods(this.rows, { mode: this.mode, year: this.year, month: this.month })
     },
     routes () {
-      return this.orders ? routeRates(this.rows, this.orders) : []
+      return this.routeOrders ? routeRates(this.rows, this.routeOrders) : []
     },
     owners () {
       return topGroups(this.rows, 'owner_name')
@@ -207,17 +207,17 @@ export default {
     window.removeEventListener('themechange', this.onTheme)
   },
   methods: {
-    // the orders of the same year / month as the incidences (by delivery date),
-    // only for the rate: not cached, the pivot of Comandes may have changed them
+    // how many orders the routes had in the same year / month (by delivery date),
+    // for the rate: counted by the API, not cached (orders change every day)
     async loadOrders () {
       const ticket = (this.ordersTicket = (this.ordersTicket || 0) + 1)
-      this.orders = null
+      this.routeOrders = null
       this.ordersFailed = false
       const qYear = this.year && this.year !== 'Tots' ? `&year=${this.year}` : ''
       const qMonth = this.month && this.month !== 'Tots' ? `&month=${this.month}` : ''
       try {
-        const { data } = await service({ requiresAuth: true }).get(`orders/infoall?_limit=-1${qYear}${qMonth}`)
-        if (ticket === this.ordersTicket) this.orders = Object.freeze(data.map(o => ({ route: o.route })))
+        const { data } = await service({ requiresAuth: true }).get(`orders/infoall?_group=route${qYear}${qMonth}`)
+        if (ticket === this.ordersTicket) this.routeOrders = Object.freeze(data)
       } catch (e) {
         if (ticket === this.ordersTicket) this.ordersFailed = true
       }

@@ -151,11 +151,15 @@ const median = list => {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-// `orders`: the orders of the same period, for the rate (null while not loaded)
-export function incidenceTotals (rows, orders = null) {
+// `routeOrders`: the orders of the same period per route, [{ route, count }] from
+// orders/infoall?_group=route, for the rate (null while not loaded)
+export const orderCount = routeOrders => routeOrders.reduce((s, r) => s + num(r.count), 0)
+
+export function incidenceTotals (rows, routeOrders = null) {
   const open = rows.filter(isOpen).length
   const solved = resolutionDays(rows)
   const affected = new Set(rows.map(r => r.order_id).filter(Boolean)).size
+  const orders = routeOrders ? orderCount(routeOrders) : null
   return {
     count: rows.length,
     open,
@@ -164,9 +168,9 @@ export function incidenceTotals (rows, orders = null) {
     sameDayOrNext: solved.filter(d => d <= 1).length,
     solved: solved.length,
     affected,
-    orders: orders ? orders.length : null,
+    orders,
     // incidences per 100 orders
-    rate: orders && orders.length ? round(rows.length / orders.length * 100) : null
+    rate: orders ? round(rows.length / orders * 100) : null
   }
 }
 
@@ -196,9 +200,8 @@ export function resolutionBuckets (rows) {
 
 // the routes with the most incidences per 100 orders (routes with no orders in the
 // period are left out: no rate to give)
-export function routeRates (incidences, orders, limit = 10) {
-  const ordersBy = new Map()
-  for (const o of orders) ordersBy.set(o.route, (ordersBy.get(o.route) || 0) + 1)
+export function routeRates (incidences, routeOrders, limit = 10) {
+  const ordersBy = new Map(routeOrders.map(r => [r.route, num(r.count)]))
   const incBy = new Map()
   for (const i of incidences) incBy.set(i.route_name, (incBy.get(i.route_name) || 0) + 1)
   return [...incBy.entries()]

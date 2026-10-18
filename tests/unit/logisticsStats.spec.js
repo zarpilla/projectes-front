@@ -60,7 +60,8 @@ describe('logistics stats: incidences', () => {
     incidence('2026-09-03', '2026-09-20', { order_id: 2 }),
     incidence('2026-09-04', null, { state_raw: 'open', order_id: 3 })
   ]
-  const orders = [...Array(40)].map(() => order('2026-09-01')).concat([...Array(10)].map(() => order('2026-09-01', { route: 'R2' })))
+  // orders/infoall?_group=route
+  const orders = [{ route: 'R1', count: 40 }, { route: 'R2', count: 10 }]
 
   it('counts open ones, the median days to close and the rate per 100 orders', () => {
     expect(incidenceTotals(rows, orders)).toMatchObject({ count: 4, open: 1, closed: 3, medianDays: 3, affected: 3, orders: 50, rate: 8 })
