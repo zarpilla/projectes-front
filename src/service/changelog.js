@@ -55,6 +55,11 @@ export const CHANGELOG = [
     },
     {
       type: "Novetats",
+      modules: ["Integracions", "Administració"],
+      text: ["Els certificats de l'AEAT i de FACe ja es pugen i se substitueixen des de l'aplicació, amb la seva contrasenya, a ", { to: "/admin/verifactu", label: "Verifactu i FACe" }, " i a ", { to: "/admin/me", label: "Configuració general › FACe" }, ". S'hi veu el titular, el NIF i fins quan és vàlid, amb un avís si caduca aviat o si la contrasenya no l'obre."]
+    },
+    {
+      type: "Novetats",
       modules: ["Logística"],
       text: ["L'oficina de logística ja pot crear rutes, canviar-ne els dies, el repartidor, les transferències i el descompte per volum, i desactivar-les, a ", { to: "/routes", label: "Rutes i punts › Rutes" }, ". Una ruta desactivada no surt en fer comandes ni a Rutes i dies; les comandes que ja la tenen la mantenen."]
     },

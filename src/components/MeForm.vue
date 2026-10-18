@@ -126,7 +126,7 @@
               <b-field label="Endpoint de test" class="is-full"><b-input v-model="form.face_test_endpoint" /></b-field>
               <b-field label="Endpoint real" class="is-full"><b-input v-model="form.face_real_endpoint" /></b-field>
             </div>
-            <p class="cfg-note">La contrasenya del certificat FACe s'actualitza a l'àrea d'administració del servidor, per seguretat.</p>
+            <certificate-card kind="face" title="Certificat de FACe" style="margin-top: .75rem" />
           </section>
 
           <section id="cfg-peus" class="form-box">
@@ -278,6 +278,7 @@
 import service from '@/service/index';
 import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
+import CertificateCard from '@/components/CertificateCard.vue';
 
 // the settings components of `me` edited here (issues/139)
 const COMPONENTS = ['options', 'quotes', 'orders_options'];
@@ -285,7 +286,8 @@ const COMPONENTS = ['options', 'quotes', 'orders_options'];
 export default {
   name: 'MeForm',
   components: {
-    CardComponent
+    CardComponent,
+    CertificateCard
   },
   data() {
     return {

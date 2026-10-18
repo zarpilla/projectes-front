@@ -15,9 +15,7 @@
                 <option value="real">Real</option>
               </b-select>
             </b-field>
-            <div class="notification is-info is-light full">
-              La contrasenya del certificat s'ha d'actualitzar a l'àrea d'administració del servidor (Strapi) per motius de seguretat.
-            </div>
+            <certificate-card kind="verifactu" title="Certificat de l'AEAT" class="full" />
           </div>
         </section>
 
@@ -72,9 +70,11 @@
 
 <script>
 import service from '@/service/index';
+import CertificateCard from '@/components/CertificateCard.vue';
 
 export default {
   name: 'VerifactuForm',
+  components: { CertificateCard },
   data() {
     return {
       isLoading: false,
@@ -157,10 +157,6 @@ export default {
 <style scoped>
 .verifactu-config .a-box + .a-box {
   margin-top: 1rem;
-}
-.verifactu-config .notification {
-  margin: 0;
-  align-self: end;
 }
 .verifactu-switches {
   display: flex;
