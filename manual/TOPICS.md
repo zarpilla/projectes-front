@@ -43,7 +43,7 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 
 | # | Tema | Contingut | Pantalles | Permís | Estat |
 |---|------|-----------|-----------|--------|-------|
-| 17 | Ingressos: factures emeses | Crear factura, sèries, línies i IVA, assignar a projecte, PDF, enviar, cobrament, factures rectificatives, altres ingressos. | `/emitted-invoices`, `/document/:id/:type`, `/invoice/:id/:type`, `/pdf/:id/:type` | projects | done (2026-10-18) |
+| 17 | Ingressos: factures emeses | Crear factura, sèries, línies i IVA, assignar a projecte, PDF, enviar, cobrament, factures rectificatives, altres ingressos. | `/emitted-invoices`, `/document/:id/:type` | projects | done (2026-10-18) |
 | 18 | Facturació electrònica: Verifactu i FACe | Què és Verifactu, cadena de registres, declaració; enviament de factures a l'administració per FACe i la seva cua. | `/verifactu`, `/admin/verifactu*`, `/admin/face-queue` | projects / admin | done (2026-10-18) |
 | 19 | Despeses: factures rebudes | Registrar factures de proveïdors i altres despeses, tipus de despesa, assignar a projecte/fase, pagament. | `/received-invoices`, `/document/:id/:type` | projects | done (2026-10-18) |
 | 20 | Bestretes (nòmines) | Bestretes i nòmines per període, com s'imputen als projectes segons les hores. | `/salary` | projects | done (2026-10-18) |

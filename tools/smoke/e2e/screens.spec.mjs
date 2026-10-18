@@ -31,10 +31,6 @@ const WITH_PARAMS = {
   '/order/:id': () => ['/order/0'],
   // records the other specs leave behind (orders.spec.mjs, money.spec.mjs): skipped when there are none
   '/order/view/:id': s => s.orderId ? [`/order/view/${s.orderId}`] : [],
-  '/invoice/:id/:type': s => s.invoiceId ? [`/invoice/${s.invoiceId}/emitted-invoices`] : [],
-  '/pdf/:id/:type': s => s.invoiceId ? [`/pdf/${s.invoiceId}/emitted-invoices`] : [],
-  // not linked from the menus, but still routed
-  '/quote/:id': s => s.quoteId ? [`/quote/${s.quoteId}`] : [],
   '/admin/users/:id': s => [`/admin/users/${s.me.id}`],
   '/admin/:entityName/new': () => ['/admin/contact-type/new'],
   '/admin/:entityName/:id': s => [`/admin/contact-type/${s.contactTypeId}`]
@@ -70,8 +66,6 @@ test.beforeAll(async () => {
   const [member] = await api('GET', `contacts?_where[users_permissions_user]=${state.me.id}&_limit=1`)
   if (!member) await api('POST', 'contacts', { data: { name: `${NAME} sòcia`, nif: `E2ES${STAMP}`, users_permissions_user: state.me.id } })
   state.orderId = (await api('GET', 'orders?_sort=id:DESC&_limit=1'))[0]?.id
-  state.invoiceId = (await api('GET', 'emitted-invoices?_sort=id:DESC&_limit=1'))[0]?.id
-  state.quoteId = (await api('GET', 'quotes?_sort=id:DESC&_limit=1'))[0]?.id
   const [contactType] = await api('GET', 'contact-types?_limit=1')
   state.contactTypeId = contactType?.id
 })

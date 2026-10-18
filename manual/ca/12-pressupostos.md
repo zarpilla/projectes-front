@@ -89,11 +89,12 @@ Al bloc **Enviament i acceptació**:
 
 ### 4. El PDF
 
-El botó **PDF** obre la vista prèvia del document *tal com surt al PDF*: les dades de l'entitat
-(**PROVEÏDOR**), les de la clienta (**CLIENT**), les línies amb l'IVA i els totals. **Descarrega PDF** el
-desa; **Torna al document** torna al formulari.
+El botó **PDF** genera el PDF del pressupost i l'obre en una pestanya nova del navegador, des d'on es pot
+desar o imprimir. Hi surten el logo i les dades de l'entitat (**PROVEÏDOR/A**), les de la clienta
+(**CLIENT/A**), les línies amb l'IVA i els totals. El de l'exemple és una factura proforma, per això el títol
+és *Factura Proforma*.
 
-![La vista prèvia del PDF](img/12-pressupostos/05-pdf.png)
+![El PDF d'un pressupost](img/12-pressupostos/05-pdf.png)
 
 Les dades de la clienta que surten al PDF són les que es van desar amb el pressupost. Si després es
 canvia la fitxa del contacte, cal tornar a desar el pressupost perquè el PDF les agafi.

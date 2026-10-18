@@ -8,8 +8,8 @@ import QuotesTable from '@/components/QuotesTable.vue'
 
 describe('route meta (issues/085)', () => {
   it('keeps both the title and the auth requirement', () => {
-    const quote = router.getRoutes().find(r => r.name === 'quote.view')
-    expect(quote.meta).toMatchObject({ title: 'Pressupost', requiresAuth: true })
+    const document = router.getRoutes().find(r => r.name === 'document.edit')
+    expect(document.meta).toMatchObject({ title: 'Edita document', requiresAuth: true })
   })
 
   it('declares meta once per route', async () => {

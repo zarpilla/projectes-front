@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 17
 roles: [projects]
-routes: ["/emitted-invoices", "/document/:id/:type", "/invoice/:id/:type", "/pdf/:id/:type"]
+routes: ["/emitted-invoices", "/document/:id/:type"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -105,9 +105,10 @@ adjunts, les notes internes i les línies del projecte assignades.
 
 ![El detall del projecte: les línies pagades porten el número de la factura](img/17-factures-emeses/04-factura-projecte.png)
 
-La vista prèvia mostra la factura tal com surt al PDF:
+El botó **PDF** obre el PDF en una pestanya nova del navegador, des d'on es pot desar o imprimir. És el
+mateix PDF que s'envia per correu:
 
-![La vista prèvia de la factura](img/17-factures-emeses/07-vista-previa.png)
+![El PDF d'una factura emesa](img/17-factures-emeses/07-pdf.png)
 
 ### 4. Marcar-la com a cobrada
 
