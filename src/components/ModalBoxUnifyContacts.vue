@@ -220,6 +220,40 @@ export default {
       this.submitted = false;
       this.$emit('cancel');
     },
+    offerDeleteSource (result) {
+      const source = result.sourceContact;
+      this.$buefy.dialog.confirm({
+        title: 'Eliminar el punt d\'origen',
+        message: `Les comandes ja són al punt <strong>${result.targetContact.display}</strong>. 
+                  Vols eliminar el punt <strong>${source.display}</strong>?`,
+        confirmText: 'Sí, eliminar-lo',
+        cancelText: 'No, mantenir-lo',
+        type: 'is-danger',
+        hasIcon: true,
+        onConfirm: async () => {
+          try {
+            await service({ requiresAuth: true }).delete(`contacts/${source.id}`);
+            this.$buefy.snackbar.open({
+              message: `S'ha eliminat el punt ${source.display}`,
+              type: 'is-success',
+              queue: false
+            });
+            this.$emit('confirm', { ...result, sourceDeleted: true });
+          } catch (error) {
+            console.error('Error deleting the source contact:', error);
+            this.$buefy.snackbar.open({
+              message: `El punt ${source.display} no s'ha pogut eliminar perquè té altres dades associades (factures, pressupostos…)`,
+              type: 'is-danger',
+              queue: false
+            });
+            this.$emit('confirm', { ...result, sourceDeleted: false });
+          }
+        },
+        onCancel: () => {
+          this.$emit('confirm', { ...result, sourceDeleted: false });
+        }
+      });
+    },
     async confirm () {
       this.submitted = true;
       
@@ -234,7 +268,7 @@ export default {
         title: 'Unificar punts d\'entrega',
         message: `Estàs segur que vols moure <strong>${numOrders} ${ordersText}</strong> 
                   del punt <strong>${this.sourceContact.display}</strong> 
-                  al punt <strong>${this.targetContact.display}</strong>?<br><br>
+                  al punt <strong>${this.targetContact.display}</strong>, amb les dades del punt destí?<br><br>
                   Després d'aquesta acció, podràs eliminar el punt d'origen.`,
         confirmText: 'Sí, unificar',
         cancelText: 'Cancel·lar',
@@ -253,14 +287,15 @@ export default {
               type: 'is-success',
               queue: false
             });
-            
-            this.$emit('confirm', {
+
+            const result = {
               sourceContact: this.sourceContact,
               targetContact: this.targetContact,
               numOrders: response.data.movedOrders
-            });
-            
+            };
             this.cancel();
+            // the source point no longer has orders: offer to delete it (issues/157)
+            this.offerDeleteSource(result);
           } catch (error) {
             console.error('Error unifying contacts:', error);
             this.$buefy.snackbar.open({
