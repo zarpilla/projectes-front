@@ -162,7 +162,7 @@
       <div class="doc-kpi">
         <span>Punt més baix previst</span>
         <b :class="'has-text-' + sign(lowestMonth ? lowestMonth.subtotal : 0)">{{ lowestMonth ? money(lowestMonth.subtotal) : "—" }}</b>
-        <small>{{ lowestMonth ? "a final de " + monthName(lowestMonth.month).toLowerCase() : "sense mesos previstos" }}</small>
+        <small>{{ lowestMonth ? "a final " + ofWord(monthName(lowestMonth.month).toLowerCase()) : "sense mesos previstos" }}</small>
       </div>
       <div class="doc-kpi">
         <span>Saldo a 31/12/{{ selectedYear }}</span>
@@ -603,6 +603,7 @@ import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { addScript, addStyle } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { formatMoney, sign } from "@/helpers/format-number";
+import { ofWord } from "@/helpers/catalan";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
@@ -1071,6 +1072,7 @@ export default {
     }
   },
   methods: {
+    ofWord,
     treasuryDisplayDate,
     async getData() {
       this.isLoading = true;

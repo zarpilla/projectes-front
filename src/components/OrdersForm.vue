@@ -1417,8 +1417,13 @@ export default {
       this.checkMultidelivery();
     },
     async deleteOrder() {
+      // «Cancel·la» next to «D'acord» read like «anul·la» (issues/181)
       this.$buefy.dialog.confirm({
+        title: "Anul·la la comanda",
         message: "Estàs segura que vols anul·lar la comanda?",
+        confirmText: "Anul·la la comanda",
+        cancelText: "No, torna",
+        type: "is-danger",
         onConfirm: async () => {
           await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
             status: "cancelled"

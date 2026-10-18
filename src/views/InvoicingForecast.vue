@@ -54,7 +54,7 @@
           <small v-else>res pendent amb data passada</small>
         </div>
         <div class="doc-kpi">
-          <span>Resta de {{ currentMonthName }}</span>
+          <span>Resta {{ ofWord(currentMonthName) }}</span>
           <b>{{ money(currentBase) }}</b>
           <small>{{ plural(currentProjects, 'projecte') }} fins al {{ formatDate(monthEnd) }}</small>
         </div>
@@ -232,6 +232,7 @@
 import TitleBar from '@/components/TitleBar.vue'
 import service from '@/service/index'
 import { formatMoney } from '@/helpers/format-number'
+import { ofWord } from '@/helpers/catalan'
 import {
   addMonths, monthName, monthShort, formatDate, ymOf, filterRows, sections, byProject,
   byLeader, leaderCount, monthlyChart, lateness, closedPending, sumOf, isGrant
@@ -446,6 +447,7 @@ export default {
     }
   },
   methods: {
+    ofWord,
     leaderCount,
     money (v) {
       return formatMoney(v)

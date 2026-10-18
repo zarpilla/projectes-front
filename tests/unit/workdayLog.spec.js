@@ -15,7 +15,7 @@ describe('workday log', () => {
     expect(slotMinutes('09:00:00', '09:00:59')).toBeCloseTo(59 / 60)
     const day = slotMinutes('09:00:00', '09:00:30') + slotMinutes('10:00:00', '10:00:30')
     expect(formatDuration(day)).toBe('0 h 01')
-    expect(formatHoursMinutes(slotMinutes('08:00:20', '12:30:50') + slotMinutes('13:00:00', '15:00:00'))).toBe('6h 31m')
+    expect(formatHoursMinutes(slotMinutes('08:00:20', '12:30:50') + slotMinutes('13:00:00', '15:00:00'))).toBe('6 h 31')
   })
 
   it('formats durations as "h mm"', () => {

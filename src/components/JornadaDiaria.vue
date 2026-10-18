@@ -432,7 +432,7 @@ export default {
       return this.activities.some(a => a.date === this.todayF);
     },
     todayLong() {
-      return moment().format("dddd D [de] MMMM [de] YYYY");
+      return moment().format("dddd D MMMM [de] YYYY");
     },
     openSlotToday() {
       const row = this.dayRows.find(r => r.date === this.todayF);
@@ -664,8 +664,12 @@ export default {
       xhr.send();
     },
     deleteWorkLog(activity, index) {
+      // the same words as the other deletions (ModalBox, issues/181)
       this.$buefy.dialog.confirm({
-        message: "Estàs segura que vols eliminar el registre?",
+        title: "Esborrar?",
+        message: "S'esborrarà el registre d'aquest dia. No es podrà desfer.",
+        confirmText: "Esborra",
+        type: "is-danger",
         onConfirm: async () => {
           this.updating = true;
           try {
@@ -982,7 +986,7 @@ export default {
       return formatHoursMinutes(slotMinutes(activity.hour_in, activity.hour_out));
     },
     formatHourMonth(m) {
-      return m && m.m ? formatHoursMinutes(m.m) : "0h";
+      return formatHoursMinutes(m && m.m ? m.m : 0);
     },
     formatMonthName(dt) {
       return moment(dt)

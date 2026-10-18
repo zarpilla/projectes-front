@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { formatNumber } from '@/helpers/format-number'
 
 // When a running time counter started. Strapi 5 answers `createdAt`; v3 answered
 // `created_at`. Reading only `created_at` gave `moment(undefined)`, i.e. now, so a
@@ -24,7 +25,8 @@ export function counterElapsed (counter, now = moment()) {
     minutes,
     seconds,
     inHours,
-    display: `${hours}h ${minutes}m ${seconds}s (${inHours.toFixed(3)}h)`
+    // «2 h 15 min 15 s (2,254 h)» (it said «(0.010h)», issues/181)
+    display: `${hours} h ${minutes} min ${seconds} s (${formatNumber(inHours, 3, 3)} h)`
   }
 }
 

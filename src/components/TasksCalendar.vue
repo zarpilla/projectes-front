@@ -110,7 +110,7 @@ export default {
       return moment(date).format("dddd");
     },
     longDate(date) {
-      return moment(date).format("D [de] MMMM");
+      return moment(date).format("D MMMM");
     }
   }
 };

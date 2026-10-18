@@ -111,7 +111,7 @@ test('changing the time of the log changes the hours of its activity', async () 
 test('deleting the log deletes its activity', async () => {
   test.skip(!state.activityId, 'needs the activity')
   await row().locator('button[title="Esborrar"]').click()
-  await confirmDialog('Estàs segura que vols eliminar el registre?')
+  await confirmDialog("S'esborrarà el registre")
   await settle()
 
   expect(await myLogsOfToday()).toEqual([])

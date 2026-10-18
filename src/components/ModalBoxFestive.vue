@@ -17,7 +17,7 @@
                   trap-focus>
               </b-datepicker>
             </b-field>
-            <b-field label="Data Final" horizontal message="Només és necessaria per dies consecutius">
+            <b-field label="Data Final" horizontal message="Només és necessària per a dies consecutius">
               <b-datepicker
                   v-model="form.endDate"
                   :show-week-number="false"

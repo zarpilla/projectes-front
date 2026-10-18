@@ -160,6 +160,16 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Plataforma", "Hores", "Diners", "Logística"],
+      text: ["Formats i textos: els imports de la confirmació de factura i de l'avís de pagaments pendents en format català (1.234,56 €), «d'octubre» en lloc de «de octubre», el total d'", { to: "/dedicacio", label: "Hores dedicades" }, " amb dos decimals com les files, «fa 4 dies» comptant dies de calendari, el comptador i el resum imprès del registre de jornada amb el format de la pantalla. L'avís de pagaments pendents porta el nom de l'entitat i surt un cop per sessió. Esborrar un registre de jornada i anul·lar una comanda pregunten amb botons clars."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Informes", "Logística", "Hores", "Projectes"],
+      text: ["L'informe ", { to: "/stats-intercoop", label: "Intercooperació" }, " ja no s'obre en blanc. A la fitxa de punt d'entrega, triar la població omple el codi postal, i el punt d'una altra sòcia s'obre només per consultar. Al calendari d'hores, les hores no surten de la casella del dia. Exportar sense files avisa que no hi ha dades."]
+    },
+    {
+      type: "Correccions",
       modules: ["Hores"],
       text: ["Al ", { to: "/registre-jornades", label: "registre de jornades" }, ", en desar l'entrada d'un tram nou ja no es perd el que escrius a la sortida. Una hora impossible (25:00) no es desa i surt un avís, i si un tram no es pot desar, ara ho diu."]
     },

@@ -10,6 +10,17 @@
       @cancel="trashCancel"
     />
 
+    <!-- an entity the admin screens don't list, opened by URL (/admin/festive):
+         it read «Festive», «0 festive», «Crear festive» (issues/181) -->
+    <div v-if="notManaged" class="card admin-empty">
+      <p>Aquesta taula no es gestiona des d'Administració.</p>
+      <p v-if="entityName === 'festive'">
+        Els festius es posen al calendari de
+        <router-link to="/dedicacio">Hores dedicades</router-link>.
+      </p>
+    </div>
+
+    <template v-else>
     <div class="admin-entity-head">
       <div>
         <h2>{{ entityDisplayName }}</h2>
@@ -80,6 +91,7 @@
     <div v-else-if="!isLoading" class="card admin-empty">
       <p>No hi ha cap {{ entityDisplayNameSingular.toLowerCase() }} encara.</p>
     </div>
+    </template>
   </div>
 </template>
 
@@ -107,6 +119,7 @@ export default {
       isLoading: false,
       items: [],
       metadata: null,
+      notManaged: false,
       entityToApiPath: {},
       isModalActive: false,
       trashObject: null,
@@ -192,10 +205,7 @@ export default {
         this.entityToApiPath = entityToApiPath || {};
         // Strapi 5 relations read as the Strapi 3 model / collection (service/adminMetadata)
         this.metadata = normalizeEntity(entities.find(m => m.name === this.entityName));
-        
-        if (!this.metadata) {
-          throw new Error(`Metadata not found for entity: ${this.entityName}`);
-        }
+        this.notManaged = !this.metadata;
       } catch (error) {
         this.$buefy.toast.open({
           message: `Error carregant metadades: ${error.message}`,
@@ -206,6 +216,7 @@ export default {
       }
     },
     async loadData() {
+      if (!this.metadata) return;
       try {
         this.isLoading = true;
         const apiPath = this.metadata.apiPath || this.entityName;

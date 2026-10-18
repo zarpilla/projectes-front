@@ -11,7 +11,7 @@
             que sigui emesa definitivament.
           </p>
           <p class="mb-3 has-text-weight-bold" v-if="toReal === true">
-            Atenció! Aquesta factura passara a <span class="tag is-primary">EMESA</span> i s'emetrà amb les dades següents, que no
+            Atenció! Aquesta factura passarà a <span class="tag is-primary">EMESA</span> i s'emetrà amb les dades següents, que no
             podran ser modificades posteriorment.
           </p>
           
@@ -25,16 +25,16 @@
             Data de la factura: {{ formatDMYDate(invoice.emitted) }}
           </p>
           <p class="zhas-text-weight-bold">
-            Import base: {{ invoice.totalBase.toFixed(2) }} €
+            Import base: {{ money(invoice.totalBase) }}
           </p>
           <p class="zhas-text-weight-bold">
-            Import IVA: {{ invoice.totalVat.toFixed(2) }} €
+            Import IVA: {{ money(invoice.totalVat) }}
           </p>
           <p class="zhas-text-weight-bold">
-            Import IRPF: {{ invoice.totalIrpf.toFixed(2) }} €
+            Import IRPF: {{ money(invoice.totalIrpf) }}
           </p>
           <p class="zhas-text-weight-bold">
-            Import total amb IVA i IRPF: {{ invoice.total.toFixed(2) }} €
+            Import total amb IVA i IRPF: {{ money(invoice.total) }}
           </p>
           <p class="zhas-text-weight-bold" v-if="invoice.paybefore">
             Data de venciment: {{ formatDMYDate(invoice.paybefore) }}
@@ -91,6 +91,7 @@
 <script>
 import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
+import { formatMoney } from "@/helpers/format-number";
 
 export default {
   name: "ModalBoxInvoicing",
@@ -152,6 +153,8 @@ export default {
     }
   },
   methods: {
+    // «1.234,56 €» (it showed «100.00 €», issues/181)
+    money: formatMoney,
     show() {},
     cancel() {
       this.$emit("cancel");

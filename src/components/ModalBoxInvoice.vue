@@ -6,7 +6,7 @@
       </header>
       <section class="modal-card-body modal-card-body-festive">
         Aquest missatge és per recordar-te que tens pagaments pendents de les
-        factures de servei per un import total de {{ sumOfInvoices }} €.
+        factures de servei per un import total de {{ sumOfInvoices }}.
         <br /><br />T'hem enviat les factures al correu el darrer dia de mes i
         les pots consultar també a la secció de 
         <router-link to="/provider-invoices">FACTURES</router-link>
@@ -17,9 +17,9 @@
         vostre nom comercial_el mes de facturació_número de factura".<br /><br />
         Si ja has fet el pagament, no en facis cas, una vegada l'informem
         deixarà d'aparèixer aquest missatge!<br /><br />
-        Necessitem de la resposabilitat de totes per poder facilitar la gestió i
+        Necessitem la responsabilitat de totes per poder facilitar la gestió i
         us recordem que les factures s'emeten a mes vençut i si acumulem
-        impagaments posem en risc la tresoreria de La Diligència.
+        impagaments posem en risc la tresoreria {{ ofEntity }}.
       </section>
       <footer class="modal-card-foot">
           <button class="button is-primary" native-type="submit" @click="submit">D'acord</button>
@@ -37,6 +37,8 @@ import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
 import RadioPicker from "@/components/RadioPicker.vue";
 import FileUpload from "@/components/FileUpload.vue";
+import { formatMoney } from "@/helpers/format-number";
+import { ofWord } from "@/helpers/catalan";
 
 export default {
   name: "ModalBoxTask",
@@ -58,11 +60,14 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ["userName"]),
+    ...mapState(useMainStore, ["userName", "me"]),
+    // «2.272,74 €» (it said «2272.74 €», issues/181)
     sumOfInvoices() {
-      return this.invoices.reduce((acc, invoice) => {
-        return acc + invoice.total;
-      }, 0).toFixed(2);
+      return formatMoney(this.invoices.reduce((acc, invoice) => acc + (Number(invoice.total) || 0), 0));
+    },
+    // the entity's own name, not «La Diligència» for everyone (issues/181)
+    ofEntity() {
+      return this.me && this.me.name ? ofWord(this.me.name) : "de l'entitat";
     }
   },
   watch: {
