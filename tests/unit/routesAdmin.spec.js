@@ -48,7 +48,7 @@ describe('route form (issues/141)', () => {
     expect(validateRoute({ ...base, is_transfer_route: true }, ROUTES).transfer_pickup).toBeTruthy()
   })
 
-  it('saves trimmed text, numbers and ids, and no transfer point on a route that does not transfer', () => {
+  it('saves trimmed text, numbers and ids', () => {
     const data = routePayload({
       ...routeToForm(null, ROUTES),
       name: '  Nova  ',
@@ -56,7 +56,7 @@ describe('route form (issues/141)', () => {
       monday: true,
       volume_discount_price: '1,5',
       volume_discount_number_of_orders: '10',
-      transfer_pickup: 4,
+      transfer_pickup: null,
       delivery_user: { id: 9 }
     })
     expect(data).toMatchObject({
@@ -72,6 +72,14 @@ describe('route form (issues/141)', () => {
       volume_discount_number_of_orders: 10
     })
     expect(data).not.toHaveProperty('id')
+  })
+
+  // issues/148: saving a delivery route (not «Fa transferències») cleared its
+  // transfer_pickup, the destination of the transfers of its orders.
+  it('keeps the transfer destination of a route that does not transfer', () => {
+    const form = routeToForm({ ...ROUTES[0], is_transfer_route: false, transfer_pickup: { id: 4 } }, ROUTES)
+    expect(routePayload(form).transfer_pickup).toBe(4)
+    expect(routePayload({ ...form, transfer_pickup: null }).transfer_pickup).toBe(null)
   })
 
   it('lists the active routes first, by order', () => {
