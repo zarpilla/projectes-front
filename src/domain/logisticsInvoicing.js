@@ -34,11 +34,20 @@ export const quarterProject = (projects, { year, quarter }) => {
   return { match, latest: latest ? latest.project : null };
 };
 
-// the price of an order as the invoice computes it (all its discounts)
-export const invoicedPrice = o =>
-  ((o.price || 0) - (o.volume_discount || 0)) *
-  (1 - (o.multidelivery_discount || 0) / 100) *
-  (1 - (o.contact_pickup_discount || 0) / 100);
+const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
+
+// The price of an order as its invoice line computes it, the one formula of
+// the order form, Facturar and the reports (issues/145, 057):
+//   (price − volume discount €) × (1 − (multidelivery % + pickup %) / 100)
+// rounded to cents. The backend's copy is projectes-v5
+// src/api/order/services/final-price.js (finalPrice, infoAll, invoice lines).
+export const invoicedPrice = o => {
+  const base = (Number(o.price) || 0) - (Number(o.volume_discount) || 0);
+  const discount = (Number(o.multidelivery_discount) || 0) + (Number(o.contact_pickup_discount) || 0);
+  let amount = base * 1;
+  if (discount) amount = amount * (1 - discount / 100.0);
+  return round2(amount);
+};
 
 // groups of member + month (YYYY-MM): newest month first, biggest amount first
 export const groupOrders = orders => {
