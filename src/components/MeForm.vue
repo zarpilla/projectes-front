@@ -704,6 +704,17 @@ export default {
   font-weight: 700;
   text-decoration: underline;
 }
+/* one option per line, with room between them (the labels were inline and ran together) */
+.option-row {
+  display: block;
+  margin-bottom: .875rem;
+}
+.option-row + .cfg-grid {
+  margin-top: 1.25rem;
+}
+.cfg-grid + .option-row {
+  margin-top: 1.25rem;
+}
 .option-row small {
   display: block;
   font-size: .8125rem;
