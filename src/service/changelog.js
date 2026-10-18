@@ -119,6 +119,41 @@ export const CHANGELOG = [
   date: "2026.10.18",
   items: [
     {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["El preu amb descomptes d'una comanda és el mateix a la ", { to: "/orders", label: "llista de comandes" }, ", a la fitxa, a ", { to: "/orders-invoice", label: "Facturar" }, " i a la factura. La tarifa de ruta es tria bé quan n'hi ha més d'una o la comanda es recull a qualsevol magatzem, i l'edició ràpida ja no desa una comanda sense preu."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: [{ to: "/orders-invoice", label: "Facturar" }, " demana confirmació abans de crear factures i només factura les files marcades del mes que es veu. Esborrar l'esborrany també treu l'ingrés que havia afegit al projecte. El concepte de la factura porta el mes de lliurament, i les sòcies no veuen les factures en esborrany."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Una sòcia només pot anul·lar les seves comandes pendents: ja no pot tornar a «Pendent» una comanda processada o lliurada. A ", { to: "/deposits", label: "Dipòsits" }, " es veuen totes les comandes, no només les 50 primeres, i l'escàner no diposita una comanda lliurada, facturada o anul·lada."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["La «Comanda punt de consum» conserva les línies en triar la recollida. Després de l'hora límit, la comanda va al següent dia de ruta de la mateixa setmana, i el recordatori diu l'hora configurada. Si no es pot desar, es diu per què."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Desar una ruta a ", { to: "/routes", label: "Rutes" }, " ja no n'esborra la destinació de les transferències. A ", { to: "/transfers", label: "Transferències" }, " els comptadors de cada pestanya són bons i les transferències tenen destinació. «Unificar» punts d'entrega actualitza les dades del punt a les comandes i permet esborrar el punt duplicat; canviar el punt a l'edició ràpida també les actualitza."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Les respostes de les ", { to: "/incidences", label: "incidències" }, " diuen qui les ha escrit, «En procés» ja no compta com a tancada a l'informe, i els comptadors de la llista segueixen la cerca i el filtre de sòcia."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners", "Informes"],
+      text: ["Les dates dels moviments de la ", { to: "/tresoreria", label: "Tresoreria" }, " surten com 20/10/2026. A les taules dinàmiques dels informes, les capçaleres de les files desplegades arriben fins a l'última fila de valors."]
+    },
+    {
       type: "Millores",
       modules: ["Informes"],
       text: ["«Exporta detall» d'", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " inclou la previsió de facturació i la previsió de pagament de cada línia del pressupost."]
