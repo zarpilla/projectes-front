@@ -4,6 +4,7 @@
 import moment from 'moment'
 import { orderStatusLabel } from '@/domain/orderStatus'
 import { formatNumber, formatMoney } from '@/helpers/format-number'
+import { linesChange } from '@/domain/documentHistory'
 
 export const FIELD_LABELS = {
   status: 'Estat',
@@ -113,11 +114,14 @@ export function historyEntries (rows) {
     detail: row.action === 'create' && row.snapshot && row.snapshot.status
       ? `Estat: ${orderStatusLabel(row.snapshot.status)}`
       : '',
-    changes: (row.changes || []).map(c => ({
-      field: c.field,
-      label: fieldLabel(c.field),
-      from: formatValue(c.field, c.from),
-      to: formatValue(c.field, c.to)
-    }))
+    changes: (row.changes || []).map(c => c.lines
+      // line by line since issues/161
+      ? { field: c.field, label: fieldLabel(c.field), ...linesChange(c) }
+      : {
+          field: c.field,
+          label: fieldLabel(c.field),
+          from: formatValue(c.field, c.from),
+          to: formatValue(c.field, c.to)
+        })
   }))
 }

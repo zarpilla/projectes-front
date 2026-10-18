@@ -17,12 +17,7 @@
         </div>
         <p v-if="entry.detail" class="history-detail">{{ entry.detail }}</p>
         <ul v-if="entry.changes.length" class="history-changes">
-          <li v-for="change in entry.changes" :key="change.field">
-            <span class="history-field">{{ change.label }}</span>
-            <span class="history-from">{{ change.from }}</span>
-            <b-icon icon="arrow-right" size="is-small" />
-            <span class="history-to">{{ change.to }}</span>
-          </li>
+          <history-change v-for="change in entry.changes" :key="change.field" :change="change" />
         </ul>
       </li>
     </ol>
@@ -35,9 +30,11 @@
 <script>
 import service from "@/service/index";
 import { historyEntries } from "@/domain/orderHistory";
+import HistoryChange from "@/components/HistoryChange.vue";
 
 export default {
   name: "OrderHistory",
+  components: { HistoryChange },
   props: {
     orderId: { type: [Number, String], required: true },
     // bump it after a save to read the history again
@@ -101,26 +98,5 @@ export default {
 }
 .history-changes {
   margin-top: .25rem;
-}
-.history-changes li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .25rem .375rem;
-  font-size: .8125rem;
-}
-.history-field {
-  font-weight: 700;
-  color: var(--a-fg-2);
-}
-.history-field::after {
-  content: ":";
-}
-.history-from {
-  color: var(--a-muted);
-  text-decoration: line-through;
-}
-.history-to {
-  color: var(--a-fg);
 }
 </style>
