@@ -40,6 +40,11 @@ export const CHANGELOG = [
     },
     {
       type: "Millores",
+      modules: ["Logística", "Informes"],
+      text: ["Els informes ", { to: "/orders-stats", label: "de comandes" }, " i ", { to: "/incidences-stats", label: "d'incidències" }, " tenen gràfics damunt la taula dinàmica: comandes, import i quilos per dia, mes o any, ruta, sòcia, punt de recollida i tarifa; i incidències per període, per sòcia, qui les obre, quant es triga a tancar-les i les rutes amb més incidències per cada 100 comandes."]
+    },
+    {
+      type: "Millores",
       modules: ["Logística"],
       text: ["Logística redissenyada: ", { to: "/orders", label: "comandes" }, " agrupades per ruta i per dia, la vista de cada comanda amb el seu recorregut i seguiment, ", { to: "/order-operations", label: "operacions" }, " pensades per al mòbil, ", { to: "/incidences", label: "incidències" }, " amb la conversa al costat i ", { to: "/orders-invoice", label: "facturar" }, " amb el projecte del trimestre."]
     },
