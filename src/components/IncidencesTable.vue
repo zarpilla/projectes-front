@@ -435,11 +435,9 @@ export default {
     },
     async loadStateCounts() {
       try {
-        // Base params for non-admin users
-        const baseParams = {};
-        if (!this.isAdmin && this.currentUserId) {
-          baseParams['order.owner'] = this.currentUserId;
-        }
+        // the filters of the list (member, search) but not its state (issues/154)
+        const baseParams = this.filterParams();
+        delete baseParams.state_in;
 
         const [openRes, wipRes, closedRes] = await Promise.all([
           service({ requiresAuth: true }).get("incidences/count", {

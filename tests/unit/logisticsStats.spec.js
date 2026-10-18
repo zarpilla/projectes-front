@@ -92,3 +92,18 @@ describe('logistics stats: missing values', () => {
     expect(topGroups(rows, 'route_rate', { missing: 'Sense tarifa' })).toEqual([{ label: 'Sense tarifa', value: 2 }, { label: 'Girona', value: 1 }])
   })
 })
+
+// issues/154: «En procés» (wip) incidences were counted as closed in the report
+describe('logistics stats: incidences in progress (issues/154)', () => {
+  const rows = [
+    incidence('2026-09-01', '2026-09-02'),
+    incidence('2026-09-02', null, { state_raw: 'wip' }),
+    incidence('2026-09-03', null, { state_raw: 'open' })
+  ]
+
+  it('counts them as unresolved', () => {
+    expect(incidenceTotals(rows)).toMatchObject({ count: 3, open: 2, closed: 1, solved: 1 })
+    const days = incidencePeriods(rows, { mode: 'day', year: 2026, month: 9 })
+    expect(days[1]).toMatchObject({ open: 1, closed: 0 })
+  })
+})
