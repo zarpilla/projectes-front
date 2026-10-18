@@ -150,6 +150,16 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Logística"],
+      text: ["A ", { to: "/orders", label: "Comandes" }, ", les xifres de dalt (caixes, kg, import, refrigerades, dipositades…) i l'exportació «Comandes (.ods)» compten totes les comandes dels filtres, no només les 150 de la pàgina. A l'.ods, les adreces i les notes ja no surten entre cometes i la recollida porta el número i el nom del punt."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística", "Informes"],
+      text: ["L'", { to: "/orders-stats", label: "informe de comandes" }, " compta les refrigerades igual que ", { to: "/orders", label: "Comandes" }, ": pel que diu la comanda. Una comanda de recollida que porta comandes refrigerades ja no hi surt com a normal."]
+    },
+    {
+      type: "Correccions",
       modules: ["Informes"],
       text: ["Els informes ", { to: "/stats-economic-detail", label: "Ingressos/Despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " ja tenen en compte la periodificació dels projectes: les xifres de cada any coincideixen amb les de la fitxa del projecte."]
     },
