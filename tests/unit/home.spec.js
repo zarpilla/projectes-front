@@ -44,9 +44,13 @@ describe('Inici', () => {
     expect(paths(staff)).not.toContain('/orders')
     expect(staff.flatMap(g => g.items).some(i => i.action === 'tickets')).toBe(false)
 
+    // Altres › Documentació (the user manual) is for everybody.
     const driver = menuGroups(menu, ['orders_delivery'])
-    expect(driver.map(g => g.label)).toEqual(['Logística', 'Rutes i punts'])
-    expect(menuGroups(menu, ['admin']).map(g => g.label)).toEqual(['Administració'])
+    expect(driver.map(g => g.label)).toEqual(['Logística', 'Rutes i punts', 'Altres'])
+    expect(menuGroups(menu, ['admin']).map(g => g.label)).toEqual(['Administració', 'Altres'])
+    for (const permissions of [['hours'], ['orders'], ['orders_delivery'], ['admin'], ['projects']]) {
+      expect(paths(menuGroups(menu, permissions))).toContain('/documentacio')
+    }
   })
 
   it('starts with four entries the person can open', () => {

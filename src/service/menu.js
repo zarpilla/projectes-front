@@ -263,6 +263,12 @@ const menu = [
       permission: "projects"
     },
     {
+      // The user manual (opens the docs site logged in) and the old videos; for everybody.
+      to: "/documentacio",
+      icon: "book-open-variant",
+      label: "Documentació"
+    },
+    {
       // Opens the tickets site logged in (issues/019); handled in AsideMenu.menuClick.
       href: "#",
       action: "tickets",
