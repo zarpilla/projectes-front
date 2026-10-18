@@ -60,7 +60,7 @@
             <header class="box-head">
               <h2>{{ form.is_collection_order ? "A on i quin dia s'ha de recollir?" : "A on va i quin dia?" }}</h2>
             </header>
-            <p class="box-help"><b>Recorda:</b> s'han d'informar les comandes com a límit a les 13 h del dia abans.</p>
+            <p class="box-help"><b>Recorda:</b> {{ cutoffReminder }}</p>
             <div class="a-form">
               <b-field
                 :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
@@ -522,7 +522,7 @@ import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
-import { orderErrors, orderSaveProblem } from "@/domain/orderValidation.js";
+import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -692,6 +692,9 @@ export default {
     },
     isPickupPoint() {
       return this.form.pickup_point === true;
+    },
+    cutoffReminder() {
+      return `s'han d'informar les comandes com a límit a les ${this.nextDayLimitHour} h del dia abans.`;
     },
     errors() {
       return orderErrors(this);
@@ -1686,7 +1689,9 @@ export default {
         console.error(err);
 
         this.$buefy.snackbar.open({
-          message: "Error",
+          message: orderSaveErrorMessage(err),
+          type: "is-danger",
+          duration: 8000,
           queue: false
         });
 
