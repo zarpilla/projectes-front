@@ -25,7 +25,16 @@ export function loadEnv () {
     const m = line.match(/^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/)
     if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2]
   }
+  // MANUAL_DATA=logistica: the logistics copy (block F) and its front, instead of resilience's
+  if (process.env.MANUAL_DATA === 'logistica') {
+    process.env.MANUAL_API_URL = process.env.MANUAL_LOG_API_URL
+    process.env.MANUAL_BASE_URL = process.env.MANUAL_LOG_BASE_URL
+  }
 }
+
+// the logistics users by profile ('orders', 'admin', 'delivery'), for login(page, ...logUser('orders'))
+export const logUser = profile =>
+  [process.env[`MANUAL_LOG_USER_${profile.toUpperCase()}`], process.env.MANUAL_LOG_PASSWORD]
 
 const state = new WeakMap()
 
@@ -36,8 +45,20 @@ const baseUrl = () => process.env.MANUAL_BASE_URL || 'http://localhost:8081/stat
 // Call first: names the chapter (its screenshot folder) and points the app at MANUAL_API_URL.
 // The front reads its API url at runtime from /config.js, which in dev points at the
 // everyday backend (a real tenant).
-export async function start (page, slug) {
+// Options: { today: '2026-06-17' } moves the browser's clock (Date only, time keeps running)
+// to a day where the demo data is complete; the anonymized data ends in summer 2026.
+export async function start (page, slug, { today } = {}) {
   state.set(page, { slug, shots: 0 })
+  if (today) {
+    await page.addInitScript(offset => {
+      const RealDate = Date
+      class ShiftedDate extends RealDate {
+        constructor (...a) { if (a.length === 0) super(RealDate.now() + offset); else super(...a) }
+        static now () { return RealDate.now() + offset }
+      }
+      globalThis.Date = ShiftedDate
+    }, new Date(today + 'T10:30:00').getTime() - Date.now())
+  }
   await page.route(/\/config\.js(\?|$)/, route => route.fulfill({
     contentType: 'application/javascript',
     body: `window.APP_CONFIG = ${JSON.stringify({
@@ -63,6 +84,12 @@ export async function login (page, user = process.env.MANUAL_USER, password = pr
   // the app then redirects away from the login route; navigating before that gets overridden
   await page.waitForURL(url => !/#\/?$/.test(url.href), { timeout: 20_000 })
   await page.waitForLoadState('networkidle')
+  // App.vue may push the landing page (Inici) once /users/me answers: wait for the
+  // address to stay put, or that push overrides the script's first page.goto
+  for (let last = page.url(), still = 0; still < 4; still++) {
+    await page.waitForTimeout(250)
+    if (page.url() !== last) { last = page.url(); still = -1 }
+  }
   // the "Benvinguda" toast would end up in the first screenshots
   await page.getByText('Benvinguda').waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {})
 }
@@ -76,12 +103,21 @@ export async function settle (page, ms = 800) {
 }
 
 // Screenshot for the chapter: manual/ca/img/<slug>/NN-<name>.png (numbered in order).
-// Pass { clip } or { fullPage: true } through options when a step needs it.
-export async function shot (page, name, options = {}) {
+// Pass { clip } or { fullPage: true } through options when a step needs it, and
+// { keepToasts: true } when the picture is about a snackbar.
+export async function shot (page, name, { keepToasts, ...options } = {}) {
   const s = state.get(page)
   const file = path.join(manualDir, 'ca', 'img', s.slug, `${String(++s.shots).padStart(2, '0')}-${name}.png`)
   fs.mkdirSync(path.dirname(file), { recursive: true })
   await page.mouse.move(0, 0) // no hover effects in the picture
+  // nor the snackbars of earlier steps ("Guardat"…), unless the step is about one
+  // the anonymized copy has no uploaded files: no broken image icons (logos, attachments)
+  await page.evaluate(() => document.querySelectorAll('img').forEach(i => {
+    if (i.complete && !i.naturalWidth) i.style.visibility = 'hidden'
+  }))
+  if (!keepToasts) {
+    await page.evaluate(() => document.querySelectorAll('.notices .snackbar, .notices .toast').forEach(e => e.remove()))
+  }
   await page.screenshot({ path: file, animations: 'disabled', ...options })
   return file
 }
