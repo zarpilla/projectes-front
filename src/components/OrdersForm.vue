@@ -2809,7 +2809,7 @@ export default {
   flex-wrap: wrap;
   align-items: center;
   gap: .75rem;
-  padding: .875rem 2rem;
+  padding: .5rem 2rem;
   background: var(--a-surface);
   border-top: 1px solid var(--a-line);
   box-shadow: 0 -6px 16px rgba(16, 32, 30, .06);
@@ -2826,7 +2826,7 @@ export default {
 }
 @media screen and (max-width: 768px) {
   .savebar {
-    padding: .75rem 1rem;
+    padding: .5rem 1rem;
   }
 }
 </style>

@@ -5299,7 +5299,7 @@ body:has(.project-form .savebar) .notices.is-bottom {
   bottom: 0;
   z-index: 20;
   margin: 1.5rem -2rem -3rem;
-  padding: .875rem 2rem;
+  padding: .5rem 2rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -5341,7 +5341,7 @@ body:has(.project-form .savebar) .notices.is-bottom {
 @media screen and (max-width: 768px) {
   .project-form .savebar {
     margin: 1.5rem -1rem -2.5rem;
-    padding: .75rem 1rem;
+    padding: .5rem 1rem;
   }
 }
 /* Dades: the form layout is the shared .a-form (_redesign.scss); project bits here */
