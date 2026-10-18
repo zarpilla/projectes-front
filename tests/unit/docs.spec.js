@@ -75,4 +75,11 @@ describe('Documentation page', () => {
     await flushPromises()
     expect(openDocs).toHaveBeenCalledTimes(1)
   })
+
+  it('hides the old videos (they show the app before the redesign)', async () => {
+    const { default: Documentation } = await import('@/views/Documentation.vue')
+    const wrapper = mount(Documentation, { global: { plugins: [Buefy], stubs: { TitleBar: true } } })
+    expect(wrapper.text()).not.toContain('Vídeos')
+    expect(wrapper.find('a[href*="/stats/docum/"]').exists()).toBe(false)
+  })
 })

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack" subtitle="El manual d'usuari i vídeos que expliquen com fer servir cada part de l'aplicació." />
+    <title-bar :title-stack="titleStack" subtitle="El manual d'usuari: com fer servir cada part de l'aplicació." />
     <section class="section is-main-section">
       <section class="a-box docs-box">
         <header class="box-head"><h2>Manual d'usuari</h2></header>
@@ -10,7 +10,8 @@
         </p>
         <b-button type="is-primary" icon-left="book-open-variant" @click="openManual">Obre el manual</b-button>
       </section>
-      <section class="a-box docs-box">
+      <!-- The videos show the app before the redesign: hidden until they are redone. -->
+      <section v-if="showVideos" class="a-box docs-box">
         <header class="box-head"><h2>Vídeos</h2></header>
         <ul class="docs-list">
           <li v-for="video in videos" :key="video.file">
@@ -35,6 +36,7 @@ export default {
   },
   data () {
     return {
+      showVideos: false,
       videos: [
         { file: '01.intro.mkv', title: 'Introducció' },
         { file: '02.01.projectes.mkv', title: 'Projectes' },

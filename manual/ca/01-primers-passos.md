@@ -92,8 +92,7 @@ un any. **Comunica un error o una idea** obre el lloc de tiquets per explicar un
 
 **Altres › Documentació** és a l'abast de tothom. **Obre el manual** obre aquest manual en una pestanya nova,
 ja identificat i amb els capítols que corresponen als permisos de cada persona. S'hi pot cercar i, des de
-cada capítol, saltar als relacionats. A sota hi ha els vídeos d'ajuda antics, que mostren l'aplicació d'abans
-del redisseny.
+cada capítol, saltar als relacionats.
 
 ## Preguntes freqüents
 
