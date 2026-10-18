@@ -1,10 +1,10 @@
-// 12. Pressupostos — the quotes list, a quote (lines, acceptance), its PDF preview and a new
+// 12. Pressupostos — the quotes list, a quote (lines, acceptance), its PDF and a new
 // quote. Data: anonymized copy of resilience (projectes_v5_manual), seen on 17/06/2026.
 // Read-only: the new quote is left without saving. Quote 19 (2026-003) is a pending one; its
 // PDF shows the client data saved with the quote, which the anonymization made different from
 // the contact's name (not an app problem).
 import { test } from '@playwright/test'
-import { start, login, settle, shot } from '../helpers.mjs'
+import { start, login, settle, shot, pdfShot } from '../helpers.mjs'
 
 const QUOTE = 19
 
@@ -34,12 +34,8 @@ test('12-pressupostos', async ({ page }) => {
   await settle(page, 400)
   await shot(page, 'linies')
 
-  await page.goto(`#/quote/${QUOTE}`)
-  await page.getByRole('button', { name: 'Descarrega PDF' }).waitFor({ timeout: 30_000 })
-  await settle(page, 2000)
-  // the copy has no logo upload: no broken image icon
-  await page.evaluate(() => document.querySelectorAll('img').forEach(i => { if (i.complete && !i.naturalWidth) i.style.visibility = 'hidden' }))
-  await shot(page, 'pdf')
+  // the PDF the API makes (the copy has no logo upload: the PDF is drawn without one)
+  await pdfShot(page, page.locator('button', { hasText: /^\s*PDF\s*$/ }).first(), 'pdf')
 
   await page.goto('#/quotes')
   await settle(page, 1000)

@@ -1,10 +1,9 @@
 // issues/101: migrated documents without lines (313 received invoices on La
 // Diligència) showed «Total 0,00 €» in the form, since the totals were computed
-// from no lines; the preview printed a 0 € total as «-€».
+// from no lines.
 import { describe, it, expect, vi } from 'vitest'
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
 import DocumentForm from '@/components/DocumentForm.vue'
-import Invoice from '@/views/Invoice.vue'
 
 const totals = form => {
   const c = DocumentForm.computed
@@ -24,11 +23,5 @@ describe('documents without lines (issues/101)', () => {
     const line = { quantity: 1, base: 10, vat: 21, irpf: 0 }
     expect(totals({ id: 5, lines: [line], total_base: 999 }).base).toBe(10)
     expect(totals({ id: null, lines: [], total_base: 999 }).base).toBe(0)
-  })
-
-  it('the preview prints 0 as an amount', () => {
-    expect(Invoice.methods.formatCurrency(0)).toBe('0,00')
-    expect(Invoice.methods.formatCurrency(null)).toBe('-')
-    expect(Invoice.methods.formatCurrency(1234.5)).toBe('1.234,50')
   })
 })

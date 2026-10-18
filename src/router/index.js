@@ -302,39 +302,6 @@ const routes = [
   },
   {
     meta: {
-      title: "Pressupost",
-      requiresAuth: true
-    },
-    path: "/quote/:id",
-    name: "quote.view",
-    component: () =>
-      import("../views/Quote.vue"),
-    props: true,
-  },
-  {
-    meta: {
-      title: "Factura",
-      requiresAuth: true
-    },
-    path: "/invoice/:id/:type",
-    name: "invoice.old.view",
-    component: () =>
-      import("../views/Invoice.vue"),
-    props: true,
-  },
-  {
-    meta: {
-      title: "Document",
-      requiresAuth: true
-    },
-    path: "/pdf/:id/:type",
-    name: "invoice.view",
-    component: () =>
-      import("../views/Invoice.vue"),
-    props: true,
-  },
-  {
-    meta: {
       title: "Tresoreria",
       requiresAuth: true
     },

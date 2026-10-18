@@ -1,12 +1,12 @@
 // 17. Ingressos: factures emeses — the incomes list, an issued invoice (locked data, lines,
-// the project lines it pays), its preview, cancelling and rectifying, a new draft invoice
+// the project lines it pays), its PDF, cancelling and rectifying, a new draft invoice
 // assigned to a project's income line, and other incomes.
 // Data: anonymized copy of resilience (projectes_v5_manual), seen on 17/06/2026. Invoice 835
 // (2025-102) is issued and linked to project 642. Read-only: «Anul·la i rectifica…» turns the
 // page into an unsaved rectifying draft, and the new invoice is filled and assigned to a line
 // of project 642 but never saved (saving would mark the line as invoiced).
 import { test } from '@playwright/test'
-import { start, login, settle, shot } from '../helpers.mjs'
+import { start, login, settle, shot, pdfShot } from '../helpers.mjs'
 
 const INVOICE = 835
 const PROJECT = 'Jornades de consum responsable Riudemostra'
@@ -54,17 +54,17 @@ test('17-factures-emeses', async ({ page }) => {
   await settle(page, 400)
   await shot(page, 'rectificar-linies')
 
-  // the preview
-  await page.goto(`#/invoice/${INVOICE}/emitted-invoices`)
-  await settle(page, 2500)
-  await page.evaluate(() => document.querySelectorAll('img').forEach(i => { if (i.complete && !i.naturalWidth) i.style.visibility = 'hidden' }))
-  await shot(page, 'vista-previa')
+  // the PDF the API makes (the copy has no logo upload: the PDF is drawn without one)
+  await page.goto(`#/document/${INVOICE}/emitted-invoices`)
+  await page.getByText('Factura emesa:').waitFor({ timeout: 30_000 })
+  await settle(page, 1500)
+  await pdfShot(page, page.locator('button', { hasText: /^\s*PDF\s*$/ }).first(), 'pdf')
 
   // a new invoice, as a draft
   await page.goto('#/emitted-invoices')
   await settle(page, 800)
   await page.getByRole('button', { name: 'Nova factura' }).click()
-  await page.getByText('Document').first().waitFor()
+  await page.getByPlaceholder('Escriu el nom de la clienta...').waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'nova')
   await page.getByPlaceholder('Escriu el nom de la clienta...').fill('Riu Clar')

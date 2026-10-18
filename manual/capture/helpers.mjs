@@ -12,6 +12,8 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
+import os from 'node:os'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -119,5 +121,27 @@ export async function shot (page, name, { keepToasts, ...options } = {}) {
     await page.evaluate(() => document.querySelectorAll('.notices .snackbar, .notices .toast').forEach(e => e.remove()))
   }
   await page.screenshot({ path: file, animations: 'disabled', ...options })
+  return file
+}
+
+// The document's PDF as the chapter's next numbered image: clicks `button` (the form's
+// PDF button), takes the URL the API answers with (instead of the new tab, which headless
+// Chromium can't show), downloads the PDF and renders its first page with pdftoppm.
+export async function pdfShot (page, button, name) {
+  const s = state.get(page)
+  const file = path.join(manualDir, 'ca', 'img', s.slug, `${String(++s.shots).padStart(2, '0')}-${name}.png`)
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  await page.evaluate(() => { window.open = () => null })
+  const [response] = await Promise.all([
+    page.waitForResponse(r => /\/emitted-invoices\/pdf\//.test(r.url()), { timeout: 60_000 }),
+    button.click()
+  ])
+  const { url } = await response.json()
+  const pdf = await page.request.get(apiUrl() + url)
+  if (!pdf.ok()) throw new Error(`PDF ${url}: ${pdf.status()}`)
+  const tmp = path.join(os.tmpdir(), `manual-${process.pid}.pdf`)
+  fs.writeFileSync(tmp, await pdf.body())
+  execFileSync('pdftoppm', ['-png', '-singlefile', '-f', '1', '-l', '1', '-scale-to-x', '1100', '-scale-to-y', '-1', tmp, file.replace(/\.png$/, '')])
+  fs.rmSync(tmp)
   return file
 }

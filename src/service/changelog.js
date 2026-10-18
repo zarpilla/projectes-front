@@ -139,6 +139,11 @@ export const CHANGELOG = [
   date: "2026.10.18",
   items: [
     {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["El PDF de les ", { to: "/emitted-invoices", label: "factures" }, " i dels ", { to: "/quotes", label: "pressupostos" }, " mostra les dades de la clienta desades amb el document, encara que després s'hagi canviat la fitxa del contacte. S'ha tret l'antiga vista prèvia, que feia servir una plantilla diferent del PDF: el botó «PDF» és l'única manera de veure el document."]
+    },
+    {
       type: "Millores",
       modules: ["Logística"],
       text: ["Quan algú respon una ", { to: "/incidences", label: "incidència" }, ", reben el correu l'oficina de logística i la sòcia de la comanda, però no qui ha escrit la resposta. El correu diu qui ha escrit cada resposta."]
