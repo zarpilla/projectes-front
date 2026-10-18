@@ -119,6 +119,16 @@ export const CHANGELOG = [
   date: "2026.10.18",
   items: [
     {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["Quan algú respon una ", { to: "/incidences", label: "incidència" }, ", reben el correu l'oficina de logística i la sòcia de la comanda, però no qui ha escrit la resposta. El correu diu qui ha escrit cada resposta."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Les dates de transferència i de recollida tenen en compte tots els dies de la ruta (no només el primer) i se salten els dies tancats a «Rutes i dies». Les comandes mogudes amb «Unificar» abans d'avui recuperen l'adreça del punt d'entrega on són ara."]
+    },
+    {
       type: "Correccions",
       modules: ["Logística"],
       text: ["El preu amb descomptes d'una comanda és el mateix a la ", { to: "/orders", label: "llista de comandes" }, ", a la fitxa, a ", { to: "/orders-invoice", label: "Facturar" }, " i a la factura. La tarifa de ruta es tria bé quan n'hi ha més d'una o la comanda es recull a qualsevol magatzem, i l'edició ràpida ja no desa una comanda sense preu."]
