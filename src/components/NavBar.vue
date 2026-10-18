@@ -3,10 +3,18 @@
     <div class="navbar-brand">
       <a
         class="navbar-item is-hidden-desktop"
+        aria-label="Menú"
         @click.prevent="menuToggleMobile"
       >
         <b-icon :icon="menuToggleMobileIcon" />
       </a>
+      <router-link
+        :to="{ name: 'inici' }"
+        class="navbar-item navbar-logo is-hidden-desktop"
+        aria-label="Inici"
+      >
+        <brand-logo />
+      </router-link>
       <!-- <div class="navbar-item has-control no-left-space-touch">
         <div class="control">
           <input class="input" placeholder="Search everywhere..." />
@@ -16,9 +24,10 @@
     <div class="navbar-brand is-right">
       <a
         class="navbar-item navbar-item-menu-toggle is-hidden-desktop"
+        :aria-label="userName || 'Usuari'"
         @click.prevent="menuNavBarToggle"
       >
-        <b-icon :icon="menuNavBarToggleIcon" custom-size="default" />
+        <b-icon :icon="menuNavBarToggleIcon" />
       </a>
     </div>
     <!-- User section visible only on mobile; desktop users see it in AsideMenu -->
@@ -53,13 +62,15 @@ import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import NavBarMenu from '@/components/NavBarMenu.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
+import BrandLogo from '@/components/BrandLogo.vue'
 import { logout } from '@/service/auth'
 
 export default {
   name: 'NavBar',
   components: {
     UserAvatar,
-    NavBarMenu
+    NavBarMenu,
+    BrandLogo
   },
   data () {
     return {
@@ -68,10 +79,10 @@ export default {
   },
   computed: {
     menuNavBarToggleIcon () {
-      return this.isMenuNavBarActive ? 'close' : 'dots-vertical'
+      return this.isMenuNavBarActive ? 'close' : 'account-circle-outline'
     },
     menuToggleMobileIcon () {
-      return this.isAsideMobileExpanded ? 'backburger' : 'forwardburger'
+      return this.isAsideMobileExpanded ? 'close' : 'menu'
     },
     ...mapState(useMainStore, ['isNavBarVisible', 'isAsideMobileExpanded', 'userName'])
   },
@@ -103,5 +114,21 @@ export default {
   @media screen and (min-width: 1024px) {
     display: none;
   }
+}
+/* centred on the bar, whatever the width of the side buttons */
+.navbar-logo {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  color: inherit;
+}
+.navbar-logo:hover,
+.navbar-logo:focus {
+  background: transparent;
+}
+.navbar-logo :deep(.brand-logo) {
+  height: 1.5rem;
 }
 </style>
