@@ -56,7 +56,7 @@
     <div class="hours-toolbar">
       <div class="hours-total">
         <span>Total</span>
-        <b>{{ formatHours(superTotal) }}</b>
+        <b>{{ hoursLabel(superTotal) }}</b>
       </div>
       <div class="segmented" role="group" aria-label="Vista">
         <button type="button" title="Vista calendari" :class="{ 'is-on': viewType == 'calendar' }" :aria-pressed="viewType == 'calendar' ? 'true' : 'false'" @click="viewType = 'calendar'">Calendari</button>
@@ -185,21 +185,21 @@
                 @click="showModal(attr.customData.a)"
               >
                 {{ attr.customData.project }} - {{ attr.customData.username }}
-                {{ attr.customData.hours ? `- ${attr.customData.hours}h` : "" }}
+                {{ attr.customData.hours ? `- ${hoursLabel(attr.customData.hours)}` : "" }}
               </span>
               <span
                 v-if="attr.customData && attr.customData.type === 'festive'"
                 @click="showModalFestive(attr.customData.a)"
               >
                 {{ attr.customData.project }} - {{ attr.customData.username }}
-                {{ attr.customData.hours ? `- ${attr.customData.hours}h` : "" }}
+                {{ attr.customData.hours ? `- ${hoursLabel(attr.customData.hours)}` : "" }}
               </span>
               <span
                 v-if="attr.customData && attr.customData.type === 'ical'"
                 @click="showModalICal(attr)"
               >
                 {{ attr.customData.project }} - {{ attr.customData.username }}
-                {{ attr.customData.hours ? `- ${attr.customData.hours}h` : "" }}
+                {{ attr.customData.hours ? `- ${hoursLabel(attr.customData.hours)}` : "" }}
               </span>
             </span>
           </div>
@@ -360,6 +360,7 @@ import ModalBoxMoveProject from "@/components/ModalBoxMoveProject.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { formatHours, formatNumber } from "@/helpers/format-number";
+import { daysFromToday } from "@/helpers/catalan";
 import { hoursAgenda } from "@/domain/hoursAgenda";
 
 window.setImmediate = window.setTimeout;
@@ -1651,7 +1652,7 @@ export default {
       if (!val) {
         return "-";
       }
-      const title = moment(val).format("dddd DD/MM/YYYY") + " (" + moment(val).fromNow() + ")";
+      const title = moment(val).format("dddd DD/MM/YYYY") + " (" + daysFromToday(val) + ")";
       return title.charAt(0).toUpperCase() + title.slice(1);
     }
   }
@@ -1729,6 +1730,21 @@ export default {
 .tag-hours {
   cursor: pointer;
   color: #fff;
+}
+/* the entries wrap inside their day: as Bulma tags they kept one line and
+   spilled into the next day's cell, which then caught the click (issues/182).
+   The utility classes in the template (Tailwind's) do nothing here. */
+.day-entries {
+  min-width: 0;
+  overflow: hidden;
+}
+.day-entries .tag-hours {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 .day-label {
   cursor: pointer;
@@ -1941,6 +1957,7 @@ export default {
   padding: 5px 0;
 }
 .custom-calendar.vc-container .vc-day {
+  overflow: hidden;
   padding: 0 5px 3px 5px;
   text-align: left;
   height: auto;

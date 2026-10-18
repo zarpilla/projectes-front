@@ -12,7 +12,7 @@ describe('counterElapsed', () => {
     const e = counterElapsed({ id: 4, createdAt: '2026-10-15T10:15:30.000Z', start: '2026-10-15T08:15:30.000Z' }, now)
     expect([e.hours, e.minutes, e.seconds]).toEqual([2, 15, 15])
     expect(e.inHours.toFixed(3)).toBe('2.254')
-    expect(e.display).toBe('2h 15m 15s (2.254h)')
+    expect(e.display).toBe('2 h 15 min 15 s (2,254 h)')
   })
 
   it('still reads created_at (v3)', () => {

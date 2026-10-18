@@ -4714,6 +4714,7 @@ export default {
       );
       this.form.project_original_phases.forEach(p => {
         delete p.id;
+        delete p.documentId; // a copy is a new row (issues/182)
         p.dirty = true;
         p.incomes.forEach(sp => {
           sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
@@ -4721,6 +4722,7 @@ export default {
             ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
             : null;
           delete sp.id;
+          delete sp.documentId;
           sp.dirty = true;
         });
         p.expenses.forEach(sp => {
@@ -4729,6 +4731,7 @@ export default {
             ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
             : null;
           delete sp.id;
+          delete sp.documentId;
           sp.dirty = true;
         });
       });
@@ -4746,6 +4749,7 @@ export default {
         p.opened = true;
         p.dirty = true;
         delete p.id;
+        delete p.documentId; // a copy is a new row (issues/182)
 
         p.incomes.forEach((sp, incIdx) => {
           sp.dirty = true;
@@ -4755,12 +4759,14 @@ export default {
             ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
             : endDate;
           delete sp.id;
+          delete sp.documentId;
           delete sp.project_original_phase; // Remove foreign key to original phase
           delete sp.project_phase; // Remove any existing execution phase reference
           // Copy estimated hours (planning)
           if (sp.estimated_hours && sp.estimated_hours.length) {
             sp.estimated_hours.forEach((hour, hourIdx) => {
               delete hour.id;
+              delete hour.documentId;
               delete hour.phase_income; // Remove foreign key to parent income
               hour.dirty = true;
               // Keep from/to dates properly formatted
@@ -4781,6 +4787,7 @@ export default {
             ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
             : endDate;
           delete sp.id;
+          delete sp.documentId;
           delete sp.project_original_phase; // Remove foreign key to original phase
           delete sp.project_phase; // Remove any existing execution phase reference
         });

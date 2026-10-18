@@ -6,6 +6,9 @@
         <div class="column is-full">
           <card-component class="tile is-child" :css="!modal ? 'card' : 'z'">
             <form class="a-form point-form" @submit.prevent="submit" v-if="!isLoading">
+              <b-notification v-if="readOnly" type="is-warning" :closable="false" role="status">
+                Aquest punt d'entrega és d'una altra sòcia: el pots veure però no canviar. Si cal canviar-lo, demana-ho a l'oficina.
+              </b-notification>
               <b-field
                 label="Contacte de *"
                 v-if="isOrdersContactAndUserIsOrdersAdmin"
@@ -34,7 +37,7 @@
 
               <b-field
                 label="Població *"
-                message="Si vols que ens aturem a una població que no apareix a la llista, posa’t en contacte amb la Carla 722 84 49 98 abans de continuar"
+                message="Si vols que ens aturem a una població que no apareix a la llista, posa’t en contacte amb l'oficina abans de continuar"
                 :type="{ 'is-danger': errors['city'] && submitted }"
               >
                 <b-autocomplete
@@ -336,12 +339,14 @@
                     type="is-primary"
                     class="mr-2"
                     :loading="isLoading"
+                    :disabled="readOnly"
                     @click="submit"
                     >Guardar</b-button
                   >
                   <b-button
                     type="is-primary mr-2"
                     :loading="isLoading"
+                    :disabled="readOnly"
                     @click="submitExit"
                     >Guardar i sortir</b-button
                   >
@@ -391,6 +396,7 @@ import moment from "moment";
 import concat from "lodash/concat";
 import { pick } from "lodash";
 import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
+import { memberMayEdit, townKey } from "@/domain/contactAccess";
 
 export default {
   name: "ContactUsersForm",
@@ -436,6 +442,8 @@ export default {
       cities: [],
       submitted: false,
       forceCanEdit: false,
+      readOnly: false,
+      townPostcodes: {},
       slotErrors: [],
       slot1Closed: false,
       slot2Closed: false
@@ -613,6 +621,7 @@ export default {
               }
 
               this.syncSlotClosedFlags();
+              await this.checkReadOnly(r.data);
 
               // get orders
               const contactsWithOrders = (
@@ -680,6 +689,27 @@ export default {
       this.cities = (
         await service({ requiresAuth: true }).get("cities?_limit=-1&_sort=name")
       ).data;
+      try {
+        this.townPostcodes = (await service({ requiresAuth: true }).get("cities/postcodes")).data || {};
+      } catch (e) {
+        this.townPostcodes = {};
+      }
+    },
+    // a member opening another member's point by URL: shown, not editable
+    async checkReadOnly(contact) {
+      if (this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery")) return;
+      if (!this.permissions.includes("orders")) return;
+      let orders = 0;
+      if (!memberMayEdit(contact, this.me.id)) {
+        try {
+          orders = (await service({ requiresAuth: true }).get(
+            `orders/count?_where[owner]=${this.me.id}&_where[contact]=${contact.id}`
+          )).data;
+        } catch (e) {
+          orders = 0;
+        }
+      }
+      this.readOnly = !memberMayEdit(contact, this.me.id, Number(orders) || 0);
     },
     async submitExit() {
       await this.submit();
@@ -700,6 +730,7 @@ export default {
       }
     },
     async submit() {
+      if (this.readOnly) return;
       this.isLoading = true;
       this.submitted = true;
 
@@ -815,7 +846,9 @@ export default {
         console.error(err);
 
         this.$buefy.snackbar.open({
-          message: "Error",
+          message: err && err.response && err.response.status === 403
+            ? "No tens permís per canviar aquest punt d'entrega."
+            : "Error",
           queue: false,
           type: "is-danger"
         });
@@ -904,6 +937,9 @@ export default {
     async citySelected(option) {
       if (option && option.name) {
         this.form.city = option.name;
+        // the town's usual CP, unless one is typed already (issues/182)
+        const postcode = this.townPostcodes[townKey(option.name)];
+        if (postcode && !this.form.postcode) this.form.postcode = postcode;
       } else {
         this.form.city = null;
       }

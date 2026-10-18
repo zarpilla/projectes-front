@@ -38,3 +38,9 @@ const addStyle = async (src, id) => {
 }
 
 export { addScript, addStyle }
+
+// A file under the app's base path, with one "/" between them. "/" + "/vendor/…"
+// gave "//vendor/…", which the browser reads as a host: Intercooperació opened
+// blank (issues/182).
+export const underBase = (base, path) =>
+  String(base || '').replace(/\/+$/, '') + '/' + String(path).replace(/^\/+/, '')

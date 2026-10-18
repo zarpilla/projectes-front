@@ -95,9 +95,11 @@ export default {
         await this.beforeGenerate();
       }
       let data = this.data;
-      if (typeof this.fetch === "function" || !data) data = await this.fetch();
+      if (typeof this.fetch === "function") data = await this.fetch();
 
+      // nothing to export: say so instead of doing nothing (issues/182)
       if (!data || !data.length) {
+        if (this.$buefy) this.$buefy.toast.open({ message: "No hi ha dades per exportar", type: "is-warning" });
         return;
       }
 

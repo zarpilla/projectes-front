@@ -24,18 +24,16 @@ export const slotIsInverted = (hourIn, hourOut) => slotMinutes(hourIn, hourOut) 
 export const isValidTime = (h, m) =>
   /^\d{1,2}$/.test(String(h)) && /^\d{1,2}$/.test(String(m)) && Number(h) <= 23 && Number(m) <= 59
 
-// 270 → "4h 30m": the printed summary's format
-export const formatHoursMinutes = (minutes) => {
-  const m = Math.round(Math.abs(Number(minutes) || 0))
-  return `${Math.floor(m / 60)}h ${m % 60}m`
-}
-
 // 270 → "4 h 30", 480 → "8 h 00", negatives keep their sign
 export const formatDuration = (minutes) => {
   const m = Math.round(Number(minutes) || 0)
   const abs = Math.abs(m)
   return (m < 0 ? '−' : '') + `${Math.floor(abs / 60)} h ${String(abs % 60).padStart(2, '0')}`
 }
+
+// the printed summary: the screen's format, without sign (it printed "4h 30m"
+// and "0h 0m" next to the screen's "4 h 30", issues/181)
+export const formatHoursMinutes = (minutes) => formatDuration(Math.abs(Number(minutes) || 0))
 
 // hours, as "168 h" or "7,5 h"
 export const formatExpected = (hours) => {

@@ -41,8 +41,8 @@ export default {
     },
     titleStack() {
       if (this.isTable) return ['Administració', 'Taules auxiliars'];
-      const displayName = (this.metadata && this.metadata.displayName) || this.formatEntityName(this.entityName);
-      return ['Administració', displayName];
+      // an entity without metadata isn't managed here: no English name (issues/181)
+      return this.metadata ? ['Administració', this.metadata.displayName || this.formatEntityName(this.entityName)] : ['Administració'];
     },
     subtitle() {
       return this.isTable ? `Les llistes que alimenten els desplegables de l'aplicació. Tria'n una per veure-la i editar-la.` : '';

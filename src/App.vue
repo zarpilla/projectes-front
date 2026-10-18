@@ -25,6 +25,22 @@ import { landingForUser } from "@/domain/home";
 import { useHomePins } from "@/stores/homePins";
 import ModalBoxInvoice from "@/components/ModalBoxInvoice.vue";
 
+const PENDING_NOTICE = "pendingInvoicesNotice";
+const pendingNoticeShown = userId => {
+  try {
+    return sessionStorage.getItem(PENDING_NOTICE) === String(userId);
+  } catch (e) {
+    return false;
+  }
+};
+const markPendingNoticeShown = userId => {
+  try {
+    sessionStorage.setItem(PENDING_NOTICE, String(userId));
+  } catch (e) {
+    // shown again next time
+  }
+};
+
 export default {
   name: "Home",
   components: {
@@ -86,6 +102,17 @@ export default {
     this.loadUserData();
   },
   methods: {
+    // the entity's name for the pending payments notice: a member never opens
+    // the screens that load it
+    async loadEntity() {
+      if (useMainStore().me && useMainStore().me.name) return;
+      try {
+        const entity = (await service({ requiresAuth: true, cached: true }).get("me")).data;
+        useMainStore().setMe({ me: entity && entity.data ? entity.data : entity });
+      } catch (e) {
+        // «de l'entitat»
+      }
+    },
     hasChildrenWithPermissions(items, userPermissions) {
       return items.some(item => hasMenuPermission(item, userPermissions));
     },
@@ -166,9 +193,12 @@ export default {
                   `emitted-invoices/pending-provider?_limit=-1&_sort=name:ASC`
                 )
               ).data;
-              if (pending && pending.invoices && pending.invoices.length > 0) {
+              // once per session, not on every page load (issues/181)
+              if (pending && pending.invoices && pending.invoices.length > 0 && !pendingNoticeShown(user.id)) {
                 this.invoices = pending.invoices;
+                await this.loadEntity();
                 this.isModalActive = true;
+                markPendingNoticeShown(user.id);
               }
             } else {
               // Login.vue is already navigating to nextUrl (a lazy route can

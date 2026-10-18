@@ -216,6 +216,7 @@ import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
 import TimeCounter from "@/components/TimeCounter.vue";
 import { counterElapsed, relationId } from "@/service/timeCounter";
+import { formatNumber } from "@/helpers/format-number";
 import { findCurrentUser, currentUserId } from "@/domain/currentUser";
 import { canPickPerson, storedPermissions } from "@/domain/routeAccess";
 
@@ -289,7 +290,7 @@ export default {
     headSubtitle() {
       const parts = [];
       if (this.userNameSearch) parts.push(this.userNameSearch);
-      if (this.form && this.form.date) parts.push(moment(this.form.date).format("dddd D [de] MMMM [de] YYYY"));
+      if (this.form && this.form.date) parts.push(moment(this.form.date).format("dddd D MMMM [de] YYYY"));
       return parts.join(" · ");
     },
     ...mapState(useMainStore, ["userName"]),
@@ -372,7 +373,8 @@ export default {
         this.form.dedication_type = this.dedicationObject.dedication_type
           ? this.dedicationObject.dedication_type.id
           : null;
-        this.form.hours = this.dedicationObject.hours;
+        // «3,5», as the rest of the app; saving reads the comma (issues/181)
+        this.form.hours = this.dedicationObject.hours == null ? null : formatNumber(this.dedicationObject.hours, 3);
         this.form.project = this.dedicationObject.project
           ? this.dedicationObject.project.id
           : null;
@@ -459,7 +461,7 @@ export default {
         }
         this.counterDisplayTime = elapsed.display;
         this.counterDisplayStartTime = elapsed.start.format("DD/MM/YYYY HH:mm:ss");
-        this.form.hours = elapsed.inHours.toFixed(3);
+        this.form.hours = formatNumber(elapsed.inHours, 3);
       }, 1000);
     },
     cancel() {
