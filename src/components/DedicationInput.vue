@@ -23,6 +23,7 @@
       :festive-object="festiveObject"
       :users="users"
       :festive-types="festiveTypes"
+      :can-edit-common="isAdmin"
       @submit="modalFestiveSubmit"
       @cancel="modalFestiveCancel"
       @delete="modalFestiveDelete"
@@ -461,6 +462,8 @@ export default {
       counterInterval: 0,
       updateCounterCount: 0,
       festiveTypes: [],
+      // admins also enter the holidays for everyone (issues/140)
+      isAdmin: false,
       zevents: {
         "2022-05-27": [{ title: "Rehearsal", url: "http://www.google.com" }]
       },
@@ -561,6 +564,12 @@ export default {
         "festive-types?_limit=-1"
       )
     ).data;
+    try {
+      const me = (await service({ requiresAuth: true, cached: true }).get("users/me")).data;
+      this.isAdmin = ((me && me.permissions) || []).some(p => p.permission === "admin");
+    } catch (e) {
+      this.isAdmin = false;
+    }
   },
   methods: {
     formatHours,
@@ -865,21 +874,11 @@ export default {
       }
       this.isModalEditActive = true;
     },
+    // A holiday for everyone opens too: the dialog shows it read-only to anyone
+    // but an admin (issues/140).
     showModalFestive(festive) {
-      if (
-        (festive &&
-          festive.festive_type &&
-          festive.festive_type.personal === true) ||
-        festive === null
-      ) {
-        this.festiveObject = festive;
-        this.isModalFestiveActive = true;
-      } else {
-        this.$buefy.snackbar.open({
-          message: "No es poden editar els festius globals",
-          queue: false
-        });
-      }
+      this.festiveObject = festive;
+      this.isModalFestiveActive = true;
     },
     showModalMoveToProject() {
       this.isModalMoveToProject = true;
@@ -1180,10 +1179,13 @@ export default {
         }
       } catch (err) {
         console.error("activities error", err);
+        const data = err && err.response && err.response.data;
         this.$buefy.snackbar.open({
-          message: "Error",
+          message: (data && data.error && data.error.message) || "Error",
           queue: false
         });
+        this.getActivities();
+        return;
       }
 
       this.getActivities();

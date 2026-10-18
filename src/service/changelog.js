@@ -40,6 +40,11 @@ export const CHANGELOG = [
     },
     {
       type: "Novetats",
+      modules: ["Hores", "Administració"],
+      text: ["Festius de tothom (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/admin/festive-type", label: "Taules auxiliars › Tipus de festiu" }, "."]
+    },
+    {
+      type: "Novetats",
       modules: ["Informes"],
       text: ["Nou informe ", { to: "/invoicing-forecast", label: "Previsió facturació" }, ": què cal facturar aquest mes i els propers, i què s'havia de facturar i encara no té factura, per projecte i responsable. Surt de la «Previsió fac.» de les línies d'ingrés de cada projecte."]
     },

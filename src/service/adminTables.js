@@ -28,6 +28,7 @@ export const ADMIN_TABLE_GROUPS = [
     title: 'Calendari',
     items: [
       { entity: 'year', label: 'Anys' },
+      { entity: 'festive-type', label: 'Tipus de festiu' },
       { entity: 'user-festive', label: "Festius d'usuari" }
     ]
   },

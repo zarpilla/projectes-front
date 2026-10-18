@@ -16,7 +16,7 @@ const BACKEND_ENTITIES = [
   'bank-account', 'contact-type', 'dedication-type', 'expense-type', 'income-type',
   'legal-form', 'payment-method', 'project-likelihood', 'project-state', 'project-type',
   'region', 'project-scope', 'sector', 'serie', 'social-entity', 'strategy', 'task-state',
-  'user-festive', 'year'
+  'user-festive', 'year', 'festive-type'
 ]
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"

@@ -28,7 +28,10 @@
                   trap-focus>
               </b-datepicker>
             </b-field>
-            <b-field label="Persona" horizontal>
+            <p v-if="readOnlyCommon" class="notification is-info is-light">
+              Aquest festiu és per a tothom: només el pot canviar o esborrar una persona administradora.
+            </p>
+            <b-field v-if="selectedPersonal" label="Persona" horizontal>
               <b-autocomplete
                 v-model="userNameSearch"
                 placeholder="Persona"
@@ -41,6 +44,9 @@
               >
               </b-autocomplete>
             </b-field>
+            <b-field v-else label="Persona" horizontal>
+              <span class="festive-everyone">Tothom</span>
+            </b-field>
             <b-field label="Tipus de festiu" class="has-check" horizontal v-if="hasTypes">
               <radio-picker
                 v-model="form.festive_type"
@@ -50,8 +56,8 @@
         </section>
         <footer class="modal-card-foot">
           <button class="button" type="button" @click="cancel">Cancel·la</button>
-          <button v-if="form.id > 0" class="button is-danger" type="button" @click="trashModal(form)">Esborra</button>
-          <button class="button is-primary" :disabled="!enabled" native-type="submit">D'acord</button>          
+          <button v-if="form.id > 0 && !readOnlyCommon" class="button is-danger" type="button" @click="trashModal(form)">Esborra</button>
+          <button v-if="!readOnlyCommon" class="button is-primary" :disabled="!enabled" native-type="submit">D'acord</button>          
         </footer>
       </form>
     </div>
@@ -90,6 +96,11 @@ export default {
       type: Object,
       default: null
     },
+    // admins also enter the holidays for everyone (non-personal types, issues/140)
+    canEditCommon: {
+      type: Boolean,
+      default: false
+    },
     festiveTypes: {
       type: Array,
       default: []
@@ -122,6 +133,17 @@ export default {
     enabled () {
       return this.form.date // && this.form.festive_type
     },
+    selectedType () {
+      return this.festiveTypes.find(f => f.id == this.form.festive_type) || null
+    },
+    // a type for everyone has no person
+    selectedPersonal () {
+      return !this.selectedType || this.selectedType.personal !== false
+    },
+    // someone who isn't an admin looking at a holiday for everyone
+    readOnlyCommon () {
+      return !this.canEditCommon && !this.selectedPersonal
+    },
     filteredUsers () {
       return this.users.filter(option => {
         return (
@@ -141,6 +163,12 @@ export default {
     }
   },
   watch: {
+    'form.festive_type' () {
+      if (!this.selectedPersonal) {
+        this.form.users_permissions_user = null
+        this.userNameSearch = ''
+      }
+    },
     isActive (newValue) {
       this.isModalActive = newValue
       if (newValue) {
@@ -152,41 +180,41 @@ export default {
   },
   methods: {    
     show () {
-      this.isLoading1 = true
-      this.isLoading2 = true
-
-      for (var i in this.festiveTypes) {
-        const f = this.festiveTypes[i]
-        if (f.personal) {
-          this.festiveTypesObj[f.id] = f.name
-          this.hasTypes = true
-        }        
+      // personal types first; the ones for everyone only for admins, or to show
+      // the holiday for everyone being looked at (issues/140)
+      const editingType = this.festiveObject && this.festiveObject.festive_type ? this.festiveObject.festive_type.id : null
+      const offered = [
+        ...this.festiveTypes.filter(f => f.personal !== false),
+        ...this.festiveTypes.filter(f => f.personal === false && (this.canEditCommon || f.id === editingType))
+      ]
+      this.festiveTypesObj = {}
+      for (const f of offered) {
+        this.festiveTypesObj[f.id] = f.personal === false ? `${f.name} (tothom)` : f.name
       }
+      this.hasTypes = offered.length > 0
 
       if (this.festiveObject) {
         this.form.date = this.festiveObject.date ? moment(this.festiveObject.date, 'YYYY-MM-DD').toDate() : null
         this.form.endDate = null
-        this.form.festive_type = this.festiveObject.festive_type ? this.festiveObject.festive_type.id : null
+        this.form.festive_type = editingType
         this.form.users_permissions_user = this.festiveObject.users_permissions_user ? this.festiveObject.users_permissions_user.id : null
         this.userNameSearch = this.festiveObject.users_permissions_user ? this.festiveObject.users_permissions_user.username : ''
         this.form.id = this.festiveObject.id
       } else {
         this.form.date = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD').toDate()
         this.form.endDate = null
-        this.form.festive_type = this.festiveTypes[0].id
+        // the first offered type (it used to be the first of all, a type for everyone not offered)
+        this.form.festive_type = offered.length ? offered[0].id : null
         this.form.users_permissions_user = null
         this.userNameSearch = ''
         this.form.id = 0
       }
 
-
       const user = findCurrentUser(this.users)
-      if (user && user.id && this.form.users_permissions_user === null) {
+      if (this.selectedPersonal && user && user.id && this.form.users_permissions_user === null) {
         this.userNameSearch = user.username
         this.form.users_permissions_user = user.id
       }
-
-      
     },
     cancel () {
       this.$emit('cancel')
@@ -248,5 +276,10 @@ export default {
 }
 .modal-card-body-festive {
   min-height: 450px;
+}
+.festive-everyone {
+  display: inline-block;
+  padding-top: .375rem;
+  font-weight: 600;
 }
 </style>
