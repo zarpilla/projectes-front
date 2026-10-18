@@ -21,11 +21,11 @@
     }
   ],
   "roles": [
-    { "id": "projects", "title": "Projectes" },
-    { "id": "hours", "title": "Hores" },
-    { "id": "orders", "title": "Logística" },
-    { "id": "orders_admin", "title": "Logística (Admin)" },
-    { "id": "orders_delivery", "title": "Logística (Repartidores)" },
-    { "id": "admin", "title": "Admin" }
+    { "id": "projects", "title": "Projectes", "audience": "Gestió de projectes" },
+    { "id": "hours", "title": "Hores", "audience": "Registre d'hores" },
+    { "id": "orders", "title": "Logística", "audience": "Sòcies de logística" },
+    { "id": "orders_admin", "title": "Logística (Admin)", "audience": "Oficina de logística" },
+    { "id": "orders_delivery", "title": "Logística (Repartidores)", "audience": "Repartiment" },
+    { "id": "admin", "title": "Admin", "audience": "Administració" }
   ]
 }

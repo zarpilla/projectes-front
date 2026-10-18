@@ -221,8 +221,9 @@ portal for all the docs) can list, filter and link chapters without reading thei
 | `updated` | Date of the last content change (`YYYY-MM-DD`). |
 
 Keep the block a plain YAML subset (one `key: value` per line, quoted strings, inline lists) — the checker reads
-it without a YAML library. The «> Permís necessari» line stays in the text: it explains the nuances that
-`roles` can't.
+it without a YAML library. The «> Permís necessari» line stays in the Markdown for the team (it explains the nuances that `roles`
+can't), but the docs viewer (esstrapis-docs) hides it and shows `roles` as badges, named by each role's
+`audience` in `manual.json`.
 
 Style: informal "tu" or impersonal — pick impersonal and keep it; UI labels in **bold** and exactly as
 shown; no code, field API names or English jargon; explain domain terms (bestreta, periodificació,
