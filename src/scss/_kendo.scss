@@ -124,6 +124,15 @@ html body {
   }
 }
 
-html:not(.pivot-config-open) body .k-pivot .k-pivot-setting {
+/* field chips hidden while not configuring. The rows' bar keeps its box:
+   Kendo sizes it to the column headers so that the row headers below it line
+   up with the values; without it the row headers started beside the column
+   headers and ended that much earlier (issues/137). */
+html:not(.pivot-config-open) body .k-pivot .k-pivot-setting:not(.k-settings-rows) {
   display: none !important;
+}
+html:not(.pivot-config-open) body .k-pivot .k-settings-rows {
+  visibility: hidden;
+  border-color: transparent !important;
+  background: transparent !important;
 }
