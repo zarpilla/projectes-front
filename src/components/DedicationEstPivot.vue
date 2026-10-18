@@ -110,6 +110,8 @@
 
 <script>
 import service from '@/service/index'
+import { projectStartYearLabel } from '@/domain/years'
+import { loadFiscalSettings } from '@/service/fiscalYear'
 import moment from 'moment'
 import configPivot from '@/service/configStatsDedicationEst'
 import sortBy from 'lodash/sortBy'
@@ -266,6 +268,8 @@ export default {
     },
     async getActivities () {
       this.isLoading = true
+      // «Any inici» is a fiscal year (Configuració general › Projectes)
+      const { startMonth } = await loadFiscalSettings()
 
       if (this.projectState === null || this.year === null || this.person === null) {
         return
@@ -304,7 +308,7 @@ export default {
                   project_leader: p.leader ? p.leader.username : '-',
                   project_scope: p.project_scope ? p.project_scope.short_name : '-',
                   project_client: p.client ? p.client.name : '-',
-                  project_year: p.date_start ? moment(p.date_start, 'YYYY-MM-DD').format('YYYY') : moment(p.created_at, 'YYYY-MM-DD').format('YYYY'),
+                  project_year: projectStartYearLabel(p, startMonth),
                   // pyu: `${p.name}.${a.date ? moment(a.date).format('YYYY').toString() : 0}.${a.users_permissions_user ? this.leaders.find(u => u.id === a.users_permissions_user).username : '-'}`,
                   total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
                   hours: a.hours,

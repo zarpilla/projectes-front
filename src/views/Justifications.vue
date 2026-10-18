@@ -6,7 +6,7 @@
         <label class="filter-select">
           <span>Any</span>
           <b-select v-model="filters.year" aria-label="Any">
-            <option v-for="(year, index) in years" :key="index" :value="year">{{ year.year }}</option>
+            <option v-for="(year, index) in years" :key="index" :value="year">{{ yearLabel(year.year) }}</option>
           </b-select>
         </label>
         <label class="filter-select">
@@ -37,6 +37,8 @@ import TitleBar from '@/components/TitleBar.vue'
 import CardComponent from '@/components/CardComponent.vue'
 import Justification from '@/components/Justification.vue'
 import service from '@/service/index'
+import { fiscalYearLabel } from '@/domain/years'
+import { loadFiscalSettings } from '@/service/fiscalYear'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import { addScript, addStyle } from '@/helpers/addScript'
@@ -62,10 +64,14 @@ export default {
       projectSearch: '',
       years: [],
       projectStates: [],
+      grantStartMonth: 1
     }
   },
   computed: {
     ...mapState(useMainStore, ['userName']),
+    yearLabel () {
+      return year => fiscalYearLabel(year, this.grantStartMonth)
+    },
     titleStack () {
       return ['Informes', 'Justificacions']
     },
@@ -85,6 +91,9 @@ export default {
         await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
         await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
 
+        // grant years read «2026/27» when they are fiscal years (Configuració general)
+        const fiscal = await loadFiscalSettings()
+        this.grantStartMonth = fiscal.grantableFiscal ? fiscal.startMonth : 1
         const r = await service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC')
         const years = r.data
         years.unshift({ id: -1, year: 'Tots' })

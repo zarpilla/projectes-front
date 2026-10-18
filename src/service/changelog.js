@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Administració", "Projectes", "Informes", "Subvencions"],
+      text: ["Any fiscal que no comença al gener: a ", { to: "/admin/me", label: "Configuració general" }, " › Projectes es tria el mes d'inici (per exemple, setembre per a un curs de setembre a agost). La fitxa de projecte, la periodificació, ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " agrupen els imports per aquest any, que es mostra com «2026/27», i els gràfics comencen pel seu primer mes. Opcionalment, els anys de subvenció també poden ser fiscals (", { to: "/justifications", label: "Justificacions" }, "). L'IVA, les sèries de factura, les nòmines, les hores i la tresoreria continuen per any natural."]
+    },
+    {
+      type: "Novetats",
       modules: ["Logística"],
       text: ["La fitxa de cada comanda té un «Historial»: qui l'ha creada i qui l'ha canviada, quan, i què ha canviat (l'estat i qualsevol altra dada, de què a què), també quan es factura, quan s'esborra l'esborrany de factura i els canvis que l'aplicació hi fa sola (descomptes, comandes de recollida). Es veu des de ", { to: "/orders", label: "Comandes" }, " obrint una comanda; el veu l'oficina, no les sòcies. Comença a omplir-se a partir d'ara."]
     },

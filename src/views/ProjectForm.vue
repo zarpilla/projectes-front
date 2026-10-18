@@ -527,6 +527,7 @@
                   <ProjectGrantableYears
                     :grantable-years="form.grantable_years || []"
                     :years="years"
+                    :start-month="grantableStartMonth"
                     @updated="updateGrantableYears"
                     v-if="form.grantable"
                   >
@@ -2527,6 +2528,7 @@ import {
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
+import { fiscalStartMonth, fiscalYearLabel, fiscalYearRange, fiscalYearOf } from "@/domain/years";
 import { formatHours, formatMoney, formatNumber, sign } from "@/helpers/format-number";
 import { defaultProjectLeader } from "@/domain/projectLeader.js";
 
@@ -2672,6 +2674,14 @@ export default {
       return !!(this.periodification && this.form.periodification && this.form.periodification.length);
     },
     ...mapState(useMainStore, ["me"]),
+    // Configuració general › Projectes: the years of allByYear and of the
+    // periodification are fiscal years (1 = calendar year)
+    fiscalStartMonth() {
+      return fiscalStartMonth(this.me);
+    },
+    grantableStartMonth() {
+      return this.me && this.me.options && this.me.options.grantable_fiscal_years ? this.fiscalStartMonth : 1;
+    },
     undatedLines() {
       return undatedProjectLines(this.form);
     },
@@ -3012,7 +3022,9 @@ export default {
       this.$router.replace({ query: { ...this.$route.query, tab } }).catch(() => {});
     },
     isUndatedYear,
-    periodificationYearLabel,
+    periodificationYearLabel(year) {
+      return isUndatedYear(year) ? periodificationYearLabel(year) : fiscalYearLabel(year, this.fiscalStartMonth);
+    },
     toggleClosedChild(childId) {
       const index = this.visibleClosedChildren.indexOf(childId);
       if (index > -1) {
@@ -3322,9 +3334,10 @@ export default {
       this.project_scopes = this.project_scopes.filter(s => !s.disabled)
       this.project_likelihoods = this.project_likelihoods.filter(s => !s.disabled)
       this.form.date_start = new Date();
-      this.form.date_end = moment()
-        .endOf("year")
-        .toDate();
+      // the end of the current fiscal year (31/12 for most entities)
+      this.form.date_end = moment(
+        fiscalYearRange(fiscalYearOf(moment(), this.fiscalStartMonth), this.fiscalStartMonth).to
+      ).toDate();
       // Enable creation mode for new projects and set initial creation_step
       this.isCreationMode = true;
       this.currentStep = 1;

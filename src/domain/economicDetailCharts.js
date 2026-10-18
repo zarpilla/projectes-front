@@ -3,6 +3,8 @@
 // measures: expenses and the cost of the hours come negative; the result is
 // income + expenses + their VAT + hours, as «Resultat orig/prev/exec».
 
+import { fiscalMonthOrder, fiscalYearLabel } from './years'
+
 export const SCENARIOS = {
   orig: { income: 'income_orig', expense: 'expense_orig', vat: 'expense_orig_vat', hours: 'total_original_hours_price', label: 'Original' },
   prev: { income: 'income_esti', expense: 'expense_esti', vat: 'expense_esti_vat', hours: 'total_estimated_hours_price', label: 'Previst' },
@@ -37,18 +39,22 @@ export function totals (rows, scenario) {
 }
 
 // per month of one year (all twelve, empty ones too), or per year when the rows span
-// several; each period also carries the result accumulated up to it
-export function byPeriod (rows, scenario, { byYear = false } = {}) {
+// several; each period also carries the result accumulated up to it. With a fiscal
+// year (`startMonth` > 1, Configuració general) the months run from its first one
+// and the years read «2026/27».
+export function byPeriod (rows, scenario, { byYear = false, startMonth = 1 } = {}) {
   const groups = new Map()
-  if (!byYear) MONTHS.forEach((label, i) => groups.set(String(i + 1).padStart(2, '0'), { key: String(i + 1).padStart(2, '0'), label, ...empty() }))
+  const order = fiscalMonthOrder(startMonth)
+  if (!byYear) order.forEach(m => groups.set(String(m).padStart(2, '0'), { key: String(m).padStart(2, '0'), label: MONTHS[m - 1], ...empty() }))
   for (const r of rows) {
     const key = byYear ? String(r.year) : String(r.month).padStart(2, '0')
-    if (!groups.has(key)) groups.set(key, { key, label: key, ...empty() })
+    if (!groups.has(key)) groups.set(key, { key, label: byYear ? fiscalYearLabel(key, startMonth) : key, ...empty() })
     add(groups.get(key), rowAmounts(r, scenario))
   }
+  const rank = g => (byYear ? 0 : order.indexOf(Number(g.key)))
   let accumulated = 0
   return [...groups.values()]
-    .sort((a, b) => a.key.localeCompare(b.key))
+    .sort((a, b) => rank(a) - rank(b) || a.key.localeCompare(b.key))
     .map(g => {
       accumulated += g.result
       return { ...rounded(g), accumulated: round(accumulated) }

@@ -20,7 +20,7 @@
         <label class="filter-select">
           <span>Any</span>
           <b-select v-model="filters.year" aria-label="Any">
-            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ s.year }}</option>
+            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ yearLabel(s.year) }}</option>
           </b-select>
         </label>
         <div class="segmented" role="group" aria-label="Dades">
@@ -33,12 +33,14 @@
         :rows="chartRows"
         :year="filters.year"
         :data-type="filters.dataType"
+        :start-month="fiscal.startMonth"
       />
       <economic-detail-pivot
         v-if="show && !isLoading"
         :project-states="selectedProjectStates"
         :year="filters.year"
         :data-type="filters.dataType"
+        :start-month="fiscal.startMonth"
         @loaded="rows => (chartRows = rows)"
       />
     </section>
@@ -51,7 +53,8 @@ import CardComponent from "@/components/CardComponent.vue";
 import EconomicDetailPivot from "@/components/EconomicDetailPivot.vue";
 import EconomicDetailCharts from "@/components/EconomicDetailCharts.vue";
 import service from "@/service/index";
-import { defaultYear } from "@/domain/years";
+import { defaultYear, fiscalYearLabel, fiscalYearOf } from "@/domain/years";
+import { loadFiscalSettings } from "@/service/fiscalYear";
 import defaultProjectState from "@/service/projectState";
 import { addScript, addStyle } from "@/helpers/addScript";
 import moment from "moment";
@@ -78,7 +81,9 @@ export default {
       selectedProjectStates: [],
       // rows loaded by the pivot, for the charts
       chartRows: null,
-      show: true
+      show: true,
+      // the years are fiscal years (Configuració general › Projectes)
+      fiscal: { startMonth: 1 }
     };
   },
   computed: {
@@ -137,6 +142,9 @@ export default {
 
   },
   methods: {
+    yearLabel(year) {
+      return fiscalYearLabel(year, this.fiscal.startMonth);
+    },
     getData() {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
@@ -161,9 +169,12 @@ export default {
 
           //this.filters.project_state = defaultProjectState;
 
-          service({ requiresAuth: true, cached: true })
-            .get("years?_sort=year:DESC")
-            .then(r => {
+          Promise.all([
+            service({ requiresAuth: true, cached: true }).get("years?_sort=year:DESC"),
+            loadFiscalSettings()
+          ])
+            .then(([r, fiscal]) => {
+              this.fiscal = fiscal;
               this.years = [...r.data] /*  */;
               const y = this.years[0].year;
               this.years.unshift({ id: 0, year: parseInt(y) + 1 });
@@ -171,7 +182,8 @@ export default {
               this.years.unshift({ id: 0, year: "Tots" });
               // this.filters.year = "Tots";
               // this year; next years are offered above, so they are not a fallback
-              const current = defaultYear(this.years.filter(y => Number(y.year) <= moment().year()));
+              const now = fiscalYearOf(moment(), fiscal.startMonth);
+              const current = defaultYear(this.years.filter(y => Number(y.year) <= now), now);
               this.filters.year = current ? current.year : "Tots";
 
               this.isLoading = false;

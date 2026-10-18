@@ -6,7 +6,7 @@
         <label class="filter-select">
           <span>Any</span>
           <b-select v-model="filters.year" aria-label="Any">
-            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ s.year }}</option>
+            <option v-for="(s, index) in years" :key="index" :value="s.year">{{ yearLabel(s.year) }}</option>
           </b-select>
         </label>
         <div class="toggle-group" role="group" aria-label="Estat projecte">
@@ -38,6 +38,7 @@
         :year="filters.year"
         :data-type="filters.dataType"
         :margin="Number(String(filters.margin).replace(',', '.')) || 0"
+        :start-month="fiscal.startMonth"
       />
     </section>
   </div>
@@ -48,7 +49,9 @@ import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import PricePerHourDetail from "@/components/PricePerHourDetail.vue";
 import service from "@/service/index";
-import { defaultYear } from "@/domain/years";
+import { defaultYear, fiscalYearLabel, fiscalYearOf } from "@/domain/years";
+import { loadFiscalSettings } from "@/service/fiscalYear";
+import moment from "moment";
 
 const STATES_KEY = "PricePerHour.selectedProjectStates";
 
@@ -71,7 +74,9 @@ export default {
       project_states: [],
       selectedProjectStates: [],
       years: [],
-      dataTypes: ["Previsió", "Execució"]
+      dataTypes: ["Previsió", "Execució"],
+      // the years are fiscal years (Configuració general › Projectes)
+      fiscal: { startMonth: 1 }
     };
   },
   computed: {
@@ -98,6 +103,9 @@ export default {
         // private mode: not remembered
       }
     },
+    yearLabel(year) {
+      return fiscalYearLabel(year, this.fiscal.startMonth);
+    },
     getData() {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
@@ -114,11 +122,14 @@ export default {
             ? saved
             : this.project_states.filter(s => s.id === 1 || s.id === 2).map(s => s.id);
 
-          service({ requiresAuth: true, cached: true })
-            .get("years?_sort=year:DESC")
-            .then(r => {
+          Promise.all([
+            service({ requiresAuth: true, cached: true }).get("years?_sort=year:DESC"),
+            loadFiscalSettings()
+          ])
+            .then(([r, fiscal]) => {
+              this.fiscal = fiscal;
               this.years = [...r.data]/*  */;
-              const y = defaultYear(this.years);
+              const y = defaultYear(this.years, fiscalYearOf(moment(), fiscal.startMonth));
               this.years.unshift({ id: 0, year: "Tots" });
               this.filters.year = y ? parseInt(y.year) : "Tots";
 

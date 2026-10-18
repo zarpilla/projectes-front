@@ -24,6 +24,8 @@
 
 <script>
 import service from '@/service/index'
+import { projectStartYearLabel } from '@/domain/years'
+import { loadFiscalSettings } from '@/service/fiscalYear'
 import sumBy from 'lodash/sumBy'
 import sortBy from 'lodash/sortBy'
 import moment from 'moment'
@@ -90,6 +92,8 @@ export default {
   methods: {
     async getActivities () {
       this.isLoading = true
+      // «Any inici» is a fiscal year (Configuració general › Projectes)
+      const { startMonth } = await loadFiscalSettings()
 
       this.scopes = (await service({ requiresAuth: true }).get('project-scopes')).data
       this.states = (await service({ requiresAuth: true }).get('project-states')).data
@@ -114,7 +118,7 @@ export default {
             project_leader: p.leader && p.leader.username ? p.leader.username : '-',
             project_scope: p.project_scope && p.project_scope.short_name ? p.project_scope.short_name : '-',
             project_client: p.client && p.client? p.client.name : '-',
-            project_year: p.date_start ? moment(p.date_start, 'YYYY-MM-DD').format('YYYY') : moment(p.created_at, 'YYYY-MM-DD').format('YYYY'),
+            project_year: projectStartYearLabel(p, startMonth),
             total_original_hours: p.total_original_hours ? p.total_original_hours : 0,
             total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
             hours: sumBy(p.activities, 'hours'),
