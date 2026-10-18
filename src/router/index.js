@@ -1,5 +1,6 @@
 import { canOpen, landingPath, userPermissions } from "@/domain/routeAccess";
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
+import { redirectLegacyHash } from "./legacyHash";
 import Home from "../views/Home.vue";
 import Login from "../views/Login.vue";
 
@@ -878,8 +879,10 @@ const routes = [
   }
 ];
 
+redirectLegacyHash(import.meta.env.BASE_URL);
+
 const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {

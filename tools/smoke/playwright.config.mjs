@@ -1,7 +1,8 @@
 import { defineConfig } from '@playwright/test'
 
 // The app under test must already be running (npm run serve, or a built image).
-// SMOKE_BASE_URL is the page that serves index.html; routes are appended as #/path.
+// SMOKE_BASE_URL is the page that serves index.html; routes are appended as #/path (builds after issues/158
+// turn that into the plain path, so the same scripts run on old and new builds).
 export default defineConfig({
   testDir: '.',
   testMatch: /.*\.spec\.mjs/,

@@ -302,7 +302,7 @@ export default {
     
     extractOrderId(url) {
       // Match patterns like:
-      // http://localhost:8081/stats/#/order/view/15397
+      // http://localhost:8081/stats/order/view/15397 (and the old #/order/view/15397 labels)
       // http://localhost:8081/stats/#/order/15397
       // or any domain with /order/view/{id} or /order/{id}
       const match = url.match(/\/order\/(?:view\/)?(\d+)/);

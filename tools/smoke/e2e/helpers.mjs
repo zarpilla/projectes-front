@@ -63,7 +63,7 @@ export async function openAnonymous (browser) {
   // The front reads its API url at runtime from /config.js; point it at the e2e backend
   await context.route(/\/config\.js(\?|$)/, route => route.fulfill({
     contentType: 'application/javascript',
-    body: `window.APP_CONFIG = ${JSON.stringify({ VUE_APP_API_URL: API_URL, VUE_APP_PATH: BASE_URL, VUE_APP_RESET_PASSWORD: BASE_URL + '#/reset-password' })};`
+    body: `window.APP_CONFIG = ${JSON.stringify({ VUE_APP_API_URL: API_URL, VUE_APP_PATH: BASE_URL, VUE_APP_RESET_PASSWORD: BASE_URL + 'reset-password' })};`
   }))
   // and never let a request reach another backend (some components read the build-time url)
   const allowed = new URL(API_URL).origin
@@ -85,7 +85,7 @@ export async function login (p, user, password) {
   await p.locator('input[type=password]').fill(password)
   await p.locator('[type=submit]').first().click()
   await p.waitForFunction(() => !!localStorage.getItem('jwt'))
-  await p.waitForURL(url => !/#\/?$/.test(url.href))
+  await p.waitForURL(url => !/\/(#\/?)?$/.test(url.href))
 }
 
 const cleanups = []
@@ -274,9 +274,9 @@ export async function createProject (name, { incomes = [], expenses = [] } = {})
   await selectByLabel('Estat', 'Actiu')
   await field('Àmbit').locator('select').selectOption({ index: 0 })
   await button('Continuar').click()
-  await expect(page).toHaveURL(/#\/project\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/project\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  const id = Number(page.url().match(/#\/project\/(\d+)/)[1])
+  const id = Number(page.url().match(/\/project\/(\d+)/)[1])
   await settle()
   const original = card('Fases i pressupost original')
   const phase = await addPhase(original, `${name} fase`)
@@ -437,10 +437,10 @@ export async function createEmittedInvoice ({ contact, projectName, budgetConcep
   await assignBudgetLine(budgetConcept)
   await button('Guardar').click()
   await button("D'acord", modal('Esborranys de factures')).click()
-  await expect(page).toHaveURL(/#\/document\/[1-9]\d*\/emitted-invoices/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/document\/[1-9]\d*\/emitted-invoices/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
   await settle()
-  return Number(page.url().match(/#\/document\/(\d+)\//)[1])
+  return Number(page.url().match(/\/document\/(\d+)\//)[1])
 }
 
 // A new received invoice for `projectName`, dated `date` (d/m/yyyy, default today),
@@ -455,10 +455,10 @@ export async function createReceivedInvoice ({ contact, projectName, budgetConce
   await fillLine(line)
   await assignBudgetLine(budgetConcept)
   await button('Guardar').click()
-  await expect(page).toHaveURL(/#\/document\/[1-9]\d*\/received-invoices/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/document\/[1-9]\d*\/received-invoices/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
   await settle()
-  return Number(page.url().match(/#\/document\/(\d+)\//)[1])
+  return Number(page.url().match(/\/document\/(\d+)\//)[1])
 }
 
 // The treasury forecast rows of a document (#/tresoreria reads the same endpoint)

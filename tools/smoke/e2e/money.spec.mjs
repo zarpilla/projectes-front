@@ -192,9 +192,9 @@ test('a quote is saved', async () => {
   // the form's own totals: 2 × 100 − 10 % = 180, VAT 37.80
   await expect(page.locator('.summary').getByText(/^\s*Total\s+(217,80|234,80|190,80)\s*€\s*$/)).toBeVisible()
   await button('Guardar').click()
-  await expect(page).toHaveURL(/#\/document\/[1-9]\d*\/quotes/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/document\/[1-9]\d*\/quotes/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.quoteId = Number(page.url().match(/#\/document\/(\d+)\//)[1])
+  state.quoteId = Number(page.url().match(/\/document\/(\d+)\//)[1])
 
   const quote = await api('GET', `quotes/${state.quoteId}`)
   expect(quote.code).toMatch(/\S+-\d+/)
@@ -220,7 +220,7 @@ test('"Nou Contacte" next to the contact opens an empty contact form', async () 
     await page.locator('button[title="Nou Contacte"]').filter({ visible: true }).first().click()
     const tab = await popup
     await tab.waitForLoadState()
-    expect(tab.url(), `from ${route}`).toMatch(/#\/contact\/0$/)
+    expect(tab.url(), `from ${route}`).toMatch(/\/contact\/0$/)
     await tab.close()
   }
 })
@@ -241,7 +241,7 @@ test('a new diet ("Nova Dieta") can be cancelled', async () => {
     await expect(diet(), `opens on ${route}`).toBeVisible()
     await close()
     await expect(diet(), `closes with ${how}`).toBeHidden()
-    await expect(page).toHaveURL(/#\/document\/0\/received-expenses/)
+    await expect(page).toHaveURL(/\/document\/0\/received-expenses/)
     await expect(button('Guardar')).toBeVisible()
   }
 })

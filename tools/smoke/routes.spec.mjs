@@ -65,6 +65,7 @@ const firstLine = text => String(text).split('\n')[0]
 // Errors the Vue 2 app already throws today are recorded once (npm run baseline)
 // so later runs only fail on errors the migration introduced.
 const RECORD_KNOWN = process.env.SMOKE_RECORD_KNOWN === '1'
+const BASE_PATH = new URL(process.env.SMOKE_BASE_URL || 'http://localhost:8080/stats/').pathname
 const knownFile = path.join(here, process.env.SMOKE_BASELINE_DIR || 'baseline', 'known-errors.json')
 const readJson = (file, fallback) => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : fallback
 const known = readJson(knownFile, {})
@@ -140,7 +141,10 @@ test.describe('routes', () => {
         await page.evaluate(() => { delete window.__smokeSettle })
 
         // the router guard silently redirects when a permission is missing
-        const landed = await page.evaluate(() => location.hash.replace(/^#/, ''))
+        // hash URLs on builds before issues/158, plain paths under the base after it
+        const landed = await page.evaluate(base => location.hash.startsWith('#/')
+          ? location.hash.slice(1)
+          : '/' + location.pathname.slice(base.length) + location.search, BASE_PATH)
         record(route, { landed, pageErrors, consoleErrors, vueWarnings, blockedApiCalls: [...blockedApiCalls] })
 
         if (VISUAL) {

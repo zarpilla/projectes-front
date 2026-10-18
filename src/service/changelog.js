@@ -29,6 +29,11 @@ export const CHANGELOG = [
       text: "Nou disseny de tota l'aplicació: menú lateral per seccions, capçaleres amb les accions de cada pantalla, xifres destacades, filtres en una sola barra, taules més clares i fitxes per apartats amb una barra de desar sempre visible. Les factures emeses es mostren en mode de només lectura, amb Verifactu i FACe al costat."
     },
     {
+      type: "Millores",
+      modules: ["Plataforma"],
+      text: "Les adreces de l'aplicació ja no porten «#»: ara són com …/stats/projectes. Els enllaços antics (correus, codis QR de les etiquetes, adreces desades) continuen funcionant."
+    },
+    {
       type: "Novetats",
       modules: ["Plataforma"],
       text: ["Mode fosc: tria'l a ", { to: "/profile", label: "el teu perfil" }, " (Clar, Fosc o com el sistema). Es guarda en aquest navegador."]
