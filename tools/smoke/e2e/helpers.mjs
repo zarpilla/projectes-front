@@ -383,9 +383,9 @@ export async function fillPeriod (box, { fromText, toText, hours, salary, genera
   await page.waitForTimeout(300)
 }
 
-// "Cost/hora (€)" as the modal computes it
+// "Cost/hora" as the modal computes it ("Cost/hora (€)" before issues/133)
 export async function modalCostByHour (box) {
-  return parseNumber(await field('Cost/hora \\(€\\)', box).locator('.readonly-fake').innerText())
+  return parseNumber(await field('Cost/hora( \\(€\\))?', box).locator('.readonly-fake').innerText())
 }
 
 // --- documents ---------------------------------------------------------------------

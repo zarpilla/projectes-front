@@ -37,3 +37,17 @@ WHERE NOT EXISTS (SELECT 1 FROM contact_types WHERE id = 3);
 INSERT INTO contact_types (id, document_id, name, created_at, updated_at, published_at)
 SELECT 4, 'e2e-contact-type-4', 'E2E Punt d''entrega', NOW(), NOW(), NOW()
 WHERE NOT EXISTS (SELECT 1 FROM contact_types WHERE id = 4);
+
+-- a rate for the route and delivery type above: the quick edit of "Comandes" refuses
+-- to save an order it can't price (issues/151). No pickup, so it applies to any.
+INSERT INTO route_rates (document_id, name, less_15, less_30, additional_30, created_at, updated_at, published_at)
+SELECT 'e2e-route-rate', 'E2E Tarifa', 10, 15, 0.5, NOW(), NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM route_rates WHERE name = 'E2E Tarifa');
+INSERT INTO route_rates_routes_lnk (route_rate_id, route_id, route_ord, route_rate_ord)
+SELECT rr.id, r.id, 1, 1 FROM route_rates rr, routes r
+WHERE rr.name = 'E2E Tarifa' AND r.name = 'E2E Ruta'
+  AND NOT EXISTS (SELECT 1 FROM route_rates_routes_lnk l WHERE l.route_rate_id = rr.id AND l.route_id = r.id);
+INSERT INTO route_rates_delivery_type_lnk (route_rate_id, delivery_type_id)
+SELECT rr.id, d.id FROM route_rates rr, delivery_types d
+WHERE rr.name = 'E2E Tarifa' AND d.name = 'E2E Normal'
+  AND NOT EXISTS (SELECT 1 FROM route_rates_delivery_type_lnk l WHERE l.route_rate_id = rr.id);

@@ -189,8 +189,8 @@ test('a quote is saved', async () => {
   await pickAutocomplete('Clienta', state.contact.name)
   await pickAutocomplete('Projecte', PROJECT)
   await fillLine({ concept: `${NAME} pressupost`, quantity: 2, price: 100, discount: 10, vat: 21, irpf: 15 })
-  // the form's own totals: 2 × 100 − 10 % = 180, VAT 37.80
-  await expect(page.locator('.summary').getByText(/^\s*Total\s+(217,80|234,80|190,80)\s*€\s*$/)).toBeVisible()
+  // the form's own totals: 2 × 100 − 10 % = 180, VAT 37.80, IRPF 27 (issues/011)
+  await expect(page.locator('.summary').getByText(/^\s*Total\s+190,80\s*€\s*$/)).toBeVisible()
   await button('Guardar').click()
   await expect(page).toHaveURL(/\/document\/[1-9]\d*\/quotes/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
@@ -202,11 +202,12 @@ test('a quote is saved', async () => {
   expect(quote.lines.map(l => [l.concept, Number(l.quantity), Number(l.base), Number(l.discount)])).toEqual([[`${NAME} pressupost`, 2, 100, 10]])
 })
 
-// issues/022: quotes are saved with their totals
-test('a quote stores its totals (IRPF does not apply)', async () => {
+// issues/022: quotes are saved with their totals; since issues/011 they carry IRPF
+// like invoices: total = base + VAT − IRPF
+test('a quote stores its totals, IRPF subtracted', async () => {
   test.skip(!state.quoteId, 'needs the quote')
   const quote = await api('GET', `quotes/${state.quoteId}`)
-  expect([quote.total_base, quote.total_vat, quote.total_irpf, quote.total].map(Number)).toEqual([180, 37.8, 0, 217.8])
+  expect([quote.total_base, quote.total_vat, quote.total_irpf, quote.total].map(Number)).toEqual([180, 37.8, 27, 190.8])
 })
 
 // issues/024: "Nou Contacte" always opens an empty contact form

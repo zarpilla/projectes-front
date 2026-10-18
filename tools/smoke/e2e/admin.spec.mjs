@@ -72,18 +72,19 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
   try {
     // the menu (the logo above it links to the first screen of the menu too)
     const aside = other.locator('aside nav')
-    await expect(aside.locator('a[href="#/dedicacio"]')).toBeVisible()
-    await expect(aside.locator('a[href="#/registre-jornades"]')).toBeVisible()
-    for (const hidden of ['#/projectes', '#/contacts', '#/emitted-invoices', '#/tresoreria', '#/admin/users']) {
-      await expect(aside.locator(`a[href="${hidden}"]`), hidden).toHaveCount(0)
+    // hrefs are «/stats/dedicacio» since issues/158 («#/dedicacio» before): match the end
+    await expect(aside.locator('a[href$="/dedicacio"]')).toBeVisible()
+    await expect(aside.locator('a[href$="/registre-jornades"]')).toBeVisible()
+    for (const hidden of ['/projectes', '/contacts', '/emitted-invoices', '/tresoreria', '/admin/users']) {
+      await expect(aside.locator(`a[href$="${hidden}"]`), hidden).toHaveCount(0)
     }
     const headers = (await aside.locator('.menu-label').allTextContents()).map(t => t.trim().toUpperCase())
     expect(headers).not.toContain('DINERS')
     expect(headers).not.toContain('ADMINISTRACIÓ')
 
-    // admin screens send them back to the projects list
+    // admin screens send them to their landing page: the hours (issues/121)
     await other.goto('#/admin/users')
-    await expect(other).toHaveURL(/\/projectes/)
+    await expect(other).toHaveURL(/\/dedicacio/)
 
     // and the backend refuses the admin-only operations
     for (const [method, route, body] of ADMIN_ONLY) {
@@ -241,10 +242,14 @@ test('tasks: create, move to another state and archive', async () => {
   const column = title => page.locator('.task-list-content').filter({ has: page.locator('.task-list-header', { hasText: title }) }).first()
   await column(first.name).locator('.task-list-header button').click()
   const box = page.locator('.modal.is-active').last()
-  await field('Nom', box).locator('input').fill(name)
-  // the board shows the logged-in person's tasks
-  await pickAutocomplete('Persones', state.me.username, state.me.username, box)
-  await button("D'acord", box).click()
+  // the task detail (Tasques phase 2): the name is the title, the save button "Desa"
+  await box.getByLabel('Nom de la tasca').fill(name)
+  // the board shows the logged-in person's tasks; a new task may already have her
+  const people = field('Persones', box)
+  if (!await people.getByText(state.me.username, { exact: true }).count()) {
+    await pickAutocomplete('Persones', state.me.username, state.me.username, box)
+  }
+  await button('Desa', box).click()
   await expect(box).toBeHidden()
   let task
   await expect.poll(async () => ([task] = await api('GET', `tasks?_where[name]=${encodeURIComponent(name)}&_limit=1`), task)).toBeTruthy()
@@ -270,7 +275,7 @@ test('tasks: create, move to another state and archive', async () => {
   await card.locator('.content').click()
   const taskBox = page.locator('.modal.is-active').last()
   await expect(taskBox.locator('input').first()).toHaveValue(name)
-  await button('Esborra', taskBox).click()
+  await button('Arxiva', taskBox).click()
   await modal('Esborrar?').locator('.button.is-danger').click()
   await expectSnackbar('Esborrada')
   ;[task] = await api('GET', `tasks?_where[name]=${encodeURIComponent(name)}&_limit=1`)
@@ -280,17 +285,21 @@ test('tasks: create, move to another state and archive', async () => {
 // issues/026: every ADMINISTRACIÓ entry names an entity the backend serves
 test('every administration screen loads', async () => {
   await visit('/projectes')
-  const menuLinks = await page.locator('aside a[href^="#/admin/"]').evaluateAll(as => as.map(a => a.getAttribute('href')))
+  // the route of each link, whether its href is «/stats/admin/…» (issues/158) or «#/admin/…»
+  const routes = as => as.map(a => a.getAttribute('href')).map(h => h.slice(h.indexOf('/admin/')))
+  const menuLinks = await page.locator('aside a[href*="/admin/"]').evaluateAll(routes)
   // the auxiliary tables share one menu entry ("Taules auxiliars") and are listed on its screen
   await visit('/admin/project-scope')
-  const tableLinks = await page.locator('.admin-tables-nav a[href^="#/admin/"]').evaluateAll(as => as.map(a => a.getAttribute('href')))
+  const tableLinks = await page.locator('.admin-tables-nav a[href*="/admin/"]').evaluateAll(routes)
   const links = [...new Set([...menuLinks, ...tableLinks])]
   expect(tableLinks.length).toBeGreaterThan(10)
+  // each visit settles for a few seconds: the default 60 s don't cover them all
+  test.setTimeout(60_000 + links.length * 8_000)
   const broken = []
-  for (const href of links) {
-    await visit(href.slice(1))
+  for (const route of links) {
+    await visit(route)
     const error = page.locator('.toast, .snackbar', { hasText: /Error/ })
-    if (await error.count()) broken.push(`${href}: ${(await error.first().innerText()).trim()}`)
+    if (await error.count()) broken.push(`${route}: ${(await error.first().innerText()).trim()}`)
     await page.locator('.toast').evaluateAll(ts => ts.forEach(t => t.remove()))
   }
   expect(broken).toEqual([])
