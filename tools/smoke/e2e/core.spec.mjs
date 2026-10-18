@@ -49,10 +49,54 @@ test('project phases: original budget and closing it', async () => {
   await visible('button', { hasText: /^\s*Continuar\s*$/ }).click()
   await expectSnackbar('Guardat')
   await settle()
-
-  // step 3 (planning) and 4 (confirmation). Wait for the planning chart like a
-  // user would: leaving before it is drawn throws from ProjectGannt's mount timers
+  // leaving step 2 copies the original budget into the estimated one (previst),
+  // which the planning step works on
+  const copied = await api('GET', `project-phases?_where[project]=${state.projectId}&_limit=-1`)
+  expect(copied.map(p => p.name)).toEqual([`${NAME} fase A`])
+  // new lines take the project's end date, so the project opens without the
+  // "línies sense data" warning
+  const { date_end: end } = await api('GET', `projects/${state.projectId}`)
+  for (const line of [...copied[0].incomes, ...copied[0].expenses]) {
+    expect([line.date_estimate_document, line.date]).toEqual([end, end])
+  }
+  // the wizard's planning goes to both budgets: the Original / Prevista switch is
+  // disabled with both on
   await expect(page.locator('.gantt_container').first()).toBeVisible({ timeout: 20_000 })
+  const views = page.getByRole('group', { name: 'Planificació' })
+  await expect(views.getByRole('button', { name: 'Original' })).toBeDisabled()
+  await expect(views.getByRole('button', { name: 'Prevista' })).toBeDisabled()
+
+  // changing the original back in step 2 copies it again, replacing the earlier copy
+  await visible('button', { hasText: /^\s*Enrere\s*$/ }).click()
+  const original2 = card('Fases i pressupost original')
+  await (await phaseNamed(original2, `${NAME} fase A`)).locator('input[name="PreuUnitari"]').first().fill('55')
+  await visible('button', { hasText: /^\s*Continuar\s*$/ }).click()
+  await expectSnackbar('Guardat')
+  await settle()
+  const recopied = await api('GET', `project-phases?_where[project]=${state.projectId}&_limit=-1`)
+  expect(recopied.map(p => p.name)).toEqual([`${NAME} fase A`])
+  expect(recopied[0].id).not.toBe(copied[0].id)
+  expect(recopied[0].incomes.map(i => Number(i.amount))).toEqual([55])
+
+  // plan hours: drag on the income line's row of the chart (the phase's row takes
+  // none), then the hours modal
+  await expect(page.locator('.gantt_grid_data .gantt_row', { hasText: 'Ingrés e2e' })).toBeVisible()
+  await settle(1500)
+  const row = page.locator('.gantt_task_bg .gantt_task_row').nth(1)
+  // the row is wider than the chart's visible area: start inside the latter
+  const box = await row.boundingBox()
+  const area = await page.locator('.gantt_task').first().boundingBox()
+  await page.mouse.move(area.x + 40, box.y + box.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(area.x + 200, box.y + box.height / 2, { steps: 8 })
+  await page.mouse.up()
+  const hoursModal = modal('Planificació')
+  await expect(hoursModal).toBeVisible()
+  await field('Hores', hoursModal).locator('input').fill('7')
+  await button("D'acord", hoursModal).click()
+  await expect(hoursModal).toBeHidden()
+
+  // leaving step 3 copies the planned hours too: both budgets start equal
   await visible('button', { hasText: /^\s*Continuar\s*$/ }).click()
   await settle()
   await button('Tancar pressupost').click()
@@ -62,13 +106,22 @@ test('project phases: original budget and closing it', async () => {
   expect(project.creation_step).toBe('completed')
   const originals = await api('GET', `project-original-phases?_where[project]=${state.projectId}&_limit=-1`)
   expect(originals.map(p => p.name)).toEqual([`${NAME} fase A`])
-  expect(originals[0].incomes.map(i => [i.concept, Number(i.quantity), Number(i.amount)])).toEqual([['Ingrés e2e', 10, 50]])
+  expect(originals[0].incomes.map(i => [i.concept, Number(i.quantity), Number(i.amount)])).toEqual([['Ingrés e2e', 10, 55]])
   expect(originals[0].expenses.map(e => [e.concept, Number(e.quantity), Number(e.amount)])).toEqual([['Despesa e2e', 2, 30]])
-  // closing the budget copies the original phases into the execution ones
+  // closing the budget doesn't copy them a second time
   const phases = await api('GET', `project-phases?_where[project]=${state.projectId}&_limit=-1`)
   expect(phases.map(p => p.name)).toEqual([`${NAME} fase A`])
-  expect(project.total_incomes).toBe(500)
+  const hoursOf = async phase => (await api('GET', `estimated-hours?_where[phase_income]=${phase.incomes[0].id}&_limit=-1`))
+    .map(h => Number(h.quantity))
+  expect(await hoursOf(originals[0])).toEqual([7])
+  expect(await hoursOf(phases[0])).toEqual([7])
+  expect(project.total_incomes).toBe(550)
   expect(project.total_expenses).toBe(60)
+
+  // once created, the planning opens on Prevista and the switch works again
+  await visit(`/project/${state.projectId}?tab=planificacio`)
+  await expect(page.getByText('Planificació prevista').first()).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('group', { name: 'Planificació' }).getByRole('button', { name: 'Original' })).toBeEnabled()
 })
 
 test('project edition', async () => {

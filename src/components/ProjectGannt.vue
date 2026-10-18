@@ -9,9 +9,14 @@
       :dedications="dedications"
     />
     <div class="gantt-toolbar">
-      <div class="segmented" role="group" aria-label="Planificació">
-        <button type="button" :class="{ 'is-on': viewMode === 'original' }" @click="setViewMode('original')">Original</button>
-        <button type="button" :class="{ 'is-on': viewMode !== 'original' }" @click="setViewMode('estimated')">Prevista</button>
+      <div
+        class="segmented"
+        role="group"
+        aria-label="Planificació"
+        :title="viewModeLocked ? 'En crear el projecte, la planificació val per a l\'original i la prevista' : null"
+      >
+        <button type="button" :disabled="viewModeLocked" :class="{ 'is-on': viewModeLocked || viewMode === 'original' }" @click="setViewMode('original')">Original</button>
+        <button type="button" :disabled="viewModeLocked" :class="{ 'is-on': viewModeLocked || viewMode !== 'original' }" @click="setViewMode('estimated')">Prevista</button>
       </div>
       <div class="segmented" role="group" aria-label="Escala">
         <button type="button" :class="{ 'is-on': view === 'week' }" @click="view !== 'week' && toggleView()">Setmanes</button>
@@ -69,6 +74,12 @@ export default {
     viewMode: {
       type: String,
       default: "original" // 'original' or 'estimated'
+    },
+    // Original / Prevista switch disabled with both on: while creating the
+    // project the planning goes to both (new project wizard)
+    viewModeLocked: {
+      type: Boolean,
+      default: false
     },
     editable: {
       type: Boolean,

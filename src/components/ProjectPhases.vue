@@ -1459,14 +1459,8 @@ export default {
         assign: autoAssign,
         paid: autoAssign,
         vat_pct: 21,
-        date_estimate_document: this.documentEmitted
-          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
-          : null,
-        date: autoAssign
-          ? this.calculatePaymentDate()
-          : this.documentEmitted
-          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
-          : null,
+        date_estimate_document: this.defaultLineDate(),
+        date: autoAssign ? this.calculatePaymentDate() : this.defaultLineDate(),
         dirty: true
       });
       this.$emit("phases-updated", {
@@ -1519,14 +1513,8 @@ export default {
         assign: autoAssign,
         paid: autoAssign,
         vat_pct: 21,
-        date_estimate_document: this.documentEmitted
-          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
-          : null,
-        date: autoAssign
-          ? this.calculatePaymentDate()
-          : this.documentEmitted
-          ? moment(this.documentEmitted, "YYYY-MM-DD").toDate()
-          : null,
+        date_estimate_document: this.defaultLineDate(),
+        date: autoAssign ? this.calculatePaymentDate() : this.defaultLineDate(),
         dirty: true
       });
       this.$emit("phases-updated", {
@@ -1570,6 +1558,15 @@ export default {
         deletedIncomes: this.deletedIncomes,
         deletedExpenses: this.deletedExpenses
       });
+    },
+    // Previsió fac./pag. of a new line: the document's date when adding from one,
+    // else the project's end date, so a new project doesn't open with every line
+    // in the "no tenen data" warning (same default as copying a phase)
+    defaultLineDate() {
+      if (this.documentEmitted) {
+        return moment(this.documentEmitted, "YYYY-MM-DD").toDate();
+      }
+      return this.form && this.form.date_end ? moment(this.form.date_end).toDate() : null;
     },
     /**
      * Calcula la data de Previsió pag. d'una línia segons la prioritat de les

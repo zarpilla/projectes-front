@@ -686,6 +686,11 @@ td.doc-total {
       font-weight: 800;
       color: var(--a-fg);
     }
+
+    &:disabled {
+      cursor: default;
+      opacity: .65;
+    }
   }
 }
 // a labelled group of on/off chips (multi-select filters)

@@ -2102,7 +2102,7 @@
 
       <card-component
         v-if="!isLoading && !isUpdating && !form.children && (!isCreationMode || currentStep >= 3)"
-        :title="ganttViewMode === 'original' ? 'Planificació original' : 'Planificació prevista'"
+        :title="isCreationMode && !isDuplicating ? 'Planificació' : ganttViewMode === 'original' ? 'Planificació original' : 'Planificació prevista'"
         v-show="showTab('planificacio')"
       >
         <button
@@ -2129,6 +2129,7 @@
           :users="leaders"
           :tasks="{}"
           :view-mode="ganttViewMode"
+          :view-mode-locked="isCreationMode && !isDuplicating"
           @update:view-mode="toggleGanttView"
           @gantt-item-update="ganttItemUpdate"
           @gantt-item-delete="ganttItemDelete"
@@ -2753,9 +2754,9 @@ export default {
     wizardSteps() {
       return [
         { title: "Dades bàsiques", description: "Nom, estat, àmbit, qui coordina i dates." },
-        { title: "Fases i pressupost", description: "Fases amb els ingressos i les despeses previstos." },
-        { title: "Planificació", description: "Qui hi dedica hores i quan." },
-        { title: "Confirmació", description: "Tanca el pressupost: es crea el d'execució." }
+        { title: "Fases i pressupost", description: "Pressupost original: es copia al previst en continuar." },
+        { title: "Planificació", description: "Qui hi dedica hores i quan: val per a l'original i el previst." },
+        { title: "Confirmació", description: "Revisa-ho i tanca el pressupost." }
       ];
     },
     // the redesigned summary (tabs and wizard); duplicating keeps the old card
@@ -3299,17 +3300,15 @@ export default {
 
               this.getAuxiliarData();
 
-              // Restore the Gantt view the user last chose; with no preference,
-              // default to "estimated" (PREVISTA) when the project has execution
-              // phases. The saved value used to be read and then never applied,
-              // so once a user toggled the view every later load fell back to the
-              // component default ("original") and their PREVISTA planning looked
-              // as though it had not been saved.
-              const savedGanttView = localStorage.getItem("ganttViewMode");
-              if (savedGanttView === "original" || savedGanttView === "estimated") {
-                this.ganttViewMode = savedGanttView;
-              } else if (this.form.project_phases && this.form.project_phases.length > 0) {
-                this.ganttViewMode = "estimated";
+              // The planning opens on PREVISTA (the original only for a project
+              // without an estimated budget, whose PREVISTA would be empty). The
+              // wizard plans on the original budget; leaving step 3 copies it,
+              // hours included, to the estimated one.
+              if (this.isCreationMode) {
+                this.ganttViewMode = "original";
+              } else {
+                this.ganttViewMode =
+                  this.form.project_phases && this.form.project_phases.length > 0 ? "estimated" : "original";
               }
 
               this.isLoading = false;
@@ -3583,9 +3582,9 @@ export default {
         // Phases and budget: at least one phase with data
         return this.form.project_original_phases && this.form.project_original_phases.length > 0;
       } else if (step === 3) {
-        // Planning: requires phases to be saved first
-        return this.form.id && 
-               this.form.project_original_phases && 
+        // Planning: requires the original phases to be saved
+        return this.form.id &&
+               this.form.project_original_phases &&
                this.form.project_original_phases.length > 0 &&
                this.form.project_original_phases[0] &&
                this.form.project_original_phases[0].id;
@@ -3607,6 +3606,13 @@ export default {
         return;
       }
 
+      // While creating, the estimated budget is a copy of the original: leaving
+      // step 2 (phases) and step 3 (planning, done on the original) copies it
+      // again, so both start with the same lines and hours.
+      if (this.currentStep === 2 || this.currentStep === 3) {
+        this.copyOriginalToEstimated();
+      }
+
       // Save the project with the NEXT step (where we're going)
       this.form.creation_step = this.getStepName(this.currentStep + 1);
       
@@ -3618,9 +3624,28 @@ export default {
         this.currentStep--;
       }
     },
+    // The estimated budget (previst) becomes a copy of the original, replacing
+    // an earlier copy and its planned hours.
+    copyOriginalToEstimated() {
+      const previous = this.form.project_phases || [];
+      const deletedPhases = previous.filter(p => p.id).map(p => p.id);
+      const deletedHours = [];
+      previous.forEach(p =>
+        (p.incomes || []).forEach(i =>
+          (i.estimated_hours || []).forEach(h => h.id && deletedHours.push(h.id))
+        )
+      );
+      this.closeQuoteFromOriginal();
+      this.form.project_phases_info = {
+        deletedPhases,
+        deletedIncomes: [],
+        deletedExpenses: [],
+        deletedHours
+      };
+    },
     async closeBudget() {
-      // Close the budget by copying original phases to execution phases
-      // This method is called when user confirms they want to finalize the project creation
+      // Finish the project creation; the estimated budget was copied from the
+      // original when leaving steps 2 and 3
 
       if (!this.form.project_original_phases || this.form.project_original_phases.length === 0) {
         this.$buefy.snackbar.open({
@@ -3633,8 +3658,6 @@ export default {
       // Mark creation as completed
       this.form.creation_step = 'completed';
 
-      // Save and create execution budget
-      // This calls closeQuoteFromOriginal which copies phases
       await this.submit("closeBudget");
     },
     continueEditing(target) {
@@ -3724,8 +3747,9 @@ export default {
         this.form.dirty = false;
 
         if (this.form.id) {
-          // If closing budget, copy phases BEFORE the main save
-          if (action === "closeBudget") {
+          // Closing the budget copies the phases only for projects whose wizard
+          // started before the copy moved to step 2
+          if (action === "closeBudget" && !(this.form.project_phases && this.form.project_phases.length)) {
             await this.closeQuoteFromOriginal();
           }
 
@@ -3809,8 +3833,7 @@ export default {
             this.currentStep++;
             this.getData();
           } else if (action === "closeBudget") {
-            // Phases were already copied BEFORE the main save above
-            // Just exit creation mode and reload
+            // Exit creation mode and reload
             this.isCreationMode = false;
             this.getData();
           } else if (action === "continue") {
@@ -4702,6 +4725,7 @@ export default {
     },
     closeQuoteFromOriginal() {
       this.phasesVisible = false;
+      const endDate = this.form.date_end ? moment(this.form.date_end).format("YYYY-MM-DD") : null;
       const phases = JSON.parse(
         JSON.stringify(this.form.project_original_phases)
       );
@@ -4714,10 +4738,11 @@ export default {
 
         p.incomes.forEach((sp, incIdx) => {
           sp.dirty = true;
-          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
+          // undated lines get the project's end date, as when copying a phase
+          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : endDate;
           sp.date_estimate_document = sp.date_estimate_document
             ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
-            : null;
+            : endDate;
           delete sp.id;
           delete sp.project_original_phase; // Remove foreign key to original phase
           delete sp.project_phase; // Remove any existing execution phase reference
@@ -4740,7 +4765,10 @@ export default {
 
         p.expenses.forEach(sp => {
           sp.dirty = true;
-          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : null;
+          sp.date = sp.date ? moment(sp.date).format("YYYY-MM-DD") : endDate;
+          sp.date_estimate_document = sp.date_estimate_document
+            ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
+            : endDate;
           delete sp.id;
           delete sp.project_original_phase; // Remove foreign key to original phase
           delete sp.project_phase; // Remove any existing execution phase reference
@@ -4779,8 +4807,6 @@ export default {
     },
     toggleGanttView() {
       this.ganttViewMode = this.ganttViewMode === "original" ? "estimated" : "original";
-      // Save preference to localStorage
-      localStorage.setItem("ganttViewMode", this.ganttViewMode);
     },
     changeValue(field, value) {
       if (value && value.toString().includes(",")) {
