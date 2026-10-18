@@ -103,7 +103,9 @@ const menu = [
     { to: "/routes", icon: "map-marker-path", label: "Rutes", permission: "orders_admin" },
     { to: "/user-contacts", icon: "store-outline", label: "Punts d'entrega", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/pickup-points", icon: "basket-outline", label: "Punts de consum", permission: ["orders", "orders_admin"] },
-    { to: "/partners", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin", itemClassName: "mb-6" }
+    { to: "/partners", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin" },
+    // the Logística group of Taules auxiliars, for the office (admins reach it from Administració, issues/159)
+    { to: "/admin/pickup", icon: "table-settings", label: "Taules de logística", permission: ["orders_admin", "admin"], unless: "admin", activeWhen: "logistics-tables", itemClassName: "mb-6" }
   ],
   "Estadístiques",
   [
@@ -297,7 +299,10 @@ const menu = [
 // An entry with no permission is for everybody; `permission` is one permission
 // or a list of them (any of them shows the entry).
 export const hasMenuPermission = (item, userPermissions) => {
-  if (!item || !item.permission) return true;
+  if (!item) return true;
+  // `unless`: hidden for people with this permission (they reach it elsewhere)
+  if (item.unless && userPermissions.includes(item.unless)) return false;
+  if (!item.permission) return true;
   const needed = Array.isArray(item.permission) ? item.permission : [item.permission];
   return needed.some(p => userPermissions.includes(p));
 };

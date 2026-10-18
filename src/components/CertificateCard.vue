@@ -1,7 +1,8 @@
 <template>
   <!-- The AEAT (Verifactu) or FACe certificate (ticket 159): what the backend
        reads from it with the stored password, and the form to upload or replace
-       it. The password is never shown nor prefilled; it only goes in the upload. -->
+       it. The password is never shown nor prefilled; it only goes in the upload.
+       kind="google": the Google service-account key (.json, no password). -->
   <div class="cert-card">
     <div class="cert-head">
       <h3>{{ title }}</h3>
@@ -10,8 +11,12 @@
 
     <p v-if="loadError" class="cert-empty">No s'ha pogut consultar el certificat: {{ loadError }}</p>
     <template v-else-if="status">
-      <p v-if="!status.configured" class="cert-empty">Encara no s'ha pujat cap certificat.</p>
+      <p v-if="!status.configured" class="cert-empty">{{ text.none }}</p>
       <dl v-else class="cert-facts">
+        <template v-if="status.account">
+          <dt>Compte</dt><dd>{{ status.account.clientEmail }}</dd>
+          <dt>Projecte</dt><dd>{{ status.account.projectId || "—" }}</dd>
+        </template>
         <template v-if="status.certificate">
           <dt>Titular</dt><dd>{{ holder }}</dd>
           <dt>NIF</dt><dd>{{ status.certificate.nif || "—" }}</dd>
@@ -32,20 +37,20 @@
 
     <!-- not a <form>: it sits inside the settings form, and Enter here must not save that one -->
     <div v-if="editing" class="cert-upload">
-      <b-field label="Fitxer del certificat (.p12 o .pfx)">
-        <input ref="file" class="input" type="file" accept=".p12,.pfx" @change="onFile" />
+      <b-field :label="text.fileLabel">
+        <input ref="file" class="input" type="file" :accept="text.accept" @change="onFile" />
       </b-field>
-      <b-field label="Contrasenya del certificat">
+      <b-field v-if="!isKey" label="Contrasenya del certificat">
         <b-input v-model="password" type="password" password-reveal autocomplete="new-password" @keydown.enter.prevent="upload" />
       </b-field>
       <div class="cert-actions">
-        <b-button type="is-primary" class="cert-save" :loading="saving" :disabled="!file" @click="upload">Desa el certificat</b-button>
+        <b-button type="is-primary" class="cert-save" :loading="saving" :disabled="!file" @click="upload">{{ text.save }}</b-button>
         <b-button class="cert-cancel" @click="cancel">Cancel·la</b-button>
       </div>
     </div>
     <div v-else-if="status" class="cert-actions">
-      <b-button class="cert-edit" @click="editing = true">{{ status.configured ? "Substitueix el certificat" : "Puja el certificat" }}</b-button>
-      <b-button v-if="status.configured" type="is-danger" outlined class="cert-remove" :loading="saving" @click="confirmRemove">Treu el certificat</b-button>
+      <b-button class="cert-edit" @click="editing = true">{{ status.configured ? text.replace : text.upload }}</b-button>
+      <b-button v-if="status.configured" type="is-danger" outlined class="cert-remove" :loading="saving" @click="confirmRemove">{{ text.remove }}</b-button>
     </div>
   </div>
 </template>
@@ -55,6 +60,38 @@ import moment from "moment";
 import service from "@/service/index";
 
 const SOON_DAYS = 30;
+
+const TEXTS = {
+  certificate: {
+    none: "Encara no s'ha pujat cap certificat.",
+    fileLabel: "Fitxer del certificat (.p12 o .pfx)",
+    accept: ".p12,.pfx",
+    save: "Desa el certificat",
+    upload: "Puja el certificat",
+    replace: "Substitueix el certificat",
+    remove: "Treu el certificat",
+    saved: "Certificat desat",
+    removed: "Certificat tret",
+    notSaved: "No s'ha desat el certificat",
+    removeTitle: "Treure el certificat",
+    removeMessage: "S'esborrarà el certificat i la seva contrasenya. Fins que no en pugis un altre no es podran enviar factures amb aquest servei."
+  },
+  // the Google service-account key (issues/159)
+  key: {
+    none: "Encara no s'ha pujat cap clau.",
+    fileLabel: "Clau del compte de servei de Google (.json)",
+    accept: ".json,application/json",
+    save: "Desa la clau",
+    upload: "Puja la clau",
+    replace: "Substitueix la clau",
+    remove: "Treu la clau",
+    saved: "Clau desada",
+    removed: "Clau treta",
+    notSaved: "No s'ha desat la clau",
+    removeTitle: "Treure la clau",
+    removeMessage: "S'esborrarà la clau. Fins que no en pugis una altra no s'importaran els calendaris de Google."
+  }
+};
 
 /** Days left until `notAfter` (negative once expired) and whether to warn. */
 export function certificateExpiry(certificate, now = new Date()) {
@@ -67,7 +104,7 @@ export function certificateExpiry(certificate, now = new Date()) {
 export default {
   name: "CertificateCard",
   props: {
-    // 'verifactu' (AEAT) | 'face'
+    // 'verifactu' (AEAT) | 'face' | 'google' (service-account key)
     kind: { type: String, required: true },
     title: { type: String, default: "Certificat" }
   },
@@ -82,6 +119,12 @@ export default {
     };
   },
   computed: {
+    isKey() {
+      return this.kind === "google";
+    },
+    text() {
+      return this.isKey ? TEXTS.key : TEXTS.certificate;
+    },
     expiry() {
       return certificateExpiry(this.status && this.status.certificate);
     },
@@ -134,20 +177,20 @@ export default {
       try {
         const formData = new FormData();
         formData.append("file", this.file, this.file.name);
-        formData.append("password", this.password);
+        if (!this.isKey) formData.append("password", this.password);
         this.status = (await service({ requiresAuth: true, multipart: true }).post(`/certificates/${this.kind}`, formData)).data;
         this.cancel();
-        this.$buefy.snackbar.open({ message: "Certificat desat", queue: false });
+        this.$buefy.snackbar.open({ message: this.text.saved, queue: false });
       } catch (error) {
-        this.$buefy.toast.open({ message: `No s'ha desat el certificat: ${this.errorMessage(error)}`, type: "is-danger", duration: 6000 });
+        this.$buefy.toast.open({ message: `${this.text.notSaved}: ${this.errorMessage(error)}`, type: "is-danger", duration: 6000 });
       } finally {
         this.saving = false;
       }
     },
     confirmRemove() {
       this.$buefy.dialog.confirm({
-        title: "Treure el certificat",
-        message: "S'esborrarà el certificat i la seva contrasenya. Fins que no en pugis un altre no es podran enviar factures amb aquest servei.",
+        title: this.text.removeTitle,
+        message: this.text.removeMessage,
         confirmText: "Treu-lo",
         cancelText: "Cancel·la",
         type: "is-danger",
@@ -158,7 +201,7 @@ export default {
       this.saving = true;
       try {
         this.status = (await service({ requiresAuth: true }).delete(`/certificates/${this.kind}`)).data;
-        this.$buefy.snackbar.open({ message: "Certificat tret", queue: false });
+        this.$buefy.snackbar.open({ message: this.text.removed, queue: false });
       } catch (error) {
         this.$buefy.toast.open({ message: `No s'ha pogut treure: ${this.errorMessage(error)}`, type: "is-danger" });
       } finally {

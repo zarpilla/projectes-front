@@ -83,19 +83,22 @@ describe('route form (issues/141)', () => {
     expect(routePayload({ ...form, transfer_pickup: null }).transfer_pickup).toBe(null)
   })
 
-  // issues/159: the project, the pickup point and the days a transfer route
-  // carries an order could only be set from the Strapi admin
-  it('loads and saves the project, the pickup point and the transfer days', () => {
+  // issues/159: the days a transfer route carries an order could only be set
+  // from the Strapi admin. The route's project and pickup point, which nothing
+  // reads, stay out of the form and the payload (they keep their stored value).
+  it('loads and saves the transfer days, leaves project and pickup alone', () => {
     const form = routeToForm({ ...ROUTES[0], project: { id: 30, name: 'Logística' }, pickup: { id: 5 }, is_transfer_route: true, is_transfer_route_date: 'only_previous_days' })
-    expect(form).toMatchObject({ project: 30, pickup: 5, is_transfer_route_date: 'only_previous_days' })
-    expect(routePayload(form)).toMatchObject({ project: 30, pickup: 5, is_transfer_route_date: 'only_previous_days' })
-    expect(routePayload({ ...form, project: null, pickup: null, is_transfer_route_date: 'only_same_day' }))
-      .toMatchObject({ project: null, pickup: null, is_transfer_route_date: 'only_same_day' })
+    expect(form.is_transfer_route_date).toBe('only_previous_days')
+    expect(form).not.toHaveProperty('project')
+    const body = routePayload({ ...form, is_transfer_route_date: 'only_same_day' })
+    expect(body.is_transfer_route_date).toBe('only_same_day')
+    expect(body).not.toHaveProperty('project')
+    expect(body).not.toHaveProperty('pickup')
   })
 
   it('saves an unknown or empty transfer day choice as «any day»', () => {
     const form = { ...routeToForm(null, ROUTES), name: 'Nova', monday: true }
-    expect(form).toMatchObject({ project: null, pickup: null, is_transfer_route_date: null })
+    expect(form).toMatchObject({ is_transfer_route_date: null })
     expect(routePayload(form).is_transfer_route_date).toBe(null)
     expect(routePayload({ ...form, is_transfer_route_date: '' }).is_transfer_route_date).toBe(null)
     expect(routePayload({ ...form, is_transfer_route_date: 'sometimes' }).is_transfer_route_date).toBe(null)

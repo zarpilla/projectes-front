@@ -59,11 +59,26 @@ export const ADMIN_TABLE_GROUPS = [
   }
 ]
 
-// The groups a person with these app permissions sees
-export const adminTableGroupsFor = permissions =>
-  ADMIN_TABLE_GROUPS.filter(g => !g.permissions || g.permissions.some(p => (permissions || []).includes(p)))
+// What the logistics office (orders_admin) opens without being an admin (issues/159)
+export const OFFICE_TABLES = ['pickup', 'delivery-type', 'city', 'route-rate']
+
+// The groups a person with these app permissions sees: an admin all of them
+// (Logística with logistics), the office only the Logística tables
+export const adminTableGroupsFor = permissions => {
+  const has = p => (permissions || []).includes(p)
+  if (!has('admin')) {
+    if (!has('orders_admin')) return []
+    return ADMIN_TABLE_GROUPS
+      .map(g => ({ ...g, items: g.items.filter(t => OFFICE_TABLES.includes(t.entity)) }))
+      .filter(g => g.items.length)
+  }
+  return ADMIN_TABLE_GROUPS.filter(g => !g.permissions || g.permissions.some(has))
+}
 
 export const ADMIN_TABLES = ADMIN_TABLE_GROUPS.flatMap(g => g.items)
 
-export const isAdminTablePath = path =>
-  ADMIN_TABLES.some(t => path === `/admin/${t.entity}` || path.startsWith(`/admin/${t.entity}/`))
+const tablePath = (path, entity) => path === `/admin/${entity}` || path.startsWith(`/admin/${entity}/`)
+
+export const isAdminTablePath = path => ADMIN_TABLES.some(t => tablePath(path, t.entity))
+
+export const isOfficeTablePath = path => OFFICE_TABLES.some(entity => tablePath(path, entity))

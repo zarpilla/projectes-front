@@ -102,20 +102,6 @@
             </b-field>
           </b-field>
 
-          <div class="columns">
-            <b-field class="column" label="Projecte" message="El projecte de la ruta">
-              <b-select v-model="form.project" expanded>
-                <option :value="null">— Cap —</option>
-                <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.name }}</option>
-              </b-select>
-            </b-field>
-            <b-field class="column" label="Punt de recollida" message="El punt de recollida de la ruta">
-              <b-select v-model="form.pickup" expanded>
-                <option :value="null">— Cap —</option>
-                <option v-for="p in pickups" :key="p.id" :value="p.id">{{ p.alias || p.name }}</option>
-              </b-select>
-            </b-field>
-          </div>
 
           <b-field>
             <b-checkbox v-model="form.is_transfer_route">Fa transferències</b-checkbox>
@@ -183,7 +169,6 @@ export default {
       switchResets: 0,
       routes: [],
       pickups: [],
-      projects: [],
       users: [],
       form: routeToForm(null)
     };
@@ -218,15 +203,13 @@ export default {
   async mounted() {
     this.isLoading = true;
     try {
-      const [pickups, users, projects] = await Promise.all([
+      const [pickups, users] = await Promise.all([
         service({ requiresAuth: true, cached: true }).get("pickups?_limit=-1&_sort=name:ASC").then(r => r.data),
         service({ requiresAuth: true, cached: true }).get("users?_limit=-1").then(r => r.data).catch(() => []),
-        service({ requiresAuth: true, cached: true }).get("projects/basic?_limit=-1&_sort=name:ASC").then(r => r.data).catch(() => []),
         this.getData()
       ]);
       this.pickups = pickups;
       this.users = users;
-      this.projects = projects;
     } finally {
       this.isLoading = false;
     }
