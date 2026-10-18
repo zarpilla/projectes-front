@@ -252,9 +252,12 @@ export default {
         this.trashObject = null;
         await this.loadData();
       } catch (error) {
+        // the backend says why (a town in use can't be deleted, issues/159)
+        const reason = (error.response && error.response.data && error.response.data.message) || error.message;
         this.$buefy.toast.open({
-          message: `Error eliminant: ${error.message}`,
-          type: 'is-danger'
+          message: `Error eliminant: ${reason}`,
+          type: 'is-danger',
+          duration: 6000
         });
       }
     },
@@ -265,6 +268,7 @@ export default {
       if (name === 'year' && typeof value !== 'object') return String(value);
       if (['decimal', 'integer', 'float'].includes(config.type)) return this.formatNumber(value);
       if (config.type === 'date' || config.type === 'datetime') return this.formatDate(value);
+      if (config.enumLabels && config.enumLabels[value]) return config.enumLabels[value];
       if (config.model || typeof value === 'object') {
         return value.name || value.username || value.year || value.id || '';
       }

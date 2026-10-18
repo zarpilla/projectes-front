@@ -16,7 +16,9 @@ const BACKEND_ENTITIES = [
   'bank-account', 'contact-type', 'dedication-type', 'expense-type', 'income-type',
   'legal-form', 'payment-method', 'project-likelihood', 'project-state', 'project-type',
   'region', 'project-scope', 'sector', 'serie', 'social-entity', 'strategy', 'task-state',
-  'user-festive', 'year', 'festive-type', 'route-rate'
+  'user-festive', 'year', 'festive-type', 'route-rate',
+  // issues/159
+  'pickup', 'delivery-type', 'city', 'product', 'document-type', 'vat-type', 'activity-type'
 ]
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"
@@ -46,6 +48,19 @@ describe('admin menu links', () => {
     expect(entities(['admin', 'projects'])).not.toContain('route-rate')
     expect(entities(['admin', 'orders_admin'])).toContain('route-rate')
     expect(entities(['admin'])).toContain('festive-type')
+  })
+
+  // issues/159: the tables that needed the Strapi admin
+  it('lists the logistics tables only to people with logistics', async () => {
+    const { adminTableGroupsFor } = await import('@/service/adminTables')
+    const entities = perms => adminTableGroupsFor(perms).flatMap(g => g.items.map(t => t.entity))
+    for (const name of ['pickup', 'delivery-type', 'city']) {
+      expect(entities(['admin'])).not.toContain(name)
+      expect(entities(['admin', 'orders_admin'])).toContain(name)
+    }
+    for (const name of ['product', 'document-type', 'vat-type', 'activity-type']) {
+      expect(entities(['admin'])).toContain(name)
+    }
   })
 
   it('redirect the old plural paths (bookmarks)', () => {
