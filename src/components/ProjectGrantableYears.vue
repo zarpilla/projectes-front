@@ -9,7 +9,7 @@
         >
           <b-select :model-value="getYearId(yearData)" @update:model-value="updateYearValue(yearData, $event)">
             <option v-for="(year, index) in years" :key="index" :value="year.id">
-              {{ year.year }}
+              {{ yearLabel(year.year) }}
             </option>
           </b-select>
         </b-field>
@@ -108,10 +108,18 @@
 </template>
 
 <script>
+import { fiscalYearLabel } from "@/domain/years";
+
 export default {
   name: 'ProjectGrantableYears',
   emits: ["updated"],
   props: {
+    // first month of a grant year: the fiscal year's when grant years are
+    // fiscal (Configuració general › Projectes), else 1
+    startMonth: {
+      type: Number,
+      default: 1
+    },
     grantableYears: {
       type: Array,
       required: true
@@ -138,6 +146,9 @@ export default {
     }
   },
   methods: {
+    yearLabel(year) {
+      return fiscalYearLabel(year, this.startMonth);
+    },
     addYear() {
       const defaultYearId = this.years && this.years.length > 0 ? this.years[0].id : null;
       this.rows.push({

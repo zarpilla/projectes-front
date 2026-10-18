@@ -83,7 +83,9 @@ export default {
   props: {
     rows: { type: Array, default: () => [] },
     year: { type: [String, Number], default: null },
-    dataType: { type: String, default: 'Totes' }
+    dataType: { type: String, default: 'Totes' },
+    // first month of the fiscal year (Configuració general), 1 = calendar year
+    startMonth: { type: Number, default: 1 }
   },
   data () {
     return {
@@ -116,7 +118,7 @@ export default {
       return 'previst'
     },
     periods () {
-      return byPeriod(this.rows, this.scenario, { byYear: this.byYear })
+      return byPeriod(this.rows, this.scenario, { byYear: this.byYear, startMonth: this.startMonth })
     },
     projects () {
       return byProject(this.rows, this.scenario, 10)
@@ -137,7 +139,7 @@ export default {
     },
     // with «Totes»: the forecast's accumulated result, to compare with the executed one
     plannedLine () {
-      return byPeriod(this.rows, 'prev', { byYear: this.byYear }).map(p => p.accumulated)
+      return byPeriod(this.rows, 'prev', { byYear: this.byYear, startMonth: this.startMonth }).map(p => p.accumulated)
     },
     periodChart () {
       const c = this.colors

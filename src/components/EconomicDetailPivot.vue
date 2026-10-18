@@ -60,6 +60,7 @@ import sortBy from "lodash/sortBy";
 import omit from "lodash/omit";
 import moment from "moment";
 import configPivot from "@/service/configStatsEconomicDetail";
+import { fiscalPivotRows } from "@/domain/years";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
@@ -86,6 +87,11 @@ export default {
     dataType: {
       type: String,
       default: null
+    },
+    // first month of the fiscal year (Configuració general), 1 = calendar year
+    startMonth: {
+      type: Number,
+      default: 1
     }
   },
   computed: {
@@ -685,9 +691,10 @@ export default {
       const data2 = data.map(c => {
         return omit(c, ["document"]);
       });
-      this.pivotData = Object.freeze(sortBy(data2, ["project_name"]));
-      // the charts above the pivot use the same rows
-      this.$emit("loaded", this.pivotData);
+      const rows = sortBy(data2, ["project_name"]);
+      // the charts above the pivot use the same rows (with the year as a number)
+      this.$emit("loaded", Object.freeze(rows));
+      this.pivotData = Object.freeze(fiscalPivotRows(rows, this.startMonth));
 
       const currentConfigPivot = configPivot;
 

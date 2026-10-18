@@ -11,7 +11,7 @@
         <div class="doc-kpi">
           <span>Import a justificar</span>
           <b>{{ kpi.withGrantable ? money(kpi.grantable) : "—" }}</b>
-          <small>{{ kpi.withGrantable ? kpi.withGrantable + " projectes en tenen" + (year ? " per al " + year : "") : "Cap projecte en té" + (year ? " per al " + year : "") }}</small>
+          <small>{{ kpi.withGrantable ? kpi.withGrantable + " projectes en tenen" + (year ? " per al " + grantYearLabel(year) : "") : "Cap projecte en té" + (year ? " per al " + grantYearLabel(year) : "") }}</small>
         </div>
         <div class="doc-kpi">
           <span>Pendent</span>
@@ -25,7 +25,7 @@
         </div>
       </div>
       <div v-if="kpi.withoutGrantable" class="notification is-warning just-warning">
-        <span><b>{{ kpi.withoutGrantable }} {{ kpi.withoutGrantable === 1 ? "projecte no té" : "projectes no tenen" }} import a justificar{{ year ? " per al " + year : "" }}</b>, així que no se'n pot calcular el pendent ni el percentatge. Es defineix a la fitxa del projecte, a «Subvencions», per a cada any.</span>
+        <span><b>{{ kpi.withoutGrantable }} {{ kpi.withoutGrantable === 1 ? "projecte no té" : "projectes no tenen" }} import a justificar{{ year ? " per al " + grantYearLabel(year) : "" }}</b>, així que no se'n pot calcular el pendent ni el percentatge. Es defineix a la fitxa del projecte, a «Subvencions», per a cada any.</span>
         <router-link to="/grants" class="just-link">Obre Subvencions</router-link>
       </div>
 
@@ -531,6 +531,8 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { grantableAmountForYear } from "@/domain/grantable";
+import { fiscalYearLabel, fiscalYearOf } from "@/domain/years";
+import { loadFiscalSettings } from "@/service/fiscalYear";
 import { format } from "@/helpers/excelFormatter";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -582,6 +584,10 @@ export default {
       justifications: [],
       dedications: [],
       theYear: 0,
+      // first month of a grant year: the fiscal year's when grant years are
+      // fiscal (Configuració general › Projectes), else 1. The rows keep the
+      // calendar year and month, which payrolls and justifications use.
+      grantStartMonth: 1,
       invoices: [],
       invoiceSearch: "",
       projectSearch: "",
@@ -622,12 +628,7 @@ export default {
       if (this.type === "Reals") {
         this.projects.forEach(p => {
           p.activities
-            .filter(
-              a =>
-                !this.theYear ||
-                this.theYear.toString() ===
-                  moment(a.date, "YYYY-MM-DD").format("YYYY")
-            )
+            .filter(a => this.inGrantYear(a.date))
             .forEach(a => {
               const activityYear = moment(a.date, "YYYY-MM-DD").format("YYYY");
               const activity = {
@@ -636,7 +637,7 @@ export default {
                 project_name: p.name,
                 grantable_amount: this.getGrantableAmountForYear(
                   p,
-                  activityYear,
+                  this.grantYearOf(a.date),
                   "grantable_amount"
                 ),
                 users_permissions_user: a.users_permissions_user,
@@ -653,7 +654,7 @@ export default {
             });
         });
       } else {
-        this.estimatedTotals.forEach(t => {
+        this.estimatedTotals.filter(t => this.inGrantYear(t.day)).forEach(t => {
           const activityYear = moment(t.day, "YYYY-MM-DD").format("YYYY");
           const project = this.projects.find(p => p.id == t.project);
           
@@ -668,7 +669,7 @@ export default {
             project_name: t.project_name,
             grantable_amount: this.getGrantableAmountForYear(
               project,
-              activityYear,
+              this.grantYearOf(t.day),
               "grantable_amount"
             ),
             users_permissions_user: t.userId,
@@ -761,7 +762,7 @@ export default {
         .map((rows, id) => {
           // Get the project and year to find the correct grantable amount
           const project = rows[0].project;
-          const year = rows[0].year;
+          const year = this.grantYearOf(this.justificationDate(rows[0]));
           return {
             project: id,
             cost: _.sumBy(rows, r => r.quantity),
@@ -1344,6 +1345,22 @@ export default {
     percent(part, whole) {
       return whole ? formatNumber((Number(part) || 0) / whole * 100, 1, 1) + " %" : "—";
     },
+    // The grant year of a date (a fiscal year when grant years are fiscal), as a string
+    grantYearOf(date) {
+      const year = fiscalYearOf(date, this.grantStartMonth);
+      return year === null ? "" : String(year);
+    },
+    // a date of the selected grant year (any with «Tots»)
+    inGrantYear(date) {
+      return !this.theYear || this.grantYearOf(date) === this.theYear.toString();
+    },
+    justificationDate(j) {
+      return `${j.year}-${this.zeroPad(j.month, 2)}-01`;
+    },
+    // «2026», or «2026/27» when grant years are fiscal
+    grantYearLabel(year) {
+      return fiscalYearLabel(year, this.grantStartMonth);
+    },
     // Helper function to get grantable amount for a specific year and field
     getGrantableAmountForYear(project, year, field = "grantable_amount") {
       return grantableAmountForYear(project, year, field);
@@ -1439,33 +1456,23 @@ export default {
 
       this.months = {};
       this.payrolls = [];
-
-      const from = this.theYear
-        ? moment(this.theYear, "YYYY")
-            .startOf("year")
-            .format("YYYY")
-        : moment()
-            .add(-20, "year")
-            .startOf("year")
-            .format("YYYY");
-      const to = this.theYear
-        ? moment(this.theYear, "YYYY")
-            .endOf("year")
-            .format("YYYY")
-        : moment()
-            .add(10, "year")
-            .endOf("year")
-            .format("YYYY");
+      const fiscal = await loadFiscalSettings();
+      this.grantStartMonth = fiscal.grantableFiscal ? fiscal.startMonth : 1;
+      // a fiscal grant year spans two calendar years (2026/27: Sep 2026 – Aug 2027)
+      const calendarYears = this.theYear
+        ? (this.grantStartMonth > 1 ? [this.theYear, this.theYear + 1] : [this.theYear])
+        : [];
 
       const years = (
         await service({ requiresAuth: true }).get("years?_limit=-1")
       ).data;
 
-      const yearFrom = years.find(y => parseInt(y.year) === parseInt(from));
-
-      let query = this.theYear
-        ? `payrolls?_where[year]=${yearFrom.id}&_limit=-1`
-        : `payrolls?_limit=-1`;
+      const payrollQueries = this.theYear
+        ? calendarYears
+            .map(y => years.find(e => parseInt(e.year) === y))
+            .filter(Boolean)
+            .map(y => `payrolls?_where[year]=${y.id}&_limit=-1`)
+        : [`payrolls?_limit=-1`];
       
       // Build projects query with grantable and project_state filters
       const projectState = this.projectState !== null ? this.projectState : 0;
@@ -1476,33 +1483,35 @@ export default {
       }
       query2 += `&_limit=-1`;
 
-      this.payrolls = (await service({ requiresAuth: true }).get(query)).data;
+      this.payrolls = (
+        await Promise.all(payrollQueries.map(q => service({ requiresAuth: true }).get(q)))
+      ).flatMap(r => r.data);
 
       // Get projects with grantable_years populated
       this.projects = (await service({ requiresAuth: true }).get(query2)).data;
       
       // Load estimated-totals only for "Previstes" type, not for "Manuals previstes" or "Reals"
       if (this.type === "Previstes") {
+        const queries = this.theYear
+          ? calendarYears.map(y => `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1&year=${y}`)
+          : [`projects/estimated-totals?_where[grantable_eq]=true&_limit=-1`];
         this.estimatedTotals = (
-          await service({ requiresAuth: true }).get(
-            this.theYear
-              ? `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1&year=${this.theYear}`
-              : `projects/estimated-totals?_where[grantable_eq]=true&_limit=-1`
-          )
-        ).data;
+          await Promise.all(queries.map(q => service({ requiresAuth: true }).get(q)))
+        ).flatMap(r => r.data);
       } else {
         // Clear estimated totals when viewing "Reals" or "Manuals previstes"
         this.estimatedTotals = [];
       }
       
       // Load justifications for both Reals and Previstes views
+      const justificationQueries = this.theYear
+        ? calendarYears.map(y => `justifications?year=${y}&_limit=-1`)
+        : [`justifications?_limit=-1`];
       const justifications = (
-        await service({ requiresAuth: true }).get(
-          this.theYear
-            ? `justifications?year=${this.theYear}&_limit=-1`
-            : `justifications?_limit=-1`
-        )
-      ).data;
+        await Promise.all(justificationQueries.map(q => service({ requiresAuth: true }).get(q)))
+      )
+        .flatMap(r => r.data)
+        .filter(j => this.inGrantYear(this.justificationDate(j)));
 
       this.dedications = (
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")

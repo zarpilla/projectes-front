@@ -181,7 +181,21 @@
               <b-field label="% IVA deduïble" message="La prorrata: la part de l'IVA suportat que es pot descomptar. Cada any en pot tenir un de propi a Taules auxiliars › Anys, que és el que es fa servir en saldar l'IVA i a la tresoreria d'aquell any.">
                 <b-input v-model.number="form.options.deductible_vat_pct" type="number" step="0.01" min="0" max="100" />
               </b-field>
+              <b-field label="Inici de l'any fiscal" message="Els imports de la fitxa de projecte i dels informes econòmics s'agrupen per aquest any. L'IVA, les sèries de factura, les nòmines i les hores continuen per any natural.">
+                <b-select v-model.number="fiscalStartMonth" expanded>
+                  <option v-for="(name, i) in fiscalMonths" :key="i" :value="i + 1">{{ name }}</option>
+                </b-select>
+              </b-field>
             </div>
+            <label v-if="fiscalStartMonth > 1" class="option-row">
+              <b-checkbox v-model="form.options.grantable_fiscal_years">
+                <b>Els anys de subvenció són anys fiscals</b>
+                <small>Els imports a justificar de cada any (Subvencions i Justificacions) es comparen amb el que s'ha fet de {{ fiscalMonths[fiscalStartMonth - 1].toLowerCase() }} a {{ fiscalMonths[(fiscalStartMonth + 10) % 12].toLowerCase() }}. Desmarcat, amb el de gener a desembre.</small>
+              </b-checkbox>
+            </label>
+            <p v-if="fiscalStartMonth !== savedFiscalStartMonth && savedFiscalStartMonth !== null" class="help is-warning">
+              Canviar l'inici de l'any fiscal reagrupa tots els imports per anys. Les periodificacions i els anys de subvenció ja desats conserven el seu any.
+            </p>
           </section>
 
           <section id="cfg-persones" class="form-box">
@@ -298,6 +312,8 @@ export default {
       logoSaving: false,
       logoDragOver: false,
       activeSection: "cfg-entitat",
+      fiscalMonths: ['Gener', 'Febrer', 'Març', 'Abril', 'Maig', 'Juny', 'Juliol', 'Agost', 'Setembre', 'Octubre', 'Novembre', 'Desembre'],
+      savedFiscalStartMonth: null,
       sections: [
         { id: "cfg-entitat", label: "Entitat" },
         { id: "cfg-logo", label: "Logo" },
@@ -375,6 +391,15 @@ export default {
     await this.loadData();
   },
   computed: {
+    // empty (saved before the option existed) is January
+    fiscalStartMonth: {
+      get() {
+        return (this.form.options && this.form.options.fiscal_year_start_month) || 1;
+      },
+      set(value) {
+        this.form.options = { ...this.form.options, fiscal_year_start_month: value };
+      }
+    },
     indexSections() {
       return this.sections.filter(sec => !sec.logistics || this.logistics);
     },
@@ -476,6 +501,7 @@ export default {
         // empty (saved before the option existed) means on, as the server reads it
         this.form.task_emails = response.data.task_emails !== false;
         for (const key of COMPONENTS) this.form[key] = { ...(response.data[key] || {}) };
+        this.savedFiscalStartMonth = this.fiscalStartMonth;
         for (const key of Object.keys(this.tokenSet || {})) this.tokenSet[key] = !!response.data[key + '_set'];
         try {
           const user = (await service({ requiresAuth: true, cached: true }).get('users/me')).data;
@@ -520,6 +546,7 @@ export default {
         }
 
         await service({ requiresAuth: true }).put('/me', data);
+        this.savedFiscalStartMonth = this.fiscalStartMonth;
         for (const key of Object.keys(tokens)) {
           if (data[key]) this.tokenSet[key] = true;
           tokens[key] = '';
@@ -676,6 +703,17 @@ export default {
 .cfg-note a {
   font-weight: 700;
   text-decoration: underline;
+}
+/* one option per line, with room between them (the labels were inline and ran together) */
+.option-row {
+  display: block;
+  margin-bottom: .875rem;
+}
+.option-row + .cfg-grid {
+  margin-top: 1.25rem;
+}
+.cfg-grid + .option-row {
+  margin-top: 1.25rem;
 }
 .option-row small {
   display: block;

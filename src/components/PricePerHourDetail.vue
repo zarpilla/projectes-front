@@ -155,6 +155,7 @@ import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
 import { pricePerHour, priceBands } from "@/domain/pricePerHour";
+import { fiscalPivotRows } from "@/domain/years";
 import { formatNumber, formatMoney } from "@/helpers/format-number";
 
 moment.locale("ca");
@@ -182,6 +183,11 @@ export default {
     margin: {
       type: Number,
       default: 0
+    },
+    // first month of the fiscal year (Configuració general), 1 = calendar year
+    startMonth: {
+      type: Number,
+      default: 1
     }
   },
   computed: {
@@ -645,7 +651,7 @@ export default {
       const data2 = data.map(c => {
         return omit(c, ["document"]);
       });
-      this.pivotData = Object.freeze(sortBy(data2, ["project_name"]));
+      this.pivotData = Object.freeze(fiscalPivotRows(sortBy(data2, ["project_name"]), this.startMonth));
       this.isLoading = false;
     },
     excelFormat(value) {
