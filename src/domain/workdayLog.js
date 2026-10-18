@@ -19,6 +19,11 @@ export const slotMinutes = (hourIn, hourOut) => {
 // shown as a mistake to fix (issues/128)
 export const slotIsInverted = (hourIn, hourOut) => slotMinutes(hourIn, hourOut) < 0
 
+// a typed hh / mm pair is a time of day: 0–23 and 0–59, digits only
+// (25:00 went to the backend and came back as a 400, issues/180)
+export const isValidTime = (h, m) =>
+  /^\d{1,2}$/.test(String(h)) && /^\d{1,2}$/.test(String(m)) && Number(h) <= 23 && Number(m) <= 59
+
 // 270 → "4h 30m": the printed summary's format
 export const formatHoursMinutes = (minutes) => {
   const m = Math.round(Math.abs(Number(minutes) || 0))

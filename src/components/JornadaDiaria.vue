@@ -208,7 +208,19 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import html2pdf from "html3pdf";
 import getConfig from '@/config'
-import { slotMinutes, slotIsInverted, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween } from "@/domain/workdayLog.js";
+import { slotMinutes, slotIsInverted, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween, isValidTime } from "@/domain/workdayLog.js";
+import { toRaw } from "vue";
+
+// new slots get a key of their own, kept after the first save gives them an
+// id: keyed by id, the row was remounted and lost the focus (issues/180)
+let newSlotKey = 0;
+// a slot's saves run one after the other: a second change while the first
+// POST is in flight must not create the slot twice
+const pendingSaves = new WeakMap();
+const saveErrorMessage = error => {
+  const message = error && error.response && error.response.data && error.response.data.error && error.response.data.error.message;
+  return message ? `No s'ha pogut desar el tram: ${message}` : "No s'ha pogut desar el tram";
+};
 
 moment.locale("ca");
 
@@ -299,7 +311,7 @@ export default {
       const byDate = {};
       this.activities.forEach((a, i) => {
         if (a._type === "total") return;
-        (byDate[a.date] = byDate[a.date] || []).push({ a, i, key: a.id > 0 ? a.id : "n" + i });
+        (byDate[a.date] = byDate[a.date] || []).push({ a, i, key: a._key || (a.id > 0 ? a.id : "n" + i) });
       });
       const rows = [];
       let week = null;
@@ -677,6 +689,7 @@ export default {
     addPeriod(activity, index) {
       const item = {
         id: -1,  // Use negative ID to mark as new editable period
+        _key: "new" + ++newSlotKey,
         date: activity.date,
         users_permissions_user: this.user,
         hour_in: null,
@@ -711,7 +724,9 @@ export default {
         activity.hour_in_m = zeroPad(activity.hour_in_m, 2);
       }
 
-      if (hasH && hasM) {
+      if (hasH && hasM && !isValidTime(activity.hour_in_h, activity.hour_in_m)) {
+        this.refuseTime(activity, "hour_in");
+      } else if (hasH && hasM) {
         // Build the literal time string directly. Do NOT use moment().format()
         // here: the typed hour/minute are interpolated into the *format string*,
         // which is both wrong (it formats the current moment) and fragile.
@@ -735,13 +750,27 @@ export default {
         activity.hour_out_m = zeroPad(activity.hour_out_m, 2);
       }
 
-      if (hasH && hasM) {
+      if (hasH && hasM && !isValidTime(activity.hour_out_h, activity.hour_out_m)) {
+        this.refuseTime(activity, "hour_out");
+      } else if (hasH && hasM) {
         activity.hour_out = `${activity.hour_out_h}:${activity.hour_out_m}:00.000`;
         this.saveActivity(activity, i, true);
       } else if (!hasH && !hasM) {
         activity.hour_out = null;
         this.saveActivity(activity, i, true);
       }
+    },
+    // an impossible time (25:00, 09:75) is not saved: the fields go back to
+    // the saved time and a notice says why (issues/180)
+    refuseTime(activity, field) {
+      const saved = activity[field] ? activity[field].split(":") : [null, null];
+      activity[field + "_h"] = saved[0];
+      activity[field + "_m"] = saved[1];
+      this.$buefy.toast.open({
+        message: "L'hora ha d'anar de 00:00 a 23:59",
+        type: "is-danger",
+        queue: false
+      });
     },
     hourin(activity, i) {
       // activity.hour_in = moment().toDate()
@@ -765,7 +794,14 @@ export default {
       activity.hour_out = moment().format("HH:mm:ss.000");
       this.saveActivity(activity, i, true);
     },
-    async saveActivity(activity, i, replace, createActivity = true) {
+    saveActivity(activity, i, replace, createActivity = true) {
+      const raw = toRaw(activity);
+      const previous = pendingSaves.get(raw) || Promise.resolve();
+      const save = previous.then(() => this.storeActivity(activity, i, createActivity));
+      pendingSaves.set(raw, save);
+      return save;
+    },
+    async storeActivity(activity, i, createActivity) {
       this.updating = true;
       try {
         // Validate that at least one full pair (entrada or sortida) is set.
@@ -802,36 +838,22 @@ export default {
           if (createActivity) {
             this.projectChanged(activity, i)
           }
-          this.updating = false;
         } else {
           const db = await service({ requiresAuth: true }).post(
             "workday-logs",
             activity
           );
-          activity = db.data;
-
-          activity.projectNameSearch = ''
-          activity.project = null
-          activity.activity = null
-
-          if (activity.hour_in) {
-            activity.hour_in_h = activity.hour_in.split(":")[0];
-            activity.hour_in_m = activity.hour_in.split(":")[1];
-          }
-          if (activity.hour_out) {
-            activity.hour_out_h = activity.hour_out.split(":")[0];
-            activity.hour_out_m = activity.hour_out.split(":")[1];
-          }
-          if (replace) {
-            this.activities = this.activities.filter((a, j) => j !== i);
-          }
-          this.activities.splice(i, 0, activity);
-
-          this.updating = false;
-
-          // this.activities[i] = db.data
+          // the slot stays the same object, with its key, its fields and
+          // whatever was typed while the POST was on its way (issues/180)
+          activity.id = db.data.id;
         }
-      } catch {
+      } catch (error) {
+        this.$buefy.toast.open({
+          message: saveErrorMessage(error),
+          type: "is-danger",
+          queue: false
+        });
+      } finally {
         this.updating = false;
       }
     },

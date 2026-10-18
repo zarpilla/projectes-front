@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { slotMinutes, formatDuration, formatExpected, formatHoursMinutes, expectedHours } from '@/domain/workdayLog.js'
+import { slotMinutes, formatDuration, formatExpected, formatHoursMinutes, expectedHours, isValidTime } from '@/domain/workdayLog.js'
 
 describe('workday log', () => {
   it('measures a slot in minutes', () => {
@@ -53,5 +53,19 @@ describe('slotIsInverted (issues/128)', () => {
     expect(slotIsInverted('08:00:00', '02:00:00')).toBe(true)
     expect(slotIsInverted('08:00:00', '12:00:00')).toBe(false)
     expect(slotIsInverted('08:00:00', null)).toBe(false)
+  })
+})
+
+// issues/180: 25:00 went to the backend and came back as a 400
+describe('isValidTime', () => {
+  it('takes 00:00 to 23:59 only', () => {
+    expect(isValidTime('00', '00')).toBe(true)
+    expect(isValidTime('9', '5')).toBe(true)
+    expect(isValidTime('23', '59')).toBe(true)
+    expect(isValidTime('24', '00')).toBe(false)
+    expect(isValidTime('25', '00')).toBe(false)
+    expect(isValidTime('09', '60')).toBe(false)
+    expect(isValidTime('a9', '00')).toBe(false)
+    expect(isValidTime('-1', '00')).toBe(false)
   })
 })
