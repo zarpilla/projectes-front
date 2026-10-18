@@ -53,14 +53,38 @@ function addPaid (documents, line, relations, multiplier) {
   }
 }
 
-/** Pending and paid totals of a projectTreasury() list. */
+/**
+ * Whether a projectTreasury() entry has been collected or paid: its line's
+ * document (the first relation it has, as in projectTreasuryDone) is paid, which
+ * is what Tresoreria goes by. A line not ticked «Fact.» or without a document,
+ * and a treasury annotation, are still expected.
+ */
+export function treasuryEntrySettled (t) {
+  if (t.docType === 'treasury') return false
+  const relations = t.docType === 'income' ? PAID_INCOME : PAID_EXPENSE
+  const found = relations.find(([relation]) => t.document[relation])
+  return !!(found && t.document[found[0]].paid)
+}
+
+/**
+ * Totals of a projectTreasury() list. `collected`/`toCollect` and
+ * `paid`/`toPay` (positive amounts) follow the documents' payment, like
+ * Tresoreria (issues/173); `*Pending`/`*Done` split by the lines' «Fact.»
+ * tick, which the old Resum de tresoreria shows.
+ */
 export function treasurySums (treasury) {
   const sum = filter => sumBy(treasury.filter(filter), 'document.total_amount')
+  const income = t => t.multiplier > 0
+  const expense = t => t.multiplier < 0
   return {
-    incomesPending: sum(t => t.multiplier > 0 && t.document.paid !== true),
-    expensesPending: sum(t => t.multiplier < 0 && t.document.paid !== true),
-    incomesDone: sum(t => t.multiplier > 0 && t.document.paid),
-    expensesDone: sum(t => t.multiplier < 0 && t.document.paid)
+    incomesPending: sum(t => income(t) && t.document.paid !== true),
+    expensesPending: sum(t => expense(t) && t.document.paid !== true),
+    incomesDone: sum(t => income(t) && t.document.paid),
+    expensesDone: sum(t => expense(t) && t.document.paid),
+    collected: sum(t => income(t) && treasuryEntrySettled(t)),
+    toCollect: sum(t => income(t) && !treasuryEntrySettled(t)),
+    paid: sum(t => expense(t) && treasuryEntrySettled(t)),
+    toPay: sum(t => expense(t) && !treasuryEntrySettled(t))
   }
 }
 
