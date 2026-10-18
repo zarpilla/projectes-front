@@ -8,7 +8,7 @@ order: 4
 roles: [projects]
 routes: ["/project/:id"]
 lang: ca
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 # 04. Crear i editar un projecte
 
@@ -66,7 +66,8 @@ línies d'**ingressos** i de **despeses** previstes.
 2. Al bloc **Ingressos** de la fase, el botó **+** (*Afegeix una línia*) afegeix una línia. Cal triar el
    **Tipus** (per exemple, *Factura serveis 21%* o *Subvenció pública*), escriure el **Concepte**, la
    **Quantitat** i el **Preu**; el **Total** es calcula sol. **Previsió fac.** i **Previsió pag.** són
-   les dates en què es preveu facturar i cobrar. L'**IVA** es proposa segons el tipus.
+   les dates en què es preveu facturar i cobrar; una línia nova les porta amb la data final del projecte,
+   i es poden canviar. L'**IVA** es proposa segons el tipus.
 3. El mateix al bloc **Despeses**.
 
 ![Una fase amb una línia d'ingrés i una de despesa](img/04-crear-editar-projecte/03-pas2-fases.png)
@@ -75,10 +76,16 @@ A la capçalera de cada fase es veuen els seus totals (**Ingressos**, **Despeses
 mínim una fase per continuar. El detall de les fases i les línies és al capítol
 [05. Fases i pressupost del projecte](05-fases-pressupost.md).
 
+En fer **Continuar**, el pressupost original es copia al **pressupost d'execució** (el *previst*), que és
+el que s'anirà actualitzant mentre el projecte avança. Si després es torna a aquest pas i es canvia
+l'original, en continuar es torna a copiar.
+
 ### Pas 3. Planificació
 
-La **planificació original** diu qui hi dedicarà hores i quan. És un diagrama de Gantt amb una fila per
-a cada fase i línia d'ingrés.
+La **planificació** diu qui hi dedicarà hores i quan. És un diagrama de Gantt amb una fila per a cada fase
+i línia d'ingrés. Mentre es crea el projecte, la planificació val alhora per a l'original i per al previst:
+el selector **Original** / **Prevista** surt desactivat, amb tots dos marcats. En fer **Continuar**, les
+hores es copien al previst.
 
 1. Arrossegar el ratolí sobre la fila d'una línia, des del mes en què comença la feina fins al mes en què
    acaba.
@@ -98,15 +105,14 @@ Aquest pas és opcional: es pot continuar sense planificar cap hora.
 
 ### Pas 4. Confirmació
 
-Es veu el **Resum financer** del pressupost original: resultat, ingressos, despeses (incloent-hi el cost de
-les hores planificades) i hores.
+Es veu el **Resum financer**: resultat, ingressos, despeses (incloent-hi el cost de les hores planificades)
+i hores. L'original i el previst hi surten iguals.
 
 ![El resum abans de tancar el pressupost](img/04-crear-editar-projecte/06-pas4-confirmacio.png)
 
 - **Editar fases** i **Editar planificació** tornen als passos 2 i 3.
-- **Tancar pressupost** acaba l'assistent. El pressupost original queda com a referència i se'n fa
-  una còpia, el **pressupost d'execució** (el *previst*), que és el que s'anirà actualitzant mentre el
-  projecte avança.
+- **Tancar pressupost** acaba l'assistent. Des d'aquí, el pressupost original queda com a referència i el
+  que es canvia és el d'execució (el *previst*).
 
 Després de tancar el pressupost, el projecte s'obre amb les seves pestanyes. Original i previst són iguals
 fins que es canviï alguna cosa del previst.

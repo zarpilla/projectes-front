@@ -8,7 +8,7 @@ order: 5
 roles: [projects]
 routes: ["/project/:id"]
 lang: ca
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 # 05. Fases i pressupost del projecte
 
@@ -23,7 +23,9 @@ d'**execució**, que es va actualitzant mentre el projecte avança. Aquest capí
 
 - El pressupost original es fa en crear el projecte (vegeu
   [04. Crear i editar un projecte](04-crear-editar-projecte.md#pas-2-fases-i-pressupost)) i el
-  d'execució se'n fa en clicar **Tancar pressupost**.
+  d'execució n'és la còpia que es fa en continuar des d'aquell pas, amb les hores planificades.
+- Les línies noves porten com a **Previsió fac.** i **Previsió pag.** la data final del projecte; es poden
+  canviar.
 - Els **tipus d'ingrés** i **de despesa** (amb l'IVA que proposen) i els **comptes bancaris** es configuren
   a **Administració › Taules auxiliars**.
 - Les hores previstes no són línies del pressupost: es planifiquen a la pestanya **Planificació** (vegeu

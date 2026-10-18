@@ -8,7 +8,7 @@ order: 9
 roles: [projects]
 routes: ["/project/:id", "/stats-previsio-gantt"]
 lang: ca
-updated: 2026-10-17
+updated: 2026-10-18
 ---
 # 09. Planificació (Gantt)
 
@@ -40,7 +40,7 @@ Controls de dalt:
 
 | Control | Què fa |
 |---|---|
-| **Original** / **Prevista** | Canvia entre la planificació del pressupost original i la de l'execució. El títol del bloc ho indica. |
+| **Original** / **Prevista** | Canvia entre la planificació del pressupost original i la de l'execució. El títol del bloc ho indica. En obrir un projecte surt sempre la prevista (l'original, si el projecte encara no té pressupost d'execució). Mentre es crea el projecte està desactivat: la planificació val per a tots dos. |
 | **Setmanes** / **Mesos** | L'escala del calendari. |
 | **Persona** | La persona que es proposarà a les dedicacions noves que es dibuixin. |
 | **Només fases** | Amaga les línies i les dedicacions i deixa només les fases. |
@@ -83,7 +83,7 @@ Actualitzar**, que desa el projecte i el torna a dibuixar.
 ### Original i prevista
 
 La **planificació original** és la que es va fer en crear el projecte; la **prevista** n'és la còpia que es
-va actualitzant. Quan les hores reals es desvien del que es va pressupostar, s'actualitza la prevista i
+va actualitzant (es copia en acabar el pas de planificació de l'assistent, i totes dues comencen iguals). Quan les hores reals es desvien del que es va pressupostar, s'actualitza la prevista i
 l'original queda com a referència.
 
 ![La planificació original del mateix projecte](img/09-planificacio-gantt/05-original.png)

@@ -143,7 +143,7 @@ test('04-crear-editar-projecte', async ({ page }) => {
   // --- leaving with unsaved changes asks first
   await page.getByPlaceholder('Descripció').fill('Un altre canvi')
   await blur(page)
-  await page.getByRole('navigation', { name: 'Menú principal' }).locator('a[href="#/projectes"]').click()
+  await page.getByRole('navigation', { name: 'Menú principal' }).locator('a[href$="/projectes"]').click()
   await page.getByText('Hi ha canvis sense guardar').waitFor()
   await settle(page, 300)
   await shot(page, 'sortir-sense-desar')
