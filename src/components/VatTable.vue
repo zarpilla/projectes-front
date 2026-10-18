@@ -425,7 +425,7 @@ export default {
     },
     ...mapState(useMainStore, ["userName", "user"]),
     treasuryDataDesc() {
-      const treasuryDataOfYear = this.treasuryData.filter(d => moment(d.datex, 'dd-MM-YYYY').year() == this.selectedYear)
+      const treasuryDataOfYear = this.treasuryData.filter(d => String(d.datef || '').slice(0, 4) == this.selectedYear) // issues/136
       return _.reverse(treasuryDataOfYear)
     },
     documentsWithSearchableFields() {

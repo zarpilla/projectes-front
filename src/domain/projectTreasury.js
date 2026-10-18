@@ -72,3 +72,12 @@ export const treasuryPeriod = datef => {
   if (!/^\d{8}$/.test(s)) return { year: 'Sense data', month: '—', ym: '' }
   return { year: s.slice(0, 4), month: s.slice(4, 6), ym: s.slice(0, 6) }
 }
+
+// Date of a treasury movement as shown in the app (dd/mm/aaaa), from its YYYYMMDD
+// date. The API's `datex` came with dashes («20-10-2026») and the year and date
+// filters parsed it back with a broken moment format (issues/136).
+export const treasuryDisplayDate = row => {
+  const s = String((row && row.datef) || '')
+  if (/^\d{8}$/.test(s)) return `${s.slice(6, 8)}/${s.slice(4, 6)}/${s.slice(0, 4)}`
+  return String((row && row.datex) || '').replace(/-/g, '/')
+}

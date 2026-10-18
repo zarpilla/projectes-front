@@ -14,9 +14,10 @@ vi.mock('@/service/index', () => ({ default: () => api }))
 vi.mock('@/service/treasury', () => ({ default: vi.fn(async () => []) }))
 import TresoreriaTable from '@/components/TresoreriaTable.vue'
 
-const movement = (id, project) => ({
+const movement = (id, project, datef = '20260305') => ({
   id,
-  datex: '05-03-2026',
+  datef,
+  datex: `${datef.slice(6, 8)}-${datef.slice(4, 6)}-${datef.slice(0, 4)}`,
   type: 'Factura',
   concept: `Moviment ${id}`,
   total_amount: 100,
@@ -24,7 +25,7 @@ const movement = (id, project) => ({
   ...(project ? { project_id: project.id, project_name: project.name } : {})
 })
 
-async function mountTable () {
+async function mountTable (rows) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -43,7 +44,7 @@ async function mountTable () {
   })
   await w.setData({
     selectedYear: 2026,
-    treasuryData: [movement(1, { id: 7, name: 'Projecte amb enllaç' }), movement(2, null)]
+    treasuryData: rows || [movement(1, { id: 7, name: 'Projecte amb enllaç' }), movement(2, null)]
   })
   await flushPromises()
   return { w, errors }
@@ -63,5 +64,34 @@ describe('TresoreriaTable bank movements', () => {
     const row = w.findAll('tbody tr').find(tr => tr.text().includes('Moviment 2'))
     expect(row).toBeTruthy()
     expect(row.findAll('a[href^="/project"]')).toHaveLength(0)
+  })
+})
+
+// issues/136: the Data column showed «05-03-2026» (dashes, as the API sends `datex`)
+// while the rest of the app uses dd/mm/aaaa; the year and date filters parsed the
+// display string back.
+describe('TresoreriaTable movement dates (issues/136)', () => {
+  const rows = () => [
+    movement(1, null, '20260305'),
+    movement(2, null, '20261020'),
+    movement(3, null, '20251231')
+  ]
+  const dateCells = w => w.findAll('tbody tr').map(tr => tr.find('td').text())
+
+  it('shows the dates as dd/mm/aaaa', async () => {
+    const { w } = await mountTable(rows())
+    const cells = dateCells(w)
+    expect(cells.some(t => t.includes('20/10/2026'))).toBe(true)
+    expect(cells.some(t => t.includes('05/03/2026'))).toBe(true)
+    expect(cells.some(t => t.includes('-2026'))).toBe(false)
+  })
+
+  it('keeps the year and date filters working', async () => {
+    const { w } = await mountTable(rows())
+    expect(w.vm.treasuryDataDesc.map(r => r.id)).toEqual([2, 1])
+    await w.setData({ filterDateStart: new Date(2026, 5, 1) })
+    expect(w.vm.treasuryDataDesc.map(r => r.id)).toEqual([2])
+    await w.setData({ filterDateStart: null, filterDateEnd: new Date(2026, 5, 1) })
+    expect(w.vm.treasuryDataDesc.map(r => r.id)).toEqual([1])
   })
 })
