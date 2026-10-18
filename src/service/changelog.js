@@ -24,6 +24,16 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Cadascú canvia de les comandes només el que li toca, també des de fora de les pantalles: el preu i els descomptes de les comandes de les sòcies els calcula l'aplicació, i les sòcies ja no poden posar-hi preu, desfer-ne la factura ni marcar-hi transferències o recollides (sí dipositar-les). Les persones de repartiment fan els moviments (dipòsit, transferència, recollida, estat) de qualsevol comanda, però la fitxa ja no els deixa canviar-ne les dades ni crear-ne. No es poden crear comandes per a avui o dies passats, ni per a demà passada l'hora límit, tampoc movent-ne la data ni ", { to: "/orders", label: "important-les" }, ". La data de dipòsit d'una comanda lliurada o facturada ja no es pot canviar."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística", "Plataforma"],
+      text: ["A ", { to: "/user-contacts", label: "Punts d'entrega" }, " les sòcies canvien les dades dels seus punts però no els descomptes ni les dades de sòcia, i dels punts compartits només l'adreça. Les respostes de les ", { to: "/incidences", label: "Incidències" }, " ja no es poden reescriure ni signar en nom d'una altra persona. Si falla l'enviament del correu de ", { to: "/contact-us", label: "Contacta" }, ", el missatge es guarda igualment. Les persones que no són de l'equip no reben dades que no els pertoquen (sous, dades personals d'altres persones, xifres dels projectes) ni poden canviar les vistes de taules dinàmiques d'altres pantalles."]
+    },
+    {
       type: "Novetats",
       modules: ["Administració", "Projectes", "Informes", "Subvencions"],
       text: ["Any fiscal que no comença al gener: a ", { to: "/admin/me", label: "Configuració general" }, " › Projectes es tria el mes d'inici (per exemple, setembre per a un curs de setembre a agost). La fitxa de projecte, la periodificació, ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " agrupen els imports per aquest any, que es mostra com «2026/27», i els gràfics comencen pel seu primer mes. Opcionalment, els anys de subvenció també poden ser fiscals (", { to: "/justifications", label: "Justificacions" }, "). L'IVA, les sèries de factura, les nòmines, les hores i la tresoreria continuen per any natural."]
