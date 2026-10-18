@@ -206,7 +206,6 @@
       </template>
     </v-calendar>
 
-    <!-- <week-calendar :events="events"></week-calendar> -->
     <!-- on a phone the month grid only shows stripes: the entries, listed by day -->
     <section
       v-if="(viewType == 'all' || viewType == 'calendar') && !needsPerson"
@@ -259,6 +258,7 @@
       </div>
     </section>
 
+    <!-- <week-calendar :events="events"></week-calendar> -->
 
     <div class="table-view" v-if="viewType == 'all' || viewType == 'table'">
       <card-component
@@ -359,8 +359,8 @@ import ModalBoxMoveProject from "@/components/ModalBoxMoveProject.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { formatHours, formatNumber } from "@/helpers/format-number";
-
 import { hoursAgenda } from "@/domain/hoursAgenda";
+
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
 
@@ -472,9 +472,6 @@ export default {
     };
   },
   computed: {
-    // no person picked (not even «Totes», id 0): nobody's hours are loaded (issues/070)
-    needsPerson() {
-      return (this.user === null || this.user === undefined) && !this.last;
     // the list under the grid, on a phone
     agenda() {
       return hoursAgenda(this.attributes);
@@ -482,6 +479,9 @@ export default {
     today() {
       return moment().format("YYYY-MM-DD");
     },
+    // no person picked (not even «Totes», id 0): nobody's hours are loaded (issues/070)
+    needsPerson() {
+      return (this.user === null || this.user === undefined) && !this.last;
     },
     trashObjectName() {
       if (this.trashObject) {
@@ -1045,6 +1045,7 @@ export default {
         this.colorType = colorType;
         this.getActivities();
       }
+    },
     // the grid is too narrow on a phone to show the entries: dayTapped handles it
     isPhone() {
       return typeof window !== "undefined" && !!window.matchMedia &&
@@ -1066,9 +1067,8 @@ export default {
       else if (entry.type === "ical") this.showModalICal(entry.attr);
       else this.showModal(entry.attr.customData.a);
     },
-    },
-      if (this.isPhone()) return;
     dayClicked(day) {
+      if (this.isPhone()) return;
       this.showModal({ date: moment(day.date).format("YYYY-MM-DD") });
     },
     daySum(attributes) {
@@ -1731,8 +1731,6 @@ export default {
 .day-label {
   cursor: pointer;
 }
-</style>
-<style>
 
 /* the list under the grid: phones only */
 .hours-agenda {
@@ -1860,6 +1858,8 @@ export default {
     display: block;
   }
 }
+</style>
+<style>
 .card-body {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--a-line-soft);
@@ -1993,14 +1993,14 @@ export default {
   }
 }
 
-@media (max-width: 768px) {
-  .custom-calendar.vc-container .vc-day {
 .custom-calendar .day-stripes {
   display: none;
 }
 
 /* a phone: the grid shows the day's total and a stripe per entry; the entries
    themselves are in the list under it (.hours-agenda) */
+@media (max-width: 768px) {
+  .custom-calendar.vc-container .vc-day {
     min-width: 0;
     min-height: 58px;
     padding: 0 3px 4px;
