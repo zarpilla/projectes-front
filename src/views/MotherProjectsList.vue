@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-bar :title-stack="titleStack">
+    <title-bar :title-stack="titleStack" :subtitle="subtitle">
       <download-excel name="projectes-mare" :data="projectsCSV">
         <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
       </download-excel>
@@ -34,34 +34,51 @@
             </option>
           </b-select>
         </label>
+        <div v-if="scopes && scopes.length" class="segmented" role="group" aria-label="Àmbit">
+          <button type="button" :class="{ 'is-on': 0 === filters.scopeId }" :aria-pressed="0 === filters.scopeId ? 'true' : 'false'" @click="setScope(0)">
+            Tots
+          </button>
+          <button
+            v-for="(scope, i) in scopes"
+            :key="i"
+            type="button"
+            :class="{ 'is-on': scope.id === filters.scopeId }"
+            :aria-pressed="scope.id === filters.scopeId ? 'true' : 'false'"
+            @click="setScope(scope.id)"
+          >
+            {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : "" }}
+          </button>
+        </div>
       </form>
 
-      <card-component
-        title="Projectes mare"
-        class="has-table has-mobile-sort-spaced"
-      >
-        <mother-projects-table :projects="projects" />
-      </card-component>
+      <!-- the same table as Projectes (issues/134): name with client, tags,
+           hours bar, coloured results and a totals row -->
+      <div class="card has-table projects-card">
+        <header class="card-header">
+          <p class="card-header-title">Projectes mare</p>
+        </header>
+        <projects-table
+          :project_state="filters.project_state"
+          :projects="motherProjects"
+          :users="users"
+          :project-states="project_states"
+          :scopes="scopes"
+        />
+      </div>
     </section>
   </div>
 </template>
 
 <script>
 import TitleBar from "@/components/TitleBar.vue";
-import Tiles from "@/components/Tiles.vue";
-import CardWidget from "@/components/CardWidget.vue";
-import CardComponent from "@/components/CardComponent.vue";
-import MotherProjectsTable from "@/components/MotherProjectsTable.vue";
+import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
-import sumBy from "lodash/sumBy";
+import sortBy from "lodash/sortBy";
 
 export default {
   name: "MotherProjectsList",
   components: {
-    MotherProjectsTable,
-    CardComponent,
-    CardWidget,
-    Tiles,
+    ProjectsTable,
     TitleBar
   },
   data() {
@@ -79,22 +96,15 @@ export default {
       return ["Projectes", "Projectes Mare"];
     },
     motherProjects() {
-      return this.projects.filter(p => p.is_mother === true);
+      return sortBy(this.projects.filter(p => p.is_mother === true), "name");
     },
     projectsNumber() {
       return this.motherProjects.length;
     },
-    estimatedBalance() {
-      return sumBy(this.motherProjects, p => p.estimated_incomes_expenses || 0);
-    },
-    realBalance() {
-      return sumBy(this.motherProjects, p => p.total_real_incomes_expenses || 0);
-    },
-    estimatedDedication() {
-      return sumBy(this.motherProjects, p => p.total_estimated_hours || 0);
-    },
-    dedication() {
-      return sumBy(this.motherProjects, p => p.total_real_hours || 0);
+    subtitle() {
+      const state = this.project_states.find(s => s.id === this.filters.project_state);
+      const count = `${this.projectsNumber} ${this.projectsNumber === 1 ? "projecte mare" : "projectes mare"}`;
+      return state && state.id ? `${count} · ${state.name.toLowerCase()}` : count;
     },
     projectsCSV() {
       return this.motherProjects.map(p => {
@@ -109,7 +119,7 @@ export default {
           real_hours: p.total_real_hours || 0,
           estimated_hours: p.total_estimated_hours || 0,
           real_result: p.total_real_incomes_expenses || 0,
-          estimated_result: p.estimated_incomes_expenses || 0
+          estimated_result: p.incomes_expenses || 0
         };
       });
     }
@@ -132,7 +142,7 @@ export default {
     service({ requiresAuth: true, cached: true })
       .get("project-scopes?_limit=-1&_sort=code:ASC")
       .then(r => {
-        this.scopes = r.data;
+        this.scopes = r.data.filter(s => !s.disabled);
       });
 
     this.loadProjects();
@@ -204,9 +214,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.scope {
-  width: 100%;
-}
-</style>

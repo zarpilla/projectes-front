@@ -347,13 +347,13 @@
               <p>
                 <b-icon icon="dots-horizontal" size="is-large" />
               </p>
-              <p>Fetching data...</p>
+              <p>Carregant dades...</p>
             </template>
             <template v-else>
               <p>
                 <b-icon icon="emoticon-sad" size="is-large" />
               </p>
-              <p>Nothing's here&hellip;</p>
+              <p>No hi ha projectes amb aquests filtres</p>
             </template>
           </div>
         </section>

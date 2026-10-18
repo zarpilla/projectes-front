@@ -8,7 +8,6 @@ vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
 import DedicationTooltip from '@/components/DedicationTooltip.vue'
 import DedicationInput from '@/components/DedicationInput.vue'
 import VatTable from '@/components/VatTable.vue'
-import MotherProjectsTable from '@/components/MotherProjectsTable.vue'
 
 describe('Catalan numbers (issues/104)', () => {
   it('dedication tooltip hours', () => {
@@ -26,17 +25,7 @@ describe('Catalan numbers (issues/104)', () => {
     expect(VatTable.methods.pct(97.96)).toBe('97,96 %')
     expect(VatTable.methods.pct(0)).toBe('0 %')
   })
-
-  it('Projectes mare money and hours', async () => {
-    const w = mount(MotherProjectsTable, {
-      props: { projects: [{ id: 1, name: 'M', is_mother: true, total_real_hours: 272.1, total_real_incomes_expenses: -2677.97, estimated_incomes_expenses: 2940 }] },
-      global: { plugins: [Buefy], stubs: { 'router-link': { template: '<a><slot /></a>' } } }
-    })
-    await flushPromises()
-    expect(w.text()).toContain('272,1 h')
-    expect(w.text()).toMatch(/2\.677,97\s€/)
-    expect(w.text()).not.toMatch(/\d€/)
-  })
+  // Projectes mare: tests/unit/motherProjectsHours.spec.js
 })
 
 // issues/105: the IVA documents table showed «2024-05-31»
