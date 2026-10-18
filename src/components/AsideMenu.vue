@@ -23,7 +23,8 @@
               <span>{{ menuGroup }} · {{ groupSize(index) }}</span>
               <b-icon :icon="isGroupOpen(index) ? 'chevron-up' : 'chevron-down'" custom-size="default" />
             </button>
-            <p v-else v-show="!isCollapsed" class="menu-label">{{ menuGroup }}</p>
+            <!-- the Inici entry has no group label -->
+            <p v-else-if="menuGroup" v-show="!isCollapsed" class="menu-label">{{ menuGroup }}</p>
           </template>
           <aside-menu-list
             v-else

@@ -1,4 +1,7 @@
 const menu = [
+  // Inici (views/Inici.vue): no group label, open to everybody
+  "",
+  [{ to: "/inici", icon: "home-outline", label: "Inici" }],
   "Projectes",
   [
     {

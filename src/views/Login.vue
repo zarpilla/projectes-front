@@ -64,7 +64,10 @@
 <script>
 import service from "@/service/index";
 import { clearCache } from "@/service/cache";
-import { landingPath, userPermissions } from "@/domain/routeAccess";
+import { storedPermissions, userPermissions } from "@/domain/routeAccess";
+import { HOME_PATH, landingForUser, writePrefs } from "@/domain/home";
+import { fetchHome } from "@/stores/homePins";
+import { currentUserId } from "@/domain/currentUser";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import getConfig from "@/config";
@@ -87,7 +90,8 @@ export default {
   },
   async mounted() {
     if (this.userName) {
-      this.$router.push("projectes");
+      const permissions = storedPermissions();
+      this.$router.push(permissions ? landingForUser(currentUserId(), permissions) : HOME_PATH);
     } else {
       try {
         const response = await service({ cached: true }).get("logos?_sort=order:ASC");
@@ -112,11 +116,16 @@ export default {
     // page, so the router lets her in where she belongs (issues/121)
     async goToLanding(user) {
       let permissions = null;
+      let userId = user && user.id;
       try {
         const me = await service({ requiresAuth: true }).get("users/me");
         if (me && me.data && me.data.username) {
           localStorage.setItem("user", JSON.stringify(me.data));
           permissions = userPermissions(me.data);
+          userId = me.data.id;
+          // the page chosen in Inici, from any browser
+          const home = await fetchHome();
+          if (home) writePrefs(userId, home);
         }
       } catch (e) {
         localStorage.setItem("user", JSON.stringify(user));
@@ -124,8 +133,9 @@ export default {
       if (this.$route.query.nextUrl != null) {
         this.$router.push(this.$route.query.nextUrl);
       } else {
-        // unknown permissions: the projects panel, as before (Home.vue sends her on)
-        this.$router.push(permissions ? landingPath(permissions) : "/projectes");
+        // Inici, or the page the person chose there; unknown permissions: Inici
+        // (the router lets everybody in)
+        this.$router.push(permissions ? landingForUser(userId, permissions) : HOME_PATH);
       }
     },
     handleSubmit() {

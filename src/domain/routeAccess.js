@@ -81,8 +81,8 @@ export const ROUTE_PERMISSIONS = {
   '/contact-us': MEMBER
 }
 
-// pages every logged-in user opens (her profile, the changelog, the help)
-export const OPEN_ROUTES = ['/profile', '/changelog', '/documentacio', '/reset-password']
+// pages every logged-in user opens (Inici, her profile, the changelog, the help)
+export const OPEN_ROUTES = ['/inici', '/profile', '/changelog', '/documentacio', '/reset-password']
 
 /** The permissions a route record needs: null when any logged-in user may open it. */
 export function routePermissions (record) {

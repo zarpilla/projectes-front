@@ -1,5 +1,5 @@
 <template>
-  <li :class="[item.itemClassName, { 'is-dropdown-active': isDropdownActive }]">
+  <li :class="[item.itemClassName, { 'is-dropdown-active': isDropdownActive, 'has-pin': isPinnable }]">
     <component
       :is="componentIs"
       v-bind="item"
@@ -27,6 +27,19 @@
         <b-icon :icon="dropdownIcon" custom-size="default" />
       </div>
     </component>
+    <!-- star: pins the entry to Inici (stores/homePins.js) -->
+    <button
+      v-if="isPinnable"
+      type="button"
+      class="menu-pin"
+      :class="{ 'is-pinned': isPinned }"
+      :aria-pressed="isPinned ? 'true' : 'false'"
+      :aria-label="(isPinned ? 'Treu de l\'inici: ' : 'Fixa a l\'inici: ') + item.label"
+      :title="isPinned ? 'Treu de l\'inici' : 'Fixa a l\'inici'"
+      @click="pins.toggle(item.to)"
+    >
+      <b-icon :icon="isPinned ? 'star' : 'star-outline'" custom-size="default" />
+    </button>
     <aside-menu-list
       v-if="hasDropdown"
       :menu="item.menu"
@@ -39,6 +52,8 @@
 <script>
 import { isAdminTablePath } from '@/service/adminTables'
 import { useTaskAlerts } from '@/stores/taskAlerts'
+import { useHomePins } from '@/stores/homePins'
+import { HOME_PATH } from '@/domain/home'
 export default {
   name: 'AsideMenuItem',
   emits: ["menu-click"],
@@ -61,6 +76,16 @@ export default {
     }
   },
   computed: {
+    pins () {
+      return useHomePins()
+    },
+    // entries that open a page (not Tiquets, not Inici itself) can be pinned
+    isPinnable () {
+      return !!this.item.to && this.item.to !== HOME_PATH && !this.isCollapsed
+    },
+    isPinned () {
+      return this.pins.isPinned(this.item.to)
+    },
     // an entry that stands for a group of screens (e.g. the auxiliary tables)
     isActiveGroup () {
       if (!this.item.activeWhen || !this.$route) return false
@@ -109,6 +134,45 @@ export default {
 </script>
 
 <style scoped>
+.has-pin {
+  position: relative;
+}
+.has-pin > a {
+  padding-right: 2rem !important;
+}
+.menu-pin {
+  position: absolute;
+  top: 50%;
+  right: .25rem;
+  transform: translateY(-50%);
+  width: 1.625rem;
+  height: 1.625rem;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--a-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+.menu-pin :deep(.mdi::before) {
+  font-size: 1rem;
+}
+.has-pin:hover .menu-pin,
+.menu-pin:focus-visible,
+.menu-pin.is-pinned {
+  opacity: 1;
+}
+.menu-pin:hover {
+  background: var(--a-chip);
+  color: var(--a-fg);
+}
+.menu-pin.is-pinned {
+  color: var(--a-star);
+}
 .menu-badge {
   margin-left: auto;
   min-width: 1.25rem;

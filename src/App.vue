@@ -21,6 +21,8 @@ import { useTaskAlerts } from "@/stores/taskAlerts";
 const TASK_ALERTS_EVERY_MS = 5 * 60 * 1000;
 import service from "@/service/index";
 import menu, { hasMenuPermission } from "@/service/menu";
+import { landingForUser } from "@/domain/home";
+import { useHomePins } from "@/stores/homePins";
 import ModalBoxInvoice from "@/components/ModalBoxInvoice.vue";
 
 export default {
@@ -149,6 +151,9 @@ export default {
               this.menuList.push(subElements);
             });
 
+            // the stars of the menu: this person's pins (another one may have logged in)
+            useHomePins().load();
+
             this.hasTaskAlerts = userPermissions.includes("projects");
             if (this.hasTaskAlerts) {
               if (this.$route && this.$route.path === "/tasks") useTaskAlerts().markSeen();
@@ -169,7 +174,7 @@ export default {
               // Login.vue is already navigating to nextUrl (a lazy route can
               // still be loading here); pushing now would cancel it
               if (this.$route.name === "login" && !this.$route.query.nextUrl) {
-                this.$router.push("projectes");
+                this.$router.push(landingForUser(user.id, userPermissions));
               }
             }
 

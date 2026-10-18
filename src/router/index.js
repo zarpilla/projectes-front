@@ -34,6 +34,16 @@ const routes = [
   },
   {
     meta: {
+      title: "Inici",
+      requiresAuth: true
+    },
+    path: "/inici",
+    name: "inici",
+    component: () =>
+      import("../views/Inici.vue"),
+  },
+  {
+    meta: {
       title: "Projectes",
       requiresAuth: true
     },
@@ -905,7 +915,7 @@ router.beforeEach((to, from, next) => {
     if (localStorage.getItem("jwt") == null) {
       next();
     } else {
-      next({ name: "projectes.view" });
+      next({ name: "inici" });
     }
   } else {
     next();
