@@ -150,6 +150,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Logística"],
+      text: ["A ", { to: "/order-operations", label: "Operacions" }, ", quan la mateixa repartidora fa la transferència i l'entrega d'una comanda, ara surten totes dues, cadascuna el seu dia. Abans només hi sortia la transferència i el dia de l'entrega faltava."]
+    },
+    {
+      type: "Correccions",
       modules: ["Informes", "Projectes"],
       text: ["L'informe ", { to: "/stats-projectes", label: "Projectes" }, " ja no compta dues vegades els projectes fills: els sumava sols i també dins dels totals del projecte mare. Ara els totals coincideixen amb els de la llista de projectes."]
     },

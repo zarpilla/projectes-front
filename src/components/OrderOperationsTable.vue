@@ -162,7 +162,7 @@ import moment from "moment";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatNumber } from "@/helpers/format-number";
-import { operationsQueries, mergeOrders } from "@/domain/orderOperations";
+import { operationsQueries, mergeOrders, orderOperations } from "@/domain/orderOperations";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
 
@@ -343,43 +343,15 @@ export default {
         );
         let allOrders = mergeOrders(...answers.map(r => r.data || []));
 
-        // Filter orders that match our criteria:
-        // 1. Direct orders: route is in routeIds
-        // 2. Transfer orders: transfer_route is in routeIds
+        // Each order gives its delivery or collection when its route is the
+        // driver's and its transfer when its transfer route is, each on its
+        // own day: both when the driver has the two routes (issues/175)
         const operations = [];
 
         allOrders.forEach(order => {
-          // Check if it's a direct order (route matches)
-          const orderRouteId = order.route
-            ? typeof order.route === "object"
-              ? order.route.id
-              : order.route
-            : null;
-          const isDirect = routeIds.includes(orderRouteId);
-
-          // Check if it's a transfer order (transfer_route matches)
-          const transferRouteId = order.transfer_route
-            ? typeof order.transfer_route === "object"
-              ? order.transfer_route.id
-              : order.transfer_route
-            : null;
-          const isTransfer =
-            order.transfer &&
-            transferRouteId &&
-            routeIds.includes(transferRouteId);
-
-          if (isDirect || isTransfer) {
-            // Apply date filter if selected
-            if (this.selectedDate) {
-              const dateStr = moment(this.selectedDate).format("YYYY-MM-DD");
-              const operationDate = isTransfer 
-                ? moment(order.transfer_route_date).format("YYYY-MM-DD")
-                : moment(order.estimated_delivery_date).format("YYYY-MM-DD");
-              
-              if (operationDate !== dateStr) {
-                return; // Skip this order if date doesn't match
-              }
-            }
+          orderOperations(order, { routeIds, date }).forEach(op => {
+            const isTransfer = op.operationType === "transfer";
+            const isDirect = !isTransfer;
 
             // Apply operation type filter
             let operationType = '';
@@ -456,14 +428,14 @@ export default {
 
             operations.push({
               ...order,
-              operationType: isDirect && !isTransfer ? "direct" : "transfer",
+              operationType: op.operationType,
               operationTypeSort: operationTypeSort,
               pickupPointSort: pickupPointSort,
               deliveryPointSort: deliveryPointSort,
               logisticsStatus: logisticsStatus,
-              operation_date: isTransfer ? order.transfer_route_date : order.estimated_delivery_date
+              operation_date: op.operation_date
             });
-          }
+          });
         });
 
         // Calculate counts
