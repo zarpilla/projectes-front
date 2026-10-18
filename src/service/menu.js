@@ -239,7 +239,7 @@ const menu = [
     {
       // «Amb el suport de» of the login page and the menu (issues/159)
       to: "/admin/logos",
-      icon: "image-multiple-outline",
+      icon: "image-outline",
       label: "Logos",
       permission: "admin"
     },
