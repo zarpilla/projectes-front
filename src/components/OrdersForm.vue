@@ -60,7 +60,7 @@
             <header class="box-head">
               <h2>{{ form.is_collection_order ? "A on i quin dia s'ha de recollir?" : "A on va i quin dia?" }}</h2>
             </header>
-            <p class="box-help"><b>Recorda:</b> s'han d'informar les comandes com a límit a les 13 h del dia abans.</p>
+            <p class="box-help"><b>Recorda:</b> {{ cutoffReminder }}</p>
             <div class="a-form">
               <b-field
                 :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
@@ -522,7 +522,7 @@ import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
-import { orderErrors, orderSaveProblem } from "@/domain/orderValidation.js";
+import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -691,6 +691,9 @@ export default {
     },
     isPickupPoint() {
       return this.form.pickup_point === true;
+    },
+    cutoffReminder() {
+      return `s'han d'informar les comandes com a límit a les ${this.nextDayLimitHour} h del dia abans.`;
     },
     errors() {
       return orderErrors(this);
@@ -978,7 +981,6 @@ export default {
 
     // check if url has pickup_point=true
     if (this.$route.query.pickup_point === "true") {
-      this.isPickupPoint = this.$route.query.pickup_point === "true";
       this.form.pickup_point = true;
       this.form.picked_up = false;
     }
@@ -1686,7 +1688,9 @@ export default {
         console.error(err);
 
         this.$buefy.snackbar.open({
-          message: "Error",
+          message: orderSaveErrorMessage(err),
+          type: "is-danger",
+          duration: 8000,
           queue: false
         });
 
@@ -2064,15 +2068,16 @@ export default {
       const selectedPickup = this.allowedPickups.find(
         p => p.id === this.form.pickup
       );
-      this.form.pickup_point =
-        (selectedPickup && selectedPickup.is_pickup_point) || false;
+      // The pickup doesn't decide whether this is a consumption-point order
+      // (pickups have no such field): the mode comes from the order itself
+      // (issues/146), so its lines are kept.
 
       // Clear collection_point if not a pickup point or pickup doesn't have collection points
       if (!selectedPickup || !selectedPickup.pickup) {
         this.form.collection_point = null;
       }
 
-      // Clear units and kilograms when switching to pickup point
+      // A consumption-point order has lines instead of boxes and kilos
       if (this.form.pickup_point) {
         this.form.units = null;
         this.form.kilograms = null;
@@ -2088,7 +2093,7 @@ export default {
           ];
         }
       } else {
-        // Clear lines when switching to regular order
+        // a normal order has no lines
         this.form.lines = [];
       }
 

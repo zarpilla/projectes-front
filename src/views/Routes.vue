@@ -106,13 +106,12 @@
             <b-checkbox v-model="form.is_transfer_route">Fa transferències</b-checkbox>
           </b-field>
           <b-field
-            v-if="form.is_transfer_route"
-            label="Les transferències van a"
+            :label="form.is_transfer_route ? 'Les transferències van a' : 'Destinació de les transferències'"
             :type="shownErrors.transfer_pickup ? 'is-danger' : ''"
-            :message="shownErrors.transfer_pickup"
+            :message="shownErrors.transfer_pickup || (form.is_transfer_route ? '' : 'On es deixen les comandes d’altres magatzems que ha de repartir aquesta ruta.')"
           >
             <b-select v-model="form.transfer_pickup" expanded>
-              <option :value="null">— Tria —</option>
+              <option :value="null">{{ form.is_transfer_route ? "— Tria —" : "— Cap —" }}</option>
               <option v-for="p in pickups" :key="p.id" :value="p.id">{{ p.alias || p.name }}</option>
             </b-select>
           </b-field>

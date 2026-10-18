@@ -87,16 +87,12 @@ const isRouteClosed = (route, day, closures = []) => {
   );
 };
 
+// The delivery date proposed for a new order: the first open route day after
+// today; past the next-day cutoff (admins are exempt) tomorrow is skipped and
+// the next route day after it is taken, in this same week when the route runs
+// later in it (issues/150).
 const assignRouteDate = (route, options = {}) => {
   const { nextDayLimitHour = 14, isAdmin = false, closures = [] } = options;
-  // a route day, not closed for this route; a year of closures at most
-  const isOpenDay = day =>
-    routeDaysOfWeek.includes(day.day()) && !isRouteClosed(route, day, closures);
-  let nextDay = moment();
-  let warning = "";
-  const todayDayOfWeek = moment().day();
-  
-  // Build an array of all valid days for this route
   const routeDaysOfWeek = [];
   if (route.monday) routeDaysOfWeek.push(1);
   if (route.tuesday) routeDaysOfWeek.push(2);
@@ -105,38 +101,43 @@ const assignRouteDate = (route, options = {}) => {
   if (route.friday) routeDaysOfWeek.push(5);
   if (route.saturday) routeDaysOfWeek.push(6);
   if (route.sunday) routeDaysOfWeek.push(0); // Sunday is 0 in day()
+  // a route day, not closed for this route; a year of closures at most
+  const isOpenDay = day =>
+    routeDaysOfWeek.includes(day.day()) && !isRouteClosed(route, day, closures);
+  const firstOpenDayAfter = from => {
+    const day = from.clone();
+    for (let i = 0; i < 366; i++) {
+      day.add(1, "day");
+      if (isOpenDay(day)) return day;
+    }
+    return day;
+  };
 
-  // Check if today is a valid route day
-  if (routeDaysOfWeek.includes(todayDayOfWeek)) {
+  const today = moment().startOf("day");
+  let nextDay = firstOpenDayAfter(today);
+  let warning = "";
+
+  if (
+    nextDay.isSame(today.clone().add(1, "day"), "day") &&
+    !isAdmin &&
+    moment().hour() >= nextDayLimitHour
+  ) {
+    nextDay = firstOpenDayAfter(nextDay);
+    warning =
+      `Ruta tancada per demà: les comandes s'han d'informar abans de les ${nextDayLimitHour} h del dia abans. ` +
+      `Se t'assigna el proper dia de la ruta, ${nextDay.format("dddd D/M")}. Recorda portar el paquet.`;
+  } else if (
+    routeDaysOfWeek.includes(today.day()) &&
+    nextDay.diff(today, "days") >= 7
+  ) {
+    // today's route has left and the route doesn't run again until next week
     warning =
       "Ruta tancada per avui. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
   }
-  
-  // Find the next available day that matches any of the route days
-  let found = false;
-  for (let i = 0; i < 366 && !found; i++) {
-    nextDay = nextDay.add(1, "day");
-    found = isOpenDay(nextDay);
-  }
-  
-  // Check if it's tomorrow and past the next-day cutoff (admins are exempt)
-  if (nextDay.isSame(moment().add(1, "day"), "day")) {
-    if (!isAdmin && moment().hour() >= nextDayLimitHour) {
-      // Find the next valid route day after skipping to next week
-      // Sunday of next week. Not startOf("week"): moment follows the locale and
-      // the app runs it in Catalan, where weeks start on Monday.
-      nextDay = moment().add(1, "week").startOf("day");
-      nextDay.subtract(nextDay.day(), "days");
-      found = false;
-      for (let i = 0; i < 366 && !found; i++) {
-        nextDay = nextDay.add(1, "day");
-        found = isOpenDay(nextDay);
-      }
-      warning =
-        "Ruta tancada per demà. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
-    }
-  }
 
+  // the time of day as before (the form saves nextDay.toDate())
+  const now = moment();
+  nextDay.set({ hour: now.hour(), minute: now.minute(), second: now.second(), millisecond: now.millisecond() });
   return { nextDay, warning };
 };
 

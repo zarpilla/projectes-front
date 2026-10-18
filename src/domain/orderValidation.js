@@ -162,3 +162,10 @@ export function orderSaveProblem (form, { collectionPoints, collectionPickupRout
   }
   return null;
 }
+
+// What the order form shows when saving fails: the backend's own message when
+// there is one (e.g. the next-day cutoff refusal), not just «Error» (issues/150).
+export function orderSaveErrorMessage (err) {
+  const message = err && err.response && err.response.data && err.response.data.error && err.response.data.error.message
+  return message || "No s'ha pogut desar la comanda"
+}

@@ -62,7 +62,12 @@ export function validateRoute (form, routes = []) {
   return errors
 }
 
-/** The body saved: trimmed text, numbers, relation ids; a route that doesn't transfer has no transfer point. */
+/**
+ * The body saved: trimmed text, numbers, relation ids. The transfer point is
+ * always kept: on a delivery route it is where the transfers of its orders go
+ * (OrdersForm.checkTransferNeeded), even when the route doesn't transfer
+ * itself (issues/148).
+ */
 export function routePayload (form) {
   const data = {
     name: form.name.trim(),
@@ -70,7 +75,7 @@ export function routePayload (form) {
     order: numberOrNull(form.order),
     active: Boolean(form.active),
     is_transfer_route: Boolean(form.is_transfer_route),
-    transfer_pickup: form.is_transfer_route ? idOf(form.transfer_pickup) : null,
+    transfer_pickup: idOf(form.transfer_pickup),
     delivery_user: idOf(form.delivery_user),
     volume_discount_number_of_orders: numberOrNull(form.volume_discount_number_of_orders),
     volume_discount_price: numberOrNull(form.volume_discount_price)
