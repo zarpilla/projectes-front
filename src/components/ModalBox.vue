@@ -8,6 +8,7 @@
         <p>
           {{ message }} <b>{{ trashObjectName }}</b>
         </p>
+        <p v-if="detail" class="modal-box-detail">{{ detail }}</p>
         <p v-if="!canUndo">No es podrà desfer.</p>
       </section>
       <footer class="modal-card-foot">
@@ -42,6 +43,11 @@ export default {
     okButton: {
       type: String,
       default: 'Esborra'
+    },
+    // what the action really does, under the message (issues/135)
+    detail: {
+      type: String,
+      default: null
     },
     canUndo: {
       type: Boolean,

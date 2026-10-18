@@ -10,7 +10,7 @@
     <modal-box
       :is-active="isDeleteModalActive"
       :trash-object-name="form.name"
-      message="S'esborrarà permanentment el projecte"
+      v-bind="projectTrashDialog"
       @confirm="deleteConfirmed"
       @cancel="isDeleteModalActive = false"
     />
@@ -2514,6 +2514,7 @@ import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
 import { projectDocuments, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
 import { isDuplicateCodeError, projectSaveErrorMessage, DUPLICATE_CODE_FIELD_MESSAGE } from "@/domain/projectSaveError";
+import { projectTrashDialog } from "@/domain/projectTrash";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
 import {
   balancePeriodification,
@@ -2635,6 +2636,7 @@ export default {
       allByYearYear: "TOTS",
       calculatedTotals: null,
       nameError: "",
+      projectTrashDialog,
       periodification: false,
       dirtyEnabled: true,
       originalEditable: true,

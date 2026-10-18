@@ -5,6 +5,7 @@
     <modal-box
       :is-active="isModalActive"
       :trash-object-name="trashObjectName"
+      message="S'esborrarà permanentment el registre"
       @confirm="trashConfirm"
       @cancel="trashCancel"
     />

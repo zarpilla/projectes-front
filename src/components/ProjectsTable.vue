@@ -3,7 +3,7 @@
     <modal-box
       :is-active="isModalActive"
       :trash-object-name="trashObjectName"
-      :message="'S\'esborrarà permanentment el projecte'"
+      v-bind="projectTrashDialog"
       @confirm="trashConfirm"
       @cancel="trashCancel"
     />
@@ -377,6 +377,7 @@
 
 <script>
 import ModalBox from "@/components/ModalBox.vue";
+import { projectTrashDialog } from "@/domain/projectTrash";
 import service from "@/service/index";
 import moment from "moment";
 import { formatHours, formatMoney, sign } from "@/helpers/format-number";
@@ -429,6 +430,7 @@ export default {
   },
   data() {
     return {
+      projectTrashDialog,
       isModalActive: false,
       trashObject: null,
       projectsData: [],
