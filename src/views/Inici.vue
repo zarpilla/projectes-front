@@ -64,7 +64,7 @@
           </div>
           <button type="button" class="home-tile home-tile-add" @click="focusSearch">
             <template v-if="tiles.length">+ Afegeix un accés</template>
-            <template v-else>Encara no tens cap accés fixat.<br>Marca'n amb ★ al menú.</template>
+            <template v-else>Encara no tens cap accés fixat.<br>Marca'n amb ★ a «Tot el menú».</template>
           </button>
         </div>
       </section>
@@ -73,7 +73,7 @@
         <header class="home-card-head">
           <div>
             <h2 id="home-all-title">Tot el menú</h2>
-            <p class="has-text-muted">Marca amb ★ el que vulguis tenir a l'inici. També ho pots fer des del menú lateral.</p>
+            <p class="has-text-muted">Marca amb ★ el que vulguis tenir a l'inici. Al menú lateral, l'estrella només mostra què hi tens.</p>
           </div>
           <b-input
             ref="search"

@@ -1,5 +1,5 @@
 <template>
-  <li :class="[item.itemClassName, { 'is-dropdown-active': isDropdownActive, 'has-pin': isPinnable }]">
+  <li :class="[item.itemClassName, { 'is-dropdown-active': isDropdownActive }]">
     <component
       :is="componentIs"
       v-bind="item"
@@ -23,23 +23,15 @@
         :class="{ 'is-late': badge.late }"
         :title="badge.title"
       ><span aria-hidden="true">{{ badge.count }}</span><span class="is-sr-only">{{ badge.title }}</span></span>
+      <!-- pinned to Inici: shown only; the stars are set on Inici itself, where a
+           slip of the mouse in the menu can't change them -->
+      <span v-if="isPinned" class="menu-pin" title="Fixat a l'inici">
+        <b-icon icon="star" custom-size="default" aria-hidden="true" /><span class="is-sr-only">(fixat a l'inici)</span>
+      </span>
       <div v-if="hasDropdown" class="dropdown-icon">
         <b-icon :icon="dropdownIcon" custom-size="default" />
       </div>
     </component>
-    <!-- star: pins the entry to Inici (stores/homePins.js) -->
-    <button
-      v-if="isPinnable"
-      type="button"
-      class="menu-pin"
-      :class="{ 'is-pinned': isPinned }"
-      :aria-pressed="isPinned ? 'true' : 'false'"
-      :aria-label="(isPinned ? 'Treu de l\'inici: ' : 'Fixa a l\'inici: ') + item.label"
-      :title="isPinned ? 'Treu de l\'inici' : 'Fixa a l\'inici'"
-      @click="pins.toggle(item.to)"
-    >
-      <b-icon :icon="isPinned ? 'star' : 'star-outline'" custom-size="default" />
-    </button>
     <aside-menu-list
       v-if="hasDropdown"
       :menu="item.menu"
@@ -79,12 +71,9 @@ export default {
     pins () {
       return useHomePins()
     },
-    // entries that open a page (not Tiquets, not Inici itself) can be pinned
-    isPinnable () {
-      return !!this.item.to && this.item.to !== HOME_PATH && !this.isCollapsed
-    },
+    // a star after the entries pinned to Inici (not on the collapsed rail)
     isPinned () {
-      return this.pins.isPinned(this.item.to)
+      return !!this.item.to && this.item.to !== HOME_PATH && !this.isCollapsed && this.pins.isPinned(this.item.to)
     },
     // an entry that stands for a group of screens (e.g. the auxiliary tables)
     isActiveGroup () {
@@ -134,44 +123,20 @@ export default {
 </script>
 
 <style scoped>
-.has-pin {
-  position: relative;
-}
-.has-pin > a {
-  padding-right: 2rem !important;
-}
 .menu-pin {
-  position: absolute;
-  top: 50%;
-  right: .25rem;
-  transform: translateY(-50%);
-  width: 1.625rem;
-  height: 1.625rem;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--a-muted);
-  cursor: pointer;
+  margin-left: auto;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
+  color: var(--a-star);
+}
+.menu-badge + .menu-pin {
+  margin-left: .375rem;
 }
 .menu-pin :deep(.mdi::before) {
-  font-size: 1rem;
+  font-size: .875rem;
 }
-.has-pin:hover .menu-pin,
-.menu-pin:focus-visible,
-.menu-pin.is-pinned {
-  opacity: 1;
-}
-.menu-pin:hover {
-  background: var(--a-chip);
-  color: var(--a-fg);
-}
-.menu-pin.is-pinned {
-  color: var(--a-star);
+/* the menu greys its icons (AsideMenu.vue); the star keeps its colour */
+.menu-pin :deep(.icon) {
+  color: var(--a-star) !important;
 }
 .menu-badge {
   margin-left: auto;

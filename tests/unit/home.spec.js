@@ -18,6 +18,9 @@ import {
 } from '@/domain/home'
 import { useHomePins } from '@/stores/homePins'
 import { useMainStore } from '@/stores/main.js'
+import { mount } from '@vue/test-utils'
+import Buefy from 'buefy'
+import AsideMenuItem from '@/components/AsideMenuItem.vue'
 
 const paths = groups => groups.flatMap(g => g.items.map(i => i.to))
 
@@ -131,5 +134,22 @@ describe('Inici', () => {
     await store.toggle('/vat')
     expect(store.saveFailed).toBe(true)
     expect(readPrefs(5).pins).toContain('/vat')
+  })
+
+  // 2026-10-18: a star you could click in the side menu was too easy to set by
+  // mistake; the menu only shows what is pinned, Inici is where it changes
+  it('the side menu shows the pinned entries but has nothing to click on them', () => {
+    const store = useHomePins()
+    store.pins = ['/vat']
+    const item = to => mount(AsideMenuItem, {
+      props: { item: { to, icon: 'percent-outline', label: 'IVA' } },
+      global: { plugins: [Buefy], stubs: { 'router-link': { template: '<a><slot /></a>' } } }
+    })
+    const pinned = item('/vat')
+    expect(pinned.find('.menu-pin').exists()).toBe(true)
+    expect(pinned.find('button').exists()).toBe(false)
+    expect(pinned.text()).toContain("fixat a l'inici")
+    expect(item('/tasks').find('.menu-pin').exists()).toBe(false)
+    expect(item(HOME_PATH).find('.menu-pin').exists()).toBe(false)
   })
 })
