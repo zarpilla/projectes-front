@@ -135,7 +135,8 @@ export function topGroups (rows, field, { limit = 10, value = () => 1, missing =
 
 // --- incidences
 
-export const isOpen = r => r.state_raw === 'open'
+// unresolved: open or in progress (wip); «En procés» counted as closed (issues/154)
+export const isOpen = r => r.state_raw !== 'closed'
 
 const days = (from, to) => Math.round((Date.parse(to) - Date.parse(from)) / 864e5)
 

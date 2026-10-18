@@ -200,3 +200,63 @@ describe('assignRouteRate', () => {
     expect(assignRouteRate(form, rates, []).id).toBe(3)
   })
 })
+
+// issues/151: several generic matching rates ended in «Tarifa no trobada» (the
+// fallback filtered an already empty list), a rate without `routes` threw, and
+// only pickup id 1 counted as a warehouse, so a rate of Magatzem Artés never applied
+describe('assignRouteRate edge cases (issues/151)', () => {
+  const GIRONA = { id: 1, name: 'Magatzem Girona', pickup: false }
+  const FINCA = { id: 2, name: 'Recollida en Finca', pickup: true }
+  const ARTES = { id: 3, name: 'Magatzem Artés', pickup: false }
+  const pickups = [GIRONA, FINCA, ARTES]
+  const order = extra => ({ route: 10, pickup: 1, delivery_type: 1, owner: 5, route_rate: null, status: 'pending', ...extra })
+
+  it('resolves several generic matching rates to the same one, whatever their order', () => {
+    const rates = [
+      { id: 8, routes: [], pickup: null, delivery_type: null },
+      { id: 4, routes: [], pickup: null, delivery_type: null }
+    ]
+    expect(assignRouteRate(order(), rates, [], pickups)?.id).toBe(4)
+    expect(assignRouteRate(order(), [...rates].reverse(), [], pickups)?.id).toBe(4)
+  })
+
+  it('takes a rate without routes as one for every route, without throwing', () => {
+    const rates = [{ id: 4, pickup: null, delivery_type: null }]
+    expect(() => assignRouteRate(order(), rates, [], pickups)).not.toThrow()
+    expect(assignRouteRate(order(), rates, [], pickups)?.id).toBe(4)
+  })
+
+  it('prefers the rate of the warehouse the order is picked up at', () => {
+    const rates = [
+      { id: 1, routes: [{ id: 10 }], pickup: GIRONA, delivery_type: { id: 1 } },
+      { id: 2, routes: [], pickup: ARTES, delivery_type: { id: 1 } }
+    ]
+    expect(assignRouteRate(order({ pickup: 3 }), rates, [], pickups)?.id).toBe(2)
+    expect(assignRouteRate(order({ pickup: 1 }), rates, [], pickups)?.id).toBe(1)
+  })
+
+  it('gives an Artés order the warehouse rates when Artés has none of its own', () => {
+    const rates = [{ id: 1, routes: [{ id: 10 }], pickup: GIRONA, delivery_type: { id: 1 } }]
+    expect(assignRouteRate(order({ pickup: 3 }), rates, [], pickups)?.id).toBe(1)
+  })
+
+  it('knows the farm pickup by its flag, not by its id', () => {
+    const FARM = { id: 7, name: 'Finca 2', pickup: true }
+    const rates = [
+      { id: 1, routes: [{ id: 10 }], pickup: GIRONA, delivery_type: { id: 1 } },
+      { id: 2, routes: [{ id: 10 }], pickup: FARM, delivery_type: { id: 1 } }
+    ]
+    expect(assignRouteRate(order({ id: 99, pickup: 7 }), rates, [], [...pickups, FARM])?.id).toBe(2)
+    // a pending farm order of the same owner and route: warehouse rate
+    const pending = [{ id: 1, pickup: { id: 7 }, status: 'pending', route: { id: 10 }, owner: { id: 5 } }]
+    expect(assignRouteRate(order({ id: 99, pickup: 7 }), rates, pending, [...pickups, FARM])?.id).toBe(1)
+    // and a farm rate never applies to a warehouse order
+    expect(assignRouteRate(order({ pickup: 3 }), rates, [], [...pickups, FARM])?.id).toBe(1)
+  })
+
+  it('tolerates orders without pickup, route or owner', () => {
+    const rates = [{ id: 1, routes: [{ id: 10 }], pickup: FINCA, delivery_type: null }]
+    const others = [{ id: 1, pickup: null, status: 'pending', route: null, owner: null }]
+    expect(() => assignRouteRate(order({ id: 99, pickup: 2 }), rates, others, pickups)).not.toThrow()
+  })
+})

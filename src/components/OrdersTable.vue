@@ -1175,7 +1175,7 @@ export default {
       };
 
       // Calculate route rate
-      const routeRate = assignRouteRate(tempForm, this.routeRates, this.orders);
+      const routeRate = assignRouteRate(tempForm, this.routeRates, this.orders, this.pickups);
       
       if (routeRate) {
         // Calculate price
@@ -1185,6 +1185,18 @@ export default {
       }
     },
     async saveOrder(order) {
+      // without a rate there is no price: say so instead of saving price null
+      // and leaving it to the backend (issues/151)
+      if (this.calculatedPrice === null || !Number.isFinite(Number(this.calculatedPrice))) {
+        this.$buefy.snackbar.open({
+          message: !this.editForm.route || !Number(this.editForm.kilograms)
+            ? "Cal una ruta i els quilos per calcular el preu."
+            : "No s'ha trobat cap tarifa per a aquesta ruta, tipus d'entrega i recollida: no es pot calcular el preu. Revisa les tarifes o edita la comanda des de la fitxa.",
+          type: "is-danger",
+          indefinite: true
+        });
+        return;
+      }
       this.importing = true;
       try {
         // Get current user for tracking
@@ -1989,9 +2001,9 @@ export default {
 
         const orderWithRate = {
           ...this.withNotes(order),
-          route_rate: assignRouteRate(order, this.routeRates, this.orders)
+          route_rate: assignRouteRate(order, this.routeRates, this.orders, this.pickups)
         };
-        orderWithRate.price = orderWithRate.route_rate.price;
+        orderWithRate.price = orderWithRate.route_rate ? orderWithRate.route_rate.price : undefined;
 
         if (order.kilograms !== null && orderWithRate.route_rate) {
           const rate = orderWithRate.route_rate;

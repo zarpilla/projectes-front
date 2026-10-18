@@ -1,89 +1,78 @@
 import moment from "moment";
 
-const assignRouteRate = (form, routeRates, orders) => {
+const idOf = value => (value && typeof value === "object" ? value.id : value);
 
-  const pickup = form.pickup && form.pickup.id ? form.pickup.id : form.pickup;
-  const route = form.route && form.route.id ? form.route.id : form.route;
-  const delivery_type =
-    form.delivery_type && form.delivery_type.id
-      ? form.delivery_type.id
-      : form.delivery_type;
-  const owner = form.owner && form.owner.id ? form.owner.id : form.owner;
-  const collection_point = form.collection_point && form.collection_point.id ? form.collection_point.id : form.collection_point;
+// The pickup flag of a pickup point: true for a farm pickup (the driver collects
+// the boxes), false for a warehouse the member brings them to. Read from the
+// pickup object itself, the `pickups` list or the pickups the rates carry;
+// without any of them, the ids the app was written for (1 Magatzem Girona,
+// 2 Recollida en Finca).
+const pickupIsFarm = (pickup, { pickups = [], routeRates = [] } = {}) => {
+  if (pickup === null || pickup === undefined) return false;
+  if (typeof pickup === "object" && typeof pickup.pickup === "boolean") return pickup.pickup;
+  const id = idOf(pickup);
+  const known =
+    (pickups || []).find(p => p && p.id === id) ||
+    (routeRates || []).map(r => r && r.pickup).find(p => p && typeof p === "object" && p.id === id);
+  if (known && typeof known.pickup === "boolean") return known.pickup;
+  return id === 2;
+};
+
+// The rate of an order: the rates of its route (or of every route), of its
+// delivery type (or of any), and of its kind of pickup -- the farm's own rates
+// for a farm pickup (unless the member already has a farm pickup pending on
+// that route, or the boxes go through a collection point), the warehouses'
+// rates otherwise. Several matches resolve deterministically: the rate of the
+// very pickup point first, then the route-specific one, then the one of the
+// delivery type, then the lowest id (issues/151).
+const assignRouteRate = (form, routeRates, orders, pickups = []) => {
+  const pickup = idOf(form.pickup);
+  const route = idOf(form.route);
+  const delivery_type = idOf(form.delivery_type);
+  const owner = idOf(form.owner);
+  const collection_point = idOf(form.collection_point);
 
   if (form.route_rate === null || form.status !== "invoiced") {
-    let rates = routeRates.filter(
-      r =>
-        (r.routes && r.routes.length && r.routes.find(rt => rt.id === route)) ||
-        r.routes.length === 0
-    );
+    const ctx = { pickups, routeRates };
+    const routesOf = r => (Array.isArray(r.routes) ? r.routes : []);
 
-    // If a collection_point is selected, exclude "Pickup" rates (only accept pickup ID 1 or null)
-    if (collection_point) {
-      rates = rates.filter(
-        r => (r.pickup && r.pickup.id === 1) || r.pickup === null
-      );
-    } else if (pickup === 2) {
-      // finca
-
-      const pendingOrders = orders.filter(
+    let farmRates = false;
+    if (!collection_point && pickupIsFarm(form.pickup, ctx)) {
+      const pendingFarmOrders = (orders || []).filter(
         o =>
-          o.pickup.id === pickup &&
-          (o.status === "pending") &&
+          o &&
+          idOf(o.pickup) === pickup &&
+          o.status === "pending" &&
           o.id !== form.id &&
-          o.route.id === route &&
-          o.owner.id === owner
+          idOf(o.route) === route &&
+          idOf(o.owner) === owner
       );
-      if (pendingOrders.length > 0) {
-        // We have pending orders for this route and owner
-        // Add your logic here
-
-        rates = rates.filter(
-          r => (r.pickup && pickup && r.pickup.id === 1) || r.pickup === null
-        );
-      } else {
-        // No pending orders for this route and owner
-        // Add your logic here
-
-        rates = rates.filter(
-          r =>
-            (r.pickup && pickup && r.pickup.id === pickup) || r.pickup === null
-        );
-      }
-    } else {
-      rates = rates.filter(
-        r => (r.pickup && pickup && r.pickup.id === 1) || r.pickup === null
-      );
+      farmRates = pendingFarmOrders.length === 0;
     }
 
-    rates = rates.filter(
-      r =>
-        (r.delivery_type && r.delivery_type.id === delivery_type) ||
-        r.delivery_type === null
-    );
-    if (rates.length > 1) {
-      rates = rates.filter(r => r.routes && r.routes.length > 0);
-      if (rates.length === 0) {
-        rates = rates.filter(r => r.routes && r.routes.length === 0);
-      }
-    }
-    if (rates.length === 0) {
-      // this.$buefy.snackbar.open({
-      //   message: "Error. No s'ha trobat cap tarifa per aquesta ruta",
-      //   queue: false
-      // });
-    } else if (rates.length > 1) {
-      // this.$buefy.snackbar.open({
-      //   message: "Error. S'ha trobat més d'una tarifa per aquesta ruta",
-      //   queue: false
-      // });
+    const rates = (routeRates || []).filter(r => {
+      if (!r) return false;
+      const routes = routesOf(r);
+      if (routes.length && !routes.some(rt => idOf(rt) === route)) return false;
+      if (r.delivery_type && idOf(r.delivery_type) !== delivery_type) return false;
+      if (!r.pickup) return true;
+      return farmRates ? idOf(r.pickup) === pickup : !pickupIsFarm(r.pickup, ctx);
+    });
 
-      //console.warn("rates!!!", rates);
+    const rank = r => [
+      r.pickup && idOf(r.pickup) === pickup ? 0 : 1,
+      routesOf(r).length ? 0 : 1,
+      r.delivery_type ? 0 : 1,
+      Number(r.id) || 0
+    ];
+    rates.sort((a, b) => {
+      const ra = rank(a);
+      const rb = rank(b);
+      for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i];
+      return 0;
+    });
 
-      form.route_rate = rates[0];
-    } else {
-      form.route_rate = rates[0];
-    }
+    form.route_rate = rates[0];
   }
   return form.route_rate;
 };
@@ -91,7 +80,6 @@ const assignRouteRate = (form, routeRates, orders) => {
 // A route closure (route-festive) closes its own route; one without a route
 // closes them all. Closing one route made the date invalid for every route
 // (issues/082).
-const idOf = value => (value && typeof value === "object" ? value.id : value);
 const isRouteClosed = (route, day, closures = []) => {
   const date = day.format("YYYY-MM-DD");
   return (closures || []).some(
@@ -231,4 +219,4 @@ const calculateRoutePrice = (routeRate, kilos, pickupLines) => {
   return price;
 };
 
-export { assignRouteRate, assignRouteDate, checkIfDateIsValidInroute, calculateRoutePrice };
+export { assignRouteRate, assignRouteDate, checkIfDateIsValidInroute, calculateRoutePrice, pickupIsFarm };

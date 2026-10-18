@@ -523,6 +523,7 @@ import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem } from "@/domain/orderValidation.js";
+import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -657,12 +658,10 @@ export default {
     hasDiscount() {
       return !!(this.form.multidelivery_discount || this.form.contact_pickup_discount || this.form.volume_discount);
     },
-    // same as the old "Preu amb descompte" field
+    // what the invoice line will charge (issues/145)
     discountedPrice() {
       if (!this.hasDiscount) return this.route_price;
-      return (this.route_price + (-1 * this.form.volume_discount || 0)) *
-        (1 - this.form.multidelivery_discount / 100) *
-        (1 - this.form.contact_pickup_discount / 100);
+      return invoicedPrice({ ...this.form, price: this.route_price });
     },
     canEditContact() {
       return (
@@ -700,7 +699,7 @@ export default {
       if (this.form.is_collection_order || !this.canChangeRate) {
         return this.form.route_rate;
       }
-      const rr = assignRouteRate(this.form, this.routeRates, this.orders);
+      const rr = assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
       this.form.route_rate = rr;
       return this.form.route_rate;
     },
@@ -1158,7 +1157,7 @@ export default {
                 )
               ).data;
 
-              await assignRouteRate(this.form, this.routeRates, this.orders);
+              await assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
 
               // Ensure incidences is always an array
               if (
@@ -2051,7 +2050,7 @@ export default {
       }
 
       this.form.multidelivery_discount = 0;
-      const rate = assignRouteRate(this.form, this.routeRates, this.orders);
+      const rate = assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
       this.form.route_rate = rate;
       this.form.price = calculateRoutePrice(
         rate,
@@ -2415,11 +2414,7 @@ export default {
     },
     calculateFinalPrice(order) {
       if (!order || !order.price) return 0;
-      let price = order.price || 0;
-      price = price * (1 - (order.multidelivery_discount || 0) / 100);
-      price = price * (1 - (order.contact_pickup_discount || 0) / 100);
-      price = price - (order.volume_discount || 0);
-      return price;
+      return invoicedPrice(order);
     },
     // Stamps <field>_date/<field>_user (deposit, pickup, transfer start/end)
     // with now and the current user, after saving the order.
