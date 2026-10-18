@@ -378,6 +378,7 @@
 <script>
 import ModalBox from "@/components/ModalBox.vue";
 import { projectTrashDialog } from "@/domain/projectTrash";
+import { withoutMothers } from "@/domain/motherFigures";
 import service from "@/service/index";
 import moment from "moment";
 import { formatHours, formatMoney, sign } from "@/helpers/format-number";
@@ -387,6 +388,11 @@ export default {
   emits: ["project-updated"],
   components: { ModalBox },
   props: {
+    // Projectes mare lists only mothers: their totals are the list's
+    sumMothers: {
+      type: Boolean,
+      default: false
+    },
     dataUrl: {
       type: String,
       default: null
@@ -463,7 +469,9 @@ export default {
   },
   computed: {
     totals() {
-      const sum = field => this.projectsData.reduce((total, p) => total + (Number(field(p)) || 0), 0);
+      // a mother's figures are its children's, which are rows too (issues/172)
+      const rows = this.sumMothers ? this.projectsData : withoutMothers(this.projectsData);
+      const sum = field => rows.reduce((total, p) => total + (Number(field(p)) || 0), 0);
       return {
         realHours: sum(p => p.total_real_hours),
         estimatedHours: sum(p => p.total_estimated_hours),

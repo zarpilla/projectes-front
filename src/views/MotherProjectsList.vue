@@ -60,6 +60,7 @@
         <projects-table
           :project_state="filters.project_state"
           :projects="motherProjects"
+          sum-mothers
           :users="users"
           :project-states="project_states"
           :scopes="scopes"

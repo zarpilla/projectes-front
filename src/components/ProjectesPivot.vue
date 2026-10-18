@@ -23,6 +23,7 @@
 </template>
 
 <script>
+import { ownFiguresIgnored } from '@/domain/motherFigures'
 import service from '@/service/index'
 import { projectStartYearLabel } from '@/domain/years'
 import { loadFiscalSettings } from '@/service/fiscalYear'
@@ -108,7 +109,7 @@ export default {
       }
       
       service({ requiresAuth: true }).get(query).then((r) => {
-        const projects = r.data.map(p => {
+        const projects = r.data.map(ownFiguresIgnored).map(p => {
           const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
           return {
             project_name: p.name,

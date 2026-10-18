@@ -92,6 +92,7 @@ import CardWidget from "@/components/CardWidget.vue";
 import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
+import { withoutMothers } from "@/domain/motherFigures";
 import sortBy from "lodash/sortBy";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -363,17 +364,19 @@ export default {
     },
     applyProjects() {
       this.projectsNumber = this.projects.length;
-      this.balance = sumBy(this.projects, p => {
+      // a mother's figures are its children's, which are rows too (issues/172)
+      const summed = withoutMothers(this.projects);
+      this.balance = sumBy(summed, p => {
         return p.incomes_expenses;
       });
-      this.realIncomes = sumBy(this.projects, "total_real_incomes_expenses");
-      this.realExpenses = sumBy(this.projects, p => {
+      this.realIncomes = sumBy(summed, "total_real_incomes_expenses");
+      this.realExpenses = sumBy(summed, p => {
         return 0;
       });
-      this.estimatedDedication = sumBy(this.projects, p => {
+      this.estimatedDedication = sumBy(summed, p => {
         return p.total_estimated_hours ? p.total_estimated_hours : 0;
       });
-      this.dedication = sumBy(this.projects, p => {
+      this.dedication = sumBy(summed, p => {
         return p.total_real_hours ? p.total_real_hours : 0;
       });
     },
