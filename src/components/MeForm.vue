@@ -27,7 +27,7 @@
               <b-field label="País"><b-input v-model="form.country" /></b-field>
               <b-field label="CCC" message="Codi de compte de cotització a la Seguretat Social."><b-input v-model="form.ccc" placeholder="Codi de compte de cotització" /></b-field>
               <b-field label="Calendari de l'entitat (iCal)" message="S'importa com a dedicació de totes les persones."><b-input v-model="form.ical" placeholder="https://…/calendari.ics" /></b-field>
-              <b-field label="Adreça de l'aplicació" message="Es fa servir als enllaços dels correus que envia l'aplicació." class="is-full"><b-input v-model="form.front_url" /></b-field>
+              <b-field label="Adreça de l'aplicació" message="Es fa servir als enllaços dels correus, als codis QR de les comandes i als enllaços dels pressupostos." class="is-full"><b-input v-model="form.front_url" placeholder="https://…/stats/" /></b-field>
             </div>
           </section>
 
@@ -243,6 +243,26 @@
               </b-checkbox>
             </label>
           </section>
+
+          <!-- the external services' addresses and keys, set until now only in the Strapi admin (issues/159) -->
+          <section id="cfg-integracions" class="form-box">
+            <h2>Integracions</h2>
+            <p class="form-box-sub">Serveis externs que fa servir l'aplicació. Les claus no es tornen a mostrar mai: escriu-ne una de nova només per canviar-la.</p>
+            <div class="cfg-grid is-two">
+              <b-field label="Directori DIR3: adreça" message="Per buscar els codis DIR3 de les administracions públiques (FACe).">
+                <b-input v-model="form.dir3_api_url" placeholder="https://dir3.esstrapis.org" />
+              </b-field>
+              <b-field label="Directori DIR3: clau" :message="tokenSet.dir3_api_token ? 'Configurada. Deixa-ho buit per mantenir-la.' : 'Sense clau.'">
+                <b-input v-model="tokens.dir3_api_token" type="password" autocomplete="new-password" password-reveal />
+              </b-field>
+              <b-field label="Lector de PDF: adreça" message="El servei de «Omple dades a partir de PDF».">
+                <b-input v-model="form.invoice_parser_api_url" placeholder="https://invoice-parser-api.esstrapis.org" />
+              </b-field>
+              <b-field label="Lector de PDF: clau" :message="tokenSet.invoice_parser_api_token ? 'Configurada. Deixa-ho buit per mantenir-la.' : 'Sense clau.'">
+                <b-input v-model="tokens.invoice_parser_api_token" type="password" autocomplete="new-password" password-reveal />
+              </b-field>
+            </div>
+          </section>
         </form>
       </div>
     </section>
@@ -285,7 +305,8 @@ export default {
         { id: "cfg-projectes", label: "Projectes" },
         { id: "cfg-persones", label: "Persones i dietes" },
         { id: "cfg-logistica", label: "Logística", logistics: true },
-        { id: "cfg-opcions", label: "Opcions" }
+        { id: "cfg-opcions", label: "Opcions" },
+        { id: "cfg-integracions", label: "Integracions" }
       ],
       ssFields: [
         { key: "quota", label: "Quota fixa (€)" },
@@ -330,12 +351,17 @@ export default {
         bank_account_vat: null,
         pdf_invoice_parser: true,
         task_emails: true,
+        dir3_api_url: '',
+        invoice_parser_api_url: '',
         // the settings components (options, Seguretat Social and diets, logistics):
         // sent back whole, with their id, so nothing else in them is lost
         options: {},
         quotes: {},
         orders_options: {}
       },
+      // write-only keys: sent only when typed; the API only says whether each is set
+      tokens: { dir3_api_token: '', invoice_parser_api_token: '' },
+      tokenSet: { dir3_api_token: false, invoice_parser_api_token: false },
       bankAccounts: [],
       loadingBankAccounts: false
     };
@@ -446,6 +472,7 @@ export default {
         // empty (saved before the option existed) means on, as the server reads it
         this.form.task_emails = response.data.task_emails !== false;
         for (const key of COMPONENTS) this.form[key] = { ...(response.data[key] || {}) };
+        for (const key of Object.keys(this.tokenSet || {})) this.tokenSet[key] = !!response.data[key + '_set'];
         try {
           const user = (await service({ requiresAuth: true, cached: true }).get('users/me')).data;
           const perms = ((user && user.permissions) || []).map(p => p.permission);
@@ -483,7 +510,16 @@ export default {
           data[key] = Object.fromEntries(Object.entries(this.form[key] || {}).map(([k, v]) => [k, v === '' || v === undefined ? null : v]));
         }
         
+        const tokens = this.tokens || {};
+        for (const [key, value] of Object.entries(tokens)) {
+          if (String(value || '').trim()) data[key] = String(value).trim();
+        }
+
         await service({ requiresAuth: true }).put('/me', data);
+        for (const key of Object.keys(tokens)) {
+          if (data[key]) this.tokenSet[key] = true;
+          tokens[key] = '';
+        }
         
         this.$buefy.snackbar.open({
           message: 'Guardat correctament',

@@ -50,6 +50,11 @@ export const CHANGELOG = [
     },
     {
       type: "Novetats",
+      modules: ["Administració", "Integracions"],
+      text: ["A ", { to: "/admin/me", label: "Configuració general" }, ", nou apartat «Integracions» amb l'adreça i la clau del directori DIR3 i del lector de PDF (les claus no es tornen a mostrar). L'«Adreça de l'aplicació» és ara la que fan servir els enllaços dels correus, els codis QR de les comandes i els pressupostos. A la fitxa de cada usuària es pot posar el seu calendari iCal."]
+    },
+    {
+      type: "Novetats",
       modules: ["Logística"],
       text: ["L'oficina de logística ja pot crear rutes, canviar-ne els dies, el repartidor, les transferències i el descompte per volum, i desactivar-les, a ", { to: "/routes", label: "Rutes i punts › Rutes" }, ". Una ruta desactivada no surt en fer comandes ni a Rutes i dies; les comandes que ja la tenen la mantenen."]
     },
