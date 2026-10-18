@@ -88,6 +88,13 @@ un any. **Comunica un error o una idea** obre el lloc de tiquets per explicar un
 
 ![Les novetats](img/01-primers-passos/08-novetats.png)
 
+## Documentació
+
+**Altres › Documentació** és a l'abast de tothom. **Obre el manual** obre aquest manual en una pestanya nova,
+ja identificat i amb els capítols que corresponen als permisos de cada persona. S'hi pot cercar i, des de
+cada capítol, saltar als relacionats. A sota hi ha els vídeos d'ajuda antics, que mostren l'aplicació d'abans
+del redisseny.
+
 ## Preguntes freqüents
 
 **No puc entrar.** Comproveu el correu i la clau (les majúscules compten). Si el compte està **bloquejat**, cal
