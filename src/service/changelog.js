@@ -71,6 +71,26 @@ export const CHANGELOG = [
   ]
 },
 {
+  date: "2026.10.18",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: ["A la fitxa del ", { to: "/projectes", label: "projecte" }, ", passar d'un projecte a un altre sense recarregar ja no arrossega la periodificació, els totals ni l'any del resum de l'anterior. Un codi que ja existeix es diu en català al costat del camp «Codi», i esborrar un projecte explica que va a la paperera."]
+    },
+    {
+      type: "Millores",
+      modules: ["Projectes"],
+      text: [{ to: "/mother-projects", label: "Projectes mare" }, " té la mateixa taula que Projectes: clienta sota el nom, barra d'hores, resultats en color, fila de totals, filtre per àmbit i el nombre de projectes a la capçalera."]
+    },
+    {
+      type: "Millores",
+      modules: ["Projectes", "Plataforma"],
+      text: "Els diàlegs de confirmació tenen els botons en català («Cancel·la», «D'acord»; en sortir amb canvis sense desar, «Continua editant» i «Surt sense desar»). «Divideix la línia» del pressupost explica què fa cada botó (×2 repeteix la línia cada mes, ÷2 reparteix l'import) i «Cancel·la» ja no queda amagat. El cost/hora de la planificació i de la jornada surt com 21,55 €."
+    }
+  ]
+},
+{
   date: "2026.10.17",
   items: [
     {
