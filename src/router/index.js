@@ -941,7 +941,7 @@ router.beforeEach((to, from, next) => {
       // and the API refuses what isn't hers anyway
       const known = !!(user && Array.isArray(user.permissions));
       const permissions = userPermissions(user);
-      if (!known || canOpen(to.matched, permissions)) {
+      if (!known || canOpen(to.matched, permissions, to.params)) {
         next();
       } else {
         const landing = landingPath(permissions);

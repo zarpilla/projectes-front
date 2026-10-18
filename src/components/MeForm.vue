@@ -262,6 +262,8 @@
                 <b-input v-model="tokens.invoice_parser_api_token" type="password" autocomplete="new-password" password-reveal />
               </b-field>
             </div>
+            <!-- Google Calendar → hours (Hores dedicades › importar), issues/159 -->
+            <certificate-card kind="google" title="Calendari de Google: clau del compte de servei" style="margin-top: .75rem" />
           </section>
         </form>
       </div>

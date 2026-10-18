@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import { isAdminTablePath } from '@/service/adminTables'
+import { isAdminTablePath, isOfficeTablePath } from '@/service/adminTables'
 import { useTaskAlerts } from '@/stores/taskAlerts'
 import { useHomePins } from '@/stores/homePins'
 import { HOME_PATH } from '@/domain/home'
@@ -80,6 +80,7 @@ export default {
       if (!this.item.activeWhen || !this.$route) return false
       const path = this.$route.path
       if (this.item.activeWhen === 'admin-tables') return isAdminTablePath(path)
+      if (this.item.activeWhen === 'logistics-tables') return isOfficeTablePath(path)
       if (this.item.activeWhen === 'verifactu') return /^\/admin\/(verifactu|verifactu-chain|face-queue)(\/|$)/.test(path)
       return false
     },

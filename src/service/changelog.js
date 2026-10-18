@@ -51,7 +51,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Integracions"],
-      text: ["A ", { to: "/admin/me", label: "Configuració general" }, ", nou apartat «Integracions» amb l'adreça i la clau del directori DIR3 i del lector de PDF (les claus no es tornen a mostrar). L'«Adreça de l'aplicació» és ara la que fan servir els enllaços dels correus, els codis QR de les comandes i els pressupostos. A la fitxa de cada usuària es pot posar el seu calendari iCal."]
+      text: ["A ", { to: "/admin/me", label: "Configuració general" }, ", nou apartat «Integracions» amb l'adreça i la clau del directori DIR3 i del lector de PDF (les claus no es tornen a mostrar). L'«Adreça de l'aplicació» és ara la que fan servir els enllaços dels correus, els codis QR de les comandes i els pressupostos. També s'hi puja la clau del compte de servei de Google que importa els calendaris de Google com a hores. A la fitxa de cada usuària es pot posar el seu calendari iCal."]
     },
     {
       type: "Novetats",
@@ -66,7 +66,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Logística"],
-      text: ["Les taules que només es podien canviar des de l'administrador del servidor ja són a Taules auxiliars: ", { to: "/admin/pickup", label: "Punts de recollida" }, ", ", { to: "/admin/delivery-type", label: "Tipus de lliurament" }, ", ", { to: "/admin/city", label: "Poblacions" }, " (no s'esborra una població que fan servir rutes, punts o contactes), ", { to: "/admin/product", label: "Productes" }, ", ", { to: "/admin/document-type", label: "Tipus de document" }, ", ", { to: "/admin/vat-type", label: "Tipus d'IVA" }, " i ", { to: "/admin/activity-type", label: "Tipus d'activitat" }, ". A ", { to: "/routes", label: "Rutes" }, " es pot triar el projecte i el punt de recollida de cada ruta, i quins dies porta transferències. Els logos d'«Amb el suport de» s'afegeixen, s'ordenen i s'esborren a ", { to: "/admin/logos", label: "Administració › Logos" }, ", i els missatges del formulari «Contacta» es llegeixen a ", { to: "/admin/form-submissions", label: "Missatges" }, "."]
+      text: ["Les taules que només es podien canviar des de l'administrador del servidor ja són a Taules auxiliars: ", { to: "/admin/pickup", label: "Punts de recollida" }, ", ", { to: "/admin/delivery-type", label: "Tipus de lliurament" }, ", ", { to: "/admin/city", label: "Poblacions" }, " (no s'esborra una població que fan servir rutes, punts o contactes, i si se li canvia el nom també canvia als contactes que la tenen), ", { to: "/admin/product", label: "Productes" }, ", ", { to: "/admin/document-type", label: "Tipus de document" }, ", ", { to: "/admin/vat-type", label: "Tipus d'IVA" }, " i ", { to: "/admin/activity-type", label: "Tipus d'activitat" }, ". L'oficina de logística té els punts de recollida, els tipus de lliurament, les poblacions i les tarifes de ruta a «Rutes i punts › Taules de logística». A ", { to: "/routes", label: "Rutes" }, " es pot triar quins dies porta transferències cada ruta. Els logos d'«Amb el suport de» s'afegeixen, s'ordenen i s'esborren a ", { to: "/admin/logos", label: "Administració › Logos" }, ", i els missatges del formulari «Contacta» es llegeixen a ", { to: "/admin/form-submissions", label: "Missatges" }, "."]
     },
     {
       type: "Novetats",

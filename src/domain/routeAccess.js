@@ -12,6 +12,10 @@ const LOGISTICS = ['orders', 'orders_admin', 'orders_delivery']
 const STAFF = ['orders_admin', 'orders_delivery']
 const OFFICE = ['orders_admin']
 const MEMBER = ['orders']
+// Taules auxiliars › Logística: the office opens them too (issues/159; keep in
+// step with service/adminTables.js OFFICE_TABLES and the API's isAdminOrOffice)
+const OFFICE_TABLES = ['pickup', 'delivery-type', 'city', 'route-rate']
+const ADMIN_OR_OFFICE = [...ADMIN, ...OFFICE]
 
 // route record path → permissions (any of them opens it)
 export const ROUTE_PERMISSIONS = {
@@ -86,8 +90,12 @@ export const ROUTE_PERMISSIONS = {
 export const OPEN_ROUTES = ['/inici', '/profile', '/changelog', '/documentacio', '/reset-password']
 
 /** The permissions a route record needs: null when any logged-in user may open it. */
-export function routePermissions (record) {
+export function routePermissions (record, params = {}) {
   if (!record) return null
+  if (record.path && record.path.startsWith('/admin/')) {
+    const entity = record.path.startsWith('/admin/:entityName') ? params.entityName : record.path.split('/')[2]
+    if (OFFICE_TABLES.includes(entity)) return ADMIN_OR_OFFICE
+  }
   if (record.path && record.path.startsWith('/admin')) return ADMIN
   if (record.meta && record.meta.requiresPermission) {
     const p = record.meta.requiresPermission
@@ -100,9 +108,9 @@ export const userPermissions = user =>
   ((user && user.permissions) || []).map(p => (p && typeof p === 'object' ? p.permission : p)).filter(Boolean)
 
 /** Whether a user with these permissions may open every matched record of a route. */
-export function canOpen (matched, permissions) {
+export function canOpen (matched, permissions, params = {}) {
   return (matched || []).every(record => {
-    const needed = routePermissions(record)
+    const needed = routePermissions(record, params)
     return !needed || needed.some(p => permissions.includes(p))
   })
 }
@@ -134,7 +142,10 @@ const RECORDS = Object.keys(ROUTE_PERMISSIONS).map(path => ({
 export function canOpenPath (to, permissions) {
   if (!permissions) return true
   const path = String(to || '').split(/[?#]/)[0]
-  if (path.startsWith('/admin')) return permissions.includes('admin')
+  if (path.startsWith('/admin')) {
+    const entity = path.split('/')[2]
+    return permissions.includes('admin') || (OFFICE_TABLES.includes(entity) && permissions.includes('orders_admin'))
+  }
   const record = RECORDS.find(r => r.re.test(path))
   return !record || canOpen([{ path: record.path, meta: {} }], permissions)
 }
