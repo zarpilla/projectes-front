@@ -2967,11 +2967,14 @@ export default {
     if (this.dirty && !this.isInitialLoad && this.userHasInteracted) {
       this.$buefy.dialog.confirm({
         message: "Estàs segura que vols marxar? Hi ha canvis sense guardar",
+        confirmText: "Surt sense desar",
+        cancelText: "Continua editant",
+        type: "is-danger",
         onConfirm: () => {
           next();
         },
         onCancel: () => {
-          return false;
+          next(false);
         }
       });
 

@@ -31,7 +31,7 @@ import 'v-calendar/style.css'
 import DownloadExcel from '@/components/DownloadExcel.vue'
 
 import { guardBuefyMessages } from '@/helpers/safeHtml'
-import { datepickerFormatter } from '@/helpers/datepickerFormat'
+import { buefyConfig } from '@/helpers/buefyConfig'
 
 /* Light / dark mode */
 import { applyTheme, watchSystemTheme } from '@/service/theme'
@@ -75,7 +75,7 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-app.use(Buefy, { defaultDateFormatter: datepickerFormatter })
+app.use(Buefy, buefyConfig)
 // messages can carry names from the database: never as raw HTML
 guardBuefyMessages(app.config.globalProperties.$buefy)
 app.use(VCalendar, {
