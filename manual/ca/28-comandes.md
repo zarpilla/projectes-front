@@ -365,9 +365,15 @@ amb **Recalcula**).
   Es configura a cada ruta.
 - **Recollida** (%): el que tingui el punt d'entrega a «% de descompte per recollida en finca».
 
-El **Preu amb descompte** de la fitxa resta primer el descompte de volum i després aplica els percentatges. La
-llista, el seguiment i la factura fan el càlcul en un ordre una mica diferent, i per això l'import pot variar
-uns cèntims d'una pantalla a l'altra.
+El preu amb descomptes es calcula igual a tot arreu (la fitxa, la llista, el seguiment, Facturar i la
+factura): primer es resta el descompte de volum i després s'aplica la suma dels dos percentatges, i el
+resultat s'arrodoneix a cèntims:
+
+**preu amb descomptes = (preu − descompte per volum €) × (1 − (descompte multientrega % + descompte
+recollida %) / 100)**
+
+Per exemple, 10,00 € amb 1,00 € de volum, un 10 % de multientrega i un 5 % de recollida: (10,00 − 1,00) ×
+(1 − 0,15) = **7,65 €**.
 
 ## Preguntes freqüents / Errors habituals
 

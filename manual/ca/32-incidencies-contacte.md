@@ -77,7 +77,8 @@ pantalla **Incidències**; al títol de la caixa, una etiqueta diu quantes n'hi 
 
 - Sota el títol: quantes n'hi ha **per resoldre** (obertes i en procés) i quantes **en total**.
 - Els comptadors **Obertes**, **En procés**, **Tancades** i **Temps mitjà de tancament** (els dies que han
-  trigat, de mitjana, les incidències tancades els últims tres mesos).
+  trigat, de mitjana, les incidències tancades els últims tres mesos). Els comptadors i les pestanyes tenen en
+  compte la cerca i el filtre **Sòcia**.
 - **Cerca comanda, punt o text**: busca per número de comanda o d'incidència, pel nom del punt d'entrega o
   per un tros de la descripció.
 - Les pestanyes **Per resoldre** (la que s'obre de partida), **Obertes**, **En procés**, **Tancades** i
@@ -104,8 +105,13 @@ Mentre la incidència no està tancada, a sota de la conversa hi ha:
 
 ![Confirmació abans de tancar una incidència](img/32-incidencies-contacte/07-confirma-tancar.png)
 
-Cada resposta o canvi d'estat envia un correu: si el fa la sòcia de la comanda, a l'oficina; si el fa una
-altra persona (l'oficina o la repartidora), a la sòcia.
+Cada resposta nova envia un correu a l'oficina (el **Correu que rep els missatges** de **Configuració
+general** i totes les persones actives amb el permís `orders_admin`) i a la sòcia de la comanda, menys a qui
+l'ha escrita. El correu porta tota la conversa, amb l'autor de cada resposta. Una adreça no rep mai el mateix
+correu dues vegades.
+
+Un canvi d'estat sense resposta (**Marca en procés**, **Tanca**) envia un correu només a l'oficina (el
+**Correu que rep els missatges**) si el fa la sòcia de la comanda, i a la sòcia si el fa una altra persona.
 
 Una incidència tancada es pot llegir però ja no s'hi pot respondre (*Aquesta incidència està tancada.*):
 
@@ -163,13 +169,12 @@ l'any més recent i el mes d'avui; amb **Tots** es veu tot l'any (o tots els any
 | Xifra | Què compta |
 |---|---|
 | **Incidències** | Quantes se n'han obert en el període, i a sota quantes comandes diferents afecten. |
-| **Per resoldre** | Quantes estan **obertes**. A sota, *N tancades*: totes les altres. |
+| **Per resoldre** | Quantes estan **obertes** o **en procés**. A sota, *N tancades*. |
 | **Temps de resolució** | La mediana de dies entre l'obertura i el tancament de les tancades (la meitat s'han tancat en menys temps), i quin percentatge s'han tancat el mateix dia o l'endemà. |
 | **Per cada 100 comandes** | Incidències per cada 100 comandes del període (a sota, quantes comandes hi ha hagut). |
 
-Les incidències **En procés** l'informe les compta com a tancades: no surten a **Per resoldre** sinó a les
-*tancades*, i a la taula dinàmica tenen l'estat **Tancada**. Tampoc no tenen data de tancament, i per això no
-compten al **Temps de resolució**. Per saber quines estan en procés, cal mirar la pantalla **Incidències**.
+A la taula dinàmica, cada incidència té el seu estat: **Oberta**, **En procés** o **Tancada**. Les que estan en
+procés encara no tenen data de tancament, i per això no compten al **Temps de resolució**.
 
 ### Els gràfics
 
@@ -196,22 +201,18 @@ els grups, com es canvien els camps, com es desen les vistes i com s'exporta s'e
 **No veig cap botó per crear una incidència a la pantalla Incidències.** No n'hi ha: les incidències es creen
 des de la comanda (la fitxa, la pàgina de seguiment o una targeta d'**Operacions**).
 
-**Les respostes surten com a «Usuari desconegut».** L'aplicació no mostra l'autor de les respostes: hi surt
-*Usuari desconegut* encara que se sàpiga qui les ha escrites. L'autor de la incidència i qui l'ha tancada sí
-que surten.
-
-**Els comptadors no canvien quan filtro per sòcia o cerco.** Els comptadors de dalt i de les pestanyes compten
-sempre totes les incidències que la persona pot veure, sense tenir en compte la cerca ni el filtre **Sòcia**.
-El total de la llista (a peu de llista) sí que els té en compte.
-
-**A l'informe, Per resoldre no coincideix amb la pantalla Incidències.** L'informe només compta les obertes; la
-pantalla **Incidències** hi suma les que estan en procés. A més, l'informe només compta les del període triat.
+**A l'informe, Per resoldre no coincideix amb la pantalla Incidències.** L'informe només compta les incidències
+que es van obrir en el període triat; la pantalla **Incidències** les compta totes.
 
 **El Temps mitjà de tancament surt «—».** No s'ha tancat cap incidència en els últims tres mesos.
 
 **Una sòcia no rep els correus de les incidències.** Els correus van a l'adreça de l'usuari de la sòcia. Si
 l'oficina no rep els seus, cal revisar el **Correu que rep els missatges** a **Configuració general** (vegeu
-[34. Configuració general](34-configuracio-general.md)).
+[34. Configuració general](34-configuracio-general.md)) i l'adreça de cada usuari amb el permís
+`orders_admin`.
+
+**No rebo el correu de la resposta que he escrit jo.** És normal: qui escriu una resposta no en rep el
+correu.
 
 **He enviat el formulari Contacta, on veig la resposta?** La resposta arriba per correu a l'adreça que s'ha
 posat al formulari; l'aplicació no guarda cap conversa.

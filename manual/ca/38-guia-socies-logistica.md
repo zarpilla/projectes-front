@@ -213,8 +213,9 @@ El quadre **Preu** de la fitxa mostra:
 A la llista de comandes, la columna **Preu** mostra el preu final, el percentatge rebaixat i uns punts de
 color segons el descompte (la llegenda és al peu de la llista).
 
-El preu queda fixat quan l'oficina processa la comanda. Quan una comanda té més d'un descompte, l'import pot
-variar uns cèntims d'una pantalla a l'altra: **el que pagues és el que diu la factura**.
+Primer es resta el descompte de volum i després s'aplica la suma dels dos percentatges: **(preu − descompte
+volum) × (1 − (multientrega % + recollida %) / 100)**, arrodonit a cèntims. El preu és el mateix a la fitxa, a la
+llista i a la factura. El preu queda fixat quan l'oficina processa la comanda.
 
 ### Una comanda per a un punt de consum
 
@@ -392,7 +393,8 @@ L'oficina rep un correu, i tu una còpia. A partir d'aquí, les segueixes a **Lo
 - La pestanya **Per resoldre** (la que s'obre) mostra les obertes i les que estan **En procés**; **Totes**
   mostra també les tancades.
 - Clicant una incidència, a la dreta surten les dades i la conversa. A **Resposta** escrius un missatge i
-  **Envia**. Cada resposta envia un correu: les teves, a l'oficina; les de l'oficina, a tu.
+  **Envia**. Cada resposta envia un correu a l'oficina i a tu, menys a qui l'ha escrita: les teves arriben a
+  l'oficina; les de l'oficina o de la repartidora, a tu.
 - Quan està resolta, **Tanca**. Una incidència tancada es pot llegir, però ja no s'hi pot respondre.
 
 ![Una incidència tancada](img/32-incidencies-contacte/04-incidencia-socia-tancada.png)
@@ -414,8 +416,8 @@ factura les comandes lliurades: una factura per mes.
   **Base**, **IVA** i **Total** del que es veu.
 - El **Codi** obre el PDF de la factura, si en té.
 - La columna **Projecte** és el projecte on l'oficina ha creat la factura.
-- **Pagada**: *Pagada* amb la data, *Pendent de pagar*, *Vençuda* (ha passat el venciment), *Esborrany* (l'oficina
-  encara la revisa: no la paguis fins que te l'enviïn) o *Abonament* (una factura en negatiu).
+- **Pagada**: *Pagada* amb la data, *Pendent de pagar*, *Vençuda* (ha passat el venciment) o *Abonament* (una
+  factura en negatiu). Les factures que l'oficina encara revisa (esborranys) no hi surten fins que les emet.
 - **Exporta** baixa la llista en un full de càlcul.
 
 Cada línia de la factura és una comanda (data, número i ruta), amb els seus descomptes i el 21 % d'IVA.
@@ -468,12 +470,6 @@ del moment en què es van fer. Si cal, digues-ho a l'oficina.
 
 **Veig comandes d'altres sòcies?** No. Només veus les teves i, si també reps comandes en un punt teu, les que
 hi van.
-
-**Per què el preu d'una comanda canvia uns cèntims d'una pantalla a l'altra?** Quan té més d'un descompte,
-cada pantalla els combina d'una manera una mica diferent. El que pagues és el que diu la factura.
-
-**A Factures surt una factura com a «Esborrany».** L'oficina l'ha creat però encara no l'ha emesa. No la
-paguis fins que te l'enviïn amb número.
 
 **Ja he pagat i em continua sortint el missatge de factures pendents.** Surt fins que l'oficina apunta el
 pagament. Si fa dies que vas pagar, escriu-los des de **Contacta**.

@@ -39,8 +39,7 @@ comandes** (les xifres del servei).
 ### 1. Revisar les sòcies
 
 **Rutes i punts › Sòcies** llista les productores que fan comandes de logística: les usuàries actives (no
-bloquejades i confirmades) que només tenen el permís de sòcia (`orders`). Les persones de l'oficina o del
-repartiment no hi surten.
+bloquejades i confirmades) que tenen el permís de sòcia (`orders`), tinguin o no altres permisos.
 
 ![La llista de sòcies](img/33-facturacio-logistica/01-socies.png)
 
@@ -77,7 +76,7 @@ Les xifres de dalt:
 - **Comandes lliurades**: quantes són i de quantes sòcies.
 - **Descomptes aplicats**: quant es resta, en total, per descomptes de multientrega, de recollida i de volum
   (per això surt en negatiu).
-- **Seleccionat**: l'import i les comandes de les files marcades.
+- **Seleccionat**: l'import i les comandes de les files marcades del mes que es veu.
 
 Cada fila diu, per a una sòcia i un mes, quantes **Comandes**, **Caixes** i **Kg** hi ha, els **Descomptes** i
 l'**Import** a facturar. El mes és el de la **data prevista d'entrega** de les comandes. Sota del nom de la
@@ -108,8 +107,8 @@ emeses →** obre la llista d'ingressos.
 - **Mes d'entrega**: **Tots** o un mes concret (*10/2026*) per veure només les comandes d'aquell mes.
 - La casella de cada fila marca una sòcia i un mes; la de la fila del mes les marca totes d'aquell mes, i la
   de la capçalera, totes les que es veuen.
-- Les files marcades continuen marcades encara que després es triï un altre mes: **Seleccionat** i el botó
-  **Factura la selecció** compten totes les marcades, es vegin o no.
+- Només es factura el que es veu: si es marquen files d'un mes i després es tria un altre mes,
+  **Seleccionat** i **Factura la selecció** només compten les files marcades del mes que es veu.
 
 ### 5. Facturar
 
@@ -119,17 +118,21 @@ Hi ha dues maneres:
 - **Factura la selecció (N comandes)**, a dalt: fa una factura per cada fila marcada, és a dir, una per sòcia i
   mes. En acabar, diu quantes s'han creat (*3 de 3 factures creades*).
 
-Compte: no hi ha confirmació. En clicar el botó, les factures es creen de seguida.
+Abans de crear res, l'aplicació demana confirmació (**Facturar comandes**): diu quantes factures es crearan
+en esborrany (o, si és una de sola, a quina sòcia i de quin mes), amb quantes comandes, per quin import i a
+quin projecte. **Factura** les crea; **Cancel·la** no fa res.
 
 Per a cada factura, l'aplicació:
 
 1. Crea una factura en **esborrany** a nom del contacte de la sòcia, amb data d'avui, a la sèrie de l'any en
-   curs i lligada al projecte triat. El concepte és *Serveis logístics* seguit del mes i l'any.
+   curs i lligada al projecte triat. El concepte és *Serveis logístics* seguit del mes i l'any d'entrega, el mateix
+   mes de la fila de Facturar.
 2. Hi posa una línia per comanda: *Comanda 03/10/2026 | 24874 | nom de la ruta* (data prevista, número de
    comanda i ruta), amb un 21 % d'IVA. Vegeu [Com es calcula](#com-es-calcula) per al preu i el descompte de
    cada línia.
 3. Passa les comandes a l'estat **Facturada** i les lliga a la factura. Ja no tornen a sortir a Facturar.
-4. Afegeix un ingrés a l'**última fase** del projecte, amb la base de la factura.
+4. Afegeix un ingrés a l'**última fase** del projecte, amb la base de la factura, pendent de cobrar (no
+   pagat).
 
 Les factures es creen en esborrany: encara no tenen número ni s'han enviat a ningú. Després cal revisar-les,
 emetre-les i enviar-les a les sòcies des d'**Ingressos**, com qualsevol altra factura (cal el permís
@@ -148,16 +151,15 @@ Cada sòcia té, al seu menú, **Logística › Factures**: les factures de log�
 - A dalt, la suma de **Base**, **IVA** i **Total** de les factures que es veuen.
 - A la llista: **Codi** (si la factura té PDF, el codi l'obre), **Data** i venciment (*venç.*), el
   **Projecte** on es va crear la factura, **Base**, **IVA**,
-  **Total** i **Pagada**: *Pagada* amb la data, *Pendent de pagar*, *Vençuda* (ha passat el venciment),
-  *Esborrany* o *Abonament* (una factura en negatiu).
+  **Total** i **Pagada**: *Pagada* amb la data, *Pendent de pagar*, *Vençuda* (ha passat el venciment) o
+  *Abonament* (una factura en negatiu).
 - **Exporta** baixa la llista en un full de càlcul.
 
-La sòcia també veu les factures en esborrany tan bon punt l'oficina les crea a Facturar, amb l'etiqueta
-*Esborrany*.
+La sòcia no veu les factures en esborrany: li surten quan l'oficina les emet.
 
 Quan una sòcia té factures enviades i encara no pagades, en entrar a ESSTRAPIS li surt un missatge que li
 recorda l'import pendent i li indica aquesta pantalla. Es tanca amb **D'acord** i torna a sortir cada vegada
-que entra, fins que l'oficina marca les factures com a pagades.
+que entra, fins que l'oficina posa la data de pagament a les factures.
 
 ### 7. L'informe de comandes
 
@@ -236,25 +238,22 @@ Cada comanda té un **preu de tarifa** (segons la ruta, els quilos i el tipus de
 - **Descompte volum** (€): un import fix que es resta a cada comanda quan la sòcia porta prou comandes per la
   mateixa ruta el mateix dia. Es configura a cada ruta.
 
-Les diferents pantalles no combinen aquests tres descomptes de la mateixa manera, i per això el preu final
-d'una comanda pot variar uns cèntims d'una pantalla a l'altra:
+Totes les pantalles calculen el preu amb descomptes de la mateixa manera:
 
-| On | Com es calcula |
-|---|---|
-| **Facturar** (Per facturar, Import, Descomptes), **Informe de comandes** (Import i Preu de la taula dinàmica) i la fitxa de la comanda (**Preu amb descompte**) | Al preu se li resta el descompte de volum; al resultat se li aplica el percentatge de multientrega i, després, el de recollida. |
-| Llista de **Comandes** (columna **Preu**, xifra **Import**) i la pàgina **Veure comanda** (**Amb descompte**) | Al preu se li apliquen els dos percentatges, un darrere l'altre, i al final es resta el descompte de volum. |
-| **La factura** | Cada línia porta com a preu el preu de la comanda menys el descompte de volum, i com a descompte **la suma** dels dos percentatges. Cada línia s'arrodoneix a cèntims. |
+**preu amb descomptes = (preu − descompte per volum €) × (1 − (descompte multientrega % + descompte
+recollida %) / 100)**, arrodonit a cèntims a cada comanda.
+
+És a dir, primer es resta el descompte de volum i després s'aplica la **suma** dels dos percentatges. És el
+mateix a la fitxa de la comanda (**Preu amb descompte**), a la llista de **Comandes** (columna **Preu**, xifra
+**Import**), a **Veure comanda**, a **Facturar**, a l'**Informe de comandes** i a les línies de la factura (cada
+línia porta com a preu el preu de la comanda menys el descompte de volum, i com a descompte la suma dels dos
+percentatges).
 
 Per exemple, una comanda de 10,00 € amb 1,00 € de descompte de volum, un 10 % de multientrega i un 5 % de
-recollida:
+recollida: (10,00 − 1,00) × (1 − 0,15) = **7,65 €**.
 
-- A Facturar i a l'informe: (10,00 − 1,00) × 0,90 × 0,95 = **7,70 €**.
-- A la llista de comandes: 10,00 × 0,90 × 0,95 − 1,00 = **7,55 €**.
-- A la factura: (10,00 − 1,00) × (1 − 0,15) = **7,65 €**.
-
-Si una comanda només té un dels descomptes, les tres maneres donen el mateix. Les diferències apareixen quan
-en té dos o més. **El que paga la sòcia és sempre el que diu la factura**: l'import de **Per facturar** i de la
-fila de cada sòcia és una previsió, i pot diferir uns cèntims de la base de la factura que es crea.
+Com que cada comanda s'arrodoneix a cèntims abans de sumar, l'import de **Per facturar** i de la fila de cada
+sòcia és el mateix que la base de la factura que es crea.
 
 La columna **Descomptes** de Facturar és la diferència entre l'**Import** i el preu de tarifa, en negatiu.
 
@@ -280,19 +279,15 @@ acabi i torneu-ho a provar.
 facturades».** Mentrestant, algú altre ja les havia facturat. No es duplica cap factura. Torneu a carregar la
 pantalla.
 
-**El botó Factura no fa res, o demana el projecte.** S'ha d'escriure i, sobretot, **triar** el projecte de la
-llista que s'obre: només escriure'n el nom no n'hi ha prou.
+**El botó Factura està desactivat.** Cal escriure i, sobretot, **triar** el projecte de la llista que s'obre:
+només escriure'n el nom no n'hi ha prou. Si després es torna a escriure al camp, el projecte deixa d'estar
+triat.
 
 **M'he equivocat de projecte o de comandes. Com ho desfaig?** Mentre la factura és un esborrany, es pot
 esborrar des d'**Ingressos** (vegeu [17. Ingressos: factures emeses](17-factures-emeses.md)). En esborrar-la,
-les seves comandes tornen a l'estat **Lliurada** i tornen a sortir a Facturar. L'ingrés que s'havia afegit a
-la fase del projecte no s'esborra sol: cal treure'l a mà. Una factura ja emesa no es pot esborrar: s'ha de
+les seves comandes tornen a l'estat **Lliurada** i tornen a sortir a Facturar, i s'esborra també l'ingrés que
+s'havia afegit a la fase del projecte. Una factura ja emesa no es pot esborrar: s'ha de
 rectificar.
-
-**Per què el mes del concepte no coincideix amb el de la taula?** La taula agrupa per data prevista
-d'entrega, i el mes del concepte *Serveis logístics …* surt de la data en què es va fer la primera comanda de
-la factura. Una comanda feta a final de setembre i lliurada a l'octubre surt a l'octubre a Facturar, però el
-concepte pot dir *setembre*. Si cal, es canvia el concepte a l'esborrany abans d'emetre'l.
 
 **Les comandes de recollida en finca (número acabat en -R) també surten?** Sí: si estan en estat **Lliurada**,
 surten a Facturar amb el seu propi preu, com qualsevol altra comanda.
@@ -300,13 +295,11 @@ surten a Facturar amb el seu propi preu, com qualsevol altra comanda.
 **Puc canviar una comanda ja facturada?** L'oficina sí que pot obrir-la i editar-la, però la factura no es
 torna a calcular. Si el canvi afecta l'import, s'ha de rectificar la factura.
 
-**La sòcia veu l'esborrany abans que l'emetem?** Sí: a **Factures** hi surt amb l'etiqueta *Esborrany* des que
-es crea. El missatge de pagaments pendents en entrar no hi compta, perquè només té en compte les factures
-enviades.
+**La sòcia veu l'esborrany abans que l'emetem?** No: a **Factures** només hi surt quan s'emet. El missatge de
+pagaments pendents en entrar tampoc no hi compta.
 
-**Per què una sòcia surt a Facturar i no a Sòcies?** Sòcies només llista les usuàries que tenen només el
-permís de sòcia. Si una usuària té, a més, algun altre permís, no hi surt, però les seves comandes sí que es
-facturen.
+**Per què una sòcia surt a Facturar i no a Sòcies?** Sòcies llista les usuàries actives amb el permís de sòcia
+(`orders`). Si una usuària està bloquejada o no ha confirmat el compte, no hi surt.
 
 ## Vegeu també
 
