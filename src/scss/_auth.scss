@@ -16,10 +16,9 @@
   flex-direction: column;
   gap: 1.75rem;
 }
-/* three classes so it outweighs BrandLogo's scoped `.brand-logo[data-v]` height */
-.login-page .login-main .login-logo {
+/* same size as in the app header (BrandLogo's own height) */
+.login-logo {
   align-self: center;
-  height: 2.5rem;
   color: var(--a-fg);
 }
 .login-card {
