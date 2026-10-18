@@ -136,7 +136,7 @@ UPDATE orders SET contact_name = fake_person(id), contact_trade_name = NULL, con
   contact_phone = IF(contact_phone IS NULL, NULL, '600 000 000'),
   contact_address = IF(contact_address IS NULL, NULL, CONCAT('Carrer Major, ', 1 + id % 120)),
   contact_city = IF(contact_city IS NULL, NULL, fake_town(id)), contact_postcode = IF(contact_postcode IS NULL, NULL, '08000'),
-  contact_notes = NULL, comments = NULL, price = price * @f;
+  price = price * @f; -- comments and contact_notes: see the logistics section
 
 -- ── projects and their budgets ─────────────────────────────────────────────
 UPDATE projects SET name = fake_project(id), description = NULL, purpose = NULL, internal_notes = NULL,
@@ -170,8 +170,12 @@ UPDATE components_grantable_grantable_years SET grantable_amount = grantable_amo
   grantable_structural_expenses_justify_invoices = grantable_structural_expenses_justify_invoices * @f;
 
 -- strategies: the names were the source cooperative's strategic plan, with its
--- name in one of them (issues/125). Generic goals by row, codes kept.
+-- name in one of them (issues/125). Generic goals by row. Numeric codes (1.1, 2.3…) are
+-- kept; the others were project or place names and become 5.1, 5.2…
 -- Safe to run again.
+CREATE TEMPORARY TABLE named_strategy_codes AS
+  SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS n FROM strategies WHERE code NOT REGEXP '^[0-9.]*$';
+UPDATE strategies s JOIN named_strategy_codes x ON x.id = s.id SET s.code = CONCAT('5.', x.n);
 UPDATE strategies SET
   name = ELT(1 + MOD(id, 12),
     'Enfortir la governança democràtica de la cooperativa',
@@ -188,6 +192,79 @@ UPDATE strategies SET
     'Treballar en xarxa amb les administracions locals'),
   description = NULL;
 UPDATE strategies SET code_name = CONCAT_WS(' - ', NULLIF(code, ''), name);
+
+-- scopes, project types and activity types: each entity names them after its own
+-- projects, areas and programmes, which identifies it. Generic names are kept; any
+-- other name is replaced, in id order, from a list of generic ones (ordered so that each
+-- one resembles the projectes_v5_manual name it replaces). The comparison ignores case and
+-- accents. The fake names count as generic, so it is safe to run again.
+CREATE TEMPORARY TABLE generic_names (tbl VARCHAR(20), name VARCHAR(100), short_name VARCHAR(20), n INT);
+INSERT INTO generic_names (tbl, name) VALUES
+  ('scope', 'Docència i recerca'), ('scope', 'Entitats, cooperatives i empreses'),
+  ('scope', 'Desenvolupament personal i relacional'), ('scope', 'Estructura'),
+  ('type', 'Standard'), ('type', 'Propi'), ('type', 'Urgent'), ('type', 'Remunerat'), ('type', 'No remunerat'),
+  ('type', 'Comunicació'), ('type', 'Universitats'), ('type', 'Cursos'), ('type', 'Observatori'),
+  ('activity', 'Baixa'), ('activity', 'baixa mèdica'), ('activity', 'Vacances'), ('activity', 'Trasllat'),
+  ('activity', 'Excedència'), ('activity', 'Visita mèdica'), ('activity', 'Permís maternitat'),
+  ('activity', 'Gestió'), ('activity', 'Disseny'), ('activity', 'Helpdesk'), ('activity', 'Servidors'),
+  ('activity', 'Estructura'), ('activity', 'i+d'), ('activity', 'Fons Locals'), ('activity', 'Fons Transnacionals'),
+  ('activity', 'Fons Estatals'), ('activity', 'Fons Europeus'), ('activity', 'Fons Catalunya'),
+  ('activity', 'ADMIN'), ('activity', 'LEGAL'), ('activity', 'COMUNICA'), ('activity', 'ESPAI CURES'),
+  ('activity', 'INFOR'), ('activity', 'INFORMÀTICA'), ('activity', 'FORMACIÓ'), ('activity', 'PROSPECCIÓ'),
+  ('activity', 'ROL CONSELL'), ('activity', 'ROL ESTRATÈGIC (CONSELL RECTOR)'), ('activity', 'PLANIFICACIÓ ESTRATÈGICA'),
+  ('activity', 'F1 Coordinació'), ('activity', 'F5 Curriculum'), ('activity', 'F2 Assessorament'),
+  ('activity', 'F2: Formació en línia'), ('activity', 'F3: Formació presencial'),
+  ('activity', 'Reunions'), ('activity', 'Transport'), ('activity', 'desplaçament'), ('activity', 'comercial'),
+  ('activity', 'comptabilitat'), ('activity', 'gestió rutes'), ('activity', 'Gestions tècniques'),
+  ('activity', 'hores acumulades any anterior'), ('activity', 'laboral');
+INSERT INTO generic_names (tbl, name, short_name, n) VALUES
+  ('fake_scope', 'Territori i administracions', 'T', 1), ('fake_scope', 'Comunitats i barris', 'C', 2),
+  ('fake_scope', 'Estratègia interna', 'EI', 3), ('fake_scope', 'Transició ecològica', 'TE', 4),
+  ('fake_scope', 'Comunicació', 'Co', 5), ('fake_scope', 'Xarxes i aliances', 'X', 6),
+  ('fake_scope', 'Habitatge cooperatiu', 'H', 7), ('fake_scope', 'Cultura i territori', 'CT', 8),
+  ('fake_scope', 'Consultoria', 'Cn', 9), ('fake_scope', 'Emprenedoria social', 'ES', 10),
+  ('fake_scope', 'Projectes formatius', 'PF', 11), ('fake_scope', 'Cursos', 'Cu', 12),
+  ('fake_scope', 'Universitats', 'U', 13),
+  ('fake_type', 'Consultoria', NULL, 1), ('fake_type', 'Consultoria internacional', NULL, 2),
+  ('fake_type', 'Acompanyament a entitats', NULL, 3), ('fake_type', 'Xarxes locals', NULL, 4),
+  ('fake_type', 'Aliances internacionals', NULL, 5), ('fake_type', 'Encàrrecs puntuals', NULL, 6),
+  ('fake_type', 'Ateneu cooperatiu', NULL, 7), ('fake_type', 'Formació de formadores', NULL, 8),
+  ('fake_type', 'Estructura', NULL, 9), ('fake_type', 'Prospecció internacional', NULL, 10),
+  ('fake_type', 'Prospecció local', NULL, 11), ('fake_type', 'Economia social', NULL, 12),
+  ('fake_type', 'Recerca aplicada', NULL, 13), ('fake_type', 'Transició energètica', NULL, 14),
+  ('fake_type', 'Jornades i trobades', NULL, 15), ('fake_type', 'Barris cooperatius', NULL, 16),
+  ('fake_type', 'Ecosistema emprenedor', NULL, 17), ('fake_type', 'Desenvolupament local', NULL, 18),
+  ('fake_type', 'Projectes formatius', NULL, 19), ('fake_type', 'Cooperació', NULL, 20),
+  ('fake_type', 'Habitatge', NULL, 21), ('fake_type', 'Alimentació', NULL, 22),
+  ('fake_type', 'Educació ambiental', NULL, 23), ('fake_type', 'Cures i comunitat', NULL, 24),
+  ('fake_activity', 'Desenvolupament web', NULL, 1), ('fake_activity', 'Dades obertes', NULL, 2),
+  ('fake_activity', 'Traduccions', NULL, 3), ('fake_activity', 'F1 Recerca participativa', NULL, 4),
+  ('fake_activity', 'F2 Caixa d''eines', NULL, 5), ('fake_activity', 'F3 Itineraris formatius', NULL, 6),
+  ('fake_activity', 'F4 Guia de bones pràctiques', NULL, 7), ('fake_activity', 'F6 Coordinació i avaluació', NULL, 8),
+  ('fake_activity', 'Web', NULL, 9), ('fake_activity', 'F1: Coordinació i avaluació', NULL, 10),
+  ('fake_activity', 'F4: Acompanyament a l''alumnat', NULL, 11);
+-- MySQL can't reopen a temporary table in the same query: copy the name lists
+CREATE TEMPORARY TABLE keep_names AS
+  SELECT REPLACE(tbl, 'fake_', '') AS tbl, name FROM generic_names;
+CREATE TEMPORARY TABLE renamed_config (tbl VARCHAR(20), id INT, n INT);
+INSERT INTO renamed_config SELECT 'scope', id, ROW_NUMBER() OVER (ORDER BY id) FROM project_scopes
+  WHERE name NOT IN (SELECT name FROM keep_names WHERE tbl = 'scope');
+INSERT INTO renamed_config SELECT 'type', id, ROW_NUMBER() OVER (ORDER BY id) FROM project_types
+  WHERE TRIM(name) NOT IN (SELECT name FROM keep_names WHERE tbl = 'type');
+INSERT INTO renamed_config SELECT 'activity', id, ROW_NUMBER() OVER (ORDER BY id) FROM activity_types
+  WHERE name NOT IN (SELECT name FROM keep_names WHERE tbl = 'activity');
+UPDATE project_scopes s
+  JOIN renamed_config x ON x.tbl = 'scope' AND x.id = s.id
+  JOIN generic_names g ON g.tbl = 'fake_scope' AND g.n = 1 + MOD(x.n - 1, 13)
+  SET s.name = g.name, s.short_name = g.short_name;
+UPDATE project_types t
+  JOIN renamed_config x ON x.tbl = 'type' AND x.id = t.id
+  JOIN generic_names g ON g.tbl = 'fake_type' AND g.n = 1 + MOD(x.n - 1, 24)
+  SET t.name = g.name;
+UPDATE activity_types a
+  JOIN renamed_config x ON x.tbl = 'activity' AND x.id = a.id
+  JOIN generic_names g ON g.tbl = 'fake_activity' AND g.n = 1 + MOD(x.n - 1, 11)
+  SET a.name = g.name;
 
 -- stored project totals (money only; *_hours without "price" are hours)
 UPDATE projects SET
@@ -257,11 +334,173 @@ UPDATE configs SET front_url = 'https://demo.exemple.coop/stats/#/';
 UPDATE us SET front_url = 'https://demo.exemple.coop/stats/#/';
 UPDATE social_entities SET name = fake_company(id + 100);
 UPDATE verifactus SET software_developer_name = 'Desenvolupador Demo', software_developer_irs_id = '00000000T',
-  software_number = 'F00000000', software_address = 'Carrer de l''Exemple, 1';
+  software_number = 'F00000000', software_address = 'Carrer de l''Exemple, 1',
+  software_location = 'Vilafranca de Prova';
 UPDATE admin_users SET firstname = 'Admin', lastname = id, username = NULL, email = CONCAT('admin', id, '@exemple.coop');
 DELETE FROM files WHERE ext IN ('.p12', '.pfx');
 UPDATE files SET hash = CONCAT('document_', id), url = CONCAT('/uploads/document_', id, IFNULL(ext, '')),
   formats = NULL, preview_url = NULL;
+
+-- ── logistics (block F, diligencia) ────────────────────────────────────────
+-- Added for projectes_v5_manual_logistica. Everything here is idempotent (values derive
+-- from row ids or from other already-fake rows) and touches only logistics tables, which
+-- are empty or unused in the resilience copies. Runs after the generic sections above, so
+-- contacts, users and orders already have fake values: here they get logistics-flavoured
+-- names and the order snapshots are made to match the (fake) linked contact.
+-- Contacts and users are renamed only when the copy has orders (@log), so a resilience
+-- copy keeps the generic fake names it gets above.
+SET @log = EXISTS (SELECT 1 FROM orders);
+DROP FUNCTION IF EXISTS fake_point;
+DROP FUNCTION IF EXISTS fake_producer;
+DELIMITER //
+-- delivery / consumption points (shops, restaurants, consumer groups…)
+CREATE FUNCTION fake_point (i INT) RETURNS VARCHAR(150) DETERMINISTIC
+  RETURN CONCAT(
+    ELT(1 + i % 10, 'Botiga', 'Restaurant', 'Grup de consum', 'Fleca', 'Bar', 'Escola', 'Cooperativa de consum',
+      'Queviures', 'Mercat', 'Punt de consum'), ' ',
+    ELT(1 + (i DIV 10) % 30, 'La Placeta', 'El Cistell', 'Can Prova', 'L''Esquirol', 'La Plaça', 'El Rebost Demo',
+      'La Cantonada', 'El Graner', 'Cal Mostra', 'La Murtra', 'El Celler Vell', 'Les Oliveres', 'La Rambla',
+      'El Portal', 'Cal Fictici', 'La Font', 'El Mercadal', 'La Teulada', 'Can Exemple', 'El Pati', 'La Porxada',
+      'El Pou', 'Ca la Demo', 'Les Hortes', 'El Raval', 'La Riera', 'El Campanar', 'La Sitja', 'L''Àncora', 'El Pinar'),
+    IF(i >= 300, CONCAT(' ', i), ''));
+//
+-- producers that send orders (providers)
+CREATE FUNCTION fake_producer (i INT) RETURNS VARCHAR(150) DETERMINISTIC
+  RETURN CONCAT(
+    ELT(1 + i % 10, 'Mas', 'Formatgeria', 'Horta', 'Celler', 'Obrador', 'Granja', 'Fleca', 'Cervesa', 'Mel', 'Conserves'), ' ',
+    ELT(1 + (i DIV 10) % 20, 'Can Demo', 'El Prat Fictici', 'La Solana', 'Les Feixes', 'Cal Mostra', 'El Bosc',
+      'La Vall', 'Puigprova', 'El Serrat', 'La Riba', 'Can Exemple', 'El Turó', 'La Plana', 'Les Bruixes',
+      'El Rieral', 'Coll de Prova', 'La Closa', 'El Molí Vell', 'Sant Demo', 'La Garriga Fictícia'));
+//
+DELIMITER ;
+
+-- providers: contacts of users with the `orders` permission, plus type Proveïdora
+CREATE TEMPORARY TABLE log_order_users AS
+  SELECT DISTINCT c.entity_id AS user_id
+  FROM `users-permissions_user_cmps` c
+  JOIN components_permissions_application_permissions p ON p.id = c.cmp_id
+  WHERE c.component_type = 'permissions.application-permission' AND p.permission = 'orders';
+CREATE TEMPORARY TABLE log_providers AS
+  SELECT DISTINCT l.contact_id FROM contacts_users_permissions_user_lnk l JOIN log_order_users u ON u.user_id = l.user_id
+  UNION
+  SELECT l.contact_id FROM contacts_contact_types_lnk l JOIN contact_types t ON t.id = l.contact_type_id
+  WHERE t.name = 'Proveïdora';
+-- delivery points: contacts that receive orders, plus type Punt d'entrega
+CREATE TEMPORARY TABLE log_points AS
+  SELECT DISTINCT contact_id FROM orders_contact_lnk
+  UNION
+  SELECT l.contact_id FROM contacts_contact_types_lnk l JOIN contact_types t ON t.id = l.contact_type_id
+  WHERE t.name = 'Punt d''entrega';
+UPDATE contacts SET name = fake_point(id), trade_name = IF(trade_name IS NULL, NULL, fake_point(id))
+  WHERE id IN (SELECT contact_id FROM log_points)
+    AND id NOT IN (SELECT contact_id FROM log_providers WHERE contact_id IS NOT NULL) AND @log;
+UPDATE contacts SET name = fake_producer(id), trade_name = IF(trade_name IS NULL, NULL, fake_producer(id))
+  WHERE id IN (SELECT contact_id FROM log_providers) AND @log;
+-- town of a delivery point: a real town served by the route of its latest order (towns are
+-- configuration, not personal data, and a fake one would not match the route's town list)
+CREATE TEMPORARY TABLE log_contact_route AS
+  SELECT ocl.contact_id, MAX(orl.route_id) AS route_id
+  FROM orders_contact_lnk ocl JOIN orders_route_lnk orl ON orl.order_id = ocl.order_id GROUP BY ocl.contact_id;
+CREATE TEMPORARY TABLE log_route_city AS
+  SELECT crr.route_id, ci.name,
+    ROW_NUMBER() OVER (PARTITION BY crr.route_id ORDER BY ci.id) AS rn, COUNT(*) OVER (PARTITION BY crr.route_id) AS n
+  FROM city_routes_route_lnk crr
+  JOIN city_routes_city_lnk crc ON crc.city_route_id = crr.city_route_id
+  JOIN cities ci ON ci.id = crc.city_id;
+UPDATE contacts c
+  JOIN log_contact_route lr ON lr.contact_id = c.id
+  JOIN log_route_city rc ON rc.route_id = lr.route_id AND rc.rn = 1 + c.id % rc.n
+  SET c.city = rc.name WHERE c.city IS NOT NULL;
+UPDATE contacts SET address = IF(address IS NULL, NULL, CONCAT('Carrer Exemple, ', 1 + id % 120)),
+  external_id = IF(external_id IS NULL OR external_id = '', external_id, CONCAT('EXT-', id)),
+  external_id_2 = IF(external_id_2 IS NULL OR external_id_2 = '', external_id_2, CONCAT('EXT2-', id))
+  WHERE @log;
+
+-- provider logins show their company name (the generic section gave them a person's name)
+UPDATE `users-permissions_user` u
+  JOIN (SELECT l.user_id, MIN(l.contact_id) AS contact_id FROM contacts_users_permissions_user_lnk l
+        JOIN log_order_users ou ON ou.user_id = l.user_id GROUP BY l.user_id) uc ON uc.user_id = u.id
+  JOIN contacts c ON c.id = uc.contact_id
+  SET u.username = c.name, u.fullname = c.name WHERE @log;
+
+-- orders: the recipient snapshot copies the (fake) linked contact; free text becomes generic
+UPDATE orders o
+  JOIN orders_contact_lnk l ON l.order_id = o.id
+  JOIN contacts c ON c.id = l.contact_id
+  SET o.contact_name = c.name, o.contact_trade_name = c.trade_name, o.contact_nif = c.nif,
+    o.contact_phone = IF(o.contact_phone IS NULL OR o.contact_phone = '', o.contact_phone, IFNULL(c.phone, '600 000 000')),
+    o.contact_address = IF(o.contact_address IS NULL OR o.contact_address = '', o.contact_address, IFNULL(c.address, CONCAT('Carrer Exemple, ', 1 + c.id % 120))),
+    o.contact_city = IF(o.contact_city IS NULL OR o.contact_city = '', o.contact_city, IFNULL(c.city, o.contact_city)),
+    o.contact_postcode = IF(o.contact_postcode IS NULL OR o.contact_postcode = '', o.contact_postcode, IFNULL(c.postcode, '08000'));
+UPDATE orders SET
+  comments = IF(comments IS NULL OR TRIM(comments) = '', comments, ELT(1 + id % 8, 'Trucar abans d''entregar',
+    'Entregar al matí', 'Retornar els envasos', 'Fràgil: ampolles de vidre', 'Entrada per la porta del darrere',
+    'Horari de recepció de 9 a 13 h', 'Mantenir refrigerat', 'Deixar a la recepció')),
+  contact_notes = IF(contact_notes IS NULL OR TRIM(contact_notes) = '', contact_notes, ELT(1 + id % 5,
+    'Avisar 10 minuts abans d''arribar', 'Timbre del segon pis', 'Tancat els dilluns',
+    'Càrrega i descàrrega al carrer del costat', 'Preguntar per la persona responsable')),
+  provider_order_number = IF(provider_order_number IS NULL OR provider_order_number = '', provider_order_number,
+    CONCAT('PED-', LPAD(id, 6, '0')));
+-- packages of a multi-recipient order (orders_cmps → orders.lines)
+UPDATE components_orders_lines SET name = fake_person(id + 300),
+  nif = IF(nif IS NULL OR nif = '', nif, CONCAT(LPAD(id, 8, '0'), 'T'));
+
+-- incidences and their replies
+UPDATE incidences SET description = IF(description IS NULL OR description = '', description, ELT(1 + id % 8,
+  'El client diu que no ha rebut la comanda', 'Canvi de data d''entrega demanat pel proveïdor',
+  'Falta un bult a l''entrega', 'Adreça incompleta, cal confirmar-la', 'Comanda entrada fora d''hora',
+  'Establiment tancat a l''hora d''entrega', 'Bult malmès durant el transport', 'Cal entregar-la un altre dia'));
+UPDATE components_orders_incidence_responses SET text = IF(text IS NULL OR text = '', text, ELT(1 + id % 6,
+  'Revisat, l''entreguem demà', 'Hem parlat amb el client i tot és correcte', 'Adreça corregida',
+  'D''acord, gràcies!', 'Comanda anul·lada', 'Data d''entrega canviada'));
+
+-- pickup points (warehouses): keep the town, drop the partner's name
+UPDATE pickups SET name = TRIM(SUBSTRING_INDEX(name, ' - ', 1)),
+  message = IF(message IS NULL, NULL, CONCAT('Recorda que la data límit de dipòsit al magatzem és a les 14.00 h ',
+    'del dia anterior a l''entrega.'));
+-- route names are place names; one carried a person's name
+UPDATE routes SET name = REGEXP_REPLACE(name, 'CONTACTA [[:alpha:]]+', 'CONTACTA AMB L''OFICINA'),
+  short_name = REGEXP_REPLACE(short_name, 'CONTACTA [[:alpha:]]+', 'CONTACTA AMB L''OFICINA')
+  WHERE name REGEXP 'CONTACTA [[:alpha:]]+' AND name NOT LIKE '%L''OFICINA%';
+
+-- contact form messages
+UPDATE form_submissions SET name = fake_person(id + 500), email = CONCAT('formulari', id, '@exemple.org'),
+  message = 'Hola, voldria informació sobre el servei de distribució. Gràcies!';
+-- change log: who made the change, and the full snapshot of the document
+UPDATE document_change_logs SET username = IF(username IS NULL, NULL, 'Persona Demo'), snapshot = NULL;
+-- open sessions of the real users
+DELETE FROM strapi_sessions;
+
+-- found by check-leaks.sh on the logistics copy (generic, also safe on other copies):
+-- document concepts are free text with supplier names and months
+UPDATE emitted_invoices SET document_concept = IF(document_concept IS NULL OR document_concept = '', document_concept,
+  'Serveis logístics');
+UPDATE quotes SET document_concept = IF(document_concept IS NULL OR document_concept = '', document_concept,
+  'Pressupost de serveis');
+UPDATE received_invoices SET document_concept = IF(document_concept IS NULL OR document_concept = '', document_concept,
+  fake_concept(id + 5));
+UPDATE received_expenses SET document_concept = IF(document_concept IS NULL OR document_concept = '', document_concept,
+  fake_concept(id + 5));
+UPDATE received_incomes SET document_concept = IF(document_concept IS NULL OR document_concept = '', document_concept,
+  fake_concept(id));
+UPDATE received_invoices SET contact_invoice_number = IF(contact_invoice_number IS NULL OR contact_invoice_number = '',
+  contact_invoice_number, CONCAT('FRA-', LPAD(id, 6, '0')));
+UPDATE `users-permissions_user` SET reset_password_token = NULL, confirmation_token = NULL;
+-- invoice snapshots of the contact: copy the logistics names given above
+UPDATE components_contact_contact_data cd
+  JOIN emitted_invoices_cmps m ON m.cmp_id = cd.id AND m.component_type = 'contact.contact-data'
+  JOIN emitted_invoices_contact_lnk l ON l.emitted_invoice_id = m.entity_id
+  JOIN contacts c ON c.id = l.contact_id
+  SET cd.name = c.name, cd.nif = c.nif, cd.address = c.address, cd.postcode = c.postcode, cd.city = c.city
+  WHERE @log;
+-- file names with dots ("51.-23 Factura <entity> - <client>") left the rest in the extension
+UPDATE files SET ext = '' WHERE ext IS NOT NULL AND ext NOT REGEXP '^\\.[A-Za-z0-9]{1,6}$';
+UPDATE files SET name = CONCAT('document-', id, IFNULL(ext, '')), url = CONCAT('/uploads/document_', id, IFNULL(ext, ''));
+-- the users-permissions provider settings carry the tenant's domain in the callback urls
+UPDATE strapi_core_store_settings SET value = REGEXP_REPLACE(value, 'https://[^/"\\\\]+/api/auth/', 'https://demo.exemple.coop/api/auth/')
+  WHERE `key` = 'plugin_users-permissions_grant';
+
+DROP FUNCTION fake_point; DROP FUNCTION fake_producer;
 
 -- ── never send anything from this copy ─────────────────────────────────────
 DELETE FROM face_queues;

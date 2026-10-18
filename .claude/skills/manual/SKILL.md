@@ -42,12 +42,12 @@ The manual will be shared, so screenshots never show real tenant data. They are 
 against **anonymized copies** of real tenants, served by a second backend and a second front that run
 next to the everyday dev servers (which point at real data, and whose `.env` may point at production).
 
-| Data | Use for | Source (v3 db) | Anonymized v5 copy |
-|---|---|---|---|
-| resilience | projects, phases, hours, money (blocks A–E, G) | `resilience` | `projectes_v5_manual` |
-| diligencia | logistics (block F) | `diligencia` | `projectes_v5_manual_logistica` (not made yet) |
+| Data | Use for | Source db | Anonymized v5 copy | API / front |
+|---|---|---|---|---|
+| resilience | projects, phases, hours, money (blocks A–E, G) | `resilience` (v3, ETL) | `projectes_v5_manual` | 1338 / 8081 |
+| diligencia | logistics (block F) | `projectes_v5_diligencia` (v5, cloned) | `projectes_v5_manual_logistica` | 1340 / 8082 |
 
-Making a copy (once per source; all from `../projectes-v5`, `nvm use 20`, db credentials from its `.env`):
+Making the resilience copy (ETL from v3; all from `../projectes-v5`, `nvm use 20`, db credentials from its `.env`):
 1. `CREATE DATABASE <copy> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`.
 2. Boot Strapi once on it to create the schema, then stop it:
    `CRON_ENABLED=false PORT=1338 DATABASE_NAME=<copy> npx strapi start`.
@@ -56,6 +56,25 @@ Making a copy (once per source; all from `../projectes-v5`, `nvm use 20`, db cre
 5. `MYSQL_PWD=… manual/capture/check-leaks.sh <v3 db> <copy> <db user>` must print `no leaks found`.
    When it finds something, extend `anonymize.sql` (fix the copy by hand for that part) and re-check.
 6. Logins keep their passwords; emails become `persona<id>@exemple.coop` (look the id up in the source db).
+
+The logistics copy was made differently (2026-10-18): the local v5 db `projectes_v5_diligencia` (the one the
+everyday API on 1337 serves; only read from it) is more current for orders than v3, so it was cloned, not migrated:
+1. `CREATE DATABASE projectes_v5_manual_logistica CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`, then
+   `mysqldump --single-transaction --no-tablespaces projectes_v5_diligencia | mysql projectes_v5_manual_logistica`.
+2. `anonymize.sql` once. Its "logistics" section (idempotent; contact/user renames only run when the copy has
+   orders, so resilience copies are unaffected) gives delivery points and providers logistics names
+   (`Botiga La Placeta`, `Mas Can Demo`…), real towns of the route they are served by, `Carrer Exemple, N`
+   addresses, copies them into the order snapshots, and replaces with generic text: order comments and contact
+   notes, provider order numbers, incidences and their replies, packages (`orders.lines`), pickup names and
+   messages, the contact form messages, document concepts, change-log users; it also clears sessions and tokens.
+   To redo only that section on the copy, run the helper functions + that section (it does not touch money).
+3. `check-leaks.sh projectes_v5_diligencia projectes_v5_manual_logistica <db user>` → `no leaks found`
+   (the script takes a v3 or a v5 source, and skips town names from `cities`).
+4. Demo logins (one per profile) got a known password; they are in `.env.manual` as `MANUAL_LOG_USER_ORDERS`
+   (provider `persona51`, ~650 orders, transfers, deposits, incidences), `MANUAL_LOG_USER_ADMIN` (`persona30`,
+   `orders_admin`), `MANUAL_LOG_USER_DELIVERY` (`persona69`, `orders_delivery`, 7 routes), `MANUAL_LOG_PASSWORD`,
+   `MANUAL_LOG_API_URL` and `MANUAL_LOG_BASE_URL`. Other logins keep their (real) passwords.
+5. The data ends on 2026-10-06 (last route date and last order): captures should set `today` around then.
 
 Running for a session (check first; ask before starting anything that is already running elsewhere):
 - API: `cd ../projectes-v5 && CRON_ENABLED=false PORT=1338 DATABASE_NAME=projectes_v5_manual npx strapi start`
@@ -66,10 +85,16 @@ Running for a session (check first; ask before starting anything that is already
   runtime and the dev one points at 1337) and aborts any `/api/` or `/uploads/` request to another origin.
 - `manual/capture/.env.manual` holds `MANUAL_USER`, `MANUAL_PASSWORD`, `MANUAL_BASE_URL`
   (`http://localhost:8081/stats/`) and `MANUAL_API_URL` (`http://127.0.0.1:1338`). Never print the password.
+- Logistics (block F): `CRON_ENABLED=false PORT=1340 DATABASE_NAME=projectes_v5_manual_logistica npx strapi start`
+  and `VUE_APP_API_URL=http://127.0.0.1:1340 npx vite --port 8082`; credentials in the `MANUAL_LOG_*` variables.
 
 Before publishing a chapter, look at every screenshot: the leak check covers names, NIFs, e-mails,
 phones and IBANs, not free text in places nobody thought of. Kept on purpose (not personal): the
-entity's own configuration (project scopes, states, strategies, types, bank names).
+entity's generic configuration (project states, dedication types, bank names; for logistics: route,
+product, rate and sector names, towns and regions). Project scopes, project types, activity types and
+strategy codes were named after the entity's own projects and programmes, which identifies it (the user,
+2026-10-18): `anonymize.sql` keeps only the generic ones and renames the rest, and `check-leaks.sh` checks
+them (the generic names it keeps are in `leak-allow.txt`). A new generic name goes in both lists.
 
 Scripts that create or edit records are fine on the copy; say which records a script creates so re-runs
 stay consistent (prefer names like `Projecte demo 03`, or delete them at the end of the script). Use a user
@@ -105,9 +130,29 @@ Lessons so far (see `scripts/00-que-es-esstrapis.spec.mjs`):
 - Wait for something only the new screen has (its title text), not for a generic button: the previous
   view can stay mounted while the next one loads. Pivot-table screens load the Kendo library first; wait
   for `Taula dinàmica` and `Per defecte`, then scroll `.k-pivot-table` into view.
-- The demo hours end in summer 2026: go back with the calendar's `.vc-arrow.vc-prev`.
+- The demo data ends in summer 2026: `start(page, slug, { today: '2026-06-17' })` moves the browser's
+  clock there, so "today", the current month and the treasury's year have data.
+- With the cron off, the copy's projects stay `dirty` and every project page warns that its totals are
+  being updated. Refresh them once per copy (from `../projectes-v5`, the copy's API can stay up):
+  a script that loads Strapi (`createStrapi(await compileStrapi()).load()`) and calls
+  `require('./src/api/project/services/totalsRefreshScheduler').processDirty()`, run with
+  `DATABASE_NAME=<copy> PORT=1339 CRON_ENABLED=false`. Done on `projectes_v5_manual` on 2026-10-17.
+- Many projects warn about lines without a date; pick example projects without the warning unless the
+  chapter is about it (642 is a good all-positive active one).
+- `getByRole('button', { name: 'Plega-ho tot' })` also matches «Desplega-ho tot» (and `exact` fails
+  because of the icon glyph): use `locator('button', { hasText, hasNotText })`.
 - Find good example records with SQL on the copy (e.g. a project whose original/forecast/actual results
   are all positive) and note their ids at the top of the script.
+- `shot()` hides broken images (the copy has no uploads: logos, attachments) and removes snackbars left by
+  earlier steps; pass `{ keepToasts: true }` when the picture is about one.
+- Links that open a new tab (`window.open`) don't get `start()`'s API redirection: `page.goto` the same route.
+- Some buttons write as soon as they are clicked: **Comptador** creates a timer (delete it with «Elimina
+  Comptador»), **Anul·la i rectifica…** only prepares an unsaved draft. The manual user can't delete uploads through
+  the API: scripts that upload files say how to clean them up in SQL (see `08-documents-projecte.spec.mjs`).
+- Kendo pivot rows unfold by clicking the icon before the header text, e.g.
+  `.k-pivot-rowheaders` › `getByText('Projectes (TOTS)')` › preceding `span.k-icon`.
+- No anonymized data for: intercooperation, Verifactu/FACe records, manual justifications, logistics. Chapters
+  describe those parts without a picture.
 
 After running, read every PNG: it shows what the chapter says, the data has loaded, nothing real leaked.
 
