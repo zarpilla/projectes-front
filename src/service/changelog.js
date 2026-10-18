@@ -150,6 +150,26 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Informes"],
+      text: ["Els informes ", { to: "/stats-economic-detail", label: "Ingressos/Despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " ja tenen en compte la periodificació dels projectes: les xifres de cada any coincideixen amb les de la fitxa del projecte."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: ["Un projecte mare mostra les mateixes hores i resultats a la seva fitxa, a ", { to: "/projectes", label: "Projectes" }, " i a ", { to: "/mother-projects", label: "Projectes mare" }, ": la suma dels seus fills. Les hores previstes són les previstes dels fills (abans s'hi copiaven les originals), i el que la mare tenia a si mateixa ja no compta. El total de la llista de projectes no compta les mares, perquè els seus fills ja hi són."]
+    },
+    {
+      type: "Millores",
+      modules: ["Projectes", "Diners"],
+      text: ["A la fitxa del projecte, «Tresoreria del projecte» mostra el que s'ha cobrat i pagat (els documents marcats com a cobrats o pagats, com a Tresoreria), el que queda pendent i el total previst, amb el saldo de cada columna."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores"],
+      text: [{ to: "/dedicacio-saldo", label: "Saldo hores" }, ", ", { to: "/salary", label: "Bestretes" }, " i ", { to: "/stats-real-gantt", label: "% Dedicació real" }, " compten també les hores sense projecte (per exemple les importades del calendari i encara no assignades): les hores treballades coincideixen amb les d'Hores dedicades."]
+    },
+    {
+      type: "Correccions",
       modules: ["Logística"],
       text: ["A ", { to: "/order-operations", label: "Operacions" }, ", quan la mateixa repartidora fa la transferència i l'entrega d'una comanda, ara surten totes dues, cadascuna el seu dia. Abans només hi sortia la transferència i el dia de l'entrega faltava."]
     },
