@@ -114,7 +114,7 @@
       </div>
     </card-component>
 
-    <p v-if="needsPerson" class="notification is-light">Tria una persona, o «Totes», per veure'n les hores.</p>
+    <p v-if="needsPerson" class="notification is-light">Tria una persona per veure'n les hores.</p>
     <v-calendar
       ref="calendar"
       locale="ca"
@@ -426,6 +426,7 @@ export default {
       activities: [],
       activitiesJSON: [],
       isLoading: false,
+      reloadPending: false,
       paginated: false,
       perPage: 10,
       checkedRows: [],
@@ -576,21 +577,37 @@ export default {
     formatHours,
     async getActivities() {
       if (this.isLoading) {
+        // a change while loading (person, month…) was dropped, leaving the
+        // previous load on screen: load again once this one ends
+        this.reloadPending = true;
         return;
       }
       this.isLoading = true;
+      const loaded = this.loadKey();
+      try {
+        await this.loadActivities();
+      } finally {
+        this.isLoading = false;
+        if (this.reloadPending) {
+          this.reloadPending = false;
+          if (this.loadKey() !== loaded) this.getActivities();
+        }
+      }
+    },
+    loadKey() {
+      return JSON.stringify([this.user, this.date1, this.date2, this.project, this.last, this.projects && this.projects.length]);
+    },
+    async loadActivities() {
       if (
         !this.date1 ||
         !this.date2 ||
         !this.projects ||
         !this.projects.length
       ) {
-        this.isLoading = false;
         return;
       }
       if (this.needsPerson) {
         this.activities = [];
-        this.isLoading = false;
         return;
       }
       const from = moment(this.date1).format("YYYY-MM-DD");
@@ -630,7 +647,7 @@ export default {
         query = `${query}&[project.id]=${this.project}`;
       }
       query = `${query}&_limit=-1`;
-      service({ requiresAuth: true })
+      await service({ requiresAuth: true })
         .get(query)
         .then(r => {
           // hours without a project count too, under «Sense projecte»: the
@@ -751,7 +768,6 @@ export default {
             this.showICalEvents();
           }
 
-          this.isLoading = false;
           this.firstTime = true;
           this.activitiesJSON = this.activities.map(a => {
             const project =

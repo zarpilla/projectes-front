@@ -3,11 +3,13 @@
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
       <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="submit2">
+        <!-- emptied, it is «Totes» (0): everybody's hours; null (nobody picked
+             on load) loads none (issues/070) -->
         <b-autocomplete
           v-if="canPickPerson"
           v-model="userNameSearch"
           class="filter-auto"
-          placeholder="Persona"
+          placeholder="Totes les persones"
           aria-label="Persona"
           icon="account"
           :keep-first="false"
@@ -15,7 +17,7 @@
           :data="filteredUsers"
           field="username"
           :clearable="true"
-          @select="(option) => (filters.user = option ? option.id : null)"
+          @select="(option) => (filters.user = option ? option.id : 0)"
         />
         <b-autocomplete
           v-model="projectNameSearch"
