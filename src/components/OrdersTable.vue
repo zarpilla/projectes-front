@@ -1710,14 +1710,7 @@ export default {
             const readerRetry = new FileReader();
             readerRetry.onload = async e => {
               text = e.target.result;
-              this.csv = text;
-              const records = await this.readCSV(text);
-              if (fileType === "orders") {
-                await this.importCSV(records);
-              } else {
-                await this.importContactsCSV(records);
-              }
-              this.importing = false;
+              await this.importText(text, fileType);
             };
             readerRetry.onerror = () => {
               this.$buefy.snackbar.open({
@@ -1730,14 +1723,7 @@ export default {
             return;
           }
           
-          this.csv = text;
-          const records = await this.readCSV(text);
-          if (fileType === "orders") {
-            await this.importCSV(records);
-          } else {
-            await this.importContactsCSV(records);
-          }
-          this.importing = false;
+          await this.importText(text, fileType);
         };
         
         reader.onerror = () => {
@@ -1752,8 +1738,29 @@ export default {
         reader.readAsText(file, 'UTF-8');
       }
     },
+    // Reads the file's rows into the grid. An unexpected error used to leave
+    // the import stuck without a word (issues/231): it is shown now.
+    async importText(text, fileType) {
+      try {
+        this.csv = text;
+        const records = await this.readCSV(text);
+        if (fileType === "orders") {
+          await this.importCSV(records);
+        } else {
+          await this.importContactsCSV(records);
+        }
+      } catch (e) {
+        this.$buefy.snackbar.open({
+          message: `No s'ha pogut importar l'arxiu: ${e.message || e}`,
+          type: "is-danger"
+        });
+      } finally {
+        this.importing = false;
+      }
+    },
     removeAccents(name) {
-      return name
+      // a route or point without a name matches nothing (issues/231)
+      return String(name ?? "")
         .toLowerCase()
         .trim()
         .normalize("NFD")
@@ -2012,6 +2019,7 @@ export default {
           units: Math.abs(parseInt(record.units)),
           notes: record.notes,
           comments: record.notes,
+          provider_order_number: (record.provider_order_number || "").trim() || null,
           owner: owner,
           route: route,
           estimated_delivery_date: record.estimated_delivery_date
@@ -2341,10 +2349,20 @@ export default {
       if (order.estimated_delivery_date === "") {
         delete order.estimated_delivery_date;
       }
-      const { data } = await service({ requiresAuth: true }).post(
-        "orders/csv",
-        order
-      );
+      let data;
+      try {
+        ({ data } = await service({ requiresAuth: true }).post(
+          "orders/csv",
+          order
+        ));
+      } catch (error) {
+        // e.g. the cutoff refusal: say why the row wasn't created (issues/231)
+        this.$buefy.snackbar.open({
+          message: error.response?.data?.message || error.response?.data?.error?.message || "No s'ha pogut crear la comanda",
+          type: "is-danger"
+        });
+        return;
+      }
 
       if (!order.contact_time_slot_1_ini) {
         delete order.contact_time_slot_1_ini;
