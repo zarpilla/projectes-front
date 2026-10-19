@@ -83,6 +83,12 @@
           </p>
         </div>
 
+        <!-- Rows that can't be imported (issues/215) -->
+        <div v-if="rowsWithErrors.length" class="notification is-danger mb-4">
+          <strong>{{ rowsWithErrors.length }}</strong> punt(s) d'entrega sense nom comercial
+          (línies {{ rowsWithErrors.join(", ") }}): {{ tradeNameRequired }}. Corregeix el fitxer i torna'l a pujar.
+        </div>
+
         <!-- Warnings -->
         <div v-if="warnings.length" class="notification is-warning mb-4">
           <h4 class="io-subhead">Avisos</h4>
@@ -111,7 +117,7 @@
               <tr
                 v-for="(row, idx) in previewData.slice(0, 10)"
                 :key="idx"
-                :class="{ 'has-background-warning-light': row.warning }"
+                :class="{ 'has-background-danger-light': row.error, 'has-background-warning-light': !row.error && row.warning }"
               >
                 <td>{{ idx + 1 }}</td>
                 <td>{{ row.name || row.trade_name }}</td>
@@ -119,7 +125,8 @@
                 <td>{{ row.phone }}</td>
                 <td>{{ row.email }}</td>
                 <td>
-                  <b-tag v-if="row.warning" type="is-warning">⚠️ {{ row.warning }}</b-tag>
+                  <b-tag v-if="row.error" type="is-danger">{{ row.error }}</b-tag>
+                  <b-tag v-else-if="row.warning" type="is-warning">⚠️ {{ row.warning }}</b-tag>
                   <b-tag v-else-if="row.isUpdate" type="is-info">Actualitzar</b-tag>
                   <b-tag v-else type="is-success">Nou</b-tag>
                 </td>
@@ -138,6 +145,7 @@
             type="is-primary"
             @click="confirmImport"
             :loading="isImporting"
+            :disabled="rowsWithErrors.length > 0"
           >
             Confirma la importació
           </b-button>
@@ -168,6 +176,7 @@ import FileUpload from "@/components/FileUpload.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import moment from "moment";
 import { importedPostcode } from "@/domain/postcode";
+import { importRowMissingTradeName, TRADE_NAME_REQUIRED } from "@/domain/orderContacts";
 
 export default {
   name: "ImportExport",
@@ -230,6 +239,13 @@ export default {
     },
     userContactsExportFilename() {
       return `user-contacts-${moment().format("YYYYMMDD-HHmmss")}.csv`;
+    },
+    // the preview's line numbers of the rows that can't be imported (issues/215)
+    rowsWithErrors() {
+      return this.previewData.map((row, idx) => (row.error ? idx + 1 : null)).filter(Boolean);
+    },
+    tradeNameRequired() {
+      return TRADE_NAME_REQUIRED;
     },
   },
   methods: {
@@ -483,6 +499,11 @@ export default {
     processRecords(records) {
       return records.map((record) => {
         const processed = { ...record };
+
+        // a delivery point needs its trade name; the API refuses it (issues/215)
+        if (importRowMissingTradeName(record, this.importType === "user-contacts")) {
+          processed.error = TRADE_NAME_REQUIRED;
+        }
         
         // Check for duplicates by NIF
         if (record.nif) {
@@ -537,6 +558,7 @@ export default {
       return warnings;
     },
     async confirmImport() {
+      if (this.rowsWithErrors.length) return;
       this.$buefy.dialog.confirm({
         title: "Confirmar Importació",
         message: `Estàs segur que vols importar ${this.previewData.length} registres?${

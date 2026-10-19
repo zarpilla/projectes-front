@@ -36,6 +36,9 @@
       <div v-if="firstStatus !== 'pending'" class="notification is-warning">
         <b>Comanda ja processada.</b> {{ processedNotice }}
       </div>
+      <div v-else-if="memberCollectionOrder" class="notification is-info is-light">
+        <b>Comanda de recollida.</b> Es genera a partir de les teves comandes amb recollida a la granja; la ruta, el tipus d'entrega i l'estat els decideix l'oficina.
+      </div>
 
       <b-loading :is-full-page="false" :model-value="isLoading" />
 
@@ -292,7 +295,7 @@
                 <tbody>
                   <tr v-for="row in form.collection_orders" :key="row.id">
                     <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
-                    <td>{{ (row.contact && row.contact.trade_name) || row.contact_trade_name || "—" }}</td>
+                    <td>{{ contactName(row.contact) || row.contact_trade_name || row.contact_name || "—" }}</td>
                     <td class="has-text-right">{{ row.units || 0 }}</td>
                     <td class="has-text-right">{{ row.kilograms || 0 }}</td>
                     <td><span class="tag" :class="statusTag(row.status)">{{ statusLabel(row.status) }}</span></td>
@@ -341,8 +344,8 @@
                     type="button"
                     :class="{ 'is-on': form.status === s }"
                     :aria-pressed="form.status === s ? 'true' : 'false'"
-                    :disabled="!canPickStatus(s)"
-                    @click="form.status = s"
+                    :disabled="!canPickStatus(s) || (savesAtOnce && isLoading)"
+                    @click="pickStatus(s)"
                   >{{ statusLabel(s) }}</button>
                 </div>
               </b-field>
@@ -391,6 +394,7 @@
               <b-field v-if="isStaff" label="Data de lliurament">
                 <b-datepicker
                   v-model="form.delivery_date"
+                  @update:model-value="onDeliveryDateChange"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -508,7 +512,7 @@
     </section>
 
     <div class="savebar">
-      <span class="savebar-state">{{ form.id ? (canEdit ? "Desa els canvis quan acabis" : "Només lectura") : isPickupPoint ? "Nova comanda punt de consum" : "Nova comanda" }}</span>
+      <span class="savebar-state">{{ form.id ? (canEdit ? "Desa els canvis quan acabis" : savesAtOnce ? "L'estat i la data de lliurament es desen en canviar-los" : "Només lectura") : isPickupPoint ? "Nova comanda punt de consum" : "Nova comanda" }}</span>
       <b-button :loading="isLoading" @click="exit">Sortir</b-button>
       <template v-if="canEdit">
         <b-button :loading="isLoading" @click="submit(true)">Guardar i sortir</b-button>
@@ -527,7 +531,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
-import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice } from "@/domain/orderPermissions.js";
+import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice, savesOperationsAtOnce, isMemberCollectionOrder } from "@/domain/orderPermissions.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -544,7 +548,8 @@ import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, canDeposit as canDepositOrder } from "@/domain/orderStatus";
+import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
+import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersForm",
@@ -630,6 +635,14 @@ export default {
     // the stored state decides, not the one picked and not yet saved (issues/193)
     canCancel() {
       return canCancelOrder({ ...this.form, status: this.firstStatus }, this.permissions);
+    },
+    // a member's collection order is read-only for her (issues/217)
+    memberCollectionOrder() {
+      return Boolean(this.form.id) && isMemberCollectionOrder(this.form, this.permissions);
+    },
+    // a driver: no «Guardar», the state and delivery date saved at once (issues/193)
+    savesAtOnce() {
+      return savesOperationsAtOnce({ ...this.form, status: this.firstStatus }, this.permissions);
     },
     processedNotice() {
       return processedOrderNotice({ ...this.form, status: this.firstStatus }, this.permissions);
@@ -730,35 +743,16 @@ export default {
         (this.form.multidelivery_discount || 1);
       return this.form.price * discountEffectAsOne;
     },
+    // a point without trade name is a normal one (issues/215)
     filteredContacts() {
-      return this.contacts.filter(option => {
-        return (
-          option.display
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
-          option.name
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
-          option.trade_name
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
-          option.id
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0
-        );
-      });
+      return this.contacts.filter(option => matchesContact(option, this.contactSearch));
     },
     filteredCities() {
       return this.cities.filter(option => {
         return (
-          option.name
-            .toString()
+          String(option.name || "")
             .toLowerCase()
-            .indexOf(this.citySearch.toLowerCase()) >= 0
+            .indexOf((this.citySearch || "").toLowerCase()) >= 0
         );
       });
     },
@@ -1127,7 +1121,7 @@ export default {
                 c => Number(c.id) === Number(this.form.contact)
               );
               this.contactSearch = c
-                ? `${c.trade_name} (${this.form.contact})`
+                ? contactLabel(c)
                 : `${this.form.contact || ""}`;
 
               if (this.cities.find(c => c.name === this.form.contact_city)) {
@@ -1135,8 +1129,10 @@ export default {
                 this.form.contact_city_id = this.cities.find(
                   c => c.name === this.form.contact_city
                 ).id;
+                // loading is not choosing: the stored route and date stay (issues/216)
                 this.citySelected(
-                  this.cities.find(c => c.name === this.form.contact_city)
+                  this.cities.find(c => c.name === this.form.contact_city),
+                  { loading: true }
                 );
               }
 
@@ -1337,7 +1333,12 @@ export default {
 
       await this.changeRoute();
     },
-    async changeRoute() {
+    /**
+     * The route picked: the pending orders of the route, the multidelivery
+     * and the transfer, and the next date of the route for a pending order.
+     * `keepDate` (loading an order, issues/216): the stored date stays.
+     */
+    async changeRoute({ keepDate = false } = {}) {
       if (this.form.owner && this.form.route && !this.form.is_collection_order) {
         this.orders = (
           await service({ requiresAuth: true }).get(
@@ -1345,7 +1346,7 @@ export default {
           )
         ).data;
       }
-      if (this.form.route && !this.form.is_collection_order) {
+      if (this.form.route && !this.form.is_collection_order && !keepDate) {
         const route = this.routes.find(r => r.id === this.form.route);
         
         // Check if route has any days configured
@@ -1406,8 +1407,51 @@ export default {
       this.checkMultidelivery();
     },
     // the state buttons: the staff's, a driver's not to or from Facturada (issues/193)
+    // a new order is always created pending (the API forces it, issues/186)
     canPickStatus(status) {
+      if (!this.form.id) return false;
       return this.isStaff && canSetStatus({ status: this.firstStatus }, status, true, { driver: isDriver(this.permissions) });
+    },
+    // the office picks the state and saves the form; a driver, who has no
+    // «Guardar», saves it at once, like in Operacions (issues/193)
+    pickStatus(status) {
+      if (!this.savesAtOnce) {
+        this.form.status = status;
+        return;
+      }
+      if (status === this.firstStatus) return;
+      this.$buefy.dialog.confirm({
+        message: `Vols canviar l'estat de la comanda a «${this.statusLabel(status)}»?`,
+        confirmText: "Canvia l'estat",
+        cancelText: "No, torna",
+        onConfirm: () => this.saveOperation(statusChange(this.form, status, moment().format("YYYY-MM-DD")), `Estat desat: ${this.statusLabel(status)}`)
+      });
+    },
+    onDeliveryDateChange(date) {
+      if (!this.savesAtOnce) return;
+      this.saveOperation({ delivery_date: date ? moment(date).format("YYYY-MM-DD") : null }, "Data de lliurament desada");
+    },
+    // saves some operation fields of the order on their own; if the API
+    // refuses them, the form says so and goes back to what is stored
+    async saveOperation(fields, message) {
+      const asForm = { ...fields };
+      if (asForm.delivery_date) asForm.delivery_date = moment(asForm.delivery_date, "YYYY-MM-DD").toDate();
+      Object.assign(this.form, asForm);
+      this.isLoading = true;
+      try {
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me");
+        await service({ requiresAuth: true }).put(`orders/${this.form.id}`, { ...fields, _tracking_user: me.data });
+        if (fields.status) this.firstStatus = fields.status;
+        this.historyKey++;
+        this.$buefy.toast.open({ message, type: "is-success" });
+      } catch (error) {
+        console.error(error);
+        this.form.status = this.firstStatus;
+        this.$buefy.snackbar.open({ message: orderSaveErrorMessage(error), type: "is-danger", queue: false });
+        this.getData();
+      } finally {
+        this.isLoading = false;
+      }
     },
     async deleteOrder() {
       // «Cancel·la» next to «D'acord» read like «anul·la» (issues/181)
@@ -1750,7 +1794,13 @@ export default {
         }
       }
     },
-    async citySelected(option) {
+    /**
+     * The town of the point: its routes, and the route when it has only one.
+     * `loading` (getData, issues/216): the order keeps its route and date,
+     * even when the town has other routes now; with one route, what goes with
+     * it is loaded as before.
+     */
+    async citySelected(option, { loading = false } = {}) {
       if (!option || !option.id) {
         this.form.contact_city = null;
       } else {
@@ -1759,7 +1809,15 @@ export default {
       }
 
       this.routes = this.validCityRoutes();
-      
+
+      if (loading) {
+        if (this.routes.length === 1) {
+          if (!this.form.route) this.form.route = this.routes[0].id;
+          await this.changeRoute({ keepDate: true });
+        }
+        return;
+      }
+
       if (this.routes.length > 0) {
         // Auto-select only if there's exactly one route
         if (this.routes.length === 1) {
@@ -1904,7 +1962,7 @@ export default {
           queue: false
         });
         await this.refreshClients(this.form.owner, { force: true });
-        this.contactSearch = `${newContact.data.id} - ${newContact.data.trade_name}`;
+        this.contactSearch = `${newContact.data.id} - ${contactName(newContact.data)}`;
         this.form.contact_name = newContact.data.name;
       }
     },
@@ -1939,7 +1997,7 @@ export default {
           `contacts/for-orders?owned=1`
         )
       ).data.map(c => {
-        return { ...c, display: `${c.trade_name} (${c.id})` };
+        return { ...c, display: contactLabel(c) };
       });
       const hasCollectionOrders =
         this.form.is_collection_order || (Array.isArray(this.form.collection_orders) &&
@@ -1990,7 +2048,7 @@ export default {
           return;
         }
 
-        this.contactSearch = `${contact.trade_name} (${contact.id})`;
+        this.contactSearch = contactLabel(contact);
 
         this.form.contact_name = contact.name;
         this.form.contact_trade_name = contact.trade_name;
@@ -2063,7 +2121,7 @@ export default {
       await this.refreshClients(this.form.owner, { force: true });
       const contact = this.contacts.find(c => c.id === contactId);
       this.contactSearch = contact
-        ? `${contactId} - ${contact.trade_name}`
+        ? `${contactId} - ${contactName(contact)}`
         : `${contactId}`;
       this.onClientaChange(contactId);
     },
@@ -2363,6 +2421,7 @@ export default {
         type: "is-success"
       });
     },
+    contactName,
     formatDate(date) {
       if (!date) return "";
       return moment(date).format("DD/MM/YYYY");

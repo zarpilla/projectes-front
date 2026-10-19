@@ -160,7 +160,7 @@ export default {
         // Initialize contacts array with display field
         this.contacts = response.data.map(c => ({
           ...c,
-          display: `${c.trade_name} (${c.id})`,
+          display: `${c.trade_name || c.name} (${c.id})`,
           num_orders: 0
         }));
         

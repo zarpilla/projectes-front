@@ -60,8 +60,13 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field label="Nom comercial" horizontal>
-                <b-input v-model="form.trade_name" />
+              <b-field
+                :label="form.owner ? 'Nom comercial *' : 'Nom comercial'"
+                horizontal
+                :type="{ 'is-danger': submitted && tradeNameMissing }"
+                :message="submitted && tradeNameMissing ? tradeNameRequired : ''"
+              >
+                <b-input v-model="form.trade_name" :required="!!form.owner" />
               </b-field>
 
               <b-field :label="form.owner ? 'Telèfon *' : 'Telèfon'" horizontal>
@@ -431,6 +436,7 @@ import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
 import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
 import { driverLocksOwner } from "@/domain/contactAccess";
+import { missingTradeName, TRADE_NAME_REQUIRED } from "@/domain/orderContacts";
 
 export default {
   name: "ContactsForm",
@@ -448,6 +454,8 @@ export default {
   },
   data() {
     return {
+      submitted: false,
+      tradeNameRequired: TRADE_NAME_REQUIRED,
       isProfileExists: false,
       isLoading: false,
       series: [],
@@ -467,6 +475,10 @@ export default {
     };
   },
   computed: {
+    // a delivery point needs its trade name (issues/215)
+    tradeNameMissing() {
+      return missingTradeName(this.form);
+    },
     // a driver leaves the owner of a point to the office (issues/191)
     ownerLocked() {
       return driverLocksOwner(this.permissions, this.form);
@@ -708,6 +720,12 @@ export default {
       try {
         if (this.postcodeError) {
           this.$buefy.snackbar.open({ message: POSTCODE_MESSAGE, queue: false, type: "is-danger" });
+          this.isLoading = false;
+          return;
+        }
+        this.submitted = true;
+        if (this.tradeNameMissing) {
+          this.$buefy.snackbar.open({ message: TRADE_NAME_REQUIRED, queue: false, type: "is-danger" });
           this.isLoading = false;
           return;
         }

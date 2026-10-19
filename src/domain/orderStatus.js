@@ -40,12 +40,13 @@ export function canSetStatus (order, status, isStaff, { driver = false } = {}) {
   if (!order) return false
   if (driver) return status === order.status || (status !== 'invoiced' && order.status !== 'invoiced')
   if (isStaff) return true
-  return order.status === 'pending' && status === 'cancelled'
+  // not the collection order of her farm-pickup orders (issues/217)
+  return order.status === 'pending' && status === 'cancelled' && !order.is_collection_order
 }
 
 /** Why the selection bar left some orders out (issues/144, 193). */
 export const bulkSkipReason = (isStaff, driver) =>
-  isStaff && driver ? "les facturades només les canvia l'oficina" : 'només es poden anul·lar les pendents'
+  isStaff && driver ? "les facturades només les canvia l'oficina" : "només es poden anul·lar les pendents, no les de recollida"
 
 // An order is deposited only while it is still on its way: a delivered,
 // invoiced or cancelled one is past it (issues/149; the API refuses it too)
@@ -72,4 +73,12 @@ export function statusWhere (selected) {
     ...statuses.map((s, i) => `_where[_or][0][status_in][${i}]=${s}`),
     '_where[_or][1][last_mile]=true'
   ]
+}
+
+// What a state change saved on its own sends (issues/193): the state, and the
+// delivery date when it is delivered without one, as the form's save does.
+export function statusChange (order, status, today) {
+  const fields = { status }
+  if (status === 'delivered' && !(order && order.delivery_date)) fields.delivery_date = today
+  return fields
 }
