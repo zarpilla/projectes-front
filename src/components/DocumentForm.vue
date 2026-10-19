@@ -1063,6 +1063,7 @@ import moment from "moment";
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
+import { documentDatesForPickers } from "@/domain/documentDates.js";
 import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -1594,39 +1595,7 @@ export default {
                 });
               }
 
-              this.form = r.data;
-              if (this.form.paybefore) {
-                this.form.paybefore = moment(
-                  this.form.paybefore,
-                  "YYYY-MM-DD"
-                ).toDate();
-              }
-              if (this.form.estimated_payment) {
-                this.form.estimated_payment = moment(
-                  this.form.estimated_payment,
-                  "YYYY-MM-DD"
-                ).toDate();
-              }
-
-              if (this.form.sent_date) {
-                this.form.sent_date = moment(
-                  this.form.sent_date,
-                  "YYYY-MM-DD"
-                ).toDate();
-              }
-              if (this.form.paid_date) {
-                this.form.paid_date = moment(
-                  this.form.paid_date,
-                  "YYYY-MM-DD"
-                ).toDate();
-              }
-
-              if (this.form.emitted) {
-                this.form.emitted = moment(
-                  this.form.emitted,
-                  "YYYY-MM-DD"
-                ).toDate();
-              }
+              this.form = documentDatesForPickers(r.data);
 
               if (this.form.serial && this.form.serial.id) {
                 this.form.serial = this.form.serial.id;
@@ -1722,23 +1691,6 @@ export default {
                     d.from <= moment(this.form.emitted).format("YYYY-MM-DD") &&
                     d.to >= moment(this.form.emitted).format("YYYY-MM-DD")
                 );
-
-                this.form.net_date = moment(
-                  this.form.net_date,
-                  "YYYY-MM-DD"
-                ).toDate();
-                this.form.irpf_date = moment(
-                  this.form.irpf_date,
-                  "YYYY-MM-DD"
-                ).toDate();
-                this.form.ss_date = moment(
-                  this.form.ss_date,
-                  "YYYY-MM-DD"
-                ).toDate();
-                this.form.other_date = moment(
-                  this.form.other_date,
-                  "YYYY-MM-DD"
-                ).toDate();
 
                 this.form.total = this.form.total_base + this.form.ss_base;
               }

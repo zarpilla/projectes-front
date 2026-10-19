@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Diners"],
+      text: "Els pressupostos acceptats tornen a obrir-se: la fitxa es quedava en blanc quan el pressupost tenia data d'acceptació."
+    },
+    {
+      type: "Correccions",
       modules: ["Logística"],
       text: ["Cadascú canvia de les comandes només el que li toca, també des de fora de les pantalles: el preu i els descomptes de les comandes de les sòcies els calcula l'aplicació, i les sòcies ja no poden posar-hi preu, desfer-ne la factura ni marcar-hi transferències o recollides (sí dipositar-les). Les persones de repartiment fan els moviments (dipòsit, transferència, recollida, estat) de qualsevol comanda, però la fitxa ja no els deixa canviar-ne les dades ni crear-ne. No es poden crear comandes per a avui o dies passats, ni per a demà passada l'hora límit, tampoc movent-ne la data ni ", { to: "/orders", label: "important-les" }, ". La data de dipòsit d'una comanda lliurada o facturada ja no es pot canviar."]
     },
