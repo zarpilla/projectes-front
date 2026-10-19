@@ -113,6 +113,7 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import { festivesBetween } from "@/domain/workdayLog.js";
+import { startLoad } from "@/domain/latestLoad.js";
 import { formatNumber, formatMoney, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
@@ -199,6 +200,8 @@ export default {
       return Number.isFinite(Number(value)) ? formatMoney(value) : "—";
     },
     async getActivities() {
+      // only the last of overlapping loads may write (issues/219)
+      const isStale = startLoad(this);
       this.isLoading = true;
 
       if (!this.year) {
@@ -224,12 +227,15 @@ export default {
 
       query = `${query}&_limit=-1`;
 
-      // service({ requiresAuth: true })
-      //   .get(`payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`)
-      //   .then((r) => {
-      //     this.payrolls = r.data
-      // })
-      await this.updatePayrolls();
+      const payrolls = (
+        await service({ requiresAuth: true }).get(
+          `payrolls?_limit=-1&_where[users_permissions_user.id]=${this.user}`
+        )
+      ).data;
+      if (isStale()) {
+        return;
+      }
+      this.payrolls = payrolls;
 
       if (this.monthsDb.length === 0) {
         this.monthsDb = (
@@ -242,171 +248,165 @@ export default {
         ).data;
       }
 
-      service({ requiresAuth: true })
-        .get(query)
-        .then(async r => {
-          this.activities = r.data;
+      const loadedActivities = (await service({ requiresAuth: true }).get(query))
+        .data;
 
-          const festives = (
-            await service({ requiresAuth: true }).get(festivesBetween(from, to))
-          ).data.filter(
-            f =>
-              f.users_permissions_user === null ||
-              f.users_permissions_user.id === this.user
-          );
+      const festives = (
+        await service({ requiresAuth: true }).get(festivesBetween(from, to))
+      ).data.filter(
+        f =>
+          f.users_permissions_user === null ||
+          f.users_permissions_user.id === this.user
+      );
 
-          this.warn = false;
+      const dailyDedications = (
+        await service({ requiresAuth: true }).get(
+          `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
+        )
+      ).data;
+      if (isStale()) {
+        return;
+      }
 
-          service({ requiresAuth: true })
-            .get(
-              `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
-            )
-            .then(r => {
-              this.dailyDedications = r.data;
-              var allDates = this.enumerateDaysBetweenDates();
-              var balance = 0;
-              var balanceToday = 0;
-              var balanceTotal = 0;
-              var totalWorkedHours = 0;
-              var dates = [];
-              var laborableDays = 0;
-              var salary = 0;
-              var theoricHoursTotal = 0;
-              allDates.forEach(d => {
-                const date = moment(d).format("YYYY-MM-DD");
-                const displayDate = moment(d).format("ddd DD/MM/YYYY");
-                const day = moment(d).day();
-                const week = moment(d).week();
-                const month = moment(d).format("M");
-                const dailyDedication = this.dailyDedications.find(
-                  dd => date >= dd.from && date <= dd.to
-                );
+      // everything is built for this load only, then shown at once
+      const months = {};
+      const summary = {};
+      let warn = false;
+      var allDates = this.enumerateDaysBetweenDates();
+      var balance = 0;
+      var balanceToday = 0;
+      var balanceTotal = 0;
+      var totalWorkedHours = 0;
+      var dates = [];
+      var laborableDays = 0;
+      var salary = 0;
+      var theoricHoursTotal = 0;
+      allDates.forEach(d => {
+        const date = moment(d).format("YYYY-MM-DD");
+        const displayDate = moment(d).format("ddd DD/MM/YYYY");
+        const day = moment(d).day();
+        const week = moment(d).week();
+        const month = moment(d).format("M");
+        const dailyDedication = dailyDedications.find(
+          dd => date >= dd.from && date <= dd.to
+        );
 
-                if (!dailyDedication) {
-                  this.warn = true;
-                  console.warn("date!", date);
-                }
-                const activities = this.activities.filter(a => a.date === date);
-                const festive = festives.find(f => f.date === date);
+        if (!dailyDedication) {
+          warn = true;
+        }
+        const activities = loadedActivities.filter(a => a.date === date);
+        const festive = festives.find(f => f.date === date);
 
-                const startOnMondayDay = day === 0 ? 6 : day - 1;
+        const theoricHours =
+          (!festive ||
+            (festive &&
+              festive.users_permissions_user &&
+              festive.users_permissions_user.id)) &&
+          dailyDedication &&
+          day !== 0 &&
+          day !== 6
+            ? dailyDedication.hours
+            : 0;
 
-                const theoricHours =
-                  (!festive ||
-                    (festive &&
-                      festive.users_permissions_user &&
-                      festive.users_permissions_user.id)) &&
-                  dailyDedication &&
-                  day !== 0 &&
-                  day !== 6
-                    ? dailyDedication.hours
-                    : 0;
+        const workedHours =
+          sumBy(activities, "hours") +
+          (festive &&
+          festive.users_permissions_user &&
+          festive.users_permissions_user.id
+            ? theoricHours
+            : 0);
+        const dateDescription = festive
+          ? festive.festive_type
+            ? festive.festive_type.name
+            : "FESTIU"
+          : "";
 
-                const workedHours =
-                  sumBy(activities, "hours") +
-                  (festive &&
-                  festive.users_permissions_user &&
-                  festive.users_permissions_user.id
-                    ? theoricHours
-                    : 0);
-                const dateDescription = festive
-                  ? festive.festive_type
-                    ? festive.festive_type.name
-                    : "FESTIU"
-                  : "";
+        theoricHoursTotal += theoricHours;
+        if (!months[month]) {
+          months[month] = {
+            theoricHours: 0,
+            theoricDays: 0,
+            worked: 0,
+            balance: 0,
+            balanceTotal: 0,
+            theoricRatio: 0,
+            dailySalary: 0
+          };
+        }
+        months[month].theoricHours += theoricHours;
 
-                theoricHoursTotal += theoricHours;
-                if (!this.months[month]) {
-                  this.months[month] = {
-                    theoricHours: 0,
-                    theoricDays: 0,
-                    worked: 0,
-                    balance: 0,
-                    balanceTotal: 0,
-                    theoricRatio: 0,
-                    dailySalary: 0
-                  };
-                }
-                this.months[month].theoricHours += theoricHours;
+        if (
+          (!festive ||
+            (festive &&
+              festive.users_permissions_user &&
+              festive.users_permissions_user.id)) &&
+          dailyDedication &&
+          day !== 0 &&
+          day !== 6
+        ) {
+          laborableDays++;
+          months[month].theoricDays += 1;
+        }
 
-                if (
-                  (!festive ||
-                    (festive &&
-                      festive.users_permissions_user &&
-                      festive.users_permissions_user.id)) &&
-                  dailyDedication &&
-                  day !== 0 &&
-                  day !== 6
-                ) {
-                  laborableDays++;
-                  this.months[month].theoricDays += 1;
-                }
-                // this.months[month].theoricDays += 1
+        months[month].theoricRatio =
+          months[month].theoricHours / months[month].theoricDays / 8;
+        months[month].dailySalary =
+          (dailyDedication ? dailyDedication.monthly_salary : 0) *
+          months[month].theoricRatio *
+          months[month].theoricDays;
 
-                this.months[month].theoricRatio =
-                  this.months[month].theoricHours /
-                  this.months[month].theoricDays /
-                  8;
-                this.months[month].dailySalary =
-                  (dailyDedication ? dailyDedication.monthly_salary : 0) *
-                  this.months[month].theoricRatio *
-                  this.months[month].theoricDays;
+        months[month].worked += workedHours;
+        months[month].balance =
+          months[month].worked - months[month].theoricHours;
 
-                this.months[month].worked += workedHours;
-                this.months[month].balance =
-                  this.months[month].worked - this.months[month].theoricHours;
-                // this.months[month].balanceTotal = month > 1 ? this.months[month - 1].balance + this.months[month].worked - this.months[month].theoricHours : this.months[month].worked - this.months[month].theoricHours
-
-                totalWorkedHours += workedHours;
-                balance += workedHours - theoricHours;
-                if (moment(d).isBefore(moment())) {
-                  balanceToday += workedHours - theoricHours;
-                }
-                dates.push({
-                  date: displayDate,
-                  dateDescription: dateDescription,
-                  week: week,
-                  theoricHours: theoricHours,
-                  workedHours: workedHours,
-                  totalWorkedHours: totalWorkedHours,
-                  balance: balance,
-                  balanceTotal: balanceTotal,
-                  balanceToday: balanceToday,
-                  costByHour: dailyDedication ? dailyDedication.costByHour : 0,
-                  costByDay: dailyDedication
-                    ? dailyDedication.costByHour * workedHours
-                    : 0,
-                  error: dailyDedication === null
-                });
-                if (dailyDedication) {
-                  salary += dailyDedication.costByHour * workedHours;
-                }
-              });
-              this.dates = dates.reverse();
-              for (var m in this.months) {
-                if (parseInt(m) === 1) {
-                  this.months[m].balanceTotal += this.months[m].balance;
-                } else {
-                  this.months[m].balanceTotal +=
-                    this.months[parseInt(m) - 1].balanceTotal +
-                    this.months[m].balance;
-                }
-              }
-              this.summary[
-                "Total hores anuals laborables teòriques"
-              ] = theoricHoursTotal.toFixed(2);
-              this.summary[
-                "Total hores treballades"
-              ] = this.dates[0].totalWorkedHours.toFixed(2);
-              this.summary["Saldo hores anual"] = this.dates[0].balance.toFixed(
-                2
-              );
-              this.summary[
-                "Saldo hores avui"
-              ] = this.dates[0].balanceToday.toFixed(2);
-              this.isLoading = false;
-            });
+        totalWorkedHours += workedHours;
+        balance += workedHours - theoricHours;
+        if (moment(d).isBefore(moment())) {
+          balanceToday += workedHours - theoricHours;
+        }
+        dates.push({
+          date: displayDate,
+          dateDescription: dateDescription,
+          week: week,
+          theoricHours: theoricHours,
+          workedHours: workedHours,
+          totalWorkedHours: totalWorkedHours,
+          balance: balance,
+          balanceTotal: balanceTotal,
+          balanceToday: balanceToday,
+          costByHour: dailyDedication ? dailyDedication.costByHour : 0,
+          costByDay: dailyDedication
+            ? dailyDedication.costByHour * workedHours
+            : 0,
+          error: dailyDedication === null
         });
+        if (dailyDedication) {
+          salary += dailyDedication.costByHour * workedHours;
+        }
+      });
+      dates.reverse();
+      for (var m in months) {
+        if (parseInt(m) === 1) {
+          months[m].balanceTotal += months[m].balance;
+        } else {
+          months[m].balanceTotal +=
+            months[parseInt(m) - 1].balanceTotal + months[m].balance;
+        }
+      }
+      summary[
+        "Total hores anuals laborables teòriques"
+      ] = theoricHoursTotal.toFixed(2);
+      summary["Total hores treballades"] = dates[0].totalWorkedHours.toFixed(2);
+      summary["Saldo hores anual"] = dates[0].balance.toFixed(2);
+      summary["Saldo hores avui"] = dates[0].balanceToday.toFixed(2);
+
+      this.activities = loadedActivities;
+      this.dailyDedications = dailyDedications;
+      this.warn = warn;
+      this.dates = dates;
+      this.months = months;
+      this.summary = summary;
+      this.isLoading = false;
     },
     enumerateDaysBetweenDates() {
       var dates = [];
