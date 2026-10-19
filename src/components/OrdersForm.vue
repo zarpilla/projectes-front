@@ -1407,7 +1407,9 @@ export default {
       this.checkMultidelivery();
     },
     // the state buttons: the staff's, a driver's not to or from Facturada (issues/193)
+    // a new order is always created pending (the API forces it, issues/186)
     canPickStatus(status) {
+      if (!this.form.id) return false;
       return this.isStaff && canSetStatus({ status: this.firstStatus }, status, true, { driver: isDriver(this.permissions) });
     },
     // the office picks the state and saves the form; a driver, who has no
