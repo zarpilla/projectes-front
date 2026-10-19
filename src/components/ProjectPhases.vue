@@ -152,10 +152,10 @@
                 <b-input
                   name="Unitats"
                   placeholder="Quantitat, hores, unitats..."
-                  v-model="props.row.quantity"
-                  @update:model-value="
-                    changeSubPhase(props.row, 'quantity', props.row.quantity)
-                  "
+                  :model-value="lineInputText(props.row, 'quantity')"
+                  @update:model-value="v => lineInput(props.row, 'quantity', v)"
+                  @focus="lineInputFocus(props.row, 'quantity')"
+                  @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
@@ -167,8 +167,10 @@
                 <b-input
                   name="PreuUnitari"
                   placeholder="Preu per unitat"
-                  v-model="props.row.amount"
-                  @update:model-value="changeSubPhase(props.row, 'amount', props.row.amount)"
+                  :model-value="lineInputText(props.row, 'amount')"
+                  @update:model-value="v => lineInput(props.row, 'amount', v)"
+                  @focus="lineInputFocus(props.row, 'amount')"
+                  @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
@@ -493,10 +495,10 @@
                 <b-input
                   name="Unitats"
                   placeholder="Quantitat, hores, unitats..."
-                  v-model="props.row.quantity"
-                  @update:model-value="
-                    changeSubPhase(props.row, 'quantity', props.row.quantity)
-                  "
+                  :model-value="lineInputText(props.row, 'quantity')"
+                  @update:model-value="v => lineInput(props.row, 'quantity', v)"
+                  @focus="lineInputFocus(props.row, 'quantity')"
+                  @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
@@ -508,8 +510,10 @@
                 <b-input
                   name="PreuUnitari"
                   placeholder="Preu per unitat"
-                  v-model="props.row.amount"
-                  @update:model-value="changeSubPhase(props.row, 'amount', props.row.amount)"
+                  :model-value="lineInputText(props.row, 'amount')"
+                  @update:model-value="v => lineInput(props.row, 'amount', v)"
+                  @focus="lineInputFocus(props.row, 'amount')"
+                  @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
                 >
@@ -800,7 +804,7 @@ import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
-import { budgetLineTotal, budgetLineValue } from "@/domain/budgetLines.js";
+import { budgetLineDisplay, budgetLineTotal, budgetLineValue } from "@/domain/budgetLines.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -892,6 +896,9 @@ export default {
     return {
       // phases folded by the user (key: phase id, or index for unsaved ones)
       collapsedPhases: {},
+      // the quantity / price input being typed in: shows the text as typed
+      // while the others show Catalan decimals (issues/224)
+      editingLine: null,
       phases: [],
       isLoading: false,
       isUpdating: false,
@@ -1268,12 +1275,23 @@ export default {
         deletedExpenses: this.deletedExpenses
       });
     },
+    lineInputText(row, field) {
+      const editing = this.editingLine;
+      if (editing && editing.row === row && editing.field === field) return editing.text;
+      return budgetLineDisplay(row[field]);
+    },
+    lineInputFocus(row, field) {
+      this.editingLine = { row, field, text: budgetLineDisplay(row[field], { grouped: false }) };
+    },
+    lineInput(row, field, text) {
+      this.editingLine = { row, field, text };
+      this.changeSubPhase(row, field, text);
+    },
     changeSubPhase(subphase, field, value) {
       subphase.dirty = true;
-      // quantity / price: decimal comma, at most 4 decimals as the API stores
-      // them (issues/194)
-      const stored = budgetLineValue(value);
-      if (stored !== value) subphase[field] = stored;
+      // quantity / price: Catalan decimals and thousands, at most 4 decimals
+      // as the API stores them (issues/194, issues/224)
+      subphase[field] = budgetLineValue(value);
       this.phases = this.phases.map(r => {
         return {
           ...r,
