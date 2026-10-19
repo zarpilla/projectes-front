@@ -25,6 +25,31 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Informes", "Projectes"],
+      text: "Al Panell de projectes, «Despeses reals» ja no inclou el cost de les hores, igual que «Despeses previstes» (el cost de les hores és a «Hores reals €»): «Despeses/hora real» ja no compta les hores dues vegades i «Preu/hora real» es calcula igual que el previst. Ingressos/Despeses i Preu hora inclouen les hores sense data (a «Sense data»), com la fitxa del projecte, i tenen un nou filtre «Sense estat» per als projectes sense estat."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "A les línies de pressupost de les fases, la quantitat i el preu es mostren amb coma decimal i s'hi poden escriure milers amb punt (1.000,5); sense coma, el punt continua sent decimal (1.234 = 1,234). Un valor que no és un número ja no dona un error intern en desar: diu quina línia està malament."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Factures noves, rebudes, despeses i ingressos mostren de bon principi el mètode de cobrament que s'hi desarà. El PDF d'una factura rectificativa es titula «Factura rectificativa» i mostra la quantitat i la base quan la quantitat és negativa. Les dates dels documents ja no reculen un dia en desar des d'un navegador amb fus horari a l'est de Madrid. Els pressupostos ja no mostren «Venciment» (no es desava). A IVA › Documents pendents, les despeses surten amb el seu codi. També: «IVA %» i «IRPF %» a les línies, Justificacions amb «Tots» i «Nòmina» ben escrit."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Preus de comandes: l'edició ràpida i la importació per CSV calculen el preu com la fitxa (també les línies de punt de recollida), la fitxa mostra el descompte per volum abans de desar, i la transferència prevista ja no pot caure abans de la recollida a la granja. Reobrir una incidència n'esborra la data de tancament. A ", { to: "/user-contacts", label: "Punts d'entrega" }, " i a ", { to: "/contacts", label: "Contactes" }, ", «Guardar i sortir» es queda al formulari si falta alguna dada. L'exportació per al planificador de rutes ja no falla amb comandes sense telèfon."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: "Incidències es veu en targetes al mòbil, com Operacions. «1 comanda» i «1 caixa» en singular a Facturar i Operacions; les tarifes de Taules de logística amb dos decimals i sense columnes tallades; escanejar una comanda que no existeix diu «Comanda no trobada»; el peu del registre d'hores ja no es talla al mòbil."
+    },
+    {
+      type: "Correccions",
       modules: ["Logística"],
       text: ["La importació de comandes per CSV a ", { to: "/orders", label: "Comandes" }, " desa el número de comanda del proveïdor (columna provider_order_number), i si una fila no es pot crear diu per què."]
     },
