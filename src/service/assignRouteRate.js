@@ -220,4 +220,11 @@ const calculateRoutePrice = (routeRate, kilos, pickupLines) => {
   return price;
 };
 
-export { assignRouteRate, assignRouteDate, checkIfDateIsValidInroute, calculateRoutePrice, pickupIsFarm };
+// The route price of an order: its kilos and its consumption-point lines, as
+// the server prices it (projectes-v5 route-price.js fillMissingPrice). The order
+// form, the quick edit and the CSV import all go through it: the last two
+// priced without the lines (issues/227).
+const orderRoutePrice = (routeRate, order) =>
+  calculateRoutePrice(routeRate, order.kilograms, Array.isArray(order.lines) ? order.lines.length : 0);
+
+export { assignRouteRate, assignRouteDate, checkIfDateIsValidInroute, calculateRoutePrice, orderRoutePrice, pickupIsFarm };

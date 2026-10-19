@@ -410,7 +410,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import {
   assignRouteRate,
   assignRouteDate,
-  calculateRoutePrice
+  orderRoutePrice
 } from "@/service/assignRouteRate";
 import moment from "moment";
 
@@ -1166,6 +1166,15 @@ export default {
       }
       // Calculate initial price
       this.updateCalculatedPrice();
+      // a consumption-point order is priced with its lines too, which the
+      // list rows don't carry (issues/227)
+      if (order.pickup_point && !Array.isArray(order.lines)) this.loadEditingLines(order.id);
+    },
+    async loadEditingLines(id) {
+      const { data } = await service({ requiresAuth: true }).get(`orders/${id}`);
+      if (this.editingRowId !== id || !this.editingOrder) return;
+      this.editingOrder = { ...this.editingOrder, lines: (data && data.lines) || [] };
+      this.updateCalculatedPrice();
     },
     cancelEdit() {
       this.editingRowId = null;
@@ -1197,7 +1206,7 @@ export default {
       
       if (routeRate) {
         // Calculate price
-        this.calculatedPrice = calculateRoutePrice(routeRate, tempForm.kilograms, 0);
+        this.calculatedPrice = orderRoutePrice(routeRate, tempForm);
       } else {
         this.calculatedPrice = null;
       }
@@ -2058,7 +2067,7 @@ export default {
 
         if (order.kilograms !== null && orderWithRate.route_rate) {
           const rate = orderWithRate.route_rate;
-          orderWithRate.price = calculateRoutePrice(rate, order.kilograms, 0);
+          orderWithRate.price = orderRoutePrice(rate, order);
         } else {
           // console.warn("!order", order.kilograms, order.route_rate);
         }
