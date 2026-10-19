@@ -2398,7 +2398,9 @@ export default {
       return '"' + address + '"';
     },
     phoneFormatted(phone) {
-      let ret = phone.replace(/\s/g, "");
+      // an order without a phone made the whole export fail silently (issues/226)
+      if (!phone) return "";
+      let ret = String(phone).replace(/\s/g, "");
       if (ret.startsWith("+34")) {
         ret = ret.replace("+34", "34");
       } else if (!ret.startsWith("34")) {

@@ -579,10 +579,12 @@ export default {
 
       } catch (error) {
         console.error('Error processing scanned order:', error);
-        const errorMsg = error.response?.data?.message || 'Error al processar';
+        // an unknown id comes back as a 404 with the API's English «Not Found» (issues/226)
+        const notFound = error.response?.status === 404;
+        const errorMsg = notFound ? 'Comanda no trobada' : (error.response?.data?.message || 'Error al processar');
         addToHistory(orderId, 'error', errorMsg);
         this.$buefy.toast.open({
-          message: `Error amb comanda #${orderId}`,
+          message: notFound ? `Comanda #${orderId} no trobada` : `Error amb comanda #${orderId}`,
           type: 'is-danger',
           duration: 2000
         });

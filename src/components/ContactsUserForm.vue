@@ -723,7 +723,8 @@ export default {
       this.readOnly = !memberMayEdit(contact, this.me.id, Number(orders) || 0);
     },
     async submitExit() {
-      await this.submit();
+      // stay on the form when it was not saved: leaving lost the edits (issues/226)
+      if (await this.submit() === false) return;
       this.redirectToView();
     },
     async submitAndEmitConfirm() {
@@ -759,7 +760,7 @@ export default {
           });
           this.isLoading = false;
           scrollToField(() => this.$refs.pointForm);
-          return;
+          return false;
         }
 
         if (this.form.id) {
@@ -780,7 +781,7 @@ export default {
             });
             this.isLoading = false;
             scrollToField(() => this.$refs.pointForm);
-            return;
+            return false;
           }
           await service({ requiresAuth: true }).put(
             `contacts/${this.form.id}`,
@@ -816,7 +817,7 @@ export default {
             });
             this.isLoading = false;
             scrollToField(() => this.$refs.pointForm);
-            return;
+            return false;
           }
 
           if (
@@ -869,6 +870,7 @@ export default {
 
         this.submitted = false;
         this.isLoading = false;
+        return false;
       }
     },
     clientSelected(option) {

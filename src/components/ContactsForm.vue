@@ -700,7 +700,8 @@ export default {
       }
     },
     async submitExit() {
-      await this.submit();
+      // stay on the form when it was not saved: leaving lost the edits (issues/226)
+      if (await this.submit() === false) return;
       this.redirectToView();
     },
     redirectToView() {
@@ -721,13 +722,13 @@ export default {
         if (this.postcodeError) {
           this.$buefy.snackbar.open({ message: POSTCODE_MESSAGE, queue: false, type: "is-danger" });
           this.isLoading = false;
-          return;
+          return false;
         }
         this.submitted = true;
         if (this.tradeNameMissing) {
           this.$buefy.snackbar.open({ message: TRADE_NAME_REQUIRED, queue: false, type: "is-danger" });
           this.isLoading = false;
-          return;
+          return false;
         }
         if (this.form.id) {
           if (
@@ -744,7 +745,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
-            return;
+            return false;
           }
           await service({ requiresAuth: true }).put(
             `contacts/${this.form.id}`,
@@ -770,7 +771,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
-            return;
+            return false;
           }
 
           if (
@@ -812,6 +813,7 @@ export default {
         });
 
         this.isLoading = false;
+        return false;
       }
     },
     clientSelected(option) {

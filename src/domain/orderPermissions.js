@@ -58,6 +58,8 @@ export function canCancelOrder (order, permissions) {
  */
 export function processedOrderNotice (order, permissions) {
   if (canEditOrder(order, permissions)) return 'Atenció amb els canvis: poden afectar entregues ja fetes o factures emeses.'
+  // an invoiced order's state is the office's too: every state was disabled (issues/226)
+  if (isLogisticsStaff(permissions) && order && order.status === 'invoiced') return "En pots registrar els moviments; l'estat i la resta de dades els canvia l'oficina."
   if (isLogisticsStaff(permissions)) return "En pots registrar els moviments i l'estat; la resta de dades les canvia l'oficina."
   return "Si hi ha algun canvi d'última hora, contacta si us plau amb La Diligència."
 }
