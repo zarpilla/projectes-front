@@ -165,6 +165,7 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
+import { startLoad } from "@/domain/latestLoad.js";
 import { formatNumber, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
@@ -282,6 +283,8 @@ export default {
       return (n > 0.004 ? "+" : "") + formatNumber(n, decimals, decimals);
     },
     async getActivities() {
+      // only the last of overlapping loads may write (issues/219)
+      const isStale = startLoad(this);
       // nothing to show without a year and a person: no spinner left on (issues/078)
       if (!this.year || !this.user) {
         this.isLoading = false;
@@ -306,7 +309,9 @@ export default {
       service({ requiresAuth: true })
         .get(query)
         .then(async r => {
-          this.activities = r.data;
+          const loadedActivities = r.data;
+          // built for this load only, then shown at once
+          const summary = {};
 
           const yearDetails = (
             await service({ requiresAuth: true, cached: true }).get(
@@ -317,9 +322,9 @@ export default {
           const festiveTypes = (
             await service({ requiresAuth: true, cached: true }).get("festive-types?_limit=-1")
           ).data;
-          this.festiveNames = festiveTypes.map(ft => ft.name);
+          const festiveNames = festiveTypes.map(ft => ft.name);
           festiveTypes.forEach(ft => {
-            this.summary[ft.name] = {
+            summary[ft.name] = {
               hours: 0,
               days: 0,
               max: ft.max,
@@ -338,7 +343,7 @@ export default {
               f.users_permissions_user.id === this.user
           );
 
-          this.personalDaysList = ["Vacances", "Lliure Elecció"]
+          const personalDaysList = ["Vacances", "Lliure Elecció"]
             .flatMap(name =>
               festives
                 .filter(f => f.festive_type && f.festive_type.name === name)
@@ -369,18 +374,21 @@ export default {
               `user-festives?_limit=-1&_where[year.year]=${this.year}&_where[users_permissions_user.id]=${this.user}&_where[festive_type_null]=false`
             )
           ).data;
+          if (isStale()) {
+            return;
+          }
 
           for (const f of yearFestives) {
-            this.summary[f.festive_type.name].max = f.max;
-            this.summary[f.festive_type.name].maxIsDefault = false;
+            summary[f.festive_type.name].max = f.max;
+            summary[f.festive_type.name].maxIsDefault = false;
           }
           for (const f of userFestives) {
-            this.summary[f.festive_type.name].max = f.max;
-            this.summary[f.festive_type.name].maxIsDefault = false;
+            summary[f.festive_type.name].max = f.max;
+            summary[f.festive_type.name].maxIsDefault = false;
           }
           for (const f of userYearFestives) {
-            this.summary[f.festive_type.name].max = f.max;
-            this.summary[f.festive_type.name].maxIsDefault = false;
+            summary[f.festive_type.name].max = f.max;
+            summary[f.festive_type.name].maxIsDefault = false;
           }
 
           var allDates = this.enumerateDaysBetweenDates();
@@ -388,7 +396,7 @@ export default {
           var totalWorkedHours = 0;
           var laborableDays = 0;
           var laborableHours = 0;
-          this.warn = false;
+          let warn = false;
           allDates.forEach(d => {
             const date = moment(d).format("YYYY-MM-DD");
             const day = moment(d).day();
@@ -402,8 +410,7 @@ export default {
               dd => date >= dd.from && date <= dd.to
             );
             if (!dailyDedication) {
-              this.warn = true;
-              console.warn("date!", date);
+              warn = true;
             }
             
             const startOnMondayDay = day === 0 ? 6 : day - 1;
@@ -420,11 +427,11 @@ export default {
                 ? dailyDedication.hours
                 : 0;
             if (festive && dailyDedication) {
-              this.summary[festive.festive_type.name].hours +=
+              summary[festive.festive_type.name].hours +=
                 dailyDedication.hours;
-              this.summary[festive.festive_type.name].days++;
+              summary[festive.festive_type.name].days++;
               if (moment(d).isBefore(moment())) {
-                this.summary[festive.festive_type.name].daysCurrent++;
+                summary[festive.festive_type.name].daysCurrent++;
               }
             }
             // A laborable weekday counts toward the contractual average even
@@ -442,14 +449,14 @@ export default {
           });
           const ratio = totalWorkedHours / totalWorkedDays / 8;
 
-          this.summary["Jornada"] = {
+          summary["Jornada"] = {
             hours: `${(ratio * 8).toFixed(2)} h/dia (${(ratio * 100).toFixed(
               1
             )}%)`,
             days: ""
           };
 
-          this.summary["Laborables"] = {
+          summary["Laborables"] = {
             hours: totalWorkedHours,
             days: totalWorkedDays
           };
@@ -458,37 +465,44 @@ export default {
           const baseDays = totalWorkedDays;
           const baseHours = totalWorkedHours;
           festiveTypes.forEach(ft => {
-            if (this.summary[ft.name].days < this.summary[ft.name].max) {              
-              const daysToAdd = this.summary[ft.name].max - this.summary[ft.name].days
-              pending.push({ name: ft.name, days: daysToAdd, hours: daysToAdd * ratio * 8, used: this.summary[ft.name].days, max: this.summary[ft.name].max })
-              this.summary["Laborables"].hours = this.summary["Laborables"].hours - daysToAdd * ratio * 8
-              this.summary["Laborables"].days = this.summary["Laborables"].days - daysToAdd
+            if (summary[ft.name].days < summary[ft.name].max) {              
+              const daysToAdd = summary[ft.name].max - summary[ft.name].days
+              pending.push({ name: ft.name, days: daysToAdd, hours: daysToAdd * ratio * 8, used: summary[ft.name].days, max: summary[ft.name].max })
+              summary["Laborables"].hours = summary["Laborables"].hours - daysToAdd * ratio * 8
+              summary["Laborables"].days = summary["Laborables"].days - daysToAdd
             }              
           });
 
-          this.summary["Laborables"].hours = this.summary["Laborables"].hours
+          summary["Laborables"].hours = summary["Laborables"].hours
 
-          this.summary["Màxim Conveni"] = {
+          summary["Màxim Conveni"] = {
             hours: (yearDetails.working_hours * ratio).toFixed(2),
             days: yearDetails.working_hours / 8
           };
           const label = "Saldo anual d'hores (Laborables - Conveni)"
-          this.summary[label] = {
-            hours: this.summary["Laborables"].hours - yearDetails.working_hours * ratio,           
-            days: this.summary["Laborables"].days - yearDetails.working_hours / 8
+          summary[label] = {
+            hours: summary["Laborables"].hours - yearDetails.working_hours * ratio,           
+            days: summary["Laborables"].days - yearDetails.working_hours / 8
           };
 
-          this.summary["Laborables"].hours = this.summary["Laborables"].hours.toFixed(2)
-          this.summary[label].hours = this.summary[label].hours.toFixed(2)
+          summary["Laborables"].hours = summary["Laborables"].hours.toFixed(2)
+          summary[label].hours = summary[label].hours.toFixed(2)
 
 
-          this.summary["Treballades"] = { hours: sumBy(this.activities, 'hours') , days: this.activities.filter(a => a.hours > 0).length};
+          summary["Treballades"] = { hours: sumBy(loadedActivities, 'hours') , days: loadedActivities.filter(a => a.hours > 0).length};
+          this.activities = loadedActivities;
+          this.festiveNames = festiveNames;
+          this.personalDaysList = personalDaysList;
+          this.warn = warn;
+          this.summary = summary;
           this.calc = { baseDays, baseHours, pending, ratio };
 
           this.isLoading = false;
         })
         .catch(() => {
-          this.isLoading = false;
+          if (!isStale()) {
+            this.isLoading = false;
+          }
         });
     },
     enumerateDaysBetweenDates() {

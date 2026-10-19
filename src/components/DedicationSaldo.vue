@@ -142,6 +142,7 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import { festivesBetween } from "@/domain/workdayLog.js";
+import { startLoad } from "@/domain/latestLoad.js";
 import CardComponent from "@/components/CardComponent.vue";
 import { formatNumber, sign } from "@/helpers/format-number";
 
@@ -295,6 +296,8 @@ export default {
       return moment(iso).format("ddd DD/MM");
     },
     async getActivities() {
+      // only the last of overlapping loads may write (issues/219)
+      const isStale = startLoad(this);
       // nothing to show without a year and a person: no spinner left on (issues/078)
       if (!this.year || !this.user) {
         this.isLoading = false;
@@ -318,13 +321,15 @@ export default {
       service({ requiresAuth: true })
         .get(query)
         .then(async (r) => {
-          this.activities = r.data;
+          const loadedActivities = r.data;
 
+          // built for this load only, then shown at once
+          const summary = {};
           const festiveTypes = (
             await service({ requiresAuth: true, cached: true }).get("festive-types?_limit=-1")
           ).data;
           festiveTypes.forEach((ft) => {
-            this.summary[ft.name] = 0;
+            summary[ft.name] = 0;
           });
           
           const festives = (
@@ -340,6 +345,10 @@ export default {
               `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
             )
             .then((r) => {
+              if (isStale()) {
+                return;
+              }
+              this.activities = loadedActivities;
               this.dailyDedications = r.data
               var allDates = this.enumerateDaysBetweenDates()
               var balance = 0
@@ -399,22 +408,25 @@ export default {
                 }
 
                 if (day !== 0 && day !== 6 && festive && festive.festive_type && dailyDedication) {
-                  this.summary[festive.festive_type.name] +=
+                  summary[festive.festive_type.name] +=
                     dailyDedication.hours;
                 }
               });
               this.dates = dates.reverse();
               // this.summary['Dies Laborables'] = laborableDays
-              this.summary['Saldo hores'] = this.dates[0].balance.toFixed(2)
-              this.summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)                            
+              summary['Saldo hores'] = this.dates[0].balance.toFixed(2)
+              summary['Total hores treballades'] = this.dates[0].totalWorkedHours.toFixed(2)                            
               // this.summary['Bestreta per hora treballada*'] = `${this.dates[0].costByHour} €`
               // this.summary['Hores treballades diaries'] = (this.dates[0].totalWorkedHours / laborableDays).toFixed(2)
               // this.summary['Bestreta'] = `${salary.toFixed(2)} €`
+              this.summary = summary;
               this.isLoading = false;
             });
         })
         .catch(() => {
-          this.isLoading = false;
+          if (!isStale()) {
+            this.isLoading = false;
+          }
         });
     },
     enumerateDaysBetweenDates() {
