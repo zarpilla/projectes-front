@@ -11,7 +11,7 @@
         <div class="doc-kpi">
           <span>Import a justificar</span>
           <b>{{ kpi.withGrantable ? money(kpi.grantable) : "—" }}</b>
-          <small>{{ kpi.withGrantable ? kpi.withGrantable + " projectes en tenen" + (year ? " per al " + grantYearLabel(year) : "") : "Cap projecte en té" + (year ? " per al " + grantYearLabel(year) : "") }}</small>
+          <small>{{ kpi.withGrantable ? kpi.withGrantable + " projectes en tenen" + forYear() : "Cap projecte en té" + forYear() }}</small>
         </div>
         <div class="doc-kpi">
           <span>Pendent</span>
@@ -25,7 +25,7 @@
         </div>
       </div>
       <div v-if="kpi.withoutGrantable" class="notification is-warning just-warning">
-        <span><b>{{ kpi.withoutGrantable }} {{ kpi.withoutGrantable === 1 ? "projecte no té" : "projectes no tenen" }} import a justificar{{ year ? " per al " + grantYearLabel(year) : "" }}</b>, així que no se'n pot calcular el pendent ni el percentatge. Es defineix a la fitxa del projecte, a «Subvencions», per a cada any.</span>
+        <span><b>{{ kpi.withoutGrantable }} {{ kpi.withoutGrantable === 1 ? "projecte no té" : "projectes no tenen" }} import a justificar{{ forYear() }}</b>, així que no se'n pot calcular el pendent ni el percentatge. Es defineix a la fitxa del projecte, a «Subvencions», per a cada any.</span>
         <router-link to="/grants" class="just-link">Obre Subvencions</router-link>
       </div>
 
@@ -1360,6 +1360,10 @@ export default {
     // «2026», or «2026/27» when grant years are fiscal
     grantYearLabel(year) {
       return fiscalYearLabel(year, this.grantStartMonth);
+    },
+    // « per al 2026» after the KPI texts; nothing for «Tots» (issues/213)
+    forYear() {
+      return this.year && this.year !== "Tots" ? " per al " + this.grantYearLabel(this.year) : "";
     },
     // Helper function to get grantable amount for a specific year and field
     getGrantableAmountForYear(project, year, field = "grantable_amount") {

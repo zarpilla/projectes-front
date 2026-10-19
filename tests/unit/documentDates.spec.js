@@ -2,10 +2,10 @@
 // API's «2026-06-29» string to the «Data d'acceptació» datepicker
 // (focusedDate.getDate is not a function): accepted_date was the only picker
 // date not turned into a Date on load.
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { documentDatesForPickers, DOCUMENT_PICKER_DATES } from '@/domain/documentDates'
+import { documentDatesForPickers, documentDatesForApi, DOCUMENT_PICKER_DATES } from '@/domain/documentDates'
 
 describe('documentDatesForPickers (issues/189)', () => {
   it('turns the accepted date of a quote into a local date', () => {
@@ -32,5 +32,41 @@ describe('documentDatesForPickers (issues/189)', () => {
       .filter(Boolean)
     expect(fields.length).toBeGreaterThan(5)
     for (const field of fields) expect(DOCUMENT_PICKER_DATES).toContain(field)
+  })
+})
+
+// issues/229: east of Madrid (Asia/Tokyo) every save of a quote moved its
+// dates back one day: the form sent local midnight as UTC, which the API reads
+// in Europe/Madrid. They now go out as the local day, «YYYY-MM-DD», which must
+// not change anything in Madrid or west of it either.
+describe('documentDatesForApi (issues/229)', () => {
+  const zones = ['Asia/Tokyo', 'Pacific/Kiritimati', 'Europe/Madrid', 'Europe/London', 'America/New_York', 'Pacific/Honolulu']
+  const original = process.env.TZ
+  afterEach(() => { process.env.TZ = original })
+
+  for (const zone of zones) {
+    it(`sends the picked day in ${zone}`, () => {
+      process.env.TZ = zone
+      const form = documentDatesForPickers({
+        emitted: '2026-07-23',
+        accepted_date: '2026-08-15',
+        paybefore: null,
+        code: '2026-004',
+        lines: [{ concept: 'Dieta', date: new Date(2026, 0, 1) }, { concept: 'Hores' }]
+      })
+      const sent = documentDatesForApi(form)
+      expect(sent).toMatchObject({ emitted: '2026-07-23', accepted_date: '2026-08-15', paybefore: null, code: '2026-004' })
+      expect(sent.lines).toEqual([{ concept: 'Dieta', date: '2026-01-01' }, { concept: 'Hores' }])
+      // what JSON carries is the same day, whatever the zone
+      expect(JSON.parse(JSON.stringify(sent)).emitted).toBe('2026-07-23')
+      // the form keeps its Dates for the pickers
+      expect(form.emitted).toBeInstanceOf(Date)
+      expect(form.lines[0].date).toBeInstanceOf(Date)
+    })
+  }
+
+  it('leaves the lines as they are when none has a Date', () => {
+    const lines = [{ concept: 'A' }]
+    expect(documentDatesForApi({ lines }).lines).toBe(lines)
   })
 })

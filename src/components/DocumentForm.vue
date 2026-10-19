@@ -423,12 +423,7 @@
             <b-field
               label="Venciment"
               horizontal
-              v-if="
-                type !== 'received-incomes' &&
-                  type !== 'received-expenses' &&
-                  type !== 'payrolls' &&
-                  !readOnly
-              "
+              v-if="showPaybefore"
             >
               <b-datepicker
                 :disabled="emittedInvoiceEditDisabled"
@@ -1079,7 +1074,7 @@ import moment from "moment";
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
-import { documentDatesForPickers } from "@/domain/documentDates.js";
+import { documentDatesForPickers, documentDatesForApi } from "@/domain/documentDates.js";
 import { budgetLineTotal } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
@@ -1392,7 +1387,9 @@ export default {
     },
     emittedInvoiceEditDisabled() {
       // return this.type === "emitted-invoices" && !this.canEditDraft
-      return (
+      // a Boolean: a new rectificative has form.id 0, and the `disabled`
+      // props warned «Expected Boolean, got Number» (issues/229)
+      return !!(
         (this.type === "emitted-invoices" &&
           this.form.id &&
           this.form.code !== "ESBORRANY") ||
@@ -1401,6 +1398,10 @@ export default {
           this.form.code === "ESBORRANY" &&
           !this.canEditDraft)
       );
+    },
+    // quotes have no paybefore column: the date was dropped on save (issues/229)
+    showPaybefore() {
+      return !["received-incomes", "received-expenses", "payrolls", "quotes"].includes(this.type) && !this.readOnly;
     },
     // An issued invoice (or a draft that is not being edited) shows its locked
     // data as text: same data, same save, just not as disabled inputs
@@ -1767,6 +1768,7 @@ export default {
         if (serie) {
           this.form.serial = serie.id;
         }
+        this.setDefaultPaymentMethod();
 
         await this.calculateMinEmittedDate();
 
@@ -1797,6 +1799,16 @@ export default {
 
         this.isLoading = false;
       }
+    },
+    // A new document shows the payment method the API would give it anyway
+    // (the first one, emitted-invoice and document lifecycles): the form
+    // started empty and the draft confirmation said «Mètode de pagament: -»
+    // (issues/213)
+    setDefaultPaymentMethod() {
+      const defaulted = ["emitted-invoices", "received-invoices", "received-expenses", "received-incomes"];
+      if (this.form.payment_method || !defaulted.includes(this.type)) return;
+      const first = _.minBy(this.paymentMethods || [], "id");
+      if (first) this.form.payment_method = first.id;
     },
     async calculateMinEmittedDate() {
       if (this.type === "emitted-invoices") {
@@ -1956,7 +1968,7 @@ export default {
 
           await service({ requiresAuth: true }).put(
             `${this.type}/${this.form.id}`,
-            documentPayload(this.form)
+            documentPayload(documentDatesForApi(this.form))
           );
 
           if (this.shouldSaveProject && this.type !== "payrolls") {
@@ -2040,7 +2052,7 @@ export default {
 
           const newProject = await service({ requiresAuth: true }).post(
             this.type,
-            documentPayload(this.form)
+            documentPayload(documentDatesForApi(this.form))
           );
 
           if (this.shouldSaveProject) {
@@ -2671,7 +2683,7 @@ export default {
           code: "ESBORRANY",
           serial: this.form.serial,
           user_last: this.user.id,
-          emitted: this.form.emitted
+          emitted: documentDatesForApi({ emitted: this.form.emitted }).emitted
         }
       );
 

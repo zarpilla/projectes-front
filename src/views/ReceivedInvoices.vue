@@ -200,7 +200,7 @@ export default {
       );
       this.documentTypes = [...data];
       this.documentTypes.unshift({ id: -1, name: "Factura" });
-      this.documentTypes.push({ id: -2, name: "Nómina" });
+      this.documentTypes.push({ id: -2, name: "Nòmina" });
       this.documentTypes.unshift({ id: 0, name: "Tots" });
 
       this.serials = await service({ requiresAuth: true, cached: true }).get(
