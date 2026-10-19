@@ -541,7 +541,7 @@ import {
   assignRouteRate,
   assignRouteDate,
   checkIfDateIsValidInroute,
-  calculateRoutePrice
+  orderRoutePrice
 } from "@/service/assignRouteRate";
 import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
@@ -728,11 +728,7 @@ export default {
         return this.form.price;
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
-        this.form.price = calculateRoutePrice(
-          this.route_rate,
-          this.form.kilograms,
-          this.form.lines ? this.form.lines.length : 0
-        );
+        this.form.price = orderRoutePrice(this.route_rate, this.form);
       }
       const discountEffectAsOne =
         (this.form.multidelivery_discount || 1) /
@@ -2102,8 +2098,14 @@ export default {
         id: this.form.id,
         contactId: this.form.contact,
         date: this.form.estimated_delivery_date,
-        ownerId: this.form.owner
+        ownerId: this.form.owner,
+        // the volume discount the server will store, previewed (issues/227)
+        routeId: this.form.route,
+        status: this.form.status
       });
+      if (multidelivery && multidelivery.data && "volume_discount" in multidelivery.data) {
+        this.form.volume_discount = multidelivery.data.volume_discount;
+      }
       if (
         multidelivery &&
         multidelivery.data &&
@@ -2141,11 +2143,7 @@ export default {
       this.form.multidelivery_discount = 0;
       const rate = assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
       this.form.route_rate = rate;
-      this.form.price = calculateRoutePrice(
-        rate,
-        this.form.kilograms,
-        this.form.lines ? this.form.lines.length : 0
-      );
+      this.form.price = orderRoutePrice(rate, this.form);
       this.checkMultidelivery();
     },
     updatePickup() {
