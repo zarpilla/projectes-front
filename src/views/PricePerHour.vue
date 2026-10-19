@@ -51,6 +51,7 @@ import PricePerHourDetail from "@/components/PricePerHourDetail.vue";
 import service from "@/service/index";
 import { defaultYear, fiscalYearLabel, fiscalYearOf } from "@/domain/years";
 import { loadFiscalSettings } from "@/service/fiscalYear";
+import { stateChips } from "@/domain/projectStateChips";
 import moment from "moment";
 
 const STATES_KEY = "PricePerHour.selectedProjectStates";
@@ -110,7 +111,7 @@ export default {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
-          this.project_states = [...r.data];
+          this.project_states = stateChips(r.data);
           // the old default was "1+2"; remembered in this browser once changed
           let saved = null;
           try {
