@@ -1,6 +1,8 @@
 // A project's periodification (ProjectForm): the undated-year bucket and the
 // lines that feed it (issues/015).
 
+import { budgetLineTotal } from './budgetLines'
+
 // Lines with no date are counted under this year by the backend.
 export const UNDATED_YEAR = '9999'
 
@@ -32,7 +34,7 @@ export function undatedProjectLines (form) {
           type,
           phase: ph.name || '',
           concept: line.concept || '',
-          total_amount: (line.quantity || 0) * (line.amount || 0)
+          total_amount: budgetLineTotal(line)
         })
       })
     })

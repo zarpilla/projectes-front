@@ -1080,6 +1080,7 @@ import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
 import { documentDatesForPickers } from "@/domain/documentDates.js";
+import { budgetLineTotal } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -2241,7 +2242,7 @@ export default {
               }
 
               if (isMatched) {
-                const lineTotal = (income.quantity || 0) * (income.amount || 0);
+                const lineTotal = budgetLineTotal(income);
                 totalAssignedIncomes += lineTotal;
                 matchedIncomeLines.push({
                   projectId: project.id,
@@ -2288,8 +2289,7 @@ export default {
               }
 
               if (isMatched) {
-                const lineTotal =
-                  (expense.quantity || 0) * (expense.amount || 0);
+                const lineTotal = budgetLineTotal(expense);
                 totalAssignedExpenses += lineTotal;
                 matchedExpenseLines.push({
                   projectId: project.id,
