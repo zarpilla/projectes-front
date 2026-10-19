@@ -18,16 +18,25 @@ export function projectTreasury (form) {
     })
   })
   if (form.treasury_annotations) {
-    form.treasury_annotations.forEach(t => {
+    // a negative annotation is a payment (issues/196); a «saldo real» one sets
+    // an account balance, it isn't a movement of the project
+    form.treasury_annotations.filter(t => !t.is_real_balance).forEach(t => {
+      const total = Number(t.total) || 0
       documents.push({
         docType: 'treasury',
-        document: { ...t, total_amount: t.total },
+        document: { ...t, total_amount: Math.abs(total) },
         concept: t.concept,
-        multiplier: 1
+        multiplier: total < 0 ? -1 : 1
       })
     })
   }
   return documents
+}
+
+const pad = n => String(n).padStart(2, '0')
+const localToday = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 // the first relation a paid line has decides which document it settled
@@ -56,11 +65,13 @@ function addPaid (documents, line, relations, multiplier) {
 /**
  * Whether a projectTreasury() entry has been collected or paid: its line's
  * document (the first relation it has, as in projectTreasuryDone) is paid, which
- * is what Tresoreria goes by. A line not ticked «Fact.» or without a document,
- * and a treasury annotation, are still expected.
+ * is what Tresoreria goes by. A line not ticked «Fact.» or without a document is
+ * still expected. A treasury annotation is done once its date has come
+ * (issues/196), as a movement in Tresoreria; an undated one is expected.
+ * `today` is YYYY-MM-DD.
  */
-export function treasuryEntrySettled (t) {
-  if (t.docType === 'treasury') return false
+export function treasuryEntrySettled (t, today = localToday()) {
+  if (t.docType === 'treasury') return !!t.document.date && String(t.document.date).slice(0, 10) <= today
   const relations = t.docType === 'income' ? PAID_INCOME : PAID_EXPENSE
   const found = relations.find(([relation]) => t.document[relation])
   return !!(found && t.document[found[0]].paid)
@@ -72,7 +83,7 @@ export function treasuryEntrySettled (t) {
  * Tresoreria (issues/173); `*Pending`/`*Done` split by the lines' «Fact.»
  * tick, which the old Resum de tresoreria shows.
  */
-export function treasurySums (treasury) {
+export function treasurySums (treasury, today = localToday()) {
   const sum = filter => sumBy(treasury.filter(filter), 'document.total_amount')
   const income = t => t.multiplier > 0
   const expense = t => t.multiplier < 0
@@ -81,10 +92,10 @@ export function treasurySums (treasury) {
     expensesPending: sum(t => expense(t) && t.document.paid !== true),
     incomesDone: sum(t => income(t) && t.document.paid),
     expensesDone: sum(t => expense(t) && t.document.paid),
-    collected: sum(t => income(t) && treasuryEntrySettled(t)),
-    toCollect: sum(t => income(t) && !treasuryEntrySettled(t)),
-    paid: sum(t => expense(t) && treasuryEntrySettled(t)),
-    toPay: sum(t => expense(t) && !treasuryEntrySettled(t))
+    collected: sum(t => income(t) && treasuryEntrySettled(t, today)),
+    toCollect: sum(t => income(t) && !treasuryEntrySettled(t, today)),
+    paid: sum(t => expense(t) && treasuryEntrySettled(t, today)),
+    toPay: sum(t => expense(t) && !treasuryEntrySettled(t, today))
   }
 }
 
