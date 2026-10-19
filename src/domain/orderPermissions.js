@@ -55,3 +55,12 @@ export function processedOrderNotice (order, permissions) {
   if (isLogisticsStaff(permissions)) return "En pots registrar els moviments i l'estat; la resta de dades les canvia l'oficina."
   return "Si hi ha algun canvi d'última hora, contacta si us plau amb La Diligència."
 }
+
+/**
+ * A driver has no «Guardar» on the order form (she doesn't edit the order),
+ * so what she may change there, the state and the delivery date, is saved at
+ * once, like in Operacions (issues/193, review 5). The office and a member on
+ * her pending order keep picking it and saving the form.
+ */
+export const savesOperationsAtOnce = (order, permissions) =>
+  Boolean(order && order.id) && !canEditOrder(order, permissions) && canMoveOrder(order, permissions)

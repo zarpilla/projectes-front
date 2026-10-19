@@ -341,8 +341,8 @@
                     type="button"
                     :class="{ 'is-on': form.status === s }"
                     :aria-pressed="form.status === s ? 'true' : 'false'"
-                    :disabled="!canPickStatus(s)"
-                    @click="form.status = s"
+                    :disabled="!canPickStatus(s) || (savesAtOnce && isLoading)"
+                    @click="pickStatus(s)"
                   >{{ statusLabel(s) }}</button>
                 </div>
               </b-field>
@@ -391,6 +391,7 @@
               <b-field v-if="isStaff" label="Data de lliurament">
                 <b-datepicker
                   v-model="form.delivery_date"
+                  @update:model-value="onDeliveryDateChange"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -508,7 +509,7 @@
     </section>
 
     <div class="savebar">
-      <span class="savebar-state">{{ form.id ? (canEdit ? "Desa els canvis quan acabis" : "Només lectura") : isPickupPoint ? "Nova comanda punt de consum" : "Nova comanda" }}</span>
+      <span class="savebar-state">{{ form.id ? (canEdit ? "Desa els canvis quan acabis" : savesAtOnce ? "L'estat i la data de lliurament es desen en canviar-los" : "Només lectura") : isPickupPoint ? "Nova comanda punt de consum" : "Nova comanda" }}</span>
       <b-button :loading="isLoading" @click="exit">Sortir</b-button>
       <template v-if="canEdit">
         <b-button :loading="isLoading" @click="submit(true)">Guardar i sortir</b-button>
@@ -527,7 +528,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
-import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice } from "@/domain/orderPermissions.js";
+import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice, savesOperationsAtOnce } from "@/domain/orderPermissions.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -545,7 +546,7 @@ import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
 import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
-import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, canDeposit as canDepositOrder } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersForm",
@@ -631,6 +632,10 @@ export default {
     // the stored state decides, not the one picked and not yet saved (issues/193)
     canCancel() {
       return canCancelOrder({ ...this.form, status: this.firstStatus }, this.permissions);
+    },
+    // a driver: no «Guardar», the state and delivery date saved at once (issues/193)
+    savesAtOnce() {
+      return savesOperationsAtOnce({ ...this.form, status: this.firstStatus }, this.permissions);
     },
     processedNotice() {
       return processedOrderNotice({ ...this.form, status: this.firstStatus }, this.permissions);
@@ -1397,6 +1402,47 @@ export default {
     // the state buttons: the staff's, a driver's not to or from Facturada (issues/193)
     canPickStatus(status) {
       return this.isStaff && canSetStatus({ status: this.firstStatus }, status, true, { driver: isDriver(this.permissions) });
+    },
+    // the office picks the state and saves the form; a driver, who has no
+    // «Guardar», saves it at once, like in Operacions (issues/193)
+    pickStatus(status) {
+      if (!this.savesAtOnce) {
+        this.form.status = status;
+        return;
+      }
+      if (status === this.firstStatus) return;
+      this.$buefy.dialog.confirm({
+        message: `Vols canviar l'estat de la comanda a «${this.statusLabel(status)}»?`,
+        confirmText: "Canvia l'estat",
+        cancelText: "No, torna",
+        onConfirm: () => this.saveOperation(statusChange(this.form, status, moment().format("YYYY-MM-DD")), `Estat desat: ${this.statusLabel(status)}`)
+      });
+    },
+    onDeliveryDateChange(date) {
+      if (!this.savesAtOnce) return;
+      this.saveOperation({ delivery_date: date ? moment(date).format("YYYY-MM-DD") : null }, "Data de lliurament desada");
+    },
+    // saves some operation fields of the order on their own; if the API
+    // refuses them, the form says so and goes back to what is stored
+    async saveOperation(fields, message) {
+      const asForm = { ...fields };
+      if (asForm.delivery_date) asForm.delivery_date = moment(asForm.delivery_date, "YYYY-MM-DD").toDate();
+      Object.assign(this.form, asForm);
+      this.isLoading = true;
+      try {
+        const me = await service({ requiresAuth: true, cached: true }).get("users/me");
+        await service({ requiresAuth: true }).put(`orders/${this.form.id}`, { ...fields, _tracking_user: me.data });
+        if (fields.status) this.firstStatus = fields.status;
+        this.historyKey++;
+        this.$buefy.toast.open({ message, type: "is-success" });
+      } catch (error) {
+        console.error(error);
+        this.form.status = this.firstStatus;
+        this.$buefy.snackbar.open({ message: orderSaveErrorMessage(error), type: "is-danger", queue: false });
+        this.getData();
+      } finally {
+        this.isLoading = false;
+      }
     },
     async deleteOrder() {
       // «Cancel·la» next to «D'acord» read like «anul·la» (issues/181)

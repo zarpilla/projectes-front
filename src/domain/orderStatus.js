@@ -73,3 +73,11 @@ export function statusWhere (selected) {
     '_where[_or][1][last_mile]=true'
   ]
 }
+
+// What a state change saved on its own sends (issues/193): the state, and the
+// delivery date when it is delivered without one, as the form's save does.
+export function statusChange (order, status, today) {
+  const fields = { status }
+  if (status === 'delivered' && !(order && order.delivery_date)) fields.delivery_date = today
+  return fields
+}
