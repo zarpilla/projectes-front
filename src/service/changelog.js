@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
+      text: ["La importació de comandes per CSV a ", { to: "/orders", label: "Comandes" }, " desa el número de comanda del proveïdor (columna provider_order_number), i si una fila no es pot crear diu per què."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
       text: ["La fitxa de comanda ja no es queda en blanc quan algun punt d'entrega no té nom comercial (surt amb el seu nom), i obrir una comanda pendent i desar-la sense tocar res ja no en canvia la data prevista d'entrega ni la ruta. A ", { to: "/contacts", label: "Contactes" }, ", a ", { to: "/user-contacts", label: "Punts d'entrega" }, " i a la importació de punts, el nom comercial és obligatori als punts d'entrega."]
     },
     {
