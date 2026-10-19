@@ -163,6 +163,23 @@ export function orderSaveProblem (form, { collectionPoints, collectionPickupRout
   return null;
 }
 
+// The field OrdersForm scrolls to for a problem from orderSaveProblem. Besides
+// boxes/kilograms and the collection fields, every check is about the delivery
+// point's data, which is edited from the delivery point field.
+export function orderProblemField (problem, form, isPickupPoint) {
+  if (problem === "Error. Els valors de caixes i kilos han de ser positius") {
+    if (isPickupPoint) return "lines";
+    return form.units <= 0 ? "units" : "kilograms";
+  }
+  if (problem === "Error. Has de seleccionar un punt de recollida en finca") {
+    return "collection_point";
+  }
+  if (problem === "Error. Has de seleccionar una ruta de recollida") {
+    return "collection_pickup_route";
+  }
+  return "contact";
+}
+
 // What the order form shows when saving fails: the backend's own message when
 // there is one (e.g. the next-day cutoff refusal), not just «Error» (issues/150).
 export function orderSaveErrorMessage (err) {

@@ -5,7 +5,7 @@
       <div class="columns">
         <div class="column is-full">
           <card-component class="tile is-child" :css="!modal ? 'card' : 'z'">
-            <form class="a-form point-form" @submit.prevent="submit" v-if="!isLoading">
+            <form ref="pointForm" class="a-form point-form" @submit.prevent="submit" v-if="!isLoading">
               <b-notification v-if="readOnly" type="is-warning" :closable="false" role="status">
                 Aquest punt d'entrega és d'una altra sòcia: el pots veure però no canviar. Si cal canviar-lo, demana-ho a l'oficina.
               </b-notification>
@@ -400,6 +400,7 @@ import { pick } from "lodash";
 import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
 import { memberMayEdit, townKey, driverLocksDiscount, driverLocksOwner } from "@/domain/contactAccess";
 import { TRADE_NAME_REQUIRED } from "@/domain/orderContacts";
+import { scrollToField } from "@/helpers/scrollToField.js";
 
 export default {
   name: "ContactUsersForm",
@@ -757,6 +758,7 @@ export default {
             type: "is-danger"
           });
           this.isLoading = false;
+          scrollToField(() => this.$refs.pointForm);
           return;
         }
 
@@ -777,6 +779,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
+            scrollToField(() => this.$refs.pointForm);
             return;
           }
           await service({ requiresAuth: true }).put(
@@ -812,6 +815,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
+            scrollToField(() => this.$refs.pointForm);
             return;
           }
 

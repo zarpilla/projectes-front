@@ -39,7 +39,7 @@
 
       <b-loading :is-full-page="false" :model-value="isLoading" />
 
-      <form v-if="!isLoading" class="order-layout" @submit.prevent="submit(false)">
+      <form v-if="!isLoading" ref="orderForm" class="order-layout" @submit.prevent="submit(false)">
         <div class="order-main">
           <!-- member -->
           <section class="a-box">
@@ -64,6 +64,7 @@
                 :label="isPickupPoint ? 'Punt de consum *' : 'Punt d’entrega *'"
                 :type="{ 'is-danger': errors['contact'] && submitted }"
                 class="full"
+                data-field="contact"
               >
                 <div class="field-stack">
                 <div class="contact-row">
@@ -172,7 +173,7 @@
 
               <!-- consumption point: one line per recipient -->
               <div v-if="isPickupPoint" class="full">
-                <b-field label="Línies *" :type="{ 'is-danger': errors['lines'] && submitted }" message="Una línia per cada destinatari">
+                <b-field label="Línies *" data-field="lines" :type="{ 'is-danger': errors['lines'] && submitted }" message="Una línia per cada destinatari">
                   <div class="table-container">
                     <table class="table is-fullwidth lines-table">
                       <thead><tr><th>Caixes</th><th>Kilograms</th><th>Nom</th><th>NIF</th><th></th></tr></thead>
@@ -195,10 +196,10 @@
               </div>
 
               <template v-else>
-                <b-field label="Número de caixes *" :type="{ 'is-danger': errors['units'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
+                <b-field label="Número de caixes *" data-field="units" :type="{ 'is-danger': errors['units'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
                   <b-input v-model="form.units" type="number" :disabled="!canEdit || form.is_collection_order" />
                 </b-field>
-                <b-field label="Kilograms *" :type="{ 'is-danger': errors['kilograms'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
+                <b-field label="Kilograms *" data-field="kilograms" :type="{ 'is-danger': errors['kilograms'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
                   <b-input v-model="form.kilograms" type="number" :disabled="!canEdit || form.is_collection_order" />
                 </b-field>
               </template>
@@ -237,7 +238,7 @@
                 </div>
               </b-field>
 
-              <b-field v-if="collectionPoints && collectionPoints.length > 0" label="Punt de recollida en finca *" class="full" :type="{ 'is-danger': errors['collection_point'] && submitted }" message="El punt concret de la finca on es recull">
+              <b-field v-if="collectionPoints && collectionPoints.length > 0" label="Punt de recollida en finca *" class="full" data-field="collection_point" :type="{ 'is-danger': errors['collection_point'] && submitted }" message="El punt concret de la finca on es recull">
                 <b-select v-model="form.collection_point" expanded :disabled="!canEdit || form.is_collection_order" @update:model-value="onCollectionPointChange">
                   <option v-for="cp in collectionPoints" :key="cp.id" :value="cp.id">{{ cp.name }}</option>
                 </b-select>
@@ -246,6 +247,7 @@
               <b-field
                 v-if="form.collection_point && collectionPickupRoutes.length > 0"
                 label="Ruta de recollida *"
+                data-field="collection_pickup_route"
                 :type="{ 'is-danger': errors['collection_pickup_route'] && submitted }"
                 message="Determina el dia de recollida a la finca."
               >
@@ -526,7 +528,8 @@ import service from "@/service/index";
 import { orderMembers } from "@/domain/routeAccess";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
-import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
+import { orderErrors, orderSaveProblem, orderProblemField, orderSaveErrorMessage } from "@/domain/orderValidation.js";
+import { scrollToField } from "@/helpers/scrollToField.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
 import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice, savesOperationsAtOnce } from "@/domain/orderPermissions.js";
 import { mapState } from "pinia"
@@ -981,6 +984,13 @@ export default {
     }
   },
   methods: {
+    // shows the field behind a save error (the one given, or the first marked)
+    scrollToField(field) {
+      scrollToField(
+        () => this.$refs && this.$refs.orderForm,
+        field && `[data-field="${field}"]`
+      );
+    },
     getClearFormObject() {
       return {
         collection_pickup_route: null,
@@ -1555,6 +1565,7 @@ export default {
             type: "is-danger"
           });
           this.isLoading = false;
+          this.scrollToField(orderProblemField(problem, this.form, this.isPickupPoint));
           return;
         }
 
@@ -1573,6 +1584,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
+            this.scrollToField();
             return;
           }
 
@@ -1588,6 +1600,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
+            this.scrollToField("collection_pickup_route");
             return;
           }
 
@@ -1661,6 +1674,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
+            this.scrollToField();
             return;
           }
 
@@ -1676,6 +1690,7 @@ export default {
               type: "is-danger"
             });
             this.isLoading = false;
+            this.scrollToField("collection_pickup_route");
             return;
           }
 
