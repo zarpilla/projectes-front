@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Millores",
+      modules: ["Informes", "Hores"],
+      text: ["A ", { to: "/stats-dedicacio", label: "Dedicació" }, " les persones que només tenen Hores hi veuen les seves hores, no les de tothom, igual que a Hores dedicades. Les persones de projectes continuen veient-les totes."]
+    },
+    {
       type: "Correccions",
       modules: ["Diners"],
       text: "Els pressupostos acceptats tornen a obrir-se: la fitxa es quedava en blanc quan el pressupost tenia data d'acceptació."
