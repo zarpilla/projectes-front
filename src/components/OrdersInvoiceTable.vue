@@ -9,7 +9,7 @@
         <b-button icon-left="download">Exporta</b-button>
       </download-excel>
       <b-button type="is-primary" icon-left="file-document-outline" :disabled="!projectId || !selectedGroups.length || importing" @click="invoiceSelection">
-        Factura la selecció{{ selectedOrders ? ` (${selectedOrders} comandes)` : "" }}
+        Factura la selecció{{ selectedOrders ? ` (${plural(selectedOrders, "comanda")})` : "" }}
       </b-button>
     </title-bar>
 
@@ -33,7 +33,7 @@
         <div class="doc-kpi">
           <span>Seleccionat</span>
           <b>{{ money(selectedAmount) }}</b>
-          <small>{{ selectedOrders }} comandes</small>
+          <small>{{ plural(selectedOrders, "comanda") }}</small>
         </div>
       </div>
 
@@ -157,6 +157,7 @@ import service from "@/service/index";
 import moment from "moment";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
+import { plural } from "@/helpers/catalan";
 import { groupOrders, quarterOf, quarterProject } from "@/domain/logisticsInvoicing.js";
 
 export default {
@@ -254,6 +255,7 @@ export default {
     await this.getData();
   },
   methods: {
+    plural,
     async getData() {
       this.isLoading = true;
       const [orders, contacts, projects] = await Promise.all([
@@ -328,7 +330,7 @@ export default {
       const invoices = groups.length === 1 ? `1 factura (a ${this.ownerName(groups[0])}, ${this.monthLabel(groups[0].month).toLowerCase()})` : `${groups.length} factures`;
       this.$buefy.dialog.confirm({
         title: "Facturar comandes",
-        message: `Es crearan ${invoices} en esborrany amb ${count} comandes per ${this.money(amount)}, al projecte <b>${this.projectName()}</b>. Vols continuar?`,
+        message: `Es crearan ${invoices} en esborrany amb ${plural(count, "comanda")} per ${this.money(amount)}, al projecte <b>${this.projectName()}</b>. Vols continuar?`,
         confirmText: "Factura",
         cancelText: "Cancel·la",
         onConfirm

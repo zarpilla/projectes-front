@@ -56,7 +56,7 @@
       <div class="inc-layout">
         <section class="a-box inc-list">
           <b-loading :is-full-page="false" :model-value="isLoading" />
-          <div class="table-container">
+          <div class="table-container inc-table-wrap">
             <table class="table is-fullwidth inc-table">
               <thead>
                 <tr>
@@ -101,13 +101,45 @@
               </tbody>
             </table>
           </div>
+          <!-- phones: one card per incidence, like Operacions; the table had its
+               description squeezed to nothing (issues/208) -->
+          <div class="inc-cards">
+            <article
+              v-for="inc in incidences"
+              :key="inc.id"
+              class="a-box inc-card"
+              :class="{ 'is-selected': selected && selected.id === inc.id }"
+              tabindex="0"
+              @click="openCard(inc.id)"
+              @keydown.enter="openCard(inc.id)"
+            >
+              <header class="inc-card-head">
+                <b>#{{ inc.id }}</b>
+                <span class="tag" :class="stateTag(inc.state)">{{ getStateLabel(inc.state) }}</span>
+              </header>
+              <p class="inc-card-text">{{ inc.description }}</p>
+              <small class="inc-card-meta">
+                {{ [inc.order && inc.order.contact_trade_name, ownerName(inc)].filter(Boolean).join(" · ") }}
+              </small>
+              <footer class="inc-card-foot">
+                <span>
+                  <router-link v-if="inc.order && inc.order.id" :to="{ name: 'orders.view.detail', params: { id: inc.order.id } }" @click.stop>Comanda #{{ inc.order.id }}</router-link>
+                  · {{ formatDate(createdOf(inc)) }}
+                </span>
+                <button v-if="canDelete(inc)" type="button" class="row-action" title="Elimina la incidència" aria-label="Elimina la incidència" @click.stop="deleteIncidence(inc)">
+                  <b-icon icon="delete-outline" size="is-small" />
+                </button>
+              </footer>
+            </article>
+            <p v-if="!isLoading && !incidences.length" class="box-empty">No hi ha incidències amb aquests filtres.</p>
+          </div>
           <footer class="inc-foot">
             <span>{{ total }} {{ total === 1 ? "incidència" : "incidències" }}</span>
             <b-pagination v-if="total > perPage" v-model="page" :total="total" :per-page="perPage" size="is-small" order="is-right" @change="onPageChange" />
           </footer>
         </section>
 
-        <aside class="a-box inc-detail">
+        <aside ref="detail" class="a-box inc-detail">
           <template v-if="selected">
             <header class="box-head">
               <h2>Incidència #{{ selected.id }}</h2>
@@ -274,6 +306,13 @@ export default {
       } catch (error) {
         this.$buefy.toast.open({ message: "Error carregant la incidència", type: "is-danger" });
       }
+    },
+    // a card opens its incidence and brings the detail, under the list, into view
+    async openCard(id) {
+      await this.select(id);
+      await this.$nextTick();
+      const detail = this.$refs.detail;
+      if (detail && detail.scrollIntoView) detail.scrollIntoView({ behavior: "smooth", block: "start" });
     },
     async refreshSelected() {
       if (this.selected) await this.select(this.selected.id);
@@ -764,6 +803,42 @@ export default {
   position: sticky;
   top: 1rem;
 }
+.inc-cards {
+  display: none;
+}
+.inc-card {
+  display: flex;
+  flex-direction: column;
+  gap: .375rem;
+  margin: .75rem;
+  cursor: pointer;
+}
+.inc-card.is-selected {
+  background: var(--a-accent-soft);
+}
+.inc-card-head,
+.inc-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+.inc-card-head b {
+  color: var(--a-fg);
+}
+.inc-card-text {
+  color: var(--a-fg);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.inc-card-meta,
+.inc-card-foot {
+  font-size: .8125rem;
+  color: var(--a-muted);
+}
+.inc-card-foot .row-action {
+  margin-top: 0;
+}
 .order-tag {
   margin-left: .5rem;
 }
@@ -808,6 +883,14 @@ export default {
   flex-wrap: wrap;
   gap: .5rem;
   margin-top: .75rem;
+}
+@media screen and (max-width: 768px) {
+  .inc-table-wrap {
+    display: none;
+  }
+  .inc-cards {
+    display: block;
+  }
 }
 @media screen and (max-width: 1215px) {
   .inc-layout {
