@@ -2264,6 +2264,24 @@ export default {
 .project-form-phases .subphases-list .table td.col-price .input {
   min-width: 5.5rem;
 }
+/* laptops (1440 with the menu collapsed): tighter cells so the whole line fits,
+   actions and document included, without scrolling sideways */
+@media screen and (min-width: 1024px) and (max-width: 1919px) {
+  .project-form-phases .subphases-list .table td,
+  .project-form-phases .subphases-list .table th {
+    padding-left: .25rem;
+    padding-right: .25rem;
+  }
+  .project-form-phases .subphases-list .table td.col-type .select select {
+    min-width: 8.25rem;
+  }
+  .project-form-phases .subphases-list .table .datepicker .control.has-icons-left .input {
+    min-width: 6rem;
+  }
+  .project-form-phases .subphases-list .table .button.line-action.ml-2 {
+    margin-left: .25rem !important;
+  }
+}
 .warning-tag {
   padding-left: 0.5rem;
 }
