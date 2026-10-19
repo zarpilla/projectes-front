@@ -24,6 +24,31 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["La fitxa de comanda ja no es queda en blanc quan algun punt d'entrega no té nom comercial (surt amb el seu nom), i obrir una comanda pendent i desar-la sense tocar res ja no en canvia la data prevista d'entrega ni la ruta. A ", { to: "/contacts", label: "Contactes" }, ", a ", { to: "/user-contacts", label: "Punts d'entrega" }, " i a la importació de punts, el nom comercial és obligatori als punts d'entrega."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: "Les comandes noves es creen sempre com a pendents, també les importades, i la tarifa de la ruta es comprova sempre. Les repartidores que canvien l'estat d'una comanda (per exemple «Lliurada») o la data de lliurament des de la fitxa ho veuen desat a l'acte, com a Operacions; abans el canvi es perdia sense avís. Quan s'anul·la l'última comanda que quedava en una comanda de recollida, la comanda de recollida també s'anul·la."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: "Les sòcies veuen tots els punts d'entrega per fer-hi comandes, i només modifiquen els seus i els compartits. Un contacte nou d'una sòcia queda lligat a ella, no a una altra persona."
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores", "Diners"],
+      text: ["A ", { to: "/salary", label: "Bestretes" }, ", Saldo d'hores i Hores anuals, canviar ràpidament de persona i d'any ja no pot sumar dues càrregues (sortien hores dobles); a Bestretes, sense persona o sense any ja no es queda carregant."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["A ", { to: "/vat", label: "IVA" }, " i a Tresoreria, l'IVA previst fa servir el % d'IVA deduïble de cada any (Taules auxiliars › Anys), igual que l'executat i la Previsió econòmica; el de Configuració només quan l'any no en té. «Trimestres previstos» mostra el % de cada trimestre."]
+    },
+    {
       type: "Millores",
       modules: ["Projectes"],
       text: "Al Gantt dels projectes, les caselles «Només fases» i «Línies d'ingrés» es recorden en aquest navegador: el proper projecte que obris es veu igual. «Línies d'ingrés» comença com diu el teu perfil fins que la canviïs des del Gantt. A més, canviar «Línies d'ingrés» ja no torna a desplegar les fases si tens marcat «Només fases»."
