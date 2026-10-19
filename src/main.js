@@ -32,6 +32,7 @@ import DownloadExcel from '@/components/DownloadExcel.vue'
 
 import { guardBuefyMessages } from '@/helpers/safeHtml'
 import { buefyConfig } from '@/helpers/buefyConfig'
+import { installChunkReload } from '@/service/chunkReload'
 
 /* Light / dark mode */
 import { applyTheme, watchSystemTheme } from '@/service/theme'
@@ -42,6 +43,9 @@ watchSystemTheme()
 const defaultDocumentTitle = 'ESSTRAPIS'
 
 window.$ = window.jQuery = jQuery
+
+/* Reload instead of failing when an old tab asks for chunks a deploy removed */
+installChunkReload()
 
 /* Collapse mobile aside menu on route change & set document title from route meta */
 router.beforeEach((to, from, next)  => {
