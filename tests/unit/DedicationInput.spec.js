@@ -92,6 +92,25 @@ describe('DedicationInput', () => {
     expect(urls[0]).not.toContain('users_permissions_user')
   })
 
+  // a change while the hours were loading was dropped: emptying the person (→
+  // «Totes») kept the previous person's hours, and the next month showed none
+  it('loads again when the person changes while loading', async () => {
+    let release
+    get.mockImplementation(url => url.startsWith('activities/calendar') && !release
+      ? new Promise(resolve => { release = () => resolve({ data: activities }) })
+      : Promise.resolve({ data: url.startsWith('activities/calendar') ? activities : [] }))
+    const w = await mountInput()
+    await w.setProps({ user: 0 })
+    release()
+    await flushPromises()
+    await vi.waitFor(() => expect(get.mock.calls.map(c => c[0]).filter(u => u.startsWith('activities/calendar'))).toHaveLength(2))
+    const urls = get.mock.calls.map(c => c[0]).filter(u => u.startsWith('activities/calendar'))
+    expect(urls[0]).toContain('[users_permissions_user.id]=5')
+    expect(urls[1]).not.toContain('users_permissions_user')
+    expect(w.vm.isLoading).toBe(false)
+    get.mockImplementation(async url => ({ data: url.startsWith('activities/calendar') ? activities : [] }))
+  })
+
   // issues/062: hours without a project were dropped from the calendar, the
   // day and week sums and the total (Laia Puig, Oct 2025: 7 h shown, 9 h logged)
   it('counts hours without a project, under «Sense projecte»', async () => {
