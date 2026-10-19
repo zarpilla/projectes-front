@@ -2,6 +2,12 @@
 # Deploy a frontend image to every site on the VPS.
 #
 #   ./deploy.sh v5-vue3-<40-hex sha> [site ...]     e.g. ./deploy.sh v5-vue3-a70bdd5... demo
+#   ./deploy.sh redesign-<40-hex sha> site ...      a build of the redesign branch
+#
+# Pinned sites (pinned.conf: <site> <tag>) are on a redesign build: a deploy
+# without a site list skips them. Deploying redesign-<sha> to a site pins it,
+# deploying a v5-vue3-<sha> to it by name unpins it (back to master). The canary
+# can't be pinned. Pair it with the backend: the same tenants on esstrapis-back:redesign-<sha>.
 #
 # Each site runs its own container from <compose dir>/docker-compose.yml (nginx
 # serving the built app under /stats/). Per site: pin the compose file to the new
@@ -23,7 +29,7 @@ LOG=deploy.log
 
 if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then read -r -a ARGS <<<"$SSH_ORIGINAL_COMMAND"; else ARGS=("$@"); fi
 TAG="${ARGS[0]:-}"
-[[ "$TAG" =~ ^v5-vue3-[0-9a-f]{40}$ ]] || { echo "Usage: deploy.sh v5-vue3-<40-hex sha> [site ...]"; exit 2; }
+[[ "$TAG" =~ ^(v5-vue3|redesign)-[0-9a-f]{40}$ ]] || { echo "Usage: deploy.sh v5-vue3-<40-hex sha> [site ...] | redesign-<40-hex sha> site ..."; exit 2; }
 
 # sites.conf: <name> <compose dir>
 declare -A DIR
@@ -35,6 +41,18 @@ done < sites.conf
 ONLY=("${ARGS[@]:1}")
 for s in "${ONLY[@]}"; do [ -n "${DIR[$s]:-}" ] || { echo "Unknown site: $s"; exit 2; }; done
 
+declare -A PINNED
+if [ -f pinned.conf ]; then
+  while read -r name tag _; do
+    [[ -z "$name" || "$name" == \#* ]] && continue
+    PINNED[$name]=$tag
+  done < pinned.conf
+fi
+if [[ "$TAG" == redesign-* ]]; then
+  [ ${#ONLY[@]} -gt 0 ] || { echo "A redesign build goes only to the sites you name"; exit 2; }
+  for s in "${ONLY[@]}"; do [ "$s" != "$CANARY" ] || { echo "The canary ($CANARY) can't be pinned to a redesign build"; exit 2; }; done
+fi
+
 exec 9>.deploy.lock
 flock -n 9 || { echo "Another deploy is running"; exit 3; }
 # Finish (or roll back) even if the SSH session that started us goes away.
@@ -45,9 +63,10 @@ if [ ${#ONLY[@]} -gt 0 ]; then ORDER=("${ONLY[@]}")
 else
   ORDER=()
   [ -n "${DIR[$CANARY]:-}" ] && ORDER+=("$CANARY")
-  for s in "${ALL[@]}"; do [ "$s" = "$CANARY" ] || ORDER+=("$s"); done
+  for s in "${ALL[@]}"; do [ "$s" = "$CANARY" ] || [ -n "${PINNED[$s]:-}" ] || ORDER+=("$s"); done
 fi
 echo "=== $(date -Is) deploy $TAG to ${ORDER[*]}"
+[ ${#ONLY[@]} -gt 0 ] || [ ${#PINNED[@]} -eq 0 ] || echo "--- skipping pinned sites: ${!PINNED[*]}"
 
 compose_tag() { sed -n "s#^\s*image:\s*$IMAGE:\(\S*\)\s*\$#\1#p" "$1/docker-compose.yml" | head -1; }
 set_tag() { sed -i "s#^\(\s*image:\s*$IMAGE:\)\S*\s*\$#\1$2#" "$1/docker-compose.yml"; }
@@ -108,6 +127,14 @@ for s in "${ALL[@]}"; do
   HEALTH_TIMEOUT=30 healthy "$s" >/dev/null || DOWN+=("$s")
 done
 [ ${#DOWN[@]} -eq 0 ] || { echo "!!  not serving after the deploy: ${DOWN[*]}"; exit 1; }
+
+if [ ${#ONLY[@]} -gt 0 ]; then
+  for s in "${ONLY[@]}"; do
+    if [[ "$TAG" == redesign-* ]]; then PINNED[$s]=$TAG; else unset "PINNED[$s]"; fi
+  done
+  { echo "# <site> <tag>: on a redesign build, skipped by deploys to every site (written by deploy.sh)"
+    for s in "${!PINNED[@]}"; do echo "$s ${PINNED[$s]}"; done; } > pinned.conf.new && mv pinned.conf.new pinned.conf
+fi
 
 # Keep the images some site still uses and the one just deployed; drop the rest.
 IN_USE=" $IMAGE:$TAG "
