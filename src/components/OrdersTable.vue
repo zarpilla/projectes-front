@@ -400,6 +400,7 @@
 
 <script>
 import service from "@/service/index";
+import { orderMembers } from "@/domain/routeAccess";
 import { parse } from "csv-parse/browser/esm";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -1569,12 +1570,8 @@ export default {
         )
       ).data;
 
-      this.users = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "users?_limit=-1"
-        )
-      ).data.filter(u =>
-        u.permissions.map(p => p.permission).includes("orders")
+      this.users = orderMembers(
+        (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data
       );
 
       if (me.data.permissions.map(p => p.permission).includes("orders_admin") || me.data.permissions.map(p => p.permission).includes("orders_delivery")) {

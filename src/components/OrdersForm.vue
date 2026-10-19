@@ -524,6 +524,7 @@
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
+import { orderMembers } from "@/domain/routeAccess";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
@@ -1269,12 +1270,8 @@ export default {
         this.routes = this.allRoutes.filter(r => r.active);
       }
 
-      const users = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "users?_limit=-1"
-        )
-      ).data.filter(u =>
-        u.permissions.map(p => p.permission).includes("orders")
+      const users = orderMembers(
+        (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data
       );
 
       const me = await service({ requiresAuth: true, cached: true }).get(

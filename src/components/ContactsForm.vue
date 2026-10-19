@@ -420,6 +420,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import ModalBoxDir3 from "@/components/ModalBoxDir3.vue";
 import service from "@/service/index";
+import { orderMembers } from "@/domain/routeAccess";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { mapState } from "pinia"
@@ -663,9 +664,7 @@ export default {
       ).data;
       const users = (await service({ requiresAuth: true }).get("users")).data;
 
-      this.usersWithOrdersPermissions = users.filter(u =>
-        u.permissions.map(p => p.permission).includes("orders")
-      );
+      this.usersWithOrdersPermissions = orderMembers(users);
       this.usersWithOrdersPermissions = concat(
         { id: this.me.id, username: "TOTES" },
         this.usersWithOrdersPermissions

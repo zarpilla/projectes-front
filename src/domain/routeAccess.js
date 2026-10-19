@@ -104,6 +104,16 @@ export function routePermissions (record, params = {}) {
 export const userPermissions = user =>
   ((user && user.permissions) || []).map(p => (p && typeof p === 'object' ? p.permission : p)).filter(Boolean)
 
+/**
+ * The members (`orders`) of a `GET /users` list. The API hands a member the
+ * other users without their permissions (issues/165), and reading
+ * `u.permissions.map` crashed Comandes, the order form, Punts d'entrega and
+ * Contacta for members (issues/184): users whose permissions didn't come stay,
+ * the member screens narrow the list to the member herself anyway.
+ */
+export const orderMembers = users =>
+  (users || []).filter(u => !Array.isArray(u.permissions) || userPermissions(u).includes('orders'))
+
 /** Whether a user with these permissions may open every matched record of a route. */
 export function canOpen (matched, permissions, params = {}) {
   return (matched || []).every(record => {

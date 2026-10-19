@@ -42,6 +42,7 @@
 import TitleBar from "@/components/TitleBar.vue";
 import CardComponent from "@/components/CardComponent.vue";
 import service from "@/service/index";
+import { orderMembers } from "@/domain/routeAccess";
 import { richText, sanitizeHtml } from "@/helpers/safeHtml";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -97,12 +98,8 @@ export default {
 
       this.form.user = me.data.id;
 
-      this.users = (
-        await service({ requiresAuth: true, cached: true }).get(
-          "users?_limit=-1"
-        )
-      ).data.filter(u =>
-        u.permissions.map(p => p.permission).includes("orders")
+      this.users = orderMembers(
+        (await service({ requiresAuth: true, cached: true }).get("users?_limit=-1")).data
       );
 
       this.form.email = me.data.email;
