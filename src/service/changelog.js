@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["A ", { to: "/orders", label: "Comandes" }, ", si una comanda de la selecció no es pot canviar d'estat, l'aplicació ho diu i continua amb les altres en lloc de quedar-se carregant. Les repartidores ja no veuen accions que no poden fer (canviar o anul·lar comandes facturades) ni el missatge per a les sòcies a les comandes processades, i a ", { to: "/user-contacts", label: "Punts d'entrega" }, " el descompte per recollida i la sòcia d'un punt els canvia l'oficina. Les incidències es queden a la seva comanda, i qui les obre i les tanca ho apunta l'aplicació."]
+    },
+    {
       type: "Millores",
       modules: ["Informes", "Hores"],
       text: ["A ", { to: "/stats-dedicacio", label: "Dedicació" }, " les persones que només tenen Hores hi veuen les seves hores, no les de tothom, igual que a Hores dedicades. Les persones de projectes continuen veient-les totes."]

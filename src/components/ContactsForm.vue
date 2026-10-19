@@ -261,6 +261,7 @@
                 <b-select
                   v-model="form.owner"
                   placeholder=""
+                  :disabled="ownerLocked"
                   @update:model-value="onOwnerChanged"
                 >
                   <option
@@ -429,6 +430,7 @@ import { contactDatesForPickers } from "@/domain/contactDates";
 import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
 import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
+import { driverLocksOwner } from "@/domain/contactAccess";
 
 export default {
   name: "ContactsForm",
@@ -465,6 +467,10 @@ export default {
     };
   },
   computed: {
+    // a driver leaves the owner of a point to the office (issues/191)
+    ownerLocked() {
+      return driverLocksOwner(this.permissions, this.form);
+    },
     // a Spanish postcode needs its 5 digits (issues/179)
     postcodeError() {
       return !!this.form.postcode && postcodeInvalid(this.form.postcode, this.form.country);
