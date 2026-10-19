@@ -199,7 +199,7 @@
           <!-- <pre>{{form}}</pre> -->
           <div v-if="entity === 'emitted-invoice' && form.state === 'real'" class="notification is-info lock-note">
             <b-icon icon="lock-outline" custom-size="default" />
-            <span><b>Factura emesa:</b> la clienta, la sèrie, les dates, el mètode de cobrament, les línies i les notes visibles ja no es poden canviar. Per corregir-les, anul·la-la i crea'n una de rectificativa.</span>
+            <span><b>Factura emesa:</b> la clienta, la sèrie, les dates, les línies i les notes visibles ja no es poden canviar. Per corregir-les, anul·la-la i crea'n una de rectificativa. El mètode de cobrament sí que es pot canviar, per exemple si el cobrament arriba a un altre compte.</span>
           </div>
           <div class="doc-layout">
           <div class="doc-main">
@@ -222,7 +222,23 @@
               <div class="ro-item"><span class="ro-label">Número</span><span class="ro-value">{{ form.code || "—" }}</span></div>
               <div class="ro-item"><span class="ro-label">Emissió</span><span class="ro-value">{{ formatDate(form.emitted) }}</span></div>
               <div class="ro-item"><span class="ro-label">Venciment</span><span class="ro-value">{{ formatDate(form.paybefore) }}</span></div>
-              <div class="ro-item"><span class="ro-label">Mètode de cobrament</span><span class="ro-value">{{ paymentMethodName || "—" }}</span></div>
+              <!-- issues/199: the payment method of an issued invoice can still change -->
+              <div v-if="canChangePaymentMethod" class="ro-item">
+                <label class="ro-label" for="ro-payment-method">Mètode de cobrament</label>
+                <div class="ro-payment-method">
+                  <b-select id="ro-payment-method" v-model="newPaymentMethod" size="is-small" :disabled="savingPaymentMethod">
+                    <option v-for="m in paymentMethods" :key="m.id" :value="m.id">{{ m.name }}</option>
+                  </b-select>
+                  <b-button
+                    v-if="newPaymentMethod && newPaymentMethod !== paymentMethodId"
+                    size="is-small"
+                    type="is-primary"
+                    :loading="savingPaymentMethod"
+                    @click="savePaymentMethod"
+                  >Canvia</b-button>
+                </div>
+              </div>
+              <div v-else class="ro-item"><span class="ro-label">Mètode de cobrament</span><span class="ro-value">{{ paymentMethodName || "—" }}</span></div>
             </div>
             <!-- PDF invoice parser (Z.ai): for new received invoices/expenses -->
             <b-field
@@ -1064,6 +1080,7 @@ import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
 import { documentDatesForPickers } from "@/domain/documentDates.js";
+import { budgetLineTotal } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -1164,6 +1181,8 @@ export default {
         .add(4, "day")
         .toDate(),
       canEditDraft: false,
+      newPaymentMethod: null,
+      savingPaymentMethod: false,
       options: null,
       user: null,
       // Pagination for large lists
@@ -1392,10 +1411,17 @@ export default {
       const serie = (this.series || []).find(s => s.id === this.form.serial);
       return serie ? serie.name : "";
     },
+    paymentMethodId() {
+      return this.form.payment_method && this.form.payment_method.id ? this.form.payment_method.id : this.form.payment_method;
+    },
     paymentMethodName() {
-      const id = this.form.payment_method && this.form.payment_method.id ? this.form.payment_method.id : this.form.payment_method;
-      const method = (this.paymentMethods || []).find(m => m.id === id);
+      const method = (this.paymentMethods || []).find(m => m.id === this.paymentMethodId);
       return method ? method.name : "";
+    },
+    // issued invoices: PUT /emitted-invoices/:id/payment-method, same audience
+    // as the invoices themselves (projects/admin) (issues/199)
+    canChangePaymentMethod() {
+      return this.entity === "emitted-invoice" && this.form.state === "real" && !!this.form.id && this.canSeeHistory;
     },
     contactDetails() {
       const c = this.contact || {};
@@ -1458,6 +1484,12 @@ export default {
           this.calculateDocumentWarnings();
         });
       }
+    },
+    paymentMethodId: {
+      immediate: true,
+      handler(id) {
+        this.newPaymentMethod = id || null;
+      }
     }
   },
   created() {
@@ -1467,6 +1499,27 @@ export default {
     this.getData();
   },
   methods: {
+    // issues/199: only the payment method (and its bank account) change; the
+    // backend records it in the history
+    async savePaymentMethod() {
+      this.savingPaymentMethod = true;
+      try {
+        const { data } = await service({ requiresAuth: true }).put(
+          `/emitted-invoices/${this.form.id}/payment-method`,
+          { payment_method: this.newPaymentMethod }
+        );
+        this.form.payment_method = data && data.payment_method ? data.payment_method.id : this.newPaymentMethod;
+        this.form.bank_account = data ? data.bank_account || null : this.form.bank_account;
+        this.historyKey++;
+        this.$buefy.snackbar.open({ message: "Mètode de cobrament canviat", queue: false });
+      } catch (err) {
+        console.error(err);
+        this.newPaymentMethod = this.paymentMethodId || null;
+        this.$buefy.snackbar.open({ message: "No s'ha pogut canviar el mètode de cobrament", type: "is-danger", queue: false });
+      } finally {
+        this.savingPaymentMethod = false;
+      }
+    },
     formatMoney,
     formatDate(date) {
       return date ? moment(date).format("DD/MM/YYYY") : "—";
@@ -2189,7 +2242,7 @@ export default {
               }
 
               if (isMatched) {
-                const lineTotal = (income.quantity || 0) * (income.amount || 0);
+                const lineTotal = budgetLineTotal(income);
                 totalAssignedIncomes += lineTotal;
                 matchedIncomeLines.push({
                   projectId: project.id,
@@ -2236,8 +2289,7 @@ export default {
               }
 
               if (isMatched) {
-                const lineTotal =
-                  (expense.quantity || 0) * (expense.amount || 0);
+                const lineTotal = budgetLineTotal(expense);
                 totalAssignedExpenses += lineTotal;
                 matchedExpenseLines.push({
                   projectId: project.id,
@@ -3186,6 +3238,12 @@ export default {
 }
 .ro-item.is-full {
   grid-column: 1 / -1;
+}
+.ro-payment-method {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
 }
 .ro-draft-note {
   margin: 0;

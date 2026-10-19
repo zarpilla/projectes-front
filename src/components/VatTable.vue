@@ -19,7 +19,7 @@
         <div class="doc-kpi">
           <span>IVA repercutit</span>
           <b>{{ formatMoney(vat.received) }}</b>
-          <small>de factures cobrades</small>
+          <small>de factures emeses i ingressos</small>
         </div>
         <div class="doc-kpi">
           <span>Saldo previst</span>
@@ -50,7 +50,7 @@
             </b-button>
           </div>
         </header>
-        <p class="box-hint"><b>Executat:</b> IVA de factures i documents ja pagats o cobrats, encara pendent de saldar amb Hisenda. <b>Previst:</b> IVA estimat de les despeses i els ingressos previstos als projectes (factures encara no emeses ni rebudes).</p>
+        <p class="box-hint"><b>Executat:</b> IVA de factures i documents emesos o rebuts (cobrats o no), encara pendent de saldar amb Hisenda. <b>Previst:</b> IVA estimat de les despeses i els ingressos previstos als projectes (factures encara no emeses ni rebudes).</p>
         <p class="box-hint">Marca els documents a «Documents pendents» i tria la data del pagament per saldar-los.</p>
         <div class="table-wrap">
           <table class="table vat-pending">
@@ -99,7 +99,7 @@
     </div>
 
     <section v-show="vatView === 'documents'" class="a-box list-box">
-      <p class="box-hint list-hint">Factures i documents ja pagats o cobrats amb l'IVA pendent de saldar amb Hisenda: és l'apartat «Executat».</p>
+      <p class="box-hint list-hint">Factures i documents emesos o rebuts amb l'IVA pendent de saldar amb Hisenda, cobrats o no: és l'apartat «Executat».</p>
       <b-table
         :loading="isLoading"
         :paginated="false"
@@ -127,14 +127,16 @@
         <b-table-column sortable searchable label="Trimestre" field="quarter" v-slot="props">
           {{ props.row.quarter }}
         </b-table-column>
-        <b-table-column sortable searchable label="Base" numeric field="total" v-slot="props" class="has-text-right">
-          {{ formatPrice(props.row.total) }} €
+        <b-table-column sortable searchable label="Base" numeric field="base" v-slot="props" class="has-text-right">
+          {{ formatPrice(props.row.base) }} €
         </b-table-column>
         <b-table-column sortable searchable label="IVA" numeric field="total_vat" v-slot="props" class="has-text-right">
           {{ formatPrice(props.row.total_vat) }} €
         </b-table-column>
+        <!-- only supported VAT is deductible (issues/209) -->
         <b-table-column sortable searchable label="Deduïble" numeric field="theoretical_deductible_vat_pct" v-slot="props" class="has-text-right">
-          {{ pct(props.row.theoretical_deductible_vat_pct) }}
+          <template v-if="props.row.supported">{{ pct(props.row.theoretical_deductible_vat_pct) }}</template>
+          <span v-else class="has-text-grey-light">—</span>
         </b-table-column>
       </b-table>
       <dl v-if="filteredDocuments.length > 0" class="vat-totals">
@@ -170,7 +172,7 @@
           {{ pct(props.row.deductible_pct) }}
         </b-table-column>
         <b-table-column label="IVA deduïble" numeric v-slot="props" class="has-text-right">
-          {{ formatPrice(props.row.deductible_vat) }} €
+          {{ formatPrice(props.row.deductible_paid) }} €
         </b-table-column>
         <b-table-column label="Saldo del trimestre" numeric v-slot="props" class="has-text-right">
           <span :class="props.row.quarterBalance < 0 ? 'has-text-danger' : 'has-text-success'">
@@ -435,12 +437,17 @@ export default {
         const typeLabel = this.getTypeLabel(doc.type);
         const year = moment(doc.date, 'YYYY-MM-DD').format("YYYY");
         const quarter = `T${moment(doc.date, 'YYYY-MM-DD').format("Q")}`;
-        
+        // issues/209: `total` is the document total with VAT
+        const base = doc.total_base != null ? doc.total_base : (doc.total || 0) - (doc.total_vat || 0);
+        const supported = doc.type === 'received-invoices' || doc.type === 'received-expenses';
+
         return {
           ...doc,
           typeLabel,
           year,
-          quarter
+          quarter,
+          base,
+          supported
         };
       });
     },
@@ -461,7 +468,7 @@ export default {
     totalBaseSuportat() {
       return this.filteredDocuments.reduce((sum, doc) => {
         if (doc.type === 'received-invoices' || doc.type === 'received-expenses') {
-          return sum + (doc.total || 0);
+          return sum + (doc.base || 0);
         }
         return sum;
       }, 0);
@@ -469,7 +476,7 @@ export default {
     totalBaseRepercutit() {
       return this.filteredDocuments.reduce((sum, doc) => {
         if (doc.type === 'emitted-invoices' || doc.type === 'received-incomes') {
-          return sum + (doc.total || 0);
+          return sum + (doc.base || 0);
         }
         return sum;
       }, 0);
@@ -608,6 +615,7 @@ export default {
           quarter: qData.quarter,
           received: qData.received,
           paid: qData.paid,
+          deductible_paid: qData.deductible_paid,
           deductible_vat: qData.deductible_vat,
           deductible_pct: avgDeductiblePct,
           quarterBalance: quarterBalance,

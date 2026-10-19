@@ -29,6 +29,41 @@ export const CHANGELOG = [
       text: ["A ", { to: "/orders", label: "Comandes" }, ", si una comanda de la selecció no es pot canviar d'estat, l'aplicació ho diu i continua amb les altres en lloc de quedar-se carregant. Les repartidores ja no veuen accions que no poden fer (canviar o anul·lar comandes facturades) ni el missatge per a les sòcies a les comandes processades, i a ", { to: "/user-contacts", label: "Punts d'entrega" }, " el descompte per recollida i la sòcia d'un punt els canvia l'oficina. Les incidències es queden a la seva comanda, i qui les obre i les tanca ho apunta l'aplicació."]
     },
     {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["A ", { to: "/vat", label: "IVA" }, " l'IVA de les despeses rebudes compta com a suportat (sortia com a repercutit), i les xifres de dalt sumen el mateix que «Trimestres executats». La columna «Base» dels documents pendents mostra la base (no el total amb IVA), «IVA deduïble» mostra l'IVA que es pot deduir (no el saldo del trimestre) i el % deduïble només surt als documents rebuts."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Diners"],
+      text: "A les factures emeses ja es pot canviar el mètode de cobrament, per exemple si el cobrament arriba a un altre compte: es tria a la fitxa de la factura i queda a l'Historial. La resta de dades continuen bloquejades."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes", "Diners"],
+      text: "Les línies de pressupost dels projectes guarden la quantitat i el preu amb fins a 4 decimals (0,0357 es desava com 0,04), i el total de cada línia és quantitat × preu arrodonit al cèntim a tot arreu: a la línia, al Resum, a la tresoreria del projecte i als informes. Les línies antigues on el total desat no quadrava s'han corregit."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "Les línies del pressupost original sense data ja compten als totals «Original» del projecte."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes", "Diners"],
+      text: "A «Tresoreria del projecte», les anotacions de tresoreria negatives surten a Pagaments (no a Cobraments) i, quan la seva data ja ha passat, compten com a pagades o cobrades, igual que a Tresoreria."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "A la taula dinàmica de Tresoreria, «Resultat» ja no compta els ajustos de saldo real: coincideix amb la taula mensual."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Els PDF de factures i pressupostos mantenen els accents quan el text porta un apòstrof tipogràfic (’), cometes “ ” o guions llargs, com passa sovint en copiar d'un processador de textos."
+    },
+    {
       type: "Millores",
       modules: ["Informes", "Hores"],
       text: ["A ", { to: "/stats-dedicacio", label: "Dedicació" }, " les persones que només tenen Hores hi veuen les seves hores, no les de tothom, igual que a Hores dedicades. Les persones de projectes continuen veient-les totes."]

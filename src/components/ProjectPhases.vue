@@ -179,11 +179,7 @@
               <b-field class="medium-field">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="
-                      props.row.quantity * props.row.amount
-                        ? props.row.quantity * props.row.amount
-                        : 0
-                    "
+                    :value="budgetLineTotal(props.row)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -524,7 +520,7 @@
               <b-field class="medium-field">
                 <div class="readonly subphase-detail-input">
                   <money-format
-                    :value="props.row.quantity * props.row.amount"
+                    :value="budgetLineTotal(props.row)"
                     :locale="'es'"
                     :currency-code="'EUR'"
                     :subunits-value="false"
@@ -804,6 +800,7 @@ import ModalBoxSplit from "@/components/ModalBoxSplit.vue";
 import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
+import { budgetLineTotal, budgetLineValue } from "@/domain/budgetLines.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -1195,6 +1192,7 @@ export default {
     this.isLoading = false;
   },
   methods: {
+    budgetLineTotal,
     formatMoney,
     sign,
     phaseKey(phase, index) {
@@ -1272,16 +1270,17 @@ export default {
     },
     changeSubPhase(subphase, field, value) {
       subphase.dirty = true;
-      if (value && value.toString().includes(",")) {
-        subphase[field] = value.toString().replace(",", ".");        
-      }
+      // quantity / price: decimal comma, at most 4 decimals as the API stores
+      // them (issues/194)
+      const stored = budgetLineValue(value);
+      if (stored !== value) subphase[field] = stored;
       this.phases = this.phases.map(r => {
         return {
           ...r,
           opened: true,
           total_amount:
-            sumBy(r.incomes, x => x.quantity * x.amount) -
-            sumBy(r.expenses, x => x.quantity * x.amount)
+            sumBy(r.incomes, budgetLineTotal) -
+            sumBy(r.expenses, budgetLineTotal)
         };
       });
       // Update warning fields only in assignment mode
@@ -1329,10 +1328,10 @@ export default {
       });
     },
     subTotalIncomes(phase) {
-      return sumBy(phase.incomes, x => x.quantity * x.amount);
+      return sumBy(phase.incomes, budgetLineTotal);
     },
     subTotalExpenses(phase) {
-      return sumBy(phase.expenses, x => x.quantity * x.amount);
+      return sumBy(phase.expenses, budgetLineTotal);
     },
     copyPhase(i) {
       this.$emit("phases-copy", { index: i });
@@ -1914,7 +1913,7 @@ export default {
       }
       // Fallback to old calculation if warning field not set
       return document
-        ? document.total_base !== subphase.quantity * subphase.amount
+        ? document.total_base !== budgetLineTotal(subphase)
         : false;
     },
     calculateDocumentTotal(documentId, documentType, lineType) {
@@ -1926,7 +1925,7 @@ export default {
         lines.forEach((line, lineIndex) => {
           const doc = line[documentType];
           if (doc && doc.id === documentId) {
-            const lineTotal = (line.quantity || 0) * (line.amount || 0);
+            const lineTotal = budgetLineTotal(line);
             total += lineTotal;
             matchCount++;
           }
@@ -1988,7 +1987,7 @@ export default {
             }
             
             if (isMatched) {
-              const lineTotal = (income.quantity || 0) * (income.amount || 0);
+              const lineTotal = budgetLineTotal(income);
               totalAssigned += lineTotal;
               matchedLines.push({ concept: income.concept, quantity: income.quantity, amount: income.amount, lineTotal });
             }
@@ -2058,7 +2057,7 @@ export default {
             }
             
             if (isMatched) {
-              const lineTotal = (expense.quantity || 0) * (expense.amount || 0);
+              const lineTotal = budgetLineTotal(expense);
               totalAssigned += lineTotal;
               matchedLines.push({ concept: expense.concept, quantity: expense.quantity, amount: expense.amount, lineTotal });
             }
