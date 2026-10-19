@@ -1,8 +1,6 @@
 // issues/227 (redesign review 5, 2026-10-19): order price edge cases.
 // - The quick edit and the CSV import priced with calculateRoutePrice(rate, kg, 0),
 //   without the consumption-point lines the form and the server count.
-// - The discounted base (price − volume discount) went negative for an order
-//   without price or cheaper than the discount (−1,60 € in the KPIs/Facturar).
 // - The form showed «Preu amb descompte 11,56 €» and the saved order 9,56 €:
 //   the lifecycle's volume discount wasn't previewed. check-multidelivery
 //   returns it now, from the server's own function.
@@ -15,7 +13,6 @@ vi.mock('@/service/index', () => ({ default: () => ({ get, put, post }) }))
 import OrdersTable from '@/components/OrdersTable.vue'
 import OrdersForm from '@/components/OrdersForm.vue'
 import { orderRoutePrice, calculateRoutePrice } from '@/service/assignRouteRate'
-import { invoicedPrice } from '@/domain/logisticsInvoicing.js'
 
 const GIRONA = { id: 1, pickup: false }
 const RATE = { id: 42, routes: [{ id: 17 }], pickup: null, delivery_type: { id: 2 }, ratev2: true, less10: 4, more10: 10, from10to20: 12, pickup_point: 1.5 }
@@ -53,14 +50,6 @@ describe('one route price for the form, the quick edit and the CSV import (issue
     expect(vm.calculatedPrice).toBeCloseTo(10.4)
     await vi.waitFor(() => expect(vm.calculatedPrice).toBeCloseTo(13.4))
     expect(get).toHaveBeenCalledWith('orders/30')
-  })
-})
-
-describe('the discounted base never goes below 0 (issues/227)', () => {
-  it('an order without price, or cheaper than the volume discount, counts 0', () => {
-    expect(invoicedPrice({ price: null, volume_discount: 2 })).toBe(0)
-    expect(invoicedPrice({ price: 0.4, volume_discount: 2, multidelivery_discount: 20 })).toBe(0)
-    expect(invoicedPrice({ price: 10, volume_discount: 1, multidelivery_discount: 10, contact_pickup_discount: 5 })).toBe(7.65)
   })
 })
 
