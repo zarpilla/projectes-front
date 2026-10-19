@@ -202,14 +202,16 @@ export default {
     async getActivities() {
       // only the last of overlapping loads may write (issues/219)
       const isStale = startLoad(this);
-      this.isLoading = true;
-
-      if (!this.year) {
-        return;
-      }
-
       this.months = {};
       this.payrolls = [];
+
+      // nothing to show without a year and a person: no spinner left on (issues/078)
+      if (!this.year || !this.user) {
+        this.summary = {};
+        this.isLoading = false;
+        return;
+      }
+      this.isLoading = true;
 
       const from = moment(this.year, "YYYY")
         .startOf("year")
@@ -218,14 +220,7 @@ export default {
         .endOf("year")
         .format("YYYY-MM-DD");
 
-      let query = `activities/total-by-day?_where[date_gte]=${from}&_where[date_lte]=${to}`;
-      if (this.user) {
-        query = `${query}&_where[users_permissions_user.id]=${this.user}`;
-      } else {
-        return;
-      }
-
-      query = `${query}&_limit=-1`;
+      const query = `activities/total-by-day?_where[date_gte]=${from}&_where[date_lte]=${to}&_where[users_permissions_user.id]=${this.user}&_limit=-1`;
 
       const payrolls = (
         await service({ requiresAuth: true }).get(
