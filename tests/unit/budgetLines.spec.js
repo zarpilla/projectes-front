@@ -4,7 +4,7 @@
 // decimals now; the form stores at most 4 and every total is quantity × price
 // rounded to cents, as the API computes it.
 import { describe, it, expect, vi } from 'vitest'
-import { budgetLineTotal, budgetLineValue } from '@/domain/budgetLines'
+import { budgetLineDisplay, budgetLineTotal, budgetLineValue } from '@/domain/budgetLines'
 
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
 import ProjectPhases from '@/components/ProjectPhases.vue'
@@ -50,5 +50,55 @@ describe('typed quantity or price (issues/194)', () => {
     ProjectPhases.methods.changeSubPhase.call(vm, subphase, 'quantity', subphase.quantity)
     expect(subphase.quantity).toBe('0.0358')
     expect(subphase.dirty).toBe(true)
+  })
+})
+
+// issues/224: a typed 1.000,5 was kept as "1.000.5" (total 0,00 € and a 500 on
+// save), and the inputs showed dot decimals (7.25, 333.3333).
+describe('Catalan quantity or price (issues/224)', () => {
+  it('reads "." as thousands and "," as decimals', () => {
+    expect(budgetLineValue('1.000,5')).toBe('1000.5')
+    expect(budgetLineValue('1.000')).toBe('1000')
+    expect(budgetLineValue('12.345.678,25')).toBe('12345678.25')
+    expect(budgetLineValue('−1.000,5')).toBe('-1000.5')
+    expect(budgetLineValue('1.000,03575')).toBe('1000.0358')
+    expect(budgetLineTotal({ quantity: budgetLineValue('1.000,5'), amount: '2' })).toBe(2001)
+  })
+
+  it('keeps a lone decimal point as before', () => {
+    expect(budgetLineValue('7.25')).toBe('7.25')
+    expect(budgetLineValue('1234.565')).toBe('1234.565')
+  })
+
+  it('leaves badly grouped text alone, for the API to refuse', () => {
+    expect(budgetLineValue('1.00,5')).toBe('1.00,5')
+    expect(budgetLineValue('1,0,5')).toBe('1,0,5')
+  })
+
+  it('shows Catalan decimals', () => {
+    expect(budgetLineDisplay('7.25')).toBe('7,25')
+    expect(budgetLineDisplay(333.3333)).toBe('333,3333')
+    expect(budgetLineDisplay('1000.5000')).toBe('1.000,5')
+    expect(budgetLineDisplay(1)).toBe('1')
+    expect(budgetLineDisplay(budgetLineValue(budgetLineDisplay(-1234.5)))).toBe('−1.234,5')
+    expect(budgetLineDisplay('12 u')).toBe('12 u')
+    expect(budgetLineDisplay('')).toBe('')
+    expect(budgetLineDisplay(null)).toBe(null)
+  })
+
+  it('the input shows what is typed while editing, Catalan decimals otherwise', () => {
+    const row = { quantity: 7.25, amount: 2 }
+    const vm = { phases: [], mode: 'phases', form: { id: 1 }, $emit: vi.fn(), editingLine: null }
+    vm.changeSubPhase = ProjectPhases.methods.changeSubPhase.bind(vm)
+    const { lineInputText, lineInputFocus, lineInput } = ProjectPhases.methods
+    expect(lineInputText.call(vm, row, 'quantity')).toBe('7,25')
+    lineInputFocus.call(vm, row, 'quantity')
+    lineInput.call(vm, row, 'quantity', '1.000,')
+    expect(lineInputText.call(vm, row, 'quantity')).toBe('1.000,')
+    lineInput.call(vm, row, 'quantity', '1.000,5')
+    expect(row.quantity).toBe('1000.5')
+    expect(lineInputText.call(vm, row, 'amount')).toBe('2')
+    vm.editingLine = null
+    expect(lineInputText.call(vm, row, 'quantity')).toBe('1.000,5')
   })
 })
