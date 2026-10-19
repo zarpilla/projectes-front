@@ -64,6 +64,25 @@ import moment from "moment";
 import service from "@/service/index";
 import _ from "lodash";
 
+// "Només fases" and "Línies d'ingrés", remembered per browser (issues/214)
+const COLLAPSED_KEY = "projectGantt.collapsed";
+const SUBPHASES_KEY = "projectGantt.showSubPhases";
+function savedFlag(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === "1" ? true : value === "0" ? false : fallback;
+  } catch {
+    return fallback;
+  }
+}
+function saveFlag(key, value) {
+  try {
+    localStorage.setItem(key, value ? "1" : "0");
+  } catch {
+    // private window or blocked storage: the toggle still works for this page
+  }
+}
+
 // main component
 export default {
   name: "ProjectGannt",
@@ -150,7 +169,7 @@ export default {
       showSubPhases: false,
       view: "month",
       projectTasks: [],
-      collapsed: false,
+      collapsed: savedFlag(COLLAPSED_KEY, false),
       taskToAddId: 0,
       gantt: null, // Will be initialized with separate instance
     };
@@ -164,7 +183,11 @@ export default {
     // Dereferencing it unguarded threw here on any load that won the race,
     // aborting mounted() before the chart was ever built — the section then
     // renders empty with no error in the UI.
-    this.showSubPhases = !this.meOptions.showEstimatedHoursInPhases;
+    // the profile option is only the default until the checkbox is used here
+    this.showSubPhases = savedFlag(
+      SUBPHASES_KEY,
+      !this.meOptions.showEstimatedHoursInPhases
+    );
     this.dedications = (
       await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
     ).data;
@@ -242,7 +265,8 @@ export default {
         const task = {
           id: phase.id,
           text: phase.name,
-          open: true,
+          // a rebuild (e.g. toggling "Línies d'ingrés") keeps "Només fases"
+          open: !this.collapsed,
           type: this.gantt.config.types.project,
           _phase: phase,
         };
@@ -724,9 +748,11 @@ export default {
         }.bind(this));
       }
       this.collapsed = !this.collapsed;
+      saveFlag(COLLAPSED_KEY, this.collapsed);
     },
     toggleSubphases() {
       this.showSubPhases = !this.showSubPhases;
+      saveFlag(SUBPHASES_KEY, this.showSubPhases);
 
       this.rebuildGantt();
     },

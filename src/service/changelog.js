@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Millores",
+      modules: ["Projectes"],
+      text: "Al Gantt dels projectes, les caselles «Només fases» i «Línies d'ingrés» es recorden en aquest navegador: el proper projecte que obris es veu igual. «Línies d'ingrés» comença com diu el teu perfil fins que la canviïs des del Gantt. A més, canviar «Línies d'ingrés» ja no torna a desplegar les fases si tens marcat «Només fases»."
+    },
+    {
       type: "Correccions",
       modules: ["Logística"],
       text: ["A ", { to: "/orders", label: "Comandes" }, ", si una comanda de la selecció no es pot canviar d'estat, l'aplicació ho diu i continua amb les altres en lloc de quedar-se carregant. Les repartidores ja no veuen accions que no poden fer (canviar o anul·lar comandes facturades) ni el missatge per a les sòcies a les comandes processades, i a ", { to: "/user-contacts", label: "Punts d'entrega" }, " el descompte per recollida i la sòcia d'un punt els canvia l'oficina. Les incidències es queden a la seva comanda, i qui les obre i les tanca ho apunta l'aplicació."]
