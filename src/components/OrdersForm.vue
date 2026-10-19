@@ -2162,12 +2162,14 @@ export default {
         this.form.collection_point = null;
       }
 
-      // A consumption-point order has lines instead of boxes and kilos
+      // A consumption-point order has lines instead of boxes and kilos: its
+      // totals come from the lines already typed (issues/230)
       if (this.form.pickup_point) {
-        this.form.units = null;
-        this.form.kilograms = null;
+        this.calculateTotals();
         // Initialize with one empty line if none exist
         if (!this.form.lines || this.form.lines.length === 0) {
+          this.form.units = null;
+          this.form.kilograms = null;
           this.form.lines = [
             {
               units: null,

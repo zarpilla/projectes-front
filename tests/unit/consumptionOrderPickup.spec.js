@@ -12,7 +12,8 @@ function ctx (form) {
   return {
     form,
     allowedPickups: [{ id: 1, name: 'Magatzem', pickup: true }, { id: 2, name: 'Altre', pickup: false }],
-    checkTransferNeeded: vi.fn()
+    checkTransferNeeded: vi.fn(),
+    calculateTotals () { return OrdersForm.methods.calculateTotals.call(this) }
   }
 }
 
@@ -27,6 +28,16 @@ describe('updatePickup (issues/146)', () => {
     updatePickup.call(c)
     expect(c.form.pickup_point).toBe(true)
     expect(c.form.lines).toEqual(lines)
+  })
+
+  // issues/230: lines filled before the pickup → boxes/kilos set to null,
+  // «Total 0 caixes · 0 kg» and the save refused
+  it('keeps the boxes and kilos of the lines when the pickup is chosen (issues/230)', () => {
+    const lines = [{ name: 'Anna', nif: '1', units: 2, kilograms: 8 }, { name: 'Pau', nif: '2', units: '1', kilograms: '2.5' }]
+    const c = ctx({ pickup_point: true, pickup: 1, lines, units: 3, kilograms: 10.5 })
+    updatePickup.call(c)
+    expect(c.form.units).toBe(3)
+    expect(c.form.kilograms).toBe(10.5)
   })
 
   it('starts a consumption-point order with one empty line', () => {
