@@ -14,19 +14,16 @@ export const isDriver = permissions => has(permissions, 'orders_delivery') && !i
 export const canCreateOrders = permissions => !isDriver(permissions) || has(permissions, 'orders')
 
 /**
- * The collection order of a member's farm-pickup orders is the server's: she
- * doesn't change its route, delivery type, rate or state (the API refuses the
- * state and drops the rest, issues/217); she opens it to see it.
+ * The order form and the quick edit of the list; `order` without id is a new
+ * one. A member's collection order is like her other orders, as on master
+ * (the user's rule, issues/217): hers to change (the route) and cancel while
+ * pending, read-only once processed. Its delivery type, boxes and pickup are
+ * the collection's for everyone (the form locks them).
  */
-export const isMemberCollectionOrder = (order, permissions) =>
-  Boolean(order && order.is_collection_order) && !isLogisticsStaff(permissions)
-
-/** The order form and the quick edit of the list; `order` without id is a new one. */
 export function canEditOrder (order, permissions) {
   if (!order) return false
   if (!order.id) return canCreateOrders(permissions)
   if (isOffice(permissions)) return order.status !== 'cancelled'
-  if (isMemberCollectionOrder(order, permissions)) return false
   return order.status === 'pending' && !isLogisticsStaff(permissions)
 }
 
@@ -40,19 +37,18 @@ export const canDepositOrderMove = (order, permissions) =>
 
 /** The order's card: whoever edits it, and the staff to make the moves. */
 export const canOpenOrder = (order, permissions) =>
-  Boolean(order && order.id) &&
-  (canEditOrder(order, permissions) || canMoveOrder(order, permissions) || isMemberCollectionOrder(order, permissions))
+  Boolean(order && order.id) && (canEditOrder(order, permissions) || canMoveOrder(order, permissions))
 
 /**
  * «Anul·la la comanda»: the office on any order but a cancelled one; a driver
  * not on an invoiced one either (the API refuses it: issues/193); a member, her
- * pending orders but the collection order (issues/217).
+ * pending orders.
  */
 export function canCancelOrder (order, permissions) {
   if (!order || !order.id || order.status === 'cancelled') return false
   if (isOffice(permissions)) return true
   if (isDriver(permissions)) return order.status !== 'invoiced'
-  return order.status === 'pending' && !order.is_collection_order
+  return order.status === 'pending'
 }
 
 /**

@@ -40,13 +40,12 @@ export function canSetStatus (order, status, isStaff, { driver = false } = {}) {
   if (!order) return false
   if (driver) return status === order.status || (status !== 'invoiced' && order.status !== 'invoiced')
   if (isStaff) return true
-  // not the collection order of her farm-pickup orders (issues/217)
-  return order.status === 'pending' && status === 'cancelled' && !order.is_collection_order
+  return order.status === 'pending' && status === 'cancelled'
 }
 
 /** Why the selection bar left some orders out (issues/144, 193). */
 export const bulkSkipReason = (isStaff, driver) =>
-  isStaff && driver ? "les facturades només les canvia l'oficina" : "només es poden anul·lar les pendents, no les de recollida"
+  isStaff && driver ? "les facturades només les canvia l'oficina" : 'només es poden anul·lar les pendents'
 
 // An order is deposited only while it is still on its way: a delivered,
 // invoiced or cancelled one is past it (issues/149; the API refuses it too)
