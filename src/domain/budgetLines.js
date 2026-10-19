@@ -12,10 +12,10 @@ const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100
 export const budgetLineTotal = line =>
   round2((Number(line && line.quantity) || 0) * (Number(line && line.amount) || 0))
 
-// What the API stores for a typed quantity or price, read as Catalan: "," is
-// the decimal mark and "." groups thousands (1.000,5 → 1000.5, 1.000 → 1000);
-// a lone "." with other than 3-digit groups stays a decimal point (7.25),
-// as before. At most 4 decimals (rounded). Text that isn't a number is left as
+// What the API stores for a typed quantity or price. With a comma, it is the
+// decimal mark and "." groups thousands (1.000,5 → 1000.5); without one, a
+// single "." is the decimal point as before (1.234 → 1.234, 7.25), and several
+// can only be thousands (1.000.000 → 1000000). At most 4 decimals (rounded). Text that isn't a number is left as
 // typed, for the API to refuse (issues/194, issues/224).
 const toDotDecimal = text => {
   text = text.replace(/\u2212/g, '-')
@@ -24,7 +24,7 @@ const toDotDecimal = text => {
     if (rest.length > 1 || !/^-?(\d{0,3}(\.\d{3})*|\d*)$/.test(integer)) return null
     return integer.replace(/\./g, '') + '.' + rest[0]
   }
-  return /^-?\d{1,3}(\.\d{3})+$/.test(text) ? text.replace(/\./g, '') : text
+  return /^-?\d{1,3}(\.\d{3}){2,}$/.test(text) ? text.replace(/\./g, '') : text
 }
 
 export const budgetLineValue = value => {
@@ -39,7 +39,10 @@ export const budgetLineValue = value => {
 
 // A stored quantity or price as the input shows it: Catalan decimals and
 // thousands (7.25 → 7,25); text that isn't a number, as typed.
-export const budgetLineDisplay = value => {
+// While typing, without thousands dots: a shown 1.000 would read back as 1.
+export const budgetLineDisplay = (value, { grouped = true } = {}) => {
   if (value === null || value === undefined || String(value).trim() === '') return value
-  return Number.isFinite(Number(value)) ? formatNumber(value, BUDGET_LINE_DECIMALS) : value
+  if (!Number.isFinite(Number(value))) return value
+  const text = formatNumber(value, BUDGET_LINE_DECIMALS)
+  return grouped ? text : text.replace(/\./g, '')
 }

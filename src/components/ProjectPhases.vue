@@ -1281,7 +1281,7 @@ export default {
       return budgetLineDisplay(row[field]);
     },
     lineInputFocus(row, field) {
-      this.editingLine = { row, field, text: budgetLineDisplay(row[field]) };
+      this.editingLine = { row, field, text: budgetLineDisplay(row[field], { grouped: false }) };
     },
     lineInput(row, field, text) {
       this.editingLine = { row, field, text };
