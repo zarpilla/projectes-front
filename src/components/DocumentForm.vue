@@ -1768,6 +1768,7 @@ export default {
         if (serie) {
           this.form.serial = serie.id;
         }
+        this.setDefaultPaymentMethod();
 
         await this.calculateMinEmittedDate();
 
@@ -1798,6 +1799,16 @@ export default {
 
         this.isLoading = false;
       }
+    },
+    // A new document shows the payment method the API would give it anyway
+    // (the first one, emitted-invoice and document lifecycles): the form
+    // started empty and the draft confirmation said «Mètode de pagament: -»
+    // (issues/213)
+    setDefaultPaymentMethod() {
+      const defaulted = ["emitted-invoices", "received-invoices", "received-expenses", "received-incomes"];
+      if (this.form.payment_method || !defaulted.includes(this.type)) return;
+      const first = _.minBy(this.paymentMethods || [], "id");
+      if (first) this.form.payment_method = first.id;
     },
     async calculateMinEmittedDate() {
       if (this.type === "emitted-invoices") {

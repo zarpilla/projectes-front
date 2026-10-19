@@ -109,7 +109,7 @@
             <b-input
               :disabled="disabled"
               name="vat"
-              placeholder="Preu per unitat"
+              placeholder="IVA %"
               v-model="line.vat"
               class="subphase-detail-input"
               @update:model-value="debouncedChangeLine(line, 'vat', $event)"
@@ -123,7 +123,7 @@
             <b-input
               :disabled="disabled"
               name="irpf"
-              placeholder="Preu per unitat"
+              placeholder="IRPF %"
               v-model="line.irpf"
               class="subphase-detail-input"
               @update:model-value="debouncedChangeLine(line, 'irpf', $event)"

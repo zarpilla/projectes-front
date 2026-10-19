@@ -455,7 +455,7 @@ export default {
               ? "Factura"
               : e.type === "received-expenses"
                 ? e.document_type.name
-                : "Nómina",
+                : "Nòmina",
           data: this.formatDate(e.emitted),
           venciment: this.formatDate(e.paybefore),
           cobrada: this.formatDate(e.paid_date),
@@ -521,7 +521,7 @@ export default {
       //         ? "Factura"
       //         : e.type === "received-expenses"
       //         ? e.document_type.name
-      //         : "Nómina",
+      //         : "Nòmina",
       //     data: this.formatDate(e.emitted),
       //     venciment: this.formatDate(e.paybefore),
       //     cobrada: this.formatDate(e.paid_date),
