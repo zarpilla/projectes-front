@@ -793,12 +793,14 @@ export default {
     monthlySummaryForPivot() {
       return this.monthlySummary.map(s => {
         // For balance annotations and real-balance adjustments, we don't want to
-        // count them as income or expenses (they only adjust the running saldo).
+        // count them as income or expenses (they only adjust the running saldo),
+        // nor in «Resultat», which must match the monthly table (issues/197).
         const isBalanceAnnotation = s.is_balance_annotation;
         const isRealBalanceAdjustment = s.is_real_balance_adjustment;
 
         return {
           ...s,
+          total_amount: isBalanceAnnotation || isRealBalanceAdjustment ? 0 : s.total_amount,
           project_name:
             s.project_name !== "-" && s.project_name !== ""
               ? s.project_name
