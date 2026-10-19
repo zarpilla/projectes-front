@@ -18,3 +18,8 @@ export const daysFromToday = (date, today = moment()) => {
   if (days === 1) return 'demà'
   return days < 0 ? `fa ${-days} dies` : `d'aquí ${days} dies`
 }
+
+// «1 comanda», «2 comandes» (issues/208: «1 comandes», «1 caixes»). Without
+// `many`: -a gives -es (caixa, caixes), anything else adds -s.
+export const plural = (n, one, many) =>
+  `${n} ${Number(n) === 1 ? one : (many || (one.endsWith('a') ? one.slice(0, -1) + 'es' : one + 's'))}`

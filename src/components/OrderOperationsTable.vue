@@ -53,7 +53,7 @@
       <div class="ops-progress">
         <div class="ops-progress-text">
           <b>{{ doneCount }} de {{ allOps.length }} fetes</b>
-          <span>{{ formatNum(sumUnits) }} caixes · {{ formatNum(sumKg) }} kg</span>
+          <span>{{ sumUnits === 1 ? "1 caixa" : `${formatNum(sumUnits)} caixes` }} · {{ formatNum(sumKg) }} kg</span>
         </div>
         <progress class="progress is-small" :value="doneCount" :max="allOps.length || 1"></progress>
       </div>
@@ -76,7 +76,7 @@
                 </div>
               </header>
               <div class="op-load">
-                <b>{{ op.units || 0 }} caixes · {{ formatNum(op.kilograms) }} kg</b>
+                <b>{{ plural(op.units || 0, "caixa") }} · {{ formatNum(op.kilograms) }} kg</b>
                 <span v-if="op.refrigerated" class="tag is-info is-light">Refrigerada</span>
                 <span v-if="op.fragile" class="tag is-warning is-light">Fràgil</span>
                 <span v-if="op.status === 'pending'" class="tag is-warning">Pendent</span>
@@ -118,7 +118,7 @@
           <header class="transfer-head">
             <div>
               <b>Des de {{ group.origin }}</b>
-              <span> · {{ group.items.length }} comandes · {{ group.units }} caixes</span>
+              <span> · {{ plural(group.items.length, "comanda") }} · {{ plural(group.units, "caixa") }}</span>
             </div>
             <b-button v-if="group.items.some(o => !o.transfer_start_date)" size="is-small" @click="loadAll(group)">Carrega-les totes</b-button>
           </header>
@@ -162,6 +162,7 @@ import moment from "moment";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatNumber } from "@/helpers/format-number";
+import { plural } from "@/helpers/catalan";
 import { operationsQueries, mergeOrders, orderOperations } from "@/domain/orderOperations";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
@@ -274,6 +275,7 @@ export default {
     }
   },
   methods: {
+    plural,
     async loadRoutes() {
       try {
         const response = await service({

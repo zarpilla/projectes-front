@@ -590,6 +590,9 @@ export default {
 }
 .modal-card-dedication .modal-card-foot {
   justify-content: flex-end;
+  /* at 375 px the three timer buttons cut off «Elimina Comptador» (issues/208) */
+  flex-wrap: wrap;
+  row-gap: .5rem;
 }
 .modal-card-dedication .dedication-sub {
   margin-top: .125rem;

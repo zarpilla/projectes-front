@@ -40,6 +40,7 @@
       </div>
     </div>
 
+    <!-- scrollable: the rates have 13 columns and the last ones were cut off (issues/208) -->
     <div v-if="!isLoading && items.length > 0" class="card has-table">
       <b-table
         :data="shownItems"
@@ -47,6 +48,7 @@
         :paginated="shownItems.length > 50"
         :per-page="50"
         :hoverable="true"
+        :scrollable="true"
         :default-sort="firstAttr || 'id'"
       >
         <b-table-column
@@ -101,6 +103,7 @@ import service from '@/service/index';
 import CardComponent from '@/components/CardComponent.vue';
 import ModalBox from '@/components/ModalBox.vue';
 import moment from 'moment';
+import { formatNumber } from '@/helpers/format-number';
 
 export default {
   name: 'AdminEntityList',
@@ -277,6 +280,8 @@ export default {
       if (value === null || value === undefined || value === '') return '';
       // a year is not a quantity: «2019», not «2.019» (issues/103)
       if (name === 'year' && typeof value !== 'object') return String(value);
+      // route rates are prices: «11,30», not «11,3» (issues/208)
+      if (config.type === 'decimal' && this.entityName === 'route-rate') return formatNumber(value, 2, 2);
       if (['decimal', 'integer', 'float'].includes(config.type)) return this.formatNumber(value);
       if (config.type === 'date' || config.type === 'datetime') return this.formatDate(value);
       if (config.enumLabels && config.enumLabels[value]) return config.enumLabels[value];
