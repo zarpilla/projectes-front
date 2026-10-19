@@ -1117,8 +1117,10 @@ export default {
                 this.form.contact_city_id = this.cities.find(
                   c => c.name === this.form.contact_city
                 ).id;
+                // loading is not choosing: the stored route and date stay (issues/216)
                 this.citySelected(
-                  this.cities.find(c => c.name === this.form.contact_city)
+                  this.cities.find(c => c.name === this.form.contact_city),
+                  { loading: true }
                 );
               }
 
@@ -1319,7 +1321,12 @@ export default {
 
       await this.changeRoute();
     },
-    async changeRoute() {
+    /**
+     * The route picked: the pending orders of the route, the multidelivery
+     * and the transfer, and the next date of the route for a pending order.
+     * `keepDate` (loading an order, issues/216): the stored date stays.
+     */
+    async changeRoute({ keepDate = false } = {}) {
       if (this.form.owner && this.form.route && !this.form.is_collection_order) {
         this.orders = (
           await service({ requiresAuth: true }).get(
@@ -1327,7 +1334,7 @@ export default {
           )
         ).data;
       }
-      if (this.form.route && !this.form.is_collection_order) {
+      if (this.form.route && !this.form.is_collection_order && !keepDate) {
         const route = this.routes.find(r => r.id === this.form.route);
         
         // Check if route has any days configured
@@ -1732,7 +1739,13 @@ export default {
         }
       }
     },
-    async citySelected(option) {
+    /**
+     * The town of the point: its routes, and the route when it has only one.
+     * `loading` (getData, issues/216): the order keeps its route and date,
+     * even when the town has other routes now; with one route, what goes with
+     * it is loaded as before.
+     */
+    async citySelected(option, { loading = false } = {}) {
       if (!option || !option.id) {
         this.form.contact_city = null;
       } else {
@@ -1741,7 +1754,15 @@ export default {
       }
 
       this.routes = this.validCityRoutes();
-      
+
+      if (loading) {
+        if (this.routes.length === 1) {
+          if (!this.form.route) this.form.route = this.routes[0].id;
+          await this.changeRoute({ keepDate: true });
+        }
+        return;
+      }
+
       if (this.routes.length > 0) {
         // Auto-select only if there's exactly one route
         if (this.routes.length === 1) {
