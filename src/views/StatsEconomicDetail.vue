@@ -55,6 +55,7 @@ import EconomicDetailCharts from "@/components/EconomicDetailCharts.vue";
 import service from "@/service/index";
 import { defaultYear, fiscalYearLabel, fiscalYearOf } from "@/domain/years";
 import { loadFiscalSettings } from "@/service/fiscalYear";
+import { stateChips } from "@/domain/projectStateChips";
 import defaultProjectState from "@/service/projectState";
 import { addScript, addStyle } from "@/helpers/addScript";
 import moment from "moment";
@@ -149,7 +150,7 @@ export default {
       service({ requiresAuth: true, cached: true })
         .get("project-states")
         .then(r => {
-          this.project_states = [...r.data];
+          this.project_states = stateChips(r.data);
           //this.project_states.unshift({ id: 0, name: "Tots" });
           // const name = `${this.project_states.find(s => s.id === 1).name}+${this.project_states.find(s => s.id === 3).name}`
           // this.project_states.push({ id: -1, name });
