@@ -292,7 +292,7 @@
                 <tbody>
                   <tr v-for="row in form.collection_orders" :key="row.id">
                     <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
-                    <td>{{ (row.contact && row.contact.trade_name) || row.contact_trade_name || "—" }}</td>
+                    <td>{{ contactName(row.contact) || row.contact_trade_name || row.contact_name || "—" }}</td>
                     <td class="has-text-right">{{ row.units || 0 }}</td>
                     <td class="has-text-right">{{ row.kilograms || 0 }}</td>
                     <td><span class="tag" :class="statusTag(row.status)">{{ statusLabel(row.status) }}</span></td>
@@ -544,6 +544,7 @@ import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
+import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, canDeposit as canDepositOrder } from "@/domain/orderStatus";
 
 export default {
@@ -730,35 +731,16 @@ export default {
         (this.form.multidelivery_discount || 1);
       return this.form.price * discountEffectAsOne;
     },
+    // a point without trade name is a normal one (issues/215)
     filteredContacts() {
-      return this.contacts.filter(option => {
-        return (
-          option.display
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
-          option.name
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
-          option.trade_name
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0 ||
-          option.id
-            .toString()
-            .toLowerCase()
-            .indexOf(this.contactSearch.toLowerCase()) >= 0
-        );
-      });
+      return this.contacts.filter(option => matchesContact(option, this.contactSearch));
     },
     filteredCities() {
       return this.cities.filter(option => {
         return (
-          option.name
-            .toString()
+          String(option.name || "")
             .toLowerCase()
-            .indexOf(this.citySearch.toLowerCase()) >= 0
+            .indexOf((this.citySearch || "").toLowerCase()) >= 0
         );
       });
     },
@@ -1127,7 +1109,7 @@ export default {
                 c => Number(c.id) === Number(this.form.contact)
               );
               this.contactSearch = c
-                ? `${c.trade_name} (${this.form.contact})`
+                ? contactLabel(c)
                 : `${this.form.contact || ""}`;
 
               if (this.cities.find(c => c.name === this.form.contact_city)) {
@@ -1904,7 +1886,7 @@ export default {
           queue: false
         });
         await this.refreshClients(this.form.owner, { force: true });
-        this.contactSearch = `${newContact.data.id} - ${newContact.data.trade_name}`;
+        this.contactSearch = `${newContact.data.id} - ${contactName(newContact.data)}`;
         this.form.contact_name = newContact.data.name;
       }
     },
@@ -1939,7 +1921,7 @@ export default {
           `contacts/for-orders?owned=1`
         )
       ).data.map(c => {
-        return { ...c, display: `${c.trade_name} (${c.id})` };
+        return { ...c, display: contactLabel(c) };
       });
       const hasCollectionOrders =
         this.form.is_collection_order || (Array.isArray(this.form.collection_orders) &&
@@ -1990,7 +1972,7 @@ export default {
           return;
         }
 
-        this.contactSearch = `${contact.trade_name} (${contact.id})`;
+        this.contactSearch = contactLabel(contact);
 
         this.form.contact_name = contact.name;
         this.form.contact_trade_name = contact.trade_name;
@@ -2063,7 +2045,7 @@ export default {
       await this.refreshClients(this.form.owner, { force: true });
       const contact = this.contacts.find(c => c.id === contactId);
       this.contactSearch = contact
-        ? `${contactId} - ${contact.trade_name}`
+        ? `${contactId} - ${contactName(contact)}`
         : `${contactId}`;
       this.onClientaChange(contactId);
     },
@@ -2363,6 +2345,7 @@ export default {
         type: "is-success"
       });
     },
+    contactName,
     formatDate(date) {
       if (!date) return "";
       return moment(date).format("DD/MM/YYYY");
