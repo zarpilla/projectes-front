@@ -36,9 +36,6 @@
       <div v-if="firstStatus !== 'pending'" class="notification is-warning">
         <b>Comanda ja processada.</b> {{ processedNotice }}
       </div>
-      <div v-else-if="memberCollectionOrder" class="notification is-info is-light">
-        <b>Comanda de recollida.</b> Es genera a partir de les teves comandes amb recollida a la granja; la ruta, el tipus d'entrega i l'estat els decideix l'oficina.
-      </div>
 
       <b-loading :is-full-page="false" :model-value="isLoading" />
 
@@ -531,7 +528,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
-import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice, savesOperationsAtOnce, isMemberCollectionOrder } from "@/domain/orderPermissions.js";
+import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice, savesOperationsAtOnce } from "@/domain/orderPermissions.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -635,10 +632,6 @@ export default {
     // the stored state decides, not the one picked and not yet saved (issues/193)
     canCancel() {
       return canCancelOrder({ ...this.form, status: this.firstStatus }, this.permissions);
-    },
-    // a member's collection order is read-only for her (issues/217)
-    memberCollectionOrder() {
-      return Boolean(this.form.id) && isMemberCollectionOrder(this.form, this.permissions);
     },
     // a driver: no «Guardar», the state and delivery date saved at once (issues/193)
     savesAtOnce() {
