@@ -74,7 +74,7 @@
               <b-field
                 label="Nom comercial *"
                 :type="{ 'is-danger': errors['trade_name'] && submitted }"
-                message="Aquest és el nom de referència a ESSTrapis"
+                :message="errors['trade_name'] && submitted ? tradeNameRequired : 'Aquest és el nom de referència a ESSTrapis'"
               >
                 <b-input v-model="form.trade_name" required />
               </b-field>
@@ -399,6 +399,7 @@ import concat from "lodash/concat";
 import { pick } from "lodash";
 import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
 import { memberMayEdit, townKey, driverLocksDiscount, driverLocksOwner } from "@/domain/contactAccess";
+import { TRADE_NAME_REQUIRED } from "@/domain/orderContacts";
 
 export default {
   name: "ContactUsersForm",
@@ -428,6 +429,7 @@ export default {
   },
   data() {
     return {
+      tradeNameRequired: TRADE_NAME_REQUIRED,
       isProfileExists: false,
       isLoading: false,
       series: [],
@@ -495,7 +497,8 @@ export default {
       const isCityValid = this.form.city && this.cities.some(c => c.name === this.form.city);
       const phoneDigits = (this.form.phone || "").toString().replace(/\D/g, "");
       return {
-        trade_name: !this.form.trade_name,
+        // required on a delivery point, blank counts as none (issues/215)
+        trade_name: !String(this.form.trade_name || "").trim(),
         nif: !this.form.nif,
         phone: phoneDigits.length < 9,
         address: !this.form.address,
@@ -749,7 +752,7 @@ export default {
         // if any key of this.errors is true, return
         if (Object.values(this.errors).some(e => e)) {
           this.$buefy.snackbar.open({
-            message: "Error. Hi ha camps incorrectes",
+            message: this.errors.trade_name ? TRADE_NAME_REQUIRED : "Error. Hi ha camps incorrectes",
             queue: false,
             type: "is-danger"
           });
