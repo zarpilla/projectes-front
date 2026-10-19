@@ -3,7 +3,9 @@ import moment from 'moment'
 // The document's date fields edited with a Buefy datepicker, which needs Date
 // objects: the API gives «YYYY-MM-DD» strings. accepted_date was left out, and
 // an accepted quote opened as a blank page (issues/189, as 124 on contacts).
-// Saving sends the Dates as they are: the API stores the local day.
+// Saving sends them back as «YYYY-MM-DD» (documentDatesForApi): a Date goes out
+// as UTC, which the API reads in Europe/Madrid, so east of Madrid every save
+// moved the dates back one day (issues/229).
 export const DOCUMENT_PICKER_DATES = [
   'emitted',
   'paybefore',
@@ -25,4 +27,23 @@ export function documentDatesForPickers (form) {
     }
   }
   return form
+}
+
+const localDay = value => (value instanceof Date ? moment(value).format('YYYY-MM-DD') : value)
+
+/**
+ * A copy of the form with its datepicker dates (and the lines' dates) as the
+ * local day «YYYY-MM-DD», whatever the browser's timezone (issues/229).
+ * `form` is not modified; lines without a Date are kept as they are.
+ */
+export function documentDatesForApi (form) {
+  if (!form || typeof form !== 'object') return form
+  const out = { ...form }
+  for (const field of DOCUMENT_PICKER_DATES) {
+    if (field in out) out[field] = localDay(out[field])
+  }
+  if (Array.isArray(form.lines) && form.lines.some(l => l && l.date instanceof Date)) {
+    out.lines = form.lines.map(l => (l && l.date instanceof Date ? { ...l, date: localDay(l.date) } : l))
+  }
+  return out
 }
