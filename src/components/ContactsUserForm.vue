@@ -17,7 +17,7 @@
                 <b-select
                   v-model="form.owner"
                   placeholder=""
-                  :disabled="ownerId"
+                  :disabled="ownerId || ownerLocked"
                   @update:model-value="onOwnerChanged"
                 >
                   <option
@@ -325,11 +325,12 @@
               <b-field
                 v-if="permissions.includes('orders_admin') || permissions.includes('orders_delivery')"
                 label="% de descompte per recollida en finca"
+                :message="discountLocked ? 'Només el canvia l\'oficina' : ''"
               >
                 <b-input
                   v-model="form.pickup_discount"
                   type="numeric"
-                  :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))"
+                  :disabled="discountLocked"
                   @update:model-value="fixDecimals('pickup_discount', form.pickup_discount)"
                 />
               </b-field>
@@ -397,7 +398,7 @@ import moment from "moment";
 import concat from "lodash/concat";
 import { pick } from "lodash";
 import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
-import { memberMayEdit, townKey } from "@/domain/contactAccess";
+import { memberMayEdit, townKey, driverLocksDiscount, driverLocksOwner } from "@/domain/contactAccess";
 
 export default {
   name: "ContactUsersForm",
@@ -451,6 +452,13 @@ export default {
     };
   },
   computed: {
+    // a driver leaves the discount and the owner to the office (issues/191)
+    discountLocked() {
+      return driverLocksDiscount(this.permissions);
+    },
+    ownerLocked() {
+      return driverLocksOwner(this.permissions, this.form);
+    },
     postcodeMessage: () => POSTCODE_MESSAGE,
     titleStack() {
       return ["Punts d'entrega", this.formCardTitle];

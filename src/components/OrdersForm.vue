@@ -34,9 +34,7 @@
 
     <section class="section is-main-section">
       <div v-if="firstStatus !== 'pending'" class="notification is-warning">
-        <b>Comanda ja processada.</b>
-        <span v-if="!canEdit"> Si hi ha algun canvi d'última hora, contacta si us plau amb La Diligència.</span>
-        <span v-else> Atenció amb els canvis: poden afectar entregues ja fetes o factures emeses.</span>
+        <b>Comanda ja processada.</b> {{ processedNotice }}
       </div>
 
       <b-loading :is-full-page="false" :model-value="isLoading" />
@@ -343,7 +341,7 @@
                     type="button"
                     :class="{ 'is-on': form.status === s }"
                     :aria-pressed="form.status === s ? 'true' : 'false'"
-                    :disabled="!isStaff"
+                    :disabled="!canPickStatus(s)"
                     @click="form.status = s"
                   >{{ statusLabel(s) }}</button>
                 </div>
@@ -529,7 +527,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
-import { isOffice as isLogisticsOffice, canEditOrder, canMoveOrder, canDepositOrderMove } from "@/domain/orderPermissions.js";
+import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice } from "@/domain/orderPermissions.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -546,7 +544,7 @@ import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag, formStatuses, canDeposit as canDepositOrder } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, canDeposit as canDepositOrder } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersForm",
@@ -629,18 +627,12 @@ export default {
       }
       return "x";
     },
+    // the stored state decides, not the one picked and not yet saved (issues/193)
     canCancel() {
-      return (
-        (this.form.id &&
-          this.form.status !== "cancelled" &&
-          (this.permissions.includes("orders_admin") ||
-            this.permissions.includes("orders_delivery"))) ||
-        (this.form.status === "pending" &&
-          !(
-            this.permissions.includes("orders_admin") ||
-            this.permissions.includes("orders_delivery")
-          ))
-      );
+      return canCancelOrder({ ...this.form, status: this.firstStatus }, this.permissions);
+    },
+    processedNotice() {
+      return processedOrderNotice({ ...this.form, status: this.firstStatus }, this.permissions);
     },
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
@@ -1413,6 +1405,10 @@ export default {
       }
       this.checkMultidelivery();
     },
+    // the state buttons: the staff's, a driver's not to or from Facturada (issues/193)
+    canPickStatus(status) {
+      return this.isStaff && canSetStatus({ status: this.firstStatus }, status, true, { driver: isDriver(this.permissions) });
+    },
     async deleteOrder() {
       // «Cancel·la» next to «D'acord» read like «anul·la» (issues/181)
       this.$buefy.dialog.confirm({
@@ -1422,10 +1418,15 @@ export default {
         cancelText: "No, torna",
         type: "is-danger",
         onConfirm: async () => {
-          await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
-            status: "cancelled"
-          });
-          this.$router.push({ name: "orders.view" });
+          try {
+            await service({ requiresAuth: true }).put(`orders/${this.form.id}`, {
+              status: "cancelled"
+            });
+            this.$router.push({ name: "orders.view" });
+          } catch (error) {
+            console.error(error);
+            this.$buefy.snackbar.open({ message: "No s'ha pogut anul·lar la comanda", type: "is-danger", queue: false });
+          }
         },
         onCancel: () => {}
       });

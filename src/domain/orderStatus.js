@@ -33,10 +33,19 @@ export const FORM_STATUSES = ['pending', 'processed', 'delivered', 'invoiced', '
 const STAFF_BULK_STATUSES = ['pending', 'processed', 'delivered', 'cancelled']
 export const bulkStatuses = isStaff => (isStaff ? STAFF_BULK_STATUSES : ['cancelled'])
 
-export function canSetStatus (order, status, isStaff) {
+// A driver (orders_delivery without the office) changes the state of any order
+// but never to or from Facturada: invoicing is the office's (issues/193, the
+// API's rule since issues/163).
+export function canSetStatus (order, status, isStaff, { driver = false } = {}) {
+  if (!order) return false
+  if (driver) return status === order.status || (status !== 'invoiced' && order.status !== 'invoiced')
   if (isStaff) return true
-  return Boolean(order) && order.status === 'pending' && status === 'cancelled'
+  return order.status === 'pending' && status === 'cancelled'
 }
+
+/** Why the selection bar left some orders out (issues/144, 193). */
+export const bulkSkipReason = (isStaff, driver) =>
+  isStaff && driver ? "les facturades només les canvia l'oficina" : 'només es poden anul·lar les pendents'
 
 // An order is deposited only while it is still on its way: a delivered,
 // invoiced or cancelled one is past it (issues/149; the API refuses it too)

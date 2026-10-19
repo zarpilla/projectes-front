@@ -430,10 +430,10 @@ function idOf(value) {
 import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason } from "@/domain/orderStatus";
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
-import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder } from "@/domain/orderPermissions";
+import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
 
 export default {
   name: "OrdersTable",
@@ -821,6 +821,10 @@ export default {
   computed: {
     isStaff() {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
+    },
+    // orders_delivery without the office: no invoiced orders (issues/193)
+    isDriver() {
+      return isDriver(this.permissions);
     },
     // a driver makes the moves of the orders, not the orders, unless she is a member too (issues/163)
     canCreate() {
@@ -2388,50 +2392,68 @@ export default {
       return '"' + slots + '"';
     },
     async setBulkState() {
-      // a member only cancels her pending orders (issues/144)
-      const rows = this.checkedRows.filter(row => canSetStatus(row, this.newState, this.isStaff));
+      // a member only cancels her pending orders (issues/144), a driver leaves
+      // the invoiced ones to the office (issues/193)
+      const rows = this.checkedRows.filter(row => canSetStatus(row, this.newState, this.isStaff, { driver: this.isDriver }));
       const skipped = this.checkedRows.length - rows.length;
+      const reason = bulkSkipReason(this.isStaff, this.isDriver);
       if (!rows.length) {
         this.$buefy.snackbar.open({
-          message: `Cap de les ${skipped} comandes seleccionades no es pot canviar a «${orderStatusLabel(this.newState)}»: només es poden anul·lar les pendents`,
+          message: `Cap de les ${skipped} comandes seleccionades no es pot canviar a «${orderStatusLabel(this.newState)}»: ${reason}`,
           type: "is-warning",
           duration: 5000
         });
         return;
       }
       this.importing = true;
-      // Get current user for tracking
-      const currentUser = await service({ requiresAuth: true }).get("users/me");
-      
-      const total = rows.length;
-      let current = 0;
-      
-      for await (const row of rows) {
-        current++;
+      // a refused or failed row is reported, not left with the overlay on, and
+      // the rest of the selection still goes through (issues/193)
+      const failed = [];
+      try {
+        // Get current user for tracking
+        const currentUser = await service({ requiresAuth: true }).get("users/me");
+
+        const total = rows.length;
+        let current = 0;
+
+        for (const row of rows) {
+          current++;
+          this.$buefy.snackbar.open({
+            message: `Processant comanda ${current}/${total}...`,
+            type: "is-info",
+            duration: 1500,
+            queue: false
+          });
+          try {
+            await service({ requiresAuth: true }).put(`orders/${row.id}`, {
+              status: this.newState,
+              _tracking_user: currentUser.data
+            });
+          } catch (error) {
+            console.error(error);
+            failed.push(row.id);
+          }
+        }
+
+        const done = total - failed.length;
+        const notes = [];
+        if (failed.length) notes.push(`No s'han pogut canviar (sense permís o error): ${failed.map(id => `#${id}`).join(", ")}`);
+        if (skipped) notes.push(`No s'han canviat les ${skipped} que no es podien canviar: ${reason}`);
         this.$buefy.snackbar.open({
-          message: `Processant comanda ${current}/${total}...`,
-          type: "is-info",
-          duration: 1500,
-          queue: false
+          message: notes.length
+            ? [`Comandes canviades: ${done}.`, ...notes].join(" ")
+            : `Totes les comandes processades correctament (${total})`,
+          type: failed.length ? "is-danger" : skipped ? "is-warning" : "is-success",
+          duration: notes.length ? 8000 : 3000
         });
-        
-        await service({ requiresAuth: true }).put(`orders/${row.id}`, {
-          status: this.newState,
-          _tracking_user: currentUser.data
-        });
+        this.checkedRows = this.checkedRows.filter(row => failed.includes(row.id));
+      } catch (error) {
+        console.error(error);
+        this.$buefy.snackbar.open({ message: "No s'han pogut canviar les comandes", type: "is-danger", duration: 5000 });
+      } finally {
+        this.importing = false;
+        this.getData();
       }
-      
-      this.$buefy.snackbar.open({
-        message: skipped
-          ? `Comandes canviades: ${total}. No s'han canviat les ${skipped} que no eren pendents`
-          : `Totes les comandes processades correctament (${total})`,
-        type: skipped ? "is-warning" : "is-success",
-        duration: skipped ? 5000 : 3000
-      });
-      
-      this.checkedRows = [];
-      this.importing = false;
-      this.getData();
     },
     async invoiceOrders() {
       this.importing = true;

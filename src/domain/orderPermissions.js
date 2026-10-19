@@ -32,3 +32,26 @@ export const canDepositOrderMove = (order, permissions) =>
 /** The order's card: whoever edits it, and the staff to make the moves. */
 export const canOpenOrder = (order, permissions) =>
   Boolean(order && order.id) && (canEditOrder(order, permissions) || canMoveOrder(order, permissions))
+
+/**
+ * «Anul·la la comanda»: the office on any order but a cancelled one; a driver
+ * not on an invoiced one either (the API refuses it: issues/193); a member, her
+ * pending orders.
+ */
+export function canCancelOrder (order, permissions) {
+  if (!order || !order.id || order.status === 'cancelled') return false
+  if (isOffice(permissions)) return true
+  if (isDriver(permissions)) return order.status !== 'invoiced'
+  return order.status === 'pending'
+}
+
+/**
+ * What the banner of a processed order adds (issues/193): the member is told to
+ * ask the office, a driver what is still hers (she works there: the member's
+ * text named the entity to her), whoever edits it to mind the changes.
+ */
+export function processedOrderNotice (order, permissions) {
+  if (canEditOrder(order, permissions)) return 'Atenció amb els canvis: poden afectar entregues ja fetes o factures emeses.'
+  if (isLogisticsStaff(permissions)) return "En pots registrar els moviments i l'estat; la resta de dades les canvia l'oficina."
+  return "Si hi ha algun canvi d'última hora, contacta si us plau amb La Diligència."
+}
