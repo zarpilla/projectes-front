@@ -25,9 +25,8 @@
 <script>
 import { ownFiguresIgnored } from '@/domain/motherFigures'
 import service from '@/service/index'
-import { projectStartYearLabel } from '@/domain/years'
+import { projectStatsRow } from '@/domain/projectPivotRows'
 import { loadFiscalSettings } from '@/service/fiscalYear'
-import sumBy from 'lodash/sumBy'
 import sortBy from 'lodash/sortBy'
 import moment from 'moment'
 import configPivot from '@/service/configStatsProject'
@@ -109,40 +108,7 @@ export default {
       }
       
       service({ requiresAuth: true }).get(query).then((r) => {
-        const projects = r.data.map(ownFiguresIgnored).map(p => {
-          const incomes = sumBy(p.activities.map(a => { return { incomes: a.hours * a.invoice_hours_price } }), 'incomes')
-          return {
-            project_name: p.name,
-            project_mother: p.mother && p.mother.name ? p.mother.name : p.name,
-            project_type: p.project_type && p.project_type.name ? p.project_type.name : '-',
-            project_state: p.project_state && p.project_state.name ? p.project_state.name : '-',
-            project_leader: p.leader && p.leader.username ? p.leader.username : '-',
-            project_scope: p.project_scope && p.project_scope.short_name ? p.project_scope.short_name : '-',
-            project_client: p.client && p.client? p.client.name : '-',
-            project_year: projectStartYearLabel(p, startMonth),
-            total_original_hours: p.total_original_hours ? p.total_original_hours : 0,
-            total_estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : 0,
-            hours: sumBy(p.activities, 'hours'),
-            incomes: p.invoice_hours_price ? incomes : p.total_incomes,
-            total_incomes: p.total_incomes,
-            // expenses: p.total_expenses,
-            real_incomes: p.total_real_incomes,
-            real_expenses: p.total_real_expenses + p.total_real_hours_price, // realExpenses,
-            invoice_hours_price: p.invoice_hours_price,
-            invoice_type: p.invoice_hours_price ? 'Hores' : 'Projecte',
-            pricehour: p.invoice_hours_price ? p.invoice_hours_price : (sumBy(p.activities, 'hours') && p.incomes_expenses ? parseFloat((p.incomes_expenses / sumBy(p.activities, 'hours')).toFixed(2)) : 0),
-            pricehour_estimate: p.invoice_hours_price ? p.invoice_hours_price : p.total_estimated_hours && p.incomes_expenses ? parseFloat((p.incomes_expenses / p.total_estimated_hours).toFixed(2)) : 0,
-            balance_estimate: p.invoice_hours_price ? (p.invoice_hours_price * p.total_estimated_hours) - p.total_expenses : p.total_incomes - p.total_expenses,
-            incomes_expenses: p.incomes_expenses,
-            total_real_incomes_expenses: p.total_real_incomes_expenses,
-            total_real_incomes: p.total_real_incomes,
-            expenses: p.total_expenses, // + p.total_estimated_hours_price,
-            total_original_hours_price: p.total_original_hours_price,
-            total_estimated_hours_price: p.total_estimated_hours_price,
-            total_real_hours_price: p.total_real_hours_price,
-            count: 1
-          }
-        })
+        const projects = r.data.map(ownFiguresIgnored).map(p => projectStatsRow(p, startMonth))
 
         this.projects = r.data
         this.pivotData = Object.freeze(sortBy(projects, ['project_name']))
