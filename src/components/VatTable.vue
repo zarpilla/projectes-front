@@ -75,7 +75,7 @@
                 <th scope="row">Previst</th>
                 <td class="has-text-right">{{ formatMoney(vat_expected.paid) }}</td>
                 <td class="has-text-right">{{ formatMoney(vat_expected.received) }}</td>
-                <td class="has-text-right">{{ pct(me.options.deductible_vat_pct) }}</td>
+                <td class="has-text-right">{{ pct(expectedTotals.deductiblePct) }}</td>
                 <td class="has-text-right vat-balance">{{ formatMoney(expectedBalance) }}</td>
               </tr>
             </tbody>
@@ -226,6 +226,9 @@
         <b-table-column label="IVA suportat" numeric v-slot="props" class="has-text-right">
           {{ formatPrice(props.row.paid) }} €
         </b-table-column>
+        <b-table-column label="% deduïble" numeric v-slot="props" class="has-text-right">
+          {{ pct(props.row.deductible_pct) }}
+        </b-table-column>
         <b-table-column label="IVA deduïble" numeric v-slot="props" class="has-text-right">
           {{ formatPrice(props.row.deductible_paid) }} €
         </b-table-column>
@@ -323,6 +326,7 @@ import getTreasuryData from "@/service/treasury";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from '@/components/PivotViews.vue'
 import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
+import { expectedVatQuarterRows, expectedVatTotals } from '@/domain/expectedVat'
 
 export default {
   name: "VATTable",
@@ -413,9 +417,13 @@ export default {
     hasDeductible() {
       return !!(this.me && this.me.options && this.me.options.deductible_vat_pct > 0);
     },
+    // each quarter deducts its year's %, Configuració's only as fallback (issues/221)
+    expectedTotals() {
+      const configPct = this.hasDeductible ? this.me.options.deductible_vat_pct : 0;
+      return expectedVatTotals(this.vat_expected, this.vat_expected_by_quarter, configPct);
+    },
     expectedBalance() {
-      const pct = this.hasDeductible ? this.me.options.deductible_vat_pct : 0;
-      return -1 * (this.vat_expected.received - (this.vat_expected.paid * pct / 100));
+      return this.hasDeductible ? this.expectedTotals.balance : -1 * (this.vat_expected.received || 0);
     },
     views() {
       return [
@@ -635,55 +643,7 @@ export default {
     },
     expectedVatQuarters() {
       if (!this.vat_expected_by_quarter || !this.me || !this.me.options) return [];
-      
-      // Sort quarters chronologically (same logic as backend)
-      const sortedQuarters = Object.keys(this.vat_expected_by_quarter)
-        .map(key => ({ key, ...this.vat_expected_by_quarter[key] }))
-        .sort((a, b) => {
-          if (a.year !== b.year) return a.year - b.year;
-          return a.quarter - b.quarter;
-        });
-      
-      let cumulativeBalance = 0;
-      const result = [];
-      
-      for (let qData of sortedQuarters) {
-        // negative = VAT to pay, like the executed table (issues/072)
-        const quarterBalance = (qData.paid * this.me.options.deductible_vat_pct / 100) - qData.received;
-        cumulativeBalance += quarterBalance;
-        
-        // Calculate payment date
-        let paymentDate = moment(`${qData.year}`, 'YYYY')
-          .quarter(qData.quarter)
-          .endOf('quarter')
-          .add(1, 'month');
-        
-        if (qData.quarter === 4) {
-          paymentDate.date(20);
-        } else {
-          paymentDate.date(30);
-        }
-        
-        result.push({
-          year: qData.year,
-          quarter: qData.quarter,
-          received: qData.received,
-          paid: qData.paid,
-          deductible_paid: qData.paid * this.me.options.deductible_vat_pct / 100,
-          quarterBalance: quarterBalance,
-          cumulativeBalance: cumulativeBalance,
-          paymentAmount: cumulativeBalance < 0 ? cumulativeBalance : 0,
-          paymentDate: paymentDate.format('DD/MM/YYYY'),
-          willCreateEntry: cumulativeBalance < 0
-        });
-        
-        // Reset cumulative balance after payment (same as backend)
-        if (cumulativeBalance < 0) {
-          cumulativeBalance = 0;
-        }
-      }
-      
-      return result;
+      return expectedVatQuarterRows(this.vat_expected_by_quarter, this.me.options.deductible_vat_pct);
     },
   },
   methods: {
