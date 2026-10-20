@@ -21,6 +21,17 @@ The canary `demo` goes first, then the rest one by one. If a site doesn't come b
 ./deploy.sh v5-vue3-<previous sha>           # roll everything back
 ```
 
+### Redesign builds on some sites
+
+A push to the `redesign` branch publishes `esstrapis-front:redesign-<sha>` and never deploys. Put it on chosen sites by hand, always together with the same tenants' backend (`esstrapis-back:redesign-<sha>`, see the backend's `deploy/docker/README.md`):
+
+```bash
+./deploy.sh redesign-<sha> ladili_test webcoop   # pins them: written to pinned.conf
+./deploy.sh v5-vue3-<sha> webcoop                # back to master: unpins it
+```
+
+A deploy without a site list (what CI runs) skips the sites in `pinned.conf`. A redesign build needs a site list, and the canary `demo` can't take it.
+
 The scripts on the server are copies of `deploy/docker/`. After changing them here, copy them to `/var/www/esstrapis-front`. Pushes that only touch `deploy/`, `docs/`, `manual/` or Markdown files don't build or deploy.
 
 Secrets in GitHub: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`. Add required reviewers to the `production` environment to approve each deploy by hand.
