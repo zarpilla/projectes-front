@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
+      text: "Ja no es pot posar una data de recollida a la finca que ja ha passat. En obrir una comanda pendent amb la recollida passada, la data es mou al pròxim dia de la ruta i, en desar-la, s'afegeix a una recollida d'aquell dia."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
       text: "Obrir i desar una comanda sense canvis ja no la converteix en transferència: les comandes lliurades, facturades o anul·lades conserven sempre la seva, i en les obertes només es recalcula si canvies el punt de recollida, la ruta o la data. L'avís de canvi d'estat en bloc de comandes facturades ja no diu «Comanda ja processada»."
     },
     {

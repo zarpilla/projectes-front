@@ -260,6 +260,7 @@
                 <b-datepicker
                   v-model="form.collection_pickup_date"
                   :disabled="!canEdit || form.is_collection_order"
+                  :min-date="collectionPickupMinDate"
                   :show-week-number="false"
                   :locale="'ca-ES'"
                   :first-day-of-week="1"
@@ -702,6 +703,10 @@ export default {
     // on a new one (issues/163)
     canEdit() {
       return canEditOrder(this.form, this.permissions);
+    },
+    // no past pickup days (issues/302)
+    collectionPickupMinDate() {
+      return moment().startOf("day").toDate();
     },
     canChangeRate() {
       return ["pending"].includes(this.form.status);
@@ -1175,8 +1180,6 @@ export default {
 
               // Fetch collection pickup routes if collection_point is set
               if (this.form.collection_point) {
-                await this.fetchCollectionPickupRoutes();
-
                 // Convert collection_pickup_date to Date if it exists
                 if (this.form.collection_pickup_date) {
                   this.form.collection_pickup_date = moment(
@@ -1184,6 +1187,9 @@ export default {
                     "YYYY-MM-DD"
                   ).toDate();
                 }
+
+                await this.fetchCollectionPickupRoutes({ loading: true });
+                await this.movePastCollectionPickupDate();
               }
 
               this.isLoading = false;
@@ -2223,14 +2229,31 @@ export default {
         this.routeFestives
       );
 
-      if (!valid) {
+      if (moment(this.form.collection_pickup_date).isBefore(moment(), "day")) {
+        this.collectionPickupDateWarningMessage =
+          "Atenció! La data de recollida ja ha passat";
+      } else if (!valid) {
         this.collectionPickupDateWarningMessage =
           "Atenció! La data de recollida no és vàlida per la ruta seleccionada";
       } else {
         this.collectionPickupDateWarningMessage = "";
       }
     },
-    async fetchCollectionPickupRoutes() {
+    // A pending order whose farm pickup day is gone gets the route's next day,
+    // so saving it groups it into a collection order of that day: saved as it
+    // was, it stayed in the past one (issues/302).
+    async movePastCollectionPickupDate() {
+      if (!this.canEdit || this.form.is_collection_order || this.form.status !== "pending") return;
+      const stored = this.form.collection_pickup_date;
+      if (!stored || !moment(stored).isBefore(moment(), "day")) return;
+      await this.calculateCollectionPickupDate();
+      if (moment(this.form.collection_pickup_date).isSame(stored, "day")) return;
+      this.collectionPickupDateWarningMessage =
+        `La data de recollida (${moment(stored).format("DD/MM/YYYY")}) ja havia passat: ` +
+        `ara és el ${moment(this.form.collection_pickup_date).format("DD/MM/YYYY")}. Desa la comanda per canviar-la.`;
+    },
+    // Loading is not choosing: the stored pickup date stays (issues/302).
+    async fetchCollectionPickupRoutes({ loading = false } = {}) {
       if (!this.form.collection_point) {
         this.collectionPickupRoutes = [];
         return;
@@ -2245,7 +2268,9 @@ export default {
         // If there's only one route, select it automatically
         if (this.collectionPickupRoutes.length === 1) {
           this.form.collection_pickup_route = this.collectionPickupRoutes[0].id;
-          await this.calculateCollectionPickupDate();
+          if (!loading || !this.form.collection_pickup_date) {
+            await this.calculateCollectionPickupDate();
+          }
         }
       } catch (error) {
         console.error("Error fetching collection pickup routes:", error);
