@@ -94,3 +94,56 @@ describe('ModalBoxWorkingDay validation (issues/225)', () => {
     w.unmount()
   })
 })
+
+// issues/300: «4,4,4,4,5.1,0,0» with Hores 4,22 was refused (21.1 !== 4.22 × 5 =
+// 21.099999…), and a new period was saved with scheme NULL unless a radio was clicked
+describe('ModalBoxWorkingDay hours per day and scheme (issues/300)', () => {
+  async function openWith (_dedication, quotes) {
+    const w = mount(ModalBoxWorkingDay, {
+      props: { isActive: false, dedicationObject: { _dedication }, users: [], years: [], quotes },
+      global: { plugins: [createPinia(), Buefy] },
+      attachTo: document.body
+    })
+    await w.setProps({ isActive: true })
+    await new Promise(r => setTimeout(r, 150))
+    return w
+  }
+
+  it('accepts a weekly distribution equal to the hours to the hundredth', async () => {
+    const w = await openModal()
+    w.vm.fixDecimals('hours', '4,22')
+    w.vm.form.hoursperday = '4,4,4,4,5.1,0,0'
+    await w.vm.$nextTick()
+    await w.find('form').trigger('submit')
+    expect(w.emitted('submit')).toHaveLength(1)
+    w.unmount()
+  })
+
+  it('still refuses a distribution that does not add up', async () => {
+    const w = await openModal()
+    w.vm.fixDecimals('hours', '4,22')
+    w.vm.form.hoursperday = '4,4,4,4,5,0,0'
+    await w.vm.$nextTick()
+    await w.find('form').trigger('submit')
+    expect(w.emitted('submit')).toBeUndefined()
+    w.unmount()
+  })
+
+  it('gives a new period the default scheme and its quotas', async () => {
+    const quotes = { id: 1, autonoma_quota: 300, autonoma_pct_quota: 0, autonoma_pct_irpf: 15, autonoma_pct_other: 0 }
+    const w = await openWith({ from: '2027-01-01', to: '2027-06-30', users_permissions_user: { id: 5, username: 'anna' } }, quotes)
+    w.vm.fixDecimals('hours', '6')
+    await w.vm.$nextTick()
+    await w.find('form').trigger('submit')
+    const [[period]] = w.emitted('submit')
+    expect(period).toMatchObject({ scheme: 'autonoma', quota: 300, pct_irpf: 15 })
+    w.unmount()
+  })
+
+  it('keeps the scheme of an existing period', async () => {
+    const w = await openModal()
+    expect(w.vm.form.scheme).toBe('general')
+    expect(w.vm.form.quota).toBe(0)
+    w.unmount()
+  })
+})

@@ -208,6 +208,9 @@ import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
 import { formatMoney } from "@/helpers/format-number";
 
+// the Seguretat Social scheme of a new period, until another radio is picked
+const DEFAULT_SCHEME = "autonoma";
+
 export default {
   name: "ModalBoxWorkingDay",
   emits: ["cancel", "delete", "submit"],
@@ -367,7 +370,7 @@ export default {
         this.form.hours = 0;
         this.form.costByHour = 0;
         this.form.monthly_salary = 0;
-        this.form.scheme = "autonoma";
+        this.form.scheme = DEFAULT_SCHEME;
         this.form.quota = 0;
         this.form.pct_quota = 0;
         this.form.pct_irpf = 0;
@@ -376,8 +379,15 @@ export default {
         this.form.hoursperday = "";
       }
 
-      this.form.costByHour = this.calcCostByHour();
       this.initializing = false;
+      // a new period (from the person's row or dragged on the chart) came without
+      // a scheme and was saved with NULL unless a radio was clicked (issues/300):
+      // the default one, with its quotas, as clicking it does
+      if (!this.form.id && !this.form.scheme) {
+        this.form.scheme = DEFAULT_SCHEME;
+        this.setQuotes(DEFAULT_SCHEME);
+      }
+      this.form.costByHour = this.calcCostByHour();
       this.isLoading1 = false;
       setTimeout(() => this.dirty = false, 100)
     },
@@ -476,7 +486,8 @@ export default {
       const sum = hoursperday.reduce((acc, curr) => {
         return acc + parseFloat(curr);
       }, 0);
-      return sum === this.form.hours * 5;
+      // to the hundredth: 4+4+4+4+5.1 is 21.1 but 4.22 × 5 is 21.099999… (issues/300)
+      return Math.round(sum * 100) === Math.round(Number(this.form.hours) * 5 * 100);
     }
   },
 };
