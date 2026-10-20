@@ -37,7 +37,7 @@
       <!-- nothing to justify for these filters (no grant projects…): say so
            instead of an empty page (issues/108) -->
       <p
-        v-if="!isLoading && !monthlyActivitiesTotal.length && !justifications.length"
+        v-if="!isLoading && !monthlyActivitiesTotal.length && !justifications.length && !kpi.rows.length"
         class="pivot-empty"
       >
         No hi ha cap projecte subvencionat amb dades per a aquests filtres.
@@ -45,7 +45,7 @@
       <card-component
         class="has-table has-mobile-sort-spaced"
         v-if="
-          (monthlyActivitiesTotal.length || justifications.length) &&
+          (monthlyActivitiesTotal.length || justifications.length || summaryByProjectAll.length) &&
             view === 'Bestretes'
         "
         title="Totals per projecte (bestretes)"
