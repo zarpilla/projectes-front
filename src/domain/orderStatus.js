@@ -43,6 +43,20 @@ export function canSetStatus (order, status, isStaff, { driver = false } = {}) {
   return order.status === 'pending' && status === 'cancelled'
 }
 
+/**
+ * The invoiced orders a bulk state change would move out of Facturada. They
+ * stay on their invoice, so the bar asks first, like the order form warns
+ * («Comanda ja processada…», issues/240).
+ */
+export const leavingInvoiced = (rows, status) =>
+  status === 'invoiced' ? [] : (rows || []).filter(row => row && row.status === 'invoiced')
+
+export const leavingInvoicedMessage = (rows, status) => {
+  const ids = rows.map(row => `#${row.id}`).join(', ')
+  const which = rows.length === 1 ? `La comanda ${ids} ja està facturada` : `Les comandes ${ids} ja estan facturades`
+  return `<b>Comanda ja processada.</b> ${which}: si la passes a «${orderStatusLabel(status)}», continuarà a la seva factura, que no canvia. Vols canviar-ne l'estat igualment?`
+}
+
 /** Why the selection bar left some orders out (issues/144, 193). */
 export const bulkSkipReason = (isStaff, driver) =>
   isStaff && driver ? "les facturades només les canvia l'oficina" : 'només es poden anul·lar les pendents'
