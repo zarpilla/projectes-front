@@ -26,6 +26,36 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Projectes"],
+      text: "Projectes: no es pot guardar una data final anterior a la d'inici; el Codi buit avisa en català, el total diu «1 projecte» i «Exporta» (també a Projectes mare) surt amb capçaleres en català i dates dd/mm/aaaa."
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores"],
+      text: "Jornades: no es pot desar un període que acabi abans de començar ni amb hores negatives. % Dedicació real i Previsió: les persones sense jornada surten com a «s/j». A Bestretes, les hores que inclouen vacances i festius personals es diuen «Treballades + vacances». El PDF del registre de jornades mostra dates dd/mm/aaaa i «3 h 30», les exportacions d'hores tenen capçaleres en català, i en crear festius per rang el missatge compta només els dies que es desaran."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: "Comandes: el filtre de la columna Preu busca el preu que es mostra (amb coma o punt), els quilos admeten decimals sense avís del navegador, els indicadors porten separador de milers, i les comandes de punt de consum mostren els quilos amb coma i el mateix nom del punt a tot arreu. Incidències: el temps mitjà de tancament segueix els filtres i s'actualitza en tancar-ne una. Una comanda no es pot crear sense ruta, punt d'entrega i data prevista."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Ingressos i Despeses: en triar una sèrie només surten les factures d'aquella sèrie; les nòmines de persones esborrades ja no donen errors, i canviar els filtres ràpidament ja no deixa resultats d'un filtre anterior. Tresoreria: en filtrar per projecte, la previsió comença a 0 i mostra només aquell projecte."
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: "Exportacions: Contactes i Tresoreria exporten només el que mostra la pantalla amb els filtres aplicats; a Tresoreria els imports i el saldo surten arrodonits a cèntims; a Despeses les nòmines porten número i persona, i a Pressupostos surten la data, el concepte i el client."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Nòmines: la «Despesa total» surt amb dos decimals i el codi com al llistat. Dietes: el detall del projecte surt amb les fases abans de guardar. Pressupostos: marcar «Acceptat» posa la data d'avui si no n'hi ha."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
       text: "Les dedicacions de tipus «Total» de menys de quinze dies ja compten a les hores i al cost previstos del projecte (els totals es recalculen sols). Subvencions mostra els imports per any de la fitxa (total, a justificar i cofinançament), igual que Justificacions."
     },
     {
