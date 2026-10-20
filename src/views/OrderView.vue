@@ -332,7 +332,9 @@ export default {
     currentStep() {
       const o = this.order;
       if (!o) return 0;
-      if (["delivered", "invoiced"].includes(o.status) || o.delivery_date) return 4;
+      // delivered by its status: a delivery_date left on an order set back
+      // before delivery is stale (issues/266)
+      if (this.isDelivered) return 4;
       // away from a farm, pickup_date is the driver's «Carregat»: loaded on
       // the delivery route, so the order is out on it (issues/250)
       if (!this.isFarmPickup && o.pickup_date) return 2;
@@ -340,6 +342,9 @@ export default {
       if (!pickedUp) return 0;
       if (o.transfer && !o.transfer_end_date) return 1;
       return 2;
+    },
+    isDelivered() {
+      return !!this.order && ["delivered", "invoiced"].includes(this.order.status);
     },
     // the tracking, done and pending moves with their actions
     timeline() {
@@ -403,12 +408,12 @@ export default {
       steps.push({
         key: "delivered",
         title: "Lliurada",
-        done: !!o.delivery_date || ["delivered", "invoiced"].includes(o.status),
-        detail: o.delivery_date ? this.formatDate(o.delivery_date) : o.estimated_delivery_date ? `Prevista ${this.shortDay(o.estimated_delivery_date)} · ${this.routeName}` : "Pendent",
+        done: this.isDelivered,
+        detail: this.isDelivered && o.delivery_date ? this.formatDate(o.delivery_date) : o.estimated_delivery_date ? `Prevista ${this.shortDay(o.estimated_delivery_date)} · ${this.routeName}` : "Pendent",
         actions: []
       });
       if (this.showsPrice) {
-        const delivered = !!o.delivery_date || ["delivered", "invoiced"].includes(o.status);
+        const delivered = this.isDelivered;
         steps.push({
           key: "invoiced",
           title: "Facturada",

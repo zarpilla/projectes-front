@@ -79,3 +79,24 @@ describe('order view tracking (issues/250)', () => {
     }
   })
 })
+
+// issues/266: an order set back from Lliurada to Processada kept its
+// delivery_date and the view showed it delivered («Lliurada 20/10/2026»,
+// «Pendent de facturar») next to a Processada badge.
+describe('stale delivery date (issues/266)', () => {
+  const base = { id: 24867, pickup: { id: 2, pickup: false }, createdAt: '2026-10-07T08:00:00Z', delivery_date: '2026-10-20', estimated_delivery_date: '2026-10-20' }
+
+  it('a processed order with a delivery date left is not delivered', () => {
+    const vm = view({ ...base, status: 'processed' })
+    expect(vm.currentStep).not.toBe(4)
+    expect(step(vm, 'delivered').done).toBe(false)
+    expect(step(vm, 'delivered').detail).not.toBe('20/10/2026')
+    expect(step(vm, 'invoiced').detail).toBe('Quan es lliuri')
+  })
+
+  it('a delivered order still is', () => {
+    const vm = view({ ...base, status: 'delivered' })
+    expect(vm.currentStep).toBe(4)
+    expect(step(vm, 'delivered').done).toBe(true)
+  })
+})
