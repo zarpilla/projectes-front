@@ -79,7 +79,8 @@ describe('router guard (issues/121)', () => {
     login(['projects', 'hours'])
     await router.push('/tresoreria')
     expect(router.currentRoute.value.path).toBe('/tresoreria')
-  })
+  // each push loads the real (large) views: past 5 s when the whole suite runs at once
+  }, 30000)
 })
 
 describe('changelog links (issues/121)', () => {
