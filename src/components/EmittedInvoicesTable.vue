@@ -212,6 +212,7 @@ import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import getConfig from '@/config'
 import { stateFilter } from '@/domain/incomeListFilters'
+import { startLoad } from '@/domain/latestLoad.js'
 
 export default {
   name: "EmittedInvoices",
@@ -365,6 +366,8 @@ export default {
     },
     async getData() {
       this.isLoading = true;
+      // quick filter changes: only the latest load writes the list (issues/279, as 219)
+      const isStale = startLoad(this);
       if (!this.year) {
         return;
       }
@@ -401,7 +404,8 @@ export default {
       });
 
       const typeQuery = this.documentType ? `&[document_type_eq]=${this.documentType}` : '';
-      let incomes = includeIncomes && this.documentType !== -1 ? (
+      // only invoices have a series: while one is chosen, the other documents are hidden (issues/278)
+      let incomes = includeIncomes && this.documentType !== -1 && !this.serial ? (
         await service({ requiresAuth: true }).get(
           `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
         )
@@ -426,6 +430,7 @@ export default {
         };
       });
 
+      if (isStale()) return;
       this.emitted = emittedWithInfo
       this.emittedCSV = []
       this.emitted.forEach((e) => {

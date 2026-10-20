@@ -29,7 +29,8 @@
       </div>
       <span class="contacts-count">{{ formatNumber(filteredContacts.length) }} {{ filteredContacts.length === 1 ? "contacte" : "contactes" }}</span>
       <div class="contacts-actions">
-        <download-excel class="export" :data="contactsCSV" :escapeCsv="false" name="contactes" :fields="csv">
+        <!-- the export follows the search and the type chips, like the table (issues/277) -->
+        <download-excel class="export" :data="filteredContacts" :escapeCsv="false" name="contactes" :fields="csv">
           <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
         </download-excel>
         <b-button type="is-primary" icon-left="plus" @click="navNew">Nou contacte</b-button>
@@ -54,7 +55,7 @@
       </label>
       <span class="contacts-count">{{ filteredPoints.length }} {{ filteredPoints.length === 1 ? "punt" : "punts" }}</span>
       <div class="contacts-actions">
-        <download-excel class="export" :data="contactsCSV" :escapeCsv="false" name="punts-entrega" :fields="csv2">
+        <download-excel class="export" :data="filteredPoints" :escapeCsv="false" name="punts-entrega" :fields="csv2">
           <b-button title="Exporta dades" icon-left="download">Exporta</b-button>
         </download-excel>
         <b-button v-if="orders_admin" icon-left="call-merge" title="Unificar punts d'entrega" @click="openUnifyModal">Unifica punts</b-button>
@@ -173,7 +174,6 @@ export default {
       isLoading: false,
       isUnifyModalActive: false,
       contacts: [],
-      contactsCSV: [],
       filters: {
         q: "",
         userContacts: ""
@@ -444,7 +444,6 @@ export default {
         };
       });
 
-      this.contactsCSV = this.contacts;
       this.isLoading = false;
     },
     formatSlot2(s1, s2, prefix) {

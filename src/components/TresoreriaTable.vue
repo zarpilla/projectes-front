@@ -26,7 +26,8 @@
 
       <download-excel
         class="export view-button"
-        :data="treasuryDataDesc"
+        :data="movementsShown"
+        :fetch="movementsExport"
         v-if="treasuryDataDesc && treasuryDataDesc.length"
         name="tresoreria"
         :fields="{
@@ -54,7 +55,7 @@
           moviment: 'type',
           concepte: 'concept',
           projecte: 'project_name',
-          nomina: 'contact',
+          contacte: 'contact',
           pagat: 'paid'
         }"
       >
@@ -365,6 +366,7 @@
         </div>
         <!-- paginated (the whole year was one ~60.000 px table); opens on the page with "Avui" -->
         <b-table
+          ref="movementsTable"
           v-model:current-page="movementsPage"
           :loading="isLoading"
           :paginated="true"
@@ -607,7 +609,7 @@ import { ofWord } from "@/helpers/catalan";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
-import { treasuryPeriod, treasuryDisplayDate } from "@/domain/projectTreasury.js";
+import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday } from "@/domain/projectTreasury.js";
 
 export default {
   name: "Tresoreria",
@@ -725,20 +727,9 @@ export default {
             : t.datef >= `${year}0101`
         );
 
-      // Apply project filter (exclude balance annotations from filtering)
+      // only the project's movements and the markers, from 0 (issues/284)
       if (this.selectedProject) {
-        treasuryData = treasuryData.filter(t => {
-          // Always include "Inici Any" and "Avui" entries regardless of project filter
-          if (
-            t.type === "Inici Any" ||
-            t.type === "Avui" ||
-            t.is_balance_annotation ||
-            t.is_real_balance_adjustment
-          ) {
-            return true;
-          }
-          return t.project_id === this.selectedProject.id;
-        });
+        treasuryData = projectTreasuryRows(treasuryData, this.selectedProject.id);
       }
 
       // Apply date filters (exclude balance annotations from filtering)
@@ -839,6 +830,8 @@ export default {
     // balance of each account at the start of the year and today ("Inici Any" /
     // "Avui" rows, one per account)
     accountRows() {
+      // the accounts' balances are the company's: not in a project's view (issues/284)
+      if (this.selectedProject) return [];
       const start = this.treasuryData.filter(t => t.type === (this.view === "today" ? "Avui" : "Inici Any"));
       const today = this.treasuryData.filter(t => t.type === "Avui");
       return today.map(t => {
@@ -875,11 +868,15 @@ export default {
       return `calc((100% - 3rem) * ${(-min) / span})`;
     },
     todayBalanceScope() {
+      if (this.selectedProject) return "només el projecte, des de 0 a l'1 de gener";
       if (!this.isSingleAccountView) return "suma dels comptes";
       const name = (this.singleAccountName || "").trim();
       return name && name !== "-" ? name : "el compte";
     },
     todayBalance() {
+      if (this.selectedProject) {
+        return projectSaldoToday(projectTreasuryRows(this.treasuryData, this.selectedProject.id), this.selectedYear, moment().format("YYYYMMDD"));
+      }
       const today = this.treasuryData.find(t => t.type === "Avui");
       if (!today) return 0;
       return this.isSingleAccountView && today.account_subtotal !== undefined ? today.account_subtotal : today.subtotal;
@@ -895,7 +892,14 @@ export default {
       return `a final ${ofWord(this.monthName(low.month).toLowerCase())} de ${low.year}`;
     },
     yearEnd() {
-      return this.pivotData.find(d => d.month === "00" && d.year === String(this.selectedYear)) || null;
+      const year = String(this.selectedYear);
+      const total = this.pivotData.find(d => d.month === "00" && d.year === year);
+      if (total || !this.selectedProject) return total || null;
+      // a project without December movements (issues/284): the last month of the
+      // year with movements, else the start (0), carries to 31/12
+      const months = this.pivotData.filter(d => d.year === year && d.month !== "00" && d.month !== "99");
+      if (!months.length) return { subtotal: this.todaySubTotal, total_amount: 0 };
+      return { subtotal: months[months.length - 1].subtotal, total_amount: _.sumBy(months, "total_amount") };
     },
     noDate() {
       return this.pivotData.find(d => d.month === "99") || null;
@@ -972,6 +976,8 @@ export default {
       return ansWithSubtotal;
     },
     todaySubTotal() {
+      // a project's view starts at 0, not at the company's balance (issues/284)
+      if (this.selectedProject) return 0;
       // With multiple bank accounts, we have multiple "Today"/"Start of Year" entries
       // We'll use the subtotal from the first one found, as they should all have the same subtotal
       // (the running balance is calculated across all accounts)
@@ -996,20 +1002,9 @@ export default {
         d => String(d.datef || "").slice(0, 4) == this.selectedYear
       );
 
-      // Apply project filter (exclude balance annotations from filtering)
+      // only the project's movements and the markers, saldo from 0 (issues/284)
       if (this.selectedProject) {
-        treasuryDataOfYear = treasuryDataOfYear.filter(d => {
-          // Always include "Inici Any" and "Avui" entries regardless of project filter
-          if (
-            d.type === "Inici Any" ||
-            d.type === "Avui" ||
-            d.is_balance_annotation ||
-            d.is_real_balance_adjustment
-          ) {
-            return true;
-          }
-          return d.project_id === this.selectedProject.id;
-        });
+        treasuryDataOfYear = withProjectSaldo(projectTreasuryRows(treasuryDataOfYear, this.selectedProject.id));
       }
 
       // Apply date filters (exclude balance annotations from filtering)
@@ -1067,6 +1062,12 @@ export default {
   methods: {
     ofWord,
     treasuryDisplayDate,
+    // what the export downloads: the movements as listed, i.e. after the tab,
+    // the search and the per-column filters, every page (issues/277)
+    movementsExport() {
+      const table = this.$refs.movementsTable;
+      return table && Array.isArray(table.newData) ? table.newData : this.movementsShown;
+    },
     async getData() {
       this.isLoading = true;
       const year = this.$route.query.year
@@ -1182,6 +1183,7 @@ export default {
       return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     },
     displayBalance(row) {
+      if (this.selectedProject) return row.subtotal;
       // If viewing a single account, show that account's balance
       // Otherwise show the global balance across all accounts
       if (this.isSingleAccountView && row.account_subtotal !== undefined) {

@@ -16,7 +16,7 @@
         tipus: 'tipus',
         data: 'data',
         venciment: 'venciment',
-        cobrada: 'cobrada',
+        pagada: 'pagada',
         proveidor: 'proveidor',
         proveidor_nif: 'proveidor_nif',
         proveidor_adreça: 'proveidor_adreça',
@@ -119,10 +119,7 @@
           <router-link v-else :to="{
                 name: 'document.edit',
                 params: { id: props.row.id, type: props.row.type },
-              }">{{
-      `${props.row.year.year}-${zeroPad(props.row.month.month, 2)}-${props.row.users_permissions_user.username
-        }`
-    }}
+              }">{{ payrollCode(props.row) }}
           </router-link>
           <span class="doc-subline">
             <template v-if="props.row.type === 'received-invoices'">Factura</template>
@@ -143,7 +140,7 @@
         <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable cell-class="doc-concept">
           <div class="doc-clamp" :title="props.row.document_concept || null">
           <span v-if="props.row.type === 'payrolls'">
-            {{ props.row.users_permissions_user.username }}
+            {{ payrollUserName(props.row) }}
           </span>
           <span v-else>
             {{
@@ -196,6 +193,8 @@ import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { invoiceExportLineRow } from "@/domain/invoiceExport";
+import { payrollCode, payrollUserName } from "@/domain/payrollLabel";
+import { startLoad } from "@/domain/latestLoad.js";
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 
@@ -315,6 +314,8 @@ export default {
   },
   methods: {
     formatMoney,
+    payrollCode,
+    payrollUserName,
     // not paid, positive and past its due date ("Venciment")
     isOverdue(row) {
       return !row.paid_date && !row.paid && Number(row.total) > 0 && !!row.paybefore && moment(row.paybefore).isBefore(moment(), "day");
@@ -338,6 +339,8 @@ export default {
     },
     async getData() {
       this.isLoading = true;
+      // quick filter changes: only the latest load writes the list (issues/279, as 219)
+      const isStale = startLoad(this);
       if (!this.year) {
         return;
       }
@@ -387,8 +390,9 @@ export default {
 
       // «Tipus» filter: only request the kinds it keeps; `_limit=0` returns rows anyway (issues/260)
       const includeInvoices = !this.documentType || this.documentType === -1;
-      const includeExpenses = !this.documentType || this.documentType > 0;
-      const includePayrolls = !this.documentType || this.documentType === -2;
+      // only invoices have a series: while one is chosen, expenses and payrolls are hidden (issues/278)
+      const includeExpenses = (!this.documentType || this.documentType > 0) && !this.serial;
+      const includePayrolls = (!this.documentType || this.documentType === -2) && !this.serial;
       let invoices = includeInvoices ? (
         await service({ requiresAuth: true }).get(
           `received-invoices?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
@@ -429,8 +433,7 @@ export default {
         // Filter payrolls client-side by constructed code (year-month-username)
         if (this.code) {
           payrolls = payrolls.filter((p) => {
-            const payrollCode = `${p.year.year}-${this.zeroPad(p.month.month, 2)}-${p.users_permissions_user.username}`;
-            return payrollCode.toLowerCase().includes(this.code.toLowerCase());
+            return payrollCode(p).toLowerCase().includes(this.code.toLowerCase());
           });
         }
       }
@@ -449,13 +452,19 @@ export default {
         };
       });
 
+      if (isStale()) return;
       this.emitted = emittedWithInfo;
 
       this.emittedCSV = [];
 
       this.emitted.forEach((e) => {
+        // payrolls have no code nor contact: their «<any>-<mes>-<usuari>» and the worker (issues/277)
+        const isPayroll = e.type === "payrolls";
+        const worker = isPayroll && e.users_permissions_user
+          ? e.users_permissions_user.fullname || e.users_permissions_user.username
+          : "";
         this.emittedCSV.push({
-          num: e.code,
+          num: isPayroll ? payrollCode(e) : e.code,
           num_document_proveidor: e.contact_invoice_number
             ? e.contact_invoice_number
             : "",
@@ -463,12 +472,12 @@ export default {
             e.type == "received-invoices"
               ? "Factura"
               : e.type === "received-expenses"
-                ? e.document_type.name
+                ? (e.document_type ? e.document_type.name : "")
                 : "Nòmina",
           data: this.formatDate(e.emitted),
           venciment: this.formatDate(e.paybefore),
-          cobrada: this.formatDate(e.paid_date),
-          proveidor: e.contact ? e.contact.name : "",
+          pagada: this.formatDate(e.paid_date),
+          proveidor: isPayroll ? worker || payrollUserName(e) : e.contact ? e.contact.name : "",
           proveidor_nif: e.contact ? e.contact.nif : "",
           proveidor_adreça: e.contact ? e.contact.address : "",
           proveidor_cp: e.contact ? e.contact.postcode : "",

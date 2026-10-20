@@ -116,3 +116,35 @@ export const treasuryDisplayDate = row => {
   if (/^\d{8}$/.test(s)) return `${s.slice(6, 8)}/${s.slice(4, 6)}/${s.slice(0, 4)}`
   return String((row && row.datex) || '').replace(/-/g, '/')
 }
+
+// Tresoreria «Filtra per projecte» (issues/284): the view started from the
+// company's balance («Inici Any» / «Avui» seeds), so «Saldo a 31/12» mixed the
+// company's start with the project's flows. With a project chosen the view
+// shows only that project: its movements, the «Inici Any» / «Avui» markers and
+// a running saldo that starts at 0; the bank balances noted for the accounts
+// (company figures) are left out.
+const isMarker = r => r.type === 'Inici Any' || r.type === 'Avui'
+const isAccountBalance = r => r.is_balance_annotation || r.is_real_balance_adjustment
+
+/** The rows of one project (and the markers), from all treasury rows. */
+export function projectTreasuryRows (rows, projectId) {
+  return (rows || []).filter(r => !isAccountBalance(r) && (isMarker(r) || r.project_id === projectId))
+}
+
+/** The same rows (sorted by date) with `subtotal` = the project's running saldo from 0. */
+export function withProjectSaldo (rows) {
+  let saldo = 0
+  return (rows || []).map(r => {
+    if (!isMarker(r)) saldo = Math.round((saldo + (Number(r.total_amount) || 0)) * 100) / 100
+    return { ...r, subtotal: saldo, account_subtotal: saldo }
+  })
+}
+
+/** The project's saldo at the start of `today` (YYYYMMDD), from 0 on 1 January of `year`. */
+export function projectSaldoToday (rows, year, today) {
+  const from = `${year}0101`
+  const sum = (rows || [])
+    .filter(r => !isMarker(r) && !isAccountBalance(r) && String(r.datef || '') >= from && String(r.datef || '') < today)
+    .reduce((t, r) => t + (Number(r.total_amount) || 0), 0)
+  return Math.round(sum * 100) / 100
+}

@@ -173,11 +173,12 @@ export default {
 
       this.emittedCSV = this.emitted.map((e) => {
         return {
+          // the quote's fields are `emitted` and `concept`; it's the client (issues/277)
           num: e.code,
-          data: this.formatDate(e.date),
-          proveidor: e.contact ? e.contact.name : "",
+          data: this.formatDate(e.emitted),
+          client: e.contact ? e.contact.name : "",
           nif: e.contact ? e.contact.nif : "",
-          concepte: e.lines && e.lines.length > 0 ? e.lines[0].concepte : "-",
+          concepte: (e.lines && e.lines.length > 0 && e.lines[0].concept) || e.document_concept || "",
           projecte: e.projects && e.projects.length ? e.projects[0].name : (e.project ? e.project.name : ""),
           base: e.total_base,
           vat: e.total_vat,
