@@ -33,7 +33,7 @@
 <script>
 export default {
   name: 'CardComponent',
-  emits: ["header-icon-click"],
+  emits: ["header-icon-click", "visible-change"],
   props: {
     title: {
       type: String,
@@ -67,6 +67,15 @@ export default {
   },
   created() {
     this.visible = this.contentVisible
+  },
+  watch: {
+    // issues/055: lets the page leave a folded card's content undrawn
+    visible: {
+      immediate: true,
+      handler (visible) {
+        this.$emit('visible-change', visible)
+      }
+    }
   },
   methods: {
     headerIconClick () {

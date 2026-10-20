@@ -1709,6 +1709,7 @@
         v-show="showTab('pressupost')"
         :closeIcon="true"
         :content-visible="isCreationMode"
+        @visible-change="originalPhasesOpen = $event"
       >
         <b-notification v-if="form.is_mother && !hasLegacyMotherPhases" type="is-info" :closable="false" class="mb-4">
           Aquest és un projecte mare. Les fases que es mostren són l'agregació de tots els projectes fills. No es poden editar directament.
@@ -1726,6 +1727,7 @@
           :contacts="clients"
           @phases-updated="originalPhasesUpdated"
           @phases-copy="originalPhasesCopy"
+          :defer-render="!showTab('pressupost') || !originalPhasesOpen"
           mode="simple"
           :editable="originalEditable && !form.is_mother"
           :per-page="parseInt(perPage)"
@@ -1818,6 +1820,7 @@
           :project-phases="form.project_phases"
           :contacts="clients"
           @phases-updated="phasesUpdated"
+          :defer-render="!showTab('pressupost')"
           :editable="phasesEditable && !form.is_mother"
           :per-page="parseInt(perPage)"
           :is-paginated="isPaginated"
@@ -1995,7 +1998,7 @@
         class="ztile is-child mt-2"
         :content-visible="true"
       >
-        <b-table :data="documents || []">
+        <b-table v-if="tabRendered('moviments')" :data="documents || []">
           <b-table-column
             label="Tipus"
             field="docTypeDesc"
@@ -2279,6 +2282,7 @@
         </b-field>
 
         <b-table
+          v-if="tabRendered('moviments')"
           :data="treasury || []"
           :per-page="parseInt(perPage)"
           :paginated="isPaginated"
@@ -2551,6 +2555,9 @@ import { fiscalStartMonth, fiscalYearLabel, fiscalYearRange, fiscalYearOf } from
 import { formatHours, formatMoney, formatNumber, sign } from "@/helpers/format-number";
 import { defaultProjectLeader } from "@/domain/projectLeader.js";
 
+// the same phase objects in the same order (issues/055)
+const samePhases = (a, b) =>
+  Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((phase, i) => phase === b[i]);
 const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum: 4 };
 
 // Project components
@@ -2635,6 +2642,10 @@ export default {
       phaseToAdd: "",
       // redesign: the page is split in tabs (only for existing projects)
       activeTab: "resum",
+      // issues/055: the original budget card is folded: its lines wait until it opens
+      originalPhasesOpen: false,
+      // issues/055: tabs shown at least once (their heavy tables stay drawn)
+      renderedTabs: {},
       isDuplicateModalActive: false,
       isDeleteModalActive: false,
       showOptionalFields: false,
@@ -2690,6 +2701,14 @@ export default {
     };
   },
   computed: {
+    // contact id -> name, the first contact with each id (issues/055)
+    contactNames() {
+      const names = new Map();
+      (this.clients || []).forEach(c => {
+        if (!names.has(c.id)) names.set(c.id, c.name);
+      });
+      return names;
+    },
     // a new project has no `form.periodification` yet (issues/126)
     hasPeriodificationRows() {
       return !!(this.periodification && this.form.periodification && this.form.periodification.length);
@@ -2966,6 +2985,12 @@ export default {
         this.activeTab = this.projectTabs.some(t => t.id === tab) ? tab : "resum";
       }
     },
+    activeTab: {
+      immediate: true,
+      handler(tab) {
+        this.renderedTabs[tab] = true;
+      }
+    },
     id(newValue) {
       this.isProfileExists = false;
       this.userHasInteracted = false;
@@ -3052,6 +3077,10 @@ export default {
         return WIZARD_STEP_OF_SECTION[tab] === this.currentStep;
       }
       return !this.tabsEnabled || this.activeTab === tab;
+    },
+    // issues/055: a hidden tab draws its big tables only once it has been shown
+    tabRendered(tab) {
+      return this.showTab(tab) || !!this.renderedTabs[tab];
     },
     selectTab(tab) {
       if (tab === this.activeTab) return;
@@ -4599,10 +4628,9 @@ export default {
       // this.form[date] = null
     },
     getContactName(invoice) {
-      return invoice &&
-        invoice.contact &&
-        this.clients.find(c => c.id === invoice.contact)
-        ? this.clients.find(c => c.id === invoice.contact).name
+      // issues/055: a lookup instead of two searches of the contact list per row
+      return invoice && invoice.contact && this.contactNames.has(invoice.contact)
+        ? this.contactNames.get(invoice.contact)
         : "";
     },
     formatDate(value) {
@@ -4638,7 +4666,11 @@ export default {
     },
     phasesUpdated(info) {
       this.form._project_phases_updated = true;
-      this.form.project_phases = [...info.phases];
+      // issues/055: the same phases in a new array redrew every line of the
+      // budget on each keystroke; the array is only replaced when they change
+      if (!samePhases(this.form.project_phases, info.phases)) {
+        this.form.project_phases = [...info.phases];
+      }
       if (info.deletedPhases) {
         this.deletedPhases = info.deletedPhases;
         this.deletedIncomes = info.deletedIncomes;
