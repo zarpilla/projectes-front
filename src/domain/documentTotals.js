@@ -50,3 +50,29 @@ export const byRate = (lines, field = 'vat') => {
   })
   return [...groups.values()].filter(g => g.base).sort((a, b) => a.rate - b.rate)
 }
+
+/**
+ * Before saving: each line's quantity as the API stores it (2 decimals,
+ * issues/295), also one typed less than the input's 300 ms ago or set by the
+ * diets form. A budget line created with «Sí, associar» (new, assigned, with
+ * the document's base as amount) gets the base that is saved. Modifies `lines`
+ * and the budget lines in place; returns whether the base changed.
+ * @param {Array} lines the document's lines
+ * @param {Array} projects the document's projects, with their phases
+ * @param {Function} quantityAsStored e.g. budgetLines.documentLineQuantity
+ */
+export const storeLineQuantities = (lines, projects, quantityAsStored) => {
+  if (!Array.isArray(lines) || !lines.length) return false
+  const before = totalBase(lines)
+  lines.forEach(l => {
+    const stored = quantityAsStored(l.quantity)
+    if (stored !== l.quantity) l.quantity = stored
+  })
+  const after = totalBase(lines)
+  if (after === before) return false
+  ;(projects || []).forEach(p => (p.project_phases || []).forEach(ph =>
+    [...(ph.incomes || []), ...(ph.expenses || [])].forEach(b => {
+      if (b.assign && !b.id && Number(b.amount) === before) b.amount = after
+    })))
+  return true
+}

@@ -404,10 +404,10 @@ export default {
       });
 
       const typeQuery = this.documentType ? `&[document_type_eq]=${this.documentType}` : '';
-      // only invoices have a series: while one is chosen, the other documents are hidden (issues/278)
-      let incomes = includeIncomes && this.documentType !== -1 && !this.serial ? (
+      // received incomes have a series too: filter them by it (issues/278, issues/294)
+      let incomes = includeIncomes && this.documentType !== -1 ? (
         await service({ requiresAuth: true }).get(
-          `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
+          `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
         )
       ).data : [];
 

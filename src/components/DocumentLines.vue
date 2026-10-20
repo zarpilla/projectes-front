@@ -230,7 +230,7 @@
 
 <script>
 import _ from "lodash";
-import { budgetLineValue } from "@/domain/budgetLines.js";
+import { budgetLineValue, documentLineQuantity } from "@/domain/budgetLines.js";
 
 // The editable lines of a document (DocumentForm), with pagination for long
 // documents. New lines come from the parent's `newLine` factory (diets add two
@@ -291,6 +291,13 @@ export default {
       if (field === "base") {
         const stored = budgetLineValue(value);
         if (stored !== line.base) line.base = stored;
+        return;
+      }
+      // The quantity is stored with 2 decimals (and Facturae prints 2): a 3rd
+      // is rounded away here, so the totals shown are the ones saved (issues/295)
+      if (field === "quantity") {
+        const stored = documentLineQuantity(value);
+        if (stored !== line.quantity) line.quantity = stored;
         return;
       }
       if (value && value.toString().includes(",")) {
