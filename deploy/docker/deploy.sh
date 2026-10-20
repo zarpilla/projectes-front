@@ -41,7 +41,7 @@ done < sites.conf
 ONLY=("${ARGS[@]:1}")
 for s in "${ONLY[@]}"; do [ -n "${DIR[$s]:-}" ] || { echo "Unknown site: $s"; exit 2; }; done
 
-declare -A PINNED
+declare -A PINNED=()  # =(): an empty one is "unbound" under set -u in bash 5.1
 if [ -f pinned.conf ]; then
   while read -r name tag _; do
     [[ -z "$name" || "$name" == \#* ]] && continue
