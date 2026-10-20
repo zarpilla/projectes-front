@@ -196,6 +196,7 @@
                 class="date-field"
               >
                 <lazy-datepicker
+                  append-to-body
                   v-model="props.row.date_estimate_document"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -218,6 +219,7 @@
                 class="date-field"
               >
                 <lazy-datepicker
+                  append-to-body
                   v-model="props.row.date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -539,6 +541,7 @@
                 class="date-field"
               >
                 <lazy-datepicker
+                  append-to-body
                   v-model="props.row.date_estimate_document"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -561,6 +564,7 @@
                 class="date-field"
               >
                 <lazy-datepicker
+                  append-to-body
                   v-model="props.row.date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
