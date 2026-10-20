@@ -115,7 +115,8 @@ import service from "@/service/index";
 // import map from 'lodash/map'
 import sumBy from "lodash/sumBy";
 import moment from "moment";
-import { festivesBetween, periodHours } from "@/domain/workdayLog.js";
+import { countedFestiveOn, festivesBetween, periodHours } from "@/domain/workdayLog.js";
+import { isSalaryDay, periodMonthlySalary } from "@/domain/payrollSalary.js";
 
 const WORKED_LABEL = "Total hores treballades + vacances";
 import { startLoad } from "@/domain/latestLoad.js";
@@ -284,7 +285,6 @@ export default {
       allDates.forEach(d => {
         const date = moment(d).format("YYYY-MM-DD");
         const displayDate = moment(d).format("ddd DD/MM/YYYY");
-        const day = moment(d).day();
         const week = moment(d).week();
         const month = moment(d).format("M");
         const dailyDedication = dailyDedications.find(
@@ -295,7 +295,9 @@ export default {
           warn = true;
         }
         const activities = loadedActivities.filter(a => a.date === date);
-        const festive = festives.find(f => f.date === date);
+        // the holiday for everyone before a personal day (issues/246), as the
+        // payrolls of Persones › «Crear bestretes» (issues/290)
+        const festive = countedFestiveOn(date, festives);
         // the period's weekly distribution, as Saldo d'hores (issues/238)
         const dayHours = periodHours(dailyDedication, date);
 
@@ -335,21 +337,16 @@ export default {
         }
         months[month].theoricHours += theoricHours;
 
-        if (
-          (!festive ||
-            (festive &&
-              festive.users_permissions_user &&
-              festive.users_permissions_user.id)) &&
-          dailyDedication &&
-          (dailyDedication.hoursperday ? dayHours > 0 : day !== 0 && day !== 6)
-        ) {
+        if (isSalaryDay(dailyDedication, date, festive)) {
           laborableDays++;
           months[month].theoricDays += 1;
           // each day at its own period's salary, so a month where the
           // period changes is split by days (it took the last day's salary
-          // for the whole month, issues/264)
-          months[month].dailySalary +=
-            (Number(dailyDedication.monthly_salary) || 0) * theoricHours / 8;
+          // for the whole month, issues/264); a period pays the share of a
+          // full week, weekly hours / 40 (it paid each day's hours / 8, so a
+          // distribution overpaid, issues/290). Rule in payrollSalary.js,
+          // the same as the backend's «Crear bestretes».
+          months[month].dailySalary += periodMonthlySalary(dailyDedication);
         }
 
         months[month].theoricRatio =

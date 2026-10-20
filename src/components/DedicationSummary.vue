@@ -17,12 +17,12 @@
         <div class="doc-kpi">
           <span>Saldo anual</span>
           <b :class="'has-text-' + sign(balance.hours)">{{ signed(balance.hours) }} h</b>
-          <small>laborables − màxim del conveni ({{ signed(balance.days, 0) }} {{ Math.abs(balance.days) === 1 ? "dia" : "dies" }})</small>
+          <small>laborables − màxim del conveni ({{ signed(balance.days, 1) }} {{ Math.abs(balance.days) === 1 ? "dia" : "dies" }})</small>
         </div>
         <div class="doc-kpi">
           <span>Hores laborables</span>
           <b>{{ hours(summary["Laborables"].hours) }} h</b>
-          <small>{{ summary["Laborables"].days }} dies</small>
+          <small>{{ formatNumber(summary["Laborables"].days, 1) }} dies</small>
         </div>
         <div class="doc-kpi">
           <span>Màxim del conveni</span>
@@ -88,22 +88,26 @@
             <dd>{{ hours(calc.baseHours) }} h</dd>
             <template v-for="p in calc.pending" :key="p.name">
               <dt class="is-sub">− {{ p.name }} que falten per gastar ({{ p.max }} − {{ p.used }})</dt>
-              <dd>−{{ p.days }} dies</dd>
+              <dd>−{{ formatNumber(p.days, 1) }} dies</dd>
               <dd>−{{ hours(p.hours) }} h</dd>
             </template>
             <dt class="is-strong">Laborables</dt>
-            <dd class="is-strong">{{ summary["Laborables"].days }} dies</dd>
+            <dd class="is-strong">{{ formatNumber(summary["Laborables"].days, 1) }} dies</dd>
             <dd class="is-strong">{{ hours(summary["Laborables"].hours) }} h</dd>
             <dt class="is-sub">− Màxim del conveni</dt>
             <dd>{{ formatNumber(summary["Màxim Conveni"].days, 1) }} dies</dd>
             <dd>{{ hours(summary["Màxim Conveni"].hours) }} h</dd>
             <dt class="is-strong is-line">Saldo anual</dt>
-            <dd class="is-strong is-line" :class="'has-text-' + sign(balance.days)">{{ signed(balance.days, 0) }} dies</dd>
+            <dd class="is-strong is-line" :class="'has-text-' + sign(balance.days)">{{ signed(balance.days, 1) }} dies</dd>
             <dd class="is-strong is-line" :class="'has-text-' + sign(balance.hours)">{{ signed(balance.hours) }} h</dd>
             <dt class="is-line">Hores treballades (registrades)</dt>
             <dd class="is-line">{{ summary["Treballades"].days }} dies</dd>
             <dd class="is-line">{{ hours(summary["Treballades"].hours) }} h</dd>
           </dl>
+          <p v-if="calc.pending.length && Math.abs(calc.weekdayDays - 1) > 0.0005" class="report-note">
+            Els dies que falten per gastar són dies feiners: cadascun treu {{ hours(calc.weekdayHours) }} h, la mitjana d'un dia feiner
+            ({{ formatNumber(calc.weekdayDays * 100, 1) }} % d'un dia amb jornada de {{ hours(calc.dayHours) }} h).
+          </p>
         </section>
       </div>
 
@@ -439,12 +443,23 @@ export default {
               fullTimeDays++;
             }
           });
-          // hours of a day with jornada (what a pending vacation day takes off)
-          // and share of a full jornada (what scales the conveni). Without a
-          // weekly distribution both give the old ratio.
+          // One scale for everything (issues/291):
+          // - jornadaHours: hours of a day with jornada (shown, and what turns
+          //   hours into days);
+          // - share: of a full jornada, 8 h × the weekdays (f61a83a), what
+          //   scales the conveni;
+          // - a pending vacation or free day is a weekday (the maximums count
+          //   weekdays), so it takes off the hours of an average weekday,
+          //   share × 8 = hours / weekdays, master's rule; in days with jornada
+          //   it is days with jornada / weekdays of one. It took a whole
+          //   jornada a day against a conveni scaled by the share, so 5 h in
+          //   Jan–Feb and 0 h the rest gave −135 h.
+          // A flat jornada all year: share × 8 = jornadaHours, as on master.
           const jornadaHours = totalWorkedDays ? totalWorkedHours / totalWorkedDays : 0;
           const share = fullTimeDays ? totalWorkedHours / fullTimeDays / 8 : 0;
           const ratio = share;
+          const weekdayHours = fullTimeDays ? totalWorkedHours / fullTimeDays : 0;
+          const weekdayDays = fullTimeDays ? totalWorkedDays / fullTimeDays : 0;
 
           summary["Jornada"] = {
             hours: `${jornadaHours.toFixed(2)} h/dia (${(share * 100).toFixed(
@@ -464,9 +479,11 @@ export default {
           festiveTypes.forEach(ft => {
             if (summary[ft.name].days < summary[ft.name].max) {              
               const daysToAdd = summary[ft.name].max - summary[ft.name].days
-              pending.push({ name: ft.name, days: daysToAdd, hours: daysToAdd * jornadaHours, used: summary[ft.name].days, max: summary[ft.name].max })
-              summary["Laborables"].hours = summary["Laborables"].hours - daysToAdd * jornadaHours
-              summary["Laborables"].days = summary["Laborables"].days - daysToAdd
+              const pendingDays = daysToAdd * weekdayDays
+              const pendingHours = daysToAdd * weekdayHours
+              pending.push({ name: ft.name, days: pendingDays, hours: pendingHours, used: summary[ft.name].days, max: summary[ft.name].max })
+              summary["Laborables"].hours = summary["Laborables"].hours - pendingHours
+              summary["Laborables"].days = summary["Laborables"].days - pendingDays
             }              
           });
 
@@ -493,7 +510,7 @@ export default {
           this.personalDaysList = personalDaysList;
           this.warn = warn;
           this.summary = summary;
-          this.calc = { baseDays, baseHours, pending, ratio, dayHours: jornadaHours };
+          this.calc = { baseDays, baseHours, pending, ratio, dayHours: jornadaHours, weekdays: fullTimeDays, weekdayHours, weekdayDays };
 
           this.isLoading = false;
         })
