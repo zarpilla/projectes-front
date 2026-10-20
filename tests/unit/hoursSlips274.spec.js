@@ -15,6 +15,8 @@ import jornadaSource from '@/components/JornadaDiaria.vue?raw'
 import ModalBoxFestive from '@/components/ModalBoxFestive.vue'
 import { realDedicationFields, dedicatedHoursFields } from '@/domain/hoursExport.js'
 import { festiveRangeDates } from '@/domain/workdayLog.js'
+import { buildOds } from '@/service/ods'
+import { unzipSync, strFromU8 } from 'fflate'
 
 // what vue-json-excel writes for one row with `fields`
 const exportRow = (fields, row) =>
@@ -36,7 +38,7 @@ describe('hours exports (issues/274)', () => {
   it('% Dedicació real: Catalan headers and dd/mm/yyyy', () => {
     const row = { project_name: 'P', username: 'anna', hours: 2.5, date: '2026-10-19', month: '10', year: 2026 }
     expect(exportRow(realDedicationFields, row)).toEqual({
-      Projecte: 'P', Persona: 'anna', Hores: '2,5', Data: '19/10/2026', Mes: '10', Any: 2026
+      Projecte: 'P', Persona: 'anna', Hores: 2.5, Data: '19/10/2026', Mes: '10', Any: 2026
     })
   })
   it('Hores dedicades: Catalan headers and dd/mm/yyyy', () => {
@@ -44,6 +46,13 @@ describe('hours exports (issues/274)', () => {
     const out = exportRow(dedicatedHoursFields, row)
     expect(Object.keys(out)).toEqual(['Data', 'Projecte', 'Persona', 'Hores', 'Descripció', 'Funció', 'Tipus de dedicació', 'Client'])
     expect(out.Data).toBe('19/10/2026')
+    expect(out.Hores).toBe(1)
+  })
+  it('Hores is a numeric cell, also when the API sends it as text (issues/274 follow-up)', () => {
+    expect(exportRow(dedicatedHoursFields, { hours: '0.45' }).Hores).toBe(0.45)
+    expect(exportRow(realDedicationFields, { hours: null }).Hores).toBe('')
+    expect(strFromU8(unzipSync(buildOds([['Hores'], [exportRow(dedicatedHoursFields, { hours: 0.45 }).Hores]]))['content.xml']))
+      .toContain('office:value-type="float" office:value="0.45"')
   })
 })
 
