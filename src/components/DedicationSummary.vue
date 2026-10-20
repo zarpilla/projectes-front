@@ -166,6 +166,7 @@ import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
 import { startLoad } from "@/domain/latestLoad.js";
+import { periodHours } from "@/domain/workdayLog.js";
 import { formatNumber, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
@@ -412,20 +413,12 @@ export default {
             if (!dailyDedication) {
               warn = true;
             }
-            
-            const startOnMondayDay = day === 0 ? 6 : day - 1;
 
-            const theoricHours =
-              !festive && dailyDedication && day !== 0 && day !== 6 && !dailyDedication.hoursperday
-                ? dailyDedication.hours
-                : 
-                (!festive && dailyDedication && dailyDedication.hoursperday ? parseFloat(dailyDedication.hoursperday.split(',')[startOnMondayDay]) :
-                0);
+            // the period's weekly distribution, as Saldo d'hores (issues/238)
+            const dayHours = periodHours(dailyDedication, date);
+            const theoricHours = !festive ? dayHours : 0;
 
-            laborableHours +=
-              dailyDedication && day !== 0 && day !== 6
-                ? dailyDedication.hours
-                : 0;
+            laborableHours += dayHours;
             if (festive && dailyDedication) {
               summary[festive.festive_type.name].hours +=
                 dailyDedication.hours;

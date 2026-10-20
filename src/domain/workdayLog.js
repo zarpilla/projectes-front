@@ -47,9 +47,12 @@ export const periodOn = (date, periods) =>
 export const festiveOn = (date, festives) =>
   (festives || []).find(f => f.date === date) || null
 
-export const expectedHours = (date, periods, festives) => {
-  const period = periodOn(date, periods)
-  if (!period || festiveOn(date, festives)) {
+// the hours of a work period on one date, festives aside: its weekly
+// distribution when it has one, otherwise its daily hours from Monday to
+// Friday. Saldo d'hores' rule, shared by Registre jornades, Bestretes and
+// Hores anuals so they all expect the same hours (issues/238).
+export const periodHours = (period, date) => {
+  if (!period) {
     return 0
   }
   const day = moment(date, 'YYYY-MM-DD').day()
@@ -58,6 +61,14 @@ export const expectedHours = (date, periods, festives) => {
     return Number.isFinite(value) ? value : 0
   }
   return day === 0 || day === 6 ? 0 : Number(period.hours) || 0
+}
+
+export const expectedHours = (date, periods, festives) => {
+  const period = periodOn(date, periods)
+  if (!period || festiveOn(date, festives)) {
+    return 0
+  }
+  return periodHours(period, date)
 }
 
 // Only the festives of the dates a screen shows: all of them took 3+ s on
