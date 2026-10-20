@@ -122,6 +122,7 @@
       :first-day-of-week="2"
       :masks="masks"
       :attributes="attributes"
+      :initial-page="calendarInitialPage"
       @update:pages="pages => pageChange(pages[0])"
       title-position="left"
       expanded
@@ -483,6 +484,12 @@ export default {
     },
     today() {
       return moment().format("YYYY-MM-DD");
+    },
+    // the calendar opens on the month of the date filter: switching back from
+    // «Taula» remounted it on today's month and reset the filter (issues/239)
+    calendarInitialPage() {
+      const d = this.date1 ? moment(this.date1) : moment();
+      return { month: d.month() + 1, year: d.year() };
     },
     // no person picked (not even «Totes», id 0): nobody's hours are loaded (issues/070)
     needsPerson() {
@@ -1052,6 +1059,12 @@ export default {
         return;
       }
       this.lastCalendarPage = key;
+      // the filter's own month (the calendar mounting on it): nothing to
+      // change, and a year-long filter must not shrink to it (issues/239)
+      const first = this.date1 ? moment(this.date1) : null;
+      if (first && page.year === first.year() && page.month === first.month() + 1) {
+        return;
+      }
       if (!this.moving) {
         this.$emit("calendar-changed", { year: page.year, month: page.month });
       }

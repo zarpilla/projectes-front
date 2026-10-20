@@ -54,16 +54,39 @@ describe('DedicationInput', () => {
 
   it('asks the parent for the new month when the month arrows are clicked', async () => {
     const w = await mountInput()
-    // v-calendar reports its first page once mounted; the parent ignores it (same dates)
-    expect(w.emitted('calendar-changed')).toEqual([[{ year: 2026, month: 10 }]])
+    // v-calendar reports its first page once mounted: the filter's month, not passed on
+    expect(w.emitted('calendar-changed')).toBeUndefined()
     await w.find('.vc-arrow.vc-prev').trigger('click')
     await flushPromises()
+    // the parent moves the filter to the new month
+    await w.setProps({ date1: new Date(2026, 8, 1), date2: new Date(2026, 8, 30) })
+    await flushPromises()
     await w.find('.vc-arrow.vc-next').trigger('click')
     await w.find('.vc-arrow.vc-next').trigger('click')
     await flushPromises()
-    expect(w.emitted('calendar-changed').slice(1)).toEqual([
+    expect(w.emitted('calendar-changed')).toEqual([
       [{ year: 2026, month: 9 }], [{ year: 2026, month: 10 }], [{ year: 2026, month: 11 }]
     ])
+  })
+
+  // issues/239: back from «Taula», the calendar remounted on today's month and
+  // reset the filter to it (September → October; a whole year → October)
+  it('keeps the chosen period when switching views', async () => {
+    vi.useFakeTimers({ now: new Date('2026-10-19T10:00:00+02:00'), toFake: ['Date'] })
+    const w = await mountInput({ date1: new Date(2026, 8, 1), date2: new Date(2026, 8, 30) })
+    await w.find('button[title="Vista taula"]').trigger('click')
+    await w.find('button[title="Vista calendari"]').trigger('click')
+    await flushPromises()
+    expect(w.find('.vc-title').text()).toBe('setembre 2026')
+    expect(w.emitted('calendar-changed')).toBeUndefined()
+
+    await w.find('button[title="Vista taula"]').trigger('click')
+    await w.setProps({ date1: new Date(2026, 0, 1), date2: new Date(2026, 11, 31) })
+    await flushPromises()
+    await w.find('button[title="Vista completa"]').trigger('click')
+    await flushPromises()
+    expect(w.find('.vc-title').text()).toBe('gener 2026')
+    expect(w.emitted('calendar-changed')).toBeUndefined()
   })
 
   it('moves the calendar and reloads when the parent changes the dates', async () => {
