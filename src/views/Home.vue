@@ -165,11 +165,14 @@ export default {
           estimated_incomes: p.total_incomes ? p.total_incomes : "",
           estimated_expenses: p.total_expenses ? p.total_expenses : "",
           estimated_hours_price: p.total_estimated_hours_price ? p.total_estimated_hours_price : "",
+          // the non-deductible VAT is in the result: without it the columns didn't add up (issues/254)
+          estimated_expenses_vat: p.total_estimated_expenses_vat ? p.total_estimated_expenses_vat : "",
           estimated_result: p.incomes_expenses ? p.incomes_expenses : "",
 
           real_incomes: p.total_real_incomes ? p.total_real_incomes : "",
           real_expenses: p.total_real_expenses ? p.total_real_expenses : "",
           real_hours_price: p.total_real_hours_price ? p.total_real_hours_price : "",
+          real_expenses_vat: p.total_real_expenses_vat ? p.total_real_expenses_vat : "",
           real_result: p.total_real_incomes_expenses ? p.total_real_incomes_expenses : ""
         };
       });
