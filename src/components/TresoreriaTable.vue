@@ -682,6 +682,10 @@ export default {
     }, 100);
   },
   watch: {
+    // the year buttons only change ?year=: reload that year's data (issues/261)
+    "$route.query.year"(year, previous) {
+      if (year !== previous) this.getData();
+    },
     // the movements list opens on the page that holds today's row ("Avui")
     movementsShown(rows) {
       const today = (rows || []).findIndex(r => r.type === "Avui");

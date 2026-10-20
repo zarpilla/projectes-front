@@ -388,18 +388,20 @@ export default {
 
       const { invoiceQuery: stateQuery, includeIncomes } = stateFilter(this.state);
 
-      let invoices = (
+      // «Tipus» other than Factura: no invoices. Skip the request; `_limit=0` returns all rows (issues/260)
+      const includeInvoices = !this.documentType || this.documentType === -1;
+      let invoices = includeInvoices ? (
         await service({ requiresAuth: true }).get(
-          `emitted-invoices/basic?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0}&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}${stateQuery}`
+          `emitted-invoices/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}${stateQuery}`
         )
-      ).data;
+      ).data : [];
 
       invoices = invoices.map((element) => {
         return { ...element, type: 'emitted-invoices' };
       });
 
-      const typeQuery = this.documentType !== 0 ? `&[document_type_eq]=${this.documentType}` : '';
-      let incomes = includeIncomes ? (
+      const typeQuery = this.documentType ? `&[document_type_eq]=${this.documentType}` : '';
+      let incomes = includeIncomes && this.documentType !== -1 ? (
         await service({ requiresAuth: true }).get(
           `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
         )

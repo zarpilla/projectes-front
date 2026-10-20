@@ -385,12 +385,15 @@ export default {
       
       const codeQuery = this.code ? `&[code_contains]=${this.code}` : '';
 
-      let invoices = (
+      // «Tipus» filter: only request the kinds it keeps; `_limit=0` returns rows anyway (issues/260)
+      const includeInvoices = !this.documentType || this.documentType === -1;
+      const includeExpenses = !this.documentType || this.documentType > 0;
+      const includePayrolls = !this.documentType || this.documentType === -2;
+      let invoices = includeInvoices ? (
         await service({ requiresAuth: true }).get(
-          `received-invoices?_limit=${this.documentType === 0 || this.documentType === -1 ? -1 : 0
-          }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
+          `received-invoices?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
         )
-      ).data;
+      ).data : [];
 
       invoices = invoices.map((element) => {
         return { ...element, type: "received-invoices" };
@@ -399,25 +402,24 @@ export default {
       
 
       const typeQuery =
-        this.documentType !== 0
+        this.documentType
           ? `&[document_type_eq]=${this.documentType}`
           : "";
-      let expenses = (
+      let expenses = includeExpenses ? (
         await service({ requiresAuth: true }).get(
           `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
         )
-      ).data;
+      ).data : [];
 
       expenses = expenses.map((element) => {
         return { ...element, type: "received-expenses" };
       });
 
       let payrolls = [];
-      if (projectQuery === "") {
+      if (projectQuery === "" && includePayrolls) {
         payrolls = (
           await service({ requiresAuth: true }).get(
-            `payrolls?_limit=${this.documentType === 0 || this.documentType === -2 ? -1 : 0
-            }&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQueryPayrolls}${paidQuery2}`
+            `payrolls?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQueryPayrolls}${paidQuery2}`
           )
         ).data;
         payrolls = payrolls.map((element) => {
