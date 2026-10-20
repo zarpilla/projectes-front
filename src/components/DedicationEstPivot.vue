@@ -207,13 +207,14 @@ export default {
       return `${this.projectState}|${this.year}|${this.person}|${this.project}`
     },
     pivotDataGroupped() {
-      return _(this.pivotData.map(p => { return { ...p, pyu: `${p.project_name}.${p.username}.${p.year}` } }))
-        .groupBy("pyu")
-        .map((rows, pyu) => ({
-          // id: pyu.split('.')[0],
-          project_name: pyu.split('.')[0],
-          username: pyu.split('.')[1],
-          year: pyu.split('.')[2],
+      // grouped on a JSON key and named from the rows: a key joined with «.» and
+      // split back mangled «Adrinoc. assessorament» or «prova.x» (issues/300)
+      return _(this.pivotData)
+        .groupBy(p => JSON.stringify([p.project_name, p.username, p.year]))
+        .map(rows => ({
+          project_name: rows[0].project_name,
+          username: rows[0].username,
+          year: rows[0].year,
           estimated_hours: (_.sumBy(rows, "estimated_hours") || 0),
           original_estimated_hours: (_.sumBy(rows, "original_estimated_hours") || 0),
           hours: (_.sumBy(rows, "hours") || 0) ,

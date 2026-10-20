@@ -18,7 +18,9 @@
             <option v-for="(s, index) in years" :key="index" :value="s.year">{{ s.display }}</option>
           </b-select>
         </label>
-        <label class="filter-select">
+        <!-- without full access she sees only her own done hours (issues/188), so the
+             planned ones are hers too: the report is about her (issues/223) -->
+        <label v-if="canPickPerson" class="filter-select">
           <span>Persona</span>
           <b-select v-model="filters.user" aria-label="Persona">
             <option v-for="(s, index) in users" :key="index" :value="s.id">{{ s.username }}</option>
@@ -61,6 +63,7 @@ import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { defaultYear } from '@/domain/years'
 import { loadKendo } from '@/helpers/addScript'
+import { canPickPerson, userPermissions } from '@/domain/routeAccess'
 import moment from 'moment'
 
 export default {
@@ -84,6 +87,8 @@ export default {
       // the cost of the hours (from salaries) only for people with the projects permission;
       // the report is open to hours-only people too, as «Dedicació (gràfic/taula)» were
       showCost: false,
+      // only `projects` / `admin` see everyone's hours; the others, only hers (issues/223)
+      canPickPerson: true,
       // rows loaded by the pivot, for the charts
       chartRows: null
     }
@@ -124,7 +129,9 @@ export default {
   methods: {
     async getData () {
       const me = await service({ requiresAuth: true, cached: true }).get('users/me')
-      this.showCost = (me.data.permissions || []).map(p => p.permission).includes('projects')
+      const permissions = userPermissions(me.data)
+      this.showCost = permissions.includes('projects')
+      this.canPickPerson = canPickPerson(permissions)
       const [states, years, users, projects] = await Promise.all([
         service({ requiresAuth: true }).get('project-states'),
         service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC'),
@@ -133,11 +140,16 @@ export default {
       ])
       this.project_states = [{ id: 0, name: 'Tots' }, ...states.data]
       this.years = [{ id: 0, year: 0, display: 'Tots' }, ...years.data.map(y => ({ ...y, display: y.year }))]
-      this.users = [{ id: 0, username: 'Totes' }, ...users.data.filter(u => !u.hidden)]
+      // the API gives her only her own done hours (issues/188): the planned hours and
+      // the KPIs (persones, projectes, previstes) are hers too, not everyone's (issues/223)
+      this.users = this.canPickPerson
+        ? [{ id: 0, username: 'Totes' }, ...users.data.filter(u => !u.hidden)]
+        : [{ id: me.data.id, username: me.data.username }]
+      const person = this.canPickPerson ? 0 : me.data.id
       this.projects = projects.data
       // this year by default, so the charts go month by month
       const current = defaultYear(years.data.filter(y => Number(y.year) <= moment().year()))
-      this.filters = { project_state: defaultProjectState, year: current ? Number(current.year) : 0, user: 0, project: 0 }
+      this.filters = { project_state: defaultProjectState, year: current ? Number(current.year) : 0, user: person, project: 0 }
       this.appliedFilters = { ...this.filters }
       this.$nextTick(() => { this.ready = true })
     }

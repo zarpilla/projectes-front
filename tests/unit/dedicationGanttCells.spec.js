@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest'
 import DedicationGanttChart from '@/components/DedicationGanttChart.vue'
 
 const m = DedicationGanttChart.methods
-const ctx = { noSchedule: m.noSchedule }
+const ctx = { noSchedule: m.noSchedule, hasSchedule: m.hasSchedule }
 const text = c => m.percentText.call(ctx, c)
 const cls = c => m.cellClass.call(ctx, c)
 
