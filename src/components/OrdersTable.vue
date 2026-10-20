@@ -430,7 +430,7 @@ function idOf(value) {
 import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason, leavingInvoiced, leavingInvoicedMessage } from "@/domain/orderStatus";
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
@@ -2420,7 +2420,7 @@ export default {
     timeSlotsFormatted(slots) {
       return '"' + slots + '"';
     },
-    async setBulkState() {
+    async setBulkState(_event, confirmed = false) {
       // a member only cancels her pending orders (issues/144), a driver leaves
       // the invoiced ones to the office (issues/193)
       const rows = this.checkedRows.filter(row => canSetStatus(row, this.newState, this.isStaff, { driver: this.isDriver }));
@@ -2431,6 +2431,19 @@ export default {
           message: `Cap de les ${skipped} comandes seleccionades no es pot canviar a «${orderStatusLabel(this.newState)}»: ${reason}`,
           type: "is-warning",
           duration: 5000
+        });
+        return;
+      }
+      // an invoiced order stays on its invoice: ask first, as the form warns (issues/240)
+      const invoiced = leavingInvoiced(rows, this.newState);
+      if (invoiced.length && !confirmed) {
+        this.$buefy.dialog.confirm({
+          title: "Comandes facturades",
+          message: leavingInvoicedMessage(invoiced, this.newState),
+          confirmText: "Canvia l'estat",
+          cancelText: "No, torna",
+          type: "is-warning",
+          onConfirm: () => this.setBulkState(null, true)
         });
         return;
       }
