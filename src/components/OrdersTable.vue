@@ -436,6 +436,7 @@ import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
 import { dateFilterWhere, ownerWhere, priceFilterWhere, kilogramsFilterWhere } from "@/domain/ordersListFilters";
 import { invoicedPrice } from "@/domain/logisticsInvoicing";
+import { csvDiscountQuery, withCsvDiscounts, csvOrderPayload } from "@/domain/csvOrderPreview";
 import { repricesOrder } from "@/domain/orderReprice";
 
 // a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
@@ -2102,7 +2103,8 @@ export default {
           // console.warn("!order", order.kilograms, order.route_rate);
         }
         // what the list shows of a row before it is created: its delivery
-        // point and its price (issues/251); the discounts come on creation
+        // point and its price (issues/251); the discounts the save applies are
+        // asked once every row is read (previewCSVDiscounts, issues/298)
         orderWithRate.fullName = contact.trade_name || contact.name;
         if (Number.isFinite(Number(orderWithRate.price)) && orderWithRate.price !== null) {
           orderWithRate.finalPrice = invoicedPrice(orderWithRate);
@@ -2110,6 +2112,24 @@ export default {
         this.orders.unshift(orderWithRate);
         // this.orders.unshift(order);
       }
+      await this.previewCSVDiscounts();
+    },
+    // the discounts the save will apply, asked to the server with the other
+    // rows still to be saved (issues/298)
+    async previewCSVDiscounts() {
+      const rows = this.orders.filter(o => !o.id && o.status === "CSV");
+      await Promise.all(rows.map(async row => {
+        const query = csvDiscountQuery(row, rows);
+        if (!query.contactId || !query.date) return;
+        try {
+          const { data } = await service({ requiresAuth: true }).post("orders/check-multidelivery", query);
+          const index = this.orders.indexOf(row);
+          if (index >= 0) this.orders.splice(index, 1, withCsvDiscounts(row, data));
+        } catch (error) {
+          // the row keeps the rate's price; the save applies the discounts anyway
+          console.error("Error previewing the discounts", error);
+        }
+      }));
     },
     async getContactsForImport(owner) {
       const contacts = (
@@ -2401,7 +2421,7 @@ export default {
       try {
         ({ data } = await service({ requiresAuth: true }).post(
           "orders/csv",
-          order
+          csvOrderPayload(order)
         ));
       } catch (error) {
         // e.g. the cutoff refusal: say why the row wasn't created (issues/231)
