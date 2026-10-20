@@ -1,0 +1,75 @@
+// issues/284: Tresoreria «Filtra per projecte» kept the company's balance as
+// the start («Inici Any» / «Avui» seeds), so «Saldo a 31/12» was the company's
+// start plus the project's flows. With a project chosen the view now starts at
+// 0 and shows only the project's movements; the accounts' noted balances (a
+// company figure) are left out.
+import { describe, it, expect, vi } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
+import Buefy from 'buefy'
+import { projectTreasuryRows, withProjectSaldo, projectSaldoToday } from '@/domain/projectTreasury'
+
+const api = { get: vi.fn(async () => ({ data: [] })), put: vi.fn(), post: vi.fn() }
+vi.mock('@/service/index', () => ({ default: () => api }))
+vi.mock('@/service/treasury', () => ({ default: vi.fn(async () => []) }))
+import TresoreriaTable from '@/components/TresoreriaTable.vue'
+
+const P = { id: 7, name: 'Projecte' }
+const rows = () => [
+  { type: 'Inici Any', datef: '20260101', total_amount: 0, subtotal: 50000, account_subtotal: 50000, bank_account: 'A' },
+  { type: 'Saldo bancari', datef: '20260115', is_balance_annotation: true, account_balance: 60000, total_amount: 0, subtotal: 60000, bank_account: 'A' },
+  { type: 'Factura', concept: 'cobrament', datef: '20260201', total_amount: 1000, subtotal: 61000, project_id: 7, project_name: 'Projecte', bank_account: 'A' },
+  { type: 'Factura', concept: 'altre', datef: '20260210', total_amount: 5000, subtotal: 66000, project_id: 8, project_name: 'Altre', bank_account: 'A' },
+  { type: 'Avui', datef: '20260301', total_amount: 0, subtotal: 66000, account_subtotal: 66000, bank_account: 'A' },
+  { type: 'Despesa esperada', concept: 'pagament', datef: '20260601', total_amount: -300.5, subtotal: 65699.5, project_id: 7, project_name: 'Projecte', bank_account: 'A' },
+  { type: 'Factura', concept: 'desembre', datef: '20261201', total_amount: 200, subtotal: 65899.5, project_id: 8, project_name: 'Altre', bank_account: 'A' }
+]
+
+describe('project view helpers (issues/284)', () => {
+  it('keeps the project rows and the markers, without the noted balances', () => {
+    expect(projectTreasuryRows(rows(), 7).map(r => r.type)).toEqual(['Inici Any', 'Factura', 'Avui', 'Despesa esperada'])
+  })
+
+  it('runs the saldo from 0', () => {
+    expect(withProjectSaldo(projectTreasuryRows(rows(), 7)).map(r => r.subtotal)).toEqual([0, 1000, 1000, 699.5])
+  })
+
+  it('saldo today: the project flows of the year before today', () => {
+    expect(projectSaldoToday(projectTreasuryRows(rows(), 7), 2026, '20260301')).toBe(1000)
+    expect(projectSaldoToday(projectTreasuryRows(rows(), 7), 2026, '20261231')).toBe(699.5)
+  })
+})
+
+describe('Tresoreria with a project chosen (issues/284)', () => {
+  async function mountTreasury () {
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }] })
+    await router.push('/')
+    const w = mount(TresoreriaTable, {
+      global: {
+        plugins: [createPinia(), Buefy, router],
+        stubs: { TreasuryAnnotationInput: true, PivotViews: true, ModalBoxInvoicing: true },
+        config: { warnHandler: () => {} }
+      }
+    })
+    await w.setData({ selectedYear: 2026, treasuryData: rows() })
+    await flushPromises()
+    return w
+  }
+
+  it('starts at 0 and ends the year with the project result only', async () => {
+    const w = await mountTreasury()
+    // the company: start 50.000, year end = 50.000 + 1.000 + 5.000 − 300,50 + 200
+    expect(w.vm.todaySubTotal).toBe(50000)
+    expect(w.vm.yearEnd.subtotal).toBeCloseTo(55899.5)
+    w.vm.projectSelected(P)
+    await flushPromises()
+    expect(w.vm.todaySubTotal).toBe(0)
+    expect(w.vm.yearEnd.subtotal).toBeCloseTo(699.5)
+    expect(w.vm.yearEnd.total_amount).toBeCloseTo(699.5)
+    expect(w.vm.accountRows).toEqual([])
+    // the movements list: the project's rows with its own running saldo
+    const shown = w.vm.movementsShown.map(r => [r.type, r.subtotal])
+    expect(shown).toEqual([['Despesa esperada', 699.5], ['Avui', 1000], ['Factura', 1000], ['Inici Any', 0]])
+  })
+})
