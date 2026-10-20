@@ -31,7 +31,7 @@
         </div>
         <div class="doc-kpi">
           <span>Jornada</span>
-          <b>{{ hours(calc.ratio * 8) }} h/dia</b>
+          <b>{{ hours(calc.dayHours) }} h/dia</b>
           <small>{{ formatNumber(calc.ratio * 100, 1) }} % d'una jornada completa</small>
         </div>
       </div>
@@ -83,7 +83,7 @@
             <h2>Com es calcula</h2>
           </header>
           <dl class="calc-list">
-            <dt>Dies feiners amb jornada</dt>
+            <dt>Dies amb jornada</dt>
             <dd>{{ calc.baseDays }} dies</dd>
             <dd>{{ hours(calc.baseHours) }} h</dd>
             <template v-for="p in calc.pending" :key="p.name">
@@ -393,6 +393,7 @@ export default {
           var totalWorkedHours = 0;
           var laborableDays = 0;
           var laborableHours = 0;
+          var fullTimeDays = 0;
           let warn = false;
           allDates.forEach(d => {
             const date = moment(d).format("YYYY-MM-DD");
@@ -423,23 +424,30 @@ export default {
                 summary[festive.festive_type.name].daysCurrent++;
               }
             }
-            // A laborable weekday counts toward the contractual average even
-            // when the per-day distribution schedules 0 hours for it (e.g. a
-            // "0,9,10,9,0,0,0" distribution). Guarding on `theoricHours` skipped
-            // such days, inflating the average and showing >100% for part-time
-            // irregular jornadas. Count the weekday; its 0 hours add nothing to
-            // totalWorkedHours but correctly dilute the daily average.
-            const isLaborableWeekday =
-              !festive && dailyDedication && day !== 0 && day !== 6;
-            if (isLaborableWeekday) {
+            // The days with jornada are those the period gives hours, the
+            // weekends of a weekly distribution included, as in Saldo d'hores
+            // (it skipped Saturdays/Sundays and counted 0-h weekdays,
+            // issues/238).
+            if (!festive && theoricHours > 0) {
               totalWorkedDays++;
               totalWorkedHours += theoricHours;
             }
+            // The share of a full jornada (8 h from Monday to Friday) still
+            // counts every weekday, those with 0 h too: a "0,9,10,9,0,0,0"
+            // jornada is 70 %, not the 117 % of its 9,33 h a day (f61a83a).
+            if (!festive && dailyDedication && day !== 0 && day !== 6) {
+              fullTimeDays++;
+            }
           });
-          const ratio = totalWorkedHours / totalWorkedDays / 8;
+          // hours of a day with jornada (what a pending vacation day takes off)
+          // and share of a full jornada (what scales the conveni). Without a
+          // weekly distribution both give the old ratio.
+          const jornadaHours = totalWorkedDays ? totalWorkedHours / totalWorkedDays : 0;
+          const share = fullTimeDays ? totalWorkedHours / fullTimeDays / 8 : 0;
+          const ratio = share;
 
           summary["Jornada"] = {
-            hours: `${(ratio * 8).toFixed(2)} h/dia (${(ratio * 100).toFixed(
+            hours: `${jornadaHours.toFixed(2)} h/dia (${(share * 100).toFixed(
               1
             )}%)`,
             days: ""
@@ -456,8 +464,8 @@ export default {
           festiveTypes.forEach(ft => {
             if (summary[ft.name].days < summary[ft.name].max) {              
               const daysToAdd = summary[ft.name].max - summary[ft.name].days
-              pending.push({ name: ft.name, days: daysToAdd, hours: daysToAdd * ratio * 8, used: summary[ft.name].days, max: summary[ft.name].max })
-              summary["Laborables"].hours = summary["Laborables"].hours - daysToAdd * ratio * 8
+              pending.push({ name: ft.name, days: daysToAdd, hours: daysToAdd * jornadaHours, used: summary[ft.name].days, max: summary[ft.name].max })
+              summary["Laborables"].hours = summary["Laborables"].hours - daysToAdd * jornadaHours
               summary["Laborables"].days = summary["Laborables"].days - daysToAdd
             }              
           });
@@ -466,12 +474,13 @@ export default {
 
           summary["Màxim Conveni"] = {
             hours: (yearDetails.working_hours * ratio).toFixed(2),
-            days: yearDetails.working_hours / 8
+            // in days with jornada, like Laborables
+            days: jornadaHours ? yearDetails.working_hours * ratio / jornadaHours : 0
           };
           const label = "Saldo anual d'hores (Laborables - Conveni)"
           summary[label] = {
             hours: summary["Laborables"].hours - yearDetails.working_hours * ratio,           
-            days: summary["Laborables"].days - yearDetails.working_hours / 8
+            days: summary["Laborables"].days - summary["Màxim Conveni"].days
           };
 
           summary["Laborables"].hours = summary["Laborables"].hours.toFixed(2)
@@ -484,7 +493,7 @@ export default {
           this.personalDaysList = personalDaysList;
           this.warn = warn;
           this.summary = summary;
-          this.calc = { baseDays, baseHours, pending, ratio };
+          this.calc = { baseDays, baseHours, pending, ratio, dayHours: jornadaHours };
 
           this.isLoading = false;
         })
