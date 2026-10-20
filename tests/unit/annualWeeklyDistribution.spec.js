@@ -9,10 +9,11 @@ import { mount, flushPromises } from '@vue/test-utils'
 import Buefy from 'buefy'
 
 let distribution = null
+let periods = null
 const get = vi.fn(async url => {
   if (url.startsWith('years')) return { data: [{ year: 2025, working_hours: 1720 }] }
   if (url.startsWith('festive-types')) return { data: [{ name: 'Vacances', max: 0 }] }
-  if (url.startsWith('daily-dedications')) return { data: [{ from: '2025-01-01', to: '2025-12-31', hours: 8, hoursperday: distribution }] }
+  if (url.startsWith('daily-dedications')) return { data: periods || [{ from: '2025-01-01', to: '2025-12-31', hours: 8, hoursperday: distribution }] }
   return { data: [] }
 })
 vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
@@ -54,5 +55,23 @@ describe('Hores anuals with a weekly distribution (issues/238)', () => {
     expect(vm.calc.dayHours).toBe(8)
     expect(vm.calc.ratio).toBe(1)
     expect(vm.summary['Màxim Conveni'].days).toBe(215)
+  })
+})
+
+// issues/225: person 32 in 2025, 01/01–31/08 at 0 h and 01/09–31/12 at 8 h,
+// showed «Dies feiners amb jornada 247 dies 648 h», «Jornada 2,62 h/dia». The
+// days of a 0-h period are not days with jornada (covered by 238's fix).
+describe('Hores anuals with a 0-h period (issues/225)', () => {
+  it('counts only the days of the 8-h period', async () => {
+    periods = [
+      { from: '2025-01-01', to: '2025-08-31', hours: 0, hoursperday: null },
+      { from: '2025-09-01', to: '2025-12-31', hours: 8, hoursperday: null }
+    ]
+    const vm = await load(null)
+    periods = null
+    // weekdays from 01/09 to 31/12/2025: 22 + 23 + 20 + 23
+    expect(vm.calc.baseDays).toBe(88)
+    expect(vm.calc.baseHours).toBe(88 * 8)
+    expect(vm.calc.dayHours).toBe(8)
   })
 })

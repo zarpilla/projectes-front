@@ -60,3 +60,37 @@ describe('ModalBoxWorkingDay', () => {
     w.unmount()
   })
 })
+
+// issues/225: a period ending before it starts, or with negative hours, was
+// saved (the API answered 201) and counted in every hours screen
+describe('ModalBoxWorkingDay validation (issues/225)', () => {
+  it('refuses a period that ends before it starts', async () => {
+    const w = await openModal()
+    w.vm.form.from = new Date(2027, 11, 1)
+    w.vm.form.to = new Date(2027, 5, 1)
+    await w.vm.$nextTick()
+    await w.find('form').trigger('submit')
+    expect(w.emitted('submit')).toBeUndefined()
+    w.unmount()
+  })
+
+  it('refuses negative hours', async () => {
+    const w = await openModal()
+    w.vm.fixDecimals('hours', '-3')
+    await w.vm.$nextTick()
+    await w.find('form').trigger('submit')
+    expect(w.emitted('submit')).toBeUndefined()
+    w.unmount()
+  })
+
+  it('accepts a one-day period with 0 h', async () => {
+    const w = await openModal()
+    w.vm.form.from = new Date(2027, 0, 4)
+    w.vm.form.to = new Date(2027, 0, 4)
+    w.vm.fixDecimals('hours', '0')
+    await w.vm.$nextTick()
+    await w.find('form').trigger('submit')
+    expect(w.emitted('submit')).toHaveLength(1)
+    w.unmount()
+  })
+})

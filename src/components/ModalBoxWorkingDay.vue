@@ -390,6 +390,13 @@ export default {
         this.cancel()
         return
       }
+      // the API refuses them too: a period ending before it starts, or with
+      // negative hours, was saved and counted everywhere (issues/225)
+      const periodError = this.periodError();
+      if (periodError) {
+        this.$buefy.toast.open({ message: periodError, type: "is-danger" });
+        return;
+      }
       if (!this.validateHousPerDay()) {
         this.$buefy.toast.open({
           message: "La suma de les hores diàries no coincideix amb les hores totals o el format és incorrecte",
@@ -444,6 +451,19 @@ export default {
         this.form.monthly_salary = monthly_salary;
         this.form.costByHour = this.calcCostByHour();
       }
+    },
+    periodError() {
+      if (!this.form.from || !this.form.to) {
+        return "Cal indicar l'inici i el final del període";
+      }
+      if (moment(this.form.to).format("YYYY-MM-DD") < moment(this.form.from).format("YYYY-MM-DD")) {
+        return "El final del període no pot ser anterior a l'inici";
+      }
+      const hours = this.form.hours;
+      if (hours !== null && hours !== undefined && hours !== "" && !(Number(hours) >= 0)) {
+        return "Les hores han de ser 0 o més";
+      }
+      return null;
     },
     validateHousPerDay() {
       if (!this.form.hoursperday) {

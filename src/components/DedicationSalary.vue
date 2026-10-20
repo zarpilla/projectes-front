@@ -29,14 +29,17 @@
     <section v-if="!isLoading && !warn" class="a-box list-box">
       <header class="box-head">
         <h2>Nòmines per mes</h2>
-        <span class="box-hint">Hores treballades i teòriques, saldo i salari de cada mes</span>
+        <span class="box-hint">Hores treballades (amb les vacances i els festius personals, com a la nòmina) i teòriques, saldo i salari de cada mes</span>
       </header>
       <div class="table-wrap">
         <table class="table is-fullwidth salary-table">
           <thead>
             <tr>
               <th scope="col">Mes</th>
-              <th scope="col" class="has-text-right">Treballades</th>
+              <!-- payroll hours: the registered ones plus the vacation and
+                   personal festives; Saldo d'hores and Hores anuals call
+                   «Hores treballades» the registered ones only (issues/273) -->
+              <th scope="col" class="has-text-right" title="Hores registrades més les vacances i els festius personals">Treballades + vacances</th>
               <th scope="col" class="has-text-right">Teòriques</th>
               <th scope="col" class="has-text-right">Saldo</th>
               <th scope="col" class="has-text-right">Saldo acumulat</th>
@@ -113,6 +116,8 @@ import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import moment from "moment";
 import { festivesBetween, periodHours } from "@/domain/workdayLog.js";
+
+const WORKED_LABEL = "Total hores treballades + vacances";
 import { startLoad } from "@/domain/latestLoad.js";
 import { formatNumber, formatMoney, sign } from "@/helpers/format-number";
 
@@ -391,7 +396,9 @@ export default {
       summary[
         "Total hores anuals laborables teòriques"
       ] = theoricHoursTotal.toFixed(2);
-      summary["Total hores treballades"] = dates[0].totalWorkedHours.toFixed(2);
+      // it adds the vacation and personal festives (what the payroll pays):
+      // not the «Hores treballades» of Saldo d'hores (issues/273)
+      summary[WORKED_LABEL] = dates[0].totalWorkedHours.toFixed(2);
       summary["Saldo hores anual"] = dates[0].balance.toFixed(2);
       summary["Saldo hores avui"] = dates[0].balanceToday.toFixed(2);
 

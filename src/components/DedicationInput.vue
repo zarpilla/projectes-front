@@ -68,7 +68,7 @@
         <button type="button" title="Vista projecte" :class="{ 'is-on': colorType == 'project' }" :aria-pressed="colorType == 'project' ? 'true' : 'false'" @click="colorTypeChanged('project')">Per projecte</button>
       </div>
       <div class="hours-actions">
-        <download-excel name="hores-dedicades" class="export" :data="activitiesJSON">
+        <download-excel name="hores-dedicades" class="export" :data="activitiesJSON" :fields="exportFields">
           <b-button size="is-small" title="Exporta dades" icon-left="download">Exporta</b-button>
         </download-excel>
         <b-button
@@ -364,7 +364,8 @@ import { formatHours, formatNumber } from "@/helpers/format-number";
 import { daysFromToday } from "@/helpers/catalan";
 import { hoursAgenda } from "@/domain/hoursAgenda";
 import { parseHours } from "@/domain/hoursInput";
-import { festiveTaken } from "@/domain/workdayLog.js";
+import { festiveTaken, festiveRangeDates } from "@/domain/workdayLog.js";
+import { dedicatedHoursFields } from "@/domain/hoursExport.js";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
@@ -429,6 +430,7 @@ export default {
       trashObject: null,
       activities: [],
       activitiesJSON: [],
+      exportFields: dedicatedHoursFields,
       isLoading: false,
       reloadPending: false,
       paginated: false,
@@ -1217,16 +1219,9 @@ export default {
 
       // the working days to save; a day that already has a festive of the
       // same person (or for everyone) is not saved twice (issues/246)
-      const dates = [];
-      const diff = !festive.id && festive.endDate
-        ? moment(festive.endDate).diff(festive.date, "days") + 1
-        : 1;
-      for (let i = 0; i < diff; i++) {
-        const d = moment(festive.date).add(i, "days");
-        if (festive.id || (d.day() !== 6 && d.day() !== 0)) {
-          dates.push(d.format("YYYY-MM-DD"));
-        }
-      }
+      const dates = festive.id
+        ? [festive2.date]
+        : festiveRangeDates(festive.date, festive.endDate);
       let free = dates;
       if (dates.length) {
         try {

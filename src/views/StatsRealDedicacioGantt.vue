@@ -1,7 +1,7 @@
 <template>
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" :subtitle="subtitle">
-      <download-excel :data="exportData" :name="exportName">
+      <download-excel :data="exportData" :name="exportName" :fields="exportFields">
         <b-button icon-left="download" :disabled="!exportData.length">Exporta</b-button>
       </download-excel>
     </title-bar>
@@ -65,6 +65,7 @@ import CardComponent from '@/components/CardComponent.vue'
 import RealDedicationGantt from '@/components/RealDedicationGantt.vue'
 import service from '@/service/index'
 import moment from 'moment'
+import { realDedicationFields } from '@/domain/hoursExport.js'
 
 // First year for which real hours are relevant. Kept wide so past data is
 // reachable; current year is appended dynamically in mounted().
@@ -95,6 +96,7 @@ export default {
       years: [],
       selectedProjectStates: [],
       exportData: [],
+      exportFields: realDedicationFields,
       minYear: MIN_YEAR,
       maxYear: parseInt(moment().format('YYYY'))
     }
