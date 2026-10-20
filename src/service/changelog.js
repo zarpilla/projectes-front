@@ -26,6 +26,36 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Projectes"],
+      text: "Les dedicacions de tipus «Total» de menys de quinze dies ja compten a les hores i al cost previstos del projecte (els totals es recalculen sols). Subvencions mostra els imports per any de la fitxa (total, a justificar i cofinançament), igual que Justificacions."
+    },
+    {
+      type: "Correccions",
+      modules: ["Subvencions"],
+      text: "Justificacions: l'import a justificar i les llistes segueixen l'any triat (o sumen tots els anys amb «Tots»); les justificacions de factures sense mes ja no desapareixen en triar un any; les hores previstes surten de la previsió actual del projecte, i el filtre «Estat projecte» també s'aplica a les bestretes i factures justificades."
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores"],
+      text: "Bestretes: el mes en què canvia el període, el salari teòric es reparteix per dies entre els dos salaris. Hores anuals: amb una distribució setmanal compten les hores del cap de setmana i només els dies amb hores. % Dedicació real i Previsió dedicació (setmanal): les setmanes de canvi d'any tenen etiquetes diferents i només comparen els dies de l'any triat."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Ingressos i Despeses: el filtre «Tipus» ja mostra només els documents d'aquest tipus (llista, totals i exportació). Tresoreria: els botons d'any carreguen les dades de l'any triat. IVA i Tresoreria hi compten els documents vinculats només a un projecte mare."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Els preus unitaris de les línies de pressupostos i factures conserven fins a 4 decimals (abans es desaven amb 2 i el total canviava en desar), també al PDF. En eliminar una factura esborrany, la línia de pressupost associada torna a quedar pendent de facturar."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: "Una comanda que torna de Lliurada a un estat anterior ja no conserva la data de lliurament. Quan es recull una comanda de recollida en finca (-R), les comandes que recull també queden recollides, i les recollides en finca ja no mostren el pas «Dipositada». La importació per CSV conserva els decimals dels quilos (amb coma o punt) i accepta menys d'1 kg."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
       text: "Desar un projecte ja no duplica les files de la periodificació ni les dades de subvenció (les còpies que hi havia s'esborren soles). Al pressupost, en entrar amb el tabulador en una quantitat o un preu de 1.000 o més, el que s'escriu substitueix el valor en lloc d'afegir-s'hi."
     },
     {
