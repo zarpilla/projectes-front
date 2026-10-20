@@ -48,7 +48,7 @@ describe('CSV preview rows (issues/251)', () => {
       routeRates: [RATE], orders: [], csvErrors: [], nextDayLimitHour: 13,
       getContactsForImport: vi.fn().mockResolvedValue([contact]),
       removeAccents: M.removeAccents, withNotes: M.withNotes, checkTransferNeeded: M.checkTransferNeeded,
-      createUUID: () => 'uuid', $buefy: { toast: { open: vi.fn() } }
+      createUUID: () => 'uuid', previewCSVDiscounts: vi.fn(), $buefy: { toast: { open: vi.fn() } }
     }
     await M.importCSV.call(c, [{ owner_id: '114', route_name: 'DJ - BCN', contact_trade_name: 'Ateneu La Torna', kilograms: '12', units: '2', refrigerated: '0', estimated_delivery_date: '20261022' }])
     expect(c.csvErrors).toEqual([])

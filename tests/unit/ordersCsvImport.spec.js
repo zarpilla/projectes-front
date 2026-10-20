@@ -42,6 +42,8 @@ function ctx ({ contacts = [contact()], routes = [{ id: 3, name: 'DJ - BCN' }] }
     withNotes,
     checkTransferNeeded,
     createUUID: () => 'uuid',
+    // the discounts preview (issues/298, csvOrderPreview.spec.js)
+    previewCSVDiscounts: vi.fn(),
     $buefy: { toast: { open: vi.fn() } }
   }
 }
