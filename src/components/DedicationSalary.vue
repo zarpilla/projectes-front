@@ -340,14 +340,15 @@ export default {
         ) {
           laborableDays++;
           months[month].theoricDays += 1;
+          // each day at its own period's salary, so a month where the
+          // period changes is split by days (it took the last day's salary
+          // for the whole month, issues/264)
+          months[month].dailySalary +=
+            (Number(dailyDedication.monthly_salary) || 0) * theoricHours / 8;
         }
 
         months[month].theoricRatio =
           months[month].theoricHours / months[month].theoricDays / 8;
-        months[month].dailySalary =
-          (dailyDedication ? dailyDedication.monthly_salary : 0) *
-          months[month].theoricRatio *
-          months[month].theoricDays;
 
         months[month].worked += workedHours;
         months[month].balance =
