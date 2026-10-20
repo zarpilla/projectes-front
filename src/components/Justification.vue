@@ -1364,11 +1364,16 @@ export default {
       if (!j.month) return j.year === null || j.year === undefined ? "" : String(j.year);
       return this.grantYearOf(this.justificationDate(j));
     },
-    // The justifications of the chosen grant year
+    // The justifications of the chosen grant year and of the projects shown
+    // (the «Estat projecte» filter, issues/283)
     filterJustifications(justifications) {
+      const state = this.projectState !== null ? this.projectState : 0;
+      const ids = new Set(this.projects.map(p => String(p.id)));
       return justifications.filter(j => {
         if (this.theYear && this.justificationGrantYear(j) !== this.theYear.toString()) return false;
-        return true;
+        if (state === 0 || state === "0") return true;
+        const projectId = j.project && typeof j.project === "object" ? j.project.id : j.project;
+        return projectId !== null && projectId !== undefined && ids.has(String(projectId));
       });
     },
     // A project's amount (to justify by default) for the chosen grant year,

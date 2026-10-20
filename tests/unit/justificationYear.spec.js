@@ -6,6 +6,7 @@
 //    were «Sense import»;
 //  - invoice justifications have no month: «2025-null-01» had no year, so with
 //    Any=2025 they disappeared (regression of the fiscal-year change).
+// issues/283: the «Estat projecte» filter left out the manual justifications.
 import { describe, it, expect, vi } from 'vitest'
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
 import Justification from '@/components/Justification.vue'
@@ -78,5 +79,18 @@ describe('Justificacions follow the chosen year (issues/263)', () => {
       { id: 5, year: 2026, month: null, project: { id: 1 } }
     ]
     expect(ctx.filterJustifications(rows).map(j => j.id)).toEqual([1, 2, 4])
+  })
+})
+
+describe('Justificacions «Estat projecte» (issues/283)', () => {
+  it('keeps only the justifications of the projects in the chosen state', () => {
+    const rows = [
+      { id: 1, year: 2025, month: 3, project: { id: 1, name: 'ACTGI' } },
+      { id: 2, year: 2025, month: 3, project: { id: 77, name: 'Tancat' } },
+      { id: 3, year: 2025, month: null, project: 77 }
+    ]
+    // this.projects are already the projects of the chosen state
+    expect(context({ projectState: 1 }).filterJustifications(rows).map(j => j.id)).toEqual([1])
+    expect(context({ projectState: 0 }).filterJustifications(rows).map(j => j.id)).toEqual([1, 2, 3])
   })
 })
