@@ -39,7 +39,11 @@
 
       <div v-if="linkedOrders.length" class="notification is-warning linked-orders">
         {{ linkedOrders.length === 1 ? "1 comanda lliurada encara és" : `${linkedOrders.length} comandes lliurades encara són` }} en una factura i no
-        {{ linkedOrders.length === 1 ? "surt" : "surten" }} aquí ni als totals: {{ linkedOrders.map(o => o.id).join(", ") }}.
+        {{ linkedOrders.length === 1 ? "surt" : "surten" }} aquí ni als totals:
+        <template v-for="(o, i) in linkedOrders" :key="o.id">
+          <router-link :to="{ name: 'orders.view.detail', params: { id: o.id } }">#{{ o.id }}</router-link>
+          (<router-link :to="{ name: 'document.edit', params: { id: linkedInvoice(o).id, type: 'emitted-invoices' } }">factura {{ linkedInvoice(o).label }}</router-link>){{ i < linkedOrders.length - 1 ? "," : "." }}
+        </template>
       </div>
 
       <section class="a-box invoice-setup">
@@ -265,6 +269,14 @@ export default {
   },
   methods: {
     plural,
+    // the invoice an order is still on, to link it: its number, or the
+    // draft's id (issues/293)
+    linkedInvoice(order) {
+      const inv = order.emitted_invoice;
+      const id = inv && typeof inv === "object" ? inv.id : inv;
+      const draft = !inv || typeof inv !== "object" || inv.state === "draft" || !inv.code || inv.code === "ESBORRANY";
+      return { id, label: draft ? `esborrany #${id}` : inv.code };
+    },
     async getData() {
       this.isLoading = true;
       const [orders, contacts, projects] = await Promise.all([
