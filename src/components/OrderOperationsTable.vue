@@ -843,8 +843,10 @@ export default {
       });
     },
     async pickupOrder(order) {
+      // «Recollit» at a farm, «Carregat» on the delivery route (issues/250)
+      const done = order.is_collection_order ? "recollida" : "carregada";
       this.$buefy.dialog.confirm({
-        message: "Vols marcar aquesta comanda com a recollida?",
+        message: `Vols marcar aquesta comanda com a ${done}?`,
         onConfirm: async () => {
           try {
             this.isLoading = true;
@@ -857,7 +859,7 @@ export default {
             });
 
             this.$buefy.toast.open({
-              message: "Comanda marcada com a recollida",
+              message: `Comanda marcada com a ${done}`,
               type: "is-success"
             });
 
@@ -865,7 +867,7 @@ export default {
           } catch (error) {
             console.error("Error marking order as picked up:", error);
             this.$buefy.toast.open({
-              message: "Error marcant la comanda com a recollida",
+              message: `Error marcant la comanda com a ${done}`,
               type: "is-danger"
             });
           } finally {

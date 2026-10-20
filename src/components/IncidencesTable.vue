@@ -181,7 +181,11 @@
                 <b-button icon-left="check" @click="changeState(selected, 'closed')">Tanca</b-button>
               </div>
             </div>
-            <p v-else class="notification is-light">Aquesta incidència està tancada.</p>
+            <div v-else class="notification is-light closed-note">
+              <span>Aquesta incidència està tancada.</span>
+              <!-- the staff can reopen it; the API clears who closed it (issues/226, issues/249) -->
+              <b-button v-if="isAdmin" size="is-small" icon-left="restore" class="reopen" @click="changeState(selected, 'open')">Reobre</b-button>
+            </div>
           </template>
           <p v-else class="box-empty">Tria una incidència de la llista per veure-la i respondre-la.</p>
         </aside>
@@ -608,9 +612,12 @@ export default {
         closed: 'tancada'
       };
 
+      const reopening = incidence.state === 'closed' && newState !== 'closed';
       const confirmMessage = newState === 'closed' 
         ? 'Estàs segur que vols tancar aquesta incidència?' 
-        : `Vols marcar aquesta incidència com a ${stateLabels[newState]}?`;
+        : reopening
+          ? 'Vols reobrir aquesta incidència?'
+          : `Vols marcar aquesta incidència com a ${stateLabels[newState]}?`;
 
       this.$buefy.dialog.confirm({
         message: confirmMessage,
@@ -638,7 +645,7 @@ export default {
             );
 
             this.$buefy.toast.open({
-              message: `Incidència marcada com a ${stateLabels[newState]}`,
+              message: reopening ? "Incidència reoberta" : `Incidència marcada com a ${stateLabels[newState]}`,
               type: "is-success"
             });
 
@@ -883,6 +890,13 @@ export default {
   flex-wrap: wrap;
   gap: .5rem;
   margin-top: .75rem;
+}
+.closed-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
 }
 @media screen and (max-width: 768px) {
   .inc-table-wrap {

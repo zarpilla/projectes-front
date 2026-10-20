@@ -293,7 +293,7 @@
                         <option :value="true">Sí</option>
                         <option :value="false">No</option>
                       </b-select>
-                      <b v-else-if="col.edit === 'price'">{{ calculatedPrice !== null ? money(calculatedPrice) : "?" }}</b>
+                      <b v-else-if="col.edit === 'price'" :title="calculatedPrice !== null ? `Preu de tarifa ${money(calculatedPrice)}` : null">{{ calculatedPrice !== null ? money(editedFinalPrice()) : "?" }}</b>
                     </template>
                     <!-- read -->
                     <template v-else-if="col.key === 'idx'">
@@ -434,6 +434,12 @@ import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStat
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
+import { dateFilterWhere, ownerWhere } from "@/domain/ordersListFilters";
+import { invoicedPrice } from "@/domain/logisticsInvoicing";
+
+// a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
+// example rows hold "1"/"0" strings (issues/251)
+const flag01 = value => (value === true || value === 1 || value === "1" ? 1 : 0);
 
 export default {
   name: "OrdersTable",
@@ -573,11 +579,13 @@ export default {
         kilograms: "kilograms",
         refrigerated: {
           field: "refrigerated",
-          callback: value => {
-            return value ? 1 : 0;
-          }
+          callback: flag01
         },
-        fragile: "fragile",
+        // 1/0 like refrigerated, as the import reads it (issues/251)
+        fragile: {
+          field: "fragile",
+          callback: flag01
+        },
         // pickup: 'pickup.name',
         pickup: {
           field: "pickup",
@@ -1211,6 +1219,12 @@ export default {
         this.calculatedPrice = null;
       }
     },
+    // the quick edit's price as the column shows it: the rate's price less the
+    // order's discounts (issues/251); what is saved is still the rate's price
+    editedFinalPrice() {
+      if (this.calculatedPrice === null) return null;
+      return invoicedPrice({ ...this.editingOrder, price: this.calculatedPrice });
+    },
     async saveOrder(order) {
       // without a rate there is no price: say so instead of saving price null
       // and leaving it to the backend (issues/151)
@@ -1341,32 +1355,7 @@ export default {
           }
           const comparison = key.includes("date") ? "_eq" : "_contains";
           if (key.includes("date")) {
-            if (value.length === 4 || value.length === 5) {
-              // format YYYY-
-              const start = `${value.substring(0, 4)}-01-01`;
-              const end = `${value.substring(0, 4)}-12-31`;
-              where.push(`_where[${key}_gte]=${start}`);
-              where.push(`_where[${key}_lte]=${end}`);
-            } else if (
-              value.length === 7 ||
-              value.length === 8 ||
-              value.length < 10
-            ) {
-              // format YYYY-MM
-              const start = `${value.substring(0, 7)}-01`;
-              const month = new Date(value.substring(0, 7)).getMonth();
-              const endDayOfMonth = new Date(
-                new Date().getFullYear(),
-                month + 1,
-                0
-              ).getDate();
-              const end = `${value.substring(0, 7)}-${endDayOfMonth}`;
-              where.push(`_where[${key}_gte]=${start}`);
-              where.push(`_where[${key}_lte]=${end}`);
-            } else if (value.length === 10) {
-              // format YYYY-MM-DD
-              where.push(`_where[${key}${comparison}]=${value}`);
-            }
+            where.push(...dateFilterWhere(key, value));
           } else if (key === "idx") {
             // remove zeros at start
             const id_contains = value.replace(/^0+/, "");
@@ -1402,7 +1391,7 @@ export default {
         where.push(...or);
       }
       if (this.dateFilter) where.push(`_where[estimated_delivery_date]=${this.dateFilter}`);
-      if (this.ownerFilter) where.push(`_where[owner]=${this.ownerFilter}`);
+      where.push(...ownerWhere(this.ownerFilter));
       if (this.pickupFilter) where.push(`_where[pickup.id]=${this.pickupFilter}`);
       localStorage.setItem("OrdersTable.filters", JSON.stringify({
         date: this.dateFilter,
@@ -2071,6 +2060,12 @@ export default {
         } else {
           // console.warn("!order", order.kilograms, order.route_rate);
         }
+        // what the list shows of a row before it is created: its delivery
+        // point and its price (issues/251); the discounts come on creation
+        orderWithRate.fullName = contact.trade_name || contact.name;
+        if (Number.isFinite(Number(orderWithRate.price)) && orderWithRate.price !== null) {
+          orderWithRate.finalPrice = invoicedPrice(orderWithRate);
+        }
         this.orders.unshift(orderWithRate);
         // this.orders.unshift(order);
       }
@@ -2696,9 +2691,9 @@ export default {
     discountsOf(order) {
       if (order.finalPrice === undefined || order.finalPrice === null || order.finalPrice === order.price) return [];
       return [
-        Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${order.multidelivery_discount} %)` } : null,
+        Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${formatNumber(order.multidelivery_discount, 2)} %)` } : null,
         Number(order.volume_discount) ? { key: "volume", title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
-        Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${order.contact_pickup_discount} %)` } : null
+        Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${formatNumber(order.contact_pickup_discount, 2)} %)` } : null
       ].filter(Boolean);
     },
     discountLabel(order) {
