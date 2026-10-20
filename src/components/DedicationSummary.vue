@@ -166,7 +166,7 @@ import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
 import { startLoad } from "@/domain/latestLoad.js";
-import { periodHours } from "@/domain/workdayLog.js";
+import { periodHours, countedFestiveOn } from "@/domain/workdayLog.js";
 import { formatNumber, sign } from "@/helpers/format-number";
 
 moment.locale("ca");
@@ -344,13 +344,9 @@ export default {
               f.users_permissions_user.id === this.user
           );
 
-          const personalDaysList = ["Vacances", "Lliure Elecció"]
-            .flatMap(name =>
-              festives
-                .filter(f => f.festive_type && f.festive_type.name === name)
-                .map(f => ({ date: f.date, type: name }))
-            )
-            .sort((a, b) => (a.date < b.date ? -1 : 1));
+          // the vacation and free-choice days the figures count, so the
+          // table and the KPI agree (issues/246)
+          const personalDaysList = [];
 
           const dailyDedications = (
             await service({ requiresAuth: true }).get(
@@ -401,12 +397,8 @@ export default {
           allDates.forEach(d => {
             const date = moment(d).format("YYYY-MM-DD");
             const day = moment(d).day();
-            const festive = festives.find(
-              f =>
-                f.date === date &&
-                (f.users_permissions_user === null ||
-                  f.users_permissions_user.id == this.user)
-            );
+            // the holiday for everyone first, whatever the order (issues/246)
+            const festive = countedFestiveOn(date, festives);
             const dailyDedication = dailyDedications.find(
               dd => date >= dd.from && date <= dd.to
             );
@@ -420,8 +412,12 @@ export default {
 
             laborableHours += dayHours;
             if (festive && dailyDedication) {
-              summary[festive.festive_type.name].hours +=
-                dailyDedication.hours;
+              // the hours of that day: none for a holiday on a Saturday
+              // (it counted the daily hours, issues/246)
+              summary[festive.festive_type.name].hours += dayHours;
+              if (["Vacances", "Lliure Elecció"].includes(festive.festive_type.name)) {
+                personalDaysList.push({ date, type: festive.festive_type.name });
+              }
               summary[festive.festive_type.name].days++;
               if (moment(d).isBefore(moment())) {
                 summary[festive.festive_type.name].daysCurrent++;

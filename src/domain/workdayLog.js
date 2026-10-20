@@ -58,6 +58,21 @@ export const periodOn = (date, periods) =>
 export const festiveOn = (date, festives) =>
   (festives || []).find(f => f.date === date) || null
 
+// the festive that counts on a date: the holiday for everyone before a
+// personal day (Vacances on 1/1 is the 1/1 holiday, not a vacation day spent),
+// whatever order they come in (issues/246)
+export const countedFestiveOn = (date, festives) => {
+  const onDate = (festives || []).filter(f => f.date === date)
+  return onDate.find(f => !f.users_permissions_user) || onDate[0] || null
+}
+
+// a festive of the same person (or for everyone, both without person) already
+// on that date, other than `ownId`: saving it again made a duplicate (issues/246)
+export const festiveTaken = (date, personId, festives, ownId = null) => {
+  const person = f => (f.users_permissions_user && (f.users_permissions_user.id || f.users_permissions_user)) || null
+  return (festives || []).some(f => f.date === date && f.id !== ownId && person(f) === (personId || null))
+}
+
 // the hours of a work period on one date, festives aside: its weekly
 // distribution when it has one, otherwise its daily hours from Monday to
 // Friday. Saldo d'hores' rule, shared by Registre jornades, Bestretes and

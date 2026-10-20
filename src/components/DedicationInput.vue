@@ -364,6 +364,7 @@ import { formatHours, formatNumber } from "@/helpers/format-number";
 import { daysFromToday } from "@/helpers/catalan";
 import { hoursAgenda } from "@/domain/hoursAgenda";
 import { parseHours } from "@/domain/hoursInput";
+import { festiveTaken } from "@/domain/workdayLog.js";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
@@ -423,6 +424,7 @@ export default {
       dedicationObject: null,
       festiveObject: null,
       isModalFestiveActive: false,
+      savingFestive: false,
       isModalMoveToProject: false,
       trashObject: null,
       activities: [],
@@ -1198,8 +1200,57 @@ export default {
       }
     },
     async modalFestiveSubmit(festive) {
+      // a second Enter while saving sends nothing (issues/246)
+      if (this.savingFestive) {
+        return;
+      }
+      this.savingFestive = true;
+      try {
+        await this.saveFestive(festive);
+      } finally {
+        this.savingFestive = false;
+      }
+    },
+    async saveFestive(festive) {
       const festive2 = { ...festive };
       festive2.date = moment(festive.date).format("YYYY-MM-DD");
+
+      // the working days to save; a day that already has a festive of the
+      // same person (or for everyone) is not saved twice (issues/246)
+      const dates = [];
+      const diff = !festive.id && festive.endDate
+        ? moment(festive.endDate).diff(festive.date, "days") + 1
+        : 1;
+      for (let i = 0; i < diff; i++) {
+        const d = moment(festive.date).add(i, "days");
+        if (festive.id || (d.day() !== 6 && d.day() !== 0)) {
+          dates.push(d.format("YYYY-MM-DD"));
+        }
+      }
+      let free = dates;
+      if (dates.length) {
+        try {
+          const existing = (
+            await service({ requiresAuth: true }).get(
+              `festives?_where[date_gte]=${dates[0]}&[date_lte]=${dates[dates.length - 1]}&_limit=-1`
+            )
+          ).data;
+          free = dates.filter(d => !festiveTaken(d, festive.users_permissions_user, existing, festive.id || null));
+        } catch (err) {
+          free = dates;
+        }
+      }
+      if (dates.length && !free.length) {
+        // the modal stays open to pick another day
+        this.$buefy.snackbar.open({
+          message: dates.length === 1
+            ? "Aquest dia ja hi ha un festiu d'aquesta persona"
+            : "Aquests dies ja hi ha festius d'aquesta persona",
+          type: "is-danger",
+          queue: false
+        });
+        return;
+      }
       this.isModalFestiveActive = false;
 
       try {
@@ -1209,19 +1260,9 @@ export default {
             festive2
           );
         } else {
-          const diff = festive.endDate
-            ? moment(festive.endDate).diff(festive.date, "days") + 1
-            : 1;
-          for (let i = 0; i < diff; i++) {
-            const day = moment(festive.date)
-              .add(i, "days")
-              .day();
-            if (day !== 6 && day !== 0) {
-              festive2.date = moment(festive.date)
-                .add(i, "days")
-                .format("YYYY-MM-DD");
-              await service({ requiresAuth: true }).post("festives", festive2);
-            }
+          for (const date of free) {
+            festive2.date = date;
+            await service({ requiresAuth: true }).post("festives", festive2);
           }
         }
       } catch (err) {
@@ -1237,8 +1278,11 @@ export default {
 
       this.getActivities();
 
+      const skipped = dates.length - free.length;
       this.$buefy.snackbar.open({
-        message: "Guardat",
+        message: skipped
+          ? `Guardat. ${skipped === 1 ? "1 dia ja tenia" : skipped + " dies ja tenien"} festiu i no s'ha repetit`
+          : "Guardat",
         queue: false
       });
     },

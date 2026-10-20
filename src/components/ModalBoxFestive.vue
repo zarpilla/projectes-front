@@ -6,6 +6,9 @@
       </header>
       <form @submit.prevent="submit">
         <section class="modal-card-body modal-card-body-festive">
+          <!-- Enter in a date only takes the typed date: it saved at once, with
+               the type preselected (issues/246) -->
+          <div @keydown.enter.prevent="commitDate">
             <b-field label="Data" horizontal>
               <b-datepicker
                   v-model="form.date"
@@ -28,6 +31,7 @@
                   trap-focus>
               </b-datepicker>
             </b-field>
+          </div>
             <p v-if="readOnlyCommon" class="notification is-info is-light">
               Aquest festiu és per a tothom: només el pot canviar o esborrar una persona administradora.
             </p>
@@ -218,6 +222,12 @@ export default {
     },
     cancel () {
       this.$emit('cancel')
+    },
+    commitDate (event) {
+      // leaving the field makes the datepicker read what was typed
+      if (event && event.target && typeof event.target.blur === 'function') {
+        event.target.blur()
+      }
     },
     submit () {   
       const festiveType = this.festiveTypes.find(f => f.id == this.form.festive_type)
