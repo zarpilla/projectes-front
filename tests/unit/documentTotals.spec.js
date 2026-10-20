@@ -108,3 +108,17 @@ describe('byRate', () => {
     expect(byRate(lines, 'irpf').map(g => g.rate)).toEqual([0, 15])
   })
 })
+
+// issues/299: quote 2026-010 (7 x 33,3333 at 3 % + 1 x 0,0049) showed «Base
+// sense descompte / Descompte» 233,34 / 7,01 € in the form and 233,33 / 7,00 € in
+// the PDF, which rounds every line to cents (issues/243).
+it('rounds the base without discount per line, as the PDF', async () => {
+  const lines = [
+    { quantity: 7, base: 33.3333, discount: 3, vat: 21, irpf: 0 },
+    { quantity: 1, base: 0.0049, discount: 0, vat: 21, irpf: 0 }
+  ]
+  const t = totalsOf(lines)
+  expect(t.base).toBe(226.33)
+  expect(t.baseWithoutDiscount).toBe(233.33)
+  expect(Math.round(t.discount * 100) / 100).toBe(7)
+})

@@ -14,3 +14,11 @@ export function payrollCode (payroll) {
   if (!year || !month) return ''
   return `${year}-${String(month).padStart(2, '0')}${user ? '-' + user : ''}`
 }
+
+// A payroll amount's label with the dedication's percentage, «IRPF a càrrec de
+// la treballadora (15%)», or just the text when the dedication has none: it
+// printed «(null%)» (issues/299).
+export function payrollLabel (text, pct) {
+  if (pct === null || pct === undefined || pct === '' || !Number(pct)) return text
+  return `${text} (${String(Number(pct)).replace('.', ',')}%)`
+}

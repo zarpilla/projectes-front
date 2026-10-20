@@ -916,9 +916,7 @@
 
             <b-field
               v-if="form.irpf_base"
-              :label="
-                `IRPF a càrrec de la treballadora (${dedication.pct_irpf}%)`
-              "
+              :label="payrollLabel('IRPF a càrrec de la treballadora', dedication.pct_irpf)"
               horizontal
             >
               <b-input
@@ -941,9 +939,7 @@
 
             <b-field
               v-if="form.other_base"
-              :label="
-                `Altres a càrrec de la treballadora (${dedication.pct_other}%)`
-              "
+              :label="payrollLabel('Altres a càrrec de la treballadora', dedication.pct_other)"
               horizontal
             >
               <b-input
@@ -983,11 +979,7 @@
 
             <b-field
               v-if="form.ss_base"
-              :label="
-                `SS a càrrec de la cooperativa ${
-                  dedication.pct_quota ? '(' + dedication.pct_quota + '%)' : ''
-                }`
-              "
+              :label="payrollLabel('SS a càrrec de la cooperativa', dedication.pct_quota)"
               horizontal
             >
               <b-input
@@ -1103,7 +1095,7 @@ import DocumentHistory from "@/components/DocumentHistory.vue";
 // Services
 import service from "@/service/index";
 import getConfig from "@/config";
-import { payrollCode, payrollTotal } from "@/domain/payrollForm";
+import { payrollCode, payrollLabel, payrollTotal } from "@/domain/payrollForm";
 import { upperCase } from "lodash";
 
 export default {
@@ -1506,6 +1498,7 @@ export default {
     this.getData();
   },
   methods: {
+    payrollLabel,
     setPaid,
     setPaidDate,
     setAccepted,

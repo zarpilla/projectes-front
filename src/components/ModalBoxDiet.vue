@@ -67,7 +67,7 @@
               type="number"
               placeholder="Introdueix els quilòmetres"
               min="0"
-              step="1"
+              step="0.01"
               required
               expanded
             >
@@ -356,7 +356,10 @@ export default {
         user: this.form.user,
         project: this.form.project,
         concept: this.form.concept,
-        kilometers: parseInt(this.form.kilometers),
+        // Decimal km (123.5) are valid: a whole-km step blocked the form and
+        // parseInt dropped the decimals. 2 decimals, as line quantities are
+        // stored (issues/295, issues/299).
+        kilometers: Math.round(Number(this.form.kilometers) * 100) / 100,
         date: this.form.date,
         dietAmountWithoutIrpf: this.dietAmountWithoutIrpf,
         dietAmountWithIrpf: this.dietAmountWithIrpf,
