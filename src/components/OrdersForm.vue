@@ -180,10 +180,10 @@
                       <thead><tr><th>Caixes</th><th>Kilograms</th><th>Nom</th><th>NIF</th><th></th></tr></thead>
                       <tbody>
                         <tr v-for="(line, index) in form.lines" :key="index">
-                          <td><b-input v-model="line.units" type="number" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
-                          <td><b-input v-model="line.kilograms" type="number" step="any" min="0" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
-                          <td><b-input v-model="line.name" size="is-small" :disabled="!canEdit" /></td>
-                          <td><b-input v-model="line.nif" size="is-small" :disabled="!canEdit" /></td>
+                          <td><b-input v-model="line.units" type="number" size="is-small" placeholder="Caixes" aria-label="Caixes" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
+                          <td><b-input v-model="line.kilograms" type="number" step="any" min="0" size="is-small" placeholder="Kg" aria-label="Kilograms" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
+                          <td><b-input v-model="line.name" size="is-small" placeholder="Nom" aria-label="Nom" :disabled="!canEdit" /></td>
+                          <td><b-input v-model="line.nif" size="is-small" placeholder="NIF" aria-label="NIF" :disabled="!canEdit" /></td>
                           <td class="has-text-right">
                             <button type="button" class="row-action" :disabled="!canEdit" title="Treu la línia" aria-label="Treu la línia" @click="removeLine(index)"><b-icon icon="close" size="is-small" /></button>
                           </td>
@@ -2876,6 +2876,38 @@ export default {
 }
 .lines-table td {
   vertical-align: middle;
+}
+/* on a phone the four columns left Nom 37 px and NIF 27 px wide (issues/298):
+   each line becomes a small card, boxes and kilos side by side, then the name
+   and the NIF across; the inputs' placeholders stand for the hidden header */
+@media screen and (max-width: 600px) {
+  .lines-table thead {
+    display: none;
+  }
+  .lines-table,
+  .lines-table tbody {
+    display: block;
+  }
+  .lines-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: .375rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--a-line-soft);
+  }
+  .lines-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .lines-table td:nth-child(3),
+  .lines-table td:nth-child(4) {
+    grid-column: 1 / 3;
+  }
+  .lines-table td:nth-child(5) {
+    grid-column: 3;
+    grid-row: 1;
+  }
 }
 .row-action {
   border: 0;
