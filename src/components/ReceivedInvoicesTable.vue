@@ -390,8 +390,9 @@ export default {
 
       // «Tipus» filter: only request the kinds it keeps; `_limit=0` returns rows anyway (issues/260)
       const includeInvoices = !this.documentType || this.documentType === -1;
-      // only invoices have a series: while one is chosen, expenses and payrolls are hidden (issues/278)
-      const includeExpenses = (!this.documentType || this.documentType > 0) && !this.serial;
+      // invoices and expenses have a series (filtered by it); payrolls have none,
+      // so they are hidden while one is chosen (issues/278, issues/294)
+      const includeExpenses = !this.documentType || this.documentType > 0;
       const includePayrolls = (!this.documentType || this.documentType === -2) && !this.serial;
       let invoices = includeInvoices ? (
         await service({ requiresAuth: true }).get(
@@ -411,7 +412,7 @@ export default {
           : "";
       let expenses = includeExpenses ? (
         await service({ requiresAuth: true }).get(
-          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${codeQuery}`
+          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
         )
       ).data : [];
 

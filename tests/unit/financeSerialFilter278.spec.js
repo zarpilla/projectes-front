@@ -1,6 +1,7 @@
 // issues/278: the «Sèrie» filter of Ingressos/Despeses only reached the invoices
 // query; received incomes, expenses and payrolls (which have no series) stayed
-// listed and counted. While a series is chosen only invoices are requested.
+// listed and counted. Received incomes and expenses are filtered by the series
+// too (issues/294); only payrolls, which have none, are hidden.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import EmittedInvoicesTable from '@/components/EmittedInvoicesTable.vue'
 import ReceivedInvoicesTable from '@/components/ReceivedInvoicesTable.vue'
@@ -19,18 +20,18 @@ const run = (component, serial) => component.methods.getData.call({
 describe('«Sèrie» filter (issues/278)', () => {
   beforeEach(() => get.mockClear())
 
-  it('Ingressos: with a series only invoices are requested, filtered by it', async () => {
+  it('Ingressos: with a series every request is filtered by it', async () => {
     await run(EmittedInvoicesTable, 3)
-    expect(requested()).toEqual(['emitted-invoices/basic'])
+    expect(requested()).toEqual(['emitted-invoices/basic', 'received-incomes/basic'])
     expect(get.mock.calls[0][0]).toContain('[serial_eq]=3')
     get.mockClear()
     await run(EmittedInvoicesTable, null)
     expect(requested()).toEqual(['emitted-invoices/basic', 'received-incomes/basic'])
   })
 
-  it('Despeses: with a series only invoices are requested, filtered by it', async () => {
+  it('Despeses: with a series payrolls are not requested, the rest filtered by it', async () => {
     await run(ReceivedInvoicesTable, 3)
-    expect(requested()).toEqual(['received-invoices'])
+    expect(requested()).toEqual(['received-invoices', 'received-expenses'])
     expect(get.mock.calls[0][0]).toContain('[serial_eq]=3')
     get.mockClear()
     await run(ReceivedInvoicesTable, null)
