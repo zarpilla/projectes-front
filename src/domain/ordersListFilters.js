@@ -42,3 +42,20 @@ export function dateFilterWhere (key, raw) {
   }
   return []
 }
+
+/**
+ * The Preu column filter: on the price the column shows (`finalPrice`, after
+ * discounts), which the API matches with a decimal comma or point. It sent
+ * `price_contains`, the rate's price before discounts, and a comma matched
+ * nothing (issues/276).
+ */
+export function priceFilterWhere (raw) {
+  const value = (raw || '').trim()
+  return value ? [`_where[final_price_contains]=${encodeURIComponent(value)}`] : []
+}
+
+/** The Kg column filter: a decimal comma is the stored decimal point (issues/276). */
+export function kilogramsFilterWhere (raw) {
+  const value = (raw || '').trim().replace(',', '.')
+  return value ? [`_where[kilograms_contains]=${encodeURIComponent(value)}`] : []
+}

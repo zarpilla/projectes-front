@@ -180,7 +180,7 @@
                       <tbody>
                         <tr v-for="(line, index) in form.lines" :key="index">
                           <td><b-input v-model="line.units" type="number" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
-                          <td><b-input v-model="line.kilograms" type="number" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
+                          <td><b-input v-model="line.kilograms" type="number" step="any" min="0" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
                           <td><b-input v-model="line.name" size="is-small" :disabled="!canEdit" /></td>
                           <td><b-input v-model="line.nif" size="is-small" :disabled="!canEdit" /></td>
                           <td class="has-text-right">
@@ -200,7 +200,7 @@
                   <b-input v-model="form.units" type="number" :disabled="!canEdit || form.is_collection_order" />
                 </b-field>
                 <b-field label="Kilograms *" data-field="kilograms" :type="{ 'is-danger': errors['kilograms'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
-                  <b-input v-model="form.kilograms" type="number" :disabled="!canEdit || form.is_collection_order" />
+                  <b-input v-model="form.kilograms" type="number" step="any" min="0" :disabled="!canEdit || form.is_collection_order" />
                 </b-field>
               </template>
 
