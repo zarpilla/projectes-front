@@ -33,7 +33,12 @@ export const totalIrpf = lines => -1 * round2(sumBy(lines, lineIrpf))
 
 export const hasDiscount = lines => lines.some(l => l.discount && l.discount > 0)
 
-export const totalBaseWithoutDiscount = lines => sumBy(lines, l => l.quantity * l.base)
+/**
+ * Base before discounts: each line's quantity x price rounded to cents, as the
+ * PDF prints it, so «Base sense descompte» and «Descompte» match the PDF
+ * (issues/299; the PDF rounds per line since issues/243).
+ */
+export const totalBaseWithoutDiscount = lines => round2(sumBy(lines, l => round2(l.quantity * l.base)))
 
 /**
  * VAT (or IRPF) per rate, for the totals block: [{ rate, base, amount }] sorted
