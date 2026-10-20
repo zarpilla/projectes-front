@@ -1197,7 +1197,18 @@ export default {
       this.calculatedPrice = null;
       this.editingOrder = null;
     },
+    // as OrdersForm's canChangeRate: only a pending order is repriced from
+    // the rates; any other keeps its price, an invoiced one the price it was
+    // invoiced with (issues/287)
+    quickEditReprices() {
+      return Boolean(this.editingOrder) && this.editingOrder.status === "pending" && !this.editingOrder.is_collection_order;
+    },
     updateCalculatedPrice() {
+      if (!this.quickEditReprices()) {
+        const kept = this.editingOrder ? this.editingOrder.price : null;
+        this.calculatedPrice = kept === null || kept === undefined || kept === "" ? null : Number(kept);
+        return;
+      }
       if (!this.editForm.route || !this.editForm.kilograms) {
         this.calculatedPrice = null;
         return;
@@ -1234,7 +1245,8 @@ export default {
     async saveOrder(order) {
       // without a rate there is no price: say so instead of saving price null
       // and leaving it to the backend (issues/151)
-      if (this.calculatedPrice === null || !Number.isFinite(Number(this.calculatedPrice))) {
+      const reprices = this.quickEditReprices();
+      if (reprices && (this.calculatedPrice === null || !Number.isFinite(Number(this.calculatedPrice)))) {
         this.$buefy.snackbar.open({
           message: !this.editForm.route || !Number(this.editForm.kilograms)
             ? "Cal una ruta i els quilos per calcular el preu."
@@ -1249,18 +1261,9 @@ export default {
         // Get current user for tracking
         const currentUser = await service({ requiresAuth: true }).get("users/me");
         
-        // Create a temporary order object to calculate transfer
-        const tempOrder = {
-          ...order,
-          route: this.routes.find(r => r.id === this.editForm.route),
-          pickup: this.pickups.find(p => p.id === this.editForm.pickup),
-          owner: order.owner,
-          collection_point: order.collection_point
-        };
-        
-        // Calculate if transfer is needed
-        this.checkTransferNeeded(tempOrder);
-        
+        // The transfer is not sent: the API recomputes it when the pickup,
+        // route or date change, and leaves a delivered or invoiced order as
+        // it is (issues/287, 296).
         const updateData = {
           route: this.editForm.route,
           estimated_delivery_date: this.editForm.estimated_delivery_date
@@ -1274,13 +1277,11 @@ export default {
           kilograms: parseFloat(this.editForm.kilograms) || 0,
           pickup: this.editForm.pickup,
           delivery_type: this.editForm.delivery_type,
-          price: this.calculatedPrice,
           last_mile: this.editForm.last_mile,
-          transfer: tempOrder.transfer,
-          transfer_pickup_origin: tempOrder.transfer_pickup_origin,
-          transfer_pickup_destination: tempOrder.transfer_pickup_destination,
           _tracking_user: currentUser.data
         };
+        // a pending order takes the rate's price; any other keeps its own
+        if (this.calculatedPrice !== null) updateData.price = this.calculatedPrice;
 
         const response = await service({ requiresAuth: true }).put(
           `orders/${order.id}`,
