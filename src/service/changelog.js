@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Correccions",
+      modules: ["Diners", "Hores"],
+      text: "Tresoreria › Per projecte: en mode «Des d'avui» el saldo a 31/12 coincideix amb el d'«Inici d'any», i la taula dinàmica s'actualitza en triar un projecte; les línies d'IVA pendent de saldar s'exporten arrodonides. A les exportacions d'hores, la columna Hores torna a ser numèrica i es pot sumar."
+    },
+    {
       type: "Millores",
       modules: ["Projectes"],
       text: "Els projectes grans s'obren molt més de pressa (el pressupost i els moviments es dibuixen quan s'obre la seva pestanya, i escriure en una línia ja no redibuixa totes les línies), i el calendari de les dates de les últimes línies del pressupost ja no queda tallat."
