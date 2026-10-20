@@ -818,6 +818,7 @@ export default {
       contacts: [],
       contactSearch: '',
       calculatedPrice: null,
+      calculatedRouteRate: null,
       editingOrder: null,
       // redesign A: filters above the list and the grouping
       search: "",
@@ -1223,6 +1224,7 @@ export default {
       return !(this.editingOrder && this.editingOrder.is_collection_order && ["units", "kilograms", "delivery_type"].includes(col.edit));
     },
     updateCalculatedPrice() {
+      this.calculatedRouteRate = null;
       if (!this.quickEditReprices()) {
         const kept = this.editingOrder ? this.editingOrder.price : null;
         this.calculatedPrice = kept === null || kept === undefined || kept === "" ? null : Number(kept);
@@ -1249,7 +1251,8 @@ export default {
       const routeRate = assignRouteRate(tempForm, this.routeRates, this.orders, this.pickups);
       
       if (routeRate) {
-        // Calculate price
+        // Calculate price (and keep the rate it comes from, saved with it, issues/287)
+        this.calculatedRouteRate = routeRate.id;
         this.calculatedPrice = orderRoutePrice(routeRate, tempForm);
       } else {
         this.calculatedPrice = null;
@@ -1307,6 +1310,8 @@ export default {
         }
         // a repriced order takes the rate's price; any other keeps its own
         if (this.calculatedPrice !== null) updateData.price = this.calculatedPrice;
+        // ...and the rate of that price, or the form shows the old «Tarifa» (issues/287)
+        if (reprices && this.calculatedRouteRate) updateData.route_rate = this.calculatedRouteRate;
 
         const response = await service({ requiresAuth: true }).put(
           `orders/${order.id}`,

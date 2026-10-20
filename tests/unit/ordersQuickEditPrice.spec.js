@@ -172,3 +172,22 @@ describe('orders quick edit of a collection order (issues/292)', () => {
     expect(OrdersTable.methods.quickEditField.call(other, { edit: 'kilograms' })).toBe(true)
   })
 })
+
+// verification of 287 (2026-10-20): a repriced order saved its new price but
+// kept its old rate, so the form showed the wrong «Tarifa» (#24755)
+describe('orders quick edit rate (issues/287)', () => {
+  it('saves the rate of the new price', async () => {
+    const vm = vmFor({ id: 24755, kilograms: 12, collection_point: { id: 1931 }, status: 'processed', price: 9, route_rate: { id: 38 } })
+    vm.editForm.kilograms = 20
+    OrdersTable.methods.updateCalculatedPrice.call(vm)
+    await OrdersTable.methods.saveOrder.call(vm, vm.editingOrder)
+    expect(put).toHaveBeenCalledWith('orders/24755', expect.objectContaining({ price: vm.calculatedPrice, route_rate: 42 }))
+  })
+
+  it('sends no rate when the price is kept', async () => {
+    const vm = vmFor({ id: 24756, kilograms: 12, status: 'processed', price: 9, route_rate: { id: 38 } })
+    OrdersTable.methods.updateCalculatedPrice.call(vm)
+    await OrdersTable.methods.saveOrder.call(vm, vm.editingOrder)
+    expect(put.mock.calls[0][1]).not.toHaveProperty('route_rate')
+  })
+})
