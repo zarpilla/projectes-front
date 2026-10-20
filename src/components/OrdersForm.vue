@@ -1108,6 +1108,17 @@ export default {
                 ).toDate();
               }
 
+              // with the other dates, before anything is awaited: the
+              // datepicker rendered in between with the stored string and
+              // threw (focusedDate.getDate is not a function) when an order
+              // with a farm pickup was saved and reloaded
+              if (this.form.collection_pickup_date) {
+                this.form.collection_pickup_date = moment(
+                  this.form.collection_pickup_date,
+                  "YYYY-MM-DD"
+                ).toDate();
+              }
+
               if (this.form.transfer_route_date) {
                 this.form.transfer_route_date = moment(
                   this.form.transfer_route_date,
@@ -1199,14 +1210,6 @@ export default {
 
               // Fetch collection pickup routes if collection_point is set
               if (this.form.collection_point) {
-                // Convert collection_pickup_date to Date if it exists
-                if (this.form.collection_pickup_date) {
-                  this.form.collection_pickup_date = moment(
-                    this.form.collection_pickup_date,
-                    "YYYY-MM-DD"
-                  ).toDate();
-                }
-
                 await this.fetchCollectionPickupRoutes({ loading: true });
                 await this.movePastCollectionPickupDate();
               }

@@ -51,3 +51,9 @@ INSERT INTO route_rates_delivery_type_lnk (route_rate_id, delivery_type_id)
 SELECT rr.id, d.id FROM route_rates rr, delivery_types d
 WHERE rr.name = 'E2E Tarifa' AND d.name = 'E2E Normal'
   AND NOT EXISTS (SELECT 1 FROM route_rates_delivery_type_lnk l WHERE l.route_rate_id = rr.id);
+
+-- "Recollida en Finca" (pickup = 1): the order is picked up at a farm collection point,
+-- which groups it into a collection order (-R) of that day (collection-orders.spec.mjs)
+INSERT INTO pickups (document_id, name, alias, pickup, created_at, updated_at, published_at)
+SELECT 'e2e-farm-pickup', 'E2E Recollida en Finca', 'E2EF', 1, NOW(), NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM pickups WHERE name = 'E2E Recollida en Finca');
