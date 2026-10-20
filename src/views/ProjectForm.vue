@@ -2582,6 +2582,8 @@ import getConfig from "@/config";
 // Services
 import service from "@/service/index";
 import { findCurrentUser } from "@/domain/currentUser";
+import { dedicationDates } from "@/domain/ganttDedication";
+import { isOpenChild } from "@/domain/motherFigures";
 
 export default {
   name: "ProjectForm",
@@ -2936,24 +2938,13 @@ export default {
       return hasOwnOriginalPhases || hasOwnExecutionPhases;
     },
     openChildren() {
-      // Return children that are open (project_state === 1)
-      if (!this.form.children || !this.form.children.children) {
-        return [];
-      }
-      const open = this.form.children.children.filter(
-        child => child.project_state === 1
-      );
-      return open;
+      // children whose state is the open one (issues/282)
+      const children = (this.form.children && this.form.children.children) || [];
+      return children.filter(isOpenChild);
     },
     closedChildren() {
-      // Return children that are not open (project_state !== 1)
-      if (!this.form.children || !this.form.children.children) {
-        return [];
-      }
-      const closed = this.form.children.children.filter(
-        child => !child.project_state || child.project_state !== 1
-      );
-      return closed;
+      const children = (this.form.children && this.form.children.children) || [];
+      return children.filter(child => !isOpenChild(child));
     },
     visibleChildren() {
       // Return open children plus non-open children that are marked as visible
@@ -4093,6 +4084,8 @@ export default {
       }
     },
     clientSelected(option) {
+      // the autocomplete also emits select(null) (issues/282)
+      if (!option) return;
       delete option.projects;
       delete option.quotes;
       delete option.projectes;
@@ -4116,6 +4109,8 @@ export default {
       }
     },
     activityTypeSelected(option) {
+      // the autocomplete also emits select(null) (issues/282)
+      if (!option) return;
       this.form.global_activity_types = this.form.global_activity_types || [];
       if (!this.form.global_activity_types.find(c => c.id === option.id)) {
         this.form.global_activity_types.push(option);
@@ -4126,6 +4121,8 @@ export default {
       }, 100);
     },
     cooperaSelected(option) {
+      // the autocomplete also emits select(null) (issues/282)
+      if (!option) return;
       delete option.projects;
       delete option.quotes;
       delete option.projectes;
@@ -4138,6 +4135,8 @@ export default {
       }, 100);
     },
     strategiesSelected(option) {
+      // the autocomplete also emits select(null) (issues/282)
+      if (!option) return;
       delete option.projects;
       delete option.quotes;
       delete option.projectes;
@@ -4205,15 +4204,8 @@ export default {
       );
       
       if (hours) {
-        hours.from = moment(item.start_date).format("YYYY-MM-DD");
-        hours.to = item.end_date
-          ? moment(item.end_date)
-              .add(-1, "day")
-              .format("YYYY-MM-DD")
-          : moment(item.start_date)
-              .add(1, "month")
-              .add(-1, "day")
-              .format("YYYY-MM-DD");
+        // never end before the start (issues/282)
+        Object.assign(hours, dedicationDates(item.start_date, item.end_date));
         const to2 = moment(hours.to, "YYYY-MM-DD");
         const months = moment(to2).diff(item.start_date, "months") + 1;
         hours.monthly_quantity = item._hours.quantity * months;
@@ -4225,15 +4217,7 @@ export default {
         hours.dirty = true;
       } else if (uuid) {
         const hour = {
-          from: moment(item.start_date).format("YYYY-MM-DD"),
-          to: item.end_date
-            ? moment(item.end_date)
-                .add(-1, "day")
-                .format("YYYY-MM-DD")
-            : moment(item.start_date)
-                .add(1, "month")
-                .add(-1, "day")
-                .format("YYYY-MM-DD"),
+          ...dedicationDates(item.start_date, item.end_date),
           monthly_quantity: null,
           quantity: item._hours.quantity,
           quantity_type: item._hours.quantity_type,
@@ -4383,15 +4367,8 @@ export default {
       );
 
       if (hours) {
-        hours.from = moment(item.start_date).format("YYYY-MM-DD");
-        hours.to = item.end_date
-          ? moment(item.end_date)
-              .add(-1, "day")
-              .format("YYYY-MM-DD")
-          : moment(item.start_date)
-              .add(1, "month")
-              .add(-1, "day")
-              .format("YYYY-MM-DD");
+        // never end before the start (issues/282)
+        Object.assign(hours, dedicationDates(item.start_date, item.end_date));
         const to2 = moment(hours.to, "YYYY-MM-DD");
         const months = moment(to2).diff(item.start_date, "months") + 1;
         hours.monthly_quantity = item._hours.quantity * months;
@@ -4403,15 +4380,7 @@ export default {
         hours.dirty = true;
       } else if (uuid) {
         const hour = {
-          from: moment(item.start_date).format("YYYY-MM-DD"),
-          to: item.end_date
-            ? moment(item.end_date)
-                .add(-1, "day")
-                .format("YYYY-MM-DD")
-            : moment(item.start_date)
-                .add(1, "month")
-                .add(-1, "day")
-                .format("YYYY-MM-DD"),
+          ...dedicationDates(item.start_date, item.end_date),
           monthly_quantity: null,
           quantity: item._hours.quantity,
           quantity_type: item._hours.quantity_type,

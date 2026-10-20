@@ -13,3 +13,13 @@ export const ownFiguresIgnored = p => {
   const zeroed = Object.fromEntries(Object.keys(p).filter(isFigure).map(k => [k, 0]))
   return { ...p, ...zeroed, activities: [] }
 }
+
+// A child shows in its mother's Planificació when its state is the open one
+// (id 1). /projects/:id/children sends project_state populated, an object; a
+// bare id is accepted too (issues/282).
+export const OPEN_STATE_ID = 1
+export const isOpenChild = child => {
+  const state = child && child.project_state
+  const id = state && typeof state === 'object' ? state.id : state
+  return Number(id) === OPEN_STATE_ID
+}

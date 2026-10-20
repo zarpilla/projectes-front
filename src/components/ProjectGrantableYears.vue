@@ -8,7 +8,7 @@
           class="mr-3"
         >
           <b-select :model-value="getYearId(yearData)" @update:model-value="updateYearValue(yearData, $event)">
-            <option v-for="(year, index) in years" :key="index" :value="year.id">
+            <option v-for="(year, index) in sortedYears" :key="index" :value="year.id">
               {{ yearLabel(year.year) }}
             </option>
           </b-select>
@@ -133,6 +133,12 @@ export default {
     return {
       rows: []
     };
+  },
+  computed: {
+    // the year list came in id order (2021, 2019, 2020, 2022…) (issues/282)
+    sortedYears() {
+      return [...(this.years || [])].sort((a, b) => Number(a.year) - Number(b.year));
+    }
   },
   mounted() {
     this.rows = [...this.grantableYears];

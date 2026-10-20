@@ -61,6 +61,7 @@ import { useMainStore } from "@/stores/main.js";
 // import sumBy from 'lodash/sumBy'
 import { Gantt } from "dhtmlx-gantt";
 import moment from "moment";
+import { draggedRange } from "@/domain/ganttDedication";
 import service from "@/service/index";
 import _ from "lodash";
 
@@ -594,6 +595,13 @@ export default {
     ) {
       const taskName = `${this.user.username}`;
       let taskId = 0;
+      // a drag inside one scale cell must not come back inverted (issues/282)
+      const unit = this.view === "week" ? "week" : "month";
+      const range = draggedRange(startDate, endDate, {
+        round: (d) => this.gantt.roundDate(d),
+        floor: (d) => this.gantt.date[unit + "_start"](new Date(d)),
+        next: (d) => this.gantt.date.add(d, 1, unit),
+      });
 
       if (tasksInRow.length === 1) {
         var currentTask = tasksInRow[0];
@@ -626,8 +634,8 @@ export default {
           taskId = this.gantt.addTask(
             {
               text: taskName,
-              start_date: this.gantt.roundDate(startDate),
-              end_date: this.gantt.roundDate(endDate),
+              start_date: range.start,
+              end_date: range.end,
               ...metaInfo,
             },
             currentTask.id
@@ -638,23 +646,23 @@ export default {
             text: taskName,
             parent: currentTask.id,
             open: true,
-            start_date: this.gantt.roundDate(startDate),
-            end_date: this.gantt.roundDate(endDate),
+            start_date: range.start,
+            end_date: range.end,
             ...metaInfo,
           };
           this.taskToAddId = taskId;
           this.tasks.data.push(taskToAdd);
 
-          this.gantt.getTask(currentTask.id).start_date = this.gantt.roundDate(startDate);
-          this.gantt.getTask(currentTask.id).end_date = this.gantt.roundDate(endDate);
+          this.gantt.getTask(currentTask.id).start_date = range.start;
+          this.gantt.getTask(currentTask.id).end_date = range.end;
           this.gantt.getTask(currentTask.id).unscheduled = false;
           this.gantt.updateTask(currentTask.id);
         } else {
           taskId = this.gantt.addTask(
             {
               text: taskName,
-              start_date: this.gantt.roundDate(startDate),
-              end_date: this.gantt.roundDate(endDate),
+              start_date: range.start,
+              end_date: range.end,
               ...metaInfo,
             },
             currentTask.parent
@@ -665,8 +673,8 @@ export default {
             text: taskName,
             parent: currentTask.parent,
             open: true,
-            start_date: this.gantt.roundDate(startDate),
-            end_date: this.gantt.roundDate(endDate),
+            start_date: range.start,
+            end_date: range.end,
             ...metaInfo,
           };
           this.taskToAddId = taskId;
@@ -699,8 +707,8 @@ export default {
         taskId = this.gantt.addTask(
           {
             text: taskName,
-            start_date: this.gantt.roundDate(startDate),
-            end_date: this.gantt.roundDate(endDate),
+            start_date: range.start,
+            end_date: range.end,
             ...metaInfo,
           },
           currentTask.id
@@ -711,15 +719,15 @@ export default {
           text: taskName,
           parent: currentTask.id,
           open: true,
-          start_date: this.gantt.roundDate(startDate),
-          end_date: this.gantt.roundDate(endDate),
+          start_date: range.start,
+          end_date: range.end,
           ...metaInfo,
         };
         this.taskToAddId = taskId;
         this.tasks.data.push(taskToAdd);
 
-        this.gantt.getTask(currentTask.id).start_date = this.gantt.roundDate(startDate);
-        this.gantt.getTask(currentTask.id).end_date = this.gantt.roundDate(endDate);
+        this.gantt.getTask(currentTask.id).start_date = range.start;
+        this.gantt.getTask(currentTask.id).end_date = range.end;
         this.gantt.getTask(currentTask.id).unscheduled = false;
         this.gantt.updateTask(currentTask.id);
       } else if (tasksInRow.length === 0) {
