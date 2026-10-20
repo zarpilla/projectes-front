@@ -49,11 +49,16 @@ export const invoicedPrice = o => {
   return round2(amount);
 };
 
+// A delivered order moved back from Facturada keeps its invoice link (240
+// warns so): the backend's invoicing run skips it, so Facturar must neither
+// list nor count it (issues/293).
+export const linkedToInvoice = o => Boolean(o && o.emitted_invoice && (typeof o.emitted_invoice !== "object" || o.emitted_invoice.id));
+
 // groups of member + month (YYYY-MM): newest month first, biggest amount first
 export const groupOrders = orders => {
   const map = new Map();
   for (const o of orders) {
-    if (!o.owner) continue;
+    if (!o.owner || linkedToInvoice(o)) continue;
     const month = String(o.estimated_delivery_date || "").slice(0, 7);
     const key = `${o.owner.id}-${month}`;
     if (!map.has(key)) map.set(key, { key, owner: o.owner, month, orders: [], count: 0, units: 0, kg: 0, amount: 0, discounts: 0 });
