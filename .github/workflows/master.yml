@@ -4,16 +4,11 @@ name: Build, publish and deploy the frontend (master, Vue 3)
 # so pair it with esstrapis-back:v5. Every push to master is tested, published as
 # esstrapis-front:v5-vue3-<sha> (and the floating v5-vue3), and deployed to every
 # site on the VPS (deploy/docker/deploy.sh).
-#
-# The `redesign` branch (paired with esstrapis-back:redesign) is tested and
-# published as esstrapis-front:redesign and redesign-<sha>, to try on a single
-# installation; it is never deployed.
 
 on:
   push:
     branches:
       - master
-      - redesign
     # Server scripts, docs and the manual don't change the image: no build, no deploy.
     paths-ignore:
       - 'deploy/**'
@@ -62,7 +57,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     env:
-      IMAGE_TAG: ${{ github.ref == 'refs/heads/redesign' && 'redesign' || 'v5-vue3' }}
+      IMAGE_TAG: v5-vue3
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -87,8 +82,7 @@ jobs:
           build-args: |
             VUE_APP_PATH=/stats/
           # The sha-pinned tag is what sites are deployed to (and rolled back to);
-          # `v5-vue3` follows the latest master build. On the redesign branch:
-          # `redesign` and `redesign-<sha>` instead.
+          # `v5-vue3` follows the latest master build.
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:${{ env.IMAGE_TAG }}-${{ github.sha }}
