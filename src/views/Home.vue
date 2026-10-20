@@ -1,7 +1,7 @@
 <template>
   <div>
     <title-bar :title-stack="titleStack" :subtitle="subtitle">
-      <download-excel name="projectes" :data="projectsCSV">
+      <download-excel name="projectes" :data="projectsCSV" :fields="projectsExportFields">
         <b-button icon-left="download">Exporta</b-button>
       </download-excel>
       <b-button @click="switchToMotherProjects">Projectes mare</b-button>
@@ -91,6 +91,7 @@ import Tiles from "@/components/Tiles.vue";
 import CardWidget from "@/components/CardWidget.vue";
 import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
+import { projectsExportFields, exportDate } from "@/domain/projectsExport";
 import sumBy from "lodash/sumBy";
 import { withoutMothers } from "@/domain/motherFigures";
 import { sortProjectsByName } from "@/domain/projectList";
@@ -145,6 +146,10 @@ export default {
       const count = `${this.projectsNumber} ${this.projectsNumber === 1 ? "projecte" : "projectes"}`;
       return state && state.id ? `${count} · ${state.name.toLowerCase()}` : count;
     },
+    // Catalan headers for the export (issues/212)
+    projectsExportFields() {
+      return projectsExportFields(Object.keys(this.projectsCSV[0] || {}));
+    },
     projectsCSV() {
       // return this.projects
       const projectsCSV = this.projects.map(p => {
@@ -156,8 +161,8 @@ export default {
           scope:
             p.project_scope && p.project_scope.id ? p.project_scope.name : "",
           leader: p.leader && p.leader.id ? p.leader.username : "",
-          date_start: p.date_start,
-          date_end: p.date_end,
+          date_start: exportDate(p.date_start),
+          date_end: exportDate(p.date_end),
           mother: p.mother ? p.mother.name : "",
           estimated_hours: p.total_estimated_hours ? p.total_estimated_hours : "",
           real_hours: p.total_real_hours ? p.total_real_hours : "",

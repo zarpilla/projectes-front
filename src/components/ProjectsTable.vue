@@ -359,7 +359,7 @@
         </section>
       </template>
       <template v-if="!editMode && projectsData.length" #footer>
-        <th>Total · {{ projectsData.length }} projectes</th>
+        <th>{{ totalLabel }}</th>
         <th></th>
         <th></th>
         <th class="hours-cell">
@@ -468,6 +468,11 @@ export default {
     }
   },
   computed: {
+    // «Total · 1 projecte», not «1 projectes» (issues/212)
+    totalLabel() {
+      const n = this.projectsData.length;
+      return `Total · ${n} ${n === 1 ? "projecte" : "projectes"}`;
+    },
     totals() {
       // a mother's figures are its children's, which are rows too (issues/172)
       const rows = this.sumMothers ? this.projectsData : withoutMothers(this.projectsData);

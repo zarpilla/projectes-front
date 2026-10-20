@@ -1948,7 +1948,7 @@ export default {
           if (isInvalid) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+                "Error. Serie, Emissió, Clienta i Projecte són dades obligatòries",
               queue: false
             });
             this.isLoading = false;
@@ -2013,7 +2013,7 @@ export default {
           ) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+                "Error. Serie, Emissió, Clienta i Projecte són dades obligatòries",
               queue: false
             });
             this.isLoading = false;
