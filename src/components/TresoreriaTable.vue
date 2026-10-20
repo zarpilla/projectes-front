@@ -162,7 +162,7 @@
       <div class="doc-kpi">
         <span>Punt més baix previst</span>
         <b :class="'has-text-' + sign(lowestMonth ? lowestMonth.subtotal : 0)">{{ lowestMonth ? money(lowestMonth.subtotal) : "—" }}</b>
-        <small>{{ lowestMonth ? "a final " + ofWord(monthName(lowestMonth.month).toLowerCase()) : "sense mesos previstos" }}</small>
+        <small>{{ lowestMonthLabel }}</small>
       </div>
       <div class="doc-kpi">
         <span>Saldo a 31/12/{{ selectedYear }}</span>
@@ -883,6 +883,12 @@ export default {
     lowestMonth() {
       const future = this.pivotData.filter(d => d.month !== "00" && d.month !== "99" && d.ym >= this.currentYm);
       return future.reduce((low, d) => (!low || d.subtotal < low.subtotal ? d : low), null);
+    },
+    // «a final de gener de 2027»: the lowest month may fall after the shown year (issues/252)
+    lowestMonthLabel() {
+      const low = this.lowestMonth;
+      if (!low) return "sense mesos previstos";
+      return `a final ${ofWord(this.monthName(low.month).toLowerCase())} de ${low.year}`;
     },
     yearEnd() {
       return this.pivotData.find(d => d.month === "00" && d.year === String(this.selectedYear)) || null;
