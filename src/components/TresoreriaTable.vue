@@ -698,9 +698,10 @@ export default {
         // Update the pivot table when filter data changes
         if (this.pivotGridInstance) {
           try {
-            const dataSource = this.pivotGridInstance.dataSource;
-            dataSource.data(newVal);
-            dataSource.read();
+            // data() alone redraws the grid; read() would re-read the local
+            // transport, i.e. the rows the grid was created with, and bring
+            // back the company figures after a project is picked (issues/284)
+            this.pivotGridInstance.dataSource.data(newVal);
           } catch (error) {
             console.error("Error updating pivot data:", error);
           }
@@ -976,8 +977,10 @@ export default {
       return ansWithSubtotal;
     },
     todaySubTotal() {
-      // a project's view starts at 0, not at the company's balance (issues/284)
-      if (this.selectedProject) return 0;
+      // a project's view starts at 0 on 1 January, not at the company's
+      // balance; «Des d'avui» starts at the project's saldo today, so both
+      // modes reach the same «Saldo a 31/12» (issues/284)
+      if (this.selectedProject) return this.view === "today" ? this.todayBalance : 0;
       // With multiple bank accounts, we have multiple "Today"/"Start of Year" entries
       // We'll use the subtotal from the first one found, as they should all have the same subtotal
       // (the running balance is calculated across all accounts)
