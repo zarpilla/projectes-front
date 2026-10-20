@@ -296,7 +296,9 @@
               <td class="has-text-right">{{ money(data.total_incomes) }}</td>
               <td class="has-text-right has-text-neg">{{ money(data.total_expenses) }}</td>
               <td class="has-text-right" :class="'has-text-' + sign(data.total_amount)">{{ money(data.total_amount, true) }}</td>
-              <td class="has-text-right" :class="['has-text-' + sign(data.subtotal), { 'has-text-weight-bold': data.month === '00' }]">{{ money(data.subtotal) }}</td>
+              <!-- undated amounts don't enter the forecast: no running balance (issues/299) -->
+              <td v-if="data.month === '99'" class="has-text-right has-text-muted" title="Fora de la previsió: no se sumen al saldo">—</td>
+              <td v-else class="has-text-right" :class="['has-text-' + sign(data.subtotal), { 'has-text-weight-bold': data.month === '00' }]">{{ money(data.subtotal) }}</td>
             </tr>
           </tbody>
         </table>
@@ -913,13 +915,17 @@ export default {
       return this.monthlySummaryForPivot;
     },
     monthlySummaryTotal() {
+      // Undated movements come with ym "" (datef «Invalid date»): isNaN("") is
+      // false, so they got month "" instead of "99" and the warning about them
+      // never matched them (issues/299).
+      const dated = id => /^\d{6}$/.test(id);
       const ans = _(this.monthlySummary)
         .groupBy("ym")
         .map((ym, id) => ({
           ym: id,
-          year: !isNaN(id) ? id.substring(0, 4) : "2099",
-          month: !isNaN(id) ? id.substring(4, 6) : "99",
-          valid: !isNaN(id),
+          year: dated(id) ? id.substring(0, 4) : "2099",
+          month: dated(id) ? id.substring(4, 6) : "99",
+          valid: dated(id),
           maxYm: _.maxBy(this.monthlySummary, e => (!isNaN(e.ym) ? e.ym : ""))
             .ym,
           total_amount: _.sumBy(ym, e =>
@@ -953,6 +959,13 @@ export default {
         // which is already reflected in the todaySubTotal seed (the "Inici Any"
         // / "Avui" row subtotal, computed by the backend after the adjustment).
         // Adding them here would double-count the adjustment.
+        // Undated amounts stay out of the running balance, as the warning
+        // above the table says (issues/299)
+        if (ans[i].month === "99") {
+          ans[i]["subtotal"] = null;
+          ansWithSubtotal.push(ans[i]);
+          continue;
+        }
         subtotal = subtotal + ans[i].total_amount;
         ans[i]["subtotal"] = subtotal;
         ansWithSubtotal.push(ans[i]);
