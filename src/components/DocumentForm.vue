@@ -1080,7 +1080,7 @@ import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
 import { documentDatesForPickers, documentDatesForApi, estimatedPaymentFrom, setPaid, setPaidDate, setAccepted, setAcceptedDate } from "@/domain/documentDates.js";
-import { budgetLineTotal } from "@/domain/budgetLines.js";
+import { budgetLineTotal, documentLineQuantity } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -1935,6 +1935,11 @@ export default {
 
       this.isLoading = true;
       this.canEditDraft = false;
+
+      // quantities with the 2 decimals they are stored with (issues/295)
+      if (this.type !== "payrolls") {
+        documentTotals.storeLineQuantities(this.form.lines, this.form.projects, documentLineQuantity);
+      }
 
       const isInvalid =
         (this.type !== "payrolls" &&

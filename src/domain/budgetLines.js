@@ -15,7 +15,8 @@ export const budgetLineTotal = line =>
 // What the API stores for a typed quantity or price. With a comma, it is the
 // decimal mark and "." groups thousands (1.000,5 → 1000.5); without one, a
 // single "." is the decimal point as before (1.234 → 1.234, 7.25), and several
-// can only be thousands (1.000.000 → 1000000). At most 4 decimals (rounded). Text that isn't a number is left as
+// can only be thousands (1.000.000 → 1000000). At most 4 decimals (rounded), or
+// `decimals` (a document line's quantity keeps 2, issues/295). Text that isn't a number is left as
 // typed, for the API to refuse (issues/194, issues/224).
 const toDotDecimal = text => {
   text = text.replace(/\u2212/g, '-')
@@ -27,13 +28,13 @@ const toDotDecimal = text => {
   return /^-?\d{1,3}(\.\d{3}){2,}$/.test(text) ? text.replace(/\./g, '') : text
 }
 
-export const budgetLineValue = value => {
+export const budgetLineValue = (value, maxDecimals = BUDGET_LINE_DECIMALS) => {
   if (value === null || value === undefined) return value
   const text = toDotDecimal(String(value).trim())
   if (text === null || !/^-?\d*\.?\d*$/.test(text) || !/\d/.test(text)) return value
   const [, decimals = ''] = text.split('.')
-  if (decimals.length <= BUDGET_LINE_DECIMALS) return text === String(value) ? value : text
-  const factor = 10 ** BUDGET_LINE_DECIMALS
+  if (decimals.length <= maxDecimals) return text === String(value) ? value : text
+  const factor = 10 ** maxDecimals
   return String(Math.round((Number(text) + Math.sign(Number(text)) * Number.EPSILON) * factor) / factor)
 }
 
@@ -46,3 +47,10 @@ export const budgetLineDisplay = (value, { grouped = true } = {}) => {
   const text = formatNumber(value, BUDGET_LINE_DECIMALS)
   return grouped ? text : text.replace(/\./g, '')
 }
+
+// A document line's quantity as the API stores it: decimal(10,2), as Facturae
+// prints it. A 3rd decimal used to be computed with and then rounded on saving,
+// so the totals changed after Guardar (1,255 → 1,26, issues/295).
+export const DOCUMENT_LINE_QUANTITY_DECIMALS = 2
+
+export const documentLineQuantity = value => budgetLineValue(value, DOCUMENT_LINE_QUANTITY_DECIMALS)
