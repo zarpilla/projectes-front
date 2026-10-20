@@ -1,5 +1,5 @@
 <template>
-  <div class="project-form-phases" v-if="form && !isLoading">
+  <div class="project-form-phases" v-if="form && !isLoading && rendered">
     <modal-box-invoicing
       :is-active="isModalActive"
       :invoicing-object="invoicingObject"
@@ -195,7 +195,7 @@
               <b-field
                 class="date-field"
               >
-                <b-datepicker
+                <lazy-datepicker
                   v-model="props.row.date_estimate_document"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -210,14 +210,14 @@
                   editable
                   :disabled="!editable"
                 >
-                </b-datepicker>
+                </lazy-datepicker>
               </b-field>
           </b-table-column>
           <b-table-column field="name" label="Previsió pag." width="100" v-slot="props">
               <b-field
                 class="date-field"
               >
-                <b-datepicker
+                <lazy-datepicker
                   v-model="props.row.date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -232,7 +232,7 @@
                   editable
                   :disabled="!editable"
                 >
-                </b-datepicker>
+                </lazy-datepicker>
               </b-field>
           </b-table-column>
           <b-table-column field="name" label="Compte" width="80" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1 && mode !== 'simple'" v-slot="props">
@@ -538,7 +538,7 @@
               <b-field
                 class="date-field"
               >
-                <b-datepicker
+                <lazy-datepicker
                   v-model="props.row.date_estimate_document"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -553,14 +553,14 @@
                   editable
                   :disabled="!editable"
                 >
-                </b-datepicker>
+                </lazy-datepicker>
               </b-field>
           </b-table-column>
           <b-table-column field="name" label="Previsió pag." width="100" v-slot="props">
               <b-field
                 class="date-field"
               >
-                <b-datepicker
+                <lazy-datepicker
                   v-model="props.row.date"
                   :show-week-number="false"
                   :locale="'ca-ES'"
@@ -575,7 +575,7 @@
                   editable
                   :disabled="!editable"
                 >
-                </b-datepicker>
+                </lazy-datepicker>
               </b-field>
           </b-table-column>
           <b-table-column field="name" label="Compte" width="80" v-if="me.options && me.options.treasury && bankAccounts && bankAccounts.length > 1" v-slot="props">
@@ -810,6 +810,7 @@ import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import sortBy from "lodash/sortBy";
 import RadioPicker from "@/components/RadioPicker.vue";
+import LazyDatepicker from "@/components/LazyDatepicker.vue";
 import { formatMoney, sign } from "@/helpers/format-number";
 
 export default {
@@ -821,7 +822,8 @@ export default {
     MoneyFormat,
     ModalBoxInvoicing,
     ModalBoxSplit,
-    RadioPicker
+    RadioPicker,
+    LazyDatepicker
   },
   props: {
     form: {
@@ -848,6 +850,12 @@ export default {
       default: true
     },
     hidden: {
+      type: Boolean,
+      default: false
+    },
+    // issues/055: a block out of sight (another tab, a folded card) waits to
+    // draw its lines until it is shown; its data is set up as usual.
+    deferRender: {
       type: Boolean,
       default: false
     },
@@ -894,6 +902,8 @@ export default {
   },
   data() {
     return {
+      // issues/055: drawn once, kept drawn
+      rendered: !this.deferRender,
       // phases folded by the user (key: phase id, or index for unsaved ones)
       collapsedPhases: {},
       // the quantity / price input being typed in: shows the text as typed
@@ -1059,6 +1069,9 @@ export default {
     }
   },
   watch: {
+    deferRender(defer) {
+      if (!defer) this.rendered = true;
+    },
     // The parent's list arrives (or is refreshed) after this is mounted.
     contacts: {
       immediate: true,
