@@ -21,7 +21,7 @@ const vmFor = (order, extra = {}) => ({
   pickups: [GIRONA, FINCA],
   routeRates: [RATE],
   orders: [],
-  editingOrder: { ...order },
+  editingOrder: { route: { id: 17 }, pickup: { id: 2 }, delivery_type: { id: 2 }, ...order },
   editForm: { route: 17, kilograms: order.kilograms, pickup: 2, delivery_type: 2 },
   calculatedPrice: null,
   importing: false,
@@ -77,11 +77,53 @@ describe('orders quick edit of an order that is not pending (issues/287)', () =>
     expect(put).toHaveBeenCalledWith('orders/14958', expect.objectContaining({ price: 7.5 }))
   })
 
-  it('keeps the price of a processed order when its kilos change', () => {
-    const vm = vmFor({ id: 24877, kilograms: 12, status: 'processed', price: 9 })
+  // the user's decision (2026-10-20): any order that is not invoiced is
+  // repriced when its kilos, boxes, route or type change; an unchanged save
+  // keeps its price (new rate tables don't change old orders)
+  it('reprices a processed order when its kilos change', () => {
+    const vm = vmFor({ id: 24877, kilograms: 12, collection_point: { id: 1931 }, status: 'processed', price: 9 })
     vm.editForm.kilograms = 20
     OrdersTable.methods.updateCalculatedPrice.call(vm)
+    expect(vm.calculatedPrice).toBeCloseTo(12)
+  })
+
+  it('reprices a delivered order when its route, type or boxes change', () => {
+    const rates = [RATE, { ...RATE, id: 43, routes: [{ id: 18 }], less10: 5, more10: 11, from10to20: 13 }, { ...RATE, id: 44, delivery_type: { id: 1 }, more10: 20, from10to20: 20 }]
+    const order = { id: 24877, kilograms: 12, units: 2, collection_point: { id: 1931 }, status: 'delivered', price: 9 }
+    let vm = vmFor(order, { routeRates: rates, routes: [{ id: 17 }, { id: 18 }] })
+    vm.editForm.route = 18
+    OrdersTable.methods.updateCalculatedPrice.call(vm)
+    expect(vm.calculatedPrice).toBeCloseTo(11.4)
+    vm = vmFor(order, { routeRates: rates })
+    vm.editForm.delivery_type = 1
+    OrdersTable.methods.updateCalculatedPrice.call(vm)
+    expect(vm.calculatedPrice).toBeCloseTo(20)
+    vm = vmFor(order, { routeRates: rates })
+    vm.editForm.units = 3
+    OrdersTable.methods.updateCalculatedPrice.call(vm)
+    expect(vm.calculatedPrice).toBeCloseTo(10.4)
+  })
+
+  it('keeps the price of a processed order saved without changes', async () => {
+    const vm = vmFor({ id: 24877, kilograms: 12, units: 2, collection_point: { id: 1931 }, status: 'processed', price: 9 })
+    vm.editForm.units = '2'
+    vm.editForm.kilograms = '12'
+    OrdersTable.methods.updateCalculatedPrice.call(vm)
     expect(vm.calculatedPrice).toBe(9)
+    await OrdersTable.methods.saveOrder.call(vm, vm.editingOrder)
+    expect(put.mock.calls[0][1].price).toBe(9)
+  })
+
+  it('keeps the price of an invoiced order, or one still on an invoice, when its kilos change', () => {
+    for (const order of [
+      { id: 14958, kilograms: 12, collection_point: { id: 1931 }, status: 'invoiced', price: 7.5 },
+      { id: 24460, kilograms: 12, collection_point: { id: 1931 }, status: 'delivered', price: 7.5, emitted_invoice: { id: 890 } }
+    ]) {
+      const vm = vmFor(order)
+      vm.editForm.kilograms = 20
+      OrdersTable.methods.updateCalculatedPrice.call(vm)
+      expect(vm.calculatedPrice).toBe(7.5)
+    }
   })
 
   it('saves an order without a price, or no rate, without sending one', async () => {
@@ -105,3 +147,4 @@ describe('orders quick edit of an order that is not pending (issues/287)', () =>
     }
   })
 })
+

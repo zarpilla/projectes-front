@@ -531,6 +531,7 @@ import sumBy from "lodash/sumBy";
 import { orderErrors, orderSaveProblem, orderProblemField, orderSaveErrorMessage } from "@/domain/orderValidation.js";
 import { scrollToField } from "@/helpers/scrollToField.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
+import { repricesOrder } from "@/domain/orderReprice.js";
 import { isOffice as isLogisticsOffice, isDriver, canEditOrder, canMoveOrder, canDepositOrderMove, canCancelOrder, processedOrderNotice, savesOperationsAtOnce } from "@/domain/orderPermissions.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
@@ -574,6 +575,9 @@ export default {
       submitted: false,
       series: [],
       form: this.getClearFormObject(),
+      // the order as it was loaded: what its price depends on, its rate and
+      // its price, kept while none of them changes (issues/287)
+      loadedOrder: null,
       routes: [],
       allRoutes: [],
       products: [],
@@ -703,8 +707,12 @@ export default {
     canEdit() {
       return canEditOrder(this.form, this.permissions);
     },
+    // a pending order takes the rates' price; any other that is not invoiced
+    // when its kilos, boxes, route or type change (an unchanged save keeps
+    // its price); an invoiced one keeps the price it was invoiced with, a -R
+    // the one of its orders (the user's decision, 2026-10-20, issues/287)
     canChangeRate() {
-      return ["pending"].includes(this.form.status);
+      return repricesOrder(this.loadedOrder, this.form);
     },
     isPickupPoint() {
       return this.form.pickup_point === true;
@@ -717,6 +725,8 @@ export default {
     },
     route_rate() {
       if (this.form.is_collection_order || !this.canChangeRate) {
+        // back to what it had when a change is undone
+        if (this.loadedOrder) this.form.route_rate = this.loadedOrder.route_rate;
         return this.form.route_rate;
       }
       const rr = assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
@@ -725,6 +735,7 @@ export default {
     },
     route_price() {
       if (this.form.is_collection_order || !this.canChangeRate) {
+        if (this.loadedOrder) this.form.price = this.loadedOrder.price;
         return this.form.price;
       }
       if (this.form.kilograms !== null && this.route_rate !== null) {
@@ -1062,6 +1073,10 @@ export default {
               this.normalizeIdsInForm("transfer_pickup_origin");
               this.normalizeIdsInForm("transfer_pickup_destination");
               this.normalizeIdsInForm("transfer_route");
+              this.loadedOrder = {
+                ...this.form,
+                lines: Array.isArray(this.form.lines) ? [...this.form.lines] : []
+              };
 
               // Initialize manual_transfer_route flag if not set
               if (this.form.manual_transfer_route === undefined || this.form.manual_transfer_route === null) {
@@ -1163,7 +1178,10 @@ export default {
                 )
               ).data;
 
-              await assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
+              // an order that is not repriced keeps its rate (issues/287)
+              if (this.canChangeRate) {
+                await assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
+              }
 
               // Ensure incidences is always an array
               if (
@@ -2146,6 +2164,11 @@ export default {
       const rate = assignRouteRate(this.form, this.routeRates, this.orders, this.pickups);
       this.form.route_rate = rate;
       this.form.price = orderRoutePrice(rate, this.form);
+      // «Recalcula» reprices on purpose: that is the price kept from now on
+      if (this.loadedOrder) {
+        this.loadedOrder.route_rate = rate;
+        this.loadedOrder.price = this.form.price;
+      }
       this.checkMultidelivery();
     },
     updatePickup() {
