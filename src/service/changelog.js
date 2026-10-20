@@ -26,6 +26,26 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
+      text: "Transferències: ja no es pot iniciar ni finalitzar la transferència d'una comanda cancel·lada o facturada. Operacions: una comanda lliurada continua al dia («1 de 1 fetes») i es pot desfer. L'albarà mostra els horaris com «De 9:30 a 13:30» i els quilos amb coma. La importació CSV mostra el mateix preu que es desa. Millores de text i de mida en mòbil a les comandes i al repartidor."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "La base sense descompte i el descompte del formulari coincideixen amb el PDF. Al PDF, la columna de les línies amb descompte es diu «Import brut». Els preus i quantitats de les línies es mostren amb coma decimal. Les dietes accepten quilòmetres amb decimals, les nòmines ja no mostren «(null%)», la fila «Sense data» de Tresoreria no suma al saldo final i la llista de pressupostos mostra el concepte del pressupost."
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores", "Informes"],
+      text: "Dedicació: qui només veu les seves hores compara les seves hores fetes amb les seves hores previstes. La distribució setmanal de la jornada accepta decimals, un període nou es desa amb l'esquema per defecte, l'exportació de totals per persona ja no talla els noms amb punt, i un mes amb jornada i sense hores mostra 0 %."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "La planificació d'un projecte mare mostra els fills actius com a actius, i Ingressos/Despeses mostren el nom de la mare. Arrossegar dins d'un mes al Gantt ja no desa dates invertides. Els anys d'«Imports per any» surten ordenats, la cerca de projectes accepta &, # i +, i una data impossible com 31/02/2026 als pressupostos es refusa en lloc de convertir-se en una altra."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
       text: "Una comanda nova amb recollida a la finca ja no s'afegeix a una recollida que ja està processada o lliurada: se'n crea una de nova per aquell dia."
     },
     {
