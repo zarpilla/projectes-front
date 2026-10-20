@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { priceFilterWhere, kilogramsFilterWhere } from '@/domain/ordersListFilters'
-import { leavingInvoicedMessage } from '@/domain/orderStatus'
+import { leavingInvoicedMessage, leavingInvoicedTitle } from '@/domain/orderStatus'
 
 const source = file => readFileSync(resolve(__dirname, '../../src/components', file), 'utf8')
 
@@ -55,15 +55,21 @@ describe('orders KPIs (issues/276)', () => {
 describe('bulk invoiced warning (issues/276)', () => {
   it('is singular for one order', () => {
     const msg = leavingInvoicedMessage([{ id: 1 }], 'cancelled')
-    expect(msg).toContain('Comanda ja processada.')
-    expect(msg).toContain('La comanda #1 ja està facturada')
+    expect(msg).toMatch(/^La comanda #1 ja està facturada/)
+    expect(leavingInvoicedTitle([{ id: 1 }])).toBe('Comanda facturada')
   })
 
   it('is plural for several', () => {
     const msg = leavingInvoicedMessage([{ id: 1 }, { id: 2 }], 'cancelled')
-    expect(msg).toContain('Comandes ja processades.')
-    expect(msg).toContain('Les comandes #1, #2 ja estan facturades: si les passes')
+    expect(msg).toMatch(/^Les comandes #1, #2 ja estan facturades: si les passes/)
+    expect(leavingInvoicedTitle([{ id: 1 }, { id: 2 }])).toBe('Comandes facturades')
     expect(msg).toContain('continuaran a les seves factures')
-    expect(msg).not.toContain('Comanda ja processada')
+    expect(msg).not.toContain('processad')
+  })
+
+  // issues/296 follow-up: the invoiced warning began «Comanda ja processada.»,
+  // the form's line for processed orders, under the title «Comandes facturades»
+  it('does not call an invoiced order processed', () => {
+    expect(leavingInvoicedMessage([{ id: 1 }], 'pending')).not.toContain('processad')
   })
 })

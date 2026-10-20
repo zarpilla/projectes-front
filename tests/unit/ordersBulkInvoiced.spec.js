@@ -41,7 +41,8 @@ describe('bulk state change of invoiced orders (issues/240)', () => {
     expect(vm.$buefy.dialog.confirm).toHaveBeenCalledTimes(1)
     const dialog = vm.$buefy.dialog.confirm.mock.calls[0][0]
     expect(dialog.message).toContain('#24695')
-    expect(dialog.message).toContain('Comanda ja processada')
+    expect(dialog.message).toContain('ja està facturada')
+    expect(dialog.title).toBe('Comanda facturada')
 
     await dialog.onConfirm()
     expect(put.mock.calls.map(c => c[0])).toEqual(['orders/24695', 'orders/7'])
