@@ -25,6 +25,7 @@
 
 <script>
 import moment from "moment";
+import { strictDateParser } from "@/helpers/datepickerFormat";
 
 export default {
   name: "DateField",
@@ -49,11 +50,9 @@ export default {
     format(date) {
       return moment(date).format("DD/MM/YYYY");
     },
-    // what is typed: 6/11/2026, 06-11-26…
-    parse(text) {
-      const m = moment(text, ["DD/MM/YYYY", "D/M/YYYY", "DD/MM/YY", "D/M/YY", "DD-MM-YYYY", "D-M-YYYY"], true);
-      return m.isValid() ? m.toDate() : null;
-    },
+    // what is typed: 6/11/2026, 06-11-26…; an impossible date leaves the
+    // field as it was (issues/297)
+    parse: strictDateParser,
     toDate(value) {
       return value ? moment(value, "YYYY-MM-DD").toDate() : null;
     },

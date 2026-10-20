@@ -5,7 +5,8 @@
        input, and puts the real datepicker (with every attribute and listener
        given here) in its place as soon as the pointer is over it or it gets the
        focus, before it can be clicked or typed in. -->
-  <b-datepicker v-if="active" ref="picker" v-bind="$attrs" />
+  <!-- an impossible typed date is refused, not rolled over (issues/297) -->
+  <b-datepicker v-if="active" ref="picker" :date-parser="strictDateParser" v-bind="$attrs" />
   <div
     v-else
     class="datepicker control lazy-datepicker"
@@ -30,7 +31,7 @@
 </template>
 
 <script>
-import { datepickerFormatter } from "@/helpers/datepickerFormat";
+import { datepickerFormatter, strictDateParser } from "@/helpers/datepickerFormat";
 
 // a boolean attribute given without value arrives as ""
 const isOn = value => value !== undefined && value !== null && value !== false;
@@ -45,6 +46,7 @@ export default {
   },
   // methods, not computed: $attrs is not reactive (the render reads them anew)
   methods: {
+    strictDateParser,
     isDisabled() {
       return isOn(this.$attrs.disabled);
     },

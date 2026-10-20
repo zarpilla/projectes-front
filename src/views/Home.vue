@@ -351,7 +351,7 @@ export default {
       if (q) {
         service({ requiresAuth: true })
           .get(
-            `projects/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`
+            `projects/basic?_limit=-1&_sort=name:ASC&_q=${encodeURIComponent(this.filters.q)}${where1}${where2}${where3}`
           )
           .then(r => {
             this.projects = sortProjectsByName(r.data);
