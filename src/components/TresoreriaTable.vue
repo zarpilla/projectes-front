@@ -600,7 +600,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
-import { addScript, addStyle } from "@/helpers/addScript";
+import { loadKendo } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { formatMoney, sign } from "@/helpers/format-number";
 import { ofWord } from "@/helpers/catalan";
@@ -675,26 +675,7 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval);
-        await addScript(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/kendo.all.min.js",
-          "kendo-all-min-js"
-        );
-        await addStyle(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/kendo.common.min.css",
-          "kendo-common-min-css"
-        );
-        await addStyle(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/kendo.custom.css",
-          "kendo-custom-css"
-        );
-        await addStyle(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/custom.css",
-          "custom-css"
-        );
+        await loadKendo();
         this.isLoading = false;
         this.getInitialData();
       }

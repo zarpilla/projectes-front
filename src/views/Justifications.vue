@@ -41,7 +41,7 @@ import { fiscalYearLabel } from '@/domain/years'
 import { loadFiscalSettings } from '@/service/fiscalYear'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
-import { addScript, addStyle } from '@/helpers/addScript'
+import { loadKendo } from '@/helpers/addScript'
 
 export default {
   name: 'Justifications',
@@ -86,10 +86,7 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        await addScript((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle((import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : '') + '/vendor/kendo/custom.css', 'custom-css')
+        await loadKendo()
 
         // grant years read «2026/27» when they are fiscal years (Configuració general)
         const fiscal = await loadFiscalSettings()

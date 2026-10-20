@@ -60,7 +60,7 @@ import DedicationCharts from '@/components/DedicationCharts.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { defaultYear } from '@/domain/years'
-import { addScript, addStyle } from '@/helpers/addScript'
+import { loadKendo } from '@/helpers/addScript'
 import moment from 'moment'
 
 export default {
@@ -115,11 +115,7 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval)
-        const path = import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : ''
-        await addScript(path + '/vendor/kendo/kendo.all.min.js', 'kendo-all-min-js')
-        await addStyle(path + '/vendor/kendo/kendo.common.min.css', 'kendo-common-min-css')
-        await addStyle(path + '/vendor/kendo/kendo.custom.css', 'kendo-custom-css')
-        await addStyle(path + '/vendor/kendo/custom.css', 'custom-css')
+        await loadKendo()
         await this.getData()
         this.isLoading = false
       }

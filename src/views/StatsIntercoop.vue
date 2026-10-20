@@ -29,7 +29,7 @@ import CardComponent from '@/components/CardComponent.vue'
 import IntercoopPivot from '@/components/IntercoopPivot.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
-import { addScript, addStyle, underBase } from '@/helpers/addScript'
+import { loadKendo } from '@/helpers/addScript'
 import getConfig from '@/config'
 
 export default {
@@ -64,10 +64,7 @@ export default {
         clearInterval(interval)
         const config = getConfig();
         const basePath = config.VUE_APP_PATH || '';
-        await addScript(underBase(basePath, 'vendor/kendo/kendo.all.min.js'), 'kendo-all-min-js')
-        await addStyle(underBase(basePath, 'vendor/kendo/kendo.common.min.css'), 'kendo-common-min-css')
-        await addStyle(underBase(basePath, 'vendor/kendo/kendo.custom.css'), 'kendo-custom-css')
-        await addStyle(underBase(basePath, 'vendor/kendo/custom.css'), 'custom-css')
+        await loadKendo(basePath)
         this.isLoading = false
         this.getData()
       }
