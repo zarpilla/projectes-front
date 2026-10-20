@@ -49,7 +49,7 @@
           </li>
         </ul>
         <p v-if="withoutHours.length" class="report-note">
-          {{ withoutHours.length }} projectes tenen despeses però cap hora {{ dataType === "Previsió" ? "prevista" : "feta" }} i no tenen preu hora.
+          {{ withoutHoursNote(withoutHours.length, dataType === "Previsió") }}
         </p>
       </section>
 
@@ -154,7 +154,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
 import _ from "lodash";
-import { pricePerHour, priceBands } from "@/domain/pricePerHour";
+import { pricePerHour, priceBands, withoutHoursNote } from "@/domain/pricePerHour";
 import { fiscalPivotRows } from "@/domain/years";
 import { formatNumber, formatMoney } from "@/helpers/format-number";
 
@@ -629,6 +629,7 @@ export default {
     this.getActivities();
   },
   methods: {
+    withoutHoursNote,
     money(value) {
       return value === null || value === undefined || !Number.isFinite(value) ? "—" : formatMoney(value);
     },

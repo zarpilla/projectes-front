@@ -93,7 +93,7 @@ import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import { withoutMothers } from "@/domain/motherFigures";
-import sortBy from "lodash/sortBy";
+import { sortProjectsByName } from "@/domain/projectList";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -243,11 +243,10 @@ export default {
     service({ requiresAuth: true })
       .get(query)
       .then(r => {
-        this.projects = sortBy(
+        this.projects = sortProjectsByName(
           r.data.filter(
             p => p.project_state !== null
-          ),
-          "name"
+          )
         );
         this.loading = false;
         this.applyProjects();
@@ -350,7 +349,7 @@ export default {
             `projects/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`
           )
           .then(r => {
-            this.projects = r.data;
+            this.projects = sortProjectsByName(r.data);
             this.loading = false;
             this.applyProjects();
           });
@@ -358,7 +357,7 @@ export default {
         service({ requiresAuth: true })
           .get(`projects/basic?_limit=-1${where1}${where2}${where3}`)
           .then(r => {
-            this.projects = r.data;
+            this.projects = sortProjectsByName(r.data);
             this.loading = false;
             this.applyProjects();
           });

@@ -1071,6 +1071,7 @@
 <script>
 // External libraries
 import moment from "moment";
+import { rectificativeSerial } from "@/domain/rectificativeSerial";
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
@@ -2943,13 +2944,21 @@ export default {
       this.form.code = null;
       this.form.number = null;
       this.form.emitted = moment().toDate();
-      this.form.serial = null;
-      this.series = this.series.filter(s => s.rectificative === true);
+      const rectificative = rectificativeSerial(this.series, this.form.emitted);
+      this.series = rectificative.series;
+      this.form.serial = rectificative.serial;
+      if (rectificative.serial) this.calculateMinEmittedDate();
       if (this.series.length === 0) {
         this.$buefy.snackbar.open({
           message:
             "No hi ha cap sèrie rectificativa. Si us plau, creeu una sèrie rectificativa des de l'àrea d'administració.",
           queue: false
+        });
+      } else if (rectificative.missingYear) {
+        this.$buefy.snackbar.open({
+          message: `No hi ha cap sèrie rectificativa de ${rectificative.year}: la factura es numerarà a la sèrie que triïs. Si cal, creeu-ne una des de l'àrea d'administració (marcada com a rectificativa).`,
+          queue: false,
+          indefinite: true
         });
       }
       // Save reference to the original invoice being rectified

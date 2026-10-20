@@ -48,11 +48,11 @@
 
           <b-field label="Hores" horizontal message="Hores diaries de treball (el total de la setmana dividit entre 5)">
             <b-input
-              v-model="form.hours"
+              :model-value="decimalText(form.hours)"
               placeholder="Hores"
               name="hours"
               required
-              @update:model-value="fixDecimals('hours', form.hours)"
+              @update:model-value="v => fixDecimals('hours', v)"
             />
           </b-field>
 
@@ -70,10 +70,10 @@
             message="Salari base mensual a jornada completa (si es fessin 8h)"
           >
             <b-input
-              v-model="form.monthly_salary"
+              :model-value="decimalText(form.monthly_salary)"
               placeholder="Salari base mensual jornada completa (€)"
               name="monthly_salary"
-              @update:model-value="fixDecimals('monthly_salary', form.monthly_salary)"
+              @update:model-value="v => fixDecimals('monthly_salary', v)"
             />
           </b-field>
 
@@ -102,17 +102,17 @@
             message="Quota S.S. mensual soportada per la cooperativa"
           >
             <b-input
-              v-model="form.quota"
+              :model-value="decimalText(form.quota)"
               placeholder="Quota fixa €"
               name="quota"
-              @update:model-value="fixDecimals('quota', form.quota)"
+              @update:model-value="v => fixDecimals('quota', v)"
               message="soportada per la cooperativa (€)"
             />
             <b-input
-              v-model="form.pct_quota"
+              :model-value="decimalText(form.pct_quota)"
               placeholder="Quota %"
               name="pct_quota"
-              @update:model-value="fixDecimals('pct_quota', form.pct_quota)"
+              @update:model-value="v => fixDecimals('pct_quota', v)"
               message="soportada per la cooperativa (%)"
             />
           </b-field>
@@ -133,10 +133,10 @@
             message="Percentatge sobre el salari base mensual"
           >
             <b-input
-              v-model="form.pct_irpf"
+              :model-value="decimalText(form.pct_irpf)"
               placeholder="% IRPF"
               name="pct_irpf"
-              @update:model-value="fixDecimals('pct_irpf', form.pct_irpf)"
+              @update:model-value="v => fixDecimals('pct_irpf', v)"
             />
           </b-field>
 
@@ -146,10 +146,10 @@
             message="Contingències, atur... Percentatge sobre el salari base mensual"
           >
             <b-input
-              v-model="form.pct_other"
+              :model-value="decimalText(form.pct_other)"
               placeholder="% Altres"
               name="pct_other"
-              @update:model-value="fixDecimals('pct_other', form.pct_other)"
+              @update:model-value="v => fixDecimals('pct_other', v)"
             />
           </b-field>
 
@@ -416,10 +416,13 @@ export default {
       this.isModalActive = true;
       this.$emit("delete", this.form);
     },
+    // decimal comma on screen, a dot in the form and the API, as Cost/hora
+    // shows it (issues/257)
+    decimalText(value) {
+      return value === null || value === undefined ? value : String(value).replace(".", ",");
+    },
     fixDecimals(field, value) {
-      if (value && value.toString().includes(",")) {
-        this.form[field] = value.toString().replace(",", ".");
-      }
+      this.form[field] = value && value.toString().includes(",") ? value.toString().replace(",", ".") : value;
       this.form.costByHour = this.calcCostByHour();
       // this.isLoading1 = true
       //setTimeout(() => this.isLoading1 = false, 50)
