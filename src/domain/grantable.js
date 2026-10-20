@@ -19,3 +19,12 @@ export const grantableAmountForYear = (project, year, field = 'grantable_amount'
   const gy = project.grantable_years.find(g => wanted !== null && yearOf(g) === wanted)
   return gy ? gy[field] || 0 : 0
 }
+
+// Sum of a grant project's per-year amounts (project.grantable_years, «Imports
+// per any» on the fitxa), or the project's own field when it has none. Used by
+// Subvencions, which read only the old project fields (issues/262).
+export const grantableAmountAllYears = (project, field = 'grantable_amount') => {
+  if (!project) return 0
+  if (!project.grantable_years || !project.grantable_years.length) return Number(project[field]) || 0
+  return project.grantable_years.reduce((total, gy) => total + (Number(gy && gy[field]) || 0), 0)
+}
