@@ -457,7 +457,7 @@
                   <small>{{ form.transfer_start_date ? `${formatDateTime(form.transfer_start_date)}${form.transfer_start_user ? " · " + (form.transfer_start_user.username || form.transfer_start_user.fullname) : ""}` : form.transfer_route_date ? `Prevista ${formatDate(form.transfer_route_date)}` : "Pendent" }}</small>
                 </div>
                 <b-button v-if="form.transfer_start_date && canMove" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferStart">Desfés</b-button>
-                <b-button v-else-if="!form.transfer_start_date && canMove" size="is-small" :loading="isLoading" @click="startTransfer">Iniciar transferència</b-button>
+                <b-button v-else-if="!form.transfer_start_date && canMove && canTransferOrder(form)" size="is-small" :loading="isLoading" @click="startTransfer">Iniciar transferència</b-button>
               </li>
               <li v-if="form.transfer">
                 <span class="move-dot" :class="{ 'is-done': form.transfer_end_date }"><b-icon :icon="form.transfer_end_date ? 'check' : 'swap-horizontal'" size="is-small" /></span>
@@ -466,7 +466,7 @@
                   <small>{{ form.transfer_end_date ? `${formatDateTime(form.transfer_end_date)}${form.transfer_end_user ? " · " + (form.transfer_end_user.username || form.transfer_end_user.fullname) : ""}` : "Quan s'hagi iniciat" }}</small>
                 </div>
                 <b-button v-if="form.transfer_end_date && canMove" size="is-small" icon-left="undo-variant" :loading="isLoading" @click="removeTransferEnd">Desfés</b-button>
-                <b-button v-else-if="!form.transfer_end_date && canMove" size="is-small" :loading="isLoading" :disabled="!form.transfer_start_date" @click="endTransfer">Finalitzar transferència</b-button>
+                <b-button v-else-if="!form.transfer_end_date && canMove && canTransferOrder(form)" size="is-small" :loading="isLoading" :disabled="!form.transfer_start_date" @click="endTransfer">Finalitzar transferència</b-button>
               </li>
               <li v-if="!form.is_collection_order">
                 <span class="move-dot" :class="{ 'is-done': form.pickup_date }"><b-icon :icon="form.pickup_date ? 'check' : 'truck-outline'" size="is-small" /></span>
@@ -552,7 +552,7 @@ import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
-import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder, canTransfer as canTransferOrder } from "@/domain/orderStatus";
 
 export default {
   name: "OrdersForm",
@@ -2512,6 +2512,7 @@ export default {
     },
     statusLabel: orderStatusLabel,
     canDepositOrder,
+    canTransferOrder,
     statusTag: orderStatusTag,
     incidenceState(state) {
       return { open: "Oberta", wip: "En procés", closed: "Tancada" }[state] || state;

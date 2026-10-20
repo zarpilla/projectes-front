@@ -354,6 +354,7 @@ import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import QRScannerModal from "@/components/QRScannerModal.vue";
 import TitleBar from "@/components/TitleBar.vue";
+import { canTransfer, orderStatusLabel } from "@/domain/orderStatus";
 
 export default {
   name: "TransfersTable",
@@ -766,6 +767,19 @@ export default {
             message: `Comanda #${orderId} no és una transferència`,
             type: 'is-warning',
             duration: 2000
+          });
+          return;
+        }
+
+        // a cancelled or invoiced order is out of the logistics (issues/222)
+        if (!canTransfer(order)) {
+          const label = orderStatusLabel(order.status).toLowerCase();
+          const move = this.scannerAction === 'end' ? 'finalitzar' : 'iniciar';
+          addToHistory(orderId, 'error', `No es pot ${move}: està ${label}`);
+          this.$buefy.toast.open({
+            message: `Comanda #${orderId} ${label}: no es pot ${move} la transferència`,
+            type: 'is-danger',
+            duration: 3000
           });
           return;
         }

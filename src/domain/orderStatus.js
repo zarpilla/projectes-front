@@ -74,6 +74,12 @@ export const bulkSkipReason = (isStaff, driver) =>
 const NOT_DEPOSITABLE = ['delivered', 'invoiced', 'cancelled']
 export const canDeposit = order => Boolean(order) && !NOT_DEPOSITABLE.includes(order.status)
 
+// Nor does a cancelled or invoiced order start or end a transfer: it is out of
+// the logistics (issues/222; the API refuses it too). A delivered one may still
+// close a transfer left open.
+const NOT_TRANSFERABLE = ['invoiced', 'cancelled']
+export const canTransfer = order => Boolean(order) && !NOT_TRANSFERABLE.includes(order.status)
+
 export const orderStatusLabel = status => ORDER_STATUS_LABELS[status] || status
 export const orderStatusTag = status => TAGS[status] || ''
 
