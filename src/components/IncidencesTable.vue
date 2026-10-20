@@ -278,7 +278,6 @@ export default {
     const incidenceId = this.$route.query.id;
     if (incidenceId) this.stateFilter = [];
     this.loadData();
-    this.loadAvgClose();
     if (this.isAdmin) {
       const users = (await service({ requiresAuth: true, cached: true }).get("users", { params: { _limit: -1 } })).data;
       this.owners = users
@@ -338,9 +337,13 @@ export default {
     },
     async loadAvgClose() {
       try {
+        // like the other counters: the filters of the list (member, search)
+        // but not its state, and again after every reload, a close included;
+        // it was loaded once on mount (issues/275)
         const since = moment().subtract(3, "months").format("YYYY-MM-DD");
-        const params = { state: "closed", closed_date_gte: since, _limit: -1 };
-        if (!this.isAdmin && this.currentUserId) params["order.owner"] = this.currentUserId;
+        const params = this.filterParams();
+        delete params.state_in;
+        Object.assign(params, { state: "closed", closed_date_gte: since, _limit: -1 });
         const closed = (await service({ requiresAuth: true }).get("incidences", { params })).data;
         const days = closed
           .filter(i => i.closed_date && this.createdOf(i))
@@ -392,7 +395,7 @@ export default {
         this.total = countResponse.data;
 
         // Get counts by state
-        await this.loadStateCounts();
+        await Promise.all([this.loadStateCounts(), this.loadAvgClose()]);
       } catch (error) {
         console.error("Error loading incidences:", error);
         this.$buefy.toast.open({
