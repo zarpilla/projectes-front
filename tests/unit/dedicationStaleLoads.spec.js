@@ -85,7 +85,7 @@ describe.each([['at the same pace', false], ['the older one slower', true]])('ov
     expect(vm.months['1'].worked).toBe(31)
     expect(vm.months['1'].theoricHours).toBe(184)
     expect(vm.months['1'].theoricDays).toBe(23)
-    expect(vm.summary['Total hores treballades']).toBe('365.00')
+    expect(vm.summary['Total hores treballades + vacances']).toBe('365.00')
   })
 
   it('Saldo hores counts the holiday once, for the last selection', async () => {
