@@ -53,8 +53,11 @@ export const leavingInvoiced = (rows, status) =>
 
 export const leavingInvoicedMessage = (rows, status) => {
   const ids = rows.map(row => `#${row.id}`).join(', ')
-  const which = rows.length === 1 ? `La comanda ${ids} ja està facturada` : `Les comandes ${ids} ja estan facturades`
-  return `<b>Comanda ja processada.</b> ${which}: si la passes a «${orderStatusLabel(status)}», continuarà a la seva factura, que no canvia. Vols canviar-ne l'estat igualment?`
+  // singular or plural, all through (issues/276)
+  if (rows.length === 1) {
+    return `<b>Comanda ja processada.</b> La comanda ${ids} ja està facturada: si la passes a «${orderStatusLabel(status)}», continuarà a la seva factura, que no canvia. Vols canviar-ne l'estat igualment?`
+  }
+  return `<b>Comandes ja processades.</b> Les comandes ${ids} ja estan facturades: si les passes a «${orderStatusLabel(status)}», continuaran a les seves factures, que no canvien. Vols canviar-ne l'estat igualment?`
 }
 
 /** Why the selection bar left some orders out (issues/144, 193). */

@@ -154,13 +154,13 @@
       <div class="doc-kpis">
         <div class="doc-kpi">
           <span>Comandes actives</span>
-          <b>{{ kpis.active }}</b>
-          <small>{{ kpis.cancelled ? `${kpis.cancelled} anul·lades no compten` : "sense anul·lades" }}</small>
+          <b>{{ formatCount(kpis.active) }}</b>
+          <small>{{ kpis.cancelled ? `${formatCount(kpis.cancelled)} anul·lades no compten` : "sense anul·lades" }}</small>
         </div>
         <div class="doc-kpi">
           <span>Caixes · kg</span>
           <b>{{ formatNum(kpis.units) }} · {{ formatNum(kpis.kg) }} kg</b>
-          <small>{{ kpis.refrigerated }} refrigerades</small>
+          <small>{{ formatCount(kpis.refrigerated) }} refrigerades</small>
         </div>
         <div class="doc-kpi">
           <span>Import</span>
@@ -169,8 +169,8 @@
         </div>
         <div class="doc-kpi">
           <span>Transferències · recollides</span>
-          <b>{{ kpis.transfers }} · {{ kpis.pickups }}</b>
-          <small>{{ kpis.deposited }} de {{ kpis.active }} dipositades</small>
+          <b>{{ formatCount(kpis.transfers) }} · {{ formatCount(kpis.pickups) }}</b>
+          <small>{{ formatCount(kpis.deposited) }} de {{ formatCount(kpis.active) }} dipositades</small>
         </div>
       </div>
 
@@ -279,7 +279,7 @@
                         @select="option => editForm.contact = option ? option.id : null"
                       />
                       <b-input v-else-if="col.edit === 'units'" v-model="editForm.units" type="number" size="is-small" />
-                      <b-input v-else-if="col.edit === 'kilograms'" v-model="editForm.kilograms" type="number" size="is-small" @update:model-value="updateCalculatedPrice" />
+                      <b-input v-else-if="col.edit === 'kilograms'" v-model="editForm.kilograms" type="number" step="any" min="0" size="is-small" @update:model-value="updateCalculatedPrice" />
                       <b-select v-else-if="col.edit === 'pickup'" v-model="editForm.pickup" size="is-small">
                         <option v-for="p in pickups" :key="p.id" :value="p.id">{{ p.alias || p.name }}</option>
                       </b-select>
@@ -434,7 +434,7 @@ import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStat
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
-import { dateFilterWhere, ownerWhere } from "@/domain/ordersListFilters";
+import { dateFilterWhere, ownerWhere, priceFilterWhere, kilogramsFilterWhere } from "@/domain/ordersListFilters";
 import { invoicedPrice } from "@/domain/logisticsInvoicing";
 
 // a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
@@ -1370,6 +1370,10 @@ export default {
             // remove zeros at start
             const id_contains = value.replace(/^0+/, "");
             where.push(`_where[id_contains]=${id_contains}`);
+          } else if (key === "price") {
+            where.push(...priceFilterWhere(value));
+          } else if (key === "kilograms") {
+            where.push(...kilogramsFilterWhere(value));
           } else if (key === "last_mile_display") {
             // remove zeros at start
             if (value.toLowerCase().startsWith("s")) {

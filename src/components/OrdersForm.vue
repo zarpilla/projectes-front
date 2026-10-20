@@ -180,7 +180,7 @@
                       <tbody>
                         <tr v-for="(line, index) in form.lines" :key="index">
                           <td><b-input v-model="line.units" type="number" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
-                          <td><b-input v-model="line.kilograms" type="number" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
+                          <td><b-input v-model="line.kilograms" type="number" step="any" min="0" size="is-small" :disabled="!canEdit" @update:model-value="calculateTotals" /></td>
                           <td><b-input v-model="line.name" size="is-small" :disabled="!canEdit" /></td>
                           <td><b-input v-model="line.nif" size="is-small" :disabled="!canEdit" /></td>
                           <td class="has-text-right">
@@ -192,7 +192,7 @@
                   </div>
                 </b-field>
                 <b-button v-if="canEdit" size="is-small" icon-left="plus" @click="addLine">Afegeix una línia</b-button>
-                <p class="field-note">Total {{ form.units || 0 }} caixes · {{ form.kilograms || 0 }} kg, calculat des de les línies.</p>
+                <p class="field-note">Total {{ form.units || 0 }} caixes · {{ formatNumber(form.kilograms || 0, 2) }} kg, calculat des de les línies.</p>
               </div>
 
               <template v-else>
@@ -200,7 +200,7 @@
                   <b-input v-model="form.units" type="number" :disabled="!canEdit || form.is_collection_order" />
                 </b-field>
                 <b-field label="Kilograms *" data-field="kilograms" :type="{ 'is-danger': errors['kilograms'] && submitted }" :message="form.is_collection_order ? 'Calculat des de les comandes associades' : ''">
-                  <b-input v-model="form.kilograms" type="number" :disabled="!canEdit || form.is_collection_order" />
+                  <b-input v-model="form.kilograms" type="number" step="any" min="0" :disabled="!canEdit || form.is_collection_order" />
                 </b-field>
               </template>
 
@@ -2446,6 +2446,8 @@ export default {
     money(value) {
       return formatMoney(Number(value) || 0);
     },
+    // kilos with a decimal comma (issues/281)
+    formatNumber,
     // a discount percentage with a decimal comma (issues/251)
     percent(value) {
       return formatNumber(Number(value) || 0, 2);

@@ -141,7 +141,7 @@
                       <td><router-link :to="`/order/view/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
                       <td>{{ getContactTradeName(row) }}</td>
                       <td class="has-text-right">{{ row.units || 0 }}</td>
-                      <td class="has-text-right">{{ row.kilograms || 0 }}</td>
+                      <td class="has-text-right">{{ formatNumber(row.kilograms || 0, 2) }}</td>
                       <td><span class="tag" :class="row.deposit_date ? 'is-success is-light' : ''">{{ row.deposit_date ? "Sí" : "No" }}</span></td>
                       <td><span class="tag" :class="row.pickup_date ? 'is-success is-light' : ''">{{ row.pickup_date ? "Sí" : "No" }}</span></td>
                       <td><span class="tag" :class="statusTag(row.status)">{{ statusLabel(row.status) }}</span></td>
@@ -179,7 +179,7 @@
                   <tbody>
                     <tr v-for="(line, i) in order.lines" :key="i">
                       <td class="has-text-right">{{ line.units || 0 }}</td>
-                      <td class="has-text-right">{{ line.kilograms || 0 }}</td>
+                      <td class="has-text-right">{{ formatNumber(line.kilograms || 0, 2) }}</td>
                       <td>{{ line.name || "—" }}</td>
                       <td>{{ line.nif || "—" }}</td>
                     </tr>
