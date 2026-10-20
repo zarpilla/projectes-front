@@ -25,6 +25,71 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Projectes"],
+      text: "Desar un projecte ja no duplica les files de la periodificació ni les dades de subvenció (les còpies que hi havia s'esborren soles). Al pressupost, en entrar amb el tabulador en una quantitat o un preu de 1.000 o més, el que s'escriu substitueix el valor en lloc d'afegir-s'hi."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes", "Informes"],
+      text: "Els projectes esborrats ja no surten a la Previsió econòmica, a la previsió de tresoreria, a la Previsió facturació, a Projectes mare, a Estratègies ni a Intercooperació. Previsió dedicació fa servir les mateixes hores previstes que la fitxa del projecte i Prev./Real, i l'any va de gener a desembre amb tots els mesos."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "Tasques: canviar l'estat d'una tasca a la Llista la mou de columna al Tauler. La llista de projectes s'ordena per nom sense distingir majúscules, també en canviar els filtres. A Moviments de la fitxa, l'import d'un document compartit és la part assignada al projecte. Preu hora: «1 projecte té despeses…» en singular."
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores"],
+      text: "La distribució setmanal de la jornada es té en compte també a Bestretes, % Dedicació real, Previsió dedicació i Hores anuals. A Hores dedicades, canviar entre Calendari, Taula i Tot ja no canvia el període triat; les hores es poden escriure com 1:30, i si no es poden desar, la finestra queda oberta i diu per què."
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores"],
+      text: "Registre jornades: un tram amb la sortida abans de l'entrada ja no desa hores negatives al projecte. Hores anuals: les vacances que coincideixen amb un festiu i els festius en dissabte es compten igual al resum i a la taula; el diàleg de festiu ja no desa amb Enter ni repeteix un dia ja desat. Persones: el període mostra hores, salari i percentatges amb coma decimal."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: "Crear o anul·lar una comanda ja no canvia el descompte multientrega de les comandes facturades o lliurades del mateix punt i dia, i la previsualització del descompte d'una comanda nova ja no compta les anul·lades. En canviar l'estat de diverses comandes alhora, si n'hi ha de facturades es demana confirmació."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: "Comandes: triar una sòcia al desplegable i filtrar la columna Sòcia alhora ja no fa fallar la llista; els filtres de data de les columnes esperen una data vàlida; l'edició ràpida mostra el preu amb descomptes; els percentatges porten coma decimal; la previsualització del CSV mostra el punt i el preu, i l'exportació escriu Refrigerada i Fràgil com a 1/0."
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: "Les incidències tancades es poden reobrir des d'Incidències (botó «Reobre»)."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: "A la fitxa de seguiment d'una comanda, el «Carregat» del repartidor surt com a «Carregada» i fa avançar el recorregut; les comandes de recollida facturades mostren el preu i el pas Facturada; ja no s'ofereix «Recollir» en comandes lliurades, facturades o anul·lades, i una comanda lliurada sense facturar diu «Pendent de facturar»."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Tresoreria: l'IRPF de les despeses rebudes ja no queda com a previst endarrerit un cop passada la seva data; «Des de l'inici d'any» i «Des d'avui» donen el mateix saldo a final d'any, i el punt més baix previst indica l'any. IVA: el % deduïble es calcula ponderat per l'IVA (suportat × % = IVA deduït)."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "PDF de factures i pressupostos: els imports de cada línia i el descompte quadren amb els totals, i quantitats i percentatges porten coma decimal. La previsió de cobrament ja no queda abans de la data d'emissió, i la casella «Cobrada/Pagada» i la seva data van juntes. Les rectificatives proposen la sèrie rectificativa de l'any de la factura i avisen si no n'hi ha."
+    },
+    {
+      type: "Millores",
+      modules: ["Diners", "Projectes"],
+      text: "Exportacions: els totals d'Ingressos i despeses i la llista de projectes inclouen l'IVA no deduïble; a l'exportació de factures l'IVA i l'IRPF de cada línia van arrodonits, amb el descompte en una columna i les columnes del client ben anomenades."
+    },
+    {
+      type: "Correccions",
+      modules: ["Informes"],
+      text: "Els informes amb taula dinàmica es carreguen també en instal·lacions servides a l'arrel del domini."
+    },
+    {
+      type: "Correccions",
       modules: ["Informes", "Projectes"],
       text: "Al Panell de projectes, «Despeses reals» ja no inclou el cost de les hores, igual que «Despeses previstes» (el cost de les hores és a «Hores reals €»): «Despeses/hora real» ja no compta les hores dues vegades i «Preu/hora real» es calcula igual que el previst. Ingressos/Despeses i Preu hora inclouen les hores sense data (a «Sense data»), com la fitxa del projecte, i tenen un nou filtre «Sense estat» per als projectes sense estat."
     },
