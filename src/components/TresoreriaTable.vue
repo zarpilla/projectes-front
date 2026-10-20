@@ -162,7 +162,7 @@
       <div class="doc-kpi">
         <span>Punt més baix previst</span>
         <b :class="'has-text-' + sign(lowestMonth ? lowestMonth.subtotal : 0)">{{ lowestMonth ? money(lowestMonth.subtotal) : "—" }}</b>
-        <small>{{ lowestMonth ? "a final " + ofWord(monthName(lowestMonth.month).toLowerCase()) : "sense mesos previstos" }}</small>
+        <small>{{ lowestMonthLabel }}</small>
       </div>
       <div class="doc-kpi">
         <span>Saldo a 31/12/{{ selectedYear }}</span>
@@ -600,7 +600,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
-import { addScript, addStyle } from "@/helpers/addScript";
+import { loadKendo } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { formatMoney, sign } from "@/helpers/format-number";
 import { ofWord } from "@/helpers/catalan";
@@ -675,26 +675,7 @@ export default {
     const interval = setInterval(async () => {
       if (window.jQuery) {
         clearInterval(interval);
-        await addScript(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/kendo.all.min.js",
-          "kendo-all-min-js"
-        );
-        await addStyle(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/kendo.common.min.css",
-          "kendo-common-min-css"
-        );
-        await addStyle(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/kendo.custom.css",
-          "kendo-custom-css"
-        );
-        await addStyle(
-          (import.meta.env.VUE_APP_PATH ? import.meta.env.VUE_APP_PATH : "") +
-            "/vendor/kendo/custom.css",
-          "custom-css"
-        );
+        await loadKendo();
         this.isLoading = false;
         this.getInitialData();
       }
@@ -902,6 +883,12 @@ export default {
     lowestMonth() {
       const future = this.pivotData.filter(d => d.month !== "00" && d.month !== "99" && d.ym >= this.currentYm);
       return future.reduce((low, d) => (!low || d.subtotal < low.subtotal ? d : low), null);
+    },
+    // «a final de gener de 2027»: the lowest month may fall after the shown year (issues/252)
+    lowestMonthLabel() {
+      const low = this.lowestMonth;
+      if (!low) return "sense mesos previstos";
+      return `a final ${ofWord(this.monthName(low.month).toLowerCase())} de ${low.year}`;
     },
     yearEnd() {
       return this.pivotData.find(d => d.month === "00" && d.year === String(this.selectedYear)) || null;

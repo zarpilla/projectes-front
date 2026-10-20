@@ -44,3 +44,19 @@ export { addScript, addStyle }
 // blank (issues/182).
 export const underBase = (base, path) =>
   String(base || '').replace(/\/+$/, '') + '/' + String(path).replace(/^\/+/, '')
+
+// The Kendo scripts and styles of the pivot reports, under the app's base path.
+// Every Kendo page built "/" + "/vendor/…" by hand, blank with base «/» (issues/248).
+export const KENDO_FILES = [
+  ['vendor/kendo/kendo.all.min.js', 'kendo-all-min-js'],
+  ['vendor/kendo/kendo.common.min.css', 'kendo-common-min-css'],
+  ['vendor/kendo/kendo.custom.css', 'kendo-custom-css'],
+  ['vendor/kendo/custom.css', 'custom-css']
+]
+
+export const loadKendo = async (base = import.meta.env.VUE_APP_PATH) => {
+  for (const [file, id] of KENDO_FILES) {
+    const src = underBase(base, file)
+    await (file.endsWith('.js') ? addScript(src, id) : addStyle(src, id))
+  }
+}

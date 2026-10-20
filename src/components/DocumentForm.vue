@@ -716,11 +716,13 @@
               "
               horizontal
             >
-              <b-checkbox v-model="form.paid" class="checkbox-inline">
+              <!-- the box and the date kept together (issues/256) -->
+              <b-checkbox :model-value="form.paid" class="checkbox-inline" @update:model-value="v => setPaid(form, v)">
               </b-checkbox>
               <b-datepicker
                 v-if="type !== 'quotes'"
-                v-model="form.paid_date"
+                :model-value="form.paid_date"
+                @update:model-value="v => setPaidDate(form, v)"
                 :show-week-number="false"
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
@@ -1075,7 +1077,7 @@ import { rectificativeSerial } from "@/domain/rectificativeSerial";
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
-import { documentDatesForPickers, documentDatesForApi } from "@/domain/documentDates.js";
+import { documentDatesForPickers, documentDatesForApi, estimatedPaymentFrom, setPaid, setPaidDate } from "@/domain/documentDates.js";
 import { budgetLineTotal } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
@@ -1501,6 +1503,8 @@ export default {
     this.getData();
   },
   methods: {
+    setPaid,
+    setPaidDate,
     // issues/199: only the payment method (and its bank account) change; the
     // backend records it in the history
     async savePaymentMethod() {
@@ -2362,7 +2366,8 @@ export default {
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
                 if (!this.form.estimated_payment && sph.date) {
-                  this.form.estimated_payment = sph.date;
+                  // not before the emission date (issues/256)
+                  this.form.estimated_payment = estimatedPaymentFrom(sph.date, this.form.emitted);
                 }
                 validateIfProjectPhasesHasDocument = true;
               }
@@ -2375,7 +2380,8 @@ export default {
                 validateIfProjectPhasesHasDocument = true;
               } else if (sph.assign) {
                 if (!this.form.estimated_payment && sph.date) {
-                  this.form.estimated_payment = sph.date;
+                  // not before the emission date (issues/256)
+                  this.form.estimated_payment = estimatedPaymentFrom(sph.date, this.form.emitted);
                 }
                 validateIfProjectPhasesHasDocument = true;
               }

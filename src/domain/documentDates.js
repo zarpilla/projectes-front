@@ -47,3 +47,35 @@ export function documentDatesForApi (form) {
   }
   return out
 }
+
+const day = value => (value ? moment(value instanceof Date ? value : moment(value, 'YYYY-MM-DD').toDate()).format('YYYY-MM-DD') : null)
+
+/**
+ * Estimated payment taken from a budget line's date, never before the
+ * document's emission: a received income emitted on 19/10/2026 got the line's
+ * 31/07/2026 and showed up at once as an unpaid July movement (issues/256).
+ */
+export function estimatedPaymentFrom (lineDate, emitted) {
+  if (!lineDate) return lineDate
+  if (emitted && day(lineDate) < day(emitted)) return emitted
+  return lineDate
+}
+
+/**
+ * «Cobrada/Pagada» and its date kept together (issues/256): ticking the box
+ * without a date fills in today, unticking it clears the date, and choosing a
+ * date ticks the box. Tick-only saved paid without a date (Tresoreria showed
+ * «Factura cobrada» on its forecast date) and date-only saved it as unpaid.
+ */
+export function setPaid (form, paid, today = new Date()) {
+  form.paid = !!paid
+  if (form.paid && !form.paid_date) form.paid_date = today
+  if (!form.paid) form.paid_date = null
+  return form
+}
+
+export function setPaidDate (form, date) {
+  form.paid_date = date || null
+  if (form.paid_date) form.paid = true
+  return form
+}
