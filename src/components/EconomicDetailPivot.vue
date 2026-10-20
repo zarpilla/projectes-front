@@ -497,14 +497,32 @@ export default {
             return this.excelFormat(value);
           }
         },
+        "Despeses orig IVA no deduïble": {
+          field: "expense_orig_vat",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Despeses prev": {
           field: "expense_esti",
           callback: value => {
             return this.excelFormat(value);
           }
         },
+        "Despeses prev IVA no deduïble": {
+          field: "expense_esti_vat",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
         "Despeses exec": {
           field: "expense_real",
+          callback: value => {
+            return this.excelFormat(value);
+          }
+        },
+        "Despeses exec IVA no deduïble": {
+          field: "expense_real_vat",
           callback: value => {
             return this.excelFormat(value);
           }
@@ -555,7 +573,9 @@ export default {
         delete fields["Despeses tot orig"]
         delete fields["Despeses tot exec"]
         delete fields["Despeses orig"]
+        delete fields["Despeses orig IVA no deduïble"]
         delete fields["Despeses exec"]
+        delete fields["Despeses exec IVA no deduïble"]
         delete fields["Hores orig"]
         delete fields["Hores exec"]
       }
@@ -567,7 +587,9 @@ export default {
         delete fields["Despeses tot orig"]
         delete fields["Despeses tot prev"]
         delete fields["Despeses orig"]
+        delete fields["Despeses orig IVA no deduïble"]
         delete fields["Despeses prev"]
+        delete fields["Despeses prev IVA no deduïble"]
         delete fields["Hores orig"]
         delete fields["Hores prev"]
       }

@@ -13,6 +13,7 @@ const fieldsOf = name => dataType =>
   })
 const fields = fieldsOf('excelFields1')
 const yearFields = fieldsOf('excelFields2')
+const totalFields = fieldsOf('excelFields3')
 const headers = f => Object.keys(f).filter(k => /vat|iva/i.test(k))
 
 describe('«Exporta detall» columns (issues/142, issues/143)', () => {
@@ -41,5 +42,18 @@ describe('«Exporta detall» columns (issues/142, issues/143)', () => {
     ])
     expect(headers(yearFields('Previsió'))).toEqual(['Despeses prev IVA no deduïble'])
     expect(headers(yearFields('Execució'))).toEqual(['Despeses exec IVA no deduïble'])
+  })
+})
+
+// issues/254: «Exporta totals» (all years) had no non-deductible VAT column,
+// so «Despeses + Hores» didn't add up to «Despeses tot»
+describe('«Exporta totals» columns (issues/254)', () => {
+  it('has the non-deductible VAT, per kind of data', () => {
+    expect(headers(totalFields(null))).toEqual([
+      'Despeses orig IVA no deduïble', 'Despeses prev IVA no deduïble', 'Despeses exec IVA no deduïble'
+    ])
+    expect(headers(totalFields('Previsió'))).toEqual(['Despeses prev IVA no deduïble'])
+    expect(headers(totalFields('Execució'))).toEqual(['Despeses exec IVA no deduïble'])
+    expect(totalFields(null)['Despeses exec IVA no deduïble'].field).toBe('expense_real_vat')
   })
 })
