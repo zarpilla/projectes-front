@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["La llista de ", { to: "/orders", label: "Comandes" }, " surt per defecte sense agrupar i recorda l'opció d'«Agrupa per» que triïs."]
+    },
+    {
       type: "Correccions",
       modules: ["Logística"],
       text: "Transferències: ja no es pot iniciar ni finalitzar la transferència d'una comanda cancel·lada o facturada. Operacions: una comanda lliurada continua al dia («1 de 1 fetes») i es pot desfer. L'albarà mostra els horaris com «De 9:30 a 13:30» i els quilos amb coma. La importació CSV mostra el mateix preu que es desa. Millores de text i de mida en mòbil a les comandes i al repartidor."

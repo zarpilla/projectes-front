@@ -830,7 +830,7 @@ export default {
       totals: null,
       lastWhere: [],
       collapsed: {},
-      groupBy: "route",
+      groupBy: "none",
       isMobile: typeof window !== "undefined" && window.innerWidth < 769,
       searchTimer: null
     };
@@ -1119,10 +1119,10 @@ export default {
       this.dateFilter = saved.date || null;
       this.ownerFilter = saved.owner || null;
       this.pickupFilter = saved.pickup || null;
-      if (["route", "date", "owner", "none"].includes(saved.groupBy)) this.groupBy = saved.groupBy;
     } catch (e) {
       // defaults
     }
+    this.restoreGroupBy();
 
     // Ensure filters are always arrays
     if (!Array.isArray(this.statusFilter)) {
@@ -1438,8 +1438,7 @@ export default {
       localStorage.setItem("OrdersTable.filters", JSON.stringify({
         date: this.dateFilter,
         owner: this.ownerFilter,
-        pickup: this.pickupFilter,
-        groupBy: this.groupBy
+        pickup: this.pickupFilter
       }));
 
       // For routes: Use multiple _where[route.id] for OR condition
@@ -2736,14 +2735,19 @@ export default {
     toggleCollapsed(key) {
       this.collapsed = { ...this.collapsed, [key]: !this.collapsed[key] };
     },
+    // only the user's own choice is kept (issues/306): the old value saved with
+    // the filters on every load is ignored, so it falls back to no grouping
+    restoreGroupBy() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("OrdersTable.groupBy"));
+        if (["route", "date", "owner", "none"].includes(saved)) this.groupBy = saved;
+      } catch (e) {
+        // default
+      }
+    },
     saveGroupBy() {
       this.collapsed = {};
-      localStorage.setItem("OrdersTable.filters", JSON.stringify({
-        date: this.dateFilter,
-        owner: this.ownerFilter,
-        pickup: this.pickupFilter,
-        groupBy: this.groupBy
-      }));
+      localStorage.setItem("OrdersTable.groupBy", JSON.stringify(this.groupBy));
     },
     // like the old list: orders of a coming week look lighter
     isFutureWeek(order) {
