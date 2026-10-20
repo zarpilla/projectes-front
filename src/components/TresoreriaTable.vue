@@ -26,7 +26,8 @@
 
       <download-excel
         class="export view-button"
-        :data="treasuryDataDesc"
+        :data="movementsShown"
+        :fetch="movementsExport"
         v-if="treasuryDataDesc && treasuryDataDesc.length"
         name="tresoreria"
         :fields="{
@@ -54,7 +55,7 @@
           moviment: 'type',
           concepte: 'concept',
           projecte: 'project_name',
-          nomina: 'contact',
+          contacte: 'contact',
           pagat: 'paid'
         }"
       >
@@ -365,6 +366,7 @@
         </div>
         <!-- paginated (the whole year was one ~60.000 px table); opens on the page with "Avui" -->
         <b-table
+          ref="movementsTable"
           v-model:current-page="movementsPage"
           :loading="isLoading"
           :paginated="true"
@@ -1067,6 +1069,12 @@ export default {
   methods: {
     ofWord,
     treasuryDisplayDate,
+    // what the export downloads: the movements as listed, i.e. after the tab,
+    // the search and the per-column filters, every page (issues/277)
+    movementsExport() {
+      const table = this.$refs.movementsTable;
+      return table && Array.isArray(table.newData) ? table.newData : this.movementsShown;
+    },
     async getData() {
       this.isLoading = true;
       const year = this.$route.query.year

@@ -16,7 +16,7 @@
         tipus: 'tipus',
         data: 'data',
         venciment: 'venciment',
-        cobrada: 'cobrada',
+        pagada: 'pagada',
         proveidor: 'proveidor',
         proveidor_nif: 'proveidor_nif',
         proveidor_adreça: 'proveidor_adreça',
@@ -458,8 +458,13 @@ export default {
       this.emittedCSV = [];
 
       this.emitted.forEach((e) => {
+        // payrolls have no code nor contact: their «<any>-<mes>-<usuari>» and the worker (issues/277)
+        const isPayroll = e.type === "payrolls";
+        const worker = isPayroll && e.users_permissions_user
+          ? e.users_permissions_user.fullname || e.users_permissions_user.username
+          : "";
         this.emittedCSV.push({
-          num: e.code,
+          num: isPayroll ? payrollCode(e) : e.code,
           num_document_proveidor: e.contact_invoice_number
             ? e.contact_invoice_number
             : "",
@@ -467,12 +472,12 @@ export default {
             e.type == "received-invoices"
               ? "Factura"
               : e.type === "received-expenses"
-                ? e.document_type.name
+                ? (e.document_type ? e.document_type.name : "")
                 : "Nòmina",
           data: this.formatDate(e.emitted),
           venciment: this.formatDate(e.paybefore),
-          cobrada: this.formatDate(e.paid_date),
-          proveidor: e.contact ? e.contact.name : "",
+          pagada: this.formatDate(e.paid_date),
+          proveidor: isPayroll ? worker || payrollUserName(e) : e.contact ? e.contact.name : "",
           proveidor_nif: e.contact ? e.contact.nif : "",
           proveidor_adreça: e.contact ? e.contact.address : "",
           proveidor_cp: e.contact ? e.contact.postcode : "",
