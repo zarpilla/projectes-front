@@ -63,7 +63,8 @@ export default {
         date: line.date ? moment(line.date).format("DD/MM/YYYY") : "",
         concept: line.concept,
         quantity: formatNumber(Number(line.quantity) || 0, 3),
-        price: formatMoney(Number(line.base) || 0),
+        // up to the 4 decimals the price keeps (issues/270)
+        price: formatNumber(Number(line.base) || 0, 4, 2) + " €",
         discount: percent(line.discount),
         vat: percent(line.vat) || "0 %",
         irpf: percent(line.irpf),

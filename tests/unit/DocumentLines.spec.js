@@ -70,6 +70,23 @@ describe('DocumentLines', () => {
     expect(lines[0].base).toBe('12.5')
   })
 
+  // issues/270: the price keeps 4 decimals as the API stores it; a 5th used to
+  // be computed with and then lost on saving (3 × 33,3333 = 100,00 → 99,99)
+  it('keeps 4 decimals of a typed price and rounds a 5th away', async () => {
+    vi.useFakeTimers()
+    const lines = [line()]
+    const w = mountLines({ lines })
+    await inputs(w, 0)[2].setValue('33,3333')
+    vi.advanceTimersByTime(300)
+    expect(lines[0].base).toBe('33.3333')
+    await inputs(w, 0)[2].setValue('33,33336')
+    vi.advanceTimersByTime(300)
+    expect(lines[0].base).toBe('33.3334')
+    await inputs(w, 0)[2].setValue('1.234,5')
+    vi.advanceTimersByTime(300)
+    expect(lines[0].base).toBe('1234.5')
+  })
+
   it('disables editing (but not the internal notes toggle) when the document is locked', () => {
     const w = mountLines({ disabled: true, lines: [line(), line()] })
     expect(inputs(w, 0).slice(0, 6).every(i => i.element.disabled)).toBe(true)

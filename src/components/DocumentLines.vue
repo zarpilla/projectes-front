@@ -230,6 +230,7 @@
 
 <script>
 import _ from "lodash";
+import { budgetLineValue } from "@/domain/budgetLines.js";
 
 // The editable lines of a document (DocumentForm), with pagination for long
 // documents. New lines come from the parent's `newLine` factory (diets add two
@@ -285,6 +286,13 @@ export default {
     },
     // decimal comma -> dot
     changeLine(line, field, value) {
+      // The unit price keeps 4 decimals, as the API stores it (as budget
+      // lines): a 5th is rounded away, «1.234,56» reads 1234.56 (issues/270)
+      if (field === "base") {
+        const stored = budgetLineValue(value);
+        if (stored !== line.base) line.base = stored;
+        return;
+      }
       if (value && value.toString().includes(",")) {
         line[field] = value.toString().replace(",", ".");
       }
