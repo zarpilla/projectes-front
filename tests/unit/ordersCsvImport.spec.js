@@ -108,3 +108,25 @@ describe('orders CSV import kilos (issues/269)', () => {
     expect(c.orders).toHaveLength(0)
   })
 })
+
+// issues/285: a semicolon file was only detected by a «;» in its first 10
+// characters, so a header starting with «route_name» (10 characters) was read
+// as comma-separated and failed with «Invalid Record Length»; a later comma
+// file kept the «;» of the previous one
+describe('orders CSV delimiter (issues/285)', () => {
+  const { readCSV } = OrdersTable.methods
+  const read = (self, text) => readCSV.call(self, text)
+  const self = () => ({ csvOptions: { delimiter: ',', columns: true } })
+
+  it('reads a semicolon file whose first column name is 10 characters long', async () => {
+    const records = await read(self(), 'route_name;kilograms\nDJ - BCN;12,5\n')
+    expect(records).toEqual([{ route_name: 'DJ - BCN', kilograms: '12,5' }])
+  })
+
+  it('picks the delimiter of each file', async () => {
+    const s = self()
+    await read(s, 'owner_id;kilograms\n1;2\n')
+    const records = await read(s, 'owner_id,kilograms\n1,2.5\n')
+    expect(records).toEqual([{ owner_id: '1', kilograms: '2.5' }])
+  })
+})

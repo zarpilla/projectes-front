@@ -2335,9 +2335,12 @@ export default {
       return uuid;
     },
     async readCSV(content) {
-      if (content.substring(0, 10).includes(";")) {
-        this.csvOptions.delimiter = ";";
-      }
+      // the delimiter of this file: the one its header line uses most
+      // (only «;» in the first 10 characters missed «route_name;…», and a «;»
+      // stayed for the next file, issues/285)
+      const header = String(content).split(/\r?\n/, 1)[0];
+      const count = ch => header.split(ch).length - 1;
+      this.csvOptions.delimiter = count(";") > count(",") ? ";" : ",";
       return new Promise(async (resolve, reject) => {
         try {
           parse(content, this.csvOptions, (err, records) => {
