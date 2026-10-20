@@ -65,4 +65,18 @@ describe('Tresoreria «Sense data» row (issues/299)', () => {
     expect(months[months.length - 1].subtotal).toBe(1400)
     expect(w.vm.noDate.total_incomes).toBe(50)
   })
+
+  // CI 2026-10-20: the jQuery wait kept firing after the test environment was torn
+  // down («window is not defined», an unhandled error that failed the run)
+  it('stops waiting for jQuery when unmounted', async () => {
+    vi.useFakeTimers()
+    try {
+      const w = await mountTable(rows())
+      expect(vi.getTimerCount()).toBeGreaterThan(0)
+      w.unmount()
+      expect(vi.getTimerCount()).toBe(0)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

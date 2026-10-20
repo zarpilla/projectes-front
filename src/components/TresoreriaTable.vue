@@ -676,14 +676,18 @@ export default {
     };
   },
   async mounted() {
-    const interval = setInterval(async () => {
+    this.jQueryWait = setInterval(async () => {
       if (window.jQuery) {
-        clearInterval(interval);
+        clearInterval(this.jQueryWait);
         await loadKendo();
         this.isLoading = false;
         this.getInitialData();
       }
     }, 100);
+  },
+  // the wait for jQuery must not outlive the table (it kept polling after leaving the page)
+  beforeUnmount() {
+    clearInterval(this.jQueryWait);
   },
   watch: {
     // the year buttons only change ?year=: reload that year's data (issues/261)
