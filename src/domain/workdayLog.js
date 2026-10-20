@@ -19,6 +19,17 @@ export const slotMinutes = (hourIn, hourOut) => {
 // shown as a mistake to fix (issues/128)
 export const slotIsInverted = (hourIn, hourOut) => slotMinutes(hourIn, hourOut) < 0
 
+// the hours a slot gives its project's activity: 0 while it's open (an entry
+// without exit, «en curs»; it was null), null for an inverted slot, which must
+// not reach the project as negative hours (issues/244)
+export const slotActivityHours = (hourIn, hourOut) => {
+  if (!hourIn || !hourOut) {
+    return 0
+  }
+  const minutes = slotMinutes(hourIn, hourOut)
+  return minutes < 0 ? null : minutes / 60
+}
+
 // a typed hh / mm pair is a time of day: 0–23 and 0–59, digits only
 // (25:00 went to the backend and came back as a 400, issues/180)
 export const isValidTime = (h, m) =>

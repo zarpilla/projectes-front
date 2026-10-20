@@ -208,7 +208,7 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import html2pdf from "html3pdf";
 import getConfig from '@/config'
-import { slotMinutes, slotIsInverted, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween, isValidTime } from "@/domain/workdayLog.js";
+import { slotMinutes, slotIsInverted, slotActivityHours, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween, isValidTime } from "@/domain/workdayLog.js";
 import { toRaw } from "vue";
 
 // new slots get a key of their own, kept after the first save gives them an
@@ -943,10 +943,20 @@ export default {
       this.updating = true;
       try {
         if (activity.project) {
+          const hours = slotActivityHours(activity.hour_in, activity.hour_out);
+          const existing = activity.activity && activity.activity.id;
+          if (hours === null && existing) {
+            // inverted: the project keeps its last valid hours (issues/244)
+            this.$buefy.toast.open({
+              message: "La sortida és abans de l'entrada: les hores del projecte no s'han canviat",
+              type: "is-danger",
+              queue: false
+            });
+            this.updating = false;
+            return;
+          }
           const item = {
-            hours: moment(activity.hour_out, "HH:mm:ss").diff(
-              moment(activity.hour_in, "HH:mm:ss"), 'hours', true
-            ),
+            hours: hours === null ? 0 : hours,
             date: activity.date,
             users_permissions_user: this.user,
             project: activity.project,
