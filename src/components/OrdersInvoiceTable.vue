@@ -37,6 +37,11 @@
         </div>
       </div>
 
+      <div v-if="linkedOrders.length" class="notification is-warning linked-orders">
+        {{ linkedOrders.length === 1 ? "1 comanda lliurada encara és" : `${linkedOrders.length} comandes lliurades encara són` }} en una factura i no
+        {{ linkedOrders.length === 1 ? "surt" : "surten" }} aquí ni als totals: {{ linkedOrders.map(o => o.id).join(", ") }}.
+      </div>
+
       <section class="a-box invoice-setup">
         <div class="setup-row">
           <b-field label="Projecte on es creen les factures *" class="setup-project" :type="!projectId && triedWithoutProject ? 'is-danger' : ''" :message="!projectId && triedWithoutProject ? 'Cal triar un projecte abans de facturar.' : ''">
@@ -158,7 +163,7 @@ import moment from "moment";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { plural } from "@/helpers/catalan";
-import { groupOrders, quarterOf, quarterProject } from "@/domain/logisticsInvoicing.js";
+import { groupOrders, linkedToInvoice, quarterOf, quarterProject } from "@/domain/logisticsInvoicing.js";
 
 export default {
   name: "OrdersInvoiceTable",
@@ -186,6 +191,10 @@ export default {
     filteredProjects() {
       const q = this.projectSearch.toLowerCase();
       return this.projects.filter(p => p.name.toString().toLowerCase().includes(q));
+    },
+    // delivered but still on an invoice: left out of the list (issues/293)
+    linkedOrders() {
+      return this.orders.filter(linkedToInvoice);
     },
     months() {
       return [...new Set(this.groups.map(g => g.month))];
@@ -402,6 +411,9 @@ export default {
 </script>
 
 <style scoped>
+.linked-orders {
+  margin-bottom: 1rem;
+}
 .orders-invoice :deep(.title-bar .actions) {
   flex-wrap: wrap;
 }
