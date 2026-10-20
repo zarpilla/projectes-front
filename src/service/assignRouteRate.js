@@ -145,6 +145,10 @@ const checkIfDateIsValidInroute = (route, date, routeFestives) => {
   if (isRouteClosed(route, date, routeFestives)) {
     return false;
   }
+  // no route chosen yet: only the closures can say no (issues/258)
+  if (!route) {
+    return true;
+  }
   const routeDayOfWeek = [];
   if (route.monday) {
     routeDayOfWeek.push(1);

@@ -120,6 +120,12 @@ describe('checkIfDateIsValidInroute', () => {
     expect(checkIfDateIsValidInroute(ROUTES.mondayThursday, moment('2026-10-11'), [])).toBe(false)
     expect(checkIfDateIsValidInroute(ROUTES.sunday, moment('2026-10-11'), [{ date: '2026-10-11' }])).toBe(false)
   })
+
+  // issues/258: the order form checks the date before a route is chosen
+  it('only checks closures while no route is chosen', () => {
+    expect(checkIfDateIsValidInroute(undefined, moment('2026-10-06'), [])).toBe(true)
+    expect(checkIfDateIsValidInroute(undefined, moment('2026-10-12'), [{ date: '2026-10-12' }])).toBe(false)
+  })
 })
 
 // issues/082: a closure of one route closed the date for every route, and
