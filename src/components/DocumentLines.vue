@@ -71,9 +71,11 @@
               name="Unitats"
               :disabled="disabled"
               placeholder="Quantitat, hores, unitats..."
-              v-model="line.quantity"
+              :model-value="inputText(line, 'quantity')"
               class="subphase-detail-input"
-              @update:model-value="debouncedChangeLine(line, 'quantity', $event)"
+              @update:model-value="v => typed(line, 'quantity', v)"
+              @focus="inputFocus(line, 'quantity', $event)"
+              @blur="editing = null"
             >
             </b-input>
           </b-field>
@@ -82,9 +84,11 @@
               name="base"
               :disabled="disabled"
               placeholder="Preu per unitat"
-              v-model="line.base"
+              :model-value="inputText(line, 'base')"
               class="subphase-detail-input"
-              @update:model-value="debouncedChangeLine(line, 'base', $event)"
+              @update:model-value="v => typed(line, 'base', v)"
+              @focus="inputFocus(line, 'base', $event)"
+              @blur="editing = null"
             >
             </b-input>
           </b-field>
@@ -96,9 +100,11 @@
               :disabled="disabled"
               name="discount"
               placeholder="Descompte"
-              v-model="line.discount"
+              :model-value="inputText(line, 'discount')"
               class="subphase-detail-input"
-              @update:model-value="debouncedChangeLine(line, 'discount', $event)"
+              @update:model-value="v => typed(line, 'discount', v)"
+              @focus="inputFocus(line, 'discount', $event)"
+              @blur="editing = null"
             >
             </b-input>
           </b-field>
@@ -230,7 +236,7 @@
 
 <script>
 import _ from "lodash";
-import { budgetLineValue, documentLineQuantity } from "@/domain/budgetLines.js";
+import { budgetLineDisplay, budgetLineValue, documentLineQuantity } from "@/domain/budgetLines.js";
 
 // The editable lines of a document (DocumentForm), with pagination for long
 // documents. New lines come from the parent's `newLine` factory (diets add two
@@ -248,7 +254,9 @@ export default {
     return {
       linesPerPage: 50,
       currentPage: 1,
-      debouncedInputs: new Map()
+      debouncedInputs: new Map(),
+      // the quantity / price / discount being typed: { line, field, text }
+      editing: null
     };
   },
   computed: {
@@ -268,6 +276,30 @@ export default {
     this.debouncedInputs.clear();
   },
   methods: {
+    // Quantity, price and discount with Catalan decimals («51,5», «33,3333»)
+    // like the read-only lines and the budget lines, not «51.5»; as typed
+    // while the input has the focus (issues/299, as ProjectPhases, issues/234)
+    inputText(line, field) {
+      const e = this.editing;
+      if (e && e.line === line && e.field === field) return e.text;
+      return budgetLineDisplay(line[field]);
+    },
+    inputFocus(line, field, event) {
+      // no thousands dots while editing: «1.500» would read back as 1,5
+      const text = budgetLineDisplay(line[field], { grouped: false });
+      const input = event && event.target;
+      this.editing = { line, field, text };
+      if (input && typeof input.select === "function" && input.value !== text) {
+        this.$nextTick(() => {
+          if (document.activeElement === input) input.select();
+        });
+      }
+    },
+    typed(line, field, value) {
+      this.editing = { line, field, text: value };
+      line[field] = value;
+      this.debouncedChangeLine(line, field, value);
+    },
     debouncedChangeLine(line, field, value) {
       // one pending timeout per line and field
       const lineIndex = this.lines.indexOf(line);

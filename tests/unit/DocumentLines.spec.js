@@ -30,7 +30,29 @@ describe('DocumentLines', () => {
   it('renders one row per line with concept, quantity, price, discount, VAT and IRPF', () => {
     const w = mountLines({ lines: [line({ concept: 'Hores', quantity: 3, base: 12.5, discount: 10, vat: 21, irpf: 15 })] })
     expect(rows(w)).toHaveLength(1)
-    expect(inputs(w, 0).map(i => i.element.value)).toEqual(['Hores', '3', '12.5', '10', '21', '15'])
+    // quantity, price and discount with a decimal comma (issues/299)
+    expect(inputs(w, 0).map(i => i.element.value)).toEqual(['Hores', '3', '12,5', '10', '21', '15'])
+  })
+
+  // issues/299: the quote form showed prices as «51.5» / «33.3333»
+  it('shows quantity, price and discount with Catalan decimals, ungrouped while editing', async () => {
+    vi.useFakeTimers()
+    const lines = [line({ quantity: '2.5', base: 1234.5, discount: 12.5 })]
+    const w = mountLines({ lines })
+    const [, qty, price, discount] = inputs(w, 0)
+    expect([qty, price, discount].map(i => i.element.value)).toEqual(['2,5', '1.234,5', '12,5'])
+
+    await price.trigger('focus')
+    expect(price.element.value).toBe('1234,5')
+    await price.setValue('51,5')
+    expect(price.element.value).toBe('51,5')
+    vi.advanceTimersByTime(300)
+    expect(lines[0].base).toBe('51.5')
+    await price.trigger('blur')
+    expect(price.element.value).toBe('51,5')
+
+    await w.setProps({ lines: [line({ base: '33.3333' })] })
+    expect(inputs(w, 0)[2].element.value).toBe('33,3333')
   })
 
   it('adds a line from the parent factory with the last row\'s + button', async () => {
