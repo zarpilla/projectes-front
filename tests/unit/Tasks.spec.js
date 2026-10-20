@@ -93,4 +93,19 @@ describe('Tasks kanban', () => {
     expect(chip('T22').classes()).not.toContain('is-overdue')
     expect(chip('T22').text()).not.toContain('Vençuda')
   })
+
+  // issues/253: a state changed in Llista left the card in its old Tauler column
+  it('moves the card on the board when its state changes in the list', async () => {
+    const w = mount(Tasks, {
+      props: { view: 'state', projects: [], users: [], mode: 'list' },
+      global: { plugins: [createPinia(), Buefy], stubs: { ModalBoxTask: true, TasksList: true } }
+    })
+    await flushPromises()
+    api.put.mockResolvedValueOnce({ data: { ...task(11, 2, 0) } })
+    await w.vm.updateTasks({ tasks: [w.vm.tasks.find(t => t.id === 11)], patch: { task_state: 2 } })
+    await w.setProps({ mode: 'board' })
+    await flushPromises()
+    expect(names(columns(w)[0])).toEqual(['T12'])
+    expect(names(columns(w)[1])).toContain('T11')
+  })
 })
