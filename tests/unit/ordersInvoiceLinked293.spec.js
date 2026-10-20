@@ -25,6 +25,8 @@ const get = vi.fn(async url => {
 vi.mock('@/service/index', () => ({ default: () => ({ get, post: vi.fn(), put: vi.fn() }) }))
 import OrdersInvoiceTable from '@/components/OrdersInvoiceTable.vue'
 
+const RouterLink = { props: ['to'], template: '<a :data-to="JSON.stringify(to)"><slot /></a>' }
+
 describe('Facturar leaves out delivered orders still on an invoice (issues/293)', () => {
   it('tells a linked order apart, as an object or an id', () => {
     expect(linkedToInvoice({ emitted_invoice: { id: 890 } })).toBe(true)
@@ -43,7 +45,7 @@ describe('Facturar leaves out delivered orders still on an invoice (issues/293)'
 
   it('keeps them out of the list and the totals, and names them', async () => {
     const wrapper = mount(OrdersInvoiceTable, {
-      global: { plugins: [Buefy], stubs: { TitleBar: true, 'download-excel': true, 'router-link': true } }
+      global: { plugins: [Buefy], stubs: { TitleBar: true, 'download-excel': true, 'router-link': RouterLink } }
     })
     await flushPromises()
     const vm = wrapper.vm
@@ -51,5 +53,20 @@ describe('Facturar leaves out delivered orders still on an invoice (issues/293)'
     expect(vm.totals.count).toBe(1)
     expect(vm.totals.amount).toBe(10)
     expect(wrapper.find('.linked-orders').text()).toContain('24460')
+  })
+
+  // the user's decision (2026-10-20, «tu mateix»): the notice links each
+  // order (its view) and its invoice (its document page)
+  it('links each order and its invoice', async () => {
+    const wrapper = mount(OrdersInvoiceTable, {
+      global: { plugins: [Buefy], stubs: { TitleBar: true, 'download-excel': true, 'router-link': RouterLink } }
+    })
+    await flushPromises()
+    const links = wrapper.findAll('.linked-orders a').map(a => [JSON.parse(a.attributes('data-to')), a.text()])
+    expect(links).toEqual([
+      [{ name: 'orders.view.detail', params: { id: 24460 } }, '#24460'],
+      [{ name: 'document.edit', params: { id: 890, type: 'emitted-invoices' } }, 'factura esborrany #890']
+    ])
+    expect(OrdersInvoiceTable.methods.linkedInvoice({ emitted_invoice: { id: 633, code: '2026-12', state: 'emitted' } })).toEqual({ id: 633, label: '2026-12' })
   })
 })
