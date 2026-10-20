@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
+      text: "Una comanda nova amb recollida a la finca ja no s'afegeix a una recollida que ja està processada o lliurada: se'n crea una de nova per aquell dia."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
       text: "El preu d'una comanda no facturada (pendent, processada, lliurada…) es torna a calcular quan en canvien els quilos, les caixes, la ruta o el tipus de servei, a la fitxa i a l'edició ràpida; si es desa sense canvis conserva el preu, i les facturades mantenen el de la factura. Una comanda de recollida (-R) no es canvia a mà: segueix les comandes que recull, i si es canvia la data d'una d'aquestes passa a la recollida del nou dia. A Facturar, l'avís de comandes que encara són en una factura enllaça cada comanda i la factura."
     },
     {
