@@ -119,10 +119,7 @@
           <router-link v-else :to="{
                 name: 'document.edit',
                 params: { id: props.row.id, type: props.row.type },
-              }">{{
-      `${props.row.year.year}-${zeroPad(props.row.month.month, 2)}-${props.row.users_permissions_user.username
-        }`
-    }}
+              }">{{ payrollCode(props.row) }}
           </router-link>
           <span class="doc-subline">
             <template v-if="props.row.type === 'received-invoices'">Factura</template>
@@ -143,7 +140,7 @@
         <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable cell-class="doc-concept">
           <div class="doc-clamp" :title="props.row.document_concept || null">
           <span v-if="props.row.type === 'payrolls'">
-            {{ props.row.users_permissions_user.username }}
+            {{ payrollUserName(props.row) }}
           </span>
           <span v-else>
             {{
@@ -196,6 +193,8 @@ import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
 import { invoiceExportLineRow } from "@/domain/invoiceExport";
+import { payrollCode, payrollUserName } from "@/domain/payrollLabel";
+import { startLoad } from "@/domain/latestLoad.js";
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 
@@ -315,6 +314,8 @@ export default {
   },
   methods: {
     formatMoney,
+    payrollCode,
+    payrollUserName,
     // not paid, positive and past its due date ("Venciment")
     isOverdue(row) {
       return !row.paid_date && !row.paid && Number(row.total) > 0 && !!row.paybefore && moment(row.paybefore).isBefore(moment(), "day");
@@ -338,6 +339,8 @@ export default {
     },
     async getData() {
       this.isLoading = true;
+      // quick filter changes: only the latest load writes the list (issues/279, as 219)
+      const isStale = startLoad(this);
       if (!this.year) {
         return;
       }
@@ -430,8 +433,7 @@ export default {
         // Filter payrolls client-side by constructed code (year-month-username)
         if (this.code) {
           payrolls = payrolls.filter((p) => {
-            const payrollCode = `${p.year.year}-${this.zeroPad(p.month.month, 2)}-${p.users_permissions_user.username}`;
-            return payrollCode.toLowerCase().includes(this.code.toLowerCase());
+            return payrollCode(p).toLowerCase().includes(this.code.toLowerCase());
           });
         }
       }
@@ -450,6 +452,7 @@ export default {
         };
       });
 
+      if (isStale()) return;
       this.emitted = emittedWithInfo;
 
       this.emittedCSV = [];

@@ -212,6 +212,7 @@ import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import getConfig from '@/config'
 import { stateFilter } from '@/domain/incomeListFilters'
+import { startLoad } from '@/domain/latestLoad.js'
 
 export default {
   name: "EmittedInvoices",
@@ -365,6 +366,8 @@ export default {
     },
     async getData() {
       this.isLoading = true;
+      // quick filter changes: only the latest load writes the list (issues/279, as 219)
+      const isStale = startLoad(this);
       if (!this.year) {
         return;
       }
@@ -427,6 +430,7 @@ export default {
         };
       });
 
+      if (isStale()) return;
       this.emitted = emittedWithInfo
       this.emittedCSV = []
       this.emitted.forEach((e) => {
