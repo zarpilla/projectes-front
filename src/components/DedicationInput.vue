@@ -122,6 +122,7 @@
       :first-day-of-week="2"
       :masks="masks"
       :attributes="attributes"
+      :initial-page="calendarInitialPage"
       @update:pages="pages => pageChange(pages[0])"
       title-position="left"
       expanded
@@ -362,6 +363,8 @@ import { useMainStore } from "@/stores/main.js";
 import { formatHours, formatNumber } from "@/helpers/format-number";
 import { daysFromToday } from "@/helpers/catalan";
 import { hoursAgenda } from "@/domain/hoursAgenda";
+import { parseHours } from "@/domain/hoursInput";
+import { festiveTaken } from "@/domain/workdayLog.js";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
@@ -421,6 +424,7 @@ export default {
       dedicationObject: null,
       festiveObject: null,
       isModalFestiveActive: false,
+      savingFestive: false,
       isModalMoveToProject: false,
       trashObject: null,
       activities: [],
@@ -483,6 +487,12 @@ export default {
     },
     today() {
       return moment().format("YYYY-MM-DD");
+    },
+    // the calendar opens on the month of the date filter: switching back from
+    // «Taula» remounted it on today's month and reset the filter (issues/239)
+    calendarInitialPage() {
+      const d = this.date1 ? moment(this.date1) : moment();
+      return { month: d.month() + 1, year: d.year() };
     },
     // no person picked (not even «Totes», id 0): nobody's hours are loaded (issues/070)
     needsPerson() {
@@ -967,19 +977,29 @@ export default {
       }
     },
     async saveActivity(activity) {
+      // «1:30» is 1,5 h; what isn't a number is refused here and the modal
+      // stays open with what was typed (issues/245)
+      const hours = parseHours(activity.hours);
+      if (Number.isNaN(hours)) {
+        this.$buefy.snackbar.open({
+          message: "Les hores han de ser un número, com 1,5 o 1:30",
+          type: "is-danger",
+          queue: false
+        });
+        return;
+      }
       if (activity.counter) {
         await service({ requiresAuth: true }).delete(
           `time-counters/${activity.counter.id}`
         );
         this.counter = null;
+        // deleted: a retry after a failed save must not delete it again
+        activity.counter = null;
       }
       this.counterClicked = false;
       const activity2 = { ...activity };
       activity2.date = moment(activity.date).format("YYYY-MM-DD");
-      activity2.hours = activity.hours
-        ? activity.hours.toString().replace(",", ".")
-        : activity.hours;
-      this.isModalEditActive = false;
+      activity2.hours = hours;
 
       try {
         if (activity.id) {
@@ -992,11 +1012,17 @@ export default {
         }
       } catch (err) {
         console.error("activities error", err);
+        // the reason, and the modal stays open with what was typed (issues/245)
+        const data = err && err.response && err.response.data;
+        const reason = data && data.error && data.error.message;
         this.$buefy.snackbar.open({
-          message: "Error",
+          message: reason ? `No s'han pogut desar les hores: ${reason}` : "No s'han pogut desar les hores",
+          type: "is-danger",
           queue: false
         });
+        return;
       }
+      this.isModalEditActive = false;
 
       await this.getActivities();
       if (this.icalVisible) {
@@ -1052,6 +1078,12 @@ export default {
         return;
       }
       this.lastCalendarPage = key;
+      // the filter's own month (the calendar mounting on it): nothing to
+      // change, and a year-long filter must not shrink to it (issues/239)
+      const first = this.date1 ? moment(this.date1) : null;
+      if (first && page.year === first.year() && page.month === first.month() + 1) {
+        return;
+      }
       if (!this.moving) {
         this.$emit("calendar-changed", { year: page.year, month: page.month });
       }
@@ -1168,8 +1200,57 @@ export default {
       }
     },
     async modalFestiveSubmit(festive) {
+      // a second Enter while saving sends nothing (issues/246)
+      if (this.savingFestive) {
+        return;
+      }
+      this.savingFestive = true;
+      try {
+        await this.saveFestive(festive);
+      } finally {
+        this.savingFestive = false;
+      }
+    },
+    async saveFestive(festive) {
       const festive2 = { ...festive };
       festive2.date = moment(festive.date).format("YYYY-MM-DD");
+
+      // the working days to save; a day that already has a festive of the
+      // same person (or for everyone) is not saved twice (issues/246)
+      const dates = [];
+      const diff = !festive.id && festive.endDate
+        ? moment(festive.endDate).diff(festive.date, "days") + 1
+        : 1;
+      for (let i = 0; i < diff; i++) {
+        const d = moment(festive.date).add(i, "days");
+        if (festive.id || (d.day() !== 6 && d.day() !== 0)) {
+          dates.push(d.format("YYYY-MM-DD"));
+        }
+      }
+      let free = dates;
+      if (dates.length) {
+        try {
+          const existing = (
+            await service({ requiresAuth: true }).get(
+              `festives?_where[date_gte]=${dates[0]}&[date_lte]=${dates[dates.length - 1]}&_limit=-1`
+            )
+          ).data;
+          free = dates.filter(d => !festiveTaken(d, festive.users_permissions_user, existing, festive.id || null));
+        } catch (err) {
+          free = dates;
+        }
+      }
+      if (dates.length && !free.length) {
+        // the modal stays open to pick another day
+        this.$buefy.snackbar.open({
+          message: dates.length === 1
+            ? "Aquest dia ja hi ha un festiu d'aquesta persona"
+            : "Aquests dies ja hi ha festius d'aquesta persona",
+          type: "is-danger",
+          queue: false
+        });
+        return;
+      }
       this.isModalFestiveActive = false;
 
       try {
@@ -1179,19 +1260,9 @@ export default {
             festive2
           );
         } else {
-          const diff = festive.endDate
-            ? moment(festive.endDate).diff(festive.date, "days") + 1
-            : 1;
-          for (let i = 0; i < diff; i++) {
-            const day = moment(festive.date)
-              .add(i, "days")
-              .day();
-            if (day !== 6 && day !== 0) {
-              festive2.date = moment(festive.date)
-                .add(i, "days")
-                .format("YYYY-MM-DD");
-              await service({ requiresAuth: true }).post("festives", festive2);
-            }
+          for (const date of free) {
+            festive2.date = date;
+            await service({ requiresAuth: true }).post("festives", festive2);
           }
         }
       } catch (err) {
@@ -1207,8 +1278,11 @@ export default {
 
       this.getActivities();
 
+      const skipped = dates.length - free.length;
       this.$buefy.snackbar.open({
-        message: "Guardat",
+        message: skipped
+          ? `Guardat. ${skipped === 1 ? "1 dia ja tenia" : skipped + " dies ja tenien"} festiu i no s'ha repetit`
+          : "Guardat",
         queue: false
       });
     },

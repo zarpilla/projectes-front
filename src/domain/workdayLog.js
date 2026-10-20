@@ -19,6 +19,17 @@ export const slotMinutes = (hourIn, hourOut) => {
 // shown as a mistake to fix (issues/128)
 export const slotIsInverted = (hourIn, hourOut) => slotMinutes(hourIn, hourOut) < 0
 
+// the hours a slot gives its project's activity: 0 while it's open (an entry
+// without exit, «en curs»; it was null), null for an inverted slot, which must
+// not reach the project as negative hours (issues/244)
+export const slotActivityHours = (hourIn, hourOut) => {
+  if (!hourIn || !hourOut) {
+    return 0
+  }
+  const minutes = slotMinutes(hourIn, hourOut)
+  return minutes < 0 ? null : minutes / 60
+}
+
 // a typed hh / mm pair is a time of day: 0–23 and 0–59, digits only
 // (25:00 went to the backend and came back as a 400, issues/180)
 export const isValidTime = (h, m) =>
@@ -47,9 +58,27 @@ export const periodOn = (date, periods) =>
 export const festiveOn = (date, festives) =>
   (festives || []).find(f => f.date === date) || null
 
-export const expectedHours = (date, periods, festives) => {
-  const period = periodOn(date, periods)
-  if (!period || festiveOn(date, festives)) {
+// the festive that counts on a date: the holiday for everyone before a
+// personal day (Vacances on 1/1 is the 1/1 holiday, not a vacation day spent),
+// whatever order they come in (issues/246)
+export const countedFestiveOn = (date, festives) => {
+  const onDate = (festives || []).filter(f => f.date === date)
+  return onDate.find(f => !f.users_permissions_user) || onDate[0] || null
+}
+
+// a festive of the same person (or for everyone, both without person) already
+// on that date, other than `ownId`: saving it again made a duplicate (issues/246)
+export const festiveTaken = (date, personId, festives, ownId = null) => {
+  const person = f => (f.users_permissions_user && (f.users_permissions_user.id || f.users_permissions_user)) || null
+  return (festives || []).some(f => f.date === date && f.id !== ownId && person(f) === (personId || null))
+}
+
+// the hours of a work period on one date, festives aside: its weekly
+// distribution when it has one, otherwise its daily hours from Monday to
+// Friday. Saldo d'hores' rule, shared by Registre jornades, Bestretes and
+// Hores anuals so they all expect the same hours (issues/238).
+export const periodHours = (period, date) => {
+  if (!period) {
     return 0
   }
   const day = moment(date, 'YYYY-MM-DD').day()
@@ -58,6 +87,14 @@ export const expectedHours = (date, periods, festives) => {
     return Number.isFinite(value) ? value : 0
   }
   return day === 0 || day === 6 ? 0 : Number(period.hours) || 0
+}
+
+export const expectedHours = (date, periods, festives) => {
+  const period = periodOn(date, periods)
+  if (!period || festiveOn(date, festives)) {
+    return 0
+  }
+  return periodHours(period, date)
 }
 
 // Only the festives of the dates a screen shows: all of them took 3+ s on

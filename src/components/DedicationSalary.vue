@@ -112,7 +112,7 @@ import service from "@/service/index";
 // import map from 'lodash/map'
 import sumBy from "lodash/sumBy";
 import moment from "moment";
-import { festivesBetween } from "@/domain/workdayLog.js";
+import { festivesBetween, periodHours } from "@/domain/workdayLog.js";
 import { startLoad } from "@/domain/latestLoad.js";
 import { formatNumber, formatMoney, sign } from "@/helpers/format-number";
 
@@ -291,16 +291,16 @@ export default {
         }
         const activities = loadedActivities.filter(a => a.date === date);
         const festive = festives.find(f => f.date === date);
+        // the period's weekly distribution, as Saldo d'hores (issues/238)
+        const dayHours = periodHours(dailyDedication, date);
 
         const theoricHours =
           (!festive ||
             (festive &&
               festive.users_permissions_user &&
               festive.users_permissions_user.id)) &&
-          dailyDedication &&
-          day !== 0 &&
-          day !== 6
-            ? dailyDedication.hours
+          dailyDedication
+            ? dayHours
             : 0;
 
         const workedHours =
@@ -336,8 +336,7 @@ export default {
               festive.users_permissions_user &&
               festive.users_permissions_user.id)) &&
           dailyDedication &&
-          day !== 0 &&
-          day !== 6
+          (dailyDedication.hoursperday ? dayHours > 0 : day !== 0 && day !== 6)
         ) {
           laborableDays++;
           months[month].theoricDays += 1;
