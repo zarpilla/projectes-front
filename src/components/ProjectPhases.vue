@@ -154,7 +154,7 @@
                   placeholder="Quantitat, hores, unitats..."
                   :model-value="lineInputText(props.row, 'quantity')"
                   @update:model-value="v => lineInput(props.row, 'quantity', v)"
-                  @focus="lineInputFocus(props.row, 'quantity')"
+                  @focus="lineInputFocus(props.row, 'quantity', $event)"
                   @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
@@ -169,7 +169,7 @@
                   placeholder="Preu per unitat"
                   :model-value="lineInputText(props.row, 'amount')"
                   @update:model-value="v => lineInput(props.row, 'amount', v)"
-                  @focus="lineInputFocus(props.row, 'amount')"
+                  @focus="lineInputFocus(props.row, 'amount', $event)"
                   @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
@@ -497,7 +497,7 @@
                   placeholder="Quantitat, hores, unitats..."
                   :model-value="lineInputText(props.row, 'quantity')"
                   @update:model-value="v => lineInput(props.row, 'quantity', v)"
-                  @focus="lineInputFocus(props.row, 'quantity')"
+                  @focus="lineInputFocus(props.row, 'quantity', $event)"
                   @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
@@ -512,7 +512,7 @@
                   placeholder="Preu per unitat"
                   :model-value="lineInputText(props.row, 'amount')"
                   @update:model-value="v => lineInput(props.row, 'amount', v)"
-                  @focus="lineInputFocus(props.row, 'amount')"
+                  @focus="lineInputFocus(props.row, 'amount', $event)"
                   @blur="editingLine = null"
                   class="subphase-detail-input"
                   :disabled="!editable"
@@ -1280,8 +1280,17 @@ export default {
       if (editing && editing.row === row && editing.field === field) return editing.text;
       return budgetLineDisplay(row[field]);
     },
-    lineInputFocus(row, field) {
-      this.editingLine = { row, field, text: budgetLineDisplay(row[field], { grouped: false }) };
+    lineInputFocus(row, field, event) {
+      const text = budgetLineDisplay(row[field], { grouped: false });
+      const input = event && event.target;
+      this.editingLine = { row, field, text };
+      // «1.500» becomes «1500» while editing: the new text drops the browser's
+      // select-all of a tab-in and typing appended to the old value (issues/234)
+      if (input && typeof input.select === "function" && input.value !== text) {
+        this.$nextTick(() => {
+          if (document.activeElement === input) input.select();
+        });
+      }
     },
     lineInput(row, field, text) {
       this.editingLine = { row, field, text };
