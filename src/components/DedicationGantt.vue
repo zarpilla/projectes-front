@@ -56,13 +56,12 @@ export default {
     },
   },
   // the rows for "Exporta" (the page head has the button)
-  emits: ["export-data"],
+  emits: ["export-query"],
   data() {
     return {
       leaders: [],
       periods: [],
       cells: {},
-      pivotData: [],
       isLoading: true,
     };
   },
@@ -98,18 +97,19 @@ export default {
       const query = `projects/dedications?_where[project_state_in]=${projectStates}&hoursType=${this.hoursType}&year=${this.year || parseInt(moment().format("YYYY"))}&view=${this.view}`;
 
       try {
-        const response = await service({ requiresAuth: true }).get(query);
+        // Without the per-day rows of the Excel export: 12 MB on resilience
+        // (issues/309). «Exporta» asks for them with the same query.
+        const response = await service({ requiresAuth: true }).get(`${query}&rows=false`);
         this.leaders = response.data.leaders || [];
         this.periods = response.data.periods || [];
         this.cells = response.data.cells || {};
-        this.pivotData = response.data.dedications || [];
-        this.$emit("export-data", this.pivotData);
+        this.$emit("export-query", query);
       } catch (error) {
         console.error("Error loading dedications:", error);
         this.leaders = [];
         this.periods = [];
         this.cells = {};
-        this.pivotData = [];
+        this.$emit("export-query", null);
       } finally {
         this.isLoading = false;
       }

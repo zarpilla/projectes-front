@@ -1,8 +1,8 @@
 <template>
   <div v-if="!isLoading">
     <title-bar :title-stack="titleStack" :subtitle="subtitle">
-      <download-excel :data="exportData" :name="exportName">
-        <b-button icon-left="download" :disabled="!exportData.length">Exporta</b-button>
+      <download-excel :fetch="fetchExport" :name="exportName">
+        <b-button icon-left="download" :disabled="!exportQuery">Exporta</b-button>
       </download-excel>
     </title-bar>
     <section class="section is-main-section">
@@ -55,7 +55,7 @@
         :hours-type="filters.hoursType"
         :grouping="filters.grouping"
         :title="(filters.hoursType === 'original' ? 'Hores originals' : 'Hores previstes') + ' i ocupació per persona · ' + filters.year"
-        @export-data="exportData = $event"
+        @export-query="exportQuery = $event"
       />
       <p class="notification is-info mt-4 occupation-note">
         L'ocupació és hores previstes ÷ hores de jornada del període (jornada de la persona, sense caps de setmana, festius ni vacances).
@@ -98,7 +98,8 @@ export default {
       //years: [],
       months: null,
       selectedProjectStates: [],
-      exportData: [],
+      // the gantt's query: «Exporta» fetches its per-day rows (issues/309)
+      exportQuery: null,
       minYear: parseInt(moment().format('YYYY')) - 5,
       maxYear: parseInt(moment().format('YYYY')) + 3
     }
@@ -122,6 +123,11 @@ export default {
     this.getData()
   },
   methods: {
+    async fetchExport () {
+      if (!this.exportQuery) return []
+      const { data } = await service({ requiresAuth: true }).get(this.exportQuery)
+      return data.dedications || []
+    },
     getData () {
       service({ requiresAuth: true }).get('project-states').then((r) => {
         this.project_states = [...r.data];
