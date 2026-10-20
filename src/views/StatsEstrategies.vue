@@ -36,7 +36,7 @@ import EstrategiesPivot from '@/components/EstrategiesPivot.vue'
 import StrategiesStats from '@/components/StrategiesStats.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
-import { loadKendo } from '@/helpers/addScript'
+import { loadKendo, waitForJQuery } from '@/helpers/addScript'
 
 export default {
   name: 'StatsEstrategies',
@@ -73,15 +73,15 @@ export default {
   async mounted () {
     this.isLoading = true
 
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval)
-        await loadKendo()
-        this.isLoading = false
-        this.getData()
-      }
-    }, 100)
+    this.stopJQueryWait = waitForJQuery(async () => {
+      await loadKendo()
+      this.isLoading = false
+      this.getData()
+    })
 
+  },
+  beforeUnmount () {
+    this.stopJQueryWait()
   },
   methods: {
     getData () {

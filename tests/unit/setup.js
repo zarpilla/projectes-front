@@ -4,3 +4,10 @@ window.APP_CONFIG = {
   VUE_APP_RESET_PASSWORD: 'http://app.test/reset-password',
   VUE_APP_PATH: '/stats/'
 }
+
+// Unmount every wrapper after its test: a screen left mounted kept its timers
+// (the jQuery wait) running until the environment was gone, «window is not
+// defined» as an unhandled error that failed the run (issues/305)
+import { afterEach } from 'vitest'
+import { enableAutoUnmount } from '@vue/test-utils'
+enableAutoUnmount(afterEach)

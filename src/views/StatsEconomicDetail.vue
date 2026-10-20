@@ -57,7 +57,7 @@ import { defaultYear, fiscalYearLabel, fiscalYearOf } from "@/domain/years";
 import { loadFiscalSettings } from "@/service/fiscalYear";
 import { stateChips } from "@/domain/projectStateChips";
 import defaultProjectState from "@/service/projectState";
-import { loadKendo } from "@/helpers/addScript";
+import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import moment from "moment";
 
 export default {
@@ -113,15 +113,15 @@ export default {
   async mounted() {
     this.isLoading = true;
 
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval);
-        await loadKendo();
+    this.stopJQueryWait = waitForJQuery(async () => {
+      await loadKendo();
 
-        this.getData();
-      }
-    }, 100);
+      this.getData();
+    });
 
+  },
+  beforeUnmount() {
+    this.stopJQueryWait();
   },
   methods: {
     yearLabel(year) {

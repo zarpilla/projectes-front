@@ -604,7 +604,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
-import { loadKendo } from "@/helpers/addScript";
+import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { formatMoney, sign } from "@/helpers/format-number";
 import { ofWord } from "@/helpers/catalan";
@@ -676,18 +676,15 @@ export default {
     };
   },
   async mounted() {
-    this.jQueryWait = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(this.jQueryWait);
-        await loadKendo();
-        this.isLoading = false;
-        this.getInitialData();
-      }
-    }, 100);
+    this.stopJQueryWait = waitForJQuery(async () => {
+      await loadKendo();
+      this.isLoading = false;
+      this.getInitialData();
+    });
   },
   // the wait for jQuery must not outlive the table (it kept polling after leaving the page)
   beforeUnmount() {
-    clearInterval(this.jQueryWait);
+    this.stopJQueryWait();
   },
   watch: {
     // the year buttons only change ?year=: reload that year's data (issues/261)

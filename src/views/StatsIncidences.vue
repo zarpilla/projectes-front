@@ -32,7 +32,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import IncidencesPivot from "@/components/IncidencesPivot.vue";
 import IncidencesStatsCharts from "@/components/IncidencesStatsCharts.vue";
 import service from "@/service/index";
-import { loadKendo } from "@/helpers/addScript";
+import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import moment from "moment";
 
 export default {
@@ -63,16 +63,16 @@ export default {
   async mounted() {
     this.isLoading = true;
 
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval);
-        await loadKendo();
-        this.getData();
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 250);
-      }
-    }, 100);
+    this.stopJQueryWait = waitForJQuery(async () => {
+      await loadKendo();
+      this.getData();
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 250);
+    });
+  },
+  beforeUnmount() {
+    this.stopJQueryWait();
   },
   methods: {
     getData() {

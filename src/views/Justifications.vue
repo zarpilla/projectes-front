@@ -41,7 +41,7 @@ import { fiscalYearLabel } from '@/domain/years'
 import { loadFiscalSettings } from '@/service/fiscalYear'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
-import { loadKendo } from '@/helpers/addScript'
+import { loadKendo, waitForJQuery } from '@/helpers/addScript'
 
 export default {
   name: 'Justifications',
@@ -83,29 +83,29 @@ export default {
   mounted () {
     this.isLoading = true
 
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval)
-        await loadKendo()
+    this.stopJQueryWait = waitForJQuery(async () => {
+      await loadKendo()
 
-        // grant years read «2026/27» when they are fiscal years (Configuració general)
-        const fiscal = await loadFiscalSettings()
-        this.grantStartMonth = fiscal.grantableFiscal ? fiscal.startMonth : 1
-        const r = await service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC')
-        const years = r.data
-        years.unshift({ id: -1, year: 'Tots' })
-        this.filters.year = years[0]
-        this.years = years
+      // grant years read «2026/27» when they are fiscal years (Configuració general)
+      const fiscal = await loadFiscalSettings()
+      this.grantStartMonth = fiscal.grantableFiscal ? fiscal.startMonth : 1
+      const r = await service({ requiresAuth: true, cached: true }).get('years?_sort=year:DESC')
+      const years = r.data
+      years.unshift({ id: -1, year: 'Tots' })
+      this.filters.year = years[0]
+      this.years = years
 
-        this.projectStates = await service({ requiresAuth: true, cached: true })
-          .get('project-states')
-          .then(r => r.data)
-        this.projectStates.unshift({ id: 0, name: 'Tots' })
-        this.filters.project_state = 1
+      this.projectStates = await service({ requiresAuth: true, cached: true })
+        .get('project-states')
+        .then(r => r.data)
+      this.projectStates.unshift({ id: 0, name: 'Tots' })
+      this.filters.project_state = 1
 
-        this.isLoading = false        
-      }
-    }, 100)   
+      this.isLoading = false        
+    })
+  },
+  beforeUnmount () {
+    this.stopJQueryWait()
   },
   methods: {
   }

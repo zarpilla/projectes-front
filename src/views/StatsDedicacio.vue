@@ -62,7 +62,7 @@ import DedicationCharts from '@/components/DedicationCharts.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { defaultYear } from '@/domain/years'
-import { loadKendo } from '@/helpers/addScript'
+import { loadKendo, waitForJQuery } from '@/helpers/addScript'
 import { canPickPerson, userPermissions } from '@/domain/routeAccess'
 import moment from 'moment'
 
@@ -117,14 +117,14 @@ export default {
     }
   },
   async mounted () {
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval)
-        await loadKendo()
-        await this.getData()
-        this.isLoading = false
-      }
-    }, 100)
+    this.stopJQueryWait = waitForJQuery(async () => {
+      await loadKendo()
+      await this.getData()
+      this.isLoading = false
+    })
+  },
+  beforeUnmount () {
+    this.stopJQueryWait()
   },
   methods: {
     async getData () {

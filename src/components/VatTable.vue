@@ -321,7 +321,7 @@ import { useMainStore } from "@/stores/main.js";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
-import { loadKendo } from "@/helpers/addScript";
+import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from '@/components/PivotViews.vue'
@@ -384,15 +384,15 @@ export default {
     };
   },
   async mounted() {
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval);
-        await loadKendo();
-        this.isLoading = false;
-        this.vat_paid_date = moment().toDate();
-        this.getInitialData();
-      }
-    }, 100);
+    this.stopJQueryWait = waitForJQuery(async () => {
+      await loadKendo();
+      this.isLoading = false;
+      this.vat_paid_date = moment().toDate();
+      this.getInitialData();
+    });
+  },
+  beforeUnmount() {
+    this.stopJQueryWait();
   },
   computed: {
     hasDeductible() {

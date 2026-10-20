@@ -60,3 +60,16 @@ export const loadKendo = async (base = import.meta.env.VUE_APP_PATH) => {
     await (file.endsWith('.js') ? addScript(src, id) : addStyle(src, id))
   }
 }
+
+// Runs `ready` once window.jQuery exists (Kendo needs it) and returns a function
+// that stops waiting. Call it on unmount: the wait kept polling, and later loaded
+// Kendo and data, for a screen that was already left (issues/305).
+export const waitForJQuery = (ready, every = 100) => {
+  const timer = setInterval(() => {
+    if (window.jQuery) {
+      clearInterval(timer)
+      ready()
+    }
+  }, every)
+  return () => clearInterval(timer)
+}

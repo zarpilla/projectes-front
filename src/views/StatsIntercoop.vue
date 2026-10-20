@@ -29,7 +29,7 @@ import CardComponent from '@/components/CardComponent.vue'
 import IntercoopPivot from '@/components/IntercoopPivot.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
-import { loadKendo } from '@/helpers/addScript'
+import { loadKendo, waitForJQuery } from '@/helpers/addScript'
 import getConfig from '@/config'
 
 export default {
@@ -59,17 +59,17 @@ export default {
   async mounted () {
     this.isLoading = true
 
-    const interval = setInterval(async () => {
-      if (window.jQuery) {
-        clearInterval(interval)
-        const config = getConfig();
-        const basePath = config.VUE_APP_PATH || '';
-        await loadKendo(basePath)
-        this.isLoading = false
-        this.getData()
-      }
-    }, 100)
+    this.stopJQueryWait = waitForJQuery(async () => {
+      const config = getConfig();
+      const basePath = config.VUE_APP_PATH || '';
+      await loadKendo(basePath)
+      this.isLoading = false
+      this.getData()
+    })
 
+  },
+  beforeUnmount () {
+    this.stopJQueryWait()
   },
   methods: {
     getData () {
