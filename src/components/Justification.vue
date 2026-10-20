@@ -530,7 +530,7 @@ import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
-import { grantableAmountForYear } from "@/domain/grantable";
+import { grantableAmountForYear, grantableAmountAllYears } from "@/domain/grantable";
 import { fiscalYearLabel, fiscalYearOf } from "@/domain/years";
 import { loadFiscalSettings } from "@/service/fiscalYear";
 import { format } from "@/helpers/excelFormatter";
@@ -731,7 +731,7 @@ export default {
           return {
             project: id,
             cost: _.sumBy(rows, r => r.cost),
-            grantable_amount: rows[0].grantable_amount
+            grantable_amount: this.grantableOfProjectName(id)
           };
         })
         .value();
@@ -762,7 +762,7 @@ export default {
         .map((rows, id) => {
           // Get the project and year to find the correct grantable amount
           const project = rows[0].project;
-          const year = this.grantYearOf(this.justificationDate(rows[0]));
+          const year = this.justificationGrantYear(rows[0]);
           return {
             project: id,
             cost: _.sumBy(rows, r => r.quantity),
@@ -776,23 +776,17 @@ export default {
         .value();
 
       // Get all projects that should have invoice justifications (grantable_structural_expenses_justify_invoices > 0)
+      // issues/263: the chosen year's amount (all years with «Tots»)
       const projectsWithGrantableInvoices = this.projects
-        .filter(project => {
-          // Check if any year has grantable_structural_expenses_justify_invoices > 0
-          const totalGrantable = this.getTotalGrantableAmount(
-            project,
-            "grantable_structural_expenses_justify_invoices"
-          );
-          return totalGrantable > 0;
-        })
         .map(project => ({
           project: project.name,
           cost: 0, // Default to 0 if no justifications yet
-          grantable_amount: this.getTotalGrantableAmount(
+          grantable_amount: this.grantableForSelectedYear(
             project,
             "grantable_structural_expenses_justify_invoices"
           )
-        }));
+        }))
+        .filter(row => row.grantable_amount > 0);
       // Merge both arrays, giving priority to actual justifications
       const combined = _.concat(
         projectsWithGrantableInvoices,
@@ -817,13 +811,17 @@ export default {
       // For "Manuals previstes", only include manual justifications but show all projects
       if (this.type === "Manuals previstes") {
         // Get all grantable projects with their grantable amounts
-        const projectsWithGrantable = this.projects.map(project => {
-          return {
-            project: project.name,
-            cost: 0, // Will be filled from justifications
-            grantable_amount: this.getTotalGrantableAmount(project, "grantable_amount")
-          };
-        });
+        // issues/263: the chosen year's amount (all years with «Tots»); with a
+        // year, only the projects with an amount for it (or a justification)
+        const projectsWithGrantable = this.projects
+          .map(project => {
+            return {
+              project: project.name,
+              cost: 0, // Will be filled from justifications
+              grantable_amount: this.grantableForSelectedYear(project, "grantable_amount")
+            };
+          })
+          .filter(row => !this.theYear || Number(row.grantable_amount));
         
         // Merge with justifications data
         const combined = _.concat(projectsWithGrantable, this.summaryJustificationsByProject);
@@ -851,7 +849,9 @@ export default {
           return {
             project: id,
             cost: _.sumBy(rows, r => r.cost),
-            grantable_amount: rows[0].grantable_amount
+            // issues/263: the project's amount for the chosen year (all
+            // years with «Tots»), not the first row's (a justification has none)
+            grantable_amount: this.grantableOfProjectName(id)
           };
         })
         .value();
@@ -1357,6 +1357,33 @@ export default {
     justificationDate(j) {
       return `${j.year}-${this.zeroPad(j.month, 2)}-01`;
     },
+    // The grant year of a justification. Invoice justifications may have no
+    // month: their year is the grant year as entered (issues/263; it built
+    // «2025-null-01» and the row disappeared when a year was chosen).
+    justificationGrantYear(j) {
+      if (!j.month) return j.year === null || j.year === undefined ? "" : String(j.year);
+      return this.grantYearOf(this.justificationDate(j));
+    },
+    // The justifications of the chosen grant year
+    filterJustifications(justifications) {
+      return justifications.filter(j => {
+        if (this.theYear && this.justificationGrantYear(j) !== this.theYear.toString()) return false;
+        return true;
+      });
+    },
+    // A project's amount (to justify by default) for the chosen grant year,
+    // or the sum of all its years with «Tots» (issues/263)
+    grantableForSelectedYear(project, field = "grantable_amount") {
+      if (!project) return 0;
+      return Number(
+        this.theYear
+          ? this.getGrantableAmountForYear(project, this.theYear, field)
+          : this.getTotalGrantableAmount(project, field)
+      ) || 0;
+    },
+    grantableOfProjectName(name, field = "grantable_amount") {
+      return this.grantableForSelectedYear(this.projects.find(p => p.name === name), field);
+    },
     // «2026», or «2026/27» when grant years are fiscal
     grantYearLabel(year) {
       return fiscalYearLabel(year, this.grantStartMonth);
@@ -1372,18 +1399,7 @@ export default {
 
     // Helper function to get total grantable amount for all years
     getTotalGrantableAmount(project, field = "grantable_amount") {
-      if (
-        !project ||
-        !project.grantable_years ||
-        !project.grantable_years.length
-      ) {
-        // Fallback to old structure
-        return project[field] || 0;
-      }
-
-      return project.grantable_years.reduce((total, gy) => {
-        return total + (gy[field] || 0);
-      }, 0);
+      return grantableAmountAllYears(project, field);
     },
     // Check if a justification row exceeds 100% for its user/month
     isJustificationExceeding100(row) {
@@ -1511,11 +1527,11 @@ export default {
       const justificationQueries = this.theYear
         ? calendarYears.map(y => `justifications?year=${y}&_limit=-1`)
         : [`justifications?_limit=-1`];
-      const justifications = (
+      const loadedJustifications = (
         await Promise.all(justificationQueries.map(q => service({ requiresAuth: true }).get(q)))
       )
-        .flatMap(r => r.data)
-        .filter(j => this.inGrantYear(this.justificationDate(j)));
+        .flatMap(r => r.data);
+      const justifications = this.filterJustifications(loadedJustifications);
 
       this.dedications = (
         await service({ requiresAuth: true }).get("daily-dedications?_limit=-1")
