@@ -140,7 +140,7 @@ jobs:
       # The first boot creates every table and then seeds: a few minutes.
       - name: Wait for the backend
         run: |
-          timeout 600 bash -c 'until curl -sf -o /dev/null "$E2E_API_URL/api/logos?_limit=1"; do
+          timeout 600 bash -c 'until curl -sf -o /dev/null "$E2E_API_URL/_health"; do
             docker inspect -f "{{.State.Running}}" backend | grep -q true || { echo "the backend stopped"; exit 1; }
             sleep 5
           done'
