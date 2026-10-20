@@ -76,7 +76,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: "PDF de factures i pressupostos: els imports de cada línia i el descompte quadren amb els totals, i quantitats i percentatges porten coma decimal. La previsió de cobrament ja no queda abans de la data d'emissió, i la casella «Cobrada/Pagada» i la seva data van juntes. Les rectificatives proposen la sèrie rectificativa de l'any de la factura i avisen si no n'hi ha."
+      text: "PDF de factures i pressupostos: els imports de cada línia i el descompte quadren amb els totals, i quantitats i percentatges porten coma decimal. La previsió de cobrament ja no queda abans de la data d'emissió, i la casella «Cobrada/Pagada» i la seva data van juntes. Les rectificatives sempre van en una sèrie marcada com a rectificativa: es proposa la de l'any de la factura (o, si no n'hi ha, la més recent, amb un avís), i sense cap sèrie rectificativa no es poden desar."
     },
     {
       type: "Millores",

@@ -11,7 +11,7 @@ import Home from '@/views/Home.vue'
 import { sortProjectsByName } from '@/domain/projectList'
 import { withoutHoursNote } from '@/domain/pricePerHour'
 import { projectDocuments, projectDocumentAmounts } from '@/domain/projectDocuments'
-import { rectificativeSerial } from '@/domain/rectificativeSerial'
+import { rectificativeSerial, isRectificativeSerial } from '@/domain/rectificativeSerial'
 import ModalBoxWorkingDay from '@/components/ModalBoxWorkingDay.vue'
 
 const names = ['ACTGI', 'Adrinoc', 'AKIS', 'APACAT', 'àrea', 'Bosc']
@@ -99,10 +99,26 @@ describe('rectificative series', () => {
     expect(r.missingYear).toBe(false)
   })
 
-  it('says so when that year has none', () => {
-    const r = rectificativeSerial(series.slice(0, 2), new Date(2026, 9, 20))
-    expect(r.serial).toBe(null)
+  // the user (2026-10-20): a rectificative always goes in a series flagged
+  // rectificative, of its year or not
+  it('falls back to the latest rectificative series when that year has none, and says so', () => {
+    const r = rectificativeSerial([...series.slice(0, 2), { id: 9, name: 'R2024', rectificative: true }], new Date(2026, 9, 20))
+    expect(r.serial).toBe(12)
+    expect(r.serialName).toBe('R2025')
     expect(r.missingYear).toBe(true)
     expect(r.year).toBe('2026')
+  })
+
+  it('has no series when none is flagged rectificative', () => {
+    const r = rectificativeSerial(series.slice(0, 1), new Date(2026, 9, 20))
+    expect(r.serial).toBe(null)
+    expect(r.missingYear).toBe(false)
+  })
+
+  it('only accepts a series flagged rectificative for a rectificative', () => {
+    expect(isRectificativeSerial(series, 18)).toBe(true)
+    expect(isRectificativeSerial(series, { id: 12 })).toBe(true)
+    expect(isRectificativeSerial(series, 13)).toBe(false)
+    expect(isRectificativeSerial(series, null)).toBe(false)
   })
 })

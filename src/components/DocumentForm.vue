@@ -1073,7 +1073,7 @@
 <script>
 // External libraries
 import moment from "moment";
-import { rectificativeSerial } from "@/domain/rectificativeSerial";
+import { rectificativeSerial, isRectificativeSerial } from "@/domain/rectificativeSerial";
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
@@ -2014,6 +2014,17 @@ export default {
             this.$buefy.snackbar.open({
               message:
                 "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+              queue: false
+            });
+            this.isLoading = false;
+            return;
+          }
+
+          // a rectificative only goes in a series flagged rectificative (issues/257)
+          if (this.form.rectified_invoice && !isRectificativeSerial(this.series, this.form.serial)) {
+            this.$buefy.snackbar.open({
+              message:
+                "Error. Una factura rectificativa ha d'anar en una sèrie marcada com a rectificativa. Creeu-ne una des de l'àrea d'administració.",
               queue: false
             });
             this.isLoading = false;
@@ -2962,7 +2973,7 @@ export default {
         });
       } else if (rectificative.missingYear) {
         this.$buefy.snackbar.open({
-          message: `No hi ha cap sèrie rectificativa de ${rectificative.year}: la factura es numerarà a la sèrie que triïs. Si cal, creeu-ne una des de l'àrea d'administració (marcada com a rectificativa).`,
+          message: `No hi ha cap sèrie rectificativa de ${rectificative.year}: la factura es numerarà a la sèrie ${rectificative.serialName}. Si en voleu una de ${rectificative.year}, creeu-la des de l'àrea d'administració (marcada com a rectificativa).`,
           queue: false,
           indefinite: true
         });
