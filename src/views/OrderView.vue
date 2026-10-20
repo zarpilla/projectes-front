@@ -451,7 +451,8 @@ export default {
     formCardTitle() {
       if (this.order && this.order.id) {
         const collectionSuffix = this.order.is_collection_order ? "-R" : "";
-        const pickupLabel = this.order.pickup_point ? " (Punt Recollida)" : "";
+        // a consumption point, as it is called everywhere else (issues/298)
+        const pickupLabel = this.order.pickup_point ? " (Punt de consum)" : "";
         return `Comanda #${this.order.id
           .toString()
           .padStart(4, "0")}${collectionSuffix}${pickupLabel}`;
@@ -595,6 +596,14 @@ export default {
     transferPickupText() {
       if (!this.order) return "";
 
+      // a farm pickup (-R) goes from the farm to the warehouse on its route:
+      // «Girona -> <ruta>» read as a delivery out of the warehouse (issues/298)
+      if (this.order.is_collection_order) {
+        const farm = this.order.contact && (this.order.contact.trade_name || this.order.contact.name);
+        const warehouse = this.order.pickup && (this.order.pickup.alias || this.order.pickup.name);
+        return farm && warehouse ? `${farm} -> ${warehouse}` : "";
+      }
+
       // Build movement chain showing all steps from pickup to delivery
       const movements = [];
 
@@ -654,6 +663,7 @@ export default {
     },
     routeLabel() {
       if (!this.order) return "Ruta completa:";
+      if (this.order.is_collection_order) return "Recollida:";
       
       // Determine label based on whether there's a transfer involved
       const isTransfer =
