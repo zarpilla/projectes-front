@@ -79,3 +79,47 @@ describe('order view tracking (issues/250)', () => {
     }
   })
 })
+
+// issues/266: an order set back from Lliurada to Processada kept its
+// delivery_date and the view showed it delivered («Lliurada 20/10/2026»,
+// «Pendent de facturar») next to a Processada badge.
+describe('stale delivery date (issues/266)', () => {
+  const base = { id: 24867, pickup: { id: 2, pickup: false }, createdAt: '2026-10-07T08:00:00Z', delivery_date: '2026-10-20', estimated_delivery_date: '2026-10-20' }
+
+  it('a processed order with a delivery date left is not delivered', () => {
+    const vm = view({ ...base, status: 'processed' })
+    expect(vm.currentStep).not.toBe(4)
+    expect(step(vm, 'delivered').done).toBe(false)
+    expect(step(vm, 'delivered').detail).not.toBe('20/10/2026')
+    expect(step(vm, 'invoiced').detail).toBe('Quan es lliuri')
+  })
+
+  it('a delivered order still is', () => {
+    const vm = view({ ...base, status: 'delivered' })
+    expect(vm.currentStep).toBe(4)
+    expect(step(vm, 'delivered').done).toBe(true)
+  })
+})
+
+// issues/267: farm pickups and collection orders (-R) listed a «Dipositada ·
+// Al punt de recollida …» step that never happens; once the -R order is
+// collected (the backend copies its pickup to its orders) they show collected.
+describe('farm pickups have no deposit step (issues/267)', () => {
+  const base = { id: 24786, status: 'processed', createdAt: '2026-10-07T08:00:00Z' }
+
+  it('a farm pickup and a collection order have none', () => {
+    expect(step(view({ ...base, pickup: { id: 3, pickup: true } }), 'deposit')).toBeUndefined()
+    expect(step(view({ ...base, id: 24787, is_collection_order: true, pickup: { id: 3, pickup: true } }), 'deposit')).toBeUndefined()
+  })
+
+  it('an order deposited at a pickup point keeps it', () => {
+    expect(step(view({ ...base, pickup: { id: 2, pickup: false } }), 'deposit').title).toBe('Dipositada')
+  })
+
+  it('a farm pickup collected with its -R order is past the farm', () => {
+    const vm = view({ ...base, pickup: { id: 3, pickup: true }, pickup_date: '2026-10-20T07:30:00Z' })
+    expect(step(vm, 'pickup').done).toBe(true)
+    expect(vm.currentStep).toBe(2)
+    expect(vm.nextAction).toBe(null)
+  })
+})

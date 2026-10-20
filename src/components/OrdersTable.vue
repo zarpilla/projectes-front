@@ -440,6 +440,12 @@ import { invoicedPrice } from "@/domain/logisticsInvoicing";
 // a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
 // example rows hold "1"/"0" strings (issues/251)
 const flag01 = value => (value === true || value === 1 || value === "1" ? 1 : 0);
+// the kilos of an imported row, with their decimals and a comma or a point:
+// parseInt read 12.5 as 12 and refused 0.5 (issues/269); NaN when not a number
+const csvKilograms = value => {
+  const text = String(value === undefined || value === null ? "" : value).trim().replace(",", ".");
+  return /^-?(\d+\.?\d*|\.\d+)$/.test(text) ? Number(text) : NaN;
+};
 
 export default {
   name: "OrdersTable",
@@ -1908,7 +1914,7 @@ export default {
         //   this.csvErrors.push({ line: i, error: "No contact_time_slot_1_end" });
         //   return false;
         // }
-        if (!record.kilograms || parseInt(record.kilograms) <= 0) {
+        if (!(csvKilograms(record.kilograms) > 0)) {
           this.csvErrors.push({
             line: i,
             error: "Kilograms incorrectes (kilograms)"
@@ -2013,7 +2019,7 @@ export default {
               ? this.deliveryTypes.find(d => d.refrigerated)
               : this.deliveryTypes.find(d => !d.refrigerated),
           pickup: pickup,
-          kilograms: Math.abs(parseInt(record.kilograms)),
+          kilograms: csvKilograms(record.kilograms),
           units: Math.abs(parseInt(record.units)),
           notes: record.notes,
           comments: record.notes,

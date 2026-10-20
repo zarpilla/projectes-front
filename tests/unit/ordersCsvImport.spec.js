@@ -87,3 +87,24 @@ describe('orders CSV import (issues/231)', () => {
     expect(c.orders[0].contact.id).toBe(10)
   })
 })
+
+// issues/269: the import read the kilos with parseInt: 12.5 became 12 kg (and
+// its price) and 0.5 was refused as «Kilograms incorrectes».
+describe('orders CSV import kilos (issues/269)', () => {
+  it.each([['12.5', 12.5], ['12,5', 12.5], ['0.5', 0.5], ['0,25', 0.25], ['12', 12], [' 3,75 ', 3.75]])(
+    'keeps %s as %s kg',
+    async (kilograms, expected) => {
+      const c = ctx()
+      await importCSV.call(c, [record({ kilograms })])
+      expect(c.csvErrors).toEqual([])
+      expect(c.orders[0].kilograms).toBe(expected)
+    }
+  )
+
+  it.each([['0'], ['-2'], ['abc'], [''], ['1.2.3']])('refuses %s', async (kilograms) => {
+    const c = ctx()
+    await importCSV.call(c, [record({ kilograms })])
+    expect(c.csvErrors).toEqual([expect.objectContaining({ error: 'Kilograms incorrectes (kilograms)' })])
+    expect(c.orders).toHaveLength(0)
+  })
+})

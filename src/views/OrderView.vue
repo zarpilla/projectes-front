@@ -332,7 +332,9 @@ export default {
     currentStep() {
       const o = this.order;
       if (!o) return 0;
-      if (["delivered", "invoiced"].includes(o.status) || o.delivery_date) return 4;
+      // delivered by its status: a delivery_date left on an order set back
+      // before delivery is stale (issues/266)
+      if (this.isDelivered) return 4;
       // away from a farm, pickup_date is the driver's «Carregat»: loaded on
       // the delivery route, so the order is out on it (issues/250)
       if (!this.isFarmPickup && o.pickup_date) return 2;
@@ -341,14 +343,21 @@ export default {
       if (o.transfer && !o.transfer_end_date) return 1;
       return 2;
     },
+    isDelivered() {
+      return !!this.order && ["delivered", "invoiced"].includes(this.order.status);
+    },
     // the tracking, done and pending moves with their actions
     timeline() {
       const o = this.order;
       if (!o) return [];
       const who = user => (user && typeof user === "object" ? ` · ${user.fullname || user.username}` : "");
       const steps = [
-        { key: "created", title: "Comanda creada", done: true, detail: `${this.formatDateTime(o.createdAt || o.created_at)} · ${this.ownerName}`, actions: [] },
-        {
+        { key: "created", title: "Comanda creada", done: true, detail: `${this.formatDateTime(o.createdAt || o.created_at)} · ${this.ownerName}`, actions: [] }
+      ];
+      // a farm pickup and a collection order are collected at the farm, never
+      // deposited at a pickup point (issues/267)
+      if (!this.isFarmPickup && !o.is_collection_order) {
+        steps.push({
           key: "deposit",
           title: "Dipositada",
           done: !!o.deposit_date,
@@ -357,8 +366,8 @@ export default {
             { kind: "do", label: "Dipositar", icon: "package-down", action: this.depositOrder, visible: this.canDeposit },
             { kind: "undo", label: "Desfer dipòsit", action: this.removeDeposit, visible: this.canRemoveDeposit }
           ]
-        }
-      ];
+        });
+      }
       if (this.isFarmPickup || o.pickup_date || o.is_collection_order) {
         // pickup_date of an order that is not picked up at a farm is the
         // driver's «Carregat» (issues/250)
@@ -403,12 +412,12 @@ export default {
       steps.push({
         key: "delivered",
         title: "Lliurada",
-        done: !!o.delivery_date || ["delivered", "invoiced"].includes(o.status),
-        detail: o.delivery_date ? this.formatDate(o.delivery_date) : o.estimated_delivery_date ? `Prevista ${this.shortDay(o.estimated_delivery_date)} · ${this.routeName}` : "Pendent",
+        done: this.isDelivered,
+        detail: this.isDelivered && o.delivery_date ? this.formatDate(o.delivery_date) : o.estimated_delivery_date ? `Prevista ${this.shortDay(o.estimated_delivery_date)} · ${this.routeName}` : "Pendent",
         actions: []
       });
       if (this.showsPrice) {
-        const delivered = !!o.delivery_date || ["delivered", "invoiced"].includes(o.status);
+        const delivered = this.isDelivered;
         steps.push({
           key: "invoiced",
           title: "Facturada",
