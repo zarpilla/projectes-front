@@ -200,7 +200,7 @@
               <p v-if="order.comments" class="important"><b>Informació important:</b> {{ order.comments }}</p>
             </section>
 
-            <section v-if="!order.is_collection_order" class="a-box">
+            <section v-if="showsPrice" class="a-box">
               <header class="box-head"><h2>Preu</h2></header>
               <dl class="facts">
                 <template v-if="order.route_rate && order.route_rate.name"><dt>Tarifa</dt><dd>{{ order.route_rate.name }}</dd></template>
@@ -333,6 +333,9 @@ export default {
       const o = this.order;
       if (!o) return 0;
       if (["delivered", "invoiced"].includes(o.status) || o.delivery_date) return 4;
+      // away from a farm, pickup_date is the driver's «Carregat»: loaded on
+      // the delivery route, so the order is out on it (issues/250)
+      if (!this.isFarmPickup && o.pickup_date) return 2;
       const pickedUp = this.isFarmPickup ? !!o.pickup_date : !!o.deposit_date;
       if (!pickedUp) return 0;
       if (o.transfer && !o.transfer_end_date) return 1;
@@ -357,16 +360,19 @@ export default {
         }
       ];
       if (this.isFarmPickup || o.pickup_date || o.is_collection_order) {
+        // pickup_date of an order that is not picked up at a farm is the
+        // driver's «Carregat» (issues/250)
+        const atFarm = this.isFarmPickup || o.is_collection_order;
         steps.push({
           key: "pickup",
-          title: "Recollida a la finca",
+          title: atFarm ? "Recollida a la finca" : "Carregada",
           done: !!o.pickup_date,
           detail: o.pickup_date
             ? `${this.formatDateTime(o.pickup_date)}${who(o.pickup_user)}`
             : o.collection_pickup_date ? `Prevista ${this.shortDay(o.collection_pickup_date)}${o.collection_pickup_route ? ` · ${o.collection_pickup_route.name}` : ""}` : "Pendent",
           actions: [
             { kind: "do", label: "Recollir", icon: "package-up", action: this.pickupOrder, visible: this.canPickup },
-            { kind: "undo", label: "Desfer recollida", action: this.removePickup, visible: this.canRemovePickup }
+            { kind: "undo", label: atFarm ? "Desfer recollida" : "Desfer càrrega", action: this.removePickup, visible: this.canRemovePickup }
           ]
         });
       }
@@ -401,16 +407,28 @@ export default {
         detail: o.delivery_date ? this.formatDate(o.delivery_date) : o.estimated_delivery_date ? `Prevista ${this.shortDay(o.estimated_delivery_date)} · ${this.routeName}` : "Pendent",
         actions: []
       });
-      if (!o.is_collection_order) {
+      if (this.showsPrice) {
+        const delivered = !!o.delivery_date || ["delivered", "invoiced"].includes(o.status);
         steps.push({
           key: "invoiced",
           title: "Facturada",
           done: o.status === "invoiced" || !!o.emitted_invoice,
-          detail: o.emitted_invoice_datetime ? this.formatDateTime(o.emitted_invoice_datetime) : o.status === "invoiced" ? "Facturada a la sòcia" : "Quan es lliuri",
+          detail: o.emitted_invoice_datetime ? this.formatDateTime(o.emitted_invoice_datetime) : o.status === "invoiced" ? "Facturada a la sòcia" : delivered ? "Pendent de facturar" : "Quan es lliuri",
           actions: []
         });
       }
       return steps;
+    },
+    // the price box and the Facturada step: every order but the collection
+    // orders that are not invoiced nor priced (issues/250)
+    showsPrice() {
+      const o = this.order;
+      if (!o) return false;
+      return !o.is_collection_order || o.status === "invoiced" || !!o.emitted_invoice || Number(o.price) > 0;
+    },
+    // no more moves once an order is delivered, invoiced or cancelled (issues/250)
+    isClosedOrder() {
+      return !!this.order && ["delivered", "invoiced", "cancelled"].includes(this.order.status);
     },
     // the main action of the head: the next move of the order
     nextAction() {
@@ -659,6 +677,7 @@ export default {
       return (
         this.order &&
         !this.order.pickup_date &&
+        !this.isClosedOrder &&
         (this.permissions.includes("orders_admin") ||
           this.permissions.includes("orders_delivery"))
       );
@@ -669,6 +688,7 @@ export default {
         this.order &&
         this.order.transfer &&
         !this.order.transfer_start_date &&
+        !this.isClosedOrder &&
         (this.permissions.includes("orders_admin") ||
           this.permissions.includes("orders_delivery"))
       );
@@ -680,6 +700,7 @@ export default {
         this.order.transfer &&
         this.order.transfer_start_date &&
         !this.order.transfer_end_date &&
+        !this.isClosedOrder &&
         (this.permissions.includes("orders_admin") ||
           this.permissions.includes("orders_delivery"))
       );
