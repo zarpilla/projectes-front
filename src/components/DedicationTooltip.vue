@@ -78,8 +78,8 @@
       <div v-else class="dt-empty">{{ emptyText }}</div>
     </div>
 
-    <!-- Footer: capacity + festive + excedent -->
-    <template v-if="hasBreakdown">
+    <!-- Footer: capacity + festive + excedent (also without hours, issues/300) -->
+    <template v-if="hasBreakdown || hasExpected">
       <div class="dt-divider"></div>
       <div class="dt-footer">
         <div class="dt-row dt-capacity">
@@ -140,7 +140,12 @@ export default {
     hasBreakdown() {
       return this.breakdown.length > 0;
     },
+    // a working day to compare with: the footer gives «Hores període» (issues/300)
+    hasExpected() {
+      return Number(this.cell.expected) > 0;
+    },
     emptyText() {
+      if (this.hasExpected) return "Sense hores";
       return this.cell.tooltip || "Sense dedicació";
     },
     totalHoursFormatted() {

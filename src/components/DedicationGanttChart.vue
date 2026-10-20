@@ -37,7 +37,7 @@
                 @mouseleave="scheduleHide"
                 @click="pinTooltip($event, cell(leader.id, period.key))"
               >
-                <div v-if="Number(cell(leader.id, period.key).hours)" class="cell-content">
+                <div v-if="Number(cell(leader.id, period.key).hours) || hasSchedule(cell(leader.id, period.key))" class="cell-content">
                   <div class="hours">{{ hoursText(cell(leader.id, period.key).hours) }}</div>
                   <div class="percentage">{{ percentText(cell(leader.id, period.key)) }}</div>
                 </div>
@@ -208,7 +208,13 @@ export default {
       const n = Math.round(Number(c.percentage) || 0);
       return (n < 85 ? "↓ " : n > 105 ? "↑ " : "") + n + " %";
     },
+    // no hours, but a working day to compare with: 0 % of its hours, not «Sense
+    // dedicació» (issues/300)
+    hasSchedule(c) {
+      return !Number(c.hours) && Number(c.expected) > 0;
+    },
     cellClass(c) {
+      if (this.hasSchedule(c)) return c.cssClass;
       if (!Number(c.hours)) return "dedication-empty";
       return this.noSchedule(c) ? "dedication-nojornada" : c.cssClass;
     },
@@ -231,6 +237,7 @@ export default {
     _hasContent(cellObj) {
       if (!cellObj) return false;
       if (Array.isArray(cellObj.breakdown) && cellObj.breakdown.length) return true;
+      if (Number(cellObj.expected) > 0) return true;
       return cellObj.tooltip && cellObj.tooltip !== "Sense dedicació";
     },
 
