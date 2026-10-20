@@ -352,8 +352,12 @@ export default {
       if (!o) return [];
       const who = user => (user && typeof user === "object" ? ` · ${user.fullname || user.username}` : "");
       const steps = [
-        { key: "created", title: "Comanda creada", done: true, detail: `${this.formatDateTime(o.createdAt || o.created_at)} · ${this.ownerName}`, actions: [] },
-        {
+        { key: "created", title: "Comanda creada", done: true, detail: `${this.formatDateTime(o.createdAt || o.created_at)} · ${this.ownerName}`, actions: [] }
+      ];
+      // a farm pickup and a collection order are collected at the farm, never
+      // deposited at a pickup point (issues/267)
+      if (!this.isFarmPickup && !o.is_collection_order) {
+        steps.push({
           key: "deposit",
           title: "Dipositada",
           done: !!o.deposit_date,
@@ -362,8 +366,8 @@ export default {
             { kind: "do", label: "Dipositar", icon: "package-down", action: this.depositOrder, visible: this.canDeposit },
             { kind: "undo", label: "Desfer dipòsit", action: this.removeDeposit, visible: this.canRemoveDeposit }
           ]
-        }
-      ];
+        });
+      }
       if (this.isFarmPickup || o.pickup_date || o.is_collection_order) {
         // pickup_date of an order that is not picked up at a farm is the
         // driver's «Carregat» (issues/250)
