@@ -2043,18 +2043,26 @@
             label="Import"
             field="document.total_base"
             sortable
+            :custom-sort="sortDocumentsByProjectAmount"
             numeric
             v-slot="props"
             class="has-text-right"
           >
+            <!-- the part of the document on this project's lines (issues/257) -->
             <money-format
-              :value="props.row.document.total_base * props.row.multiplier"
+              :value="documentProjectAmount(props.row) * props.row.multiplier"
               :locale="'es'"
               :currency-code="'EUR'"
               :subunits-value="false"
               :hide-subunits="false"
             >
             </money-format>
+            <p
+              v-if="documentProjectAmount(props.row) !== (Number(props.row.document.total_base) || 0)"
+              class="is-size-7 has-text-grey"
+            >
+              de {{ formatMoney(props.row.document.total_base * props.row.multiplier) }}
+            </p>
           </b-table-column>
           <b-table-column
             label="Pagat"
@@ -2522,7 +2530,7 @@
 // External libraries
 import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
-import { projectDocuments, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
+import { projectDocuments, projectDocumentAmounts, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
 import { isDuplicateCodeError, projectSaveErrorMessage, DUPLICATE_CODE_FIELD_MESSAGE } from "@/domain/projectSaveError";
 import { projectTrashDialog } from "@/domain/projectTrash";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
@@ -2851,6 +2859,9 @@ export default {
     documents() {
       return projectDocuments(this.form, this.documentTypes);
     },
+    documentAmounts() {
+      return projectDocumentAmounts(this.form);
+    },
     treasuryDone() {
       return projectTreasuryDone(this.form);
     },
@@ -3019,6 +3030,16 @@ export default {
     formatMoney,
     formatNumber,
     sign,
+    // a document's amount in Moviments: what this project's lines have of it,
+    // its whole base when it is on none of them (issues/257)
+    documentProjectAmount(row) {
+      const amount = this.documentAmounts.get(`${row.docType}_${row.document.id}`);
+      return amount === undefined ? Number(row.document.total_base) || 0 : amount;
+    },
+    sortDocumentsByProjectAmount(a, b, isAsc) {
+      const diff = this.documentProjectAmount(a) * a.multiplier - this.documentProjectAmount(b) * b.multiplier;
+      return isAsc ? diff : -diff;
+    },
     // Which sections show: the active tab; in the new project wizard, the section of
     // the current step (1 basic data, 2 phases, 3 planning, 4 summary to confirm);
     // when duplicating, every section, as before.

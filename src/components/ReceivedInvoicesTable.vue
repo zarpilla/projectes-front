@@ -56,6 +56,12 @@
           },
         },
         line_date: 'line_date',
+        line_discount: {
+          field: 'line_discount',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
         line_irpf: {
           field: 'line_irpf',
           callback: (value) => {
@@ -189,6 +195,7 @@ import sumBy from "lodash/sumBy";
 import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
+import { invoiceExportLineRow } from "@/domain/invoiceExport";
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 
@@ -480,6 +487,7 @@ export default {
           line_concept: "",
           line_base: "",
           line_date: "",
+          line_discount: "",
           line_irpf: "",
           line_irpf_pct: "",
           line_quantity: "",
@@ -488,24 +496,7 @@ export default {
         });
         if (e.lines && e.lines.length) {
           e.lines.forEach(line => {
-            let base = (line.base ? line.base : 0) * (line.quantity ? line.quantity : 0);
-            if (line.discount) {
-              base = base * (1 - line.discount / 100.0);
-            }
-            let vat = (base * (line.vat ? line.vat : 0)) / 100.0;
-            let irpf = (base * (line.irpf ? line.irpf : 0)) / 100.0;
-            this.emittedCSV.push({
-              num: e.code,
-              line_concept: line.concept,
-              line_base: line.base,
-              line_date: line.date,
-              line_discount: line.discount,
-              line_quantity: line.quantity,
-              line_irpf: irpf,
-              line_irpf_pct: line.irpf,
-              line_vat: vat,
-              line_vat_pct: line.vat,
-            })
+            this.emittedCSV.push(invoiceExportLineRow(e.code, line))
           })
         }
       });

@@ -113,3 +113,41 @@ describe('Catalan quantity or price (issues/224)', () => {
     expect(lineInputText.call(vm, row, 'quantity')).toBe('1.000,5')
   })
 })
+
+// issues/234: tabbing into «1.500» swapped the text to «1500», which dropped the
+// browser's select-all, so typing 1600 saved 15.001.600
+describe('tabbing into a grouped quantity or price (issues/234)', () => {
+  const focusVm = () => {
+    const callbacks = []
+    return { vm: { editingLine: null, $nextTick: cb => callbacks.push(cb) }, flush: () => callbacks.forEach(cb => cb()) }
+  }
+
+  it('selects the ungrouped text again, so what is typed replaces it', () => {
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    input.value = '1.500'
+    input.focus()
+    input.select()
+    const { vm, flush } = focusVm()
+    ProjectPhases.methods.lineInputFocus.call(vm, { amount: 1500 }, 'amount', { target: input })
+    expect(vm.editingLine.text).toBe('1500')
+    input.value = vm.editingLine.text // what the re-render does
+    input.setSelectionRange(4, 4) // where the swap leaves the caret
+    flush()
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, 4])
+    input.remove()
+  })
+
+  it('leaves the caret alone when the text does not change', () => {
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    input.value = '12'
+    input.focus()
+    input.setSelectionRange(1, 1)
+    const { vm, flush } = focusVm()
+    ProjectPhases.methods.lineInputFocus.call(vm, { quantity: 12 }, 'quantity', { target: input })
+    flush()
+    expect([input.selectionStart, input.selectionEnd]).toEqual([1, 1])
+    input.remove()
+  })
+})

@@ -18,11 +18,11 @@
         data: 'data',
         venciment: 'venciment',
         cobrada: 'cobrada',
-        proveidor: 'proveidor',
-        proveidor_nif: 'proveidor_nif',
-        proveidor_adreça: 'proveidor_adreça',
-        proveidor_cp: 'proveidor_cp',
-        proveidor_ciutat: 'proveidor_ciutat',
+        client: 'client',
+        client_nif: 'client_nif',
+        client_adreça: 'client_adreça',
+        client_cp: 'client_cp',
+        client_ciutat: 'client_ciutat',
         concepte: 'concepte',
         projecte: 'projecte',
         base: {
@@ -57,6 +57,12 @@
           },
         },
         line_date: 'line_date',
+        line_discount: {
+          field: 'line_discount',
+          callback: (value) => {
+            return excelFormat(value);
+          },
+        },
         line_irpf: {
           field: 'line_irpf',
           callback: (value) => {
@@ -201,6 +207,7 @@ import sumBy from "lodash/sumBy";
 import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
 import { format } from "@/helpers/excelFormatter";
+import { invoiceExportLineRow } from "@/domain/invoiceExport";
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import getConfig from '@/config'
@@ -426,11 +433,11 @@ export default {
           data: this.formatDate(e.emitted),
           venciment: this.formatDate(e.paybefore),
           cobrada: this.formatDate(e.paid_date),
-          proveidor: e.contact_info ? e.contact_info.name : e.contact ? e.contact.name : "",
-          proveidor_nif: e.contact_info ? e.contact_info.nif : e.contact ? e.contact.nif : "",
-          proveidor_adreça: e.contact_info ? e.contact_info.address : e.contact ? e.contact.address : "",
-          proveidor_cp: e.contact_info ? e.contact_info.postcode : e.contact ? e.contact.postcode : "",
-          proveidor_ciutat: e.contact_info ? e.contact_info.city : e.contact ? e.contact.city : "",
+          client: e.contact_info ? e.contact_info.name : e.contact ? e.contact.name : "",
+          client_nif: e.contact_info ? e.contact_info.nif : e.contact ? e.contact.nif : "",
+          client_adreça: e.contact_info ? e.contact_info.address : e.contact ? e.contact.address : "",
+          client_cp: e.contact_info ? e.contact_info.postcode : e.contact ? e.contact.postcode : "",
+          client_ciutat: e.contact_info ? e.contact_info.city : e.contact ? e.contact.city : "",
           // proveidor_provincia: e.contact ? e.contact.state : "",
           // proveidor_pais: e.contact ? e.contact.country : "",
           concepte: e.document_concept || (e.lines && e.lines.length > 0 ? e.lines[0].concept : "-"),
@@ -442,6 +449,7 @@ export default {
           line_concept: "",
           line_base: "",
           line_date: "",
+          line_discount: "",
           line_irpf: "",
           line_irpf_pct: "",
           line_quantity: "",
@@ -451,24 +459,7 @@ export default {
         
         if (e.lines && e.lines.length) {
           e.lines.forEach(line => {
-            let base = (line.base ? line.base : 0) * (line.quantity ? line.quantity : 0);
-            if (line.discount) {
-              base = base * (1 - line.discount / 100.0);
-            }
-            let vat = (base * (line.vat ? line.vat : 0)) / 100.0;
-            let irpf = (base * (line.irpf ? line.irpf : 0)) / 100.0;
-            this.emittedCSV.push({
-              num: e.code,
-              line_concept: line.concept,
-              line_base: line.base,
-              line_date: line.date,
-              line_discount: line.discount,
-              line_quantity: line.quantity,
-              line_irpf: irpf,
-              line_irpf_pct: line.irpf,
-              line_vat: vat,
-              line_vat_pct: line.vat,
-            })
+            this.emittedCSV.push(invoiceExportLineRow(e.code, line))
           })
         }
       })

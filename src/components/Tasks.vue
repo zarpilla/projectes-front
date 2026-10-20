@@ -698,6 +698,9 @@ export default {
           failed++;
         }
       }
+      // the board's columns are built from the tasks, not read from them: a
+      // state changed here left the card in its old column (issues/253)
+      this.reOrderCards();
       useTaskAlerts().refresh();
       // a recurring task finished here has its next occurrence on the server
       const p = typeof patch === 'function' ? null : patch

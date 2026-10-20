@@ -93,7 +93,7 @@ import ProjectsTable from "@/components/ProjectsTable.vue";
 import service from "@/service/index";
 import sumBy from "lodash/sumBy";
 import { withoutMothers } from "@/domain/motherFigures";
-import sortBy from "lodash/sortBy";
+import { sortProjectsByName } from "@/domain/projectList";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -165,11 +165,14 @@ export default {
           estimated_incomes: p.total_incomes ? p.total_incomes : "",
           estimated_expenses: p.total_expenses ? p.total_expenses : "",
           estimated_hours_price: p.total_estimated_hours_price ? p.total_estimated_hours_price : "",
+          // the non-deductible VAT is in the result: without it the columns didn't add up (issues/254)
+          estimated_expenses_vat: p.total_estimated_expenses_vat ? p.total_estimated_expenses_vat : "",
           estimated_result: p.incomes_expenses ? p.incomes_expenses : "",
 
           real_incomes: p.total_real_incomes ? p.total_real_incomes : "",
           real_expenses: p.total_real_expenses ? p.total_real_expenses : "",
           real_hours_price: p.total_real_hours_price ? p.total_real_hours_price : "",
+          real_expenses_vat: p.total_real_expenses_vat ? p.total_real_expenses_vat : "",
           real_result: p.total_real_incomes_expenses ? p.total_real_incomes_expenses : ""
         };
       });
@@ -240,11 +243,10 @@ export default {
     service({ requiresAuth: true })
       .get(query)
       .then(r => {
-        this.projects = sortBy(
+        this.projects = sortProjectsByName(
           r.data.filter(
             p => p.project_state !== null
-          ),
-          "name"
+          )
         );
         this.loading = false;
         this.applyProjects();
@@ -347,7 +349,7 @@ export default {
             `projects/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${where1}${where2}${where3}`
           )
           .then(r => {
-            this.projects = r.data;
+            this.projects = sortProjectsByName(r.data);
             this.loading = false;
             this.applyProjects();
           });
@@ -355,7 +357,7 @@ export default {
         service({ requiresAuth: true })
           .get(`projects/basic?_limit=-1${where1}${where2}${where3}`)
           .then(r => {
-            this.projects = r.data;
+            this.projects = sortProjectsByName(r.data);
             this.loading = false;
             this.applyProjects();
           });

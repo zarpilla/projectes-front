@@ -61,6 +61,7 @@ import omit from "lodash/omit";
 import moment from "moment";
 import configPivot from "@/service/configStatsEconomicDetail";
 import { fiscalPivotRows } from "@/domain/years";
+import { economicDetailTotals } from "@/domain/economicDetailTotals";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
@@ -102,44 +103,7 @@ export default {
         .map((rows, id) => ({
           id: id,
           project_name: rows[0].project_name,
-          orig:
-            (_.sumBy(rows, "income_orig") || 0) +
-            (_.sumBy(rows, "expense_orig") || 0) +
-            (_.sumBy(rows, "total_original_hours_price") || 0),
-          esti:
-            (_.sumBy(rows, "income_esti") || 0) +
-            (_.sumBy(rows, "expense_esti") || 0) +
-            (_.sumBy(rows, "total_estimated_hours_price") || 0),
-          real:
-            (_.sumBy(rows, "income_real") || 0) +
-            (_.sumBy(rows, "expense_real") || 0) +
-            (_.sumBy(rows, "total_real_hours_price") || 0),
-          income_orig: _.sumBy(rows, "income_orig") || 0,
-          income_esti: _.sumBy(rows, "income_esti") || 0,
-          income_real: _.sumBy(rows, "income_real") || 0,
-          total_expense_orig:
-            (_.sumBy(rows, "expense_orig") || 0) +
-            (_.sumBy(rows, "total_original_hours_price") || 0),
-          total_expense_esti:
-            (_.sumBy(rows, "expense_esti") || 0) +
-            (_.sumBy(rows, "total_estimated_hours_price") || 0),
-          total_expense_real:
-            (_.sumBy(rows, "expense_real") || 0) +
-            (_.sumBy(rows, "total_real_hours_price") || 0),
-          expense_orig: _.sumBy(rows, "expense_orig") || 0,
-          expense_orig_vat: _.sumBy(rows, "expense_orig_vat") || 0,
-          expense_esti: _.sumBy(rows, "expense_esti") || 0,
-          expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
-          expense_real: _.sumBy(rows, "expense_real") || 0,
-          expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
-          total_original_hours_price:
-            _.sumBy(rows, "total_original_hours_price") || 0,
-          total_estimated_hours_price:
-            _.sumBy(rows, "total_estimated_hours_price") || 0,
-          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
-          total_original_hours: _.sumBy(rows, "total_original_hours") || 0,
-          total_estimated_hours: _.sumBy(rows, "total_estimated_hours") || 0,
-          total_real_hours: _.sumBy(rows, "total_real_hours") || 0
+          ...economicDetailTotals(rows)
         }))
         .value();
     },
@@ -154,44 +118,7 @@ export default {
           id: py.split(".")[0],
           year: py.split(".")[1],
           project_name: rows[0].project_name,
-          orig:
-            (_.sumBy(rows, "income_orig") || 0) +
-            (_.sumBy(rows, "expense_orig") || 0) +
-            (_.sumBy(rows, "total_original_hours_price") || 0),
-          esti:
-            (_.sumBy(rows, "income_esti") || 0) +
-            (_.sumBy(rows, "expense_esti") || 0) +
-            (_.sumBy(rows, "total_estimated_hours_price") || 0),
-          real:
-            (_.sumBy(rows, "income_real") || 0) +
-            (_.sumBy(rows, "expense_real") || 0) +
-            (_.sumBy(rows, "total_real_hours_price") || 0),
-          income_orig: _.sumBy(rows, "income_orig") || 0,
-          income_esti: _.sumBy(rows, "income_esti") || 0,
-          income_real: _.sumBy(rows, "income_real") || 0,
-          total_expense_orig:
-            (_.sumBy(rows, "expense_orig") || 0) +
-            (_.sumBy(rows, "total_original_hours_price") || 0),
-          total_expense_esti:
-            (_.sumBy(rows, "expense_esti") || 0) +
-            (_.sumBy(rows, "total_estimated_hours_price") || 0),
-          total_expense_real:
-            (_.sumBy(rows, "expense_real") || 0) +
-            (_.sumBy(rows, "total_real_hours_price") || 0),
-          expense_orig: _.sumBy(rows, "expense_orig") || 0,
-          expense_orig_vat: _.sumBy(rows, "expense_orig_vat") || 0,
-          expense_esti: _.sumBy(rows, "expense_esti") || 0,
-          expense_esti_vat: _.sumBy(rows, "expense_esti_vat") || 0,
-          expense_real: _.sumBy(rows, "expense_real") || 0,
-          expense_real_vat: _.sumBy(rows, "expense_real_vat") || 0,
-          total_original_hours_price:
-            _.sumBy(rows, "total_original_hours_price") || 0,
-          total_estimated_hours_price:
-            _.sumBy(rows, "total_estimated_hours_price") || 0,
-          total_real_hours_price: _.sumBy(rows, "total_real_hours_price") || 0,
-          total_original_hours: _.sumBy(rows, "total_original_hours") || 0,
-          total_estimated_hours: _.sumBy(rows, "total_estimated_hours") || 0,
-          total_real_hours: _.sumBy(rows, "total_real_hours") || 0
+          ...economicDetailTotals(rows)
         }))
         .value();
     },

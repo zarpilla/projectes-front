@@ -74,3 +74,27 @@ function addLinks (assignedIds, line, links) {
     if (doc && doc.id) assignedIds.add(`${docType}_${doc.id}`)
   }
 }
+
+/**
+ * What each document comes to in this project: the sum of the project's budget
+ * lines it is assigned to, keyed `${docType}_${id}` as projectDocuments' rows.
+ * A document shared between projects showed its whole base in every one
+ * (received income 2025-005: 16.000 € on a project with 4.000 of it, issues/257).
+ * Documents on no line of the project are not in the map.
+ */
+export function projectDocumentAmounts (form) {
+  const amounts = new Map()
+  const add = (line, links) => {
+    for (const [relation, docType] of Object.entries(links)) {
+      const doc = line[relation]
+      if (!doc || !doc.id) continue
+      const key = `${docType}_${doc.id}`
+      amounts.set(key, Math.round(((amounts.get(key) || 0) + (Number(line.total_amount) || 0)) * 100) / 100)
+    }
+  }
+  ;(form.project_phases || []).forEach(ph => {
+    ;(ph.incomes || []).forEach(line => add(line, INCOME_LINKS))
+    ;(ph.expenses || []).forEach(line => add(line, EXPENSE_LINKS))
+  })
+  return amounts
+}

@@ -66,3 +66,11 @@ export const priceBands = rows => PRICE_BANDS.map((band, i) => {
   const min = i ? PRICE_BANDS[i - 1].max : -Infinity
   return { label: band.label, count: rows.filter(r => r.price !== null && r.price >= min && r.price < band.max).length }
 })
+
+// the note under the bands, singular for one project (issues/257)
+export const withoutHoursNote = (count, forecast) => {
+  const hour = forecast ? 'prevista' : 'feta'
+  return count === 1
+    ? `1 projecte té despeses però cap hora ${hour} i no té preu hora.`
+    : `${count} projectes tenen despeses però cap hora ${hour} i no tenen preu hora.`
+}
