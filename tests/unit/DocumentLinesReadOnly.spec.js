@@ -25,6 +25,15 @@ describe('DocumentLinesReadOnly', () => {
     expect(w.find('.lines-summary').text()).toBe('2 línies · IVA 0 % i 21 %')
   })
 
+  // issues/270: the price keeps up to 4 decimals
+  it('shows the price with up to 4 decimals', () => {
+    const w = mount(DocumentLinesReadOnly, {
+      props: { lines: [{ concept: 'A', quantity: 3, base: 33.3333, discount: 0, vat: 21, irpf: 0 }] }
+    })
+    expect(cells(w)[0].slice(2, 3)).toEqual(['33,3333 €'])
+    expect(cells(w)[0][6]).toBe('100,00 €')
+  })
+
   it('adds the date column for diets and says when there are no lines', () => {
     const diet = mount(DocumentLinesReadOnly, {
       props: { isDiet: true, lines: [{ date: '2026-03-02', concept: 'Dinar', quantity: 1, base: 12, vat: 10 }] }
