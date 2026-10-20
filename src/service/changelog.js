@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.20",
   items: [
     {
+      type: "Millores",
+      modules: ["Projectes"],
+      text: "Els projectes grans s'obren molt més de pressa (el pressupost i els moviments es dibuixen quan s'obre la seva pestanya, i escriure en una línia ja no redibuixa totes les línies), i el calendari de les dates de les últimes línies del pressupost ja no queda tallat."
+    },
+    {
       type: "Correccions",
       modules: ["Projectes"],
       text: "Projectes: no es pot guardar una data final anterior a la d'inici; el Codi buit avisa en català, el total diu «1 projecte» i «Exporta» (també a Projectes mare) surt amb capçaleres en català i dates dd/mm/aaaa."
