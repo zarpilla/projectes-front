@@ -5,14 +5,19 @@ import moment from 'moment'
 
 export const dmy = (date) => (date ? moment(date, 'YYYY-MM-DD').format('DD/MM/YYYY') : '')
 
-// decimal comma, as the other exports
-const decimal = (v) => (v === null || v === undefined ? '' : String(v).replace('.', ','))
+// a numeric cell, as the other exports: the sheet shows it with the
+// locale's decimal comma («0,45» as text could not be summed, issues/274)
+const number = (v) => {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  return Number.isFinite(n) ? n : ''
+}
 
 // % Dedicació real (projects/real-dedications rows)
 export const realDedicationFields = {
   Projecte: 'project_name',
   Persona: 'username',
-  Hores: { field: 'hours', callback: decimal },
+  Hores: { field: 'hours', callback: number },
   Data: { field: 'date', callback: dmy },
   Mes: 'month',
   Any: 'year'
@@ -23,7 +28,7 @@ export const dedicatedHoursFields = {
   Data: { field: 'date', callback: dmy },
   Projecte: 'project',
   Persona: 'username',
-  Hores: { field: 'hours', callback: decimal },
+  Hores: { field: 'hours', callback: number },
   Descripció: 'description',
   Funció: 'activity',
   'Tipus de dedicació': 'type',
