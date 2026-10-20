@@ -430,7 +430,7 @@ function idOf(value) {
 import _ from "lodash";
 import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
-import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason, leavingInvoiced, leavingInvoicedMessage } from "@/domain/orderStatus";
+import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason, leavingInvoiced, leavingInvoicedMessage, leavingInvoicedTitle } from "@/domain/orderStatus";
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
@@ -2447,7 +2447,7 @@ export default {
       const invoiced = leavingInvoiced(rows, this.newState);
       if (invoiced.length && !confirmed) {
         this.$buefy.dialog.confirm({
-          title: "Comandes facturades",
+          title: leavingInvoicedTitle(invoiced),
           message: leavingInvoicedMessage(invoiced, this.newState),
           confirmText: "Canvia l'estat",
           cancelText: "No, torna",

@@ -46,18 +46,23 @@ export function canSetStatus (order, status, isStaff, { driver = false } = {}) {
 /**
  * The invoiced orders a bulk state change would move out of Facturada. They
  * stay on their invoice, so the bar asks first, like the order form warns
- * («Comanda ja processada…», issues/240).
+ * (issues/240).
  */
 export const leavingInvoiced = (rows, status) =>
   status === 'invoiced' ? [] : (rows || []).filter(row => row && row.status === 'invoiced')
+
+// the dialog's title; the message does not repeat it, and «ja processada» was
+// the form's warning for processed orders, out of place here (issues/296)
+export const leavingInvoicedTitle = rows =>
+  rows.length === 1 ? 'Comanda facturada' : 'Comandes facturades'
 
 export const leavingInvoicedMessage = (rows, status) => {
   const ids = rows.map(row => `#${row.id}`).join(', ')
   // singular or plural, all through (issues/276)
   if (rows.length === 1) {
-    return `<b>Comanda ja processada.</b> La comanda ${ids} ja està facturada: si la passes a «${orderStatusLabel(status)}», continuarà a la seva factura, que no canvia. Vols canviar-ne l'estat igualment?`
+    return `La comanda ${ids} ja està facturada: si la passes a «${orderStatusLabel(status)}», continuarà a la seva factura, que no canvia. Vols canviar-ne l'estat igualment?`
   }
-  return `<b>Comandes ja processades.</b> Les comandes ${ids} ja estan facturades: si les passes a «${orderStatusLabel(status)}», continuaran a les seves factures, que no canvien. Vols canviar-ne l'estat igualment?`
+  return `Les comandes ${ids} ja estan facturades: si les passes a «${orderStatusLabel(status)}», continuaran a les seves factures, que no canvien. Vols canviar-ne l'estat igualment?`
 }
 
 /** Why the selection bar left some orders out (issues/144, 193). */

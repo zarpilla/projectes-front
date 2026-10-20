@@ -1336,8 +1336,10 @@ export default {
      * The route picked: the pending orders of the route, the multidelivery
      * and the transfer, and the next date of the route for a pending order.
      * `keepDate` (loading an order, issues/216): the stored date stays.
+     * `keepTransfer` (loading an order, issues/296): the stored transfer
+     * stays; recomputed on load, a save without changes sent it back.
      */
-    async changeRoute({ keepDate = false } = {}) {
+    async changeRoute({ keepDate = false, keepTransfer = false } = {}) {
       if (this.form.owner && this.form.route && !this.form.is_collection_order) {
         this.orders = (
           await service({ requiresAuth: true }).get(
@@ -1383,7 +1385,7 @@ export default {
       if (!this.form.is_collection_order) {
         await this.checkMultidelivery();
       }
-      this.checkTransferNeeded();
+      if (!keepTransfer) this.checkTransferNeeded();
     },
     async checkEstimatedDeliveryDate() {
       if (this.form.is_collection_order) {
@@ -1817,7 +1819,7 @@ export default {
       if (loading) {
         if (this.routes.length === 1) {
           if (!this.form.route) this.form.route = this.routes[0].id;
-          await this.changeRoute({ keepDate: true });
+          await this.changeRoute({ keepDate: true, keepTransfer: true });
         }
         return;
       }
@@ -2279,6 +2281,10 @@ export default {
       this.checkCollectionPickupDate();
     },
     checkTransferNeeded() {
+      // A saved order past «Pendent» keeps its transfer (issues/296)
+      if (this.form.id && this.form.status !== "pending") {
+        return;
+      }
       // Only check if we have both a route and a pickup selected
       if (!this.form.route || !this.form.pickup) {
         return;
