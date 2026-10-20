@@ -57,12 +57,16 @@
             <span v-if="props.row.date_start || props.row.date_end" class="is-nowrap">{{ date(props.row.date_start) }} – {{ date(props.row.date_end) }}</span>
             <span v-else class="has-text-muted">—</span>
           </b-table-column>
-          <b-table-column label="Import total" field="grantable_amount_total" sortable numeric v-slot="props">
-            <b v-if="Number(props.row.grantable_amount_total)">{{ money(props.row.grantable_amount_total) }}</b>
+          <b-table-column label="Import total" field="amountTotal" sortable numeric v-slot="props">
+            <b v-if="props.row.amountTotal">{{ money(props.row.amountTotal) }}</b>
             <span v-else class="has-text-muted">—</span>
           </b-table-column>
-          <b-table-column label="Cofinançament" field="grantable_cofinancing" sortable numeric v-slot="props">
-            <span v-if="Number(props.row.grantable_cofinancing)">{{ money(props.row.grantable_cofinancing) }}</span>
+          <b-table-column label="A justificar" field="amountToJustify" sortable numeric v-slot="props">
+            <span v-if="props.row.amountToJustify">{{ money(props.row.amountToJustify) }}</span>
+            <span v-else class="has-text-muted">—</span>
+          </b-table-column>
+          <b-table-column label="Cofinançament" field="cofinancing" sortable numeric v-slot="props">
+            <span v-if="props.row.cofinancing">{{ money(props.row.cofinancing) }}</span>
             <span v-else class="has-text-muted">—</span>
           </b-table-column>
           <b-table-column label="Sol·licitud" field="grantable_date" sortable v-slot="props">
@@ -80,7 +84,7 @@
         </b-table>
         <div class="grants-total">
           <b>Total · {{ tableRows.length }} projectes</b>
-          <b>{{ money(tableRows.reduce((a, r) => a + (Number(r.grantable_amount_total) || 0), 0)) }}</b>
+          <b>{{ money(tableRows.reduce((a, r) => a + r.amountTotal, 0)) }}</b>
         </div>
       </div>
     </section>
@@ -93,6 +97,7 @@ import service from "@/service/index";
 import sortBy from "lodash/sortBy";
 import moment from "moment";
 import { formatMoney } from "@/helpers/format-number";
+import { grantableAmountAllYears } from "@/domain/grantable";
 
 export default {
   name: "Grants",
@@ -114,7 +119,12 @@ export default {
         ...p,
         organ: p.clients && p.clients.length ? p.clients[0].name : "",
         stateId: p.project_state ? (p.project_state.id || p.project_state) : null,
-        stateName: p.project_state && p.project_state.name ? p.project_state.name : ""
+        stateName: p.project_state && p.project_state.name ? p.project_state.name : "",
+        // issues/262: the amounts of «Imports per any» (grantable_years), as
+        // Justificacions reads them; the project fields only without years
+        amountTotal: grantableAmountAllYears(p, "grantable_amount_total"),
+        amountToJustify: grantableAmountAllYears(p, "grantable_amount"),
+        cofinancing: grantableAmountAllYears(p, "grantable_cofinancing")
       }));
     },
     stateTabs() {
@@ -136,16 +146,16 @@ export default {
       return this.onlyIncomplete ? this.incomplete : this.shown;
     },
     withAmount() {
-      return this.shown.filter(r => Number(r.grantable_amount_total));
+      return this.shown.filter(r => r.amountTotal);
     },
     totalAmount() {
-      return this.withAmount.reduce((a, r) => a + Number(r.grantable_amount_total), 0);
+      return this.withAmount.reduce((a, r) => a + r.amountTotal, 0);
     },
     withCofinancing() {
-      return this.shown.filter(r => Number(r.grantable_cofinancing));
+      return this.shown.filter(r => r.cofinancing);
     },
     totalCofinancing() {
-      return this.withCofinancing.reduce((a, r) => a + Number(r.grantable_cofinancing), 0);
+      return this.withCofinancing.reduce((a, r) => a + r.cofinancing, 0);
     },
     nextJustification() {
       const today = moment().format("YYYY-MM-DD");
@@ -161,7 +171,10 @@ export default {
     try {
       const [states, projects] = await Promise.all([
         service({ requiresAuth: true }).get("project-states").then(r => r.data),
-        service({ requiresAuth: true }).get("projects/basic?_limit=-1&grantable=true").then(r => r.data)
+        // issues/262: with «Imports per any» (grantable_years and their year)
+        service({ requiresAuth: true })
+          .get("projects?_where[grantable_eq]=true&_limit=-1&populate[0]=grantable_years.year&populate[1]=clients&populate[2]=project_state")
+          .then(r => r.data)
       ]);
       this.project_states = states;
       this.projects = sortBy(projects, "name");
@@ -178,7 +191,8 @@ export default {
     },
     missing(row) {
       const out = [];
-      if (!Number(row.grantable_amount_total)) out.push("import");
+      // Justificacions needs the amount to justify (issues/262)
+      if (!row.amountToJustify) out.push("import a justificar");
       if (!row.organ) out.push("òrgan");
       if (!row.justification_date) out.push("justificació");
       return out;
