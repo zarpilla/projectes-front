@@ -192,7 +192,7 @@
                   </div>
                 </b-field>
                 <b-button v-if="canEdit" size="is-small" icon-left="plus" @click="addLine">Afegeix una línia</b-button>
-                <p class="field-note">Total {{ form.units || 0 }} caixes · {{ form.kilograms || 0 }} kg, calculat des de les línies.</p>
+                <p class="field-note">Total {{ form.units || 0 }} caixes · {{ formatNumber(form.kilograms || 0, 2) }} kg, calculat des de les línies.</p>
               </div>
 
               <template v-else>
@@ -2446,6 +2446,8 @@ export default {
     money(value) {
       return formatMoney(Number(value) || 0);
     },
+    // kilos with a decimal comma (issues/281)
+    formatNumber,
     // a discount percentage with a decimal comma (issues/251)
     percent(value) {
       return formatNumber(Number(value) || 0, 2);

@@ -18,12 +18,8 @@
         <span class="tag" :class="getStatusType(props.row.status)">{{ getStatusLabel(props.row.status) }}</span>
       </b-table-column>
 
-      <b-table-column label="Punt" field="contact.name" sortable v-slot="props">
-        {{
-          props.row.contact
-            ? props.row.contact.name || props.row.contact.trade_name
-            : ""
-        }}
+      <b-table-column label="Punt" field="contact.trade_name" sortable v-slot="props">
+        {{ pointName(props.row) }}
       </b-table-column>
 
       <b-table-column label="Ruta" field="route.name" sortable v-slot="props">
@@ -52,7 +48,7 @@
               <div>
                 <strong>{{ line.name }}</strong><span v-if="line.nif" class="has-text-muted"> · {{ line.nif }}</span>
                 <br />
-                <small>{{ line.units }} {{ Number(line.units) === 1 ? "caixa" : "caixes" }} · {{ line.kilograms }} kg</small>
+                <small>{{ line.units }} {{ Number(line.units) === 1 ? "caixa" : "caixes" }} · {{ formatNumber(line.kilograms || 0, 2) }} kg</small>
               </div>
               <div>
                 <b-button
@@ -108,6 +104,8 @@
 
 <script>
 import service from "@/service/index";
+import { contactName } from "@/domain/orderContacts";
+import { formatNumber } from "@/helpers/format-number";
 
 export default {
   name: "PickupPointsOrders",
@@ -138,7 +136,7 @@ export default {
         const row = {
           id: order.id,
           status: this.getStatusLabel(order.status),
-          point: order.contact ? order.contact.name || order.contact.trade_name : "",
+          point: this.pointName(order),
           route: order.route ? order.route.name : "",
           estimated_delivery_date: order.estimated_delivery_date
         };
@@ -158,6 +156,12 @@ export default {
     await this.getOrders();
   },
   methods: {
+    formatNumber,
+    // the point by its trade name, as the order form, view and list show it
+    // (it showed the contact name, issues/281)
+    pointName(order) {
+      return contactName(order && order.contact) || (order && (order.contact_trade_name || order.contact_name)) || "";
+    },
     async getOrders() {
       this.isLoading = true;
       try {
