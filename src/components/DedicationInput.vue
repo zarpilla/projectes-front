@@ -363,6 +363,7 @@ import { useMainStore } from "@/stores/main.js";
 import { formatHours, formatNumber } from "@/helpers/format-number";
 import { daysFromToday } from "@/helpers/catalan";
 import { hoursAgenda } from "@/domain/hoursAgenda";
+import { parseHours } from "@/domain/hoursInput";
 
 window.setImmediate = window.setTimeout;
 // import WeekCalendar from "./week-calendar.vue"
@@ -974,19 +975,29 @@ export default {
       }
     },
     async saveActivity(activity) {
+      // «1:30» is 1,5 h; what isn't a number is refused here and the modal
+      // stays open with what was typed (issues/245)
+      const hours = parseHours(activity.hours);
+      if (Number.isNaN(hours)) {
+        this.$buefy.snackbar.open({
+          message: "Les hores han de ser un número, com 1,5 o 1:30",
+          type: "is-danger",
+          queue: false
+        });
+        return;
+      }
       if (activity.counter) {
         await service({ requiresAuth: true }).delete(
           `time-counters/${activity.counter.id}`
         );
         this.counter = null;
+        // deleted: a retry after a failed save must not delete it again
+        activity.counter = null;
       }
       this.counterClicked = false;
       const activity2 = { ...activity };
       activity2.date = moment(activity.date).format("YYYY-MM-DD");
-      activity2.hours = activity.hours
-        ? activity.hours.toString().replace(",", ".")
-        : activity.hours;
-      this.isModalEditActive = false;
+      activity2.hours = hours;
 
       try {
         if (activity.id) {
@@ -999,11 +1010,17 @@ export default {
         }
       } catch (err) {
         console.error("activities error", err);
+        // the reason, and the modal stays open with what was typed (issues/245)
+        const data = err && err.response && err.response.data;
+        const reason = data && data.error && data.error.message;
         this.$buefy.snackbar.open({
-          message: "Error",
+          message: reason ? `No s'han pogut desar les hores: ${reason}` : "No s'han pogut desar les hores",
+          type: "is-danger",
           queue: false
         });
+        return;
       }
+      this.isModalEditActive = false;
 
       await this.getActivities();
       if (this.icalVisible) {
