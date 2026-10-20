@@ -39,12 +39,8 @@
         <span class="doc-title">{{ props.row.contact ? props.row.contact.name : "—" }}</span>
         <span class="doc-subline">{{ props.row.contact ? props.row.contact.nif : "" }}</span>
       </b-table-column>
-      <b-table-column label="Concepte" field="lines" v-slot="props" sortable cell-class="doc-concept">
-        <div class="doc-clamp" :title="props.row.lines && props.row.lines.length ? props.row.lines[0].concept : null">{{
-          props.row.lines && props.row.lines.length > 0
-            ? props.row.lines[0].concept
-            : ""
-        }}</div>
+      <b-table-column label="Concepte" field="document_concept" v-slot="props" sortable :custom-sort="sortByConcept" cell-class="doc-concept">
+        <div class="doc-clamp" :title="quoteConcept(props.row) || null">{{ quoteConcept(props.row) }}</div>
       </b-table-column>
       <b-table-column label="Projecte" field="lines" v-slot="props" sortable cell-class="doc-project">
         <div class="doc-clamp">{{ props.row.projects && props.row.projects.length ? props.row.projects[0].name : (props.row.project ? props.row.project.name : "—" ) }}</div>
@@ -70,6 +66,11 @@ import moment from "moment";
 import sumBy from "lodash/sumBy";
 import { formatMoney } from "@/helpers/format-number";
 import _ from "lodash";
+
+// The quote's own concept, else its first line's, as Ingressos/Despeses show
+// it; the list showed the first line's even when the quote had one (issues/299)
+const quoteConcept = q =>
+  (q && q.document_concept) || (q && q.lines && q.lines.length > 0 && q.lines[0].concept) || "";
 
 export default {
   name: "EmittedInvoices",
@@ -141,6 +142,11 @@ export default {
       return isAsc ? order : -order;
     },
     formatMoney,
+    quoteConcept,
+    sortByConcept(a, b, isAsc) {
+      const order = quoteConcept(a).localeCompare(quoteConcept(b));
+      return isAsc ? order : -order;
+    },
     navNew() {
       this.$router.push("/document/0/quotes");
     },    
@@ -178,7 +184,7 @@ export default {
           data: this.formatDate(e.emitted),
           client: e.contact ? e.contact.name : "",
           nif: e.contact ? e.contact.nif : "",
-          concepte: (e.lines && e.lines.length > 0 && e.lines[0].concept) || e.document_concept || "",
+          concepte: quoteConcept(e),
           projecte: e.projects && e.projects.length ? e.projects[0].name : (e.project ? e.project.name : ""),
           base: e.total_base,
           vat: e.total_vat,
