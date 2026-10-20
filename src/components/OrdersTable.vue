@@ -434,7 +434,7 @@ import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStat
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
-import { ownerWhere } from "@/domain/ordersListFilters";
+import { dateFilterWhere, ownerWhere } from "@/domain/ordersListFilters";
 
 export default {
   name: "OrdersTable",
@@ -1342,32 +1342,7 @@ export default {
           }
           const comparison = key.includes("date") ? "_eq" : "_contains";
           if (key.includes("date")) {
-            if (value.length === 4 || value.length === 5) {
-              // format YYYY-
-              const start = `${value.substring(0, 4)}-01-01`;
-              const end = `${value.substring(0, 4)}-12-31`;
-              where.push(`_where[${key}_gte]=${start}`);
-              where.push(`_where[${key}_lte]=${end}`);
-            } else if (
-              value.length === 7 ||
-              value.length === 8 ||
-              value.length < 10
-            ) {
-              // format YYYY-MM
-              const start = `${value.substring(0, 7)}-01`;
-              const month = new Date(value.substring(0, 7)).getMonth();
-              const endDayOfMonth = new Date(
-                new Date().getFullYear(),
-                month + 1,
-                0
-              ).getDate();
-              const end = `${value.substring(0, 7)}-${endDayOfMonth}`;
-              where.push(`_where[${key}_gte]=${start}`);
-              where.push(`_where[${key}_lte]=${end}`);
-            } else if (value.length === 10) {
-              // format YYYY-MM-DD
-              where.push(`_where[${key}${comparison}]=${value}`);
-            }
+            where.push(...dateFilterWhere(key, value));
           } else if (key === "idx") {
             // remove zeros at start
             const id_contains = value.replace(/^0+/, "");
