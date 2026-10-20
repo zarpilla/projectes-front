@@ -434,6 +434,7 @@ import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStat
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
+import { ownerWhere } from "@/domain/ordersListFilters";
 
 export default {
   name: "OrdersTable",
@@ -1402,7 +1403,7 @@ export default {
         where.push(...or);
       }
       if (this.dateFilter) where.push(`_where[estimated_delivery_date]=${this.dateFilter}`);
-      if (this.ownerFilter) where.push(`_where[owner]=${this.ownerFilter}`);
+      where.push(...ownerWhere(this.ownerFilter));
       if (this.pickupFilter) where.push(`_where[pickup.id]=${this.pickupFilter}`);
       localStorage.setItem("OrdersTable.filters", JSON.stringify({
         date: this.dateFilter,
