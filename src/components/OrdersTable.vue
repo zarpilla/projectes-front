@@ -293,7 +293,7 @@
                         <option :value="true">Sí</option>
                         <option :value="false">No</option>
                       </b-select>
-                      <b v-else-if="col.edit === 'price'">{{ calculatedPrice !== null ? money(calculatedPrice) : "?" }}</b>
+                      <b v-else-if="col.edit === 'price'" :title="calculatedPrice !== null ? `Preu de tarifa ${money(calculatedPrice)}` : null">{{ calculatedPrice !== null ? money(editedFinalPrice()) : "?" }}</b>
                     </template>
                     <!-- read -->
                     <template v-else-if="col.key === 'idx'">
@@ -435,6 +435,11 @@ import { orderOdsFields, exportRows } from "@/domain/ordersExport";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
 import { dateFilterWhere, ownerWhere } from "@/domain/ordersListFilters";
+import { invoicedPrice } from "@/domain/logisticsInvoicing";
+
+// a yes/no cell of the CSV and .ods: 1/0, as the import reads it; the
+// example rows hold "1"/"0" strings (issues/251)
+const flag01 = value => (value === true || value === 1 || value === "1" ? 1 : 0);
 
 export default {
   name: "OrdersTable",
@@ -574,11 +579,13 @@ export default {
         kilograms: "kilograms",
         refrigerated: {
           field: "refrigerated",
-          callback: value => {
-            return value ? 1 : 0;
-          }
+          callback: flag01
         },
-        fragile: "fragile",
+        // 1/0 like refrigerated, as the import reads it (issues/251)
+        fragile: {
+          field: "fragile",
+          callback: flag01
+        },
         // pickup: 'pickup.name',
         pickup: {
           field: "pickup",
@@ -1211,6 +1218,12 @@ export default {
       } else {
         this.calculatedPrice = null;
       }
+    },
+    // the quick edit's price as the column shows it: the rate's price less the
+    // order's discounts (issues/251); what is saved is still the rate's price
+    editedFinalPrice() {
+      if (this.calculatedPrice === null) return null;
+      return invoicedPrice({ ...this.editingOrder, price: this.calculatedPrice });
     },
     async saveOrder(order) {
       // without a rate there is no price: say so instead of saving price null
@@ -2047,6 +2060,12 @@ export default {
         } else {
           // console.warn("!order", order.kilograms, order.route_rate);
         }
+        // what the list shows of a row before it is created: its delivery
+        // point and its price (issues/251); the discounts come on creation
+        orderWithRate.fullName = contact.trade_name || contact.name;
+        if (Number.isFinite(Number(orderWithRate.price)) && orderWithRate.price !== null) {
+          orderWithRate.finalPrice = invoicedPrice(orderWithRate);
+        }
         this.orders.unshift(orderWithRate);
         // this.orders.unshift(order);
       }
@@ -2659,9 +2678,9 @@ export default {
     discountsOf(order) {
       if (order.finalPrice === undefined || order.finalPrice === null || order.finalPrice === order.price) return [];
       return [
-        Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${order.multidelivery_discount} %)` } : null,
+        Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${formatNumber(order.multidelivery_discount, 2)} %)` } : null,
         Number(order.volume_discount) ? { key: "volume", title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
-        Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${order.contact_pickup_discount} %)` } : null
+        Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${formatNumber(order.contact_pickup_discount, 2)} %)` } : null
       ].filter(Boolean);
     },
     discountLabel(order) {

@@ -424,8 +424,8 @@
               <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
               <dt>Preu</dt><dd>{{ money(route_price) }}</dd>
               <template v-if="hasDiscount">
-                <dt>Descompte multientrega</dt><dd>−{{ form.multidelivery_discount || 0 }} %</dd>
-                <dt>Descompte recollida</dt><dd>−{{ form.contact_pickup_discount || 0 }} %</dd>
+                <dt>Descompte multientrega</dt><dd>−{{ percent(form.multidelivery_discount) }} %</dd>
+                <dt>Descompte recollida</dt><dd>−{{ percent(form.contact_pickup_discount) }} %</dd>
                 <dt>Descompte volum</dt><dd>{{ money(-1 * (form.volume_discount || 0)) }}</dd>
               </template>
               <dt>Preu amb descompte</dt><dd class="is-total">{{ money(discountedPrice) }}</dd>
@@ -547,7 +547,7 @@ import ModalBoxContactUser from "@/components/ModalBoxContactUser.vue";
 import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
-import { formatMoney } from "@/helpers/format-number";
+import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder } from "@/domain/orderStatus";
 
@@ -2445,6 +2445,10 @@ export default {
     },
     money(value) {
       return formatMoney(Number(value) || 0);
+    },
+    // a discount percentage with a decimal comma (issues/251)
+    percent(value) {
+      return formatNumber(Number(value) || 0, 2);
     },
     statusLabel: orderStatusLabel,
     canDepositOrder,
