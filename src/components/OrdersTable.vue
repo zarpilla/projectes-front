@@ -260,7 +260,7 @@
                   </td>
                   <td v-for="col in visibleCols" :key="col.key" :class="cellClass(col)">
                     <!-- quick edit (pencil) -->
-                    <template v-if="editingRowId && editingRowId === order.id && col.edit">
+                    <template v-if="editingRowId && editingRowId === order.id && quickEditField(col)">
                       <b-select v-if="col.edit === 'route'" v-model="editForm.route" size="is-small" @update:model-value="updateCalculatedPrice">
                         <option v-for="r in routes" :key="r.id" :value="r.id">{{ r.name }}</option>
                       </b-select>
@@ -1216,6 +1216,12 @@ export default {
     quickEditReprices() {
       return Boolean(this.editingOrder) && repricesOrder(this.editingOrder, { ...this.editingOrder, ...this.editForm });
     },
+    // a -R follows the orders it collects: its boxes, kilos and type are not
+    // edited by hand (issues/292)
+    quickEditField(col) {
+      if (!col.edit) return false;
+      return !(this.editingOrder && this.editingOrder.is_collection_order && ["units", "kilograms", "delivery_type"].includes(col.edit));
+    },
     updateCalculatedPrice() {
       if (!this.quickEditReprices()) {
         const kept = this.editingOrder ? this.editingOrder.price : null;
@@ -1293,6 +1299,12 @@ export default {
           last_mile: this.editForm.last_mile,
           _tracking_user: currentUser.data
         };
+        // a -R takes them from its orders (issues/292)
+        if (this.editingOrder && this.editingOrder.is_collection_order) {
+          delete updateData.units;
+          delete updateData.kilograms;
+          delete updateData.delivery_type;
+        }
         // a repriced order takes the rate's price; any other keeps its own
         if (this.calculatedPrice !== null) updateData.price = this.calculatedPrice;
 

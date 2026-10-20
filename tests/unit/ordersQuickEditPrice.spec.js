@@ -148,3 +148,27 @@ describe('orders quick edit of an order that is not pending (issues/287)', () =>
   })
 })
 
+// issues/292: a farm collection order (-R) follows the orders it collects:
+// the quick edit neither reprices it nor sends its boxes, kilos or type
+describe('orders quick edit of a collection order (issues/292)', () => {
+  it('keeps its price and sends no boxes, kilos nor type', async () => {
+    const vm = vmFor({ id: 24894, kilograms: 32, units: 2, status: 'pending', price: 16.43, is_collection_order: true })
+    vm.editForm.kilograms = 40
+    OrdersTable.methods.updateCalculatedPrice.call(vm)
+    expect(vm.calculatedPrice).toBe(16.43)
+    await OrdersTable.methods.saveOrder.call(vm, vm.editingOrder)
+    const sent = put.mock.calls[0][1]
+    expect(sent).not.toHaveProperty('kilograms')
+    expect(sent).not.toHaveProperty('units')
+    expect(sent).not.toHaveProperty('delivery_type')
+  })
+
+  it('shows its boxes, kilos and type read-only', () => {
+    const vm = vmFor({ id: 24894, status: 'pending', is_collection_order: true })
+    expect(OrdersTable.methods.quickEditField.call(vm, { edit: 'kilograms' })).toBe(false)
+    expect(OrdersTable.methods.quickEditField.call(vm, { edit: 'delivery_type' })).toBe(false)
+    expect(OrdersTable.methods.quickEditField.call(vm, { edit: 'estimated' })).toBe(true)
+    const other = vmFor({ id: 1, status: 'pending' })
+    expect(OrdersTable.methods.quickEditField.call(other, { edit: 'kilograms' })).toBe(true)
+  })
+})

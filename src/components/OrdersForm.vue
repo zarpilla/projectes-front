@@ -153,6 +153,7 @@
             <header class="box-head">
               <h2>{{ form.is_collection_order ? "Què hem de recollir?" : "Què hem de portar?" }}</h2>
             </header>
+            <p v-if="form.is_collection_order" class="box-help" data-test="collection-follows">Aquesta comanda de recollida segueix les comandes que recull: el tipus de servei, les caixes, els quilos, si és refrigerada i el preu es calculen a partir d'elles i no es canvien a mà. Per moure'n una a un altre dia, canvia la data de recollida d'aquella comanda.</p>
             <div class="a-form">
               <b-field label="Tipus de servei *" class="full" :type="{ 'is-danger': errors['delivery_type'] && submitted }">
                 <div class="field-stack">
@@ -418,7 +419,7 @@
           <section class="a-box">
             <header class="box-head">
               <h2>Preu</h2>
-              <b-button v-if="isOffice" size="is-small" icon-left="refresh" title="Recalcula el preu" @click="changeRate">Recalcula</b-button>
+              <b-button v-if="isOffice && !form.is_collection_order" size="is-small" icon-left="refresh" title="Recalcula el preu" @click="changeRate">Recalcula</b-button>
             </header>
             <dl class="facts">
               <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
