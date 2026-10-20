@@ -67,7 +67,7 @@
         <section v-if="section.items.length" class="ops-section">
           <h2 class="ops-section-title">{{ section.title }} <span>{{ section.items.length }}</span></h2>
           <div class="ops-cards">
-            <article v-for="(op, i) in section.items" :key="op.id" class="a-box op-card" :class="{ 'is-done': !!op.pickup_date }">
+            <article v-for="(op, i) in section.items" :key="op.id" class="a-box op-card" :class="{ 'is-done': isOperationDone(op) }">
               <header class="op-head">
                 <span class="op-num">{{ section.offset + i + 1 }}</span>
                 <div class="op-title">
@@ -80,6 +80,7 @@
                 <span v-if="op.refrigerated" class="tag is-info is-light">Refrigerada</span>
                 <span v-if="op.fragile" class="tag is-warning is-light">Fràgil</span>
                 <span v-if="op.status === 'pending'" class="tag is-warning">Pendent</span>
+                <span v-if="op.status === 'delivered'" class="tag is-success is-light">Lliurada</span>
                 <span v-if="op.deposit_date" class="tag is-success is-light">Dipositada</span>
                 <span v-if="op.incidences && op.incidences.length" class="tag is-danger is-light">Incidència</span>
               </div>
@@ -163,7 +164,7 @@ import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatNumber } from "@/helpers/format-number";
 import { plural } from "@/helpers/catalan";
-import { operationsQueries, mergeOrders, orderOperations } from "@/domain/orderOperations";
+import { operationsQueries, operationStatuses, isOperationDone, incidencePrefill, mergeOrders, orderOperations } from "@/domain/orderOperations";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
 
@@ -234,7 +235,7 @@ export default {
       return [...map.values()];
     },
     doneCount() {
-      return this.allOps.filter(o => (o.operationType === "transfer" ? !!o.transfer_end_date : !!o.pickup_date)).length;
+      return this.allOps.filter(isOperationDone).length;
     },
     sumUnits() {
       return this.allOps.reduce((a, o) => a + (Number(o.units) || 0), 0);
@@ -276,6 +277,7 @@ export default {
   },
   methods: {
     plural,
+    isOperationDone,
     async loadRoutes() {
       try {
         const response = await service({
@@ -339,7 +341,7 @@ export default {
         // date of a transfer is its transfer_route_date (issues/081)
         const date = this.selectedDate ? moment(this.selectedDate).format("YYYY-MM-DD") : null;
         const answers = await Promise.all(
-          operationsQueries({ routeIds, statuses: this.statusFilter, date }).map(params =>
+          operationsQueries({ routeIds, statuses: operationStatuses(date), date }).map(params =>
             service({ requiresAuth: true }).get("orders", { params })
           )
         );
@@ -958,12 +960,23 @@ export default {
         message: `Vols marcar com a carregades les ${pending.length} comandes des de ${group.origin}?`,
         onConfirm: async () => {
           this.isLoading = true;
+          let saved = 0;
           try {
             const me = await service({ requiresAuth: true, cached: true }).get("users/me");
             for (const op of pending) {
               await service({ requiresAuth: true }).put(`orders/${op.id}`, { transfer_start_date: new Date().toISOString(), transfer_start_user: me.data.id });
+              saved++;
             }
             this.$buefy.toast.open({ message: `${pending.length} comandes carregades`, type: "is-success" });
+          } catch (error) {
+            // a failed save said nothing (issues/298): tell how far it got and why
+            const data = (error && error.response && error.response.data) || {};
+            const reason = (data.error && data.error.message) || data.message;
+            this.$buefy.toast.open({
+              message: `No s'han pogut carregar totes: ${saved} de ${pending.length} desades${reason ? ` (${reason})` : ""}`,
+              type: "is-danger",
+              duration: 5000
+            });
           } finally {
             this.isLoading = false;
             await this.loadData();
@@ -979,7 +992,7 @@ export default {
     },
     openIncidenceModal(order) {
       this.selectedOrderForIncidence = order.id;
-      this.predefinedIncidenceText = "Comanda no dipositada";
+      this.predefinedIncidenceText = incidencePrefill(order);
       this.isIncidenceModalActive = true;
     },
     onIncidenceCreated() {

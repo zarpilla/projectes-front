@@ -19,6 +19,29 @@ export function operationsQueries ({ routeIds, statuses = [], date = null }) {
   return [direct, transfers]
 }
 
+// The states a driver's day shows (issues/298): the orders still to move and,
+// on a day, the ones delivered already, so «1 de 1 fetes» counts them and their
+// «Desfés» stays at hand. Without a day, only the open ones: every delivered
+// order of the routes would come along.
+export const operationStatuses = date =>
+  date ? ['pending', 'processed', 'delivered'] : ['pending', 'processed']
+
+// An operation is done once loaded (a delivery or a farm pickup) or unloaded
+// (a transfer); a delivery is done once delivered too.
+export const isOperationDone = op =>
+  op.operationType === 'transfer'
+    ? Boolean(op.transfer_end_date)
+    : Boolean(op.pickup_date) || (!op.is_collection_order && op.status === 'delivered')
+
+// What the driver's incidence starts with (issues/298): «Comanda no
+// dipositada» only fits a delivery not deposited yet; a farm pickup (-R) the
+// farm has not got ready gets its own text, a deposited delivery none.
+export function incidencePrefill (op) {
+  if (!op) return ''
+  if (op.is_collection_order) return 'Comanda no preparada per a la recollida'
+  return op.deposit_date ? '' : 'Comanda no dipositada'
+}
+
 // One list from both answers (an order can be in both)
 export function mergeOrders (...lists) {
   const byId = new Map()
