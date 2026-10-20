@@ -25,6 +25,26 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Logística"],
+      text: "Les comandes facturades o lliurades ja no canvien de preu: ni el descompte per volum quan s'afegeix, s'anul·la o es mou una altra comanda del mateix dia i ruta, ni l'edició ràpida de la llista (que només recalcula les pendents i ja no les converteix en transferència). Desar una comanda sense canvis ja no la converteix en una transferència amb data passada."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: "Les comandes de recollida a finca (-R) es cobren amb la tarifa del que recullen (refrigerada si alguna ho és). Esborrar un esborrany de factura només torna a «Lliurada» les comandes que encara hi estaven facturades. Facturar ja no compta les comandes lliurades que encara són en una factura: surten en un avís a part."
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores"],
+      text: "Bestretes: amb una distribució setmanal es paga la part d'una setmana completa (hores setmanals / 40 × salari), i Persones › «Crear bestretes» calcula els mateixos imports que «Crea». Hores anuals: els dies pendents i el màxim del conveni es calculen a la mateixa escala, i les persones amb mesos a 0 h tenen un saldo coherent. Previsió dedicació: les línies «Total» que travessen el canvi d'any compten els festius dels dos anys."
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: "Ingressos i Despeses: el filtre «Sèrie» torna a mostrar els ingressos rebuts i les despeses d'aquella sèrie. Línies dels documents: la quantitat es guarda amb 2 decimals i un tercer s'arrodoneix en escriure'l, de manera que els totals que es veuen són els que es guarden."
+    },
+    {
+      type: "Correccions",
       modules: ["Diners", "Hores"],
       text: "Tresoreria › Per projecte: en mode «Des d'avui» el saldo a 31/12 coincideix amb el d'«Inici d'any», i la taula dinàmica s'actualitza en triar un projecte; les línies d'IVA pendent de saldar s'exporten arrodonides. A les exportacions d'hores, la columna Hores torna a ser numèrica i es pot sumar."
     },
