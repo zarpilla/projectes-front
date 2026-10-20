@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
+      text: "Obrir i desar una comanda sense canvis ja no la converteix en transferència: les comandes lliurades, facturades o anul·lades conserven sempre la seva, i en les obertes només es recalcula si canvies el punt de recollida, la ruta o la data. L'avís de canvi d'estat en bloc de comandes facturades ja no diu «Comanda ja processada»."
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
       text: "Les comandes facturades o lliurades ja no canvien de preu: ni el descompte per volum quan s'afegeix, s'anul·la o es mou una altra comanda del mateix dia i ruta, ni l'edició ràpida de la llista (que només recalcula les pendents i ja no les converteix en transferència). Desar una comanda sense canvis ja no la converteix en una transferència amb data passada."
     },
     {
