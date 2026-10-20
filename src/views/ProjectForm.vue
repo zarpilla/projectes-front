@@ -56,6 +56,7 @@
         <div v-show="showTab('dades')" class="column" :class="newSummary ? 'is-12' : 'is-two-thirds'">
           <card-component :title="formCardTitle" class="tile is-child">
             <form 
+              novalidate
               @submit.prevent="submitAndContinue" 
               @focus.capture="enableUserInteraction"
               @input.capture="enableUserInteraction"
@@ -67,7 +68,7 @@
             >
               <h3 v-if="newSummary" class="form-section-title">Identificació</h3>
               <b-field label="Codi *" horizontal :type="nameError ? 'is-danger' : null" :message="nameError">
-                <b-input v-model="form.name" placeholder="Codi" required @update:model-value="nameError = ''" />
+                <b-input v-model="form.name" placeholder="Codi" required :validation-message="requiredFieldMessage" @update:model-value="nameError = ''" />
               </b-field>
               <b-field label="Estat *" horizontal>
                 <b-select
@@ -2533,6 +2534,7 @@ import sortBy from "lodash/sortBy";
 import { projectDocuments, projectDocumentAmounts, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
 import { isDuplicateCodeError, projectSaveErrorMessage, DUPLICATE_CODE_FIELD_MESSAGE } from "@/domain/projectSaveError";
 import { projectTrashDialog } from "@/domain/projectTrash";
+import { projectBasicDataError, projectEndBeforeStart, PROJECT_DATES_MESSAGE, REQUIRED_FIELD_MESSAGE } from "@/domain/projectBasicData";
 import { projectTreasury, projectTreasuryDone, treasurySums } from "@/domain/projectTreasury.js";
 import {
   balancePeriodification,
@@ -2655,6 +2657,8 @@ export default {
       allByYearYear: "TOTS",
       calculatedTotals: null,
       nameError: "",
+      // Buefy shows it under Codi instead of the browser's English bubble (issues/212)
+      requiredFieldMessage: REQUIRED_FIELD_MESSAGE,
       projectTrashDialog,
       periodification: false,
       dirtyEnabled: true,
@@ -3605,11 +3609,7 @@ export default {
       // Validate each step's required fields
       if (step === 1) {
         // Basic data: name, state, scope, leader, dates are required
-        const stateInvalid = this.form.project_state.id === 0;
-        const scopeInvalid = this.form.project_scope.id === 0;
-        const leaderInvalid = this.form.leader.id === 0;
-        return this.form.name && this.form.date_start && this.form.date_end &&
-               !stateInvalid && !scopeInvalid && !leaderInvalid;
+        return !projectBasicDataError(this.form);
       } else if (step === 2) {
         // Phases and budget: at least one phase with data
         return this.form.project_original_phases && this.form.project_original_phases.length > 0;
@@ -3632,7 +3632,7 @@ export default {
           3: "Desa les fases del pressupost abans de passar a la confirmació."
         };
         this.$buefy.snackbar.open({
-          message: messages[this.currentStep] || "Si us plau, completa tots els camps obligatoris abans de continuar",
+          message: (this.currentStep === 1 && projectEndBeforeStart(this.form) ? PROJECT_DATES_MESSAGE : messages[this.currentStep]) || "Si us plau, completa tots els camps obligatoris abans de continuar",
           queue: false
         });
         return;
@@ -3755,21 +3755,11 @@ export default {
       }
 
       try {
-        const stateInvalid = this.form.project_state.id === 0;
-        const scopeInvalid = this.form.project_scope.id === 0;
-        const leaderInvalid = this.form.leader.id === 0;
-
-        if (
-          !this.form.name ||
-          !this.form.date_start ||
-          !this.form.date_end ||
-          stateInvalid ||
-          scopeInvalid ||
-          leaderInvalid
-        ) {
+        const basicDataError = projectBasicDataError(this.form);
+        if (basicDataError) {
+          if (!this.form.name) this.nameError = REQUIRED_FIELD_MESSAGE;
           this.$buefy.snackbar.open({
-            message:
-              "Error. Codi, Estat, Àmbit, Coordina, Data Inici i Data Final son dades obligatòries",
+            message: basicDataError,
             queue: false
           });
           this.isLoading = false;

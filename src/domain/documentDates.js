@@ -79,3 +79,20 @@ export function setPaidDate (form, date) {
   if (form.paid_date) form.paid = true
   return form
 }
+
+/**
+ * A quote's «Acceptat» and its date, kept together like «Cobrada/Pagada»
+ * (issues/280): the box alone saved accepted without a date.
+ */
+export function setAccepted (form, accepted, today = new Date()) {
+  form.accepted = !!accepted
+  if (form.accepted && !form.accepted_date) form.accepted_date = today
+  if (!form.accepted) form.accepted_date = null
+  return form
+}
+
+export function setAcceptedDate (form, date) {
+  form.accepted_date = date || null
+  if (form.accepted_date) form.accepted = true
+  return form
+}

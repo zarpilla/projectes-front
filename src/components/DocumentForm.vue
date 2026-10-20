@@ -751,10 +751,12 @@
             </b-field>
 
             <b-field v-if="type === 'quotes'" label="Acceptat" horizontal>
-              <b-checkbox v-model="form.accepted" class="checkbox-inline">
+              <!-- the box and the date kept together (issues/280) -->
+              <b-checkbox :model-value="form.accepted" class="checkbox-inline" @update:model-value="v => setAccepted(form, v)">
               </b-checkbox>
               <b-datepicker
-                v-model="form.accepted_date"
+                :model-value="form.accepted_date"
+                @update:model-value="v => setAcceptedDate(form, v)"
                 :show-week-number="false"
                 :locale="'ca-ES'"
                 :first-day-of-week="1"
@@ -1077,7 +1079,7 @@ import { rectificativeSerial, isRectificativeSerial } from "@/domain/rectificati
 import _ from "lodash";
 import * as documentTotals from "@/domain/documentTotals.js";
 import { documentPayload } from "@/domain/documentPayload.js";
-import { documentDatesForPickers, documentDatesForApi, estimatedPaymentFrom, setPaid, setPaidDate } from "@/domain/documentDates.js";
+import { documentDatesForPickers, documentDatesForApi, estimatedPaymentFrom, setPaid, setPaidDate, setAccepted, setAcceptedDate } from "@/domain/documentDates.js";
 import { budgetLineTotal } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
 import { mapState } from "pinia"
@@ -1101,6 +1103,7 @@ import DocumentHistory from "@/components/DocumentHistory.vue";
 // Services
 import service from "@/service/index";
 import getConfig from "@/config";
+import { payrollCode, payrollTotal } from "@/domain/payrollForm";
 import { upperCase } from "lodash";
 
 export default {
@@ -1505,6 +1508,8 @@ export default {
   methods: {
     setPaid,
     setPaidDate,
+    setAccepted,
+    setAcceptedDate,
     // issues/199: only the payment method (and its bank account) change; the
     // backend records it in the history
     async savePaymentMethod() {
@@ -1734,9 +1739,7 @@ export default {
               this.calculateIRPF();
 
               if (this.type === "payrolls") {
-                this.form.code =
-                  this.form.code ||
-                  `${this.form.year.year}-${this.form.month.month}-${this.form.id}`;
+                this.form.code = this.form.code || payrollCode(this.form);
 
                 this.dedications = (
                   await service({ requiresAuth: true }).get(
@@ -1751,7 +1754,7 @@ export default {
                     d.to >= moment(this.form.emitted).format("YYYY-MM-DD")
                 );
 
-                this.form.total = this.form.total_base + this.form.ss_base;
+                this.form.total = payrollTotal(this.form.total_base, this.form.ss_base);
               }
 
               if (this.form.state === "draft") {
@@ -1948,7 +1951,7 @@ export default {
           if (isInvalid) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+                "Error. Serie, Emissió, Clienta i Projecte són dades obligatòries",
               queue: false
             });
             this.isLoading = false;
@@ -2013,7 +2016,7 @@ export default {
           ) {
             this.$buefy.snackbar.open({
               message:
-                "Error. Serie, Emissió, Clienta i Projecte son dades obligatòries",
+                "Error. Serie, Emissió, Clienta i Projecte són dades obligatòries",
               queue: false
             });
             this.isLoading = false;
@@ -2820,9 +2823,12 @@ export default {
       }
 
       // Set project
+      // Loaded with its phases like a project picked in the form: the basic
+      // object had none, so «DETALL DEL PROJECTE» showed no budget lines to
+      // assign the diet to until it was saved (issues/280)
       if (dietData.project) {
-        this.form.projects = [dietData.project];
-        this.projectSearch = dietData.project.name;
+        this.form.projects = [];
+        await this.projectSelected(dietData.project);
       }
 
       // Set emission date
@@ -2903,9 +2909,7 @@ export default {
         parseFloat(this.form.irpf_base) -
         parseFloat(this.form.other_base)
       ).toFixed(2);
-      this.form.total = (
-        parseFloat(this.form.total_base) + parseFloat(this.form.ss_base)
-      ).toFixed(2);
+      this.form.total = payrollTotal(this.form.total_base, this.form.ss_base);
     },
     async getPDF() {
       const pdf = (
