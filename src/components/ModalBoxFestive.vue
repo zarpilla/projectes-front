@@ -83,6 +83,7 @@ import service from '@/service/index'
 import { findCurrentUser } from '@/domain/currentUser'
 import RadioPicker from '@/components/RadioPicker.vue'
 import moment from 'moment'
+import { festiveRangeDates } from '@/domain/workdayLog.js'
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 import ModalBox from '@/components/ModalBox.vue'
@@ -250,9 +251,10 @@ export default {
         })
       }
       else if (this.form.endDate) {
-        const diff = moment(this.form.endDate).diff(this.form.date, 'days') + 1
+        // the days that will be saved: weekends are skipped (issues/274)
+        const diff = festiveRangeDates(this.form.date, this.form.endDate).length
         this.$buefy.dialog.confirm({
-            message: `Atenció, estàs a punt de crear ${diff} festius. Vols continuar?`,
+            message: `Atenció, estàs a punt de crear ${diff} ${diff === 1 ? 'festiu' : 'festius'} (sense els caps de setmana). Vols continuar?`,
             onConfirm: async () => {
               this.$emit('submit', this.form)
             },

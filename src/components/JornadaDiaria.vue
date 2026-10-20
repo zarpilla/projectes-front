@@ -175,7 +175,7 @@
                 <span class="has-text-weight-bold" v-if="a._type === 'total'"
                   >TOTAL {{ formatMonthName(a.date) }}</span
                 >
-                <span v-else>{{ a.date }}</span>
+                <span v-else>{{ pdfDate(a.date) }}</span>
               </td>
               <td>
                 <span class="has-text-weight-bold" v-if="a._type === 'total'">{{
@@ -995,6 +995,10 @@ export default {
       }
       return formatHoursMinutes(slotMinutes(activity.hour_in, activity.hour_out));
     },
+    // the PDF lists the days as dd/mm/yyyy (it printed 2026-10-19, issues/274)
+    pdfDate(date) {
+      return date ? moment(date, "YYYY-MM-DD").format("DD/MM/YYYY") : "";
+    },
     formatHourMonth(m) {
       return formatHoursMinutes(m && m.m ? m.m : 0);
     },
@@ -1304,6 +1308,11 @@ tr.bordered-2t td {
 tr.bordered-2 th,
 tr.bordered-2 td {
   border-bottom: 2px solid #000;
+}
+/* .is-total capitalizes the month name on screen; in the PDF the month total
+   printed «3 H 30» (issues/274): the label is upper case already */
+.invoice-box tr.is-total {
+  text-transform: none;
 }
 tr.is-total td {
   border-bottom: 1px solid #000;

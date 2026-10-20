@@ -101,3 +101,19 @@ export const expectedHours = (date, periods, festives) => {
 // tenants with years of festives (issues/096)
 export const festivesBetween = (from, to) =>
   `festives?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
+
+// the days a festive range saves: its weekdays, from `from` to `to` both
+// included. The confirmation counts these same days (it said «8 festius» for
+// a range that saved 6, issues/274).
+export const festiveRangeDates = (from, to) => {
+  const dates = []
+  const start = moment(from)
+  const days = to ? moment(to).diff(start, 'days') + 1 : 1
+  for (let i = 0; i < days; i++) {
+    const d = start.clone().add(i, 'days')
+    if (d.day() !== 6 && d.day() !== 0) {
+      dates.push(d.format('YYYY-MM-DD'))
+    }
+  }
+  return dates
+}
