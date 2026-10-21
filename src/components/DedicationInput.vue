@@ -1830,6 +1830,8 @@ export default {
   white-space: normal;
   overflow-wrap: anywhere;
   text-align: left;
+  /* .tag is a pill; a two-line entry looks better as a rounded box */
+  border-radius: 6px;
 }
 .day-label {
   cursor: pointer;
