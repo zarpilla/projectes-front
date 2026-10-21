@@ -235,7 +235,14 @@
                     @click="form.pickup = s.id; updatePickup();"
                   >{{ s.name }}</button>
                 </div>
-                <p v-if="selectedPickupMessage" class="field-note">{{ selectedPickupMessage }}</p>
+                <!-- the deposit conditions of this route and warehouse, highlighted (issues/313) -->
+                <div v-if="selectedPickupMessage" class="notification is-warning deposit-notice" role="alert">
+                  <b-icon icon="clock-alert-outline" />
+                  <div>
+                    <strong>Condicions de dipòsit</strong>
+                    <p>{{ selectedPickupMessage }}</p>
+                  </div>
+                </div>
                 </div>
               </b-field>
 
@@ -552,6 +559,7 @@ import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
+import { depositNotice } from "@/domain/depositNotice";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder, canTransfer as canTransferOrder } from "@/domain/orderStatus";
 
 export default {
@@ -599,6 +607,7 @@ export default {
       // array from 0 to 23 with 15 minutes intervals
       contact_time_slots: Array.from({ length: 96 }, (_, i) => i / 4),
       routeRates: [],
+      depositNotices: [],
       contactSearch: "",
       citySearch: "",
       apiUrl: import.meta.env.VUE_APP_API_URL,
@@ -683,9 +692,14 @@ export default {
       const slots = [this.slotText(f.contact_time_slot_1_ini, f.contact_time_slot_1_end), this.slotText(f.contact_time_slot_2_ini, f.contact_time_slot_2_end)].filter(Boolean).join(" i ");
       return [f.contact_address, [f.contact_postcode, f.contact_city].filter(Boolean).join(" "), slots ? `horari ${slots}` : "", f.contact_phone].filter(Boolean).join(" · ");
     },
+    // the notice of the order's route and warehouse, else the warehouse's own text (issues/313)
     selectedPickupMessage() {
-      const pickup = this.form.pickup && this.pickups.find(p => p.id === this.form.pickup);
-      return pickup ? pickup.message : "";
+      return depositNotice({
+        route: this.form.route,
+        pickup: this.form.pickup,
+        notices: this.depositNotices,
+        pickups: this.pickups
+      });
     },
     hasDiscount() {
       return !!(this.form.multidelivery_discount || this.form.contact_pickup_discount || this.form.volume_discount);
@@ -1332,7 +1346,8 @@ export default {
         cities,
         cityRoutes,
         routeFestives,
-        sociesContacts
+        sociesContacts,
+        depositNotices
       ] = await Promise.all([
         service({ requiresAuth: true, cached: true }).get("products?_limit=-1"),
         service({ requiresAuth: true, cached: true }).get("pickups?_limit=-1"),
@@ -1342,7 +1357,9 @@ export default {
         service({ requiresAuth: true }).get("cities?_limit=-1&_sort=name"),
         service({ requiresAuth: true }).get("city-routes/basic"),
         service({ requiresAuth: true }).get("route-festives?_limit=-1"),
-        service({ requiresAuth: true }).get("contacts/for-orders?socies=1")
+        service({ requiresAuth: true }).get("contacts/for-orders?socies=1"),
+        // «Avisos de dipòsit»: without them, the warehouse's own text (issues/313)
+        service({ requiresAuth: true }).get("route-pickup-notices?_limit=-1").catch(() => ({ data: [] }))
       ]);
 
       this.products = products.data;
@@ -1354,6 +1371,7 @@ export default {
       this.cityRoutes = cityRoutes.data;
       this.routeFestives = routeFestives.data;
       this.sociesContacts = sociesContacts.data;
+      this.depositNotices = depositNotices.data || [];
     },
     async changeOwner() {
       this.refreshClients(this.form.owner);
@@ -2836,6 +2854,18 @@ export default {
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+/* the deposit conditions of the route and warehouse (issues/313) */
+.deposit-notice {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin: 0.6rem 0 0;
+  padding: 0.75rem 1rem;
+}
+.deposit-notice p {
+  margin: 0.15rem 0 0;
+  white-space: pre-line;
 }
 .field-note {
   margin-top: .375rem;

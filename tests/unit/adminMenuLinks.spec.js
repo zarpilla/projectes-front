@@ -16,7 +16,7 @@ const BACKEND_ENTITIES = [
   'bank-account', 'contact-type', 'dedication-type', 'expense-type', 'income-type',
   'legal-form', 'payment-method', 'project-likelihood', 'project-state', 'project-type',
   'region', 'project-scope', 'sector', 'serie', 'social-entity', 'strategy', 'task-state',
-  'user-festive', 'year', 'festive-type', 'route-rate',
+  'user-festive', 'year', 'festive-type', 'route-rate', 'route-pickup-notice',
   // issues/159
   'pickup', 'delivery-type', 'city', 'product', 'document-type', 'vat-type', 'activity-type',
   // issues/310: the holidays for everyone

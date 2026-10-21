@@ -14,7 +14,7 @@ const OFFICE = ['orders_admin']
 const MEMBER = ['orders']
 // Taules auxiliars › Logística: the office opens them too (issues/159; keep in
 // step with service/adminTables.js OFFICE_TABLES and the API's isAdminOrOffice)
-const OFFICE_TABLES = ['pickup', 'delivery-type', 'city', 'route-rate']
+const OFFICE_TABLES = ['pickup', 'delivery-type', 'city', 'route-rate', 'route-pickup-notice']
 const ADMIN_OR_OFFICE = [...ADMIN, ...OFFICE]
 
 // route record path → permissions (any of them opens it)

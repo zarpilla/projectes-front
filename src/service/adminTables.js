@@ -56,13 +56,15 @@ export const ADMIN_TABLE_GROUPS = [
       { entity: 'pickup', label: 'Punts de recollida' },
       { entity: 'delivery-type', label: 'Tipus de lliurament' },
       { entity: 'city', label: 'Poblacions' },
-      { entity: 'route-rate', label: 'Tarifes de ruta' }
+      { entity: 'route-rate', label: 'Tarifes de ruta' },
+      // issues/313
+      { entity: 'route-pickup-notice', label: 'Avisos de dipòsit' }
     ]
   }
 ]
 
 // What the logistics office (orders_admin) opens without being an admin (issues/159)
-export const OFFICE_TABLES = ['pickup', 'delivery-type', 'city', 'route-rate']
+export const OFFICE_TABLES = ['pickup', 'delivery-type', 'city', 'route-rate', 'route-pickup-notice']
 
 // The groups a person with these app permissions sees: an admin all of them
 // (Logística with logistics), the office only the Logística tables

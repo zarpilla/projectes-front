@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Logística"],
+      text: ["Avisos de dipòsit per ruta i magatzem: a ", { to: "/admin/route-pickup-notice", label: "Taules auxiliars › Avisos de dipòsit" }, " es pot posar un text per a cada combinació de ruta de destí i magatzem d'origen (p. ex. fins quan s'ha de deixar el paquet). En fer una comanda surt destacat en triar el magatzem; si no n'hi ha cap, surt el text del magatzem com fins ara."]
+    },
+    {
+      type: "Novetats",
       modules: ["Logística", "Diners"],
       text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes (p. ex. «Serveis logístics_Octubre_2026»). El text es defineix a ", { to: "/admin/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
     },
