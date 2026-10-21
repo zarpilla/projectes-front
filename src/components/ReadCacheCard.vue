@@ -11,8 +11,12 @@
     <p v-if="loadError" class="cache-empty">No s'ha pogut consultar: {{ loadError }}</p>
     <dl v-else-if="stats" class="cache-facts">
       <dt>Respostes guardades</dt><dd>{{ stats.entries }}</dd>
-      <dt>Memòria</dt><dd>{{ megabytes(stats.bytes) }} de {{ megabytes(stats.maxBytes) }}</dd>
+      <dt>Mida guardada</dt><dd>{{ megabytes(stats.bytes) }} de {{ megabytes(stats.maxBytes) }}</dd>
       <dt>Servides des de la memòria</dt><dd>{{ hitRate }}</dd>
+      <dt>Descartades per manca d'espai</dt><dd>{{ stats.evicted || 0 }}</dd>
+      <template v-if="stats.memory">
+        <dt>Memòria del servidor</dt><dd>{{ processMemory }}</dd>
+      </template>
     </dl>
 
     <p class="cache-help">
@@ -38,6 +42,12 @@ export default {
     };
   },
   computed: {
+    // to size the cap per entity: what the server process uses (issues/307)
+    processMemory() {
+      const m = this.stats.memory;
+      const limit = m.containerLimitMB ? ` de ${this.mb(m.containerLimitMB)}` : "";
+      return `${this.mb(m.rssMB)}${limit} MB · dades del programa ${this.mb(m.heapUsedMB)} MB`;
+    },
     hitRate() {
       const asked = (this.stats.hits || 0) + (this.stats.misses || 0);
       return asked ? `${Math.round((100 * this.stats.hits) / asked)} % de ${asked} des que ha arrencat` : "—";
@@ -47,6 +57,9 @@ export default {
     await this.load();
   },
   methods: {
+    mb(value) {
+      return (value || 0).toLocaleString("ca-ES", { maximumFractionDigits: 0 });
+    },
     megabytes(bytes) {
       return `${((bytes || 0) / 1048576).toLocaleString("ca-ES", { maximumFractionDigits: 1 })} MB`;
     },

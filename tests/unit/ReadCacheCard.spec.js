@@ -13,7 +13,11 @@ vi.mock('@/service/index', () => ({
 
 import ReadCacheCard from '@/components/ReadCacheCard.vue'
 
-const stats = over => ({ on: true, entries: 42, bytes: 12 * 1048576, maxBytes: 64 * 1048576, hits: 75, misses: 25, ...over })
+const stats = over => ({
+  on: true, entries: 42, bytes: 12 * 1048576, maxBytes: 64 * 1048576, hits: 75, misses: 25, evicted: 3,
+  memory: { rssMB: 612.3, heapUsedMB: 301.1, heapLimitMB: 4144, containerLimitMB: 1536 },
+  ...over
+})
 
 const mountCard = () => mount(ReadCacheCard, { global: { plugins: [Buefy] } })
 
@@ -33,6 +37,22 @@ describe('ReadCacheCard', () => {
     expect(text).toContain('42')
     expect(text).toContain('12 MB de 64 MB')
     expect(text).toContain('75 % de 100')
+    // to size the cap per entity (issues/307)
+    expect(text).toContain("Descartades per manca d'espai3")
+    expect(text).toContain('612 de 1.536 MB · dades del programa 301 MB')
+  })
+
+  it('shows the memory without a container limit, and stats from an older server', async () => {
+    get.mockResolvedValueOnce({ data: stats({ memory: { rssMB: 700, heapUsedMB: 350, heapLimitMB: 4144, containerLimitMB: null } }) })
+    const w = mountCard()
+    await flushPromises()
+    expect(w.text()).toContain('700 MB · dades del programa 350 MB')
+
+    get.mockResolvedValueOnce({ data: stats({ memory: undefined, evicted: undefined }) })
+    const old = mountCard()
+    await flushPromises()
+    expect(old.text()).not.toContain('Memòria del servidor')
+    expect(old.text()).toContain("Descartades per manca d'espai0")
   })
 
   it('says when the cache is off or can\'t be read', async () => {
