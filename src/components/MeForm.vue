@@ -234,8 +234,8 @@
                 <b-input v-model.number="form.orders_options.next_day_limit_hour" type="number" step="1" min="0" max="23" />
               </b-field>
               <!-- issues/312 -->
-              <b-field label="Concepte de les factures de comandes" message="Surt al PDF de les factures que crea «Facturar», amb el mes de les comandes: «Serveis logístics_Octubre_2026». Buit: sense concepte.">
-                <b-input v-model="form.orders_options.invoice_concept" placeholder="Serveis logístics" maxlength="200" />
+              <b-field label="Concepte de les factures de comandes" message="Surt al PDF de les factures que crea «Facturar». Amb el mes de les comandes: {Mes} Octubre, {mes} octubre, {MES} OCTUBRE, {mm} 10, {any} 2026. «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026». Buit: sense concepte.">
+                <b-input v-model="form.orders_options.invoice_concept" placeholder="Serveis logístics_{Mes}_{any}" maxlength="200" />
               </b-field>
             </div>
           </section>

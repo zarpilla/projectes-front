@@ -31,7 +31,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística", "Diners"],
-      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes (p. ex. «Serveis logístics_Octubre_2026»). El text es defineix a ", { to: "/admin/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
+      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes: «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026» (també {mes}, {MES} i {mm}). El text es defineix a ", { to: "/admin/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
     },
     {
       type: "Correccions",
