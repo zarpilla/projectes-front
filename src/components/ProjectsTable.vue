@@ -329,17 +329,15 @@
               @click.prevent="saveRowEdit(props.row)"
             >
               <b-icon icon="content-save" size="is-small" />
-              <span>Desa</span>
             </button>
             <button
-              class="button is-small"
+              class="button is-small is-light"
               type="button"
               title="Cancel·la"
               :disabled="savingRowId === props.row.id"
               @click.prevent="cancelRowEdit"
             >
               <b-icon icon="close" size="is-small" />
-              <span>Cancel·la</span>
             </button>
           </template>
           <template v-else>
