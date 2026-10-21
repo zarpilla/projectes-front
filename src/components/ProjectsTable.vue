@@ -118,6 +118,7 @@
           <template v-if="isEditingRow(props.row.id)">
             <b-input
               v-model="editingForm.name"
+              size="is-small"
               @keydown.enter.prevent="saveRowEdit(props.row)"
             />
           </template>
@@ -139,7 +140,7 @@
           v-slot="props"
         >
           <template v-if="isEditingRow(props.row.id)">
-            <b-select v-model="editingForm.leader" placeholder="Coordina">
+            <b-select size="is-small" v-model="editingForm.leader" placeholder="Coordina">
               <option value="0">--</option>
               <option v-for="user in users" :key="user.id" :value="user.id">
                 {{ user.username }}
@@ -158,7 +159,7 @@
           v-slot="props"
         >
           <template v-if="isEditingRow(props.row.id)">
-            <b-select v-model="editingForm.project_scope" placeholder="Àmbit">
+            <b-select size="is-small" v-model="editingForm.project_scope" placeholder="Àmbit">
               <option v-for="scope in scopes" :key="scope.id" :value="scope.id">
                 {{ scope.name }}{{ scope.group ? ` - ${scope.group}` : "" }}
               </option>
@@ -178,6 +179,7 @@
           <template v-if="isEditingRow(props.row.id)">
             <b-select
               v-model="editingForm.project_likelihood"
+              size="is-small"
               placeholder="Probabilitat"
             >
               <option
@@ -205,7 +207,7 @@
           v-slot="props"
         >
           <template v-if="isEditingRow(props.row.id)">
-            <b-select v-model="editingForm.project_state" placeholder="Estat">
+            <b-select size="is-small" v-model="editingForm.project_state" placeholder="Estat">
               <option
                 v-for="state in editableProjectStates"
                 :key="state.id"
@@ -229,6 +231,8 @@
           <template v-if="isEditingRow(props.row.id)">
             <b-datepicker
               v-model="editingForm.date_start"
+              size="is-small"
+              class="inline-date"
               :show-week-number="false"
               :locale="'ca-ES'"
               :first-day-of-week="1"
@@ -246,6 +250,8 @@
           <template v-if="isEditingRow(props.row.id)">
             <b-datepicker
               v-model="editingForm.date_end"
+              size="is-small"
+              class="inline-date"
               :show-week-number="false"
               :locale="'ca-ES'"
               :first-day-of-week="1"
@@ -266,7 +272,7 @@
           v-slot="props"
         >
           <template v-if="isEditingRow(props.row.id)">
-            <b-select v-model="editingForm.project_type" placeholder="Tipus">
+            <b-select size="is-small" v-model="editingForm.project_type" placeholder="Tipus">
               <option value="0">--</option>
               <option
                 v-for="type in projectTypes"
@@ -289,7 +295,7 @@
           v-slot="props"
         >
           <template v-if="isEditingRow(props.row.id)">
-            <b-switch v-model="editingForm.structural_expenses" />
+            <b-switch size="is-small" v-model="editingForm.structural_expenses" />
           </template>
           <template v-else>
             {{ props.row.structural_expenses ? "Sí" : "No" }}
@@ -303,7 +309,7 @@
           v-slot="props"
         >
           <template v-if="isEditingRow(props.row.id)">
-            <b-switch v-model="editingForm.grantable" />
+            <b-switch size="is-small" v-model="editingForm.grantable" />
           </template>
           <template v-else>
             {{ props.row.grantable ? "Sí" : "No" }}
@@ -722,6 +728,10 @@ export default {
 };
 </script>
 <style scoped>
+/* inline edit: a date in full («01/01/2026»), not cut to «01/» */
+.inline-date {
+  min-width: 8.5rem;
+}
 /* «Desa» / «Cancel·la» stay in view when the edit table is wider than the card */
 :deep(.actions-sticky) {
   position: sticky;

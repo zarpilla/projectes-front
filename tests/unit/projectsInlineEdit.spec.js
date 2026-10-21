@@ -72,3 +72,16 @@ describe('projects table inline edit', () => {
     expect(put).toHaveBeenLastCalledWith('projects/7', expect.objectContaining({ name: 'Altre' }))
   })
 })
+
+describe('projects table inline edit size', () => {
+  it('uses small controls in the row being edited', async () => {
+    const w = mountTable()
+    await startEditing(w)
+    const row = w.find('tbody tr')
+    expect(row.find('.control.is-small input').exists()).toBe(true)
+    // the five dropdowns, plus the month/year ones of the two calendars
+    expect(row.findAll('.select').length).toBeGreaterThanOrEqual(5)
+    expect(row.findAll('.select:not(.is-small)').length).toBe(0)
+    expect(row.findAll('.inline-date').length).toBe(2)
+  })
+})
