@@ -25,6 +25,7 @@ const api = {
 }
 vi.mock('@/service/index', () => ({ default: () => api }))
 import App from '@/App.vue'
+import { TASK_ALERTS_DELAY_MS } from '@/stores/taskAlerts'
 
 const calls = url => api.get.mock.calls.filter(c => c[0] === url).length
 const callsStarting = prefix => api.get.mock.calls.filter(c => c[0].startsWith(prefix)).length
@@ -69,16 +70,23 @@ afterEach(() => {
 
 describe('App loads the user once per page load (issues/309)', () => {
   it('a focus while users/me is on its way asks nothing again and keeps one menu', async () => {
+    // the Tasques dot is asked once, after the page's own data (issues/307)
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true })
     held = []
     const w = await mountApp()
     window.dispatchEvent(new Event('focus'))
     await answerMe()
+    expect(callsStarting('tasks/alerts')).toBe(0)
+    await vi.advanceTimersByTimeAsync(TASK_ALERTS_DELAY_MS)
 
     expect(calls('users/me')).toBe(1)
     expect(calls('users/me/home')).toBe(1)
-    expect(callsStarting('tasks?')).toBe(1)
-    expect(callsStarting('task-comments?')).toBe(1)
+    expect(callsStarting('tasks/alerts')).toBe(1)
+    // one request for the dot: no tasks with everything populated, no states, no comments
+    expect(callsStarting('tasks?')).toBe(0)
+    expect(callsStarting('task-comments?')).toBe(0)
     expect(groups(w)).toEqual(['', 'Projectes', 'Diners', 'Informes', 'Altres'])
+    vi.useRealTimers()
   })
 
   it('a focus after the load asks nothing again either', async () => {

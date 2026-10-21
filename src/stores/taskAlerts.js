@@ -1,7 +1,12 @@
 import { defineStore } from 'pinia'
+import moment from 'moment'
 import service from '@/service/index'
 import { currentUserId } from '@/domain/currentUser'
-import { taskAlerts } from '@/domain/tasks'
+
+// after a page load the dot waits for the page's own data: one server thread
+// per entity, and these were asked together with it (issues/307)
+export const TASK_ALERTS_DELAY_MS = 2500
+let soon = null
 
 // The dot of the Tasques menu entry (AsideMenuItem): overdue tasks of the logged-in
 // person and what is new for them since they last opened Tasques.
@@ -38,25 +43,33 @@ export const useTaskAlerts = defineStore('taskAlerts', {
       }
       this.fresh = 0
     },
+    // a page is loading: count once it has had the server first
+    refreshSoon (delay = TASK_ALERTS_DELAY_MS) {
+      clearTimeout(soon)
+      soon = setTimeout(() => {
+        soon = null
+        this.refresh()
+      }, delay)
+    },
+    // the server counts them (GET tasks/alerts, issues/307): it asked the
+    // person's tasks with everything populated (~40 KB), the task states and
+    // her mentions, three requests, to count two numbers here
     async refresh () {
       const me = currentUserId()
       if (!me) return
       try {
-        const api = service({ requiresAuth: true })
         let seenAt = this.seenAt()
         if (!seenAt) {
           // first time: nothing old counts as new
           this.markSeen()
           seenAt = this.seenAt()
         }
-        const [tasks, states, mentions] = await Promise.all([
-          api.get(`tasks?_limit=-1&_where[archived_eq]=false&_where[users_permissions_users.id_eq]=${me}`),
-          service({ requiresAuth: true, cached: true }).get('task-states?_sort=order'),
-          api.get(`task-comments?_limit=-1&_where[mentions.id_eq]=${me}&_where[createdAt_gt]=${encodeURIComponent(seenAt)}`)
-        ])
-        const result = taskAlerts({ tasks: tasks.data || [], states: states.data || [], mentions: mentions.data || [], me, seenAt })
-        this.overdue = result.overdue
-        this.fresh = result.fresh
+        const today = moment().format('YYYY-MM-DD')
+        const { data } = await service({ requiresAuth: true }).get(
+          `tasks/alerts?seen=${encodeURIComponent(seenAt || '')}&today=${today}`
+        )
+        this.overdue = Number(data && data.overdue) || 0
+        this.fresh = Number(data && data.fresh) || 0
         this.loadedAt = Date.now()
       } catch {
         // no dot when it cannot be worked out

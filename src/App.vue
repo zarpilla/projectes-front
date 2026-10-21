@@ -67,7 +67,7 @@ export default {
     "$route.path"(path, from) {
       if (!this.hasTaskAlerts) return;
       if (path === "/tasks") useTaskAlerts().markSeen();
-      else if (from === "/tasks") useTaskAlerts().refresh();
+      else if (from === "/tasks") useTaskAlerts().refreshSoon();
     }
   },
   mounted() {
@@ -191,7 +191,8 @@ export default {
             this.hasTaskAlerts = userPermissions.includes("projects");
             if (this.hasTaskAlerts) {
               if (this.$route && this.$route.path === "/tasks") useTaskAlerts().markSeen();
-              useTaskAlerts().refresh();
+              // after the page's own data (issues/307)
+              useTaskAlerts().refreshSoon();
             }
 
             if (userPermissions.includes("orders")) {

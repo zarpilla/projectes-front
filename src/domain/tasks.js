@@ -318,24 +318,5 @@ export function tasksFromTemplate (items, { project, from, stateId, users = [], 
   }))
 }
 
-/**
- * Notices of the logged-in person for the Tasques menu entry:
- * - overdue: their open tasks past the due date, and the unticked checklist items of
- *   their tasks assigned to them past theirs;
- * - fresh: since they last opened Tasques, tasks someone else created for them and
- *   comments that mention them.
- */
-export function taskAlerts ({ tasks = [], states = [], mentions = [], me, seenAt = null, today = moment().format('YYYY-MM-DD') }) {
-  const mine = t => (t.users_permissions_users || []).some(u => u.id === me)
-  const overdueTasks = tasks.filter(t => !t.archived && mine(t) && isOverdue(t, states, today)).length
-  const overdueChecks = tasks.filter(t => !t.archived && !isDone(t, states)).reduce((n, t) =>
-    n + (t.checklist || []).filter(c => {
-      const user = c.user && typeof c.user === 'object' ? c.user.id : c.user
-      return user === me && !c.done && c.due_date && c.due_date < today
-    }).length, 0)
-  const after = at => !seenAt || (at && at > seenAt)
-  const createdBy = t => (t.created && typeof t.created === 'object' ? t.created.id : t.created)
-  const freshTasks = tasks.filter(t => !t.archived && mine(t) && !isDone(t, states) && createdBy(t) !== me && after(t.createdAt)).length
-  const freshMentions = mentions.filter(c => after(c.createdAt) && (!c.author || c.author.id !== me)).length
-  return { overdue: overdueTasks + overdueChecks, fresh: freshTasks + freshMentions }
-}
+// The Tasques menu dot (taskAlerts) is counted by the server since issues/307:
+// projectes-v5 src/api/task/services/alerts.js, GET /api/tasks/alerts.
