@@ -56,12 +56,8 @@
             />
           </b-field>
 
-          <b-field label="Distribució setmanal" horizontal message="Hores diaries de treball durant la setmana (omplir només si les hores no es distrubueixen uniformement de dilluns a divendres). Per exemple: 8,8,0,8,8,0,0">
-            <b-input
-              v-model="form.hoursperday"
-              placeholder="Distribució setmanal d'hores diàries"
-              name="hoursperday"
-            />
+          <b-field label="Distribució setmanal" horizontal>
+            <weekly-hours-input v-model="form.hoursperday" :hours="form.hours" />
           </b-field>
 
           <b-field
@@ -205,6 +201,7 @@ import service from "@/service/index";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
+import WeeklyHoursInput from "@/components/WeeklyHoursInput.vue";
 import moment from "moment";
 import { formatMoney } from "@/helpers/format-number";
 
@@ -214,7 +211,7 @@ const DEFAULT_SCHEME = "autonoma";
 export default {
   name: "ModalBoxWorkingDay",
   emits: ["cancel", "delete", "submit"],
-  components: { ModalBox },
+  components: { ModalBox, WeeklyHoursInput },
   props: {
     isActive: {
       type: Boolean,
