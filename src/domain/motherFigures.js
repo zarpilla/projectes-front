@@ -23,3 +23,9 @@ export const isOpenChild = child => {
   const id = state && typeof state === 'object' ? state.id : state
   return Number(id) === OPEN_STATE_ID
 }
+
+// The list of a mother's children: active ones first, then by name.
+export const sortChildren = children =>
+  [...(children || [])].sort((a, b) =>
+    (isOpenChild(b) - isOpenChild(a)) ||
+    String(a.name || '').localeCompare(String(b.name || ''), 'ca', { numeric: true }))

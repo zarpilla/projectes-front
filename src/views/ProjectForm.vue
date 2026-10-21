@@ -471,18 +471,59 @@
               </b-field>
 
               <b-field v-if="form.is_mother" label="Projectes fills" horizontal>
-                <div>
-                  <div v-if="form.children && form.children.children && form.children.children.length > 0">
-                    <div v-for="child in form.children.children" :key="child.id" class="mb-2">
-                      <router-link
-                        :to="{ name: 'project.edit', params: { id: child.id } }"
-                      >
-                        <span class="project-name has-text-info ml-1">
-                          {{ child.name }}
-                        </span>
-                      </router-link>
-                    </div>
-                  </div>
+                <div class="children-list">
+                  <template v-if="sortedChildren.length > 0">
+                    <p class="children-count">
+                      {{ sortedChildren.length }}
+                      {{ sortedChildren.length === 1 ? "projecte" : "projectes" }}
+                      · {{ openChildren.length }}
+                      {{ openChildren.length === 1 ? "actiu" : "actius" }}
+                    </p>
+                    <table class="table is-narrow is-hoverable is-fullwidth">
+                      <thead>
+                        <tr>
+                          <th>Projecte</th>
+                          <th>Estat</th>
+                          <th>Inici</th>
+                          <th>Fi</th>
+                          <th class="has-text-right">Hores reals / previstes</th>
+                          <th class="has-text-right">Resultat previst</th>
+                          <th class="has-text-right">Resultat real</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="child in sortedChildren"
+                          :key="child.id"
+                          :class="{ 'is-closed': !isOpenChild(child) }"
+                        >
+                          <td>
+                            <router-link :to="{ name: 'project.edit', params: { id: child.id } }">
+                              {{ child.name }}
+                            </router-link>
+                          </td>
+                          <td>
+                            <span
+                              v-if="child.project_state && child.project_state.name"
+                              class="tag is-light"
+                              :class="{ 'is-success': isOpenChild(child) }"
+                            >{{ child.project_state.name }}</span>
+                          </td>
+                          <td class="is-nowrap">{{ formatDate(child.date_start) }}</td>
+                          <td class="is-nowrap">{{ formatDate(child.date_end) }}</td>
+                          <td class="has-text-right is-nowrap">
+                            {{ formatNumber(child.total_real_hours || 0) }} / {{ formatHours(child.total_estimated_hours || 0) }}
+                          </td>
+                          <td class="has-text-right is-nowrap" :class="'has-text-' + sign(child.estimated_incomes_expenses)">
+                            {{ formatMoney(child.estimated_incomes_expenses) }}
+                          </td>
+                          <td class="has-text-right is-nowrap" :class="'has-text-' + sign(child.total_real_incomes_expenses)">
+                            {{ formatMoney(child.total_real_incomes_expenses) }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </template>
                   <div v-else class="has-text-grey-light">
                     Aquest projecte és mare però encara no té projectes fills assignats
                   </div>
@@ -2193,7 +2234,7 @@
           <div class="mb-3 is-flex is-justify-content-space-between is-align-items-center">
             <router-link
               :to="{ name: 'project.edit', params: { id: child.id } }"
-              class="button is-small is-info"
+              class="button is-small is-primary is-outlined"
             >
               <b-icon icon="open-in-new" size="is-small"></b-icon>
               <span>Obrir projecte fill</span>
@@ -2557,7 +2598,7 @@ import getConfig from "@/config";
 import service from "@/service/index";
 import { findCurrentUser } from "@/domain/currentUser";
 import { dedicationDates } from "@/domain/ganttDedication";
-import { isOpenChild } from "@/domain/motherFigures";
+import { isOpenChild, sortChildren } from "@/domain/motherFigures";
 
 export default {
   name: "ProjectForm",
@@ -2923,6 +2964,9 @@ export default {
     closedChildren() {
       const children = (this.form.children && this.form.children.children) || [];
       return children.filter(child => !isOpenChild(child));
+    },
+    sortedChildren() {
+      return sortChildren((this.form.children && this.form.children.children) || []);
     },
     visibleChildren() {
       // Return open children plus non-open children that are marked as visible
@@ -4580,6 +4624,7 @@ export default {
         ? this.contactNames.get(invoice.contact)
         : "";
     },
+    isOpenChild,
     formatDate(value) {
       // dd/mm/aaaa, as the rest of the app (issues/127)
       return value ? moment(value, "YYYY-MM-DD").format("DD/MM/YYYY") : "";
@@ -5293,6 +5338,29 @@ export default {
 };
 </script>
 <style>
+/* A mother's children: a small table, active first (name, state, dates) */
+.project-form .children-list {
+  width: 100%;
+  max-width: 72rem;
+}
+.project-form .children-list .children-count {
+  font-size: 0.85rem;
+  color: var(--a-muted);
+  margin-bottom: 0.25rem;
+}
+.project-form .children-list .table {
+  font-size: 0.9rem;
+}
+.project-form .children-list th {
+  font-weight: 600;
+  color: var(--a-muted);
+}
+.project-form .children-list tr.is-closed td {
+  color: var(--a-muted);
+}
+.project-form .children-list .is-nowrap {
+  white-space: nowrap;
+}
 /* Redesign A: tabs, page head and the summary as text instead of grey boxes */
 .project-form .project-tabs {
   margin-bottom: 1.25rem;
