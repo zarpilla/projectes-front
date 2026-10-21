@@ -946,9 +946,8 @@ export default {
       }
       const current = this.currentDedication(task);
       if (current && Number(current.hours)) {
-        const cost = Number(current.costByHour);
-        return `${this.formatHours(current.hours)} h/dia · ` +
-          (cost ? `${formatNumber(cost, 2, 2)} €/h` : "cost/hora sense definir");
+        // No cost per hour here: the list is shown on screen, keep it discreet.
+        return `${this.formatHours(current.hours)} h/dia`;
       }
       if (current) {
         return "0 h ara · sense jornada activa";
