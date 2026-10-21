@@ -49,7 +49,7 @@
         :per-page="50"
         :hoverable="true"
         :scrollable="true"
-        :default-sort="firstAttr || 'id'"
+        :default-sort="defaultSort"
       >
         <b-table-column
           v-for="(attrConfig, attrName, i) in displayAttributes"
@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import { normalizeEntity } from '@/service/adminMetadata';
+import { normalizeEntity, listQueryOf } from '@/service/adminMetadata';
 import service from '@/service/index';
 import CardComponent from '@/components/CardComponent.vue';
 import ModalBox from '@/components/ModalBox.vue';
@@ -154,6 +154,10 @@ export default {
     firstAttr() {
       return Object.keys(this.displayAttributes)[0] || null;
     },
+    // the backend may give the first order, e.g. holidays newest first (issues/310)
+    defaultSort() {
+      return (this.metadata && this.metadata.listSort) || this.firstAttr || 'id';
+    },
     // a "switched off" flag (disabled, trashed) gives the Actius / Desactivats filter
     statusAttr() {
       return ['disabled', 'trashed'].find(a => this.displayAttributes[a] && this.displayAttributes[a].type === 'boolean') || null;
@@ -184,7 +188,10 @@ export default {
     trashObjectName() {
       if (!this.trashObject) return null;
       // Try to find a name field
-      return this.trashObject.name || this.trashObject.username || `ID ${this.trashObject.id}`;
+      if (this.trashObject.name || this.trashObject.username) return this.trashObject.name || this.trashObject.username;
+      // a holiday has no name: its date (issues/310)
+      if (this.trashObject.date) return this.formatDate(this.trashObject.date);
+      return `ID ${this.trashObject.id}`;
     }
   },
   async mounted() {
@@ -224,7 +231,7 @@ export default {
         this.isLoading = true;
         const apiPath = this.metadata.apiPath || this.entityName;
         const response = await service({ requiresAuth: true }).get(
-          `/${apiPath}?_limit=-1&_sort=id`
+          `/${apiPath}?_limit=-1&_sort=id${listQueryOf(this.metadata)}`
         );
         this.items = response.data;
       } catch (error) {

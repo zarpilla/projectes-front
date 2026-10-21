@@ -18,7 +18,9 @@ const BACKEND_ENTITIES = [
   'region', 'project-scope', 'sector', 'serie', 'social-entity', 'strategy', 'task-state',
   'user-festive', 'year', 'festive-type', 'route-rate',
   // issues/159
-  'pickup', 'delivery-type', 'city', 'product', 'document-type', 'vat-type', 'activity-type'
+  'pickup', 'delivery-type', 'city', 'product', 'document-type', 'vat-type', 'activity-type',
+  // issues/310: the holidays for everyone
+  'festive'
 ]
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"

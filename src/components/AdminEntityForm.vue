@@ -153,7 +153,7 @@
 </template>
 
 <script>
-import { normalizeEntity } from '@/service/adminMetadata';
+import { normalizeEntity, optionsMatching, dateFromApi, dateToApi } from '@/service/adminMetadata';
 import service from '@/service/index';
 
 export default {
@@ -267,6 +267,10 @@ export default {
             if (attrConfig.collection && attrConfig.editable) {
               formData[attrName] = (formData[attrName] || []).map(item => (item && typeof item === 'object' ? item.id : item));
             }
+            // the datepicker takes a Date: it got the API's text (issues/310)
+            if (attrConfig.type === 'date') {
+              formData[attrName] = dateFromApi(formData[attrName]);
+            }
           }
         }
         
@@ -336,7 +340,8 @@ export default {
               `/${apiPath}?_limit=-1&_sort=${sortField}`
             );
             
-            this.relationOptions[attrName] = response.data;
+            // only the options the backend allows (a holiday's types for everyone, issues/310)
+            this.relationOptions[attrName] = optionsMatching(response.data, attrConfig.optionsWhere);
           } catch (error) {
             console.error(`Error loading relation options for ${attrName} (model: ${attrConfig.model}):`, error);
             this.$buefy.toast.open({
@@ -359,6 +364,10 @@ export default {
         
         // Prepare data
         const data = { ...this.form };
+        // a date goes as the day picked, not as UTC midnight (issues/310)
+        for (const [attrName, attrConfig] of Object.entries(this.metadata.attributes || {})) {
+          if (attrConfig.type === 'date') data[attrName] = dateToApi(data[attrName]);
+        }
         
         // Clean up empty values
         for (const key in data) {

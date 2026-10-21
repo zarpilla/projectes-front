@@ -36,3 +36,25 @@ export const normalizeAttributes = attributes => {
 
 export const normalizeEntity = entity =>
   entity ? { ...entity, attributes: normalizeAttributes(entity.attributes) } : entity
+
+// The rows a table lists, as the backend says (holidays: those with no
+// person, issues/310): "_where[users_permissions_user_null]=true"
+export const listQueryOf = metadata => (metadata && metadata.listQuery ? `&${metadata.listQuery}` : '')
+
+// The options a relation offers, as the backend says (a holiday for everyone
+// takes a type for everyone, issues/310): { personal: false }
+export const optionsMatching = (options, where) =>
+  where ? (options || []).filter(o => Object.entries(where).every(([key, value]) => o[key] === value)) : options
+
+// A date field: the API's "2027-01-06" for the datepicker (a local Date),
+// and back as the same day, whatever the browser's timezone (issues/310)
+export const dateFromApi = value => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value || ''))
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : value || null
+}
+
+export const dateToApi = value => {
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) return value
+  const pad = n => String(n).padStart(2, '0')
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
+}

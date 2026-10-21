@@ -32,6 +32,8 @@ export const ADMIN_TABLE_GROUPS = [
     title: 'Calendari',
     items: [
       { entity: 'year', label: 'Anys' },
+      // the holidays for everyone, also set from Hores dedicades (issues/310)
+      { entity: 'festive', label: 'Festius de tothom' },
       { entity: 'festive-type', label: 'Tipus de festiu' },
       { entity: 'user-festive', label: "Festius d'usuari" }
     ]

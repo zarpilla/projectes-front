@@ -26,7 +26,12 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Hores"],
-      text: ["El calendari oficial de festes laborals a Catalunya 2027 ja és a ", { to: "/dedicacio", label: "Hores dedicades" }, " com a festius de tothom (Estatal i Catalunya): 1 i 6 de gener, 26 i 29 de març, 1 de maig, 24 de juny, 11 de setembre, 12 d'octubre, 1 de novembre i 6, 8 i 25 de desembre. Els que ja s'havien afegit a mà no es dupliquen."]
+      text: ["El calendari oficial de festes laborals a Catalunya 2027 ja és a ", { to: "/dedicacio", label: "Hores dedicades" }, " com a festius de tothom: 1 i 6 de gener, 26 i 29 de març, 1 de maig, 24 de juny, 11 de setembre, 12 d'octubre, 1 de novembre i 6, 8 i 25 de desembre. Els que ja s'havien afegit a mà no es dupliquen. A ", { to: "/dedicacio-summary", label: "Hores anuals" }, ", el 2027 compta 9 festius estatals i 3 de Catalunya, sense avisos de màxim superat."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Administració", "Hores"],
+      text: [{ to: "/admin/festive", label: "Taules auxiliars › Festius de tothom" }, ": la llista dels festius estatals i de Catalunya, per crear-los, canviar-los o esborrar-los. Es pot buscar per any (p. ex. «2027»). També es continuen posant des d'Hores dedicades."]
     },
     {
       type: "Millores",
