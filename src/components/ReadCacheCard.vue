@@ -19,6 +19,36 @@
       </template>
     </dl>
 
+    <!-- per report: what its users got from memory and what they waited for
+         (issues/307: to decide whether warming the cache is worth it) -->
+    <div v-if="reportRows.length" class="cache-reports">
+      <p class="cache-reports-title">Per informe<template v-if="since">, des del {{ since }}</template></p>
+      <div class="table-wrap">
+        <table class="table is-narrow is-fullwidth">
+          <thead>
+            <tr>
+              <th scope="col">Informe</th>
+              <th scope="col" class="has-text-right">Des de memòria</th>
+              <th scope="col" class="has-text-right">Esperes</th>
+              <th scope="col" class="has-text-right">Mitjana</th>
+              <th scope="col" class="has-text-right">Màxim</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in reportRows" :key="row.label">
+              <th scope="row">{{ row.label }}</th>
+              <td class="has-text-right">{{ row.hits }}</td>
+              <td class="has-text-right" :title="`${row.firstLoads} en arrencar, ${row.loadsAgain} després d'un canvi`">
+                {{ row.loads }}<small v-if="row.loads"> ({{ row.firstLoads }} en arrencar)</small>
+              </td>
+              <td class="has-text-right">{{ duration(row.avgMs) }}</td>
+              <td class="has-text-right">{{ duration(row.loads ? row.loadMsMax : null) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <p class="cache-help">
       El servidor guarda les respostes que es demanen sovint (taules auxiliars, Tresoreria, informes) i les
       descarta soles quan canvien les dades. Buida-la només si s'han canviat dades directament a la base de dades.
@@ -30,7 +60,9 @@
 </template>
 
 <script>
+import moment from "moment";
 import service from "@/service/index";
+import { readCacheReportRows, duration } from "@/domain/readCacheReports";
 
 export default {
   name: "ReadCacheCard",
@@ -48,6 +80,12 @@ export default {
       const limit = m.containerLimitMB ? ` de ${this.mb(m.containerLimitMB)}` : "";
       return `${this.mb(m.rssMB)}${limit} MB · dades del programa ${this.mb(m.heapUsedMB)} MB`;
     },
+    reportRows() {
+      return readCacheReportRows(this.stats && this.stats.reports);
+    },
+    since() {
+      return this.stats && this.stats.since ? moment(this.stats.since).format("DD/MM/YYYY HH:mm") : "";
+    },
     hitRate() {
       const asked = (this.stats.hits || 0) + (this.stats.misses || 0);
       return asked ? `${Math.round((100 * this.stats.hits) / asked)} % de ${asked} des que ha arrencat` : "—";
@@ -57,6 +95,7 @@ export default {
     await this.load();
   },
   methods: {
+    duration,
     mb(value) {
       return (value || 0).toLocaleString("ca-ES", { maximumFractionDigits: 0 });
     },
@@ -137,6 +176,16 @@ export default {
 }
 .cache-facts dd {
   margin: 0;
+}
+.cache-reports-title {
+  font-weight: 600;
+  margin: 0 0 .25rem;
+}
+.cache-reports .table-wrap {
+  overflow-x: auto;
+}
+.cache-reports th[scope="row"] {
+  font-weight: 400;
 }
 .cache-actions {
   display: flex;
