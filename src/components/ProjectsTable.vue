@@ -98,7 +98,7 @@
           field="project_state.name"
           :visible="!project_state"
         >
-          <span v-if="props.row.project_state" class="tag">{{ props.row.project_state.name }}</span>
+          <span v-if="props.row.project_state" class="tag" :class="projectStateClass(props.row.project_state)">{{ props.row.project_state.name }}</span>
         </b-table-column>
         <b-table-column
           label="Modificat"
@@ -381,6 +381,7 @@ import { projectTrashDialog } from "@/domain/projectTrash";
 import { withoutMothers } from "@/domain/motherFigures";
 import service from "@/service/index";
 import moment from "moment";
+import { projectStateClass } from "@/domain/projectState";
 import { formatHours, formatMoney, sign } from "@/helpers/format-number";
 
 export default {
@@ -499,6 +500,7 @@ export default {
     // this.getProjects()
   },
   methods: {
+    projectStateClass,
     isEditingRow(rowId) {
       return this.editingRowId === rowId;
     },

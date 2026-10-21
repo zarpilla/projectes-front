@@ -16,7 +16,7 @@
     />
     <title-bar :title-stack="titleStack" :subtitle="isCreationMode && !isDuplicating ? `Projecte nou · pas ${currentStep} de 4` : ''">
       <template v-if="tabsEnabled && projectMeta" #subtitle>
-        <span v-if="form.project_state && form.project_state.name" class="tag project-state-tag">{{ form.project_state.name }}</span>
+        <span v-if="form.project_state && form.project_state.name" class="tag project-state-tag" :class="projectStateClass">{{ form.project_state.name }}</span>
         {{ projectMeta }}
       </template>
     </title-bar>
@@ -2505,6 +2505,7 @@
 
 <script>
 // External libraries
+import { projectStateClass } from "@/domain/projectState";
 import sumBy from "lodash/sumBy";
 import sortBy from "lodash/sortBy";
 import { projectDocuments, projectDocumentAmounts, unassignedProjectDocuments } from "@/domain/projectDocuments.js";
@@ -2805,6 +2806,9 @@ export default {
         { id: "planificacio", label: "Planificació" },
         { id: "tasques", label: "Tasques" }
       ];
+    },
+    projectStateClass() {
+      return projectStateClass(this.form.project_state);
     },
     projectMeta() {
       const parts = [];
