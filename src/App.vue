@@ -126,13 +126,15 @@ export default {
       }
       
       this.lastRefresh = now;
-      
-      // Clear menu list to avoid duplicates
-      this.menuList = [];
+
       await this.loadUserData();
     },
     async loadUserData() {
       if (localStorage.getItem("user") && localStorage.getItem("jwt")) {
+        // the load on created() counts for the focus throttle: the first focus
+        // after a reload asked users/me, home and the task alerts again
+        // (issues/309)
+        this.lastRefresh = Date.now();
         try {
           const me = await service({ requiresAuth: true }).get("users/me");
           if (me && me.data && me.data.username) {
@@ -149,6 +151,10 @@ export default {
 
             const userPermissions = me.data.permissions.map(p => p.permission);
 
+            // built apart and swapped in whole: two loads at once (a focus while
+            // the first users/me was on its way) put every group twice
+            // (issues/309)
+            const menuList = [];
             menu.forEach((element, idx) => {
               if (typeof element === "string") {
                 if (menu.length > idx + 1) {
@@ -158,7 +164,7 @@ export default {
                   );
 
                   if (hasPermisssions) {
-                    this.menuList.push(element);
+                    menuList.push(element);
                     return;
                   } else {
                     return;
@@ -175,8 +181,9 @@ export default {
                 }
               });
 
-              this.menuList.push(subElements);
+              menuList.push(subElements);
             });
+            this.menuList = menuList;
 
             // the stars of the menu: this person's pins (another one may have logged in)
             useHomePins().load();
