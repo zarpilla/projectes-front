@@ -2,12 +2,12 @@
 # Deploy a frontend image to every site on the VPS.
 #
 #   ./deploy.sh v5-vue3-<40-hex sha> [site ...]     e.g. ./deploy.sh v5-vue3-a70bdd5... demo
-#   ./deploy.sh redesign-<40-hex sha> site ...      a build of the redesign branch
+#   ./deploy.sh diligencia-test-<40-hex sha> site ...  a build of a preview branch (diligencia-test, redesign)
 #
-# Pinned sites (pinned.conf: <site> <tag>) are on a redesign build: a deploy
-# without a site list skips them. Deploying redesign-<sha> to a site pins it,
+# Pinned sites (pinned.conf: <site> <tag>) are on a preview build: a deploy
+# without a site list skips them. Deploying a preview build (diligencia-test-<sha>, redesign-<sha>) to a site pins it,
 # deploying a v5-vue3-<sha> to it by name unpins it (back to master). The canary
-# can't be pinned. Pair it with the backend: the same tenants on esstrapis-back:redesign-<sha>.
+# can't be pinned. Pair it with the backend: the same tenants on the same preview branch of esstrapis-back.
 #
 # Each site runs its own container from <compose dir>/docker-compose.yml (nginx
 # serving the built app under /stats/). Per site: pin the compose file to the new
@@ -29,7 +29,9 @@ LOG=deploy.log
 
 if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then read -r -a ARGS <<<"$SSH_ORIGINAL_COMMAND"; else ARGS=("$@"); fi
 TAG="${ARGS[0]:-}"
-[[ "$TAG" =~ ^(v5-vue3|redesign)-[0-9a-f]{40}$ ]] || { echo "Usage: deploy.sh v5-vue3-<40-hex sha> [site ...] | redesign-<40-hex sha> site ..."; exit 2; }
+# Preview builds (a branch that is not main/master) are pinned to the tenants they go to.
+PREVIEW='^(redesign|diligencia-test)-'
+[[ "$TAG" =~ ^(v5-vue3|redesign|diligencia-test)-[0-9a-f]{40}$ ]] || { echo "Usage: deploy.sh v5-vue3-<40-hex sha> [site ...] | redesign|diligencia-test-<40-hex sha> site ..."; exit 2; }
 
 # sites.conf: <name> <compose dir>
 declare -A DIR
@@ -48,9 +50,9 @@ if [ -f pinned.conf ]; then
     PINNED[$name]=$tag
   done < pinned.conf
 fi
-if [[ "$TAG" == redesign-* ]]; then
-  [ ${#ONLY[@]} -gt 0 ] || { echo "A redesign build goes only to the sites you name"; exit 2; }
-  for s in "${ONLY[@]}"; do [ "$s" != "$CANARY" ] || { echo "The canary ($CANARY) can't be pinned to a redesign build"; exit 2; }; done
+if [[ "$TAG" =~ $PREVIEW ]]; then
+  [ ${#ONLY[@]} -gt 0 ] || { echo "A preview build goes only to the sites you name"; exit 2; }
+  for s in "${ONLY[@]}"; do [ "$s" != "$CANARY" ] || { echo "The canary ($CANARY) can't be pinned to a preview build"; exit 2; }; done
 fi
 
 exec 9>.deploy.lock
@@ -130,9 +132,9 @@ done
 
 if [ ${#ONLY[@]} -gt 0 ]; then
   for s in "${ONLY[@]}"; do
-    if [[ "$TAG" == redesign-* ]]; then PINNED[$s]=$TAG; else unset "PINNED[$s]"; fi
+    if [[ "$TAG" =~ $PREVIEW ]]; then PINNED[$s]=$TAG; else unset "PINNED[$s]"; fi
   done
-  { echo "# <site> <tag>: on a redesign build, skipped by deploys to every site (written by deploy.sh)"
+  { echo "# <site> <tag>: on a preview build, skipped by deploys to every site (written by deploy.sh)"
     for s in "${!PINNED[@]}"; do echo "$s ${PINNED[$s]}"; done; } > pinned.conf.new && mv pinned.conf.new pinned.conf
 fi
 
