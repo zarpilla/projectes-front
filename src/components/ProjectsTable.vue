@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div @keydown.esc="cancelRowEdit">
     <modal-box
       :is-active="isModalActive"
       :trash-object-name="trashObjectName"
@@ -116,7 +116,10 @@
       <template v-else>
         <b-table-column label="Nom" field="name" sortable v-slot="props">
           <template v-if="isEditingRow(props.row.id)">
-            <b-input v-model="editingForm.name" />
+            <b-input
+              v-model="editingForm.name"
+              @keydown.enter.prevent="saveRowEdit(props.row)"
+            />
           </template>
           <template v-else>
             <router-link
@@ -311,32 +314,54 @@
       <b-table-column
         v-if="editMode"
         custom-key="actions"
-        cell-class="is-actions-cell"
+        cell-class="is-actions-cell actions-sticky"
+        header-class="actions-sticky"
         v-slot="props"
       >
-        <div class="buttons is-right">
-          <button
-            class="button is-small is-primary"
-            type="button"
-            :disabled="
-              savingRowId === props.row.id ||
-                (editingRowId !== null && editingRowId !== props.row.id)
-            "
-            @click.prevent="toggleRowEdit(props.row)"
-          >
-            <b-icon
-              :icon="isEditingRow(props.row.id) ? 'content-save' : 'pencil'"
-              size="is-small"
-            />
-          </button>
-          <button
-            class="button is-small is-danger"
-            type="button"
-            :disabled="editingRowId !== null"
-            @click.prevent="trashModal(props.row)"
-          >
-            <b-icon icon="trash-can" size="is-small" />
-          </button>
+        <div class="buttons is-right is-flex-wrap-nowrap">
+          <template v-if="isEditingRow(props.row.id)">
+            <button
+              class="button is-small is-primary"
+              type="button"
+              title="Desa"
+              :class="{ 'is-loading': savingRowId === props.row.id }"
+              :disabled="savingRowId === props.row.id"
+              @click.prevent="saveRowEdit(props.row)"
+            >
+              <b-icon icon="content-save" size="is-small" />
+              <span>Desa</span>
+            </button>
+            <button
+              class="button is-small"
+              type="button"
+              title="Cancel·la"
+              :disabled="savingRowId === props.row.id"
+              @click.prevent="cancelRowEdit"
+            >
+              <b-icon icon="close" size="is-small" />
+              <span>Cancel·la</span>
+            </button>
+          </template>
+          <template v-else>
+            <button
+              class="button is-small is-primary"
+              type="button"
+              title="Edita"
+              :disabled="editingRowId !== null"
+              @click.prevent="startRowEdit(props.row)"
+            >
+              <b-icon icon="pencil" size="is-small" />
+            </button>
+            <button
+              class="button is-small is-danger"
+              type="button"
+              title="Elimina"
+              :disabled="editingRowId !== null"
+              @click.prevent="trashModal(props.row)"
+            >
+              <b-icon icon="trash-can" size="is-small" />
+            </button>
+          </template>
         </div>
       </b-table-column>
 
@@ -546,15 +571,8 @@ export default {
       this.editingRowId = null;
       this.editingForm = null;
     },
-    async toggleRowEdit(row) {
-      if (this.isEditingRow(row.id)) {
-        await this.saveRowEdit(row);
-        return;
-      }
-      this.startRowEdit(row);
-    },
     async saveRowEdit(row) {
-      if (!this.editingForm) {
+      if (!this.editingForm || this.savingRowId !== null) {
         return;
       }
 
@@ -706,6 +724,16 @@ export default {
 };
 </script>
 <style scoped>
+/* «Desa» / «Cancel·la» stay in view when the edit table is wider than the card */
+:deep(.actions-sticky) {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--a-surface);
+}
+:deep(th.actions-sticky) {
+  background: var(--a-thead);
+}
 .project-name {
   display: block;
   max-width: 18rem;
