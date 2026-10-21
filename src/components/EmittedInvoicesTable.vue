@@ -371,6 +371,10 @@ export default {
       if (!this.year) {
         return;
       }
+      // which documents are assigned to a budget line: asked with the lists,
+      // not after them (issues/307; the server keeps it)
+      const assignedRequest = service({ requiresAuth: true }).get(`phase-incomes/assigned?_limit=-1`);
+      assignedRequest.catch(() => {});
       const from = moment(this.year, 'YYYY').startOf("year").format("YYYY-MM-DD");
       const to = moment(this.year, 'YYYY').endOf("year").format("YYYY-MM-DD");
 
@@ -393,23 +397,29 @@ export default {
 
       // «Tipus» other than Factura: no invoices. Skip the request; `_limit=0` returns all rows (issues/260)
       const includeInvoices = !this.documentType || this.documentType === -1;
-      let invoices = includeInvoices ? (
-        await service({ requiresAuth: true }).get(
-          `emitted-invoices/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}${stateQuery}`
-        )
-      ).data : [];
+      const typeQuery = this.documentType ? `&[document_type_eq]=${this.documentType}` : '';
+      // both lists at once, not one after the other (issues/307)
+      const listOf = (include, url) =>
+        include ? service({ requiresAuth: true }).get(url).then((r) => r.data) : Promise.resolve([]);
+      const invoicesRequest = listOf(
+        includeInvoices,
+        `emitted-invoices/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}${stateQuery}`
+      );
+      // received incomes have a series too: filter them by it (issues/278, issues/294)
+      const incomesRequest = listOf(
+        includeIncomes && this.documentType !== -1,
+        `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
+      );
+      // awaited below, in this order
+      [invoicesRequest, incomesRequest].forEach((r) => r.catch(() => {}));
+
+      let invoices = await invoicesRequest;
 
       invoices = invoices.map((element) => {
         return { ...element, type: 'emitted-invoices' };
       });
 
-      const typeQuery = this.documentType ? `&[document_type_eq]=${this.documentType}` : '';
-      // received incomes have a series too: filter them by it (issues/278, issues/294)
-      let incomes = includeIncomes && this.documentType !== -1 ? (
-        await service({ requiresAuth: true }).get(
-          `received-incomes/basic?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
-        )
-      ).data : [];
+      let incomes = await incomesRequest;
 
       incomes = incomes.map((element) => {
         return { ...element, type: 'received-incomes' };
@@ -418,9 +428,7 @@ export default {
       const emitted = _.concat(invoices, incomes)
 
 
-      const assignedDocuments = ( await service({ requiresAuth: true }).get(
-        `phase-incomes/assigned?_limit=-1`
-      )).data;
+      const assignedDocuments = (await assignedRequest).data;
 
       const emittedWithInfo = emitted.map((e) => {
         return {

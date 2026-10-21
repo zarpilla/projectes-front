@@ -675,11 +675,15 @@ export default {
     };
   },
   async mounted() {
-    this.stopJQueryWait = waitForJQuery(async () => {
-      await loadKendo();
-      this.isLoading = false;
-      this.getInitialData();
+    // the data is asked right away, while Kendo (3.5 MB) loads: the pivot is
+    // drawn once both are there (issues/307: nothing was asked before Kendo)
+    this.kendoReady = new Promise(resolve => {
+      this.stopJQueryWait = waitForJQuery(async () => {
+        await loadKendo();
+        resolve();
+      });
     });
+    this.getInitialData();
   },
   // the wait for jQuery must not outlive the table (it kept polling after leaving the page)
   beforeUnmount() {
@@ -1102,6 +1106,7 @@ export default {
       });
       this.projects = treasuryData.projects;
 
+      await this.kendoReady;
       configPivot.dataSource.data = this.pivotData2;
       this.initializePivotWithViews("#project-stats", configPivot);
       this.isLoading = false;

@@ -6,7 +6,12 @@ import { createPinia } from 'pinia'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import Buefy from 'buefy'
 
-const api = { get: vi.fn(async () => ({ data: [] })), put: vi.fn(), post: vi.fn() }
+// the page loads its years at mount (issues/307: without waiting for Kendo)
+const api = {
+  get: vi.fn(async url => ({ data: url.startsWith('years') ? [{ year: 2026 }, { year: 2025 }] : [] })),
+  put: vi.fn(),
+  post: vi.fn()
+}
 vi.mock('@/service/index', () => ({ default: () => api }))
 const getTreasuryData = vi.fn(async () => ({ vat: {}, vat_expected: {}, treasury: [], projects: [] }))
 vi.mock('@/service/treasury', () => ({ default: (...a) => getTreasuryData(...a) }))

@@ -311,6 +311,30 @@ export default {
         return;
       }
 
+      // everything the summary reads, asked with the hours: one after another
+      // they took eight round trips (issues/307). A failure ends in the catch
+      // below, when awaited.
+      const ask = (url, opts = {}) => {
+        const request = service({ requiresAuth: true, ...opts }).get(url);
+        request.catch(() => {});
+        return request;
+      };
+      const yearsRequest = ask(`years?_where[year_eq]=${this.year}`, { cached: true });
+      const festiveTypesRequest = ask("festive-types?_limit=-1", { cached: true });
+      const festivesRequest = ask(`festives?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`);
+      const dedicationsRequest = ask(
+        `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
+      );
+      const yearFestivesRequest = ask(
+        `user-festives?_limit=-1&_where[year.year]=${this.year}&_where[users_permissions_user_null]=true&_where[festive_type_null]=false`
+      );
+      const userFestivesRequest = ask(
+        `user-festives?_limit=-1&_where[users_permissions_user.id]=${this.user}&_where[year_null]=true&_where[festive_type_null]=false`
+      );
+      const userYearFestivesRequest = ask(
+        `user-festives?_limit=-1&_where[year.year]=${this.year}&_where[users_permissions_user.id]=${this.user}&_where[festive_type_null]=false`
+      );
+
       service({ requiresAuth: true })
         .get(query)
         .then(async r => {
@@ -318,15 +342,9 @@ export default {
           // built for this load only, then shown at once
           const summary = {};
 
-          const yearDetails = (
-            await service({ requiresAuth: true, cached: true }).get(
-              `years?_where[year_eq]=${this.year}`
-            )
-          ).data[0];
+          const yearDetails = (await yearsRequest).data[0];
 
-          const festiveTypes = (
-            await service({ requiresAuth: true, cached: true }).get("festive-types?_limit=-1")
-          ).data;
+          const festiveTypes = (await festiveTypesRequest).data;
           const festiveNames = festiveTypes.map(ft => ft.name);
           festiveTypes.forEach(ft => {
             summary[ft.name] = {
@@ -338,11 +356,7 @@ export default {
             };
           });
 
-          const festives = (
-            await service({ requiresAuth: true }).get(
-              `festives?_where[date_gte]=${from}&[date_lte]=${to}&_limit=-1`
-            )
-          ).data.filter(
+          const festives = (await festivesRequest).data.filter(
             f =>
               f.users_permissions_user === null ||
               f.users_permissions_user.id === this.user
@@ -352,29 +366,13 @@ export default {
           // table and the KPI agree (issues/246)
           const personalDaysList = [];
 
-          const dailyDedications = (
-            await service({ requiresAuth: true }).get(
-              `daily-dedications?_limit=-1&_where[users_permissions_user.id]=${this.user}`
-            )
-          ).data;
+          const dailyDedications = (await dedicationsRequest).data;
 
-          const yearFestives = (
-            await service({ requiresAuth: true }).get(
-              `user-festives?_limit=-1&_where[year.year]=${this.year}&_where[users_permissions_user_null]=true&_where[festive_type_null]=false`
-            )
-          ).data;
+          const yearFestives = (await yearFestivesRequest).data;
 
-          const userFestives = (
-            await service({ requiresAuth: true }).get(
-              `user-festives?_limit=-1&_where[users_permissions_user.id]=${this.user}&_where[year_null]=true&_where[festive_type_null]=false`
-            )
-          ).data;
+          const userFestives = (await userFestivesRequest).data;
 
-          const userYearFestives = (
-            await service({ requiresAuth: true }).get(
-              `user-festives?_limit=-1&_where[year.year]=${this.year}&_where[users_permissions_user.id]=${this.user}&_where[festive_type_null]=false`
-            )
-          ).data;
+          const userYearFestives = (await userYearFestivesRequest).data;
           if (isStale()) {
             return;
           }

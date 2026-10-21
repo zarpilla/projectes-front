@@ -62,6 +62,7 @@ import moment from "moment";
 import configPivot from "@/service/configStatsEconomicDetail";
 import { fiscalPivotRows } from "@/domain/years";
 import { economicDetailTotals } from "@/domain/economicDetailTotals";
+import { economicDetailMeasures } from "@/domain/economicDetailMeasures";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { format } from "@/helpers/excelFormatter";
@@ -616,15 +617,11 @@ export default {
     };
   },
   watch: {
-    // projectStates: function(newVal, oldVal) {
-    //   this.getActivities();
-    // },
-    // year: function(newVal, oldVal) {
-    //   this.getActivities();
-    // },
-    // dataType: function(newVal, oldVal) {
-    //   this.getActivities();
-    // }
+    // the states and the year reload the rows (the parent mounts the pivot
+    // again); the data type only redraws it
+    dataType() {
+      if (this.pivotData.length) this.renderPivot();
+    }
   },
   mounted() {
     this.getActivities();
@@ -645,52 +642,17 @@ export default {
       this.$emit("loaded", Object.freeze(rows));
       this.pivotData = Object.freeze(fiscalPivotRows(rows, this.startMonth));
 
+      this.renderPivot();
+      this.isLoading = false;
+    },
+    // Totes / Previsió / Execució only change the measures shown: the pivot is
+    // drawn again from the rows already loaded (issues/307: it asked the whole
+    // economic detail again)
+    renderPivot() {
       const currentConfigPivot = configPivot;
-
-      if (this.dataType === "Previsió") {
-        currentConfigPivot.dataSource.measures = [
-          "Resultat prev",
-          "Ingressos prev",
-          "Despeses tot prev",
-          "Despeses prev",
-          "Hores prev",
-          "Hores prev (h)"
-        ];
-      } else if (this.dataType === "Execució") {
-        currentConfigPivot.dataSource.measures = [
-          "Resultat exec",
-          "Ingressos exec",
-          "Despeses tot exec",
-          "Despeses exec",
-          "Hores exec",
-          "Hores exec (h)"
-        ];
-      } else {
-        currentConfigPivot.dataSource.measures = [
-          "Resultat orig",
-          "Resultat prev",
-          "Resultat exec",
-          "Ingressos orig",
-          "Ingressos prev",
-          "Ingressos exec",
-          "Despeses tot orig",
-          "Despeses tot prev",
-          "Despeses tot exec",
-          "Despeses orig",
-          "Despeses prev",
-          "Despeses exec",
-          "Hores orig",
-          "Hores prev",
-          "Hores exec",
-          "Hores orig (h)",
-          "Hores prev (h)",
-          "Hores exec (h)"
-        ];
-      }
-
+      currentConfigPivot.dataSource.measures = economicDetailMeasures(this.dataType);
       currentConfigPivot.dataSource.data = this.pivotData;
       this.initializePivotWithViews("#project-despeses", currentConfigPivot);
-      this.isLoading = false;
     },
     applyDefaultView() {
       this.selectedViewId = null

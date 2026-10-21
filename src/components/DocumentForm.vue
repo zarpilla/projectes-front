@@ -1836,26 +1836,45 @@ export default {
         }
       }
     },
+    // The lists the form needs, asked at once: one after another, the
+    // document itself waited for eight requests in a row (issues/307).
     async getAuxiliarData() {
-      this.series = (
-        await service({ requiresAuth: true }).get("series?_sort=name:DESC")
-      ).data;
-      this.paymentMethods = (
-        await service({ requiresAuth: true }).get("payment-methods")
-      ).data;
-      if (this.type === "payrolls") {
-        this.bankAccounts = (
-          await service({ requiresAuth: true }).get("bank-accounts")
-        ).data;
-      }
-      const projects = (
-        await service({ requiresAuth: true }).get(
-          "projects/basic?_limit=-1&_sort=name:ASC"
-        )
-      ).data;
+      const typeFilter =
+        this.type === "received-incomes" ? "income" : "expense";
+      const withProducts =
+        this.type === "received-incomes" ||
+        this.type === "emitted-invoices" ||
+        this.type === "quotes";
+      const get = (url, opts = {}) =>
+        service({ requiresAuth: true, ...opts }).get(url).then(r => r.data);
+      const [
+        series,
+        paymentMethods,
+        bankAccounts,
+        projects,
+        me,
+        clients,
+        documentTypes,
+        products
+      ] = await Promise.all([
+        get("series?_sort=name:DESC"),
+        get("payment-methods"),
+        this.type === "payrolls" ? get("bank-accounts") : null,
+        get("projects/basic?_limit=-1&_sort=name:ASC"),
+        get("me", { cached: true }),
+        get("contacts/basic?_limit=-1&_sort=name:ASC"),
+        get(
+          `document-types?_where[type_eq]=${typeFilter}&_limit=-1&_sort=name:ASC`,
+          { cached: true }
+        ),
+        withProducts ? get("products?_limit=-1&_sort=code:ASC") : null
+      ]);
 
-      const me = (await service({ requiresAuth: true, cached: true }).get("me"))
-        .data;
+      this.series = series;
+      this.paymentMethods = paymentMethods;
+      if (this.type === "payrolls") {
+        this.bankAccounts = bankAccounts;
+      }
       if (me && me.quotes && me.quotes.id) {
         this.quotes = me.quotes;
       }
@@ -1868,34 +1887,14 @@ export default {
             )
             .filter(p => !p.is_mother);
 
-      this.clients = (
-        await service({ requiresAuth: true }).get(
-          "contacts/basic?_limit=-1&_sort=name:ASC"
-        )
-      ).data;
-      const typeFilter =
-        this.type === "received-incomes" ? "income" : "expense";
-      this.documentTypes = (
-        await service({ requiresAuth: true, cached: true }).get(
-          `document-types?_where[type_eq]=${typeFilter}&_limit=-1&_sort=name:ASC`
-        )
-      ).data;
+      this.clients = clients;
+      this.documentTypes = documentTypes;
 
       if (this.documentTypes.length && !this.form.document_type) {
         this.form.document_type = this.documentTypes[0].id;
       }
 
-      if (
-        this.type === "received-incomes" ||
-        this.type === "emitted-invoices" ||
-        this.type === "quotes"
-      ) {
-        const products = (
-          await service({ requiresAuth: true }).get(
-            "products?_limit=-1&_sort=code:ASC"
-          )
-        ).data;
-
+      if (withProducts) {
         this.products = products.map(p => {
           return { ...p, namecode: `${p.code} - ${p.name}` };
         });

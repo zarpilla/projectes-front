@@ -344,6 +344,10 @@ export default {
       if (!this.year) {
         return;
       }
+      // which documents are assigned to a budget line: asked with the lists,
+      // not after them (issues/307; the server keeps it)
+      const assignedRequest = service({ requiresAuth: true }).get(`phase-expenses/assigned?_limit=-1`);
+      assignedRequest.catch(() => {});
 
       const from = moment(this.year, "YYYY")
         .startOf("year")
@@ -394,27 +398,35 @@ export default {
       // so they are hidden while one is chosen (issues/278, issues/294)
       const includeExpenses = !this.documentType || this.documentType > 0;
       const includePayrolls = (!this.documentType || this.documentType === -2) && !this.serial;
-      let invoices = includeInvoices ? (
-        await service({ requiresAuth: true }).get(
-          `received-invoices?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
-        )
-      ).data : [];
+      const typeQuery =
+        this.documentType
+          ? `&[document_type_eq]=${this.documentType}`
+          : "";
+      // the lists at once, not one after another (issues/307)
+      const listOf = (include, url) =>
+        include ? service({ requiresAuth: true }).get(url).then((r) => r.data) : Promise.resolve([]);
+      const invoicesRequest = listOf(
+        includeInvoices,
+        `received-invoices?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
+      );
+      const expensesRequest = listOf(
+        includeExpenses,
+        `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
+      );
+      const payrollsRequest = listOf(
+        projectQuery === "" && includePayrolls,
+        `payrolls?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQueryPayrolls}${paidQuery2}`
+      );
+      // awaited below, in this order
+      [invoicesRequest, expensesRequest, payrollsRequest].forEach((r) => r.catch(() => {}));
+
+      let invoices = await invoicesRequest;
 
       invoices = invoices.map((element) => {
         return { ...element, type: "received-invoices" };
       });
 
-      
-
-      const typeQuery =
-        this.documentType
-          ? `&[document_type_eq]=${this.documentType}`
-          : "";
-      let expenses = includeExpenses ? (
-        await service({ requiresAuth: true }).get(
-          `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
-        )
-      ).data : [];
+      let expenses = await expensesRequest;
 
       expenses = expenses.map((element) => {
         return { ...element, type: "received-expenses" };
@@ -422,11 +434,7 @@ export default {
 
       let payrolls = [];
       if (projectQuery === "" && includePayrolls) {
-        payrolls = (
-          await service({ requiresAuth: true }).get(
-            `payrolls?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQueryPayrolls}${paidQuery2}`
-          )
-        ).data;
+        payrolls = await payrollsRequest;
         payrolls = payrolls.map((element) => {
           return { ...element, type: "payrolls", total_base: element.total };
         });
@@ -441,9 +449,7 @@ export default {
 
       const emitted = _.concat(invoices, expenses, payrolls);
 
-      const assignedDocuments = ( await service({ requiresAuth: true }).get(
-        `phase-expenses/assigned?_limit=-1`
-      )).data;
+      const assignedDocuments = (await assignedRequest).data;
 
       const emittedWithInfo = emitted.map((e) => {
         return {

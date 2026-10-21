@@ -100,9 +100,8 @@ export default {
     "filters.year"(value, old) {
       if (old !== null) this.scheduleRefresh();
     },
-    "filters.dataType"() {
-      this.scheduleRefresh();
-    },
+    // Totes / Previsió / Execució: the pivot and the charts redraw the rows
+    // they have (issues/307: the whole economic detail was asked again)
     selectedProjectStates: {
       deep: true,
       handler(value, old) {

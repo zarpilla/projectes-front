@@ -23,7 +23,8 @@ describe('«Sèrie» filter (issues/278)', () => {
   it('Ingressos: with a series every request is filtered by it', async () => {
     await run(EmittedInvoicesTable, 3)
     expect(requested()).toEqual(['emitted-invoices/basic', 'received-incomes/basic'])
-    expect(get.mock.calls[0][0]).toContain('[serial_eq]=3')
+    // the lists, whatever the order they are asked in (issues/307: at once)
+    expect(get.mock.calls.map(c => c[0]).find(u => u.startsWith('emitted-invoices'))).toContain('[serial_eq]=3')
     get.mockClear()
     await run(EmittedInvoicesTable, null)
     expect(requested()).toEqual(['emitted-invoices/basic', 'received-incomes/basic'])
@@ -32,7 +33,7 @@ describe('«Sèrie» filter (issues/278)', () => {
   it('Despeses: with a series payrolls are not requested, the rest filtered by it', async () => {
     await run(ReceivedInvoicesTable, 3)
     expect(requested()).toEqual(['received-invoices', 'received-expenses'])
-    expect(get.mock.calls[0][0]).toContain('[serial_eq]=3')
+    expect(get.mock.calls.map(c => c[0]).find(u => u.startsWith('received-invoices'))).toContain('[serial_eq]=3')
     get.mockClear()
     await run(ReceivedInvoicesTable, null)
     expect(requested()).toEqual(['received-invoices', 'received-expenses', 'payrolls'])
