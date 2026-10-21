@@ -656,7 +656,6 @@ export default {
       trashObject: null,
       vat: { paid: 0, received: 0 },
       vat_expected: { paid: 0, received: 0 },
-      me: null,
       payingVat: false,
       view: "startOfYear",
       projectStates: [],
@@ -1112,16 +1111,10 @@ export default {
 
       // The forecast (by far the slowest call) only needs the project states,
       // the bank accounts and the year: those small catalogs load together and
-      // the forecast starts right after them. Contacts and me aren't needed for
-      // it: they load alongside the forecast instead of before everything, which
-      // held it back for seconds (issues/309).
-      const contacts = service({ requiresAuth: true })
-        .get("contacts/basic?_limit=-1&_sort=name:ASC")
-        .then(r => { this.contacts = r.data; });
-      const me = service({ requiresAuth: true })
-        .get("me")
-        .then(r => { this.me = r.data; });
-
+      // the forecast starts right after them. contacts/basic (1 MB) and me were
+      // asked first and held it back for seconds, and nothing here reads them:
+      // they are no longer asked (trashModal, the only reader of contacts, has
+      // no button left) (issues/309).
       const catalogs = service({ requiresAuth: true, cached: true });
       const [years, projectStates, bankAccounts] = await Promise.all([
         catalogs.get("years?_sort=year:DESC").then(r => r.data),
@@ -1143,7 +1136,7 @@ export default {
       // Initialize all bank accounts as selected by default
       this.selectedBankAccountIds = this.bankAccounts.map(ba => ba.id);
 
-      await Promise.all([this.getData(), contacts, me]);
+      await this.getData();
     },
     isMovement(r) {
       return r.type !== "Avui" && r.type !== "Inici Any" && !r.is_balance_annotation && !r.is_real_balance_adjustment;
