@@ -21,6 +21,26 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.21",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Informes", "Diners"],
+      text: [{ to: "/tresoreria", label: "Tresoreria" }, ", ", { to: "/stats-economic-detail", label: "Ingressos/Despeses" }, ", Preu hora, Dedicació, Previsió dedicació, % Dedicació real i Justificacions carreguen molt més de pressa: el servidor recorda els càlculs i només els refà quan canvien les dades. Canviar de filtre, d'any o entre Previsió i Execució és gairebé immediat."]
+    },
+    {
+      type: "Millores",
+      modules: ["Plataforma"],
+      text: "Les pàgines carreguen abans: les dades que necessiten es demanen alhora, i el punt de Tasques del menú es comprova amb una consulta lleugera un cop carregada la pàgina."
+    },
+    {
+      type: "Novetats",
+      modules: ["Administració"],
+      text: [{ to: "/admin/me", label: "Configuració general" }, " › Memòria cau: l'estat de la memòria del servidor, el temps de càrrega de cada informe i un botó per buidar-la."]
+    }
+  ]
+},
+{
   date: "2026.10.20",
   items: [
     {
