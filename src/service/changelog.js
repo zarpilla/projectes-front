@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
+      text: [{ to: "/city-route", label: "Poblacions i rutes" }, " diu a quina hora hi passem: cada ruta té la seva franja horària (p. ex. «de 9 a 14 h») i una població pot tenir-ne una de pròpia (p. ex. «a les 7 h»). L'oficina les posa amb el botó «Franges» o a ", { to: "/routes", label: "Rutes" }, ". També surt a «Quina ruta passa per…?» i a la comanda, sota la ruta triada."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
       text: ["Avisos de dipòsit per ruta i magatzem: a ", { to: "/admin/route-pickup-notice", label: "Taules auxiliars › Avisos de dipòsit" }, " es pot posar un text per a cada combinació de ruta de destí i magatzem d'origen (p. ex. fins quan s'ha de deixar el paquet). En fer una comanda surt destacat en triar el magatzem; si no n'hi ha cap, surt el text del magatzem com fins ara."]
     },
     {

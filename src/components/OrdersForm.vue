@@ -141,6 +141,8 @@
                   >{{ s.name }}</button>
                 </div>
                 <p class="field-note">Rutes que passen per {{ form.contact_city || "la població del punt" }}. Tria-la segons el dia de la setmana i la destinació: en depèn la tarifa.</p>
+                <!-- when we pass by the point's town on that route (issues/314) -->
+                <p v-if="routeSlotText" class="field-note route-slot" data-test="route-slot">Hi passem <b>{{ routeSlotText }}</b> ({{ routeSlotDay }}).</p>
                 </div>
               </b-field>
 
@@ -560,6 +562,7 @@ import getConfig from "@/config";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
 import { depositNotice } from "@/domain/depositNotice";
+import { slotOf } from "@/domain/cityRoutes.js";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder, canTransfer as canTransferOrder } from "@/domain/orderStatus";
 
 export default {
@@ -622,6 +625,19 @@ export default {
     };
   },
   computed: {
+    // the town-route link of the delivery point's town and the chosen route:
+    // its time slot, or the route's (issues/314)
+    routeSlotLink() {
+      const routeId = this.form.route && typeof this.form.route === "object" ? this.form.route.id : this.form.route;
+      if (!routeId || !this.form.contact_city_id) return null;
+      return this.cityRoutes.find(cr => cr.city && cr.route && cr.city.id === this.form.contact_city_id && cr.route.id === routeId) || null;
+    },
+    routeSlotText() {
+      return this.routeSlotLink ? slotOf(this.routeSlotLink, this.routeSlotLink.route).text : "";
+    },
+    routeSlotDay() {
+      return this.routeSlotLink ? this.routeDays(this.routeSlotLink.route) : "";
+    },
     statusOptions() {
       return formStatuses(this.form.status);
     },

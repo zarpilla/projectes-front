@@ -2,7 +2,9 @@
   <!-- Redesign A: the towns each route goes through. Instead of a grid of every
        town × every route, each route shows its towns (the office adds and
        removes them there), and "Quina ruta passa per…?" answers the members'
-       question and lets the office change one town's routes. -->
+       question and lets the office change one town's routes. Each route has a
+       usual time slot and a town can have its own one in it (issues/314): the
+       office sets them with «Franges», everyone sees them. -->
   <div class="city-routes">
     <title-bar :title-stack="['Rutes i punts', 'Poblacions i rutes']" :subtitle="headline" />
 
@@ -28,17 +30,101 @@
                   <b-icon :icon="isOpen(route.id) ? 'chevron-down' : 'chevron-right'" size="is-small" />
                   <b>{{ route.name }}</b>
                 </button>
-                <span class="cr-route-meta">{{ routeDaysText(route) }} · {{ townsOf(route).length }} {{ townsOf(route).length === 1 ? "població" : "poblacions" }}</span>
+                <span class="cr-route-meta">
+                  {{ routeDaysText(route) }} ·
+                  <span v-if="routeSlotText(route)" class="slot-tag">{{ routeSlotText(route) }}</span>
+                  <span v-else class="slot-tag is-none">Franja per definir</span>
+                  · {{ townsOf(route).length }} {{ townsOf(route).length === 1 ? "població" : "poblacions" }}
+                </span>
+                <b-button
+                  v-if="isOffice"
+                  class="cr-slot-toggle"
+                  size="is-small"
+                  :type="slotEdit[route.id] ? 'is-primary' : ''"
+                  :icon-left="slotEdit[route.id] ? 'check' : 'clock-outline'"
+                  :aria-pressed="slotEdit[route.id] ? 'true' : 'false'"
+                  @click="toggleSlots(route)"
+                >{{ slotEdit[route.id] ? "Fet" : "Franges" }}</b-button>
               </header>
 
-              <div class="town-chips">
+              <!-- the office sets the route's slot and each town's own one -->
+              <div v-if="slotEdit[route.id]" class="cr-slots">
+                <!-- typed times stay a draft until the focus leaves the pair -->
+                <div class="cr-slot-default" @focusout="commitRouteSlot(route, $event)">
+                  <b>Franja de la ruta</b>
+                  <input
+                    class="input is-small slot-input"
+                    type="time"
+                    :value="routeDraft(route).from"
+                    :aria-label="`Franja de ${route.name}: de`"
+                    @input="editDraft(`r${route.id}`, routeDraft(route), 'from', $event.target.value)"
+                  />
+                  a
+                  <input
+                    class="input is-small slot-input"
+                    type="time"
+                    :value="routeDraft(route).to"
+                    :aria-label="`Franja de ${route.name}: a`"
+                    @input="editDraft(`r${route.id}`, routeDraft(route), 'to', $event.target.value)"
+                  />
+                  <span class="field-note">Totes les poblacions de la ruta la fan servir, menys les que en tenen una de pròpia. Deixa «a» buit per a una hora fixa («a les 7 h»).</span>
+                </div>
+                <div class="table-container">
+                  <table class="table is-fullwidth is-narrow cr-slot-table">
+                    <thead>
+                      <tr><th>Població</th><th>Franja pròpia</th><th>Franja</th><th class="has-text-right"><span class="is-sr-only">Accions</span></th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="town in townsOf(route)" :key="town.id" :class="{ 'is-own': townSlot(town, route).own }">
+                        <td><b>{{ town.name }}</b></td>
+                        <td class="cr-slot-inputs" @focusout="commitTownSlot(town, route, $event)">
+                          <input
+                            class="input is-small slot-input"
+                            type="time"
+                            :value="townDraft(town, route).from"
+                            :aria-label="`Franja de ${town.name} a ${route.name}: de`"
+                            @input="editDraft(townKey(town, route), townDraft(town, route), 'from', $event.target.value)"
+                          />
+                          a
+                          <input
+                            class="input is-small slot-input"
+                            type="time"
+                            :value="townDraft(town, route).to"
+                            :aria-label="`Franja de ${town.name} a ${route.name}: a`"
+                            @input="editDraft(townKey(town, route), townDraft(town, route), 'to', $event.target.value)"
+                          />
+                        </td>
+                        <td>
+                          <span v-if="townSlot(town, route).text" class="slot-tag" :class="{ 'is-inherited': !townSlot(town, route).own }">{{ townSlot(town, route).text }}</span>
+                          <span v-else class="slot-tag is-none">Per definir</span>
+                          <small class="has-text-muted">{{ townSlot(town, route).own ? " pròpia" : " la de la ruta" }}</small>
+                        </td>
+                        <td class="has-text-right">
+                          <button
+                            v-if="townSlot(town, route).own"
+                            type="button"
+                            class="link-button"
+                            :disabled="saving"
+                            @click="clearTownSlot(town, route)"
+                          >Torna a la de la ruta</button>
+                        </td>
+                      </tr>
+                      <tr v-if="!townsOf(route).length"><td colspan="4" class="has-text-muted">Cap població.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div v-if="!slotEdit[route.id]" class="town-chips">
                 <span
                   v-for="town in shownTowns(route)"
                   :key="town.id"
                   class="town-chip"
                   :class="{ 'is-match': matches(town) }"
                 >
-                  <button type="button" class="town-name" :title="`Quines rutes passen per ${town.name}?`" @click="lookup = town.name">{{ town.name }}</button>
+                  <button type="button" class="town-name" :title="`Quines rutes passen per ${town.name}?`" @click="lookup = town.name">
+                    {{ town.name }}<span v-if="townSlot(town, route).own" class="slot-tag is-small">{{ townSlot(town, route).text }}</span>
+                  </button>
                   <button
                     v-if="canEdit"
                     type="button"
@@ -84,7 +170,9 @@
                 <b>{{ town.name }}</b>
                 <div class="route-chips">
                   <span v-for="route in routesOf(town)" :key="route.id" class="route-chip" :title="routeDaysText(route)">
+                    <span class="route-day">{{ routeDaysText(route) }}</span>
                     {{ route.short_name || route.name }}
+                    <span v-if="townSlot(town, route).text" class="slot-tag is-small" :class="{ 'is-inherited': canEdit && !townSlot(town, route).own }">{{ townSlot(town, route).text }}</span>
                     <button
                       v-if="canEdit"
                       type="button"
@@ -113,6 +201,19 @@
             </ul>
             <p v-else-if="lookup" class="box-empty">Cap població amb aquest nom.</p>
             <p v-else class="lookup-help">Les rutes depenen del dia de la setmana: tria la que et vagi bé per a l'entrega.</p>
+          </section>
+
+          <section v-if="isOffice && routesWithoutSlot.length" class="a-box">
+            <header class="box-head">
+              <h2>Sense franja</h2>
+              <span class="box-hint">{{ routesWithoutSlot.length }} {{ routesWithoutSlot.length === 1 ? "ruta" : "rutes" }}</span>
+            </header>
+            <p class="lookup-help">Les sòcies hi veuen «Franja per definir». Posa-la amb «Franges».</p>
+            <div class="town-chips">
+              <span v-for="route in routesWithoutSlot" :key="route.id" class="town-chip">
+                <button type="button" class="town-name" @click="toggleSlots(route, true)">{{ route.short_name || route.name }}</button>
+              </span>
+            </div>
           </section>
 
           <section v-if="canEdit && unrouted.length" class="a-box">
@@ -155,7 +256,7 @@
 import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
-import { indexLinks, groupByWeekday, routeDays, searchTowns, normalizeName } from "@/domain/cityRoutes.js";
+import { indexLinks, groupByWeekday, routeDays, searchTowns, normalizeName, formatSlot, slotOf, timeInput, timeValue, slotError } from "@/domain/cityRoutes.js";
 
 const PREVIEW = 12;
 
@@ -178,7 +279,10 @@ export default {
       routeFilter: "",
       lookup: "",
       open: {},
-      addText: {}
+      addText: {},
+      slotEdit: {},
+      // times typed and not saved yet: { "r<route id>" | "l<link id>": { from, to } }
+      drafts: {}
     };
   },
   computed: {
@@ -208,6 +312,9 @@ export default {
     },
     lookupResults() {
       return searchTowns(this.cities, this.lookup, 6);
+    },
+    routesWithoutSlot() {
+      return this.routes.filter(r => !r.time_from);
     },
     allOpen() {
       return this.routes.length > 0 && this.routes.every(r => this.open[r.id]);
@@ -249,6 +356,87 @@ export default {
     },
     routeDaysText(route) {
       return routeDays(route).join(", ") || "sense dia";
+    },
+    timeInput,
+    routeSlotText(route) {
+      return formatSlot(route.time_from, route.time_to);
+    },
+    // the slot of a town in a route: its own one, else the route's
+    townSlot(town, route) {
+      return slotOf(this.index.linkOf(town.id, route.id), route);
+    },
+    townKey(town, route) {
+      const link = this.index.linkOf(town.id, route.id);
+      return link ? `l${link.id}` : "";
+    },
+    // what the time inputs show: the draft, else what is saved
+    routeDraft(route) {
+      return this.drafts[`r${route.id}`] || { from: timeInput(route.time_from), to: timeInput(route.time_to) };
+    },
+    townDraft(town, route) {
+      const link = this.index.linkOf(town.id, route.id);
+      const own = link && link.time_from ? { from: timeInput(link.time_from), to: timeInput(link.time_to) } : { from: "", to: "" };
+      return this.drafts[`l${link?.id}`] || own;
+    },
+    editDraft(key, current, field, value) {
+      if (!key) return;
+      this.drafts = { ...this.drafts, [key]: { ...current, [field]: value } };
+    },
+    dropDraft(key) {
+      const { [key]: _, ...rest } = this.drafts;
+      this.drafts = rest;
+    },
+    // saves the draft when the focus leaves the pair of inputs
+    async commitDraft(key, saved, url, target, event) {
+      if (event && event.relatedTarget && event.currentTarget.contains(event.relatedTarget)) return;
+      const draft = this.drafts[key];
+      if (!draft) return;
+      if (draft.from === saved.from && draft.to === saved.to) {
+        this.dropDraft(key);
+        return;
+      }
+      if (await this.saveSlot(url, draft.from, draft.to, data => Object.assign(target, data))) this.dropDraft(key);
+    },
+    commitRouteSlot(route, event) {
+      const saved = { from: timeInput(route.time_from), to: timeInput(route.time_to) };
+      return this.commitDraft(`r${route.id}`, saved, `routes/${route.id}`, route, event);
+    },
+    commitTownSlot(town, route, event) {
+      const link = this.index.linkOf(town.id, route.id);
+      if (!link) return;
+      const saved = link.time_from ? { from: timeInput(link.time_from), to: timeInput(link.time_to) } : { from: "", to: "" };
+      return this.commitDraft(`l${link.id}`, saved, `city-routes/${link.id}`, link, event);
+    },
+    async clearTownSlot(town, route) {
+      const link = this.index.linkOf(town.id, route.id);
+      if (!link) return;
+      if (await this.saveSlot(`city-routes/${link.id}`, "", "", data => Object.assign(link, data))) this.dropDraft(`l${link.id}`);
+    },
+    toggleSlots(route, on) {
+      const show = on ?? !this.slotEdit[route.id];
+      this.slotEdit = { ...this.slotEdit, [route.id]: show };
+      if (show) this.open = { ...this.open, [route.id]: true };
+    },
+    // validated like the API; "" for both clears the slot. True when saved.
+    async saveSlot(url, from, to, apply) {
+      const error = slotError(from, to);
+      if (error) {
+        this.$buefy.snackbar.open({ message: error, type: "is-danger", queue: false });
+        return false;
+      }
+      const data = { time_from: timeValue(from), time_to: timeValue(from) ? timeValue(to) : null };
+      this.saving = true;
+      try {
+        await service({ requiresAuth: true }).put(url, data);
+        apply(data);
+        this.$buefy.snackbar.open({ message: "Franja desada", queue: false });
+        return true;
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut desar", type: "is-danger", queue: false });
+        return false;
+      } finally {
+        this.saving = false;
+      }
     },
     isOpen(routeId) {
       return !!this.open[routeId];
@@ -482,6 +670,74 @@ export default {
   margin-top: .375rem;
   font-size: .75rem;
   color: var(--a-muted);
+}
+.slot-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 .5rem;
+  border-radius: 999px;
+  background: var(--a-info-bg, #E8F1FB);
+  font-size: .75rem;
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--a-info-fg, #1D4E89);
+}
+.slot-tag.is-none {
+  background: var(--a-warn-bg, #FFF6DE);
+  color: var(--a-warn-fg, #5C4200);
+}
+.slot-tag.is-inherited {
+  background: var(--a-chip);
+  color: var(--a-muted);
+}
+.slot-tag.is-small {
+  margin-left: .375rem;
+  font-size: .6875rem;
+}
+.cr-slot-toggle {
+  margin-left: auto;
+}
+.cr-slots {
+  margin-top: .25rem;
+}
+.cr-slot-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .375rem .625rem;
+  padding: .625rem .75rem;
+  margin-bottom: .5rem;
+  border: 1px solid var(--a-line-soft);
+  border-radius: 8px;
+  background: var(--a-thead, #F8FAFA);
+}
+.cr-slot-default .field-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+.slot-input {
+  width: 7rem;
+}
+.cr-slot-inputs {
+  white-space: nowrap;
+}
+.cr-slot-table tr.is-own td {
+  background: var(--a-accent-soft);
+}
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--a-accent);
+  cursor: pointer;
+}
+.route-day {
+  font-weight: 600;
+  color: var(--a-muted);
+  text-transform: capitalize;
 }
 @media screen and (max-width: 1023px) {
   .cr-layout {

@@ -121,3 +121,58 @@ export const editDistance = (a, b) => {
   }
   return prev[b.length];
 };
+
+// --- delivery time slot (issues/314) ------------------------------------------
+// A route has a usual slot and a town can have its own one in that route
+// (fields time_from / time_to, Strapi "time": "HH:mm:ss.SSS"). Only a start is
+// a fixed time («a les 7 h»); start and end is a range («de 12 a 15 h»).
+
+const toMinutes = t => {
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+};
+
+const hourText = t => {
+  const min = toMinutes(t);
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m ? `${h}:${String(m).padStart(2, "0")}` : String(h);
+};
+
+// "a les 7 h", "de 9:30 a 14 h", "" (no slot)
+export const formatSlot = (from, to) => {
+  if (toMinutes(from) === null) return "";
+  if (toMinutes(to) === null) {
+    return `${toMinutes(from) < 120 ? "a la" : "a les"} ${hourText(from)} h`;
+  }
+  return `de ${hourText(from)} a ${hourText(to)} h`;
+};
+
+// the slot that applies to a town in a route: its own one, else the route's
+export const slotOf = (link, route) => {
+  const own = !!(link && link.time_from);
+  const from = own ? link.time_from : route?.time_from || null;
+  const to = own ? link.time_to || null : route?.time_to || null;
+  return { from, to, own, text: formatSlot(from, to) };
+};
+
+// "07:00:00.000" → "07:00" for an <input type="time">
+export const timeInput = t => {
+  const min = toMinutes(t);
+  return min === null ? "" : `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+};
+
+// "7:05" → "07:05:00.000" (what Strapi takes); empty or invalid → null
+export const timeValue = text => {
+  const min = toMinutes(text);
+  if (min === null || min >= 24 * 60) return null;
+  return `${timeInput(text)}:00.000`;
+};
+
+// the message for an invalid slot (same rule as the API), or ""
+export const slotError = (from, to) => {
+  if (toMinutes(to) === null) return "";
+  if (toMinutes(from) === null) return "Cal l'hora d'inici de la franja";
+  if (toMinutes(to) <= toMinutes(from)) return "L'hora final ha de ser posterior a la d'inici";
+  return "";
+};
