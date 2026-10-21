@@ -45,7 +45,7 @@ describe('DedicationInput', () => {
     const errors = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const w = await mountInput()
     await w.find('button[title="Vista taula"]').trigger('click')
-    const titles = w.findAll('.table-view span.is-total').map(s => s.text())
+    const titles = w.findAll('.table-view .hours-day-name').map(s => s.text())
     // calendar days: «ahir», not «fa un dia» (issues/181)
     expect(titles).toEqual(['Dimecres 07/10/2026 (ahir)', 'Dilluns 05/10/2026 (fa 3 dies)'])
     expect(errors.mock.calls.map(c => String(c[0])).filter(m => m.includes('formatTitle'))).toEqual([])

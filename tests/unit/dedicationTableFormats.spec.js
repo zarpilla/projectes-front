@@ -45,3 +45,42 @@ describe('other formats (issues/127)', async () => {
     expect(span([])).toBe('')
   })
 })
+
+// redesign: «Taula» rows are the entries of each day, without the «Total»
+// pseudo-row, coloured as in the calendar (per person or per project)
+describe('Hores dedicades table rows', () => {
+  it('drops the Total row and colours entries by the chosen grouping', () => {
+    const ctx = {
+      distinctDaysObj: [{
+        day: '2026-10-30',
+        hours: 3,
+        activities: [
+          { id: 'Total', project: { name: 'Total' }, hours: 3 },
+          { id: 1, project: { name: 'B' }, users_permissions_user: { username: 'Marina' }, hours: 1 },
+          { id: 2, project: { name: 'A' }, users_permissions_user: { username: 'Katia' }, hours: 2 }
+        ]
+      }],
+      distinctProjects: ['A', 'B'],
+      distinctUsers: ['Marina', 'Katia'],
+      colorType: 'project',
+      getChartColor: i => 'c' + i
+    }
+    ctx.entryColor = a => DedicationInput.methods.entryColor.call(ctx, a)
+    const days = DedicationInput.computed.tableDays.call(ctx)
+    expect(days).toHaveLength(1)
+    expect(days[0].entries.map(e => [e.id, e.color])).toEqual([[1, 'c1'], [2, 'c0']])
+    ctx.colorType = 'user'
+    expect(DedicationInput.computed.tableDays.call(ctx)[0].entries.map(e => e.color)).toEqual(['c0', 'c1'])
+  })
+})
+
+describe('Hores dedicades table detail', () => {
+  it('joins the types, and the person only when everyone is shown', () => {
+    const a = { users_permissions_user: { username: 'Marina' }, dedication_type: { name: 'Treball' }, task: { name: 'Acta' } }
+    const m = DedicationInput.methods
+    const ctx = user => ({ user, entryType: m.entryType })
+    expect(m.entryType(a)).toBe('Treball · Acta')
+    expect(m.entryDetail.call(ctx(0), a)).toBe('Marina · Treball · Acta')
+    expect(m.entryDetail.call(ctx(5), a)).toBe('Treball · Acta')
+  })
+})

@@ -53,83 +53,69 @@
         persona o arrossega sobre la seva fila per afegir-li un període.
       </p>
     </div>
-    <card-component
-      class="has-table has-mobile-sort-spaced mt-5"
-      v-if="true"
-      title="Crear Bestretes"
-    >
-      <b-field horizontal>
-        <b-field label="Any">
-          <b-select v-model="filters.year" required>
+    <!-- «Crear bestretes»: the year and the button, then what was created per person -->
+    <section class="a-box list-box advances-box">
+      <header class="box-head">
+        <h2>Crear bestretes</h2>
+        <div class="advances-form">
+          <b-select v-model="filters.year" required aria-label="Any" placeholder="Any">
             <option v-for="(year, index) in years" :key="index" :value="year">
               {{ year.year }}
             </option>
           </b-select>
-        </b-field>
-        <b-field label="Crear bestretes">
           <b-button
-            type="is-primary mb-5"
+            type="is-primary"
+            icon-left="plus"
             @click="createAll"
             :disabled="loading || !filters.year || !filters.year.id"
-            >Crear</b-button
-          >
-        </b-field>
-      </b-field>
-    </card-component>
-    <div class="help mb-3">
-      <b-icon icon="help-circle-outline" custom-size="default" />
-      <b>Informació</b><br />
-      Amb aquest component pots crear les bestretes per tot l'any de totes les
-      persones visibles que tinguin definida la jornada. Es crea la bestreta
-      d'un mes quan l'últim dia del mes té una jornada de més de 0 h. Passa el
-      ratolí per sobre de <b-icon icon="alert-circle" custom-size="default" type="is-warning" />
-      per veure quins mesos queden sense bestreta i per què.
-    </div>
-    <card-component v-if="summary && summary.length">
-      <div class="columns card-body">
-        <div class="column has-text-weight-bold">Persona</div>
-        <div class="column has-text-weight-bold">
-          Bestretes creades
+          >Crea les bestretes</b-button>
         </div>
-        <div class="column has-text-weight-bold">
-          Bestretes existents
-        </div>
-        <div class="column has-text-weight-bold">
-          Bestretes totals
-        </div>
+      </header>
+      <p class="advances-help">
+        Crea les bestretes de tot l'any de totes les persones visibles que tinguin
+        definida la jornada. Es crea la bestreta d'un mes quan l'últim dia del mes
+        té una jornada de més de 0 h. Passa el ratolí per sobre de
+        <b-icon icon="alert-circle" custom-size="default" type="is-warning" />
+        per veure quins mesos queden sense bestreta i per què.
+      </p>
+      <div v-if="summary && summary.length" class="table-wrap">
+        <table class="table is-fullwidth advances-table">
+          <thead>
+            <tr>
+              <th scope="col">Persona</th>
+              <th scope="col" class="has-text-right">Creades</th>
+              <th scope="col" class="has-text-right">Ja existents</th>
+              <th scope="col" class="has-text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="info in summary" :key="info.user">
+              <td class="advances-person">{{ info.username }}</td>
+              <td class="has-text-right advances-num">{{ info.created }}</td>
+              <td class="has-text-right advances-num">{{ info.existing }}</td>
+              <td class="has-text-right advances-num">
+                <b-tooltip
+                  v-if="missingPayrollsText(info)"
+                  :label="missingPayrollsText(info)"
+                  multilined
+                  size="is-large"
+                  position="is-left"
+                  class="payroll-missing"
+                >
+                  <b-icon
+                    icon="alert-circle"
+                    custom-size="default"
+                    type="is-warning"
+                    :aria-label="missingPayrollsText(info)"
+                  />
+                </b-tooltip>
+                <b>{{ payrollTotal(info) }}</b>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div v-for="info in summary" v-bind:key="info.user" class="card-body">
-        <div class="columns">
-          <div class="column">
-            {{ info.username }}
-          </div>
-          <div class="column">
-            {{ info.created }}
-          </div>
-          <div class="column">
-            {{ info.existing }}
-          </div>
-          <div class="column">
-            {{ payrollTotal(info) }}
-            <b-tooltip
-              v-if="missingPayrollsText(info)"
-              :label="missingPayrollsText(info)"
-              multilined
-              size="is-large"
-              position="is-left"
-              class="payroll-missing"
-            >
-              <b-icon
-                icon="alert-circle"
-                custom-size="default"
-                type="is-warning"
-                :aria-label="missingPayrollsText(info)"
-              />
-            </b-tooltip>
-          </div>
-        </div>
-      </div>
-    </card-component>
+    </section>
   </div>
 </template>
 
@@ -143,13 +129,12 @@ import moment from "moment";
 import service from "@/service/index";
 import { missingPayrollsText, payrollTotal } from "@/domain/payrollSummary.js";
 import _ from "lodash";
-import CardComponent from "@/components/CardComponent.vue";
 import { formatNumber } from "@/helpers/format-number.js";
 
 // main component
 export default {
   name: "DedicationWorkingDay",
-  components: { ModalBoxWorkingDay, CardComponent },
+  components: { ModalBoxWorkingDay },
   emits: ["summary"],
   computed: {
     ...mapState(useMainStore, ["userName"]),
@@ -1149,6 +1134,48 @@ export default {
   width: 2px;
   height: .875rem;
   background: #D9480F;
+}
+.advances-box {
+  margin-top: 1.5rem;
+}
+.advances-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+.advances-help {
+  padding: .75rem 1.25rem;
+  font-size: .875rem;
+  color: var(--a-muted);
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.advances-help .icon {
+  vertical-align: middle;
+}
+.advances-table {
+  margin-bottom: 0;
+}
+.advances-table td,
+.advances-table th {
+  vertical-align: middle;
+}
+.advances-table tr > :first-child {
+  padding-left: 1.25rem;
+}
+.advances-table tr > :last-child {
+  padding-right: 1.25rem;
+}
+.advances-person {
+  font-weight: 600;
+}
+.advances-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.advances-num .payroll-missing {
+  margin-right: .375rem;
+  vertical-align: middle;
 }
 .persons-warning {
   padding: .75rem 1rem;

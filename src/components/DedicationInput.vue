@@ -262,83 +262,71 @@
 
     <!-- <week-calendar :events="events"></week-calendar> -->
 
-    <div class="table-view" v-if="viewType == 'all' || viewType == 'table'">
-      <card-component
-        class="has-table has-mobile-sort-spaced"
-        v-for="(d, i) in distinctDaysObj"
-        v-bind:key="i"
-      >
-        <div
-          v-for="(a, j) in d.activities"
-          v-bind:key="j"
-          class="card-body"
-          :class="{
-            'is-total': a.project.name === 'Total',
-            'is-activity': a.project.name !== 'Total'
-          }"
-        >
-          <div class="columns">
-            <div
-              class="column is-4"
-              :class="{ 'has-text-weight-bold': a.project.name === 'Total' }"
-              @click="showModal(a)"
-            >
-              <span class="is-total" v-if="a.project.name === 'Total'">
-                {{ formatTitle(d.day) }}
-              </span>
-              <span v-else>
-                {{ a.project && a.project.name ? a.project.name : "" }}
-              </span>
-              <div class="auxiliar">
-                {{ a.description ? a.description : "" }}
-              </div>
-            </div>
-            <div
-              class="column"
-              :class="{ 'has-text-weight-bold': a.project.name === 'Total' }"
-              @click="showModal(a)"
-            >
-              {{
-                a.users_permissions_user && a.users_permissions_user.username
-                  ? a.users_permissions_user.username
-                  : ""
-              }}
-            </div>
-            <div
-              class="column"
-              :class="{ 'has-text-weight-bold': a.project.name === 'Total' }"
-              @click="showModal(a)"
-            >
-              {{ hoursLabel(a.hours) }}
-            </div>
-            <div
-              class="column auxiliar"
-              :class="{ 'has-text-weight-bold': a.project.name === 'Total' }"
-              @click="showModal(a)"
-            >
-              <div>{{ a.dedication_type ? a.dedication_type.name : "" }}</div>
-              <div v-if="a.activity_type && a.activity_type.id">
-                {{ a.activity_type ? a.activity_type.name : "" }}
-              </div>
-              <div v-if="a.task && a.task.id">
-                {{ a.task ? a.task.name : "" }}
-              </div>
-            </div>
-            <div
-              class="column is-2"
-              :class="{ 'has-text-weight-bold': a.project.name === 'Total' }"
-              @click="trashModal(a)"
-            >
-              <b-button
-                label="Esborra"
-                type="is-danger"
-                icon-left="close"
-                v-if="a.project.name !== 'Total' && !a.invoiced"
-              />
-            </div>
-          </div>
-        </div>
-      </card-component>
+    <!-- «Taula»: one box, a header row per day and a row per entry -->
+    <div class="table-view" v-if="(viewType == 'all' || viewType == 'table') && !needsPerson">
+      <p v-if="!tableDays.length" class="hours-table-empty">Cap hora en aquestes dates.</p>
+      <div v-else class="hours-table-box">
+        <table class="table is-fullwidth is-hoverable hours-table">
+          <thead>
+            <tr>
+              <th class="col-color" aria-hidden="true"></th>
+              <th>Projecte</th>
+              <th v-if="!user" class="col-person">Persona</th>
+              <th class="col-type">Tipus</th>
+              <th class="has-text-right">Hores</th>
+              <th class="col-actions"><span class="is-sr-only">Accions</span></th>
+            </tr>
+          </thead>
+          <tbody v-for="d in tableDays" :key="d.day">
+            <tr class="hours-day" :class="{ 'is-today': d.day === today }">
+              <td class="col-color"></td>
+              <td class="hours-day-name">{{ formatTitle(d.day) }}</td>
+              <td v-if="!user" class="col-person"></td>
+              <td class="col-type"></td>
+              <td class="has-text-right hours-num">{{ hoursLabel(d.hours) }}</td>
+              <td class="col-actions">
+                <button
+                  type="button"
+                  class="row-action is-accent"
+                  title="Afegeix hores"
+                  :aria-label="'Afegeix hores el ' + formatTitle(d.day)"
+                  @click="showModal({ date: d.day })"
+                >
+                  <b-icon icon="plus" custom-size="default" />
+                </button>
+              </td>
+            </tr>
+            <tr v-for="a in d.entries" :key="a.id" class="hours-entry" @click="showModal(a)">
+              <td class="col-color"><i :style="{ backgroundColor: a.color }" /></td>
+              <td>
+                <div class="hours-project">{{ a.project && a.project.name ? a.project.name : "" }}</div>
+                <div v-if="a.description" class="hours-sub">{{ a.description }}</div>
+                <div v-if="entryDetail(a)" class="hours-sub is-phone">{{ entryDetail(a) }}</div>
+              </td>
+              <td v-if="!user" class="is-nowrap col-person">
+                {{ a.users_permissions_user && a.users_permissions_user.username ? a.users_permissions_user.username : "" }}
+              </td>
+              <td class="hours-sub col-type">{{ entryType(a) }}</td>
+              <td class="has-text-right hours-num">{{ hoursLabel(a.hours) }}</td>
+              <td class="col-actions">
+                <span v-if="a.invoiced" class="row-action is-static" title="Facturada: no es pot esborrar">
+                  <b-icon icon="lock-outline" custom-size="default" />
+                </span>
+                <button
+                  v-else
+                  type="button"
+                  class="row-action is-danger"
+                  title="Esborra"
+                  aria-label="Esborra"
+                  @click.stop="trashModal(a)"
+                >
+                  <b-icon icon="trash-can-outline" custom-size="default" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -489,6 +477,17 @@ export default {
     },
     today() {
       return moment().format("YYYY-MM-DD");
+    },
+    // the days of «Taula» without their «Total» pseudo-row, each entry with the
+    // colour it has in the calendar (per person or per project)
+    tableDays() {
+      return this.distinctDaysObj.map(d => ({
+        day: d.day,
+        hours: d.hours,
+        entries: d.activities
+          .filter(a => a.id !== "Total")
+          .map(a => ({ ...a, color: this.entryColor(a) }))
+      }));
     },
     // the calendar opens on the month of the date filter: switching back from
     // «Taula» remounted it on today's month and reset the filter (issues/239)
@@ -1728,6 +1727,29 @@ export default {
       this.getActivities();
       this.isLoadingImport = false;
     },
+    // «Treball · Reunió · tasca»
+    entryType(a) {
+      return [a.dedication_type, a.activity_type, a.task]
+        .map(x => x && x.name)
+        .filter(Boolean)
+        .join(" · ");
+    },
+    // on a phone the person and type columns go under the project
+    entryDetail(a) {
+      const person = !this.user && a.users_permissions_user ? a.users_permissions_user.username : "";
+      return [person, this.entryType(a)].filter(Boolean).join(" · ");
+    },
+    entryColor(a) {
+      return this.colorType === "user"
+        ? this.getChartColor(
+            this.distinctUsers.findIndex(
+              p => p === (a.users_permissions_user && a.users_permissions_user.username)
+            )
+          )
+        : this.getChartColor(
+            this.distinctProjects.findIndex(p => a.project && p === a.project.name)
+          );
+    },
     // «1,00 h», as the calendar view (issues/127)
     hoursLabel(hours) {
       return formatNumber(hours || 0, 2, 2) + " h";
@@ -1962,6 +1984,136 @@ export default {
   .hours-agenda {
     display: block;
   }
+}
+
+/* «Taula» */
+.hours-table-empty {
+  color: var(--a-muted);
+  padding: 0.75rem 0;
+}
+.hours-table-box {
+  background: var(--a-surface);
+  border: 1px solid var(--a-line);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.hours-table {
+  margin-bottom: 0 !important;
+  background: transparent;
+}
+.hours-table thead th {
+  white-space: nowrap;
+}
+.hours-table td {
+  border-bottom: 1px solid var(--a-line-soft);
+}
+.hours-table tbody:last-child tr:last-child td {
+  border-bottom: 0;
+}
+.hours-table tr.hours-day td {
+  background: var(--a-thead);
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+.hours-table tr.hours-day td.col-color {
+  padding: 0;
+}
+.hours-table tr.hours-day.is-today td:first-child {
+  box-shadow: inset 3px 0 0 var(--a-accent);
+}
+.hours-day-name {
+  font-weight: 800;
+  color: var(--a-fg);
+}
+.hours-table tr.hours-day .hours-num {
+  font-weight: 800;
+  color: var(--a-fg-2);
+}
+.hours-entry {
+  cursor: pointer;
+}
+.hours-project {
+  font-weight: 600;
+  color: var(--a-fg);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.hours-sub {
+  font-size: 0.8125rem;
+  color: var(--a-muted);
+}
+.hours-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.hours-table .is-nowrap {
+  white-space: nowrap;
+}
+.hours-table .col-color {
+  width: 4px;
+  padding: 0 0 0 0.75rem;
+}
+.hours-table td.col-color i {
+  display: block;
+  width: 4px;
+  height: 1.75rem;
+  border-radius: 2px;
+}
+.hours-table .col-actions {
+  width: 1%;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.hours-sub.is-phone {
+  display: none;
+}
+@media (max-width: 768px) {
+  .hours-table .col-person,
+  .hours-table .col-type {
+    display: none;
+  }
+  .hours-sub.is-phone {
+    display: block;
+  }
+  /* the name wraps instead of widening the table past the screen */
+  .hours-project,
+  .hours-sub {
+    max-width: calc(100vw - 13rem);
+  }
+}
+.row-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--a-fg-2);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.row-action:hover {
+  background: var(--a-chip);
+  color: var(--a-fg);
+}
+.row-action.is-danger:hover {
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
+}
+.row-action.is-accent {
+  color: var(--a-accent);
+}
+.row-action.is-static {
+  color: var(--a-muted);
+  cursor: default;
+}
+.row-action.is-static:hover {
+  background: transparent;
 }
 </style>
 <style>
