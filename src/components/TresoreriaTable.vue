@@ -1110,30 +1110,27 @@ export default {
     async getInitialData() {
       this.isLoading = true;
 
-      this.contacts = (
-        await service({ requiresAuth: true }).get(
-          "contacts/basic?_limit=-1&_sort=name:ASC"
-        )
-      ).data;
+      // The forecast (by far the slowest call) only needs the project states,
+      // the bank accounts and the year: those small catalogs load together and
+      // the forecast starts right after them. Contacts and me aren't needed for
+      // it: they load alongside the forecast instead of before everything, which
+      // held it back for seconds (issues/309).
+      const contacts = service({ requiresAuth: true })
+        .get("contacts/basic?_limit=-1&_sort=name:ASC")
+        .then(r => { this.contacts = r.data; });
+      const me = service({ requiresAuth: true })
+        .get("me")
+        .then(r => { this.me = r.data; });
 
-      this.me = (await service({ requiresAuth: true }).get("me")).data;
-
-      let filter = "";
-      if (this.$route.query.filter) {
-        filter = this.$route.query.filter;
-      }
-
-      this.years = await service({ requiresAuth: true, cached: true })
-        .get("years?_sort=year:DESC")
-        .then(r => r.data);
-
-      this.projectStates = await service({ requiresAuth: true, cached: true })
-        .get("project-states")
-        .then(r => r.data);
-
-      this.bankAccounts = await service({ requiresAuth: true, cached: true })
-        .get("bank-accounts?_sort=name:ASC")
-        .then(r => r.data);
+      const catalogs = service({ requiresAuth: true, cached: true });
+      const [years, projectStates, bankAccounts] = await Promise.all([
+        catalogs.get("years?_sort=year:DESC").then(r => r.data),
+        catalogs.get("project-states").then(r => r.data),
+        catalogs.get("bank-accounts?_sort=name:ASC").then(r => r.data)
+      ]);
+      this.years = years;
+      this.projectStates = projectStates;
+      this.bankAccounts = bankAccounts;
 
       if (localStorage.getItem("TresoreriaTable.selectedProjectStates")) {
         this.selectedProjectStates = JSON.parse(
@@ -1146,7 +1143,7 @@ export default {
       // Initialize all bank accounts as selected by default
       this.selectedBankAccountIds = this.bankAccounts.map(ba => ba.id);
 
-      this.getData();
+      await Promise.all([this.getData(), contacts, me]);
     },
     isMovement(r) {
       return r.type !== "Avui" && r.type !== "Inici Any" && !r.is_balance_annotation && !r.is_real_balance_adjustment;

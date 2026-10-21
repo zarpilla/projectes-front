@@ -1,0 +1,122 @@
+// issues/309: Tresoreria asked contacts/basic (1 MB, ~2.6 s in production), me,
+// years, project-states and bank-accounts one after another and only then the
+// forecast, so the slowest call started seconds after the page. The forecast
+// only needs the project states, the bank accounts and the year: the three
+// catalogs load together, the forecast right after them, and contacts / me
+// alongside it.
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
+import Buefy from 'buefy'
+
+const deferred = () => {
+  let resolve
+  const promise = new Promise(r => { resolve = r })
+  return { promise, resolve }
+}
+
+// every GET waits until the test answers it
+let pending
+const api = {
+  get: vi.fn(url => {
+    if (url.startsWith('pivot-table-views')) return Promise.resolve({ data: [] })
+    const d = deferred()
+    pending[url] = d
+    return d.promise
+  }),
+  put: vi.fn(),
+  post: vi.fn()
+}
+vi.mock('@/service/index', () => ({ default: () => api }))
+const getTreasuryData = vi.fn(async () => ({ vat: {}, vat_expected: {}, treasury: [], projects: [] }))
+vi.mock('@/service/treasury', () => ({ default: (...a) => getTreasuryData(...a) }))
+import TresoreriaTable from '@/components/TresoreriaTable.vue'
+
+const CONTACTS = 'contacts/basic?_limit=-1&_sort=name:ASC'
+const YEARS = 'years?_sort=year:DESC'
+const STATES = 'project-states'
+const ACCOUNTS = 'bank-accounts?_sort=name:ASC'
+
+const answer = (url, data) => pending[url].resolve({ data })
+const answerCatalogs = () => {
+  answer(YEARS, [{ year: 2026 }, { year: 2025 }])
+  answer(STATES, [{ id: 1, name: 'En curs' }, { id: 2, name: 'Oferta' }, { id: 3, name: 'Tancat' }])
+  answer(ACCOUNTS, [{ id: 1, name: 'A' }, { id: 3, name: 'B' }, { id: 2, name: 'C' }])
+}
+
+async function mountTable () {
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'home', component: { template: '<div/>' } },
+      { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }
+    ]
+  })
+  await router.push('/?year=2025')
+  const w = mount(TresoreriaTable, {
+    global: {
+      plugins: [createPinia(), Buefy, router],
+      stubs: { TreasuryAnnotationInput: true, PivotViews: true, ModalBoxInvoicing: true },
+      config: { warnHandler: () => {} }
+    }
+  })
+  w.vm.initializePivotWithViews = () => {}
+  await flushPromises()
+  api.get.mockClear()
+  return w
+}
+
+beforeEach(() => {
+  pending = {}
+  getTreasuryData.mockClear()
+  localStorage.removeItem('TresoreriaTable.selectedProjectStates')
+})
+
+describe('Tresoreria first load (issues/309)', () => {
+  it('asks the catalogs, contacts and me at once, without waiting for one another', async () => {
+    const w = await mountTable()
+    w.vm.getInitialData()
+    await flushPromises()
+    expect(api.get.mock.calls.map(c => c[0]).sort()).toEqual([ACCOUNTS, CONTACTS, YEARS, 'me', STATES].sort())
+    expect(getTreasuryData).not.toHaveBeenCalled()
+  })
+
+  it('starts the forecast once the catalogs answer, before contacts and me', async () => {
+    const w = await mountTable()
+    const done = w.vm.getInitialData()
+    await flushPromises()
+    answerCatalogs()
+    await flushPromises()
+
+    // contacts/basic and me still on their way
+    expect(getTreasuryData).toHaveBeenCalledTimes(1)
+    expect(getTreasuryData).toHaveBeenCalledWith([1, 2, 3], '2025', '1,3,2')
+    expect(w.vm.contacts).toEqual([])
+    expect(w.vm.me).toBeNull()
+    expect(w.vm.years.map(y => y.year)).toEqual([2026, 2025])
+    expect(w.vm.selectedProjectStates).toEqual([1, 2, 3])
+    expect(w.vm.selectedBankAccountIds).toEqual([1, 3, 2])
+    expect(w.vm.isLoading).toBe(false)
+
+    // they arrive later and are still kept
+    answer(CONTACTS, [{ id: 9, name: 'Contacte' }])
+    answer('me', { name: 'Entitat' })
+    await flushPromises()
+    await done
+    expect(w.vm.contacts).toEqual([{ id: 9, name: 'Contacte' }])
+    expect(w.vm.me).toEqual({ name: 'Entitat' })
+    expect(getTreasuryData).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the project states saved in this browser', async () => {
+    localStorage.setItem('TresoreriaTable.selectedProjectStates', JSON.stringify([2]))
+    const w = await mountTable()
+    w.vm.getInitialData()
+    await flushPromises()
+    answerCatalogs()
+    await flushPromises()
+    expect(w.vm.selectedProjectStates).toEqual([2])
+    expect(getTreasuryData).toHaveBeenCalledWith([2], '2025', '1,3,2')
+  })
+})
