@@ -1,6 +1,6 @@
 // issues/310: the holidays for everyone (Festiu Estatal, Festiu Catalunya…)
 // could only be changed from the Hores dedicades calendar, one day at a time.
-// They are now a table in Taules auxiliars › Calendari, «Festius de tothom»:
+// They are now a table in Taules auxiliars › Calendari, «Festius de totes»:
 // it lists the holidays with no person, newest first; its form offers only the
 // types for everyone and saves the date picked, not the day before.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -18,8 +18,8 @@ import { ADMIN_TABLE_GROUPS, adminTableGroupsFor, isAdminTablePath } from '@/ser
 const metadata = normalizeEntity({
   name: 'festive',
   apiPath: 'festives',
-  displayName: 'Festius de tothom',
-  displayNameSingular: 'Festiu de tothom',
+  displayName: 'Festius de totes',
+  displayNameSingular: 'Festiu de totes',
   listQuery: '_where[users_permissions_user_null]=true',
   listSort: ['date', 'desc'],
   attributes: {
@@ -46,10 +46,10 @@ beforeEach(() => {
   put.mockReset()
 })
 
-describe('«Festius de tothom» in Taules auxiliars (issues/310)', () => {
+describe('«Festius de totes» in Taules auxiliars (issues/310)', () => {
   it('is in the Calendari group, for admins only', () => {
     const calendari = ADMIN_TABLE_GROUPS.find(g => g.title === 'Calendari')
-    expect(calendari.items).toContainEqual({ entity: 'festive', label: 'Festius de tothom' })
+    expect(calendari.items).toContainEqual({ entity: 'festive', label: 'Festius de totes' })
     expect(isAdminTablePath('/admin/festive')).toBe(true)
     expect(isAdminTablePath('/admin/festive/12')).toBe(true)
     const office = adminTableGroupsFor(['orders_admin']).flatMap(g => g.items)

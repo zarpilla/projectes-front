@@ -47,7 +47,7 @@ describe('Festiu dialog (issues/140)', () => {
     ModalBoxFestive.methods.show.call(c)
     expect(Object.keys(c.festiveTypesObj).map(Number).sort()).toEqual([1, 2, 3, 4])
     expect(c.form.festive_type).toBe(3)
-    expect(c.festiveTypesObj[1]).toBe('Festiu Estatal (tothom)')
+    expect(c.festiveTypesObj[1]).toBe('Festiu Estatal (totes)')
   })
 
   it('a holiday for everyone has no person', () => {
@@ -63,7 +63,7 @@ describe('Festiu dialog (issues/140)', () => {
   it('shows a holiday for everyone read-only to a worker', () => {
     const c = dialog({ canEditCommon: false, festiveObject: { id: 9, date: '2026-06-24', festive_type: { id: 2 }, users_permissions_user: null } })
     ModalBoxFestive.methods.show.call(c)
-    expect(c.festiveTypesObj[2]).toBe('Festiu Catalunya (tothom)')
+    expect(c.festiveTypesObj[2]).toBe('Festiu Catalunya (totes)')
     expect(c.form.users_permissions_user).toBe(null)
     expect(c.readOnlyCommon).toBe(true)
   })

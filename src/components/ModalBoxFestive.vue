@@ -33,7 +33,7 @@
             </b-field>
           </div>
             <p v-if="readOnlyCommon" class="notification is-info is-light">
-              Aquest festiu és per a tothom: només el pot canviar o esborrar una persona administradora.
+              Aquest festiu és per a totes: només el pot canviar o esborrar una persona administradora.
             </p>
             <b-field v-if="selectedPersonal" label="Persona" horizontal>
               <b-autocomplete
@@ -194,7 +194,7 @@ export default {
       ]
       this.festiveTypesObj = {}
       for (const f of offered) {
-        this.festiveTypesObj[f.id] = f.personal === false ? `${f.name} (tothom)` : f.name
+        this.festiveTypesObj[f.id] = f.personal === false ? `${f.name} (totes)` : f.name
       }
       this.hasTypes = offered.length > 0
 
