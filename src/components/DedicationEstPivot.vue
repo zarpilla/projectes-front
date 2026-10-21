@@ -111,6 +111,7 @@
 <script>
 import service from '@/service/index'
 import { projectStartYearLabel } from '@/domain/years'
+import { phasesBothFilters } from '@/domain/phasesBothFilters'
 import { loadFiscalSettings } from '@/service/fiscalYear'
 import moment from 'moment'
 import configPivot from '@/service/configStatsDedicationEst'
@@ -166,10 +167,7 @@ export default {
       usersList: [],
       modalObjectName: '',
       userNameSearch: '',
-      scopes: [],
-      states: [],
       leaders: [],
-      contacts: [],
       pivotData: [],
       pivotIdentifier: 'dedication-est-pivot'
     }
@@ -276,12 +274,16 @@ export default {
         return
       }
 
-      this.scopes = (await service({ requiresAuth: true }).get('project-scopes')).data
-      this.states = (await service({ requiresAuth: true }).get('project-states')).data
-      this.dedicationTypes = (await service({ requiresAuth: true }).get('dedication-types')).data
-      this.leaders = (await service({ requiresAuth: true, cached: true }).get('users')).data
-      this.contacts = (await service({ requiresAuth: true }).get('contacts/basic?_limit=-1&_sort=name:ASC')).data
-      this.activityTypes = (await service({ requiresAuth: true, cached: true }).get('activity-types/basic?_limit=-1')).data
+      // at once, and only what the report reads: the scopes, states and contacts
+      // (1.1 MB on resilience) were loaded one after another and never used (issues/309)
+      const [dedicationTypes, leaders, activityTypes] = await Promise.all([
+        service({ requiresAuth: true }).get('dedication-types'),
+        service({ requiresAuth: true, cached: true }).get('users'),
+        service({ requiresAuth: true, cached: true }).get('activity-types/basic?_limit=-1')
+      ])
+      this.dedicationTypes = dedicationTypes.data
+      this.leaders = leaders.data
+      this.activityTypes = activityTypes.data
 
       // const from = moment(this.date1).format('YYYY-MM-DD')
       // const to = moment(this.date2).format('YYYY-MM-DD')
@@ -290,6 +292,9 @@ export default {
       if (projectState === 0 || projectState === '0') {
         query = 'projects/phases-both?_limit=-1&activities=true&plannedHours=true'
       }
+      // the server keeps the data and filters it: only the chosen year, person
+      // and project travel (6.4 MB of every year on resilience, issues/309)
+      query += phasesBothFilters(this)
       service({ requiresAuth: true }).get(query).then((r) => {
         const activities = []
         const projects = r.data.filter(p => !this.project || p.id === this.project).forEach(p => {
