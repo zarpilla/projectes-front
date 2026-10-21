@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.21",
   items: [
     {
+      type: "Novetats",
+      modules: ["Hores"],
+      text: ["El calendari oficial de festes laborals a Catalunya 2027 ja és a ", { to: "/dedicacio", label: "Hores dedicades" }, " com a festius de tothom (Estatal i Catalunya): 1 i 6 de gener, 26 i 29 de març, 1 de maig, 24 de juny, 11 de setembre, 12 d'octubre, 1 de novembre i 6, 8 i 25 de desembre. Els que ja s'havien afegit a mà no es dupliquen."]
+    },
+    {
       type: "Millores",
       modules: ["Informes", "Diners"],
       text: [{ to: "/tresoreria", label: "Tresoreria" }, ", ", { to: "/stats-economic-detail", label: "Ingressos/Despeses" }, ", Preu hora, Dedicació, Previsió dedicació, % Dedicació real i Justificacions carreguen molt més de pressa: el servidor recorda els càlculs i només els refà quan canvien les dades. Canviar de filtre, d'any o entre Previsió i Execució és gairebé immediat."]
