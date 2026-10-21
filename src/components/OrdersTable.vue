@@ -107,7 +107,7 @@
           </label>
           <b-button icon-left="chevron-right" aria-label="Dia següent" @click="shiftDate(1)" />
         </div>
-        <b-dropdown v-if="isStaff" v-model="routeFilter" multiple aria-role="list" class="filter-dropdown" @change="onRouteChange">
+        <b-dropdown v-if="isStaff" :model-value="routeFilter" multiple aria-role="list" class="filter-dropdown" @change="setRoutes">
           <template #trigger>
             <button type="button" class="filter-select is-button">
               <span>Ruta</span><b>{{ routeFilterLabel }}</b>
@@ -2703,8 +2703,10 @@ export default {
     formatDay(value) {
       return value ? moment(value, "YYYY-MM-DD").locale("ca").format("dd DD/MM") : "—";
     },
+    // Buefy's dropdown emits `change` with the new selection before it updates
+    // v-model, so the list must load from the value given (issues/311)
     setRoutes(list) {
-      this.routeFilter = list;
+      this.routeFilter = [...list];
       this.onRouteChange();
     },
     onRouteChange() {

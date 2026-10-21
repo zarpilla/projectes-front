@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.21",
   items: [
     {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: [{ to: "/orders", label: "Comandes" }, ": el filtre de Ruta mostra només les comandes de les rutes marcades des del primer clic, també als comptadors i als totals. Abans anava un clic endarrerit i podia mostrar comandes d'altres rutes."]
+    },
+    {
       type: "Novetats",
       modules: ["Hores"],
       text: ["El calendari oficial de festes laborals a Catalunya 2027 ja és a ", { to: "/dedicacio", label: "Hores dedicades" }, " com a festius de tothom: 1 i 6 de gener, 26 i 29 de març, 1 de maig, 24 de juny, 11 de setembre, 12 d'octubre, 1 de novembre i 6, 8 i 25 de desembre. Els que ja s'havien afegit a mà no es dupliquen. A ", { to: "/dedicacio-summary", label: "Hores anuals" }, ", el 2027 compta 9 festius estatals i 3 de Catalunya, sense avisos de màxim superat."]
