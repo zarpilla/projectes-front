@@ -233,6 +233,10 @@
               <b-field label="Hora límit per a l'endemà" message="Les comandes fetes després d'aquesta hora ja no es poden entregar l'endemà.">
                 <b-input v-model.number="form.orders_options.next_day_limit_hour" type="number" step="1" min="0" max="23" />
               </b-field>
+              <!-- issues/312 -->
+              <b-field label="Concepte de les factures de comandes" message="Surt al PDF de les factures que crea «Facturar», amb el mes de les comandes: «Serveis logístics_Octubre_2026». Buit: sense concepte.">
+                <b-input v-model="form.orders_options.invoice_concept" placeholder="Serveis logístics" maxlength="200" />
+              </b-field>
             </div>
           </section>
 

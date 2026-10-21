@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.21",
   items: [
     {
+      type: "Novetats",
+      modules: ["Logística", "Diners"],
+      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes (p. ex. «Serveis logístics_Octubre_2026»). El text es defineix a ", { to: "/admin/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
+    },
+    {
       type: "Correccions",
       modules: ["Logística"],
       text: [{ to: "/orders", label: "Comandes" }, ": el filtre de Ruta mostra només les comandes de les rutes marcades des del primer clic, també als comptadors i als totals. Abans anava un clic endarrerit i podia mostrar comandes d'altres rutes."]

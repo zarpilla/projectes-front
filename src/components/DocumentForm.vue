@@ -466,6 +466,16 @@
               </b-select>
             </b-field>
 
+            <!-- the concept printed on the PDF; only issued invoices have it (issues/312) -->
+            <b-field v-if="type === 'emitted-invoices'" label="Concepte a la factura" horizontal>
+              <b-input
+                placeholder="Surt al PDF de la factura"
+                v-model="form.concept"
+                :disabled="emittedInvoiceEditDisabled"
+              >
+              </b-input>
+            </b-field>
+
             <!-- payrolls have no concept, attachments or internal notes -->
             <b-field v-if="type !== 'payrolls'" label="Concepte del document" horizontal>
               <b-input
