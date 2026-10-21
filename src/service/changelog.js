@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
+      text: ["Comandes fora de temps: una comanda per a l'endemà informada després de l'hora límit ja no passa a un altre dia de la ruta. Es queda per al dia triat, abans de desar-la surt un avís, es pinta en vermell a ", { to: "/orders", label: "Comandes" }, ", porta un recàrrec (25 % per defecte, amb la bola vermella al costat del preu) i l'albarà diu «COMANDA EXPRESS». L'oficina el treu desmarcant «Recàrrec per incidència» a la comanda. Les recollides informades tard (de tarda, el mateix dia a partir de les 10 h; de matí, el dia abans a partir de l'hora límit) també avisen i es pinten en vermell, sense recàrrec, i també la seva comanda de recollida. Els textos, l'hora de les recollides de tarda i el recàrrec es canvien a ", { to: "/admin/me", label: "Configuració general" }, " → Logística."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
       text: [{ to: "/city-route", label: "Poblacions i rutes" }, " diu a quina hora hi passem: cada ruta té la seva franja horària (p. ex. «de 9 a 14 h») i una població pot tenir-ne una de pròpia (p. ex. «a les 7 h»). L'oficina les posa amb el botó «Franges» o a ", { to: "/routes", label: "Rutes" }, ". També surt a «Quina ruta passa per…?» i a la comanda, sota la ruta triada."]
     },
     {

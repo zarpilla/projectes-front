@@ -252,8 +252,8 @@
                   v-for="(order, i) in group.rows"
                   :key="order.id || 'new-' + i"
                   class="order-row"
-                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-future-week': isFutureWeek(order) }"
-                  :title="isFutureWeek(order) ? 'Entrega prevista una setmana vinent' : null"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-future-week': isFutureWeek(order) && !isLate(order), 'is-late': isLate(order) }"
+                  :title="lateTitle(order) || (isFutureWeek(order) ? 'Entrega prevista una setmana vinent' : null)"
                 >
                   <td class="col-check">
                     <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
@@ -373,6 +373,8 @@
             <span><i class="discount-dot volume"></i>Volum</span>
             <span><i class="discount-dot pickup"></i>Recollida</span>
             <span><i class="legend-future"></i>Setmanes vinents</span>
+            <span><i class="discount-dot surcharge"></i>Recàrrec express</span>
+            <span><i class="legend-late"></i>Fora de temps</span>
           </span>
           <b-pagination
             v-if="total > perPageEffective"
@@ -436,6 +438,7 @@ import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
 import { dateFilterWhere, ownerWhere, priceFilterWhere, kilogramsFilterWhere } from "@/domain/ordersListFilters";
 import { invoicedPrice } from "@/domain/logisticsInvoicing";
+import { lateSurchargeOf } from "@/domain/lateOrders";
 import { csvDiscountQuery, withCsvDiscounts, csvOrderPayload } from "@/domain/csvOrderPreview";
 import { repricesOrder } from "@/domain/orderReprice";
 
@@ -2757,10 +2760,23 @@ export default {
       const date = moment(order.estimated_delivery_date, ["YYYY-MM-DD", "YYYYMMDD"]);
       return date.isValid() && !date.isBefore(moment().startOf("isoWeek").add(1, "week"));
     },
-    // the old coloured circles of the price: which discounts apply
+    // a late order or pickup, or a -R with a late one (issues/315)
+    isLate(order) {
+      return !!(order && (order.late_order || order.late_pickup));
+    },
+    lateTitle(order) {
+      if (!this.isLate(order)) return null;
+      const parts = [];
+      if (order.late_order) parts.push("Comanda express: informada fora de l'hora límit");
+      if (order.late_pickup) parts.push(order.is_collection_order ? "Inclou recollides informades tard" : "Recollida informada tard");
+      return parts.join(" · ");
+    },
+    // the old coloured circles of the price: which discounts apply, and the
+    // surcharge of a late order (issues/315)
     discountsOf(order) {
       if (order.finalPrice === undefined || order.finalPrice === null || order.finalPrice === order.price) return [];
       return [
+        lateSurchargeOf(order) ? { key: "surcharge", title: `Recàrrec express (+${formatNumber(order.late_surcharge, 2)} %)` } : null,
         Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${formatNumber(order.multidelivery_discount, 2)} %)` } : null,
         Number(order.volume_discount) ? { key: "volume", title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
         Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${formatNumber(order.contact_pickup_discount, 2)} %)` } : null
@@ -3164,6 +3180,16 @@ select.col-filter {
 .discount-dot.pickup {
   background: #E8B23A;
 }
+.discount-dot.surcharge {
+  background: var(--a-neg, #c0392b);
+}
+/* late orders and pickups (issues/315): red, as the next weeks' are grey */
+.order-row.is-late td {
+  background: #fdecea;
+}
+.order-row.is-late td:first-child {
+  box-shadow: inset 3px 0 0 #c0392b;
+}
 .order-row.is-future-week td {
   background: var(--a-thead);
 }
@@ -3192,6 +3218,14 @@ select.col-filter {
   border: 1px solid var(--a-line);
   border-radius: 2px;
   background: var(--a-thead);
+}
+.legend-late {
+  display: inline-block;
+  width: .875rem;
+  height: .625rem;
+  border: 1px solid #c0392b;
+  border-radius: 2px;
+  background: #fdecea;
 }
 .orders-foot > :last-child {
   margin-left: auto;

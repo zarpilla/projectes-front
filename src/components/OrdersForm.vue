@@ -8,6 +8,9 @@
         <span class="tag" :class="statusTag(form.status)">{{ statusLabel(form.status) }}</span>
         <span v-if="form.transfer" class="tag">Transferència · {{ transferStatus.toLowerCase() }}</span>
         <span v-if="form.is_collection_order" class="tag">Comanda de recollida</span>
+        <!-- issues/315 -->
+        <span v-if="form.late_order" class="tag is-danger" data-test="late-order-tag">Comanda express</span>
+        <span v-if="form.late_pickup" class="tag is-danger" data-test="late-pickup-tag">Recollida informada tard</span>
       </template>
       <template v-if="form.id">
         <b-button v-if="!form.is_collection_order" icon-left="printer" :loading="isLoading" @click="getPDF">Imprimeix albarà</b-button>
@@ -35,6 +38,12 @@
     <section class="section is-main-section">
       <div v-if="firstStatus !== 'pending'" class="notification is-warning">
         <b>Comanda ja processada.</b> {{ processedNotice }}
+      </div>
+      <!-- a late order or pickup, extraordinary (issues/315) -->
+      <div v-if="form.id && (form.late_order || form.late_pickup)" class="notification is-danger is-light" data-test="late-notice">
+        <template v-if="form.late_order"><b>Comanda express.</b> S'ha informat després de l'hora límit<template v-if="lateSurcharge"> i porta un recàrrec del {{ percent(lateSurcharge) }} %</template>. </template>
+        <template v-if="form.late_pickup"><b>Recollida informada tard.</b> </template>
+        Coordinació mirarà d'adreçar-la si encara és possible.
       </div>
 
       <b-loading :is-full-page="false" :model-value="isLoading" />
@@ -303,8 +312,8 @@
                   <tr><th>Comanda</th><th>Entrega</th><th class="has-text-right">Caixes</th><th class="has-text-right">Kg</th><th>Estat</th><th>Dipòsit</th><th>Recollida</th></tr>
                 </thead>
                 <tbody>
-                  <tr v-for="row in form.collection_orders" :key="row.id">
-                    <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
+                  <tr v-for="row in form.collection_orders" :key="row.id" :class="{ 'is-late': row.late_pickup }" :title="row.late_pickup ? 'Recollida informada tard' : null">
+                    <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link><span v-if="row.late_pickup" class="tag is-danger is-light late-mark">tard</span></td>
                     <td>{{ contactName(row.contact) || row.contact_trade_name || row.contact_name || "—" }}</td>
                     <td class="has-text-right">{{ row.units || 0 }}</td>
                     <td class="has-text-right">{{ row.kilograms || 0 }}</td>
@@ -434,6 +443,7 @@
             <dl class="facts">
               <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
               <dt>Preu</dt><dd>{{ money(route_price) }}</dd>
+              <template v-if="lateSurcharge"><dt>Recàrrec express</dt><dd class="has-text-danger">+{{ percent(lateSurcharge) }} %</dd></template>
               <template v-if="hasDiscount">
                 <dt>Descompte multientrega</dt><dd>−{{ percent(form.multidelivery_discount) }} %</dd>
                 <dt>Descompte recollida</dt><dd>−{{ percent(form.contact_pickup_discount) }} %</dd>
@@ -442,6 +452,18 @@
               <dt>Preu amb descompte</dt><dd class="is-total">{{ money(discountedPrice) }}</dd>
               <template v-if="form.emitted_invoice_datetime"><dt>Facturada</dt><dd>{{ formatDateTime(form.emitted_invoice_datetime) }}</dd></template>
             </dl>
+            <!-- only the office takes it off or puts it (issues/315) -->
+            <b-checkbox
+              v-if="isOffice && !form.is_collection_order"
+              :model-value="!!form.late_order"
+              class="late-switch"
+              data-test="late-order-switch"
+              :disabled="!!form.emitted_invoice_datetime"
+              @update:model-value="setLateOrder"
+            >
+              <b>Recàrrec per incidència</b>
+              <small>Comanda informada fora de l'hora límit: es pinta en vermell, l'albarà diu «COMANDA EXPRESS» i el preu porta un recàrrec del {{ percent(lateSurchargeSetting) }} %. Desmarca-la per anul·lar-ho.</small>
+            </b-checkbox>
           </section>
 
           <section v-if="form.id" class="a-box">
@@ -563,6 +585,7 @@ import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
 import { depositNotice } from "@/domain/depositNotice";
 import { slotOf } from "@/domain/cityRoutes.js";
+import { isAfternoonSlot, lateRules, lateSurchargeOf, lateWarnings } from "@/domain/lateOrders.js";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder, canTransfer as canTransferOrder } from "@/domain/orderStatus";
 
 export default {
@@ -615,6 +638,10 @@ export default {
       citySearch: "",
       apiUrl: import.meta.env.VUE_APP_API_URL,
       nextDayLimitHour: 14,
+      // Configuració general › Logística: limits, surcharge and texts of the late orders (issues/315)
+      ordersOptions: {},
+      // the dates as loaded: a date that doesn't move is not judged late again
+      storedDates: null,
       dateWarningMessage: "",
       collectionPickupDateWarningMessage: "",
       isModalActive: false,
@@ -678,6 +705,17 @@ export default {
       return this.permissions.includes("orders_admin") || this.permissions.includes("orders_delivery");
     },
     // the logistics office: the order itself and its price (issues/163)
+    // the surcharge this order pays, and the tenant's (issues/315)
+    lateSurcharge() {
+      return lateSurchargeOf(this.form);
+    },
+    lateSurchargeSetting() {
+      return lateRules(this.ordersOptions).lateSurcharge;
+    },
+    // the office and the entity's staff aren't held to the hour limits (as the API)
+    dateRulesExempt() {
+      return ["orders_admin", "projects", "admin"].some(p => this.permissions.includes(p));
+    },
     isOffice() {
       return isLogisticsOffice(this.permissions);
     },
@@ -1007,6 +1045,9 @@ export default {
       const orgConfig = (
         await service({ requiresAuth: true, cached: true }).get("me")
       ).data;
+      if (orgConfig && orgConfig.orders_options) {
+        this.ordersOptions = orgConfig.orders_options;
+      }
       if (
         orgConfig &&
         orgConfig.orders_options &&
@@ -1094,6 +1135,10 @@ export default {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
               this.form = r.data;
+              this.storedDates = {
+                estimated_delivery_date: r.data.estimated_delivery_date || null,
+                collection_pickup_date: r.data.collection_pickup_date || null
+              };
               this.historyKey++;
               this.firstStatus = this.form.status;
 
@@ -1626,6 +1671,11 @@ export default {
           });
           this.isLoading = false;
           this.scrollToField(orderProblemField(problem, this.form, this.isPickupPoint));
+          return;
+        }
+
+        if (!(await this.confirmLate())) {
+          this.isLoading = false;
           return;
         }
 
@@ -2541,6 +2591,37 @@ export default {
     // kilos with a decimal comma (issues/281)
     formatNumber,
     // a discount percentage with a decimal comma (issues/251)
+    // «Recàrrec per incidència» (issues/315): the server keeps the surcharge it
+    // had, or puts the tenant's
+    setLateOrder(checked) {
+      this.form.late_order = !!checked;
+      if (!checked) this.form.late_surcharge = 0;
+      else if (!Number(this.form.late_surcharge)) this.form.late_surcharge = this.lateSurchargeSetting;
+    },
+    // Before saving a late order or pickup the member reads why it matters and
+    // chooses to save it anyway or go back and pick another day (issues/315).
+    confirmLate() {
+      if (this.dateRulesExempt || this.form.is_collection_order) return Promise.resolve(true);
+      const route = (this.collectionPickupRoutes || []).find(r => r.id === this.form.collection_pickup_route);
+      const afternoon = isAfternoonSlot(route && (route.pickup_time_from || route.time_from));
+      const warnings = lateWarnings(this.form, this.storedDates, this.ordersOptions, { afternoon });
+      if (!warnings.length) return Promise.resolve(true);
+      const escape = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const message = warnings.map(w => `<p>${escape(w.text).replace(/\n/g, "<br>")}</p>`).join("<br>");
+      return new Promise(resolve => {
+        this.$buefy.dialog.confirm({
+          title: warnings.some(w => w.key === "order") ? "Comanda fora de temps" : "Recollida fora de temps",
+          message,
+          type: "is-danger",
+          hasIcon: true,
+          icon: "alert",
+          confirmText: "Desa la comanda",
+          cancelText: "Torna",
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false)
+        });
+      });
+    },
     percent(value) {
       return formatNumber(Number(value) || 0, 2);
     },
@@ -2822,6 +2903,22 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
+/* late orders and pickups (issues/315) */
+.late-switch {
+  margin-top: .75rem;
+  align-items: flex-start;
+}
+.late-switch small {
+  display: block;
+  color: var(--a-muted);
+  font-size: .75rem;
+}
+tr.is-late td {
+  background: #fdecea;
+}
+.late-mark {
+  margin-left: .375rem;
+}
 .order-form {
   min-height: 100vh;
   display: flex;

@@ -88,9 +88,10 @@ const isRouteClosed = (route, day, closures = []) => {
 };
 
 // The delivery date proposed for a new order: the first open route day after
-// today; past the next-day cutoff (admins are exempt) tomorrow is skipped and
-// the next route day after it is taken, in this same week when the route runs
-// later in it (issues/150).
+// today. Past the next-day cutoff tomorrow was skipped for the next route day
+// (issues/150), which put late orders among next week's; it is kept now and
+// the order is late (`late`, issues/315): the member is warned and pays the
+// surcharge, or picks a later day. Admins are exempt.
 const assignRouteDate = (route, options = {}) => {
   const { nextDayLimitHour = 14, isAdmin = false, closures = [] } = options;
   const routeDaysOfWeek = [];
@@ -116,16 +117,17 @@ const assignRouteDate = (route, options = {}) => {
   const today = moment().startOf("day");
   let nextDay = firstOpenDayAfter(today);
   let warning = "";
+  let late = false;
 
   if (
     nextDay.isSame(today.clone().add(1, "day"), "day") &&
     !isAdmin &&
     moment().hour() >= nextDayLimitHour
   ) {
-    nextDay = firstOpenDayAfter(nextDay);
+    late = true;
     warning =
-      `Ruta tancada per demà: les comandes s'han d'informar abans de les ${nextDayLimitHour} h del dia abans. ` +
-      `Se t'assigna el proper dia de la ruta, ${nextDay.format("dddd D/M")}. Recorda portar el paquet.`;
+      `Vas tard per demà: les comandes s'han d'informar abans de les ${nextDayLimitHour} h del dia abans. ` +
+      `Si la deixes per demà serà una comanda express, amb recàrrec. Si no és urgent, tria un altre dia de la ruta.`;
   } else if (
     routeDaysOfWeek.includes(today.day()) &&
     nextDay.diff(today, "days") >= 7
@@ -138,7 +140,7 @@ const assignRouteDate = (route, options = {}) => {
   // the time of day as before (the form saves nextDay.toDate())
   const now = moment();
   nextDay.set({ hour: now.hour(), minute: now.minute(), second: now.second(), millisecond: now.millisecond() });
-  return { nextDay, warning };
+  return { nextDay, warning, late };
 };
 
 const checkIfDateIsValidInroute = (route, date, routeFestives) => {

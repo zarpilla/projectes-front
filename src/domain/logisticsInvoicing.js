@@ -38,11 +38,15 @@ const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
 
 // The price of an order as its invoice line computes it, the one formula of
 // the order form, Facturar and the reports (issues/145, 057):
-//   (price − volume discount €) × (1 − (multidelivery % + pickup %) / 100)
-// rounded to cents. The backend's copy is projectes-v5
+//   (price − volume discount €) × (1 + late surcharge % / 100)
+//     × (1 − (multidelivery % + pickup %) / 100)
+// rounded to cents; the surcharge of a late order (issues/315) is part of the
+// base, rounded to cents too. The backend's copy is projectes-v5
 // src/api/order/services/final-price.js (finalPrice, infoAll, invoice lines).
 export const invoicedPrice = o => {
-  const base = (Number(o.price) || 0) - (Number(o.volume_discount) || 0);
+  const net = (Number(o.price) || 0) - (Number(o.volume_discount) || 0);
+  const surcharge = o.late_order ? Number(o.late_surcharge) || 0 : 0;
+  const base = surcharge ? round2(net * (1 + surcharge / 100)) : net;
   const discount = (Number(o.multidelivery_discount) || 0) + (Number(o.contact_pickup_discount) || 0);
   let amount = base * 1;
   if (discount) amount = amount * (1 - discount / 100.0);

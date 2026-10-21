@@ -233,6 +233,19 @@
               <b-field label="Hora límit per a l'endemà" message="Les comandes fetes després d'aquesta hora ja no es poden entregar l'endemà.">
                 <b-input v-model.number="form.orders_options.next_day_limit_hour" type="number" step="1" min="0" max="23" />
               </b-field>
+              <!-- late orders and pickups (issues/315) -->
+              <b-field label="Hora límit de les recollides de tarda" message="Una recollida de tarda (la franja de la ruta comença a les 13 h o més tard) informada el mateix dia a partir d'aquesta hora va tard. Les de matí van tard a partir de l'hora límit del dia abans.">
+                <b-input v-model.number="form.orders_options.pickup_same_day_limit_hour" type="number" step="1" min="0" max="23" placeholder="10" />
+              </b-field>
+              <b-field label="Recàrrec de les comandes fora de temps (%)" message="Una comanda per a l'endemà informada després de l'hora límit es marca en vermell, l'albarà diu «COMANDA EXPRESS» i porta aquest recàrrec. Coordinació el pot treure a la comanda («Recàrrec per incidència»).">
+                <b-input v-model.number="form.orders_options.late_surcharge" type="number" step="0.01" min="0" max="1000" placeholder="25" />
+              </b-field>
+              <b-field label="Missatge de les comandes fora de temps" class="is-full" message="Surt a la sòcia abans de desar una comanda fora de temps. {hora} l'hora límit per a l'endemà, {recarrec} el recàrrec. Buit: el text de sempre (el de l'exemple).">
+                <b-input v-model="form.orders_options.late_order_message" type="textarea" rows="4" :placeholder="defaultLateOrderMessage" />
+              </b-field>
+              <b-field label="Missatge de les recollides fora de temps" class="is-full" message="Surt a la sòcia abans de desar una comanda amb una recollida fora de temps (sense recàrrec). {hora} l'hora límit per a l'endemà, {hora_tarda} la de les recollides de tarda. Buit: el text de sempre.">
+                <b-input v-model="form.orders_options.late_pickup_message" type="textarea" rows="4" :placeholder="defaultLatePickupMessage" />
+              </b-field>
               <!-- issues/312 -->
               <b-field label="Concepte de les factures de comandes" message="Surt al PDF de les factures que crea «Facturar». Amb el mes de les comandes: {Mes} Octubre, {mes} octubre, {MES} OCTUBRE, {mm} 10, {any} 2026. «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026». Buit: sense concepte.">
                 <b-input v-model="form.orders_options.invoice_concept" placeholder="Serveis logístics_{Mes}_{any}" maxlength="200" />
@@ -306,6 +319,7 @@ import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
 import CertificateCard from '@/components/CertificateCard.vue';
 import ReadCacheCard from '@/components/ReadCacheCard.vue';
+import { DEFAULT_LATE_ORDER_MESSAGE, DEFAULT_LATE_PICKUP_MESSAGE } from '@/domain/lateOrders';
 
 // the settings components of `me` edited here (issues/139)
 const COMPONENTS = ['options', 'quotes', 'orders_options'];
@@ -320,6 +334,8 @@ export default {
   data() {
     return {
       logo: null,
+      defaultLateOrderMessage: DEFAULT_LATE_ORDER_MESSAGE,
+      defaultLatePickupMessage: DEFAULT_LATE_PICKUP_MESSAGE,
       logoBroken: false,
       logoSaving: false,
       logoDragOver: false,
