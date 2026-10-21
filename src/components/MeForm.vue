@@ -279,6 +279,12 @@
             <!-- Google Calendar → hours (Hores dedicades › importar), issues/159 -->
             <certificate-card kind="google" title="Calendari de Google: clau del compte de servei" style="margin-top: .75rem" />
           </section>
+
+          <!-- the server's read cache: what it keeps, and emptying it (issues/307) -->
+          <section id="cfg-memoria" class="form-box">
+            <h2>Memòria cau</h2>
+            <read-cache-card />
+          </section>
         </form>
       </div>
     </section>
@@ -295,6 +301,7 @@ import service from '@/service/index';
 import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
 import CertificateCard from '@/components/CertificateCard.vue';
+import ReadCacheCard from '@/components/ReadCacheCard.vue';
 
 // the settings components of `me` edited here (issues/139)
 const COMPONENTS = ['options', 'quotes', 'orders_options'];
@@ -303,7 +310,8 @@ export default {
   name: 'MeForm',
   components: {
     CardComponent,
-    CertificateCard
+    CertificateCard,
+    ReadCacheCard
   },
   data() {
     return {
@@ -326,7 +334,8 @@ export default {
         { id: "cfg-persones", label: "Persones i dietes" },
         { id: "cfg-logistica", label: "Logística", logistics: true },
         { id: "cfg-opcions", label: "Opcions" },
-        { id: "cfg-integracions", label: "Integracions" }
+        { id: "cfg-integracions", label: "Integracions" },
+        { id: "cfg-memoria", label: "Memòria cau" }
       ],
       ssFields: [
         { key: "quota", label: "Quota fixa (€)" },
