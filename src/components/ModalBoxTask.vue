@@ -263,7 +263,7 @@
               <b-button
                 v-if="isSaved"
                 size="is-small"
-                icon-left="clock-plus-outline"
+                icon-left="clock-outline"
                 class="tm-log"
                 @click="$emit('log-hours', currentForm())"
               >Imputa hores</b-button>
