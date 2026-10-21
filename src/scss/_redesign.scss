@@ -747,14 +747,15 @@ td.doc-total {
 
 /* ---------- links in tables ----------
    one look for every text link in a table (project, document, contact…):
-   bold and green, darker and underlined on hover */
-.table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item),
-.table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item) {
+   bold and green, darker and underlined on hover. Not the days of a
+   datepicker opened in a table: the selected day turned green on green */
+.table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):not(.datepicker-cell),
+.table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):not(.datepicker-cell) {
   font-weight: 700;
   color: var(--a-accent);
 }
-.table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):hover,
-.table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):hover {
+.table td a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):not(.datepicker-cell):hover,
+.table th a:not(.button):not(.tag):not(.row-action):not(.dropdown-item):not(.datepicker-cell):hover {
   color: var(--a-accent-hover);
   text-decoration: underline;
 }
