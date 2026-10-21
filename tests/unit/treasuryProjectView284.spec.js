@@ -14,6 +14,9 @@ const api = { get: vi.fn(async () => ({ data: [] })), put: vi.fn(), post: vi.fn(
 vi.mock('@/service/index', () => ({ default: () => api }))
 vi.mock('@/service/treasury', () => ({ default: vi.fn(async () => []) }))
 import TresoreriaTable from '@/components/TresoreriaTable.vue'
+// these tests draw given data: the page's own first load (asked at mount since
+// issues/307, tresoreriaInitialLoad309.spec.js) stays out of them
+vi.spyOn(TresoreriaTable.methods, 'getInitialData').mockResolvedValue(undefined)
 
 const P = { id: 7, name: 'Projecte' }
 const rows = () => [

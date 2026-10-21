@@ -11,7 +11,10 @@ import { waitForJQuery } from '@/helpers/addScript'
 
 const api = { get: vi.fn(async () => ({ data: [] })), put: vi.fn(), post: vi.fn() }
 vi.mock('@/service/index', () => ({ default: () => api }))
-vi.mock('@/service/treasury', () => ({ default: vi.fn(async () => []) }))
+// the shape the service answers: Tresoreria asks it at mount (issues/307)
+vi.mock('@/service/treasury', () => ({
+  default: vi.fn(async () => ({ vat: {}, vat_expected: {}, treasury: [], projects: [] }))
+}))
 
 const screens = {
   StatsProjectes: () => import('@/views/StatsProjectes.vue'),
