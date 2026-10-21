@@ -736,48 +736,19 @@
 
               <hr />
               <h3 v-if="newSummary" class="form-section-title">Documents</h3>
-              <b-field horizontal label="Documents">
+              <!-- the section heading already says "Documents" -->
+              <b-field horizontal :label="newSummary ? null : 'Documents'">
                 <div class="help">
                   Per exemple, afegir pressupost total del projecte (sense IVA)
                   o afegir document de concessió o contracte
                 </div>
               </b-field>
-              <b-field label=" ">
-                <div
-                  class="file-documents zcolumns is-multiline"
-                  v-if="form.documents && form.documents.length"
-                >
-                  <div
-                    v-for="(doc, i) in form.documents"
-                    :key="i"
-                    class="zcolumn"
-                    :class="
-                      form.documents.length > 6
-                        ? 'is-2'
-                        : form.documents.length > 3
-                        ? 'is-3'
-                        : 'is-4'
-                    "
-                  >
-                    <div class="column-doc">
-                      <div @click="removeImage(doc)" class="remove-button">
-                        <b-icon icon="close" size="is-small" />
-                      </div>
-                      <img
-                        v-if="doc.mime.startsWith('image')"
-                        :src="apiUrl + doc.url"
-                        class="file-document mb-3"
-                      />
-                      <div v-else class="mb-3">
-                        <a :href="apiUrl + doc.url" target="_blank">
-                          <b-icon icon="open-in-new"></b-icon>
-                          {{ doc.name }}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </b-field>
+              <attachments-table
+                v-if="form.documents && form.documents.length"
+                :documents="form.documents"
+                :api-url="apiUrl"
+                @remove="removeImage"
+              />
 
               <file-upload
                 :multiple="true"
@@ -785,6 +756,7 @@
                 :ref-id="form.id"
                 :field="'documents'"
                 :accept="'*/*'"
+                compact
                 @uploaded="uploaded"
                 v-if="form.id"
               >
@@ -2576,6 +2548,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import FinancialDiffTooltip from "@/components/FinancialDiffTooltip.vue";
 import Tasks from "@/components/Tasks.vue";
 import FileUpload from "@/components/FileUpload.vue";
+import AttachmentsTable from "@/components/AttachmentsTable.vue";
 import ProjectGrantableYears from "@/components/ProjectGrantableYears.vue";
 import getConfig from "@/config";
 
@@ -2603,7 +2576,8 @@ export default {
     ProjectGrantableContacts,
     ProjectGrantableYears,
     Tasks,
-    FileUpload
+    FileUpload,
+    AttachmentsTable
   },
   props: {
     id: {
@@ -5401,14 +5375,6 @@ body:has(.project-form .savebar) .notices.is-bottom {
   }
 }
 /* Dades: the form layout is the shared .a-form (_redesign.scss); project bits here */
-.project-form .a-form .file-documents {
-  margin-left: 0;
-}
-/* the section heading already says "Documents" */
-.project-form .a-form .field:has(.file-documents) > .field-label,
-.project-form .a-form .field:has(> .field-body .help + .file-documents) > .field-label {
-  display: none;
-}
 .project-form .optional-toggle {
   display: flex;
   flex-wrap: wrap;
@@ -5567,10 +5533,6 @@ html .project-form .subphase-detail-input.readonly {
   list-style: disc;
   margin: 0.5rem 0 0 1.5rem;
 }
-.file-documents {
-  margin-left: 17%;
-}
-
 /* Step indicator styles */
 .steps {
   display: flex;

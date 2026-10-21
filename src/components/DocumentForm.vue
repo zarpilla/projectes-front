@@ -794,59 +794,19 @@
             />
             <card-component v-if="type !== 'payrolls'" class="tile is-child" title="Adjunts">
               <p v-if="!form.id" class="has-text-muted side-hint">Els adjunts es poden afegir un cop desat el document.</p>
-              <div class="a-form side-fields no-labels">
-<b-field
-              horizontal
-              label="Adjunts"
-              style="width: 100%"
-              v-if="!editingDocuments"
-            >
-              <div
-                class="file-documents columns is-multiline"
-                v-if="form.documents && form.documents.length"
-              >
-                <!-- <pre>{{ form.documents }}</pre>   -->
-                <div
-                  v-for="(doc, i) in form.documents"
-                  :key="i"
-                  class="column"
-                  :class="
-                    form.documents.length > 6
-                      ? 'is-2'
-                      : form.documents.length > 3
-                      ? 'is-3'
-                      : 'is-4'
-                  "
-                >
-                  <div class="column-doc">
-                    <div
-                      @click="removeImage(doc)"
-                      class="remove-button clickable"
-                    >
-                      <b-icon icon="close" size="is-medium" />
-                    </div>
-                    <img
-                      v-if="doc.mime.startsWith('image')"
-                      :src="apiUrl + doc.url"
-                      class="file-document mb-3"
-                    />
-                    <div v-else class="mb-3">
-                      <a :href="apiUrl + doc.url" target="_blank">
-                        <b-icon icon="open-in-new"></b-icon>
-                        {{ doc.name }}
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </b-field>
-              </div>
+            <attachments-table
+              v-if="!editingDocuments && form.documents && form.documents.length"
+              :documents="form.documents"
+              :api-url="apiUrl"
+              @remove="removeImage"
+            />
             <file-upload
               :multiple="true"
               :entity="entity"
               :ref-id="form.id"
               :field="'documents'"
               :accept="'*/*'"
+              compact
               @uploaded="uploaded"
               v-if="form.id"
             >
@@ -1089,6 +1049,7 @@ import DocumentLines from "@/components/DocumentLines.vue";
 import DocumentLinesReadOnly from "@/components/DocumentLinesReadOnly.vue";
 import DocumentTotals from "@/components/DocumentTotals.vue";
 import FileUpload from "@/components/FileUpload.vue";
+import AttachmentsTable from "@/components/AttachmentsTable.vue";
 import InvoiceSubmissionCard from "@/components/InvoiceSubmissionCard.vue";
 import DocumentHistory from "@/components/DocumentHistory.vue";
 
@@ -1112,6 +1073,7 @@ export default {
     ModalBoxDiet,
     ProjectPhases,
     FileUpload,
+    AttachmentsTable,
     InvoiceSubmissionCard,
     DocumentHistory
   },
@@ -3380,9 +3342,6 @@ export default {
 }
 .side-fields > :deep(.field) {
   grid-column: 1 / -1 !important;
-}
-.side-fields :deep(.file-documents) {
-  margin: 0;
 }
 @media screen and (max-width: 1215px) {
   .doc-layout {

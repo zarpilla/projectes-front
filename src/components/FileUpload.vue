@@ -9,6 +9,7 @@
       <div
         id="dropzone"
         class="dropbox"
+        :class="{ 'is-compact': compact }"
         v-cloak
         @drop.prevent="addFile($event)"
         @dragover.prevent
@@ -22,7 +23,11 @@
           :accept="accept"
           class="input-file"
         />
-        <p v-if="isInitial || isSuccess" v-html="message">
+        <p v-if="(isInitial || isSuccess) && compact">
+          <b-icon icon="cloud-upload-outline" size="is-small" />
+          <span>Arrossega arxius aquí o fes clic</span>
+        </p>
+        <p v-else-if="isInitial || isSuccess" v-html="message">
         </p>
         <p v-if="isSaving">Pujant {{ fileCount }} arxius...</p>
       </div>
@@ -91,6 +96,8 @@ export default {
     multiple: Boolean,
     accept: String,
     preUpload: Function,
+    // one line, for an attachments list (projects, invoices)
+    compact: Boolean,
     message: {
       type: String,
       default: "Arrossega arxius aquí<br /> o fes clic"
@@ -245,5 +252,21 @@ export default {
   font-size: 1em;
   text-align: center;
   padding: 30px 0;
+}
+
+.dropbox.is-compact {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  outline-offset: -6px;
+}
+
+.dropbox.is-compact p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375rem;
+  padding: 14px 12px;
+  font-size: .875rem;
 }
 </style>

@@ -94,20 +94,13 @@
                   Afegeix fitxers
                 </label>
               </div>
-              <div v-if="documentCount" class="tm-docs">
-                <div v-for="doc in form.documents || []" :key="doc.id" class="tm-doc">
-                  <a :href="apiUrl + doc.url" target="_blank" rel="noopener">
-                    <img v-if="doc.mime && doc.mime.startsWith('image')" :src="apiUrl + doc.url" alt="">
-                    <b-icon v-else icon="file-outline" />
-                    <span>{{ doc.name }}</span>
-                  </a>
-                  <button type="button" class="tm-icon" :aria-label="'Treu ' + doc.name" @click="removeImage(doc)"><b-icon icon="close" custom-size="default" /></button>
-                </div>
-                <div v-for="(file, k) in pendingFiles" :key="'p' + k" class="tm-doc is-pending">
-                  <span><b-icon icon="upload" custom-size="default" />{{ file.name }}</span>
-                  <button type="button" class="tm-icon" :aria-label="'Treu ' + file.name" @click="pendingFiles.splice(k, 1)"><b-icon icon="close" custom-size="default" /></button>
-                </div>
-              </div>
+              <attachments-table
+                :documents="form.documents || []"
+                :pending="pendingFiles"
+                :api-url="apiUrl"
+                @remove="removeImage"
+                @remove-pending="k => pendingFiles.splice(k, 1)"
+              />
               <p v-if="pendingFiles.length" class="tm-hint">S'adjuntaran en desar la tasca.</p>
             </section>
 
@@ -301,6 +294,7 @@
 import service from "@/service/index";
 import ModalBox from "@/components/ModalBox.vue";
 import DateField from "@/components/DateField.vue";
+import AttachmentsTable from "@/components/AttachmentsTable.vue";
 import moment from "moment";
 import getConfig from "@/config";
 import { currentUserId } from "@/domain/currentUser";
@@ -331,7 +325,7 @@ const emptyForm = () => ({
 export default {
   name: "ModalBoxTask",
   emits: ["cancel", "delete", "submit", "log-hours"],
-  components: { ModalBox, DateField },
+  components: { ModalBox, DateField, AttachmentsTable },
   props: {
     isActive: { type: Boolean, default: false },
     taskObject: { type: Object, default: null },
@@ -906,45 +900,6 @@ export default {
   font: inherit;
   color: var(--a-fg);
   outline: none;
-}
-.tm-docs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  gap: .5rem;
-}
-.tm-doc {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  border: 1px solid var(--a-line);
-  border-radius: 8px;
-  padding: .375rem;
-  font-size: .8125rem;
-  min-width: 0;
-}
-.tm-doc a,
-.tm-doc > span {
-  display: flex;
-  flex-direction: column;
-  gap: .25rem;
-  min-width: 0;
-  flex: 1;
-  color: var(--a-fg-2);
-}
-.tm-doc img {
-  width: 100%;
-  height: 5rem;
-  object-fit: cover;
-  border-radius: 6px;
-}
-.tm-doc a span,
-.tm-doc > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tm-doc.is-pending {
-  border-style: dashed;
 }
 .tm-hint {
   margin-top: .375rem;
