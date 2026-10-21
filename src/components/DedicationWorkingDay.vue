@@ -80,7 +80,10 @@
       <b-icon icon="help-circle-outline" custom-size="default" />
       <b>Informació</b><br />
       Amb aquest component pots crear les bestretes per tot l'any de totes les
-      persones que tinguin definida la jornada
+      persones visibles que tinguin definida la jornada. Es crea la bestreta
+      d'un mes quan l'últim dia del mes té una jornada de més de 0 h. Passa el
+      ratolí per sobre de <b-icon icon="alert-circle" custom-size="default" type="is-warning" />
+      per veure quins mesos queden sense bestreta i per què.
     </div>
     <card-component v-if="summary && summary.length">
       <div class="columns card-body">
@@ -107,12 +110,22 @@
             {{ info.existing }}
           </div>
           <div class="column">
-            {{ info.created + info.existing }}
-            <b-icon
-              icon="alert-circle"
-              custom-size="default"
-              v-if="info.created + info.existing !== 12"
-            />
+            {{ payrollTotal(info) }}
+            <b-tooltip
+              v-if="missingPayrollsText(info)"
+              :label="missingPayrollsText(info)"
+              multilined
+              size="is-large"
+              position="is-left"
+              class="payroll-missing"
+            >
+              <b-icon
+                icon="alert-circle"
+                custom-size="default"
+                type="is-warning"
+                :aria-label="missingPayrollsText(info)"
+              />
+            </b-tooltip>
           </div>
         </div>
       </div>
@@ -128,6 +141,7 @@ import { useMainStore } from "@/stores/main.js";
 import { Gantt } from "dhtmlx-gantt";
 import moment from "moment";
 import service from "@/service/index";
+import { missingPayrollsText, payrollTotal } from "@/domain/payrollSummary.js";
 import _ from "lodash";
 import CardComponent from "@/components/CardComponent.vue";
 import { formatNumber } from "@/helpers/format-number.js";
@@ -205,6 +219,8 @@ export default {
     this.showGantt = false;
   },
   methods: {
+    missingPayrollsText,
+    payrollTotal,
     initializeAll() {
       this.showGantt = true;
 
