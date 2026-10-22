@@ -251,21 +251,27 @@
               horizontal
               label=""
             >
-              <b-button
-                class="view-button"
-                icon-left="file-upload"
-                :loading="isParsingInvoice"
-                @click="onInvoiceUploadClick"
-              >
-                Omple dades a partir de PDF
-              </b-button>
-              <input
-                ref="invoicePdfInput"
-                type="file"
-                accept="application/pdf"
-                class="is-hidden"
-                @change="onInvoicePdfSelected"
-              />
+              <div>
+                <b-button
+                  class="view-button"
+                  icon-left="file-upload"
+                  :loading="isParsingInvoice"
+                  @click="onInvoiceUploadClick"
+                >
+                  Omple dades a partir de PDF
+                </b-button>
+                <!-- the invoice-parser reads it with an LLM at Z.ai -->
+                <p class="help pdf-parser-notice">
+                  El PDF s'envia a un servei extern (z.ai) per llegir-ne les dades.
+                </p>
+                <input
+                  ref="invoicePdfInput"
+                  type="file"
+                  accept="application/pdf"
+                  class="is-hidden"
+                  @change="onInvoicePdfSelected"
+                />
+              </div>
             </b-field>
 
             <b-field
