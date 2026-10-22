@@ -19,6 +19,12 @@
               <b-input v-model="routeFilter" icon="magnify" placeholder="Filtra per ruta o població" />
             </b-field>
             <b-button size="is-small" @click="setAllOpen(!allOpen)">{{ allOpen ? "Plega-les totes" : "Desplega-les totes" }}</b-button>
+            <!-- the slots as a spreadsheet, to fill them in LibreOffice (issues/320) -->
+            <template v-if="isOffice">
+              <b-button size="is-small" icon-left="download" :disabled="!routes.length" @click="exportSlots">Exporta franges (.ods)</b-button>
+              <b-button size="is-small" icon-left="upload" :loading="importing" @click="$refs.slotsFile.click()">Importa franges</b-button>
+              <input ref="slotsFile" type="file" accept=".ods,application/vnd.oasis.opendocument.spreadsheet" class="is-hidden" @change="onSlotsFile" />
+            </template>
           </div>
 
           <div v-for="group in visibleGroups" :key="group.key" class="cr-day">
@@ -249,6 +255,49 @@
         </aside>
       </div>
     </section>
+
+    <!-- what importing the .ods will change, before saving it (issues/320) -->
+    <b-modal v-model="importOpen" has-modal-card aria-role="dialog" aria-modal :can-cancel="!applying">
+      <div v-if="importPlan" class="modal-card slots-import">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Importa franges</p>
+        </header>
+        <section class="modal-card-body">
+          <p class="slots-import-summary">
+            <b>{{ importPlan.changes.length }} {{ importPlan.changes.length === 1 ? "franja canvia" : "franges canvien" }}</b>
+            · {{ importPlan.unchanged }} sense canvis
+            <template v-if="importPlan.errors.length"> · <span class="has-text-danger">{{ importPlan.errors.length }} {{ importPlan.errors.length === 1 ? "fila amb error" : "files amb error" }}</span></template>
+          </p>
+          <template v-if="importPlan.errors.length">
+            <h3 class="slots-import-title">Files que no es desaran</h3>
+            <ul class="slots-import-errors">
+              <li v-for="(e, i) in importPlan.errors" :key="`e${i}`"><span v-if="e.row">Fila {{ e.row }}: </span>{{ e.message }}</li>
+            </ul>
+          </template>
+          <template v-if="importPlan.changes.length">
+            <h3 class="slots-import-title">Canvis</h3>
+            <table class="table is-narrow is-fullwidth slots-import-table">
+              <thead><tr><th>Fila</th><th>Ruta › població</th><th>Ara</th><th>Passa a</th></tr></thead>
+              <tbody>
+                <tr v-for="c in importPlan.changes" :key="c.url">
+                  <td>{{ c.row }}</td>
+                  <td>{{ c.label }}</td>
+                  <td class="has-text-grey">{{ c.before }}</td>
+                  <td><b>{{ c.after }}</b></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <p v-else-if="!importPlan.errors.length">El fitxer té les mateixes franges que ara.</p>
+        </section>
+        <footer class="modal-card-foot">
+          <b-button :disabled="applying" @click="importOpen = false">Cancel·la</b-button>
+          <b-button type="is-primary" :loading="applying" :disabled="!importPlan.changes.length" @click="applySlots">
+            {{ applying ? `Desant ${applied} de ${importPlan.changes.length}` : `Desa ${importPlan.changes.length} ${importPlan.changes.length === 1 ? "canvi" : "canvis"}` }}
+          </b-button>
+        </footer>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -257,6 +306,9 @@ import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
 import { indexLinks, groupByWeekday, routeDays, searchTowns, normalizeName, formatSlot, slotOf, timeInput, timeValue, slotError } from "@/domain/cityRoutes.js";
+import { slotSheetRows, planSlotImport } from "@/domain/citySlotsSheet.js";
+import { buildOds, readOds, ODS_MIME } from "@/service/ods";
+import download from "downloadjs";
 
 const PREVIEW = 12;
 
@@ -282,7 +334,13 @@ export default {
       addText: {},
       slotEdit: {},
       // times typed and not saved yet: { "r<route id>" | "l<link id>": { from, to } }
-      drafts: {}
+      drafts: {},
+      // .ods import (issues/320)
+      importing: false,
+      importOpen: false,
+      importPlan: null,
+      applying: false,
+      applied: 0
     };
   },
   computed: {
@@ -438,6 +496,65 @@ export default {
         this.saving = false;
       }
     },
+    // --- .ods export / import of the slots (issues/320) ---
+    exportSlots() {
+      const rows = slotSheetRows(this.cities, this.routes, this.cityRoutes);
+      download(new Blob([buildOds(rows, "Franges")], { type: ODS_MIME }), "franges-poblacions-rutes.ods", ODS_MIME);
+    },
+    async onSlotsFile(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      this.importing = true;
+      try {
+        // the slots may have changed since the page was opened
+        await this.getData();
+        const rows = readOds(await file.arrayBuffer());
+        this.importPlan = planSlotImport(rows, { cities: this.cities, routes: this.routes, cityRoutes: this.cityRoutes });
+        this.importOpen = true;
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: e.message || "No s'ha pogut llegir el fitxer", type: "is-danger", queue: false });
+      } finally {
+        this.importing = false;
+      }
+    },
+    // saves the changed slots, a few at a time; the failures are named
+    async applySlots() {
+      const changes = this.importPlan.changes;
+      const failed = [];
+      this.applying = true;
+      this.applied = 0;
+      let next = 0;
+      const worker = async () => {
+        while (next < changes.length) {
+          const change = changes[next++];
+          try {
+            await service({ requiresAuth: true }).put(change.url, change.data);
+          } catch (e) {
+            failed.push(change);
+          }
+          this.applied++;
+        }
+      };
+      try {
+        await Promise.all([worker(), worker(), worker(), worker()]);
+        await this.getData();
+      } finally {
+        this.applying = false;
+      }
+      const saved = changes.length - failed.length;
+      if (failed.length) {
+        this.$buefy.snackbar.open({
+          message: `${saved} desades. No s'han pogut desar: ${failed.map(c => `fila ${c.row}`).join(", ")}`,
+          type: "is-danger",
+          indefinite: true,
+          queue: false
+        });
+      } else {
+        this.$buefy.snackbar.open({ message: `${saved} ${saved === 1 ? "franja desada" : "franges desades"}`, queue: false });
+      }
+      this.importOpen = false;
+    },
     isOpen(routeId) {
       return !!this.open[routeId];
     },
@@ -518,6 +635,25 @@ export default {
 </script>
 
 <style scoped>
+.slots-import {
+  width: min(48rem, calc(100vw - 2rem));
+}
+.slots-import-summary {
+  margin-bottom: .75rem;
+}
+.slots-import-title {
+  margin: .75rem 0 .35rem;
+  font-weight: 700;
+}
+.slots-import-errors {
+  margin-left: 1.1rem;
+  list-style: disc;
+  color: var(--a-danger, #b42318);
+}
+.slots-import-table td:first-child {
+  color: var(--a-muted);
+  width: 3.5rem;
+}
 .cr-layout {
   position: relative;
   display: grid;

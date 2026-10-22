@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.22",
   items: [
     {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["A ", { to: "/city-route", label: "Poblacions i rutes" }, ", l'oficina pot treballar les franges horàries amb un full de càlcul: «Exporta franges (.ods)» descarrega una fila per ruta (la franja de la ruta) i una per cada població (la franja pròpia; buida, fa servir la de la ruta), i «Importa franges» llegeix el fitxer editat, ensenya què canviarà i quines files tenen errors, i desa els canvis en confirmar. Les hores es poden escriure com «9», «9:30» o «9h30». La importació només canvia franges: no afegeix ni treu poblacions de les rutes."]
+    },
+    {
       type: "Millores",
       modules: ["Diners"],
       text: ["Mentre es genera el PDF d'una factura o pressupost, el botó «PDF» mostra que està treballant, i si no es pot generar surt un avís."]
