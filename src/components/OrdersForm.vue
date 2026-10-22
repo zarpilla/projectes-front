@@ -313,7 +313,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="row in form.collection_orders" :key="row.id" :class="{ 'is-late': row.late_pickup }" :title="row.late_pickup ? 'Recollida informada tard' : null">
-                    <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link><span v-if="row.late_pickup" class="tag is-danger is-light late-mark">tard</span></td>
+                    <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link><span v-if="row.late_pickup" class="signal is-alert late-mark" role="img" aria-label="Recollida informada tard" title="Recollida informada tard"><b-icon icon="clock-alert-outline" custom-size="mdi-14px" /></span></td>
                     <td>{{ contactName(row.contact) || row.contact_trade_name || row.contact_name || "—" }}</td>
                     <td class="has-text-right">{{ row.units || 0 }}</td>
                     <td class="has-text-right">{{ row.kilograms || 0 }}</td>
@@ -2913,11 +2913,20 @@ export default {
   color: var(--a-muted);
   font-size: .75rem;
 }
-tr.is-late td {
-  background: #fdecea;
+tr.is-late td:first-child {
+  box-shadow: inset 4px 0 0 #C23B2E;
 }
 .late-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
   margin-left: .375rem;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: #C23B2E;
+  color: #fff;
 }
 .order-form {
   min-height: 100vh;

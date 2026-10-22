@@ -198,8 +198,9 @@
                 <th class="col-check">
                   <b-checkbox :model-value="allChecked" :indeterminate="someChecked" aria-label="Selecciona-les totes" @update:model-value="toggleAll" />
                 </th>
-                <th v-for="col in visibleCols" :key="col.key" :class="{ 'has-text-right': col.num }">
-                  <button type="button" class="sort-head" :aria-label="`Ordena per ${col.label}`" @click="sortBy(col)">
+                <th v-for="col in visibleCols" :key="col.key" :class="{ 'has-text-right': col.num, 'col-signals': col.key === 'signals' }">
+                  <span v-if="!col.sort" class="sort-head is-static">{{ col.label }}</span>
+                  <button v-else type="button" class="sort-head" :aria-label="`Ordena per ${col.label}`" @click="sortBy(col)">
                     {{ col.label }}
                     <b-icon v-if="sortField === col.sort" :icon="sortOrder === 'ASC' ? 'arrow-up' : 'arrow-down'" size="is-small" />
                   </button>
@@ -212,7 +213,8 @@
                   <button v-if="hasColumnFilters" type="button" class="clear-filters" title="Treu els filtres de les columnes" aria-label="Treu els filtres de les columnes" @click="clearColumnFilters"><b-icon icon="filter-remove-outline" size="is-small" /></button>
                 </th>
                 <th v-for="col in visibleCols" :key="col.key">
-                  <select v-if="col.options" v-model="filters[col.key]" class="col-filter" :aria-label="`Filtra ${col.label}`" @change="refresh">
+                  <template v-if="col.noFilter"></template>
+                  <select v-else-if="col.options" v-model="filters[col.key]" class="col-filter" :aria-label="`Filtra ${col.label}`" @change="refresh">
                     <option value="">Tots</option>
                     <option v-for="o in col.options()" :key="o.value" :value="o.value">{{ o.label }}</option>
                   </select>
@@ -252,8 +254,7 @@
                   v-for="(order, i) in group.rows"
                   :key="order.id || 'new-' + i"
                   class="order-row"
-                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-future-week': isFutureWeek(order) && !isLate(order), 'is-late': isLate(order) }"
-                  :title="lateTitle(order) || (isFutureWeek(order) ? 'Entrega prevista una setmana vinent' : null)"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-alert': isLate(order) }"
                 >
                   <td class="col-check">
                     <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
@@ -300,15 +301,17 @@
                       <router-link v-if="order.id" :to="{ name: 'orders.view.detail', params: { id: order.id } }" class="order-num">{{ order.idx }}</router-link>
                       <b-button v-else size="is-small" type="is-primary" @click="createCSVOrder(order)">Crea</b-button>
                     </template>
+                    <!-- every mark of the order as one icon (issues/315, proposal C) -->
+                    <template v-else-if="col.key === 'signals'">
+                      <span class="signals">
+                        <span v-for="sg in signalsOf(order)" :key="sg.key" class="signal" :class="sg.kind" :title="sg.label" :aria-label="sg.label" role="img" :data-signal="sg.key">
+                          <b-icon :icon="sg.icon" custom-size="mdi-14px" />
+                        </span>
+                      </span>
+                    </template>
                     <template v-else-if="col.key === 'contact.trade_name'">
                       <b>{{ order.fullName || "—" }}</b>
                       <small>{{ order.contact_city || (order.contact && order.contact.city) || "" }}</small>
-                      <span class="order-tags">
-                        <span v-if="order.fragile" class="tag is-warning is-light">Fràgil</span>
-                        <span v-if="order.transfer" class="tag">Transferència</span>
-                        <span v-if="order.last_mile" class="tag is-link is-light">Última milla</span>
-                        <span v-if="order.is_collection_order" class="tag">Comanda de recollida</span>
-                      </span>
                     </template>
                     <template v-else-if="col.key === 'owner.fullname'">{{ order.owner ? order.owner.fullname || order.owner.username : "—" }}</template>
                     <template v-else-if="col.key === 'route.name'">{{ order.route ? order.route.name : "—" }}</template>
@@ -326,11 +329,10 @@
                     <template v-else-if="col.key === 'units'">{{ formatNum(order.units) }}</template>
                     <template v-else-if="col.key === 'kilograms'">{{ formatNum(order.kilograms) }}</template>
                     <template v-else-if="col.key === 'price'">
-                      <span class="price-line">
-                        <span v-for="d in discountsOf(order)" :key="d.key" class="discount-dot" :class="d.key" :title="d.title" :aria-label="d.title"></span>
-                        <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
-                      </span>
-                      <small v-if="discountLabel(order)">{{ discountLabel(order) }}</small>
+                      <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
+                      <small v-if="discountsOf(order).length" class="price-mods">
+                        <template v-for="(d, j) in discountsOf(order)" :key="d.key"><template v-if="j"> · </template><span :class="d.key === 'surcharge' ? 'is-up' : 'is-down'" :title="d.title">{{ d.text }}</span></template>
+                      </small>
                     </template>
                     <template v-else-if="col.key === 'status'"><span class="tag" :class="statusTag(order.status)">{{ statusLabel(order.status) }}</span></template>
                   </td>
@@ -368,13 +370,9 @@
         </div>
         <footer class="orders-foot">
           <span>{{ footNote }}</span>
+          <!-- what the icons of «Senyals» mean (issues/315) -->
           <span class="legend">
-            <span><i class="discount-dot multidelivery"></i>Multientrega</span>
-            <span><i class="discount-dot volume"></i>Volum</span>
-            <span><i class="discount-dot pickup"></i>Recollida</span>
-            <span><i class="legend-future"></i>Setmanes vinents</span>
-            <span><i class="discount-dot surcharge"></i>Recàrrec express</span>
-            <span><i class="legend-late"></i>Fora de temps</span>
+            <span v-for="sg in signalLegend" :key="sg.key"><span class="signal" :class="sg.kind"><b-icon :icon="sg.icon" custom-size="mdi-14px" /></span>{{ sg.legend }}</span>
           </span>
           <b-pagination
             v-if="total > perPageEffective"
@@ -966,6 +964,7 @@ export default {
       const statuses = [["pending", "Pendent"], ["processed", "Processada"], ["delivered", "Lliurada"], ["invoiced", "Facturada"], ["cancelled", "Anul·lada"]];
       return [
         { key: "idx", label: "Núm.", sort: "id" },
+        { key: "signals", label: "Senyals", noFilter: true },
         { key: "contact.trade_name", label: "Punt d'entrega", sort: "contact_trade_name", edit: "contact" },
         { key: "owner.fullname", label: "Sòcia", sort: "owner.fullname", staff: true },
         { key: "route.name", label: "Ruta", sort: "route.name", edit: "route" },
@@ -977,6 +976,18 @@ export default {
         { key: "kilograms", label: "Kg", sort: "kilograms", num: true, edit: "kilograms" },
         { key: "price", label: "Preu", sort: "price", num: true, edit: "price" },
         { key: "status", label: "Estat", sort: "status", options: () => statuses.map(([value, label]) => ({ value, label })) }
+      ];
+    },
+    signalLegend() {
+      return [
+        { key: "express", kind: "is-alert", icon: "flash", legend: "Express (fora de temps)" },
+        { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", legend: "Recollida tard" },
+        { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", legend: "Setmana vinent" },
+        { key: "cold", kind: "is-cold", icon: "snowflake", legend: "Refrigerada" },
+        { key: "collection", kind: "is-info", icon: "package-variant-closed", legend: "Recollida (-R)" },
+        { key: "transfer", kind: "is-info", icon: "swap-horizontal", legend: "Transferència" },
+        { key: "last-mile", kind: "is-info", icon: "truck-fast", legend: "Última milla" },
+        { key: "fragile", kind: "is-info", icon: "glass-wine", legend: "Fràgil" }
       ];
     },
     visibleCols() {
@@ -2764,30 +2775,36 @@ export default {
     isLate(order) {
       return !!(order && (order.late_order || order.late_pickup));
     },
-    lateTitle(order) {
-      if (!this.isLate(order)) return null;
-      const parts = [];
-      if (order.late_order) parts.push("Comanda express: informada fora de l'hora límit");
-      if (order.late_pickup) parts.push(order.is_collection_order ? "Inclou recollides informades tard" : "Recollida informada tard");
-      return parts.join(" · ");
-    },
-    // the old coloured circles of the price: which discounts apply, and the
-    // surcharge of a late order (issues/315)
-    discountsOf(order) {
-      if (order.finalPrice === undefined || order.finalPrice === null || order.finalPrice === order.price) return [];
+    // Every mark of an order as one icon of «Senyals», alerts first (issues/315,
+    // proposal C): the rows were grey (next week) or red (late), the price had
+    // coloured dots and the point had tags, four ways to say things.
+    signalsOf(order) {
+      if (!order) return [];
+      const cold = order.refrigerated || ((order.delivery_type && order.delivery_type.name) || "").toLowerCase().startsWith("refr");
+      const surcharge = lateSurchargeOf(order);
       return [
-        lateSurchargeOf(order) ? { key: "surcharge", title: `Recàrrec express (+${formatNumber(order.late_surcharge, 2)} %)` } : null,
-        Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${formatNumber(order.multidelivery_discount, 2)} %)` } : null,
-        Number(order.volume_discount) ? { key: "volume", title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
-        Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${formatNumber(order.contact_pickup_discount, 2)} %)` } : null
+        order.late_order ? { key: "express", kind: "is-alert", icon: "flash", label: `Comanda express: informada fora de l'hora límit${surcharge ? ` (recàrrec +${formatNumber(surcharge, 2)} %)` : ""}` } : null,
+        order.late_pickup ? { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", label: order.is_collection_order ? "Inclou recollides informades tard" : "Recollida informada tard" } : null,
+        this.isFutureWeek(order) ? { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", label: "Entrega prevista una setmana vinent" } : null,
+        cold ? { key: "cold", kind: "is-cold", icon: "snowflake", label: "Refrigerada" } : null,
+        order.is_collection_order ? { key: "collection", kind: "is-info", icon: "package-variant-closed", label: "Comanda de recollida" } : null,
+        order.transfer ? { key: "transfer", kind: "is-info", icon: "swap-horizontal", label: "Transferència" } : null,
+        order.last_mile ? { key: "last-mile", kind: "is-info", icon: "truck-fast", label: "Última milla" } : null,
+        order.fragile ? { key: "fragile", kind: "is-info", icon: "glass-wine", label: "Fràgil" } : null
       ].filter(Boolean);
     },
-    discountLabel(order) {
-      if (order.finalPrice === undefined || order.finalPrice === null || !order.price || order.finalPrice >= order.price) return "";
-      // short: the coloured dots say which discount it is
-      const pct = [order.multidelivery_discount, order.contact_pickup_discount].map(Number).filter(Boolean);
-      if (pct.length) return pct.map(p => `−${this.formatNum(p)} %`).join(" ");
-      return Number(order.volume_discount) ? "volum" : "amb descompte";
+    // the changes to the rate behind the price, in words under it: the late
+    // surcharge and the discounts (they were coloured dots, issues/315)
+    discountsOf(order) {
+      // from the fields, not from finalPrice ≠ price: +25 % and −20 % cancel out
+      if (order.finalPrice === undefined || order.finalPrice === null) return [];
+      const pct = v => `${formatNumber(v, 2)} %`;
+      return [
+        lateSurchargeOf(order) ? { key: "surcharge", text: `+${pct(order.late_surcharge)}`, title: `Recàrrec express (+${pct(order.late_surcharge)})` } : null,
+        Number(order.multidelivery_discount) ? { key: "multidelivery", text: `−${pct(order.multidelivery_discount)}`, title: `Descompte multientrega (${pct(order.multidelivery_discount)})` } : null,
+        Number(order.volume_discount) ? { key: "volume", text: `−${this.money(order.volume_discount)}`, title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
+        Number(order.contact_pickup_discount) ? { key: "pickup", text: `−${pct(order.contact_pickup_discount)}`, title: `Descompte recollida (${pct(order.contact_pickup_discount)})` } : null
+      ].filter(Boolean);
     },
     statusLabel: orderStatusLabel,
     statusTag: orderStatusTag,
@@ -3084,16 +3101,6 @@ select.col-filter {
   color: var(--a-pos);
   font-weight: 700;
 }
-.order-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .25rem;
-  margin-top: .25rem;
-}
-.order-tags .tag {
-  height: 1.375rem;
-  font-size: .6875rem;
-}
 .group-row td {
   background: var(--a-thead);
 }
@@ -3160,45 +3167,61 @@ select.col-filter {
   font-size: .875rem;
   color: var(--a-muted);
 }
-.price-line {
+/* «Senyals»: every mark of an order as one icon, alerts in red (issues/315) */
+.col-signals {
+  width: 5.25rem;
+}
+.sort-head.is-static {
+  cursor: default;
+}
+.signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1875rem;
+  width: 4.75rem;
+}
+.signal {
   display: inline-flex;
   align-items: center;
-  gap: .25rem;
-}
-.discount-dot {
-  display: inline-block;
-  width: .5625rem;
-  height: .5625rem;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
   border-radius: 50%;
+  flex: none;
 }
-.discount-dot.multidelivery {
-  background: var(--a-pos);
+.signal .icon {
+  width: auto;
+  height: auto;
 }
-.discount-dot.volume {
-  background: var(--a-muted);
+.signal.is-alert {
+  background: #C23B2E;
+  color: #fff;
 }
-.discount-dot.pickup {
-  background: #E8B23A;
+.signal.is-info {
+  background: #E4E9E6;
+  color: var(--a-fg);
 }
-.discount-dot.surcharge {
-  background: var(--a-neg, #c0392b);
+.signal.is-cold {
+  background: #E6F0FA;
+  color: #1F5F99;
 }
-/* late orders and pickups (issues/315): red, as the next weeks' are grey */
-.order-row.is-late td {
-  background: #fdecea;
+.signal.is-next {
+  border: 1px dashed var(--a-muted);
+  color: var(--a-muted);
 }
-.order-row.is-late td:first-child {
-  box-shadow: inset 3px 0 0 #c0392b;
+.order-row.is-alert td:first-child {
+  box-shadow: inset 4px 0 0 #C23B2E;
 }
-.order-row.is-future-week td {
-  background: var(--a-thead);
+.price-mods {
+  display: block;
+  white-space: nowrap;
 }
-.order-row.is-future-week td:not(.col-check) {
-  opacity: .55;
+.price-mods .is-up {
+  color: #A32D22;
+  font-weight: 600;
 }
-.order-row.is-future-week.is-checked td,
-.order-row.is-future-week.is-editing td {
-  opacity: 1;
+.price-mods .is-down {
+  color: var(--a-pos);
 }
 .legend {
   display: inline-flex;
@@ -3206,26 +3229,10 @@ select.col-filter {
   gap: .75rem;
   font-size: .75rem;
 }
-.legend span {
+.legend > span {
   display: inline-flex;
   align-items: center;
-  gap: .25rem;
-}
-.legend-future {
-  display: inline-block;
-  width: .875rem;
-  height: .625rem;
-  border: 1px solid var(--a-line);
-  border-radius: 2px;
-  background: var(--a-thead);
-}
-.legend-late {
-  display: inline-block;
-  width: .875rem;
-  height: .625rem;
-  border: 1px solid #c0392b;
-  border-radius: 2px;
-  background: #fdecea;
+  gap: .3125rem;
 }
 .orders-foot > :last-child {
   margin-left: auto;

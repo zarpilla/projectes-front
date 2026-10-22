@@ -121,21 +121,49 @@ describe('the order form', () => {
   })
 })
 
+// the user chose proposal C (2026-10-22): no coloured rows nor price dots, one
+// «Senyals» column of icons with their meaning on hover, and the price changes
+// in words under the price
 describe('the orders list', () => {
-  const { isLate, lateTitle, discountsOf } = OrdersTable.methods
+  const { isLate, signalsOf, discountsOf, isFutureWeek } = OrdersTable.methods
+  const vm = { money: v => `${String(v).replace('.', ',')} €`, isLate, isFutureWeek }
+  const keys = o => signalsOf.call(vm, o).map(s => s.key)
 
-  it('paints late orders and collection orders with a late pickup red', () => {
+  it('gives every mark of an order as an icon, alerts first', () => {
+    expect(keys({ late_order: true, late_surcharge: 25, refrigerated: true, transfer: true, fragile: true }))
+      .toEqual(['express', 'cold', 'transfer', 'fragile'])
+    expect(keys({ is_collection_order: true, late_pickup: true })).toEqual(['late-pickup', 'collection'])
+    expect(keys({ last_mile: true })).toEqual(['last-mile'])
+    expect(keys({})).toEqual([])
+  })
+
+  it('says what each icon means', () => {
+    const [express] = signalsOf.call(vm, { late_order: true, late_surcharge: 25 })
+    expect(express).toMatchObject({ kind: 'is-alert', label: "Comanda express: informada fora de l'hora límit (recàrrec +25 %)" })
+    expect(signalsOf.call(vm, { is_collection_order: true, late_pickup: true })[0].label).toBe('Inclou recollides informades tard')
+  })
+
+  it('marks next week with an icon, not a grey row', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-06T10:00:00'))
+    expect(keys({ estimated_delivery_date: '2026-10-13' })).toEqual(['next-week'])
+    expect(keys({ estimated_delivery_date: '2026-10-09' })).toEqual([])
+    vi.useRealTimers()
+  })
+
+  it('paints only the alerts (late order or pickup)', () => {
     expect(isLate({ late_order: true })).toBe(true)
     expect(isLate({ is_collection_order: true, late_pickup: true })).toBe(true)
     expect(isLate({ late_order: false, late_pickup: false })).toBe(false)
-    expect(lateTitle.call({ isLate }, { is_collection_order: true, late_pickup: true })).toBe('Inclou recollides informades tard')
   })
 
-  it('shows the surcharge with a dot next to the price', () => {
-    const vm = { money: v => String(v) }
-    const dots = discountsOf.call(vm, { price: 10, finalPrice: 12.5, late_order: true, late_surcharge: 25 })
-    expect(dots.map(d => d.key)).toEqual(['surcharge'])
-    expect(dots[0].title).toContain('+25')
+  it('writes the surcharge and the discounts under the price', () => {
+    const mods = discountsOf.call(vm, { price: 10, finalPrice: 11.25, late_order: true, late_surcharge: 25, multidelivery_discount: 10, volume_discount: 2 })
+    expect(mods.map(d => d.text)).toEqual(['+25 %', '−10 %', '−2 €'])
+    expect(mods[0].title).toBe('Recàrrec express (+25 %)')
     expect(discountsOf.call(vm, { price: 10, finalPrice: 10, late_order: false, late_surcharge: 0 })).toEqual([])
+    // +25 % and −20 % leave the price as it was: both are still said
+    expect(discountsOf.call(vm, { price: 10, finalPrice: 10, late_order: true, late_surcharge: 25, multidelivery_discount: 20 }).map(d => d.text))
+      .toEqual(['+25 %', '−20 %'])
   })
 })
