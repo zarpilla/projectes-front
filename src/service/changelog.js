@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Millores",
+      modules: ["Diners"],
+      text: ["Mentre es genera el PDF d'una factura o pressupost, el botó «PDF» mostra que està treballant, i si no es pot generar surt un avís."]
+    },
+    {
+      type: "Millores",
       modules: ["Logística", "Diners"],
       text: [{ to: "/orders-invoice", label: "Facturar" }, " carrega les comandes lliurades molt més de pressa i ja no alenteix la resta de l'aplicació, i les factures s'obren abans: el document es demana alhora que les llistes del formulari i les fases de tots els projectes a la vegada."]
     },

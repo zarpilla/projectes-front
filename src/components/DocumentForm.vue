@@ -154,7 +154,7 @@
       </template>
       <template v-if="form.id">
         <!-- payrolls: the PDF prints like an invoice, hidden for now -->
-        <b-button v-if="type !== 'payrolls'" icon-left="file-pdf-box" @click="getPDF">PDF</b-button>
+        <b-button v-if="type !== 'payrolls'" icon-left="file-pdf-box" :loading="pdfLoading" @click="getPDF">PDF</b-button>
         <b-button
           v-if="entity === 'emitted-invoice' && form.state === 'real'"
           icon-left="content-copy"
@@ -326,6 +326,7 @@
               <b-button
                 v-if="form.id && type !== 'payrolls'"
                 class="view-button is-primary ml-3"
+                :loading="pdfLoading"
                 @click="getPDF"
                 size="is-small"
                 title="Visualitzar PDF"
@@ -1129,6 +1130,7 @@ export default {
       quotes: null,
       products: [],
       pdf: false,
+      pdfLoading: false,
       contact: null,
       isModalActive: false,
       isDietModalActive: false,
@@ -2891,14 +2893,24 @@ export default {
       ).toFixed(2);
       this.form.total = payrollTotal(this.form.total_base, this.form.ss_base);
     },
+    // it takes a few seconds: the buttons spin meanwhile, a second click
+    // doesn't ask it again, and a failure says so
     async getPDF() {
-      const pdf = (
-        await service({ requiresAuth: true }).get(
-          `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
-        )
-      ).data;
-      this.pdf = true;
-      window.open(this.apiUrl + pdf.url);
+      if (this.pdfLoading) return;
+      this.pdfLoading = true;
+      try {
+        const pdf = (
+          await service({ requiresAuth: true }).get(
+            `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
+          )
+        ).data;
+        this.pdf = true;
+        window.open(this.apiUrl + pdf.url);
+      } catch (error) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut generar el PDF", type: "is-danger", queue: false });
+      } finally {
+        this.pdfLoading = false;
+      }
     },
     async sendInvoiceByEmail() {
       this.isLoading = true;
