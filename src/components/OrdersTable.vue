@@ -214,7 +214,7 @@
                 </th>
                 <th v-for="col in visibleCols" :key="col.key">
                   <template v-if="col.noFilter"></template>
-                  <select v-else-if="col.options" v-model="filters[col.key]" class="col-filter" :aria-label="`Filtra ${col.label}`" @change="refresh">
+                  <select v-else-if="col.options" v-model="filters[col.filterKey || col.key]" class="col-filter" :aria-label="`Filtra ${col.filterLabel || col.label}`" :title="col.filterLabel ? `Filtra per ${col.filterLabel}` : null" @change="refresh">
                     <option value="">Tots</option>
                     <option v-for="o in col.options()" :key="o.value" :value="o.value">{{ o.label }}</option>
                   </select>
@@ -320,10 +320,6 @@
                     <template v-else-if="col.key === 'pickup.name'">
                       <span>{{ order.pickup ? order.pickup.alias || order.pickup.name : "—" }}</span>
                       <small :class="order.deposit_date ? 'is-deposited' : ''">{{ order.deposit_date ? "● dipositada" : "○ no dipositada" }}</small>
-                    </template>
-                    <template v-else-if="col.key === 'delivery_type.name'">
-                      <span v-if="order.delivery_type" :class="{ 'is-cold': order.refrigerated || (order.delivery_type.name || '').toLowerCase().startsWith('refr') }">{{ order.delivery_type.name }}</span>
-                      <span v-else>—</span>
                     </template>
                     <template v-else-if="col.key === 'last_mile_display'">{{ order.last_mile ? "Sí" : "No" }}</template>
                     <template v-else-if="col.key === 'units'">{{ formatNum(order.units) }}</template>
@@ -964,14 +960,15 @@ export default {
       const statuses = [["pending", "Pendent"], ["processed", "Processada"], ["delivered", "Lliurada"], ["invoiced", "Facturada"], ["cancelled", "Anul·lada"]];
       return [
         { key: "idx", label: "Núm.", sort: "id" },
-        { key: "signals", label: "Senyals", noFilter: true },
+        // the delivery type (Normal / Refrigerada) is the snowflake of «Senyals»:
+        // its column went, its filter and quick edit are here (issues/315)
+        { key: "signals", label: "Senyals", edit: "delivery_type", filterKey: "delivery_type.name", filterLabel: "tipus d'entrega", options: () => this.deliveryTypes.map(d => ({ value: d.name, label: d.name })) },
         { key: "contact.trade_name", label: "Punt d'entrega", sort: "contact_trade_name", edit: "contact" },
         { key: "owner.fullname", label: "Sòcia", sort: "owner.fullname", staff: true },
         { key: "route.name", label: "Ruta", sort: "route.name", edit: "route" },
         { key: "estimated_delivery_date", label: "Prevista", sort: "estimated_delivery_date", date: true, edit: "estimated" },
         { key: "delivery_date", label: "Lliurada", sort: "delivery_date", date: true, edit: "delivered" },
         { key: "pickup.name", label: "Recollida", sort: "pickup.name", edit: "pickup", options: () => this.pickups.map(p => ({ value: p.name, label: p.alias || p.name })) },
-        { key: "delivery_type.name", label: "Entrega", sort: "delivery_type.name", edit: "delivery_type", options: () => this.deliveryTypes.map(d => ({ value: d.name, label: d.name })) },
         { key: "units", label: "Caixes", sort: "units", num: true, edit: "units" },
         { key: "kilograms", label: "Kg", sort: "kilograms", num: true, edit: "kilograms" },
         { key: "price", label: "Preu", sort: "price", num: true, edit: "price" },
@@ -1001,7 +998,7 @@ export default {
       return this.visibleCols.length - this.sumColsBefore - 3 + 1;
     },
     hasColumnFilters() {
-      return this.columns.some(c => this.filters[c.key]);
+      return this.columns.some(c => this.filters[c.filterKey || c.key]);
     },
     allChecked() {
       return this.theOrders.length > 0 && this.checkedRows.length === this.theOrders.length;
@@ -3089,10 +3086,6 @@ select.col-filter {
 }
 .col-pickup small {
   white-space: nowrap;
-}
-.is-cold {
-  font-weight: 700;
-  color: var(--a-info-fg);
 }
 .filter-bar :deep(.filter-select .select select) {
   max-width: 13rem;

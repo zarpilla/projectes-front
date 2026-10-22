@@ -151,6 +151,15 @@ describe('the orders list', () => {
     vi.useRealTimers()
   })
 
+  // the user (2026-10-22): «Entrega» repeats the snowflake of «Senyals»
+  it('has no «Entrega» column: its filter and quick edit are in «Senyals»', () => {
+    const cols = OrdersTable.computed.columns.call({ deliveryTypes: [{ name: 'Normal' }, { name: 'Refrigerada' }], pickups: [] })
+    expect(cols.map(c => c.key)).not.toContain('delivery_type.name')
+    const signals = cols.find(c => c.key === 'signals')
+    expect(signals).toMatchObject({ edit: 'delivery_type', filterKey: 'delivery_type.name' })
+    expect(signals.options().map(o => o.value)).toEqual(['Normal', 'Refrigerada'])
+  })
+
   it('paints only the alerts (late order or pickup)', () => {
     expect(isLate({ late_order: true })).toBe(true)
     expect(isLate({ is_collection_order: true, late_pickup: true })).toBe(true)
