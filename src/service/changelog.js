@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.22",
   items: [
     {
+      type: "Millores",
+      modules: ["Logística", "Diners"],
+      text: [{ to: "/orders-invoice", label: "Facturar" }, " carrega les comandes lliurades molt més de pressa i ja no alenteix la resta de l'aplicació, i les factures s'obren abans: el document es demana alhora que les llistes del formulari i les fases de tots els projectes a la vegada."]
+    },
+    {
       type: "Correccions",
       modules: ["Diners"],
       text: ["PDF de les factures i pressupostos: una línia ja no queda partida entre dues pàgines (abans podia sortir una segona pàgina amb només el final d'una línia) i una línia de dues files ja no es trepitja amb la següent. Els imports porten el símbol € en lloc de «EUR», i les columnes fan menys salts de línia."]

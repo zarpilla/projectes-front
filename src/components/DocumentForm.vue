@@ -1577,33 +1577,44 @@ export default {
       });
     },
     async getData() {
+      // The document, /users/me and /me go out at once, with the lists right
+      // after: one after another they took ~17 s on ladili_test (issues/317).
+      const existing = this.$route.params.id && this.$route.params.id > 0;
+      const documentRequest = existing
+        ? service({ requiresAuth: true }).get(`${this.type}/${this.$route.params.id}`)
+        : null;
+      // handled below, once the lists are here; don't report it as unhandled meanwhile
+      if (documentRequest) documentRequest.catch(() => {});
+      const [userMe, me] = await Promise.allSettled([
+        service({ requiresAuth: true }).get("/users/me"),
+        service({ requiresAuth: true }).get("me")
+      ]);
       // A failed /users/me or /me (e.g. a 403) left the form blank: the
       // document wasn't loaded at all (issues/063). Fall back to the session
       // and keep going.
-      try {
-        this.user = (await service({ requiresAuth: true }).get("/users/me")).data;
-      } catch (error) {
+      if (userMe.status === "fulfilled") {
+        this.user = userMe.value.data;
+      } else {
         this.user = useMainStore().user || JSON.parse(localStorage.getItem("user") || "null") || {};
         this.warnSettingsMissing();
       }
-      try {
-        const me = await service({ requiresAuth: true }).get("me");
-        this.options = me.data;
+      if (me.status === "fulfilled") {
+        this.options = me.value.data;
         useMainStore().setMe({
-          me: me.data
+          me: me.value.data
         });
-      } catch (error) {
+      } else {
         this.options = useMainStore().me || {};
         this.warnSettingsMissing();
       }
 
       this.isLoading = true;
 
+      // the lines need the products of the lists
       await this.getAuxiliarData();
 
-      if (this.$route.params.id && this.$route.params.id > 0) {
-        service({ requiresAuth: true })
-          .get(`${this.type}/${this.$route.params.id}`)
+      if (existing) {
+        await documentRequest
           .then(async r => {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
@@ -1681,20 +1692,20 @@ export default {
               }
 
               if (this.form.projects) {
-                for await (const project of this.form.projects) {
-                  if (project.id) {
+                // every project's phases at once (issues/317)
+                await Promise.all(
+                  this.form.projects.filter(project => project.id).map(async project => {
                     const p = (
                       await service({ requiresAuth: true }).get(
                         `projects/${project.id}/phases`
                       )
                     ).data;
-                    project.project_phases = p.project_phases;
-                    project.project_phases = project.project_phases.map(pp => {
+                    project.project_phases = p.project_phases.map(pp => {
                       pp.show = false;
                       return pp;
                     });
-                  }
-                }
+                  })
+                );
                 this.form.projects = this.form.projects.map(p => {
                   const { activities, ...item } = p;
                   return item;

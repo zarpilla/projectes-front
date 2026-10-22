@@ -8,7 +8,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const get = vi.fn(async url => {
-  if (url.startsWith('orders?')) {
+  if (url.startsWith('orders/for-invoicing')) {
     return { data: [{ id: 1, owner: { id: 7, fullname: 'Mas Alba' }, estimated_delivery_date: '2026-10-02', price: 12.32, units: 1, kilograms: 1 }] }
   }
   if (url.startsWith('projects/basic')) return { data: [{ id: 30, name: '4T 2026 - Logística' }] }

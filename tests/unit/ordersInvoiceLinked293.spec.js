@@ -11,7 +11,7 @@ import { groupOrders, linkedToInvoice } from '@/domain/logisticsInvoicing.js'
 const owner = { id: 7, fullname: 'Mas Alba' }
 const muda = { id: 8, fullname: 'Muda' }
 const get = vi.fn(async url => {
-  if (url.startsWith('orders?')) {
+  if (url.startsWith('orders/for-invoicing')) {
     return {
       data: [
         { id: 1, owner, estimated_delivery_date: '2026-10-02', price: 10, units: 1, kilograms: 1, emitted_invoice: null },
