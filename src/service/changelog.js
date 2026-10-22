@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.22",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["PDF de les factures i pressupostos: una línia ja no queda partida entre dues pàgines (abans podia sortir una segona pàgina amb només el final d'una línia) i una línia de dues files ja no es trepitja amb la següent. Els imports porten el símbol € en lloc de «EUR», i les columnes fan menys salts de línia."]
+    }
+  ]
+},
+{
   date: "2026.10.21",
   items: [
     {
