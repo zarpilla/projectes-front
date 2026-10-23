@@ -21,8 +21,63 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.23",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A la llista de ", { to: "/orders", label: "Comandes" }, ", la columna «Senyals» mostra si la comanda té incidències (en vermell mentre n'hi ha alguna d'oberta) i el seu filtre tria qualsevol senyal: incidència, express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla o fràgil. «Última milla» ja no és una pestanya d'estat, la columna «Lliurada» ja no hi és, i en seleccionar comandes es veuen les caixes i els kg de la selecció."]
+    }
+  ]
+},
+{
+  date: "2026.10.22",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["A ", { to: "/city-route", label: "Poblacions i rutes" }, ", l'oficina pot treballar les franges horàries amb un full de càlcul: «Exporta franges (.ods)» descarrega una fila per ruta (la franja de la ruta) i una per cada població (la franja pròpia; buida, fa servir la de la ruta), i «Importa franges» llegeix el fitxer editat, ensenya què canviarà i quines files tenen errors, i desa els canvis en confirmar. Les hores es poden escriure com «9», «9:30» o «9h30». La importació només canvia franges: no afegeix ni treu poblacions de les rutes."]
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["Mentre es genera el PDF d'una factura o pressupost, el botó «PDF» mostra que està treballant, i si no es pot generar surt un avís."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística", "Diners"],
+      text: [{ to: "/orders-invoice", label: "Facturar" }, " carrega les comandes lliurades molt més de pressa i ja no alenteix la resta de l'aplicació, i les factures s'obren abans: el document es demana alhora que les llistes del formulari i les fases de tots els projectes a la vegada."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["PDF de les factures i pressupostos: una línia ja no queda partida entre dues pàgines (abans podia sortir una segona pàgina amb només el final d'una línia) i una línia de dues files ja no es trepitja amb la següent. Els imports porten el símbol € en lloc de «EUR», i les columnes fan menys salts de línia."]
+    }
+  ]
+},
+{
   date: "2026.10.21",
   items: [
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Comandes fora de temps: una comanda per a l'endemà informada després de l'hora límit ja no passa a un altre dia de la ruta. Es queda per al dia triat, abans de desar-la surt un avís, porta un recàrrec (25 % per defecte, escrit sota el preu) i l'albarà diu «COMANDA EXPRESS». L'oficina el treu desmarcant «Recàrrec per incidència» a la comanda. Les recollides informades tard (de tarda, el mateix dia a partir de les 10 h; de matí, el dia abans a partir de l'hora límit) també avisen, sense recàrrec. A ", { to: "/orders", label: "Comandes" }, " totes les marques d'una comanda són ara icones a la columna «Senyals» (express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla, fràgil; passa-hi el ratolí per veure què volen dir), les que van tard amb una franja vermella; les files ja no es pinten de gris ni de vermell, i els descomptes i el recàrrec s'escriuen sota el preu en lloc de les boles de colors. La columna «Entrega» ja no hi és (la refrigerada és el floc de neu); el filtre per tipus d'entrega és ara el de «Senyals». Els textos, l'hora de les recollides de tarda i el recàrrec es canvien a ", { to: "/admin/me", label: "Configuració general" }, " → Logística."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: [{ to: "/city-route", label: "Poblacions i rutes" }, " diu a quina hora hi passem: cada ruta té la seva franja horària (p. ex. «de 9 a 14 h») i una població pot tenir-ne una de pròpia (p. ex. «a les 7 h»). L'oficina les posa amb el botó «Franges» o a ", { to: "/routes", label: "Rutes" }, ". També surt a «Quina ruta passa per…?» i a la comanda, sota la ruta triada."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Avisos de dipòsit per ruta i magatzem: a ", { to: "/admin/route-pickup-notice", label: "Taules auxiliars › Avisos de dipòsit" }, " es pot posar un text per a cada combinació de ruta de destí i magatzem d'origen (p. ex. fins quan s'ha de deixar el paquet). En fer una comanda surt destacat en triar el magatzem; si no n'hi ha cap, surt el text del magatzem com fins ara."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística", "Diners"],
+      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes: «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026» (també {mes}, {MES} i {mm}). El text es defineix a ", { to: "/admin/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
+    },
     {
       type: "Correccions",
       modules: ["Logística"],

@@ -280,7 +280,9 @@ export default {
     async getData() {
       this.isLoading = true;
       const [orders, contacts, projects] = await Promise.all([
-        service({ requiresAuth: true }).get("orders?_limit=-1&_sort=route_date:DESC,id:DESC&_where[status_eq]=delivered").then(r => r.data),
+        // only what Facturar reads: populate=* took 8–10 s on the VPS and held up
+        // the invoice opened next (issues/317)
+        service({ requiresAuth: true }).get("orders/for-invoicing").then(r => r.data),
         service({ requiresAuth: true, cached: true }).get("contacts?_limit=-1&_sort=name:ASC&_where[users_permissions_user_gt]=0").then(r => r.data),
         service({ requiresAuth: true, cached: true }).get("projects/basic?_limit=-1&_sort=name:ASC").then(r => r.data)
       ]);

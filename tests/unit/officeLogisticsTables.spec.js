@@ -11,7 +11,7 @@ const OFFICE = ['orders_admin']
 
 describe('Taules de logística for the office (issues/159)', () => {
   it('opens the logistics tables, not the others', () => {
-    for (const entityName of ['pickup', 'delivery-type', 'city', 'route-rate']) {
+    for (const entityName of ['pickup', 'delivery-type', 'city', 'route-rate', 'route-pickup-notice']) {
       expect(canOpen(record('/admin/:entityName'), OFFICE, { entityName })).toBe(true)
       expect(canOpen(record('/admin/:entityName/:id'), OFFICE, { entityName, id: '3' })).toBe(true)
       expect(canOpenPath(`/admin/${entityName}`, OFFICE)).toBe(true)
@@ -26,7 +26,7 @@ describe('Taules de logística for the office (issues/159)', () => {
   it('shows her only the Logística group', () => {
     const groups = adminTableGroupsFor(OFFICE)
     expect(groups.map(g => g.title)).toEqual(['Logística'])
-    expect(groups[0].items.map(t => t.entity)).toEqual(['pickup', 'delivery-type', 'city', 'route-rate'])
+    expect(groups[0].items.map(t => t.entity)).toEqual(['pickup', 'delivery-type', 'city', 'route-rate', 'route-pickup-notice'])
     expect(adminTableGroupsFor(['orders'])).toEqual([])
     expect(adminTableGroupsFor(['admin']).map(g => g.title)).not.toContain('Logística')
   })

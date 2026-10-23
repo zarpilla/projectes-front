@@ -176,6 +176,7 @@
 
       <div v-if="checkedRows.length" class="selection-bar" role="region" aria-label="Selecció">
         <b>{{ checkedRows.length }} {{ checkedRows.length === 1 ? "seleccionada" : "seleccionades" }}</b>
+        <span class="selection-sums">{{ formatNum(sumUnits) }} {{ Number(sumUnits) === 1 ? "caixa" : "caixes" }} · {{ formatNum(sumKg) }} kg</span>
         <b-select v-model="newState" placeholder="Canvia l'estat a…" size="is-small" aria-label="Nou estat">
           <option v-for="s in bulkStatusOptions" :key="s" :value="s">{{ statusLabel(s) }}</option>
         </b-select>
@@ -198,8 +199,9 @@
                 <th class="col-check">
                   <b-checkbox :model-value="allChecked" :indeterminate="someChecked" aria-label="Selecciona-les totes" @update:model-value="toggleAll" />
                 </th>
-                <th v-for="col in visibleCols" :key="col.key" :class="{ 'has-text-right': col.num }">
-                  <button type="button" class="sort-head" :aria-label="`Ordena per ${col.label}`" @click="sortBy(col)">
+                <th v-for="col in visibleCols" :key="col.key" :class="{ 'has-text-right': col.num, 'col-signals': col.key === 'signals' }">
+                  <span v-if="!col.sort" class="sort-head is-static">{{ col.label }}</span>
+                  <button v-else type="button" class="sort-head" :aria-label="`Ordena per ${col.label}`" @click="sortBy(col)">
                     {{ col.label }}
                     <b-icon v-if="sortField === col.sort" :icon="sortOrder === 'ASC' ? 'arrow-up' : 'arrow-down'" size="is-small" />
                   </button>
@@ -212,7 +214,8 @@
                   <button v-if="hasColumnFilters" type="button" class="clear-filters" title="Treu els filtres de les columnes" aria-label="Treu els filtres de les columnes" @click="clearColumnFilters"><b-icon icon="filter-remove-outline" size="is-small" /></button>
                 </th>
                 <th v-for="col in visibleCols" :key="col.key">
-                  <select v-if="col.options" v-model="filters[col.key]" class="col-filter" :aria-label="`Filtra ${col.label}`" @change="refresh">
+                  <template v-if="col.noFilter"></template>
+                  <select v-else-if="col.options" v-model="filters[col.filterKey || col.key]" class="col-filter" :aria-label="`Filtra ${col.filterLabel || col.label}`" :title="col.filterLabel ? `Filtra per ${col.filterLabel}` : null" @change="refresh">
                     <option value="">Tots</option>
                     <option v-for="o in col.options()" :key="o.value" :value="o.value">{{ o.label }}</option>
                   </select>
@@ -252,8 +255,7 @@
                   v-for="(order, i) in group.rows"
                   :key="order.id || 'new-' + i"
                   class="order-row"
-                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-future-week': isFutureWeek(order) }"
-                  :title="isFutureWeek(order) ? 'Entrega prevista una setmana vinent' : null"
+                  :class="{ 'is-checked': isChecked(order), 'is-cancelled': order.status === 'cancelled', 'is-unsaved': !order.id, 'is-editing': editingRowId && editingRowId === order.id, 'is-alert': isLate(order) }"
                 >
                   <td class="col-check">
                     <b-checkbox :model-value="isChecked(order)" :aria-label="`Selecciona la comanda ${order.id || ''}`" @update:model-value="toggleRow(order, $event)" />
@@ -265,7 +267,6 @@
                         <option v-for="r in routes" :key="r.id" :value="r.id">{{ r.name }}</option>
                       </b-select>
                       <b-datepicker v-else-if="col.edit === 'estimated'" v-model="editForm.estimated_delivery_date" size="is-small" :show-week-number="false" locale="ca-ES" :first-day-of-week="1" placeholder="Data" />
-                      <b-datepicker v-else-if="col.edit === 'delivered'" v-model="editForm.delivery_date" size="is-small" :show-week-number="false" locale="ca-ES" :first-day-of-week="1" placeholder="Data" />
                       <b-autocomplete
                         v-else-if="col.edit === 'contact'"
                         v-model="contactSearch"
@@ -300,37 +301,33 @@
                       <router-link v-if="order.id" :to="{ name: 'orders.view.detail', params: { id: order.id } }" class="order-num">{{ order.idx }}</router-link>
                       <b-button v-else size="is-small" type="is-primary" @click="createCSVOrder(order)">Crea</b-button>
                     </template>
+                    <!-- every mark of the order as one icon (issues/315, proposal C) -->
+                    <template v-else-if="col.key === 'signals'">
+                      <span class="signals">
+                        <span v-for="sg in signalsOf(order)" :key="sg.key" class="signal" :class="sg.kind" :title="sg.label" :aria-label="sg.label" role="img" :data-signal="sg.key">
+                          <b-icon :icon="sg.icon" custom-size="mdi-14px" />
+                        </span>
+                      </span>
+                    </template>
                     <template v-else-if="col.key === 'contact.trade_name'">
                       <b>{{ order.fullName || "—" }}</b>
                       <small>{{ order.contact_city || (order.contact && order.contact.city) || "" }}</small>
-                      <span class="order-tags">
-                        <span v-if="order.fragile" class="tag is-warning is-light">Fràgil</span>
-                        <span v-if="order.transfer" class="tag">Transferència</span>
-                        <span v-if="order.last_mile" class="tag is-link is-light">Última milla</span>
-                        <span v-if="order.is_collection_order" class="tag">Comanda de recollida</span>
-                      </span>
                     </template>
                     <template v-else-if="col.key === 'owner.fullname'">{{ order.owner ? order.owner.fullname || order.owner.username : "—" }}</template>
                     <template v-else-if="col.key === 'route.name'">{{ order.route ? order.route.name : "—" }}</template>
                     <template v-else-if="col.key === 'estimated_delivery_date'">{{ formatDay(order.estimated_delivery_date) }}</template>
-                    <template v-else-if="col.key === 'delivery_date'">{{ order.delivery_date ? formatDay(order.delivery_date) : "—" }}</template>
                     <template v-else-if="col.key === 'pickup.name'">
                       <span>{{ order.pickup ? order.pickup.alias || order.pickup.name : "—" }}</span>
                       <small :class="order.deposit_date ? 'is-deposited' : ''">{{ order.deposit_date ? "● dipositada" : "○ no dipositada" }}</small>
-                    </template>
-                    <template v-else-if="col.key === 'delivery_type.name'">
-                      <span v-if="order.delivery_type" :class="{ 'is-cold': order.refrigerated || (order.delivery_type.name || '').toLowerCase().startsWith('refr') }">{{ order.delivery_type.name }}</span>
-                      <span v-else>—</span>
                     </template>
                     <template v-else-if="col.key === 'last_mile_display'">{{ order.last_mile ? "Sí" : "No" }}</template>
                     <template v-else-if="col.key === 'units'">{{ formatNum(order.units) }}</template>
                     <template v-else-if="col.key === 'kilograms'">{{ formatNum(order.kilograms) }}</template>
                     <template v-else-if="col.key === 'price'">
-                      <span class="price-line">
-                        <span v-for="d in discountsOf(order)" :key="d.key" class="discount-dot" :class="d.key" :title="d.title" :aria-label="d.title"></span>
-                        <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
-                      </span>
-                      <small v-if="discountLabel(order)">{{ discountLabel(order) }}</small>
+                      <b>{{ order.finalPrice !== undefined && order.finalPrice !== null ? money(order.finalPrice) : "?" }}</b>
+                      <small v-if="discountsOf(order).length" class="price-mods">
+                        <template v-for="(d, j) in discountsOf(order)" :key="d.key"><template v-if="j"> · </template><span :class="d.key === 'surcharge' ? 'is-up' : 'is-down'" :title="d.title">{{ d.text }}</span></template>
+                      </small>
                     </template>
                     <template v-else-if="col.key === 'status'"><span class="tag" :class="statusTag(order.status)">{{ statusLabel(order.status) }}</span></template>
                   </td>
@@ -368,11 +365,9 @@
         </div>
         <footer class="orders-foot">
           <span>{{ footNote }}</span>
+          <!-- what the icons of «Senyals» mean (issues/315) -->
           <span class="legend">
-            <span><i class="discount-dot multidelivery"></i>Multientrega</span>
-            <span><i class="discount-dot volume"></i>Volum</span>
-            <span><i class="discount-dot pickup"></i>Recollida</span>
-            <span><i class="legend-future"></i>Setmanes vinents</span>
+            <span v-for="sg in signalLegend" :key="sg.key"><span class="signal" :class="sg.kind"><b-icon :icon="sg.icon" custom-size="mdi-14px" /></span>{{ sg.legend }}</span>
           </span>
           <b-pagination
             v-if="total > perPageEffective"
@@ -432,10 +427,12 @@ import getConfig from '@/config'
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { orderStatusLabel, orderStatusTag, statusWhere, bulkStatuses, canSetStatus, bulkSkipReason, leavingInvoiced, leavingInvoicedMessage, leavingInvoicedTitle } from "@/domain/orderStatus";
 import { orderOdsFields, exportRows } from "@/domain/ordersExport";
+import { signalWhere } from "@/domain/orderSignals";
 import { importedPostcode } from "@/domain/postcode";
 import { canCreateOrders, canEditOrder as mayEditOrder, canOpenOrder as mayOpenOrder, isDriver } from "@/domain/orderPermissions";
 import { dateFilterWhere, ownerWhere, priceFilterWhere, kilogramsFilterWhere } from "@/domain/ordersListFilters";
 import { invoicedPrice } from "@/domain/logisticsInvoicing";
+import { lateSurchargeOf } from "@/domain/lateOrders";
 import { csvDiscountQuery, withCsvDiscounts, csvOrderPayload } from "@/domain/csvOrderPreview";
 import { repricesOrder } from "@/domain/orderReprice";
 
@@ -508,9 +505,8 @@ export default {
         "owner.fullname": "",
         "route.name": "",
         estimated_delivery_date: "",
-        delivery_date: "",
         "pickup.name": "",
-        "delivery_type.name": "",
+        signal: "",
         units: "",
         kilograms: "",
         price: "",
@@ -855,7 +851,6 @@ export default {
         { id: "", label: "Totes" },
         { id: "pending", label: "Pendents" },
         { id: "processed", label: "Processades" },
-        { id: "lastmile", label: "Última milla" },
         { id: "delivered", label: "Lliurades" },
         { id: "invoiced", label: "Facturades" },
         { id: "cancelled", label: "Anul·lades" }
@@ -963,17 +958,32 @@ export default {
       const statuses = [["pending", "Pendent"], ["processed", "Processada"], ["delivered", "Lliurada"], ["invoiced", "Facturada"], ["cancelled", "Anul·lada"]];
       return [
         { key: "idx", label: "Núm.", sort: "id" },
+        // the delivery type (Normal / Refrigerada) is the snowflake of «Senyals»:
+        // its column went, its quick edit is here (issues/315); the filter
+        // picks any of the signals
+        { key: "signals", label: "Senyals", edit: "delivery_type", filterKey: "signal", filterLabel: "senyal", options: () => this.signalLegend.map(sg => ({ value: sg.key, label: sg.legend })) },
         { key: "contact.trade_name", label: "Punt d'entrega", sort: "contact_trade_name", edit: "contact" },
         { key: "owner.fullname", label: "Sòcia", sort: "owner.fullname", staff: true },
         { key: "route.name", label: "Ruta", sort: "route.name", edit: "route" },
         { key: "estimated_delivery_date", label: "Prevista", sort: "estimated_delivery_date", date: true, edit: "estimated" },
-        { key: "delivery_date", label: "Lliurada", sort: "delivery_date", date: true, edit: "delivered" },
         { key: "pickup.name", label: "Recollida", sort: "pickup.name", edit: "pickup", options: () => this.pickups.map(p => ({ value: p.name, label: p.alias || p.name })) },
-        { key: "delivery_type.name", label: "Entrega", sort: "delivery_type.name", edit: "delivery_type", options: () => this.deliveryTypes.map(d => ({ value: d.name, label: d.name })) },
         { key: "units", label: "Caixes", sort: "units", num: true, edit: "units" },
         { key: "kilograms", label: "Kg", sort: "kilograms", num: true, edit: "kilograms" },
         { key: "price", label: "Preu", sort: "price", num: true, edit: "price" },
         { key: "status", label: "Estat", sort: "status", options: () => statuses.map(([value, label]) => ({ value, label })) }
+      ];
+    },
+    signalLegend() {
+      return [
+        { key: "incidence", kind: "is-alert", icon: "alert-circle-outline", legend: "Incidència" },
+        { key: "express", kind: "is-alert", icon: "flash", legend: "Express (fora de temps)" },
+        { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", legend: "Recollida tard" },
+        { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", legend: "Setmana vinent" },
+        { key: "cold", kind: "is-cold", icon: "snowflake", legend: "Refrigerada" },
+        { key: "collection", kind: "is-info", icon: "package-variant-closed", legend: "Recollida (-R)" },
+        { key: "transfer", kind: "is-info", icon: "swap-horizontal", legend: "Transferència" },
+        { key: "last-mile", kind: "is-info", icon: "truck-fast", legend: "Última milla" },
+        { key: "fragile", kind: "is-info", icon: "glass-wine", legend: "Fràgil" }
       ];
     },
     visibleCols() {
@@ -987,7 +997,7 @@ export default {
       return this.visibleCols.length - this.sumColsBefore - 3 + 1;
     },
     hasColumnFilters() {
-      return this.columns.some(c => this.filters[c.key]);
+      return this.columns.some(c => this.filters[c.filterKey || c.key]);
     },
     allChecked() {
       return this.theOrders.length > 0 && this.checkedRows.length === this.theOrders.length;
@@ -1019,20 +1029,19 @@ export default {
           )
         : this.theOrders;
     },
+    // the boxes and kg of the selection (or of the list), cancelled ones
+    // left out as in the figures above
+    sumRows() {
+      return (this.checkedRows.length ? this.checkedRows : this.theOrders).filter(o => o.status !== "cancelled");
+    },
     sumUnits() {
-      return this.checkedRows.length
-        ? _.sumBy(this.checkedRows, "units") || 0
-        : _.sumBy(this.theOrders, "units") || 0;
+      return _.sumBy(this.sumRows, o => Number(o.units) || 0);
     },
     sumKg() {
-      return this.checkedRows.length
-        ? _.sumBy(this.checkedRows, "kilograms") || 0
-        : _.sumBy(this.theOrders, "kilograms") || 0;
+      return _.sumBy(this.sumRows, o => Number(o.kilograms) || 0);
     },
     sumPrice() {
-      return this.checkedRows.length
-        ? _.sumBy(this.checkedRows, "finalPrice") || 0
-        : _.sumBy(this.theOrders, "finalPrice") || 0;
+      return _.sumBy(this.sumRows, o => Number(o.finalPrice) || 0);
     },
     filteredContacts() {
       return this.contacts.filter(option => {
@@ -1128,6 +1137,8 @@ export default {
     if (!Array.isArray(this.statusFilter)) {
       this.statusFilter = [];
     }
+    // «Última milla» is a signal now, not a status tab
+    this.statusFilter = this.statusFilter.filter(st => st !== "lastmile");
     if (!Array.isArray(this.routeFilter)) {
       this.routeFilter = [];
     }
@@ -1406,6 +1417,8 @@ export default {
             where.push(...priceFilterWhere(value));
           } else if (key === "kilograms") {
             where.push(...kilogramsFilterWhere(value));
+          } else if (key === "signal") {
+            where.push(...signalWhere(value));
           } else if (key === "last_mile_display") {
             // remove zeros at start
             if (value.toLowerCase().startsWith("s")) {
@@ -1456,7 +1469,7 @@ export default {
       // emitted_invoice and other deep relations, which were ~96% of the
       // payload and not used here).
       // the counts of the status tabs: same filters, each status
-      this.loadStatusCounts(where.filter(w => !w.startsWith("_where[status]") && w !== "_where[last_mile]=true"));
+      this.loadStatusCounts(where.filter(w => !w.startsWith("_where[status]")));
       this.lastWhere = where;
       this.loadTotals(where);
 
@@ -2672,12 +2685,11 @@ export default {
           .then(r => r.data)
           .catch(() => null);
       const ids = ["pending", "processed", "delivered", "invoiced", "cancelled"];
-      const [all, lastmile, ...byStatus] = await Promise.all([
+      const [all, ...byStatus] = await Promise.all([
         count([]),
-        count(["_where[last_mile]=true"]),
         ...ids.map(id => count([`_where[status]=${id}`]))
       ]);
-      const counts = { all, lastmile };
+      const counts = { all };
       ids.forEach((id, i) => { counts[id] = byStatus[i]; });
       this.statusCounts = counts;
     },
@@ -2757,21 +2769,43 @@ export default {
       const date = moment(order.estimated_delivery_date, ["YYYY-MM-DD", "YYYYMMDD"]);
       return date.isValid() && !date.isBefore(moment().startOf("isoWeek").add(1, "week"));
     },
-    // the old coloured circles of the price: which discounts apply
-    discountsOf(order) {
-      if (order.finalPrice === undefined || order.finalPrice === null || order.finalPrice === order.price) return [];
+    // a late order or pickup, or a -R with a late one (issues/315)
+    isLate(order) {
+      return !!(order && (order.late_order || order.late_pickup));
+    },
+    // Every mark of an order as one icon of «Senyals», alerts first (issues/315,
+    // proposal C): the rows were grey (next week) or red (late), the price had
+    // coloured dots and the point had tags, four ways to say things.
+    signalsOf(order) {
+      if (!order) return [];
+      const cold = order.refrigerated || ((order.delivery_type && order.delivery_type.name) || "").toLowerCase().startsWith("refr");
+      const surcharge = lateSurchargeOf(order);
+      const incidences = Array.isArray(order.incidences) ? order.incidences : [];
+      const open = incidences.filter(i => i.state !== "closed").length;
       return [
-        Number(order.multidelivery_discount) ? { key: "multidelivery", title: `Descompte multientrega (${formatNumber(order.multidelivery_discount, 2)} %)` } : null,
-        Number(order.volume_discount) ? { key: "volume", title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
-        Number(order.contact_pickup_discount) ? { key: "pickup", title: `Descompte recollida (${formatNumber(order.contact_pickup_discount, 2)} %)` } : null
+        incidences.length ? { key: "incidence", kind: open ? "is-alert" : "is-info", icon: "alert-circle-outline", label: open ? `${open} ${open === 1 ? "incidència oberta" : "incidències obertes"}` : `${incidences.length === 1 ? "Incidència tancada" : `${incidences.length} incidències tancades`}` } : null,
+        order.late_order ? { key: "express", kind: "is-alert", icon: "flash", label: `Comanda express: informada fora de l'hora límit${surcharge ? ` (recàrrec +${formatNumber(surcharge, 2)} %)` : ""}` } : null,
+        order.late_pickup ? { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", label: order.is_collection_order ? "Inclou recollides informades tard" : "Recollida informada tard" } : null,
+        this.isFutureWeek(order) ? { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", label: "Entrega prevista una setmana vinent" } : null,
+        cold ? { key: "cold", kind: "is-cold", icon: "snowflake", label: "Refrigerada" } : null,
+        order.is_collection_order ? { key: "collection", kind: "is-info", icon: "package-variant-closed", label: "Comanda de recollida" } : null,
+        order.transfer ? { key: "transfer", kind: "is-info", icon: "swap-horizontal", label: "Transferència" } : null,
+        order.last_mile ? { key: "last-mile", kind: "is-info", icon: "truck-fast", label: "Última milla" } : null,
+        order.fragile ? { key: "fragile", kind: "is-info", icon: "glass-wine", label: "Fràgil" } : null
       ].filter(Boolean);
     },
-    discountLabel(order) {
-      if (order.finalPrice === undefined || order.finalPrice === null || !order.price || order.finalPrice >= order.price) return "";
-      // short: the coloured dots say which discount it is
-      const pct = [order.multidelivery_discount, order.contact_pickup_discount].map(Number).filter(Boolean);
-      if (pct.length) return pct.map(p => `−${this.formatNum(p)} %`).join(" ");
-      return Number(order.volume_discount) ? "volum" : "amb descompte";
+    // the changes to the rate behind the price, in words under it: the late
+    // surcharge and the discounts (they were coloured dots, issues/315)
+    discountsOf(order) {
+      // from the fields, not from finalPrice ≠ price: +25 % and −20 % cancel out
+      if (order.finalPrice === undefined || order.finalPrice === null) return [];
+      const pct = v => `${formatNumber(v, 2)} %`;
+      return [
+        lateSurchargeOf(order) ? { key: "surcharge", text: `+${pct(order.late_surcharge)}`, title: `Recàrrec express (+${pct(order.late_surcharge)})` } : null,
+        Number(order.multidelivery_discount) ? { key: "multidelivery", text: `−${pct(order.multidelivery_discount)}`, title: `Descompte multientrega (${pct(order.multidelivery_discount)})` } : null,
+        Number(order.volume_discount) ? { key: "volume", text: `−${this.money(order.volume_discount)}`, title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
+        Number(order.contact_pickup_discount) ? { key: "pickup", text: `−${pct(order.contact_pickup_discount)}`, title: `Descompte recollida (${pct(order.contact_pickup_discount)})` } : null
+      ].filter(Boolean);
     },
     statusLabel: orderStatusLabel,
     statusTag: orderStatusTag,
@@ -2915,6 +2949,9 @@ export default {
   background: var(--a-accent-soft);
   color: var(--a-accent-hover);
 }
+.selection-sums {
+  font-variant-numeric: tabular-nums;
+}
 .selection-actions {
   display: inline-flex;
   flex-wrap: wrap;
@@ -3057,26 +3094,12 @@ select.col-filter {
 .col-pickup small {
   white-space: nowrap;
 }
-.is-cold {
-  font-weight: 700;
-  color: var(--a-info-fg);
-}
 .filter-bar :deep(.filter-select .select select) {
   max-width: 13rem;
 }
 .col-pickup small.is-deposited {
   color: var(--a-pos);
   font-weight: 700;
-}
-.order-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .25rem;
-  margin-top: .25rem;
-}
-.order-tags .tag {
-  height: 1.375rem;
-  font-size: .6875rem;
 }
 .group-row td {
   background: var(--a-thead);
@@ -3144,35 +3167,61 @@ select.col-filter {
   font-size: .875rem;
   color: var(--a-muted);
 }
-.price-line {
+/* «Senyals»: every mark of an order as one icon, alerts in red (issues/315) */
+.col-signals {
+  width: 5.25rem;
+}
+.sort-head.is-static {
+  cursor: default;
+}
+.signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1875rem;
+  width: 4.75rem;
+}
+.signal {
   display: inline-flex;
   align-items: center;
-  gap: .25rem;
-}
-.discount-dot {
-  display: inline-block;
-  width: .5625rem;
-  height: .5625rem;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
   border-radius: 50%;
+  flex: none;
 }
-.discount-dot.multidelivery {
-  background: var(--a-pos);
+.signal .icon {
+  width: auto;
+  height: auto;
 }
-.discount-dot.volume {
-  background: var(--a-muted);
+.signal.is-alert {
+  background: #C23B2E;
+  color: #fff;
 }
-.discount-dot.pickup {
-  background: #E8B23A;
+.signal.is-info {
+  background: #E4E9E6;
+  color: var(--a-fg);
 }
-.order-row.is-future-week td {
-  background: var(--a-thead);
+.signal.is-cold {
+  background: #E6F0FA;
+  color: #1F5F99;
 }
-.order-row.is-future-week td:not(.col-check) {
-  opacity: .55;
+.signal.is-next {
+  border: 1px dashed var(--a-muted);
+  color: var(--a-muted);
 }
-.order-row.is-future-week.is-checked td,
-.order-row.is-future-week.is-editing td {
-  opacity: 1;
+.order-row.is-alert td:first-child {
+  box-shadow: inset 4px 0 0 #C23B2E;
+}
+.price-mods {
+  display: block;
+  white-space: nowrap;
+}
+.price-mods .is-up {
+  color: #A32D22;
+  font-weight: 600;
+}
+.price-mods .is-down {
+  color: var(--a-pos);
 }
 .legend {
   display: inline-flex;
@@ -3180,18 +3229,10 @@ select.col-filter {
   gap: .75rem;
   font-size: .75rem;
 }
-.legend span {
+.legend > span {
   display: inline-flex;
   align-items: center;
-  gap: .25rem;
-}
-.legend-future {
-  display: inline-block;
-  width: .875rem;
-  height: .625rem;
-  border: 1px solid var(--a-line);
-  border-radius: 2px;
-  background: var(--a-thead);
+  gap: .3125rem;
 }
 .orders-foot > :last-child {
   margin-left: auto;

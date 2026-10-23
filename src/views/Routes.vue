@@ -32,7 +32,10 @@
                   <b>{{ route.name }}</b>
                   <small v-if="route.short_name" class="ra-short">{{ route.short_name }}</small>
                 </td>
-                <td>{{ routeDaysShort(route) || "—" }}</td>
+                <td>
+                  {{ routeDaysShort(route) || "—" }}
+                  <small v-if="formatSlot(route.time_from, route.time_to)" class="ra-short">{{ formatSlot(route.time_from, route.time_to) }}</small>
+                </td>
                 <td>{{ userName(route.delivery_user) }}</td>
                 <td><small>{{ note(route) }}</small></td>
                 <td>
@@ -79,6 +82,20 @@
             <div class="ra-days">
               <b-checkbox v-for="d in weekdays" :key="d.key" v-model="form[d.key]">{{ d.label }}</b-checkbox>
             </div>
+          </b-field>
+
+          <b-field
+            label="Franja horària"
+            :type="shownErrors.time_slot ? 'is-danger' : ''"
+            :message="shownErrors.time_slot || 'Quan hi passem. Les poblacions de la ruta la fan servir si no en tenen una de pròpia (Poblacions i rutes). Només «de»: una hora fixa («a les 7 h»).'"
+            grouped
+          >
+            <b-field label="De" label-position="inside">
+              <input v-model="form.time_from" class="input" type="time" aria-label="Franja: de" />
+            </b-field>
+            <b-field label="A" label-position="inside">
+              <input v-model="form.time_to" class="input" type="time" aria-label="Franja: a" />
+            </b-field>
           </b-field>
 
           <b-field label="Repartidor/a" message="Qui la fa a Operacions">
@@ -140,6 +157,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
 import { formatMoney } from "@/helpers/format-number";
+import { formatSlot } from "@/domain/cityRoutes.js";
 import {
   WEEKDAYS,
   TRANSFER_DATE_OPTIONS,
@@ -216,6 +234,7 @@ export default {
   },
   methods: {
     routeDaysShort,
+    formatSlot,
     async getData() {
       this.routes = await service({ requiresAuth: true, cached: false })
         .get("routes?_sort=order&_limit=-1")

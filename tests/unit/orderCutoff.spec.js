@@ -24,19 +24,23 @@ const at = (day, hour) => {
 }
 const MWF = { monday: true, wednesday: true, friday: true }
 
-describe('next route day after the cutoff (issues/150)', () => {
-  it('takes the next route day of the same week', () => {
+// issues/315: past the cutoff the order is no longer moved to a later route
+// day (issues/150 moved it in the same week, or to next week): it stays for
+// tomorrow, late, and the warning gives the configured hour
+describe('tomorrow after the cutoff (issues/150, 315)', () => {
+  it('stays for tomorrow, late', () => {
     at('2026-10-06', '15:00') // Tuesday afternoon, tomorrow (Wednesday) is past the cutoff
-    const { nextDay, warning } = assignRouteDate(MWF)
-    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-09') // Friday, not next Monday
+    const { nextDay, warning, late } = assignRouteDate(MWF)
+    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-07')
+    expect(late).toBe(true)
     expect(warning).toContain('14 h')
     expect(warning).not.toContain('setmana vinent')
   })
 
-  it('still goes to next week when the route has no later day this week', () => {
+  it('gives the configured hour', () => {
     at('2026-10-08', '15:00') // Thursday afternoon, route on Friday only
     const { nextDay, warning } = assignRouteDate({ friday: true }, { nextDayLimitHour: 13 })
-    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-16')
+    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-09')
     expect(warning).toContain('13 h')
   })
 

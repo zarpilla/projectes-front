@@ -69,15 +69,19 @@ describe('assignRouteDate', () => {
     }
     expect(results).toEqual({
       '11:59': '2026-10-08 (day 4) ',
-      '12:00': '2026-10-15 (day 4) TOMORROW'
+      '12:00': '2026-10-08 (day 4) TOMORROW'
     })
   })
 
-  it('moves an order for tomorrow past the cutoff to the next week (Sunday-based week, as dayjs)', () => {
+  // it moved to next week's day (issues/150); since issues/315 the order stays
+  // for tomorrow, late, with a warning
+  it('keeps tomorrow past the cutoff as a late order', () => {
     at('2026-10-07', '15:00') // Wednesday after 14:00, route on Thursday
-    const { nextDay, warning } = assignRouteDate(ROUTES.thursday)
-    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-15')
+    const { nextDay, warning, late } = assignRouteDate(ROUTES.thursday)
+    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-08')
+    expect(late).toBe(true)
     expect(warningCode(warning)).toBe('TOMORROW')
+    expect(warning).toContain('express')
   })
 
   it('lets admins keep tomorrow after the cutoff', () => {

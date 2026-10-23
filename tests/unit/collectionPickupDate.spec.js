@@ -52,9 +52,10 @@ describe('collection date of the order form (issues/156)', () => {
     expect(await run(vmFor({ id: 4, sunday: true }))).toBe('2026-10-18')
   })
 
+  // since issues/315 tomorrow is kept past the cutoff (a late pickup), as the delivery date
   it('follows the next-day cutoff, as the delivery date', async () => {
     at('2026-10-14T15:00:00') // Wednesday afternoon, tomorrow is past the cutoff
-    expect(await run(vmFor(monThu))).toBe('2026-10-19')
+    expect(await run(vmFor(monThu))).toBe('2026-10-15')
     expect(await run(vmFor(monThu, { permissions: ['orders_admin'] }))).toBe('2026-10-15')
   })
 

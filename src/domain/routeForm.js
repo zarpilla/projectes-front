@@ -22,6 +22,8 @@ export const TRANSFER_DATE_OPTIONS = [
   { value: 'only_previous_days', label: "Només els dies abans de l'entrega" }
 ]
 
+import { timeInput, timeValue, slotError } from './cityRoutes.js'
+
 const TRANSFER_DATES = TRANSFER_DATE_OPTIONS.map(o => o.value)
 
 const idOf = value => (value && typeof value === 'object' ? value.id : value) || null
@@ -46,7 +48,10 @@ export function routeToForm (route, routes = []) {
     is_transfer_route_date: r.is_transfer_route_date || null,
     delivery_user: idOf(r.delivery_user),
     volume_discount_number_of_orders: r.volume_discount_number_of_orders ?? null,
-    volume_discount_price: r.volume_discount_price ?? null
+    volume_discount_price: r.volume_discount_price ?? null,
+    // the usual time slot (issues/314), as HH:mm for the time inputs
+    time_from: timeInput(r.time_from),
+    time_to: timeInput(r.time_to)
   }
   for (const d of WEEKDAYS) form[d.key] = Boolean(r[d.key])
   return form
@@ -71,6 +76,8 @@ export function validateRoute (form, routes = []) {
     errors.volume_discount = 'Cal el nombre de comandes i el descompte, o cap dels dos'
   }
   if (form.is_transfer_route && !form.transfer_pickup) errors.transfer_pickup = 'Tria on van les transferències'
+  const slot = slotError(form.time_from, form.time_to)
+  if (slot) errors.time_slot = slot
   return errors
 }
 
@@ -92,7 +99,9 @@ export function routePayload (form) {
     is_transfer_route_date: TRANSFER_DATES.includes(form.is_transfer_route_date) ? form.is_transfer_route_date : null,
     delivery_user: idOf(form.delivery_user),
     volume_discount_number_of_orders: numberOrNull(form.volume_discount_number_of_orders),
-    volume_discount_price: numberOrNull(form.volume_discount_price)
+    volume_discount_price: numberOrNull(form.volume_discount_price),
+    time_from: timeValue(form.time_from),
+    time_to: timeValue(form.time_from) ? timeValue(form.time_to) : null
   }
   for (const d of WEEKDAYS) data[d.key] = Boolean(form[d.key])
   return data

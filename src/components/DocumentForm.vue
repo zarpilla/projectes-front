@@ -154,7 +154,7 @@
       </template>
       <template v-if="form.id">
         <!-- payrolls: the PDF prints like an invoice, hidden for now -->
-        <b-button v-if="type !== 'payrolls'" icon-left="file-pdf-box" @click="getPDF">PDF</b-button>
+        <b-button v-if="type !== 'payrolls'" icon-left="file-pdf-box" :loading="pdfLoading" @click="getPDF">PDF</b-button>
         <b-button
           v-if="entity === 'emitted-invoice' && form.state === 'real'"
           icon-left="content-copy"
@@ -332,6 +332,7 @@
               <b-button
                 v-if="form.id && type !== 'payrolls'"
                 class="view-button is-primary ml-3"
+                :loading="pdfLoading"
                 @click="getPDF"
                 size="is-small"
                 title="Visualitzar PDF"
@@ -470,6 +471,16 @@
                   {{ s.name }}
                 </option>
               </b-select>
+            </b-field>
+
+            <!-- the concept printed on the PDF; only issued invoices have it (issues/312) -->
+            <b-field v-if="type === 'emitted-invoices'" label="Concepte a la factura" horizontal>
+              <b-input
+                placeholder="Surt al PDF de la factura"
+                v-model="form.concept"
+                :disabled="emittedInvoiceEditDisabled"
+              >
+              </b-input>
             </b-field>
 
             <!-- payrolls have no concept, attachments or internal notes -->
@@ -1125,6 +1136,7 @@ export default {
       quotes: null,
       products: [],
       pdf: false,
+      pdfLoading: false,
       contact: null,
       isModalActive: false,
       isDietModalActive: false,
@@ -1573,33 +1585,44 @@ export default {
       });
     },
     async getData() {
+      // The document, /users/me and /me go out at once, with the lists right
+      // after: one after another they took ~17 s on ladili_test (issues/317).
+      const existing = this.$route.params.id && this.$route.params.id > 0;
+      const documentRequest = existing
+        ? service({ requiresAuth: true }).get(`${this.type}/${this.$route.params.id}`)
+        : null;
+      // handled below, once the lists are here; don't report it as unhandled meanwhile
+      if (documentRequest) documentRequest.catch(() => {});
+      const [userMe, me] = await Promise.allSettled([
+        service({ requiresAuth: true }).get("/users/me"),
+        service({ requiresAuth: true }).get("me")
+      ]);
       // A failed /users/me or /me (e.g. a 403) left the form blank: the
       // document wasn't loaded at all (issues/063). Fall back to the session
       // and keep going.
-      try {
-        this.user = (await service({ requiresAuth: true }).get("/users/me")).data;
-      } catch (error) {
+      if (userMe.status === "fulfilled") {
+        this.user = userMe.value.data;
+      } else {
         this.user = useMainStore().user || JSON.parse(localStorage.getItem("user") || "null") || {};
         this.warnSettingsMissing();
       }
-      try {
-        const me = await service({ requiresAuth: true }).get("me");
-        this.options = me.data;
+      if (me.status === "fulfilled") {
+        this.options = me.value.data;
         useMainStore().setMe({
-          me: me.data
+          me: me.value.data
         });
-      } catch (error) {
+      } else {
         this.options = useMainStore().me || {};
         this.warnSettingsMissing();
       }
 
       this.isLoading = true;
 
+      // the lines need the products of the lists
       await this.getAuxiliarData();
 
-      if (this.$route.params.id && this.$route.params.id > 0) {
-        service({ requiresAuth: true })
-          .get(`${this.type}/${this.$route.params.id}`)
+      if (existing) {
+        await documentRequest
           .then(async r => {
             if (r.data && r.data.id) {
               this.isProfileExists = true;
@@ -1677,20 +1700,20 @@ export default {
               }
 
               if (this.form.projects) {
-                for await (const project of this.form.projects) {
-                  if (project.id) {
+                // every project's phases at once (issues/317)
+                await Promise.all(
+                  this.form.projects.filter(project => project.id).map(async project => {
                     const p = (
                       await service({ requiresAuth: true }).get(
                         `projects/${project.id}/phases`
                       )
                     ).data;
-                    project.project_phases = p.project_phases;
-                    project.project_phases = project.project_phases.map(pp => {
+                    project.project_phases = p.project_phases.map(pp => {
                       pp.show = false;
                       return pp;
                     });
-                  }
-                }
+                  })
+                );
                 this.form.projects = this.form.projects.map(p => {
                   const { activities, ...item } = p;
                   return item;
@@ -2876,14 +2899,24 @@ export default {
       ).toFixed(2);
       this.form.total = payrollTotal(this.form.total_base, this.form.ss_base);
     },
+    // it takes a few seconds: the buttons spin meanwhile, a second click
+    // doesn't ask it again, and a failure says so
     async getPDF() {
-      const pdf = (
-        await service({ requiresAuth: true }).get(
-          `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
-        )
-      ).data;
-      this.pdf = true;
-      window.open(this.apiUrl + pdf.url);
+      if (this.pdfLoading) return;
+      this.pdfLoading = true;
+      try {
+        const pdf = (
+          await service({ requiresAuth: true }).get(
+            `/emitted-invoices/pdf/${this.entity}/${this.form.id}`
+          )
+        ).data;
+        this.pdf = true;
+        window.open(this.apiUrl + pdf.url);
+      } catch (error) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut generar el PDF", type: "is-danger", queue: false });
+      } finally {
+        this.pdfLoading = false;
+      }
     },
     async sendInvoiceByEmail() {
       this.isLoading = true;

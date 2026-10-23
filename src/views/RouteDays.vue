@@ -81,7 +81,9 @@
               <li v-for="town in lookupResults" :key="town.id">
                 <b>{{ town.name }}</b>
                 <div class="route-chips">
-                  <span v-for="r in index.routesByTown.get(town.id) || []" :key="r.id" class="route-chip" :title="routeDaysText(r)">{{ r.short_name || r.name }}</span>
+                  <span v-for="r in index.routesByTown.get(town.id) || []" :key="r.id" class="route-chip" :title="routeDaysText(r)">
+                    {{ r.short_name || r.name }}<template v-if="slotText(town, r)"> · {{ slotText(town, r) }}</template>
+                  </span>
                   <span v-if="!(index.routesByTown.get(town.id) || []).length" class="no-route">Cap ruta hi passa</span>
                 </div>
               </li>
@@ -104,7 +106,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
 import { formatMoney } from "@/helpers/format-number";
-import { indexLinks, groupByWeekday, routeDays, searchTowns } from "@/domain/cityRoutes.js";
+import { indexLinks, groupByWeekday, routeDays, searchTowns, slotOf } from "@/domain/cityRoutes.js";
 import { weekStart, weeksFrom, routeDatesInWeek, dayCell, countOrders, openOnHolidays } from "@/domain/routeDays.js";
 
 const WEEKS = 4;
@@ -190,6 +192,10 @@ export default {
     this.isLoading = false;
   },
   methods: {
+    // when we pass by the town on that route (issues/314)
+    slotText(town, route) {
+      return slotOf(this.index.linkOf(town.id, route.id), route).text;
+    },
     async getData() {
       const range = `_where[date_gte]=${this.from}&_where[date_lte]=${this.to}&_limit=-1`;
       const [closures, festives, orders] = await Promise.all([

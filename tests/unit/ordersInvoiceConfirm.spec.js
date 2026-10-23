@@ -7,7 +7,7 @@ import Buefy from 'buefy'
 
 const post = vi.fn(async () => ({ data: {} }))
 const get = vi.fn(async url => {
-  if (url.startsWith('orders?')) {
+  if (url.startsWith('orders/for-invoicing')) {
     return {
       data: [
         { id: 1, owner: { id: 7, fullname: 'Mas Alba' }, estimated_delivery_date: '2026-09-10', price: 10, units: 1, kilograms: 1 },
