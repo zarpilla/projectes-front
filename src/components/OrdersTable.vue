@@ -1484,7 +1484,7 @@ export default {
 
       this.total = (
         await service({ requiresAuth: true }).get(
-          `orders/count?${this.userFilter}&${where.join("&")}`
+          `orders/table/count?${this.userFilter}&${where.join("&")}`
         )
       ).data;
 
@@ -2678,19 +2678,21 @@ export default {
       // Helper function to get nested property value
       return path.split('.').reduce((current, prop) => current?.[prop], obj);
     },
+    // the numbers of the status tabs, in one request (issues/319, 324)
     async loadStatusCounts(baseWhere) {
-      const count = extra =>
-        service({ requiresAuth: true })
-          .get(`orders/count?${this.userFilter}&${[...baseWhere, ...extra].join("&")}`)
-          .then(r => r.data)
-          .catch(() => null);
-      const ids = ["pending", "processed", "delivered", "invoiced", "cancelled"];
-      const [all, ...byStatus] = await Promise.all([
-        count([]),
-        ...ids.map(id => count([`_where[status]=${id}`]))
-      ]);
-      const counts = { all };
-      ids.forEach((id, i) => { counts[id] = byStatus[i]; });
+      const ids = ["all", "pending", "processed", "delivered", "invoiced", "cancelled"];
+      let data = {};
+      try {
+        data = (
+          await service({ requiresAuth: true }).get(
+            `orders/table/status-counts?${this.userFilter}&${baseWhere.join("&")}`
+          )
+        ).data || {};
+      } catch (e) {
+        // the tabs show no number
+      }
+      const counts = {};
+      ids.forEach(id => { counts[id] = typeof data[id] === "number" ? data[id] : null; });
       this.statusCounts = counts;
     },
     refresh() {

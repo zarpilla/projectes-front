@@ -360,14 +360,14 @@ export default {
 
         // Count pending
         const pendingQuery = `${baseQuery}&_where[deposit_date_null]=true`;
-        const pendingResponse = await service({ requiresAuth: true }).get(`orders/count?${pendingQuery}`);
+        const pendingResponse = await service({ requiresAuth: true }).get(`orders/table/count?${pendingQuery}`);
         this.pendingCount = pendingResponse.data;
 
         // Count deposited today
         const today = moment().startOf('day').toISOString();
         const tomorrow = moment().add(1, 'day').startOf('day').toISOString();
         const todayQuery = `${baseQuery}&_where[deposit_date_gte]=${encodeURIComponent(today)}&_where[deposit_date_lt]=${encodeURIComponent(tomorrow)}`;
-        const todayResponse = await service({ requiresAuth: true }).get(`orders/count?${todayQuery}`);
+        const todayResponse = await service({ requiresAuth: true }).get(`orders/table/count?${todayQuery}`);
         this.todayCount = todayResponse.data;
       } catch (error) {
         console.error("Error loading status counts:", error);
