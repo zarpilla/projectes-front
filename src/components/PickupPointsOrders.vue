@@ -105,6 +105,7 @@
 <script>
 import service from "@/service/index";
 import { contactName } from "@/domain/orderContacts";
+import { PICKUP_POINT_RELATIONS, populateQuery } from "@/domain/orderPopulate";
 import { formatNumber } from "@/helpers/format-number";
 
 export default {
@@ -175,7 +176,7 @@ export default {
           permissions.includes("orders")
         ) {
           const response = await service({ requiresAuth: true }).get(
-            `orders?_where[pickup_point]=true&_where[status_ne]=invoiced&_where[status_ne]=cancelled&_where[owner]=${me.data.id}&_sort=estimated_delivery_date:ASC,id:ASC&_limit=-1`
+            `orders?_where[pickup_point]=true&_where[status_ne]=invoiced&_where[status_ne]=cancelled&_where[owner]=${me.data.id}&_sort=estimated_delivery_date:ASC,id:ASC&_limit=-1&${populateQuery(PICKUP_POINT_RELATIONS)}`
           );
           this.ordersData = response.data;
 
@@ -187,7 +188,7 @@ export default {
           if (contacts.data.length > 0) {
             for (const contact of contacts.data) {
               const response2 = await service({ requiresAuth: true }).get(
-                `orders?_where[pickup_point]=true&_where[status_ne]=invoiced&_where[status_ne]=cancelled&_where[contact]=${contact.id}&_sort=estimated_delivery_date:ASC,id:ASC&_limit=-1`
+                `orders?_where[pickup_point]=true&_where[status_ne]=invoiced&_where[status_ne]=cancelled&_where[contact]=${contact.id}&_sort=estimated_delivery_date:ASC,id:ASC&_limit=-1&${populateQuery(PICKUP_POINT_RELATIONS)}`
               );
               this.ordersData.push(...response2.data);
               // push if id not exists
@@ -201,7 +202,7 @@ export default {
           }
         } else {
           const response = await service({ requiresAuth: true }).get(
-            "orders?_where[pickup_point]=true&_where[status_ne]=invoiced&_where[status_ne]=cancelled&_sort=estimated_delivery_date:ASC,id:ASC&_limit=-1"
+            `orders?_where[pickup_point]=true&_where[status_ne]=invoiced&_where[status_ne]=cancelled&_sort=estimated_delivery_date:ASC,id:ASC&_limit=-1&${populateQuery(PICKUP_POINT_RELATIONS)}`
           );
           this.ordersData = response.data;
         }

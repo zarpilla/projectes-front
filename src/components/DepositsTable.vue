@@ -213,6 +213,7 @@ import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
 import QRScannerModal from "@/components/QRScannerModal.vue";
 import { canDeposit, orderStatusLabel } from "@/domain/orderStatus";
+import { DEPOSITS_RELATIONS, populateQuery } from "@/domain/orderPopulate";
 import TitleBar from "@/components/TitleBar.vue";
 
 export default {
@@ -301,7 +302,7 @@ export default {
           queryParts.push(`_where[deposit_date_lt]=${encodeURIComponent(tomorrow)}`);
         }
 
-        const queryString = queryParts.join('&');
+        const queryString = [...queryParts, populateQuery(DEPOSITS_RELATIONS)].join('&');
         const response = await service({ requiresAuth: true }).get(`orders?${queryString}`);
         let orders = response.data;
         

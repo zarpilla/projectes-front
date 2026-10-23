@@ -583,6 +583,7 @@ import OrderHistory from "@/components/OrderHistory.vue";
 import getConfig from "@/config";
 import { formatMoney, formatNumber } from "@/helpers/format-number";
 import { contactName, contactLabel, matchesContact } from "@/domain/orderContacts";
+import { RATE_ORDERS_RELATIONS, populateQuery } from "@/domain/orderPopulate";
 import { depositNotice } from "@/domain/depositNotice";
 import { slotOf } from "@/domain/cityRoutes.js";
 import { isAfternoonSlot, lateRules, lateSurchargeOf, lateWarnings } from "@/domain/lateOrders.js";
@@ -1266,7 +1267,7 @@ export default {
 
               this.orders = (
                 await service({ requiresAuth: true }).get(
-                  `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
+                  `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}&${populateQuery(RATE_ORDERS_RELATIONS)}`
                 )
               ).data;
 
@@ -1450,7 +1451,7 @@ export default {
       if (this.form.owner && this.form.route && !this.form.is_collection_order) {
         this.orders = (
           await service({ requiresAuth: true }).get(
-            `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}`
+            `orders?_limit=-1&_where[status]=pending&_where[route]=${this.form.route}&_where[owner]=${this.form.owner}&${populateQuery(RATE_ORDERS_RELATIONS)}`
           )
         ).data;
       }

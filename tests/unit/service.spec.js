@@ -99,8 +99,18 @@ describe('responses', () => {
   it('emulates <type>/count with a one-row read and returns the total', async () => {
     mock.onGet(/.*/).reply(200, { data: [{ id: 1 }], meta: { pagination: { total: 42 } } })
     const r = await service({ requiresAuth: true }).get('projects/count?_where[x]=1&_limit=-1')
-    expect(mock.history.get[0].url).toBe('api/projects?_where[x]=1&_start=0&_limit=1')
+    expect(mock.history.get[0].url).toBe('api/projects?_where[x]=1&_start=0&_limit=1&populate=')
     expect(r.data).toBe(42)
+  })
+
+  // issues/319: the count reads no relation (the backend's default is populate=*)
+  it('counts with no populate, unless the caller asked for one', async () => {
+    mock.onGet(/.*/).reply(200, { data: [], meta: { pagination: { total: 3 } } })
+    await service({ requiresAuth: true }).get('incidences/count', { params: { '_where[state]': 'open' } })
+    await service({ requiresAuth: true }).get('incidences/count?populate[0]=order')
+    expect(mock.history.get[0].url).toBe('api/incidences?_start=0&_limit=1&populate=')
+    expect(mock.history.get[0].params).toEqual({ '_where[state]': 'open' })
+    expect(mock.history.get[1].url).toBe('api/incidences?populate[0]=order&_start=0&_limit=1')
   })
 
   it('serves cached calls from memory after the first response', async () => {
