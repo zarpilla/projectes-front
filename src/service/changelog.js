@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Logística"],
+      text: ["La llista de ", { to: "/orders", label: "Comandes" }, " carrega més de pressa: els números de les pestanyes d'estat arriben en una sola consulta lleugera en lloc de set, que alentien tota l'aplicació. Amb el filtre de «Preu», les pestanyes ara compten només les comandes d'aquest preu. També carreguen més lleugeres ", { to: "/order-operations", label: "Operacions" }, ", ", { to: "/deposits", label: "Dipòsits" }, ", ", { to: "/pickup-points", label: "Punts de consum" }, ", els comptadors d'", { to: "/incidences", label: "Incidències" }, " i el formulari de comanda."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
       text: ["A la llista de ", { to: "/orders", label: "Comandes" }, ", la columna «Senyals» mostra si la comanda té incidències (en vermell mentre n'hi ha alguna d'oberta) i el seu filtre tria qualsevol senyal: incidència, express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla o fràgil. «Última milla» ja no és una pestanya d'estat, la columna «Lliurada» ja no hi és, i en seleccionar comandes es veuen les caixes i els kg de la selecció."]
     }
   ]

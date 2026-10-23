@@ -164,6 +164,7 @@ import ModalBoxIncidence from "@/components/ModalBoxIncidence.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import { formatNumber } from "@/helpers/format-number";
 import { plural } from "@/helpers/catalan";
+import { OPERATIONS_RELATIONS, populateParams } from "@/domain/orderPopulate";
 import { operationsQueries, operationStatuses, isOperationDone, incidencePrefill, mergeOrders, orderOperations } from "@/domain/orderOperations";
 
 const relId = value => (value && typeof value === "object" ? value.id : value);
@@ -342,7 +343,7 @@ export default {
         const date = this.selectedDate ? moment(this.selectedDate).format("YYYY-MM-DD") : null;
         const answers = await Promise.all(
           operationsQueries({ routeIds, statuses: operationStatuses(date), date }).map(params =>
-            service({ requiresAuth: true }).get("orders", { params })
+            service({ requiresAuth: true }).get("orders", { params: { ...params, ...populateParams(OPERATIONS_RELATIONS) } })
           )
         );
         let allOrders = mergeOrders(...answers.map(r => r.data || []));

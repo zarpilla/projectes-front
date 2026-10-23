@@ -24,7 +24,7 @@ const api = {
   get: vi.fn(async url => {
     if (url.startsWith('users/me')) return { data: { id: 5, permissions: [{ permission: 'orders_admin' }] } }
     if (url.startsWith('pickups')) return { data: [GIRONA, FINCA] }
-    if (url.startsWith('orders/count')) return { data: 170 }
+    if (url.startsWith('orders/table/count')) return { data: 170 }
     if (url.startsWith('orders?')) {
       const limit = Number((url.match(/_limit=(-?\d+)/) || [])[1] ?? 100)
       const start = Number((url.match(/_start=(\d+)/) || [])[1] ?? 0)

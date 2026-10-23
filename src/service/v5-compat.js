@@ -77,6 +77,9 @@ export function mapRequest (method, url) {
     segments.pop()
     query = stripParams(query, ['_limit', '_start'])
     query = appendParams(query, '_start=0&_limit=1')
+    // only the total is read: without a populate the backend gives the row
+    // every relation (populate=*), which made each count slow (issues/319)
+    if (!/(^|&)populate(\[|=)/.test(query)) query = appendParams(query, 'populate=')
   }
 
   const wrapBody = !flat && (

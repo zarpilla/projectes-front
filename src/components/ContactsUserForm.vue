@@ -714,7 +714,7 @@ export default {
       if (!memberMayEdit(contact, this.me.id)) {
         try {
           orders = (await service({ requiresAuth: true }).get(
-            `orders/count?_where[owner]=${this.me.id}&_where[contact]=${contact.id}`
+            `orders/table/count?_where[owner]=${this.me.id}&_where[contact]=${contact.id}`
           )).data;
         } catch (e) {
           orders = 0;

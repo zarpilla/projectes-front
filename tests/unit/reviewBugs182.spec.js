@@ -42,7 +42,7 @@ describe('delivery point form (issues/182)', () => {
     get.mockResolvedValue({ data: 0 })
     const vm = { permissions: ['orders'], me: { id: 5 }, readOnly: false }
     await ContactsUserForm.methods.checkReadOnly.call(vm, { id: 9, owner: 7 })
-    expect(get).toHaveBeenCalledWith('orders/count?_where[owner]=5&_where[contact]=9')
+    expect(get).toHaveBeenCalledWith('orders/table/count?_where[owner]=5&_where[contact]=9')
     expect(vm.readOnly).toBe(true)
 
     const office = { permissions: ['orders_admin'], me: { id: 1 }, readOnly: false }
