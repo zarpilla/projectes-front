@@ -9,7 +9,8 @@ const get = vi.fn(async () => ({ data: [] }))
 vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
 
 const calls = () => get.mock.calls.map(c => c[0]).filter(u => !/assigned\?/.test(u))
-const path = u => u.split('?')[0]
+// Despeses reads `<type>/list` (issues/325): the kind is the path without it
+const path = u => u.split('?')[0].replace(/\/list$/, '')
 const run = (component, serial, documentType = 0) => component.methods.getData.call({
   year: 2026, month: null, quarter: null, contact: null, project: null, paid: null,
   serial, code: null, state: 0, documentType,

@@ -9,7 +9,8 @@ import ReceivedInvoicesTable from '@/components/ReceivedInvoicesTable.vue'
 const get = vi.fn(async () => ({ data: [] }))
 vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
 
-const requested = () => get.mock.calls.map(c => c[0].split('?')[0])
+// Despeses reads `<type>/list` (issues/325): the kind is the path without it
+const requested = () => get.mock.calls.map(c => c[0].split('?')[0].replace(/\/list$/, ''))
   .filter(u => !/assigned$/.test(u))
 const run = (component, serial) => component.methods.getData.call({
   year: 2026, month: null, quarter: null, contact: null, project: null, paid: null,
