@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.23",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["A la llista de ", { to: "/orders", label: "Comandes" }, ", la columna «Senyals» mostra si la comanda té incidències (en vermell mentre n'hi ha alguna d'oberta) i el seu filtre tria qualsevol senyal: incidència, express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla o fràgil. «Última milla» ja no és una pestanya d'estat, la columna «Lliurada» ja no hi és, i en seleccionar comandes es veuen les caixes i els kg de la selecció."]
+    }
+  ]
+},
+{
   date: "2026.10.22",
   items: [
     {

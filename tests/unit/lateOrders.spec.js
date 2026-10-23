@@ -152,12 +152,26 @@ describe('the orders list', () => {
   })
 
   // the user (2026-10-22): «Entrega» repeats the snowflake of «Senyals»
-  it('has no «Entrega» column: its filter and quick edit are in «Senyals»', () => {
-    const cols = OrdersTable.computed.columns.call({ deliveryTypes: [{ name: 'Normal' }, { name: 'Refrigerada' }], pickups: [] })
+  it('has no «Entrega» nor «Lliurada» column: «Senyals» edits the type and filters by every signal', () => {
+    const signalLegend = OrdersTable.computed.signalLegend.call({})
+    const cols = OrdersTable.computed.columns.call({ deliveryTypes: [{ name: 'Normal' }, { name: 'Refrigerada' }], pickups: [], signalLegend })
     expect(cols.map(c => c.key)).not.toContain('delivery_type.name')
+    expect(cols.map(c => c.key)).not.toContain('delivery_date')
     const signals = cols.find(c => c.key === 'signals')
-    expect(signals).toMatchObject({ edit: 'delivery_type', filterKey: 'delivery_type.name' })
-    expect(signals.options().map(o => o.value)).toEqual(['Normal', 'Refrigerada'])
+    expect(signals).toMatchObject({ edit: 'delivery_type', filterKey: 'signal' })
+    expect(signals.options().map(o => o.value)).toEqual(signalLegend.map(sg => sg.key))
+    expect(signals.options().map(o => o.value)).toEqual(expect.arrayContaining(['incidence', 'last-mile', 'cold']))
+  })
+
+  it('shows an incidence: red while open, plain once closed', () => {
+    const open = OrdersTable.methods.signalsOf.call({ isFutureWeek: () => false }, { incidences: [{ id: 1, state: 'open' }, { id: 2, state: 'closed' }] })
+    expect(open[0]).toMatchObject({ key: 'incidence', kind: 'is-alert', label: '1 incidència oberta' })
+    const closed = OrdersTable.methods.signalsOf.call({ isFutureWeek: () => false }, { incidences: [{ id: 2, state: 'closed' }] })
+    expect(closed[0]).toMatchObject({ key: 'incidence', kind: 'is-info', label: 'Incidència tancada' })
+  })
+
+  it('has no «Última milla» status tab: it is a signal', () => {
+    expect(OrdersTable.computed.statusTabs.call({}).map(s => s.id)).not.toContain('lastmile')
   })
 
   it('paints only the alerts (late order or pickup)', () => {
