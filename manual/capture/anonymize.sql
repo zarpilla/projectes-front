@@ -266,22 +266,30 @@ UPDATE activity_types a
   JOIN generic_names g ON g.tbl = 'fake_activity' AND g.n = 1 + MOD(x.n - 1, 11)
   SET a.name = g.name;
 
--- stored project totals (money only; *_hours without "price" are hours)
+-- project money fields (grants, invoiced hours)
 UPDATE projects SET
-  balance = balance * @f, estimated_balance = estimated_balance * @f,
-  estimated_incomes_expenses = estimated_incomes_expenses * @f, incomes_expenses = incomes_expenses * @f,
-  original_incomes_expenses = original_incomes_expenses * @f, invoice_hours_price = invoice_hours_price * @f,
+  invoice_hours_price = invoice_hours_price * @f,
   grantable_amount = grantable_amount * @f, grantable_amount_total = grantable_amount_total * @f,
   grantable_cofinancing = grantable_cofinancing * @f, grantable_structural_expenses = grantable_structural_expenses * @f,
-  grantable_structural_expenses_justify_invoices = grantable_structural_expenses_justify_invoices * @f,
-  total_estimated_expenses = total_estimated_expenses * @f, total_estimated_expenses_vat = total_estimated_expenses_vat * @f,
-  total_estimated_hours_price = total_estimated_hours_price * @f, total_estimated_incomes = total_estimated_incomes * @f,
-  total_expenses = total_expenses * @f, total_expenses_vat = total_expenses_vat * @f, total_incomes = total_incomes * @f,
-  total_original_expenses = total_original_expenses * @f, total_original_expenses_vat = total_original_expenses_vat * @f,
-  total_original_hours_price = total_original_hours_price * @f, total_original_incomes = total_original_incomes * @f,
-  total_real_expenses = total_real_expenses * @f, total_real_expenses_vat = total_real_expenses_vat * @f,
-  total_real_hours_price = total_real_hours_price * @f, total_real_incomes = total_real_incomes * @f,
-  total_real_incomes_expenses = total_real_incomes_expenses * @f;
+  grantable_structural_expenses_justify_invoices = grantable_structural_expenses_justify_invoices * @f;
+
+-- stored project totals (money only; *_hours without "price" are hours). Since
+-- issues/328 they live in project_totals; dumps from before keep them in
+-- projects, and those columns stay there (unused) until a later release drops
+-- them: scale whichever exists.
+SET @totals_sql = 'balance = balance * @f, estimated_balance = estimated_balance * @f, estimated_incomes_expenses = estimated_incomes_expenses * @f, incomes_expenses = incomes_expenses * @f, original_incomes_expenses = original_incomes_expenses * @f, total_estimated_expenses = total_estimated_expenses * @f, total_estimated_expenses_vat = total_estimated_expenses_vat * @f, total_estimated_hours_price = total_estimated_hours_price * @f, total_estimated_incomes = total_estimated_incomes * @f, total_expenses = total_expenses * @f, total_expenses_vat = total_expenses_vat * @f, total_incomes = total_incomes * @f, total_original_expenses = total_original_expenses * @f, total_original_expenses_vat = total_original_expenses_vat * @f, total_original_hours_price = total_original_hours_price * @f, total_original_incomes = total_original_incomes * @f, total_real_expenses = total_real_expenses * @f, total_real_expenses_vat = total_real_expenses_vat * @f, total_real_hours_price = total_real_hours_price * @f, total_real_incomes = total_real_incomes * @f, total_real_incomes_expenses = total_real_incomes_expenses * @f';
+SET @has_totals_table = (SELECT COUNT(*) FROM information_schema.TABLES
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'project_totals');
+SET @has_old_columns = (SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'projects' AND COLUMN_NAME = 'balance');
+SET @q = IF(@has_totals_table > 0, CONCAT('UPDATE project_totals SET ', @totals_sql), 'DO 0');
+PREPARE scale_totals FROM @q;
+EXECUTE scale_totals;
+DEALLOCATE PREPARE scale_totals;
+SET @q = IF(@has_old_columns > 0, CONCAT('UPDATE projects SET ', @totals_sql), 'DO 0');
+PREPARE scale_old_totals FROM @q;
+EXECUTE scale_old_totals;
+DEALLOCATE PREPARE scale_old_totals;
 
 -- ── hours ──────────────────────────────────────────────────────────────────
 UPDATE activities SET description = IF(description IS NULL OR description = '', description, fake_activity(id)),
