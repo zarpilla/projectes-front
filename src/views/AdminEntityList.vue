@@ -61,7 +61,7 @@ export default {
   methods: {
     async loadMetadata() {
       try {
-        const response = await service({ requiresAuth: true }).get('/entity-metadata/admin-entities');
+        const response = await service({ requiresAuth: true, cached: true }).get('/entity-metadata/admin-entities');
         const { entities } = response.data;
         this.metadata = entities.find(m => m.name === this.entityName);
       } catch (error) {

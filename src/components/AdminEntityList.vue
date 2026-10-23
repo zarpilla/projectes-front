@@ -210,7 +210,7 @@ export default {
     async loadMetadata() {
       try {
         this.isLoading = true;
-        const response = await service({ requiresAuth: true }).get('/entity-metadata/admin-entities');
+        const response = await service({ requiresAuth: true, cached: true }).get('/entity-metadata/admin-entities');
         const { entities, entityToApiPath } = response.data;
         this.entityToApiPath = entityToApiPath || {};
         // Strapi 5 relations read as the Strapi 3 model / collection (service/adminMetadata)
