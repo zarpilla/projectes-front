@@ -283,7 +283,8 @@ export default {
         // only what Facturar reads: populate=* took 8–10 s on the VPS and held up
         // the invoice opened next (issues/317)
         service({ requiresAuth: true }).get("orders/for-invoicing").then(r => r.data),
-        service({ requiresAuth: true, cached: true }).get("contacts?_limit=-1&_sort=name:ASC&_where[users_permissions_user_gt]=0").then(r => r.data),
+        // the members' contacts, narrow (id, name and the user are read; issues/326)
+        service({ requiresAuth: true, cached: true }).get("contacts/basic?_limit=-1&_sort=name:ASC&_where[users_permissions_user_gt]=0").then(r => r.data),
         service({ requiresAuth: true, cached: true }).get("projects/basic?_limit=-1&_sort=name:ASC").then(r => r.data)
       ]);
       this.orders = orders;
