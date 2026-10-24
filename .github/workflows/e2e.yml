@@ -9,8 +9,8 @@ name: End-to-end tests (Playwright)
 # report and the failure screenshots uploaded below hold no real data.
 #
 # It runs every night against the latest backend image (esstrapis-back:v5) and the
-# front on master, so a change on either side is caught the next morning, and on
-# pull requests. It does not gate the deploy in master.yml.
+# front on main, so a change on either side is caught the next morning, and on
+# pull requests. It does not gate the deploy in main.yml.
 
 on:
   schedule:
@@ -18,7 +18,7 @@ on:
     - cron: '30 3 * * *'
   pull_request:
     branches:
-      - master
+      - main
     paths-ignore:
       - 'deploy/**'
       - 'docs/**'
