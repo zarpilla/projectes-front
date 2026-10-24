@@ -229,13 +229,9 @@ test('project page: «Resum financer» by fiscal year', async () => {
   expect(await summary(fy(D))).toEqual({ periods: ['Total', fy(D - 1), fy(D)], incomes: [300, 300], hours: 3 })
 })
 
-// KNOWN BUG (issues/341): projectStatsRow gives «Any inici» as «2026/27» (projectStartYearLabel),
-// but the pivot's schema types it as a number (src/service/configStatsProject.js,
-// fields.project_year type 'number'), so Kendo parses it to 2026: Informes ›
-// Projectes shows «2026» for a fiscal year. Previsió dedicació and Ingressos i
-// despeses type it as a string.
+// the pivot typed «Any inici» as a number, so Kendo turned «2026/27» into 2026
+// (issues/341)
 test('Informes › Projectes: «Any inici» is the fiscal year «2026/27»', async () => {
-  test.fail()
   test.skip(!state.projectId, 'needs the project')
   // 15/08/D is in fiscal year D-1
   await visit('/stats-projectes')
