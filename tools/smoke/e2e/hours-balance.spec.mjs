@@ -248,13 +248,11 @@ test('an admin adds a holiday for everyone, shown for every person', async () =>
   expect(festive.festive_type?.name).toBe('Festiu Estatal')
 })
 
-// KNOWN BUG (issues/336): once «Entrada festiu» is closed without saving (Cancel·la, Escape or a
-// click outside), the next time it opens, changing «Data» closes it (the modal leaves
-// the DOM), and a click on its date input throws "Cannot read properties of null
-// (reading 'isActive')" in Buefy's datepicker onInputClick. After a save it works.
-// ModalBoxFestive.vue (b-modal v-model + the isActive watcher), cf. issues/047.
+// issues/336: «Entrada festiu» closed without saving and opened again at once was
+// emptied a moment later (the modal left the DOM, its datepicker threw on a click):
+// Buefy's afterLeave destroyed the reopened modal. Fixed for every b-modal in
+// src/helpers/buefyModal.js.
 test('«Entrada festiu» still works after closing it without saving', async () => {
-  test.fail()
   await visit('/dedicacio')
   const box = modal('Entrada festiu')
   await button('Festiu').click()
