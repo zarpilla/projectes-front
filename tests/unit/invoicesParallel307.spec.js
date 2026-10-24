@@ -40,7 +40,7 @@ describe('Ingressos and Despeses ask everything at once (issues/307)', () => {
     const vm = ctx()
     const done = ReceivedInvoicesTable.methods.getData.call(vm)
     await flushPromises()
-    expect(pending.map(p => p.url.split('?')[0]).sort()).toEqual(
+    expect(pending.map(p => p.url.split('?')[0].replace(/\/list$/, '')).sort()).toEqual(
       ['payrolls', 'phase-expenses/assigned', 'received-expenses', 'received-invoices']
     )
     answerAll()
@@ -55,7 +55,7 @@ describe('Ingressos and Despeses ask everything at once (issues/307)', () => {
     const vm = ctx()
     const done = EmittedInvoicesTable.methods.getData.call(vm)
     await flushPromises()
-    expect(pending.map(p => p.url.split('?')[0]).sort()).toEqual(
+    expect(pending.map(p => p.url.split('?')[0].replace(/\/list$/, '')).sort()).toEqual(
       ['emitted-invoices/basic', 'phase-incomes/assigned', 'received-incomes/basic']
     )
     answerAll()
@@ -67,7 +67,7 @@ describe('Ingressos and Despeses ask everything at once (issues/307)', () => {
     const vm = ctx({ documentType: -1 })
     const done = ReceivedInvoicesTable.methods.getData.call(vm)
     await flushPromises()
-    expect(pending.map(p => p.url.split('?')[0]).sort()).toEqual(['phase-expenses/assigned', 'received-invoices'])
+    expect(pending.map(p => p.url.split('?')[0].replace(/\/list$/, '')).sort()).toEqual(['phase-expenses/assigned', 'received-invoices'])
     answerAll()
     await done
   })

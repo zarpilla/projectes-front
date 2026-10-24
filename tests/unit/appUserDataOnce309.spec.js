@@ -109,6 +109,10 @@ describe('App loads the user once per page load (issues/309)', () => {
     await flushPromises()
 
     expect(calls('users/me')).toBe(2)
+    // users/me is kept for the page load: the refresh asks for fresh permissions (issues/327)
+    const meCalls = api.get.mock.calls.filter(c => c[0] === 'users/me')
+    expect(meCalls[0][1]).toBeUndefined()
+    expect(meCalls[1][1]).toEqual({ reload: true })
     expect(w.vm.menuList.length).toBe(menu)
   })
 

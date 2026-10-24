@@ -88,7 +88,7 @@ npm run dev
 
 ## Deployment
 
-One Docker image serves every organisation; its settings are injected at runtime. A push to `master` runs the tests, builds the image and deploys it. Changes to docs, the manual, `deploy/` and Markdown files don't trigger a build.
+One Docker image serves every organisation; its settings are injected at runtime. A push to `main` runs the tests, builds the image and deploys it. Changes to docs, the manual, `deploy/` and Markdown files don't trigger a build.
 
 ## Contributing
 

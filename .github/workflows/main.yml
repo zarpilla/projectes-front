@@ -1,7 +1,7 @@
-name: Build, publish and deploy the frontend (master, Vue 3)
+name: Build, publish and deploy the frontend (main, Vue 3)
 
-# master is the v5 frontend on Vue 3 (Vite): it talks to the Strapi v5 backend,
-# so pair it with esstrapis-back:v5. Every push to master is tested, published as
+# main is the v5 frontend on Vue 3 (Vite): it talks to the Strapi v5 backend,
+# so pair it with esstrapis-back:v5. Every push to main is tested, published as
 # esstrapis-front:v5-vue3-<sha> (and the floating v5-vue3), and deployed to every
 # site on the VPS (deploy/docker/deploy.sh).
 #
@@ -13,7 +13,7 @@ name: Build, publish and deploy the frontend (master, Vue 3)
 on:
   push:
     branches:
-      - master
+      - main
       - diligencia-test
     # Server scripts, docs and the manual don't change the image: no build, no deploy.
     paths-ignore:
@@ -23,7 +23,7 @@ on:
       - '**/*.md'
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 permissions:
@@ -31,7 +31,7 @@ permissions:
 
 concurrency:
   group: frontend-image-${{ github.ref }}
-  # Only superseded PR builds are cancelled: on master a run may be deploying, and
+  # Only superseded PR builds are cancelled: on main a run may be deploying, and
   # cutting it off mid-rollout would leave sites on mixed builds.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -88,7 +88,7 @@ jobs:
           build-args: |
             VUE_APP_PATH=/stats/
           # The sha-pinned tag is what sites are deployed to (and rolled back to);
-          # `v5-vue3` follows the latest master build.
+          # `v5-vue3` follows the latest main build.
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:${{ env.IMAGE_TAG }}-${{ github.sha }}
@@ -101,7 +101,7 @@ jobs:
   # Secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_KNOWN_HOSTS.
   deploy:
     needs: build-and-push
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/diligencia-test')
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/diligencia-test')
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 30
@@ -110,7 +110,7 @@ jobs:
       cancel-in-progress: false
     env:
       # diligencia-test goes only to ladili_test (a copy of diligencia), which it pins:
-      # deploys of master to every site then skip it.
+      # deploys of main to every site then skip it.
       DEPLOY_ARGS: ${{ github.ref == 'refs/heads/diligencia-test' && format('diligencia-test-{0} ladili_test', github.sha) || format('v5-vue3-{0}', github.sha) }}
     steps:
       - name: Deploy ${{ env.DEPLOY_ARGS }} to the VPS

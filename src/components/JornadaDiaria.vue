@@ -281,19 +281,9 @@ export default {
       },
       immediate: true
     },
-    user: function(newVal, oldVal) {
-      this.getWorkDayLogs();
-    },
-    date1: function(newVal, oldVal) {
-      this.getWorkDayLogs();
-    },
-    date2: function(newVal, oldVal) {
-      this.getWorkDayLogs();
-    },
-    year: function(newVal, oldVal) {
-      this.getWorkDayLogs();
-    },
-    month: function(newVal, oldVal) {
+    // one load when several filters change together, not one per filter: the
+    // page sets the person, year and month at once (issues/327)
+    loadKey() {
       this.getWorkDayLogs();
     }
   },
@@ -304,6 +294,9 @@ export default {
     this.getWorkDayLogs();
   },
   computed: {
+    loadKey() {
+      return [this.user, this.date1, this.date2, this.year, this.month].join("|");
+    },
     // one row per day (newest first) with its slots, week subtotals and, over a
     // whole year, month totals, each heading its days. Slots keep their index in `activities`, which the
     // save methods work with.
@@ -541,7 +534,7 @@ export default {
         return;
       }
 
-      this.users = (await service({ requiresAuth: true }).get("users")).data;
+      this.users = (await service({ requiresAuth: true, cached: true }).get("users")).data;
 
       this.projects = (
         await service({ requiresAuth: true }).get("projects/basic?_limit=-1")

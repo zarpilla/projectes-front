@@ -1,12 +1,12 @@
 # Frontend in Docker: one image, deployed to every site
 
-`webcoop/esstrapis-front:v5-vue3-<sha>` is built by `.github/workflows/master.yml` on every push to `master`, and deployed to every site on the VPS by the same workflow (pairs with `esstrapis-back:v5`).
+`webcoop/esstrapis-front:v5-vue3-<sha>` is built by `.github/workflows/main.yml` on every push to `main`, and deployed to every site on the VPS by the same workflow (pairs with `esstrapis-back:v5`).
 
 Each site runs its own container (nginx serving the app under `/stats/`) from `/var/www/<site>/docker/docker-compose.yml`, on the port in that dir's `.env` (`EXTERNAL_PORT`). The API URL and paths come from the same `.env` at container start (`docker-entrypoint.sh` writes `config.js`), so one image serves every site.
 
 ## Deploys (`/var/www/esstrapis-front`)
 
-A push to `master` runs the unit tests and the Vue 3 lint, pushes the image, then SSHes to the VPS and runs `deploy.sh v5-vue3-<sha>`. The SSH key is restricted to that script (`command="/var/www/esstrapis-front/deploy.sh",restrict` in `authorized_keys`), and GitHub pins the host key.
+A push to `main` runs the unit tests and the Vue 3 lint, pushes the image, then SSHes to the VPS and runs `deploy.sh v5-vue3-<sha>`. The SSH key is restricted to that script (`command="/var/www/esstrapis-front/deploy.sh",restrict` in `authorized_keys`), and GitHub pins the host key.
 
 For each site in `sites.conf`, `deploy.sh`:
 1. pins the site's `docker-compose.yml` to the new tag;
@@ -27,7 +27,7 @@ A push to the `redesign` branch publishes `esstrapis-front:redesign-<sha>` and n
 
 ```bash
 ./deploy.sh redesign-<sha> ladili_test webcoop   # pins them: written to pinned.conf
-./deploy.sh v5-vue3-<sha> webcoop                # back to master: unpins it
+./deploy.sh v5-vue3-<sha> webcoop                # back to main: unpins it
 ```
 
 A deploy without a site list (what CI runs) skips the sites in `pinned.conf`. A redesign build needs a site list, and the canary `demo` can't take it.

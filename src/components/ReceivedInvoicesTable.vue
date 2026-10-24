@@ -402,20 +402,21 @@ export default {
         this.documentType
           ? `&[document_type_eq]=${this.documentType}`
           : "";
-      // the lists at once, not one after another (issues/307)
+      // the lists at once, not one after another (issues/307); `/list` reads
+      // only what this screen shows and exports, from the read cache (issues/325)
       const listOf = (include, url) =>
         include ? service({ requiresAuth: true }).get(url).then((r) => r.data) : Promise.resolve([]);
       const invoicesRequest = listOf(
         includeInvoices,
-        `received-invoices?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
+        `received-invoices/list?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
       );
       const expensesRequest = listOf(
         includeExpenses,
-        `received-expenses?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
+        `received-expenses/list?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQuery}${typeQuery}${projectQuery}${paidQuery}${serialQuery}${codeQuery}`
       );
       const payrollsRequest = listOf(
         projectQuery === "" && includePayrolls,
-        `payrolls?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQueryPayrolls}${paidQuery2}`
+        `payrolls/list?_limit=-1&_where[emitted_gte]=${from3}&[emitted_lte]=${to3}${contactQueryPayrolls}${paidQuery2}`
       );
       // awaited below, in this order
       [invoicesRequest, expensesRequest, payrollsRequest].forEach((r) => r.catch(() => {}));

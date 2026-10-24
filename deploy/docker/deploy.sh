@@ -6,7 +6,7 @@
 #
 # Pinned sites (pinned.conf: <site> <tag>) are on a preview build: a deploy
 # without a site list skips them. Deploying a preview build (diligencia-test-<sha>, redesign-<sha>) to a site pins it,
-# deploying a v5-vue3-<sha> to it by name unpins it (back to master). The canary
+# deploying a v5-vue3-<sha> to it by name unpins it (back to main). The canary
 # can't be pinned. Pair it with the backend: the same tenants on the same preview branch of esstrapis-back.
 #
 # Each site runs its own container from <compose dir>/docker-compose.yml (nginx
@@ -29,7 +29,7 @@ LOG=deploy.log
 
 if [ -n "${SSH_ORIGINAL_COMMAND:-}" ]; then read -r -a ARGS <<<"$SSH_ORIGINAL_COMMAND"; else ARGS=("$@"); fi
 TAG="${ARGS[0]:-}"
-# Preview builds (a branch that is not main/master) are pinned to the tenants they go to.
+# Preview builds (a branch that is not main) are pinned to the tenants they go to.
 PREVIEW='^(redesign|diligencia-test)-'
 [[ "$TAG" =~ ^(v5-vue3|redesign|diligencia-test)-[0-9a-f]{40}$ ]] || { echo "Usage: deploy.sh v5-vue3-<40-hex sha> [site ...] | redesign|diligencia-test-<40-hex sha> site ..."; exit 2; }
 

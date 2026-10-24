@@ -3,7 +3,7 @@ name: Build and Publish Frontend Docker image (v5)
 # The Strapi v5 frontend. Every route moved under /api and the request/response
 # envelopes changed, so this build does NOT work against a v3 backend — see
 # src/service/v5-compat.js. It ships as its own tag so v3 and v5 tenants can run
-# side by side while they are migrated one at a time; `latest` stays on master
+# side by side while they are migrated one at a time; `latest` stays on main
 # until the last tenant has moved, at which point this branch merges and this
 # workflow can go.
 #
