@@ -24,6 +24,16 @@ export const CHANGELOG = [
   date: "2026.10.24",
   items: [
     {
+      type: "Correccions",
+      modules: ["Logística", "Informes"],
+      text: [{ to: "/incidences-stats", label: "Informe d'incidències" }, " i ", { to: "/orders-stats", label: "Informe de comandes" }, " s'obren a l'any actual: obrien el 2027, encara buit, i tot sortia a 0."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Hores"],
+      text: ["A ", { to: "/dedicacio", label: "Hores" }, ", «Entrada festiu» (i qualsevol finestra) tancada sense desar i tornada a obrir de seguida ja no desapareix en escriure la data."]
+    },
+    {
       type: "Millores",
       modules: ["Diners", "Hores"],
       text: [{ to: "/tresoreria", label: "Tresoreria" }, " ja no es torna a calcular sencera cada vegada que algú imputa hores o es recalculen els totals d'un projecte, i una factura, despesa o ingrés nou només en refà la part que li toca: obrir-la i canviar-ne els filtres és ràpid tot el dia, no només a primera hora."]
