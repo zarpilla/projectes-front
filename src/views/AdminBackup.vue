@@ -121,6 +121,13 @@ export default {
   grid-template-columns: max-content 1fr;
   gap: .25rem 1.5rem;
   margin: 0;
+  font-size: .875rem;
+}
+.bk-facts code {
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  padding: 0;
 }
 .bk-facts dt {
   color: var(--a-muted);
