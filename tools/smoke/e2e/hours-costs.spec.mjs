@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test'
 import {
-  useE2E, onCleanup, page, state, api, NAME, visit, settle, field, button, modal, expectSnackbar, confirmDialog,
+  useE2E, onCleanup, page, state, api, NAME, visit, settle, field, button, modal, card, escapeRegExp, expectSnackbar, confirmDialog,
   createProject, summaryValue, executedHours, calendarMonth, addActivity,
   periodsFrom, openNewPeriod, openPeriod, fillPeriod, modalCostByHour
 } from './helpers.mjs'
@@ -116,11 +116,14 @@ test('overlapping work periods are refused', async () => {
 test('payroll advances ("Crear bestretes") follow the work periods', async () => {
   test.skip(!state.period, 'needs the period')
   await visit('/working-day')
-  const create = page.locator('.card').filter({ hasText: 'Crear Bestretes' }).first()
-  await field('Any', create).locator('select').selectOption({ label: '2027' })
-  await button('Crear', create).click()
+  // the «Crear bestretes» box: the year and the button in its header, the result as a table
+  const create = card('Crear bestretes')
+  await create.locator('select').selectOption({ label: '2027' })
+  await button('Crea les bestretes', create).click()
   await expectSnackbar('Bestretes creades')
-  const mine = page.locator('.card-body', { hasText: state.me.username }).filter({ has: page.locator('.columns') }).first()
+  const mine = create.locator('tbody tr').filter({
+    has: page.locator('td.advances-person', { hasText: new RegExp(`^\\s*${escapeRegExp(state.me.username)}\\s*$`) })
+  })
   await expect(mine).toBeVisible()
 
   // 6 h of 8 → 6/8 of the salary; social security 30 % of that
@@ -135,7 +138,7 @@ test('payroll advances ("Crear bestretes") follow the work periods', async () =>
   expect(payroll.month).toBeTruthy()
 
   // creating them again doesn't duplicate them
-  await button('Crear', create).click()
+  await button('Crea les bestretes', create).click()
   await expectSnackbar('Bestretes creades')
   expect(await myMarchPayrolls()).toHaveLength(1)
 })

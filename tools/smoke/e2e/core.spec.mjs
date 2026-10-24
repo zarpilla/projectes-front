@@ -7,7 +7,7 @@ import {
   useE2E, page, state, api, NAME, visit, settle, visible, field, button, card, modal,
   expectSnackbar, selectByLabel, pickAutocomplete, typeDate, today,
   phaseNamed, addPhase, addLine, executedHours, addActivity, openPeriod,
-  contactWithNif, assignBudgetLine, fillLine, hoursListView
+  contactWithNif, assignBudgetLine, fillLine, hoursListView, hoursEntry
 } from './helpers.mjs'
 
 useE2E()
@@ -192,7 +192,7 @@ test('hours: activities add up in the project', async () => {
   // both appear in the day list (the "Taula" view)
   await hoursListView()
   for (const description of [`${NAME} activitat 1`, `${NAME} activitat 2`]) {
-    await expect(page.locator('.card-body.is-activity', { hasText: description }).first()).toBeVisible()
+    await expect(hoursEntry(description)).toBeVisible()
   }
 
   const activities = await api('GET', `activities?_where[project]=${state.projectId}&_limit=-1`)

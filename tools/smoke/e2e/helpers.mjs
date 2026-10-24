@@ -181,6 +181,10 @@ export async function hoursListView () {
   await page.locator('button[title="Vista taula"]').click()
   await page.waitForTimeout(300)
 }
+// a row of that list (the redesigned «Taula»: one tr.hours-entry per activity);
+// a click on its project/description cell opens it in "Entrada hores"
+export const hoursEntry = description => page.locator('tr.hours-entry', { hasText: description }).first()
+export const openHoursEntry = description => hoursEntry(description).locator('td').nth(1).click()
 // a titled box: an old .card or a redesign box (.report-box, .a-box); the title matches case-insensitively
 export const card = title => page.locator('.card, .report-box, .a-box')
   .filter({ has: page.locator('.card-header-title, .report-box-head h2, .box-head h2', { hasText: title }) }).first()
