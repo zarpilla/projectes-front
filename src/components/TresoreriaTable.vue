@@ -656,7 +656,6 @@ export default {
       trashObject: null,
       vat: { paid: 0, received: 0 },
       vat_expected: { paid: 0, received: 0 },
-      payingVat: false,
       view: "startOfYear",
       projectStates: [],
       selectedProjectStates: [],
@@ -1293,12 +1292,6 @@ export default {
     },
     modalCancel() {
       this.isModalActive = false;
-    },
-    async payVat() {
-      this.payingVat = true;
-      await service({ requiresAuth: true }).post(`emitted-invoices/pay-vat`);
-      this.payingVat = false;
-      window.location.reload();
     },
     toogleView() {
       this.view = this.view === "today" ? "startOfYear" : "today";

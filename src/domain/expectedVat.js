@@ -4,6 +4,14 @@
 // quarter, as for executed VAT and the economic forecast (issues/221).
 import moment from 'moment'
 
+// The deadline of a quarter's VAT return (model 303): the 20th of April, July
+// and October for Q1–Q3, 30 January for Q4 — as the API (issues/337; they were
+// the other way round)
+export const vatPaymentDate = (year, quarter) => {
+  const date = moment(`${year}`, 'YYYY').quarter(quarter).endOf('quarter').add(1, 'month').startOf('day')
+  return date.date(quarter === 4 ? 30 : 20)
+}
+
 // The quarter's deductible %: the API's, Configuració's when it has none
 export const quarterDeductiblePct = (quarter, configPct) => {
   const pct = quarter && quarter.deductible_vat_pct
@@ -27,9 +35,7 @@ export const expectedVatQuarterRows = (byQuarter, configPct) => {
     const quarterBalance = deductiblePaid - qData.received
     cumulativeBalance += quarterBalance
 
-    // 30th of the month after the quarter; Q4 on January 20th
-    const paymentDate = moment(`${qData.year}`, 'YYYY').quarter(qData.quarter).endOf('quarter').add(1, 'month')
-    paymentDate.date(qData.quarter === 4 ? 20 : 30)
+    const paymentDate = vatPaymentDate(qData.year, qData.quarter)
 
     const row = {
       year: qData.year,

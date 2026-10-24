@@ -43,7 +43,7 @@
             <b-button
               type="is-primary"
               :loading="payingVat"
-              :disabled="(vat.paid - (vat.received * me.options.deductible_vat_pct / 100)) === 0 || payingVat || checkedRows.length === 0"
+              :disabled="!canSettle"
               @click="payVatIds"
             >
               Salda {{ checkedRows.length ? `${checkedRows.length} ${checkedRows.length === 1 ? "document" : "documents"}` : "" }}
@@ -326,7 +326,7 @@ import getTreasuryData from "@/service/treasury";
 import { format } from "@/helpers/excelFormatter";
 import PivotViews from '@/components/PivotViews.vue'
 import pivotViewsMixin from '@/mixins/pivotViewsMixin.js'
-import { expectedVatQuarterRows, expectedVatTotals } from '@/domain/expectedVat'
+import { expectedVatQuarterRows, expectedVatTotals, vatPaymentDate } from '@/domain/expectedVat'
 
 export default {
   name: "VATTable",
@@ -395,6 +395,10 @@ export default {
     this.stopJQueryWait();
   },
   computed: {
+    // «Salda» needs ticked documents, whatever the balance (issues/340)
+    canSettle() {
+      return !this.payingVat && this.checkedRows.length > 0;
+    },
     hasDeductible() {
       return !!(this.me && this.me.options && this.me.options.deductible_vat_pct > 0);
     },
@@ -582,17 +586,8 @@ export default {
         const quarterBalance = qData.deductible_vat;
         cumulativeBalance += quarterBalance;
         
-        // Calculate payment date
-        let paymentDate = moment(`${qData.year}`, 'YYYY')
-          .quarter(qData.quarter)
-          .endOf('quarter')
-          .add(1, 'month');
-        
-        if (qData.quarter === 4) {
-          paymentDate.date(20);
-        } else {
-          paymentDate.date(30);
-        }
+        // the quarter's model 303 deadline (issues/337)
+        const paymentDate = vatPaymentDate(qData.year, qData.quarter);
         
         // Calculate average deductible percentage
         const avgDeductiblePct = qData.deductible_vat_pct_n > 0 
@@ -694,12 +689,6 @@ export default {
     },
     formatDate(value) {
       return value ? moment(value, "YYYY-MM-DD").format("DD/MM/YYYY") : "—";
-    },
-    async payVat() {
-      this.payingVat = true;
-      await service({ requiresAuth: true }).post(`emitted-invoices/pay-vat`);
-      this.payingVat = false;
-      window.location.reload();
     },
     async payVatIds() {
       this.payingVat = true;

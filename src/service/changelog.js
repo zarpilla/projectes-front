@@ -25,6 +25,21 @@ export const CHANGELOG = [
   items: [
     {
       type: "Correccions",
+      modules: ["Diners"],
+      text: ["Els pagaments d'IVA de ", { to: "/tresoreria", label: "Tresoreria" }, " i d'", { to: "/vat", label: "IVA" }, " van al termini del model 303: el 20 d'abril, juliol i octubre, i el 30 de gener pel quart trimestre. Anaven al 30 i al 20 de gener, al revés."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["Les factures en esborrany ja no compten com a IVA repercutit a ", { to: "/vat", label: "IVA" }, " ni a Tresoreria, i no es poden saldar: encara no són factures. A Tresoreria segueixen sortint com a ingrés previst. A més, «Salda» s'activa sempre que hi ha documents marcats."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Informes"],
+      text: ["Amb l'any fiscal de setembre a agost, «Any inici» d'", { to: "/stats-projectes", label: "Informes › Projectes" }, " mostra l'any fiscal (2026/27) en lloc de l'any 2026."]
+    },
+    {
+      type: "Correccions",
       modules: ["Logística", "Informes"],
       text: [{ to: "/incidences-stats", label: "Informe d'incidències" }, " i ", { to: "/orders-stats", label: "Informe de comandes" }, " s'obren a l'any actual: obrien el 2027, encara buit, i tot sortia a 0."]
     },
