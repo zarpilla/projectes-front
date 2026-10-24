@@ -818,6 +818,18 @@ const routes = [
     }
   },
   {
+    // last night's database dump, to download
+    path: "/admin/backup",
+    name: "admin.backup",
+    component: () =>
+      import("../views/AdminBackup.vue"),
+    meta: {
+      title: "Còpia de seguretat",
+      requiresAuth: true,
+      requiresPermission: "admin"
+    }
+  },
+  {
     path: "/admin/form-submissions",
     name: "admin.form-submissions",
     component: () =>

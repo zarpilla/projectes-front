@@ -248,6 +248,13 @@ const menu = [
       to: "/admin/form-submissions",
       icon: "email-outline",
       label: "Missatges",
+      permission: "admin"
+    },
+    {
+      // last night's database dump, to download
+      to: "/admin/backup",
+      icon: "database-export",
+      label: "Còpia de seguretat",
       permission: "admin",
       itemClassName: "mb-6"
     }
