@@ -367,15 +367,12 @@ test('"Incidències": an answer, in progress, closed and reopened', async () => 
   expect(saved.closed_user ?? null).toBeNull()
 })
 
-// KNOWN BUG (issues/335): «Informe d'incidències» (and «Informe de comandes») opens on the
-// latest year of `years`, not on the current one: StatsIncidences.vue:86 and
-// StatsOrders.vue:91 take `this.years[1]` of the years sorted DESC. Since the
-// run-once addOfficialFestives2027 (issues/310) every tenant has 2027, so in
-// 2026 the report opens on «Octubre 2027» and shows 0 incidences.
+// issues/335: «Informe d'incidències» (and «Informe de comandes») opened on the
+// newest year of `years` (2027 since addOfficialFestives2027, issues/310)
+// instead of the current one.
 test('"Informe d\'incidències" opens on the current year and month', async () => {
   const years = await api('GET', 'years?_limit=-1')
   test.skip(!years.some(y => Number(y.year) > new Date().getFullYear()), 'no year after the current one: the bug doesn\'t show')
-  test.fail()
   await visit('/incidences-stats')
   await expect(page.getByRole('combobox', { name: 'Mes' })).toBeVisible({ timeout: 30_000 })
   const selected = name => page.getByRole('combobox', { name }).evaluate(s => s.options[s.selectedIndex].text.trim())
