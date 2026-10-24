@@ -122,7 +122,9 @@ export default {
 
       this.users = (await service({ requiresAuth: true }).get(`users?_limit=-1`)).data
 
-      this.contacts = (await service({ requiresAuth: true }).get(`contacts?_where[users_permissions_user_gt]=0&_limit=-1`)).data
+      // the narrow list: id, name, partner_amount(_date) and the user are read;
+      // the core route came with populate=* (issues/326)
+      this.contacts = (await service({ requiresAuth: true }).get(`contacts/basic?_limit=-1&_sort=name:ASC&_where[users_permissions_user_gt]=0`)).data
 
       this.users = this.users
         .filter(user => user.confirmed === true && user.blocked === false)

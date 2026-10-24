@@ -896,8 +896,11 @@ export default {
     },
     async loadCollectionPoints() {
       try {
+        // the narrow list (id, name, trade_name are read): the core route came
+        // with populate=* and held the backend 8-20 s (issues/326). Same URL as
+        // the unify modal, so the read cache answers both.
         const contacts = await service({ requiresAuth: true }).get(
-          `contacts?_limit=-1&owner_gt=0&_sort=trade_name:ASC`
+          `contacts/basic?_limit=-1&_where[owner_gt]=0&_sort=trade_name:ASC`
         );
         this.availableCollectionPoints = contacts.data
           .filter(c => c.id !== this.form.id) // Exclude self

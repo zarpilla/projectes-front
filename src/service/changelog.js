@@ -21,6 +21,26 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.24",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Diners", "Hores"],
+      text: [{ to: "/tresoreria", label: "Tresoreria" }, " ja no es torna a calcular sencera cada vegada que algú imputa hores o es recalculen els totals d'un projecte, i una factura, despesa o ingrés nou només en refà la part que li toca: obrir-la i canviar-ne els filtres és ràpid tot el dia, no només a primera hora."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística", "Administració"],
+      text: ["Les llistes de contactes de la fitxa de contacte (punts de recollida), ", { to: "/contacts", label: "Contactes" }, " (contactes amb comandes), Usuàries i Facturar comandes es carreguen amb una consulta lleugera: abans podien trigar fins a 25 segons i alentir tota l'aplicació."]
+    },
+    {
+      type: "Millores",
+      modules: ["Plataforma"],
+      text: ["Les pàgines carreguen més lleuger: les consultes que sortien dues o tres vegades seguides (la persona connectada, la configuració de l'entitat, el registre de jornades, les metadades d'administració) ara es fan un sol cop."]
+    }
+  ]
+},
+{
   date: "2026.10.23",
   items: [
     {

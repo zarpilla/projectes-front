@@ -9,7 +9,18 @@ import {
   normalizeErrorBody
 } from './v5-compat'
 import { refreshJwt, clearSession } from './auth'
-import { cachedGet, clearCache, isCatalog, resourceOf } from './cache'
+import {
+  cachedGet,
+  clearCache,
+  forgetInFlight,
+  identity,
+  isCatalog,
+  isSessionRead,
+  keyOf,
+  reloadCached,
+  resourceOf,
+  sharedGet
+} from './cache'
 
 export default ({ requiresAuth = false, multipart = false, cached = false } = {}) => {
   const config = getConfig()
@@ -111,17 +122,30 @@ export default ({ requiresAuth = false, multipart = false, cached = false } = {}
     });
   });
 
+  // GETs without options: identical ones on their way share one request, and
+  // catalogs, users/me, me and `cached` calls are kept for the session. Keyed
+  // per person (issues/327). `{ reload: true }` asks a kept read again.
   const get = instance.get.bind(instance)
-  instance.get = (url, conf) =>
-    (cached || isCatalog(url)) && !conf
-      ? cachedGet(url, () => get(url))
-      : get(url, conf)
+  instance.get = (url, conf) => {
+    const reload = !!(conf && conf.reload)
+    if (conf && !reload) {
+      return get(url, conf)
+    }
+    const key = keyOf(identity(requiresAuth), url)
+    const load = () => sharedGet(key, () => get(url))
+    if (cached || isCatalog(url) || isSessionRead(url)) {
+      return reload ? reloadCached(key, url, () => get(url)) : cachedGet(key, url, load)
+    }
+    return load()
+  }
   for (const method of ['post', 'put', 'patch', 'delete']) {
     const write = instance[method].bind(instance)
     instance[method] = async (url, ...args) => {
+      forgetInFlight()
       try {
         return await write(url, ...args)
       } finally {
+        forgetInFlight()
         clearCache(resourceOf(url))
       }
     }

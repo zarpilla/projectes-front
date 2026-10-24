@@ -127,16 +127,17 @@ export default {
       
       this.lastRefresh = now;
 
-      await this.loadUserData();
+      // fresh permissions: users/me is otherwise kept for the page load (issues/327)
+      await this.loadUserData({ reload: true });
     },
-    async loadUserData() {
+    async loadUserData(options) {
       if (localStorage.getItem("user") && localStorage.getItem("jwt")) {
         // the load on created() counts for the focus throttle: the first focus
         // after a reload asked users/me, home and the task alerts again
         // (issues/309)
         this.lastRefresh = Date.now();
         try {
-          const me = await service({ requiresAuth: true }).get("users/me");
+          const me = await service({ requiresAuth: true }).get("users/me", options);
           if (me && me.data && me.data.username) {
             // Update localStorage with fresh user data (including permissions)
             localStorage.setItem("user", JSON.stringify(me.data));
