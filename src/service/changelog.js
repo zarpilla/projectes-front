@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
+      text: ["Un any sense «% IVA deduïble» a Taules auxiliars › Anys compta ara com a 100 % a tot arreu, i els anys que el tenien buit s'han posat a 100 %. A ", { to: "/vat", label: "IVA" }, " i a Tresoreria comptava com a 0 % (no deduïa res de l'IVA suportat), i en saldar-lo agafava el % de Configuració. Els resultats dels projectes no canvien: ja el comptaven com a 100 %."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Diners"],
       text: ["Els pagaments d'IVA de ", { to: "/tresoreria", label: "Tresoreria" }, " i d'", { to: "/vat", label: "IVA" }, " van al termini del model 303: el 20 d'abril, juliol i octubre, i el 30 de gener pel quart trimestre. Anaven al 30 i al 20 de gener, al revés."]
     },
     {
