@@ -122,7 +122,7 @@ mysql -uadmin -p projectes_v5_empty_e2e < e2e/logistics-fixture.sql
 ```
 
 `.github/workflows/e2e.yml` does exactly this every night, with the published backend
-image (`esstrapis-back:v5`) and the front on `master`, and uploads the Playwright
+image (`esstrapis-back:v5`) and the front on `main`, and uploads the Playwright
 report as an artifact. Run it by hand from the Actions tab to test another backend tag.
 
 ## Running
