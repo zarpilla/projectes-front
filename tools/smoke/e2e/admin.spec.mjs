@@ -309,12 +309,12 @@ test('admin entities: a new strategy gets its code name', async () => {
   const code = `E2E${STAMP.slice(-6)}`
   await visit('/administracio/estrategies')
   await page.locator('button', { hasText: /^\s*Crear / }).first().click()
-  await expect(page).toHaveURL(/\/administracio\/strategy\/new/)
+  await expect(page).toHaveURL(/\/administracio\/estrategies\/nou/)
   await field('Codi').locator('input').fill(code)
   await field('Nom').locator('input').fill(`${NAME} estratègia`)
   await button('Guardar').click()
   // back to the list, which shows it
-  await expect(page).toHaveURL(/\/administracio\/strategy$/)
+  await expect(page).toHaveURL(/\/administracio\/estrategies$/)
   await expect(page.getByText(`${NAME} estratègia`).first()).toBeVisible()
   const [strategy] = await api('GET', `strategies?_where[code]=${code}&_limit=1`)
   expect(strategy.code_name).toBe(`${code} - ${NAME} estratègia`)
