@@ -34,7 +34,7 @@ const WITH_PARAMS = {
   // a member of the energy community (admin_energy): the e2e database has none
   '/energia/socia/:id': () => [],
   '/administracio/usuaries/:id': s => [`/administracio/usuaries/${s.me.id}`],
-  '/administracio/:entityName/new': () => ['/administracio/tipus-contacte/nou'],
+  '/administracio/:entityName/nou': () => ['/administracio/tipus-contacte/nou'],
   '/administracio/:entityName/:id': s => [`/administracio/tipus-contacte/${s.contactTypeId}`]
 }
 // need a VeriFactu or FACe submission, which the e2e database never makes
