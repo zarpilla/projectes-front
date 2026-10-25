@@ -11,11 +11,11 @@ test('02-usuaris-rols-permisos', async ({ page }) => {
   await start(page, '02-usuaris-rols-permisos', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/admin/users')
+  await page.goto('#/administracio/users')
   await settle(page, 1500)
   await shot(page, 'usuaries')
 
-  await page.goto('#/admin/users/26')
+  await page.goto('#/administracio/users/26')
   await page.getByText('Permisos').first().waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'usuaria')

@@ -25,8 +25,8 @@ const BACKEND_ENTITIES = [
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"
 const links = [
-  ...menu.flat().filter(item => item && typeof item === 'object' && item.to && item.to.startsWith('/admin/')),
-  ...ADMIN_TABLES.map(t => ({ to: `/admin/${t.entity}` }))
+  ...menu.flat().filter(item => item && typeof item === 'object' && item.to && item.to.startsWith('/administracio/')),
+  ...ADMIN_TABLES.map(t => ({ to: `/administracio/${t.entity}` }))
 ]
 
 describe('admin menu links', () => {
@@ -66,7 +66,7 @@ describe('admin menu links', () => {
   })
 
   it('redirect the old plural paths (bookmarks)', () => {
-    for (const [old, now] of [['/admin/bank-accounts', '/admin/bank-account'], ['/admin/regions', '/admin/region']]) {
+    for (const [old, now] of [['/administracio/bank-accounts', '/administracio/bank-account'], ['/administracio/regions', '/administracio/region']]) {
       const record = router.getRoutes().find(r => r.path === old)
       expect(record?.redirect, old).toBe(now)
     }

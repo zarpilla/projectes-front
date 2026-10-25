@@ -5,7 +5,7 @@
     <section class="title-bar user-head">
       <nav class="crumbs" aria-label="Ruta">
         <span>Administració</span><span aria-hidden="true">/</span>
-        <router-link to="/admin/users">Usuàries</router-link>
+        <router-link to="/administracio/users">Usuàries</router-link>
       </nav>
       <div class="user-head-row">
         <span class="user-avatar" aria-hidden="true">{{ initials }}</span>
@@ -139,7 +139,7 @@
 
     <div class="savebar">
       <span class="savebar-state">{{ userId ? "Desa els canvis quan acabis" : "Es demanarà la clau en desar" }}</span>
-      <b-button @click="$router.push('/admin/users')">Cancel·la</b-button>
+      <b-button @click="$router.push('/administracio/users')">Cancel·la</b-button>
       <b-button type="is-primary" :loading="submitting" @click="submit">Guardar</b-button>
     </div>
   </div>
@@ -406,7 +406,7 @@ export default {
                   message: 'Usuària creada correctament',
                   type: 'is-success'
                 });
-                this.$router.push('/admin/users');
+                this.$router.push('/administracio/users');
               } catch (error) {
                 this.$buefy.toast.open({
                   message: `Error creant la usuària: ${error.message}`,
@@ -418,7 +418,7 @@ export default {
           return; // Don't navigate yet, wait for password prompt
         }
         
-        this.$router.push('/admin/users');
+        this.$router.push('/administracio/users');
       } catch (error) {
         this.$buefy.toast.open({
           message: `Error guardant la usuària: ${error.message}`,

@@ -87,7 +87,7 @@ Running for a session (check first; ask before starting anything that is already
 - `start()` in `helpers.mjs` also serves its own `/config.js` (the front reads the API url from it at
   runtime and the dev one points at 1337) and aborts any `/api/` or `/uploads/` request to another origin.
 - `manual/capture/.env.manual` holds `MANUAL_USER`, `MANUAL_PASSWORD`, `MANUAL_BASE_URL`
-  (`http://localhost:8081/stats/`) and `MANUAL_API_URL` (`http://127.0.0.1:1338`). Never print the password.
+  (`http://localhost:8081/`) and `MANUAL_API_URL` (`http://127.0.0.1:1338`). Never print the password.
 - Logistics (block F): `CRON_ENABLED=false PORT=1340 DATABASE_NAME=projectes_v5_manual_logistica npx strapi start`
   and `VUE_APP_API_URL=http://127.0.0.1:1340 npx vite --port 8082`; credentials in the `MANUAL_LOG_*` variables.
 

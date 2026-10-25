@@ -80,6 +80,6 @@ describe('Documentation page', () => {
     const { default: Documentation } = await import('@/views/Documentation.vue')
     const wrapper = mount(Documentation, { global: { plugins: [Buefy], stubs: { TitleBar: true } } })
     expect(wrapper.text()).not.toContain('Vídeos')
-    expect(wrapper.find('a[href*="/stats/docum/"]').exists()).toBe(false)
+    expect(wrapper.find('a[href*="docum/"]').exists()).toBe(false)
   })
 })

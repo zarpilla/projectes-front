@@ -19,7 +19,7 @@ const routerSource = fs.readFileSync(path.join(here, '../../../src/router/index.
 const declared = [...new Set([...routerSource.matchAll(/^\s*path:\s*["'`]([^"'`]+)["'`]/gm)].map(m => m[1]))]
 
 // guest-only screens; and the admin entity screens, which admin.spec.mjs opens one by one
-const SKIP = new Set(['/', '/forgotten-password', '/reset-password', '/admin/:entityName'])
+const SKIP = new Set(['/', '/forgotten-password', '/reset-password', '/administracio/:entityName'])
 
 // routes with params, as concrete paths; `s` is `state` once the setup test has run
 const WITH_PARAMS = {
@@ -31,12 +31,12 @@ const WITH_PARAMS = {
   '/order/:id': () => ['/order/0'],
   // records the other specs leave behind (orders.spec.mjs, money.spec.mjs): skipped when there are none
   '/order/view/:id': s => s.orderId ? [`/order/view/${s.orderId}`] : [],
-  '/admin/users/:id': s => [`/admin/users/${s.me.id}`],
-  '/admin/:entityName/new': () => ['/admin/contact-type/new'],
-  '/admin/:entityName/:id': s => [`/admin/contact-type/${s.contactTypeId}`]
+  '/administracio/users/:id': s => [`/administracio/users/${s.me.id}`],
+  '/administracio/:entityName/new': () => ['/administracio/contact-type/new'],
+  '/administracio/:entityName/:id': s => [`/administracio/contact-type/${s.contactTypeId}`]
 }
 // need a VeriFactu or FACe submission, which the e2e database never makes
-const NOT_HERE = new Set(['/admin/face-queue/:id', '/admin/verifactu-chain/:id'])
+const NOT_HERE = new Set(['/administracio/face-queue/:id', '/administracio/verifactu-chain/:id'])
 
 const routes = declared.filter(r => !SKIP.has(r) && !NOT_HERE.has(r))
 for (const r of routes) if (r.includes(':') && !WITH_PARAMS[r]) throw new Error(`screens.spec.mjs: no concrete path for ${r}`)

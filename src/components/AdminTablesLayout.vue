@@ -8,7 +8,7 @@
         <router-link
           v-for="t in group.items"
           :key="t.entity"
-          :to="'/admin/' + t.entity"
+          :to="'/administracio/' + t.entity"
           class="admin-tables-link"
           :class="{ 'is-active': t.entity === entityName }"
         >{{ t.label }}</router-link>

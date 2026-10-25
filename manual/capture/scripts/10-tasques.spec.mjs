@@ -231,7 +231,7 @@ test('10-tasques', async ({ page }) => {
   await shot(page, 'plantilla-resultat')
 
   // ---------- Configuració general · Avisos de tasques per correu
-  await page.goto('#/admin/me')
+  await page.goto('#/administracio/me')
   await page.locator('#cfg-opcions').waitFor()
   await settle(page, 600)
   await page.locator('#cfg-opcions').scrollIntoViewIfNeeded()

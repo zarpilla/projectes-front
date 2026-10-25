@@ -1,6 +1,6 @@
 // The auxiliary tables of the administration (the lists behind the app's selects),
 // grouped as in "Taules auxiliars". Each is edited with AdminEntityList/Form at
-// #/admin/<entity>.
+// #/administracio/<entity>.
 export const ADMIN_TABLE_GROUPS = [
   {
     title: 'Projectes',
@@ -81,7 +81,7 @@ export const adminTableGroupsFor = permissions => {
 
 export const ADMIN_TABLES = ADMIN_TABLE_GROUPS.flatMap(g => g.items)
 
-const tablePath = (path, entity) => path === `/admin/${entity}` || path.startsWith(`/admin/${entity}/`)
+const tablePath = (path, entity) => path === `/administracio/${entity}` || path.startsWith(`/administracio/${entity}/`)
 
 export const isAdminTablePath = path => ADMIN_TABLES.some(t => tablePath(path, t.entity))
 

@@ -1,7 +1,7 @@
 // Users and permissions, login, the session, contacts, tasks and the admin screens.
 //
 // Creates a throwaway user ("e2e-<stamp>", hours permission only) through
-// #/admin/users; users can't be deleted from the app, so they stay in the e2e copy.
+// #/administracio/users; users can't be deleted from the app, so they stay in the e2e copy.
 
 import { test, expect } from '@playwright/test'
 import {
@@ -33,7 +33,7 @@ async function apiAs (p, method, route, body) {
 }
 
 test('admin: create a user with only the hours permission', async () => {
-  await visit('/admin/users/new')
+  await visit('/administracio/users/new')
   await field("Nom d'usuari").locator('input').fill(USER.username)
   await field('Correu electrònic').locator('input').fill(USER.email)
   // access and permissions are checkboxes with a description below the name
@@ -55,7 +55,7 @@ test('admin: create a user with only the hours permission', async () => {
 
 // issues/027: new users get the Authenticated role by default
 test('a new user can be created without picking a role', async () => {
-  await visit('/admin/users/new')
+  await visit('/administracio/users/new')
   await field("Nom d'usuari").locator('input').fill(`${USER.username}-r`)
   await field('Correu electrònic').locator('input').fill(`r-${USER.email}`)
   await button('Guardar').click()
@@ -72,10 +72,10 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
   try {
     // the menu (the logo above it links to the first screen of the menu too)
     const aside = other.locator('aside nav')
-    // hrefs are «/stats/dedicacio» since issues/158 («#/dedicacio» before): match the end
+    // match the end of the href: «/dedicacio» (the app is served at the root of the site)
     await expect(aside.locator('a[href$="/dedicacio"]')).toBeVisible()
     await expect(aside.locator('a[href$="/registre-jornades"]')).toBeVisible()
-    for (const hidden of ['/projectes', '/contacts', '/emitted-invoices', '/tresoreria', '/admin/users']) {
+    for (const hidden of ['/projectes', '/contacts', '/emitted-invoices', '/tresoreria', '/administracio/users']) {
       await expect(aside.locator(`a[href$="${hidden}"]`), hidden).toHaveCount(0)
     }
     const headers = (await aside.locator('.menu-label').allTextContents()).map(t => t.trim().toUpperCase())
@@ -83,7 +83,7 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
     expect(headers).not.toContain('ADMINISTRACIÓ')
 
     // admin screens send them to their landing page: the hours (issues/121)
-    await other.goto('#/admin/users')
+    await other.goto('#/administracio/users')
     await expect(other).toHaveURL(/\/dedicacio/)
 
     // and the backend refuses the admin-only operations
@@ -285,12 +285,12 @@ test('tasks: create, move to another state and archive', async () => {
 // issues/026: every ADMINISTRACIÓ entry names an entity the backend serves
 test('every administration screen loads', async () => {
   await visit('/projectes')
-  // the route of each link, whether its href is «/stats/admin/…» (issues/158) or «#/admin/…»
-  const routes = as => as.map(a => a.getAttribute('href')).map(h => h.slice(h.indexOf('/admin/')))
-  const menuLinks = await page.locator('aside a[href*="/admin/"]').evaluateAll(routes)
+  // the route of each link (its href is «/administracio/…»)
+  const routes = as => as.map(a => a.getAttribute('href')).map(h => h.slice(h.indexOf('/administracio/')))
+  const menuLinks = await page.locator('aside a[href*="/administracio/"]').evaluateAll(routes)
   // the auxiliary tables share one menu entry ("Taules auxiliars") and are listed on its screen
-  await visit('/admin/project-scope')
-  const tableLinks = await page.locator('.admin-tables-nav a[href*="/admin/"]').evaluateAll(routes)
+  await visit('/administracio/project-scope')
+  const tableLinks = await page.locator('.admin-tables-nav a[href*="/administracio/"]').evaluateAll(routes)
   const links = [...new Set([...menuLinks, ...tableLinks])]
   expect(tableLinks.length).toBeGreaterThan(10)
   // each visit settles for a few seconds: the default 60 s don't cover them all
@@ -307,14 +307,14 @@ test('every administration screen loads', async () => {
 
 test('admin entities: a new strategy gets its code name', async () => {
   const code = `E2E${STAMP.slice(-6)}`
-  await visit('/admin/strategy')
+  await visit('/administracio/strategy')
   await page.locator('button', { hasText: /^\s*Crear / }).first().click()
-  await expect(page).toHaveURL(/\/admin\/strategy\/new/)
+  await expect(page).toHaveURL(/\/administracio\/strategy\/new/)
   await field('Codi').locator('input').fill(code)
   await field('Nom').locator('input').fill(`${NAME} estratègia`)
   await button('Guardar').click()
   // back to the list, which shows it
-  await expect(page).toHaveURL(/\/admin\/strategy$/)
+  await expect(page).toHaveURL(/\/administracio\/strategy$/)
   await expect(page.getByText(`${NAME} estratègia`).first()).toBeVisible()
   const [strategy] = await api('GET', `strategies?_where[code]=${code}&_limit=1`)
   expect(strategy.code_name).toBe(`${code} - ${NAME} estratègia`)

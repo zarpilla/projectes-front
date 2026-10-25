@@ -27,7 +27,7 @@
               <b-field label="País"><b-input v-model="form.country" /></b-field>
               <b-field label="CCC" message="Codi de compte de cotització a la Seguretat Social."><b-input v-model="form.ccc" placeholder="Codi de compte de cotització" /></b-field>
               <b-field label="Calendari de l'entitat (iCal)" message="S'importa com a dedicació de totes les persones."><b-input v-model="form.ical" placeholder="https://…/calendari.ics" /></b-field>
-              <b-field label="Adreça de l'aplicació" message="Es fa servir als enllaços dels correus, als codis QR de les comandes i als enllaços dels pressupostos." class="is-full"><b-input v-model="form.front_url" placeholder="https://…/stats/" /></b-field>
+              <b-field label="Adreça de l'aplicació" message="Es fa servir als enllaços dels correus, als codis QR de les comandes i als enllaços dels pressupostos." class="is-full"><b-input v-model="form.front_url" placeholder="https://…/" /></b-field>
             </div>
           </section>
 
@@ -91,7 +91,7 @@
             </div>
             <p class="cfg-note">
               {{ bankAccounts.length }} comptes{{ bankAccounts.length ? ": " + bankAccounts.map(a => a.name).join(", ") : "" }}
-              <router-link to="/admin/bank-account">Gestiona els comptes →</router-link>
+              <router-link to="/administracio/bank-account">Gestiona els comptes →</router-link>
             </p>
           </section>
 
@@ -103,7 +103,7 @@
               <b-field label="Assumpte del correu" class="is-wide"><b-input v-model="form.invoice_subject" /></b-field>
               <b-field label="Plantilla del correu" class="is-full"><b-input v-model="form.invoice_template" type="textarea" rows="4" placeholder="Text del correu que acompanya la factura en PDF" /></b-field>
             </div>
-            <p class="cfg-note">Les sèries de numeració es gestionen a part. <router-link to="/admin/serie">Gestiona les sèries →</router-link></p>
+            <p class="cfg-note">Les sèries de numeració es gestionen a part. <router-link to="/administracio/serie">Gestiona les sèries →</router-link></p>
           </section>
 
           <section id="cfg-face" class="form-box">
@@ -225,7 +225,7 @@
 
           <section v-if="logistics" id="cfg-logistica" class="form-box">
             <h2>Logística</h2>
-            <p class="form-box-sub">Les tarifes de les rutes es gestionen a part. <router-link to="/admin/route-rate">Tarifes de ruta →</router-link></p>
+            <p class="form-box-sub">Les tarifes de les rutes es gestionen a part. <router-link to="/administracio/route-rate">Tarifes de ruta →</router-link></p>
             <div class="cfg-grid">
               <b-field label="Descompte multientrega (%)" message="Quan una sòcia té més d'una comanda per al mateix punt d'entrega i dia.">
                 <b-input v-model.number="form.orders_options.multidelivery_discount" type="number" step="0.01" min="0" max="100" />

@@ -82,9 +82,9 @@ export default {
   computed: {
     tabs() {
       return [
-        { id: 'config', label: 'Configuració', to: '/admin/verifactu' },
-        { id: 'chain', label: 'Registre Verifactu', to: '/admin/verifactu-chain' },
-        { id: 'face', label: 'Cua FACe', to: '/admin/face-queue' }
+        { id: 'config', label: 'Configuració', to: '/administracio/verifactu' },
+        { id: 'chain', label: 'Registre Verifactu', to: '/administracio/verifactu-chain' },
+        { id: 'face', label: 'Cua FACe', to: '/administracio/face-queue' }
       ];
     },
     certificatesTitle() {

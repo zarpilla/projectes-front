@@ -3,7 +3,7 @@
 // track down visual drift after a CSS framework upgrade.
 //
 //   node style-diff.mjs /projectes /order/0 ...
-//   STYLE_A=http://localhost:8081/stats/ STYLE_B=http://localhost:8080/stats/ node style-diff.mjs /projectes
+//   STYLE_A=http://localhost:8081/ STYLE_B=http://localhost:8080/ node style-diff.mjs /projectes
 //
 // Uses the same .env.smoke credentials as the route smoke test.
 
@@ -19,8 +19,8 @@ const env = fs.existsSync(envFile)
   : {}
 const USER = process.env.SMOKE_USER || env.SMOKE_USER
 const PASS = process.env.SMOKE_PASS || process.env.SMOKE_PASSWORD || env.SMOKE_PASS || env.SMOKE_PASSWORD
-const A = process.env.STYLE_A || 'http://localhost:8081/stats/'
-const B = process.env.STYLE_B || 'http://localhost:8080/stats/'
+const A = process.env.STYLE_A || 'http://localhost:8081/'
+const B = process.env.STYLE_B || 'http://localhost:8080/'
 const routes = process.argv.slice(2)
 
 const SELECTORS = [

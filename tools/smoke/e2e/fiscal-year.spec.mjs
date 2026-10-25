@@ -38,7 +38,7 @@ async function setOptions (patch) {
 
 // «Inici de l'any fiscal» in Configuració, saved from the form
 async function saveStartMonth (month, { grantFiscal } = {}) {
-  await visit('/admin/me')
+  await visit('/administracio/me')
   await field("Inici de l'any fiscal").locator('select').selectOption({ label: month })
   if (grantFiscal !== undefined) {
     const box = page.locator('label.option-row', { hasText: 'Els anys de subvenció són anys fiscals' }).locator('input[type=checkbox]')

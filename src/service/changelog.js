@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.25",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Plataforma"],
+      text: ["L'aplicació s'obre a l'arrel de l'adreça de l'entitat, sense «/stats/» (p. ex. …esstrapis.org/projectes), i les pantalles d'Administració són ara a …/administracio/. Les adreces antigues (correus, codis QR de les etiquetes, adreces desades) continuen funcionant: porten a la nova."]
+    }
+  ]
+},
+{
   date: "2026.10.24",
   items: [
     {
@@ -121,7 +131,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["Comandes fora de temps: una comanda per a l'endemà informada després de l'hora límit ja no passa a un altre dia de la ruta. Es queda per al dia triat, abans de desar-la surt un avís, porta un recàrrec (25 % per defecte, escrit sota el preu) i l'albarà diu «COMANDA EXPRESS». L'oficina el treu desmarcant «Recàrrec per incidència» a la comanda. Les recollides informades tard (de tarda, el mateix dia a partir de les 10 h; de matí, el dia abans a partir de l'hora límit) també avisen, sense recàrrec. A ", { to: "/orders", label: "Comandes" }, " totes les marques d'una comanda són ara icones a la columna «Senyals» (express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla, fràgil; passa-hi el ratolí per veure què volen dir), les que van tard amb una franja vermella; les files ja no es pinten de gris ni de vermell, i els descomptes i el recàrrec s'escriuen sota el preu en lloc de les boles de colors. La columna «Entrega» ja no hi és (la refrigerada és el floc de neu); el filtre per tipus d'entrega és ara el de «Senyals». Els textos, l'hora de les recollides de tarda i el recàrrec es canvien a ", { to: "/admin/me", label: "Configuració general" }, " → Logística."]
+      text: ["Comandes fora de temps: una comanda per a l'endemà informada després de l'hora límit ja no passa a un altre dia de la ruta. Es queda per al dia triat, abans de desar-la surt un avís, porta un recàrrec (25 % per defecte, escrit sota el preu) i l'albarà diu «COMANDA EXPRESS». L'oficina el treu desmarcant «Recàrrec per incidència» a la comanda. Les recollides informades tard (de tarda, el mateix dia a partir de les 10 h; de matí, el dia abans a partir de l'hora límit) també avisen, sense recàrrec. A ", { to: "/orders", label: "Comandes" }, " totes les marques d'una comanda són ara icones a la columna «Senyals» (express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla, fràgil; passa-hi el ratolí per veure què volen dir), les que van tard amb una franja vermella; les files ja no es pinten de gris ni de vermell, i els descomptes i el recàrrec s'escriuen sota el preu en lloc de les boles de colors. La columna «Entrega» ja no hi és (la refrigerada és el floc de neu); el filtre per tipus d'entrega és ara el de «Senyals». Els textos, l'hora de les recollides de tarda i el recàrrec es canvien a ", { to: "/administracio/me", label: "Configuració general" }, " → Logística."]
     },
     {
       type: "Novetats",
@@ -131,12 +141,12 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["Avisos de dipòsit per ruta i magatzem: a ", { to: "/admin/route-pickup-notice", label: "Taules auxiliars › Avisos de dipòsit" }, " es pot posar un text per a cada combinació de ruta de destí i magatzem d'origen (p. ex. fins quan s'ha de deixar el paquet). En fer una comanda surt destacat en triar el magatzem; si no n'hi ha cap, surt el text del magatzem com fins ara."]
+      text: ["Avisos de dipòsit per ruta i magatzem: a ", { to: "/administracio/route-pickup-notice", label: "Taules auxiliars › Avisos de dipòsit" }, " es pot posar un text per a cada combinació de ruta de destí i magatzem d'origen (p. ex. fins quan s'ha de deixar el paquet). En fer una comanda surt destacat en triar el magatzem; si no n'hi ha cap, surt el text del magatzem com fins ara."]
     },
     {
       type: "Novetats",
       modules: ["Logística", "Diners"],
-      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes: «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026» (també {mes}, {MES} i {mm}). El text es defineix a ", { to: "/admin/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
+      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes: «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026» (també {mes}, {MES} i {mm}). El text es defineix a ", { to: "/administracio/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
     },
     {
       type: "Correccions",
@@ -151,7 +161,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Hores"],
-      text: [{ to: "/admin/festive", label: "Taules auxiliars › Festius de totes" }, ": la llista dels festius estatals i de Catalunya, per crear-los, canviar-los o esborrar-los. Es pot buscar per any (p. ex. «2027»). També es continuen posant des d'Hores dedicades."]
+      text: [{ to: "/administracio/festive", label: "Taules auxiliars › Festius de totes" }, ": la llista dels festius estatals i de Catalunya, per crear-los, canviar-los o esborrar-los. Es pot buscar per any (p. ex. «2027»). També es continuen posant des d'Hores dedicades."]
     },
     {
       type: "Millores",
@@ -166,7 +176,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració"],
-      text: [{ to: "/admin/me", label: "Configuració general" }, " › Memòria cau: l'estat de la memòria del servidor, el temps de càrrega de cada informe i un botó per buidar-la."]
+      text: [{ to: "/administracio/me", label: "Configuració general" }, " › Memòria cau: l'estat de la memòria del servidor, el temps de càrrega de cada informe i un botó per buidar-la."]
     }
   ]
 },
@@ -496,7 +506,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Projectes", "Informes", "Subvencions"],
-      text: ["Any fiscal que no comença al gener: a ", { to: "/admin/me", label: "Configuració general" }, " › Projectes es tria el mes d'inici (per exemple, setembre per a un curs de setembre a agost). La fitxa de projecte, la periodificació, ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " agrupen els imports per aquest any, que es mostra com «2026/27», i els gràfics comencen pel seu primer mes. Opcionalment, els anys de subvenció també poden ser fiscals (", { to: "/justifications", label: "Justificacions" }, "). L'IVA, les sèries de factura, les nòmines, les hores i la tresoreria continuen per any natural."]
+      text: ["Any fiscal que no comença al gener: a ", { to: "/administracio/me", label: "Configuració general" }, " › Projectes es tria el mes d'inici (per exemple, setembre per a un curs de setembre a agost). La fitxa de projecte, la periodificació, ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " agrupen els imports per aquest any, que es mostra com «2026/27», i els gràfics comencen pel seu primer mes. Opcionalment, els anys de subvenció també poden ser fiscals (", { to: "/justifications", label: "Justificacions" }, "). L'IVA, les sèries de factura, les nòmines, les hores i la tresoreria continuen per any natural."]
     },
     {
       type: "Novetats",
@@ -526,17 +536,17 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Projectes", "Logística"],
-      text: ["A ", { to: "/admin/me", label: "Configuració general" }, " ara es poden canviar les opcions que fins ara només configurava qui manté el servidor: la despesa indirecta als projectes, la tresoreria, el cost/hora a la planificació, el % d'IVA deduïble, les quotes de Seguretat Social i les tarifes de les dietes i, amb logística, el descompte multientrega i l'hora límit. Les tarifes de ruta es gestionen a ", { to: "/admin/route-rate", label: "Taules auxiliars › Tarifes de ruta" }, "."]
+      text: ["A ", { to: "/administracio/me", label: "Configuració general" }, " ara es poden canviar les opcions que fins ara només configurava qui manté el servidor: la despesa indirecta als projectes, la tresoreria, el cost/hora a la planificació, el % d'IVA deduïble, les quotes de Seguretat Social i les tarifes de les dietes i, amb logística, el descompte multientrega i l'hora límit. Les tarifes de ruta es gestionen a ", { to: "/administracio/route-rate", label: "Taules auxiliars › Tarifes de ruta" }, "."]
     },
     {
       type: "Novetats",
       modules: ["Administració", "Integracions"],
-      text: ["A ", { to: "/admin/me", label: "Configuració general" }, ", nou apartat «Integracions» amb l'adreça i la clau del directori DIR3 i del lector de PDF (les claus no es tornen a mostrar). L'«Adreça de l'aplicació» és ara la que fan servir els enllaços dels correus, els codis QR de les comandes i els pressupostos. També s'hi puja la clau del compte de servei de Google que importa els calendaris de Google com a hores. A la fitxa de cada usuària es pot posar el seu calendari iCal."]
+      text: ["A ", { to: "/administracio/me", label: "Configuració general" }, ", nou apartat «Integracions» amb l'adreça i la clau del directori DIR3 i del lector de PDF (les claus no es tornen a mostrar). L'«Adreça de l'aplicació» és ara la que fan servir els enllaços dels correus, els codis QR de les comandes i els pressupostos. També s'hi puja la clau del compte de servei de Google que importa els calendaris de Google com a hores. A la fitxa de cada usuària es pot posar el seu calendari iCal."]
     },
     {
       type: "Novetats",
       modules: ["Integracions", "Administració"],
-      text: ["Els certificats de l'AEAT i de FACe ja es pugen i se substitueixen des de l'aplicació, amb la seva contrasenya, a ", { to: "/admin/verifactu", label: "Verifactu i FACe" }, " i a ", { to: "/admin/me", label: "Configuració general › FACe" }, ". S'hi veu el titular, el NIF i fins quan és vàlid, amb un avís si caduca aviat o si la contrasenya no l'obre."]
+      text: ["Els certificats de l'AEAT i de FACe ja es pugen i se substitueixen des de l'aplicació, amb la seva contrasenya, a ", { to: "/administracio/verifactu", label: "Verifactu i FACe" }, " i a ", { to: "/administracio/me", label: "Configuració general › FACe" }, ". S'hi veu el titular, el NIF i fins quan és vàlid, amb un avís si caduca aviat o si la contrasenya no l'obre."]
     },
     {
       type: "Novetats",
@@ -546,12 +556,12 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Logística"],
-      text: ["Les taules que només es podien canviar des de l'administrador del servidor ja són a Taules auxiliars: ", { to: "/admin/pickup", label: "Punts de recollida" }, ", ", { to: "/admin/delivery-type", label: "Tipus de lliurament" }, ", ", { to: "/admin/city", label: "Poblacions" }, " (no s'esborra una població que fan servir rutes, punts o contactes, i si se li canvia el nom també canvia als contactes que la tenen), ", { to: "/admin/product", label: "Productes" }, ", ", { to: "/admin/document-type", label: "Tipus de document" }, ", ", { to: "/admin/vat-type", label: "Tipus d'IVA" }, " i ", { to: "/admin/activity-type", label: "Tipus d'activitat" }, ". L'oficina de logística té els punts de recollida, els tipus de lliurament, les poblacions i les tarifes de ruta a «Rutes i punts › Taules de logística». A ", { to: "/routes", label: "Rutes" }, " es pot triar quins dies porta transferències cada ruta. Els logos d'«Amb el suport de» s'afegeixen, s'ordenen i s'esborren a ", { to: "/admin/logos", label: "Administració › Logos" }, ", i els missatges del formulari «Contacta» es llegeixen a ", { to: "/admin/form-submissions", label: "Missatges" }, "."]
+      text: ["Les taules que només es podien canviar des de l'administrador del servidor ja són a Taules auxiliars: ", { to: "/administracio/pickup", label: "Punts de recollida" }, ", ", { to: "/administracio/delivery-type", label: "Tipus de lliurament" }, ", ", { to: "/administracio/city", label: "Poblacions" }, " (no s'esborra una població que fan servir rutes, punts o contactes, i si se li canvia el nom també canvia als contactes que la tenen), ", { to: "/administracio/product", label: "Productes" }, ", ", { to: "/administracio/document-type", label: "Tipus de document" }, ", ", { to: "/administracio/vat-type", label: "Tipus d'IVA" }, " i ", { to: "/administracio/activity-type", label: "Tipus d'activitat" }, ". L'oficina de logística té els punts de recollida, els tipus de lliurament, les poblacions i les tarifes de ruta a «Rutes i punts › Taules de logística». A ", { to: "/routes", label: "Rutes" }, " es pot triar quins dies porta transferències cada ruta. Els logos d'«Amb el suport de» s'afegeixen, s'ordenen i s'esborren a ", { to: "/administracio/logos", label: "Administració › Logos" }, ", i els missatges del formulari «Contacta» es llegeixen a ", { to: "/administracio/form-submissions", label: "Missatges" }, "."]
     },
     {
       type: "Novetats",
       modules: ["Hores", "Administració"],
-      text: ["Festius de totes (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/admin/festive-type", label: "Taules auxiliars › Tipus de festiu" }, "."]
+      text: ["Festius de totes (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/administracio/festive-type", label: "Taules auxiliars › Tipus de festiu" }, "."]
     },
     {
       type: "Novetats",
@@ -596,7 +606,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["El «Peu de les comandes» de ", { to: "/admin/me", label: "Configuració general" }, " ara surt al peu de cada albarà, sota les dades de l'entitat. Abans no s'imprimia enlloc."]
+      text: ["El «Peu de les comandes» de ", { to: "/administracio/me", label: "Configuració general" }, " ara surt al peu de cada albarà, sota les dades de l'entitat. Abans no s'imprimia enlloc."]
     },
     {
       type: "Correccions",
@@ -861,7 +871,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Administració"],
-      text: ["A ", { to: "/admin/me", label: "Configuració general" }, ", ara es pot buidar un camp (per exemple un peu de factura) o tornar a deixar un compte bancari sense triar. Abans el valor antic es mantenia en desar."]
+      text: ["A ", { to: "/administracio/me", label: "Configuració general" }, ", ara es pot buidar un camp (per exemple un peu de factura) o tornar a deixar un compte bancari sense triar. Abans el valor antic es mantenia en desar."]
     },
     {
       type: "Millores",
@@ -1011,7 +1021,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Logística", "Administració"],
-      text: ["Les pàgines ", { to: "/incidences", label: "Incidències" }, ", ", { to: "/pickup-points", label: "Punts de recollida" }, " i ", { to: "/admin/users", label: "Usuàries" }, " tenen un botó per exportar la llista a Excel. A Incidències i Usuàries el fitxer porta totes les files, no només la pàgina que es veu."]
+      text: ["Les pàgines ", { to: "/incidences", label: "Incidències" }, ", ", { to: "/pickup-points", label: "Punts de recollida" }, " i ", { to: "/administracio/users", label: "Usuàries" }, " tenen un botó per exportar la llista a Excel. A Incidències i Usuàries el fitxer porta totes les files, no només la pàgina que es veu."]
     },
     {
       type: "Millores",
@@ -1021,7 +1031,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Logística"],
-      text: ["Administració d'usuàries: des de la fitxa d'una usuària a ", { to: "/admin/users", label: "Usuàries" }, " es pot posar-li una contrasenya nova i, amb el permís Logística (Admin), activar o desactivar el seu descompte multientrega."]
+      text: ["Administració d'usuàries: des de la fitxa d'una usuària a ", { to: "/administracio/users", label: "Usuàries" }, " es pot posar-li una contrasenya nova i, amb el permís Logística (Admin), activar o desactivar el seu descompte multientrega."]
     }
   ]
 },

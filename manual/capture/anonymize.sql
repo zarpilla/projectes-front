@@ -338,8 +338,8 @@ UPDATE tasks SET name = fake_task(id), description = NULL;
 UPDATE components_task_task_checklists SET name = fake_task(id + 3);
 
 -- ── leftovers found by check-leaks.sh ──────────────────────────────────────
-UPDATE configs SET front_url = 'https://demo.exemple.coop/stats/#/';
-UPDATE us SET front_url = 'https://demo.exemple.coop/stats/#/';
+UPDATE configs SET front_url = 'https://demo.exemple.coop/';
+UPDATE us SET front_url = 'https://demo.exemple.coop/';
 UPDATE social_entities SET name = fake_company(id + 100);
 UPDATE verifactus SET software_developer_name = 'Desenvolupador Demo', software_developer_irs_id = '00000000T',
   software_number = 'F00000000', software_address = 'Carrer de l''Exemple, 1',

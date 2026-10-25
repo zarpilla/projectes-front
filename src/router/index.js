@@ -723,7 +723,7 @@ const routes = [
   },
   // Admin routes - specific routes must come before dynamic ones
   {
-    path: "/admin/me",
+    path: "/administracio/me",
     name: "admin.me",
     component: () =>
       import("../views/Me.vue"),
@@ -734,7 +734,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/verifactu",
+    path: "/administracio/verifactu",
     name: "admin.verifactu",
     component: () =>
       import("../views/Verifactu.vue"),
@@ -745,7 +745,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/face-queue",
+    path: "/administracio/face-queue",
     name: "admin.face-queue.list",
     component: () =>
       import("../views/FaceQueueList.vue"),
@@ -756,7 +756,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/face-queue/:id",
+    path: "/administracio/face-queue/:id",
     name: "admin.face-queue.edit",
     component: () =>
       import("../views/FaceQueueEdit.vue"),
@@ -768,7 +768,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/verifactu-chain",
+    path: "/administracio/verifactu-chain",
     name: "admin.verifactu-chain.list",
     component: () =>
       import("../views/VerifactuChainList.vue"),
@@ -779,7 +779,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/verifactu-chain/:id",
+    path: "/administracio/verifactu-chain/:id",
     name: "admin.verifactu-chain.edit",
     component: () =>
       import("../views/VerifactuChainEdit.vue"),
@@ -791,7 +791,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/users",
+    path: "/administracio/users",
     name: "admin.users.list",
     component: () =>
       import("../views/AdminUserList.vue"),
@@ -802,7 +802,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/users/new",
+    path: "/administracio/users/new",
     name: "admin.users.new",
     component: () =>
       import("../views/AdminUserForm.vue"),
@@ -813,7 +813,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/users/:id",
+    path: "/administracio/users/:id",
     name: "admin.users.edit",
     component: () =>
       import("../views/AdminUserForm.vue"),
@@ -825,9 +825,9 @@ const routes = [
     }
   },
   // the supporters' logos and the «Contacta» messages (issues/159), before
-  // the generic /admin/:entityName
+  // the generic /administracio/:entityName
   {
-    path: "/admin/logos",
+    path: "/administracio/logos",
     name: "admin.logos",
     component: () =>
       import("../views/AdminLogos.vue"),
@@ -839,7 +839,7 @@ const routes = [
   },
   {
     // last night's database dump, to download
-    path: "/admin/backup",
+    path: "/administracio/backup",
     name: "admin.backup",
     component: () =>
       import("../views/AdminBackup.vue"),
@@ -850,7 +850,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/form-submissions",
+    path: "/administracio/form-submissions",
     name: "admin.form-submissions",
     component: () =>
       import("../views/AdminFormSubmissions.vue"),
@@ -862,10 +862,10 @@ const routes = [
   },
   // Admin entity management routes
   // Strapi 3 names of two entities, kept for bookmarks (issues/026)
-  { path: "/admin/bank-accounts", redirect: "/admin/bank-account" },
-  { path: "/admin/regions", redirect: "/admin/region" },
+  { path: "/administracio/bank-accounts", redirect: "/administracio/bank-account" },
+  { path: "/administracio/regions", redirect: "/administracio/region" },
   {
-    path: "/admin/:entityName",
+    path: "/administracio/:entityName",
     name: "admin.entity.list",
     component: () =>
       import("../views/AdminEntityList.vue"),
@@ -877,7 +877,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/:entityName/new",
+    path: "/administracio/:entityName/new",
     name: "admin.entity.new",
     component: () =>
       import("../views/AdminEntityForm.vue"),
@@ -889,7 +889,7 @@ const routes = [
     }
   },
   {
-    path: "/admin/:entityName/:id",
+    path: "/administracio/:entityName/:id",
     name: "admin.entity.edit",
     component: () =>
       import("../views/AdminEntityForm.vue"),

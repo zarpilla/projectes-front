@@ -105,7 +105,7 @@ const menu = [
     { to: "/pickup-points", icon: "basket-outline", label: "Punts de consum", permission: ["orders", "orders_admin"] },
     { to: "/partners", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin" },
     // the Logística group of Taules auxiliars, for the office (admins reach it from Administració, issues/159)
-    { to: "/admin/pickup", icon: "table-settings", label: "Taules de logística", permission: ["orders_admin", "admin"], unless: "admin", activeWhen: "logistics-tables", itemClassName: "mb-6" }
+    { to: "/administracio/pickup", icon: "table-settings", label: "Taules de logística", permission: ["orders_admin", "admin"], unless: "admin", activeWhen: "logistics-tables", itemClassName: "mb-6" }
   ],
   // Comunitat energètica (views/Energy*.vue)
   "Comunitat energètica",
@@ -215,20 +215,20 @@ const menu = [
   "Administració",
   [
     {
-      to: "/admin/me",
+      to: "/administracio/me",
       icon: "settings-outline",
       label: "Configuració general",
       permission: "admin"
     },
     {
-      to: "/admin/users",
+      to: "/administracio/users",
       icon: "account-key-outline",
       label: "Usuàries",
       permission: "admin"
     },
     {
       // Verifactu's configuration, its register and the FACe queue share one head
-      to: "/admin/verifactu",
+      to: "/administracio/verifactu",
       icon: "certificate-outline",
       label: "Verifactu i FACe",
       permission: "admin",
@@ -236,7 +236,7 @@ const menu = [
     },
     {
       // the auxiliary tables (service/adminTables.js) share one screen
-      to: "/admin/project-scope",
+      to: "/administracio/project-scope",
       icon: "table-settings",
       label: "Taules auxiliars",
       permission: "admin",
@@ -244,21 +244,21 @@ const menu = [
     },
     {
       // «Amb el suport de» of the login page and the menu (issues/159)
-      to: "/admin/logos",
+      to: "/administracio/logos",
       icon: "image-outline",
       label: "Logos",
       permission: "admin"
     },
     {
       // the members' «Contacta» form (issues/159)
-      to: "/admin/form-submissions",
+      to: "/administracio/form-submissions",
       icon: "email-outline",
       label: "Missatges",
       permission: "admin"
     },
     {
       // last night's database dump, to download
-      to: "/admin/backup",
+      to: "/administracio/backup",
       icon: "database-export",
       label: "Còpia de seguretat",
       permission: "admin",

@@ -173,7 +173,7 @@ export default {
     },
     async doLogout () {
       await logout()
-      location.href = import.meta.env.VUE_APP_PATH || '/'
+      location.href = import.meta.env.BASE_URL
     }
   }
 }

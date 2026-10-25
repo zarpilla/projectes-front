@@ -86,7 +86,7 @@ jobs:
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           build-args: |
-            VUE_APP_PATH=/stats/
+            VUE_APP_PATH=/
           # The sha-pinned tag is what sites are deployed to (and rolled back to);
           # `v5-vue3` follows the latest main build.
           tags: |

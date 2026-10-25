@@ -103,7 +103,7 @@ export default ({ requiresAuth = false, multipart = false, cached = false } = {}
         const status = refreshError.response && refreshError.response.status
         if (status === 400 || status === 401) {
           clearSession()
-          location.href = getConfig().VUE_APP_PATH || '/'
+          location.href = import.meta.env.BASE_URL
         }
       }
       if (refreshed) {

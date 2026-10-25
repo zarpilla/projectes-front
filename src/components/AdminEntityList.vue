@@ -10,7 +10,7 @@
       @cancel="trashCancel"
     />
 
-    <!-- an entity the admin screens don't list, opened by URL (/admin/festive):
+    <!-- an entity the admin screens don't list, opened by URL (/administracio/festive):
          it read «Festive», «0 festive», «Crear festive» (issues/181) -->
     <div v-if="notManaged" class="card admin-empty">
       <p>Aquesta taula no es gestiona des d'Administració.</p>

@@ -71,7 +71,7 @@ describe('Inici', () => {
   })
 
   it('hides the pins the person may no longer open, without forgetting them', () => {
-    const pins = ['/tresoreria', '/dedicacio', '/admin/users']
+    const pins = ['/tresoreria', '/dedicacio', '/administracio/users']
     expect(visiblePins(pins, ['hours'])).toEqual(['/dedicacio'])
     expect(visiblePins(pins, ['projects', 'hours', 'admin'])).toEqual(pins)
   })

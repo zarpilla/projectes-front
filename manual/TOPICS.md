@@ -12,7 +12,7 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 |---|------|-----------|-----------|--------|-------|
 | 00 | Què és ESSTRAPIS | Per a qui és (cooperatives), què resol: projectes, hores, diners, tresoreria, logística. Mòduls i com es relacionen (projecte → fases → hores, ingressos, despeses). Glossari. | — | — | done (2026-10-17) |
 | 01 | Primers passos | Accés, inici de sessió, contrasenya oblidada, el menú lateral i les seccions, la barra superior, perfil i canvi de contrasenya, registre de canvis, documentació. (Inici: capítol 37; captures del menú refetes el 2026-10-18.) | `/`, `/forgotten-password`, `/reset-password`, `/profile`, `/changelog`, `/documentacio` | — | done (2026-10-18) |
-| 02 | Usuaris, rols i permisos | Què veu cada perfil (`projects`, `hours`, `orders`, `orders_admin`, `orders_delivery`, `admin`), per què el menú canvia segons l'usuari. | `/admin/users` | admin | done (2026-10-18) |
+| 02 | Usuaris, rols i permisos | Què veu cada perfil (`projects`, `hours`, `orders`, `orders_admin`, `orders_delivery`, `admin`), per què el menú canvia segons l'usuari. | `/administracio/users` | admin | done (2026-10-18) |
 | 37 | La pàgina d'inici | Accessos fixats amb l'estrella, Tot el menú i cercador, ordenar els accessos, «En entrar, obre», l'estrella del menú lateral, restablir. | `/inici` | — | done (2026-10-18) |
 
 ## B. Projectes
@@ -36,7 +36,7 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 |---|------|-----------|-----------|--------|-------|
 | 13 | Imputar hores dedicades | Calendari, taula i tot; afegir, editar i esborrar hores; comptador; moure hores; festius i vacances; importar .ics. (Les dietes no són en aquesta pantalla.) | `/dedicacio` | hours | done (2026-10-18) |
 | 14 | Registre de jornada | Fitxar entrada i sortida, trams a mà, lligar un tram a un projecte, mes i any, PDF. | `/registre-jornades` | hours | done (2026-10-18) |
-| 15 | Persones i jornades laborals | Períodes de jornada de cada persona, salari i Seguretat Social, cost/hora, crear les bestretes de l'any. (Festius: al capítol 13.) | `/working-day`, `/admin/user-festive` | projects | done (2026-10-18) |
+| 15 | Persones i jornades laborals | Períodes de jornada de cada persona, salari i Seguretat Social, cost/hora, crear les bestretes de l'any. (Festius: al capítol 13.) | `/working-day`, `/administracio/user-festive` | projects | done (2026-10-18) |
 | 16 | Saldo d'hores i hores anuals | Hores previstes vs. treballades, saldo per persona i any. | `/dedicacio-saldo`, `/dedicacio-summary` | projects | done (2026-10-18) |
 
 ## D. Diners
@@ -44,7 +44,7 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 | # | Tema | Contingut | Pantalles | Permís | Estat |
 |---|------|-----------|-----------|--------|-------|
 | 17 | Ingressos: factures emeses | Crear factura, sèries, línies i IVA, assignar a projecte, PDF, enviar, cobrament, factures rectificatives, altres ingressos. | `/emitted-invoices`, `/document/:id/:type` | projects | done (2026-10-18) |
-| 18 | Facturació electrònica: Verifactu i FACe | Què és Verifactu, cadena de registres, declaració; enviament de factures a l'administració per FACe i la seva cua. | `/verifactu`, `/admin/verifactu*`, `/admin/face-queue` | projects / admin | done (2026-10-18) |
+| 18 | Facturació electrònica: Verifactu i FACe | Què és Verifactu, cadena de registres, declaració; enviament de factures a l'administració per FACe i la seva cua. | `/verifactu`, `/administracio/verifactu*`, `/administracio/face-queue` | projects / admin | done (2026-10-18) |
 | 19 | Despeses: factures rebudes | Registrar factures de proveïdors i altres despeses, tipus de despesa, assignar a projecte/fase, pagament. | `/received-invoices`, `/document/:id/:type` | projects | done (2026-10-18) |
 | 20 | Bestretes (nòmines) | Bestretes i nòmines per període, com s'imputen als projectes segons les hores. | `/salary` | projects | done (2026-10-18) |
 | 21 | IVA | Resum d'IVA repercutit i suportat per trimestre. | `/vat` | projects | done (2026-10-18) |
@@ -76,6 +76,6 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 
 | # | Tema | Contingut | Pantalles | Permís | Estat |
 |---|------|-----------|-----------|--------|-------|
-| 34 | Configuració general de l'entitat | Dades fiscals, logo, opcions generals. | `/admin/me` | admin | done (2026-10-18) |
-| 35 | Taules auxiliars | Anys, àmbits, estats i probabilitats de projecte, estats de tasca, estratègies, formes jurídiques, mètodes de pagament, regions, sectors, sèries, tipus (contacte, dedicació, despesa, ingrés, projecte), entitats socials, comptes bancaris. | `/admin/*` | admin | done (2026-10-18) |
-| 36 | Inici d'any i manteniment | Preparar un any nou (anys, festius, sèries), recalcular. | `/admin/year`, `/recalculate` | admin | done (2026-10-18) |
+| 34 | Configuració general de l'entitat | Dades fiscals, logo, opcions generals. | `/administracio/me` | admin | done (2026-10-18) |
+| 35 | Taules auxiliars | Anys, àmbits, estats i probabilitats de projecte, estats de tasca, estratègies, formes jurídiques, mètodes de pagament, regions, sectors, sèries, tipus (contacte, dedicació, despesa, ingrés, projecte), entitats socials, comptes bancaris. | `/administracio/*` | admin | done (2026-10-18) |
+| 36 | Inici d'any i manteniment | Preparar un any nou (anys, festius, sèries), recalcular. | `/administracio/year`, `/recalculate` | admin | done (2026-10-18) |

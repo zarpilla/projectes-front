@@ -29,7 +29,7 @@ export const env = {
   ),
   ...Object.fromEntries(Object.entries(process.env).filter(([k]) => k.startsWith('E2E_')))
 }
-const BASE_URL = env.E2E_BASE_URL || 'http://localhost:8082/stats/'
+const BASE_URL = env.E2E_BASE_URL || 'http://localhost:8082/'
 export const API_URL = env.E2E_API_URL || 'http://localhost:1339'
 const SENTINEL = 'E2E SENTINEL'
 

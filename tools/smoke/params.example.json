@@ -6,10 +6,10 @@
   "/order/:id": ["/order/0", "/order/1"],
   "/contact/:id": ["/contact/0", "/contact/1"],
   "/contact-user/:id": "/contact-user/0",
-  "/admin/face-queue/:id": "/admin/face-queue/1",
-  "/admin/verifactu-chain/:id": "/admin/verifactu-chain/1",
-  "/admin/users/:id": "/admin/users/1",
-  "/admin/:entityName": ["/admin/bank-account", "/admin/contact-type"],
-  "/admin/:entityName/new": "/admin/bank-account/new",
-  "/admin/:entityName/:id": "/admin/bank-account/1"
+  "/administracio/face-queue/:id": "/administracio/face-queue/1",
+  "/administracio/verifactu-chain/:id": "/administracio/verifactu-chain/1",
+  "/administracio/users/:id": "/administracio/users/1",
+  "/administracio/:entityName": ["/administracio/bank-account", "/administracio/contact-type"],
+  "/administracio/:entityName/new": "/administracio/bank-account/new",
+  "/administracio/:entityName/:id": "/administracio/bank-account/1"
 }

@@ -30,7 +30,6 @@ import IntercoopPivot from '@/components/IntercoopPivot.vue'
 import service from '@/service/index'
 import defaultProjectState from '@/service/projectState'
 import { loadKendo, waitForJQuery } from '@/helpers/addScript'
-import getConfig from '@/config'
 
 export default {
   name: 'StatsIntercoop',
@@ -60,9 +59,7 @@ export default {
     this.isLoading = true
 
     this.stopJQueryWait = waitForJQuery(async () => {
-      const config = getConfig();
-      const basePath = config.VUE_APP_PATH || '';
-      await loadKendo(basePath)
+      await loadKendo()
       this.isLoading = false
       this.getData()
     })

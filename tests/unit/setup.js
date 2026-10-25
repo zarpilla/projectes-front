@@ -2,7 +2,7 @@
 window.APP_CONFIG = {
   VUE_APP_API_URL: 'http://api.test',
   VUE_APP_RESET_PASSWORD: 'http://app.test/reset-password',
-  VUE_APP_PATH: '/stats/'
+  VUE_APP_PATH: '/'
 }
 
 // Unmount every wrapper after its test: a screen left mounted kept its timers

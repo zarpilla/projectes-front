@@ -6,7 +6,7 @@ manual: usuari
 module: administracio
 order: 36
 roles: [admin, projects]
-routes: ["/admin/year", "/recalculate"]
+routes: ["/administracio/year", "/recalculate"]
 lang: ca
 updated: 2026-10-18
 ---

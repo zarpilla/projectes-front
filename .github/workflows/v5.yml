@@ -39,7 +39,7 @@ jobs:
           file: ./Dockerfile
           push: true
           build-args: |
-            VUE_APP_PATH=/stats/
+            VUE_APP_PATH=/
           # Two tags on purpose: `v5` is what deployments follow, and the
           # sha-pinned one is what you roll a single tenant back to without
           # touching the others.

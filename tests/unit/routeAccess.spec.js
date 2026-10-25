@@ -1,5 +1,5 @@
 // issues/121: the menu hid the pages a user can't use, but the router only
-// checked /admin/*: a member (orders), a driver or an hours-only user opened
+// checked /administracio/*: a member (orders), a driver or an hours-only user opened
 // Tresoreria, Bestretes, Persones or Facturar by URL or through links.
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
@@ -28,8 +28,8 @@ describe('route access (issues/121)', () => {
   it('opens the profile and the changelog to everybody, and admin pages to admins only', () => {
     expect(canOpen(rec('/profile'), [])).toBe(true)
     expect(canOpen(rec('/changelog'), ['orders'])).toBe(true)
-    expect(canOpen([{ path: '/admin/users', meta: { requiresPermission: 'admin' } }], ['projects'])).toBe(false)
-    expect(routePermissions({ path: '/admin/:entityName', meta: {} })).toEqual(['admin'])
+    expect(canOpen([{ path: '/administracio/users', meta: { requiresPermission: 'admin' } }], ['projects'])).toBe(false)
+    expect(routePermissions({ path: '/administracio/:entityName', meta: {} })).toEqual(['admin'])
   })
 
   it('agrees with the side menu', () => {
@@ -46,7 +46,7 @@ describe('route access (issues/121)', () => {
   it('classifies every page of the router', () => {
     const src = fs.readFileSync('src/router/index.js', 'utf8')
     const paths = [...new Set([...src.matchAll(/path: "([^"]+)"/g)].map(m => m[1]))]
-      .filter(p => !['/', '/forgotten-password'].includes(p) && !p.startsWith('/admin'))
+      .filter(p => !['/', '/forgotten-password'].includes(p) && !p.startsWith('/administracio'))
     const unclassified = paths.filter(p => !ROUTE_PERMISSIONS[p] && !OPEN_ROUTES.includes(p))
     expect(unclassified).toEqual([])
   })
@@ -91,7 +91,7 @@ describe('changelog links (issues/121)', () => {
     expect(canOpenPath('/project/555?tab=resum', ['hours'])).toBe(false)
     expect(canOpenPath('/orders', ['orders'])).toBe(true)
     expect(canOpenPath('/profile', ['orders'])).toBe(true)
-    expect(canOpenPath('/admin/users', ['projects'])).toBe(false)
+    expect(canOpenPath('/administracio/users', ['projects'])).toBe(false)
     expect(canOpenPath('/tresoreria', null)).toBe(true)
   })
 

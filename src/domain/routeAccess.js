@@ -1,6 +1,6 @@
 // Which app permissions open each page (issues/121). The side menu
 // (service/menu.js) hid the pages a user can't use, but the router only checked
-// /admin/*: a member, a driver or an hours-only user opened Tresoreria,
+// /administracio/*: a member, a driver or an hours-only user opened Tresoreria,
 // Bestretes, Persones or Facturar by URL or through links. The router guard and
 // the links in shared panels (Novetats) ask this table. Keep it in step with
 // the menu and with the API's rules (projectes-v5 services/app-access-rules.js).
@@ -94,11 +94,11 @@ export const OPEN_ROUTES = ['/inici', '/profile', '/changelog', '/documentacio',
 /** The permissions a route record needs: null when any logged-in user may open it. */
 export function routePermissions (record, params = {}) {
   if (!record) return null
-  if (record.path && record.path.startsWith('/admin/')) {
-    const entity = record.path.startsWith('/admin/:entityName') ? params.entityName : record.path.split('/')[2]
+  if (record.path && record.path.startsWith('/administracio/')) {
+    const entity = record.path.startsWith('/administracio/:entityName') ? params.entityName : record.path.split('/')[2]
     if (OFFICE_TABLES.includes(entity)) return ADMIN_OR_OFFICE
   }
-  if (record.path && record.path.startsWith('/admin')) return ADMIN
+  if (record.path && record.path.startsWith('/administracio')) return ADMIN
   if (record.meta && record.meta.requiresPermission) {
     const p = record.meta.requiresPermission
     return Array.isArray(p) ? p : [p]
@@ -155,7 +155,7 @@ const RECORDS = Object.keys(ROUTE_PERMISSIONS).map(path => ({
 export function canOpenPath (to, permissions) {
   if (!permissions) return true
   const path = String(to || '').split(/[?#]/)[0]
-  if (path.startsWith('/admin')) {
+  if (path.startsWith('/administracio')) {
     const entity = path.split('/')[2]
     return permissions.includes('admin') || (OFFICE_TABLES.includes(entity) && permissions.includes('orders_admin'))
   }

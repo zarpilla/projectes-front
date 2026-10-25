@@ -6,7 +6,7 @@ manual: usuari
 module: administracio
 order: 35
 roles: [admin]
-routes: ["/admin/*"]
+routes: ["/administracio/*"]
 lang: ca
 updated: 2026-10-18
 ---

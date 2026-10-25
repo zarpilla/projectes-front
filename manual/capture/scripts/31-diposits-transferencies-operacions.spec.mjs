@@ -26,7 +26,7 @@ function makeQrVideo () {
   fs.mkdirSync(path.dirname(video), { recursive: true })
   const png = video.replace(/\.y4m$/, '.png')
   const frame = video.replace(/\.y4m$/, '-frame.png')
-  execSync(`qrencode -s 8 -m 4 -o "${png}" "http://localhost:8082/stats/#/order/view/${SCAN_ORDER}"`)
+  execSync(`qrencode -s 8 -m 4 -o "${png}" "http://localhost:8082/#/order/view/${SCAN_ORDER}"`)
   execSync(`magick "${png}" -resize 320x320 -gravity center -background white -extent 640x480 "${frame}"`)
   execSync(`ffmpeg -loglevel error -y -loop 1 -i "${frame}" -t 3 -r 10 -pix_fmt yuv420p "${video}"`)
 }

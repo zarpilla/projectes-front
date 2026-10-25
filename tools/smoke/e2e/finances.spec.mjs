@@ -361,7 +361,7 @@ test('«IVA» offers settling only with a deductible % in Configuració', async 
   const pct = me.options?.deductible_vat_pct
   onCleanup(() => api('PUT', 'me', { data: { options: { ...me.options, id: undefined } } }))
   const setPct = async value => {
-    await visit('/admin/me')
+    await visit('/administracio/me')
     await field('% IVA deduïble').locator('input').fill(String(value))
     await button('Guardar').click()
     await expectSnackbar('Guardat correctament')

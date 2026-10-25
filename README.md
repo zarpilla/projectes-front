@@ -50,7 +50,7 @@ npm install
 # settings
 cp .env.example .env
 
-# dev server with hot reload at http://localhost:8080/stats/
+# dev server with hot reload at http://localhost:8080/
 npm run dev
 ```
 
@@ -58,7 +58,7 @@ npm run dev
 | -------- | ------- |
 | `VUE_APP_API_URL` | URL of the backend |
 | `VUE_APP_RESET_PASSWORD` | Password reset URL sent by email |
-| `VUE_APP_PATH` | Public path the app is served under, `/stats/` by default |
+| `VUE_APP_PATH` | Public path the app is served under, `/` by default |
 
 | Command | What it does |
 | ------- | ------------ |

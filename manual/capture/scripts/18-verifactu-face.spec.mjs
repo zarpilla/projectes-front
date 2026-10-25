@@ -10,16 +10,16 @@ test('18-verifactu-face', async ({ page }) => {
   await start(page, '18-verifactu-face', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/admin/verifactu')
+  await page.goto('#/administracio/verifactu')
   await page.getByText("Enviament a l'AEAT").waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'configuracio')
 
-  await page.goto('#/admin/verifactu-chain')
+  await page.goto('#/administracio/verifactu-chain')
   await settle(page, 1500)
   await shot(page, 'registre')
 
-  await page.goto('#/admin/face-queue')
+  await page.goto('#/administracio/face-queue')
   await settle(page, 1500)
   await shot(page, 'cua-face')
 
