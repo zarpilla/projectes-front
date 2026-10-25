@@ -46,7 +46,7 @@ test('08-documents-projecte', async ({ page, browser }) => {
   await login(page)
   const files = await makeDemoFiles(browser)
 
-  await page.goto(`#/project/${DOCS_PROJECT}?tab=dades`)
+  await page.goto(`#/projecte/${DOCS_PROJECT}?tab=dades`)
   await page.getByText('Identificació').waitFor()
   await settle(page, 1500)
   const docs = page.locator('h3.form-section-title', { hasText: 'Documents' })
@@ -73,7 +73,7 @@ test('08-documents-projecte', async ({ page, browser }) => {
   await settle(page, 500)
 
   // the project's money movements
-  await page.goto(`#/project/${MOVEMENTS_PROJECT}?tab=moviments`)
+  await page.goto(`#/projecte/${MOVEMENTS_PROJECT}?tab=moviments`)
   await page.reload()
   await page.getByText("Moviments d'ingressos i despeses").first().waitFor()
   await settle(page, 1500)

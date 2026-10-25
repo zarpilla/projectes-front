@@ -50,7 +50,7 @@ describe('logos (issues/159)', () => {
     const i = menu.indexOf('Administració')
     expect(menu[i + 1].find(m => m.to === '/administracio/logos')).toMatchObject({ label: 'Logos', permission: 'admin' })
     expect(router.resolve('/administracio/logos').name).toBe('admin.logos')
-    expect(router.resolve('/administracio/form-submissions').name).toBe('admin.form-submissions')
+    expect(router.resolve('/administracio/missatges').name).toBe('admin.form-submissions')
   })
 })
 

@@ -5,7 +5,7 @@
     <section class="title-bar user-head">
       <nav class="crumbs" aria-label="Ruta">
         <span>Administració</span><span aria-hidden="true">/</span>
-        <router-link to="/administracio/users">Usuàries</router-link>
+        <router-link to="/administracio/usuaries">Usuàries</router-link>
       </nav>
       <div class="user-head-row">
         <span class="user-avatar" aria-hidden="true">{{ initials }}</span>
@@ -17,7 +17,7 @@
           </h1>
           <p v-if="userId" class="has-text-muted">{{ summaryLine }}</p>
         </div>
-        <router-link v-if="userId" to="/working-day" class="button">Fitxa a Persones</router-link>
+        <router-link v-if="userId" to="/jornada" class="button">Fitxa a Persones</router-link>
       </div>
     </section>
 
@@ -110,7 +110,7 @@
           <section class="form-box periods-box">
             <header class="periods-head">
               <h2>Jornada i cost/hora</h2>
-              <router-link to="/working-day">Edita a Persones</router-link>
+              <router-link to="/jornada">Edita a Persones</router-link>
             </header>
             <table v-if="periods.length" class="table is-fullwidth periods-table">
               <thead>
@@ -139,7 +139,7 @@
 
     <div class="savebar">
       <span class="savebar-state">{{ userId ? "Desa els canvis quan acabis" : "Es demanarà la clau en desar" }}</span>
-      <b-button @click="$router.push('/administracio/users')">Cancel·la</b-button>
+      <b-button @click="$router.push('/administracio/usuaries')">Cancel·la</b-button>
       <b-button type="is-primary" :loading="submitting" @click="submit">Guardar</b-button>
     </div>
   </div>
@@ -406,7 +406,7 @@ export default {
                   message: 'Usuària creada correctament',
                   type: 'is-success'
                 });
-                this.$router.push('/administracio/users');
+                this.$router.push('/administracio/usuaries');
               } catch (error) {
                 this.$buefy.toast.open({
                   message: `Error creant la usuària: ${error.message}`,
@@ -418,7 +418,7 @@ export default {
           return; // Don't navigate yet, wait for password prompt
         }
         
-        this.$router.push('/administracio/users');
+        this.$router.push('/administracio/usuaries');
       } catch (error) {
         this.$buefy.toast.open({
           message: `Error guardant la usuària: ${error.message}`,

@@ -19,24 +19,24 @@ const routerSource = fs.readFileSync(path.join(here, '../../../src/router/index.
 const declared = [...new Set([...routerSource.matchAll(/^\s*path:\s*["'`]([^"'`]+)["'`]/gm)].map(m => m[1]))]
 
 // guest-only screens; and the admin entity screens, which admin.spec.mjs opens one by one
-const SKIP = new Set(['/', '/forgotten-password', '/reset-password', '/administracio/:entityName'])
+const SKIP = new Set(['/', '/recuperar-clau', '/canviar-clau', '/administracio/:entityName'])
 
 // routes with params, as concrete paths; `s` is `state` once the setup test has run
 const WITH_PARAMS = {
-  '/project/:id': s => ['/project/0', `/project/${s.projectId}`],
+  '/projecte/:id': s => ['/projecte/0', `/projecte/${s.projectId}`],
   '/document/:id/:type': () => ['emitted-invoices', 'received-invoices', 'received-expenses', 'received-incomes', 'quotes'].map(t => `/document/0/${t}`),
-  '/client/:id': s => [`/client/${s.contact.id}`],
-  '/contact/:id': s => ['/contact/0', `/contact/${s.contact.id}`],
-  '/contact-user/:id': () => ['/contact-user/0'],
-  '/order/:id': () => ['/order/0'],
+  '/contacte/:id': s => [`/contacte/${s.contact.id}`],
+  '/contacte/:id': s => ['/contacte/0', `/contacte/${s.contact.id}`],
+  '/punt-entrega/:id': () => ['/punt-entrega/0'],
+  '/comanda/:id': () => ['/comanda/0'],
   // records the other specs leave behind (orders.spec.mjs, money.spec.mjs): skipped when there are none
-  '/order/view/:id': s => s.orderId ? [`/order/view/${s.orderId}`] : [],
-  '/administracio/users/:id': s => [`/administracio/users/${s.me.id}`],
-  '/administracio/:entityName/new': () => ['/administracio/contact-type/new'],
-  '/administracio/:entityName/:id': s => [`/administracio/contact-type/${s.contactTypeId}`]
+  '/comanda/veure/:id': s => s.orderId ? [`/comanda/veure/${s.orderId}`] : [],
+  '/administracio/usuaries/:id': s => [`/administracio/usuaries/${s.me.id}`],
+  '/administracio/:entityName/new': () => ['/administracio/tipus-contacte/nou'],
+  '/administracio/:entityName/:id': s => [`/administracio/tipus-contacte/${s.contactTypeId}`]
 }
 // need a VeriFactu or FACe submission, which the e2e database never makes
-const NOT_HERE = new Set(['/administracio/face-queue/:id', '/administracio/verifactu-chain/:id'])
+const NOT_HERE = new Set(['/administracio/cua-face/:id', '/administracio/cadena-verifactu/:id'])
 
 const routes = declared.filter(r => !SKIP.has(r) && !NOT_HERE.has(r))
 for (const r of routes) if (r.includes(':') && !WITH_PARAMS[r]) throw new Error(`screens.spec.mjs: no concrete path for ${r}`)

@@ -28,7 +28,7 @@ if (fs.existsSync(envFile)) {
 const routerSource = fs.readFileSync(path.join(here, '../../src/router/index.js'), 'utf8')
 
 // guest-only screens, or screens that only make sense mid-flow
-const SKIP = new Set(['/', '/forgotten-password', '/reset-password'])
+const SKIP = new Set(['/', '/recuperar-clau', '/canviar-clau'])
 
 const declared = [...new Set(
   [...routerSource.matchAll(/^\s*path:\s*["'`]([^"'`]+)["'`]/gm)].map(m => m[1])

@@ -1,6 +1,8 @@
+import { entityPath } from '@/router/paths'
+
 // The auxiliary tables of the administration (the lists behind the app's selects),
 // grouped as in "Taules auxiliars". Each is edited with AdminEntityList/Form at
-// #/administracio/<entity>.
+// /administracio/<segment> (router/paths.js ENTITY_SLUGS).
 export const ADMIN_TABLE_GROUPS = [
   {
     title: 'Projectes',
@@ -81,7 +83,8 @@ export const adminTableGroupsFor = permissions => {
 
 export const ADMIN_TABLES = ADMIN_TABLE_GROUPS.flatMap(g => g.items)
 
-const tablePath = (path, entity) => path === `/administracio/${entity}` || path.startsWith(`/administracio/${entity}/`)
+// the URL carries the entity's Catalan segment (router/paths.js)
+const tablePath = (path, entity) => path === entityPath(entity) || path.startsWith(`${entityPath(entity)}/`)
 
 export const isAdminTablePath = path => ADMIN_TABLES.some(t => tablePath(path, t.entity))
 

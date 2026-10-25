@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Plataforma"],
+      text: ["Totes les adreces de l'aplicació són en català: ", { to: "/contactes", label: "…/contactes" }, ", ", { to: "/tasques", label: "…/tasques" }, ", ", { to: "/comandes", label: "…/comandes" }, ", …/administracio/usuaries, etc. Les adreces antigues (correus, codis QR de les etiquetes, adreces desades i els accessos fixats a Inici) continuen funcionant: porten a la nova."]
+    },
+    {
+      type: "Millores",
+      modules: ["Plataforma"],
       text: ["L'aplicació s'obre a l'arrel de l'adreça de l'entitat, sense «/stats/» (p. ex. …esstrapis.org/projectes), i les pantalles d'Administració són ara a …/administracio/. Les adreces antigues (correus, codis QR de les etiquetes, adreces desades) continuen funcionant: porten a la nova."]
     }
   ]
@@ -36,27 +41,27 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["Un any sense «% IVA deduïble» a Taules auxiliars › Anys compta ara com a 100 % a tot arreu, i els anys que el tenien buit s'han posat a 100 %. A ", { to: "/vat", label: "IVA" }, " i a Tresoreria comptava com a 0 % (no deduïa res de l'IVA suportat), i en saldar-lo agafava el % de Configuració. Els resultats dels projectes no canvien: ja el comptaven com a 100 %."]
+      text: ["Un any sense «% IVA deduïble» a Taules auxiliars › Anys compta ara com a 100 % a tot arreu, i els anys que el tenien buit s'han posat a 100 %. A ", { to: "/iva", label: "IVA" }, " i a Tresoreria comptava com a 0 % (no deduïa res de l'IVA suportat), i en saldar-lo agafava el % de Configuració. Els resultats dels projectes no canvien: ja el comptaven com a 100 %."]
     },
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["Els pagaments d'IVA de ", { to: "/tresoreria", label: "Tresoreria" }, " i d'", { to: "/vat", label: "IVA" }, " van al termini del model 303: el 20 d'abril, juliol i octubre, i el 30 de gener pel quart trimestre. Anaven al 30 i al 20 de gener, al revés."]
+      text: ["Els pagaments d'IVA de ", { to: "/tresoreria", label: "Tresoreria" }, " i d'", { to: "/iva", label: "IVA" }, " van al termini del model 303: el 20 d'abril, juliol i octubre, i el 30 de gener pel quart trimestre. Anaven al 30 i al 20 de gener, al revés."]
     },
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["Les factures en esborrany ja no compten com a IVA repercutit a ", { to: "/vat", label: "IVA" }, " ni a Tresoreria, i no es poden saldar: encara no són factures. A Tresoreria segueixen sortint com a ingrés previst. A més, «Salda» s'activa sempre que hi ha documents marcats."]
+      text: ["Les factures en esborrany ja no compten com a IVA repercutit a ", { to: "/iva", label: "IVA" }, " ni a Tresoreria, i no es poden saldar: encara no són factures. A Tresoreria segueixen sortint com a ingrés previst. A més, «Salda» s'activa sempre que hi ha documents marcats."]
     },
     {
       type: "Correccions",
       modules: ["Informes"],
-      text: ["Amb l'any fiscal de setembre a agost, «Any inici» d'", { to: "/stats-projectes", label: "Informes › Projectes" }, " mostra l'any fiscal (2026/27) en lloc de l'any 2026."]
+      text: ["Amb l'any fiscal de setembre a agost, «Any inici» d'", { to: "/panell-projectes", label: "Informes › Projectes" }, " mostra l'any fiscal (2026/27) en lloc de l'any 2026."]
     },
     {
       type: "Correccions",
       modules: ["Logística", "Informes"],
-      text: [{ to: "/incidences-stats", label: "Informe d'incidències" }, " i ", { to: "/orders-stats", label: "Informe de comandes" }, " s'obren a l'any actual: obrien el 2027, encara buit, i tot sortia a 0."]
+      text: [{ to: "/estadistiques-incidencies", label: "Informe d'incidències" }, " i ", { to: "/estadistiques-comandes", label: "Informe de comandes" }, " s'obren a l'any actual: obrien el 2027, encara buit, i tot sortia a 0."]
     },
     {
       type: "Correccions",
@@ -71,7 +76,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Logística", "Administració"],
-      text: ["Les llistes de contactes de la fitxa de contacte (punts de recollida), ", { to: "/contacts", label: "Contactes" }, " (contactes amb comandes), Usuàries i Facturar comandes es carreguen amb una consulta lleugera: abans podien trigar fins a 25 segons i alentir tota l'aplicació."]
+      text: ["Les llistes de contactes de la fitxa de contacte (punts de recollida), ", { to: "/contactes", label: "Contactes" }, " (contactes amb comandes), Usuàries i Facturar comandes es carreguen amb una consulta lleugera: abans podien trigar fins a 25 segons i alentir tota l'aplicació."]
     },
     {
       type: "Millores",
@@ -86,17 +91,17 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Diners"],
-      text: [{ to: "/received-invoices", label: "Despeses" }, " carrega molt més de pressa: les factures, despeses i nòmines del període arriben només amb el que la llista mostra i exporta, i es guarden en memòria fins que algú en canvia alguna."]
+      text: [{ to: "/factures-rebudes", label: "Despeses" }, " carrega molt més de pressa: les factures, despeses i nòmines del període arriben només amb el que la llista mostra i exporta, i es guarden en memòria fins que algú en canvia alguna."]
     },
     {
       type: "Millores",
       modules: ["Logística"],
-      text: ["La llista de ", { to: "/orders", label: "Comandes" }, " carrega més de pressa: els números de les pestanyes d'estat arriben en una sola consulta lleugera en lloc de set, que alentien tota l'aplicació. Amb el filtre de «Preu», les pestanyes ara compten només les comandes d'aquest preu. També carreguen més lleugeres ", { to: "/order-operations", label: "Operacions" }, ", ", { to: "/deposits", label: "Dipòsits" }, ", ", { to: "/pickup-points", label: "Punts de consum" }, ", els comptadors d'", { to: "/incidences", label: "Incidències" }, " i el formulari de comanda."]
+      text: ["La llista de ", { to: "/comandes", label: "Comandes" }, " carrega més de pressa: els números de les pestanyes d'estat arriben en una sola consulta lleugera en lloc de set, que alentien tota l'aplicació. Amb el filtre de «Preu», les pestanyes ara compten només les comandes d'aquest preu. També carreguen més lleugeres ", { to: "/operacions", label: "Operacions" }, ", ", { to: "/diposits", label: "Dipòsits" }, ", ", { to: "/punts-recollida", label: "Punts de consum" }, ", els comptadors d'", { to: "/incidencies", label: "Incidències" }, " i el formulari de comanda."]
     },
     {
       type: "Millores",
       modules: ["Logística"],
-      text: ["A la llista de ", { to: "/orders", label: "Comandes" }, ", la columna «Senyals» mostra si la comanda té incidències (en vermell mentre n'hi ha alguna d'oberta) i el seu filtre tria qualsevol senyal: incidència, express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla o fràgil. «Última milla» ja no és una pestanya d'estat, la columna «Lliurada» ja no hi és, i en seleccionar comandes es veuen les caixes i els kg de la selecció."]
+      text: ["A la llista de ", { to: "/comandes", label: "Comandes" }, ", la columna «Senyals» mostra si la comanda té incidències (en vermell mentre n'hi ha alguna d'oberta) i el seu filtre tria qualsevol senyal: incidència, express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla o fràgil. «Última milla» ja no és una pestanya d'estat, la columna «Lliurada» ja no hi és, i en seleccionar comandes es veuen les caixes i els kg de la selecció."]
     }
   ]
 },
@@ -106,7 +111,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["A ", { to: "/city-route", label: "Poblacions i rutes" }, ", l'oficina pot treballar les franges horàries amb un full de càlcul: «Exporta franges (.ods)» descarrega una fila per ruta (la franja de la ruta) i una per cada població (la franja pròpia; buida, fa servir la de la ruta), i «Importa franges» llegeix el fitxer editat, ensenya què canviarà i quines files tenen errors, i desa els canvis en confirmar. Les hores es poden escriure com «9», «9:30» o «9h30». La importació només canvia franges: no afegeix ni treu poblacions de les rutes."]
+      text: ["A ", { to: "/poblacions-rutes", label: "Poblacions i rutes" }, ", l'oficina pot treballar les franges horàries amb un full de càlcul: «Exporta franges (.ods)» descarrega una fila per ruta (la franja de la ruta) i una per cada població (la franja pròpia; buida, fa servir la de la ruta), i «Importa franges» llegeix el fitxer editat, ensenya què canviarà i quines files tenen errors, i desa els canvis en confirmar. Les hores es poden escriure com «9», «9:30» o «9h30». La importació només canvia franges: no afegeix ni treu poblacions de les rutes."]
     },
     {
       type: "Millores",
@@ -116,7 +121,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Logística", "Diners"],
-      text: [{ to: "/orders-invoice", label: "Facturar" }, " carrega les comandes lliurades molt més de pressa i ja no alenteix la resta de l'aplicació, i les factures s'obren abans: el document es demana alhora que les llistes del formulari i les fases de tots els projectes a la vegada."]
+      text: [{ to: "/comandes-per-facturar", label: "Facturar" }, " carrega les comandes lliurades molt més de pressa i ja no alenteix la resta de l'aplicació, i les factures s'obren abans: el document es demana alhora que les llistes del formulari i les fases de tots els projectes a la vegada."]
     },
     {
       type: "Correccions",
@@ -131,42 +136,42 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["Comandes fora de temps: una comanda per a l'endemà informada després de l'hora límit ja no passa a un altre dia de la ruta. Es queda per al dia triat, abans de desar-la surt un avís, porta un recàrrec (25 % per defecte, escrit sota el preu) i l'albarà diu «COMANDA EXPRESS». L'oficina el treu desmarcant «Recàrrec per incidència» a la comanda. Les recollides informades tard (de tarda, el mateix dia a partir de les 10 h; de matí, el dia abans a partir de l'hora límit) també avisen, sense recàrrec. A ", { to: "/orders", label: "Comandes" }, " totes les marques d'una comanda són ara icones a la columna «Senyals» (express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla, fràgil; passa-hi el ratolí per veure què volen dir), les que van tard amb una franja vermella; les files ja no es pinten de gris ni de vermell, i els descomptes i el recàrrec s'escriuen sota el preu en lloc de les boles de colors. La columna «Entrega» ja no hi és (la refrigerada és el floc de neu); el filtre per tipus d'entrega és ara el de «Senyals». Els textos, l'hora de les recollides de tarda i el recàrrec es canvien a ", { to: "/administracio/me", label: "Configuració general" }, " → Logística."]
+      text: ["Comandes fora de temps: una comanda per a l'endemà informada després de l'hora límit ja no passa a un altre dia de la ruta. Es queda per al dia triat, abans de desar-la surt un avís, porta un recàrrec (25 % per defecte, escrit sota el preu) i l'albarà diu «COMANDA EXPRESS». L'oficina el treu desmarcant «Recàrrec per incidència» a la comanda. Les recollides informades tard (de tarda, el mateix dia a partir de les 10 h; de matí, el dia abans a partir de l'hora límit) també avisen, sense recàrrec. A ", { to: "/comandes", label: "Comandes" }, " totes les marques d'una comanda són ara icones a la columna «Senyals» (express, recollida tard, setmana vinent, refrigerada, recollida, transferència, última milla, fràgil; passa-hi el ratolí per veure què volen dir), les que van tard amb una franja vermella; les files ja no es pinten de gris ni de vermell, i els descomptes i el recàrrec s'escriuen sota el preu en lloc de les boles de colors. La columna «Entrega» ja no hi és (la refrigerada és el floc de neu); el filtre per tipus d'entrega és ara el de «Senyals». Els textos, l'hora de les recollides de tarda i el recàrrec es canvien a ", { to: "/administracio/configuracio", label: "Configuració general" }, " → Logística."]
     },
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: [{ to: "/city-route", label: "Poblacions i rutes" }, " diu a quina hora hi passem: cada ruta té la seva franja horària (p. ex. «de 9 a 14 h») i una població pot tenir-ne una de pròpia (p. ex. «a les 7 h»). L'oficina les posa amb el botó «Franges» o a ", { to: "/routes", label: "Rutes" }, ". També surt a «Quina ruta passa per…?» i a la comanda, sota la ruta triada."]
+      text: [{ to: "/poblacions-rutes", label: "Poblacions i rutes" }, " diu a quina hora hi passem: cada ruta té la seva franja horària (p. ex. «de 9 a 14 h») i una població pot tenir-ne una de pròpia (p. ex. «a les 7 h»). L'oficina les posa amb el botó «Franges» o a ", { to: "/rutes", label: "Rutes" }, ". També surt a «Quina ruta passa per…?» i a la comanda, sota la ruta triada."]
     },
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["Avisos de dipòsit per ruta i magatzem: a ", { to: "/administracio/route-pickup-notice", label: "Taules auxiliars › Avisos de dipòsit" }, " es pot posar un text per a cada combinació de ruta de destí i magatzem d'origen (p. ex. fins quan s'ha de deixar el paquet). En fer una comanda surt destacat en triar el magatzem; si no n'hi ha cap, surt el text del magatzem com fins ara."]
+      text: ["Avisos de dipòsit per ruta i magatzem: a ", { to: "/administracio/avisos-diposit", label: "Taules auxiliars › Avisos de dipòsit" }, " es pot posar un text per a cada combinació de ruta de destí i magatzem d'origen (p. ex. fins quan s'ha de deixar el paquet). En fer una comanda surt destacat en triar el magatzem; si no n'hi ha cap, surt el text del magatzem com fins ara."]
     },
     {
       type: "Novetats",
       modules: ["Logística", "Diners"],
-      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes: «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026» (també {mes}, {MES} i {mm}). El text es defineix a ", { to: "/administracio/me", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
+      text: ["Les factures que crea «Facturar» des de les comandes poden portar un concepte al PDF, amb el mes de les comandes: «Serveis logístics_{Mes}_{any}» dona «Serveis logístics_Octubre_2026» (també {mes}, {MES} i {mm}). El text es defineix a ", { to: "/administracio/configuracio", label: "Configuració general" }, " → Logística, i el concepte es pot canviar a la factura mentre és un esborrany."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: [{ to: "/orders", label: "Comandes" }, ": el filtre de Ruta mostra només les comandes de les rutes marcades des del primer clic, també als comptadors i als totals. Abans anava un clic endarrerit i podia mostrar comandes d'altres rutes."]
+      text: [{ to: "/comandes", label: "Comandes" }, ": el filtre de Ruta mostra només les comandes de les rutes marcades des del primer clic, també als comptadors i als totals. Abans anava un clic endarrerit i podia mostrar comandes d'altres rutes."]
     },
     {
       type: "Novetats",
       modules: ["Hores"],
-      text: ["El calendari oficial de festes laborals a Catalunya 2027 ja és a ", { to: "/dedicacio", label: "Hores dedicades" }, " com a festius de totes: 1 i 6 de gener, 26 i 29 de març, 1 de maig, 24 de juny, 11 de setembre, 12 d'octubre, 1 de novembre i 6, 8 i 25 de desembre. Els que ja s'havien afegit a mà no es dupliquen. A ", { to: "/dedicacio-summary", label: "Hores anuals" }, ", el 2027 compta 9 festius estatals i 3 de Catalunya, sense avisos de màxim superat."]
+      text: ["El calendari oficial de festes laborals a Catalunya 2027 ja és a ", { to: "/dedicacio", label: "Hores dedicades" }, " com a festius de totes: 1 i 6 de gener, 26 i 29 de març, 1 de maig, 24 de juny, 11 de setembre, 12 d'octubre, 1 de novembre i 6, 8 i 25 de desembre. Els que ja s'havien afegit a mà no es dupliquen. A ", { to: "/resum-hores", label: "Hores anuals" }, ", el 2027 compta 9 festius estatals i 3 de Catalunya, sense avisos de màxim superat."]
     },
     {
       type: "Novetats",
       modules: ["Administració", "Hores"],
-      text: [{ to: "/administracio/festive", label: "Taules auxiliars › Festius de totes" }, ": la llista dels festius estatals i de Catalunya, per crear-los, canviar-los o esborrar-los. Es pot buscar per any (p. ex. «2027»). També es continuen posant des d'Hores dedicades."]
+      text: [{ to: "/administracio/festius", label: "Taules auxiliars › Festius de totes" }, ": la llista dels festius estatals i de Catalunya, per crear-los, canviar-los o esborrar-los. Es pot buscar per any (p. ex. «2027»). També es continuen posant des d'Hores dedicades."]
     },
     {
       type: "Millores",
       modules: ["Informes", "Diners"],
-      text: [{ to: "/tresoreria", label: "Tresoreria" }, ", ", { to: "/stats-economic-detail", label: "Ingressos/Despeses" }, ", Preu hora, Dedicació, Previsió dedicació, % Dedicació real i Justificacions carreguen molt més de pressa: el servidor recorda els càlculs i només els refà quan canvien les dades. Canviar de filtre, d'any o entre Previsió i Execució és gairebé immediat."]
+      text: [{ to: "/tresoreria", label: "Tresoreria" }, ", ", { to: "/panell-detall-economic", label: "Ingressos/Despeses" }, ", Preu hora, Dedicació, Previsió dedicació, % Dedicació real i Justificacions carreguen molt més de pressa: el servidor recorda els càlculs i només els refà quan canvien les dades. Canviar de filtre, d'any o entre Previsió i Execució és gairebé immediat."]
     },
     {
       type: "Millores",
@@ -176,7 +181,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració"],
-      text: [{ to: "/administracio/me", label: "Configuració general" }, " › Memòria cau: l'estat de la memòria del servidor, el temps de càrrega de cada informe i un botó per buidar-la."]
+      text: [{ to: "/administracio/configuracio", label: "Configuració general" }, " › Memòria cau: l'estat de la memòria del servidor, el temps de càrrega de cada informe i un botó per buidar-la."]
     }
   ]
 },
@@ -186,7 +191,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Logística"],
-      text: ["La llista de ", { to: "/orders", label: "Comandes" }, " surt per defecte sense agrupar i recorda l'opció d'«Agrupa per» que triïs."]
+      text: ["La llista de ", { to: "/comandes", label: "Comandes" }, " surt per defecte sense agrupar i recorda l'opció d'«Agrupa per» que triïs."]
     },
     {
       type: "Correccions",
@@ -401,7 +406,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["Preus de comandes: l'edició ràpida i la importació per CSV calculen el preu com la fitxa (també les línies de punt de recollida), la fitxa mostra el descompte per volum abans de desar, i la transferència prevista ja no pot caure abans de la recollida a la granja. Reobrir una incidència n'esborra la data de tancament. A ", { to: "/user-contacts", label: "Punts d'entrega" }, " i a ", { to: "/contacts", label: "Contactes" }, ", «Guardar i sortir» es queda al formulari si falta alguna dada. L'exportació per al planificador de rutes ja no falla amb comandes sense telèfon."]
+      text: ["Preus de comandes: l'edició ràpida i la importació per CSV calculen el preu com la fitxa (també les línies de punt de recollida), la fitxa mostra el descompte per volum abans de desar, i la transferència prevista ja no pot caure abans de la recollida a la granja. Reobrir una incidència n'esborra la data de tancament. A ", { to: "/clientes", label: "Punts d'entrega" }, " i a ", { to: "/contactes", label: "Contactes" }, ", «Guardar i sortir» es queda al formulari si falta alguna dada. L'exportació per al planificador de rutes ja no falla amb comandes sense telèfon."]
     },
     {
       type: "Millores",
@@ -411,12 +416,12 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["La importació de comandes per CSV a ", { to: "/orders", label: "Comandes" }, " desa el número de comanda del proveïdor (columna provider_order_number), i si una fila no es pot crear diu per què."]
+      text: ["La importació de comandes per CSV a ", { to: "/comandes", label: "Comandes" }, " desa el número de comanda del proveïdor (columna provider_order_number), i si una fila no es pot crear diu per què."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["La fitxa de comanda ja no es queda en blanc quan algun punt d'entrega no té nom comercial (surt amb el seu nom), i obrir una comanda pendent i desar-la sense tocar res ja no en canvia la data prevista d'entrega ni la ruta. A ", { to: "/contacts", label: "Contactes" }, ", a ", { to: "/user-contacts", label: "Punts d'entrega" }, " i a la importació de punts, el nom comercial és obligatori als punts d'entrega."]
+      text: ["La fitxa de comanda ja no es queda en blanc quan algun punt d'entrega no té nom comercial (surt amb el seu nom), i obrir una comanda pendent i desar-la sense tocar res ja no en canvia la data prevista d'entrega ni la ruta. A ", { to: "/contactes", label: "Contactes" }, ", a ", { to: "/clientes", label: "Punts d'entrega" }, " i a la importació de punts, el nom comercial és obligatori als punts d'entrega."]
     },
     {
       type: "Millores",
@@ -431,12 +436,12 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Hores", "Diners"],
-      text: ["A ", { to: "/salary", label: "Bestretes" }, ", Saldo d'hores i Hores anuals, canviar ràpidament de persona i d'any ja no pot sumar dues càrregues (sortien hores dobles); a Bestretes, sense persona o sense any ja no es queda carregant."]
+      text: ["A ", { to: "/bestretes", label: "Bestretes" }, ", Saldo d'hores i Hores anuals, canviar ràpidament de persona i d'any ja no pot sumar dues càrregues (sortien hores dobles); a Bestretes, sense persona o sense any ja no es queda carregant."]
     },
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["A ", { to: "/vat", label: "IVA" }, " i a Tresoreria, l'IVA previst fa servir el % d'IVA deduïble de cada any (Taules auxiliars › Anys), igual que l'executat i la Previsió econòmica; el de Configuració només quan l'any no en té. «Trimestres previstos» mostra el % de cada trimestre."]
+      text: ["A ", { to: "/iva", label: "IVA" }, " i a Tresoreria, l'IVA previst fa servir el % d'IVA deduïble de cada any (Taules auxiliars › Anys), igual que l'executat i la Previsió econòmica; el de Configuració només quan l'any no en té. «Trimestres previstos» mostra el % de cada trimestre."]
     },
     {
       type: "Millores",
@@ -446,12 +451,12 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A ", { to: "/orders", label: "Comandes" }, ", si una comanda de la selecció no es pot canviar d'estat, l'aplicació ho diu i continua amb les altres en lloc de quedar-se carregant. Les repartidores ja no veuen accions que no poden fer (canviar o anul·lar comandes facturades) ni el missatge per a les sòcies a les comandes processades, i a ", { to: "/user-contacts", label: "Punts d'entrega" }, " el descompte per recollida i la sòcia d'un punt els canvia l'oficina. Les incidències es queden a la seva comanda, i qui les obre i les tanca ho apunta l'aplicació."]
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", si una comanda de la selecció no es pot canviar d'estat, l'aplicació ho diu i continua amb les altres en lloc de quedar-se carregant. Les repartidores ja no veuen accions que no poden fer (canviar o anul·lar comandes facturades) ni el missatge per a les sòcies a les comandes processades, i a ", { to: "/clientes", label: "Punts d'entrega" }, " el descompte per recollida i la sòcia d'un punt els canvia l'oficina. Les incidències es queden a la seva comanda, i qui les obre i les tanca ho apunta l'aplicació."]
     },
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["A ", { to: "/vat", label: "IVA" }, " l'IVA de les despeses rebudes compta com a suportat (sortia com a repercutit), i les xifres de dalt sumen el mateix que «Trimestres executats». La columna «Base» dels documents pendents mostra la base (no el total amb IVA), «IVA deduïble» mostra l'IVA que es pot deduir (no el saldo del trimestre) i el % deduïble només surt als documents rebuts."]
+      text: ["A ", { to: "/iva", label: "IVA" }, " l'IVA de les despeses rebudes compta com a suportat (sortia com a repercutit), i les xifres de dalt sumen el mateix que «Trimestres executats». La columna «Base» dels documents pendents mostra la base (no el total amb IVA), «IVA deduïble» mostra l'IVA que es pot deduir (no el saldo del trimestre) i el % deduïble només surt als documents rebuts."]
     },
     {
       type: "Novetats",
@@ -486,7 +491,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes", "Hores"],
-      text: ["A ", { to: "/stats-dedicacio", label: "Dedicació" }, " les persones que només tenen Hores hi veuen les seves hores, no les de tothom, igual que a Hores dedicades. Les persones de projectes continuen veient-les totes."]
+      text: ["A ", { to: "/panell-dedicacio", label: "Dedicació" }, " les persones que només tenen Hores hi veuen les seves hores, no les de tothom, igual que a Hores dedicades. Les persones de projectes continuen veient-les totes."]
     },
     {
       type: "Correccions",
@@ -496,22 +501,22 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["Cadascú canvia de les comandes només el que li toca, també des de fora de les pantalles: el preu i els descomptes de les comandes de les sòcies els calcula l'aplicació, i les sòcies ja no poden posar-hi preu, desfer-ne la factura ni marcar-hi transferències o recollides (sí dipositar-les). Les persones de repartiment fan els moviments (dipòsit, transferència, recollida, estat) de qualsevol comanda, però la fitxa ja no els deixa canviar-ne les dades ni crear-ne. No es poden crear comandes per a avui o dies passats, ni per a demà passada l'hora límit, tampoc movent-ne la data ni ", { to: "/orders", label: "important-les" }, ". La data de dipòsit d'una comanda lliurada o facturada ja no es pot canviar."]
+      text: ["Cadascú canvia de les comandes només el que li toca, també des de fora de les pantalles: el preu i els descomptes de les comandes de les sòcies els calcula l'aplicació, i les sòcies ja no poden posar-hi preu, desfer-ne la factura ni marcar-hi transferències o recollides (sí dipositar-les). Les persones de repartiment fan els moviments (dipòsit, transferència, recollida, estat) de qualsevol comanda, però la fitxa ja no els deixa canviar-ne les dades ni crear-ne. No es poden crear comandes per a avui o dies passats, ni per a demà passada l'hora límit, tampoc movent-ne la data ni ", { to: "/comandes", label: "important-les" }, ". La data de dipòsit d'una comanda lliurada o facturada ja no es pot canviar."]
     },
     {
       type: "Correccions",
       modules: ["Logística", "Plataforma"],
-      text: ["A ", { to: "/user-contacts", label: "Punts d'entrega" }, " les sòcies canvien les dades dels seus punts però no els descomptes ni les dades de sòcia, i dels punts compartits només l'adreça. Les respostes de les ", { to: "/incidences", label: "Incidències" }, " ja no es poden reescriure ni signar en nom d'una altra persona. Si falla l'enviament del correu de ", { to: "/contact-us", label: "Contacta" }, ", el missatge es guarda igualment. Les persones que no són de l'equip no reben dades que no els pertoquen (sous, dades personals d'altres persones, xifres dels projectes) ni poden canviar les vistes de taules dinàmiques d'altres pantalles."]
+      text: ["A ", { to: "/clientes", label: "Punts d'entrega" }, " les sòcies canvien les dades dels seus punts però no els descomptes ni les dades de sòcia, i dels punts compartits només l'adreça. Les respostes de les ", { to: "/incidencies", label: "Incidències" }, " ja no es poden reescriure ni signar en nom d'una altra persona. Si falla l'enviament del correu de ", { to: "/contacta", label: "Contacta" }, ", el missatge es guarda igualment. Les persones que no són de l'equip no reben dades que no els pertoquen (sous, dades personals d'altres persones, xifres dels projectes) ni poden canviar les vistes de taules dinàmiques d'altres pantalles."]
     },
     {
       type: "Novetats",
       modules: ["Administració", "Projectes", "Informes", "Subvencions"],
-      text: ["Any fiscal que no comença al gener: a ", { to: "/administracio/me", label: "Configuració general" }, " › Projectes es tria el mes d'inici (per exemple, setembre per a un curs de setembre a agost). La fitxa de projecte, la periodificació, ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " agrupen els imports per aquest any, que es mostra com «2026/27», i els gràfics comencen pel seu primer mes. Opcionalment, els anys de subvenció també poden ser fiscals (", { to: "/justifications", label: "Justificacions" }, "). L'IVA, les sèries de factura, les nòmines, les hores i la tresoreria continuen per any natural."]
+      text: ["Any fiscal que no comença al gener: a ", { to: "/administracio/configuracio", label: "Configuració general" }, " › Projectes es tria el mes d'inici (per exemple, setembre per a un curs de setembre a agost). La fitxa de projecte, la periodificació, ", { to: "/panell-detall-economic", label: "Ingressos i despeses" }, " i ", { to: "/panell-preu-hora", label: "Preu hora" }, " agrupen els imports per aquest any, que es mostra com «2026/27», i els gràfics comencen pel seu primer mes. Opcionalment, els anys de subvenció també poden ser fiscals (", { to: "/justificacions", label: "Justificacions" }, "). L'IVA, les sèries de factura, les nòmines, les hores i la tresoreria continuen per any natural."]
     },
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["La fitxa de cada comanda té un «Historial»: qui l'ha creada i qui l'ha canviada, quan, i què ha canviat (l'estat i qualsevol altra dada, de què a què), també quan es factura, quan s'esborra l'esborrany de factura i els canvis que l'aplicació hi fa sola (descomptes, comandes de recollida). Es veu des de ", { to: "/orders", label: "Comandes" }, " obrint una comanda; el veu l'oficina, no les sòcies. Comença a omplir-se a partir d'ara."]
+      text: ["La fitxa de cada comanda té un «Historial»: qui l'ha creada i qui l'ha canviada, quan, i què ha canviat (l'estat i qualsevol altra dada, de què a què), també quan es factura, quan s'esborra l'esborrany de factura i els canvis que l'aplicació hi fa sola (descomptes, comandes de recollida). Es veu des de ", { to: "/comandes", label: "Comandes" }, " obrint una comanda; el veu l'oficina, no les sòcies. Comença a omplir-se a partir d'ara."]
     },
     {
       type: "Millores",
@@ -526,7 +531,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Plataforma"],
-      text: ["Mode fosc: tria'l a ", { to: "/profile", label: "el teu perfil" }, " (Clar, Fosc o com el sistema). Es guarda en aquest navegador."]
+      text: ["Mode fosc: tria'l a ", { to: "/el-meu-compte", label: "el teu perfil" }, " (Clar, Fosc o com el sistema). Es guarda en aquest navegador."]
     },
     {
       type: "Millores",
@@ -536,92 +541,92 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Administració", "Projectes", "Logística"],
-      text: ["A ", { to: "/administracio/me", label: "Configuració general" }, " ara es poden canviar les opcions que fins ara només configurava qui manté el servidor: la despesa indirecta als projectes, la tresoreria, el cost/hora a la planificació, el % d'IVA deduïble, les quotes de Seguretat Social i les tarifes de les dietes i, amb logística, el descompte multientrega i l'hora límit. Les tarifes de ruta es gestionen a ", { to: "/administracio/route-rate", label: "Taules auxiliars › Tarifes de ruta" }, "."]
+      text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, " ara es poden canviar les opcions que fins ara només configurava qui manté el servidor: la despesa indirecta als projectes, la tresoreria, el cost/hora a la planificació, el % d'IVA deduïble, les quotes de Seguretat Social i les tarifes de les dietes i, amb logística, el descompte multientrega i l'hora límit. Les tarifes de ruta es gestionen a ", { to: "/administracio/tarifes-ruta", label: "Taules auxiliars › Tarifes de ruta" }, "."]
     },
     {
       type: "Novetats",
       modules: ["Administració", "Integracions"],
-      text: ["A ", { to: "/administracio/me", label: "Configuració general" }, ", nou apartat «Integracions» amb l'adreça i la clau del directori DIR3 i del lector de PDF (les claus no es tornen a mostrar). L'«Adreça de l'aplicació» és ara la que fan servir els enllaços dels correus, els codis QR de les comandes i els pressupostos. També s'hi puja la clau del compte de servei de Google que importa els calendaris de Google com a hores. A la fitxa de cada usuària es pot posar el seu calendari iCal."]
+      text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, ", nou apartat «Integracions» amb l'adreça i la clau del directori DIR3 i del lector de PDF (les claus no es tornen a mostrar). L'«Adreça de l'aplicació» és ara la que fan servir els enllaços dels correus, els codis QR de les comandes i els pressupostos. També s'hi puja la clau del compte de servei de Google que importa els calendaris de Google com a hores. A la fitxa de cada usuària es pot posar el seu calendari iCal."]
     },
     {
       type: "Novetats",
       modules: ["Integracions", "Administració"],
-      text: ["Els certificats de l'AEAT i de FACe ja es pugen i se substitueixen des de l'aplicació, amb la seva contrasenya, a ", { to: "/administracio/verifactu", label: "Verifactu i FACe" }, " i a ", { to: "/administracio/me", label: "Configuració general › FACe" }, ". S'hi veu el titular, el NIF i fins quan és vàlid, amb un avís si caduca aviat o si la contrasenya no l'obre."]
+      text: ["Els certificats de l'AEAT i de FACe ja es pugen i se substitueixen des de l'aplicació, amb la seva contrasenya, a ", { to: "/administracio/verifactu", label: "Verifactu i FACe" }, " i a ", { to: "/administracio/configuracio", label: "Configuració general › FACe" }, ". S'hi veu el titular, el NIF i fins quan és vàlid, amb un avís si caduca aviat o si la contrasenya no l'obre."]
     },
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["L'oficina de logística ja pot crear rutes, canviar-ne els dies, el repartidor, les transferències i el descompte per volum, i desactivar-les, a ", { to: "/routes", label: "Rutes i punts › Rutes" }, ". Una ruta desactivada no surt en fer comandes ni a Rutes i dies; les comandes que ja la tenen la mantenen."]
+      text: ["L'oficina de logística ja pot crear rutes, canviar-ne els dies, el repartidor, les transferències i el descompte per volum, i desactivar-les, a ", { to: "/rutes", label: "Rutes i punts › Rutes" }, ". Una ruta desactivada no surt en fer comandes ni a Rutes i dies; les comandes que ja la tenen la mantenen."]
     },
     {
       type: "Novetats",
       modules: ["Administració", "Logística"],
-      text: ["Les taules que només es podien canviar des de l'administrador del servidor ja són a Taules auxiliars: ", { to: "/administracio/pickup", label: "Punts de recollida" }, ", ", { to: "/administracio/delivery-type", label: "Tipus de lliurament" }, ", ", { to: "/administracio/city", label: "Poblacions" }, " (no s'esborra una població que fan servir rutes, punts o contactes, i si se li canvia el nom també canvia als contactes que la tenen), ", { to: "/administracio/product", label: "Productes" }, ", ", { to: "/administracio/document-type", label: "Tipus de document" }, ", ", { to: "/administracio/vat-type", label: "Tipus d'IVA" }, " i ", { to: "/administracio/activity-type", label: "Tipus d'activitat" }, ". L'oficina de logística té els punts de recollida, els tipus de lliurament, les poblacions i les tarifes de ruta a «Rutes i punts › Taules de logística». A ", { to: "/routes", label: "Rutes" }, " es pot triar quins dies porta transferències cada ruta. Els logos d'«Amb el suport de» s'afegeixen, s'ordenen i s'esborren a ", { to: "/administracio/logos", label: "Administració › Logos" }, ", i els missatges del formulari «Contacta» es llegeixen a ", { to: "/administracio/form-submissions", label: "Missatges" }, "."]
+      text: ["Les taules que només es podien canviar des de l'administrador del servidor ja són a Taules auxiliars: ", { to: "/administracio/punts-recollida", label: "Punts de recollida" }, ", ", { to: "/administracio/tipus-lliurament", label: "Tipus de lliurament" }, ", ", { to: "/administracio/poblacions", label: "Poblacions" }, " (no s'esborra una població que fan servir rutes, punts o contactes, i si se li canvia el nom també canvia als contactes que la tenen), ", { to: "/administracio/productes", label: "Productes" }, ", ", { to: "/administracio/tipus-document", label: "Tipus de document" }, ", ", { to: "/administracio/tipus-iva", label: "Tipus d'IVA" }, " i ", { to: "/administracio/tipus-activitat", label: "Tipus d'activitat" }, ". L'oficina de logística té els punts de recollida, els tipus de lliurament, les poblacions i les tarifes de ruta a «Rutes i punts › Taules de logística». A ", { to: "/rutes", label: "Rutes" }, " es pot triar quins dies porta transferències cada ruta. Els logos d'«Amb el suport de» s'afegeixen, s'ordenen i s'esborren a ", { to: "/administracio/logos", label: "Administració › Logos" }, ", i els missatges del formulari «Contacta» es llegeixen a ", { to: "/administracio/missatges", label: "Missatges" }, "."]
     },
     {
       type: "Novetats",
       modules: ["Hores", "Administració"],
-      text: ["Festius de totes (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/administracio/festive-type", label: "Taules auxiliars › Tipus de festiu" }, "."]
+      text: ["Festius de totes (Festiu Estatal, Festiu Catalunya): les persones administradores els poden afegir, canviar i esborrar des del botó «Festiu» de ", { to: "/dedicacio", label: "Hores dedicades" }, "; la resta els veu en només lectura. Els tipus de festiu es gestionen a ", { to: "/administracio/tipus-festiu", label: "Taules auxiliars › Tipus de festiu" }, "."]
     },
     {
       type: "Novetats",
       modules: ["Informes"],
-      text: ["Nou informe ", { to: "/invoicing-forecast", label: "Previsió facturació" }, ": què cal facturar aquest mes i els propers, i què s'havia de facturar i encara no té factura, per projecte i responsable. Surt de la «Previsió fac.» de les línies d'ingrés de cada projecte."]
+      text: ["Nou informe ", { to: "/previsio-facturacio", label: "Previsió facturació" }, ": què cal facturar aquest mes i els propers, i què s'havia de facturar i encara no té factura, per projecte i responsable. Surt de la «Previsió fac.» de les línies d'ingrés de cada projecte."]
     },
     {
       type: "Millores",
       modules: ["Logística", "Informes"],
-      text: ["Els informes ", { to: "/orders-stats", label: "de comandes" }, " i ", { to: "/incidences-stats", label: "d'incidències" }, " tenen gràfics damunt la taula dinàmica: comandes, import i quilos per dia, mes o any, ruta, sòcia, punt de recollida i tarifa; i incidències per període, per sòcia, qui les obre, quant es triga a tancar-les i les rutes amb més incidències per cada 100 comandes."]
+      text: ["Els informes ", { to: "/estadistiques-comandes", label: "de comandes" }, " i ", { to: "/estadistiques-incidencies", label: "d'incidències" }, " tenen gràfics damunt la taula dinàmica: comandes, import i quilos per dia, mes o any, ruta, sòcia, punt de recollida i tarifa; i incidències per període, per sòcia, qui les obre, quant es triga a tancar-les i les rutes amb més incidències per cada 100 comandes."]
     },
     {
       type: "Millores",
       modules: ["Logística"],
-      text: ["Logística redissenyada: ", { to: "/orders", label: "comandes" }, " agrupades per ruta i per dia, la vista de cada comanda amb el seu recorregut i seguiment, ", { to: "/order-operations", label: "operacions" }, " pensades per al mòbil, ", { to: "/incidences", label: "incidències" }, " amb la conversa al costat i ", { to: "/orders-invoice", label: "facturar" }, " amb el projecte del trimestre."]
+      text: ["Logística redissenyada: ", { to: "/comandes", label: "comandes" }, " agrupades per ruta i per dia, la vista de cada comanda amb el seu recorregut i seguiment, ", { to: "/operacions", label: "operacions" }, " pensades per al mòbil, ", { to: "/incidencies", label: "incidències" }, " amb la conversa al costat i ", { to: "/comandes-per-facturar", label: "facturar" }, " amb el projecte del trimestre."]
     },
     {
       type: "Millores",
       modules: ["Logística"],
-      text: [{ to: "/city-route", label: "Poblacions i rutes" }, " es fa d'una altra manera: cada ruta amb les seves poblacions, i «Quina ruta passa per…?» per trobar les rutes d'una població."]
+      text: [{ to: "/poblacions-rutes", label: "Poblacions i rutes" }, " es fa d'una altra manera: cada ruta amb les seves poblacions, i «Quina ruta passa per…?» per trobar les rutes d'una població."]
     },
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["L'informe ", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " comença amb gràfics: ingressos, despeses i hores per mes (o per any) amb el resultat acumulat, el resultat de cada projecte i on van les despeses. Segueixen els filtres de la pàgina (amb «Totes», l'executat amb el previst al costat)."]
+      text: ["L'informe ", { to: "/panell-detall-economic", label: "Ingressos i despeses" }, " comença amb gràfics: ingressos, despeses i hores per mes (o per any) amb el resultat acumulat, el resultat de cada projecte i on van les despeses. Segueixen els filtres de la pàgina (amb «Totes», l'executat amb el previst al costat)."]
     },
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["L'informe ", { to: "/stats-projectes", label: "Projectes" }, " també comença amb gràfics: el resultat previst i el real de cada projecte, les hores fetes contra les previstes i el resultat per àmbit o per qui coordina."]
+      text: ["L'informe ", { to: "/panell-projectes", label: "Projectes" }, " també comença amb gràfics: el resultat previst i el real de cada projecte, les hores fetes contra les previstes i el resultat per àmbit o per qui coordina."]
     },
     {
       type: "Millores",
       modules: ["Informes", "Hores"],
-      text: ["Un sol informe de ", { to: "/stats-dedicacio", label: "Dedicació" }, " en lloc de tres (Dedicació gràfic, Dedicació taula i Prev./Real): hores previstes i fetes per mes, per persona i per projecte, per tipus de dedicació i per funció, amb la taula dinàmica a sota. El cost de les hores només el veuen les persones amb accés a Projectes."]
+      text: ["Un sol informe de ", { to: "/panell-dedicacio", label: "Dedicació" }, " en lloc de tres (Dedicació gràfic, Dedicació taula i Prev./Real): hores previstes i fetes per mes, per persona i per projecte, per tipus de dedicació i per funció, amb la taula dinàmica a sota. El cost de les hores només el veuen les persones amb accés a Projectes."]
     },
     {
       type: "Millores",
       modules: ["Plataforma"],
-      text: ["El ", { to: "/changelog", label: "Registre de canvis" }, " es pot filtrar per mòdul (Projectes, Hores, Diners, Subvencions, Informes, Logística, Integracions, Administració i Plataforma), i cada canvi indica els mòduls que toca."]
+      text: ["El ", { to: "/novetats", label: "Registre de canvis" }, " es pot filtrar per mòdul (Projectes, Hores, Diners, Subvencions, Informes, Logística, Integracions, Administració i Plataforma), i cada canvi indica els mòduls que toca."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["El «Peu de les comandes» de ", { to: "/administracio/me", label: "Configuració general" }, " ara surt al peu de cada albarà, sota les dades de l'entitat. Abans no s'imprimia enlloc."]
+      text: ["El «Peu de les comandes» de ", { to: "/administracio/configuracio", label: "Configuració general" }, " ara surt al peu de cada albarà, sota les dades de l'entitat. Abans no s'imprimia enlloc."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A ", { to: "/provider-invoices", label: "Factures" }, " de la sòcia, el subtítol diu el nom de l'entitat (deia «l'entitat») i la columna dels projectes es diu «Projecte» (deia «Ruta»)."]
+      text: ["A ", { to: "/factures-proveidor", label: "Factures" }, " de la sòcia, el subtítol diu el nom de l'entitat (deia «l'entitat») i la columna dels projectes es diu «Projecte» (deia «Ruta»)."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A l'", { to: "/orders-stats", label: "informe de comandes" }, " el total diu «caixes» (deia «bultos») i els avisos dels punts de consum diuen «línia» (deien «línea»). L'assumpte dels correus d'incidències, del resum de tasques i del formulari de contacte escrivia ESSTRAPIS amb una S de més."]
+      text: ["A l'", { to: "/estadistiques-comandes", label: "informe de comandes" }, " el total diu «caixes» (deia «bultos») i els avisos dels punts de consum diuen «línia» (deien «línea»). L'assumpte dels correus d'incidències, del resum de tasques i del formulari de contacte escrivia ESSTRAPIS amb una S de més."]
     },
     {
       type: "Correccions",
       modules: ["Projectes"],
-      text: ["La taula de ", { to: "/mother-projects", label: "Projectes mare" }, " (i la de Projectes amb l'estat «Tots») ja hi cap sencera en una pantalla de 1440 px: la columna «Estat» quedava tallada a la dreta. Els àmbits llargs ocupen dues línies."]
+      text: ["La taula de ", { to: "/projectes-mare", label: "Projectes mare" }, " (i la de Projectes amb l'estat «Tots») ja hi cap sencera en una pantalla de 1440 px: la columna «Estat» quedava tallada a la dreta. Els àmbits llargs ocupen dues línies."]
     }
   ]
 },
@@ -636,7 +641,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Informes", "Logística", "Hores", "Projectes"],
-      text: ["L'informe ", { to: "/stats-intercoop", label: "Intercooperació" }, " ja no s'obre en blanc. A la fitxa de punt d'entrega, triar la població omple el codi postal, i el punt d'una altra sòcia s'obre només per consultar. Al calendari d'hores, les hores no surten de la casella del dia. Exportar sense files avisa que no hi ha dades."]
+      text: ["L'informe ", { to: "/panell-intercooperacio", label: "Intercooperació" }, " ja no s'obre en blanc. A la fitxa de punt d'entrega, triar la població omple el codi postal, i el punt d'una altra sòcia s'obre només per consultar. Al calendari d'hores, les hores no surten de la casella del dia. Exportar sense files avisa que no hi ha dades."]
     },
     {
       type: "Correccions",
@@ -646,27 +651,27 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Projectes", "Logística"],
-      text: ["Els codis postals de 4 xifres (8225 en lloc de 08225), que venien d'una importació de 2024, recuperen el zero. Les fitxes de ", { to: "/contacts", label: "contactes" }, " i de punts d'entrega ja no deixen desar un codi postal d'Espanya sense les 5 xifres, i les importacions posen el zero que el full de càlcul havia tret."]
+      text: ["Els codis postals de 4 xifres (8225 en lloc de 08225), que venien d'una importació de 2024, recuperen el zero. Les fitxes de ", { to: "/contactes", label: "contactes" }, " i de punts d'entrega ja no deixen desar un codi postal d'Espanya sense les 5 xifres, i les importacions posen el zero que el full de càlcul havia tret."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A ", { to: "/orders", label: "Comandes" }, ", les xifres de dalt (caixes, kg, import, refrigerades, dipositades…) i l'exportació «Comandes (.ods)» compten totes les comandes dels filtres, no només les 150 de la pàgina. A l'.ods, les adreces i les notes ja no surten entre cometes i la recollida porta el número i el nom del punt."]
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", les xifres de dalt (caixes, kg, import, refrigerades, dipositades…) i l'exportació «Comandes (.ods)» compten totes les comandes dels filtres, no només les 150 de la pàgina. A l'.ods, les adreces i les notes ja no surten entre cometes i la recollida porta el número i el nom del punt."]
     },
     {
       type: "Correccions",
       modules: ["Logística", "Informes"],
-      text: ["L'", { to: "/orders-stats", label: "informe de comandes" }, " compta les refrigerades igual que ", { to: "/orders", label: "Comandes" }, ": pel que diu la comanda. Una comanda de recollida que porta comandes refrigerades ja no hi surt com a normal."]
+      text: ["L'", { to: "/estadistiques-comandes", label: "informe de comandes" }, " compta les refrigerades igual que ", { to: "/comandes", label: "Comandes" }, ": pel que diu la comanda. Una comanda de recollida que porta comandes refrigerades ja no hi surt com a normal."]
     },
     {
       type: "Correccions",
       modules: ["Informes"],
-      text: ["Els informes ", { to: "/stats-economic-detail", label: "Ingressos/Despeses" }, " i ", { to: "/price-hour", label: "Preu hora" }, " ja tenen en compte la periodificació dels projectes: les xifres de cada any coincideixen amb les de la fitxa del projecte."]
+      text: ["Els informes ", { to: "/panell-detall-economic", label: "Ingressos/Despeses" }, " i ", { to: "/panell-preu-hora", label: "Preu hora" }, " ja tenen en compte la periodificació dels projectes: les xifres de cada any coincideixen amb les de la fitxa del projecte."]
     },
     {
       type: "Correccions",
       modules: ["Projectes"],
-      text: ["Un projecte mare mostra les mateixes hores i resultats a la seva fitxa, a ", { to: "/projectes", label: "Projectes" }, " i a ", { to: "/mother-projects", label: "Projectes mare" }, ": la suma dels seus fills. Les hores previstes són les previstes dels fills (abans s'hi copiaven les originals), i el que la mare tenia a si mateixa ja no compta. El total de la llista de projectes no compta les mares, perquè els seus fills ja hi són."]
+      text: ["Un projecte mare mostra les mateixes hores i resultats a la seva fitxa, a ", { to: "/projectes", label: "Projectes" }, " i a ", { to: "/projectes-mare", label: "Projectes mare" }, ": la suma dels seus fills. Les hores previstes són les previstes dels fills (abans s'hi copiaven les originals), i el que la mare tenia a si mateixa ja no compta. El total de la llista de projectes no compta les mares, perquè els seus fills ja hi són."]
     },
     {
       type: "Millores",
@@ -676,37 +681,37 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Hores"],
-      text: [{ to: "/dedicacio-saldo", label: "Saldo hores" }, ", ", { to: "/salary", label: "Bestretes" }, " i ", { to: "/stats-real-gantt", label: "% Dedicació real" }, " compten també les hores sense projecte (per exemple les importades del calendari i encara no assignades): les hores treballades coincideixen amb les d'Hores dedicades."]
+      text: [{ to: "/dedicacio-saldo", label: "Saldo hores" }, ", ", { to: "/bestretes", label: "Bestretes" }, " i ", { to: "/panell-dedicacio-real", label: "% Dedicació real" }, " compten també les hores sense projecte (per exemple les importades del calendari i encara no assignades): les hores treballades coincideixen amb les d'Hores dedicades."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A ", { to: "/order-operations", label: "Operacions" }, ", quan la mateixa repartidora fa la transferència i l'entrega d'una comanda, ara surten totes dues, cadascuna el seu dia. Abans només hi sortia la transferència i el dia de l'entrega faltava."]
+      text: ["A ", { to: "/operacions", label: "Operacions" }, ", quan la mateixa repartidora fa la transferència i l'entrega d'una comanda, ara surten totes dues, cadascuna el seu dia. Abans només hi sortia la transferència i el dia de l'entrega faltava."]
     },
     {
       type: "Correccions",
       modules: ["Informes", "Projectes"],
-      text: ["L'informe ", { to: "/stats-projectes", label: "Projectes" }, " ja no compta dues vegades els projectes fills: els sumava sols i també dins dels totals del projecte mare. Ara els totals coincideixen amb els de la llista de projectes."]
+      text: ["L'informe ", { to: "/panell-projectes", label: "Projectes" }, " ja no compta dues vegades els projectes fills: els sumava sols i també dins dels totals del projecte mare. Ara els totals coincideixen amb els de la llista de projectes."]
     },
     {
       type: "Millores",
       modules: ["Diners"],
-      text: ["A ", { to: "/emitted-invoices", label: "Ingressos" }, " hi ha un filtre «Estat» per veure només els esborranys o només les factures emeses."]
+      text: ["A ", { to: "/factures-emeses", label: "Ingressos" }, " hi ha un filtre «Estat» per veure només els esborranys o només les factures emeses."]
     },
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: ["Historial a les ", { to: "/emitted-invoices", label: "factures emeses" }, ", les factures rebudes, els ingressos, les despeses i els ", { to: "/quotes", label: "pressupostos" }, ": «Mostra l'historial», a la columna de la dreta, ensenya els estats pels quals ha passat el document (emesa, enviada, cobrada, IVA liquidat, VeriFactu, FACe, rectificada…) i cada canvi, amb qui l'ha fet i quan. Els canvis a les línies es mostren línia per línia. Enviar una factura per correu la marca com a enviada i en desa l'adreça. Només el veuen les persones amb el permís de projectes o d'administració."]
+      text: ["Historial a les ", { to: "/factures-emeses", label: "factures emeses" }, ", les factures rebudes, els ingressos, les despeses i els ", { to: "/pressupostos", label: "pressupostos" }, ": «Mostra l'historial», a la columna de la dreta, ensenya els estats pels quals ha passat el document (emesa, enviada, cobrada, IVA liquidat, VeriFactu, FACe, rectificada…) i cada canvi, amb qui l'ha fet i quan. Els canvis a les línies es mostren línia per línia. Enviar una factura per correu la marca com a enviada i en desa l'adreça. Només el veuen les persones amb el permís de projectes o d'administració."]
     },
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["El PDF de les ", { to: "/emitted-invoices", label: "factures" }, " i dels ", { to: "/quotes", label: "pressupostos" }, " mostra les dades de la clienta desades amb el document, encara que després s'hagi canviat la fitxa del contacte. S'ha tret l'antiga vista prèvia, que feia servir una plantilla diferent del PDF: el botó «PDF» és l'única manera de veure el document."]
+      text: ["El PDF de les ", { to: "/factures-emeses", label: "factures" }, " i dels ", { to: "/pressupostos", label: "pressupostos" }, " mostra les dades de la clienta desades amb el document, encara que després s'hagi canviat la fitxa del contacte. S'ha tret l'antiga vista prèvia, que feia servir una plantilla diferent del PDF: el botó «PDF» és l'única manera de veure el document."]
     },
     {
       type: "Millores",
       modules: ["Logística"],
-      text: ["Quan algú respon una ", { to: "/incidences", label: "incidència" }, ", reben el correu l'oficina de logística i la sòcia de la comanda, però no qui ha escrit la resposta. El correu diu qui ha escrit cada resposta."]
+      text: ["Quan algú respon una ", { to: "/incidencies", label: "incidència" }, ", reben el correu l'oficina de logística i la sòcia de la comanda, però no qui ha escrit la resposta. El correu diu qui ha escrit cada resposta."]
     },
     {
       type: "Correccions",
@@ -716,17 +721,17 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["El preu amb descomptes d'una comanda és el mateix a la ", { to: "/orders", label: "llista de comandes" }, ", a la fitxa, a ", { to: "/orders-invoice", label: "Facturar" }, " i a la factura. La tarifa de ruta es tria bé quan n'hi ha més d'una o la comanda es recull a qualsevol magatzem, i l'edició ràpida ja no desa una comanda sense preu."]
+      text: ["El preu amb descomptes d'una comanda és el mateix a la ", { to: "/comandes", label: "llista de comandes" }, ", a la fitxa, a ", { to: "/comandes-per-facturar", label: "Facturar" }, " i a la factura. La tarifa de ruta es tria bé quan n'hi ha més d'una o la comanda es recull a qualsevol magatzem, i l'edició ràpida ja no desa una comanda sense preu."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: [{ to: "/orders-invoice", label: "Facturar" }, " demana confirmació abans de crear factures i només factura les files marcades del mes que es veu. Esborrar l'esborrany també treu l'ingrés que havia afegit al projecte. El concepte de la factura porta el mes de lliurament, i les sòcies no veuen les factures en esborrany."]
+      text: [{ to: "/comandes-per-facturar", label: "Facturar" }, " demana confirmació abans de crear factures i només factura les files marcades del mes que es veu. Esborrar l'esborrany també treu l'ingrés que havia afegit al projecte. El concepte de la factura porta el mes de lliurament, i les sòcies no veuen les factures en esborrany."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["Una sòcia només pot anul·lar les seves comandes pendents: ja no pot tornar a «Pendent» una comanda processada o lliurada. A ", { to: "/deposits", label: "Dipòsits" }, " es veuen totes les comandes, no només les 50 primeres, i l'escàner no diposita una comanda lliurada, facturada o anul·lada."]
+      text: ["Una sòcia només pot anul·lar les seves comandes pendents: ja no pot tornar a «Pendent» una comanda processada o lliurada. A ", { to: "/diposits", label: "Dipòsits" }, " es veuen totes les comandes, no només les 50 primeres, i l'escàner no diposita una comanda lliurada, facturada o anul·lada."]
     },
     {
       type: "Correccions",
@@ -736,12 +741,12 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["Desar una ruta a ", { to: "/routes", label: "Rutes" }, " ja no n'esborra la destinació de les transferències. A ", { to: "/transfers", label: "Transferències" }, " els comptadors de cada pestanya són bons i les transferències tenen destinació. «Unificar» punts d'entrega actualitza les dades del punt a les comandes i permet esborrar el punt duplicat; canviar el punt a l'edició ràpida també les actualitza."]
+      text: ["Desar una ruta a ", { to: "/rutes", label: "Rutes" }, " ja no n'esborra la destinació de les transferències. A ", { to: "/transferencies", label: "Transferències" }, " els comptadors de cada pestanya són bons i les transferències tenen destinació. «Unificar» punts d'entrega actualitza les dades del punt a les comandes i permet esborrar el punt duplicat; canviar el punt a l'edició ràpida també les actualitza."]
     },
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["Les respostes de les ", { to: "/incidences", label: "incidències" }, " diuen qui les ha escrit, «En procés» ja no compta com a tancada a l'informe, i els comptadors de la llista segueixen la cerca i el filtre de sòcia."]
+      text: ["Les respostes de les ", { to: "/incidencies", label: "incidències" }, " diuen qui les ha escrit, «En procés» ja no compta com a tancada a l'informe, i els comptadors de la llista segueixen la cerca i el filtre de sòcia."]
     },
     {
       type: "Correccions",
@@ -751,12 +756,12 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["«Exporta detall» d'", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " inclou la previsió de facturació i la previsió de pagament de cada línia del pressupost."]
+      text: ["«Exporta detall» d'", { to: "/panell-detall-economic", label: "Ingressos i despeses" }, " inclou la previsió de facturació i la previsió de pagament de cada línia del pressupost."]
     },
     {
       type: "Correccions",
       modules: ["Informes"],
-      text: ["«Exporta detall» d'", { to: "/stats-economic-detail", label: "Ingressos i despeses" }, " té les columnes «iva_pct» i «iva» amb l'IVA de cada moviment, ingressos inclosos. Les columnes que abans es deien «…_vat» (i «Despeses … iva» a les exportacions de totals) ara es diuen «…_iva_no_deduible» («Despeses … IVA no deduïble»): són només l'IVA no deduïble, que és 0 si l'IVA es dedueix tot. Els totals dels projectes i la ", { to: "/tresoreria", label: "Tresoreria" }, " (pagaments i cobraments previstos i l'IVA previst) ja fan servir l'IVA de cada línia del pressupost, no el del tipus."]
+      text: ["«Exporta detall» d'", { to: "/panell-detall-economic", label: "Ingressos i despeses" }, " té les columnes «iva_pct» i «iva» amb l'IVA de cada moviment, ingressos inclosos. Les columnes que abans es deien «…_vat» (i «Despeses … iva» a les exportacions de totals) ara es diuen «…_iva_no_deduible» («Despeses … IVA no deduïble»): són només l'IVA no deduïble, que és 0 si l'IVA es dedueix tot. Els totals dels projectes i la ", { to: "/tresoreria", label: "Tresoreria" }, " (pagaments i cobraments previstos i l'IVA previst) ja fan servir l'IVA de cada línia del pressupost, no el del tipus."]
     },
     {
       type: "Correccions",
@@ -766,7 +771,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Projectes"],
-      text: [{ to: "/mother-projects", label: "Projectes mare" }, " té la mateixa taula que Projectes: clienta sota el nom, barra d'hores, resultats en color, fila de totals, filtre per àmbit i el nombre de projectes a la capçalera."]
+      text: [{ to: "/projectes-mare", label: "Projectes mare" }, " té la mateixa taula que Projectes: clienta sota el nom, barra d'hores, resultats en color, fila de totals, filtre per àmbit i el nombre de projectes a la capçalera."]
     },
     {
       type: "Millores",
@@ -786,7 +791,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Informes", "Hores"],
-      text: ["El ", { to: "/stats-projectes", label: "panell de projectes" }, " ja no compta els projectes esborrats. Al ", { to: "/registre-jornades", label: "registre de jornades" }, " es marca en vermell un tram amb la sortida abans de l'entrada; ", { to: "/salary", label: "bestretes" }, " no ofereix crear nòmines mentre falti la jornada laboral; i la ", { to: "/invoicing-forecast", label: "previsió de facturació" }, " ja no compta «—» com una persona."]
+      text: ["El ", { to: "/panell-projectes", label: "panell de projectes" }, " ja no compta els projectes esborrats. Al ", { to: "/registre-jornades", label: "registre de jornades" }, " es marca en vermell un tram amb la sortida abans de l'entrada; ", { to: "/bestretes", label: "bestretes" }, " no ofereix crear nòmines mentre falti la jornada laboral; i la ", { to: "/previsio-facturacio", label: "previsió de facturació" }, " ja no compta «—» com una persona."]
     },
     {
       type: "Millores",
@@ -806,22 +811,22 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["La vista prèvia i el PDF de les ", { to: "/emitted-invoices", label: "factures" }, " i dels ", { to: "/quotes", label: "pressupostos" }, " tornen a portar el logo de l'entitat."]
+      text: ["La vista prèvia i el PDF de les ", { to: "/factures-emeses", label: "factures" }, " i dels ", { to: "/pressupostos", label: "pressupostos" }, " tornen a portar el logo de l'entitat."]
     },
     {
       type: "Correccions",
       modules: ["Logística", "Projectes"],
-      text: ["La fitxa d'un ", { to: "/contacts", label: "contacte" }, " amb data d'aportació de sòcia es tornava a obrir buida: ara es veu i es pot editar."]
+      text: ["La fitxa d'un ", { to: "/contactes", label: "contacte" }, " amb data d'aportació de sòcia es tornava a obrir buida: ara es veu i es pot editar."]
     },
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["El PDF dels ", { to: "/quotes", label: "pressupostos" }, " mostra l'IRPF quan alguna línia en té, i el total el descompta com a les factures. També hi surt la data del pressupost i els preus amb format."]
+      text: ["El PDF dels ", { to: "/pressupostos", label: "pressupostos" }, " mostra l'IRPF quan alguna línia en té, i el total el descompta com a les factures. També hi surt la data del pressupost i els preus amb format."]
     },
     {
       type: "Correccions",
       modules: ["Informes"],
-      text: [{ to: "/stats-previsio-hores", label: "Previsió i execució de la dedicació" }, " compta les hores previstes com el panell de projectes (dies feiners, festius i només línies amb persona), i els totals coincideixen. A la llista de projectes, el «Resultat previst» és el mateix que al panell."]
+      text: [{ to: "/panell-dedicacio", label: "Previsió i execució de la dedicació" }, " compta les hores previstes com el panell de projectes (dies feiners, festius i només línies amb persona), i els totals coincideixen. A la llista de projectes, el «Resultat previst» és el mateix que al panell."]
     },
     {
       type: "Millores",
@@ -871,12 +876,12 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Administració"],
-      text: ["A ", { to: "/administracio/me", label: "Configuració general" }, ", ara es pot buidar un camp (per exemple un peu de factura) o tornar a deixar un compte bancari sense triar. Abans el valor antic es mantenia en desar."]
+      text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, ", ara es pot buidar un camp (per exemple un peu de factura) o tornar a deixar un compte bancari sense triar. Abans el valor antic es mantenia en desar."]
     },
     {
       type: "Millores",
       modules: ["Logística"],
-      text: ["La pàgina ", { to: "/order-operations", label: "Operacions" }, " s'obre molt més de pressa: només demana les comandes i transferències de les rutes de la repartidora i del dia triat, i no totes les comandes."]
+      text: ["La pàgina ", { to: "/operacions", label: "Operacions" }, " s'obre molt més de pressa: només demana les comandes i transferències de les rutes de la repartidora i del dia triat, i no totes les comandes."]
     },
     {
       type: "Correccions",
@@ -886,7 +891,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A ", { to: "/orders", label: "comandes" }, ", si es tria «Última milla» juntament amb altres estats (Ctrl+clic), ara surten les comandes de tots, i no només les que compleixen tot alhora. La fitxa d'una comanda en un estat poc habitual (última milla, dipositada…) el mostra amb el seu nom."]
+      text: ["A ", { to: "/comandes", label: "comandes" }, ", si es tria «Última milla» juntament amb altres estats (Ctrl+clic), ara surten les comandes de tots, i no només les que compleixen tot alhora. La fitxa d'una comanda en un estat poc habitual (última milla, dipositada…) el mostra amb el seu nom."]
     },
     {
       type: "Correccions",
@@ -931,7 +936,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["A les ", { to: "/received-invoices", label: "despeses" }, ", el botó «Cancel·lar» de «Nova Dieta» no feia res. Ara tanca la finestra i et deixa a la despesa nova."]
+      text: ["A les ", { to: "/factures-rebudes", label: "despeses" }, ", el botó «Cancel·lar» de «Nova Dieta» no feia res. Ara tanca la finestra i et deixa a la despesa nova."]
     },
     {
       type: "Correccions",
@@ -946,12 +951,12 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["Algunes factures rebudes desades a finals de setembre sortien amb l'import doble a la llista de ", { to: "/received-invoices", label: "despeses" }, " i als informes. Ara mostren l'import correcte de les seves línies."]
+      text: ["Algunes factures rebudes desades a finals de setembre sortien amb l'import doble a la llista de ", { to: "/factures-rebudes", label: "despeses" }, " i als informes. Ara mostren l'import correcte de les seves línies."]
     },
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["A les dietes de ", { to: "/received-invoices", label: "despeses" }, ", els botons de cada línia (també el d'afegir-ne una de nova) quedaven fora de la pantalla. Ara les línies s'ajusten a l'amplada i els botons sempre es veuen."]
+      text: ["A les dietes de ", { to: "/factures-rebudes", label: "despeses" }, ", els botons de cada línia (també el d'afegir-ne una de nova) quedaven fora de la pantalla. Ara les línies s'ajusten a l'amplada i els botons sempre es veuen."]
     }
   ]
 },
@@ -981,7 +986,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A les ", { to: "/orders-stats", label: "estadístiques de comandes" }, " i d'incidències, triar «Tots» els anys amb un mes mostra aquell mes de tots els anys, en lloc de fallar o no mostrar res."]
+      text: ["A les ", { to: "/estadistiques-comandes", label: "estadístiques de comandes" }, " i d'incidències, triar «Tots» els anys amb un mes mostra aquell mes de tots els anys, en lloc de fallar o no mostrar res."]
     }
   ]
 },
@@ -991,7 +996,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Logística"],
-      text: ["A la ", { to: "/orders", label: "llista de comandes" }, ", les caselles per seleccionar comandes tornen a marcar-se."]
+      text: ["A la ", { to: "/comandes", label: "llista de comandes" }, ", les caselles per seleccionar comandes tornen a marcar-se."]
     },
     {
       type: "Correccions",
@@ -1016,22 +1021,22 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Plataforma"],
-      text: ["Els botons d'opció no seleccionats tornen a mostrar el text: a la fitxa d'una ", { to: "/orders", label: "comanda" }, " (Ruta, Tipus de servei, Punt de recollida, Estat), als contactes i als filtres de tresoreria i estadístiques es veien en blanc."]
+      text: ["Els botons d'opció no seleccionats tornen a mostrar el text: a la fitxa d'una ", { to: "/comandes", label: "comanda" }, " (Ruta, Tipus de servei, Punt de recollida, Estat), als contactes i als filtres de tresoreria i estadístiques es veien en blanc."]
     },
     {
       type: "Millores",
       modules: ["Logística", "Administració"],
-      text: ["Les pàgines ", { to: "/incidences", label: "Incidències" }, ", ", { to: "/pickup-points", label: "Punts de recollida" }, " i ", { to: "/administracio/users", label: "Usuàries" }, " tenen un botó per exportar la llista a Excel. A Incidències i Usuàries el fitxer porta totes les files, no només la pàgina que es veu."]
+      text: ["Les pàgines ", { to: "/incidencies", label: "Incidències" }, ", ", { to: "/punts-recollida", label: "Punts de recollida" }, " i ", { to: "/administracio/usuaries", label: "Usuàries" }, " tenen un botó per exportar la llista a Excel. A Incidències i Usuàries el fitxer porta totes les files, no només la pàgina que es veu."]
     },
     {
       type: "Millores",
       modules: ["Logística"],
-      text: ["La pàgina ", { to: "/partners", label: "Sòcies" }, " té un botó per exportar la llista de sòcies a Excel."]
+      text: ["La pàgina ", { to: "/usuaries", label: "Sòcies" }, " té un botó per exportar la llista de sòcies a Excel."]
     },
     {
       type: "Novetats",
       modules: ["Administració", "Logística"],
-      text: ["Administració d'usuàries: des de la fitxa d'una usuària a ", { to: "/administracio/users", label: "Usuàries" }, " es pot posar-li una contrasenya nova i, amb el permís Logística (Admin), activar o desactivar el seu descompte multientrega."]
+      text: ["Administració d'usuàries: des de la fitxa d'una usuària a ", { to: "/administracio/usuaries", label: "Usuàries" }, " es pot posar-li una contrasenya nova i, amb el permís Logística (Admin), activar o desactivar el seu descompte multientrega."]
     }
   ]
 },
@@ -1046,7 +1051,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Plataforma"],
-      text: ["Les pàgines carreguen menys dades: els projectes, les factures i les taules dinàmiques de ", { to: "/stats-projectes", label: "Projectes" }, " i ", { to: "/stats-dedicacio", label: "Dedicació" }, " s'obren més de pressa, sobretot amb connexions lentes."]
+      text: ["Les pàgines carreguen menys dades: els projectes, les factures i les taules dinàmiques de ", { to: "/panell-projectes", label: "Projectes" }, " i ", { to: "/panell-dedicacio", label: "Dedicació" }, " s'obren més de pressa, sobretot amb connexions lentes."]
     }
   ]
 },
@@ -1111,7 +1116,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Diners"],
-      text: ["La columna Concepte de la llista d'", { to: "/emitted-invoices", label: "ingressos" }, " i la seva exportació a Excel tornen a mostrar el concepte de cada factura."]
+      text: ["La columna Concepte de la llista d'", { to: "/factures-emeses", label: "ingressos" }, " i la seva exportació a Excel tornen a mostrar el concepte de cada factura."]
     },
     {
       type: "Millores",
@@ -1136,7 +1141,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Informes", "Hores"],
-      text: ["Nova taula de dedicació real amb gràfic de Gantt, que mostra les hores dedicades a projectes per persona i per setmana ", { to: "/stats-real-gantt", label: "% Dedicació real" }]
+      text: ["Nova taula de dedicació real amb gràfic de Gantt, que mostra les hores dedicades a projectes per persona i per setmana ", { to: "/panell-dedicacio-real", label: "% Dedicació real" }]
     }
   ]
 },
@@ -1181,7 +1186,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["Afegida la periodificació a la taula de ", { to: "/forecast", label: "previsió econòmica" }, "."]
+      text: ["Afegida la periodificació a la taula de ", { to: "/previsio", label: "previsió econòmica" }, "."]
     }
   ]
 },
@@ -1346,7 +1351,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: ["Nova pantalla d'", { to: "/vat", label: "IVA" }, ": suportat, repercutit, deduïble i saldo, executat i previst, i la llista de documents pendents de saldar, que es poden saldar indicant la data de pagament."]
+      text: ["Nova pantalla d'", { to: "/iva", label: "IVA" }, ": suportat, repercutit, deduïble i saldo, executat i previst, i la llista de documents pendents de saldar, que es poden saldar indicant la data de pagament."]
     }
   ]
 },
@@ -1486,7 +1491,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Logística"],
-      text: ["Logística: comandes de ", { to: "/pickup-points", label: "punts de recollida" }, ", amb una línia per destinatari (caixes, quilos, nom i NIF) i els totals calculats automàticament, i descompte per recollida en finca."]
+      text: ["Logística: comandes de ", { to: "/punts-recollida", label: "punts de recollida" }, ", amb una línia per destinatari (caixes, quilos, nom i NIF) i els totals calculats automàticament, i descompte per recollida en finca."]
     },
     {
       type: "Millores",
@@ -1571,7 +1576,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Projectes", "Logística"],
-      text: ["Exportació dels ", { to: "/contacts", label: "contactes" }, " i dels punts d'entrega a CSV."]
+      text: ["Exportació dels ", { to: "/contactes", label: "contactes" }, " i dels punts d'entrega a CSV."]
     }
   ]
 },
@@ -1616,7 +1621,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Hores"],
-      text: ["Es permet modificar la distribució setmanal d'hores treballades a les jornades de ", { to: "/working-day", label: "persones." }]
+      text: ["Es permet modificar la distribució setmanal d'hores treballades a les jornades de ", { to: "/jornada", label: "persones." }]
     }
   ]
 },
@@ -1631,7 +1636,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["Incorporació del camp 'projecte mare' a la taula dinàmica ", { to: "/stats-economic-detail", label: "d'ingressos i despeses." }]
+      text: ["Incorporació del camp 'projecte mare' a la taula dinàmica ", { to: "/panell-detall-economic", label: "d'ingressos i despeses." }]
     }
   ]
 },
@@ -1651,7 +1656,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes", "Diners"],
-      text: ["Filtre múltiple d'estats de projectes a ", { to: "/stats-economic-detail", label: "Detall d'ingressos i despeses" }, ", ", { to: "/tresoreria", label: "Tresoreria" }, " i ", { to: "/forecast", label: "Previsió Econòmica" }, "."]
+      text: ["Filtre múltiple d'estats de projectes a ", { to: "/panell-detall-economic", label: "Detall d'ingressos i despeses" }, ", ", { to: "/tresoreria", label: "Tresoreria" }, " i ", { to: "/previsio", label: "Previsió Econòmica" }, "."]
     }
   ]
 },
@@ -1691,7 +1696,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["Nou camp d'", { tag: "b", text: "Hores previstes avui" }, " a la ", { to: "/stats-previsio-hores", label: "taula dinámica de dedicació" }, "."]
+      text: ["Nou camp d'", { tag: "b", text: "Hores previstes avui" }, " a la ", { to: "/panell-dedicacio", label: "taula dinámica de dedicació" }, "."]
     }
   ]
 },
@@ -1706,12 +1711,12 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["Camp subvencionable a ", { to: "/stats-economic-detail", label: "taula dinàmica d'ingressos i despeses." }]
+      text: ["Camp subvencionable a ", { to: "/panell-detall-economic", label: "taula dinàmica d'ingressos i despeses." }]
     },
     {
       type: "Millores",
       modules: ["Subvencions"],
-      text: ["Nous camps al ", { to: "/grants", label: "llistat de subvencions." }]
+      text: ["Nous camps al ", { to: "/subvencions", label: "llistat de subvencions." }]
     }
   ]
 },
@@ -1731,7 +1736,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Projectes"],
-      text: ["Filtres a la taula de ", { to: "/contacts", label: "contactes" }, "."]
+      text: ["Filtres a la taula de ", { to: "/contactes", label: "contactes" }, "."]
     },
     {
       type: "Novetats",
@@ -1751,7 +1756,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Informes"],
-      text: ["Nou mòdul (experimental) per al càlcul del ", { to: "/price-hour", label: "preu/hora" }, " dels serveis."]
+      text: ["Nou mòdul (experimental) per al càlcul del ", { to: "/panell-preu-hora", label: "preu/hora" }, " dels serveis."]
     }
   ]
 },
@@ -1771,7 +1776,7 @@ export const CHANGELOG = [
     {
       type: "Correccions",
       modules: ["Informes"],
-      text: ["Corregits colors de les ", { to: "/dedicacio-charts", label: "gràfiques de dedicació" }, ", que en alguns casos no corresponia amb la llegenda."]
+      text: ["Corregits colors de les ", { to: "/panell-dedicacio", label: "gràfiques de dedicació" }, ", que en alguns casos no corresponia amb la llegenda."]
     }
   ]
 },
@@ -1831,7 +1836,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Diners"],
-      text: ["Filtre de cobrat/pagat a ", { to: "/emitted-invoices", label: "ingressos" }, " i ", { to: "/received-invoices", label: "despeses" }, "."]
+      text: ["Filtre de cobrat/pagat a ", { to: "/factures-emeses", label: "ingressos" }, " i ", { to: "/factures-rebudes", label: "despeses" }, "."]
     },
     {
       type: "Millores",
@@ -1841,7 +1846,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["Filtre de projectes actius i tancats al ", { to: "/stats-economic-detail", label: "detall d'ingressos i despeses" }, "."]
+      text: ["Filtre de projectes actius i tancats al ", { to: "/panell-detall-economic", label: "detall d'ingressos i despeses" }, "."]
     },
     {
       type: "Novetats",
@@ -1871,7 +1876,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Diners"],
-      text: ["Camp de número de factura de proveïdora al llistat de ", { to: "/received-invoices", label: "despeses" }, "."]
+      text: ["Camp de número de factura de proveïdora al llistat de ", { to: "/factures-rebudes", label: "despeses" }, "."]
     },
     {
       type: "Novetats",
@@ -1896,12 +1901,12 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Subvencions"],
-      text: ["El mòdul de ", { to: "/justifications", label: "justificacions" }, " es pot consultar també en funció de les hores previstes, a més a més de les reals."]
+      text: ["El mòdul de ", { to: "/justificacions", label: "justificacions" }, " es pot consultar també en funció de les hores previstes, a més a més de les reals."]
     },
     {
       type: "Correccions",
       modules: ["Hores"],
-      text: ["A les ", { to: "/working-day", label: "jornades de persones" }, ", s'agafa l'últim dia del més com a data final en nous períodes."]
+      text: ["A les ", { to: "/jornada", label: "jornades de persones" }, ", s'agafa l'últim dia del més com a data final en nous períodes."]
     }
   ]
 },
@@ -1916,7 +1921,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Informes"],
-      text: ["Filtres a la taula dinàmica ", { to: "/stats-economic-detail", label: "d'ingressos i despeses" }, "."]
+      text: ["Filtres a la taula dinàmica ", { to: "/panell-detall-economic", label: "d'ingressos i despeses" }, "."]
     }
   ]
 },
@@ -1951,7 +1956,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Informes"],
-      text: ["Resum de ", { to: "/forecast", label: "previsió econòmica" }, " dels projectes."]
+      text: ["Resum de ", { to: "/previsio", label: "previsió econòmica" }, " dels projectes."]
     }
   ]
 },
@@ -2076,7 +2081,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Subvencions"],
-      text: ["Llista de ", { to: "/grants", label: "subvencions" }, " i camps de subvencionable i documents a la fitxa de projecte."]
+      text: ["Llista de ", { to: "/subvencions", label: "subvencions" }, " i camps de subvencionable i documents a la fitxa de projecte."]
     },
     {
       type: "Millores",
@@ -2151,7 +2156,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Projectes", "Informes"],
-      text: ["Preu per hora dels projectes, i hores al detall d'", { to: "/stats-economic-detail", label: "ingressos i despeses" }, "."]
+      text: ["Preu per hora dels projectes, i hores al detall d'", { to: "/panell-detall-economic", label: "ingressos i despeses" }, "."]
     },
     {
       type: "Millores",
@@ -2196,7 +2201,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Informes"],
-      text: ["Taula dinàmica de detall d'", { to: "/stats-economic-detail", label: "ingressos i despeses" }, "."]
+      text: ["Taula dinàmica de detall d'", { to: "/panell-detall-economic", label: "ingressos i despeses" }, "."]
     },
     {
       type: "Millores",
@@ -2221,7 +2226,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Subvencions"],
-      text: ["Mòdul de ", { to: "/justifications", label: "justificacions" }, " de projectes, per hores i per quantitat, amb exportació a CSV."]
+      text: ["Mòdul de ", { to: "/justificacions", label: "justificacions" }, " de projectes, per hores i per quantitat, amb exportació a CSV."]
     },
     {
       type: "Novetats",
@@ -2236,7 +2241,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Projectes"],
-      text: ["Gestió de ", { to: "/tasks", label: "tasques" }, " dels projectes, amb llista de comprovació i imatges."]
+      text: ["Gestió de ", { to: "/tasques", label: "tasques" }, " dels projectes, amb llista de comprovació i imatges."]
     },
     {
       type: "Novetats",
@@ -2251,7 +2256,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: [{ to: "/quotes", label: "Pressupostos" }, " dels projectes."]
+      text: [{ to: "/pressupostos", label: "Pressupostos" }, " dels projectes."]
     }
   ]
 },
@@ -2276,7 +2281,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: ["Nòmines i pagaments de nòmines a ", { to: "/salary", label: "salaris" }, "."]
+      text: ["Nòmines i pagaments de nòmines a ", { to: "/bestretes", label: "salaris" }, "."]
     },
     {
       type: "Millores",
@@ -2306,7 +2311,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Hores"],
-      text: [{ to: "/working-day", label: "Jornades" }, " de les persones i resum anual d'hores, ajustat a les hores diàries de cada jornada."]
+      text: [{ to: "/jornada", label: "Jornades" }, " de les persones i resum anual d'hores, ajustat a les hores diàries de cada jornada."]
     },
     {
       type: "Novetats",
@@ -2321,7 +2326,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: ["Factures dels projectes: ", { to: "/emitted-invoices", label: "emeses" }, " i ", { to: "/received-invoices", label: "rebudes" }, "."]
+      text: ["Factures dels projectes: ", { to: "/factures-emeses", label: "emeses" }, " i ", { to: "/factures-rebudes", label: "rebudes" }, "."]
     },
     {
       type: "Novetats",

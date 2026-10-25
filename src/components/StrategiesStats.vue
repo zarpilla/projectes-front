@@ -115,7 +115,7 @@
           <tbody>
             <tr v-for="p in projectRows" :key="p.id">
               <td class="st-name">
-                <router-link :to="`/project/${p.id}`">{{ p.name }}</router-link>
+                <router-link :to="`/projecte/${p.id}`">{{ p.name }}</router-link>
                 <small v-if="p.state" class="st-sub">{{ p.state }}</small>
               </td>
               <td class="st-tags"><span v-for="s in p.strategies" :key="s.id" class="tag" :title="s.name">{{ s.code }}</span></td>

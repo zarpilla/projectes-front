@@ -38,7 +38,7 @@ async function setOptions (patch) {
 
 // «Inici de l'any fiscal» in Configuració, saved from the form
 async function saveStartMonth (month, { grantFiscal } = {}) {
-  await visit('/administracio/me')
+  await visit('/administracio/configuracio')
   await field("Inici de l'any fiscal").locator('select').selectOption({ label: month })
   if (grantFiscal !== undefined) {
     const box = page.locator('label.option-row', { hasText: 'Els anys de subvenció són anys fiscals' }).locator('input[type=checkbox]')
@@ -54,7 +54,7 @@ const yearLabels = async () => (await yearSelect().locator('option').allInnerTex
 
 // Ingressos i despeses for the year labelled `label`: the project's row of totals
 async function economicDetail (label) {
-  await visit('/stats-economic-detail')
+  await visit('/panell-detall-economic')
   // it opens on the current year: picking it again asks nothing
   if ((await yearSelect().locator('option:checked').innerText()).trim() !== label) {
     const loaded = page.waitForResponse(r => r.url().includes('projects/economic-detail'))
@@ -81,7 +81,7 @@ const economicRows = year => api('GET', `projects/economic-detail?_q=${encodeURI
 
 // The project's «Resum financer»: its «Període» buttons, and Ingressos/Hores of one
 async function summary (period) {
-  await visit(`/project/${state.projectId}`)
+  await visit(`/projecte/${state.projectId}`)
   const group = page.getByRole('group', { name: 'Període' })
   await expect(group).toBeVisible({ timeout: 20_000 })
   const periods = (await group.getByRole('button').allInnerTexts()).map(t => t.trim())
@@ -116,7 +116,7 @@ async function startYearCount (label) {
 
 // Justificacions, «Reals» hours: the year labels and the project's row
 async function justification (label) {
-  await visit('/justifications')
+  await visit('/justificacions')
   const labels = await yearLabels()
   await page.getByRole('group', { name: 'Hores' }).getByRole('button', { name: 'Reals', exact: true }).click()
   await yearSelect().selectOption({ label })
@@ -195,14 +195,14 @@ test('setup: a project with lines and hours on both sides of 1 September', async
 
 test('Configuració: «Inici de l\'any fiscal» September is saved and the years read «2026/27»', async () => {
   test.skip(!state.projectId, 'needs the project')
-  await visit('/stats-economic-detail')
+  await visit('/panell-detall-economic')
   expect(await yearLabels()).toContain(String(state.D))
   await saveStartMonth('Setembre')
   const saved = await options()
   expect([saved.fiscal_year_start_month, saved.grantable_fiscal_years]).toEqual([9, false])
   await page.reload()
   await settle()
-  for (const route of ['/stats-economic-detail', '/price-hour']) {
+  for (const route of ['/panell-detall-economic', '/panell-preu-hora']) {
     await visit(route)
     const labels = await yearLabels()
     expect(labels, route).toEqual(expect.arrayContaining([fy(state.D - 1), fy(state.D)]))
@@ -234,7 +234,7 @@ test('project page: «Resum financer» by fiscal year', async () => {
 test('Informes › Projectes: «Any inici» is the fiscal year «2026/27»', async () => {
   test.skip(!state.projectId, 'needs the project')
   // 15/08/D is in fiscal year D-1
-  await visit('/stats-projectes')
+  await visit('/panell-projectes')
   expect(await startYearCount(fy(state.D - 1))).toBe(1)
 })
 
@@ -252,7 +252,7 @@ test('grant years: calendar until «Els anys de subvenció són anys fiscals», 
   await page.reload()
   await settle()
   // «Imports per any» of the project
-  await visit(`/project/${state.projectId}?tab=dades`)
+  await visit(`/projecte/${state.projectId}?tab=dades`)
   const picked = field('Imports per any').locator('select option:checked')
   await expect(picked).toHaveText([fy(D - 1), fy(D)].map(l => new RegExp(`^\\s*${l.replace('/', '\\/')}\\s*$`)))
   // Justificacions: fiscal year D-1 is August's 2 h, D October's 3 h
@@ -266,7 +266,7 @@ test('grant years: calendar until «Els anys de subvenció són anys fiscals», 
 test('VAT stays on the calendar year: the August expense is in D, quarter 3', async () => {
   test.skip(!state.projectId, 'needs the project')
   expect((await options()).fiscal_year_start_month).toBe(9)
-  await visit('/vat')
+  await visit('/iva')
   await page.getByRole('tab', { name: /^Documents previstos/ }).click()
   const row = page.locator('section.list-box').filter({ visible: true }).first().locator('tbody tr').filter({ hasText: AUG_EXPENSE })
   await expect(row).toHaveCount(1, { timeout: 20_000 })
@@ -283,11 +283,11 @@ test('back to January: calendar labels and figures again', async () => {
   expect((await options()).fiscal_year_start_month).toBe(1)
   await page.reload()
   await settle()
-  await visit('/stats-economic-detail')
+  await visit('/panell-detall-economic')
   expect(await yearLabels()).not.toContain(fy(D))
   expect(await economicDetail(String(D))).toEqual({ 'Ingressos orig': 400, 'Ingressos prev': 400, 'Hores exec (h)': 5 })
   expect(await summary(String(D))).toEqual({ periods: ['Total', String(D)], incomes: [400, 400], hours: 5 })
-  await visit('/stats-projectes')
+  await visit('/panell-projectes')
   expect(await startYearCount(String(D))).toBe(1)
   // grant years too, even with grantable_fiscal_years still set
   const j = await justification(String(D))

@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 7
 roles: [projects]
-routes: ["/project/:id", "/justifications", "/grants"]
+routes: ["/projecte/:id", "/justificacions", "/subvencions"]
 lang: ca
 updated: 2026-10-18
 ---

@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 6
 roles: [projects]
-routes: ["/project/:id"]
+routes: ["/projecte/:id", "/projectes-mare"]
 lang: ca
 updated: 2026-10-17
 ---

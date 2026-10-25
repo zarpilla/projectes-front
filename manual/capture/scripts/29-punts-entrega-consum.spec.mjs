@@ -52,7 +52,7 @@ test('29-punts-entrega-consum', async ({ page }) => {
   // ---- the provider (orders)
   await login(page, ...logUser('orders'))
   await closeHello(page)
-  await page.goto('#/user-contacts')
+  await page.goto('#/clientes')
   await page.getByText("On s'entreguen les comandes: botigues").waitFor()
   await settle(page, 1500)
   await closeHello(page)
@@ -64,7 +64,7 @@ test('29-punts-entrega-consum', async ({ page }) => {
   await shot(page, 'cerca-socia')
 
   // a point of hers
-  await page.goto(`#/contact-user/${POINT}`)
+  await page.goto(`#/punt-entrega/${POINT}`)
   await page.getByText('Condicions d’entrega').waitFor()
   await settle(page, 1200)
   await tall(page, async () => {
@@ -72,7 +72,7 @@ test('29-punts-entrega-consum', async ({ page }) => {
   }, 1830)
 
   // a new point, saved empty: the required fields turn red
-  await page.goto('#/user-contacts')
+  await page.goto('#/clientes')
   await page.getByText("On s'entreguen les comandes: botigues").waitFor()
   await settle(page, 800)
   await page.getByRole('button', { name: "Nou punt d'entrega" }).click()
@@ -96,7 +96,7 @@ test('29-punts-entrega-consum', async ({ page }) => {
     picked = true
     return route.fulfill({ json: demoOrder(9001, true) })
   })
-  await page.goto('#/pickup-points')
+  await page.goto('#/punts-recollida')
   await page.getByText('Persona demo 1').waitFor()
   await settle(page, 600)
   await shot(page, 'punts-consum')
@@ -116,7 +116,7 @@ test('29-punts-entrega-consum', async ({ page }) => {
   // a fresh page, or the side menu keeps the provider's entries
   await page.reload()
   await settle(page, 800)
-  await page.goto('#/user-contacts')
+  await page.goto('#/clientes')
   await page.getByText("On s'entreguen les comandes: botigues").waitFor()
   await page.getByRole('columnheader', { name: 'Contacte de' }).waitFor()
   await settle(page, 1500)
@@ -124,7 +124,7 @@ test('29-punts-entrega-consum', async ({ page }) => {
   await settle(page, 500)
   await shot(page, 'llista-oficina')
 
-  await page.goto(`#/contact-user/${POINT}`)
+  await page.goto(`#/punt-entrega/${POINT}`)
   await page.getByText('Condicions d’entrega').waitFor()
   await settle(page, 1200)
   await page.locator('.field', { hasText: 'Punt de consum' }).locator('.switch').click()
@@ -137,7 +137,7 @@ test('29-punts-entrega-consum', async ({ page }) => {
   }, 2260)
 
   // unify points: the modal, cancelled
-  await page.goto('#/user-contacts')
+  await page.goto('#/clientes')
   await page.getByRole('columnheader', { name: 'Contacte de' }).waitFor()
   await settle(page, 800)
   await page.getByRole('button', { name: 'Unifica punts' }).click()

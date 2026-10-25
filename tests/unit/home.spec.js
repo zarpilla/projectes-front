@@ -39,9 +39,9 @@ describe('Inici', () => {
   it('offers the menu entries the person may open, without Inici and Tiquets', () => {
     const staff = menuGroups(menu, ['projects', 'hours'])
     expect(staff.map(g => g.label)).toEqual(['Projectes', 'Diners', 'Informes', 'Altres'])
-    expect(paths(staff)).toContain('/tasks')
+    expect(paths(staff)).toContain('/tasques')
     expect(paths(staff)).not.toContain(HOME_PATH)
-    expect(paths(staff)).not.toContain('/orders')
+    expect(paths(staff)).not.toContain('/comandes')
     expect(staff.flatMap(g => g.items).some(i => i.action === 'tickets')).toBe(false)
 
     // Altres › Documentació (the user manual) is for everybody.
@@ -55,23 +55,23 @@ describe('Inici', () => {
 
   it('starts with four entries the person can open', () => {
     expect(defaultPrefs(paths(menuGroups(menu, ['projects', 'hours'])))).toEqual({
-      pins: ['/projectes', '/dedicacio', '/tasks', '/emitted-invoices'], landing: 'home'
+      pins: ['/projectes', '/dedicacio', '/tasques', '/factures-emeses'], landing: 'home'
     })
     expect(defaultPrefs(paths(menuGroups(menu, ['hours']))).pins).toEqual(['/dedicacio'])
-    expect(defaultPrefs(paths(menuGroups(menu, ['orders_delivery']))).pins).toEqual(['/orders', '/incidences', '/order-operations'])
+    expect(defaultPrefs(paths(menuGroups(menu, ['orders_delivery']))).pins).toEqual(['/comandes', '/incidencies', '/operacions'])
   })
 
   it('saves per person and ignores what it cannot read', () => {
-    expect(writePrefs(7, { pins: ['/vat', '/tasks'], landing: 'first' })).toBe(true)
-    expect(localStorage.getItem(homeKey(7))).toBe('{"pins":["/vat","/tasks"],"landing":"first"}')
-    expect(readPrefs(7)).toEqual({ pins: ['/vat', '/tasks'], landing: 'first' })
+    expect(writePrefs(7, { pins: ['/iva', '/tasques'], landing: 'first' })).toBe(true)
+    expect(localStorage.getItem(homeKey(7))).toBe('{"pins":["/iva","/tasques"],"landing":"first"}')
+    expect(readPrefs(7)).toEqual({ pins: ['/iva', '/tasques'], landing: 'first' })
     expect(readPrefs(8)).toBe(null)
     expect(parsePrefs('not json')).toBe(null)
-    expect(parsePrefs({ pins: ['/vat', '/vat', 3, ''], landing: 'elsewhere' })).toEqual({ pins: ['/vat'], landing: 'home' })
+    expect(parsePrefs({ pins: ['/iva', '/iva', 3, ''], landing: 'elsewhere' })).toEqual({ pins: ['/iva'], landing: 'home' })
   })
 
   it('hides the pins the person may no longer open, without forgetting them', () => {
-    const pins = ['/tresoreria', '/dedicacio', '/administracio/users']
+    const pins = ['/tresoreria', '/dedicacio', '/administracio/usuaries']
     expect(visiblePins(pins, ['hours'])).toEqual(['/dedicacio'])
     expect(visiblePins(pins, ['projects', 'hours', 'admin'])).toEqual(pins)
   })
@@ -83,8 +83,8 @@ describe('Inici', () => {
     expect(landingFor({ pins: [], landing: 'usual' }, ['hours'])).toBe('/dedicacio')
     expect(landingFor({ pins: ['/tresoreria', '/dedicacio'], landing: 'first' }, ['hours'])).toBe('/dedicacio')
     expect(landingFor({ pins: ['/tresoreria'], landing: 'first' }, ['hours'])).toBe(HOME_PATH)
-    writePrefs(3, { pins: ['/vat'], landing: 'first' })
-    expect(landingForUser(3, ['projects'])).toBe('/vat')
+    writePrefs(3, { pins: ['/iva'], landing: 'first' })
+    expect(landingForUser(3, ['projects'])).toBe('/iva')
   })
 
   it('reorders by arrows and by drag', () => {
@@ -102,31 +102,31 @@ describe('Inici', () => {
     localStorage.setItem('user', JSON.stringify({ id: 5, permissions: [{ permission: 'projects' }] }))
     const store = useHomePins()
     await store.load()
-    expect(store.pins).toEqual(['/projectes', '/tasks', '/emitted-invoices'])
+    expect(store.pins).toEqual(['/projectes', '/tasques', '/factures-emeses'])
     expect(api.put).not.toHaveBeenCalled()
-    store.toggle('/vat')
-    expect(store.isPinned('/vat')).toBe(true)
+    store.toggle('/iva')
+    expect(store.isPinned('/iva')).toBe(true)
     await store.toggle('/projectes')
     expect(api.put.mock.calls.map(c => c[1].pins)).toEqual([
-      ['/projectes', '/tasks', '/emitted-invoices', '/vat'],
-      ['/tasks', '/emitted-invoices', '/vat']
+      ['/projectes', '/tasques', '/factures-emeses', '/iva'],
+      ['/tasques', '/factures-emeses', '/iva']
     ])
     expect(api.put.mock.calls[0][0]).toBe('users/me/home')
     expect(readPrefs(5).pins).toEqual(store.pins)
     await store.setLanding('usual')
-    expect(api.home).toEqual({ pins: ['/tasks', '/emitted-invoices', '/vat'], landing: 'usual' })
+    expect(api.home).toEqual({ pins: ['/tasques', '/factures-emeses', '/iva'], landing: 'usual' })
     expect(store.saveFailed).toBe(false)
   })
 
   it('takes the saved Inici from the API, whatever this browser had', async () => {
-    api.home = { pins: ['/salary'], landing: 'first' }
-    writePrefs(5, { pins: ['/vat'], landing: 'home' })
+    api.home = { pins: ['/bestretes'], landing: 'first' }
+    writePrefs(5, { pins: ['/iva'], landing: 'home' })
     localStorage.setItem('user', JSON.stringify({ id: 5, permissions: [{ permission: 'projects' }] }))
     const store = useHomePins()
     await store.load()
-    expect(store.pins).toEqual(['/salary'])
+    expect(store.pins).toEqual(['/bestretes'])
     expect(store.landing).toBe('first')
-    expect(readPrefs(5)).toEqual({ pins: ['/salary'], landing: 'first' })
+    expect(readPrefs(5)).toEqual({ pins: ['/bestretes'], landing: 'first' })
   })
 
   it('keeps the local copy and says so when the API refuses', async () => {
@@ -135,25 +135,25 @@ describe('Inici', () => {
     localStorage.setItem('user', JSON.stringify({ id: 5, permissions: [{ permission: 'projects' }] }))
     const store = useHomePins()
     await store.load()
-    await store.toggle('/vat')
+    await store.toggle('/iva')
     expect(store.saveFailed).toBe(true)
-    expect(readPrefs(5).pins).toContain('/vat')
+    expect(readPrefs(5).pins).toContain('/iva')
   })
 
   // 2026-10-18: a star you could click in the side menu was too easy to set by
   // mistake; the menu only shows what is pinned, Inici is where it changes
   it('the side menu shows the pinned entries but has nothing to click on them', () => {
     const store = useHomePins()
-    store.pins = ['/vat']
+    store.pins = ['/iva']
     const item = to => mount(AsideMenuItem, {
       props: { item: { to, icon: 'percent-outline', label: 'IVA' } },
       global: { plugins: [Buefy], stubs: { 'router-link': { template: '<a><slot /></a>' } } }
     })
-    const pinned = item('/vat')
+    const pinned = item('/iva')
     expect(pinned.find('.menu-pin').exists()).toBe(true)
     expect(pinned.find('button').exists()).toBe(false)
     expect(pinned.text()).toContain("fixat a l'inici")
-    expect(item('/tasks').find('.menu-pin').exists()).toBe(false)
+    expect(item('/tasques').find('.menu-pin').exists()).toBe(false)
     expect(item(HOME_PATH).find('.menu-pin').exists()).toBe(false)
   })
 })

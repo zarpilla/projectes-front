@@ -5,6 +5,7 @@
 // choose the page at once and an API without the endpoint still works.
 import { hasMenuPermission } from '@/service/menu'
 import { canOpenPath, landingPath } from '@/domain/routeAccess'
+import { currentPath } from '@/router/paths'
 
 export const HOME_PATH = '/inici'
 
@@ -15,8 +16,8 @@ export const homeKey = me => `home:${me}`
 
 // a first visit: four entries of what the person can open
 const DEFAULT_PINS = [
-  '/projectes', '/dedicacio', '/tasks', '/emitted-invoices',
-  '/orders', '/incidences', '/order-operations', '/route-days'
+  '/projectes', '/dedicacio', '/tasques', '/factures-emeses',
+  '/comandes', '/incidencies', '/operacions', '/rutes-dies'
 ]
 
 /** The pinnable menu entries (a path to open), grouped as in the side menu. */
@@ -39,7 +40,8 @@ export function parsePrefs (raw) {
   try {
     const data = typeof raw === 'string' ? JSON.parse(raw) : raw
     if (!data || !Array.isArray(data.pins)) return null
-    const pins = [...new Set(data.pins.filter(p => typeof p === 'string' && p))]
+    // pins saved before issues/343 carry the old English URLs
+    const pins = [...new Set(data.pins.filter(p => typeof p === 'string' && p).map(currentPath))]
     return { pins, landing: LANDINGS.includes(data.landing) ? data.landing : 'home' }
   } catch {
     return null

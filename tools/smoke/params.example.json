@@ -1,15 +1,15 @@
 {
-  "/project/:id": ["/project/0", "/project/1"],
+  "/projecte/:id": ["/projecte/0", "/projecte/1"],
   "/document/:id/:type": ["/document/0/emitted-invoices", "/document/1/emitted-invoices", "/document/1/received-invoices", "/document/1/received-expenses"],
-  "/client/:id": "/client/1",
-  "/order/view/:id": "/order/view/1",
-  "/order/:id": ["/order/0", "/order/1"],
-  "/contact/:id": ["/contact/0", "/contact/1"],
-  "/contact-user/:id": "/contact-user/0",
-  "/administracio/face-queue/:id": "/administracio/face-queue/1",
-  "/administracio/verifactu-chain/:id": "/administracio/verifactu-chain/1",
-  "/administracio/users/:id": "/administracio/users/1",
-  "/administracio/:entityName": ["/administracio/bank-account", "/administracio/contact-type"],
-  "/administracio/:entityName/new": "/administracio/bank-account/new",
-  "/administracio/:entityName/:id": "/administracio/bank-account/1"
+  "/contacte/:id": "/contacte/1",
+  "/comanda/veure/:id": "/comanda/veure/1",
+  "/comanda/:id": ["/comanda/0", "/comanda/1"],
+  "/contacte/:id": ["/contacte/0", "/contacte/1"],
+  "/punt-entrega/:id": "/punt-entrega/0",
+  "/administracio/cua-face/:id": "/administracio/cua-face/1",
+  "/administracio/cadena-verifactu/:id": "/administracio/cadena-verifactu/1",
+  "/administracio/usuaries/:id": "/administracio/usuaries/1",
+  "/administracio/:entityName": ["/administracio/comptes-bancaris", "/administracio/tipus-contacte"],
+  "/administracio/:entityName/new": "/administracio/comptes-bancaris/nou",
+  "/administracio/:entityName/:id": "/administracio/comptes-bancaris/1"
 }

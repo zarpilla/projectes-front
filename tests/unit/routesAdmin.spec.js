@@ -125,21 +125,21 @@ describe('route form (issues/141)', () => {
 
 describe('«Rutes» page (issues/141)', () => {
   it('opens for the office only', () => {
-    expect(routePermissions({ path: '/routes', meta: {} })).toEqual(['orders_admin'])
-    expect(canOpenPath('/routes', ['orders_admin'])).toBe(true)
-    expect(canOpenPath('/routes', ['orders'])).toBe(false)
-    expect(canOpenPath('/routes', ['orders_delivery'])).toBe(false)
+    expect(routePermissions({ path: '/rutes', meta: {} })).toEqual(['orders_admin'])
+    expect(canOpenPath('/rutes', ['orders_admin'])).toBe(true)
+    expect(canOpenPath('/rutes', ['orders'])).toBe(false)
+    expect(canOpenPath('/rutes', ['orders_delivery'])).toBe(false)
   })
 
   it('is in the menu under «Rutes i punts»', () => {
     const i = menuList.indexOf('Rutes i punts')
-    const item = menuList[i + 1].find(m => m.to === '/routes')
+    const item = menuList[i + 1].find(m => m.to === '/rutes')
     expect(item).toMatchObject({ label: 'Rutes', permission: 'orders_admin' })
   })
 
   const tabs = async props => {
     const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:p(.*)', component: { template: '<div />' } }] })
-    await router.push('/route-days')
+    await router.push('/rutes-dies')
     const w = mount(RoutesTabs, { props, global: { plugins: [router] } })
     return w.findAll('a').map(a => a.text())
   }

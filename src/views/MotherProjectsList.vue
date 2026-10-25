@@ -155,7 +155,7 @@ export default {
   },
   methods: {
     navNewProject() {
-      this.$router.push("/project/0");
+      this.$router.push("/projecte/0");
     },
     switchToRegularProjects() {
       localStorage.setItem("projectsDefaultView", "regular");

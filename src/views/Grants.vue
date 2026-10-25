@@ -1,7 +1,7 @@
 <template>
   <div>
     <title-bar :title-stack="['Informes', 'Subvencions']" :subtitle="subtitle">
-      <router-link to="/justifications" class="button">Justificacions</router-link>
+      <router-link to="/justificacions" class="button">Justificacions</router-link>
     </title-bar>
     <section class="section is-main-section">
       <b-loading :is-full-page="true" v-model="loading" :can-cancel="false"></b-loading>

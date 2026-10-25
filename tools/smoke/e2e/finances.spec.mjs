@@ -1,6 +1,6 @@
 // Finances: what a project's budget and its documents do to the reports. «Previsió»
-// (#/forecast) and «Previsió de facturació» (#/invoicing-forecast) read the plan;
-// «IVA» (#/vat) the planned lines and the documents; then an issued invoice's PDF,
+// (#/previsio) and «Previsió de facturació» (#/previsio-facturacio) read the plan;
+// «IVA» (#/iva) the planned lines and the documents; then an issued invoice's PDF,
 // its rectificative ("Anul·la i rectifica…"), a diet ("Nova Dieta") saved for real,
 // a payroll advance ("Bestreta") marked paid, and settling the VAT in «IVA» («Salda»):
 // the settle box follows Configuració's «% IVA deduïble», a year's % deducts that part
@@ -30,7 +30,7 @@ const idOf = relation => relation?.id ?? relation
 
 // «Previsió»: the "Ingressos" and "Despeses" of each year in «Resum de la previsió»
 async function forecastFigures () {
-  await visit('/forecast')
+  await visit('/previsio')
   const table = page.locator('table.forecast-table')
   await expect(table).toBeVisible()
   const years = (await table.locator('thead th').allInnerTexts()).slice(1).map(t => t.trim())
@@ -43,7 +43,7 @@ async function forecastFigures () {
 
 // «Previsió de facturació»: 12 months, the project's rows after a search, every group open
 async function invoicingForecastProject () {
-  await visit('/invoicing-forecast')
+  await visit('/previsio-facturacio')
   await page.getByRole('group', { name: 'Horitzó' }).getByRole('button', { name: '12 mesos' }).click()
   await page.getByRole('searchbox', { name: 'Cerca' }).fill(PROJECT)
   await settle(300)
@@ -54,7 +54,7 @@ async function invoicingForecastProject () {
 
 // «IVA»: one of the views ("Documents pendents", "Documents previstos"...) and its rows
 async function vatView (name) {
-  await visit('/vat')
+  await visit('/iva')
   await page.getByRole('tab', { name: new RegExp(`^${name}`) }).click()
   const box = page.locator('section.list-box').filter({ visible: true }).first()
   await expect(box).toBeVisible()
@@ -77,7 +77,7 @@ test('a new project\'s budget adds to «Previsió»', async () => {
     expenses: [{ concept: EXPENSE, quantity: 1, price: 400 }]
   })
   // a second phase in the execution budget, for the rectificative and the diet
-  await visit(`/project/${state.projectId}?tab=pressupost`)
+  await visit(`/projecte/${state.projectId}?tab=pressupost`)
   const phase = await addPhase(card('Execució del pressupost'), `${NAME} fase 2`)
   await addLine(phase, 'income', { concept: RECTIFIED, quantity: 1, price: 200 })
   await addLine(phase, 'expense', { concept: DIET, quantity: 1, price: 50 })
@@ -322,7 +322,7 @@ test('a payroll advance marked paid ("Pagada") is paid in Tresoreria', async () 
   expect(await types()).toMatchObject({ 'Nòmina pagada': [-850, true], 'IRPF Nòmina': [-150, true] })
 })
 
-// --- settling the VAT («Salda», #/vat) -----------------------------------------------
+// --- settling the VAT («Salda», #/iva) -----------------------------------------------
 // «Salda N documents» marks the checked «Documents pendents» as settled (vat_paid_date,
 // and the % deducted) and books the balance as one «IVA Saldat» treasury movement:
 // −(repercutit − suportat × the year's deductible %). The year's % (Taules auxiliars ›
@@ -349,7 +349,7 @@ async function settleVat (docs) {
   const reloaded = page.waitForEvent('load', { timeout: 20_000 }).catch(() => null)
   await button(`Salda ${docs.length} ${docs.length === 1 ? 'document' : 'documents'}`).click()
   expect((await answered).ok(), 'pay-vat-ids answered').toBe(true)
-  if (!(await reloaded)) await visit('/vat')
+  if (!(await reloaded)) await visit('/iva')
   await settle(1500)
   const created = (await settledMovements()).filter(m => !before.includes(m.id))
   for (const m of created) onCleanup(() => api('DELETE', `treasuries/${m.id}`))
@@ -361,20 +361,20 @@ test('«IVA» offers settling only with a deductible % in Configuració', async 
   const pct = me.options?.deductible_vat_pct
   onCleanup(() => api('PUT', 'me', { data: { options: { ...me.options, id: undefined } } }))
   const setPct = async value => {
-    await visit('/administracio/me')
+    await visit('/administracio/configuracio')
     await field('% IVA deduïble').locator('input').fill(String(value))
     await button('Guardar').click()
     await expectSnackbar('Guardat correctament')
     expect(Number((await api('GET', 'me?populate=options')).options.deductible_vat_pct)).toBe(value)
   }
   await setPct(0)
-  await visit('/vat')
+  await visit('/iva')
   await expect(page.getByRole('tab', { name: /^Documents pendents/ })).toBeVisible()
   await expect(card('IVA pendent de saldar')).toHaveCount(0)
   await expect(vatKpi('Saldo executat')).toHaveCount(0)
 
   await setPct(Number(pct) > 0 ? Number(pct) : 100)
-  await visit('/vat')
+  await visit('/iva')
   const box = card('IVA pendent de saldar')
   await expect(box).toBeVisible()
   // the «Executat» row and the figures are the forecast's

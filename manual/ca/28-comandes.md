@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 28
 roles: [orders, orders_admin, orders_delivery]
-routes: ["/orders", "/order/:id", "/order/view/:id"]
+routes: ["/comandes", "/comanda/:id", "/comanda/veure/:id"]
 lang: ca
 updated: 2026-10-18
 ---

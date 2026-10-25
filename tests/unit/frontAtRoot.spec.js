@@ -24,13 +24,13 @@ describe('app served at the root of the site', () => {
 
   it('serves its administration screens under /administracio', () => {
     const paths = router.getRoutes().map(r => r.path)
-    expect(paths).toContain('/administracio/me')
+    expect(paths).toContain('/administracio/configuracio')
     expect(paths).toContain('/administracio/:entityName')
   })
 
   it('turns old hash links into paths under the root', () => {
-    expect(legacyHashTarget({ hash: '#/order/view/15397' }, '/')).toBe('/order/view/15397')
-    expect(legacyHashTarget({ hash: '#/tasks?task=12' }, '/')).toBe('/tasks?task=12')
+    expect(legacyHashTarget({ hash: '#/order/view/15397' }, '/')).toBe('/comanda/veure/15397')
+    expect(legacyHashTarget({ hash: '#/tasks?task=12' }, '/')).toBe('/tasques?task=12')
   })
 
   it('redirects the old /stats/ addresses without swallowing /stats-… routes', () => {

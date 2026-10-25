@@ -1,7 +1,7 @@
 // Hours beyond entering them: personal absences and holidays for everyone
 // («Festiu» on #/dedicacio), the balance against the work periods («Saldo
 // d'hores», #/dedicacio-saldo) and the year summary («Hores anuals»,
-// #/dedicacio-summary), the filters and «Exporta» of #/dedicacio, and what an
+// #/resum-hores), the filters and «Exporta» of #/dedicacio, and what an
 // hours-only user sees there.
 //
 // Everything is about a user of its own ("e2e-hores-<stamp>", hours permission
@@ -311,7 +311,7 @@ test('«Saldo d\'hores» compares the hours with the work periods, festives asid
 // maximums; the conveni scaled by the share of a full jornada (8 h × weekdays)
 test('«Hores anuals» counts the same days, the festives against their maximums', async () => {
   test.skip(!state.user, 'needs the user')
-  await visit('/dedicacio-summary')
+  await visit('/resum-hores')
   await pickPersonAndYear(USER.username, 2025)
   await expect(page.locator('.annual-report .notification.is-warning')).toHaveCount(0)
   const dd = (term, n) => page.locator('.calc-list dt').filter({ hasText: new RegExp(`^\\s*${escapeRegExp(term)}\\s*$`) }).locator(`xpath=following-sibling::dd[${n}]`)

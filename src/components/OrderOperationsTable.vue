@@ -987,7 +987,7 @@ export default {
     },
     openIncidenceLink(incidenceId) {
       const route = this.$router.resolve({
-        path: `/incidences?id=${incidenceId}`
+        path: `/incidencies?id=${incidenceId}`
       });
       window.open(route.href, "_blank");
     },

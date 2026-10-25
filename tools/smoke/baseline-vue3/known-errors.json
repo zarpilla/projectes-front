@@ -1,9 +1,9 @@
 {
-  "/orders-stats": [
+  "/estadistiques-comandes": [
     "TypeError: Cannot read properties of null (reading 'id')",
     "Object"
   ],
-  "/incidences-stats": [
+  "/estadistiques-incidencies": [
     "TypeError: Cannot read properties of null (reading 'id')",
     "Object"
   ]

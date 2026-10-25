@@ -91,7 +91,7 @@
             </div>
             <p class="cfg-note">
               {{ bankAccounts.length }} comptes{{ bankAccounts.length ? ": " + bankAccounts.map(a => a.name).join(", ") : "" }}
-              <router-link to="/administracio/bank-account">Gestiona els comptes →</router-link>
+              <router-link to="/administracio/comptes-bancaris">Gestiona els comptes →</router-link>
             </p>
           </section>
 
@@ -103,7 +103,7 @@
               <b-field label="Assumpte del correu" class="is-wide"><b-input v-model="form.invoice_subject" /></b-field>
               <b-field label="Plantilla del correu" class="is-full"><b-input v-model="form.invoice_template" type="textarea" rows="4" placeholder="Text del correu que acompanya la factura en PDF" /></b-field>
             </div>
-            <p class="cfg-note">Les sèries de numeració es gestionen a part. <router-link to="/administracio/serie">Gestiona les sèries →</router-link></p>
+            <p class="cfg-note">Les sèries de numeració es gestionen a part. <router-link to="/administracio/series">Gestiona les sèries →</router-link></p>
           </section>
 
           <section id="cfg-face" class="form-box">
@@ -225,7 +225,7 @@
 
           <section v-if="logistics" id="cfg-logistica" class="form-box">
             <h2>Logística</h2>
-            <p class="form-box-sub">Les tarifes de les rutes es gestionen a part. <router-link to="/administracio/route-rate">Tarifes de ruta →</router-link></p>
+            <p class="form-box-sub">Les tarifes de les rutes es gestionen a part. <router-link to="/administracio/tarifes-ruta">Tarifes de ruta →</router-link></p>
             <div class="cfg-grid">
               <b-field label="Descompte multientrega (%)" message="Quan una sòcia té més d'una comanda per al mateix punt d'entrega i dia.">
                 <b-input v-model.number="form.orders_options.multidelivery_discount" type="number" step="0.01" min="0" max="100" />

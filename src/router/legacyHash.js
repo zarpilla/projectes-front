@@ -1,11 +1,14 @@
 // The app used hash URLs until issues/158 (…/stats/#/order/view/15397). Printed
 // QR labels, e-mails and bookmarks still carry them: the path after "#" is
-// turned into the real path under the base before the router starts.
+// turned into the real path under the base before the router starts, already
+// with today's Catalan names (router/paths.js, issues/343).
+import { currentPath } from "./paths";
+
 export function legacyHashTarget(location, base = "/") {
   const hash = location.hash || "";
   if (!hash.startsWith("#/")) return null;
   const root = base.endsWith("/") ? base : base + "/";
-  return root + hash.slice(2);
+  return root + currentPath("/" + hash.slice(2)).slice(1);
 }
 
 export function redirectLegacyHash(base) {

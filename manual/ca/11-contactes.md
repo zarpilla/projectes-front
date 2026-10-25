@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 11
 roles: [projects]
-routes: ["/contacts", "/contact/:id", "/client/:id"]
+routes: ["/contactes", "/contacte/:id"]
 lang: ca
 updated: 2026-10-18
 ---

@@ -313,7 +313,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="row in form.collection_orders" :key="row.id" :class="{ 'is-late': row.late_pickup }" :title="row.late_pickup ? 'Recollida informada tard' : null">
-                    <td><router-link :to="`/order/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link><span v-if="row.late_pickup" class="signal is-alert late-mark" role="img" aria-label="Recollida informada tard" title="Recollida informada tard"><b-icon icon="clock-alert-outline" custom-size="mdi-14px" /></span></td>
+                    <td><router-link :to="`/comanda/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link><span v-if="row.late_pickup" class="signal is-alert late-mark" role="img" aria-label="Recollida informada tard" title="Recollida informada tard"><b-icon icon="clock-alert-outline" custom-size="mdi-14px" /></span></td>
                     <td>{{ contactName(row.contact) || row.contact_trade_name || row.contact_name || "—" }}</td>
                     <td class="has-text-right">{{ row.units || 0 }}</td>
                     <td class="has-text-right">{{ row.kilograms || 0 }}</td>
@@ -339,7 +339,7 @@
             </div>
             <dl class="facts">
               <dt>Comanda</dt>
-              <dd><router-link :to="`/order/${form.collection_order.id || form.collection_order}`">#{{ String(form.collection_order.id || form.collection_order).padStart(4, "0") }}-R</router-link></dd>
+              <dd><router-link :to="`/comanda/${form.collection_order.id || form.collection_order}`">#{{ String(form.collection_order.id || form.collection_order).padStart(4, "0") }}-R</router-link></dd>
               <template v-if="form.collection_order.estimated_delivery_date"><dt>Data prevista</dt><dd>{{ formatDate(form.collection_order.estimated_delivery_date) }}</dd></template>
               <template v-if="form.collection_order.route"><dt>Ruta</dt><dd>{{ form.collection_order.route.short_name || form.collection_order.route.name }}</dd></template>
               <template v-if="form.collection_order.status"><dt>Estat</dt><dd><span class="tag" :class="statusTag(form.collection_order.status)">{{ statusLabel(form.collection_order.status) }}</span></dd></template>
@@ -526,7 +526,7 @@
                   <div class="incidence-head">
                     <span class="tag" :class="incidence.state === 'closed' ? 'is-success is-light' : incidence.state === 'open' ? 'is-danger is-light' : 'is-warning is-light'">{{ incidenceState(incidence.state) }}</span>
                     <small>{{ formatDate(incidence.created_at) }}</small>
-                    <router-link :to="`/incidences?id=${incidence.id}`" class="incidence-link">Obre</router-link>
+                    <router-link :to="`/incidencies?id=${incidence.id}`" class="incidence-link">Obre</router-link>
                   </div>
                   <p>{{ incidence.description }}</p>
                 </template>

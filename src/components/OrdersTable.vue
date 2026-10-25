@@ -1590,10 +1590,10 @@ export default {
     },
     navNew() {
       const q = this.$route.meta.userContacts ? `?user=true` : "";
-      this.$router.push("/order/0" + q);
+      this.$router.push("/comanda/0" + q);
     },
     navNewPickup() {
-      this.$router.push("/order/0?pickup_point=true");
+      this.$router.push("/comanda/0?pickup_point=true");
     },
     async getData() {
       this.isLoading = true;

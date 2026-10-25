@@ -269,7 +269,7 @@
         ref="expectedDocumentsTable"
       >
         <b-table-column sortable searchable label="Projecte" field="project_name" v-slot="props">
-          <router-link :to="`/project/${props.row.project_id}`">
+          <router-link :to="`/projecte/${props.row.project_id}`">
             {{ props.row.project_name }}
           </router-link>
         </b-table-column>

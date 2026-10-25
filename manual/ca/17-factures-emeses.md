@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 17
 roles: [projects]
-routes: ["/emitted-invoices", "/document/:id/:type"]
+routes: ["/factures-emeses", "/document/:id/:type"]
 lang: ca
 updated: 2026-10-18
 ---

@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 33
 roles: [orders_admin, orders]
-routes: ["/partners", "/orders-invoice", "/provider-invoices", "/orders-stats"]
+routes: ["/usuaries", "/comandes-per-facturar", "/factures-proveidor", "/estadistiques-comandes"]
 lang: ca
 updated: 2026-10-18
 ---

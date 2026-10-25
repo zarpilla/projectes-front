@@ -50,8 +50,8 @@ describe('«Festius de totes» in Taules auxiliars (issues/310)', () => {
   it('is in the Calendari group, for admins only', () => {
     const calendari = ADMIN_TABLE_GROUPS.find(g => g.title === 'Calendari')
     expect(calendari.items).toContainEqual({ entity: 'festive', label: 'Festius de totes' })
-    expect(isAdminTablePath('/administracio/festive')).toBe(true)
-    expect(isAdminTablePath('/administracio/festive/12')).toBe(true)
+    expect(isAdminTablePath('/administracio/festius')).toBe(true)
+    expect(isAdminTablePath('/administracio/festius/12')).toBe(true)
     const office = adminTableGroupsFor(['orders_admin']).flatMap(g => g.items)
     expect(office.map(t => t.entity)).not.toContain('festive')
   })

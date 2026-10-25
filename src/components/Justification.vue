@@ -26,7 +26,7 @@
       </div>
       <div v-if="kpi.withoutGrantable" class="notification is-warning just-warning">
         <span><b>{{ kpi.withoutGrantable }} {{ kpi.withoutGrantable === 1 ? "projecte no té" : "projectes no tenen" }} import a justificar{{ forYear() }}</b>, així que no se'n pot calcular el pendent ni el percentatge. Es defineix a la fitxa del projecte, a «Subvencions», per a cada any.</span>
-        <router-link to="/grants" class="just-link">Obre Subvencions</router-link>
+        <router-link to="/subvencions" class="just-link">Obre Subvencions</router-link>
       </div>
 
       <!-- <div class="info-help mb-4">

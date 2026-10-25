@@ -16,7 +16,7 @@ async function routerAt (path) {
     history: createMemoryHistory(),
     routes: [
       { path: '/document/:id/:type', name: 'document.edit', component: Empty },
-      { path: '/contact/:id', name: 'contacts.edit', component: Empty }
+      { path: '/contacte/:id', name: 'contacts.edit', component: Empty }
     ]
   })
   await router.push(path)
@@ -31,7 +31,7 @@ describe('DocumentForm navNew', () => {
       const open = vi.spyOn(window, 'open').mockImplementation(() => null)
       const $router = await routerAt(path)
       DocumentForm.methods.navNew.call({ $router })
-      expect(open).toHaveBeenCalledWith('/contact/0', '_blank')
+      expect(open).toHaveBeenCalledWith('/contacte/0', '_blank')
     })
   }
 })

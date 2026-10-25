@@ -121,7 +121,7 @@ test('setup: hours and an invoice', async () => {
 
 test('planning: hours planned for a person reach Previsió dedicació', async () => {
   test.skip(!state.childA, 'needs the projects')
-  await visit(`/project/${state.childA}?tab=planificacio`)
+  await visit(`/projecte/${state.childA}?tab=planificacio`)
   await expect(page.getByText('Planificació prevista').first()).toBeVisible({ timeout: 20_000 })
   await expect(page.locator('.gantt_grid_data .gantt_row', { hasText: 'Ingrés A' })).toBeVisible()
   await settle(1000)
@@ -160,7 +160,7 @@ test('planning: hours planned for a person reach Previsió dedicació', async ()
   const from = new Date(state.planned.from)
   const to = new Date(state.planned.to)
   let sum = 0
-  await visit('/stats-previsio-gantt')
+  await visit('/panell-previsio-dedicacio')
   for (let year = from.getFullYear(); year <= to.getFullYear(); year++) {
     const label = page.locator('.month-nav-label')
     while (Number(await label.innerText()) !== year) {
@@ -194,7 +194,7 @@ test('project page: the figures are the stored totals', async () => {
   const b = await project(state.childB)
   expect([b.total_estimated_incomes, b.total_estimated_expenses, b.total_real_incomes, b.total_real_hours]).toEqual([300, 50, 0, 1])
   for (const p of [a, b]) {
-    await visit(`/project/${p.id}`)
+    await visit(`/projecte/${p.id}`)
     expect(await pageFigures(), p.name).toEqual(figures(p))
   }
   // nothing left for the cron: what is stored is what the backend computes now
@@ -224,7 +224,7 @@ test('Projectes list: the same figures', async () => {
 
 test('Informes › Projectes: the pivot shows the same figures', async () => {
   test.skip(!state.planned, 'needs the projects')
-  await visit('/stats-projectes')
+  await visit('/panell-projectes')
   for (const id of [state.childA, state.childB]) {
     const p = await project(id)
     const pivot = await pivotFigures('#project-stats', 'project_name', p.name)
@@ -252,7 +252,7 @@ test('Informes › Projectes: the pivot shows the same figures', async () => {
 
 test('Informes › Ingressos i despeses: the pivot adds up to the project figures', async () => {
   test.skip(!state.planned, 'needs the projects')
-  await visit('/stats-economic-detail')
+  await visit('/panell-detall-economic')
   // every year: the planned hours can fall in another one
   const loaded = page.waitForResponse(r => r.url().includes('projects/economic-detail') && !r.url().includes('year_eq'))
   await page.locator('.filter-bar label.filter-select', { hasText: 'Any' }).locator('select').selectOption({ label: 'Tots' })
@@ -278,7 +278,7 @@ test('Informes › Ingressos i despeses: the pivot adds up to the project figure
 
 test('Informes › Dedicació: hours done and planned per project and person', async () => {
   test.skip(!state.planned, 'needs the projects')
-  await visit('/stats-dedicacio')
+  await visit('/panell-dedicacio')
   const filters = page.locator('form.filter-bar')
   const select = label => filters.locator('label.filter-select', { hasText: label }).locator('select')
   await select('Any').selectOption({ label: 'Tots' })
@@ -303,7 +303,7 @@ test('mother project: its figures are its children only', async () => {
   // the mother had figures of her own: 9000 income, 4 h
   expect((await project(state.mother)).total_real_hours).toBe(4)
   for (const id of [state.childA, state.childB]) {
-    await visit(`/project/${id}?tab=dades`)
+    await visit(`/projecte/${id}?tab=dades`)
     const input = field('Projecte mare').locator('input')
     await input.click()
     await input.pressSequentially(MOTHER, { delay: 10 })
@@ -323,9 +323,9 @@ test('mother project: its figures are its children only', async () => {
   expect([mother.total_real_hours, mother.total_estimated_incomes]).toEqual([4.5, 1300])
 
   // her page: the children's sum, and a table of them
-  await visit(`/project/${state.mother}`)
+  await visit(`/projecte/${state.mother}`)
   expect(await pageFigures()).toEqual(figures(mother))
-  await visit(`/project/${state.mother}?tab=dades`)
+  await visit(`/projecte/${state.mother}?tab=dades`)
   const children = field('Projectes fills').locator('tbody tr')
   await expect(children).toHaveCount(2)
   for (const child of [a, b]) {
@@ -335,7 +335,7 @@ test('mother project: its figures are its children only', async () => {
   }
 
   // Projectes mare: her row
-  await visit('/mother-projects')
+  await visit('/projectes-mare')
   const row = page.locator('.projects-card tbody tr').filter({ has: page.locator('a.project-name', { hasText: new RegExp(`^\\s*${escapeRegExp(MOTHER)}\\s*$`) }) })
   await expect(row).toBeVisible({ timeout: 20_000 })
   expect(hoursPair(await row.locator('td[data-label="Hores fetes / previstes"] .hours-line').innerText())).toEqual([4.5, 10])
@@ -349,7 +349,7 @@ test('Recàlcul: recalculating every project leaves the figures as they were', a
   test.setTimeout(180_000)
   const ids = [state.childA, state.childB, state.mother]
   const before = await Promise.all(ids.map(project))
-  await visit('/recalculate')
+  await visit('/recalcul')
   const count = page.locator('.recalc-count')
   await expect(count).toHaveText(/^0 de [1-9]\d* actualitzats$/)
   await button('Actualitza tot').click()
@@ -359,7 +359,7 @@ test('Recàlcul: recalculating every project leaves the figures as they were', a
   await refreshTotals()
   const after = await Promise.all(ids.map(project))
   for (const [i, p] of after.entries()) expect(figures(p), p.name).toEqual(figures(before[i]))
-  await visit(`/project/${state.mother}`)
+  await visit(`/projecte/${state.mother}`)
   expect(await pageFigures()).toEqual(figures(before[2]))
 })
 
@@ -371,7 +371,7 @@ test('Inici: a starred menu entry is pinned and saved on the user', async () => 
   }
   const original = await home()
   onCleanup(async () => { if (original && original.pins) await api('PUT', 'users/me/home', original) })
-  const ENTRY = { to: '/price-hour', label: 'Preu hora' }
+  const ENTRY = { to: '/panell-preu-hora', label: 'Preu hora' }
   // a leftover of an interrupted run
   if (original?.pins?.includes(ENTRY.to)) await api('PUT', 'users/me/home', { ...original, pins: original.pins.filter(p => p !== ENTRY.to) })
 

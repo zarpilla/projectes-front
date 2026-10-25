@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 19
 roles: [projects]
-routes: ["/received-invoices", "/document/:id/:type"]
+routes: ["/factures-rebudes", "/document/:id/:type"]
 lang: ca
 updated: 2026-10-18
 ---

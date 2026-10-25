@@ -15,11 +15,11 @@ test('18-verifactu-face', async ({ page }) => {
   await settle(page, 1500)
   await shot(page, 'configuracio')
 
-  await page.goto('#/administracio/verifactu-chain')
+  await page.goto('#/administracio/cadena-verifactu')
   await settle(page, 1500)
   await shot(page, 'registre')
 
-  await page.goto('#/administracio/face-queue')
+  await page.goto('#/administracio/cua-face')
   await settle(page, 1500)
   await shot(page, 'cua-face')
 

@@ -1,4 +1,4 @@
-// Filters of the Ingressos list (/emitted-invoices), as query strings for the
+// Filters of the Ingressos list (/factures-emeses), as query strings for the
 // /basic endpoints.
 
 export const STATE_OPTIONS = [

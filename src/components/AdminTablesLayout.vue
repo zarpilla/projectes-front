@@ -8,7 +8,7 @@
         <router-link
           v-for="t in group.items"
           :key="t.entity"
-          :to="'/administracio/' + t.entity"
+          :to="entityPath(t.entity)"
           class="admin-tables-link"
           :class="{ 'is-active': t.entity === entityName }"
         >{{ t.label }}</router-link>
@@ -23,6 +23,7 @@
 <script>
 import { adminTableGroupsFor } from '@/service/adminTables';
 import service from '@/service/index';
+import { entityPath } from '@/router/paths';
 
 export default {
   name: 'AdminTablesLayout',
@@ -40,6 +41,7 @@ export default {
       return adminTableGroupsFor(this.permissions);
     }
   },
+  methods: { entityPath },
   async mounted() {
     try {
       const me = (await service({ requiresAuth: true, cached: true }).get('users/me')).data;

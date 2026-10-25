@@ -18,8 +18,8 @@ describe('Taules de logística for the office (issues/159)', () => {
     }
     expect(canOpen(record('/administracio/:entityName'), OFFICE, { entityName: 'product' })).toBe(false)
     expect(canOpen(record('/administracio/:entityName'), ['orders'], { entityName: 'pickup' })).toBe(false)
-    expect(canOpen(record('/administracio/users'), OFFICE)).toBe(false)
-    expect(canOpenPath('/administracio/serie', OFFICE)).toBe(false)
+    expect(canOpen(record('/administracio/usuaries'), OFFICE)).toBe(false)
+    expect(canOpenPath('/administracio/series', OFFICE)).toBe(false)
     expect(canOpen(record('/administracio/:entityName'), ['admin'], { entityName: 'product' })).toBe(true)
   })
 
@@ -33,7 +33,7 @@ describe('Taules de logística for the office (issues/159)', () => {
 
   it('puts «Taules de logística» in her menu, not in an admin\'s', () => {
     const entry = menu.flat().find(i => i && i.label === 'Taules de logística')
-    expect(entry.to).toBe('/administracio/pickup')
+    expect(entry.to).toBe('/administracio/punts-recollida')
     expect(hasMenuPermission(entry, OFFICE)).toBe(true)
     expect(hasMenuPermission(entry, ['orders_admin', 'admin'])).toBe(false)
   })

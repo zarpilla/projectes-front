@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 32
 roles: [orders, orders_admin, orders_delivery]
-routes: ["/incidences", "/contact-us", "/incidences-stats"]
+routes: ["/incidencies", "/contacta", "/estadistiques-incidencies"]
 lang: ca
 updated: 2026-10-18
 ---

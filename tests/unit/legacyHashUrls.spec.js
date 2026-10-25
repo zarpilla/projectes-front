@@ -6,9 +6,10 @@ import { legacyHashTarget, redirectLegacyHash } from "@/router/legacyHash";
 
 describe("legacyHashTarget", () => {
   it("moves the path after #/ under the base", () => {
-    expect(legacyHashTarget({ hash: "#/order/view/15397" }, "/stats/")).toBe("/stats/order/view/15397");
-    expect(legacyHashTarget({ hash: "#/tasks?task=12" }, "/stats/")).toBe("/stats/tasks?task=12");
-    expect(legacyHashTarget({ hash: "#/reset-password?code=abc" }, "/stats")).toBe("/stats/reset-password?code=abc");
+    // with today's Catalan names (issues/343)
+    expect(legacyHashTarget({ hash: "#/order/view/15397" }, "/stats/")).toBe("/stats/comanda/veure/15397");
+    expect(legacyHashTarget({ hash: "#/tasks?task=12" }, "/stats/")).toBe("/stats/tasques?task=12");
+    expect(legacyHashTarget({ hash: "#/reset-password?code=abc" }, "/stats")).toBe("/stats/canviar-clau?code=abc");
     expect(legacyHashTarget({ hash: "#/" }, "/stats/")).toBe("/stats/");
     expect(legacyHashTarget({ hash: "#/projectes" }, "/")).toBe("/projectes");
   });
@@ -26,7 +27,7 @@ describe("redirectLegacyHash", () => {
   it("rewrites the address before the router reads it", () => {
     window.history.replaceState(null, "", "/stats/#/order/view/15397");
     redirectLegacyHash("/stats/");
-    expect(window.location.pathname).toBe("/stats/order/view/15397");
+    expect(window.location.pathname).toBe("/stats/comanda/veure/15397");
     expect(window.location.hash).toBe("");
   });
 });

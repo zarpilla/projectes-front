@@ -11,11 +11,11 @@
 
 <script>
 const TABS = [
-  { to: "/route-days", label: "Rutes i dies" },
-  { to: "/city-route", label: "Poblacions i rutes" },
-  { to: "/city-route-delivery", label: "Poblacions i punts", staff: true },
+  { to: "/rutes-dies", label: "Rutes i dies" },
+  { to: "/poblacions-rutes", label: "Poblacions i rutes" },
+  { to: "/poblacions-punts-entrega", label: "Poblacions i punts", staff: true },
   // the office creates and disables routes (issues/141)
-  { to: "/routes", label: "Rutes", office: true }
+  { to: "/rutes", label: "Rutes", office: true }
 ];
 
 export default {

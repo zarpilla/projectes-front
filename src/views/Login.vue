@@ -45,7 +45,7 @@
         <button class="button is-primary is-fullwidth login-submit" type="submit" :class="{ 'is-loading': sending }">
           Entra
         </button>
-        <router-link class="login-forgot" to="/forgotten-password">He oblidat la clau</router-link>
+        <router-link class="login-forgot" to="/recuperar-clau">He oblidat la clau</router-link>
       </form>
     </main>
     <footer v-if="logos.length" class="login-logos">

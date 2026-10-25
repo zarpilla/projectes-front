@@ -1,4 +1,4 @@
-// Query strings of the orders list (/orders) filters.
+// Query strings of the orders list (/comandes) filters.
 
 /**
  * The Sòcia dropdown. Addressed as `owner.id` so it merges with the Sòcia

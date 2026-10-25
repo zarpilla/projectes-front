@@ -21,7 +21,7 @@ async function myPeriods () {
 }
 
 test('project creation', async () => {
-  await visit('/project/0')
+  await visit('/projecte/0')
   await field('Codi').locator('input').fill(NAME)
   await selectByLabel('Estat', 'Actiu')
   await field('Àmbit').locator('select').selectOption({ index: 0 })
@@ -40,7 +40,7 @@ test('project creation', async () => {
 
 test('project phases: original budget and closing it', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
-  await visit(`/project/${state.projectId}`)
+  await visit(`/projecte/${state.projectId}`)
   const original = card('Fases i pressupost original')
   const phase = await addPhase(original, `${NAME} fase A`)
   await addLine(phase, 'income', { concept: 'Ingrés e2e', quantity: 10, price: 50 })
@@ -119,14 +119,14 @@ test('project phases: original budget and closing it', async () => {
   expect(project.total_expenses).toBe(60)
 
   // once created, the planning opens on Prevista and the switch works again
-  await visit(`/project/${state.projectId}?tab=planificacio`)
+  await visit(`/projecte/${state.projectId}?tab=planificacio`)
   await expect(page.getByText('Planificació prevista').first()).toBeVisible({ timeout: 20_000 })
   await expect(page.getByRole('group', { name: 'Planificació' }).getByRole('button', { name: 'Original' })).toBeEnabled()
 })
 
 test('project edition', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
-  await visit(`/project/${state.projectId}?tab=dades`)
+  await visit(`/projecte/${state.projectId}?tab=dades`)
   // wait for the loaded project: under load it can arrive after typing and overwrite it
   await expect(field('Descripció').locator('textarea')).toHaveValue('Creat per les proves e2e')
   await field('Descripció').locator('textarea').fill('Descripció editada per les proves e2e')
@@ -146,13 +146,13 @@ test('project edition', async () => {
   expect(project.purpose).toBe('Comprovar que l\'edició es guarda')
   expect(project.project_state?.name).toBe('Sol·licitat')
   // the reloaded form shows what was saved
-  await visit(`/project/${state.projectId}?tab=dades`)
+  await visit(`/projecte/${state.projectId}?tab=dades`)
   await expect(field('Descripció').locator('textarea')).toHaveValue('Descripció editada per les proves e2e')
 })
 
 test('project phases: editing the execution budget', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
-  await visit(`/project/${state.projectId}?tab=pressupost`)
+  await visit(`/projecte/${state.projectId}?tab=pressupost`)
   const execution = card('Execució del pressupost')
   const phaseA = await phaseNamed(execution, `${NAME} fase A`)
   await phaseA.locator('.phase-detail-input input').fill(`${NAME} fase A editada`)
@@ -175,7 +175,7 @@ test('project phases: editing the execution budget', async () => {
   expect(originals.map(p => p.name)).toEqual([`${NAME} fase A`])
 
   // and the form shows the saved phases after a reload
-  await visit(`/project/${state.projectId}?tab=pressupost`)
+  await visit(`/projecte/${state.projectId}?tab=pressupost`)
   await phaseNamed(card('Execució del pressupost'), `${NAME} fase A editada`)
   await phaseNamed(card('Execució del pressupost'), `${NAME} fase B`)
 })
@@ -183,7 +183,7 @@ test('project phases: editing the execution budget', async () => {
 test('hours: activities add up in the project', async () => {
   test.skip(!state.projectId, 'needs the project from "project creation"')
   // nothing has been dedicated to the new project yet
-  await visit(`/project/${state.projectId}`)
+  await visit(`/projecte/${state.projectId}`)
   expect(await executedHours()).toBe(0)
 
   await visit('/dedicacio')
@@ -201,7 +201,7 @@ test('hours: activities add up in the project', async () => {
 
   // the backend recalculates the project totals, possibly a moment later
   await expect.poll(async () => {
-    await visit(`/project/${state.projectId}`)
+    await visit(`/projecte/${state.projectId}`)
     return executedHours()
   }, { timeout: 30_000, intervals: [1000, 2000, 5000] }).toBe(4.75)
   const project = await api('GET', `projects/${state.projectId}`)
@@ -212,7 +212,7 @@ test('persones: create, edit and delete a work period', async () => {
   // leftovers of an interrupted run would overlap the new period
   for (const period of await myPeriods()) await api('DELETE', `daily-dedications/${period.id}`)
 
-  await visit('/working-day')
+  await visit('/jornada')
   // clicking a person's name starts a new period for them
   await page.locator('.gantt_grid_data .gantt_row', { hasText: state.me.username }).first().click()
   const modal = page.locator('.modal.is-active').filter({ hasText: 'Jornada' })

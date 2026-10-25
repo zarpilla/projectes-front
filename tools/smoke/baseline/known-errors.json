@@ -1,13 +1,13 @@
 {
-  "/orders-stats": [
+  "/estadistiques-comandes": [
     "TypeError: Cannot read properties of null (reading 'id')",
     "Object"
   ],
-  "/incidences-stats": [
+  "/estadistiques-incidencies": [
     "TypeError: Cannot read properties of null (reading 'id')",
     "Object"
   ],
-  "/project/30": [
+  "/projecte/30": [
     "TypeError: Cannot read properties of undefined (reading 'filter')"
   ],
   "/document/0/emitted-invoices": [
@@ -25,7 +25,7 @@
   "/invoice/10/received-expenses": [
     "TypeError: Cannot read properties of undefined (reading 'name')"
   ],
-  "/transfers": [
+  "/transferencies": [
     "TypeError: Cannot read properties of null (reading 'name')"
   ]
 }

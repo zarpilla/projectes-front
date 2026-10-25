@@ -6,7 +6,7 @@ manual: usuari
 module: informes
 order: 26
 roles: [projects, hours]
-routes: ["/stats-dedicacio", "/stats-real-gantt"]
+routes: ["/panell-dedicacio", "/panell-dedicacio-real"]
 lang: ca
 updated: 2026-10-18
 ---

@@ -22,7 +22,7 @@ test('05-fases-pressupost', async ({ page }) => {
   await start(page, '05-fases-pressupost', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto(`#/project/${PROJECT}?tab=pressupost`)
+  await page.goto(`#/projecte/${PROJECT}?tab=pressupost`)
   await page.getByText('Execució del pressupost').waitFor()
   await settle(page, 1500)
   const execution = card(page, 'Execució del pressupost')
@@ -77,7 +77,7 @@ test('05-fases-pressupost', async ({ page }) => {
   await shot(page, 'periodificacio')
 
   // a fresh load: going from one project to another keeps the first one's periodification switch
-  await page.goto(`#/project/${NO_PERIODIFICATION}?tab=periodificacio`)
+  await page.goto(`#/projecte/${NO_PERIODIFICATION}?tab=periodificacio`)
   await page.reload()
   await page.getByText('no periodifica manualment').waitFor()
   await settle(page, 800)

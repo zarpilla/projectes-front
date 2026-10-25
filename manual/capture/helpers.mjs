@@ -65,7 +65,7 @@ export async function start (page, slug, { today } = {}) {
     contentType: 'application/javascript',
     body: `window.APP_CONFIG = ${JSON.stringify({
       VUE_APP_API_URL: apiUrl(),
-      VUE_APP_RESET_PASSWORD: baseUrl() + '#/reset-password',
+      VUE_APP_RESET_PASSWORD: baseUrl() + '#/canviar-clau',
       VUE_APP_PATH: baseUrl()
     })};`
   }))

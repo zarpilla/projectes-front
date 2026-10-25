@@ -39,7 +39,7 @@ test('16-saldo-hores', async ({ page }) => {
   await settle(page, 400)
   await shot(page, 'saldo-dies')
 
-  await page.goto('#/dedicacio-summary')
+  await page.goto('#/resum-hores')
   await page.getByPlaceholder('Tria una persona').waitFor()
   await settle(page, 800)
   await pickPerson(page)

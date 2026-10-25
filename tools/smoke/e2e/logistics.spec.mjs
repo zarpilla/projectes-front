@@ -98,7 +98,7 @@ test('setup: the logistics permissions, a town on the route, delivery points and
 
 test('"Franges": a town\'s own time slot on its route, shown in the order form (issues/314)', async () => {
   test.skip(!state.link, 'needs the setup')
-  await visit('/city-route')
+  await visit('/poblacions-rutes')
   const route = page.locator('.a-box, section, article').filter({ has: page.locator('b', { hasText: new RegExp(`^\\s*${state.route.name}\\s*$`) }) })
     .filter({ has: page.locator('button', { hasText: 'Franges' }) }).last()
   await button('Franges', route).click()
@@ -114,13 +114,13 @@ test('"Franges": a town\'s own time slot on its route, shown in the order form (
   expect([link.time_from, link.time_to].map(t => String(t).slice(0, 5))).toEqual(['16:00', '18:30'])
 
   // the order form says when the route passes by the point's town
-  await visit('/order/0')
+  await visit('/comanda/0')
   await field('Sòcia').locator('select').selectOption(String(state.me.id))
   await pickPoint(page, POINT)
   await expect(page.locator('[data-test="route-slot"]')).toContainText('Hi passem de 16 a 18:30 h')
 
   // back to the route's (none)
-  await visit('/city-route')
+  await visit('/poblacions-rutes')
   await button('Franges', route).click()
   await button('Torna a la de la ruta', row).click()
   await expectSnackbar('Franja desada')
@@ -138,7 +138,7 @@ test('"Rutes i dies": a route closed tomorrow moves a new order to the day after
   onCleanup(async () => { for (const f of await closures()) await api('DELETE', `route-festives/${f.id}`) })
   expect(await closures(), 'the route is open tomorrow').toEqual([])
 
-  await visit('/route-days')
+  await visit('/rutes-dies')
   const routeRow = page.locator('tr').filter({ has: page.locator('th.rd-route b', { hasText: new RegExp(`^\\s*${state.route.name}\\s*$`) }) }).first()
   const cell = routeRow.locator('.rd-cell', { hasText: ddmm(tomorrow) }).first()
   await expect(cell).toContainText('Oberta')
@@ -147,7 +147,7 @@ test('"Rutes i dies": a route closed tomorrow moves a new order to the day after
   expect(await closures()).toHaveLength(1)
 
   // a new order skips the closed day
-  await visit('/order/0')
+  await visit('/comanda/0')
   await field('Sòcia').locator('select').selectOption(String(state.me.id))
   await pickPoint(page, POINT)
   await field('Número de caixes').locator('input').fill('2')
@@ -161,7 +161,7 @@ test('"Rutes i dies": a route closed tomorrow moves a new order to the day after
   expect(dayOf(saved.estimated_delivery_date)).toBe(addDays(tomorrow, 1))
 
   // opening it again removes the closure
-  await visit('/route-days')
+  await visit('/rutes-dies')
   await expect(cell).toContainText('Tancada')
   await cell.click()
   await expect(cell).toContainText('Oberta')
@@ -179,7 +179,7 @@ test('a member\'s late order: warned, «Comanda express» with the surcharge, th
 
   const member = await openSession(browser, MEMBER.email, MEMBER.password)
   try {
-    await member.goto('#/order/0')
+    await member.goto('#/comanda/0')
     await member.waitForLoadState('networkidle').catch(() => {})
     const owner = fieldOn(member, 'Sòcia').locator('select')
     if (await owner.isEnabled()) await owner.selectOption(String(state.member.id))
@@ -211,7 +211,7 @@ test('a member\'s late order: warned, «Comanda express» with the surcharge, th
   expect(idOf(saved.owner)).toBe(state.member.id)
 
   // the office sees it as express, with the surcharge in the price
-  await visit(`/order/${state.lateId}`)
+  await visit(`/comanda/${state.lateId}`)
   await expect(page.locator('[data-test="late-order-tag"]')).toHaveText(/Comanda express/i)
   await expect(page.locator('[data-test="late-notice"]')).toContainText('recàrrec del 25')
   await expect(page.locator('.facts').filter({ hasText: 'Recàrrec express' })).toContainText('+25')
@@ -225,7 +225,7 @@ test('a member\'s late order: warned, «Comanda express» with the surcharge, th
 
 test('"Dipòsits": the pending order is deposited at its warehouse, and undone', async () => {
   test.skip(!state.orderId, 'needs the order')
-  await visit('/deposits')
+  await visit('/diposits')
   // the warehouse's chip (its alias): only the orders left there
   await page.locator('.chip-toggle', { hasText: new RegExp(`^\\s*${state.pickup.alias}\\s*$`) }).click()
   await settle()
@@ -268,7 +268,7 @@ test('"Transferències": an order picked up in a town off its route is transferr
   expect(saved.transfer, 'the order needs a transfer').toBe(true)
   expect(idOf(saved.transfer_pickup_origin)).toBe(state.remote.id)
 
-  await visit('/transfers')
+  await visit('/transferencies')
   const label = `#${String(state.transferId).padStart(4, '0')}`
   const row = page.locator('table tbody tr', { hasText: label }).first()
   const tab = text => page.locator('.segmented button', { hasText: text })
@@ -309,7 +309,7 @@ test('"Transferències": an order picked up in a town off its route is transferr
 
 // the "Incidències" figure of the report, for this year and month
 async function reportedIncidences () {
-  await visit('/incidences-stats')
+  await visit('/estadistiques-incidencies')
   const kpi = page.locator('.doc-kpi', { has: page.locator('span', { hasText: /^\s*Incidències\s*$/ }) }).first()
   await expect(kpi).toBeVisible({ timeout: 30_000 })
   // it opens on the latest year, not the current one (see the KNOWN BUG below)
@@ -325,7 +325,7 @@ test('"Incidències": an answer, in progress, closed and reopened', async () => 
   const created = await api('POST', 'incidences', { data: { order: state.orderId, description: text, state: 'open' } })
   state.incidenceId = created.id
 
-  await visit('/incidences')
+  await visit('/incidencies')
   const row = page.locator('tr.inc-row', { hasText: text })
   await expect(row).toContainText('Oberta')
   await row.click()
@@ -373,7 +373,7 @@ test('"Incidències": an answer, in progress, closed and reopened', async () => 
 test('"Informe d\'incidències" opens on the current year and month', async () => {
   const years = await api('GET', 'years?_limit=-1')
   test.skip(!years.some(y => Number(y.year) > new Date().getFullYear()), 'no year after the current one: the bug doesn\'t show')
-  await visit('/incidences-stats')
+  await visit('/estadistiques-incidencies')
   await expect(page.getByRole('combobox', { name: 'Mes' })).toBeVisible({ timeout: 30_000 })
   const selected = name => page.getByRole('combobox', { name }).evaluate(s => s.options[s.selectedIndex].text.trim())
   expect([await selected('Any'), await selected('Mes')]).toEqual([

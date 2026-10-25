@@ -10,25 +10,25 @@ const rec = path => [{ path, meta: {} }]
 
 describe('route access (issues/121)', () => {
   it('keeps a member, a driver and an hours-only user out of the staff pages', () => {
-    for (const path of ['/tresoreria', '/salary', '/working-day', '/emitted-invoices', '/stats-projectes', '/contacts', '/tasks', '/invoicing-forecast', '/project/:id']) {
+    for (const path of ['/tresoreria', '/bestretes', '/jornada', '/factures-emeses', '/panell-projectes', '/contactes', '/tasques', '/previsio-facturacio', '/projecte/:id']) {
       expect(canOpen(rec(path), ['orders'])).toBe(false)
       expect(canOpen(rec(path), ['orders_delivery', 'hours'])).toBe(false)
       expect(canOpen(rec(path), ['hours'])).toBe(false)
       expect(canOpen(rec(path), ['projects', 'hours'])).toBe(true)
     }
-    expect(canOpen(rec('/orders-invoice'), ['orders'])).toBe(false)
-    expect(canOpen(rec('/orders-invoice'), ['orders_admin'])).toBe(true)
-    expect(canOpen(rec('/partners'), ['orders_delivery'])).toBe(false)
-    expect(canOpen(rec('/order-operations'), ['orders_delivery'])).toBe(true)
+    expect(canOpen(rec('/comandes-per-facturar'), ['orders'])).toBe(false)
+    expect(canOpen(rec('/comandes-per-facturar'), ['orders_admin'])).toBe(true)
+    expect(canOpen(rec('/usuaries'), ['orders_delivery'])).toBe(false)
+    expect(canOpen(rec('/operacions'), ['orders_delivery'])).toBe(true)
     expect(canOpen(rec('/dedicacio'), ['hours'])).toBe(true)
-    expect(canOpen(rec('/stats-dedicacio'), ['hours'])).toBe(true)
-    expect(canOpen(rec('/contact/:id'), ['orders'])).toBe(true)
+    expect(canOpen(rec('/panell-dedicacio'), ['hours'])).toBe(true)
+    expect(canOpen(rec('/contacte/:id'), ['orders'])).toBe(true)
   })
 
   it('opens the profile and the changelog to everybody, and admin pages to admins only', () => {
-    expect(canOpen(rec('/profile'), [])).toBe(true)
-    expect(canOpen(rec('/changelog'), ['orders'])).toBe(true)
-    expect(canOpen([{ path: '/administracio/users', meta: { requiresPermission: 'admin' } }], ['projects'])).toBe(false)
+    expect(canOpen(rec('/el-meu-compte'), [])).toBe(true)
+    expect(canOpen(rec('/novetats'), ['orders'])).toBe(true)
+    expect(canOpen([{ path: '/administracio/usuaries', meta: { requiresPermission: 'admin' } }], ['projects'])).toBe(false)
     expect(routePermissions({ path: '/administracio/:entityName', meta: {} })).toEqual(['admin'])
   })
 
@@ -46,17 +46,17 @@ describe('route access (issues/121)', () => {
   it('classifies every page of the router', () => {
     const src = fs.readFileSync('src/router/index.js', 'utf8')
     const paths = [...new Set([...src.matchAll(/path: "([^"]+)"/g)].map(m => m[1]))]
-      .filter(p => !['/', '/forgotten-password'].includes(p) && !p.startsWith('/administracio'))
+      .filter(p => !['/', '/recuperar-clau'].includes(p) && !p.startsWith('/administracio'))
     const unclassified = paths.filter(p => !ROUTE_PERMISSIONS[p] && !OPEN_ROUTES.includes(p))
     expect(unclassified).toEqual([])
   })
 
   it('lands each user on a page she can open', () => {
     expect(landingPath(['projects', 'hours'])).toBe('/projectes')
-    expect(landingPath(['orders'])).toBe('/orders')
+    expect(landingPath(['orders'])).toBe('/comandes')
     expect(landingPath(['orders_delivery', 'hours'])).toBe('/dedicacio')
-    expect(landingPath(['orders_admin'])).toBe('/orders')
-    expect(landingPath([])).toBe('/profile')
+    expect(landingPath(['orders_admin'])).toBe('/comandes')
+    expect(landingPath([])).toBe('/el-meu-compte')
     for (const perms of [['orders'], ['hours'], ['orders_delivery', 'hours'], ['orders_admin'], []]) {
       expect(canOpen(rec(landingPath(perms)), perms)).toBe(true)
     }
@@ -72,9 +72,9 @@ describe('router guard (issues/121)', () => {
     const { default: router } = await import('@/router/index.js')
     login(['orders'])
     await router.push('/tresoreria')
-    expect(router.currentRoute.value.path).toBe('/orders')
+    expect(router.currentRoute.value.path).toBe('/comandes')
     login(['hours'])
-    await router.push('/salary')
+    await router.push('/bestretes')
     expect(router.currentRoute.value.path).toBe('/dedicacio')
     login(['projects', 'hours'])
     await router.push('/tresoreria')
@@ -86,12 +86,12 @@ describe('router guard (issues/121)', () => {
 describe('changelog links (issues/121)', () => {
   it('open only for the permissions of their page', async () => {
     const { canOpenPath } = await import('@/domain/routeAccess')
-    expect(canOpenPath('/invoicing-forecast', ['orders'])).toBe(false)
-    expect(canOpenPath('/invoicing-forecast', ['projects'])).toBe(true)
-    expect(canOpenPath('/project/555?tab=resum', ['hours'])).toBe(false)
-    expect(canOpenPath('/orders', ['orders'])).toBe(true)
-    expect(canOpenPath('/profile', ['orders'])).toBe(true)
-    expect(canOpenPath('/administracio/users', ['projects'])).toBe(false)
+    expect(canOpenPath('/previsio-facturacio', ['orders'])).toBe(false)
+    expect(canOpenPath('/previsio-facturacio', ['projects'])).toBe(true)
+    expect(canOpenPath('/projecte/555?tab=resum', ['hours'])).toBe(false)
+    expect(canOpenPath('/comandes', ['orders'])).toBe(true)
+    expect(canOpenPath('/el-meu-compte', ['orders'])).toBe(true)
+    expect(canOpenPath('/administracio/usuaries', ['projects'])).toBe(false)
     expect(canOpenPath('/tresoreria', null)).toBe(true)
   })
 
@@ -112,7 +112,7 @@ describe('comunitat energètica (admin_energy, 2026-10-25)', () => {
       expect(canOpen(rec(path), ['projects'])).toBe(false)
       expect(canOpen(rec(path), ['orders_admin'])).toBe(false)
     }
-    expect(canOpen(rec('/contacts'), ['admin_energy'])).toBe(false)
+    expect(canOpen(rec('/contactes'), ['admin_energy'])).toBe(false)
     expect(landingPath(['admin_energy'])).toBe('/energia/socies')
     expect(landingPath(['projects', 'admin_energy'])).toBe('/projectes')
   })

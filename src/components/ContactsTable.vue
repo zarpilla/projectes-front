@@ -284,10 +284,10 @@ export default {
     },
     navNew() {
       if (this.$route.meta.userContacts) {
-        this.$router.push("/contact-user/0");
+        this.$router.push("/punt-entrega/0");
         return;
       } else {
-        this.$router.push("/contact/0");
+        this.$router.push("/contacte/0");
       }
     },
     openUnifyModal() {

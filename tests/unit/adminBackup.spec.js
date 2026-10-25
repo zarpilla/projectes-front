@@ -34,8 +34,8 @@ beforeEach(() => {
 describe('AdminBackup', () => {
   it('is in the Administració menu, for admins', () => {
     const i = menu.indexOf('Administració')
-    expect(menu[i + 1].find(m => m.to === '/administracio/backup')).toMatchObject({ label: 'Còpia de seguretat', permission: 'admin' })
-    const route = router.resolve('/administracio/backup')
+    expect(menu[i + 1].find(m => m.to === '/administracio/copia-seguretat')).toMatchObject({ label: 'Còpia de seguretat', permission: 'admin' })
+    const route = router.resolve('/administracio/copia-seguretat')
     expect(route.name).toBe('admin.backup')
     expect(route.meta.requiresPermission).toBe('admin')
   })

@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="aside-user" :class="{ 'is-collapsed': isCollapsed }">
-      <router-link to="/profile" class="aside-me" :title="'El meu compte · ' + userName">
+      <router-link to="/el-meu-compte" class="aside-me" :title="'El meu compte · ' + userName">
         <span class="aside-avatar">{{ initials }}</span>
         <span v-if="!isCollapsed" class="aside-user-name">{{ userName }}</span>
       </router-link>

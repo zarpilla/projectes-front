@@ -93,7 +93,7 @@
                 </p>
               </li>
             </ul>
-            <router-link to="/changelog" class="news-all">Mira totes les novetats →</router-link>
+            <router-link to="/novetats" class="news-all">Mira totes les novetats →</router-link>
           </section>
         </aside>
       </div>

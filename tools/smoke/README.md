@@ -91,7 +91,7 @@ MYSQL_PWD=... ./e2e-db.sh projectes_v5_manual projectes_v5_e2e   # stop the e2e 
 # from ../projectes-v5
 CRON_ENABLED=false PORT=1339 DATABASE_NAME=projectes_v5_e2e \
   EMAIL_PROVIDER=nodemailer SMTP_HOST=127.0.0.1 SMTP_PORT=9 \
-  RESET_PASSWORD_URL='http://localhost:8082/#/reset-password' npx strapi start   # no cron, no real e-mail
+  RESET_PASSWORD_URL='http://localhost:8082/#/canviar-clau' npx strapi start   # no cron, no real e-mail
 # from the front root
 VUE_APP_API_URL=http://localhost:1339 npx vite --port 8082
 ```
@@ -119,7 +119,7 @@ mysql -uadmin -p -e "CREATE DATABASE projectes_v5_empty_e2e CHARACTER SET utf8mb
 CRON_ENABLED=false PORT=1339 DATABASE_NAME=projectes_v5_empty_e2e \
   EMAIL_PROVIDER=nodemailer SMTP_HOST=127.0.0.1 SMTP_PORT=9 \
   SEED_USER_EMAIL=e2e@exemple.coop SEED_USER_PASSWORD=... SEED_USER_NAME=e2e \
-  RESET_PASSWORD_URL='http://localhost:8082/#/reset-password' npx strapi start
+  RESET_PASSWORD_URL='http://localhost:8082/#/canviar-clau' npx strapi start
 # once it is up, the sentinel the tests look for
 mysql -uadmin -p projectes_v5_empty_e2e -e "INSERT INTO contacts (document_id, name, created_at, updated_at) VALUES ('e2e-sentinel', 'E2E SENTINEL', NOW(), NOW())"
 # and the route, pickup and delivery type of orders.spec.mjs (users can't create them through the API)

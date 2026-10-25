@@ -33,7 +33,7 @@ async function mountTable (rows) {
     history: createMemoryHistory(),
     routes: [
       { path: '/', name: 'home', component: { template: '<div/>' } },
-      { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }
+      { path: '/projecte/:id', name: 'project.edit', component: { template: '<div/>' } }
     ]
   })
   await router.push('/')
@@ -58,7 +58,7 @@ describe('TresoreriaTable bank movements', () => {
     const { w, errors } = await mountTable()
     expect(errors).toEqual([])
     const link = w.findAll('a').find(a => a.text() === 'Projecte amb enllaç')
-    expect(link && link.attributes('href')).toBe('/project/7')
+    expect(link && link.attributes('href')).toBe('/projecte/7')
   })
 
   it('renders a movement without a project without a link or a render error', async () => {
@@ -66,7 +66,7 @@ describe('TresoreriaTable bank movements', () => {
     expect(errors).toEqual([])
     const row = w.findAll('tbody tr').find(tr => tr.text().includes('Moviment 2'))
     expect(row).toBeTruthy()
-    expect(row.findAll('a[href^="/project"]')).toHaveLength(0)
+    expect(row.findAll('a[href^="/projecte"]')).toHaveLength(0)
   })
 })
 

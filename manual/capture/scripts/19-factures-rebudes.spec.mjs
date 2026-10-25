@@ -19,7 +19,7 @@ test('19-factures-rebudes', async ({ page }) => {
   await start(page, '19-factures-rebudes', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/received-invoices')
+  await page.goto('#/factures-rebudes')
   await page.getByRole('button', { name: 'Nova factura' }).waitFor()
   await settle(page, 1500)
   await shot(page, 'llistat')
@@ -43,7 +43,7 @@ test('19-factures-rebudes', async ({ page }) => {
   }
 
   for (const [button, name] of [['Nova factura', 'nova-factura'], ['Nova dieta', 'nova-dieta']]) {
-    await page.goto('#/received-invoices')
+    await page.goto('#/factures-rebudes')
     await settle(page, 800)
     const leave = page.locator('.modal.is-active').getByRole('button', { name: 'OK' })
     if (await leave.count()) await leave.click()

@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 23
 roles: [projects]
-routes: ["/import-export", "/contasol"]
+routes: ["/importar-exportar", "/contasol"]
 lang: ca
 updated: 2026-10-18
 ---

@@ -34,7 +34,7 @@ async function mountedFor(perms) {
 describe('landing page redirect (issues/099)', () => {
   it('sends a member to her orders and loads nothing else', async () => {
     const { push, vm } = await mountedFor(['orders'])
-    expect(push).toHaveBeenCalledWith('/orders')
+    expect(push).toHaveBeenCalledWith('/comandes')
     expect(calls).toEqual(['users/me'])
     expect(vm.fillChartData).not.toHaveBeenCalled()
   })

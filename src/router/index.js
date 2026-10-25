@@ -1,6 +1,7 @@
 import { canOpen, landingPath, userPermissions } from "@/domain/routeAccess";
 import { createRouter, createWebHistory } from "vue-router";
 import { redirectLegacyHash } from "./legacyHash";
+import { legacyRoutes, slugEntity } from "./paths";
 import Home from "../views/Home.vue";
 import Login from "../views/Login.vue";
 
@@ -19,7 +20,7 @@ const routes = [
     meta: {
       title: "Recuperar clau de pas"
     },
-    path: "/forgotten-password",
+    path: "/recuperar-clau",
     name: "forgotten.password",
     component: () =>
       import("../views/ForgottenPassword.vue")
@@ -28,7 +29,7 @@ const routes = [
     meta: {
       title: "Canviar clau de pas"
     },
-    path: "/reset-password",
+    path: "/canviar-clau",
     name: "reset.password",
     component: () =>
       import("../views/ResetPassword.vue")
@@ -59,7 +60,7 @@ const routes = [
       title: "Panell Projectes",
       requiresAuth: true
     },
-    path: "/stats-projectes",
+    path: "/panell-projectes",
     name: "stats.projectes",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -72,7 +73,7 @@ const routes = [
       title: "Projectes Mare",
       requiresAuth: true
     },
-    path: "/mother-projects",
+    path: "/projectes-mare",
     name: "mother.projects",
     component: () =>
       import("../views/MotherProjectsList.vue"),
@@ -82,7 +83,7 @@ const routes = [
       title: "Dedicació",
       requiresAuth: true
     },
-    path: "/stats-dedicacio",
+    path: "/panell-dedicacio",
     name: "stats.dedicacio",
     component: () =>
       import("../views/StatsDedicacio.vue"),
@@ -92,7 +93,7 @@ const routes = [
       title: "Panell Detall econòmic",
       requiresAuth: true
     },
-    path: "/stats-economic-detail",
+    path: "/panell-detall-economic",
     name: "stats.economic-detail",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -107,22 +108,17 @@ const routes = [
       title: "Panell Preu Hora",
       requiresAuth: true
     },
-    path: "/price-hour",
+    path: "/panell-preu-hora",
     name: "stats.price-hour",
     component: () =>
       import("../views/PricePerHour.vue"),
   },
-  // the old «Panell Despeses» (empty since Strapi 5): the same figures, in detail (issues/114)
-  { path: "/stats-despeses", redirect: "/stats-economic-detail" },
-  // «Prev./Real dedicació» and «Dedicació (gràfic)» became Informes › Dedicació
-  { path: "/stats-previsio-hores", redirect: "/stats-dedicacio" },
-  { path: "/dedicacio-charts", redirect: "/stats-dedicacio" },
   {
     meta: {
       title: "Panell Previsió Dedicacio",
       requiresAuth: true
     },
-    path: "/stats-previsio-gantt",
+    path: "/panell-previsio-dedicacio",
     name: "stats.previsiogantt",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -137,7 +133,7 @@ const routes = [
       title: "Panell Dedicació Real",
       requiresAuth: true
     },
-    path: "/stats-real-gantt",
+    path: "/panell-dedicacio-real",
     name: "stats.realgantt",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -153,7 +149,7 @@ const routes = [
       title: "Panell Estratègies",
       requiresAuth: true
     },
-    path: "/stats-estrategies",
+    path: "/panell-estrategies",
     name: "stats.estrategies",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -166,7 +162,7 @@ const routes = [
       title: "Panell Intercooperació",
       requiresAuth: true
     },
-    path: "/stats-intercoop",
+    path: "/panell-intercooperacio",
     name: "stats.intercoop",
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
@@ -179,7 +175,7 @@ const routes = [
       title: "Edita Projecte",
       requiresAuth: true
     },
-    path: "/project/:id",
+    path: "/projecte/:id",
     name: "project.edit",
     component: () =>
       import("../views/ProjectForm.vue"),
@@ -203,15 +199,10 @@ const routes = [
       title: "El meu compte",
       requiresAuth: true
     },
-    path: "/profile",
+    path: "/el-meu-compte",
     name: "profile",
     component: () =>
       import("../views/Profile.vue"),
-  },
-  {
-    // the template's demo client form used to answer here (issues/084)
-    path: "/client/:id",
-    redirect: to => `/contact/${to.params.id}`
   },
   {
     meta: {
@@ -249,7 +240,7 @@ const routes = [
       title: "Resum Hores",
       requiresAuth: true
     },
-    path: "/dedicacio-summary",
+    path: "/resum-hores",
     name: "dedicacio-summary",
     component: () =>
       import(
@@ -261,7 +252,7 @@ const routes = [
       title: "Jornada",
       requiresAuth: true
     },
-    path: "/working-day",
+    path: "/jornada",
     name: "dedicacio-working-day",
     component: () =>
       import(
@@ -273,7 +264,7 @@ const routes = [
       title: "Bestretes",
       requiresAuth: true
     },
-    path: "/salary",
+    path: "/bestretes",
     name: "dedicacio-salary",
     component: () =>
       import(
@@ -285,7 +276,7 @@ const routes = [
       title: "Justificacions",
       requiresAuth: true
     },
-    path: "/justifications",
+    path: "/justificacions",
     name: "justifications",
     component: () =>
       import("../views/Justifications.vue"),
@@ -295,7 +286,7 @@ const routes = [
       title: "Subvencions",
       requiresAuth: true
     },
-    path: "/grants",
+    path: "/subvencions",
     name: "subvencions",
     component: () =>
       import("../views/Grants.vue"),
@@ -316,7 +307,7 @@ const routes = [
       title: "IVA",
       requiresAuth: true
     },
-    path: "/vat",
+    path: "/iva",
     name: "vat.view",
     component: () =>
       import("../views/Vat.vue"),
@@ -327,7 +318,7 @@ const routes = [
       title: "Factures emeses",
       requiresAuth: true
     },
-    path: "/emitted-invoices",
+    path: "/factures-emeses",
     name: "emitted.invoices.view",
     component: () =>
       import("../views/EmittedInvoices.vue"),
@@ -338,7 +329,7 @@ const routes = [
       title: "Factures rebudes",
       requiresAuth: true
     },
-    path: "/received-invoices",
+    path: "/factures-rebudes",
     name: "received.invoices.view",
     component: () =>
       import("../views/ReceivedInvoices.vue"),
@@ -349,7 +340,7 @@ const routes = [
       title: "Pressupostos",
       requiresAuth: true
     },
-    path: "/quotes",
+    path: "/pressupostos",
     name: "quotes.view",
     component: () =>
       import("../views/Quotes.vue"),
@@ -360,7 +351,7 @@ const routes = [
       title: "Previsió",
       requiresAuth: true
     },
-    path: "/forecast",
+    path: "/previsio",
     name: "forecast.view",
     component: () =>
       import("../views/Forecast.vue"),
@@ -371,7 +362,7 @@ const routes = [
       title: "Previsió facturació",
       requiresAuth: true
     },
-    path: "/invoicing-forecast",
+    path: "/previsio-facturacio",
     name: "invoicing-forecast.view",
     component: () =>
       import("../views/InvoicingForecast.vue"),
@@ -382,7 +373,7 @@ const routes = [
       requiresAuth: true,
       userContacts: false
     },
-    path: "/contacts",
+    path: "/contactes",
     name: "contacts.view",
     component: () =>
       import("../views/Contacts.vue"),
@@ -394,7 +385,7 @@ const routes = [
       requiresAuth: true,
       userContacts: true
     },
-    path: "/user-contacts",
+    path: "/clientes",
     name: "user-contacts.view",
     component: () =>
       import("../views/ContactsUser.vue"),
@@ -405,7 +396,7 @@ const routes = [
       title: "Comandes",
       requiresAuth: true
     },
-    path: "/orders",
+    path: "/comandes",
     name: "orders.view",
     component: () =>
       import("../views/Orders.vue"),
@@ -416,7 +407,7 @@ const routes = [
       title: "Comandes per facturar",
       requiresAuth: true
     },
-    path: "/orders-invoice",
+    path: "/comandes-per-facturar",
     name: "orders-invoice.view",
     component: () =>
       import("../views/OrdersInvoice.vue"),
@@ -427,7 +418,7 @@ const routes = [
       title: "Veure Comanda",
       requiresAuth: true
     },
-    path: "/order/view/:id",
+    path: "/comanda/veure/:id",
     name: "orders.view.detail",
     component: () =>
       import("../views/OrderView.vue"),
@@ -438,7 +429,7 @@ const routes = [
       title: "Comanda",
       requiresAuth: true
     },
-    path: "/order/:id",
+    path: "/comanda/:id",
     name: "orders.edit",
     component: () =>
       import("../views/OrderForm.vue"),
@@ -449,7 +440,7 @@ const routes = [
       title: "Poblacions i rutes",
       requiresAuth: true
     },
-    path: "/city-route",
+    path: "/poblacions-rutes",
     name: "cityroute.edit",
     component: () =>
       import("../views/CityRoute.vue"),
@@ -460,7 +451,7 @@ const routes = [
       title: "Poblacions i punts d'entrega",
       requiresAuth: true
     },
-    path: "/city-route-delivery",
+    path: "/poblacions-punts-entrega",
     name: "cityroutedelivery.edit",
     component: () =>
       import("../views/CityRouteDelivery.vue"),
@@ -471,7 +462,7 @@ const routes = [
       title: "Rutes i dies",
       requiresAuth: true
     },
-    path: "/route-days",
+    path: "/rutes-dies",
     name: "routedays.edit",
     component: () =>
       import("../views/RouteDays.vue"),
@@ -482,7 +473,7 @@ const routes = [
       title: "Rutes",
       requiresAuth: true
     },
-    path: "/routes",
+    path: "/rutes",
     name: "routes.edit",
     component: () =>
       import("../views/Routes.vue"),
@@ -492,7 +483,7 @@ const routes = [
       title: "Punts de recollida",
       requiresAuth: true
     },
-    path: "/pickup-points",
+    path: "/punts-recollida",
     name: "pickup-points.edit",
     component: () =>
       import("../views/PickupPointsOrders.vue"),
@@ -504,7 +495,7 @@ const routes = [
       title: "Estadístiques de comandes",
       requiresAuth: true
     },
-    path: "/orders-stats",
+    path: "/estadistiques-comandes",
     name: "orders.stats",
     component: () =>
       import("../views/StatsOrders.vue"),
@@ -515,7 +506,7 @@ const routes = [
       title: "Estadístiques d'incidències",
       requiresAuth: true
     },
-    path: "/incidences-stats",
+    path: "/estadistiques-incidencies",
     name: "incidences.stats",
     component: () =>
       import("../views/StatsIncidences.vue"),
@@ -526,7 +517,7 @@ const routes = [
       title: "Factures",
       requiresAuth: true
     },
-    path: "/provider-invoices",
+    path: "/factures-proveidor",
     name: "provider.invoices",
     component: () =>
       import(
@@ -539,7 +530,7 @@ const routes = [
       title: "Contacta amb nosaltres",
       requiresAuth: true
     },
-    path: "/contact-us",
+    path: "/contacta",
     name: "contact-us",
     component: () =>
       import("../views/ContactUs.vue"),
@@ -550,7 +541,7 @@ const routes = [
       title: "Contacte",
       requiresAuth: true
     },
-    path: "/contact/:id",
+    path: "/contacte/:id",
     name: "contacts.edit",
     component: () =>
       import("../views/ContactForm.vue"),
@@ -561,7 +552,7 @@ const routes = [
       title: "Punt d'entrega",
       requiresAuth: true
     },
-    path: "/contact-user/:id",
+    path: "/punt-entrega/:id",
     name: "contactsuser.edit",
     component: () =>
       import("../views/ContactUserForm.vue"),
@@ -583,7 +574,7 @@ const routes = [
       title: "Tasques",
       requiresAuth: true
     },
-    path: "/tasks",
+    path: "/tasques",
     name: "tasks.view",
     component: () =>
       import("../views/TasksView.vue"),
@@ -594,7 +585,7 @@ const routes = [
       title: "Recàlcul",
       requiresAuth: true
     },
-    path: "/recalculate",
+    path: "/recalcul",
     name: "projects.recalculate",
     component: () =>
       import("../views/Recalculate.vue"),
@@ -605,7 +596,7 @@ const routes = [
       title: "Changelog",
       requiresAuth: true
     },
-    path: "/changelog",
+    path: "/novetats",
     name: "changelog",
     component: () =>
       import("../views/ChangeLog.vue"),
@@ -649,7 +640,7 @@ const routes = [
       title: "Usuàries",
       requiresAuth: true
     },
-    path: "/partners",
+    path: "/usuaries",
     name: "partners.list",
     component: () =>
       import("../views/Partners.vue"),
@@ -660,7 +651,7 @@ const routes = [
       title: "Incidències",
       requiresAuth: true
     },
-    path: "/incidences",
+    path: "/incidencies",
     name: "incidences.list",
     component: () =>
       import("../views/Incidences.vue"),
@@ -671,7 +662,7 @@ const routes = [
       title: "Transferències",
       requiresAuth: true
     },
-    path: "/transfers",
+    path: "/transferencies",
     name: "transfers.list",
     component: () =>
       import("../views/Transfers.vue"),
@@ -682,7 +673,7 @@ const routes = [
       title: "Dipòsits",
       requiresAuth: true
     },
-    path: "/deposits",
+    path: "/diposits",
     name: "deposits.list",
     component: () =>
       import("../views/Deposits.vue"),
@@ -693,7 +684,7 @@ const routes = [
       title: "Operacions",
       requiresAuth: true
     },
-    path: "/order-operations",
+    path: "/operacions",
     name: "order-operations.list",
     component: () =>
       import("../views/OrderOperations.vue"),
@@ -704,7 +695,7 @@ const routes = [
       title: "Importar/Exportar",
       requiresAuth: true
     },
-    path: "/import-export",
+    path: "/importar-exportar",
     name: "import-export.view",
     component: () =>
       import("../views/ImportExport.vue"),
@@ -723,7 +714,7 @@ const routes = [
   },
   // Admin routes - specific routes must come before dynamic ones
   {
-    path: "/administracio/me",
+    path: "/administracio/configuracio",
     name: "admin.me",
     component: () =>
       import("../views/Me.vue"),
@@ -745,7 +736,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/face-queue",
+    path: "/administracio/cua-face",
     name: "admin.face-queue.list",
     component: () =>
       import("../views/FaceQueueList.vue"),
@@ -756,7 +747,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/face-queue/:id",
+    path: "/administracio/cua-face/:id",
     name: "admin.face-queue.edit",
     component: () =>
       import("../views/FaceQueueEdit.vue"),
@@ -768,7 +759,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/verifactu-chain",
+    path: "/administracio/cadena-verifactu",
     name: "admin.verifactu-chain.list",
     component: () =>
       import("../views/VerifactuChainList.vue"),
@@ -779,7 +770,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/verifactu-chain/:id",
+    path: "/administracio/cadena-verifactu/:id",
     name: "admin.verifactu-chain.edit",
     component: () =>
       import("../views/VerifactuChainEdit.vue"),
@@ -791,7 +782,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/users",
+    path: "/administracio/usuaries",
     name: "admin.users.list",
     component: () =>
       import("../views/AdminUserList.vue"),
@@ -802,7 +793,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/users/new",
+    path: "/administracio/usuaries/nou",
     name: "admin.users.new",
     component: () =>
       import("../views/AdminUserForm.vue"),
@@ -813,7 +804,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/users/:id",
+    path: "/administracio/usuaries/:id",
     name: "admin.users.edit",
     component: () =>
       import("../views/AdminUserForm.vue"),
@@ -839,7 +830,7 @@ const routes = [
   },
   {
     // last night's database dump, to download
-    path: "/administracio/backup",
+    path: "/administracio/copia-seguretat",
     name: "admin.backup",
     component: () =>
       import("../views/AdminBackup.vue"),
@@ -850,7 +841,7 @@ const routes = [
     }
   },
   {
-    path: "/administracio/form-submissions",
+    path: "/administracio/missatges",
     name: "admin.form-submissions",
     component: () =>
       import("../views/AdminFormSubmissions.vue"),
@@ -860,16 +851,14 @@ const routes = [
       requiresPermission: "admin"
     }
   },
-  // Admin entity management routes
-  // Strapi 3 names of two entities, kept for bookmarks (issues/026)
-  { path: "/administracio/bank-accounts", redirect: "/administracio/bank-account" },
-  { path: "/administracio/regions", redirect: "/administracio/region" },
+  // Admin entity management routes: `entityName` in the URL is the entity's
+  // Catalan segment (router/paths.js ENTITY_SLUGS); the views get the API name
   {
     path: "/administracio/:entityName",
     name: "admin.entity.list",
     component: () =>
       import("../views/AdminEntityList.vue"),
-    props: true,
+    props: route => ({ entityName: slugEntity(route.params.entityName) }),
     meta: {
       title: "Administració",
       requiresAuth: true,
@@ -877,11 +866,11 @@ const routes = [
     }
   },
   {
-    path: "/administracio/:entityName/new",
+    path: "/administracio/:entityName/nou",
     name: "admin.entity.new",
     component: () =>
       import("../views/AdminEntityForm.vue"),
-    props: route => ({ entityName: route.params.entityName }),
+    props: route => ({ entityName: slugEntity(route.params.entityName) }),
     meta: {
       title: "Crear entitat",
       requiresAuth: true,
@@ -893,13 +882,15 @@ const routes = [
     name: "admin.entity.edit",
     component: () =>
       import("../views/AdminEntityForm.vue"),
-    props: true,
+    props: route => ({ entityName: slugEntity(route.params.entityName), id: route.params.id }),
     meta: {
       title: "Editar entitat",
       requiresAuth: true,
       requiresPermission: "admin"
     }
-  }
+  },
+  // the English and mixed URLs of before issues/343 (QR labels, e-mails, bookmarks, pins)
+  ...legacyRoutes()
 ];
 
 redirectLegacyHash(import.meta.env.BASE_URL);
@@ -918,10 +909,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   // Check if navigating to /projectes and redirect based on localStorage preference
-  if (to.path === "/projectes" && from.path !== "/mother-projects") {
+  if (to.path === "/projectes" && from.path !== "/projectes-mare") {
     const defaultView = localStorage.getItem("projectsDefaultView");
     if (defaultView === "mother") {
-      next({ path: "/mother-projects" });
+      next({ path: "/projectes-mare" });
       return;
     }
   }
@@ -944,7 +935,7 @@ router.beforeEach((to, from, next) => {
         next();
       } else {
         const landing = landingPath(permissions);
-        next(landing === to.path ? "/profile" : landing);
+        next(landing === to.path ? "/el-meu-compte" : landing);
       }
     }
   } else if (to.matched.some(record => record.meta.guest)) {

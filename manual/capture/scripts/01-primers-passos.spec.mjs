@@ -39,7 +39,7 @@ test('01-primers-passos', async ({ page }) => {
   await page.locator('aside button[aria-label]').first().click()
   await settle(page, 800)
 
-  await page.goto('#/profile')
+  await page.goto('#/el-meu-compte')
   await page.getByText('Dades personals').waitFor()
   await settle(page, 1000)
   await shot(page, 'el-meu-compte')
@@ -50,12 +50,12 @@ test('01-primers-passos', async ({ page }) => {
   await page.goto('#/projectes')
   await settle(page, 1500)
   await shot(page, 'mode-fosc')
-  await page.goto('#/profile')
+  await page.goto('#/el-meu-compte')
   await page.getByText('Dades personals').waitFor()
   await page.getByRole('group', { name: 'Aparença' }).getByRole('button', { name: 'Clar' }).click()
   await settle(page, 400)
 
-  await page.goto('#/changelog')
+  await page.goto('#/novetats')
   await settle(page, 1500)
   await shot(page, 'novetats')
 })

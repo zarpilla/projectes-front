@@ -38,7 +38,7 @@ async function switchUser (page, profile) {
 }
 
 async function openOrders (page) {
-  await page.goto('#/orders')
+  await page.goto('#/comandes')
   await page.getByText('Comandes actives').waitFor()
   await settle(page, 600)
 }
@@ -73,7 +73,7 @@ test('28-comandes (sòcia)', async ({ page }) => {
   await page.locator('.import-box button.delete').click()
 
   // a new order: «Guardar» with nothing filled in marks the missing fields
-  await page.goto('#/order/0')
+  await page.goto('#/comanda/0')
   await page.getByText('A on va i quin dia?').waitFor()
   await settle(page, 800)
   await closeHello(page)
@@ -82,9 +82,9 @@ test('28-comandes (sòcia)', async ({ page }) => {
     await settle(page, 600)
     await shot(page, 'camps-obligatoris')
   })
-  await page.goto('#/orders')
+  await page.goto('#/comandes')
   await page.getByText('Comandes actives').waitFor()
-  await page.goto('#/order/0')
+  await page.goto('#/comanda/0')
   await page.getByText('A on va i quin dia?').waitFor()
   await settle(page, 800)
 
@@ -115,7 +115,7 @@ test('28-comandes (sòcia)', async ({ page }) => {
   // left unsaved
 
   // the provider's view of an order's tracking
-  await page.goto('#/order/view/24874')
+  await page.goto('#/comanda/veure/24874')
   await page.getByText('Recorregut').waitFor()
   await settle(page, 800)
   await shot(page, 'seguiment-socia')
@@ -164,19 +164,19 @@ test('28-comandes (sòcia)', async ({ page }) => {
   await row.getByRole('button', { name: 'Cancel·la' }).click()
 
   // a processed order in the form, as the office
-  await page.goto('#/order/24874')
+  await page.goto('#/comanda/24874')
   await page.getByText('Altres dades').waitFor()
   await settle(page, 1200)
   await tall(page, () => shot(page, 'fitxa-oficina'), 2100)
 
   // its tracking, with the next move as the main button
-  await page.goto('#/order/view/24876')
+  await page.goto('#/comanda/veure/24876')
   await page.getByText('Recorregut').waitFor()
   await settle(page, 800)
   await shot(page, 'seguiment-oficina')
 
   // a collection order (-R)
-  await page.goto('#/order/24875')
+  await page.goto('#/comanda/24875')
   await page.getByText('Comandes a recollir').waitFor()
   await settle(page, 1200)
   await tall(page, () => shot(page, 'comanda-de-recollida'), 1800)

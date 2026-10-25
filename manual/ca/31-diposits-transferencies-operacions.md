@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 31
 roles: [orders, orders_admin, orders_delivery]
-routes: ["/deposits", "/transfers", "/order-operations"]
+routes: ["/diposits", "/transferencies", "/operacions"]
 lang: ca
 updated: 2026-10-18
 ---

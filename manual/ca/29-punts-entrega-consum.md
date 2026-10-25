@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 29
 roles: [orders, orders_admin, orders_delivery]
-routes: ["/user-contacts", "/contact-user/:id", "/pickup-points"]
+routes: ["/clientes", "/punt-entrega/:id", "/punts-recollida"]
 lang: ca
 updated: 2026-10-18
 ---

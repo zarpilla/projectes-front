@@ -74,7 +74,7 @@
           </template>
           <template v-else>
             <span>Encara no hi ha cap projecte de logística per al <b>{{ suggestion.label }}</b><template v-if="suggestion.latest">; l'últim és «{{ suggestion.latest.name }}»</template>.</span>
-            <router-link to="/project/0" class="link-button">Crea el projecte</router-link>
+            <router-link to="/projecte/0" class="link-button">Crea el projecte</router-link>
           </template>
         </div>
       </section>
@@ -154,7 +154,7 @@
               <b class="num">{{ money(inv.total_base) }}</b>
             </li>
           </ul>
-          <router-link to="/emitted-invoices" class="all-link">Totes les factures emeses →</router-link>
+          <router-link to="/factures-emeses" class="all-link">Totes les factures emeses →</router-link>
         </aside>
       </div>
     </section>

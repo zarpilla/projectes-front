@@ -93,7 +93,7 @@ test('assigning the log to a project turns its hours into an activity', async ()
 
   // and the project counts the hours
   await expect.poll(async () => {
-    await visit(`/project/${state.projectId}`)
+    await visit(`/projecte/${state.projectId}`)
     return executedHours()
   }, { timeout: 30_000, intervals: [1000, 2000, 5000] }).toBe(4.5)
 })

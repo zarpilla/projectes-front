@@ -192,7 +192,7 @@ export default {
     // The landing page is the projects panel: anyone else goes to her screen
     // and nothing below is loaded (the API refuses those reads, issues/099).
     if (!permissions.includes("projects")) {
-      this.$router.push(permissions.includes("orders") ? "/orders" : "/dedicacio");
+      this.$router.push(permissions.includes("orders") ? "/comandes" : "/dedicacio");
       return;
     }
 
@@ -306,11 +306,11 @@ export default {
       this.projectsEditMode = !this.projectsEditMode;
     },
     navNewProject() {
-      this.$router.push("/project/0");
+      this.$router.push("/projecte/0");
     },
     switchToMotherProjects() {
       localStorage.setItem("projectsDefaultView", "mother");
-      this.$router.push("/mother-projects");
+      this.$router.push("/projectes-mare");
     },
     onChange(event) {
       this.doFilteredQuery(this.filters.q);

@@ -6,7 +6,7 @@ manual: usuari
 module: introduccio
 order: 1
 roles: []
-routes: ["/", "/forgotten-password", "/reset-password", "/profile", "/changelog", "/documentacio"]
+routes: ["/", "/recuperar-clau", "/canviar-clau", "/el-meu-compte", "/novetats", "/documentacio"]
 lang: ca
 updated: 2026-10-18
 ---

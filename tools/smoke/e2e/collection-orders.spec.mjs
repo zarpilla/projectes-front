@@ -85,7 +85,7 @@ test('setup: the logistics permissions, the farm collection point and a delivery
 
 test('a farm-pickup order from the form creates its -R', async () => {
   test.skip(!state.point, 'needs the setup')
-  await visit('/order/0')
+  await visit('/comanda/0')
   await field('Sòcia').locator('select').selectOption(String(state.me.id))
   const contact = page.getByPlaceholder("Punt d'entrega")
   await contact.click()
@@ -126,7 +126,7 @@ test('a second order of the same day joins the -R and adds to it', async () => {
 
 test('saving an order from the form without changes keeps it in its -R', async () => {
   test.skip(!state.r1, 'needs the first order')
-  await visit(`/order/${state.first}`)
+  await visit(`/comanda/${state.first}`)
   await expect(field('Data de recollida').locator('input')).toHaveValue(caDate(state.day))
   await button('Guardar').click()
   await expectSnackbar('Guardat')
@@ -138,7 +138,7 @@ test('saving an order from the form without changes keeps it in its -R', async (
 
 test('the form offers no past pickup day, and refuses one typed in (issues/302)', async () => {
   test.skip(!state.r1, 'needs the first order')
-  await visit(`/order/${state.first}`)
+  await visit(`/comanda/${state.first}`)
   const input = field('Data de recollida').locator('input')
   await typeDate(input, caDate(addDays(isoToday(), -7)))
   await expect(page.getByText('Atenció! La data de recollida ja ha passat')).toBeVisible()

@@ -9,7 +9,7 @@
         factures de servei per un import total de {{ sumOfInvoices }}.
         <br /><br />T'hem enviat les factures al correu el darrer dia de mes i
         les pots consultar també a la secció de 
-        <router-link to="/provider-invoices">FACTURES</router-link>
+        <router-link to="/factures-proveidor">FACTURES</router-link>
         aquí mateix a
         l'ESStrapis, on veureu indicades les que estan pendents. Aprofitem per
         recordar que per tenir un seguiment òptim de la facturació, feu una

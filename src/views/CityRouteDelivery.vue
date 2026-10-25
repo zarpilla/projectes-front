@@ -10,7 +10,7 @@
 
       <div class="notification is-info">
         Poblacions escrites als punts d'entrega que no són a la llista de poblacions: les comandes cap a aquests punts no troben ruta.
-        Si és una població nova, afegeix-la i dona-li rutes a <router-link to="/city-route">Poblacions i rutes</router-link>.
+        Si és una població nova, afegeix-la i dona-li rutes a <router-link to="/poblacions-rutes">Poblacions i rutes</router-link>.
         Si és la mateixa que una altra però mal escrita, corregeix el punt d'entrega.
       </div>
 

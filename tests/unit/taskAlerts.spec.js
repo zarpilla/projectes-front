@@ -70,7 +70,7 @@ describe('task notices (issues/307)', () => {
 })
 
 describe('Tasques menu entry', () => {
-  const item = { to: '/tasks', icon: 'trello', label: 'Tasques', badge: 'tasks' }
+  const item = { to: '/tasques', icon: 'trello', label: 'Tasques', badge: 'tasks' }
   const mountItem = (props = {}) => mount(AsideMenuItem, {
     props: { item, ...props },
     global: { stubs: { 'router-link': { template: '<a><slot /></a>' }, 'b-icon': true, 'aside-menu-list': true } }

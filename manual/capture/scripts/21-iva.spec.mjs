@@ -9,7 +9,7 @@ test('21-iva', async ({ page }) => {
   await start(page, '21-iva', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/vat')
+  await page.goto('#/iva')
   await page.locator('h2', { hasText: 'IVA pendent de saldar' }).waitFor({ timeout: 60_000 })
   await settle(page, 2000)
   await shot(page, 'resum')

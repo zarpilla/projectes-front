@@ -6,7 +6,7 @@ manual: usuari
 module: hores
 order: 16
 roles: [projects]
-routes: ["/dedicacio-saldo", "/dedicacio-summary"]
+routes: ["/dedicacio-saldo", "/resum-hores"]
 lang: ca
 updated: 2026-10-18
 ---

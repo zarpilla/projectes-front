@@ -162,7 +162,7 @@ export async function settle (ms = 500) {
 
 export async function visit (route) {
   // a different route first: the same view doesn't remount when only its params change
-  await page.goto('#/changelog')
+  await page.goto('#/novetats')
   await page.goto(`#${route}`)
   await settle(1500)
 }
@@ -273,7 +273,7 @@ export async function addLine (phase, kind, { concept, quantity, price }) {
 // closes its budget. Returns its id. The steps are checked in core.spec.mjs; other
 // specs use this to get a project of their own.
 export async function createProject (name, { incomes = [], expenses = [] } = {}) {
-  await visit('/project/0')
+  await visit('/projecte/0')
   await field('Codi').locator('input').fill(name)
   await selectByLabel('Estat', 'Actiu')
   await field('Àmbit').locator('select').selectOption({ index: 0 })
@@ -352,19 +352,19 @@ export async function periodsFrom (userId, from) {
   return periods.filter(p => p.from === from)
 }
 
-// Opens the "Jornada" modal of a new period for `username` in #/working-day
+// Opens the "Jornada" modal of a new period for `username` in #/jornada
 export async function openNewPeriod (username) {
-  await visit('/working-day')
+  await visit('/jornada')
   await page.locator('.gantt_grid_data .gantt_row', { hasText: username }).first().click()
   const box = modal('Jornada')
   await expect(box).toBeVisible()
   return box
 }
 
-// Opens the "Jornada" modal of an existing period from its bar in #/working-day.
+// Opens the "Jornada" modal of an existing period from its bar in #/jornada.
 // The chart shows one year: switch to the period's year first.
 export async function openPeriod (period) {
-  await visit('/working-day')
+  await visit('/jornada')
   await page.getByRole('group', { name: 'Any' }).getByRole('button', { name: period.from.slice(0, 4), exact: true }).click()
   await page.locator(`.dedication-bar[data-dedication-id="${period.id}"]`).click()
   const box = modal('Jornada')

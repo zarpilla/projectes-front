@@ -6,7 +6,7 @@ manual: usuari
 module: hores
 order: 15
 roles: [projects]
-routes: ["/working-day", "/administracio/user-festive"]
+routes: ["/jornada", "/administracio/festius-usuari*"]
 lang: ca
 updated: 2026-10-18
 ---

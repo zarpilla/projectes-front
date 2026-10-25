@@ -17,13 +17,13 @@ test('00-que-es-esstrapis', async ({ page }) => {
   await settle(page)
   await shot(page, 'llistat-projectes')
 
-  await page.goto(`#/project/${PROJECT_ID}?tab=resum`)
+  await page.goto(`#/projecte/${PROJECT_ID}?tab=resum`)
   await page.getByText('Resum financer').first().waitFor()
   await settle(page, 1500)
   await shot(page, 'projecte')
 
   // the phases as they are being executed, folded: one line per phase with its totals
-  await page.goto(`#/project/${PROJECT_ID}?tab=pressupost`)
+  await page.goto(`#/projecte/${PROJECT_ID}?tab=pressupost`)
   await settle(page, 1500)
   await page.locator('button', { hasText: 'Plega-ho tot', hasNotText: 'Desplega' }).click()
   await settle(page, 500)
@@ -40,11 +40,11 @@ test('00-que-es-esstrapis', async ({ page }) => {
   await settle(page, 1500)
   await shot(page, 'hores-dedicades')
 
-  await page.goto('#/emitted-invoices')
+  await page.goto('#/factures-emeses')
   await settle(page, 1500)
   await shot(page, 'ingressos')
 
-  await page.goto('#/stats-projectes')
+  await page.goto('#/panell-projectes')
   // the dashboard on top of the pivot table
   await page.getByText('Resultat previst i real per projecte').waitFor({ timeout: 30_000 })
   await settle(page, 2000)
