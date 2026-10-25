@@ -175,7 +175,7 @@ test('an expired access token is refreshed without logging out', async () => {
   const after = await page.evaluate(() => localStorage.getItem('jwt'))
   expect(after).not.toBe('expired.e2e.token')
   expect(after).not.toBe(before)
-  await expect(page).toHaveURL(/\/contacts/)
+  await expect(page).toHaveURL(/\/contactes/)
   await expect(page.getByText('Nou Contacte').first()).toBeVisible()
 })
 
@@ -192,8 +192,8 @@ test('contacts: create, edit and delete', async () => {
   await field('Població').locator('input').fill('Barcelona')
   await button('Guardar').click()
   await expectSnackbar('Guardat')
-  await expect(page).toHaveURL(/\/contact\/[1-9]\d*/)
-  const id = Number(page.url().match(/\/contact\/(\d+)/)[1])
+  await expect(page).toHaveURL(/\/contacte\/[1-9]\d*/)
+  const id = Number(page.url().match(/\/contacte\/(\d+)/)[1])
   let contact = await api('GET', `contacts/${id}`)
   expect([contact.name, contact.nif, contact.postcode, contact.city]).toEqual([name, `F${STAMP.slice(-8)}`, '08001', 'Barcelona'])
 

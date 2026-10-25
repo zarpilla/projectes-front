@@ -99,9 +99,9 @@ test('an order for the delivery point', async () => {
   await field('Kilograms').locator('input').fill('10')
   await button(state.pickup.name).click()
   await button('Guardar').click()
-  await expect(page).toHaveURL(/\/order\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/comanda\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.orderId = Number(page.url().match(/\/order\/(\d+)/)[1])
+  state.orderId = Number(page.url().match(/\/comanda\/(\d+)/)[1])
 
   const order = await api('GET', `orders/${state.orderId}`)
   expect(order).toMatchObject({ status: 'pending', units: 2, kilograms: 10, contact_trade_name: POINT, contact_city: TOWN })

@@ -31,6 +31,8 @@ const WITH_PARAMS = {
   '/comanda/:id': () => ['/comanda/0'],
   // records the other specs leave behind (orders.spec.mjs, money.spec.mjs): skipped when there are none
   '/comanda/veure/:id': s => s.orderId ? [`/comanda/veure/${s.orderId}`] : [],
+  // a member of the energy community (admin_energy): the e2e database has none
+  '/energia/socia/:id': () => [],
   '/administracio/usuaries/:id': s => [`/administracio/usuaries/${s.me.id}`],
   '/administracio/:entityName/new': () => ['/administracio/tipus-contacte/nou'],
   '/administracio/:entityName/:id': s => [`/administracio/tipus-contacte/${s.contactTypeId}`]

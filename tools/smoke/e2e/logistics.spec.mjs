@@ -154,9 +154,9 @@ test('"Rutes i dies": a route closed tomorrow moves a new order to the day after
   await field('Kilograms').locator('input').fill('10')
   await button(state.pickup.name).click()
   await button('Guardar').click()
-  await expect(page).toHaveURL(/\/order\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/comanda\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.orderId = Number(page.url().match(/\/order\/(\d+)/)[1])
+  state.orderId = Number(page.url().match(/\/comanda\/(\d+)/)[1])
   const saved = await order(state.orderId)
   expect(dayOf(saved.estimated_delivery_date)).toBe(addDays(tomorrow, 1))
 
@@ -195,11 +195,11 @@ test('a member\'s late order: warned, «Comanda express» with the surcharge, th
     // "Torna" goes back without saving
     await dialog.locator('button', { hasText: 'Torna' }).click()
     await expect(dialog).toBeHidden()
-    expect(member.url()).toMatch(/\/order\/0/)
+    expect(member.url()).toMatch(/\/comanda\/0/)
     await member.locator('.savebar button', { hasText: /^\s*Guardar\s*$/ }).click()
     await member.locator('.dialog.modal.is-active button', { hasText: 'Desa la comanda' }).click()
-    await expect(member).toHaveURL(/\/order\/[1-9]\d*/, { timeout: 20_000 })
-    state.lateId = Number(member.url().match(/\/order\/(\d+)/)[1])
+    await expect(member).toHaveURL(/\/comanda\/[1-9]\d*/, { timeout: 20_000 })
+    state.lateId = Number(member.url().match(/\/comanda\/(\d+)/)[1])
   } finally {
     await member.context().close()
   }

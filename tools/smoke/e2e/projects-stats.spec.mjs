@@ -391,7 +391,7 @@ test('Inici: a starred menu entry is pinned and saved on the user', async () => 
   await visit('/inici')
   await expect(tile).toBeVisible()
   await tile.locator('a.home-tile-link').click()
-  await expect(page).toHaveURL(/\/price-hour(\?|$)/)
+  await expect(page).toHaveURL(/\/panell-preu-hora(\?|$)/)
 
   // and unstarring it removes it
   await visit('/inici')

@@ -102,9 +102,9 @@ test('a farm-pickup order from the form creates its -R', async () => {
   const proposed = await field('Data de recollida').locator('input').inputValue()
   expect(proposed).toMatch(/\d{2}\/\d{2}\/\d{4}/)
   await button('Guardar').click()
-  await expect(page).toHaveURL(/\/order\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/comanda\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.first = Number(page.url().match(/\/order\/(\d+)/)[1])
+  state.first = Number(page.url().match(/\/comanda\/(\d+)/)[1])
 
   const saved = await order(state.first)
   state.day = dayOf(saved.collection_pickup_date)

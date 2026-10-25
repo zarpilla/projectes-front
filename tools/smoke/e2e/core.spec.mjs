@@ -27,9 +27,9 @@ test('project creation', async () => {
   await field('Àmbit').locator('select').selectOption({ index: 0 })
   await field('Descripció').locator('textarea').fill('Creat per les proves e2e')
   await button('Continuar').click()
-  await expect(page).toHaveURL(/\/project\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/projecte\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.projectId = Number(page.url().match(/\/project\/(\d+)/)[1])
+  state.projectId = Number(page.url().match(/\/projecte\/(\d+)/)[1])
 
   const project = await api('GET', `projects/${state.projectId}`)
   expect(project.name).toBe(NAME)

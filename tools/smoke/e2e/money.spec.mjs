@@ -221,7 +221,7 @@ test('"Nou Contacte" next to the contact opens an empty contact form', async () 
     await page.locator('button[title="Nou Contacte"]').filter({ visible: true }).first().click()
     const tab = await popup
     await tab.waitForLoadState()
-    expect(tab.url(), `from ${route}`).toMatch(/\/contact\/0$/)
+    expect(tab.url(), `from ${route}`).toMatch(/\/contacte\/0$/)
     await tab.close()
   }
 })
