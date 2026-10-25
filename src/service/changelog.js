@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.25",
   items: [
     {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, ", un «Saldo real» o «Saldo bancari» anotat durant l'any ja compta al saldo de la taula mensual també en el mode «Des de l'inici d'any», i un d'anotat per a més endavant compta en tots dos modes. Abans només entrava al «Saldo avui», i els dos modes podien acabar l'any amb saldos diferents. Els mesos amb un ajust de saldo porten un * al saldo i el detall al gràfic."]
+    },
+    {
       type: "Millores",
       modules: ["Plataforma"],
       text: ["Totes les adreces de l'aplicació són en català: ", { to: "/contactes", label: "…/contactes" }, ", ", { to: "/tasques", label: "…/tasques" }, ", ", { to: "/comandes", label: "…/comandes" }, ", …/administracio/usuaries, etc. Les adreces antigues (correus, codis QR de les etiquetes, adreces desades i els accessos fixats a Inici) continuen funcionant: porten a la nova."]
