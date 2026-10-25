@@ -58,6 +58,14 @@ describe('AdminBackup', () => {
     expect(w.find('[data-test="backup-download"]').attributes('disabled')).toBeDefined()
   })
 
+  it('says the entity has no copies when the host gives it none (e.g. demo)', async () => {
+    get.mockResolvedValue({ data: { enabled: false, available: false } })
+    const w = await mountIt()
+    expect(w.find('[data-test="backup-disabled"]').text()).toContain('no té còpies')
+    expect(w.find('[data-test="backup-none"]').exists()).toBe(false)
+    expect(w.find('[data-test="backup-download"]').exists()).toBe(false)
+  })
+
   it('shows the error when it cannot ask', async () => {
     get.mockRejectedValue({ response: { data: { error: { message: 'Forbidden' } } } })
     const w = await mountIt()
