@@ -172,6 +172,12 @@ const PERMISSION_GROUPS = [
     ]
   },
   {
+    title: 'Comunitat energètica',
+    items: [
+      { value: 'admin_energy', label: 'Comunitat energètica', help: 'Sòcies, CUPS, documentació, instal·lacions i coeficients de repartiment.' }
+    ]
+  },
+  {
     title: 'Administració',
     items: [
       { value: 'admin', label: 'Admin', help: 'Aquest apartat: configuració, usuàries, Verifactu i FACe, taules auxiliars.' }

@@ -624,6 +624,26 @@ const routes = [
       ),
     props: true,
   },
+  // Comunitat energètica (admin_energy, domain/routeAccess.js)
+  {
+    meta: { title: "Sòcies i CUPS", requiresAuth: true },
+    path: "/energia/socies",
+    name: "energy.partners",
+    component: () => import("../views/EnergyPartners.vue")
+  },
+  {
+    meta: { title: "Sòcia", requiresAuth: true },
+    path: "/energia/socia/:id",
+    name: "energy.partner",
+    component: () => import("../views/EnergyPartnerForm.vue"),
+    props: true
+  },
+  {
+    meta: { title: "Instal·lacions i coeficients", requiresAuth: true },
+    path: "/energia/installacions",
+    name: "energy.installations",
+    component: () => import("../views/EnergyInstallations.vue")
+  },
   {
     meta: {
       title: "Usuàries",

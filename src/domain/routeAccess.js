@@ -12,6 +12,7 @@ const LOGISTICS = ['orders', 'orders_admin', 'orders_delivery']
 const STAFF = ['orders_admin', 'orders_delivery']
 const OFFICE = ['orders_admin']
 const MEMBER = ['orders']
+const ENERGY = ['admin_energy']
 // Taules auxiliars › Logística: the office opens them too (issues/159; keep in
 // step with service/adminTables.js OFFICE_TABLES and the API's isAdminOrOffice)
 const OFFICE_TABLES = ['pickup', 'delivery-type', 'city', 'route-rate', 'route-pickup-notice']
@@ -80,7 +81,11 @@ export const ROUTE_PERMISSIONS = {
   '/route-days': [...MEMBER, ...OFFICE],
   '/pickup-points': [...MEMBER, ...OFFICE],
   '/provider-invoices': MEMBER,
-  '/contact-us': MEMBER
+  '/contact-us': MEMBER,
+  // comunitat energètica (projectes-v5 api/energy: admin_energy and full access)
+  '/energia/socies': ENERGY,
+  '/energia/socia/:id': ENERGY,
+  '/energia/installacions': ENERGY
 }
 
 // pages every logged-in user opens (Inici, her profile, the changelog, the help)
@@ -136,6 +141,7 @@ export function landingPath (permissions) {
   if (permissions.includes('orders')) return '/orders'
   if (permissions.includes('hours')) return '/dedicacio'
   if (permissions.some(p => LOGISTICS.includes(p))) return '/orders'
+  if (permissions.includes('admin_energy')) return '/energia/socies'
   return '/profile'
 }
 

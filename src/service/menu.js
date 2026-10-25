@@ -107,6 +107,12 @@ const menu = [
     // the Logística group of Taules auxiliars, for the office (admins reach it from Administració, issues/159)
     { to: "/admin/pickup", icon: "table-settings", label: "Taules de logística", permission: ["orders_admin", "admin"], unless: "admin", activeWhen: "logistics-tables", itemClassName: "mb-6" }
   ],
+  // Comunitat energètica (views/Energy*.vue)
+  "Comunitat energètica",
+  [
+    { to: "/energia/socies", icon: "account-group-outline", label: "Sòcies i CUPS", permission: "admin_energy", activeWhen: "energy-partners" },
+    { to: "/energia/installacions", icon: "solar-power", label: "Instal·lacions i coeficients", permission: "admin_energy", itemClassName: "mb-6" }
+  ],
   "Estadístiques",
   [
     { to: "/orders-stats", icon: "chart-bar", label: "Informe de comandes", permission: "orders_admin" },

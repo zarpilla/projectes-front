@@ -103,3 +103,17 @@ describe('changelog links (issues/121)', () => {
     expect(canPickPerson(null)).toBe(true)
   })
 })
+
+describe('comunitat energètica (admin_energy, 2026-10-25)', () => {
+  const rec = path => [{ path, meta: {} }]
+  it('opens the energy pages to admin_energy only, and lands there', () => {
+    for (const path of ['/energia/socies', '/energia/socia/:id', '/energia/installacions']) {
+      expect(canOpen(rec(path), ['admin_energy'])).toBe(true)
+      expect(canOpen(rec(path), ['projects'])).toBe(false)
+      expect(canOpen(rec(path), ['orders_admin'])).toBe(false)
+    }
+    expect(canOpen(rec('/contacts'), ['admin_energy'])).toBe(false)
+    expect(landingPath(['admin_energy'])).toBe('/energia/socies')
+    expect(landingPath(['projects', 'admin_energy'])).toBe('/projectes')
+  })
+})
