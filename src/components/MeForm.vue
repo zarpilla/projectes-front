@@ -230,11 +230,16 @@
               <b-field label="Descompte multientrega (%)" message="Quan una sòcia té més d'una comanda per al mateix punt d'entrega i dia.">
                 <b-input v-model.number="form.orders_options.multidelivery_discount" type="number" step="0.01" min="0" max="100" />
               </b-field>
-              <b-field label="Hora límit per a l'endemà" message="Les comandes fetes després d'aquesta hora ja no es poden entregar l'endemà.">
+              <b-field label="Hora límit per a l'endemà" message="Les comandes fetes després d'aquesta hora van tard per al següent dia laborable. Divendres tanca les de dilluns (o dissabte, si és laborable).">
                 <b-input v-model.number="form.orders_options.next_day_limit_hour" type="number" step="1" min="0" max="23" />
               </b-field>
+              <b-field label="Dies laborables" message="L'hora límit d'una entrega és la del dia laborable anterior. Sense cap dia marcat: de dilluns a divendres.">
+                <div class="working-days">
+                  <b-checkbox v-for="d in weekdayOptions" :key="d.value" v-model="workingDays" :native-value="d.value">{{ d.label }}</b-checkbox>
+                </div>
+              </b-field>
               <!-- late orders and pickups (issues/315) -->
-              <b-field label="Hora límit de les recollides de tarda" message="Una recollida de tarda (la franja de la ruta comença a les 13 h o més tard) informada el mateix dia a partir d'aquesta hora va tard. Les de matí van tard a partir de l'hora límit del dia abans.">
+              <b-field label="Hora límit de les recollides de tarda" message="Una recollida de tarda (la franja de la ruta comença a les 13 h o més tard) informada el mateix dia a partir d'aquesta hora va tard. Les de matí van tard a partir de l'hora límit del dia laborable anterior.">
                 <b-input v-model.number="form.orders_options.pickup_same_day_limit_hour" type="number" step="1" min="0" max="23" placeholder="10" />
               </b-field>
               <b-field label="Recàrrec de les comandes fora de temps (%)" message="Una comanda per a l'endemà informada després de l'hora límit es marca en vermell, l'albarà diu «COMANDA EXPRESS» i porta aquest recàrrec. Coordinació el pot treure a la comanda («Recàrrec per incidència»).">
@@ -319,7 +324,7 @@ import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
 import CertificateCard from '@/components/CertificateCard.vue';
 import ReadCacheCard from '@/components/ReadCacheCard.vue';
-import { DEFAULT_LATE_ORDER_MESSAGE, DEFAULT_LATE_PICKUP_MESSAGE } from '@/domain/lateOrders';
+import { DEFAULT_LATE_ORDER_MESSAGE, DEFAULT_LATE_PICKUP_MESSAGE, workingDaysOf } from '@/domain/lateOrders';
 
 // the settings components of `me` edited here (issues/139)
 const COMPONENTS = ['options', 'quotes', 'orders_options'];
@@ -336,6 +341,15 @@ export default {
       logo: null,
       defaultLateOrderMessage: DEFAULT_LATE_ORDER_MESSAGE,
       defaultLatePickupMessage: DEFAULT_LATE_PICKUP_MESSAGE,
+      weekdayOptions: [
+        { value: 'monday', label: 'Dl' },
+        { value: 'tuesday', label: 'Dt' },
+        { value: 'wednesday', label: 'Dc' },
+        { value: 'thursday', label: 'Dj' },
+        { value: 'friday', label: 'Dv' },
+        { value: 'saturday', label: 'Ds' },
+        { value: 'sunday', label: 'Dg' }
+      ],
       logoBroken: false,
       logoSaving: false,
       logoDragOver: false,
@@ -420,6 +434,16 @@ export default {
     await this.loadData();
   },
   computed: {
+    // «Dies laborables»: never set is Monday to Friday (lateOrders.js)
+    workingDays: {
+      get() {
+        const days = this.form.orders_options && this.form.orders_options.working_days;
+        return Array.isArray(days) ? days : workingDaysOf(null);
+      },
+      set(days) {
+        this.form.orders_options = { ...this.form.orders_options, working_days: workingDaysOf(days).filter(d => days.includes(d)) };
+      }
+    },
     // empty (saved before the option existed) is January
     fiscalStartMonth: {
       get() {
@@ -599,6 +623,11 @@ export default {
 };
 </script>
 <style scoped>
+.working-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
 .config-layout {
   display: grid;
   grid-template-columns: 12rem minmax(0, 1fr);

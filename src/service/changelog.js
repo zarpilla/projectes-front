@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.25",
   items: [
     {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["Les comandes fora de temps compten els dies laborables: l'hora límit és la del dia laborable anterior a l'entrega. Una comanda per a dilluns va tard a partir de l'hora límit de divendres (i tot el cap de setmana), i una per a dimarts és a temps fins a l'hora límit de dilluns. Els dies laborables (de dilluns a divendres si no es diu res) es marquen a ", { to: "/administracio/configuracio", label: "Configuració general" }, " → Logística."]
+    },
+    {
       type: "Correccions",
       modules: ["Diners"],
       text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, ", un «Saldo real» o «Saldo bancari» anotat durant l'any ja compta al saldo de la taula mensual també en el mode «Des de l'inici d'any», i un d'anotat per a més endavant compta en tots dos modes. Abans només entrava al «Saldo avui», i els dos modes podien acabar l'any amb saldos diferents. Els mesos amb un ajust de saldo porten un * al saldo i el detall al gràfic."]

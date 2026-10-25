@@ -40,7 +40,7 @@ describe('the rules, as the API (issues/315)', () => {
 
   it('fills the hours and the surcharge of the texts', () => {
     const text = lateMessage(DEFAULT_LATE_ORDER_MESSAGE, lateRules({ next_day_limit_hour: 13, late_surcharge: 25 }))
-    expect(text).toContain('límit horari de les 13h del dia anterior')
+    expect(text).toContain('límit horari de les 13h del dia laborable anterior')
     expect(text).toContain("s'aplicarà un recàrrec del 25% automàticament")
     expect(lateMessage('{hora_tarda}h / {hora}h / {recarrec}%', lateRules({ late_surcharge: 12.5 }))).toBe('10h / 14h / 12,5%')
   })

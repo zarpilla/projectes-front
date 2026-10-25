@@ -793,7 +793,7 @@ export default {
       return this.form.pickup_point === true;
     },
     cutoffReminder() {
-      return `s'han d'informar les comandes com a límit a les ${this.nextDayLimitHour} h del dia abans.`;
+      return `s'han d'informar les comandes com a límit a les ${this.nextDayLimitHour} h del dia laborable anterior.`;
     },
     errors() {
       return orderErrors(this);
@@ -1471,6 +1471,7 @@ export default {
         } else {
           const routeDate = assignRouteDate(route, {
             nextDayLimitHour: this.nextDayLimitHour,
+            workingDays: (this.ordersOptions || {}).working_days,
             isAdmin: this.permissions.includes("orders_admin"),
             closures: this.routeFestives
           });
@@ -2410,6 +2411,7 @@ export default {
       if (!days.some(d => route[d])) return;
       const { nextDay } = assignRouteDate(route, {
         nextDayLimitHour: this.nextDayLimitHour,
+        workingDays: (this.ordersOptions || {}).working_days,
         isAdmin: this.permissions.includes("orders_admin"),
         closures: this.routeFestives
       });

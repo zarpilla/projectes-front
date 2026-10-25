@@ -482,6 +482,7 @@ export default {
       importing: false,
       permissions: [],
       nextDayLimitHour: 14,
+      workingDays: null,
       routes: [],
       users: [],
       deliveryTypes: [],
@@ -1159,6 +1160,9 @@ export default {
         orgConfig.orders_options.next_day_limit_hour != null
       ) {
         this.nextDayLimitHour = orgConfig.orders_options.next_day_limit_hour;
+      }
+      if (orgConfig && orgConfig.orders_options) {
+        this.workingDays = orgConfig.orders_options.working_days || null;
       }
     } catch (e) {
       // keep default 14 if org config unavailable
@@ -2014,6 +2018,7 @@ export default {
 
         const routeDate = assignRouteDate(route, {
           nextDayLimitHour: this.nextDayLimitHour,
+          workingDays: this.workingDays,
           isAdmin: this.permissions.includes("orders_admin"),
           closures
         });
