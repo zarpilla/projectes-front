@@ -136,21 +136,8 @@
                   </option>
                 </b-select>
               </b-field>
-              <b-field label="Import aportació sòcia" horizontal>
-                <b-input v-model="form.partner_amount" type="number" />
-              </b-field>
-              <b-field label="Data aportació sòcia" horizontal>
-                <b-datepicker
-                  v-model="form.partner_amount_date"
-                  :show-week-number="false"
-                  :locale="'ca-ES'"
-                  :first-day-of-week="1"
-                  icon="calendar-today"
-                  placeholder="Data aportació sòcia"
-                  trap-focus
-                  editable
-                >
-                </b-datepicker>
+              <b-field label="Aportacions al capital" horizontal>
+                <capital-contributions v-model="form.capital_contributions" />
               </b-field>
               <h3 class="form-section-title">Seguiment</h3>
               <b-field label="Data de seguiment" horizontal>
@@ -432,6 +419,8 @@ import sumBy from "lodash/sumBy";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { contactDatesForPickers } from "@/domain/contactDates";
+import CapitalContributions from "@/components/CapitalContributions.vue";
+import { contactPayload, sortContributions, contributionError } from "@/domain/capitalContributions";
 import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
 import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
@@ -444,7 +433,8 @@ export default {
     CardComponent,
     TitleBar,
     MoneyFormat,
-    ModalBoxDir3
+    ModalBoxDir3,
+    CapitalContributions
   },
   props: {
     id: {
@@ -571,6 +561,7 @@ export default {
         legal_form: null,
         sector: null,
         contact_types: [],
+        capital_contributions: [],
         collection_points: [],
         face: false,
         face_dir3_oc: null,
@@ -654,6 +645,7 @@ export default {
               }
 
               contactDatesForPickers(this.form);
+              this.form.capital_contributions = sortContributions(this.form.capital_contributions);
 
               this.isLoading = false;
             } else {
@@ -725,6 +717,11 @@ export default {
           return false;
         }
         this.submitted = true;
+        if ((this.form.capital_contributions || []).some(contributionError)) {
+          this.$buefy.snackbar.open({ message: "L'import d'una aportació al capital ha de ser un número", queue: false, type: "is-danger" });
+          this.isLoading = false;
+          return false;
+        }
         if (this.tradeNameMissing) {
           this.$buefy.snackbar.open({ message: TRADE_NAME_REQUIRED, queue: false, type: "is-danger" });
           this.isLoading = false;
@@ -749,7 +746,7 @@ export default {
           }
           await service({ requiresAuth: true }).put(
             `contacts/${this.form.id}`,
-            this.form
+            contactPayload(this.form)
           );
           this.$buefy.snackbar.open({
             message: "Guardat",
@@ -787,7 +784,7 @@ export default {
 
           const newProject = await service({ requiresAuth: true }).post(
             "contacts",
-            this.form
+            contactPayload(this.form)
           );
           this.$router.push({
             name: `contacts.edit`,

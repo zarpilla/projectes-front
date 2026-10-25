@@ -43,11 +43,8 @@
             <b-field class="column is-3" label="Data de baixa" message="Buida mentre és sòcia">
               <date-field v-model="form.leave_date" />
             </b-field>
-            <b-field class="column is-3" label="Aportació al capital (€)">
-              <b-input v-model="form.partner_amount" type="number" step="0.01" min="0" />
-            </b-field>
-            <b-field class="column is-3" label="Data de l'aportació">
-              <date-field v-model="form.partner_amount_date" />
+            <b-field class="column is-12" label="Aportacions al capital">
+              <capital-contributions v-model="form.capital_contributions" />
             </b-field>
             <b-field class="column is-12">
               <b-checkbox v-model="form.privacy_accepted">Ha acceptat la política de privacitat</b-checkbox>
@@ -243,6 +240,8 @@ import moment from "moment";
 import TitleBar from "@/components/TitleBar.vue";
 import DateField from "@/components/DateField.vue";
 import AttachmentsTable from "@/components/AttachmentsTable.vue";
+import CapitalContributions from "@/components/CapitalContributions.vue";
+import { cleanContributions, contributionError } from "@/domain/capitalContributions";
 import service from "@/service/index";
 import getConfig from "@/config";
 import {
@@ -267,8 +266,7 @@ const FIELDS = [
   "join_date",
   "leave_date",
   "privacy_accepted",
-  "partner_amount",
-  "partner_amount_date",
+  "capital_contributions",
   "notes"
 ];
 
@@ -276,7 +274,7 @@ const errorMessage = (e, fallback) => e?.response?.data?.error?.message || fallb
 
 export default {
   name: "EnergyPartnerForm",
-  components: { TitleBar, DateField, AttachmentsTable },
+  components: { TitleBar, DateField, AttachmentsTable, CapitalContributions },
   props: { id: { type: [String, Number], required: true } },
   data() {
     return {
@@ -341,6 +339,7 @@ export default {
     setPartner(partner) {
       this.partner = partner;
       this.form = Object.fromEntries(FIELDS.map(f => [f, partner[f] ?? (f === "privacy_accepted" ? false : null)]));
+      this.form.capital_contributions = (partner.capital_contributions || []).map(c => ({ ...c }));
       this.saved = JSON.stringify(this.form);
     },
     async load() {
@@ -377,8 +376,13 @@ export default {
       }
     },
     savePartner() {
+      if (this.form.capital_contributions.some(contributionError)) {
+        this.notify("L'import d'una aportació ha de ser un número", "is-danger");
+        return false;
+      }
+      const data = { ...this.form, capital_contributions: cleanContributions(this.form.capital_contributions) };
       return this.run(
-        () => service({ requiresAuth: true }).put(`energy/partners/${this.partner.id}`, this.form).then(r => r.data),
+        () => service({ requiresAuth: true }).put(`energy/partners/${this.partner.id}`, data).then(r => r.data),
         "Dades desades",
         "No s'han pogut desar les dades"
       );

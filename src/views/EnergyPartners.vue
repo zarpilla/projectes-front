@@ -162,6 +162,8 @@ export default {
         "Data d'alta": "join_date",
         "Data de baixa": "leave_date",
         Privacitat: "privacy",
+        "Capital aportat (€)": "capital",
+        "Darrera aportació": "capital_date",
         CUPS: "cups",
         "CUPS correcte": "cups_ok",
         Titular: "holder_name",
@@ -181,7 +183,9 @@ export default {
           city: p.city,
           join_date: p.join_date,
           leave_date: p.leave_date,
-          privacy: p.privacy_accepted ? "Sí" : "No"
+          privacy: p.privacy_accepted ? "Sí" : "No",
+          capital: p.partner_amount === null || p.partner_amount === undefined ? null : Number(p.partner_amount),
+          capital_date: p.partner_amount_date
         };
         if (!p.supplies.length) return [base];
         return p.supplies.map(s => ({
