@@ -613,6 +613,7 @@ import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday } from "@/domain/projectTreasury.js";
+import { setValidationKeys } from "@/domain/treasuryValidation.js";
 
 export default {
   name: "Tresoreria",
@@ -1380,6 +1381,11 @@ export default {
     },
     async toggleValidation(row) {
       try {
+        // a line grouping several payrolls validates (or not) all of them (issues/347)
+        if (row.validation_keys && row.validation_keys.length > 1) {
+          row.is_validated = await setValidationKeys(row.validation_keys, !row.is_validated);
+          return;
+        }
         // Parse validation key to extract entity_type, entity_id, and sub_type
         const parts = row.validation_key.split(':');
         const entity_type = parts[0];

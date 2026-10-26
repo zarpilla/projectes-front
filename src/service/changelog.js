@@ -25,6 +25,16 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Diners"],
+      text: ["A ", { to: "/bestretes", label: "Bestretes" }, " hi ha un filtre «Mes»: sense triar persona, mostra les bestretes de totes les persones d'aquell mes, amb els totals, el compte bancari i els botons per veure-les i pagar-les."]
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " les nòmines d'un mes surten en una sola línia per compte bancari (i per data de pagament, si n'hi ha de diferents), en lloc d'una línia per persona. Passa igual amb l'IRPF, la Seguretat Social i «Altres». La línia porta les persones al contacte, enllaça a les bestretes d'aquell mes, i validar-la valida totes les nòmines que agrupa."]
+    },
+    {
+      type: "Novetats",
       modules: ["Projectes"],
       text: ["Les línies del pressupost d'un projecte es poden reordenar arrossegant-les per la nansa ⋮ de l'esquerra, dins de la mateixa fase (ingressos amb ingressos, despeses amb despeses). L'ordre es desa amb «Guardar», tant des del projecte com des de la fitxa d'una factura o despesa."]
     },
