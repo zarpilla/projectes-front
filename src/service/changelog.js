@@ -21,6 +21,26 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.26",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Comandes fora de temps: a ", { to: "/rutes", label: "Rutes" }, " es marca quines són «Ruta de tarda»; les seves recollides es poden informar fins a les 10 h del mateix dia (les rutes amb «TARDA» al nom ja ho porten marcat). Les hores límit es miren a l'hora d'aquí i no a la del servidor, i tornar a desar una comanda ja no la marca fora de temps per error. Les marques posades per error en comandes encara obertes s'han tret."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["Les comandes informades tard es diuen «Comanda fora de temps» (no «express»): l'albarà només hi porta un triangle d'avís ben visible, i la línia de factura diu «Fora de temps +N %»."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Plataforma"],
+      text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, " es pot triar la zona horària de l'entitat (per defecte, Europe/Andorra): és la que decideix quin dia és una data i les hores límit de les comandes."]
+    }
+  ]
+},
+{
   date: "2026.10.25",
   items: [
     {

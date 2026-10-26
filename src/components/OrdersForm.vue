@@ -9,7 +9,7 @@
         <span v-if="form.transfer" class="tag">Transferència · {{ transferStatus.toLowerCase() }}</span>
         <span v-if="form.is_collection_order" class="tag">Comanda de recollida</span>
         <!-- issues/315 -->
-        <span v-if="form.late_order" class="tag is-danger" data-test="late-order-tag">Comanda express</span>
+        <span v-if="form.late_order" class="tag is-danger" data-test="late-order-tag">Comanda fora de temps</span>
         <span v-if="form.late_pickup" class="tag is-danger" data-test="late-pickup-tag">Recollida informada tard</span>
       </template>
       <template v-if="form.id">
@@ -41,7 +41,7 @@
       </div>
       <!-- a late order or pickup, extraordinary (issues/315) -->
       <div v-if="form.id && (form.late_order || form.late_pickup)" class="notification is-danger is-light" data-test="late-notice">
-        <template v-if="form.late_order"><b>Comanda express.</b> S'ha informat després de l'hora límit<template v-if="lateSurcharge"> i porta un recàrrec del {{ percent(lateSurcharge) }} %</template>. </template>
+        <template v-if="form.late_order"><b>Comanda fora de temps.</b> S'ha informat després de l'hora límit<template v-if="lateSurcharge"> i porta un recàrrec del {{ percent(lateSurcharge) }} %</template>. </template>
         <template v-if="form.late_pickup"><b>Recollida informada tard.</b> </template>
         Coordinació mirarà d'adreçar-la si encara és possible.
       </div>
@@ -443,7 +443,7 @@
             <dl class="facts">
               <dt>Tarifa</dt><dd>{{ route_rate ? route_rate.name : "no trobada" }}</dd>
               <dt>Preu</dt><dd>{{ money(route_price) }}</dd>
-              <template v-if="lateSurcharge"><dt>Recàrrec express</dt><dd class="has-text-danger">+{{ percent(lateSurcharge) }} %</dd></template>
+              <template v-if="lateSurcharge"><dt>Recàrrec fora de temps</dt><dd class="has-text-danger">+{{ percent(lateSurcharge) }} %</dd></template>
               <template v-if="hasDiscount">
                 <dt>Descompte multientrega</dt><dd>−{{ percent(form.multidelivery_discount) }} %</dd>
                 <dt>Descompte recollida</dt><dd>−{{ percent(form.contact_pickup_discount) }} %</dd>
@@ -462,7 +462,7 @@
               @update:model-value="setLateOrder"
             >
               <b>Recàrrec per incidència</b>
-              <small>Comanda informada fora de l'hora límit: es pinta en vermell, l'albarà diu «COMANDA EXPRESS» i el preu porta un recàrrec del {{ percent(lateSurchargeSetting) }} %. Desmarca-la per anul·lar-ho.</small>
+              <small>Comanda informada fora de l'hora límit: es pinta en vermell, l'albarà porta un triangle d'avís i el preu porta un recàrrec del {{ percent(lateSurchargeSetting) }} %. Desmarca-la per anul·lar-ho.</small>
             </b-checkbox>
           </section>
 
@@ -586,7 +586,7 @@ import { contactName, contactLabel, matchesContact } from "@/domain/orderContact
 import { RATE_ORDERS_RELATIONS, populateQuery } from "@/domain/orderPopulate";
 import { depositNotice } from "@/domain/depositNotice";
 import { slotOf } from "@/domain/cityRoutes.js";
-import { isAfternoonSlot, lateRules, lateSurchargeOf, lateWarnings } from "@/domain/lateOrders.js";
+import { lateRules, lateSurchargeOf, lateWarnings } from "@/domain/lateOrders.js";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder, canTransfer as canTransferOrder } from "@/domain/orderStatus";
 
 export default {
@@ -1743,7 +1743,14 @@ export default {
             _tracking_user: currentUser.data
           };
 
-          // Format dates properly for backend
+          // Format dates properly for backend: the day as seen here, not a
+          // Date the server would read in UTC, a day early (issues/346)
+          if (orderData.estimated_delivery_date) {
+            orderData.estimated_delivery_date = moment(
+              orderData.estimated_delivery_date
+            ).format("YYYY-MM-DD");
+          }
+
           if (orderData.collection_pickup_date) {
             orderData.collection_pickup_date = moment(
               orderData.collection_pickup_date
@@ -1831,7 +1838,14 @@ export default {
             _tracking_user: currentUser.data
           };
 
-          // Format dates properly for backend
+          // Format dates properly for backend: the day as seen here, not a
+          // Date the server would read in UTC, a day early (issues/346)
+          if (orderData.estimated_delivery_date) {
+            orderData.estimated_delivery_date = moment(
+              orderData.estimated_delivery_date
+            ).format("YYYY-MM-DD");
+          }
+
           if (orderData.collection_pickup_date) {
             orderData.collection_pickup_date = moment(
               orderData.collection_pickup_date
@@ -2606,7 +2620,8 @@ export default {
     confirmLate() {
       if (this.dateRulesExempt || this.form.is_collection_order) return Promise.resolve(true);
       const route = (this.collectionPickupRoutes || []).find(r => r.id === this.form.collection_pickup_route);
-      const afternoon = isAfternoonSlot(route && (route.pickup_time_from || route.time_from));
+      // «Ruta de tarda» on the route (issues/346)
+      const afternoon = Boolean(route && route.afternoon);
       const warnings = lateWarnings(this.form, this.storedDates, this.ordersOptions, { afternoon });
       if (!warnings.length) return Promise.resolve(true);
       const escape = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

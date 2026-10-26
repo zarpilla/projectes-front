@@ -81,7 +81,7 @@ describe('assignRouteDate', () => {
     expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-08')
     expect(late).toBe(true)
     expect(warningCode(warning)).toBe('TOMORROW')
-    expect(warning).toContain('express')
+    expect(warning).toContain('fora de temps')
   })
 
   it('lets admins keep tomorrow after the cutoff', () => {

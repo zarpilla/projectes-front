@@ -28,6 +28,13 @@
               <b-field label="CCC" message="Codi de compte de cotització a la Seguretat Social."><b-input v-model="form.ccc" placeholder="Codi de compte de cotització" /></b-field>
               <b-field label="Calendari de l'entitat (iCal)" message="S'importa com a dedicació de totes les persones."><b-input v-model="form.ical" placeholder="https://…/calendari.ics" /></b-field>
               <b-field label="Adreça de l'aplicació" message="Es fa servir als enllaços dels correus, als codis QR de les comandes i als enllaços dels pressupostos." class="is-full"><b-input v-model="form.front_url" placeholder="https://…/" /></b-field>
+              <!-- issues/346: the server runs in UTC; days and hour limits follow this zone -->
+              <b-field label="Zona horària" message="Per saber quin dia és una data i per a les hores límit de les comandes. Per defecte, Europe/Andorra.">
+                <b-select v-model="form.time_zone" expanded data-test="time-zone">
+                  <option :value="null">Europe/Andorra</option>
+                  <option v-for="zone in timeZones" :key="zone" :value="zone">{{ zone }}</option>
+                </b-select>
+              </b-field>
             </div>
           </section>
 
@@ -239,10 +246,10 @@
                 </div>
               </b-field>
               <!-- late orders and pickups (issues/315) -->
-              <b-field label="Hora límit de les recollides de tarda" message="Una recollida de tarda (la franja de la ruta comença a les 13 h o més tard) informada el mateix dia a partir d'aquesta hora va tard. Les de matí van tard a partir de l'hora límit del dia laborable anterior.">
+              <b-field label="Hora límit de les recollides de tarda" message="Una recollida d'una «Ruta de tarda» (Rutes) informada el mateix dia a partir d'aquesta hora va tard. Les de les altres rutes van tard a partir de l'hora límit del dia laborable anterior.">
                 <b-input v-model.number="form.orders_options.pickup_same_day_limit_hour" type="number" step="1" min="0" max="23" placeholder="10" />
               </b-field>
-              <b-field label="Recàrrec de les comandes fora de temps (%)" message="Una comanda per a l'endemà informada després de l'hora límit es marca en vermell, l'albarà diu «COMANDA EXPRESS» i porta aquest recàrrec. Coordinació el pot treure a la comanda («Recàrrec per incidència»).">
+              <b-field label="Recàrrec de les comandes fora de temps (%)" message="Una comanda per a l'endemà informada després de l'hora límit es marca en vermell, l'albarà porta un triangle d'avís i aquest recàrrec (0: sense recàrrec). Coordinació el pot treure a la comanda («Recàrrec per incidència»).">
                 <b-input v-model.number="form.orders_options.late_surcharge" type="number" step="0.01" min="0" max="1000" placeholder="25" />
               </b-field>
               <b-field label="Missatge de les comandes fora de temps" class="is-full" message="Surt a la sòcia abans de desar una comanda fora de temps. {hora} l'hora límit per a l'endemà, {recarrec} el recàrrec. Buit: el text de sempre (el de l'exemple).">
@@ -394,6 +401,7 @@ export default {
         ccc: '',
         ical: '',
         front_url: '',
+        time_zone: null,
         quote_footer: '',
         invoice_footer: '',
         order_footer: '',
@@ -434,6 +442,19 @@ export default {
     await this.loadData();
   },
   computed: {
+    // the zones of Europe and the Atlantic islands, and the one saved
+    timeZones() {
+      let all = [];
+      try {
+        all = Intl.supportedValuesOf('timeZone');
+      } catch {
+        all = ['Europe/Andorra', 'Europe/Madrid', 'Atlantic/Canary', 'Europe/Lisbon', 'Europe/Paris'];
+      }
+      // Europe/Andorra is the empty value, the default
+      const zones = all.filter(z => /^(Europe|Atlantic)\//.test(z) && z !== 'Europe/Andorra');
+      if (this.form.time_zone && !zones.includes(this.form.time_zone)) zones.unshift(this.form.time_zone);
+      return zones;
+    },
     // «Dies laborables»: never set is Monday to Friday (lateOrders.js)
     workingDays: {
       get() {

@@ -128,7 +128,7 @@ const assignRouteDate = (route, options = {}) => {
     const when = nextDay.isSame(today.clone().add(1, "day"), "day") ? "demà" : nextDay.format("dddd");
     warning =
       `Vas tard per ${when}: les comandes s'han d'informar abans de les ${nextDayLimitHour} h del dia laborable anterior. ` +
-      `Si la deixes per ${when} serà una comanda express, amb recàrrec. Si no és urgent, tria un altre dia de la ruta.`;
+      `Si la deixes per ${when} serà una comanda fora de temps i pot portar recàrrec. Si no és urgent, tria un altre dia de la ruta.`;
   } else if (
     routeDaysOfWeek.includes(today.day()) &&
     nextDay.diff(today, "days") >= 7
