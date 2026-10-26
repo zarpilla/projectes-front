@@ -21,6 +21,21 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.26",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Projectes"],
+      text: ["Les línies del pressupost d'un projecte es poden reordenar arrossegant-les per la nansa ⋮ de l'esquerra, dins de la mateixa fase (ingressos amb ingressos, despeses amb despeses). L'ordre es desa amb «Guardar», tant des del projecte com des de la fitxa d'una factura o despesa."]
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A la fitxa d'una factura, ingrés, despesa, tiquet o dieta assignada a un projecte, la línia del projecte que porta aquest document surt marcada (fons groc i vora a l'esquerra), i el botó «Ves a la línia d'aquest document» hi porta directament, sense haver de buscar-la amb Ctrl+F."]
+    }
+  ]
+},
+{
   date: "2026.10.25",
   items: [
     {
