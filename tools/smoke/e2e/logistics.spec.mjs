@@ -1,7 +1,7 @@
 // Logistics beyond the basic order (orders.spec.mjs has that): the time slot of a
 // town on its route ("Franges", issues/314), closing a route on a day ("Rutes i
 // dies") and what it does to a new order's date, a late order of a member
-// (issues/315: warning, «Comanda express», surcharge, the office takes it off),
+// (issues/315: warning, «Comanda fora de temps», surcharge, the office takes it off),
 // "Dipòsits", "Transferències" (an order picked up in a town its route doesn't
 // go through), and an incidence handled in "Incidències" and counted in its
 // report ("Informe d'incidències").
@@ -168,7 +168,7 @@ test('"Rutes i dies": a route closed tomorrow moves a new order to the day after
   expect(await closures()).toEqual([])
 })
 
-test('a member\'s late order: warned, «Comanda express» with the surcharge, the office takes it off (issues/315)', async ({ browser }) => {
+test('a member\'s late order: warned, «Comanda fora de temps» with the surcharge, the office takes it off (issues/315)', async ({ browser }) => {
   test.skip(!state.memberPoint, 'needs the member')
   // past "Hora límit per a l'endemà" whatever the time of the run: 0 h
   const me = await api('GET', 'me?populate=orders_options')
@@ -212,9 +212,9 @@ test('a member\'s late order: warned, «Comanda express» with the surcharge, th
 
   // the office sees it as express, with the surcharge in the price
   await visit(`/comanda/${state.lateId}`)
-  await expect(page.locator('[data-test="late-order-tag"]')).toHaveText(/Comanda express/i)
+  await expect(page.locator('[data-test="late-order-tag"]')).toHaveText(/Comanda fora de temps/i)
   await expect(page.locator('[data-test="late-notice"]')).toContainText('recàrrec del 25')
-  await expect(page.locator('.facts').filter({ hasText: 'Recàrrec express' })).toContainText('+25')
+  await expect(page.locator('.facts').filter({ hasText: 'Recàrrec fora de temps' })).toContainText('+25')
   // and takes it off: "Recàrrec per incidència" unchecked
   await page.locator('[data-test="late-order-switch"]').click()
   await button('Guardar').click()
