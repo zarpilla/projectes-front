@@ -1610,7 +1610,7 @@ export default {
           message: 'Vols crear una nova línia i associar-li el document automàticament?',
           confirmText: 'Sí',
           cancelText: 'No',
-          type: 'is-info',
+          type: 'is-primary',
           onConfirm: () => {
             this.createSubPhase(phase, true);
           },
@@ -1664,7 +1664,7 @@ export default {
           message: 'Vols crear una nova línia i associar-li el document automàticament?',
           confirmText: 'Sí',
           cancelText: 'No',
-          type: 'is-info',
+          type: 'is-primary',
           onConfirm: () => {
             this.createSubExpense(phase, true);
           },
