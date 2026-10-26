@@ -2,6 +2,7 @@
   <div>
     <modal-box-dir3
       :is-active="isDir3ModalActive"
+      :nif="form.nif || ''"
       @select="onDir3Select"
       @cancel="isDir3ModalActive = false"
     />

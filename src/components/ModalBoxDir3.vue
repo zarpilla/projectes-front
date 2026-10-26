@@ -101,6 +101,11 @@ export default {
     isActive: {
       type: Boolean,
       default: false
+    },
+    // contact's NIF: when set, the modal opens with it filled in and searches
+    nif: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -119,6 +124,12 @@ export default {
       this.isModalActive = newValue;
       if (newValue) {
         this.resetSearch();
+        const nif = (this.nif || '').trim();
+        if (nif) {
+          this.searchType = 'nif';
+          this.searchQuery = nif;
+          this.search();
+        }
       }
     },
     isModalActive(newValue) {
