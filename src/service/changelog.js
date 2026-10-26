@@ -47,6 +47,21 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Diners"],
       text: ["A la fitxa d'una factura, ingrés, despesa, tiquet o dieta assignada a un projecte, la línia del projecte que porta aquest document surt marcada (fons groc i vora a l'esquerra), i el botó «Ves a la línia d'aquest document» hi porta directament, sense haver de buscar-la amb Ctrl+F."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística"],
+      text: ["Comandes fora de temps: a ", { to: "/rutes", label: "Rutes" }, " es marca quines són «Ruta de tarda»; les seves recollides es poden informar fins a les 10 h del mateix dia (les rutes amb «TARDA» al nom ja ho porten marcat). Les hores límit es miren a l'hora d'aquí i no a la del servidor, i tornar a desar una comanda ja no la marca fora de temps per error. Les marques posades per error en comandes encara obertes s'han tret."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["Les comandes informades tard es diuen «Comanda fora de temps» (no «express»): l'albarà només hi porta un triangle d'avís ben visible, i la línia de factura diu «Fora de temps +N %»."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Plataforma"],
+      text: ["A ", { to: "/administracio/configuracio", label: "Configuració general" }, " es pot triar la zona horària de l'entitat (per defecte, Europe/Andorra): és la que decideix quin dia és una data i les hores límit de les comandes."]
     }
   ]
 },

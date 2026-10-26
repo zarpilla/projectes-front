@@ -51,7 +51,9 @@ export function routeToForm (route, routes = []) {
     volume_discount_price: r.volume_discount_price ?? null,
     // the usual time slot (issues/314), as HH:mm for the time inputs
     time_from: timeInput(r.time_from),
-    time_to: timeInput(r.time_to)
+    time_to: timeInput(r.time_to),
+    // «Ruta de tarda»: its pickups are on time until 10 h of the day (issues/346)
+    afternoon: Boolean(r.afternoon)
   }
   for (const d of WEEKDAYS) form[d.key] = Boolean(r[d.key])
   return form
@@ -101,7 +103,8 @@ export function routePayload (form) {
     volume_discount_number_of_orders: numberOrNull(form.volume_discount_number_of_orders),
     volume_discount_price: numberOrNull(form.volume_discount_price),
     time_from: timeValue(form.time_from),
-    time_to: timeValue(form.time_from) ? timeValue(form.time_to) : null
+    time_to: timeValue(form.time_from) ? timeValue(form.time_to) : null,
+    afternoon: Boolean(form.afternoon)
   }
   for (const d of WEEKDAYS) data[d.key] = Boolean(form[d.key])
   return data

@@ -98,6 +98,11 @@
             </b-field>
           </b-field>
 
+          <!-- issues/346: said by the route, not guessed from its name or slot -->
+          <b-field message="Les recollides d'aquesta ruta es poden informar fins a l'hora límit de les recollides de tarda del mateix dia (Configuració › Logística). Les de les altres rutes, fins a l'hora límit del dia laborable anterior.">
+            <b-checkbox v-model="form.afternoon" data-test="route-afternoon">Ruta de tarda</b-checkbox>
+          </b-field>
+
           <b-field label="Repartidor/a" message="Qui la fa a Operacions">
             <b-select v-model="form.delivery_user" expanded>
               <option :value="null">— Cap —</option>
