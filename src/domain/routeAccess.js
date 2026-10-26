@@ -35,6 +35,7 @@ export const ROUTE_PERMISSIONS = {
   '/pressupostos': PROJECTS,
   '/bestretes': PROJECTS,
   '/iva': PROJECTS,
+  '/irpf': PROJECTS,
   '/tresoreria': PROJECTS,
   '/panell-projectes': PROJECTS,
   '/panell-detall-economic': PROJECTS,

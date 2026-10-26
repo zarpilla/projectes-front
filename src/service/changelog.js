@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
+      text: ["Nova pantalla ", { to: "/irpf", label: "IRPF" }, " (Diners): l'IRPF que es paga a Hisenda cada trimestre (model 111), el ja pagat, el pendent i el proper pagament, i el detall de cada nòmina, factura i despesa rebuda amb retenció (base, % i import). Es pot filtrar per any, trimestre i origen."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Diners"],
       text: ["A ", { to: "/bestretes", label: "Bestretes" }, " hi ha un filtre «Mes»: sense triar persona, mostra les bestretes de totes les persones d'aquell mes, amb els totals, el compte bancari i els botons per veure-les i pagar-les."]
     },
     {

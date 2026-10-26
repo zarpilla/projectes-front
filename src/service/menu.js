@@ -70,6 +70,12 @@ const menu = [
       permission: "projects"
     },
     {
+      to: "/irpf",
+      icon: "cash-minus",
+      label: "IRPF",
+      permission: "projects"
+    },
+    {
       to: "/tresoreria",
       icon: "bank-outline",
       label: "Tresoreria",

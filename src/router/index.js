@@ -314,6 +314,17 @@ const routes = [
     props: true,
   },
   {
+    // issues/348
+    meta: {
+      title: "IRPF",
+      requiresAuth: true
+    },
+    path: "/irpf",
+    name: "irpf.view",
+    component: () =>
+      import("../views/Irpf.vue"),
+  },
+  {
     meta: {
       title: "Factures emeses",
       requiresAuth: true
