@@ -29,12 +29,13 @@
       <div class="doc-kpi">
         <span>Pagat</span>
         <b>{{ money(totals.paid) }}</b>
-        <small>amb la data de pagament passada</small>
+        <small>nòmines pagades i factures amb la data passada</small>
       </div>
       <div class="doc-kpi">
         <span>Pendent</span>
         <b :class="totals.pending ? 'has-text-danger' : ''">{{ money(totals.pending) }}</b>
-        <small>a pagar a Hisenda</small>
+        <small v-if="totals.overdue" class="has-text-danger">{{ money(totals.overdue) }} endarrerit (nòmines sense pagar)</small>
+        <small v-else>a pagar a Hisenda</small>
       </div>
       <div class="doc-kpi">
         <span>Proper pagament</span>
@@ -170,11 +171,17 @@ export default {
   name: "IrpfTable",
   data() {
     const current = moment().year();
+    // from Tresoreria's IRPF lines: «?any=2026&trimestre=3»
+    const query = (this.$route && this.$route.query) || {};
+    const queryYear = Number(query.any);
+    const queryQuarter = Number(query.trimestre);
+    const years = [current + 1, current, current - 1, current - 2, current - 3, current - 4];
+    if (Number.isInteger(queryYear) && queryYear > 1900 && !years.includes(queryYear)) years.push(queryYear);
     return {
       isLoading: false,
-      year: current,
-      years: [current + 1, current, current - 1, current - 2, current - 3, current - 4],
-      quarter: null,
+      year: years.includes(queryYear) ? queryYear : current,
+      years,
+      quarter: [1, 2, 3, 4].includes(queryQuarter) ? queryQuarter : null,
       kind: null,
       kindFilters: KIND_FILTERS,
       data: EMPTY
@@ -196,6 +203,12 @@ export default {
     year() {
       this.quarter = null;
       this.load();
+    },
+    "$route.query"(query) {
+      const year = Number(query && query.any);
+      const quarter = Number(query && query.trimestre);
+      if (this.years.includes(year) && year !== this.year) this.year = year;
+      this.$nextTick(() => { this.quarter = [1, 2, 3, 4].includes(quarter) ? quarter : null; });
     }
   },
   mounted() {

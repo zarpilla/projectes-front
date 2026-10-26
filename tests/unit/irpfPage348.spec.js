@@ -50,9 +50,9 @@ describe('IRPF rows (issues/348)', () => {
 })
 
 describe('IRPF page (issues/348)', () => {
-  const mountPage = async () => {
+  const mountPage = async (query = {}) => {
     const w = mount(IrpfTable, {
-      global: { plugins: [Buefy], stubs: { 'b-loading': true, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
+      global: { plugins: [Buefy], mocks: { $route: { query } }, stubs: { 'b-loading': true, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
     })
     await flushPromises()
     return w
@@ -75,5 +75,17 @@ describe('IRPF page (issues/348)', () => {
     await w.findAll('.irpf-table tbody tr')[1].trigger('click')
     expect(w.findAll('.irpf-documents tbody tr')).toHaveLength(1)
     expect(w.find('.irpf-totals').text()).toContain('95,00 €')
+  })
+
+  it('opens the year and quarter of a Tresoreria IRPF line', async () => {
+    const w = await mountPage({ any: '2025', trimestre: '2' })
+    expect(get.mock.calls[0][0]).toBe('treasuries/irpf?year=2025')
+    expect(w.findAll('.irpf-documents tbody tr')).toHaveLength(1)
+  })
+
+  it('shows what is overdue', async () => {
+    get.mockResolvedValue({ data: { ...answer, totals: { ...answer.totals, overdue: 95, next: null } } })
+    const w = await mountPage()
+    expect(w.text()).toContain('95,00 € endarrerit')
   })
 })

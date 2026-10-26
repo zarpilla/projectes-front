@@ -26,7 +26,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: ["Nova pantalla ", { to: "/irpf", label: "IRPF" }, " (Diners): l'IRPF que es paga a Hisenda cada trimestre (model 111), el ja pagat, el pendent i el proper pagament, i el detall de cada nòmina, factura i despesa rebuda amb retenció (base, % i import). Es pot filtrar per any, trimestre i origen."]
+      text: ["Nova pantalla ", { to: "/irpf", label: "IRPF" }, " (Diners): l'IRPF que es paga a Hisenda cada trimestre (model 111), el ja pagat (com a Tresoreria: les nòmines quan estan pagades), el pendent, l'endarrerit i el proper pagament, i el detall de cada nòmina, factura i despesa rebuda amb retenció (base, % i import). Es pot filtrar per any, trimestre i origen."]
     },
     {
       type: "Novetats",
@@ -36,7 +36,7 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Diners"],
-      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " les nòmines d'un mes surten en una sola línia per compte bancari (i per data de pagament, si n'hi ha de diferents), en lloc d'una línia per persona. Passa igual amb l'IRPF, la Seguretat Social i «Altres». La línia porta les persones al contacte, enllaça a les bestretes d'aquell mes, i validar-la valida totes les nòmines que agrupa."]
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " les nòmines d'un mes surten en una sola línia per compte bancari (i per data de pagament, si n'hi ha de diferents), en lloc d'una línia per persona. L'IRPF, la Seguretat Social i «Altres», que es paguen d'un cop per a diversos mesos, surten en una línia per data de pagament (l'IRPF, una per trimestre, separant les nòmines encara no pagades). La línia porta les persones al contacte, enllaça a les bestretes del mes (o a la pantalla IRPF), i validar-la valida totes les nòmines que agrupa."]
     },
     {
       type: "Novetats",
