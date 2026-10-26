@@ -32,8 +32,8 @@ const VERIFACTU = {
 const FACE = {
   missing: { label: "No enviada", tag: "" },
   pending: { label: "Pendent", tag: "is-warning" },
-  registered: { label: "Registrada", tag: "is-info is-light" },
-  delivered: { label: "Lliurada", tag: "is-success is-light" },
+  registered: { label: "Registrada", tag: "is-success is-light" },
+  delivered: { label: "Lliurada", tag: "is-success" },
   rejected: { label: "Rebutjada", tag: "is-danger is-light" },
   error: { label: "Error", tag: "is-danger is-light" }
 };

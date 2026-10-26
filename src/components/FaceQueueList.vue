@@ -43,7 +43,7 @@
           sortable
           v-slot="props"
         >
-          <b-tag :type="props.row.mode === 'real' ? 'is-success' : 'is-info'">
+          <b-tag :type="props.row.mode === 'real' ? 'is-success' : 'is-warning'">
             {{ props.row.mode }}
           </b-tag>
         </b-table-column>
@@ -150,7 +150,7 @@ export default {
     getStatusType(status) {
       const types = {
         pending: 'is-warning',
-        registered: 'is-info',
+        registered: 'is-success is-light',
         delivered: 'is-success',
         rejected: 'is-danger',
         error: 'is-danger'

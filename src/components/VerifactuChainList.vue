@@ -43,7 +43,7 @@
           sortable
           v-slot="props"
         >
-          <b-tag :type="props.row.mode === 'real' ? 'is-success' : 'is-info'">
+          <b-tag :type="props.row.mode === 'real' ? 'is-success' : 'is-warning'">
             {{ props.row.mode }}
           </b-tag>
         </b-table-column>
