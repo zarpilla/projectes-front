@@ -60,7 +60,7 @@ Tots els documents econòmics lligats al projecte, cadascun en una fila:
 | **Subtipus** | Factura emesa, factura rebuda, subvenció rebuda, tiquet, dieta, o el tipus de l'ingrés o la despesa. |
 | **Emès** | La data del document. |
 | **Document** | El número del document. |
-| **Contacte** | El client o el proveïdor. |
+| **Contacte** | La clienta o la proveïdora. |
 | **Import** | Positiu per als ingressos, negatiu per a les despeses. |
 | **Pagat** | **SÍ** si ja s'ha cobrat o pagat. |
 | **Data de pagament** | Quan es va cobrar o pagar. |

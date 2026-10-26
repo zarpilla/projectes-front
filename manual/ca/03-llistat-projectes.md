@@ -45,7 +45,7 @@ Clicant el nom d'un projecte s'obre la seva fitxa.
 
 | Columna | Què mostra |
 |---|---|
-| **Nom** | El nom del projecte i, a sota, el primer client (o *Sense clienta*). |
+| **Nom** | El nom del projecte i, a sota, la primera clienta (o *Sense clienta*). |
 | **Coordina** | La persona que el coordina. |
 | **Àmbit** | L'àmbit del projecte. |
 | **Hores fetes / previstes** | Les hores imputades fins ara i les previstes. La barra mostra el percentatge fet; es torna **taronja** quan se n'han fet més de les previstes. Si el projecte no té hores previstes, hi diu *sense previsió*. |

@@ -98,7 +98,7 @@ local, administració) que no són de cap projecte concret.
 **Sèrie** — Numeració de les factures o pressupostos (per exemple, una sèrie per a cada any o per a les
 factures rectificatives).
 
-**Sòcia (logística)** — Productora que encarrega a la cooperativa el transport de les seves comandes i el paga. Té un usuari amb el permís de sòcia i una fitxa de contacte a nom de la qual es factura. Vegeu [38. Guia per a sòcies](38-guia-socies-logistica.md).
+**Sòcia (logística)** — Productora que encarrega a la cooperativa el transport de les seves comandes i el paga. Té una usuària amb el permís de sòcia i una fitxa de contacte a nom de la qual es factura. Vegeu [38. Guia per a sòcies](38-guia-socies-logistica.md).
 
 **Tancament de ruta** — Dia en què una ruta no surt. Les comandes noves passen al dia següent de la ruta; les que ja hi eren no es mouen.
 

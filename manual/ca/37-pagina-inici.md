@@ -21,7 +21,7 @@ pantalles que fa servir més, a un clic. També s'hi tria quina pantalla s'obre 
 
 No cal cap permís ni cap configuració. Cada persona té el seu Inici: el que una persona fixa no canvia el de
 les altres. Només es poden fixar pantalles que la persona pot obrir (vegeu
-[02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)).
+[02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)).
 
 ## La pantalla
 
@@ -126,5 +126,5 @@ obrir. Les fitxes concretes (un projecte, una factura) no es poden fixar.
 ## Vegeu també
 
 - [01. Primers passos](01-primers-passos.md): entrar a l'aplicació i el menú lateral.
-- [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md): per què cada persona veu pantalles diferents.
+- [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md): per què cada persona veu pantalles diferents.
 - [10. Tasques](10-tasques.md): les tasques vençudes i les novetats.

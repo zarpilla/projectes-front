@@ -21,7 +21,7 @@ comanda i què veu cada perfil. Els capítols següents expliquen cada pantalla.
 
 ## Abans de començar
 
-Cada persona veu la logística segons el seu permís (vegeu [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)):
+Cada persona veu la logística segons el seu permís (vegeu [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)):
 
 | Permís | Qui és | Què fa |
 |---|---|---|
@@ -141,4 +141,4 @@ als botons **Escaneja…** de **Dipòsits** i **Transferències**, i els albaran
 - [31. Dipòsits, transferències i operacions](31-diposits-transferencies-operacions.md)
 - [32. Incidències i contacte](32-incidencies-contacte.md)
 - [33. Facturació de la logística](33-facturacio-logistica.md)
-- [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)
+- [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)

@@ -6,7 +6,7 @@
   "manuals": [
     {
       "id": "usuari",
-      "title": "Manual d'usuari",
+      "title": "Manual d'usuària",
       "description": "Com es fa servir ESSTRAPIS, pantalla a pantalla, per a les persones de les entitats.",
       "langs": ["ca"],
       "modules": [

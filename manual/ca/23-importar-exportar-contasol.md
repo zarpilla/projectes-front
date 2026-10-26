@@ -18,7 +18,7 @@ Dues pantalles del bloc **Altres** treuen dades de l'aplicació o n'hi carreguen
 
 - **Importar/Exportar**: els **contactes** (i, a les entitats amb logística, els punts d'entrega) en fitxers
   CSV, per treballar-los en un full de càlcul o carregar-ne molts de cop.
-- **Contasol**: els fitxers per passar clients, proveïdores, factures i IVA al programa de comptabilitat
+- **Contasol**: els fitxers per passar clientes, proveïdores, factures i IVA al programa de comptabilitat
   **Contasol**.
 
 A més, la majoria de llistats (projectes, ingressos, despeses, tresoreria, informes…) tenen el seu botó

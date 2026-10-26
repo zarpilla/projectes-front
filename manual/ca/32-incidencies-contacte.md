@@ -91,7 +91,7 @@ pantalla **Incidències**; al títol de la caixa, una etiqueta diu quantes n'hi 
 
 Clicant una fila, a la dreta surt la incidència: la comanda i el seu estat, el **Punt**, la **Sòcia**, la
 **Ruta**, qui l'ha creada i quan, les dates **Prevista / lliurada** de la comanda i, si està tancada, quan i
-qui l'ha tancada. A sota hi ha la conversa: la descripció inicial i les respostes, cadascuna amb l'autor i
+qui l'ha tancada. A sota hi ha la conversa: la descripció inicial i les respostes, cadascuna amb l'autora i
 l'hora.
 
 ### 3. Respondre, posar en procés i tancar
@@ -107,7 +107,7 @@ Mentre la incidència no està tancada, a sota de la conversa hi ha:
 
 Cada resposta nova envia un correu a l'oficina (el **Correu que rep els missatges** de **Configuració
 general** i totes les persones actives amb el permís `orders_admin`) i a la sòcia de la comanda, menys a qui
-l'ha escrita. El correu porta tota la conversa, amb l'autor de cada resposta. Una adreça no rep mai el mateix
+l'ha escrita. El correu porta tota la conversa, amb l'autora de cada resposta. Una adreça no rep mai el mateix
 correu dues vegades.
 
 Un canvi d'estat sense resposta (**Marca en procés**, **Tanca**) envia un correu només a l'oficina (el
@@ -206,9 +206,9 @@ que es van obrir en el període triat; la pantalla **Incidències** les compta t
 
 **El Temps mitjà de tancament surt «—».** No s'ha tancat cap incidència en els últims tres mesos.
 
-**Una sòcia no rep els correus de les incidències.** Els correus van a l'adreça de l'usuari de la sòcia. Si
+**Una sòcia no rep els correus de les incidències.** Els correus van a l'adreça de la usuària de la sòcia. Si
 l'oficina no rep els seus, cal revisar el **Correu que rep els missatges** a **Configuració general** (vegeu
-[34. Configuració general](34-configuracio-general.md)) i l'adreça de cada usuari amb el permís
+[34. Configuració general](34-configuracio-general.md)) i l'adreça de cada usuària amb el permís
 `orders_admin`.
 
 **No rebo el correu de la resposta que he escrit jo.** És normal: qui escriu una resposta no en rep el

@@ -161,7 +161,7 @@ La fletxa del començament de la fila obre el detall:
 
 - **Informació de la comanda**: el punt d'entrega, la ciutat, l'adreça, el telèfon i els comentaris.
 - **Estat de la transferència**: **Inici transferència** i **Fi transferència**, cadascun amb la data i
-  l'usuari que l'ha marcat, i un botó **Eliminar** per treure la marca. Si encara no s'ha fet, hi ha el botó
+  la usuària que l'ha marcat, i un botó **Eliminar** per treure la marca. Si encara no s'ha fet, hi ha el botó
   **Iniciar transferència** o **Finalitzar transferència** (la fi no es pot marcar abans de l'inici: *Cal
   iniciar la transferència primer*).
 

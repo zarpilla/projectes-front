@@ -25,7 +25,7 @@ hores treballa cada dia, el salari, la Seguretat Social i el **cost per hora** q
 
 ## Abans de començar
 
-- Les persones són les **usuàries** de l'aplicació (vegeu [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)).
+- Les persones són les **usuàries** de l'aplicació (vegeu [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)).
 - Les **hores anuals** de jornada completa de cada any (per calcular el cost per hora) es configuren a
   **Administració › Taules auxiliars › Anys**. Si un any no en té, es fan servir 1.764 hores.
 

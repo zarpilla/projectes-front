@@ -1,4 +1,4 @@
-# Manual d'usuari d'ESSTRAPIS
+# Manual d'usuària d'ESSTRAPIS
 
 Generat a partir de [TOPICS.md](../TOPICS.md). Els capítols encara no escrits no tenen enllaç.
 
@@ -7,7 +7,7 @@ Generat a partir de [TOPICS.md](../TOPICS.md). Els capítols encara no escrits n
 ## A. Introducció
 - [00. Què és ESSTRAPIS](00-que-es-esstrapis.md)
 - [01. Primers passos](01-primers-passos.md)
-- [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)
+- [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)
 - [37. La pàgina d'inici](37-pagina-inici.md)
 
 ## B. Projectes
