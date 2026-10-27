@@ -17,7 +17,7 @@
           <b>{{ longDay(h.date) }} és festiu</b> i {{ h.routes.length === 1 ? "la ruta" : `les ${h.routes.length} rutes` }} d'aquell dia
           {{ h.routes.length === 1 ? "hi és oberta" : "hi són obertes" }}<template v-if="h.orders">, amb {{ h.orders }} {{ h.orders === 1 ? "comanda prevista" : "comandes previstes" }}</template>.
         </span>
-        <b-button v-if="canEdit" size="is-small" :loading="saving" @click="closeAll(h)">Tanca les rutes del {{ shortDay(h.date) }}</b-button>
+        <b-button v-if="canEdit" size="is-small" :loading="saving" @click="openCloseAll(h)">Tanca les rutes del {{ shortDay(h.date) }}</b-button>
       </div>
 
       <div class="rd-layout">
@@ -59,11 +59,13 @@
                       class="rd-cell"
                       :class="{ 'is-closed': !cell.open, 'is-holiday': cell.open && cell.holiday, 'is-past': cell.past }"
                       :disabled="canEdit && saving"
-                      :title="canEdit ? (cell.open ? 'Clica per tancar la ruta aquest dia' : 'Clica per obrir la ruta aquest dia') : ''"
-                      @click="canEdit && toggle(route, cell)"
+                      :title="cellTitle(cell)"
+                      @click="canEdit && openClosure(route, cell)"
                     >
                       <b>{{ shortDay(cell.date) }}</b>
                       <span>{{ cell.open ? (cell.holiday ? "Oberta · festiu" : "Oberta") : "Tancada" }}</span>
+                      <!-- the substitute route of a closure (issues/355) -->
+                      <span v-if="cell.closure && cell.closure.substitute_route" class="rd-substitute">→ {{ substituteText(cell.closure) }}</span>
                       <small>{{ cell.orders ? `${cell.orders} com.` : "—" }}</small>
                     </component>
                   </td>
@@ -97,6 +99,44 @@
         </aside>
       </div>
     </section>
+
+    <!-- closing a route on a day: why, and where its orders go (issues/354, 355) -->
+    <b-modal v-model="closureModal.active" has-modal-card :can-cancel="['escape', 'outside']">
+      <form class="modal-card" data-test="closure-modal" @submit.prevent="saveClosure">
+        <header class="modal-card-head">
+          <p class="modal-card-title">{{ closureModal.title }}</p>
+        </header>
+        <section class="modal-card-body">
+          <b-field label="Motiu" message="Les sòcies el veuen a «Avisos» i en triar la ruta a la comanda.">
+            <b-input v-model="closureModal.reason" type="textarea" rows="2" placeholder="Per exemple: festiu del 23 d'octubre" />
+          </b-field>
+          <template v-if="!closureModal.bulk">
+            <b-field label="Ruta alternativa" message="Opcional. Les sòcies de les poblacions d'aquesta ruta hi podran enviar les comandes d'aquell dia, des de 10 dies abans.">
+              <b-select v-model="closureModal.substituteRoute" expanded data-test="substitute-route">
+                <option :value="null">Cap</option>
+                <option v-for="r in allRoutes" :key="r.id" :value="r.id">{{ r.name }}{{ r.active ? "" : " (inactiva)" }}</option>
+              </b-select>
+            </b-field>
+            <b-field v-if="closureModal.substituteRoute" label="Dia de la ruta alternativa">
+              <b-datepicker
+                v-model="closureModal.substituteDate"
+                :show-week-number="false"
+                :locale="'ca-ES'"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                trap-focus
+                data-test="substitute-date"
+              />
+            </b-field>
+          </template>
+        </section>
+        <footer class="modal-card-foot">
+          <b-button native-type="submit" type="is-primary" :loading="saving">{{ closureModal.closure ? "Desa" : "Tanca la ruta" }}</b-button>
+          <b-button v-if="closureModal.closure" type="is-danger" outlined :loading="saving" data-test="reopen" @click="reopen">Reobre la ruta</b-button>
+          <b-button @click="closureModal.active = false">Cancel·la</b-button>
+        </footer>
+      </form>
+    </b-modal>
   </div>
 </template>
 
@@ -124,6 +164,9 @@ export default {
       canEdit: false,
       isOffice: false,
       routes: [],
+      // every route, inactive ones too: a special route for a holiday (issues/355)
+      allRoutes: [],
+      closureModal: { active: false, title: "", bulk: null, route: null, date: null, closure: null, reason: "", substituteRoute: null, substituteDate: null },
       closures: [],
       holidays: [],
       orders: [],
@@ -180,11 +223,13 @@ export default {
     this.canEdit = permissions.includes("orders_admin") || permissions.includes("orders_delivery");
     this.isOffice = permissions.includes("orders_admin");
     this.isLoading = true;
-    const [routes, cities, cityRoutes] = await Promise.all([
+    const [routes, cities, cityRoutes, allRoutes] = await Promise.all([
       service({ requiresAuth: true, cached: true }).get("routes?_sort=order&_where[active]=true&_limit=-1").then(r => r.data),
       service({ requiresAuth: true, cached: true }).get("cities?_sort=name&_limit=-1").then(r => r.data),
-      service({ requiresAuth: true, cached: false }).get("city-routes/basic").then(r => r.data)
+      service({ requiresAuth: true, cached: false }).get("city-routes/basic").then(r => r.data),
+      service({ requiresAuth: true, cached: true }).get("routes?_sort=name&_limit=-1").then(r => r.data).catch(() => [])
     ]);
+    this.allRoutes = allRoutes;
     this.routes = routes;
     this.cities = cities.map(c => ({ id: c.id, name: c.name }));
     this.cityRoutes = cityRoutes;
@@ -245,31 +290,88 @@ export default {
       this.offset = 0;
       await this.shift(0);
     },
-    async toggle(route, cell) {
+    cellTitle(cell) {
+      if (cell.closure && cell.closure.reason) return cell.closure.reason;
+      if (!this.canEdit) return "";
+      return cell.open ? "Clica per tancar la ruta aquest dia" : "Clica per canviar el tancament o reobrir la ruta";
+    },
+    substituteText(closure) {
+      const r = closure.substitute_route;
+      const name = r ? r.short_name || r.name : "";
+      return closure.substitute_date ? `${name} ${this.shortDay(closure.substitute_date)}` : name;
+    },
+    // a click on a day: close it (with a reason and maybe a substitute route),
+    // or change or reopen its closure (issues/355)
+    openClosure(route, cell) {
+      const c = cell.closure;
+      this.closureModal = {
+        active: true,
+        title: `${c ? "Tancament de" : "Tancar"} ${route.short_name || route.name} · ${this.longDay(cell.date)}`,
+        bulk: null,
+        route,
+        date: cell.date,
+        closure: c,
+        reason: (c && c.reason) || "",
+        substituteRoute: c && c.substitute_route ? c.substitute_route.id || c.substitute_route : null,
+        substituteDate: c && c.substitute_date ? moment(c.substitute_date, "YYYY-MM-DD").toDate() : null
+      };
+    },
+    openCloseAll(holiday) {
+      this.closureModal = {
+        active: true,
+        title: `Tancar les rutes del ${this.longDay(holiday.date)}`,
+        bulk: holiday,
+        route: null,
+        date: holiday.date,
+        closure: null,
+        reason: "",
+        substituteRoute: null,
+        substituteDate: null
+      };
+    },
+    async saveClosure() {
+      const m = this.closureModal;
+      // the dates as the local YYYY-MM-DD: a Date would be sent as UTC and
+      // stored one day early
+      const substitute = m.substituteRoute && !m.bulk;
+      if (substitute && !m.substituteDate) {
+        this.$buefy.snackbar.open({ message: "Tria el dia de la ruta alternativa", type: "is-warning", queue: false });
+        return;
+      }
+      const data = {
+        reason: m.reason || null,
+        substitute_route: substitute ? m.substituteRoute : null,
+        substitute_date: substitute ? moment(m.substituteDate).format("YYYY-MM-DD") : null
+      };
       this.saving = true;
       try {
-        if (cell.open) {
-          // the date as the local YYYY-MM-DD: a Date would be sent as UTC and
-          // stored one day early
-          await service({ requiresAuth: true }).post("route-festives", { date: cell.date, route: route.id });
-        } else if (cell.closure) {
-          await service({ requiresAuth: true }).delete(`route-festives/${cell.closure.id}`);
+        if (m.bulk) {
+          for (const route of m.bulk.routes) {
+            await service({ requiresAuth: true }).post("route-festives", { date: m.date, route: route.id, reason: data.reason });
+          }
+        } else if (m.closure) {
+          await service({ requiresAuth: true }).put(`route-festives/${m.closure.id}`, data);
+        } else {
+          await service({ requiresAuth: true }).post("route-festives", { date: m.date, route: m.route.id, ...data });
         }
+        this.closureModal.active = false;
         await this.getData();
       } catch (e) {
-        this.$buefy.snackbar.open({ message: "No s'ha pogut desar", type: "is-danger", queue: false });
+        const message = (e && e.data && (e.data.message || (e.data.error && e.data.error.message))) || "No s'ha pogut desar";
+        this.$buefy.snackbar.open({ message, type: "is-danger", queue: false });
       } finally {
         this.saving = false;
       }
     },
-    async closeAll(holiday) {
+    async reopen() {
+      const m = this.closureModal;
       this.saving = true;
       try {
-        for (const route of holiday.routes) {
-          await service({ requiresAuth: true }).post("route-festives", { date: holiday.date, route: route.id });
-        }
+        await service({ requiresAuth: true }).delete(`route-festives/${m.closure.id}`);
+        this.closureModal.active = false;
         await this.getData();
-        this.$buefy.snackbar.open({ message: `Rutes tancades el ${this.shortDay(holiday.date)}`, queue: false });
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut desar", type: "is-danger", queue: false });
       } finally {
         this.saving = false;
       }
@@ -397,6 +499,10 @@ button.rd-cell:hover {
   border-color: var(--a-warn-line);
   background: var(--a-warn-bg);
   color: var(--a-warn-fg);
+}
+.rd-substitute {
+  font-weight: 700;
+  color: var(--a-fg-2);
 }
 .rd-cell.is-past {
   opacity: .6;

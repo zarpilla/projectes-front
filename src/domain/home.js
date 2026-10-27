@@ -9,6 +9,14 @@ import { currentPath } from '@/router/paths'
 
 export const HOME_PATH = '/inici'
 
+// the members' «Avisos» (issues/354, 355): route closures with their reason and
+// substitute route, the coming holidays and the unpaid invoices. A member (only
+// `orders`, no staff or projects permission) lands there after login.
+export const BOARD_PATH = '/avisos'
+const NOT_MEMBER_ONLY = ['projects', 'admin', 'orders_admin', 'orders_delivery']
+export const isMemberOnly = permissions =>
+  Array.isArray(permissions) && permissions.includes('orders') && !permissions.some(p => NOT_MEMBER_ONLY.includes(p))
+
 // what «En entrar, obre» can be
 export const LANDINGS = ['home', 'usual', 'first']
 
@@ -76,6 +84,7 @@ export function visiblePins (pins, permissions) {
 
 /** Where to go after login (or from the login page with a session). */
 export function landingFor (prefs, permissions) {
+  if (isMemberOnly(permissions)) return BOARD_PATH
   const usual = landingPath(permissions)
   const landing = prefs ? prefs.landing : 'home'
   if (landing === 'usual') return usual

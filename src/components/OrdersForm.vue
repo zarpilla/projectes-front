@@ -144,7 +144,7 @@
                     type="button"
                     class="button pill"
                     :class="{ 'is-warning': form.route === s.id, 'is-outlined': form.route !== s.id }"
-                    :data-day="routeDays(s)"
+                    :data-day="s.substitute ? substituteDayText(s) : routeDays(s)"
                     :disabled="!canEdit"
                     @click="form.route = s.id; changeRoute();"
                   >{{ s.name }}</button>
@@ -587,6 +587,7 @@ import { RATE_ORDERS_RELATIONS, populateQuery } from "@/domain/orderPopulate";
 import { depositNotice } from "@/domain/depositNotice";
 import { slotOf } from "@/domain/cityRoutes.js";
 import { lateRules, lateSurchargeOf, lateWarnings } from "@/domain/lateOrders.js";
+import { townSubstitutes, isSubstituteDay, closureNotice, closureText } from "@/domain/routeClosures.js";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder, canTransfer as canTransferOrder } from "@/domain/orderStatus";
 
 export default {
@@ -1455,7 +1456,20 @@ export default {
           )
         ).data;
       }
-      if (this.form.route && !this.form.is_collection_order && !keepDate) {
+      const chosen = this.routes.find(r => r.id === this.form.route);
+      if (this.form.route && !this.form.is_collection_order && !keepDate && chosen && chosen.substitute) {
+        // a substitute route runs on its own day only (issues/355)
+        if (this.form.status === "pending") {
+          this.form.estimated_delivery_date = moment(chosen.substitute.date, "YYYY-MM-DD").toDate();
+        }
+        this.dateWarningMessage = closureText({
+          route: chosen.substitute.closedRoute,
+          date: chosen.substitute.closedDate,
+          reason: chosen.substitute.reason,
+          substitute_route: chosen,
+          substitute_date: chosen.substitute.date
+        });
+      } else if (this.form.route && !this.form.is_collection_order && !keepDate) {
         const route = this.routes.find(r => r.id === this.form.route);
         
         // Check if route has any days configured
@@ -1480,10 +1494,13 @@ export default {
           if (this.form.status === "pending") {
             this.form.estimated_delivery_date = nextDay.toDate();
           }
-          if (routeDate.warning) {
-            this.dateWarningMessage = routeDate.warning;
+          // a closure of the route before that day, with its reason or substitute (issues/355)
+          const closure = closureNotice(route, this.routeFestives, { until: nextDay });
+          const warning = [closure ? closureText(closure) : "", routeDate.warning].filter(Boolean).join(" ");
+          if (warning) {
+            this.dateWarningMessage = warning;
             this.$buefy.toast.open({
-              message: routeDate.warning,
+              message: warning,
               type: "is-warning"
             });
           } else {
@@ -1503,11 +1520,10 @@ export default {
       }
 
       const route = this.routes.find(r => r.id === this.form.route);
-      const valid = checkIfDateIsValidInroute(
-        route,
-        moment(this.form.estimated_delivery_date),
-        this.routeFestives
-      );
+      // a substitute route's day is valid too (issues/355)
+      const valid =
+        checkIfDateIsValidInroute(route, moment(this.form.estimated_delivery_date), this.routeFestives) ||
+        Boolean(route && isSubstituteDay(route, this.form.estimated_delivery_date, this.routeFestives));
       if (!valid) {
         this.dateWarningMessage =
           "Atenció! La data de lliurament no és vàlida per la ruta seleccionada";
@@ -1985,8 +2001,18 @@ export default {
       const uniqueRoutes = routes.filter((route, index, self) =>
         index === self.findIndex((r) => r.id === route.id)
       );
-      
-      return uniqueRoutes;
+
+      // the substitute routes of the town's closed routes (issues/355): a
+      // member sees them from 10 days before, the office always
+      const substitutes = townSubstitutes({
+        cityId: this.form.contact_city_id,
+        cityRoutes: this.cityRoutes,
+        closures: this.routeFestives,
+        exempt: this.dateRulesExempt,
+        known: uniqueRoutes.map(r => r.id)
+      });
+
+      return [...uniqueRoutes, ...substitutes];
     },
     routeSelected(option) {
       if (!option || !option.id) {
@@ -2592,6 +2618,9 @@ export default {
     formatDate(date) {
       if (!date) return "";
       return moment(date).format("DD/MM/YYYY");
+    },
+    substituteDayText(route) {
+      return `${moment(route.substitute.date, "YYYY-MM-DD").locale("ca").format("dddd D/M")} · en lloc de ${route.substitute.closedRoute ? route.substitute.closedRoute.short_name || route.substitute.closedRoute.name : "una ruta tancada"}`;
     },
     routeDays(route) {
       const days = [["monday", "dilluns"], ["tuesday", "dimarts"], ["wednesday", "dimecres"], ["thursday", "dijous"], ["friday", "divendres"], ["saturday", "dissabte"], ["sunday", "diumenge"]];

@@ -21,7 +21,7 @@ import { useTaskAlerts } from "@/stores/taskAlerts";
 const TASK_ALERTS_EVERY_MS = 5 * 60 * 1000;
 import service from "@/service/index";
 import menu, { hasMenuPermission } from "@/service/menu";
-import { landingForUser } from "@/domain/home";
+import { isMemberOnly, landingForUser } from "@/domain/home";
 import { useHomePins } from "@/stores/homePins";
 import ModalBoxInvoice from "@/components/ModalBoxInvoice.vue";
 
@@ -196,7 +196,8 @@ export default {
               useTaskAlerts().refreshSoon();
             }
 
-            if (userPermissions.includes("orders")) {
+            // a member reads it on «Avisos», where she lands (issues/354)
+            if (userPermissions.includes("orders") && !isMemberOnly(userPermissions)) {
               const pending = (
                 await service({ requiresAuth: true, cached: true }).get(
                   `emitted-invoices/pending-provider?_limit=-1&_sort=name:ASC`

@@ -1,6 +1,7 @@
 import { canOpen, landingPath, userPermissions } from "@/domain/routeAccess";
 import { createRouter, createWebHistory } from "vue-router";
 import { redirectLegacyHash } from "./legacyHash";
+import { BOARD_PATH, isMemberOnly } from "@/domain/home";
 import { legacyRoutes, slugEntity } from "./paths";
 import Home from "../views/Home.vue";
 import Login from "../views/Login.vue";
@@ -43,6 +44,17 @@ const routes = [
     name: "inici",
     component: () =>
       import("../views/Inici.vue"),
+  },
+  {
+    meta: {
+      title: "Avisos",
+      requiresAuth: true
+    },
+    // the members' board: route closures, holidays, unpaid invoices (issues/354, 355)
+    path: "/avisos",
+    name: "avisos",
+    component: () =>
+      import("../views/Avisos.vue"),
   },
   {
     meta: {
@@ -964,7 +976,9 @@ router.beforeEach((to, from, next) => {
     if (localStorage.getItem("jwt") == null) {
       next();
     } else {
-      next({ name: "inici" });
+      // a member goes to «Avisos» (issues/354)
+      const user = JSON.parse(localStorage.getItem("user"));
+      next(user && isMemberOnly(userPermissions(user)) ? BOARD_PATH : { name: "inici" });
     }
   } else {
     next();

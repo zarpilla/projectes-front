@@ -92,6 +92,8 @@ const menu = [
   // permissions (orders = member, orders_admin = office, orders_delivery = drivers)
   "Logística",
   [
+    // route closures, holidays and unpaid invoices for the members (issues/354, 355)
+    { to: "/avisos", icon: "bullhorn-outline", label: "Avisos", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/comandes", icon: "truck-outline", label: "Comandes", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/diposits", icon: "package-down", label: "Dipòsits", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/incidencies", icon: "alert-outline", label: "Incidències", permission: ["orders", "orders_admin", "orders_delivery"] },

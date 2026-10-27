@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.27",
   items: [
     {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Rutes tancades amb motiu i ruta alternativa: a ", { to: "/rutes-dies", label: "Rutes i dies" }, " l'oficina tanca una ruta un dia (els festius no la tanquen sols), n'escriu el motiu i, si cal, tria una ruta alternativa un altre dia. Les sòcies de les poblacions d'aquella ruta la veuen a la comanda des de 10 dies abans, amb la data ja posada. Les sòcies entren ara a ", { to: "/avisos", label: "Avisos" }, ": les rutes tancades dels propers dies amb el motiu i la ruta alternativa, els festius de l'any i, si n'hi ha, el recordatori de factures pendents (que ja no surt en una finestra)."]
+    },
+    {
       type: "Millores",
       modules: ["Logística"],
       text: ["Al menú, «Rutes i punts» té una sola entrada per a les pantalles de rutes, ", { to: "/poblacions-rutes", label: "Poblacions i rutes" }, ": Rutes i dies, el Simulador, Poblacions i punts i Rutes són pestanyes a dalt de tot."]
