@@ -26,6 +26,11 @@ export const CHANGELOG = [
     {
       type: "Millores",
       modules: ["Logística"],
+      text: ["A ", { to: "/comandes", label: "Comandes" }, ", l'exportació «Per al planificador de rutes (.csv)» té una columna nova al final, «ID COMANDA», amb el número de la comanda."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
       text: ["Fitxa de punt d'entrega (", { to: "/clientes", label: "Punts d'entrega" }, "): el sector va abans de la raó social, el NIF té una ajuda nova, per a un particular l'horari de contacte és sempre de 8 a 19 h, i a sobre de l'horari surten els dies i les franges en què passem per la població triada."]
     }
   ]

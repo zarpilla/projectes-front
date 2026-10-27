@@ -655,7 +655,9 @@ export default {
         "ID CLIENT": "fullName",
         "DETALLS REPARTIDORES": {
           field: "notes_delivery"
-        }
+        },
+        // last, so the planner's existing columns keep their place (issues/350)
+        "ID COMANDA": "id"
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
