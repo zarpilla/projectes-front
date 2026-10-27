@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.27",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["Fitxa de punt d'entrega (", { to: "/clientes", label: "Punts d'entrega" }, "): el sector va abans de la raó social, el NIF té una ajuda nova, per a un particular l'horari de contacte és sempre de 8 a 19 h, i a sobre de l'horari surten els dies i les franges en què passem per la població triada."]
+    }
+  ]
+},
+{
   date: "2026.10.26",
   items: [
     {
