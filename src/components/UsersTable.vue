@@ -45,6 +45,20 @@
           <span v-else class="has-text-muted">—</span>
           <span v-if="props.row.contact && props.row.contact.partner_amount_date" class="subline">{{ formatDate(props.row.contact.partner_amount_date) }}</span>
         </b-table-column>
+        <!-- the warehouse her orders leave from: the simulator starts from it (issues/361) -->
+        <b-table-column label="Magatzem" field="pickupName" sortable v-slot="props">
+          <b-select
+            size="is-small"
+            :model-value="props.row.defaultPickupId"
+            :disabled="savingPickup === props.row.id"
+            :aria-label="`Magatzem per defecte de ${props.row.fullname || props.row.username}`"
+            data-test="default-pickup"
+            @update:model-value="value => setDefaultPickup(props.row, value)"
+          >
+            <option :value="null">—</option>
+            <option v-for="w in warehouses" :key="w.id" :value="w.id">{{ w.name }}</option>
+          </b-select>
+        </b-table-column>
         <template #empty>
           <p class="has-text-muted has-text-centered py-5">{{ search.trim() ? "Cap sòcia coincideix amb la cerca." : "Encara no hi ha cap sòcia." }}</p>
         </template>
@@ -83,8 +97,11 @@ export default {
         "Correu accès": "email",
         "Permisos": "permissions",
         "Import aportació": "contact.partner_amount",
-        "Data aportació": "contact.partner_amount_date"
-      }
+        "Data aportació": "contact.partner_amount_date",
+        "Magatzem": "pickupName"
+      },
+      warehouses: [],
+      savingPickup: null
     };
   },
   computed: {
@@ -111,6 +128,20 @@ export default {
     this.getData();
   },
   methods: {
+    async setDefaultPickup(user, value) {
+      const pickup = value || null;
+      this.savingPickup = user.id;
+      try {
+        const saved = (await service({ requiresAuth: true }).put(`users/${user.id}/default-pickup`, { pickup })).data.pickup;
+        user.defaultPickupId = saved ? saved.id : null;
+        user.pickupName = saved ? saved.name : "";
+        this.$buefy.toast.open({ message: "Magatzem desat", type: "is-success" });
+      } catch (e) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut desar el magatzem", type: "is-danger" });
+      } finally {
+        this.savingPickup = null;
+      }
+    },
     money(value) {
       return formatMoney(Number(value) || 0);
     },
@@ -125,6 +156,14 @@ export default {
       // the narrow list: id, name, partner_amount(_date) and the user are read;
       // the core route came with populate=* (issues/326)
       this.contacts = (await service({ requiresAuth: true }).get(`contacts/basic?_limit=-1&_sort=name:ASC&_where[users_permissions_user_gt]=0`)).data
+
+      // the default warehouse of each member (issues/361)
+      const [pickups, defaults] = await Promise.all([
+        service({ requiresAuth: true, cached: true }).get(`pickups?_limit=-1`).then(r => r.data || []).catch(() => []),
+        service({ requiresAuth: true }).get(`users/default-pickups`).then(r => r.data || []).catch(() => [])
+      ])
+      this.warehouses = pickups.filter(p => p && p.pickup === false)
+      const defaultOf = Object.fromEntries(defaults.map(d => [d.user, d.pickup]))
 
       this.users = this.users
         .filter(user => user.confirmed === true && user.blocked === false)
@@ -152,6 +191,9 @@ export default {
           // sort keys of the table
           user.name = ((user.contact && user.contact.name) || user.fullname || user.username || "").toLowerCase();
           user.amount = Number(user.contact && user.contact.partner_amount) || 0;
+          const pickup = defaultOf[user.id] || null;
+          user.defaultPickupId = pickup ? pickup.id : null;
+          user.pickupName = pickup ? pickup.name : "";
           return user;
         })
         .filter(user => user.isMember);

@@ -41,14 +41,15 @@ describe('UsersTable Excel export', () => {
     // the table shows member, access and contribution in three columns; the file
     // keeps each piece of them in its own column (and the permissions)
     const fields = excel.props('fields')
-    expect(w.findAll('th').map(th => th.text()).filter(Boolean)).toEqual(['Sòcia', 'Accés', 'Aportació'])
-    expect(Object.keys(fields)).toEqual(['ID Usuària', 'Sòcia', 'Nom', 'Nom complet', 'Correu accès', 'Permisos', 'Import aportació', 'Data aportació'])
+    // Magatzem: the member's default warehouse (issues/361)
+    expect(w.findAll('th').map(th => th.text()).filter(Boolean)).toEqual(['Sòcia', 'Accés', 'Aportació', 'Magatzem'])
+    expect(Object.keys(fields)).toEqual(['ID Usuària', 'Sòcia', 'Nom', 'Nom complet', 'Correu accès', 'Permisos', 'Import aportació', 'Data aportació', 'Magatzem'])
 
     // what the file gets for a member with and without a contact
     const value = (row, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k]), row)
     const [anna, bernat] = excel.props('data')
     expect(Object.values(fields).map(f => value(anna, f))).toEqual(
-      [3, 'La Sòcia SCCL', 'anna', 'Anna Puig', 'anna@exemple.coop', 'Sòcia', 300, '2025-03-01']
+      [3, 'La Sòcia SCCL', 'anna', 'Anna Puig', 'anna@exemple.coop', 'Sòcia', 300, '2025-03-01', '']
     )
     expect(value(bernat, fields['Sòcia'])).toBeUndefined()
   })

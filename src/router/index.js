@@ -459,6 +459,17 @@ const routes = [
   },
   {
     meta: {
+      title: "Simulador logístic",
+      requiresAuth: true
+    },
+    // what an order would cost, without saving it (issues/361)
+    path: "/simulador-logistic",
+    name: "logistics.simulator",
+    component: () =>
+      import("../views/LogisticsSimulator.vue"),
+  },
+  {
+    meta: {
       title: "Poblacions i punts d'entrega",
       requiresAuth: true
     },

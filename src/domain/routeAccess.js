@@ -78,6 +78,8 @@ export const ROUTE_PERMISSIONS = {
   '/estadistiques-incidencies': OFFICE,
   '/poblacions-rutes': [...MEMBER, ...OFFICE],
   '/rutes-dies': [...MEMBER, ...OFFICE],
+  // the logistics simulator (issues/361)
+  '/simulador-logistic': [...MEMBER, ...OFFICE],
   '/punts-recollida': [...MEMBER, ...OFFICE],
   '/factures-proveidor': MEMBER,
   '/contacta': MEMBER,

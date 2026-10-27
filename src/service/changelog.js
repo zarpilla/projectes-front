@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.27",
   items: [
     {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Nou ", { to: "/simulador-logistic", label: "Simulador" }, " (Rutes i punts): tries la població, el tipus de servei, els kg, el magatzem d'origen i si hi ha recollida a finca, i et diu la ruta, el dia i el preu desglossat (tarifa, descomptes per volum i multientrega, recàrrec fora de temps), igual que el d'una comanda real i sense desar res. L'oficina hi tria primer la sòcia i pot exportar el pressupost (.ods). Cada sòcia té un magatzem per defecte: l'oficina el posa a ", { to: "/usuaries", label: "Sòcies" }, " i, si encara no en té, la sòcia el pot desar des del simulador."]
+    },
+    {
       type: "Millores",
       modules: ["Logística"],
       text: ["A ", { to: "/comandes", label: "Comandes" }, ", l'exportació «Per al planificador de rutes (.csv)» té una columna nova al final, «ID COMANDA», amb el número de la comanda."]

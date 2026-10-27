@@ -13,6 +13,8 @@
 const TABS = [
   { to: "/rutes-dies", label: "Rutes i dies" },
   { to: "/poblacions-rutes", label: "Poblacions i rutes" },
+  // what an order would cost (issues/361)
+  { to: "/simulador-logistic", label: "Simulador" },
   { to: "/poblacions-punts-entrega", label: "Poblacions i punts", staff: true },
   // the office creates and disables routes (issues/141)
   { to: "/rutes", label: "Rutes", office: true }
