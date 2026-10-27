@@ -10,15 +10,19 @@
 </template>
 
 <script>
-const TABS = [
-  { to: "/rutes-dies", label: "Rutes i dies" },
+// the side menu has one entry, «Poblacions i rutes», for all of them (issues/353)
+export const TABS = [
   { to: "/poblacions-rutes", label: "Poblacions i rutes" },
+  { to: "/rutes-dies", label: "Rutes i dies" },
   // what an order would cost (issues/361)
   { to: "/simulador-logistic", label: "Simulador" },
   { to: "/poblacions-punts-entrega", label: "Poblacions i punts", staff: true },
   // the office creates and disables routes (issues/141)
   { to: "/rutes", label: "Rutes", office: true }
 ];
+
+/** Whether a path is one of these screens: the menu entry stays highlighted on them. */
+export const isRoutesScreenPath = path => TABS.some(tab => tab.to === path);
 
 export default {
   name: "RoutesTabs",
