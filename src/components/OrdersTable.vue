@@ -499,6 +499,10 @@ export default {
       defaultSortOrder: "DESC",
       page: 1,
       perPage: 150,
+      // the member's owner filter: null until getData knows who she is, so
+      // a search typed (or restored by the browser) during the first load
+      // waits instead of sending «undefined» (a 500 on orders/totals)
+      userFilter: null,
       // the filters of the table columns (same keys as the old searchable columns)
       filters: {
         idx: "",
@@ -1397,6 +1401,8 @@ export default {
       
       localStorage.setItem("OrdersTable.statusFilter", JSON.stringify(this.statusFilter));
       if (status !== undefined) this.page = 1;
+      // getData loads the list once it knows the user
+      if (this.userFilter === null) return;
 
       const where = [];
       
