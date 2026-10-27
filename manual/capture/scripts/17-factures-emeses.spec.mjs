@@ -25,7 +25,7 @@ test('17-factures-emeses', async ({ page }) => {
   await start(page, '17-factures-emeses', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/emitted-invoices')
+  await page.goto('#/factures-emeses')
   await page.getByRole('button', { name: 'Nova factura' }).waitFor()
   await settle(page, 1500)
   await shot(page, 'llistat')
@@ -61,7 +61,7 @@ test('17-factures-emeses', async ({ page }) => {
   await pdfShot(page, page.locator('button', { hasText: /^\s*PDF\s*$/ }).first(), 'pdf')
 
   // a new invoice, as a draft
-  await page.goto('#/emitted-invoices')
+  await page.goto('#/factures-emeses')
   await settle(page, 800)
   await page.getByRole('button', { name: 'Nova factura' }).click()
   await page.getByPlaceholder('Escriu el nom de la clienta...').waitFor({ timeout: 30_000 })
@@ -93,7 +93,7 @@ test('17-factures-emeses', async ({ page }) => {
   await shot(page, 'nova-assignar')
 
   // other incomes (no invoice)
-  await page.goto('#/emitted-invoices')
+  await page.goto('#/factures-emeses')
   await settle(page, 800)
   const leave = page.locator('.modal.is-active').getByRole('button', { name: 'OK' })
   if (await leave.count()) await leave.click()

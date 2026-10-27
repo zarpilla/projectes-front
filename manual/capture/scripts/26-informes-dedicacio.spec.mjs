@@ -9,7 +9,7 @@ test('26-informes-dedicacio', async ({ page }) => {
   await start(page, '26-informes-dedicacio', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/stats-dedicacio')
+  await page.goto('#/panell-dedicacio')
   await page.getByText('Hores fetes').first().waitFor({ timeout: 60_000 })
   await page.locator('h2', { hasText: 'Per persona' }).waitFor({ timeout: 60_000 })
   await settle(page, 2500)
@@ -18,7 +18,7 @@ test('26-informes-dedicacio', async ({ page }) => {
   await settle(page, 600)
   await shot(page, 'dedicacio-persones')
 
-  await page.goto('#/stats-real-gantt')
+  await page.goto('#/panell-dedicacio-real')
   await page.getByText('per persona').first().waitFor({ timeout: 60_000 })
   await settle(page, 2500)
   await shot(page, 'dedicacio-real')

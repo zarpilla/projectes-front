@@ -26,7 +26,7 @@ describe('expected VAT (issues/221)', () => {
     expect(rows[0].willCreateEntry).toBe(false)
     expect(rows[1].quarterBalance).toBeCloseTo(-110, 6)
     expect(rows[1].cumulativeBalance).toBeCloseTo(160, 6)
-    expect(rows[0].paymentDate).toBe('20/01/2027')
+    expect(rows[0].paymentDate).toBe('30/01/2027') // Q4: 30 January (issues/337)
   })
 
   it('sums the deductible VAT per year in the «Previst» totals', () => {

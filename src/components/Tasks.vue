@@ -713,7 +713,7 @@ export default {
         queue: false,
       });
     },
-    // the link in the task emails (#/tasks?task=12)
+    // the link in the task emails (/tasques?task=12)
     async openTaskById(id) {
       try {
         const task = (await service({ requiresAuth: true }).get(`tasks/${id}`)).data

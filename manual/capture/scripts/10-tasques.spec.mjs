@@ -118,7 +118,7 @@ test('10-tasques', async ({ page }) => {
 
   // ---------- Tauler
   await page.evaluate(() => localStorage.setItem('tasksMode', 'board'))
-  await page.goto('#/tasks')
+  await page.goto('#/tasques')
   await page.getByText('tasques obertes').first().waitFor()
   await settle(page, 1200)
   await shot(page, 'tauler')
@@ -231,7 +231,7 @@ test('10-tasques', async ({ page }) => {
   await shot(page, 'plantilla-resultat')
 
   // ---------- Configuració general · Avisos de tasques per correu
-  await page.goto('#/admin/me')
+  await page.goto('#/administracio/configuracio')
   await page.locator('#cfg-opcions').waitFor()
   await settle(page, 600)
   await page.locator('#cfg-opcions').scrollIntoViewIfNeeded()
@@ -239,7 +239,7 @@ test('10-tasques', async ({ page }) => {
   await shot(page, 'avisos-correu', { clip: { x: options.x - 8, y: options.y - 8, width: options.width + 16, height: options.height + 16 } })
 
   // ---------- Gantt: the project's tasks as bars
-  await page.goto(`#/project/${P_FUNCTIONS}`)
+  await page.goto(`#/projecte/${P_FUNCTIONS}`)
   await settle(page, 1500)
   await page.locator('.tabs a', { hasText: 'Planificació' }).first().click()
   await page.locator('.gantt_task_line').first().waitFor()

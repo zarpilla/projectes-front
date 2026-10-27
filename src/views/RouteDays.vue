@@ -89,7 +89,7 @@
               </li>
             </ul>
             <p v-else-if="lookup" class="box-empty">Cap població amb aquest nom.</p>
-            <router-link to="/city-route" class="all-towns">Totes les poblacions ({{ cities.length }}) →</router-link>
+            <router-link to="/poblacions-rutes" class="all-towns">Totes les poblacions ({{ cities.length }}) →</router-link>
           </section>
           <div v-if="unroutedCount" class="notification is-info">
             {{ unroutedCount }} {{ unroutedCount === 1 ? "població no té" : "poblacions no tenen" }} cap ruta assignada.

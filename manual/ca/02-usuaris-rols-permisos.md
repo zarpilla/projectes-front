@@ -1,16 +1,16 @@
 ---
-title: "Usuaris, rols i permisos"
+title: "Usuàries, rols i permisos"
 description: "Què permet cada permís i com es donen d'alta i es gestionen les usuàries."
 product: esstrapis
 manual: usuari
 module: introduccio
 order: 2
 roles: [admin]
-routes: ["/admin/users"]
+routes: ["/administracio/usuaries*"]
 lang: ca
 updated: 2026-10-18
 ---
-# 02. Usuaris, rols i permisos
+# 02. Usuàries, rols i permisos
 
 > Permís necessari: `admin`
 

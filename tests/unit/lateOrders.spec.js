@@ -40,7 +40,7 @@ describe('the rules, as the API (issues/315)', () => {
 
   it('fills the hours and the surcharge of the texts', () => {
     const text = lateMessage(DEFAULT_LATE_ORDER_MESSAGE, lateRules({ next_day_limit_hour: 13, late_surcharge: 25 }))
-    expect(text).toContain('límit horari de les 13h del dia anterior')
+    expect(text).toContain('límit horari de les 13h del dia laborable anterior')
     expect(text).toContain("s'aplicarà un recàrrec del 25% automàticament")
     expect(lateMessage('{hora_tarda}h / {hora}h / {recarrec}%', lateRules({ late_surcharge: 12.5 }))).toBe('10h / 14h / 12,5%')
   })
@@ -139,7 +139,7 @@ describe('the orders list', () => {
 
   it('says what each icon means', () => {
     const [express] = signalsOf.call(vm, { late_order: true, late_surcharge: 25 })
-    expect(express).toMatchObject({ kind: 'is-alert', label: "Comanda express: informada fora de l'hora límit (recàrrec +25 %)" })
+    expect(express).toMatchObject({ kind: 'is-alert', label: "Comanda fora de temps: informada després de l'hora límit (recàrrec +25 %)" })
     expect(signalsOf.call(vm, { is_collection_order: true, late_pickup: true })[0].label).toBe('Inclou recollides informades tard')
   })
 
@@ -183,7 +183,7 @@ describe('the orders list', () => {
   it('writes the surcharge and the discounts under the price', () => {
     const mods = discountsOf.call(vm, { price: 10, finalPrice: 11.25, late_order: true, late_surcharge: 25, multidelivery_discount: 10, volume_discount: 2 })
     expect(mods.map(d => d.text)).toEqual(['+25 %', '−10 %', '−2 €'])
-    expect(mods[0].title).toBe('Recàrrec express (+25 %)')
+    expect(mods[0].title).toBe('Recàrrec fora de temps (+25 %)')
     expect(discountsOf.call(vm, { price: 10, finalPrice: 10, late_order: false, late_surcharge: 0 })).toEqual([])
     // +25 % and −20 % leave the price as it was: both are still said
     expect(discountsOf.call(vm, { price: 10, finalPrice: 10, late_order: true, late_surcharge: 25, multidelivery_discount: 20 }).map(d => d.text))

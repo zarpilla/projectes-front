@@ -11,7 +11,7 @@
 
     <div class="notification is-warning is-light" v-if="warn">
       Abans de consultar les nòmines cal definir la
-      <router-link to="/working-day">jornada laboral</router-link> de tot l'any.
+      <router-link to="/jornada">jornada laboral</router-link> de tot l'any.
     </div>
 
     <div v-if="!isLoading && !warn" class="doc-kpis">

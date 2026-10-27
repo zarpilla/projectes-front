@@ -12,15 +12,15 @@ const OFFICE = ['orders_admin']
 describe('Taules de logística for the office (issues/159)', () => {
   it('opens the logistics tables, not the others', () => {
     for (const entityName of ['pickup', 'delivery-type', 'city', 'route-rate', 'route-pickup-notice']) {
-      expect(canOpen(record('/admin/:entityName'), OFFICE, { entityName })).toBe(true)
-      expect(canOpen(record('/admin/:entityName/:id'), OFFICE, { entityName, id: '3' })).toBe(true)
-      expect(canOpenPath(`/admin/${entityName}`, OFFICE)).toBe(true)
+      expect(canOpen(record('/administracio/:entityName'), OFFICE, { entityName })).toBe(true)
+      expect(canOpen(record('/administracio/:entityName/:id'), OFFICE, { entityName, id: '3' })).toBe(true)
+      expect(canOpenPath(`/administracio/${entityName}`, OFFICE)).toBe(true)
     }
-    expect(canOpen(record('/admin/:entityName'), OFFICE, { entityName: 'product' })).toBe(false)
-    expect(canOpen(record('/admin/:entityName'), ['orders'], { entityName: 'pickup' })).toBe(false)
-    expect(canOpen(record('/admin/users'), OFFICE)).toBe(false)
-    expect(canOpenPath('/admin/serie', OFFICE)).toBe(false)
-    expect(canOpen(record('/admin/:entityName'), ['admin'], { entityName: 'product' })).toBe(true)
+    expect(canOpen(record('/administracio/:entityName'), OFFICE, { entityName: 'product' })).toBe(false)
+    expect(canOpen(record('/administracio/:entityName'), ['orders'], { entityName: 'pickup' })).toBe(false)
+    expect(canOpen(record('/administracio/usuaries'), OFFICE)).toBe(false)
+    expect(canOpenPath('/administracio/series', OFFICE)).toBe(false)
+    expect(canOpen(record('/administracio/:entityName'), ['admin'], { entityName: 'product' })).toBe(true)
   })
 
   it('shows her only the Logística group', () => {
@@ -33,7 +33,7 @@ describe('Taules de logística for the office (issues/159)', () => {
 
   it('puts «Taules de logística» in her menu, not in an admin\'s', () => {
     const entry = menu.flat().find(i => i && i.label === 'Taules de logística')
-    expect(entry.to).toBe('/admin/pickup')
+    expect(entry.to).toBe('/administracio/punts-recollida')
     expect(hasMenuPermission(entry, OFFICE)).toBe(true)
     expect(hasMenuPermission(entry, ['orders_admin', 'admin'])).toBe(false)
   })

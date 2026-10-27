@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 7
 roles: [projects]
-routes: ["/project/:id", "/justifications", "/grants"]
+routes: ["/projecte/:id", "/justificacions", "/subvencions"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -25,7 +25,7 @@ pot justificar i quant en falta.
 - Les hores que es justifiquen són les **hores dedicades** de cada persona (vegeu
   [13. Imputar hores dedicades](13-imputar-hores.md)), valorades al seu **cost per hora**.
 - Les **bestretes** de cada mes es registren a **Diners › Bestretes** (vegeu [20. Bestretes](20-bestretes.md)).
-- L'**òrgan convocant** d'una subvenció és el primer client del projecte.
+- L'**òrgan convocant** d'una subvenció és la primera clienta del projecte.
 
 ## Pas a pas
 

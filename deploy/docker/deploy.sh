@@ -10,9 +10,10 @@
 # can't be pinned. Pair it with the backend: the same tenants on the same preview branch of esstrapis-back.
 #
 # Each site runs its own container from <compose dir>/docker-compose.yml (nginx
-# serving the built app under /stats/). Per site: pin the compose file to the new
-# tag, recreate the container, and wait until http://127.0.0.1:<EXTERNAL_PORT>/stats/
-# serves the app. The canary goes first, then the rest one by one. If a site doesn't
+# serving the built app at the root of the site; builds before the move served it
+# under /stats/ and redirected / there). Per site: pin the compose file to the new
+# tag, recreate the container, and wait until http://127.0.0.1:<EXTERNAL_PORT>/
+# serves the app (or /stats/, so a rollback to an older build passes too). The canary goes first, then the rest one by one. If a site doesn't
 # come back, it and every site already switched in this run go back to the tag they
 # had, and the script exits non-zero.
 #
@@ -86,10 +87,10 @@ healthy() {  # site
   port=$(site_port "${DIR[$1]}"); port=${port:-8080}
   while [ $waited -lt $HEALTH_TIMEOUT ]; do
     sleep 2; waited=$((waited + 2))
-    body=$(curl -s -m 5 "http://127.0.0.1:$port/stats/" || true)
+    body=$(curl -s -m 5 "http://127.0.0.1:$port/" "http://127.0.0.1:$port/stats/" || true)
     if [[ "$body" == *"assets/index"* ]]; then echo "    $1 serving after ${waited}s (port $port)"; return 0; fi
   done
-  echo "!!  $1 not serving /stats/ after ${HEALTH_TIMEOUT}s (port $port)"; return 1
+  echo "!!  $1 not serving the app after ${HEALTH_TIMEOUT}s (port $port)"; return 1
 }
 
 declare -A FROM

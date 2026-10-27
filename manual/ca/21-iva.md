@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 21
 roles: [projects]
-routes: ["/vat"]
+routes: ["/iva"]
 lang: ca
 updated: 2026-10-18
 ---

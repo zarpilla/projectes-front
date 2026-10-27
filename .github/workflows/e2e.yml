@@ -42,7 +42,7 @@ env:
   DATABASE_PASSWORD: e2e
   E2E_USER: e2e@exemple.coop
   E2E_PASSWORD: E2e-ci-12345
-  E2E_BASE_URL: http://localhost:8082/stats/
+  E2E_BASE_URL: http://localhost:8082/
   E2E_API_URL: http://localhost:1339
 
 jobs:
@@ -131,7 +131,7 @@ jobs:
 
       - name: Start the front
         env:
-          VUE_APP_PATH: /stats/
+          VUE_APP_PATH: /
           VUE_APP_API_URL: ${{ env.E2E_API_URL }}
         run: |
           nohup npx vite --port 8082 --strictPort > front.log 2>&1 &

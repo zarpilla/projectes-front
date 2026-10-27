@@ -26,7 +26,7 @@ function makeQrVideo () {
   fs.mkdirSync(path.dirname(video), { recursive: true })
   const png = video.replace(/\.y4m$/, '.png')
   const frame = video.replace(/\.y4m$/, '-frame.png')
-  execSync(`qrencode -s 8 -m 4 -o "${png}" "http://localhost:8082/stats/#/order/view/${SCAN_ORDER}"`)
+  execSync(`qrencode -s 8 -m 4 -o "${png}" "http://localhost:8082/#/comanda/veure/${SCAN_ORDER}"`)
   execSync(`magick "${png}" -resize 320x320 -gravity center -background white -extent 640x480 "${frame}"`)
   execSync(`ffmpeg -loglevel error -y -loop 1 -i "${frame}" -t 3 -r 10 -pix_fmt yuv420p "${video}"`)
 }
@@ -85,7 +85,7 @@ test('31-diposits-transferencies-operacions', async ({ page }) => {
   // ---- the member: her deposits
   await login(page, ...logUser('orders'))
   await closeHello(page)
-  await page.goto('#/deposits')
+  await page.goto('#/diposits')
   await page.getByText('Pendents de dipositar').waitFor()
   await settle(page, 800)
   await shot(page, 'diposits-socia')
@@ -108,12 +108,12 @@ test('31-diposits-transferencies-operacions', async ({ page }) => {
   // ---- the office: every deposit, transfers, a driver's transfers
   await relogin(page, 'admin')
   try {
-    await page.goto('#/deposits')
+    await page.goto('#/diposits')
     await page.getByText('Pendents de dipositar').waitFor()
     await settle(page, 800)
     await shot(page, 'diposits-oficina')
 
-    await page.goto('#/transfers')
+    await page.goto('#/transferencies')
     await page.getByText("Comandes que van d'un punt de recollida").waitFor()
     await settle(page, 1000)
     await shot(page, 'transferencies')
@@ -155,7 +155,7 @@ test('31-diposits-transferencies-operacions', async ({ page }) => {
   }
 
   // Operacions for the office: the driver with transfers that day (route «DT - (TARDA) EMPORDÀ»)
-  await page.goto('#/order-operations')
+  await page.goto('#/operacions')
   await page.getByText(/de \d+ fetes/).waitFor()
   await settle(page, 800)
   const driver = page.locator('label.filter-select', { hasText: 'Repartidora' }).locator('select')
@@ -167,7 +167,7 @@ test('31-diposits-transferencies-operacions', async ({ page }) => {
 
   // ---- the driver: her day
   await relogin(page, 'delivery')
-  await page.goto('#/order-operations')
+  await page.goto('#/operacions')
   await page.getByText(/de \d+ fetes/).waitFor()
   await settle(page, 1200)
   await shot(page, 'operacions-repartidora')

@@ -32,11 +32,11 @@ ingressar, gastar i dedicar-hi, i quant s'ha ingressat, gastat i dedicat de deb�
   planificació, les tasques i el resultat.
 - **Administració i finances**: emet i registra factures, controla l'IVA, les bestretes i la tresoreria, i
   prepara les justificacions de subvencions.
-- **Logística** (només en algunes entitats): proveïdors que entren comandes, l'equip que les reparteix i
+- **Logística** (només en algunes entitats): proveïdores que entren comandes, l'equip que les reparteix i
   l'equip que les gestiona i factura.
 
 Cada persona veu al menú només les seccions que li permeten els seus permisos (vegeu el capítol
-[02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)).
+[02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)).
 
 ## La pantalla
 
@@ -54,7 +54,7 @@ Cada persona veu al menú només les seccions que li permeten els seus permisos 
 
 | Bloc del menú | Per a què serveix |
 |---|---|
-| **Projectes** | Projectes, contactes (clients i proveïdors), hores dedicades, registre de jornades, persones i tasques. |
+| **Projectes** | Projectes, contactes (clientes i proveïdores), hores dedicades, registre de jornades, persones i tasques. |
 | **Diners** | Ingressos (factures emeses), despeses (factures rebudes), bestretes, IVA, tresoreria i pressupostos. |
 | **Logística**, **Rutes i punts**, **Estadístiques** | Només per a les entitats amb logística: comandes, dipòsits, incidències, punts d'entrega i de consum, rutes i la seva facturació. |
 | **Informes** | Panell de projectes, dedicació, ingressos i despeses, preu hora, previsió econòmica i de facturació, estratègies, intercooperació, saldo i hores anuals, justificacions i subvencions. El número indica quants n'hi ha; el bloc es desplega clicant-lo. |
@@ -70,7 +70,7 @@ Cada persona veu al menú només les seccions que li permeten els seus permisos 
 Tot gira al voltant del **projecte**:
 
 ```
-                          ┌───────────── Contactes (clients, proveïdors)
+                          ┌───────────── Contactes (clientes, proveïdores)
                           │
 Pressupostos ─► PROJECTE ─┼── Fases ──┬── Ingressos previstos ──► Factures emeses ──┐
                           │           ├── Despeses previstes ───► Factures rebudes ─┼──► Tresoreria, IVA
@@ -81,12 +81,12 @@ Pressupostos ─► PROJECTE ─┼── Fases ──┬── Ingressos previs
                           └── Subvencions ──► Justificacions
 ```
 
-1. Un **projecte** té un client (o més), unes dates, una persona que el coordina, un àmbit i un estat (els
+1. Un **projecte** té una clienta (o més), unes dates, una persona que el coordina, un àmbit i un estat (els
    estats i els àmbits els defineix cada entitat a **Administració › Taules auxiliars**).
 2. El projecte es divideix en **fases**. A cada fase s'hi preveuen **ingressos**, **despeses** i
    **hores** de les persones que hi treballaran.
 3. Quan es factura, la **factura emesa** es lliga a l'ingrés previst de la fase; quan arriba una factura
-   d'un proveïdor, la **factura rebuda** es lliga a la despesa prevista. Així es veu què s'ha complert del
+   d'una proveïdora, la **factura rebuda** es lliga a la despesa prevista. Així es veu què s'ha complert del
    pressupost.
 4. Cada persona **imputa les hores** que dedica al projecte. Com que cada persona té un **cost per hora**
    (definit a la seva jornada laboral), les hores també són un cost del projecte.
@@ -124,7 +124,7 @@ tancarem el projecte amb benefici?».
 
 ## Què més pot fer
 
-- **Pressupostos** i factures proforma per a clients, vinculats al projecte, amb el seu PDF.
+- **Pressupostos** i factures proforma per a clientes, vinculats al projecte, amb el seu PDF.
 - **Facturació electrònica**: registre de factures a **Verifactu** i enviament a l'administració pública
   per **FACe**.
 - **Subvencions**: imports per any, cofinançament i preparació de les **justificacions** amb nòmines i

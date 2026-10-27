@@ -11,7 +11,7 @@ const menu = [
       permission: "projects"
     },
     {
-      to: "/contacts",
+      to: "/contactes",
       icon: "account-box-outline",
       label: "Contactes",
       permission: "projects"
@@ -29,13 +29,13 @@ const menu = [
       permission: "hours"
     },
     {
-      to: "/working-day",
+      to: "/jornada",
       icon: "account-multiple-outline",
       label: "Persones",
       permission: "projects"
     },
     {
-      to: "/tasks",
+      to: "/tasques",
       icon: "trello",
       label: "Tasques",
       permission: "projects",
@@ -46,27 +46,33 @@ const menu = [
   "Diners",
   [
     {
-      to: "/emitted-invoices",
+      to: "/factures-emeses",
       icon: "download-outline",
       label: "Ingressos",
       permission: "projects"
     },
     {
-      to: "/received-invoices",
+      to: "/factures-rebudes",
       icon: "upload-outline",
       label: "Despeses",
       permission: "projects"
     },
     {
-      to: "/salary",
+      to: "/bestretes",
       icon: "wallet-outline",
       label: "Bestretes",
       permission: "projects"
     },
     {
-      to: "/vat",
+      to: "/iva",
       icon: "percent-outline",
       label: "IVA",
+      permission: "projects"
+    },
+    {
+      to: "/irpf",
+      icon: "cash-minus",
+      label: "IRPF",
       permission: "projects"
     },
     {
@@ -76,7 +82,7 @@ const menu = [
       permission: "projects"
     },
     {
-      to: "/quotes",
+      to: "/pressupostos",
       icon: "file-document-outline",
       label: "Pressupostos",
       permission: "projects"
@@ -86,97 +92,103 @@ const menu = [
   // permissions (orders = member, orders_admin = office, orders_delivery = drivers)
   "Logística",
   [
-    { to: "/orders", icon: "truck-outline", label: "Comandes", permission: ["orders", "orders_admin", "orders_delivery"] },
-    { to: "/deposits", icon: "package-down", label: "Dipòsits", permission: ["orders", "orders_admin", "orders_delivery"] },
-    { to: "/incidences", icon: "alert-outline", label: "Incidències", permission: ["orders", "orders_admin", "orders_delivery"] },
-    { to: "/transfers", icon: "swap-horizontal", label: "Transferències", permission: ["orders_admin", "orders_delivery"] },
-    { to: "/order-operations", icon: "format-list-checks", label: "Operacions", permission: ["orders_admin", "orders_delivery"] },
-    { to: "/orders-invoice", icon: "cash-register", label: "Facturar", permission: "orders_admin" },
-    { to: "/provider-invoices", icon: "receipt", label: "Factures", permission: "orders" },
-    { to: "/contact-us", icon: "message-text-outline", label: "Contacta", permission: "orders", itemClassName: "mb-6" }
+    { to: "/comandes", icon: "truck-outline", label: "Comandes", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/diposits", icon: "package-down", label: "Dipòsits", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/incidencies", icon: "alert-outline", label: "Incidències", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/transferencies", icon: "swap-horizontal", label: "Transferències", permission: ["orders_admin", "orders_delivery"] },
+    { to: "/operacions", icon: "format-list-checks", label: "Operacions", permission: ["orders_admin", "orders_delivery"] },
+    { to: "/comandes-per-facturar", icon: "cash-register", label: "Facturar", permission: "orders_admin" },
+    { to: "/factures-proveidor", icon: "receipt", label: "Factures", permission: "orders" },
+    { to: "/contacta", icon: "message-text-outline", label: "Contacta", permission: "orders", itemClassName: "mb-6" }
   ],
   "Rutes i punts",
   [
-    { to: "/city-route", icon: "city-variant-outline", label: "Poblacions i rutes", permission: ["orders", "orders_admin"] },
-    { to: "/city-route-delivery", icon: "map-marker-outline", label: "Poblacions i punts", permission: "orders_admin" },
-    { to: "/route-days", icon: "calendar-month-outline", label: "Rutes i dies", permission: ["orders", "orders_admin"] },
-    { to: "/routes", icon: "map-marker-path", label: "Rutes", permission: "orders_admin" },
-    { to: "/user-contacts", icon: "store-outline", label: "Punts d'entrega", permission: ["orders", "orders_admin", "orders_delivery"] },
-    { to: "/pickup-points", icon: "basket-outline", label: "Punts de consum", permission: ["orders", "orders_admin"] },
-    { to: "/partners", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin" },
+    { to: "/poblacions-rutes", icon: "city-variant-outline", label: "Poblacions i rutes", permission: ["orders", "orders_admin"] },
+    { to: "/poblacions-punts-entrega", icon: "map-marker-outline", label: "Poblacions i punts", permission: "orders_admin" },
+    { to: "/rutes-dies", icon: "calendar-month-outline", label: "Rutes i dies", permission: ["orders", "orders_admin"] },
+    { to: "/rutes", icon: "map-marker-path", label: "Rutes", permission: "orders_admin" },
+    { to: "/clientes", icon: "store-outline", label: "Punts d'entrega", permission: ["orders", "orders_admin", "orders_delivery"] },
+    { to: "/punts-recollida", icon: "basket-outline", label: "Punts de consum", permission: ["orders", "orders_admin"] },
+    { to: "/usuaries", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin" },
     // the Logística group of Taules auxiliars, for the office (admins reach it from Administració, issues/159)
-    { to: "/admin/pickup", icon: "table-settings", label: "Taules de logística", permission: ["orders_admin", "admin"], unless: "admin", activeWhen: "logistics-tables", itemClassName: "mb-6" }
+    { to: "/administracio/punts-recollida", icon: "table-settings", label: "Taules de logística", permission: ["orders_admin", "admin"], unless: "admin", activeWhen: "logistics-tables", itemClassName: "mb-6" }
+  ],
+  // Comunitat energètica (views/Energy*.vue)
+  "Comunitat energètica",
+  [
+    { to: "/energia/socies", icon: "account-group-outline", label: "Sòcies i CUPS", permission: "admin_energy", activeWhen: "energy-partners" },
+    { to: "/energia/installacions", icon: "solar-power", label: "Instal·lacions i coeficients", permission: "admin_energy", itemClassName: "mb-6" }
   ],
   "Estadístiques",
   [
-    { to: "/orders-stats", icon: "chart-bar", label: "Informe de comandes", permission: "orders_admin" },
-    { to: "/incidences-stats", icon: "alert-box-outline", label: "Informe d'incidències", permission: "orders_admin", itemClassName: "mb-6" }
+    { to: "/estadistiques-comandes", icon: "chart-bar", label: "Informe de comandes", permission: "orders_admin" },
+    { to: "/estadistiques-incidencies", icon: "alert-box-outline", label: "Informe d'incidències", permission: "orders_admin", itemClassName: "mb-6" }
   ],
   "Informes",
   [
     {
-      to: "/stats-projectes",
+      to: "/panell-projectes",
       icon: "view-dashboard-outline",
       label: "Panell de projectes",
       permission: "projects"
     },
     // {
-    //   to: "/mother-projects",
+    //   to: "/projectes-mare",
     //   icon: "file-tree",
     //   label: "Projectes Mare",
     //   permission: "projects"
     // },
     {
       // previst i fet, gràfics i taula (it merged three reports)
-      to: "/stats-dedicacio",
+      to: "/panell-dedicacio",
       icon: "chart-bar",
       label: "Dedicació",
       permission: ["hours", "projects"]
     },
     {
-      to: "/stats-real-gantt",
+      to: "/panell-dedicacio-real",
       icon: "chart-gantt",
       label: "% Dedicació real",
       permission: "projects"
     },
     {
-      to: "/stats-previsio-gantt",
+      to: "/panell-previsio-dedicacio",
       icon: "chart-timeline-variant",
       label: "Previsió dedicació",
       permission: "projects"
     },
     {
-      to: "/stats-economic-detail",
+      to: "/panell-detall-economic",
       icon: "scale-balance",
       label: "Ingressos/Despeses",
       permission: "projects"
     },
     {
-      to: "/price-hour",
+      to: "/panell-preu-hora",
       icon: "currency-eur",
       label: "Preu hora",
       permission: "projects"
     },
     {
-      to: "/forecast",
+      to: "/previsio",
       icon: "chart-line",
       label: "Previsió econòmica",
       permission: "projects"
     },
     {
-      to: "/invoicing-forecast",
+      to: "/previsio-facturacio",
       icon: "receipt",
       label: "Previsió facturació",
       permission: "projects"
     },
     {
-      to: "/stats-estrategies",
+      to: "/panell-estrategies",
       icon: "target",
       label: "Estratègies",
       permission: "projects"
     },
     {
-      to: "/stats-intercoop",
+      to: "/panell-intercooperacio",
       icon: "sitemap",
       label: "Intercooperació",
       permission: "projects"
@@ -188,19 +200,19 @@ const menu = [
       permission: "projects"
     },
     {
-      to: "/dedicacio-summary",
+      to: "/resum-hores",
       icon: "calendar-check-outline",
       label: "Hores anuals",
       permission: "projects"
     },
     {
-      to: "/justifications",
+      to: "/justificacions",
       icon: "clipboard-check-outline",
       label: "Justificacions",
       permission: "projects"
     },
     {
-      to: "/grants",
+      to: "/subvencions",
       icon: "gift-outline",
       label: "Subvencions",
       permission: "projects"
@@ -209,20 +221,20 @@ const menu = [
   "Administració",
   [
     {
-      to: "/admin/me",
+      to: "/administracio/configuracio",
       icon: "settings-outline",
       label: "Configuració general",
       permission: "admin"
     },
     {
-      to: "/admin/users",
+      to: "/administracio/usuaries",
       icon: "account-key-outline",
       label: "Usuàries",
       permission: "admin"
     },
     {
       // Verifactu's configuration, its register and the FACe queue share one head
-      to: "/admin/verifactu",
+      to: "/administracio/verifactu",
       icon: "certificate-outline",
       label: "Verifactu i FACe",
       permission: "admin",
@@ -230,7 +242,7 @@ const menu = [
     },
     {
       // the auxiliary tables (service/adminTables.js) share one screen
-      to: "/admin/project-scope",
+      to: "/administracio/ambits-projecte",
       icon: "table-settings",
       label: "Taules auxiliars",
       permission: "admin",
@@ -238,21 +250,21 @@ const menu = [
     },
     {
       // «Amb el suport de» of the login page and the menu (issues/159)
-      to: "/admin/logos",
+      to: "/administracio/logos",
       icon: "image-outline",
       label: "Logos",
       permission: "admin"
     },
     {
       // the members' «Contacta» form (issues/159)
-      to: "/admin/form-submissions",
+      to: "/administracio/missatges",
       icon: "email-outline",
       label: "Missatges",
       permission: "admin"
     },
     {
       // last night's database dump, to download
-      to: "/admin/backup",
+      to: "/administracio/copia-seguretat",
       icon: "database-export",
       label: "Còpia de seguretat",
       permission: "admin",
@@ -262,13 +274,13 @@ const menu = [
   "Altres",
   [
     {
-      to: "/changelog",
+      to: "/novetats",
       icon: "math-log",
       label: "Registre de canvis",
       permission: "projects"
     },
     {
-      to: "/import-export",
+      to: "/importar-exportar",
       icon: "swap-vertical",
       label: "Importar/Exportar",
       permission: "projects"

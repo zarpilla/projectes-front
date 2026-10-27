@@ -54,6 +54,11 @@
             A més a més, aquesta factura s'enviarà a l'administració tributària mitjançant el sistema de facturació electrònica FACE, i el seu estat de tramitació es podrà consultar a través del portal de FACE.
           </p>
 
+          <p class="mt-5 mb-3 has-text-weight-bold face-draft-notice" v-if="toReal === false && contact.face">
+            <span class="tag is-warning">FACTURA ELECTRÒNICA</span><br><br>
+            Aquest client té activada la facturació electrònica: quan aquesta factura s'emeti definitivament, s'enviarà automàticament a l'administració a través de FACE.
+          </p>
+
           <div v-if="toReal === true && contact.face" class="mt-3">
             <p class="has-text-weight-bold mb-2">Dades DIR3:</p>
             <p class="zhas-text-weight-bold" v-if="contact.face_dir3_oc">

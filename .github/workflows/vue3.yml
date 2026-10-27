@@ -46,6 +46,6 @@ jobs:
           file: ./Dockerfile
           push: true
           build-args: |
-            VUE_APP_PATH=/stats/
+            VUE_APP_PATH=/
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/esstrapis-front:v5-vue3-${{ github.sha }}

@@ -1106,7 +1106,7 @@ export default {
   },
   data() {
     return {
-      appPath: import.meta.env.VUE_APP_PATH,
+      appPath: import.meta.env.BASE_URL,
       isProfileExists: false,
       isLoading: false,
       // bumped when the document is read again (after a save, an email)

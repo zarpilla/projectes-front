@@ -32,6 +32,7 @@ import DownloadExcel from '@/components/DownloadExcel.vue'
 
 import { guardBuefyMessages } from '@/helpers/safeHtml'
 import { buefyConfig } from '@/helpers/buefyConfig'
+import { keepReopenedModals } from '@/helpers/buefyModal'
 import { installChunkReload } from '@/service/chunkReload'
 
 /* Light / dark mode */
@@ -80,6 +81,8 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.use(Buefy, buefyConfig)
+// a modal reopened while it closes stays open (issues/336)
+keepReopenedModals(app)
 // messages can carry names from the database: never as raw HTML
 guardBuefyMessages(app.config.globalProperties.$buefy)
 app.use(VCalendar, {

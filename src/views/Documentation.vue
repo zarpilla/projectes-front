@@ -15,7 +15,7 @@
         <header class="box-head"><h2>Vídeos</h2></header>
         <ul class="docs-list">
           <li v-for="video in videos" :key="video.file">
-            <a :href="`/stats/docum/${video.file}`" target="_blank" rel="noopener">
+            <a :href="`${base}docum/${video.file}`" target="_blank" rel="noopener">
               <b-icon icon="play-circle-outline" />
               <span>{{ video.title }}</span>
             </a>
@@ -36,6 +36,7 @@ export default {
   },
   data () {
     return {
+      base: import.meta.env.BASE_URL,
       showVideos: false,
       videos: [
         { file: '01.intro.mkv', title: 'Introducció' },

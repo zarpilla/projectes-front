@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 30
 roles: [orders, orders_admin]
-routes: ["/city-route", "/city-route-delivery", "/route-days", "/routes"]
+routes: ["/poblacions-rutes", "/poblacions-punts-entrega", "/rutes-dies", "/rutes"]
 lang: ca
 updated: 2026-10-18
 ---

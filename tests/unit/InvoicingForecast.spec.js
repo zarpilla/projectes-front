@@ -33,7 +33,7 @@ async function mountPage () {
     history: createMemoryHistory(),
     routes: [
       { path: '/', name: 'home', component: { template: '<div/>' } },
-      { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }
+      { path: '/projecte/:id', name: 'project.edit', component: { template: '<div/>' } }
     ]
   })
   await router.push('/')
@@ -76,6 +76,6 @@ describe('Previsió facturació page', () => {
 
   it('links each project to its budget tab', async () => {
     const { w } = await mountPage()
-    expect(w.find('a.if-project').attributes('href')).toBe('/project/1?tab=pressupost')
+    expect(w.find('a.if-project').attributes('href')).toBe('/projecte/1?tab=pressupost')
   })
 })

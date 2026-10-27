@@ -61,7 +61,7 @@ async function mountTable () {
     history: createMemoryHistory(),
     routes: [
       { path: '/', name: 'home', component: { template: '<div/>' } },
-      { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }
+      { path: '/projecte/:id', name: 'project.edit', component: { template: '<div/>' } }
     ]
   })
   await router.push('/?year=2025')

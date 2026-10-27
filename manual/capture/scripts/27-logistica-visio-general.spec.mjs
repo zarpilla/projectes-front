@@ -14,7 +14,7 @@ async function closeHello (page) {
 
 // from the «Logística» header to the end of the logistics blocks of the menu
 async function menuShot (page, name) {
-  await page.goto('#/orders')
+  await page.goto('#/comandes')
   await page.getByText('Comandes actives').waitFor()
   await settle(page, 800)
   await closeHello(page)

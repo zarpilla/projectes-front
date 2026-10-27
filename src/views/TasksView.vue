@@ -228,7 +228,7 @@ export default {
     }
   },
   methods: {
-    // #/tasks?task=12 (the link of the task emails) opens that task
+    // /tasques?task=12 (the link of the task emails) opens that task
     openLinkedTask() {
       const taskId = Number(this.$route && this.$route.query && this.$route.query.task);
       if (taskId && this.$refs.board) this.$refs.board.openTaskById(taskId);

@@ -22,7 +22,7 @@ export default defineConfig({
     }
   },
   use: {
-    baseURL: process.env.SMOKE_BASE_URL || 'http://localhost:8080/stats/',
+    baseURL: process.env.SMOKE_BASE_URL || 'http://localhost:8080/',
     viewport: { width: 1440, height: 900 },
     locale: 'ca-ES',
     timezoneId: 'Europe/Madrid'

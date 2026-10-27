@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 20
 roles: [projects]
-routes: ["/salary"]
+routes: ["/bestretes"]
 lang: ca
 updated: 2026-10-18
 ---

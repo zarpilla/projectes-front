@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test'
 import {
-  useE2E, onCleanup, page, state, api, NAME, visit, settle, field, button, modal, expectSnackbar, confirmDialog,
+  useE2E, onCleanup, page, state, api, NAME, visit, settle, field, button, modal, card, escapeRegExp, expectSnackbar, confirmDialog,
   createProject, summaryValue, executedHours, calendarMonth, addActivity,
   periodsFrom, openNewPeriod, openPeriod, fillPeriod, modalCostByHour
 } from './helpers.mjs'
@@ -81,7 +81,7 @@ test('a work period prices the hours dedicated in it', async () => {
   expect(Number(activity.hours)).toBe(4)
   expect(Number(activity.cost_by_hour)).toBeCloseTo(expected, 2)
 
-  await visit(`/project/${state.projectA}`)
+  await visit(`/projecte/${state.projectA}`)
   expect(await executedHours()).toBe(4)
   expect(await summaryValue('Cost de les hores')).toBe(round2(4 * round2(expected)))
   const project = await api('GET', `projects/${state.projectA}`)
@@ -100,7 +100,7 @@ test('changing the period re-prices its activities', async () => {
 
   const [activity] = await myMarchActivities()
   expect(Number(activity.cost_by_hour)).toBeCloseTo(expected, 2)
-  await visit(`/project/${state.projectA}`)
+  await visit(`/projecte/${state.projectA}`)
   expect(await summaryValue('Cost de les hores')).toBe(round2(4 * round2(expected)))
 })
 
@@ -115,12 +115,15 @@ test('overlapping work periods are refused', async () => {
 
 test('payroll advances ("Crear bestretes") follow the work periods', async () => {
   test.skip(!state.period, 'needs the period')
-  await visit('/working-day')
-  const create = page.locator('.card').filter({ hasText: 'Crear Bestretes' }).first()
-  await field('Any', create).locator('select').selectOption({ label: '2027' })
-  await button('Crear', create).click()
+  await visit('/jornada')
+  // the «Crear bestretes» box: the year and the button in its header, the result as a table
+  const create = card('Crear bestretes')
+  await create.locator('select').selectOption({ label: '2027' })
+  await button('Crea les bestretes', create).click()
   await expectSnackbar('Bestretes creades')
-  const mine = page.locator('.card-body', { hasText: state.me.username }).filter({ has: page.locator('.columns') }).first()
+  const mine = create.locator('tbody tr').filter({
+    has: page.locator('td.advances-person', { hasText: new RegExp(`^\\s*${escapeRegExp(state.me.username)}\\s*$`) })
+  })
   await expect(mine).toBeVisible()
 
   // 6 h of 8 → 6/8 of the salary; social security 30 % of that
@@ -135,7 +138,7 @@ test('payroll advances ("Crear bestretes") follow the work periods', async () =>
   expect(payroll.month).toBeTruthy()
 
   // creating them again doesn't duplicate them
-  await button('Crear', create).click()
+  await button('Crea les bestretes', create).click()
   await expectSnackbar('Bestretes creades')
   expect(await myMarchPayrolls()).toHaveLength(1)
 })
@@ -162,8 +165,8 @@ test('hours move between projects ("Moure hores entre projectes")', async () => 
 
   const [activity] = await myMarchActivities()
   expect(idOf(activity.project)).toBe(state.projectB)
-  await visit(`/project/${state.projectA}`)
+  await visit(`/projecte/${state.projectA}`)
   expect(await executedHours()).toBe(0)
-  await visit(`/project/${state.projectB}`)
+  await visit(`/projecte/${state.projectB}`)
   expect(await executedHours()).toBe(4)
 })

@@ -60,7 +60,7 @@ describe('Tresoreria export (issues/277)', () => {
   const row = (id, datef, extra) => ({ id, datef, type: 'Factura', concept: `Moviment ${id}`, total_amount: 100, subtotal: 100, contact: 'Clienta', ...extra })
 
   async function mountTreasury () {
-    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }] })
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/projecte/:id', name: 'project.edit', component: { template: '<div/>' } }] })
     await router.push('/')
     const w = mount(TresoreriaTable, {
       global: {

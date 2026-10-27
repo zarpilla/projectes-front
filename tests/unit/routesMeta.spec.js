@@ -4,6 +4,7 @@
 import { describe, it, expect, vi } from 'vitest'
 vi.mock('@/stores/main.js', () => ({ useMainStore: () => ({}) }))
 import router from '@/router/index.js'
+import { redirectedTo } from './helpers/redirectedTo'
 import QuotesTable from '@/components/QuotesTable.vue'
 
 describe('route meta (issues/085)', () => {
@@ -30,9 +31,7 @@ describe('template leftovers (issues/084)', () => {
     expect(paths).not.toContain('/tables')
     expect(paths).not.toContain('/forms')
     expect(paths).not.toContain('/client/new')
-    expect(router.resolve('/client/5').fullPath).toBe('/client/5')
-    const client = router.getRoutes().find(r => r.path === '/client/:id')
-    expect(client.redirect({ params: { id: '5' } })).toBe('/contact/5')
+    expect(redirectedTo(router, '/client/5')).toBe('/contacte/5')
     expect(router.getRoutes().find(r => r.name === 'profile').meta.title).toBe('El meu compte')
   })
 })
@@ -50,9 +49,8 @@ describe('Pressupostos «Estat» sort (issues/085)', () => {
 // the same figures.
 describe('old Panell Despeses (issues/114)', () => {
   it('opens Ingressos i despeses', () => {
-    const old = router.getRoutes().find(r => r.path === '/stats-despeses')
-    expect(old.redirect).toBe('/stats-economic-detail')
-    expect(router.resolve('/stats-economic-detail').name).toBeTruthy()
+    expect(redirectedTo(router, '/stats-despeses')).toBe('/panell-detall-economic')
+    expect(router.resolve('/panell-detall-economic').name).toBeTruthy()
   })
 })
 
@@ -60,9 +58,9 @@ describe('old Panell Despeses (issues/114)', () => {
 // hours three ways; they became one report, Informes › Dedicació
 describe('one dedication report', () => {
   it('opens Dedicació from the old addresses', () => {
-    for (const path of ['/stats-previsio-hores', '/dedicacio-charts']) {
-      expect(router.getRoutes().find(r => r.path === path).redirect).toBe('/stats-dedicacio')
+    for (const path of ['/stats-previsio-hores', '/dedicacio-charts', '/stats-dedicacio']) {
+      expect(redirectedTo(router, path)).toBe('/panell-dedicacio')
     }
-    expect(router.getRoutes().find(r => r.path === '/stats-dedicacio').meta.title).toBe('Dedicació')
+    expect(router.getRoutes().find(r => r.path === '/panell-dedicacio').meta.title).toBe('Dedicació')
   })
 })

@@ -6,8 +6,8 @@ they must be checked by hand, on a local or staging tenant, before and after the
 ## Projects
 - [ ] ProjectForm: create, edit and save a project, including phases, budget lines and the Gantt tab
 - [ ] Project list ↔ mother-projects default-view preference (redirect from `/projectes`)
-- [ ] Dedication: add or edit hours in `/dedicacio`, JornadaDiaria, `/working-day`
-- [ ] Gantt views (`/stats-previsio-gantt`, `/stats-real-gantt`) drag and resize
+- [ ] Dedication: add or edit hours in `/dedicacio`, JornadaDiaria, `/jornada`
+- [ ] Gantt views (`/panell-previsio-dedicacio`, `/panell-dedicacio-real`) drag and resize
 - [ ] Justifications: every Excel export button downloads a file that opens
 
 ## Documents and invoices
@@ -18,7 +18,7 @@ they must be checked by hand, on a local or staging tenant, before and after the
 - [ ] Verifactu / FACe screens load and show their states
 
 ## Orders and logistics
-- [ ] OrdersForm: new order, pickup-point order (`/order/0?pickup_point=true`), edit, status buttons
+- [ ] OrdersForm: new order, pickup-point order (`/comanda/0?pickup_point=true`), edit, status buttons
 - [ ] Orders table: filters, checked rows, bulk actions, CSV/Excel export
 - [ ] QR scanner modal opens the camera and reads a code
 - [ ] City route and delivery screens; route days; pickup points
@@ -38,9 +38,9 @@ they must be checked by hand, on a local or staging tenant, before and after the
 
 On the local copy these pages were broken or empty on Vue 2 and work on Vue 3.
 Check whether production Vue 2 behaves the same, so the change is understood:
-- [ ] `/salary` (Bestretes): on Vue 2 the year select stayed at "0" and the page kept loading
-- [ ] `/dedicacio-saldo`, `/orders-stats`, `/incidences-stats`: same year-select pattern, Vue 2 never finished loading
-- [ ] `/route-days`: Vue 2's calendar showed no routes, Vue 3 shows each weekday's routes
+- [ ] `/bestretes` (Bestretes): on Vue 2 the year select stayed at "0" and the page kept loading
+- [ ] `/dedicacio-saldo`, `/estadistiques-comandes`, `/estadistiques-incidencies`: same year-select pattern, Vue 2 never finished loading
+- [ ] `/rutes-dies`: Vue 2's calendar showed no routes, Vue 3 shows each weekday's routes
 - [ ] Opening one document after another (`/document/:id/:type`): Vue 2 kept showing the previous document
 
 Intentional behaviour changes:

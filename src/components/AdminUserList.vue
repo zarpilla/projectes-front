@@ -4,7 +4,7 @@
       <download-excel class="export" name="usuaries" :fields="excelFields" :fetch="fetchExcel">
         <b-button icon-left="download">Exporta</b-button>
       </download-excel>
-      <b-button type="is-primary" icon-left="plus" @click="$router.push('/admin/users/new')">Nova usuària</b-button>
+      <b-button type="is-primary" icon-left="plus" @click="$router.push('/administracio/usuaries/nou')">Nova usuària</b-button>
     </title-bar>
     <section class="section is-main-section">
       <!-- Redesign A: all accounts filtered here (a few dozen) -->
@@ -36,7 +36,7 @@
             <div class="user-cell">
               <span class="user-avatar" aria-hidden="true">{{ initials(props.row) }}</span>
               <div>
-                <router-link :to="`/admin/users/${props.row.id}`" class="doc-title">{{ props.row.name }}</router-link>
+                <router-link :to="`/administracio/usuaries/${props.row.id}`" class="doc-title">{{ props.row.name }}</router-link>
                 <div class="doc-subline">{{ props.row.email }}<template v-if="props.row.fullname && props.row.fullname !== props.row.username"> · {{ props.row.username }}</template></div>
               </div>
             </div>
@@ -52,7 +52,7 @@
             <span v-if="props.row.hidden" class="tag">Ocult</span>
           </b-table-column>
           <b-table-column custom-key="actions" label="" v-slot="props" cell-class="is-actions-cell">
-            <router-link :to="`/admin/users/${props.row.id}`" class="row-action" title="Edita" aria-label="Edita">
+            <router-link :to="`/administracio/usuaries/${props.row.id}`" class="row-action" title="Edita" aria-label="Edita">
               <b-icon icon="pencil-outline" custom-size="default" />
             </router-link>
           </b-table-column>

@@ -10,7 +10,7 @@
       @cancel="trashCancel"
     />
 
-    <!-- an entity the admin screens don't list, opened by URL (/admin/festive):
+    <!-- an entity the admin screens don't list, opened by URL (/administracio/festius):
          it read «Festive», «0 festive», «Crear festive» (issues/181) -->
     <div v-if="notManaged" class="card admin-empty">
       <p>Aquesta taula no es gestiona des d'Administració.</p>
@@ -62,7 +62,7 @@
         >
           <router-link
             v-if="i === 0"
-            :to="{ name: 'admin.entity.edit', params: { entityName, id: props.row.id } }"
+            :to="{ name: 'admin.entity.edit', params: { entityName: slug, id: props.row.id } }"
             class="doc-title"
           >{{ cellText(props.row, attrName, attrConfig) || '—' }}</router-link>
           <span v-else-if="attrName === statusAttr" class="tag" :class="props.row[attrName] ? '' : 'is-success is-light'">
@@ -75,7 +75,7 @@
         <b-table-column label="" custom-key="actions" cell-class="is-actions-cell" v-slot="props">
           <div class="row-actions">
             <router-link
-              :to="{ name: 'admin.entity.edit', params: { entityName, id: props.row.id } }"
+              :to="{ name: 'admin.entity.edit', params: { entityName: slug, id: props.row.id } }"
               class="row-action"
               title="Edita"
               aria-label="Edita"
@@ -104,6 +104,7 @@ import CardComponent from '@/components/CardComponent.vue';
 import ModalBox from '@/components/ModalBox.vue';
 import moment from 'moment';
 import { formatNumber } from '@/helpers/format-number';
+import { entitySlug } from '@/router/paths';
 
 export default {
   name: 'AdminEntityList',
@@ -131,6 +132,10 @@ export default {
     };
   },
   computed: {
+    // the entity's segment in the URL (router/paths.js)
+    slug() {
+      return entitySlug(this.entityName);
+    },
     entityDisplayName() {
       return (this.metadata && this.metadata.displayName) || this.entityName;
     },
@@ -246,7 +251,7 @@ export default {
     createNew() {
       this.$router.push({ 
         name: 'admin.entity.new', 
-        params: { entityName: this.entityName } 
+        params: { entityName: this.slug } 
       });
     },
     trashModal(trashObject) {

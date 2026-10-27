@@ -66,8 +66,8 @@ export default {
     // the Tasques menu dot: opening Tasques sees what was new; leaving it recounts
     "$route.path"(path, from) {
       if (!this.hasTaskAlerts) return;
-      if (path === "/tasks") useTaskAlerts().markSeen();
-      else if (from === "/tasks") useTaskAlerts().refreshSoon();
+      if (path === "/tasques") useTaskAlerts().markSeen();
+      else if (from === "/tasques") useTaskAlerts().refreshSoon();
     }
   },
   mounted() {
@@ -191,7 +191,7 @@ export default {
 
             this.hasTaskAlerts = userPermissions.includes("projects");
             if (this.hasTaskAlerts) {
-              if (this.$route && this.$route.path === "/tasks") useTaskAlerts().markSeen();
+              if (this.$route && this.$route.path === "/tasques") useTaskAlerts().markSeen();
               // after the page's own data (issues/307)
               useTaskAlerts().refreshSoon();
             }

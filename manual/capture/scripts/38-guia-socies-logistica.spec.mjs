@@ -32,7 +32,7 @@ test('38-guia-socies-logistica', async ({ page }) => {
   await shot(page, 'inici-socia')
 
   // Comandes on Wednesday 07/10/2026, every status
-  await page.goto('#/orders')
+  await page.goto('#/comandes')
   await page.getByText('Comandes actives').waitFor()
   await settle(page, 600)
   await page.getByRole('button', { name: 'Dia anterior' }).click() // empty date: picks today

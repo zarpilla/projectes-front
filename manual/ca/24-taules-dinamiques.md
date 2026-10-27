@@ -6,7 +6,7 @@ manual: usuari
 module: informes
 order: 24
 roles: [projects]
-routes: ["/stats-projectes"]
+routes: ["/panell-projectes"]
 lang: ca
 updated: 2026-10-18
 ---

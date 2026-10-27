@@ -42,7 +42,7 @@ const state = new WeakMap()
 
 // The only backend a capture may talk to: the anonymized copy (see anonymize.sql).
 const apiUrl = () => process.env.MANUAL_API_URL || 'http://127.0.0.1:1338'
-const baseUrl = () => process.env.MANUAL_BASE_URL || 'http://localhost:8081/stats/'
+const baseUrl = () => process.env.MANUAL_BASE_URL || 'http://localhost:8081/'
 
 // Call first: names the chapter (its screenshot folder) and points the app at MANUAL_API_URL.
 // The front reads its API url at runtime from /config.js, which in dev points at the
@@ -65,7 +65,7 @@ export async function start (page, slug, { today } = {}) {
     contentType: 'application/javascript',
     body: `window.APP_CONFIG = ${JSON.stringify({
       VUE_APP_API_URL: apiUrl(),
-      VUE_APP_RESET_PASSWORD: baseUrl() + '#/reset-password',
+      VUE_APP_RESET_PASSWORD: baseUrl() + '#/canviar-clau',
       VUE_APP_PATH: baseUrl()
     })};`
   }))

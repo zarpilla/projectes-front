@@ -6,7 +6,8 @@ export const PERMISSION_LABELS = {
   admin: 'Administració',
   orders: 'Logística',
   orders_admin: 'Logística (oficina)',
-  orders_delivery: 'Repartiment'
+  orders_delivery: 'Repartiment',
+  admin_energy: 'Comunitat energètica'
 }
 
 export const permissionLabel = code => PERMISSION_LABELS[code] || code

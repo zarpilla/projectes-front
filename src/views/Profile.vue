@@ -93,7 +93,7 @@
                 </p>
               </li>
             </ul>
-            <router-link to="/changelog" class="news-all">Mira totes les novetats →</router-link>
+            <router-link to="/novetats" class="news-all">Mira totes les novetats →</router-link>
           </section>
         </aside>
       </div>
@@ -173,7 +173,7 @@ export default {
     },
     async doLogout () {
       await logout()
-      location.href = import.meta.env.VUE_APP_PATH || '/'
+      location.href = import.meta.env.BASE_URL
     }
   }
 }

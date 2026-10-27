@@ -25,7 +25,7 @@ test('06-projectes-mare-fills', async ({ page }) => {
   await settle(page, 800)
   await shot(page, 'llistat-mare')
 
-  await page.goto(`#/project/${MOTHER}?tab=resum`)
+  await page.goto(`#/projecte/${MOTHER}?tab=resum`)
   await page.getByText('Resum financer').first().waitFor()
   await settle(page, 1500)
   await shot(page, 'mare-resum')
@@ -53,7 +53,7 @@ test('06-projectes-mare-fills', async ({ page }) => {
   await shot(page, 'mare-planificacio')
 
   // a child: its mother in Dades (fresh load, see 05 about state kept between projects)
-  await page.goto(`#/project/${CHILD}?tab=dades`)
+  await page.goto(`#/projecte/${CHILD}?tab=dades`)
   await page.reload()
   await page.getByText('Identificació').waitFor()
   await settle(page, 1500)
@@ -62,7 +62,7 @@ test('06-projectes-mare-fills', async ({ page }) => {
   await shot(page, 'fill-mare')
 
   // back to the normal list, so the menu opens it again
-  await page.goto('#/mother-projects')
+  await page.goto('#/projectes-mare')
   await settle(page)
   await page.getByRole('button', { name: 'Tots els projectes' }).click()
   await settle(page)

@@ -140,7 +140,7 @@
           {{ props.row.num_orders || 0 }}
         </b-table-column>
         <template #empty>
-          <p class="has-text-muted has-text-centered py-5">{{ search.trim() ? "Cap punt d'entrega coincideix amb la cerca." : "Encara no hi ha cap punt d'entrega." }}</p>
+          <p v-if="!isLoading" class="has-text-muted has-text-centered py-5">{{ search.trim() ? "Cap punt d'entrega coincideix amb la cerca." : "Encara no hi ha cap punt d'entrega." }}</p>
         </template>
       </b-table>
     </div>
@@ -180,7 +180,8 @@ export default {
       },
       queryChanged: 0,
       orders_admin: false,
-      userContacts: false,
+      // the «Punts d'entrega» view (route meta); set before the first render
+      userContacts: !!(this.$route && this.$route.meta && this.$route.meta.userContacts),
       csv: {
         Id: "id",
         nom: "name",
@@ -284,10 +285,10 @@ export default {
     },
     navNew() {
       if (this.$route.meta.userContacts) {
-        this.$router.push("/contact-user/0");
+        this.$router.push("/punt-entrega/0");
         return;
       } else {
-        this.$router.push("/contact/0");
+        this.$router.push("/contacte/0");
       }
     },
     openUnifyModal() {
@@ -304,147 +305,111 @@ export default {
     },
     async getData() {
       this.isLoading = true;
-
-      var userContacts = false;
-      if (this.$route.meta.userContacts) {
-        const me = await service({ requiresAuth: true, cached: true }).get(
-          "users/me"
-        );
-        const permissions = me.data.permissions.map(p => p.permission);
-        this.permissions = permissions;
-        if (
-          permissions.includes("orders_admin") ||
-          permissions.includes("orders_delivery")
-        ) {
-          this.orders_admin = true;
-          userContacts = `&_where[owner_ne]=null`;
-        } else {
-          userContacts = `&_where[owner]=${me.data.id}`;
-          this.userContacts = true;
-        }
-      } else {
-        userContacts = "&_where[owner_null]=true";
-      }
-
-      if (this.filters.q) {
-        this.contacts = (
-          await service({ requiresAuth: true }).get(
-            `contacts/basic?_limit=-1&_sort=name:ASC&_q=${this.filters.q}${userContacts}`
-          )
-        ).data;
-      } else {
-        this.contacts = (
-          await service({ requiresAuth: true }).get(
-            `contacts/basic?_limit=-1&_sort=name:ASC${userContacts}`
-          )
-        ).data;
-
-        if (this.userContacts) {
-          const multideliveryContacts = (
-            await service({ requiresAuth: true }).get(
-              `contacts/basic?_limit=-1&_sort=name:ASC&_where[multidelivery_eq]=true`
-            )
-          ).data;
-          this.contacts = this.contacts.concat(multideliveryContacts);
-
-          const contactsWithOrders = (
-            await service({ requiresAuth: true }).get(
-              `contacts/withorders?_limit=-1&_sort=name:ASC`
-            )
-          ).data;
-          for (const contact of contactsWithOrders) {
-            if (this.contacts.find(c => c.id === contact.id)) {
-              this.contacts.find(c => c.id === contact.id).num_orders =
-                contact.num_orders;
-            } else {
-              this.contacts.push(contact);
-            }
-          }
-
-          // routes and city routes
-
-          if (this.$route.meta.userContacts) {
-            const cities = await service({ requiresAuth: true, cached: true })
-              .get("cities?_sort=name&_limit=-1")
-              .then(r => r.data);
-            // const allRoutes = await service({ requiresAuth: true, cached: true })
-            //   .get("routes?_sort=order&_where[active]=true&_limit=-1")
-            //   .then(r => r.data);
-            this.cities = cities.map(c => ({
-              id: c.id,
-              name: c.name,
-              routes: []
-            }));
-            this.cityRoutes = await service({
-              requiresAuth: true,
-              cached: false
-            })
-              .get("city-routes/basic")
-              .then(r => r.data);
-
-            for (const city of cities) {
-              const cityRoutes = this.cityRoutes.filter(
-                cr => cr.city && cr.city.id === city.id
-              );
-              const routes = cityRoutes.map(cr => cr.route && cr.route.name);
-              this.cities.find(c => c.id === city.id).routes = routes.join(
-                ", "
-              );
-            }
-          }
-        }
-
-        if (this.$route.meta.userContacts && this.orders_admin) {
-          const contactsWithOrders = (
-            await service({ requiresAuth: true }).get(
-              `contacts/orders?_limit=-1&_sort=name:ASC`
-            )
-          ).data;
-          for (const contact of contactsWithOrders) {
-            const c = this.contacts.find(c => c.id === contact.id);
-            if (c) {
-              c.num_orders = contact.num_orders;
-              c.owners_flattened = contact.owners_flattened;
-              c.routes_flattened = contact.routes_flattened;
-            } else {
-              this.contacts.push(contact);
-            }
-          }
-        }
-      }
-
-      this.userContacts = this.$route.meta.userContacts;
-
-      this.contacts = this.contacts.map(contact => {
-        return {
-          ...contact,
-          contact_type_display: contact.contact_types
-            ? contact.contact_types.map(ct => ct.name).join(", ")
-            : "-",
-          contact_of_display: contact.multidelivery
-            ? "MULTIENTREGA"
-            : contact.multiowner
-            ? "TOTES"
-            : contact.owner
-            ? contact.owner.fullname || contact.owner.username
-            : "---",
-          timeSlot1And2: `${this.formatSlot2(
-            contact.time_slot_1_ini,
-            contact.time_slot_1_end,
-            ""
-          )}${this.formatSlot2(
-            contact.time_slot_2_ini,
-            contact.time_slot_2_end,
-            ", "
-          )}`,
-          num_orders: contact.num_orders || 0,
-          routes: this.cities.find(c => c.name === contact.city)
-            ? this.cities.find(c => c.name === contact.city).routes
-            : null
-        };
-      });
-
+      const pointsView = !!this.$route.meta.userContacts;
+      // «Punts d'entrega» shows its own toolbar and table from the start, not
+      // the contacts table while loading
+      this.userContacts = pointsView;
+      const contacts = pointsView ? await this.loadPoints() : await this.loadContacts();
+      this.contacts = contacts.map(contact => this.decorate(contact));
       this.isLoading = false;
+    },
+    // Contactes (projects): the contacts without owner
+    async loadContacts() {
+      const q = this.filters.q ? `&_q=${this.filters.q}` : "";
+      return (
+        await service({ requiresAuth: true }).get(
+          `contacts/basic?_limit=-1&_sort=name:ASC${q}&_where[owner_null]=true`
+        )
+      ).data;
+    },
+    // Punts d'entrega (logistics): the requests run side by side and the
+    // table is filled once, when they are all back
+    async loadPoints() {
+      const get = (url, cached = false) =>
+        service({ requiresAuth: true, cached }).get(url).then(r => r.data);
+      const me = await get("users/me", true);
+      const permissions = me.permissions.map(p => p.permission);
+      this.permissions = permissions;
+      this.orders_admin =
+        permissions.includes("orders_admin") ||
+        permissions.includes("orders_delivery");
+      const q = this.filters.q ? `&_q=${this.filters.q}` : "";
+
+      if (this.orders_admin) {
+        const [contacts, withOrders] = await Promise.all([
+          get(`contacts/basic?_limit=-1&_sort=name:ASC${q}&_where[owner_ne]=null`),
+          this.filters.q ? [] : get("contacts/orders?_limit=-1&_sort=name:ASC")
+        ]);
+        this.cities = [];
+        return this.mergeOrders(contacts, withOrders, true);
+      }
+
+      // a member: their points, the multidelivery ones and the ones they ordered to
+      if (this.filters.q) {
+        return get(`contacts/basic?_limit=-1&_sort=name:ASC${q}&_where[owner]=${me.id}`);
+      }
+      const [own, multidelivery, withOrders, cities, cityRoutes] = await Promise.all([
+        get(`contacts/basic?_limit=-1&_sort=name:ASC&_where[owner]=${me.id}`),
+        get("contacts/basic?_limit=-1&_sort=name:ASC&_where[multidelivery_eq]=true"),
+        get("contacts/withorders?_limit=-1&_sort=name:ASC"),
+        get("cities?_sort=name&_limit=-1", true),
+        get("city-routes/basic")
+      ]);
+      this.cityRoutes = cityRoutes;
+      this.cities = cities.map(city => ({
+        id: city.id,
+        name: city.name,
+        routes: cityRoutes
+          .filter(cr => cr.city && cr.city.id === city.id)
+          .map(cr => cr.route && cr.route.name)
+          .join(", ")
+      }));
+      return this.mergeOrders(own.concat(multidelivery), withOrders, false);
+    },
+    // adds the order figures to the points; points only in `withOrders` are appended
+    mergeOrders(contacts, withOrders, office) {
+      const byId = new Map(contacts.map(c => [c.id, c]));
+      for (const contact of withOrders) {
+        const c = byId.get(contact.id);
+        if (!c) {
+          contacts.push(contact);
+          byId.set(contact.id, contact);
+          continue;
+        }
+        c.num_orders = contact.num_orders;
+        if (office) {
+          c.owners_flattened = contact.owners_flattened;
+          c.routes_flattened = contact.routes_flattened;
+        }
+      }
+      return contacts;
+    },
+    decorate(contact) {
+      const city = this.cities.find(c => c.name === contact.city);
+      return {
+        ...contact,
+        contact_type_display: contact.contact_types
+          ? contact.contact_types.map(ct => ct.name).join(", ")
+          : "-",
+        contact_of_display: contact.multidelivery
+          ? "MULTIENTREGA"
+          : contact.multiowner
+          ? "TOTES"
+          : contact.owner
+          ? contact.owner.fullname || contact.owner.username
+          : "---",
+        timeSlot1And2: `${this.formatSlot2(
+          contact.time_slot_1_ini,
+          contact.time_slot_1_end,
+          ""
+        )}${this.formatSlot2(
+          contact.time_slot_2_ini,
+          contact.time_slot_2_end,
+          ", "
+        )}`,
+        num_orders: contact.num_orders || 0,
+        routes: city ? city.routes : null
+      };
     },
     formatSlot2(s1, s2, prefix) {
       return s1 && s2

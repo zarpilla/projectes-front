@@ -42,7 +42,7 @@ test('setup: the logistics permissions, the member contact and a project', async
 })
 
 test('"Poblacions i rutes": a new town, linked to a route', async () => {
-  await visit('/city-route')
+  await visit('/poblacions-rutes')
   await page.getByPlaceholder('Població', { exact: true }).fill(TOWN)
   await page.locator('button[title="Nova població"]').click()
   await confirmDialog('Vols afegir la població?')
@@ -62,7 +62,7 @@ test('"Poblacions i rutes": a new town, linked to a route', async () => {
 
 test('a new delivery point ("Nou punt d\'entrega")', async () => {
   test.skip(!state.city, 'needs the town')
-  await visit('/contact-user/0')
+  await visit('/punt-entrega/0')
   await field('Contacte de').locator('select').selectOption(String(state.me.id))
   await pickAutocomplete('Població', TOWN)
   await field('CP').locator('input').fill('08001')
@@ -86,7 +86,7 @@ test('a new delivery point ("Nou punt d\'entrega")', async () => {
 
 test('an order for the delivery point', async () => {
   test.skip(!state.point, 'needs the delivery point')
-  await visit('/order/0')
+  await visit('/comanda/0')
   await field('Sòcia').locator('select').selectOption(String(state.me.id))
   const contact = page.getByPlaceholder("Punt d'entrega")
   await contact.click()
@@ -99,9 +99,9 @@ test('an order for the delivery point', async () => {
   await field('Kilograms').locator('input').fill('10')
   await button(state.pickup.name).click()
   await button('Guardar').click()
-  await expect(page).toHaveURL(/\/order\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/comanda\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  state.orderId = Number(page.url().match(/\/order\/(\d+)/)[1])
+  state.orderId = Number(page.url().match(/\/comanda\/(\d+)/)[1])
 
   const order = await api('GET', `orders/${state.orderId}`)
   expect(order).toMatchObject({ status: 'pending', units: 2, kilograms: 10, contact_trade_name: POINT, contact_city: TOWN })
@@ -113,15 +113,15 @@ test('an order for the delivery point', async () => {
 
 test('the order is listed in "Comandes" and shown in its view', async () => {
   test.skip(!state.orderId, 'needs the order')
-  await visit('/orders')
+  await visit('/comandes')
   await expect(page.locator('table tbody tr', { hasText: POINT }).first()).toBeVisible()
-  await visit(`/order/view/${state.orderId}`)
+  await visit(`/comanda/veure/${state.orderId}`)
   await expect(page.getByText(POINT).first()).toBeVisible()
 })
 
 test('the column filters and the quick edit of "Comandes"', async () => {
   test.skip(!state.orderId, 'needs the order')
-  await visit('/orders')
+  await visit('/comandes')
   // a column filter goes to the API: only this order's point is left
   await page.getByLabel("Filtra Punt d'entrega").fill(POINT)
   await settle()
@@ -140,7 +140,7 @@ test('the column filters and the quick edit of "Comandes"', async () => {
 
 test('an incidence is created from the order', async () => {
   test.skip(!state.orderId, 'needs the order')
-  await visit(`/order/${state.orderId}`)
+  await visit(`/comanda/${state.orderId}`)
   await button('Crear incidència').click()
   const box = modal('Crear Incidència')
   await expect(box).toBeVisible()
@@ -151,13 +151,13 @@ test('an incidence is created from the order', async () => {
   const incidences = await api('GET', `incidences?_where[order]=${state.orderId}&_limit=-1`)
   expect(incidences.map(i => i.description)).toEqual([`${NAME} caixa trencada`])
 
-  await visit('/incidences')
+  await visit('/incidencies')
   await expect(page.getByText(`${NAME} caixa trencada`).first()).toBeVisible()
 })
 
 test('"Dipositar" from the order view, and undoing it', async () => {
   test.skip(!state.orderId, 'needs the order')
-  await visit(`/order/view/${state.orderId}`)
+  await visit(`/comanda/veure/${state.orderId}`)
   await button('Dipositar').click()
   await expectSnackbar('Comanda dipositada correctament')
   await settle()
@@ -174,7 +174,7 @@ test('"Dipositar" from the order view, and undoing it', async () => {
 
 test('the selection bar marks the order delivered ("Canvia l\'estat a…")', async () => {
   test.skip(!state.orderId, 'needs the order')
-  await visit('/orders')
+  await visit('/comandes')
   const row = page.locator('table tbody tr.order-row', { hasText: POINT }).first()
   await row.locator('.checkbox, .b-checkbox').first().click()
   const bar = page.locator('.selection-bar')
@@ -190,7 +190,7 @@ test('delivered orders are invoiced to the member ("Facturar comandes")', async 
   test.skip(!state.orderId || !state.projectId, 'needs the delivered order and the project')
   const invoicesOfMember = () => api('GET', `emitted-invoices?_where[contact]=${state.member.id}&_limit=-1&_sort=id:ASC`)
   const before = await invoicesOfMember()
-  await visit('/orders-invoice')
+  await visit('/comandes-per-facturar')
   const input = page.getByPlaceholder('Escriu el nom del projecte...')
   await input.click()
   await input.pressSequentially(state.projectName, { delay: 20 })
@@ -212,7 +212,7 @@ test('delivered orders are invoiced to the member ("Facturar comandes")', async 
 
 test('the invoice is in the member\'s "Factures"', async () => {
   test.skip(!state.invoice, 'needs the invoice')
-  await visit('/provider-invoices')
+  await visit('/factures-proveidor')
   await expect(page.locator('table tbody tr').first()).toBeVisible()
   await expect(page.locator('table tbody')).toContainText(String(state.invoice.code || 'ESBORRANY'))
 })
@@ -225,7 +225,7 @@ test('"Anul·la la comanda" cancels an order', async () => {
   for (const key of ['route', 'pickup', 'contact', 'owner', 'delivery_type']) copy[key] = idOf(first[key])
   const second = await api('POST', 'orders', { data: copy })
 
-  await visit(`/order/${second.id}`)
+  await visit(`/comanda/${second.id}`)
   await button('Anul·la la comanda').click()
   await confirmDialog('anul·lar la comanda')
   await settle()

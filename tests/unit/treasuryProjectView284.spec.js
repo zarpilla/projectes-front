@@ -46,7 +46,7 @@ describe('project view helpers (issues/284)', () => {
 
 describe('Tresoreria with a project chosen (issues/284)', () => {
   async function mountTreasury () {
-    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }] })
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/projecte/:id', name: 'project.edit', component: { template: '<div/>' } }] })
     await router.push('/')
     const w = mount(TresoreriaTable, {
       global: {
@@ -84,7 +84,7 @@ describe('Tresoreria with a project chosen (issues/284)', () => {
 // watcher's read() re-read the rows the grid was created with.
 describe('Tresoreria project view follow-ups (issues/284)', () => {
   async function mountTreasury (attachTo) {
-    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/project/:id', name: 'project.edit', component: { template: '<div/>' } }] })
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div/>' } }, { path: '/projecte/:id', name: 'project.edit', component: { template: '<div/>' } }] })
     await router.push('/')
     const w = mount(TresoreriaTable, {
       attachTo,

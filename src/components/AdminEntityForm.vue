@@ -155,6 +155,7 @@
 <script>
 import { normalizeEntity, optionsMatching, dateFromApi, dateToApi } from '@/service/adminMetadata';
 import service from '@/service/index';
+import { entitySlug } from '@/router/paths';
 
 export default {
   name: 'AdminEntityForm',
@@ -398,7 +399,7 @@ export default {
         // Navigate back to list
         this.$router.push({ 
           name: 'admin.entity.list', 
-          params: { entityName: this.entityName } 
+          params: { entityName: entitySlug(this.entityName) } 
         });
       } catch (error) {
         // Handle validation errors
@@ -431,7 +432,7 @@ export default {
     cancel() {
       this.$router.push({ 
         name: 'admin.entity.list', 
-        params: { entityName: this.entityName } 
+        params: { entityName: entitySlug(this.entityName) } 
       });
     },
     formatLabel(name) {

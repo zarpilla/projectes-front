@@ -3,7 +3,7 @@
 // With SMOKE_VISUAL=1 each page is also compared against the screenshot
 // baseline in ./baseline (create it with `npm run baseline` on the Vue 2 build).
 //
-//   SMOKE_USER=<email> SMOKE_PASS=<password> [SMOKE_BASE_URL=http://localhost:8080/stats/] npm test
+//   SMOKE_USER=<email> SMOKE_PASS=<password> [SMOKE_BASE_URL=http://localhost:8080/] npm test
 //   (or put those KEY=value lines in tools/smoke/.env.smoke)
 //
 // Routes with :params are only visited when params.json maps them to concrete
@@ -28,7 +28,7 @@ if (fs.existsSync(envFile)) {
 const routerSource = fs.readFileSync(path.join(here, '../../src/router/index.js'), 'utf8')
 
 // guest-only screens, or screens that only make sense mid-flow
-const SKIP = new Set(['/', '/forgotten-password', '/reset-password'])
+const SKIP = new Set(['/', '/recuperar-clau', '/canviar-clau'])
 
 const declared = [...new Set(
   [...routerSource.matchAll(/^\s*path:\s*["'`]([^"'`]+)["'`]/gm)].map(m => m[1])
@@ -65,7 +65,7 @@ const firstLine = text => String(text).split('\n')[0]
 // Errors the Vue 2 app already throws today are recorded once (npm run baseline)
 // so later runs only fail on errors the migration introduced.
 const RECORD_KNOWN = process.env.SMOKE_RECORD_KNOWN === '1'
-const BASE_PATH = new URL(process.env.SMOKE_BASE_URL || 'http://localhost:8080/stats/').pathname
+const BASE_PATH = new URL(process.env.SMOKE_BASE_URL || 'http://localhost:8080/').pathname
 const knownFile = path.join(here, process.env.SMOKE_BASELINE_DIR || 'baseline', 'known-errors.json')
 const readJson = (file, fallback) => fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : fallback
 const known = readJson(knownFile, {})

@@ -29,7 +29,7 @@ second port, so it can't pick up in-progress changes:
 git worktree add ../front-baseline v5 && cd ../front-baseline && npm ci
 VUE_APP_API_URL=http://127.0.0.1:1337 npx vue-cli-service serve --port 8081
 # then, in tools/smoke:
-SMOKE_BASE_URL=http://localhost:8081/stats/ npm run baseline
+SMOKE_BASE_URL=http://localhost:8081/ npm run baseline
 ```
 
 Give each checkout its own `node_modules`. The old one needs
@@ -62,9 +62,14 @@ collide. Shared setup and helpers are in `e2e/helpers.mjs`.
 | `hours-modal.spec.mjs` | the "Entrada hores" modal of #/dedicacio opens again after closing it by clicking outside or with Escape ("Afegir dedicació", an existing entry, which is then edited), and the counter: "Començar dedicació", "Continua", reopening it from "Activitat actual", "Fi de l'activitat" saves its hours (waits ~20 s) and removes the counter, all without a reload (issues/047) |
 | `hours-costs.spec.mjs` | a work period's cost/hour prices the activities ("Hores executades" €), changing it re-prices them, overlapping periods are refused, "Crear bestretes" (payroll amounts and dates, no duplicates), "Moure hores entre projectes" |
 | `money.spec.mjs` | issuing an invoice ("Emetre factura": series number, code, can't be deleted), "Cobrada" → "Factura cobrada" in Tresoreria, the IRPF movement of a received invoice, manual treasury movements (validate, delete), quotes, "Nou Contacte" from a document, cancelling a new diet ("Nova Dieta") with Cancel·lar, an outside click or Escape |
-| `admin.spec.mjs` | creating a user in #/admin/users, what an hours-only user sees and may do, login errors, token refresh, contacts (create, edit, delete, in-use guard), tasks kanban (create, drag, archive), every ADMINISTRACIÓ screen loads, admin entities (strategy code name) |
+| `admin.spec.mjs` | creating a user in #/administracio/users, what an hours-only user sees and may do, login errors, token refresh, contacts (create, edit, delete, in-use guard), tasks kanban (create, drag, archive), every ADMINISTRACIÓ screen loads, admin entities (strategy code name) |
 | `orders.spec.mjs` | logistics: a town on a route ("Poblacions i rutes"), a delivery point, an order (route, date, boxes, pickup), the order list (column filters, quick edit) and view, an incidence, "Dipositar" and undoing it, the selection bar's "Canvia l'estat a…" to delivered, invoicing the delivered orders to a project ("Facturar comandes"), the invoice in the member's "Factures", "Anul·la la comanda". Needs `e2e/logistics-fixture.sql` |
 | `collection-orders.spec.mjs` | farm pickups and their collection orders (-R) on a real database: a farm-pickup order from the form creates its -R, a second one of the same day joins it and adds its boxes and kilos, saving without changes keeps the order in its -R, moving the pickup day moves it to the -R of that day (the old one recomputes), a -R past pending takes no new orders (issues/303), no past pickup day in the form or the API (issues/302), cancelling the last order of a -R cancels it (issues/217). Needs `e2e/logistics-fixture.sql` |
+| `finances.spec.mjs` | a new project's budget in «Previsió» (per-year incomes/expenses) and «Previsió de facturació» (pending lines), planned VAT in «IVA» («Documents previstos»), an issued and a received invoice leaving the forecasts and appearing in «IVA» «Documents pendents» (base, VAT, quarter, deductible %), an issued invoice's PDF, «Anul·la i rectifica…» (rectificative series, negated lines and totals, the original kept), a diet saved from «Nova Dieta» (km lines, totals, budget line, Tresoreria row), a payroll advance marked «Pagada» (its Tresoreria rows paid), and settling the VAT in «IVA» («Salda N documents»): the box shows only with a «% IVA deduïble» in Configuració, a year's own % deducts that part of the supported VAT, the settled documents leave «Documents pendents» with one «IVA Saldat» treasury movement (issued invoice, its rectificative, a received invoice at 50 %); the percentages are restored and the movements deleted at the end |
+| `projects-stats.spec.mjs` | project figures across screens: the project page's «Resum financer» equals the stored totals (project_totals, issues/326–328), and the Projectes list, Informes › Projectes and Ingressos i despeses pivots and Informes › Dedicació show the same; hours planned on the project gantt reach Previsió dedicació; a mother's figures are her children's only (issues/172: own figures ignored, «Projectes fills» table, Projectes mare row); Recàlcul leaves the figures unchanged; starring a menu entry in Inici saves it on the user (users/me/home). With no cron, it calls `projects/refresh-stored-totals` before reading lists and reports |
+| `fiscal-year.spec.mjs` | the fiscal year of Configuració («Inici de l'any fiscal» September, saved in `me.options`): «2026/27» year labels in Ingressos i despeses and Preu hora, a project's lines and hours of 15/08 and 15/10 split by fiscal year in Ingressos i despeses (pivot and `projects/economic-detail`) and in the project's «Resum financer», «Any inici» of Informes › Projectes (issues/341), grant years («Imports per any», Justificacions amounts) fiscal only with «Els anys de subvenció són anys fiscals», VAT quarters staying on the calendar year, and back to January. Restores the options |
+| `hours-balance.spec.mjs` | personal absences with "Festiu" on #/dedicacio (calendar, one per person and day, ranges skip weekends, deleting one), a holiday for everyone added by an admin, "Saldo d'hores" against two work periods (daily hours and a weekly distribution) with concrete expected/worked/balance figures per year, month and day, "Hores anuals" (the same days and hours, festives against their maximums, the conveni), the person/date/project filters, "Exporta" (.ods content) and "Últimes modificades", and an hours-only user entering and seeing only her own hours. Uses its own user in 2025 |
+| `logistics.spec.mjs` | logistics beyond the basic order: a town's own time slot on its route ("Franges", shown in the order form, issues/314), closing a route on a day in "Rutes i dies" (a new order skips it), a member's late order (warning before saving, «Comanda express» with the 25 % surcharge, the office takes it off, issues/315), "Dipòsits" (deposit and undo), "Transferències" (an order picked up off its route: start, end, undo), an incidence answered, in progress, closed and reopened in "Incidències" and counted in "Informe d'incidències". Needs `e2e/logistics-fixture.sql` |
 | `screens.spec.mjs` | every route of `src/router/index.js` opens without uncaught errors, backend 5xx or error toasts (with every app permission; routes with ids on records it creates or finds). Its tests are independent: one failure doesn't skip the rest |
 
 ### Known bugs
@@ -86,7 +91,7 @@ MYSQL_PWD=... ./e2e-db.sh projectes_v5_manual projectes_v5_e2e   # stop the e2e 
 # from ../projectes-v5
 CRON_ENABLED=false PORT=1339 DATABASE_NAME=projectes_v5_e2e \
   EMAIL_PROVIDER=nodemailer SMTP_HOST=127.0.0.1 SMTP_PORT=9 \
-  RESET_PASSWORD_URL='http://localhost:8082/stats/#/reset-password' npx strapi start   # no cron, no real e-mail
+  RESET_PASSWORD_URL='http://localhost:8082/#/canviar-clau' npx strapi start   # no cron, no real e-mail
 # from the front root
 VUE_APP_API_URL=http://localhost:1339 npx vite --port 8082
 ```
@@ -114,7 +119,7 @@ mysql -uadmin -p -e "CREATE DATABASE projectes_v5_empty_e2e CHARACTER SET utf8mb
 CRON_ENABLED=false PORT=1339 DATABASE_NAME=projectes_v5_empty_e2e \
   EMAIL_PROVIDER=nodemailer SMTP_HOST=127.0.0.1 SMTP_PORT=9 \
   SEED_USER_EMAIL=e2e@exemple.coop SEED_USER_PASSWORD=... SEED_USER_NAME=e2e \
-  RESET_PASSWORD_URL='http://localhost:8082/stats/#/reset-password' npx strapi start
+  RESET_PASSWORD_URL='http://localhost:8082/#/canviar-clau' npx strapi start
 # once it is up, the sentinel the tests look for
 mysql -uadmin -p projectes_v5_empty_e2e -e "INSERT INTO contacts (document_id, name, created_at, updated_at) VALUES ('e2e-sentinel', 'E2E SENTINEL', NOW(), NOW())"
 # and the route, pickup and delivery type of orders.spec.mjs (users can't create them through the API)
@@ -128,7 +133,7 @@ report as an artifact. Run it by hand from the Actions tab to test another backe
 ## Running
 
 `.env.e2e` (git-ignored) holds `E2E_USER`, `E2E_PASSWORD`, `E2E_BASE_URL`
-(`http://localhost:8082/stats/`) and `E2E_API_URL` (`http://localhost:1339`, must be
+(`http://localhost:8082/`) and `E2E_API_URL` (`http://localhost:1339`, must be
 local; use the same host name as the front, or the browser won't send the refresh-token
 cookie and the session ends after 10 minutes). Then:
 

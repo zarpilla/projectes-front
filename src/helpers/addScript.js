@@ -54,7 +54,7 @@ export const KENDO_FILES = [
   ['vendor/kendo/custom.css', 'custom-css']
 ]
 
-export const loadKendo = async (base = import.meta.env.VUE_APP_PATH) => {
+export const loadKendo = async (base = import.meta.env.BASE_URL) => {
   for (const [file, id] of KENDO_FILES) {
     const src = underBase(base, file)
     await (file.endsWith('.js') ? addScript(src, id) : addStyle(src, id))

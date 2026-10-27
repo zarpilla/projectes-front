@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 10
 roles: [projects]
-routes: ["/tasks", "/project/:id"]
+routes: ["/tasques", "/projecte/:id"]
 lang: ca
 updated: 2026-10-17
 ---

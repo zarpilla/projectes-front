@@ -14,7 +14,7 @@ export default defineConfig({
   reporter: 'list',
   outputDir: 'results',
   use: {
-    baseURL: process.env.MANUAL_BASE_URL || 'http://localhost:8081/stats/',
+    baseURL: process.env.MANUAL_BASE_URL || 'http://localhost:8081/',
     viewport: { width: 1440, height: 900 },
     locale: 'ca-ES',
     timezoneId: 'Europe/Madrid',

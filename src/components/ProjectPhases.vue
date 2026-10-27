@@ -18,6 +18,15 @@
 
     <div v-if="phases && phases.length" class="phases-toolbar">
       <span class="phases-count">{{ phases.length }} {{ phases.length === 1 ? "fase" : "fases" }} · {{ linesCount }} {{ linesCount === 1 ? "línia" : "línies" }}</span>
+      <b-button
+        v-if="currentDocumentLineCount"
+        size="is-small"
+        type="is-primary"
+        outlined
+        icon-left="crosshairs-gps"
+        class="current-document-button"
+        @click="goToDocumentLine"
+      >{{ currentDocumentLineCount === 1 ? "Ves a la línia d'aquest document" : "Ves a les línies d'aquest document" }}</b-button>
       <div v-if="phases.length > 1" class="phases-toolbar-actions">
         <b-button size="is-small" icon-left="unfold-less-horizontal" @click="setAllCollapsed(true)">Plega-ho tot</b-button>
         <b-button size="is-small" icon-left="unfold-more-horizontal" @click="setAllCollapsed(false)">Desplega-ho tot</b-button>
@@ -99,12 +108,31 @@
         <div class="subphase-detail-title">
           Ingressos <span class="lines-count">{{ phase.incomes ? phase.incomes.length : 0 }}</span>
         </div>
+        <div
+          class="lines-drop-zone"
+          @dragover="lineDragOver($event, phase, 'incomes')"
+          @drop="lineDrop($event, phase, 'incomes')"
+        >
         <b-table v-if="form && phase.incomes" :data="phase.incomes" ref="table"
+          :row-class="row => lineRowClass(row, phase, 'incomes')"
           :paginated="isPaginated && phase.incomes.length > 10"
           :per-page="perPage"
           pagination-position="top"
           :pagination-simple="true"
         >
+          <b-table-column v-if="canReorder" label="" width="20" cell-class="col-drag" header-class="col-drag" v-slot="props">
+            <span
+              class="line-drag-handle"
+              draggable="true"
+              :data-line-index="props && props.row ? phase.incomes.indexOf(props.row) : -1"
+              title="Arrossega per moure la línia"
+              aria-label="Arrossega per moure la línia"
+              @dragstart="lineDragStart($event, phase, 'incomes', props && props.row)"
+              @dragend="lineDragEnd"
+            >
+              <b-icon icon="drag-vertical" size="is-small" />
+            </span>
+          </b-table-column>
           <b-table-column field="name" label="Tipus" width="40px" cell-class="col-type" v-slot="props">
             <b-field
                 v-if="
@@ -429,6 +457,7 @@
           </b-table-column>
           
         </b-table>
+        </div>
         <div class="add-subphase mt-2" v-if="phase.incomes.length === 0">
           <button
             class="button is-small line-action"
@@ -446,11 +475,30 @@
         <div class="subphase-detail-title">
           Despeses <span class="lines-count">{{ phase.expenses ? phase.expenses.length : 0 }}</span>
         </div>
+        <div
+          class="lines-drop-zone"
+          @dragover="lineDragOver($event, phase, 'expenses')"
+          @drop="lineDrop($event, phase, 'expenses')"
+        >
         <b-table v-if="form && phase.expenses" :data="phase.expenses" ref="table"
+          :row-class="row => lineRowClass(row, phase, 'expenses')"
         :paginated="isPaginated && phase.expenses.length > 10"
           :per-page="perPage"
           pagination-position="top"
           :pagination-simple="true">
+          <b-table-column v-if="canReorder" label="" width="20" cell-class="col-drag" header-class="col-drag" v-slot="props">
+            <span
+              class="line-drag-handle"
+              draggable="true"
+              :data-line-index="props && props.row ? phase.expenses.indexOf(props.row) : -1"
+              title="Arrossega per moure la línia"
+              aria-label="Arrossega per moure la línia"
+              @dragstart="lineDragStart($event, phase, 'expenses', props && props.row)"
+              @dragend="lineDragEnd"
+            >
+              <b-icon icon="drag-vertical" size="is-small" />
+            </span>
+          </b-table-column>
           <b-table-column field="name" label="Tipus" width="80" cell-class="col-type" v-slot="props">
             <b-field
                 v-if="
@@ -768,6 +816,7 @@
               </b-field>
           </b-table-column>
         </b-table>
+        </div>
         <div class="add-subphase mt-2" v-if="phase.expenses.length === 0">
           <button
             class="button is-small line-action"
@@ -809,6 +858,7 @@ import service from "@/service/index";
 import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { budgetLineDisplay, budgetLineTotal, budgetLineValue } from "@/domain/budgetLines.js";
+import { sortLinesByPosition, moveLine, lineHasDocument } from "@/domain/budgetLineOrder.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -910,6 +960,8 @@ export default {
       rendered: !this.deferRender,
       // phases folded by the user (key: phase id, or index for unsaved ones)
       collapsedPhases: {},
+      // the line being dragged by its handle (issues/345)
+      lineDrag: null,
       // the quantity / price input being typed in: shows the text as typed
       // while the others show Catalan decimals (issues/224)
       editingLine: null,
@@ -969,6 +1021,21 @@ export default {
     };
   },
   computed: {
+    // issues/345: the lines can be reordered with drag & drop
+    canReorder() {
+      return this.editable;
+    },
+    // issues/344: lines linked to the document being viewed
+    currentDocumentLineCount() {
+      if (!this.documentId) return 0;
+      return (this.phases || []).reduce(
+        (total, phase) =>
+          total +
+          (phase.incomes || []).filter(line => this.isCurrentDocumentLine(line, "incomes")).length +
+          (phase.expenses || []).filter(line => this.isCurrentDocumentLine(line, "expenses")).length,
+        0
+      );
+    },
     linesCount() {
       return (this.phases || []).reduce(
         (total, phase) => total + (phase.incomes ? phase.incomes.length : 0) + (phase.expenses ? phase.expenses.length : 0),
@@ -1158,6 +1225,9 @@ export default {
     });
 
     phases0.forEach(p => {
+      // the order saved with drag & drop (issues/345)
+      sortLinesByPosition(p.incomes);
+      sortLinesByPosition(p.expenses);
       p.dirty = p.dirty || false;
       p.incomes.forEach(s => {
         s.dirty = s.dirty || false;
@@ -1219,6 +1289,78 @@ export default {
     budgetLineTotal,
     formatMoney,
     sign,
+    isCurrentDocumentLine(line, kind) {
+      return !!this.documentId && lineHasDocument(line, kind, this.documentType, this.documentId);
+    },
+    lineRowClass(row, phase, kind) {
+      const classes = [];
+      if (this.isCurrentDocumentLine(row, kind)) classes.push("is-current-document");
+      const drag = this.lineDrag;
+      if (drag && drag.phase === phase && drag.kind === kind) {
+        const index = phase[kind].indexOf(row);
+        if (index === drag.from) classes.push("is-dragging");
+        else if (index === drag.over) classes.push(drag.over < drag.from ? "drop-before" : "drop-after");
+      }
+      return classes.join(" ");
+    },
+    // issues/344: unfold the phases holding the document's lines and scroll to the first one
+    goToDocumentLine() {
+      const collapsed = { ...this.collapsedPhases };
+      (this.phases || []).forEach((phase, index) => {
+        const holds =
+          (phase.incomes || []).some(line => this.isCurrentDocumentLine(line, "incomes")) ||
+          (phase.expenses || []).some(line => this.isCurrentDocumentLine(line, "expenses"));
+        if (holds) collapsed[this.phaseKey(phase, index)] = false;
+      });
+      this.collapsedPhases = collapsed;
+      this.$nextTick(() => {
+        const row = this.$el && this.$el.querySelector && this.$el.querySelector("tr.is-current-document");
+        if (row && row.scrollIntoView) row.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    },
+    // issues/345: drag a line by its handle within its own table
+    lineDragStart(event, phase, kind, row) {
+      const from = phase[kind].indexOf(row);
+      if (!this.canReorder || from < 0) return;
+      this.lineDrag = { phase, kind, from, over: from };
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        // Firefox starts a drag only with some data
+        event.dataTransfer.setData("text/plain", String(from));
+        const tr = event.target && event.target.closest && event.target.closest("tr");
+        if (tr && event.dataTransfer.setDragImage) event.dataTransfer.setDragImage(tr, 16, 16);
+      }
+    },
+    lineDropIndex(event, phase, kind) {
+      const drag = this.lineDrag;
+      if (!drag || drag.phase !== phase || drag.kind !== kind) return -1;
+      const tr = event.target && event.target.closest && event.target.closest("tr");
+      const handle = tr && tr.querySelector("[data-line-index]");
+      if (!handle) return -1;
+      const index = Number(handle.getAttribute("data-line-index"));
+      return Number.isInteger(index) && index >= 0 ? index : -1;
+    },
+    lineDragOver(event, phase, kind) {
+      const index = this.lineDropIndex(event, phase, kind);
+      // another table (or no line dragged): no drop allowed
+      if (index < 0) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      if (this.lineDrag.over !== index) this.lineDrag = { ...this.lineDrag, over: index };
+    },
+    lineDrop(event, phase, kind) {
+      const index = this.lineDropIndex(event, phase, kind);
+      const drag = this.lineDrag;
+      this.lineDrag = null;
+      if (index < 0) return;
+      event.preventDefault();
+      const lines = phase[kind];
+      const row = lines[drag.from];
+      if (moveLine(lines, drag.from, index)) this.somethingChanged(row);
+    },
+    lineDragEnd() {
+      this.lineDrag = null;
+    },
     phaseKey(phase, index) {
       return phase && phase.id ? "id-" + phase.id : "index-" + index;
     },
@@ -1468,7 +1610,7 @@ export default {
           message: 'Vols crear una nova línia i associar-li el document automàticament?',
           confirmText: 'Sí',
           cancelText: 'No',
-          type: 'is-info',
+          type: 'is-primary',
           onConfirm: () => {
             this.createSubPhase(phase, true);
           },
@@ -1522,7 +1664,7 @@ export default {
           message: 'Vols crear una nova línia i associar-li el document automàticament?',
           confirmText: 'Sí',
           cancelText: 'No',
-          type: 'is-info',
+          type: 'is-primary',
           onConfirm: () => {
             this.createSubExpense(phase, true);
           },
@@ -2154,6 +2296,41 @@ export default {
 </script>
 
 <style>
+/* issues/344: the line of the document being viewed */
+.project-form-phases tr.is-current-document > td {
+  background: var(--a-warn-bg);
+}
+.project-form-phases tr.is-current-document > td:first-child {
+  box-shadow: inset 4px 0 0 var(--a-accent);
+}
+.project-form-phases .current-document-button {
+  margin-left: auto;
+}
+/* issues/345: drag & drop of the lines */
+.project-form-phases .col-drag {
+  width: 20px;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  vertical-align: middle !important;
+}
+.project-form-phases .line-drag-handle {
+  display: inline-flex;
+  cursor: grab;
+  color: var(--a-muted);
+}
+.project-form-phases .line-drag-handle:hover {
+  color: var(--a-fg);
+}
+.project-form-phases tr.is-dragging > td {
+  opacity: 0.4;
+}
+.project-form-phases tr.drop-before > td {
+  box-shadow: inset 0 2px 0 var(--a-accent);
+}
+.project-form-phases tr.drop-after > td {
+  box-shadow: inset 0 -2px 0 var(--a-accent);
+}
+
 /* Redesign A: phase head, folding, quiet line actions, columns that don't truncate */
 .project-form-phases .phases-toolbar {
   display: flex;

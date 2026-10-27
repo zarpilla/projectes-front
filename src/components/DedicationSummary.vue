@@ -2,7 +2,7 @@
   <div class="annual-report">
     <div v-if="warn" class="notification is-warning">
       Abans de consultar el resum d'hores anuals cal definir la jornada laboral de tot l'any a
-      <router-link to="/working-day">Persones</router-link>.
+      <router-link to="/jornada">Persones</router-link>.
     </div>
 
     <template v-if="!isLoading && !warn && calc">

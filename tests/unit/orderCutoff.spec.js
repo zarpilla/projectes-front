@@ -62,8 +62,8 @@ describe('tomorrow after the cutoff (issues/150, 315)', () => {
 describe('the hour in the help text (issues/150)', () => {
   it('comes from the setting', () => {
     const reminder = OrdersForm.computed.cutoffReminder
-    expect(reminder.call({ nextDayLimitHour: 14 })).toContain('a les 14 h del dia abans')
-    expect(reminder.call({ nextDayLimitHour: 12 })).toContain('a les 12 h del dia abans')
+    expect(reminder.call({ nextDayLimitHour: 14 })).toContain('a les 14 h del dia laborable anterior')
+    expect(reminder.call({ nextDayLimitHour: 12 })).toContain('a les 12 h del dia laborable anterior')
   })
 })
 

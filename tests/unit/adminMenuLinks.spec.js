@@ -10,6 +10,8 @@ vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
 import menu from '@/service/menu'
 import router from '@/router'
 import { ADMIN_TABLES } from '@/service/adminTables'
+import { entityPath, slugEntity } from '@/router/paths'
+import { redirectedTo } from './helpers/redirectedTo'
 
 // projectes-v5 src/api/entity-metadata/controllers/entity-metadata.js ADMIN_ENTITIES
 const BACKEND_ENTITIES = [
@@ -25,8 +27,8 @@ const BACKEND_ENTITIES = [
 
 // the menu's admin links plus the auxiliary tables listed on "Taules auxiliars"
 const links = [
-  ...menu.flat().filter(item => item && typeof item === 'object' && item.to && item.to.startsWith('/admin/')),
-  ...ADMIN_TABLES.map(t => ({ to: `/admin/${t.entity}` }))
+  ...menu.flat().filter(item => item && typeof item === 'object' && item.to && item.to.startsWith('/administracio/')),
+  ...ADMIN_TABLES.map(t => ({ to: entityPath(t.entity) }))
 ]
 
 describe('admin menu links', () => {
@@ -34,7 +36,7 @@ describe('admin menu links', () => {
     const generic = links
       .map(item => router.resolve(item.to))
       .filter(route => route.params.entityName)
-      .map(route => route.params.entityName)
+      .map(route => slugEntity(route.params.entityName))
     expect(generic.length).toBeGreaterThan(10)
     expect(generic.filter(name => !BACKEND_ENTITIES.includes(name))).toEqual([])
   })
@@ -66,9 +68,8 @@ describe('admin menu links', () => {
   })
 
   it('redirect the old plural paths (bookmarks)', () => {
-    for (const [old, now] of [['/admin/bank-accounts', '/admin/bank-account'], ['/admin/regions', '/admin/region']]) {
-      const record = router.getRoutes().find(r => r.path === old)
-      expect(record?.redirect, old).toBe(now)
+    for (const [old, now] of [['/administracio/bank-accounts', '/administracio/comptes-bancaris'], ['/administracio/regions', '/administracio/regions'], ['/administracio/region', '/administracio/regions']]) {
+      expect(redirectedTo(router, old), old).toBe(now)
     }
   })
 })

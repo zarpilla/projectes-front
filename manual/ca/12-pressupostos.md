@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 12
 roles: [projects]
-routes: ["/quotes", "/quote/:id"]
+routes: ["/pressupostos"]
 lang: ca
 updated: 2026-10-18
 ---

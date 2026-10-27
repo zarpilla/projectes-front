@@ -302,10 +302,11 @@ export default {
     
     extractOrderId(url) {
       // Match patterns like:
+      // https://<site>/comanda/veure/15397 (the labels since issues/343)
       // http://localhost:8081/stats/order/view/15397 (and the old #/order/view/15397 labels)
       // http://localhost:8081/stats/#/order/15397
-      // or any domain with /order/view/{id} or /order/{id}
-      const match = url.match(/\/order\/(?:view\/)?(\d+)/);
+      // or any domain with /comanda/{id}, /order/view/{id} or /order/{id}
+      const match = url.match(/\/(?:order|comanda)\/(?:view\/|veure\/)?(\d+)/);
       return match ? parseInt(match[1], 10) : null;
     },
     

@@ -10,7 +10,7 @@ test('20-bestretes', async ({ page }) => {
   await start(page, '20-bestretes', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/salary')
+  await page.goto('#/bestretes')
   await page.getByPlaceholder('Persona').waitFor()
   await settle(page, 1000)
   await page.getByPlaceholder('Persona').fill('Clara Serra')

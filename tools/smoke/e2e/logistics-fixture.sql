@@ -57,3 +57,16 @@ WHERE rr.name = 'E2E Tarifa' AND d.name = 'E2E Normal'
 INSERT INTO pickups (document_id, name, alias, pickup, created_at, updated_at, published_at)
 SELECT 'e2e-farm-pickup', 'E2E Recollida en Finca', 'E2EF', 1, NOW(), NOW(), NOW()
 WHERE NOT EXISTS (SELECT 1 FROM pickups WHERE name = 'E2E Recollida en Finca');
+
+-- a warehouse in a town no route goes through: an order picked up there has to be
+-- transferred to its route first ("Transferències", logistics.spec.mjs)
+INSERT INTO cities (document_id, name, created_at, updated_at, published_at)
+SELECT 'e2e-remote-city', 'E2E Ciutat del Magatzem', NOW(), NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM cities WHERE name = 'E2E Ciutat del Magatzem');
+INSERT INTO pickups (document_id, name, alias, pickup, created_at, updated_at, published_at)
+SELECT 'e2e-remote-pickup', 'E2E Magatzem Remot', 'E2ER', 0, NOW(), NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM pickups WHERE name = 'E2E Magatzem Remot');
+INSERT INTO pickups_city_lnk (pickup_id, city_id)
+SELECT p.id, c.id FROM pickups p, cities c
+WHERE p.name = 'E2E Magatzem Remot' AND c.name = 'E2E Ciutat del Magatzem'
+  AND NOT EXISTS (SELECT 1 FROM pickups_city_lnk l WHERE l.pickup_id = p.id);

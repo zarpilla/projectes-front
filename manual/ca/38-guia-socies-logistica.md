@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 38
 roles: [orders]
-routes: ["/orders", "/order/:id", "/user-contacts", "/deposits", "/incidences", "/provider-invoices", "/contact-us"]
+routes: ["/comandes", "/comanda/:id", "/clientes", "/diposits", "/incidencies", "/factures-proveidor", "/contacta"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -76,7 +76,7 @@ El menú lateral, a l'esquerra, té dos blocs:
 - **Logística**: **Comandes** (les teves comandes), **Dipòsits** (marcar que has deixat les caixes),
   **Incidències**, **Factures** (les factures del transport) i **Contacta** (escriure a l'oficina).
 - **Rutes i punts**: **Poblacions i rutes** i **Rutes i dies** (per consultar per on i quins dies passa cada
-  ruta), **Punts d'entrega** (els teus clients) i **Punts de consum**.
+  ruta), **Punts d'entrega** (les teves clientes) i **Punts de consum**.
 
 Les estrelles del menú lateral només indiquen quines pantalles tens a l'inici.
 
@@ -307,7 +307,7 @@ comanda, un codi QR, la data prevista, el punt d'entrega i l'adreça, les caixes
 notes (fràgil, horari, informació important). En un punt de consum, cada caixa porta el nom i el NIF de la
 persona.
 
-Si surt «ERROR. L'usuària … no te cap contacte associat.», el teu usuari encara no està lligat a la teva fitxa
+Si surt «ERROR. L'usuària … no te cap contacte associat.», la teva usuària encara no està lligada a la teva fitxa
 de sòcia: avisa l'oficina. Les comandes de recollida (número acabat en **-R**, mira més avall) no tenen albarà.
 
 ## Dipositar les caixes

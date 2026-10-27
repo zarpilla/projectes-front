@@ -34,6 +34,7 @@ import IncidencesStatsCharts from "@/components/IncidencesStatsCharts.vue";
 import service from "@/service/index";
 import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import moment from "moment";
+import { defaultYear } from "@/domain/years";
 
 export default {
   name: "StatsIncidences",
@@ -83,7 +84,8 @@ export default {
           if (!this.years.find(y => y.id === 0)) {
             this.years.unshift({ id: 0, year: "Tots" });
           }          
-          this.filters.year = this.years[1];
+          // this year, not the newest one (2027 exists already): issues/335
+          this.filters.year = defaultYear(this.years);
 
           service({ requiresAuth: true, cached: true })
             .get("months")

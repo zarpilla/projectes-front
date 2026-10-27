@@ -45,7 +45,7 @@ describe('StrategiesStats', () => {
     await wrapper.findAll('.segmented button')[1].trigger('click')
     const rows = wrapper.findAll('.st-table tbody tr')
     expect(rows.length).toBe(1)
-    expect(rows[0].find('a').attributes('href')).toBe('/project/1')
+    expect(rows[0].find('a').attributes('href')).toBe('/projecte/1')
     expect(rows[0].findAll('.tag').map(t => t.text())).toEqual(['2.1', '2.2'])
   })
 

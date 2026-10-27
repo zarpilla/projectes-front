@@ -172,7 +172,7 @@ test('04-crear-editar-projecte', async ({ page }) => {
   await settle(page, 300)
 
   // --- a complete Dades tab, read-only (project 642)
-  await page.goto(`#/project/${FULL_PROJECT}?tab=dades`)
+  await page.goto(`#/projecte/${FULL_PROJECT}?tab=dades`)
   await page.getByText('Identificació').waitFor()
   await settle(page, 1500)
   await shot(page, 'dades-identificacio')

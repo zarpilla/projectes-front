@@ -6,7 +6,7 @@ manual: usuari
 module: informes
 order: 25
 roles: [projects]
-routes: ["/stats-projectes", "/stats-economic-detail", "/stats-despeses", "/forecast", "/price-hour", "/stats-estrategies", "/stats-intercoop"]
+routes: ["/panell-projectes", "/panell-detall-economic", "/previsio", "/previsio-facturacio", "/panell-preu-hora", "/panell-estrategies", "/panell-intercooperacio"]
 lang: ca
 updated: 2026-10-18
 ---

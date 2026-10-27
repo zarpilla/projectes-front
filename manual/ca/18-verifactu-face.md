@@ -6,7 +6,7 @@ manual: usuari
 module: diners
 order: 18
 roles: [admin, projects]
-routes: ["/verifactu", "/admin/verifactu*", "/admin/face-queue"]
+routes: ["/verifactu", "/administracio/verifactu*", "/administracio/cua-face*", "/administracio/cadena-verifactu*"]
 lang: ca
 updated: 2026-10-18
 ---

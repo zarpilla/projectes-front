@@ -1,4 +1,4 @@
-// issues/018 — the Sòcies page (/partners) exports the member list to Excel:
+// issues/018 — the Sòcies page (/usuaries) exports the member list to Excel:
 // the members shown in the table, with every piece of data it shows.
 import { describe, it, expect, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'

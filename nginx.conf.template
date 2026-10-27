@@ -4,6 +4,10 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Redirects carry only the path ("Location: /tasks"): behind the site's nginx
+    # an absolute one would point at http://<host>:80.
+    absolute_redirect off;
+
     # Keep the app out of search engines. Repeated in every location that
     # defines its own add_header, since nginx does not inherit them.
     add_header X-Robots-Tag "noindex, nofollow" always;
@@ -13,7 +17,10 @@ server {
         return 403;
     }
 
-    # Handle service worker specifically for /stats/ prefix - must come before other /stats/ rules
+    # The app was served under /stats/ until it moved to the root of the site.
+    # Browsers that registered the old service worker (scope /stats/) fetch it
+    # from here; it must answer directly (a redirected worker script is
+    # rejected), so they get the kill switch and drop it.
     location = /stats/service-worker.js {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
@@ -21,8 +28,20 @@ server {
         add_header X-Robots-Tag "noindex, nofollow" always;
         try_files /service-worker.js =404;
     }
-    
-    # Service worker should never be cached - handle direct access
+
+    # Old addresses (printed QR labels, e-mails, bookmarks): /stats/x → /x, and
+    # the app's administration screens /stats/admin/x → /administracio/x (/admin
+    # is Strapi's). Query strings are kept, and browsers keep the "#/…" of the
+    # older hash links, which the app turns into a path. Never remove.
+    location = /stats {
+        return 301 /;
+    }
+    location ^~ /stats/ {
+        rewrite ^/stats/admin(/.*)?$ /administracio$1 permanent;
+        rewrite ^/stats/(.*)$ /$1 permanent;
+    }
+
+    # Service worker should never be cached
     location = /service-worker.js {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
@@ -30,12 +49,12 @@ server {
         add_header X-Robots-Tag "noindex, nofollow" always;
     }
 
-    # Handle static assets with /stats/ prefix - strip the prefix (but exclude service-worker.js)
-    location ~* ^/stats/(.+\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
+    # Built files carry a content hash in their name
+    location /assets/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
         add_header X-Robots-Tag "noindex, nofollow" always;
-        try_files /$1 =404;
+        try_files $uri =404;
     }
 
     # Force no caching for HTML files - this is critical for service worker updates
@@ -51,22 +70,13 @@ server {
         add_header X-Cache-Bust $msec;
     }
 
-    # Handle /stats/ app routes - serve index.html for SPA routing
-    location /stats/ {
-        try_files $uri $uri/ /index.html;
+    # config.js is written per site at container start
+    location = /config.js {
+        expires -1;
+        add_header X-Robots-Tag "noindex, nofollow" always;
     }
 
-    # Handle other static files (manifest, favicon, etc.) with /stats/ prefix
-    location ~* ^/stats/(.+)$ {
-        try_files /$1 /index.html;
-    }
-
-    # Redirect root to /stats/
-    location = / {
-        return 301 /stats/;
-    }
-
-    # Fallback for any other requests
+    # App routes: serve index.html for SPA routing
     location / {
         try_files $uri $uri/ /index.html;
     }

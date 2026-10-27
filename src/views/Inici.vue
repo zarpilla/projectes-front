@@ -214,7 +214,7 @@ export default {
   methods: {
     // the counts the menu already has (the Tasques dot)
     tagsFor(to) {
-      if (to !== "/tasks") return [];
+      if (to !== "/tasques") return [];
       const alerts = useTaskAlerts();
       const tags = [];
       if (alerts.overdue) tags.push({ text: `${alerts.overdue} ${alerts.overdue === 1 ? "vençuda" : "vençudes"}`, type: "is-danger" });

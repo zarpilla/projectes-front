@@ -6,7 +6,7 @@ manual: usuari
 module: introduccio
 order: 1
 roles: []
-routes: ["/", "/forgotten-password", "/reset-password", "/profile", "/changelog", "/documentacio"]
+routes: ["/", "/recuperar-clau", "/canviar-clau", "/el-meu-compte", "/novetats", "/documentacio"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -41,7 +41,7 @@ triar-ne una de nova. Si no arriba, **Torna-ho a enviar** (i mireu la carpeta de
 
 A l'esquerra, primer **Inici** i després les pantalles agrupades per blocs (**Projectes**, **Diners**, **Informes**, **Administració**, **Altres**; i a les
 entitats amb logística, els seus blocs). Cada persona veu només el que li permeten els seus permisos (vegeu
-[02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)).
+[02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)).
 
 - **Informes** i **Altres** surten plegats, amb el nombre de pantalles que tenen (*Informes · 14*). Clicant el
   títol es despleguen; quan s'és en una de les seves pantalles, es despleguen sols.
@@ -99,10 +99,10 @@ cada capítol, saltar als relacionats.
 **No puc entrar.** Comproveu el correu i la clau (les majúscules compten). Si el compte està **bloquejat**, cal
 parlar amb una persona administradora.
 
-**No veig una pantalla que veu una companya.** Els permisos són diferents. Vegeu [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md).
+**No veig una pantalla que veu una companya.** Els permisos són diferents. Vegeu [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md).
 
 ## Vegeu també
 
 - [00. Què és ESSTRAPIS](00-que-es-esstrapis.md)
-- [02. Usuaris, rols i permisos](02-usuaris-rols-permisos.md)
+- [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md)
 - [37. La pàgina d'inici](37-pagina-inici.md)

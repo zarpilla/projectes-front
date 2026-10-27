@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ['VITE_', 'VUE_APP_'])
 
   return {
-    // Served under /stats/ (VUE_APP_PATH, same variable the Dockerfile and CI pass)
+    // Served at the root of the site (VUE_APP_PATH, same variable the Dockerfile and CI pass)
     base: env.VUE_APP_PATH || '/',
     plugins: [vue()],
     // Keep the existing VUE_APP_* names (.env, Dockerfile, CI) readable as

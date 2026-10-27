@@ -211,6 +211,7 @@
               <dt>Cobraments</dt><dd>{{ money(m.total_incomes) }}</dd>
               <dt>Pagaments</dt><dd class="has-text-neg">{{ money(m.total_expenses) }}</dd>
               <dt>Resultat</dt><dd :class="'has-text-' + sign(m.total_amount)">{{ money(m.total_amount, true) }}</dd>
+              <template v-if="m.balance_adjustment"><dt>Ajust de saldo</dt><dd :class="'has-text-' + sign(m.balance_adjustment)">{{ money(m.balance_adjustment, true) }}</dd></template>
               <dt class="is-strong">Saldo final</dt><dd class="is-strong" :class="'has-text-' + sign(m.subtotal)">{{ money(m.subtotal) }}</dd>
             </dl>
           </div>
@@ -298,7 +299,7 @@
               <td class="has-text-right" :class="'has-text-' + sign(data.total_amount)">{{ money(data.total_amount, true) }}</td>
               <!-- undated amounts don't enter the forecast: no running balance (issues/299) -->
               <td v-if="data.month === '99'" class="has-text-right has-text-muted" title="Fora de la previsió: no se sumen al saldo">—</td>
-              <td v-else class="has-text-right" :class="['has-text-' + sign(data.subtotal), { 'has-text-weight-bold': data.month === '00' }]">{{ money(data.subtotal) }}</td>
+              <td v-else class="has-text-right" :class="['has-text-' + sign(data.subtotal), { 'has-text-weight-bold': data.month === '00' }]" :title="data.balance_adjustment ? 'Inclou ajustos de saldo de ' + money(data.balance_adjustment, true) : null">{{ money(data.subtotal) }}<span v-if="data.balance_adjustment" class="has-text-muted"> *</span></td>
             </tr>
           </tbody>
         </table>
@@ -612,6 +613,7 @@ import { format } from "@/helpers/excelFormatter";
 import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday } from "@/domain/projectTreasury.js";
+import { setValidationKeys } from "@/domain/treasuryValidation.js";
 
 export default {
   name: "Tresoreria",
@@ -656,7 +658,6 @@ export default {
       trashObject: null,
       vat: { paid: 0, received: 0 },
       vat_expected: { paid: 0, received: 0 },
-      payingVat: false,
       view: "startOfYear",
       projectStates: [],
       selectedProjectStates: [],
@@ -951,6 +952,7 @@ export default {
               ? e.total_amount
               : 0
           ),
+          balance_adjustment: _.sumBy(ym, e => this.notedBalanceDelta(e)),
           subtotal: this.todaySubTotal
         }))
         .value();
@@ -958,11 +960,12 @@ export default {
       const ansWithSubtotal = [];
       var subtotal = this.todaySubTotal;
       for (var i = 0; i < ans.length; i++) {
-        // The running Saldo accumulates real cash flows only. Real-balance
-        // adjustments are NOT a cash flow: they correct the starting balance,
-        // which is already reflected in the todaySubTotal seed (the "Inici Any"
-        // / "Avui" row subtotal, computed by the backend after the adjustment).
-        // Adding them here would double-count the adjustment.
+        // The running Saldo = the seed + the cash flows + the noted balances
+        // («Saldo real ajustat», «Saldo bancari») after the seed's day. Those of
+        // the seed's day are already in it (the backend puts them before the
+        // "Inici Any" / "Avui" marker). Before, every noted balance was left
+        // out, so one noted during the year moved «Des d'avui» (its seed) and
+        // not «Des de l'inici d'any» (issues/252). They stay out of Resultat.
         // Undated amounts stay out of the running balance, as the warning
         // above the table says (issues/299)
         if (ans[i].month === "99") {
@@ -970,7 +973,7 @@ export default {
           ansWithSubtotal.push(ans[i]);
           continue;
         }
-        subtotal = subtotal + ans[i].total_amount;
+        subtotal = Math.round((subtotal + ans[i].total_amount + ans[i].balance_adjustment) * 100) / 100;
         ans[i]["subtotal"] = subtotal;
         ansWithSubtotal.push(ans[i]);
         if (ans[i].month === "12") {
@@ -985,6 +988,7 @@ export default {
             total_amount: _.sumBy(yearValues, "total_amount"),
             total_incomes: _.sumBy(yearValues, "total_incomes"),
             total_expenses: _.sumBy(yearValues, "total_expenses"),
+            balance_adjustment: _.sumBy(yearValues, "balance_adjustment"),
             subtotal: ans[i].subtotal
           };
           ansWithSubtotal.push(yearSummary);
@@ -992,6 +996,11 @@ export default {
       }
 
       return ansWithSubtotal;
+    },
+    // the day the monthly table starts from: its marker's balance is the one at
+    // the start of that day
+    seedDate() {
+      return this.view === "today" ? moment().format("YYYYMMDD") : `${this.selectedYear}0101`;
     },
     todaySubTotal() {
       // a project's view starts at 0 on 1 January, not at the company's
@@ -1142,6 +1151,15 @@ export default {
       this.selectedBankAccountIds = this.bankAccounts.map(ba => ba.id);
 
       await this.getData();
+    },
+    // what a noted balance after the seed's day moves the running saldo
+    // (backend `balance_delta`; a «Saldo real ajustat» also has it as its
+    // amount), 0 for every other row (issues/252)
+    notedBalanceDelta(r) {
+      if (!r.is_balance_annotation && !r.is_real_balance_adjustment) return 0;
+      if (!(String(r.datef || "") > this.seedDate)) return 0;
+      const delta = r.balance_delta !== undefined ? r.balance_delta : r.is_real_balance_adjustment ? r.total_amount : 0;
+      return Number(delta) || 0;
     },
     isMovement(r) {
       return r.type !== "Avui" && r.type !== "Inici Any" && !r.is_balance_annotation && !r.is_real_balance_adjustment;
@@ -1294,12 +1312,6 @@ export default {
     modalCancel() {
       this.isModalActive = false;
     },
-    async payVat() {
-      this.payingVat = true;
-      await service({ requiresAuth: true }).post(`emitted-invoices/pay-vat`);
-      this.payingVat = false;
-      window.location.reload();
-    },
     toogleView() {
       this.view = this.view === "today" ? "startOfYear" : "today";
       this.getData();
@@ -1369,6 +1381,11 @@ export default {
     },
     async toggleValidation(row) {
       try {
+        // a line grouping several payrolls validates (or not) all of them (issues/347)
+        if (row.validation_keys && row.validation_keys.length > 1) {
+          row.is_validated = await setValidationKeys(row.validation_keys, !row.is_validated);
+          return;
+        }
         // Parse validation key to extract entity_type, entity_id, and sub_type
         const parts = row.validation_key.split(':');
         const entity_type = parts[0];

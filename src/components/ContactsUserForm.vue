@@ -79,15 +79,11 @@
                 <b-input v-model="form.trade_name" required />
               </b-field>
 
-              <b-field label="Raó Social">
-                <b-input v-model="form.name" required />
-              </b-field>
-
               <b-field label="Sector *">
                 <div class="is-flex is-flex-wrap-wrap">
                   <div v-for="(sector, index) in sectors" :key="index">
                     <b-button
-                      @click="form.sector = sector.id"
+                      @click="selectSector(sector.id)"
                       :class="{
                         'is-warning': form.sector === sector.id,
                         'is-outlined': form.sector !== sector.id,
@@ -100,11 +96,15 @@
                 </div>
               </b-field>
 
+              <b-field label="Raó Social">
+                <b-input v-model="form.name" required />
+              </b-field>
+
               
               <b-field
                 label="NIF *"
                 :type="{ 'is-danger': errors['nif'] && submitted }"
-                message="Posa un NIF vàlid. Si no el tens, en pots generar un amb el botó de la dreta"
+                :message="nifHelp"
               >
                 <div class="nif-row">
                   <b-input v-model="form.nif" />
@@ -128,6 +128,21 @@
 
               <h3 class="form-section">Condicions d’entrega</h3>
 
+              <b-notification
+                v-if="townDelivery"
+                class="town-delivery"
+                :type="townDelivery.known ? 'is-info is-light' : 'is-warning is-light'"
+                :closable="false"
+                role="status"
+              >
+                <strong>{{ townDelivery.title }}</strong><br />
+                {{ townDelivery.text }}
+              </b-notification>
+
+              <p v-if="particularHours" class="help mb-3">
+                Per a un particular, l'horari de contacte és sempre de 8 a 19 h.
+              </p>
+
               <b-field label="Horari de contacte 1 *">
                 <b-field
                   label=""
@@ -139,6 +154,7 @@
                   <b-checkbox
                     v-model="slot1Closed"
                     class="mr-4"
+                    :disabled="particularHours"
                     @update:model-value="onSlotClosedChanged(1, $event)"
                   >
                     No obren
@@ -148,7 +164,7 @@
                     v-model="form.time_slot_1_ini"
                     placeholder=""
                     class="mr-3"
-                    :disabled="slot1Closed"
+                    :disabled="slot1Closed || particularHours"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -170,7 +186,7 @@
                   <b-select
                     v-model="form.time_slot_1_end"
                     placeholder=""
-                    :disabled="slot1Closed"
+                    :disabled="slot1Closed || particularHours"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -202,6 +218,7 @@
                   <b-checkbox
                     v-model="slot2Closed"
                     class="mr-4"
+                    :disabled="particularHours"
                     @update:model-value="onSlotClosedChanged(2, $event)"
                   >
                     No obren
@@ -211,7 +228,7 @@
                     v-model="form.time_slot_2_ini"
                     placeholder=""
                     class="mr-3"
-                    :disabled="slot2Closed"
+                    :disabled="slot2Closed || particularHours"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -233,7 +250,7 @@
                   <b-select
                     v-model="form.time_slot_2_end"
                     placeholder=""
-                    :disabled="slot2Closed"
+                    :disabled="slot2Closed || particularHours"
                   >
                     <option
                       v-for="(s, index) in contact_time_slots"
@@ -401,6 +418,8 @@ import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
 import { memberMayEdit, townKey, driverLocksDiscount, driverLocksOwner } from "@/domain/contactAccess";
 import { TRADE_NAME_REQUIRED } from "@/domain/orderContacts";
 import { scrollToField } from "@/helpers/scrollToField.js";
+import { indexLinks } from "@/domain/cityRoutes.js";
+import { NIF_HELP, PARTICULAR_HOURS, isParticularSector, townDeliveryText } from "@/domain/deliveryPointForm.js";
 
 export default {
   name: "ContactUsersForm",
@@ -451,7 +470,10 @@ export default {
       townPostcodes: {},
       slotErrors: [],
       slot1Closed: false,
-      slot2Closed: false
+      slot2Closed: false,
+      routes: [],
+      cityRouteLinks: [],
+      nifHelp: NIF_HELP
     };
   },
   computed: {
@@ -463,6 +485,25 @@ export default {
       return driverLocksOwner(this.permissions, this.form);
     },
     postcodeMessage: () => POSTCODE_MESSAGE,
+    // a private customer: contact hours fixed to 8–19 h (issues/360)
+    particularHours() {
+      return isParticularSector(this.form.sector, this.sectors);
+    },
+    routeLinks() {
+      return indexLinks(this.cities, this.routes, this.cityRouteLinks);
+    },
+    // the days and slots we pass by the chosen town (issues/360)
+    townDelivery() {
+      const town = this.form.city && this.cities.find(c => c.name === this.form.city);
+      if (!town) return null;
+      const text = townDeliveryText(
+        this.routeLinks.routesByTown.get(town.id) || [],
+        routeId => this.routeLinks.linkOf(town.id, routeId)
+      );
+      return text
+        ? { known: true, title: `Quan passem per ${town.name}`, text }
+        : { known: false, title: `De moment no passem per ${town.name}`, text: "Parla amb l'oficina abans de continuar." };
+    },
     titleStack() {
       return ["Punts d'entrega", this.formCardTitle];
     },
@@ -635,6 +676,7 @@ export default {
 
               this.syncSlotClosedFlags();
               await this.checkReadOnly(r.data);
+              if (!this.readOnly) this.applyParticularHours();
 
               // get orders
               const contactsWithOrders = (
@@ -700,6 +742,17 @@ export default {
       this.cities = (
         await service({ requiresAuth: true }).get("cities?_limit=-1&_sort=name")
       ).data;
+      try {
+        const [routes, links] = await Promise.all([
+          service({ requiresAuth: true, cached: true }).get("routes?_sort=order&_where[active]=true&_limit=-1"),
+          service({ requiresAuth: true }).get("city-routes/basic")
+        ]);
+        this.routes = routes.data || [];
+        this.cityRouteLinks = links.data || [];
+      } catch (e) {
+        this.routes = [];
+        this.cityRouteLinks = [];
+      }
       try {
         this.townPostcodes = (await service({ requiresAuth: true }).get("cities/postcodes")).data || {};
       } catch (e) {
@@ -982,6 +1035,16 @@ export default {
       const nif = Math.floor(Math.random() * 100000000);
       this.form.nif = "I-" + nif.toString().padStart(8, "0");
     },
+    selectSector(sectorId) {
+      this.form.sector = sectorId;
+      this.applyParticularHours();
+    },
+    // Particular: slot 1 is 8–19 h and slot 2 closed; other sectors keep what is there
+    applyParticularHours() {
+      if (!this.particularHours) return;
+      Object.assign(this.form, PARTICULAR_HOURS);
+      this.syncSlotClosedFlags();
+    },
     onSlotClosedChanged(slotNumber, isClosed) {
       if (!isClosed) {
         return;
@@ -1137,6 +1200,9 @@ export default {
 }
 .nif-row .control {
   flex: 1;
+}
+.town-delivery {
+  margin-bottom: .75rem;
 }
 .form-actions {
   padding-top: 1rem;

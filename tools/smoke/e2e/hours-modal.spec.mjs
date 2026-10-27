@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test'
 import {
   useE2E, page, state, NAME, api, visit, settle, visible, field, button, modal,
-  expectSnackbar, addActivity, createProject, onCleanup, hoursListView
+  expectSnackbar, addActivity, createProject, onCleanup, hoursListView, hoursEntry, openHoursEntry
 } from './helpers.mjs'
 
 useE2E()
@@ -21,7 +21,7 @@ const closers = {
 }
 const myActivities = () => api('GET', `activities?_where[project]=${state.projectId}&_limit=-1`)
 const myCounters = () => api('GET', `time-counters?_where[users_permissions_user.username]=${encodeURIComponent(state.me.username)}`)
-const entry = description => page.locator('.card-body.is-activity', { hasText: description }).first()
+const entry = hoursEntry
 
 async function close (how) {
   await expect(box()).toBeVisible()
@@ -59,14 +59,14 @@ test('an existing entry can be opened again and edited after closing it', async 
   const description = `${NAME} manual clicking outside`
   await visit('/dedicacio')
   await hoursListView()
-  await entry(description).locator('.column').first().click()
+  await openHoursEntry(description)
   await close('pressing Escape')
-  await entry(description).locator('.column').first().click()
+  await openHoursEntry(description)
   await close('clicking outside')
 
-  await entry(description).locator('.column').first().click()
+  await openHoursEntry(description)
   await expect(box()).toBeVisible()
-  await expect(field('Hores', box()).locator('input')).toHaveValue('1.5')
+  await expect(field('Hores', box()).locator('input')).toHaveValue('1,5')  // Catalan decimals since issues/181
   await field('Hores', box()).locator('input').fill('2,25')
   await field('Descripció', box()).locator('input').fill(`${description} editada`)
   await button("D'acord", box()).click()
@@ -109,9 +109,10 @@ test('the counter: start, continue, close the modal, reopen it and stop it', asy
   // the time counts from when the counter was created (it stayed at 0 when the
   // modal read v3's `created_at`). Hours are stored with 2 decimals: from 18 s
   // (0.005 h) they are saved as 0.01
+  // shown as «0 h 1 min 5 s (0,018 h)»
   const spent = field('Temps dedicat', box()).locator('input')
   await expect.poll(async () => {
-    const [, h, m, s] = (await spent.inputValue()).match(/(\d+)h (\d+)m (\d+)s/) || []
+    const [, h, m, s] = (await spent.inputValue()).match(/(\d+)\s*h\s*(\d+)\s*min\s*(\d+)\s*s/) || []
     return Number(h) * 3600 + Number(m) * 60 + Number(s)
   }, { timeout: 40_000, intervals: [1000] }).toBeGreaterThanOrEqual(20)
 

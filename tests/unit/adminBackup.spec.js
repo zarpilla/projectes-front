@@ -34,8 +34,8 @@ beforeEach(() => {
 describe('AdminBackup', () => {
   it('is in the Administració menu, for admins', () => {
     const i = menu.indexOf('Administració')
-    expect(menu[i + 1].find(m => m.to === '/admin/backup')).toMatchObject({ label: 'Còpia de seguretat', permission: 'admin' })
-    const route = router.resolve('/admin/backup')
+    expect(menu[i + 1].find(m => m.to === '/administracio/copia-seguretat')).toMatchObject({ label: 'Còpia de seguretat', permission: 'admin' })
+    const route = router.resolve('/administracio/copia-seguretat')
     expect(route.name).toBe('admin.backup')
     expect(route.meta.requiresPermission).toBe('admin')
   })
@@ -56,6 +56,14 @@ describe('AdminBackup', () => {
     const w = await mountIt()
     expect(w.find('[data-test="backup-none"]').exists()).toBe(true)
     expect(w.find('[data-test="backup-download"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('says the entity has no copies when the host gives it none (e.g. demo)', async () => {
+    get.mockResolvedValue({ data: { enabled: false, available: false } })
+    const w = await mountIt()
+    expect(w.find('[data-test="backup-disabled"]').text()).toContain('no té còpies')
+    expect(w.find('[data-test="backup-none"]').exists()).toBe(false)
+    expect(w.find('[data-test="backup-download"]').exists()).toBe(false)
   })
 
   it('shows the error when it cannot ask', async () => {

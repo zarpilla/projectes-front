@@ -1,7 +1,7 @@
 // Users and permissions, login, the session, contacts, tasks and the admin screens.
 //
 // Creates a throwaway user ("e2e-<stamp>", hours permission only) through
-// #/admin/users; users can't be deleted from the app, so they stay in the e2e copy.
+// #/administracio/users; users can't be deleted from the app, so they stay in the e2e copy.
 
 import { test, expect } from '@playwright/test'
 import {
@@ -33,7 +33,7 @@ async function apiAs (p, method, route, body) {
 }
 
 test('admin: create a user with only the hours permission', async () => {
-  await visit('/admin/users/new')
+  await visit('/administracio/usuaries/nou')
   await field("Nom d'usuari").locator('input').fill(USER.username)
   await field('Correu electrònic').locator('input').fill(USER.email)
   // access and permissions are checkboxes with a description below the name
@@ -55,7 +55,7 @@ test('admin: create a user with only the hours permission', async () => {
 
 // issues/027: new users get the Authenticated role by default
 test('a new user can be created without picking a role', async () => {
-  await visit('/admin/users/new')
+  await visit('/administracio/usuaries/nou')
   await field("Nom d'usuari").locator('input').fill(`${USER.username}-r`)
   await field('Correu electrònic').locator('input').fill(`r-${USER.email}`)
   await button('Guardar').click()
@@ -72,10 +72,10 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
   try {
     // the menu (the logo above it links to the first screen of the menu too)
     const aside = other.locator('aside nav')
-    // hrefs are «/stats/dedicacio» since issues/158 («#/dedicacio» before): match the end
+    // match the end of the href: «/dedicacio» (the app is served at the root of the site)
     await expect(aside.locator('a[href$="/dedicacio"]')).toBeVisible()
     await expect(aside.locator('a[href$="/registre-jornades"]')).toBeVisible()
-    for (const hidden of ['/projectes', '/contacts', '/emitted-invoices', '/tresoreria', '/admin/users']) {
+    for (const hidden of ['/projectes', '/contactes', '/factures-emeses', '/tresoreria', '/administracio/usuaries']) {
       await expect(aside.locator(`a[href$="${hidden}"]`), hidden).toHaveCount(0)
     }
     const headers = (await aside.locator('.menu-label').allTextContents()).map(t => t.trim().toUpperCase())
@@ -83,7 +83,7 @@ test('an hours-only user sees only the hours screens', async ({ browser }) => {
     expect(headers).not.toContain('ADMINISTRACIÓ')
 
     // admin screens send them to their landing page: the hours (issues/121)
-    await other.goto('#/admin/users')
+    await other.goto('#/administracio/usuaries')
     await expect(other).toHaveURL(/\/dedicacio/)
 
     // and the backend refuses the admin-only operations
@@ -154,7 +154,7 @@ test('login errors are explained', async ({ browser }) => {
 test('the forgotten password form is accepted', async ({ browser }) => {
   const anon = await openAnonymous(browser)
   try {
-    await anon.goto('#/forgotten-password')
+    await anon.goto('#/recuperar-clau')
     await anon.locator('input[type=email]').fill(USER.email)
     const response = anon.waitForResponse(r => r.url().includes('/api/auth/forgot-password'))
     await anon.locator('[type=submit], button.is-primary').first().click()
@@ -170,17 +170,17 @@ test('an expired access token is refreshed without logging out', async () => {
   // a token the backend rejects, as an expired one would be
   await page.evaluate(() => localStorage.setItem('jwt', 'expired.e2e.token'))
   const refresh = page.waitForResponse(r => r.url().includes('/api/auth/refresh'))
-  await visit('/contacts')
+  await visit('/contactes')
   expect((await refresh).status()).toBe(200)
   const after = await page.evaluate(() => localStorage.getItem('jwt'))
   expect(after).not.toBe('expired.e2e.token')
   expect(after).not.toBe(before)
-  await expect(page).toHaveURL(/\/contacts/)
+  await expect(page).toHaveURL(/\/contactes/)
   await expect(page.getByText('Nou Contacte').first()).toBeVisible()
 })
 
 test('contacts: create, edit and delete', async () => {
-  await visit('/contact/0')
+  await visit('/contacte/0')
   await button('Guardar').click()
   await expectSnackbar('Error. Falten alguns camps obligatòris')
 
@@ -192,8 +192,8 @@ test('contacts: create, edit and delete', async () => {
   await field('Població').locator('input').fill('Barcelona')
   await button('Guardar').click()
   await expectSnackbar('Guardat')
-  await expect(page).toHaveURL(/\/contact\/[1-9]\d*/)
-  const id = Number(page.url().match(/\/contact\/(\d+)/)[1])
+  await expect(page).toHaveURL(/\/contacte\/[1-9]\d*/)
+  const id = Number(page.url().match(/\/contacte\/(\d+)/)[1])
   let contact = await api('GET', `contacts/${id}`)
   expect([contact.name, contact.nif, contact.postcode, contact.city]).toEqual([name, `F${STAMP.slice(-8)}`, '08001', 'Barcelona'])
 
@@ -204,7 +204,7 @@ test('contacts: create, edit and delete', async () => {
   contact = await api('GET', `contacts/${id}`)
   expect(contact.trade_name ?? contact.commercial_name ?? contact.comercial_name).toBe(`${NAME} coop`)
 
-  await visit(`/contact/${id}`)
+  await visit(`/contacte/${id}`)
   await button('Esborrar').click()
   await confirmDialog('Vols esborrar aquest contacte?')
   await expectSnackbar('Esborrat')
@@ -227,7 +227,7 @@ async function contactWithIssuedInvoice () {
 
 test('contacts with invoices can\'t be deleted', async () => {
   const contactId = await contactWithIssuedInvoice()
-  await visit(`/contact/${contactId}`)
+  await visit(`/contacte/${contactId}`)
   await button('Esborrar').click()
   await confirmDialog('Vols esborrar aquest contacte?')
   await expectSnackbar("Error. El contacte no s'ha pogut esborrar perquè té dades associades")
@@ -238,7 +238,7 @@ test('tasks: create, move to another state and archive', async () => {
   const name = `${NAME} tasca`
   const states = await api('GET', 'task-states?_limit=-1&_sort=order:ASC')
   const [first, second] = states
-  await visit('/tasks')
+  await visit('/tasques')
   const column = title => page.locator('.task-list-content').filter({ has: page.locator('.task-list-header', { hasText: title }) }).first()
   await column(first.name).locator('.task-list-header button').click()
   const box = page.locator('.modal.is-active').last()
@@ -285,12 +285,12 @@ test('tasks: create, move to another state and archive', async () => {
 // issues/026: every ADMINISTRACIÓ entry names an entity the backend serves
 test('every administration screen loads', async () => {
   await visit('/projectes')
-  // the route of each link, whether its href is «/stats/admin/…» (issues/158) or «#/admin/…»
-  const routes = as => as.map(a => a.getAttribute('href')).map(h => h.slice(h.indexOf('/admin/')))
-  const menuLinks = await page.locator('aside a[href*="/admin/"]').evaluateAll(routes)
+  // the route of each link (its href is «/administracio/…»)
+  const routes = as => as.map(a => a.getAttribute('href')).map(h => h.slice(h.indexOf('/administracio/')))
+  const menuLinks = await page.locator('aside a[href*="/administracio/"]').evaluateAll(routes)
   // the auxiliary tables share one menu entry ("Taules auxiliars") and are listed on its screen
-  await visit('/admin/project-scope')
-  const tableLinks = await page.locator('.admin-tables-nav a[href*="/admin/"]').evaluateAll(routes)
+  await visit('/administracio/ambits-projecte')
+  const tableLinks = await page.locator('.admin-tables-nav a[href*="/administracio/"]').evaluateAll(routes)
   const links = [...new Set([...menuLinks, ...tableLinks])]
   expect(tableLinks.length).toBeGreaterThan(10)
   // each visit settles for a few seconds: the default 60 s don't cover them all
@@ -307,14 +307,14 @@ test('every administration screen loads', async () => {
 
 test('admin entities: a new strategy gets its code name', async () => {
   const code = `E2E${STAMP.slice(-6)}`
-  await visit('/admin/strategy')
+  await visit('/administracio/estrategies')
   await page.locator('button', { hasText: /^\s*Crear / }).first().click()
-  await expect(page).toHaveURL(/\/admin\/strategy\/new/)
+  await expect(page).toHaveURL(/\/administracio\/estrategies\/nou/)
   await field('Codi').locator('input').fill(code)
   await field('Nom').locator('input').fill(`${NAME} estratègia`)
   await button('Guardar').click()
   // back to the list, which shows it
-  await expect(page).toHaveURL(/\/admin\/strategy$/)
+  await expect(page).toHaveURL(/\/administracio\/estrategies$/)
   await expect(page.getByText(`${NAME} estratègia`).first()).toBeVisible()
   const [strategy] = await api('GET', `strategies?_where[code]=${code}&_limit=1`)
   expect(strategy.code_name).toBe(`${code} - ${NAME} estratègia`)

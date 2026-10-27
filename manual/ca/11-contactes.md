@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 11
 roles: [projects]
-routes: ["/contacts", "/contact/:id", "/client/:id"]
+routes: ["/contactes", "/contacte/:id"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -16,7 +16,7 @@ updated: 2026-10-18
 
 Els **contactes** són les entitats i persones amb qui treballa la cooperativa: **clientes** (a qui es
 factura), **proveïdores** (que ens facturen) i entitats d'**intercooperació**. Un mateix contacte pot ser
-de més d'un tipus. Els contactes es fan servir als projectes (clients, intercooperació, entitat líder d'una
+de més d'un tipus. Els contactes es fan servir als projectes (clientes, intercooperació, entitat líder d'una
 subvenció), a les factures i als pressupostos.
 
 ## Abans de començar
@@ -86,7 +86,7 @@ d'afegir-li el tipus que falta.
 
 ## Preguntes freqüents
 
-**Un client no surt a la llista de Clientes d'un projecte.** Comproveu que existeix i, si l'acabeu de crear
+**Una clienta no surt a la llista de Clientes d'un projecte.** Comproveu que existeix i, si l'acabeu de crear
 en una altra pestanya, cliqueu la fletxa rodona del costat per tornar a carregar els contactes.
 
 **El mateix contacte surt dues vegades.** Pot ser que s'hagi creat dos cops. Feu servir sempre el mateix (el

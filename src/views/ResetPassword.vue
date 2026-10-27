@@ -31,7 +31,7 @@
         </button>
       </form>
 
-      <router-link to="/forgotten-password" class="auth-back">Demana un enllaç nou</router-link>
+      <router-link to="/recuperar-clau" class="auth-back">Demana un enllaç nou</router-link>
     </main>
   </div>
 </template>

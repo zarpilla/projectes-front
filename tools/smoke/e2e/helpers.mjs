@@ -29,7 +29,7 @@ export const env = {
   ),
   ...Object.fromEntries(Object.entries(process.env).filter(([k]) => k.startsWith('E2E_')))
 }
-const BASE_URL = env.E2E_BASE_URL || 'http://localhost:8082/stats/'
+const BASE_URL = env.E2E_BASE_URL || 'http://localhost:8082/'
 export const API_URL = env.E2E_API_URL || 'http://localhost:1339'
 const SENTINEL = 'E2E SENTINEL'
 
@@ -162,7 +162,7 @@ export async function settle (ms = 500) {
 
 export async function visit (route) {
   // a different route first: the same view doesn't remount when only its params change
-  await page.goto('#/changelog')
+  await page.goto('#/novetats')
   await page.goto(`#${route}`)
   await settle(1500)
 }
@@ -181,6 +181,10 @@ export async function hoursListView () {
   await page.locator('button[title="Vista taula"]').click()
   await page.waitForTimeout(300)
 }
+// a row of that list (the redesigned «Taula»: one tr.hours-entry per activity);
+// a click on its project/description cell opens it in "Entrada hores"
+export const hoursEntry = description => page.locator('tr.hours-entry', { hasText: description }).first()
+export const openHoursEntry = description => hoursEntry(description).locator('td').nth(1).click()
 // a titled box: an old .card or a redesign box (.report-box, .a-box); the title matches case-insensitively
 export const card = title => page.locator('.card, .report-box, .a-box')
   .filter({ has: page.locator('.card-header-title, .report-box-head h2, .box-head h2', { hasText: title }) }).first()
@@ -269,14 +273,14 @@ export async function addLine (phase, kind, { concept, quantity, price }) {
 // closes its budget. Returns its id. The steps are checked in core.spec.mjs; other
 // specs use this to get a project of their own.
 export async function createProject (name, { incomes = [], expenses = [] } = {}) {
-  await visit('/project/0')
+  await visit('/projecte/0')
   await field('Codi').locator('input').fill(name)
   await selectByLabel('Estat', 'Actiu')
   await field('Àmbit').locator('select').selectOption({ index: 0 })
   await button('Continuar').click()
-  await expect(page).toHaveURL(/\/project\/[1-9]\d*/, { timeout: 20_000 })
+  await expect(page).toHaveURL(/\/projecte\/[1-9]\d*/, { timeout: 20_000 })
   await expectSnackbar('Guardat')
-  const id = Number(page.url().match(/\/project\/(\d+)/)[1])
+  const id = Number(page.url().match(/\/projecte\/(\d+)/)[1])
   await settle()
   const original = card('Fases i pressupost original')
   const phase = await addPhase(original, `${name} fase`)
@@ -348,19 +352,19 @@ export async function periodsFrom (userId, from) {
   return periods.filter(p => p.from === from)
 }
 
-// Opens the "Jornada" modal of a new period for `username` in #/working-day
+// Opens the "Jornada" modal of a new period for `username` in #/jornada
 export async function openNewPeriod (username) {
-  await visit('/working-day')
+  await visit('/jornada')
   await page.locator('.gantt_grid_data .gantt_row', { hasText: username }).first().click()
   const box = modal('Jornada')
   await expect(box).toBeVisible()
   return box
 }
 
-// Opens the "Jornada" modal of an existing period from its bar in #/working-day.
+// Opens the "Jornada" modal of an existing period from its bar in #/jornada.
 // The chart shows one year: switch to the period's year first.
 export async function openPeriod (period) {
-  await visit('/working-day')
+  await visit('/jornada')
   await page.getByRole('group', { name: 'Any' }).getByRole('button', { name: period.from.slice(0, 4), exact: true }).click()
   await page.locator(`.dedication-bar[data-dedication-id="${period.id}"]`).click()
   const box = modal('Jornada')

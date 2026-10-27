@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 33
 roles: [orders_admin, orders]
-routes: ["/partners", "/orders-invoice", "/provider-invoices", "/orders-stats"]
+routes: ["/usuaries", "/comandes-per-facturar", "/factures-proveidor", "/estadistiques-comandes"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -23,7 +23,7 @@ comandes** (les xifres del servei).
 
 - Les comandes que es facturen són les que estan en estat **Lliurada** (vegeu [28. Comandes](28-comandes.md)).
   Facturar no fa servir cap altre estat.
-- Cada sòcia ha de tenir una **fitxa de contacte** vinculada al seu usuari: la factura es fa a nom d'aquest
+- Cada sòcia ha de tenir una **fitxa de contacte** vinculada a la seva usuària: la factura es fa a nom d'aquest
   contacte. Es vincula a **Contactes**, a la fitxa del contacte, amb el camp **Persona** (vegeu
   [11. Contactes](11-contactes.md)). La pantalla **Sòcies** avisa de les que no en tenen.
 - Hi ha d'haver un **projecte** on anar a parar les factures (per costum, un per trimestre, amb un nom com

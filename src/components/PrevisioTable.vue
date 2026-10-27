@@ -159,79 +159,6 @@
       </p>
     </section>
 
-    <card-component
-      title="IVA"
-      class="ztile is-child mt-2"
-      v-if="
-        me &&
-          me.options &&
-          me.options.deductible_vat_pct &&
-          me.options.deductible_vat_pct > 0
-      "
-    >
-      <div class="columns">
-        <div class="column">
-          <b-field label="Pagat" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat.paid"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Cobrat" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              <money-format
-                :value="vat.received"
-                :locale="'es'"
-                :currency-code="'EUR'"
-                :subunits-value="false"
-                :hide-subunits="false"
-              >
-              </money-format>
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Deduïble" grouped class="column">
-            <div class="readonly subphase-detail-input">
-              {{ me.options.deductible_vat_pct }}%
-            </div>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldo" grouped class="column">
-            <money-format
-              :value="
-                (vat.paid - (vat.received * me.options.deductible_vat_pct / 100))
-              "
-              :locale="'es'"
-              :currency-code="'EUR'"
-              :subunits-value="false"
-              :hide-subunits="false"
-            >
-            </money-format>
-          </b-field>
-        </div>
-        <div class="column">
-          <b-field label="Saldar" grouped class="column">
-            <button
-              class="button is-primary"
-              @click="payVat"
-              :disabled="vat.paid - vat.received === 0 || payingVat"
-            >
-              {{ payingVat ? "..." : "Saldar" }}
-            </button>
-          </b-field>
-        </div>
-      </div>
-    </card-component>
 
   </div>
 </template>
@@ -244,10 +171,8 @@ import sortBy from "lodash/sortBy";
 import _ from "lodash";
 import configPivot from "@/service/configStatsTreasury";
 import ModalBoxInvoicing from "./ModalBoxInvoicing.vue";
-import CardComponent from "./CardComponent.vue";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
-import MoneyFormat from "@/components/MoneyFormat.vue";
 import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
@@ -257,8 +182,6 @@ export default {
   name: "Tresoreria",
   components: {
     ModalBoxInvoicing,
-    CardComponent,
-    MoneyFormat,
     TreasuryAnnotationInput
   },
   props: {
@@ -291,9 +214,6 @@ export default {
       trashObject: null,
       pivotData: [],
       pivotData2: [],
-      vat: { paid: 0, received: 0 },
-      me: null,
-      payingVat: false,
       view: "startOfYear",
       projectStates: [],
       selectedProjectStates: [],

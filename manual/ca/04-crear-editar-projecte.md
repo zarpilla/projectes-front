@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 4
 roles: [projects]
-routes: ["/project/:id"]
+routes: ["/projecte/:id"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -26,7 +26,7 @@ desen, es dupliquen i s'esborren els projectes. Les fases i el pressupost tenen 
 - Els desplegables (estats, àmbits, tipus de projecte, àmbits territorials, probabilitats, estratègies,
   tipus d'ingrés i de despesa) s'omplen a **Administració › Taules auxiliars** (vegeu
   [35. Taules auxiliars](35-taules-auxiliars.md)).
-- Els clients i les entitats d'intercooperació són **contactes** (vegeu [11. Contactes](11-contactes.md)).
+- Les clientes i les entitats d'intercooperació són **contactes** (vegeu [11. Contactes](11-contactes.md)).
   Si encara no hi són, es poden crear des del mateix formulari.
 - A **Coordina** hi surten totes les usuàries que no estan marcades com a **Ocult** a **Administració ›
   Usuàries**.
@@ -48,7 +48,7 @@ Són obligatoris (*) el **Codi** (el nom del projecte), l'**Estat**, l'**Àmbit*
 dates d'**Inici** i **Final**. L'aplicació proposa com a dates avui i el 31 de desembre, i com a
 coordinadora la persona que l'està creant (si surt a la llista). La **Descripció** és opcional.
 
-El botó **Més dades (opcionals)** desplega la resta de camps de la pestanya **Dades**: tipus, clients,
+El botó **Més dades (opcionals)** desplega la resta de camps de la pestanya **Dades**: tipus, clientes,
 propòsit, notes internes, estratègies, subvencions… Es poden omplir ara o més endavant (vegeu
 [La pestanya Dades](#la-pestanya-dades)).
 
@@ -157,7 +157,7 @@ La pestanya està dividida en blocs.
 | **Inici** *, **Final** * | Les dates del projecte. |
 | **Descripció** | Descripció o notes sobre el projecte. |
 | **Tipus** | El tipus de projecte. |
-| **Clientes** | Un o més clients. S'escriu una part del nom i es tria de la llista. El **+** crea un contacte nou i la fletxa rodona torna a carregar la llista (després de crear-ne un en una altra pestanya). Cada client surt com una etiqueta; la creu el treu. |
+| **Clientes** | Una o més clientes. S'escriu una part del nom i es tria de la llista. El **+** crea un contacte nou i la fletxa rodona torna a carregar la llista (després de crear-ne un en una altra pestanya). Cada clienta surt com una etiqueta; la creu el treu. |
 | **Propòsit** | Per a què és el projecte. |
 | **Notes internes** | Notes només per a l'equip. |
 
@@ -180,7 +180,7 @@ La pestanya està dividida en blocs.
 | Camp | Què vol dir |
 |---|---|
 | **Tipus de dedicació** | El tipus de dedicació que es proposa quan algú imputa hores a aquest projecte. |
-| **Projecte d'estructura** | Marcat si el projecte recull les despeses i les hores generals de l'entitat (gestió, local, administració) i no és un projecte per a cap client. |
+| **Projecte d'estructura** | Marcat si el projecte recull les despeses i les hores generals de l'entitat (gestió, local, administració) i no és un projecte per a cap clienta. |
 | **Despesa Indirecta (%)** | Percentatge de despeses d'estructura que s'aplica al projecte. Només surt si l'entitat té activada aquesta opció (**Administració › Configuració general › Projectes**). |
 | **Projecte mare** | El projecte que agrupa aquest (per exemple, el mateix servei any rere any). Vegeu [06. Projectes mare i fills](06-projectes-mare-fills.md). Si el projecte ja és mare d'altres, aquí es veuen els seus **Projectes fills**. |
 | **Periodificació d'ingressos i despeses** | Activa el repartiment manual dels ingressos i les despeses entre anys a la pestanya **Periodificació**. |

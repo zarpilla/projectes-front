@@ -122,12 +122,12 @@ function check (name, result) {
 
 const FLOWS = {
   async 'project-edit' (page) {
-    await visit(page, `/project/${ids.project}`)
+    await visit(page, `/projecte/${ids.project}`)
     await save(page)
   },
 
   async 'project-new' (page) {
-    await visit(page, '/project/0')
+    await visit(page, '/projecte/0')
     await field(page, 'Codi').locator('input').fill('E2E projecte de prova')
     // these selects have no empty option: 0 is the first real value
     await selectOption(page, 'Estat', 0)
@@ -176,7 +176,7 @@ const FLOWS = {
   },
 
   async 'order-new' (page) {
-    await visit(page, '/order/0')
+    await visit(page, '/comanda/0')
     await selectOption(page, 'Sòcia', 1)
     await pickAutocomplete(page, "Punt d’entrega", ids.deliveryPointSearch)
     await page.waitForTimeout(1500)
@@ -190,7 +190,7 @@ const FLOWS = {
   },
 
   async 'order-edit' (page) {
-    await visit(page, `/order/${ids.order}`)
+    await visit(page, `/comanda/${ids.order}`)
     await save(page)
   }
 }

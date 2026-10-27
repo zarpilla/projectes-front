@@ -482,6 +482,7 @@ export default {
       importing: false,
       permissions: [],
       nextDayLimitHour: 14,
+      workingDays: null,
       routes: [],
       users: [],
       deliveryTypes: [],
@@ -654,7 +655,9 @@ export default {
         "ID CLIENT": "fullName",
         "DETALLS REPARTIDORES": {
           field: "notes_delivery"
-        }
+        },
+        // last, so the planner's existing columns keep their place (issues/350)
+        "ID COMANDA": "id"
         // contact_trade_name: "contact_trade_name",
         // contact_address: {
         //   field: "contact_address",
@@ -976,7 +979,7 @@ export default {
     signalLegend() {
       return [
         { key: "incidence", kind: "is-alert", icon: "alert-circle-outline", legend: "Incidència" },
-        { key: "express", kind: "is-alert", icon: "flash", legend: "Express (fora de temps)" },
+        { key: "express", kind: "is-alert", icon: "alert", legend: "Fora de temps" },
         { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", legend: "Recollida tard" },
         { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", legend: "Setmana vinent" },
         { key: "cold", kind: "is-cold", icon: "snowflake", legend: "Refrigerada" },
@@ -1159,6 +1162,9 @@ export default {
         orgConfig.orders_options.next_day_limit_hour != null
       ) {
         this.nextDayLimitHour = orgConfig.orders_options.next_day_limit_hour;
+      }
+      if (orgConfig && orgConfig.orders_options) {
+        this.workingDays = orgConfig.orders_options.working_days || null;
       }
     } catch (e) {
       // keep default 14 if org config unavailable
@@ -1590,10 +1596,10 @@ export default {
     },
     navNew() {
       const q = this.$route.meta.userContacts ? `?user=true` : "";
-      this.$router.push("/order/0" + q);
+      this.$router.push("/comanda/0" + q);
     },
     navNewPickup() {
-      this.$router.push("/order/0?pickup_point=true");
+      this.$router.push("/comanda/0?pickup_point=true");
     },
     async getData() {
       this.isLoading = true;
@@ -2014,6 +2020,7 @@ export default {
 
         const routeDate = assignRouteDate(route, {
           nextDayLimitHour: this.nextDayLimitHour,
+          workingDays: this.workingDays,
           isAdmin: this.permissions.includes("orders_admin"),
           closures
         });
@@ -2786,7 +2793,7 @@ export default {
       const open = incidences.filter(i => i.state !== "closed").length;
       return [
         incidences.length ? { key: "incidence", kind: open ? "is-alert" : "is-info", icon: "alert-circle-outline", label: open ? `${open} ${open === 1 ? "incidència oberta" : "incidències obertes"}` : `${incidences.length === 1 ? "Incidència tancada" : `${incidences.length} incidències tancades`}` } : null,
-        order.late_order ? { key: "express", kind: "is-alert", icon: "flash", label: `Comanda express: informada fora de l'hora límit${surcharge ? ` (recàrrec +${formatNumber(surcharge, 2)} %)` : ""}` } : null,
+        order.late_order ? { key: "express", kind: "is-alert", icon: "alert", label: `Comanda fora de temps: informada després de l'hora límit${surcharge ? ` (recàrrec +${formatNumber(surcharge, 2)} %)` : ""}` } : null,
         order.late_pickup ? { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", label: order.is_collection_order ? "Inclou recollides informades tard" : "Recollida informada tard" } : null,
         this.isFutureWeek(order) ? { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", label: "Entrega prevista una setmana vinent" } : null,
         cold ? { key: "cold", kind: "is-cold", icon: "snowflake", label: "Refrigerada" } : null,
@@ -2803,7 +2810,7 @@ export default {
       if (order.finalPrice === undefined || order.finalPrice === null) return [];
       const pct = v => `${formatNumber(v, 2)} %`;
       return [
-        lateSurchargeOf(order) ? { key: "surcharge", text: `+${pct(order.late_surcharge)}`, title: `Recàrrec express (+${pct(order.late_surcharge)})` } : null,
+        lateSurchargeOf(order) ? { key: "surcharge", text: `+${pct(order.late_surcharge)}`, title: `Recàrrec fora de temps (+${pct(order.late_surcharge)})` } : null,
         Number(order.multidelivery_discount) ? { key: "multidelivery", text: `−${pct(order.multidelivery_discount)}`, title: `Descompte multientrega (${pct(order.multidelivery_discount)})` } : null,
         Number(order.volume_discount) ? { key: "volume", text: `−${this.money(order.volume_discount)}`, title: `Descompte volum (${this.money(order.volume_discount)})` } : null,
         Number(order.contact_pickup_discount) ? { key: "pickup", text: `−${pct(order.contact_pickup_discount)}`, title: `Descompte recollida (${pct(order.contact_pickup_discount)})` } : null

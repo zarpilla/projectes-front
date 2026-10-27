@@ -6,7 +6,7 @@ manual: usuari
 module: projectes
 order: 9
 roles: [projects]
-routes: ["/project/:id", "/stats-previsio-gantt"]
+routes: ["/projecte/:id", "/panell-previsio-dedicacio"]
 lang: ca
 updated: 2026-10-18
 ---

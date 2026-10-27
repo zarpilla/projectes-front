@@ -11,6 +11,9 @@
         <b-loading :is-full-page="false" :model-value="isLoading" />
 
         <p v-if="loadError" class="has-text-danger" data-test="backup-error">No s'ha pogut consultar: {{ loadError }}</p>
+        <p v-else-if="info && info.enabled === false" class="has-text-muted" data-test="backup-disabled">
+          Aquesta entitat no té còpies de seguretat per descarregar.
+        </p>
         <template v-else-if="info">
           <dl v-if="info.available" class="bk-facts" data-test="backup-facts">
             <dt>Feta</dt><dd>{{ createdAt }}</dd>
@@ -22,13 +25,13 @@
           </p>
         </template>
 
-        <p class="has-text-muted bk-help">
+        <p v-if="!disabled" class="has-text-muted bk-help">
           Cada nit es fa una còpia de totes les dades de l'entitat i substitueix la de la nit anterior.
           És un fitxer de MySQL comprimit (.sql.gz): serveix per guardar-lo o per restaurar-lo en un servidor.
           No inclou els fitxers pujats (documents, imatges).
         </p>
 
-        <div class="bk-actions">
+        <div v-if="!disabled" class="bk-actions">
           <b-button
             type="is-primary"
             icon-left="download"
@@ -60,6 +63,10 @@ export default {
     };
   },
   computed: {
+    // the host gives this entity no copies (tenant-dumps.skip, e.g. demo)
+    disabled() {
+      return !!this.info && this.info.enabled === false;
+    },
     createdAt() {
       return moment(this.info.createdAt).format("DD/MM/YYYY [a les] HH:mm");
     },

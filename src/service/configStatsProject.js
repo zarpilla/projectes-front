@@ -62,8 +62,9 @@ const config = {
           project_scope: {
             type: 'string'
           },
+          // «2026/27» with a fiscal year: a number turned it into 2026 (issues/341)
           project_year: {
-            type: 'number'
+            type: 'string'
           },
           project_client: {
             type: 'string'

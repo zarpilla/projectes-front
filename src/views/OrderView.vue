@@ -138,7 +138,7 @@
                   </thead>
                   <tbody>
                     <tr v-for="row in order.collection_orders" :key="row.id">
-                      <td><router-link :to="`/order/view/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
+                      <td><router-link :to="`/comanda/veure/${row.id}`"><b>#{{ String(row.id).padStart(4, "0") }}</b></router-link></td>
                       <td>{{ getContactTradeName(row) }}</td>
                       <td class="has-text-right">{{ row.units || 0 }}</td>
                       <td class="has-text-right">{{ formatNumber(row.kilograms || 0, 2) }}</td>
@@ -221,7 +221,7 @@
                 <template v-if="transferPickupText"><dt>{{ routeLabel.replace(":", "") }}</dt><dd>{{ transferPickupText }}</dd></template>
                 <template v-if="order.collection_order">
                   <dt>Comanda de recollida</dt>
-                  <dd><router-link :to="`/order/view/${collectionOrderId}`">#{{ String(collectionOrderId).padStart(4, "0") }}-R</router-link></dd>
+                  <dd><router-link :to="`/comanda/veure/${collectionOrderId}`">#{{ String(collectionOrderId).padStart(4, "0") }}-R</router-link></dd>
                 </template>
               </dl>
             </section>
@@ -309,7 +309,7 @@ export default {
             title: this.collectionPointName || "Recollida en finca",
             lines: [
               { text: [this.order.collection_point && this.order.collection_point.city, o.collection_pickup_route && o.collection_pickup_route.name, o.collection_pickup_date && this.shortDay(o.collection_pickup_date)].filter(Boolean).join(" · ") },
-              this.collectionOrderId ? { text: `Comanda de recollida #${this.collectionOrderId}`, to: `/order/view/${this.collectionOrderId}` } : null
+              this.collectionOrderId ? { text: `Comanda de recollida #${this.collectionOrderId}`, to: `/comanda/veure/${this.collectionOrderId}` } : null
             ].filter(l => l && l.text)
           }
         : { title: this.pickupName || "—", lines: [{ text: o.deposit_date ? `dipositada ${this.formatDateTime(o.deposit_date)}` : "la sòcia hi deixa la comanda" }] };
