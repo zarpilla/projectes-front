@@ -36,8 +36,22 @@
     <div
       v-for="(phase, phi) in phases"
       class="phase-container columns is-multiline"
+      :class="phaseContainerClass(phi)"
+      @dragover="phaseDragOver($event, phi)"
+      @drop="phaseDrop($event, phi)"
     >
       <div class="column is-12 phase-head">
+        <span
+          v-if="canReorderPhases"
+          class="phase-drag-handle"
+          draggable="true"
+          title="Arrossega per moure la fase"
+          aria-label="Arrossega per moure la fase"
+          @dragstart="phaseDragStart($event, phi)"
+          @dragend="phaseDragEnd"
+        >
+          <b-icon icon="drag-vertical" size="is-small" />
+        </span>
         <button
           type="button"
           class="phase-toggle"
@@ -962,6 +976,8 @@ export default {
       collapsedPhases: {},
       // the line being dragged by its handle (issues/345)
       lineDrag: null,
+      // the phase being dragged by its handle: { from, over } indexes
+      phaseDrag: null,
       // the quantity / price input being typed in: shows the text as typed
       // while the others show Catalan decimals (issues/224)
       editingLine: null,
@@ -1024,6 +1040,10 @@ export default {
     // issues/345: the lines can be reordered with drag & drop
     canReorder() {
       return this.editable;
+    },
+    // the phases too, on the project page (not while assigning a document)
+    canReorderPhases() {
+      return this.editable && (this.mode === "" || this.mode === "simple") && (this.phases || []).length > 1;
     },
     // issues/344: lines linked to the document being viewed
     currentDocumentLineCount() {
@@ -1224,6 +1244,8 @@ export default {
       };
     });
 
+    // the saved order of the phases, as of their lines
+    sortLinesByPosition(phases0);
     phases0.forEach(p => {
       // the order saved with drag & drop (issues/345)
       sortLinesByPosition(p.incomes);
@@ -1360,6 +1382,61 @@ export default {
     },
     lineDragEnd() {
       this.lineDrag = null;
+    },
+    // drag a phase by the handle on its head, in front of or behind another
+    phaseContainerClass(index) {
+      const drag = this.phaseDrag;
+      if (!drag) return "";
+      if (index === drag.from) return "is-dragging";
+      if (index === drag.over) return drag.over < drag.from ? "drop-before" : "drop-after";
+      return "";
+    },
+    phaseDragStart(event, index) {
+      if (!this.canReorderPhases) return;
+      this.phaseDrag = { from: index, over: index };
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        // Firefox starts a drag only with some data
+        event.dataTransfer.setData("text/plain", String(index));
+        const head = event.target && event.target.closest && event.target.closest(".phase-head");
+        if (head && event.dataTransfer.setDragImage) event.dataTransfer.setDragImage(head, 16, 16);
+      }
+    },
+    phaseDragOver(event, index) {
+      // a line being dragged, or nothing: not a phase drop
+      if (!this.phaseDrag) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      if (this.phaseDrag.over !== index) this.phaseDrag = { ...this.phaseDrag, over: index };
+    },
+    phaseDrop(event, index) {
+      const drag = this.phaseDrag;
+      this.phaseDrag = null;
+      if (!drag) return;
+      event.preventDefault();
+      this.movePhase(drag.from, index);
+    },
+    phaseDragEnd() {
+      this.phaseDrag = null;
+    },
+    movePhase(from, to) {
+      // the folded state of an unsaved phase is kept by its index: carry it along
+      const folded = this.phases.map((phase, index) => this.isCollapsed(phase, index));
+      if (!moveLine(this.phases, from, to)) return;
+      moveLine(folded, from, to);
+      const collapsed = {};
+      this.phases.forEach((phase, index) => {
+        if (folded[index]) collapsed[this.phaseKey(phase, index)] = true;
+      });
+      this.collapsedPhases = collapsed;
+      this.needsUpdate = true;
+      this.$emit("phases-updated", {
+        phases: this.phases,
+        projectId: this.form.id,
+        deletedPhases: this.deletedPhases,
+        deletedIncomes: this.deletedIncomes,
+        deletedExpenses: this.deletedExpenses
+      });
     },
     phaseKey(phase, index) {
       return phase && phase.id ? "id-" + phase.id : "index-" + index;
@@ -1520,7 +1597,8 @@ export default {
       return sumBy(phase.expenses, budgetLineTotal);
     },
     copyPhase(i) {
-      this.$emit("phases-copy", { index: i });
+      // the phase itself: the parent's list may not be in this order
+      this.$emit("phases-copy", { index: i, phase: this.phases[i] });
     },
     duplicatePhase(i) {
       this.needsUpdate = true;
@@ -2305,6 +2383,26 @@ export default {
 }
 .project-form-phases .current-document-button {
   margin-left: auto;
+}
+/* drag & drop of the phases */
+.project-form-phases .phase-drag-handle {
+  flex: none;
+  display: inline-flex;
+  margin-right: -.75rem;
+  cursor: grab;
+  color: var(--a-muted);
+}
+.project-form-phases .phase-drag-handle:hover {
+  color: var(--a-fg);
+}
+.project-form-phases .phase-container.is-dragging {
+  opacity: 0.4;
+}
+.project-form-phases .phase-container.drop-before {
+  box-shadow: 0 -3px 0 var(--a-accent);
+}
+.project-form-phases .phase-container.drop-after {
+  box-shadow: 0 3px 0 var(--a-accent);
 }
 /* issues/345: drag & drop of the lines */
 .project-form-phases .col-drag {
