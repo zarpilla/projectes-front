@@ -130,70 +130,76 @@
         </div>
       </div>
 
-      <!-- source of the PDF: rendered (html2pdf clones it) but kept off screen -->
-      <div v-if="(generatedPDF || true) && me" class="invoice-box-container pdf-source" aria-hidden="true">
-        <div class="invoice-box" id="pdf">
-          <table>
-            <tr class="is-total bordered-2t">
-              <th colspan="1" width="40%">
-                REGISTRE DE JORNADES<br />
-                {{ me.name }} - {{ me.nif }}
-                <div v-if="me.ccc">C.C.C. {{ me.ccc }}</div>
-              </th>
-              <th colspan="1" style="text-align: right;">
-                <img
-                  v-if="imageUrl"
-                  :src="imageUrl"
-                  style="width:150px;margin-top: 1rem;margin-bottom: 1rem;margin-right: 1rem"
-                />
-              </th>
-            </tr>
-            <tr class="bordered-2t">
-              <th width="40%">PERSONA</th>
-              <td>{{ personName }} <span v-if="personID">- NIF: {{ personID }}</span> <span v-if="personNAF">- NAF: {{ personNAF }}</span></td>
-            </tr>
-            <tr class="bordered-2t pb-4">
-              <th width="40%">PERÍODE</th>
-              <td>{{ month ? months.find(m => m.month === month).name + ' ' + year : 'Any ' + year }}</td>
-            </tr>
-          </table>
+      <!-- source of the PDF: rendered (html2pdf clones it) but kept off screen.
+           Drawn like the invoice PDFs (utils/microinvoice.js in the backend). -->
+      <div v-if="me" class="invoice-box-container pdf-source" aria-hidden="true">
+        <div class="wr-pdf" id="pdf">
+          <div class="wr-band">
+            <div class="wr-logo">
+              <img v-if="imageUrl" :src="imageUrl" />
+            </div>
+            <div class="wr-col">
+              <div class="wr-title">Registre de jornada</div>
+              <div class="wr-label">Període:</div>
+              <div class="wr-value">{{ pdfPeriod }}</div>
+              <div class="wr-label">Data d'emissió:</div>
+              <div class="wr-value">{{ pdfIssued }}</div>
+            </div>
+          </div>
 
-          <table class="mt-40">
-            <tr class="bordered-2">
-              <th>DATA</th>
-              <th>HORES</th>
-            </tr>
+          <div class="wr-details">
+            <div class="wr-left">
+              <div class="wr-label">Persona treballadora:</div>
+              <div class="wr-value">{{ personName }}</div>
+              <div v-if="personID" class="wr-value">NIF: {{ personID }}</div>
+              <div v-if="personNAF" class="wr-value">NAF: {{ personNAF }}</div>
+            </div>
+            <div class="wr-col">
+              <div class="wr-label">Empresa:</div>
+              <div class="wr-value">{{ me.name }}</div>
+              <div v-if="me.nif" class="wr-value">NIF: {{ me.nif }}</div>
+              <div v-if="me.ccc" class="wr-value">C.C.C.: {{ me.ccc }}</div>
+            </div>
+          </div>
 
-            <tr
-              v-for="(a, i) in activities.filter(
-                a => a.hour_in || a._type === 'total'
-              )"
-              v-bind:key="i"
-              :class="{ 'is-total': a._type === 'total' }"
-            >
-              <td>
-                <span class="has-text-weight-bold" v-if="a._type === 'total'"
-                  >TOTAL {{ formatMonthName(a.date) }}</span
-                >
-                <span v-else>{{ pdfDate(a.date) }}</span>
-              </td>
-              <td>
-                <span class="has-text-weight-bold" v-if="a._type === 'total'">{{
-                  formatHourMonth(monthly.find(m => m.month === a.month))
-                }}</span>
-                <span v-else
-                  >{{ a.hour_in_h }}:{{ a.hour_in_m }} - {{ a.hour_out_h }}:{{
-                    a.hour_out_m
-                  }}
-                  ({{ formatHourDiff(a) }})</span
-                >
-              </td>
-            </tr>
-            <tr>
-              <td class="has-text-weight-bold">TOTAL</td>
-              <td class="has-text-weight-bold">{{ superTotal }}</td>
-            </tr>
-          </table>
+          <div class="wr-row wr-head">
+            <span>Data</span>
+            <span>Dia</span>
+            <span class="r">Entrada</span>
+            <span class="r">Sortida</span>
+            <span class="r">Hores</span>
+          </div>
+          <div v-if="!registerMonths.length" class="wr-row wr-empty">
+            <span>Cap jornada registrada en aquest període</span>
+          </div>
+          <template v-for="m in registerMonths" :key="m.key">
+            <div v-for="d in m.days" :key="d.date" class="wr-day">
+              <div
+                v-for="(s, si) in d.slots"
+                :key="si"
+                class="wr-row"
+                :class="{ 'wr-cont': si < d.slots.length - 1 }"
+              >
+                <span>{{ si === 0 ? d.label : "" }}</span>
+                <span>{{ si === 0 ? d.weekday : "" }}</span>
+                <span class="r">{{ s.hourIn }}</span>
+                <span class="r">{{ s.hourOut || "—" }}</span>
+                <span class="r">{{ formatHoursMinutes(s.minutes) }}</span>
+              </div>
+            </div>
+            <div class="wr-row wr-month">
+              <span>Total {{ m.label }}</span>
+              <span></span>
+              <span></span>
+              <span class="r">{{ m.days.length }} {{ m.days.length === 1 ? "dia" : "dies" }}</span>
+              <span class="r">{{ formatHoursMinutes(m.minutes) }}</span>
+            </div>
+          </template>
+
+          <div class="wr-totals">
+            <div><span class="wr-label">Dies treballats</span><span class="wr-value">{{ registerDays }}</span></div>
+            <div><span class="wr-label">Total hores</span><b>{{ superTotal }}</b></div>
+          </div>
         </div>
       </div>
     </div>
@@ -208,7 +214,8 @@ import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
 import html2pdf from "html3pdf";
 import getConfig from '@/config'
-import { slotMinutes, slotIsInverted, slotActivityHours, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween, isValidTime } from "@/domain/workdayLog.js";
+import { slotMinutes, slotIsInverted, slotActivityHours, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween, isValidTime, workdayRegisterMonths } from "@/domain/workdayLog.js";
+import "@/assets/fonts/rubik.css";
 import { toRaw } from "vue";
 
 // new slots get a key of their own, kept after the first save gives them an
@@ -493,10 +500,25 @@ export default {
     superTotal() {
       return formatHoursMinutes(this.monthly.reduce((acc, m) => acc + m.m, 0));
     },
+    // the PDF's rows: logged days in date order, grouped by month
+    registerMonths() {
+      return workdayRegisterMonths(this.activities);
+    },
+    registerDays() {
+      return this.registerMonths.reduce((acc, m) => acc + m.days.length, 0);
+    },
+    pdfPeriod() {
+      const month = this.month && this.months.find(m => m.month === this.month);
+      return month ? `${month.name} ${this.year}` : `Any ${this.year}`;
+    },
+    pdfIssued() {
+      return moment().format("DD/MM/YYYY");
+    },
   },
   methods: {
     slotMinutes,
     slotIsInverted,
+    formatHoursMinutes,
     formatDuration,
     formatExpected,
     addSlot(row) {
@@ -881,34 +903,47 @@ export default {
         this.downloadPDF();
       }, 100);
     },
-    downloadPDF() {
-      var element = document.getElementById("pdf");
-      const filename = this.month 
-        ? `hores_${this.year}_${this.month}` 
-        : `hores_${this.year}`;
-      var opt = {
-        margin: [0, 0],
-        filename: filename,
-        html2canvas: { dpi: 300, letterRendering: false, scale: 2 },
-        jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+    // Drawn like the invoice PDFs: grey band on top, Rubik, light row lines.
+    // Rows are never cut between pages; every page keeps a top and bottom
+    // margin (the band's strip of page 1 is filled in) and its number.
+    async downloadPDF() {
+      const element = document.getElementById("pdf");
+      const filename = this.month
+        ? `registre_jornada_${this.year}_${String(this.month).padStart(2, "0")}`
+        : `registre_jornada_${this.year}`;
+      if (document.fonts && document.fonts.load) {
+        await Promise.all([
+          document.fonts.load('11px "Rubik"'),
+          document.fonts.load('500 11px "Rubik"')
+        ]).catch(() => {});
+      }
+      const margin = 10; // mm
+      const opt = {
+        margin: [margin, 0, margin, 0],
+        filename,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { letterRendering: false, scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css"], avoid: [".wr-day", ".wr-row", ".wr-totals", ".wr-details"] }
       };
-      const pdf = html2pdf()
+      const pdf = await html2pdf()
         .set(opt)
-        .from(element);
-
-      // await pdf.save(opt.filename, { returnPromise: true })
-
-      pdf
+        .from(element)
         .toPdf()
-        .get("pdf")
-        .then(function(pdf) {
-          window.open(pdf.output("bloburl", filename + ".pdf"));
-        });
-
-      // const pdf = document.getElementById("pdf");
-      // html2pdf()
-      //   .from(pdf)
-      //   .save();
+        .get("pdf");
+      const pages = pdf.internal.getNumberOfPages();
+      const width = pdf.internal.pageSize.getWidth();
+      const height = pdf.internal.pageSize.getHeight();
+      pdf.setPage(1);
+      pdf.setFillColor(248, 248, 250);
+      pdf.rect(0, 0, width, margin + 0.2, "F");
+      for (let i = 1; i <= pages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(7);
+        pdf.setTextColor(143, 143, 143);
+        pdf.text(`${i} / ${pages}`, width - 7.5, height - 5, { align: "right" });
+      }
+      window.open(pdf.output("bloburl", filename + ".pdf"));
     },
     filteredProjects(projectNameSearch) {      
       // active & not mother
@@ -981,24 +1016,6 @@ export default {
       } catch (error) {
         this.updating = false;
       }
-    },
-    formatHourDiff(activity) {
-      if (!activity.hour_in || !activity.hour_out) {
-        return "0h";
-      }
-      return formatHoursMinutes(slotMinutes(activity.hour_in, activity.hour_out));
-    },
-    // the PDF lists the days as dd/mm/yyyy (it printed 2026-10-19, issues/274)
-    pdfDate(date) {
-      return date ? moment(date, "YYYY-MM-DD").format("DD/MM/YYYY") : "";
-    },
-    formatHourMonth(m) {
-      return formatHoursMinutes(m && m.m ? m.m : 0);
-    },
-    formatMonthName(dt) {
-      return moment(dt)
-        .format("MMMM")
-        .toUpperCase();
     }
   },
 };
@@ -1270,49 +1287,101 @@ export default {
   top: 0;
   width: 800px;
 }
-.invoice-box-container {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-  border: 1px solid #eee;
-  width: 100%;
-  max-width: 800px;
-  margin-top: 3rem;
-}
-.invoice-box {
-  max-width: 800px;
-  margin: auto;
-  padding: 30px;
-  font-size: 12px;
-  line-height: 24px;
-  font-family: sans-serif, "Helvetica Neue", "Helvetica", Helvetica, Arial,
-    sans-serif;
-  color: #222;
+/* the PDF: 800 px = A4 width, so 1 pt of utils/microinvoice.js ≈ 1.345 px */
+.wr-pdf {
+  width: 800px;
+  font-family: "Rubik", sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #8f8f8f;
   background: #fff;
 }
-
-.invoice-box table {
-  width: 100%;
-  line-height: inherit;
-  text-align: left;
+.wr-band {
+  display: flex;
+  background: #f8f8fa;
+  min-height: 168px;
+  padding: 26px 40px 24px;
+  box-sizing: border-box;
 }
-tr.bordered-2t th,
-tr.bordered-2t td {
-  border-top: 2px solid #000;
+.wr-logo {
+  width: 404px;
 }
-tr.bordered-2 th,
-tr.bordered-2 td {
-  border-bottom: 2px solid #000;
+.wr-logo img {
+  max-width: 200px;
+  max-height: 110px;
 }
-/* .is-total capitalizes the month name on screen; in the PDF the month total
-   printed «3 H 30» (issues/274): the label is upper case already */
-.invoice-box tr.is-total {
-  text-transform: none;
+.wr-col {
+  flex: 1;
 }
-tr.is-total td {
-  border-bottom: 1px solid #000;
-  border-top: 1px solid #000;
+.wr-title {
+  font-size: 19px;
+  font-weight: 500;
+  color: #000100;
+  margin-bottom: 4px;
 }
-.mt-40 {
-  margin-top: 40px;
+.wr-label {
+  font-weight: 500;
+  color: #000100;
+  margin-top: 6px;
+}
+.wr-value {
+  margin-top: 3px;
+}
+.wr-details {
+  display: flex;
+  padding: 18px 40px 6px;
+}
+.wr-left {
+  width: 404px;
+}
+.wr-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 90px 90px 110px;
+  column-gap: 13px;
+  margin: 0 40px;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.wr-row .r {
+  text-align: right;
+}
+/* the slots of one day share a line: only the day's last slot draws it */
+.wr-row.wr-cont {
+  border-bottom-color: transparent;
+  padding-bottom: 1px;
+}
+.wr-head {
+  margin-top: 22px;
+  font-weight: 500;
+  color: #000100;
+}
+.wr-month {
+  font-weight: 500;
+  color: #000100;
+  background: #f8f8fa;
+  padding-left: 6px;
+  padding-right: 6px;
+  margin: 0 34px 12px;
+}
+.wr-empty {
+  display: block;
+}
+.wr-totals {
+  margin: 34px 40px 0 444px;
+  padding-bottom: 20px;
+}
+.wr-totals > div {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.wr-totals .wr-label,
+.wr-totals .wr-value {
+  margin: 0;
+}
+.wr-totals b {
+  font-weight: 500;
+  color: #000100;
 }
 </style>
 

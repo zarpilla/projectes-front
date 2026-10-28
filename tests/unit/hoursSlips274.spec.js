@@ -14,7 +14,7 @@ import JornadaDiaria from '@/components/JornadaDiaria.vue'
 import jornadaSource from '@/components/JornadaDiaria.vue?raw'
 import ModalBoxFestive from '@/components/ModalBoxFestive.vue'
 import { realDedicationFields, dedicatedHoursFields } from '@/domain/hoursExport.js'
-import { festiveRangeDates } from '@/domain/workdayLog.js'
+import { festiveRangeDates, workdayRegisterMonths } from '@/domain/workdayLog.js'
 import { buildOds } from '@/service/ods'
 import { unzipSync, strFromU8 } from 'fflate'
 
@@ -26,11 +26,15 @@ const exportRow = (fields, row) =>
   }))
 
 describe('Registre jornades PDF (issues/274)', () => {
+  // the PDF was redrawn like the invoices (2026-10-28): its rows come from
+  // workdayRegisterMonths and the month total no longer uses .is-total
   it('lists the days as dd/mm/yyyy', () => {
-    expect(JornadaDiaria.methods.pdfDate('2026-10-19')).toBe('19/10/2026')
+    const [month] = workdayRegisterMonths([{ date: '2026-10-19', hour_in: '09:00', hour_out: '12:00' }])
+    expect(month.days[0].label).toBe('19/10/2026')
   })
   it('does not capitalize the month total', () => {
-    expect(jornadaSource).toMatch(/\.invoice-box tr\.is-total \{\s*text-transform: none;/)
+    expect(jornadaSource).toMatch(/class="wr-row wr-month"/)
+    expect(jornadaSource).not.toMatch(/\.wr-month[^}]*text-transform: (capitalize|uppercase)/)
   })
 })
 
