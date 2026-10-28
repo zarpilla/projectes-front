@@ -4697,11 +4697,18 @@ export default {
       const phases = JSON.parse(
         JSON.stringify(this.form.project_original_phases)
       );
-      const phase = JSON.parse(
-        JSON.stringify(phases.find((p, i) => i === info.index))
-      );
+      // the phase the button was pressed on: ProjectPhases sends it, the index
+      // alone could point to another one if the two lists differ in order
+      const source = info.phase || phases.find((p, i) => i === info.index);
+      if (!source) {
+        this.phasesVisible = true;
+        return;
+      }
+      const phase = JSON.parse(JSON.stringify(source));
       delete phase.__ob__;
       delete phase.id;
+      delete phase.documentId; // a copy is a new row (issues/182)
+      delete phase.position; // goes last; the save numbers it
       phase.name = `${phase.name} - còpia`;
       phase.dirty = true;
       for (const sp of phase.incomes) {
@@ -4712,6 +4719,7 @@ export default {
           ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
           : this.form.date_end;
         delete sp.id;
+        delete sp.documentId;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
         delete sp.project_original_phase;
@@ -4725,6 +4733,7 @@ export default {
           ? moment(sp.date_estimate_document).format("YYYY-MM-DD")
           : this.form.date_end;
         delete sp.id;
+        delete sp.documentId;
         delete sp.estimated_hours;
         delete sp.total_estimated_hours;
         delete sp.project_original_phase;
