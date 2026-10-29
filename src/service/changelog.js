@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.29",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Integracions", "Logística", "Administració"],
+      text: ["API d'integració per a les sòcies: el programa de gestió d'una sòcia pot crear, actualitzar i anul·lar les seves comandes i punts d'entrega sense passar pel CSV, amb les mateixes normes que a l'aplicació (només es modifiquen les comandes pendents, data a partir de demà, recàrrec fora de temps, preu calculat per la Diligència). Cada comanda porta el seu identificador i no es duplica mai. L'oficina crea i revoca les claus a ", { to: "/administracio/usuaries", label: "Administració › Usuàries" }, ", a la fitxa de cada sòcia (Claus d'API)."]
+    }
+  ]
+},
+{
   date: "2026.10.27",
   items: [
     {
