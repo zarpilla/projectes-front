@@ -21,6 +21,26 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.29",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Projectes", "Diners"],
+      text: "Al pressupost i a les fases d'un projecte, l'etiqueta del document de cada línia (columna «Doc.») és verda si el document està cobrat o pagat i vermella si encara està pendent, segons el que hi ha marcat al requadre «Pagament» del document. Passant-hi el ratolí ho diu en paraules."
+    },
+    {
+      type: "Correccions",
+      modules: ["Projectes"],
+      text: "A l'«Assignació de documents» d'una línia de projecte, un ingrés ja assignat porta l'enllaç «Veure document», com les factures i les despeses."
+    },
+    {
+      type: "Millores",
+      modules: ["Diners"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, ", a «Moviments bancaris», el botó «Mostra-ho tot» llista tots els moviments de l'any sense pàgines (es recorda per al navegador). I els filtres per columna tornen a la primera pàgina: abans es quedaven a la pàgina on eres i semblava que només filtressin aquella pàgina."]
+    }
+  ]
+},
+{
   date: "2026.10.27",
   items: [
     {

@@ -98,3 +98,40 @@ describe('TresoreriaTable movement dates (issues/136)', () => {
     expect(w.vm.treasuryDataDesc.map(r => r.id)).toEqual([1])
   })
 })
+
+// issues/366: with the per-column filters the list stayed on the page it was on
+// (6 of 6), so the matches on other pages looked filtered out; and there was no
+// way to see every movement of the year at once.
+describe('TresoreriaTable movement pages (issues/366)', () => {
+  const many = () => Array.from({ length: 120 }, (_, i) => movement(i + 1, null, '20260305'))
+  const shownRows = w => w.findAll('tbody tr').filter(tr => tr.text().includes('Moviment'))
+
+  it('goes back to the first page when a column filter changes', async () => {
+    localStorage.removeItem('TresoreriaTable.movementsAll')
+    const rows = Array.from({ length: 200 }, (_, i) => movement(i + 1, null, '20260305'))
+    const { w } = await mountTable(rows)
+    await w.setData({ movementsPage: 3 })
+    await flushPromises()
+    w.vm.$refs.movementsTable.filters.concept = 'Moviment 1'
+    await flushPromises()
+    expect(w.vm.movementsPage).toBe(1)
+    // Moviment 1, 10–19, 100–199: 111 matches; the first page shows 50 of
+    // them (page 3 showed only the last 11)
+    expect(shownRows(w)).toHaveLength(50)
+    expect(shownRows(w)[0].text()).toContain('Moviment 1')
+  })
+
+  it('«Mostra-ho tot» lists every movement without pages, and is remembered', async () => {
+    localStorage.removeItem('TresoreriaTable.movementsAll')
+    const { w } = await mountTable(many())
+    expect(shownRows(w)).toHaveLength(50)
+    const button = w.findAll('button').find(b => b.text() === 'Mostra-ho tot')
+    await button.trigger('click')
+    await flushPromises()
+    expect(shownRows(w)).toHaveLength(120)
+    expect(localStorage.getItem('TresoreriaTable.movementsAll')).toBe('1')
+    const again = await mountTable(many())
+    expect(shownRows(again.w)).toHaveLength(120)
+    localStorage.removeItem('TresoreriaTable.movementsAll')
+  })
+})

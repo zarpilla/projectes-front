@@ -366,13 +366,17 @@
             </button>
           </div>
           <b-input v-model="movementsSearch" class="filter-search" icon="magnify" placeholder="Cerca concepte, projecte o contacte" aria-label="Cerca moviments" />
+          <!-- issues/366: every movement of the year in one list, without pages -->
+          <b-button size="is-small" class="movements-all" icon-left="arrow-expand-vertical" :class="{ 'is-selected': movementsAll }" :aria-pressed="movementsAll ? 'true' : 'false'" @click="toggleMovementsAll">
+            {{ movementsAll ? "Mostra per pàgines" : "Mostra-ho tot" }}
+          </b-button>
         </div>
         <!-- paginated (the whole year was one ~60.000 px table); opens on the page with "Avui" -->
         <b-table
           ref="movementsTable"
           v-model:current-page="movementsPage"
           :loading="isLoading"
-          :paginated="true"
+          :paginated="!movementsAll"
           :per-page="movementsPerPage"
           pagination-position="both"
           aria-next-label="Pàgina següent"
@@ -615,6 +619,15 @@ import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday } from "@/domain/projectTreasury.js";
 import { setValidationKeys } from "@/domain/treasuryValidation.js";
 
+const MOVEMENTS_ALL_KEY = "TresoreriaTable.movementsAll";
+function readMovementsAll() {
+  try {
+    return localStorage.getItem(MOVEMENTS_ALL_KEY) === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
 export default {
   name: "Tresoreria",
   components: {
@@ -636,6 +649,8 @@ export default {
       columnFilters: false,
       movementsPage: 1,
       movementsPerPage: 50,
+      // issues/366: all the movements in one list (remembered per browser)
+      movementsAll: readMovementsAll(),
       isLoading: false,
       years: [],
       projects: [],
@@ -676,6 +691,18 @@ export default {
     };
   },
   async mounted() {
+    // a per-column filter goes back to the first page: staying on page 6 showed
+    // the 6th page of the matches, or nothing, as if only that page had been
+    // filtered (issues/366)
+    this.$watch(
+      () => {
+        const table = this.$refs.movementsTable;
+        return table && table.filters ? JSON.stringify(table.filters) : "";
+      },
+      () => {
+        this.movementsPage = 1;
+      }
+    );
     // the data is asked right away, while Kendo (3.5 MB) loads: the pivot is
     // drawn once both are there (issues/307: nothing was asked before Kendo)
     this.kendoReady = new Promise(resolve => {
@@ -1090,6 +1117,14 @@ export default {
   },
   methods: {
     ofWord,
+    toggleMovementsAll() {
+      this.movementsAll = !this.movementsAll;
+      try {
+        localStorage.setItem(MOVEMENTS_ALL_KEY, this.movementsAll ? "1" : "0");
+      } catch (e) {
+        // no storage (private window): the choice lasts until the page is left
+      }
+    },
     treasuryDisplayDate,
     // what the export downloads: the movements as listed, i.e. after the tab,
     // the search and the per-column filters, every page (issues/277)

@@ -283,7 +283,18 @@ export default {
   },
   methods: {
     show () {
-      this.form.type = this.invoicingObject.type
+      // a fresh form each time: the documents of the line opened before must
+      // not be saved on this one (issues/365)
+      this.form = {
+        type: this.invoicingObject.type,
+        emitted: null,
+        income: null,
+        grant: null,
+        received: null,
+        expense: null,
+        ticket: null,
+        diet: null
+      }
       this.emittedSearch = ''
       this.grantSearch = ''
       this.receivedSearch = ''
@@ -330,7 +341,7 @@ export default {
       }
 
       if (this.invoicingObject.type === 'incomes' && this.invoicingObject.subphase && this.invoicingObject.subphase.paid && this.invoicingObject.subphase.income) {
-        this.form.grant = this.invoicingObject.subphase.income
+        this.form.income = this.invoicingObject.subphase.income
         const i = this.invoicingObject.subphase.income
         this.incomeSearch = `${i.code} - ${this.getContactName(i)} - ${i.total_base} €`
       }

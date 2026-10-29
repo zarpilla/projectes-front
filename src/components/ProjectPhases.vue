@@ -378,7 +378,7 @@
                 </b-checkbox>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Doc" title="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">            
+          <b-table-column field="name" label="Doc" title="Document: verd = cobrat, vermell = pendent de cobrament" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">            
             <b-field
                 v-if="me.options && me.options.treasury && mode !== 'simple'"
                 class="zshort-field"
@@ -390,8 +390,8 @@
                       props.row.invoice &&
                       props.row.invoice.id
                   "
-                  :title="`${props.row.invoice.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
+                  :title="docTagTitle(props.row.invoice, 'incomes')"
+                  :class="docTagClass(props.row.invoice)"
                   :disabled="!editable"
                   @click="
                     setInvoice('incomes', props.row, props.row, phi, props.index)
@@ -413,8 +413,8 @@
                       props.row.grant.id
                   "
                   :disabled="!editable"
-                  :title="`${props.row.grant.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
+                  :title="docTagTitle(props.row.grant, 'incomes')"
+                  :class="docTagClass(props.row.grant)"
                   @click="
                     setInvoice('incomes', props.row, props.row, phi, props.index)
                   "
@@ -435,8 +435,8 @@
                       props.row.income.id
                   "
                   :disabled="!editable"
-                  :title="`${props.row.income.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
+                  :title="docTagTitle(props.row.income, 'incomes')"
+                  :class="docTagClass(props.row.income)"
                   @click="
                     setInvoice('incomes', props.row, props.row, phi, props.index)
                   "
@@ -738,7 +738,7 @@
                 </b-checkbox>
               </b-field>
           </b-table-column>
-          <b-table-column field="name" label="Doc." title="Document" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
+          <b-table-column field="name" label="Doc." title="Document: verd = pagat, vermell = pendent de pagament" width="100" v-slot="props" v-if="me.options && me.options.treasury && mode !== 'simple'">
             <b-field
                 v-if="me.options && me.options.treasury && mode !== 'simple'"
                 class="zshort-field"
@@ -750,8 +750,8 @@
                       props.row.invoice &&
                       props.row.invoice.id
                   "
-                  :title="`${props.row.invoice.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
+                  :title="docTagTitle(props.row.invoice, 'expenses')"
+                  :class="docTagClass(props.row.invoice)"
                   :disabled="!editable"
                   @click="
                     setInvoice('expenses', props.row, props.row, phi, props.index)
@@ -773,8 +773,8 @@
                       props.row.grant.id
                   "
                   :disabled="!editable"
-                  :title="`${props.row.grant.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
+                  :title="docTagTitle(props.row.grant, 'expenses')"
+                  :class="docTagClass(props.row.grant)"
                   @click="
                     setInvoice('expenses', props.row, props.row, phi, props.index)
                   "
@@ -795,8 +795,8 @@
                       props.row.expense.id
                   "
                   :disabled="!editable"
-                  :title="`${props.row.expense.total_base} €`"
-                  class="tag is-primary invoice-tag clickable"
+                  :title="docTagTitle(props.row.expense, 'expenses')"
+                  :class="docTagClass(props.row.expense)"
                   @click="
                     setInvoice('expenses', props.row, props.row, phi, props.index)
                   "
@@ -873,6 +873,7 @@ import MoneyFormat from "@/components/MoneyFormat.vue";
 import sumBy from "lodash/sumBy";
 import { budgetLineDisplay, budgetLineTotal, budgetLineValue } from "@/domain/budgetLines.js";
 import { sortLinesByPosition, moveLine, lineHasDocument } from "@/domain/budgetLineOrder.js";
+import { docTagClass, docTagTitle } from "@/domain/budgetLineDocTag.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import moment from "moment";
@@ -1309,6 +1310,8 @@ export default {
   },
   methods: {
     budgetLineTotal,
+    docTagClass,
+    docTagTitle,
     formatMoney,
     sign,
     isCurrentDocumentLine(line, kind) {
@@ -2602,6 +2605,12 @@ export default {
 }
 .warning-tag {
   padding-left: 0.5rem;
+}
+/* issues/364: a line's document still to be collected / paid */
+.tag.invoice-tag.doc-unpaid {
+  background: var(--a-danger-bg);
+  color: var(--a-danger-fg);
+  border: 1px solid var(--a-danger-line);
 }
 .inline {
   display: inline;
