@@ -133,8 +133,8 @@
               <template v-else>Encara no té cap període de jornada.</template>
             </p>
           </section>
-          <!-- the integrations API: keys of a member's own system -->
-          <user-api-keys :user-id="userId" :can-have="selectedPermissions.includes('orders')" />
+          <!-- the integrations API: keys of a member's own system, only for Logística users -->
+          <user-api-keys v-if="selectedPermissions.includes('orders')" :user-id="userId" />
         </aside>
       </div>
     </section>

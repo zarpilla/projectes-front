@@ -1,7 +1,7 @@
 // «Claus d'API» on Administració › Usuàries (integrations API, 2026-10-29):
 // the office creates a key for a member's own system (La Dotzena's), sees it
-// once to copy it, lists the keys by prefix and revokes them. Only users with
-// the orders permission can have one.
+// once to copy it, lists the keys by prefix and revokes them. The section shows
+// only for users with the orders permission (Logística): the API writes orders.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import Buefy from 'buefy'
@@ -14,6 +14,7 @@ vi.mock('@/service/index', () => ({
 }))
 
 import UserApiKeys from '@/components/UserApiKeys.vue'
+import AdminUserForm from '@/components/AdminUserForm.vue'
 
 const key = over => ({
   id: 1,
@@ -28,7 +29,7 @@ const key = over => ({
 })
 
 const mountKeys = (props = {}) => mount(UserApiKeys, {
-  props: { userId: '65', canHave: true, ...props },
+  props: { userId: '65', ...props },
   global: { plugins: [Buefy] }
 })
 
@@ -77,12 +78,31 @@ describe('UserApiKeys', () => {
     expect(del).toHaveBeenCalledWith('integrations/api-keys/1')
     expect(get).toHaveBeenCalledTimes(2)
   })
+})
 
-  it('offers no key to a user without the orders permission', async () => {
-    get.mockResolvedValue({ data: [] })
-    const w = mountKeys({ canHave: false })
+describe('AdminUserForm › Claus d\'API', () => {
+  const mountForm = permissions => {
+    get.mockImplementation(async url => {
+      if (url === 'users/me') return { data: { permissions: [{ permission: 'admin' }] } }
+      if (url === '/users/65') return { data: { username: 'La Dotzena', permissions: permissions.map(permission => ({ permission })) } }
+      if (url === '/users-permissions/roles') return { data: { roles: [] } }
+      return { data: [] }
+    })
+    return mount(AdminUserForm, {
+      props: { userId: '65' },
+      global: { plugins: [Buefy], stubs: { UserApiKeys: true, 'router-link': true } }
+    })
+  }
+
+  it('shows the section to a Logística user', async () => {
+    const w = mountForm(['orders'])
     await flushPromises()
-    expect(w.find('[data-test="api-key-create"]').exists()).toBe(false)
-    expect(w.find('[data-test="api-keys-no-orders"]').exists()).toBe(true)
+    expect(w.findComponent(UserApiKeys).exists()).toBe(true)
+  })
+
+  it('hides it from anyone else', async () => {
+    const w = mountForm(['projects', 'hours'])
+    await flushPromises()
+    expect(w.findComponent(UserApiKeys).exists()).toBe(false)
   })
 })

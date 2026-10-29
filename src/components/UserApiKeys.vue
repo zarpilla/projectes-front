@@ -2,12 +2,12 @@
   <!-- Claus d'API de la usuària (Administració › Usuàries): the integrations
        API lets a member's own system create and cancel her orders and delivery
        points without the CSV import. Only the key's prefix is kept: the key
-       itself is shown once, right after it is created. -->
+       itself is shown once, right after it is created. Shown only to users
+       with the orders permission (AdminUserForm): the API writes her orders. -->
   <section class="form-box keys-box" data-test="api-keys">
     <header class="keys-head">
       <h2>Claus d'API</h2>
       <b-button
-        v-if="canHave"
         size="is-small"
         type="is-primary"
         icon-left="key-plus"
@@ -21,10 +21,6 @@
     <p class="keys-sub">
       Perquè el programa de gestió de la sòcia creï, actualitzi i anul·li comandes i punts d'entrega sense passar pel CSV.
       Les comandes segueixen les mateixes normes que a l'aplicació.
-    </p>
-
-    <p v-if="!canHave" class="keys-note" data-test="api-keys-no-orders">
-      Només les usuàries amb el permís <b>Logística</b> poden tenir claus d'API.
     </p>
 
     <div v-if="newKey" class="new-key" data-test="api-key-new">
@@ -68,7 +64,7 @@
         </tr>
       </tbody>
     </table>
-    <p v-else-if="canHave && !loading" class="keys-note">Encara no té cap clau.</p>
+    <p v-else-if="!loading" class="keys-note">Encara no té cap clau.</p>
   </section>
 </template>
 
@@ -82,11 +78,6 @@ export default {
     userId: {
       type: [String, Number],
       required: true
-    },
-    // the user has the orders permission (the API writes her orders)
-    canHave: {
-      type: Boolean,
-      default: false
     }
   },
   data() {
