@@ -117,3 +117,39 @@ export const festiveRangeDates = (from, to) => {
   }
   return dates
 }
+
+// The rows of the printed «Registre de jornada», in date order (the screen
+// lists the newest day first): one entry per month with its logged days, each
+// day with its slots. Days without a slot are left out; an open slot (entry
+// without exit) is printed with an empty exit and 0 minutes.
+export const workdayRegisterMonths = (activities) => {
+  const slots = (activities || [])
+    .filter(a => a._type !== 'total' && a.hour_in)
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date) || String(a.hour_in).localeCompare(String(b.hour_in)))
+  const months = []
+  slots.forEach(a => {
+    const key = a.date.slice(0, 7)
+    let month = months[months.length - 1]
+    if (!month || month.key !== key) {
+      const m = moment(a.date, 'YYYY-MM-DD').locale('ca')
+      month = { key, label: m.format('MMMM YYYY'), days: [], minutes: 0 }
+      months.push(month)
+    }
+    let day = month.days[month.days.length - 1]
+    if (!day || day.date !== a.date) {
+      const d = moment(a.date, 'YYYY-MM-DD').locale('ca')
+      day = { date: a.date, label: d.format('DD/MM/YYYY'), weekday: d.format('dddd'), slots: [], minutes: 0 }
+      month.days.push(day)
+    }
+    const minutes = slotMinutes(a.hour_in, a.hour_out)
+    day.slots.push({
+      hourIn: String(a.hour_in).slice(0, 5),
+      hourOut: a.hour_out ? String(a.hour_out).slice(0, 5) : '',
+      minutes
+    })
+    day.minutes += minutes
+    month.minutes += minutes
+  })
+  return months
+}
