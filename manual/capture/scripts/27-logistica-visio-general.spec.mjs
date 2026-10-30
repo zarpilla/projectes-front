@@ -14,7 +14,7 @@ async function closeHello (page) {
 
 // from the «Logística» header to the end of the logistics blocks of the menu
 async function menuShot (page, name) {
-  await page.goto('#/comandes')
+  await page.goto('/comandes')
   await page.getByText('Comandes actives').waitFor()
   await settle(page, 800)
   await closeHello(page)
@@ -36,7 +36,7 @@ async function menuShot (page, name) {
 
 async function switchUser (page, profile) {
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear() })
-  await page.goto('#/')
+  await page.goto('/')
   await page.reload()
   await login(page, ...logUser(profile))
   await closeHello(page)

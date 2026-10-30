@@ -19,7 +19,7 @@ test('07-subvencions-justificacions', async ({ page }) => {
   await login(page)
 
   // the grant block of a project
-  await page.goto(`#/projecte/${GRANT_PROJECT}?tab=dades`)
+  await page.goto(`/projecte/${GRANT_PROJECT}?tab=dades`)
   await page.getByText('Identificació').waitFor()
   await settle(page, 1500)
   await toTop(page.locator('h3.form-section-title', { hasText: 'Subvencions' }), 20)
@@ -27,7 +27,7 @@ test('07-subvencions-justificacions', async ({ page }) => {
   await shot(page, 'projecte-subvencio')
 
   // the list of grant projects
-  await page.goto('#/subvencions')
+  await page.goto('/subvencions')
   await page.getByText('projectes subvencionables').waitFor()
   await settle(page, 1500)
   await shot(page, 'subvencions')
@@ -36,7 +36,7 @@ test('07-subvencions-justificacions', async ({ page }) => {
   await shot(page, 'subvencions-tancats')
 
   // the justifications report
-  await page.goto('#/justificacions')
+  await page.goto('/justificacions')
   await page.getByText('Import justificat').first().waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   const filters = page.locator('form.filter-bar')

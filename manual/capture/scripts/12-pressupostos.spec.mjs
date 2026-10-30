@@ -18,12 +18,12 @@ test('12-pressupostos', async ({ page }) => {
   await start(page, '12-pressupostos', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/pressupostos')
+  await page.goto('/pressupostos')
   await page.getByText('Pressupostat').waitFor()
   await settle(page, 1500)
   await shot(page, 'llistat')
 
-  await page.goto(`#/document/${QUOTE}/quotes`)
+  await page.goto(`/document/${QUOTE}/quotes`)
   await page.getByText('Enviament i acceptació').waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'pressupost')
@@ -37,7 +37,7 @@ test('12-pressupostos', async ({ page }) => {
   // the PDF the API makes (the copy has no logo upload: the PDF is drawn without one)
   await pdfShot(page, page.locator('button', { hasText: /^\s*PDF\s*$/ }).first(), 'pdf')
 
-  await page.goto('#/pressupostos')
+  await page.goto('/pressupostos')
   await settle(page, 1000)
   await page.getByRole('button', { name: 'Nou pressupost' }).click()
   await settle(page, 2000)

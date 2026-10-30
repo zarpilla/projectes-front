@@ -10,7 +10,7 @@ test('20-bestretes', async ({ page }) => {
   await start(page, '20-bestretes', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/bestretes')
+  await page.goto('/bestretes')
   await page.getByPlaceholder('Persona').waitFor()
   await settle(page, 1000)
   await page.getByPlaceholder('Persona').fill('Clara Serra')
@@ -26,7 +26,7 @@ test('20-bestretes', async ({ page }) => {
 
   // a payroll: the eye button opens it in a new tab (here, in the same page: a new tab
   // wouldn't get start()'s API redirection). Payroll 2075 is Clara Serra's January 2026.
-  await page.goto('#/document/2075/payrolls')
+  await page.goto('/document/2075/payrolls')
   await page.locator('.card-header-title', { hasText: 'Document' }).first().waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'nomina')

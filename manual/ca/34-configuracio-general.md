@@ -8,7 +8,7 @@ order: 34
 roles: [admin]
 routes: ["/administracio/configuracio"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-10-30
 ---
 # 34. Configuració general de l'entitat
 
@@ -61,6 +61,11 @@ formulari i el missatge d'agraïment.
 - **Gantt sense les línies d'ingrés**: la pestanya **Planificació** s'obre amb **Línies d'ingrés** desmarcat.
 - **% IVA deduïble**: la prorrata general. Cada any en pot tenir una de pròpia a **Taules auxiliars › Anys**, i
   és la que es fa servir per saldar l'IVA i a la tresoreria d'aquell any (vegeu [21. IVA](21-iva.md)).
+- **Facturació dels projectes nous**: **Per projecte** (el pressupost per fases, com sempre) o **Per hores**
+  (l'ingrés previst són les hores previstes × el preu/hora del projecte, i el resum mostra el que queda per
+  facturar). És el valor amb què surten els projectes nous; cada projecte el pot canviar a la seva pestanya
+  **Dades**. No canvia els projectes que ja existeixen. Vegeu
+  [05. Fases i pressupost del projecte](05-fases-pressupost.md#projectes-facturats-per-hores).
 
 ![El bloc Projectes](img/34-configuracio-general/04-projectes.png)
 

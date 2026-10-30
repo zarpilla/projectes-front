@@ -11,11 +11,11 @@ test('02-usuaris-rols-permisos', async ({ page }) => {
   await start(page, '02-usuaris-rols-permisos', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/administracio/usuaries')
+  await page.goto('/administracio/usuaries')
   await settle(page, 1500)
   await shot(page, 'usuaries')
 
-  await page.goto('#/administracio/usuaries/26')
+  await page.goto('/administracio/usuaries/26')
   await page.getByText('Permisos').first().waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'usuaria')
@@ -30,7 +30,7 @@ test('02-usuaris-rols-permisos', async ({ page }) => {
     body.permissions = (body.permissions || []).filter(p => p.permission === 'hours')
     await route.fulfill({ response: res, json: body })
   })
-  await page.goto('#/dedicacio')
+  await page.goto('/dedicacio')
   await page.reload()
   await settle(page, 2000)
   await shot(page, 'menu-hores')

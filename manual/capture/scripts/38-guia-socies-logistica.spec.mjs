@@ -23,7 +23,7 @@ test('38-guia-socies-logistica', async ({ page }) => {
   await closeHello(page)
 
   // Inici, as it is (no star clicked)
-  await page.goto('#/inici')
+  await page.goto('/inici')
   await page.getByText('Els meus accessos').waitFor()
   await settle(page, 1000)
   await closeHello(page)
@@ -32,7 +32,7 @@ test('38-guia-socies-logistica', async ({ page }) => {
   await shot(page, 'inici-socia')
 
   // Comandes on Wednesday 07/10/2026, every status
-  await page.goto('#/comandes')
+  await page.goto('/comandes')
   await page.getByText('Comandes actives').waitFor()
   await settle(page, 600)
   await page.getByRole('button', { name: 'Dia anterior' }).click() // empty date: picks today

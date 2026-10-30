@@ -28,7 +28,7 @@ test('13-imputar-hores', async ({ page }) => {
   await start(page, '13-imputar-hores', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/dedicacio')
+  await page.goto('/dedicacio')
   await page.getByRole('button', { name: 'Afegeix hores' }).waitFor()
   await settle(page, 1500)
   await pickPerson(page, 'Clara Puig')

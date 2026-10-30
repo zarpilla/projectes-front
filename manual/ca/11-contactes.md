@@ -1,6 +1,6 @@
 ---
 title: "Contactes"
-description: "Clientes, proveïdores i entitats d'intercooperació: la llista i la fitxa de contacte."
+description: "Clientes, proveïdores i entitats d'intercooperació: la llista, el resum de projectes i documents i la fitxa de contacte."
 product: esstrapis
 manual: usuari
 module: projectes
@@ -8,7 +8,7 @@ order: 11
 roles: [projects]
 routes: ["/contactes", "/contacte/:id"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-10-30
 ---
 # 11. Contactes
 
@@ -43,7 +43,37 @@ subvenció), a les factures i als pressupostos.
 
 ## La fitxa d'un contacte
 
-Clicant un nom s'obre la seva fitxa.
+Clicant un nom s'obre el contacte amb dues pestanyes: **Resum** (la que s'obre primer) i **Dades** (la fitxa).
+L'adreça recorda la pestanya oberta.
+
+### Resum: projectes i documents
+
+El **Resum** aplega tot el que la cooperativa ha fet amb aquest contacte. Només el veuen les persones amb
+permís de projectes o d'administració.
+
+![El resum d'un contacte, l'any 2025](img/11-contactes/06-resum.png)
+
+- **Període**: un any (l'any fiscal, si l'entitat en té) o **Històric** (tots els anys).
+- **Projectes**: quants en té, i en quants és clienta, entitat d'intercooperació o només hi té documents.
+- **Facturat** i **Comprat** al període: el que se li ha facturat (factures emeses i altres ingressos) i el
+  que ens ha facturat (factures rebudes i despeses), sense IVA. A sota, el total de tots els anys.
+- **Pendent de cobrar** i **Pendent de pagar**: els documents encara no cobrats o no pagats, de tots els
+  anys, amb IVA. Si n'hi ha de vençuts, la targeta de cobrar es marca.
+- La taula **Projectes**: cada projecte amb el seu **Rol** (**Clienta**, **Intercooperació** o
+  **Documents**, si el contacte no hi és com a clienta però hi té factures), l'**Estat**, les **Dates** i
+  el que s'hi ha facturat i comprat al període. Un asterisc vol dir que hi ha documents repartits entre
+  diversos projectes, comptats sencers a cadascun.
+
+![La llista de documents del contacte](img/11-contactes/07-resum-documents.png)
+
+- La taula **Documents**: pressupostos, factures, ingressos i despeses del contacte al període, amb el seu
+  estat (**Cobrada**, **No cobrada**, **Vençuda**, **Pagada**, **Esborrany**…). Els botons **Tots**,
+  **Pressupostos**, **Vendes**, **Compres** i **Pendents** la filtren; **Pendents** mostra els de tots els
+  anys. Clicant el codi s'obre el document; clicant el projecte, el projecte.
+
+Els punts d'entrega de la logística no tenen aquesta pestanya: tenen la seva de comandes.
+
+### Dades: la fitxa
 
 ![La fitxa d'un contacte: identificació i adreça](img/11-contactes/03-fitxa.png)
 
@@ -81,6 +111,14 @@ Les factures a aquest contacte es podran enviar per FACe.
 
 ![Un contacte nou](img/11-contactes/05-nou.png)
 
+Si el NIF ja és d'un altre contacte, a sota del camp surt l'avís *Ja hi ha un altre contacte amb aquest
+NIF:* amb el nom de l'altre contacte (o *Ja hi ha N contactes més amb aquest NIF:* si n'hi ha diversos).
+Clicant el nom s'obre en una pestanya nova. És un avís, no impedeix desar: de vegades és el mateix NIF a
+propòsit. Surt també en canviar el NIF d'un contacte que ja existeix. Els punts d'entrega no avisen, perquè
+una mateixa entitat en pot tenir diversos amb el mateix NIF.
+
+![L'avís de NIF repetit](img/11-contactes/08-nif-repetit.png)
+
 Abans de crear-ne un, convé buscar-lo a la llista pel NIF: si ja hi és amb un altre tipus, n'hi ha prou
 d'afegir-li el tipus que falta.
 
@@ -89,7 +127,8 @@ d'afegir-li el tipus que falta.
 **Una clienta no surt a la llista de Clientes d'un projecte.** Comproveu que existeix i, si l'acabeu de crear
 en una altra pestanya, cliqueu la fletxa rodona del costat per tornar a carregar els contactes.
 
-**El mateix contacte surt dues vegades.** Pot ser que s'hagi creat dos cops. Feu servir sempre el mateix (el
+**El mateix contacte surt dues vegades.** Pot ser que s'hagi creat dos cops (en crear-lo, l'avís de NIF
+repetit ho hauria dit). Feu servir sempre el mateix (el
 que tingui més dades) i esborreu l'altre si no té res lligat.
 
 ## Vegeu també

@@ -10,25 +10,25 @@ test('18-verifactu-face', async ({ page }) => {
   await start(page, '18-verifactu-face', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/administracio/verifactu')
+  await page.goto('/administracio/verifactu')
   await page.getByText("Enviament a l'AEAT").waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'configuracio')
 
-  await page.goto('#/administracio/cadena-verifactu')
+  await page.goto('/administracio/cadena-verifactu')
   await settle(page, 1500)
   await shot(page, 'registre')
 
-  await page.goto('#/administracio/cua-face')
+  await page.goto('/administracio/cua-face')
   await settle(page, 1500)
   await shot(page, 'cua-face')
 
-  await page.goto('#/verifactu')
+  await page.goto('/verifactu')
   await settle(page, 1500)
   await shot(page, 'declaracio')
 
   // the status card on an issued invoice (835 = 2025-102)
-  await page.goto('#/document/835/emitted-invoices')
+  await page.goto('/document/835/emitted-invoices')
   await page.getByText('Factura emesa:').waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await page.locator('.card-header-title', { hasText: 'Verifactu i FACe' }).first().evaluate(el => {

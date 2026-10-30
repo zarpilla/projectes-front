@@ -12,7 +12,7 @@ test('15-persones-jornades', async ({ page }) => {
   await start(page, '15-persones-jornades', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/jornada')
+  await page.goto('/jornada')
   await page.locator('.gantt_task_line').first().waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'persones')

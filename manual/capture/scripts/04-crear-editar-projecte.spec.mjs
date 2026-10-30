@@ -38,7 +38,7 @@ test('04-crear-editar-projecte', async ({ page }) => {
   await removeDemo(page)
 
   // --- step 1: basic data
-  await page.goto('#/projectes')
+  await page.goto('/projectes')
   await settle(page)
   await page.getByRole('button', { name: 'Nou projecte' }).click()
   await page.getByText('Projecte nou · pas 1 de 4').waitFor()
@@ -172,7 +172,7 @@ test('04-crear-editar-projecte', async ({ page }) => {
   await settle(page, 300)
 
   // --- a complete Dades tab, read-only (project 642)
-  await page.goto(`#/projecte/${FULL_PROJECT}?tab=dades`)
+  await page.goto(`/projecte/${FULL_PROJECT}?tab=dades`)
   await page.getByText('Identificació').waitFor()
   await settle(page, 1500)
   await shot(page, 'dades-identificacio')
