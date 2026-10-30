@@ -37,6 +37,9 @@
               <b-field label="Nom complet" message="Surt als informes, al registre de jornades i a les nòmines." class="is-full">
                 <b-input v-model="form.fullname" />
               </b-field>
+              <b-field label="Nom a mostrar" message="Amb aquest nom la saluda l'Inici. Si és buit: el nom complet per a les sòcies, el primer nom per a la resta." class="is-full">
+                <b-input v-model="form.display_name" placeholder="Per exemple: Marina, La Dotzena" />
+              </b-field>
               <b-field label="DNI/NIE">
                 <b-input v-model="form.identity_number" placeholder="Per al registre de jornades" />
               </b-field>
@@ -209,6 +212,7 @@ export default {
         username: '',
         email: '',
         fullname: '',
+        display_name: '',
         identity_number: '',
         naf: '',
         ical: '',
@@ -332,6 +336,7 @@ export default {
         this.form.username = user.username || '';
         this.form.email = user.email || '';
         this.form.fullname = user.fullname || '';
+        this.form.display_name = user.display_name || '';
         this.form.identity_number = user.identity_number || '';
         this.form.naf = user.naf || '';
         this.form.ical = user.ical || '';
@@ -363,6 +368,7 @@ export default {
           username: this.form.username,
           email: this.form.email,
           fullname: this.form.fullname,
+          display_name: (this.form.display_name || '').trim() || null,
           identity_number: this.form.identity_number,
           naf: this.form.naf,
           ical: this.form.ical || null,

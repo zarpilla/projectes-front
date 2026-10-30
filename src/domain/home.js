@@ -113,3 +113,18 @@ export function dropPin (pins, path, before) {
   next.splice(next.indexOf(before), 0, path)
   return next
 }
+
+/**
+ * The name Inici greets with (issues/367): the user's `display_name`; without
+ * it, a member (`orders` only, an organisation or shop) gets the whole name
+ * («La Dotzena», not «La») and everyone else the first word of it.
+ */
+export function greetingName (user, fallback = '') {
+  const display = String((user && user.display_name) || '').trim()
+  if (display) return display
+  const full = String((user && user.fullname) || (user && user.username) || fallback || '').trim().replace(/\s+/g, ' ')
+  if (!full) return ''
+  const codes = ((user && user.permissions) || []).map(p => (p && typeof p === 'object' ? p.permission : p)).filter(Boolean)
+  const member = codes.length > 0 && codes.every(c => c === 'orders')
+  return member ? full : full.split(' ')[0]
+}

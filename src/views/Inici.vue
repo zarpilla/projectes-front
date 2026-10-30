@@ -129,7 +129,7 @@ import menu from "@/service/menu";
 import { useMainStore } from "@/stores/main.js";
 import { useHomePins } from "@/stores/homePins";
 import { useTaskAlerts } from "@/stores/taskAlerts";
-import { menuGroups, visiblePins } from "@/domain/home";
+import { greetingName, menuGroups, visiblePins } from "@/domain/home";
 import { landingPath, storedPermissions, userPermissions } from "@/domain/routeAccess";
 
 export default {
@@ -186,8 +186,7 @@ export default {
     greeting() {
       const hour = this.now.getHours();
       const hello = hour < 14 ? "Bon dia" : hour < 21 ? "Bona tarda" : "Bona nit";
-      const full = (this.user && this.user.fullname) || this.userName || "";
-      const name = full.trim().split(/\s+/)[0];
+      const name = greetingName(this.user, this.userName);
       return name ? `${hello}, ${name}` : hello;
     },
     today() {
