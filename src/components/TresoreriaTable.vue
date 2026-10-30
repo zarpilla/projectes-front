@@ -1483,7 +1483,7 @@ export default {
       if (!n) return;
       this.$buefy.dialog.confirm({
         title: "Desar les dates",
-        message: `Es canviarà la data de ${n} moviment${n === 1 ? "" : "s"}. També s'actualitzarà la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» dels ingressos i el «Venciment» de les despeses corresponents.`,
+        message: `Es canviarà la data de ${n} moviment${n === 1 ? "" : "s"}. També s'actualitzarà la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» i el «Venciment» dels ingressos i el «Venciment» de les despeses corresponents.`,
         confirmText: "Desa",
         cancelText: "Cancel·la",
         onConfirm: () => this.saveDates()

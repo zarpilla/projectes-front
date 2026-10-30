@@ -31,7 +31,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners", "Projectes"],
-      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › Moviments bancaris, el botó «Edita dates» permet canviar la data dels moviments pendents (els cobrats o pagats no es poden moure) i desar-les totes alhora. Es canvia també la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» de les factures emeses i altres ingressos, i el «Venciment» de les factures i despeses rebudes."]
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › Moviments bancaris, el botó «Edita dates» permet canviar la data dels moviments pendents (els cobrats o pagats no es poden moure) i desar-les totes alhora. Es canvia també la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» i el «Venciment» de les factures emeses i altres ingressos, i el «Venciment» de les factures i despeses rebudes."]
     },
     {
       type: "Millores",
