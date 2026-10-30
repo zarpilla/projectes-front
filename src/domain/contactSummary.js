@@ -24,6 +24,8 @@ export const isSale = d => SALES.includes(d.kind)
 export const isPurchase = d => PURCHASES.includes(d.kind)
 export const isDraft = d => d.state === 'draft'
 const isPaid = d => !!(d.paid_date || d.paid)
+// «Ingrés» is masculine, the other documents with a state feminine (factura, despesa).
+const isMasculine = d => d.kind === 'received-incomes'
 
 const cents = v => Math.round((Number(v) || 0) * 100)
 const sum = (docs, field) => docs.reduce((acc, d) => acc + cents(d[field]), 0) / 100
@@ -41,10 +43,10 @@ export function isOverdue(d, today = moment()) {
 export function docStatus(d, today = moment()) {
   if (d.kind === 'quotes') return d.accepted ? { label: 'Acceptat', tone: 'success' } : { label: 'Obert', tone: 'neutral' }
   if (isDraft(d)) return { label: 'Esborrany', tone: 'info' }
-  if (isPaid(d)) return { label: isSale(d) ? 'Cobrada' : 'Pagada', tone: 'success' }
+  if (isPaid(d)) return { label: isSale(d) ? (isMasculine(d) ? 'Cobrat' : 'Cobrada') : 'Pagada', tone: 'success' }
   if (Number(d.total) < 0) return { label: 'Abonament', tone: 'neutral' }
-  if (isOverdue(d, today)) return { label: 'Vençuda', tone: 'danger' }
-  return { label: isSale(d) ? 'No cobrada' : 'Pendent de pagar', tone: 'warning' }
+  if (isOverdue(d, today)) return { label: isMasculine(d) ? 'Vençut' : 'Vençuda', tone: 'danger' }
+  return { label: isSale(d) ? (isMasculine(d) ? 'No cobrat' : 'No cobrada') : 'Pendent de pagar', tone: 'warning' }
 }
 
 /** Does a document fall in the period (a fiscal year, or ALL_YEARS)? */

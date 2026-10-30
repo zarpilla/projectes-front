@@ -25,11 +25,13 @@ describe('docStatus', () => {
     expect(label(1)).toBe('Cobrada')
     expect(label(2)).toBe('Vençuda')
     expect(label(3)).toBe('Esborrany')
-    expect(label(4)).toBe('No cobrada')
+    expect(label(4)).toBe('No cobrat') // «Ingrés» is masculine
     expect(label(5)).toBe('Pagada')
     expect(label(6)).toBe('Pendent de pagar')
     expect(label(7)).toBe('Acceptat')
     expect(label(8)).toBe('Abonament')
+    expect(docStatus({ kind: 'received-incomes', paid: true }, today).label).toBe('Cobrat')
+    expect(docStatus({ kind: 'received-incomes', total: 5, paybefore: '2020-01-01' }, today).label).toBe('Vençut')
   })
   it('never counts a quote, a draft or a credit note as pending', () => {
     expect([3, 7, 8].map(id => isPending(docs.find(d => d.id === id)))).toEqual([false, false, false])
