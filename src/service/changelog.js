@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.30",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Plataforma", "Administració"],
+      text: ["Les usuàries tenen un «Nom a mostrar», el nom amb què les saluda l'Inici. Si no en tenen, les sòcies de logística es veuen amb el nom complet («Bon dia, La Dotzena» i no «Bon dia, La») i la resta amb el primer nom. Es canvia a ", { to: "/administracio/usuaries", label: "Administració · Usuàries" }, "."]
+    }
+  ]
+},
+{
   date: "2026.10.29",
   items: [
     {

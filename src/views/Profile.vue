@@ -22,7 +22,8 @@
             <h2>Dades personals</h2>
             <div class="profile-grid">
               <div><span class="pf-label">Nom complet</span><span class="pf-value">{{ me.fullname || "—" }}</span><small>Surt als informes i a les llistes de persones.</small></div>
-              <div><span class="pf-label">Nom d'usuari</span><span class="pf-value">{{ me.username || "—" }}</span></div>
+              <div><span class="pf-label">Nom a mostrar</span><span class="pf-value">{{ me.display_name || "—" }}</span><small>Amb aquest nom et saluda l'Inici.</small></div>
+              <div class="is-full"><span class="pf-label">Nom d'usuari</span><span class="pf-value">{{ me.username || "—" }}</span></div>
               <div class="is-full"><span class="pf-label">Correu electrònic</span><span class="pf-value">{{ me.email || "—" }}</span><small>És el que fas servir per entrar.</small></div>
               <div class="is-full"><span class="pf-label">Calendari personal (iCal)</span><span class="pf-value">{{ me.ical || "Sense calendari" }}</span><small>Les cites d'aquest calendari es poden importar com a hores dedicades.</small></div>
             </div>
