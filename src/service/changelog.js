@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Projectes"],
+      text: ["Els projectes es poden facturar «Per projecte» (com fins ara) o «Per hores». Per hores, l'ingrés previst són les hores previstes pel preu/hora del projecte, el pressupost s'edita com una llista de persones i hores (les fases continuen a «Mostra les fases») i el resum mostra el que queda «Per facturar». Les línies ja facturades conserven l'import de la factura. El valor per defecte dels projectes nous es tria a ", { to: "/administracio/configuracio", label: "Configuració general" }, ". Tots els projectes mostren ara al resum el «Preu/hora» que en surt: (ingressos − despeses) / hores."]
+    },
+    {
+      type: "Novetats",
       modules: ["Informes", "Projectes"],
       text: ["La ", { to: "/previsio", label: "Previsió econòmica" }, " té dues pestanyes: «Resum global», la d'abans, i «Resum per projectes», amb els ingressos previstos, les factures i despeses i l'IVA no deduïble de cada projecte, agrupables per projecte, tipus de projecte o àmbit, i per any. Per a cada projecte calcula la «Despesa de nòmines que pot cobrir» (ingressos menys les altres despeses, 0 si perd diners) i, a sota, les «Nòmines que falten per cobrir» si entre tots no arriben a les nòmines previstes."]
     },
