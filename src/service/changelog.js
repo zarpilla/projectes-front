@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Informes", "Projectes"],
+      text: ["La ", { to: "/previsio", label: "Previsió econòmica" }, " té dues pestanyes: «Resum global», la d'abans, i «Resum per projectes», amb els ingressos previstos, les factures i despeses i l'IVA no deduïble de cada projecte, agrupables per projecte, tipus de projecte o àmbit, i per any. Per a cada projecte calcula la «Despesa de nòmines que pot cobrir» (ingressos menys les altres despeses, 0 si perd diners) i, a sota, les «Nòmines que falten per cobrir» si entre tots no arriben a les nòmines previstes."]
+    },
+    {
+      type: "Novetats",
       modules: ["Diners", "Projectes"],
       text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › Moviments bancaris, el botó «Edita dates» permet canviar la data dels moviments pendents (els cobrats o pagats no es poden moure) i desar-les totes alhora. Es canvia també la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» de les factures emeses i altres ingressos, i el «Venciment» de les factures i despeses rebudes."]
     },
