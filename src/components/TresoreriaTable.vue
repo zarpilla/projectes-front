@@ -353,26 +353,28 @@
     <section class="report-box">
       <header class="report-box-head">
         <h2>Moviments bancaris</h2>
-        <!-- issues/370: change the dates of the pending movements, saved together -->
-        <template v-if="dateEditMode">
-          <b-button size="is-small" type="is-primary" icon-left="content-save" class="dates-save" :loading="savingDates" :disabled="!pendingDateChanges.length" @click="confirmSaveDates">
-            Desa {{ pendingDateChanges.length ? `(${pendingDateChanges.length})` : "" }}
+        <div class="head-actions">
+          <!-- issues/370: change the dates of the pending movements, saved together -->
+          <template v-if="dateEditMode">
+            <b-button size="is-small" type="is-primary" icon-left="content-save" class="dates-save" :loading="savingDates" :disabled="!pendingDateChanges.length" @click="confirmSaveDates">
+              Desa {{ pendingDateChanges.length ? `(${pendingDateChanges.length})` : "" }}
+            </b-button>
+            <b-button size="is-small" icon-left="close" class="dates-cancel" :disabled="savingDates" @click="stopDateEdit">Descarta</b-button>
+          </template>
+          <b-button
+            v-else
+            size="is-small"
+            icon-left="calendar-edit"
+            class="dates-edit"
+            title="Canvia la data dels moviments pendents (no cobrats ni pagats)"
+            @click="dateEditMode = true"
+          >
+            Edita dates
           </b-button>
-          <b-button size="is-small" icon-left="close" class="dates-cancel" :disabled="savingDates" @click="stopDateEdit">Descarta</b-button>
-        </template>
-        <b-button
-          v-else
-          size="is-small"
-          icon-left="calendar-edit"
-          class="dates-edit"
-          title="Canvia la data dels moviments pendents (no cobrats ni pagats)"
-          @click="dateEditMode = true"
-        >
-          Edita dates
-        </b-button>
-        <b-button size="is-small" icon-left="filter-variant" :class="{ 'is-selected': columnFilters }" :aria-pressed="columnFilters ? 'true' : 'false'" @click="columnFilters = !columnFilters">
-          {{ columnFilters ? "Amaga els filtres per columna" : "Filtres per columna" }}
-        </b-button>
+          <b-button size="is-small" icon-left="filter-variant" :class="{ 'is-selected': columnFilters }" :aria-pressed="columnFilters ? 'true' : 'false'" @click="columnFilters = !columnFilters">
+            {{ columnFilters ? "Amaga els filtres per columna" : "Filtres per columna" }}
+          </b-button>
+        </div>
       </header>
       <section class="movements-section">
         <!-- Redesign A: what to list and a search over concept, project and contact -->
@@ -1573,6 +1575,12 @@ export default {
   gap: .5rem 1rem;
   padding: .875rem 1.25rem;
   border-bottom: 1px solid var(--a-line);
+}
+.head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: flex-end;
 }
 .movement-date {
   width: 9.5rem;
