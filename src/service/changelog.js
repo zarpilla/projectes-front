@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.10.30",
   items: [
     {
+      type: "Novetats",
+      modules: ["Diners", "Projectes"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › Moviments bancaris, el botó «Edita dates» permet canviar la data dels moviments pendents (els cobrats o pagats no es poden moure) i desar-les totes alhora. Es canvia també la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» de les factures emeses i altres ingressos, i el «Venciment» de les factures i despeses rebudes."]
+    },
+    {
       type: "Millores",
       modules: ["Informes", "Projectes"],
       text: ["A ", { to: "/panell-detall-economic", label: "Ingressos i despeses" }, ", els imports de la periodificació surten com a «Periodificació» a les columnes Fase i Subfase, en lloc d'un guió."]
