@@ -8,7 +8,16 @@
     />
     <title-bar :title-stack="titleStack" />
     <section class="section is-main-section">
-      <div class="columns">
+      <!-- «Resum» (projects and documents) and «Dades» (this form), decided 2026-10-30 -->
+      <nav v-if="showSummary" class="tabs contact-tabs" aria-label="Vistes del contacte">
+        <ul>
+          <li v-for="t in contactTabs" :key="t.id" :class="{ 'is-active': activeTab === t.id }">
+            <a :href="'#' + $route.path + '?vista=' + t.id" :aria-current="activeTab === t.id ? 'page' : null" @click.prevent="selectTab(t.id)">{{ t.label }}</a>
+          </li>
+        </ul>
+      </nav>
+      <contact-summary v-if="showSummary && activeTab === 'resum'" :contact-id="form.id" />
+      <div v-show="!showSummary || activeTab === 'dades'" class="columns">
         <div class="column is-full">
           <card-component class="tile is-child">
             <form class="a-form is-compact" @submit.prevent="submit" v-if="!isLoading">
@@ -434,6 +443,7 @@ import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 import { contactDatesForPickers } from "@/domain/contactDates";
 import CapitalContributions from "@/components/CapitalContributions.vue";
+import ContactSummary from "@/components/ContactSummary.vue";
 import { contactPayload, sortContributions, contributionError } from "@/domain/capitalContributions";
 import sortBy from "lodash/sortBy";
 import concat from "lodash/concat";
@@ -441,6 +451,7 @@ import { postcodeInvalid, POSTCODE_MESSAGE } from "@/domain/postcode";
 import { driverLocksOwner } from "@/domain/contactAccess";
 import { missingTradeName, TRADE_NAME_REQUIRED } from "@/domain/orderContacts";
 import { makeNifCheck, shouldCheckNif, nifWarningText } from "@/domain/contactNif";
+import { showContactSummary, contactTab, CONTACT_TABS } from "@/domain/contactSummary";
 
 export default {
   name: "ContactsForm",
@@ -449,7 +460,8 @@ export default {
     TitleBar,
     MoneyFormat,
     ModalBoxDir3,
-    CapitalContributions
+    CapitalContributions,
+    ContactSummary
   },
   props: {
     id: {
@@ -484,6 +496,17 @@ export default {
     // the other contacts with this NIF (delivery points left out)
     nifWarning() {
       return nifWarningText(this.nifMatches);
+    },
+    // the «Resum» tab: a saved contact that is not a delivery point, for the
+    // office (the projects' finances: projects or admin permission)
+    showSummary() {
+      return showContactSummary(this.form, this.permissions);
+    },
+    contactTabs() {
+      return CONTACT_TABS;
+    },
+    activeTab() {
+      return contactTab(this.$route.query.vista);
     },
     // a delivery point needs its trade name (issues/215)
     tradeNameMissing() {
@@ -595,6 +618,10 @@ export default {
         const matches = await this.nifCheck(this.form);
         if (matches) this.nifMatches = matches;
       }, 400);
+    },
+    selectTab(id) {
+      if (id === this.activeTab) return;
+      this.$router.replace({ query: { ...this.$route.query, vista: id } });
     },
     contactHref(id) {
       return this.$router.resolve({ name: "contacts.edit", params: { id } }).href;
@@ -831,9 +858,11 @@ export default {
             "contacts",
             contactPayload(this.form)
           );
+          // a new contact stays on its form, not on an empty «Resum»
           this.$router.push({
             name: `contacts.edit`,
-            params: { id: newProject.data.id }
+            params: { id: newProject.data.id },
+            query: { vista: "dades" }
           });
 
           this.$buefy.snackbar.open({
@@ -1112,6 +1141,20 @@ export default {
 }
 .line-notes textarea {
   width: 100%;
+}
+.contact-tabs {
+  margin-bottom: 1rem;
+}
+.contact-tabs ul {
+  border-bottom: 1px solid var(--a-line);
+}
+.contact-tabs a {
+  padding: .625rem .875rem;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+.contact-tabs li.is-active a {
+  border-bottom-color: var(--a-accent);
 }
 .nif-field {
   flex: 1;
