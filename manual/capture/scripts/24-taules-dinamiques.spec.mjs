@@ -10,7 +10,7 @@ test('24-taules-dinamiques', async ({ page }) => {
   await start(page, '24-taules-dinamiques', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/panell-projectes')
+  await page.goto('/panell-projectes')
   const pivot = page.locator('.k-pivot-table, .k-pivotgrid').first()
   await pivot.waitFor({ timeout: 60_000 })
   await settle(page, 2500)

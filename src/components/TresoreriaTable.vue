@@ -353,9 +353,28 @@
     <section class="report-box">
       <header class="report-box-head">
         <h2>Moviments bancaris</h2>
-        <b-button size="is-small" icon-left="filter-variant" :class="{ 'is-selected': columnFilters }" :aria-pressed="columnFilters ? 'true' : 'false'" @click="columnFilters = !columnFilters">
-          {{ columnFilters ? "Amaga els filtres per columna" : "Filtres per columna" }}
-        </b-button>
+        <div class="head-actions">
+          <!-- issues/370: change the dates of the pending movements, saved together -->
+          <template v-if="dateEditMode">
+            <b-button size="is-small" type="is-primary" icon-left="content-save" class="dates-save" :loading="savingDates" :disabled="!pendingDateChanges.length" @click="confirmSaveDates">
+              Desa {{ pendingDateChanges.length ? `(${pendingDateChanges.length})` : "" }}
+            </b-button>
+            <b-button size="is-small" icon-left="close" class="dates-cancel" :disabled="savingDates" @click="stopDateEdit">Descarta</b-button>
+          </template>
+          <b-button
+            v-else
+            size="is-small"
+            icon-left="calendar-edit"
+            class="dates-edit"
+            title="Canvia la data dels moviments pendents (no cobrats ni pagats)"
+            @click="dateEditMode = true"
+          >
+            Edita dates
+          </b-button>
+          <b-button size="is-small" icon-left="filter-variant" :class="{ 'is-selected': columnFilters }" :aria-pressed="columnFilters ? 'true' : 'false'" @click="columnFilters = !columnFilters">
+            {{ columnFilters ? "Amaga els filtres per columna" : "Filtres per columna" }}
+          </b-button>
+        </div>
       </header>
       <section class="movements-section">
         <!-- Redesign A: what to list and a search over concept, project and contact -->
@@ -402,7 +421,16 @@
             cell-class="is-nowrap"
             v-slot="props"
           >
-            {{ treasuryDisplayDate(props.row) }}
+            <input
+              v-if="dateEditMode && dateEditKey(props.row)"
+              type="date"
+              class="input is-small movement-date"
+              :class="{ 'is-changed': isDateChanged(props.row) }"
+              :value="editedDate(props.row)"
+              :aria-label="`Data de ${props.row.concept || 'el moviment'}`"
+              @change="setMovementDate(props.row, $event.target.value)"
+            />
+            <template v-else>{{ treasuryDisplayDate(props.row) }}</template>
             <b-icon
               v-if="props.row.date_error"
               class="has-text-danger"
@@ -618,6 +646,7 @@ import PivotViews from "@/components/PivotViews.vue";
 import pivotViewsMixin from "@/mixins/pivotViewsMixin.js";
 import { treasuryPeriod, treasuryDisplayDate, projectTreasuryRows, withProjectSaldo, projectSaldoToday } from "@/domain/projectTreasury.js";
 import { setValidationKeys } from "@/domain/treasuryValidation.js";
+import { dateEditKey, isoOfDatef, movementDateChanges, saveMovementDates } from "@/domain/treasuryMovementDates.js";
 
 const MOVEMENTS_ALL_KEY = "TresoreriaTable.movementsAll";
 function readMovementsAll() {
@@ -687,7 +716,11 @@ export default {
       projectSearch: "",
       selectedProject: null,
       filterDateStart: null,
-      filterDateEnd: null
+      filterDateEnd: null,
+      // issues/370: «Edita dates» of Moviments bancaris; new date per movement key
+      dateEditMode: false,
+      dateEdits: {},
+      savingDates: false
     };
   },
   async mounted() {
@@ -841,6 +874,10 @@ export default {
     },
     laterCount() {
       return this.pivotData.filter(d => d.year > String(this.selectedYear) && d.month !== "00" && d.month !== "99").length;
+    },
+    // issues/370: the changed dates, as the server takes them
+    pendingDateChanges() {
+      return movementDateChanges(this.dateEdits, this.treasuryData);
     },
     movementTabs() {
       const rows = this.treasuryDataDesc.filter(r => this.isMovement(r));
@@ -1411,6 +1448,67 @@ export default {
         this.selectedViewId = null;
       }
     },
+    dateEditKey,
+    editedDate(row) {
+      const key = dateEditKey(row);
+      return (key && this.dateEdits[key]) || isoOfDatef(row.datef);
+    },
+    isDateChanged(row) {
+      const key = dateEditKey(row);
+      return Boolean(key && this.dateEdits[key] && this.dateEdits[key] !== isoOfDatef(row.datef));
+    },
+    setMovementDate(row, value) {
+      const key = dateEditKey(row);
+      if (!key) return;
+      // an emptied field keeps the movement's date
+      this.dateEdits = { ...this.dateEdits, [key]: value || isoOfDatef(row.datef) };
+    },
+    stopDateEdit() {
+      const close = () => {
+        this.dateEdits = {};
+        this.dateEditMode = false;
+      };
+      if (!this.pendingDateChanges.length) return close();
+      this.$buefy.dialog.confirm({
+        title: "Descartar els canvis",
+        message: `Hi ha ${this.pendingDateChanges.length} data${this.pendingDateChanges.length === 1 ? "" : "es"} canviada${this.pendingDateChanges.length === 1 ? "" : "es"} sense desar. Les descartes?`,
+        confirmText: "Descarta",
+        cancelText: "Continua editant",
+        type: "is-warning",
+        onConfirm: close
+      });
+    },
+    confirmSaveDates() {
+      const n = this.pendingDateChanges.length;
+      if (!n) return;
+      this.$buefy.dialog.confirm({
+        title: "Desar les dates",
+        message: `Es canviarà la data de ${n} moviment${n === 1 ? "" : "s"}. També s'actualitzarà la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» i el «Venciment» dels ingressos i el «Venciment» de les despeses corresponents.`,
+        confirmText: "Desa",
+        cancelText: "Cancel·la",
+        onConfirm: () => this.saveDates()
+      });
+    },
+    async saveDates() {
+      this.savingDates = true;
+      try {
+        const result = await saveMovementDates(this.pendingDateChanges);
+        this.dateEdits = {};
+        this.dateEditMode = false;
+        this.$buefy.snackbar.open({
+          message: `Dates desades: ${result && result.updated ? result.updated : 0} moviment${result && result.updated === 1 ? "" : "s"}`,
+          queue: false
+        });
+        await this.getData();
+      } catch (error) {
+        const message =
+          (error && error.response && error.response.data && error.response.data.error && error.response.data.error.message) ||
+          "No s'han pogut desar les dates";
+        this.$buefy.snackbar.open({ message, type: "is-danger", queue: false, duration: 8000 });
+      } finally {
+        this.savingDates = false;
+      }
+    },
     isBeforeToday(datef) {
       return datef < moment().format("YYYYMMDD");
     },
@@ -1477,6 +1575,20 @@ export default {
   gap: .5rem 1rem;
   padding: .875rem 1.25rem;
   border-bottom: 1px solid var(--a-line);
+}
+.head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: flex-end;
+}
+.movement-date {
+  width: 9.5rem;
+}
+.movement-date.is-changed {
+  border-color: var(--a-warn-line);
+  background: var(--a-warn-bg);
+  font-weight: 600;
 }
 .report-box-head h2 {
   font-size: 1rem;

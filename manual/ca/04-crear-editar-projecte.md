@@ -8,7 +8,7 @@ order: 4
 roles: [projects]
 routes: ["/projecte/:id"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-10-30
 ---
 # 04. Crear i editar un projecte
 
@@ -73,7 +73,11 @@ línies d'**ingressos** i de **despeses** previstes.
 ![Una fase amb una línia d'ingrés i una de despesa](img/04-crear-editar-projecte/03-pas2-fases.png)
 
 A la capçalera de cada fase es veuen els seus totals (**Ingressos**, **Despeses** i **Total**). Cal com a
-mínim una fase per continuar. El detall de les fases i les línies és al capítol
+mínim una fase per continuar.
+
+Si el projecte es factura **Per hores** (el valor per defecte de l'entitat, o triat a **Més dades
+(opcionals)** › **Facturació**), aquest pas mostra el **Pressupost per hores**: el preu/hora i qui hi farà
+quantes hores. Vegeu [05. Fases i pressupost del projecte](05-fases-pressupost.md#projectes-facturats-per-hores). El detall de les fases i les línies és al capítol
 [05. Fases i pressupost del projecte](05-fases-pressupost.md).
 
 En fer **Continuar**, el pressupost original es copia al **pressupost d'execució** (el *previst*), que és
@@ -126,9 +130,9 @@ coordina i les dates, i a sota les pestanyes:
 
 | Pestanya | Què hi ha |
 |---|---|
-| **Resum** | El resum financer: resultat, ingressos, despeses i hores, original, previst i executat, en total o per any. |
+| **Resum** | El resum financer: resultat, ingressos, despeses i hores, original, previst i executat, en total o per any. També el **Preu/hora** que en surt i, als projectes per hores, el que queda **Per facturar**. |
 | **Dades** | Les dades generals del projecte (vegeu més avall). |
-| **Pressupost i fases** | Les fases i les línies del pressupost original i del d'execució. Vegeu [05](05-fases-pressupost.md). |
+| **Pressupost i fases** | Les fases i les línies del pressupost original i del d'execució; als projectes per hores, el **Pressupost per hores**. Vegeu [05](05-fases-pressupost.md). |
 | **Periodificació** | El repartiment dels ingressos i les despeses entre anys. Vegeu [05](05-fases-pressupost.md). |
 | **Cobraments i pagaments** | Les factures i els moviments lligats al projecte. |
 | **Planificació** | El Gantt original i previst. Vegeu [09](09-planificacio-gantt.md). |
@@ -180,6 +184,8 @@ La pestanya està dividida en blocs.
 | Camp | Què vol dir |
 |---|---|
 | **Tipus de dedicació** | El tipus de dedicació que es proposa quan algú imputa hores a aquest projecte. |
+| **Facturació** | **Per projecte** (el pressupost per fases, amb l'import de cada línia) o **Per hores** (l'ingrés previst són les hores previstes × el preu/hora). Un projecte nou porta la que s'hagi triat a **Administració › Configuració general**. Vegeu [05](05-fases-pressupost.md#projectes-facturats-per-hores). |
+| **Preu/hora** | Només als projectes per hores: el que es factura per cada hora. |
 | **Projecte d'estructura** | Marcat si el projecte recull les despeses i les hores generals de l'entitat (gestió, local, administració) i no és un projecte per a cap clienta. |
 | **Despesa Indirecta (%)** | Percentatge de despeses d'estructura que s'aplica al projecte. Només surt si l'entitat té activada aquesta opció (**Administració › Configuració general › Projectes**). |
 | **Projecte mare** | El projecte que agrupa aquest (per exemple, el mateix servei any rere any). Vegeu [06. Projectes mare i fills](06-projectes-mare-fills.md). Si el projecte ja és mare d'altres, aquí es veuen els seus **Projectes fills**. |

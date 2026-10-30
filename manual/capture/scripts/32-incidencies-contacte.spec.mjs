@@ -21,14 +21,14 @@ async function closeHello (page) {
 
 async function relogin (page, profile) {
   await page.evaluate(() => localStorage.clear())
-  await page.goto('#/')
+  await page.goto('/')
   await page.reload()
   await login(page, ...logUser(profile))
   await closeHello(page)
 }
 
 async function openIncidences (page) {
-  await page.goto('#/incidencies')
+  await page.goto('/incidencies')
   await page.getByText('Temps mitjà de tancament').waitFor()
   await settle(page, 800)
 }
@@ -44,7 +44,7 @@ test('32-incidencies-contacte', async ({ page }) => {
   await closeHello(page)
 
   // an incidence is opened from the order
-  await page.goto('#/comanda/24879')
+  await page.goto('/comanda/24879')
   await page.getByText('Comanda #24879').first().waitFor()
   await settle(page, 1200)
   const box = page.locator('.a-box', { has: page.getByRole('heading', { name: 'Incidències' }) }).first()
@@ -71,7 +71,7 @@ test('32-incidencies-contacte', async ({ page }) => {
   await shot(page, 'incidencia-socia-tancada')
 
   // the contact form, filled in and not sent
-  await page.goto('#/contacta')
+  await page.goto('/contacta')
   await page.getByText('El teu missatge').waitFor()
   await settle(page, 800)
   await page.getByPlaceholder('El teu nom').fill('Mel Can Demo')
@@ -113,7 +113,7 @@ test('32-incidencies-contacte', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
 
   // ---- the report
-  await page.goto('#/estadistiques-incidencies')
+  await page.goto('/estadistiques-incidencies')
   await page.getByText('Per cada 100 comandes', { exact: true }).waitFor({ timeout: 60_000 })
   await settle(page, 1500)
   await page.getByLabel('Mes').selectOption({ label: 'Tots' })

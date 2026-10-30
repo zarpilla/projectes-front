@@ -16,7 +16,7 @@ test('22-tresoreria', async ({ page }) => {
   await start(page, '22-tresoreria', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/tresoreria')
+  await page.goto('/tresoreria')
   await page.getByText('Comptes', { exact: true }).last().waitFor({ timeout: 60_000 })
   await page.getByText('Gener', { exact: true }).first().waitFor({ timeout: 60_000 })
   await settle(page, 2500)

@@ -24,6 +24,26 @@ export const CHANGELOG = [
   date: "2026.10.30",
   items: [
     {
+      type: "Novetats",
+      modules: ["Projectes"],
+      text: ["Els projectes es poden facturar «Per projecte» (com fins ara) o «Per hores». Per hores, l'ingrés previst són les hores previstes pel preu/hora del projecte, el pressupost s'edita com una llista de persones i hores (les fases continuen a «Mostra les fases») i el resum mostra el que queda «Per facturar». Les línies ja facturades conserven l'import de la factura. El valor per defecte dels projectes nous es tria a ", { to: "/administracio/configuracio", label: "Configuració general" }, ". Tots els projectes mostren ara al resum el «Preu/hora» que en surt: (ingressos − despeses) / hores."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Informes", "Projectes"],
+      text: ["La ", { to: "/previsio", label: "Previsió econòmica" }, " té dues pestanyes: «Resum global», la d'abans, i «Resum per projectes», amb els ingressos previstos, les factures i despeses i l'IVA no deduïble de cada projecte, agrupables per projecte, tipus de projecte o àmbit, i per any. Per a cada projecte calcula la «Despesa de nòmines que pot cobrir» (ingressos menys les altres despeses, 0 si perd diners) i, a sota, les «Nòmines que falten per cobrir» si entre tots no arriben a les nòmines previstes."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Diners", "Projectes"],
+      text: ["A ", { to: "/tresoreria", label: "Tresoreria" }, " › Moviments bancaris, el botó «Edita dates» permet canviar la data dels moviments pendents (els cobrats o pagats no es poden moure) i desar-les totes alhora. Es canvia també la «Previsió pag.» de les línies dels projectes, la «Previsió cobrament» i el «Venciment» de les factures emeses i altres ingressos, i el «Venciment» de les factures i despeses rebudes."]
+    },
+    {
+      type: "Millores",
+      modules: ["Informes", "Projectes"],
+      text: ["A ", { to: "/panell-detall-economic", label: "Ingressos i despeses" }, ", els imports de la periodificació surten com a «Periodificació» a les columnes Fase i Subfase, en lloc d'un guió."]
+    },
+    {
       type: "Millores",
       modules: ["Plataforma", "Administració"],
       text: ["Les usuàries tenen un «Nom a mostrar», el nom amb què les saluda l'Inici. Si no en tenen, les sòcies de logística es veuen amb el nom complet («Bon dia, La Dotzena» i no «Bon dia, La») i la resta amb el primer nom. Es canvia a ", { to: "/administracio/usuaries", label: "Administració · Usuàries" }, "."]

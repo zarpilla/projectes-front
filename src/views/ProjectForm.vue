@@ -418,6 +418,21 @@
                 </b-select>
               </b-field>
 
+              <!-- issues/371 -->
+              <b-field
+                label="Facturació"
+                horizontal
+                message="«Per hores»: l'ingrés previst són les hores previstes pel preu/hora"
+              >
+                <b-select v-model="billingMode" aria-label="Facturació">
+                  <option v-for="m in billingModes" :key="m.value" :value="m.value">{{ m.label }}</option>
+                </b-select>
+              </b-field>
+
+              <b-field v-if="hoursMode" label="Preu/hora" horizontal>
+                <b-input v-model="form.invoice_hours_price" type="number" step="0.01" min="0" aria-label="Preu/hora del projecte" class="price-per-hour-input" />
+              </b-field>
+
               <b-field
                 label="Projecte d'estructura"
                 horizontal
@@ -848,7 +863,7 @@
               <span v-else>Recarrega el projecte per veure els totals correctes.</span>
               <b-button v-if="!form.dirty && hasBeenDirty" size="is-small" icon-left="refresh" @click.prevent="refresh">Recarrega</b-button>
             </div>
-            <project-summary-cards v-model:year="allByYearYear" :totals="totals" :years="summaryYears" />
+            <project-summary-cards v-model:year="allByYearYear" :totals="totals" :years="summaryYears" :billing-mode="billingMode" :price-per-hour="Number(form.invoice_hours_price) || 0" />
           </template>
           <card-component
             v-if="isProfileExists && !newSummary"
@@ -1715,7 +1730,30 @@
 
       <card-component
         v-if="
+          !isLoading && phasesVisible && form && hoursMode && !showPhasesInHours && !form.is_mother &&
+          (!isCreationMode || currentStep >= 2)
+        "
+        title="Pressupost per hores"
+        v-show="showTab('pressupost')"
+        :content-visible="true"
+      >
+        <project-hours-budget
+          :key="'hours-' + formKey"
+          :phases="hoursBudgetPhases"
+          v-model:price="form.invoice_hours_price"
+          :editable="isCreationMode ? !form.is_mother : phasesEditable && !form.is_mother"
+          :date-start="dayString(form.date_start)"
+          :date-end="dayString(form.date_end)"
+          @phases-updated="hoursBudgetUpdated"
+          @hour-deleted="hoursBudgetHourDeleted"
+          @show-phases="showPhasesInHours = true"
+        />
+      </card-component>
+
+      <card-component
+        v-if="
           !isLoading && phasesVisible && form && form.project_original_phases &&
+          (!hoursMode || showPhasesInHours || form.is_mother) &&
           (!isCreationMode || currentStep >= 2)
         "
         title="Fases i pressupost original"
@@ -1800,6 +1838,7 @@
             form &&
             form.project_phases &&
             form.project_phases.length &&
+            (!hoursMode || showPhasesInHours || form.is_mother) &&
             !isCreationMode
         "
         title="Execució del pressupost"
@@ -2578,6 +2617,8 @@ const WIZARD_STEP_OF_SECTION = { dades: 1, pressupost: 2, planificacio: 3, resum
 import TitleBar from "@/components/TitleBar.vue";
 import WizardSteps from "@/components/WizardSteps.vue";
 import ProjectSummaryCards from "@/components/ProjectSummaryCards.vue";
+import ProjectHoursBudget from "@/components/ProjectHoursBudget.vue";
+import { BILLING_MODES, billingModeOf, defaultBillingMode, priceHoursLines } from "@/domain/hoursBudget.js";
 import ModalBox from "@/components/ModalBox.vue";
 import ModalBoxDuplicateProject from "@/components/ModalBoxDuplicateProject.vue";
 import CardComponent from "@/components/CardComponent.vue";
@@ -2607,6 +2648,7 @@ export default {
     TitleBar,
     WizardSteps,
     ProjectSummaryCards,
+    ProjectHoursBudget,
     ModalBox,
     ModalBoxDuplicateProject,
     MoneyFormat,
@@ -2678,6 +2720,9 @@ export default {
       isModalSplitActive: false,
       newTask: "",
       phasesVisible: true,
+      // issues/371: a project billed by the hour shows the phases on demand
+      showPhasesInHours: false,
+      billingModes: BILLING_MODES,
       tasksView: "state",
       ganttViewMode: "original", // 'original' or 'estimated'
       apiUrl: import.meta.env.VUE_APP_API_URL,
@@ -2732,6 +2777,26 @@ export default {
       return !!(this.periodification && this.form.periodification && this.form.periodification.length);
     },
     ...mapState(useMainStore, ["me"]),
+    // issues/371: «Per projecte» / «Per hores»; a new project starts with the
+    // default of Configuració (the API applies it too if the form sends none)
+    billingMode: {
+      get() {
+        if (this.form && this.form.billing_mode) return billingModeOf(this.form);
+        return this.form && !this.form.id ? defaultBillingMode(this.me) : "project";
+      },
+      set(value) {
+        this.form.billing_mode = value;
+      }
+    },
+    hoursMode() {
+      return this.billingMode === "hours";
+    },
+    // the plan the hours budget edits: the original while creating the project
+    // (the wizard copies it to the execution), the execution afterwards
+    hoursBudgetPhases() {
+      const phases = this.isCreationMode ? this.form.project_original_phases : this.form.project_phases;
+      return Array.isArray(phases) ? phases : [];
+    },
     // Configuració general › Projectes: the years of allByYear and of the
     // periodification are fiscal years (1 = calendar year)
     fiscalStartMonth() {
@@ -2992,6 +3057,12 @@ export default {
     }
   },
   watch: {
+    // switching to «Per hores» prices the hour lines at once (issues/371)
+    hoursMode(on) {
+      if (on && this.form && priceHoursLines(this.hoursBudgetPhases, this.form.invoice_hours_price)) {
+        this.hoursBudgetUpdated({ phases: this.hoursBudgetPhases });
+      }
+    },
     "$route.query.tab": {
       immediate: true,
       handler(tab) {
@@ -3068,6 +3139,22 @@ export default {
     }
   },
   methods: {
+    dayString(d) {
+      return d ? moment(d).format("YYYY-MM-DD") : null;
+    },
+    hoursBudgetUpdated(info) {
+      if (this.isCreationMode) this.originalPhasesUpdated(info);
+      else this.phasesUpdated(info);
+    },
+    hoursBudgetHourDeleted(id) {
+      if (this.isCreationMode) {
+        this.deletedHoursOriginal.push(id);
+        this.originalPhasesUpdated({ phases: this.form.project_original_phases });
+      } else {
+        this.deletedHours.push(id);
+        this.phasesUpdated({ phases: this.form.project_phases });
+      }
+    },
     formatHours,
     formatMoney,
     formatNumber,

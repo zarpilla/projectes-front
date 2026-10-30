@@ -35,13 +35,13 @@ test('30-poblacions-rutes-dies', async ({ page }) => {
   // ---- the provider (orders): read only
   await login(page, ...logUser('orders'))
   await closeHello(page)
-  await page.goto('#/rutes-dies')
+  await page.goto('/rutes-dies')
   await page.getByText('Oberta en dia festiu').waitFor()
   await settle(page, 1500)
   await closeHello(page)
   await tall(page, async () => { await shot(page, 'rutes-dies-socia') })
 
-  await page.goto('#/poblacions-rutes')
+  await page.goto('/poblacions-rutes')
   await page.getByText('Quina ruta passa per…?').waitFor()
   await settle(page, 1200)
   await page.getByPlaceholder('Escriu una població').fill('Riudellots')
@@ -55,7 +55,7 @@ test('30-poblacions-rutes-dies', async ({ page }) => {
   await page.reload() // a fresh side menu
   await settle(page, 800)
 
-  await page.goto('#/rutes-dies')
+  await page.goto('/rutes-dies')
   await page.getByText('clica un dia per obrir o tancar la ruta').waitFor()
   await settle(page, 1500)
   await tall(page, async () => { await shot(page, 'rutes-dies-oficina') })
@@ -80,7 +80,7 @@ test('30-poblacions-rutes-dies', async ({ page }) => {
   await tall(page, async () => { await shot(page, 'rutes-dies-setembre') })
 
   // towns and routes
-  await page.goto('#/poblacions-rutes')
+  await page.goto('/poblacions-rutes')
   await page.getByText('Nova població').waitFor()
   await settle(page, 1200)
   await page.locator('section.cr-route', { hasText: ROUTE }).locator('.cr-route-toggle').click()
@@ -101,13 +101,13 @@ test('30-poblacions-rutes-dies', async ({ page }) => {
   await shot(page, 'quina-ruta-oficina', { clip: await side.boundingBox() })
 
   // towns written in delivery points that are not in the list
-  await page.goto('#/poblacions-punts-entrega')
+  await page.goto('/poblacions-punts-entrega')
   await page.getByText('Població als punts').waitFor()
   await settle(page, 1200)
   await shot(page, 'poblacions-punts')
 
   // routes
-  await page.goto('#/rutes')
+  await page.goto('/rutes')
   await page.getByRole('button', { name: 'Nova ruta' }).waitFor()
   await settle(page, 1200)
   await tall(page, async () => { await shot(page, 'rutes') }, 1150)

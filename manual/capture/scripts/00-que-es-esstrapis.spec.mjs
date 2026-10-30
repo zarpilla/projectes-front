@@ -12,24 +12,24 @@ const PROJECT_ID = 642
 test('00-que-es-esstrapis', async ({ page }) => {
   await start(page, '00-que-es-esstrapis', { today: '2026-06-17' })
   await login(page)
-  await page.goto('#/projectes')
+  await page.goto('/projectes')
   await page.getByRole('heading', { name: 'Projectes' }).first().waitFor()
   await settle(page)
   await shot(page, 'llistat-projectes')
 
-  await page.goto(`#/projecte/${PROJECT_ID}?tab=resum`)
+  await page.goto(`/projecte/${PROJECT_ID}?tab=resum`)
   await page.getByText('Resum financer').first().waitFor()
   await settle(page, 1500)
   await shot(page, 'projecte')
 
   // the phases as they are being executed, folded: one line per phase with its totals
-  await page.goto(`#/projecte/${PROJECT_ID}?tab=pressupost`)
+  await page.goto(`/projecte/${PROJECT_ID}?tab=pressupost`)
   await settle(page, 1500)
   await page.locator('button', { hasText: 'Plega-ho tot', hasNotText: 'Desplega' }).click()
   await settle(page, 500)
   await shot(page, 'projecte-fases')
 
-  await page.goto('#/dedicacio')
+  await page.goto('/dedicacio')
   await settle(page, 1500)
   const person = page.getByRole('textbox', { name: 'Persona' })
   await person.fill('Clara')
@@ -40,17 +40,17 @@ test('00-que-es-esstrapis', async ({ page }) => {
   await settle(page, 1500)
   await shot(page, 'hores-dedicades')
 
-  await page.goto('#/factures-emeses')
+  await page.goto('/factures-emeses')
   await settle(page, 1500)
   await shot(page, 'ingressos')
 
-  await page.goto('#/panell-projectes')
+  await page.goto('/panell-projectes')
   // the dashboard on top of the pivot table
   await page.getByText('Resultat previst i real per projecte').waitFor({ timeout: 30_000 })
   await settle(page, 2000)
   await shot(page, 'informe-projectes')
 
-  await page.goto('#/tresoreria')
+  await page.goto('/tresoreria')
   // the accounts card comes last, once the year's movements are in
   await page.getByText('Comptes', { exact: true }).last().waitFor({ timeout: 60_000 })
   await page.getByText('Gener', { exact: true }).first().waitFor({ timeout: 60_000 })

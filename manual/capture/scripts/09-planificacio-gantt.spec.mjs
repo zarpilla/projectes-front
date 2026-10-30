@@ -18,7 +18,7 @@ test('09-planificacio-gantt', async ({ page }) => {
   await start(page, '09-planificacio-gantt', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto(`#/projecte/${PROJECT}?tab=planificacio`)
+  await page.goto(`/projecte/${PROJECT}?tab=planificacio`)
   await page.locator('.gantt_task_line').first().waitFor({ timeout: 30_000 })
   await settle(page, 1500)
   await shot(page, 'prevista')
@@ -58,7 +58,7 @@ test('09-planificacio-gantt', async ({ page }) => {
   await shot(page, 'original')
 
   // the report
-  await page.goto('#/panell-previsio-dedicacio')
+  await page.goto('/panell-previsio-dedicacio')
   await page.getByText('i ocupació per persona').first().waitFor({ timeout: 30_000 })
   await settle(page, 2000)
   await shot(page, 'informe')

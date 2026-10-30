@@ -24,13 +24,13 @@ test('33-facturacio-logistica', async ({ page }) => {
   await login(page, ...logUser('admin'))
 
   // Sòcies
-  await page.goto('#/usuaries')
+  await page.goto('/usuaries')
   await page.getByText('Sense fitxa de contacte').waitFor()
   await settle(page, 800)
   await shot(page, 'socies')
 
   // Facturar, as it opens
-  await page.goto('#/comandes-per-facturar')
+  await page.goto('/comandes-per-facturar')
   await page.getByText('Per facturar').waitFor()
   await settle(page, 1000)
   await shot(page, 'facturar')
@@ -50,7 +50,7 @@ test('33-facturacio-logistica', async ({ page }) => {
   await shot(page, 'facturar-seleccio')
 
   // Informe de comandes: KPIs and charts of 2026, every month
-  await page.goto('#/estadistiques-comandes')
+  await page.goto('/estadistiques-comandes')
   await page.getByText('Per tarifa').waitFor({ timeout: 60_000 })
   await settle(page, 1500)
   await page.getByRole('combobox', { name: 'Mes' }).selectOption({ label: 'Tots' })
@@ -70,7 +70,7 @@ test('33-facturacio-logistica', async ({ page }) => {
   await closeHello(page)
 
   // reload: the side menu was built for the office user
-  await page.goto('#/factures-proveidor')
+  await page.goto('/factures-proveidor')
   await page.reload()
   await closeHello(page)
   await page.locator('.doc-kpi', { hasText: 'Total' }).waitFor()

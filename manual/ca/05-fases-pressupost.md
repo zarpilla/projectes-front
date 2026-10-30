@@ -1,6 +1,6 @@
 ---
 title: "Fases i pressupost del projecte"
-description: "Les fases, els ingressos i despeses previstos, el pressupost original i d'execució i la periodificació."
+description: "Les fases, els ingressos i despeses previstos, el pressupost original i d'execució, els projectes facturats per hores i la periodificació."
 product: esstrapis
 manual: usuari
 module: projectes
@@ -8,7 +8,7 @@ order: 5
 roles: [projects]
 routes: ["/projecte/:id"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-10-30
 ---
 # 05. Fases i pressupost del projecte
 
@@ -17,7 +17,8 @@ updated: 2026-10-18
 El pressupost d'un projecte es fa per **fases** (parts del projecte), i cada fase té línies d'**ingressos**
 i de **despeses** previstes. Cada projecte té dos pressupostos: l'**original**, el que es va aprovar, i el
 d'**execució**, que es va actualitzant mentre el projecte avança. Aquest capítol explica la pestanya
-**Pressupost i fases** i la pestanya **Periodificació**.
+**Pressupost i fases**, com és el pressupost d'un projecte facturat per hores i la pestanya
+**Periodificació**.
 
 ## Abans de començar
 
@@ -119,6 +120,59 @@ Pressupost**, que en fa la còpia.
 Als **projectes mare** les fases que es veuen són la suma de les dels projectes fills i no es poden
 editar (vegeu [06. Projectes mare i fills](06-projectes-mare-fills.md)).
 
+## Projectes facturats per hores
+
+Hi ha feines que no es pressuposten per fases sinó per hores: es factura el que es treballa a un preu per
+hora. És habitual, per exemple, en les cooperatives d'autònomes, on cada sòcia pensa en el preu de la seva
+hora més que en el cost. Per a aquests projectes, a la pestanya **Dades** › **Gestió del projecte** es tria
+**Facturació** › **Per hores** i s'escriu el **Preu/hora** (vegeu
+[04. Crear i editar un projecte](04-crear-editar-projecte.md#la-pestanya-dades)).
+
+| Facturació | Com es fa el pressupost |
+|---|---|
+| **Per projecte** | Com fins ara: fases amb línies d'ingrés i de despesa, cadascuna amb el seu import. És l'opció de tots els projectes que ja existien. |
+| **Per hores** | L'ingrés previst són les hores previstes × el preu/hora del projecte. |
+
+Els projectes nous surten amb l'opció que l'entitat hagi triat a **Administració › Configuració general**
+(vegeu [34. Configuració general](34-configuracio-general.md)). Cada projecte la pot canviar.
+
+### El pressupost per hores
+
+En un projecte **Per hores**, la pestanya **Pressupost i fases** no mostra les fases sinó el bloc
+**Pressupost per hores**:
+
+![El pressupost per hores: 120 hores a 45 € l'hora](img/05-fases-pressupost/08-pressupost-per-hores.png)
+
+- **Preu/hora**: el que es factura per cada hora (el mateix camp de la pestanya **Dades**).
+- Una fila per a cada bloc d'hores previstes: la **Persona** que les farà, les **Hores** i les dates
+  (**Des de**, **Fins a**). Les hores que es planifiquen al Gantt també surten aquí (vegeu
+  [09. Planificació (Gantt)](09-planificacio-gantt.md)). Si al Gantt es van posar per setmana o per mes, a
+  sota de les hores es veu *a la setmana* o *al mes* i el total que fan en aquelles dates.
+- **Afegeix hores** afegeix una fila amb les dates del projecte. La paperera la treu.
+- A baix, el **Total** d'hores i l'**Ingrés previst**.
+- **Mostra les fases** obre l'editor de fases de sempre, per als ingressos que no són hores (material, una
+  quota fixa…) i les despeses. A sota del bloc es diu quantes d'aquestes línies hi ha.
+
+Per sota, aquest pressupost és el mateix de sempre: les hores van en una línia d'ingrés («Hores») dins d'una
+fase («Pressupost»), que es creen soles en afegir la primera fila. Per això es pot passar d'un tipus de
+facturació a l'altre sense perdre res.
+
+Quan es crea un projecte **Per hores**, el pas 2 de l'assistent és aquest mateix bloc en lloc de les fases.
+
+### El resum d'un projecte per hores
+
+![El resum del projecte: 120 hores previstes a 45 €, 44,5 hores fetes](img/05-fases-pressupost/09-resum-per-hores.png)
+
+A la pestanya **Resum**:
+
+- **Ingressos › Previstos** inclou les hores × el preu/hora (a l'exemple, 120 h × 45 € = 5.400 €, més una
+  línia de desplaçaments de 261 €).
+- **Ingressos › Per facturar** (només als projectes per hores): les hores fetes × el preu/hora, menys el que
+  ja s'ha facturat i cobrat. A l'exemple, 44,5 h × 45 € − 261 € = 1.741,50 €.
+- **Hores › Preu/hora** i **Preu/hora previst** (a tots els projectes): el que surt per cada hora un cop
+  restades les despeses. És el que queda per hora; per això és més baix que el preu/hora del projecte quan
+  hi ha despeses.
+
 ## La pestanya Periodificació
 
 Cada import compta a l'any de la seva data de previsió de factura. De vegades, però, una feina facturada
@@ -153,6 +207,16 @@ cap any fins que se'ls posa data.
   seva prorrata) i el **cost de les hores** (hores × cost per hora de cada persona).
 - **Original** i **previst** surten dels pressupostos original i d'execució (amb les hores planificades);
   l'**executat**, de les factures i les hores imputades de debò.
+- **Preu/hora** = (ingressos − factures de despesa) / hores. N'hi ha un d'executat (amb les hores fetes) i un
+  de previst (amb les hores previstes).
+- En un projecte **Per hores**, cada línia d'ingrés que té hores previstes val **hores × preu/hora**: la
+  quantitat són les hores i el preu, el preu/hora del projecte. Es recalcula en desar, també quan canvia el
+  preu/hora. Les línies que ja estan facturades o cobrades no es recalculen: conserven l'import de la
+  factura. Les línies sense hores es queden com s'han escrit.
+- Les hores per setmana o per mes es compten de dilluns a divendres entre les dues dates (sense descomptar
+  festius).
+- **Per facturar** = hores fetes × preu/hora − ingressos executats (mai menys de 0). Els ingressos executats
+  són tots els del projecte, també els que no són hores.
 
 ## Preguntes freqüents
 
@@ -161,6 +225,12 @@ planificació.
 
 **Un import surt a «Sense data».** La línia no té ni **Previsió fac.** ni **Previsió pag.** Poseu-li com a
 mínim la previsió de factura; a dalt de la pàgina hi ha la llista de línies sense data.
+
+**He posat el projecte «Per hores» i una línia no ha canviat d'import.** Ja està facturada o cobrada: conserva
+l'import de la factura. Si cal, es pot canviar a mà a **Mostra les fases**.
+
+**Vull tornar a «Per projecte».** Es canvia a **Dades** i es desa. Les línies es queden amb l'últim import
+(hores × preu) i des d'aquí es poden editar lliurement a les fases.
 
 **He canviat el pressupost i el resum no s'actualitza.** Cal **Guardar**. Després, els totals es recalculen en
 segon pla en uns minuts.

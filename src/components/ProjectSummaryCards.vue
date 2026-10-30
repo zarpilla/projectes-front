@@ -38,6 +38,9 @@
           <dt>Previstos</dt><dd>{{ money(s.estimated.incomes) }}</dd>
           <dt>Originals</dt><dd>{{ money(s.original.incomes) }}</dd>
           <dt>Del previst</dt><dd>{{ percent(s.real.incomes, s.estimated.incomes) }}</dd>
+          <template v-if="billingMode === 'hours'">
+            <dt title="Hores fetes × preu/hora, menys el que ja s'ha facturat">Per facturar</dt><dd class="pending-invoice">{{ money(pending) }}</dd>
+          </template>
         </dl>
       </article>
       <article class="kpi">
@@ -61,6 +64,9 @@
           <dt>Previstes</dt><dd>{{ hours(s.estimated.hours) }}</dd>
           <dt>Originals</dt><dd>{{ hours(s.original.hours) }}</dd>
           <dt>Cost/hora</dt><dd>{{ money(s.real.costPerHour) }}</dd>
+          <!-- issues/371: (ingressos − factures de despesa) / hores -->
+          <dt title="(Ingressos − despeses) / hores">Preu/hora</dt><dd class="effective-price">{{ money(s.real.pricePerHour) }}</dd>
+          <dt title="(Ingressos − despeses) / hores previstes">Preu/hora previst</dt><dd class="effective-price-estimated">{{ money(s.estimated.pricePerHour) }}</dd>
         </dl>
       </article>
     </div>
@@ -92,6 +98,7 @@
 
 <script>
 import { projectSummary } from '@/domain/projectSummary.js'
+import { pendingToInvoice } from '@/domain/hoursBudget.js'
 import { formatMoney, formatNumber, sign } from '@/helpers/format-number'
 
 export default {
@@ -111,6 +118,15 @@ export default {
     year: {
       type: [String, Number],
       default: 'TOTS'
+    },
+    // issues/371: «Per hores» shows what is left to invoice
+    billingMode: {
+      type: String,
+      default: 'project'
+    },
+    pricePerHour: {
+      type: Number,
+      default: 0
     }
   },
   data () {
@@ -132,6 +148,9 @@ export default {
   computed: {
     s () {
       return projectSummary(this.totals)
+    },
+    pending () {
+      return pendingToInvoice(this.s.real.hours, this.pricePerHour, this.s.real.incomes)
     }
   },
   methods: {

@@ -7,7 +7,7 @@ import { start, login, settle, shot } from '../helpers.mjs'
 test('03-llistat-projectes', async ({ page }) => {
   await start(page, '03-llistat-projectes', { today: '2026-06-17' })
   await login(page)
-  await page.goto('#/projectes')
+  await page.goto('/projectes')
   await page.getByText('projectes · actiu').waitFor()
   await settle(page)
   await shot(page, 'llistat')

@@ -8,7 +8,7 @@ order: 100
 roles: []
 routes: []
 lang: ca
-updated: 2026-10-18
+updated: 2026-10-30
 ---
 # Glossari
 
@@ -48,6 +48,10 @@ Vegeu també *Original* i *Previst*.
 **FACe** — Punt general d'entrada de factures electròniques de l'administració pública. Les factures a
 ajuntaments, generalitat, etc. s'hi han d'enviar.
 
+**Facturació per hores** — Manera de pressupostar un projecte en què l'ingrés previst són les hores previstes
+pel preu/hora del projecte, en lloc de fer-ho per fases amb l'import de cada línia. El resum mostra el que
+queda per facturar. Vegeu [05. Fases i pressupost del projecte](05-fases-pressupost.md#projectes-facturats-per-hores).
+
 **Fase** — Part d'un projecte. Cada fase té els seus ingressos, despeses i hores previstes.
 
 **Funció** — Tipus d'activitat dins d'un projecte (per exemple, coordinació o disseny). Les hores i les
@@ -79,6 +83,10 @@ dates comptades en dies. Vegeu [10. Tasques](10-tasques.md#plantilles).
 **Pressupost d'execució** — Còpia del pressupost original que es fa en crear el projecte (botó **Tancar
 pressupost**) i que es va actualitzant mentre el projecte avança. Les xifres *previstes* en surten. Vegeu
 [04. Crear i editar un projecte](04-crear-editar-projecte.md#pas-4-confirmació).
+
+**Preu per hora** — El que queda per cada hora d'un projecte: (ingressos − despeses) / hores. Surt al resum
+de cada projecte, executat i previst. No s'ha de confondre amb el **preu/hora** que es factura en un projecte
+per hores.
 
 **Previst** — Pressupost actualitzat d'un projecte, que es va ajustant mentre avança.
 

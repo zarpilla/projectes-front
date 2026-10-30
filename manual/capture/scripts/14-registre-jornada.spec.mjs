@@ -10,7 +10,7 @@ test('14-registre-jornada', async ({ page }) => {
   await start(page, '14-registre-jornada', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/registre-jornades')
+  await page.goto('/registre-jornades')
   await page.getByPlaceholder('Tria una persona').waitFor()
   await settle(page, 1000)
   await page.getByPlaceholder('Tria una persona').fill('Clara Serra')

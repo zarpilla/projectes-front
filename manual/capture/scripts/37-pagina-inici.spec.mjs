@@ -10,7 +10,7 @@ test('37-pagina-inici', async ({ page }) => {
   await start(page, '37-pagina-inici', { today: '2026-06-17' })
 
   await login(page)
-  await page.goto('#/inici')
+  await page.goto('/inici')
   await page.getByText('Els meus accessos').waitFor()
   // start from the defaults, opening on Inici
   await page.getByRole('button', { name: 'Restableix els accessos' }).click()
@@ -58,13 +58,13 @@ test('37-pagina-inici', async ({ page }) => {
   await shot(page, 'en-entrar-obre', { clip: { x: box.x, y: box.y - 8, width: box.width, height: box.height + 16 } })
 
   // the star in the side menu
-  await page.goto('#/projectes')
+  await page.goto('/projectes')
   await settle(page, 1500)
   const aside = await page.locator('aside').boundingBox()
   await shot(page, 'menu-lateral', { clip: { x: aside.x, y: aside.y, width: aside.width, height: Math.min(aside.height, 640) } })
 
   // back to the defaults
-  await page.goto('#/inici')
+  await page.goto('/inici')
   await page.getByText('Els meus accessos').waitFor()
   await page.getByRole('button', { name: 'Restableix els accessos' }).click()
   await settle(page, 1500)

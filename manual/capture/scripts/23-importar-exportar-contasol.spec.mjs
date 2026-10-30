@@ -9,12 +9,12 @@ test('23-importar-exportar-contasol', async ({ page }) => {
   await start(page, '23-importar-exportar-contasol', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/importar-exportar')
+  await page.goto('/importar-exportar')
   await page.getByText('Exporta els contactes').waitFor({ timeout: 30_000 })
   await settle(page, 1000)
   await shot(page, 'importar-exportar')
 
-  await page.goto('#/contasol')
+  await page.goto('/contasol')
   await page.getByText('Clients (CLI)').waitFor({ timeout: 30_000 })
   await settle(page, 1000)
   await shot(page, 'contasol')

@@ -9,7 +9,7 @@ test('01-primers-passos', async ({ page }) => {
   test.setTimeout(300_000)
   await start(page, '01-primers-passos', { today: '2026-06-17' })
 
-  await page.goto('#/')
+  await page.goto('/')
   await page.getByText('Accedeix').waitFor()
   await settle(page, 800)
   // the sponsor logos come from the backend's uploads, which the copy doesn't have
@@ -22,7 +22,7 @@ test('01-primers-passos', async ({ page }) => {
   await shot(page, 'clau-oblidada')
 
   await login(page)
-  await page.goto('#/projectes')
+  await page.goto('/projectes')
   await settle(page, 1500)
   await shot(page, 'menu')
 
@@ -39,7 +39,7 @@ test('01-primers-passos', async ({ page }) => {
   await page.locator('aside button[aria-label]').first().click()
   await settle(page, 800)
 
-  await page.goto('#/el-meu-compte')
+  await page.goto('/el-meu-compte')
   await page.getByText('Dades personals').waitFor()
   await settle(page, 1000)
   await shot(page, 'el-meu-compte')
@@ -47,15 +47,15 @@ test('01-primers-passos', async ({ page }) => {
   // dark mode
   await page.getByRole('group', { name: 'Aparença' }).getByRole('button', { name: 'Fosc' }).click()
   await settle(page, 600)
-  await page.goto('#/projectes')
+  await page.goto('/projectes')
   await settle(page, 1500)
   await shot(page, 'mode-fosc')
-  await page.goto('#/el-meu-compte')
+  await page.goto('/el-meu-compte')
   await page.getByText('Dades personals').waitFor()
   await page.getByRole('group', { name: 'Aparença' }).getByRole('button', { name: 'Clar' }).click()
   await settle(page, 400)
 
-  await page.goto('#/novetats')
+  await page.goto('/novetats')
   await settle(page, 1500)
   await shot(page, 'novetats')
 })

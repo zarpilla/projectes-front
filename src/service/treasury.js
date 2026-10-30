@@ -13,7 +13,9 @@ const getTreasuryData = async (
   bank_account_id,
   periodification = null,
   project_types = null,
-  project_likelihoods = null
+  project_likelihoods = null,
+  // also the forecast per project (Previsió econòmica › Resum per projectes, issues/368)
+  by_project = false
 ) => {
 
   project_states = project_states.join(',')
@@ -34,6 +36,10 @@ const getTreasuryData = async (
   if (project_likelihoods !== null) {
     const ids = project_likelihoods.map(l => (l === null ? 'null' : l)).join(',')
     url += `&project_likelihoods=${encodeURIComponent(ids)}`
+  }
+
+  if (by_project) {
+    url += `&by_project=1`
   }
 
   const { data } = (

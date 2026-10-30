@@ -20,14 +20,14 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 | # | Tema | Contingut | Pantalles | Permís | Estat |
 |---|------|-----------|-----------|--------|-------|
 | 03 | Llistat de projectes | Cercar, filtrar per estat/coordinació/àmbit, columnes, ordenar, totals, edició ràpida, exportar. | `/projectes` | projects | done (2026-10-17) |
-| 04 | Crear i editar un projecte | Assistent de 4 passos (dades, fases, planificació, tancar pressupost), pestanyes, barra de desar, duplicar, esborrar. Dades generals (codi, estat, àmbit, coordinació, dates, clients, tipus, probabilitat, estratègies, intercooperació, àmbit territorial), notes internes, projecte d'estructura, despesa indirecta. | `/project/:id` | projects | done (2026-10-18) |
-| 05 | Fases i pressupost del projecte | Fases, previsió d'ingressos i despeses, hores estimades, resultat original / previst / executat, periodificació d'ingressos i despeses. | `/project/:id` | projects | done (2026-10-18) |
+| 04 | Crear i editar un projecte | Assistent de 4 passos (dades, fases, planificació, tancar pressupost), pestanyes, barra de desar, duplicar, esborrar. Dades generals (codi, estat, àmbit, coordinació, dates, clients, tipus, probabilitat, estratègies, intercooperació, àmbit territorial), notes internes, projecte d'estructura, despesa indirecta, facturació (per projecte / per hores) i preu/hora. | `/project/:id` | projects | done (2026-10-30) |
+| 05 | Fases i pressupost del projecte | Fases, previsió d'ingressos i despeses, hores estimades, resultat original / previst / executat, periodificació d'ingressos i despeses, projectes facturats per hores (pressupost per hores, per facturar, preu/hora). | `/project/:id` | projects | done (2026-10-30) |
 | 06 | Projectes mare i fills | Lligar un fill a la mare, llista de projectes mare, què es veu al projecte mare (resum, fills, fases de consulta, planificació dels fills). | `/project/:id` | projects | done (2026-10-17) |
 | 07 | Subvencions i justificacions | Expedient, imports per any, import a justificar (nòmines, factures indirectes), cofinançament, entitat líder, dates; pantalles de justificació i de subvencions. | `/project/:id`, `/justifications`, `/grants` | projects | done (2026-10-18) |
 | 08 | Documents del projecte | Adjuntar i consultar documents d'un projecte; pestanya Cobraments i pagaments (documents econòmics i moviments). | `/project/:id` | projects | done (2026-10-18) |
 | 09 | Planificació (Gantt) | Diagrama de Gantt del projecte i previsió de dedicació. | `/project/:id`, `/stats-previsio-gantt` | projects | done (2026-10-18) |
 | 10 | Tasques | Tauler, llista i calendari; fitxa de tasca (descripció, checklist, documents, comentaris i mencions, prioritat, dates, hores estimades i fetes, imputar hores); tasques recurrents; plantilles; avisos per correu i l'opció de Configuració general; tasques al Gantt. | `/tasks`, `/project/:id` | projects | done (2026-10-17) |
-| 11 | Contactes | Clients i proveïdors, tipus de contacte, fitxa, esborrar, DIR3 per a l'administració pública (FACe; sense captura: FACe desactivat a la còpia). | `/contacts`, `/contact/:id`, `/client/:id` | projects | done (2026-10-18) |
+| 11 | Contactes | Clients i proveïdors, tipus de contacte, fitxa, esborrar, DIR3 per a l'administració pública (FACe; sense captura: FACe desactivat a la còpia), pestanya Resum (projectes i documents del contacte), avís de NIF repetit. | `/contacts`, `/contact/:id`, `/client/:id` | projects | done (2026-10-30) |
 | 12 | Pressupostos | Crear un pressupost, línies, enviament i acceptació, proforma, PDF. (No hi ha conversió automàtica a projecte o factura.) | `/quotes`, `/quote/:id` | projects | done (2026-10-18) |
 
 ## C. Hores i persones
@@ -76,6 +76,6 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 
 | # | Tema | Contingut | Pantalles | Permís | Estat |
 |---|------|-----------|-----------|--------|-------|
-| 34 | Configuració general de l'entitat | Dades fiscals, logo, opcions generals. | `/administracio/me` | admin | done (2026-10-18) |
+| 34 | Configuració general de l'entitat | Dades fiscals, logo, opcions generals, facturació per defecte dels projectes nous. | `/administracio/me` | admin | done (2026-10-30) |
 | 35 | Taules auxiliars | Anys, àmbits, estats i probabilitats de projecte, estats de tasca, estratègies, formes jurídiques, mètodes de pagament, regions, sectors, sèries, tipus (contacte, dedicació, despesa, ingrés, projecte), entitats socials, comptes bancaris. | `/administracio/*` | admin | done (2026-10-18) |
 | 36 | Inici d'any i manteniment | Preparar un any nou (anys, festius, sèries), recalcular. | `/administracio/year`, `/recalculate` | admin | done (2026-10-18) |

@@ -193,6 +193,13 @@
                   <option v-for="(name, i) in fiscalMonths" :key="i" :value="i + 1">{{ name }}</option>
                 </b-select>
               </b-field>
+              <!-- issues/371 -->
+              <b-field label="Facturació dels projectes nous" message="«Per hores»: l'ingrés previst són les hores previstes pel preu/hora del projecte, i es mostra el que queda per facturar. Cada projecte ho pot canviar.">
+                <b-select v-model="defaultBillingMode" expanded>
+                  <option value="project">Per projecte</option>
+                  <option value="hours">Per hores</option>
+                </b-select>
+              </b-field>
             </div>
             <label v-if="fiscalStartMonth > 1" class="option-row">
               <b-checkbox v-model="form.options.grantable_fiscal_years">
@@ -472,6 +479,15 @@ export default {
       },
       set(value) {
         this.form.options = { ...this.form.options, fiscal_year_start_month: value };
+      }
+    },
+    // empty (saved before the option existed) is «Per projecte» (issues/371)
+    defaultBillingMode: {
+      get() {
+        return (this.form.options && this.form.options.default_billing_mode) === 'hours' ? 'hours' : 'project';
+      },
+      set(value) {
+        this.form.options = { ...(this.form.options || {}), default_billing_mode: value };
       }
     },
     indexSections() {

@@ -14,7 +14,7 @@ test('11-contactes', async ({ page }) => {
   await start(page, '11-contactes', { today: '2026-06-17' })
   await login(page)
 
-  await page.goto('#/contactes')
+  await page.goto('/contactes')
   await page.getByPlaceholder('Cerca per nom, NIF, correu o població').waitFor()
   await settle(page, 1500)
   await shot(page, 'llistat')
@@ -26,7 +26,7 @@ test('11-contactes', async ({ page }) => {
   await shot(page, 'filtrat')
 
   // a public body: identification, address and the rest of the form
-  await page.locator('a[href^="#/contacte/"]').first().click()
+  await page.locator('a[href^="/contacte/"]').first().click()
   await page.getByText('Identificació').waitFor()
   await settle(page, 1500)
   await shot(page, 'fitxa')
@@ -35,7 +35,7 @@ test('11-contactes', async ({ page }) => {
   await shot(page, 'fitxa-entitat')
   // (no «Facturació electrònica» block: FACe is off in the copy)
 
-  await page.goto('#/contactes')
+  await page.goto('/contactes')
   await settle(page, 800)
   await page.getByRole('button', { name: 'Nou contacte' }).click()
   await page.getByText('Identificació').waitFor()

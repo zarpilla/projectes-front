@@ -49,8 +49,10 @@ const baseUrl = () => process.env.MANUAL_BASE_URL || 'http://localhost:8081/'
 // everyday backend (a real tenant).
 // Options: { today: '2026-06-17' } moves the browser's clock (Date only, time keeps running)
 // to a day where the demo data is complete; the anonymized data ends in summer 2026.
-export async function start (page, slug, { today } = {}) {
-  state.set(page, { slug, shots: 0 })
+// `firstShot`: the number of the first screenshot, to add pictures to a chapter that
+// already has some (or retake one of them) without rerunning its whole script.
+export async function start (page, slug, { today, firstShot = 1 } = {}) {
+  state.set(page, { slug, shots: firstShot - 1 })
   if (today) {
     await page.addInitScript(offset => {
       const RealDate = Date
@@ -65,7 +67,7 @@ export async function start (page, slug, { today } = {}) {
     contentType: 'application/javascript',
     body: `window.APP_CONFIG = ${JSON.stringify({
       VUE_APP_API_URL: apiUrl(),
-      VUE_APP_RESET_PASSWORD: baseUrl() + '#/canviar-clau',
+      VUE_APP_RESET_PASSWORD: baseUrl() + 'canviar-clau',
       VUE_APP_PATH: baseUrl()
     })};`
   }))
@@ -78,13 +80,13 @@ export async function start (page, slug, { today } = {}) {
 
 export async function login (page, user = process.env.MANUAL_USER, password = process.env.MANUAL_PASSWORD) {
   if (!user || !password) throw new Error('MANUAL_USER and MANUAL_PASSWORD are required (.env.manual)')
-  await page.goto('#/')
+  await page.goto('/')
   await page.locator('input[type=email]').fill(user)
   await page.locator('input[type=password]').fill(password)
   await page.locator('[type=submit]').first().click()
   await page.waitForFunction(() => !!localStorage.getItem('jwt'), null, { timeout: 15_000 })
   // the app then redirects away from the login route; navigating before that gets overridden
-  await page.waitForURL(url => !/#\/?$/.test(url.href), { timeout: 20_000 })
+  await page.waitForURL(url => new URL(url).pathname !== '/', { timeout: 20_000 })
   await page.waitForLoadState('networkidle')
   // App.vue may push the landing page (Inici) once /users/me answers: wait for the
   // address to stay put, or that push overrides the script's first page.goto

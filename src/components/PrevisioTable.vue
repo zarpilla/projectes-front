@@ -8,6 +8,15 @@
       :can-cancel="false"
     ></b-loading>
 
+    <!-- issues/368: the global summary, or the same figures per project -->
+    <nav class="tabs forecast-tabs" aria-label="Vistes de la previsió">
+      <ul>
+        <li v-for="t in tabs" :key="t.id" :class="{ 'is-active': activeTab === t.id }">
+          <a :href="'#' + $route.path + '?vista=' + t.id" :aria-current="activeTab === t.id ? 'page' : null" @click.prevent="selectTab(t.id)">{{ t.label }}</a>
+        </li>
+      </ul>
+    </nav>
+
     <!-- Redesign A: filters, figures, a chart per year and the summary table -->
     <form class="filter-bar" role="search" aria-label="Filtres" @submit.prevent="getData">
       <div class="toggle-group" role="group" aria-label="Estat projecte">
@@ -48,6 +57,7 @@
       <b-button native-type="submit" icon-left="refresh" :type="filtersChanged ? 'is-primary' : ''" :disabled="isLoading">Refrescar</b-button>
     </form>
 
+    <template v-if="activeTab === 'global'">
     <div v-if="payrollGap" class="notification is-warning">
       <b>Les nòmines previstes arriben fins a {{ payrollGap.last }}.</b>
       A partir de {{ payrollGap.from }} les despeses no inclouen personal i el resultat d'aquests anys no és comparable.
@@ -158,6 +168,83 @@
         L'última fila diu quina part de les despeses previstes cobreixen els ingressos previstos.
       </p>
     </section>
+    </template>
+
+    <section v-else class="report-box by-project">
+      <header class="report-box-head">
+        <div>
+          <h2>Resum per projectes</h2>
+          <span class="has-text-muted">Els imports del resum global, projecte per projecte</span>
+        </div>
+      </header>
+      <div class="filter-bar by-project-bar">
+        <div class="segmented" role="group" aria-label="Agrupa per">
+          <span class="toggle-label seg-label">Agrupa per</span>
+          <button v-for="g in groupings" :key="g.id" type="button" :class="{ 'is-on': grouping === g.id }" @click="grouping = g.id">{{ g.label }}</button>
+        </div>
+        <div v-if="yearRows.length" class="segmented" role="group" aria-label="Any">
+          <span class="toggle-label seg-label">Any</span>
+          <button v-for="y in yearRows" :key="y.year" type="button" :class="{ 'is-on': byProjectYear === y.year }" @click="byProjectYear = y.year">{{ y.year }}</button>
+          <button v-if="yearRows.length > 1" type="button" :class="{ 'is-on': byProjectYear === 'all' }" @click="byProjectYear = 'all'">Total {{ yearSpan }}</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table is-fullwidth forecast-table by-project-table">
+          <thead>
+            <tr>
+              <th>{{ groupingLabel }}</th>
+              <th v-if="grouping !== 'project'" class="has-text-right">Projectes</th>
+              <th class="has-text-right">Ingressos previstos</th>
+              <th class="has-text-right">Factures i despeses</th>
+              <th class="has-text-right">IVA no deduïble</th>
+              <th class="has-text-right" title="Ingressos menys factures, despeses i IVA no deduïble; 0 si el projecte té més despeses que ingressos">Despesa de nòmines que pot cobrir</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="!byProjectRows.length">
+              <td :colspan="grouping !== 'project' ? 6 : 5" class="has-text-muted">Cap projecte amb imports previstos {{ byProjectYear === 'all' ? '' : 'el ' + byProjectYear }}.</td>
+            </tr>
+            <tr v-for="r in byProjectRows" :key="r.key">
+              <th>
+                <router-link v-if="r.projectId" :to="{ name: 'project.edit', params: { id: r.projectId } }">{{ r.label }}</router-link>
+                <span v-else :class="{ 'has-text-muted': r.none }">{{ r.label }}</span>
+              </th>
+              <td v-if="grouping !== 'project'" class="has-text-right">{{ r.projects }}</td>
+              <td class="has-text-right">{{ money(r.incomes) }}</td>
+              <td class="has-text-right" :class="{ 'has-text-neg': r.invoices < 0 }">{{ money(r.invoices) }}</td>
+              <td class="has-text-right" :class="{ 'has-text-neg': r.vat < 0 }">{{ money(r.vat) }}</td>
+              <td class="has-text-right">{{ money(r.payrollCover) }}</td>
+            </tr>
+          </tbody>
+          <tfoot v-if="byProjectRows.length">
+            <tr class="is-group">
+              <th>Total</th>
+              <td v-if="grouping !== 'project'" class="has-text-right">{{ byProjectRows.reduce((a, r) => a + r.projects, 0) }}</td>
+              <td class="has-text-right">{{ money(byProjectTotals.incomes) }}</td>
+              <td class="has-text-right" :class="{ 'has-text-neg': byProjectTotals.invoices < 0 }">{{ money(byProjectTotals.invoices) }}</td>
+              <td class="has-text-right" :class="{ 'has-text-neg': byProjectTotals.vat < 0 }">{{ money(byProjectTotals.vat) }}</td>
+              <td class="has-text-right">{{ money(byProjectTotals.payrollCover) }}</td>
+            </tr>
+            <tr class="is-sub">
+              <th :colspan="grouping !== 'project' ? 5 : 4"><i class="dot c-pay"></i>Nòmines previstes</th>
+              <td class="has-text-right" :class="{ 'has-text-neg': byProjectTotals.payroll < 0 }">{{ money(byProjectTotals.payroll) }}</td>
+            </tr>
+            <tr v-if="byProjectTotals.payrollUncovered > 0" class="is-uncovered">
+              <th :colspan="grouping !== 'project' ? 5 : 4">Nòmines que falten per cobrir</th>
+              <td class="has-text-right has-text-neg">{{ money(-byProjectTotals.payrollUncovered) }}</td>
+            </tr>
+            <tr v-else class="is-covered">
+              <th :colspan="grouping !== 'project' ? 5 : 4">Les nòmines previstes queden cobertes</th>
+              <td class="has-text-right">{{ money(0) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <p class="report-note">
+        «Despesa de nòmines que pot cobrir»: ingressos previstos menys factures i despeses i IVA no deduïble de cada projecte (les hores no hi compten); si un projecte té més despeses que ingressos, 0.
+        Es calcula projecte per projecte i, en agrupar per tipus o àmbit, se suma. Si entre tots no arriben a les nòmines previstes (les de Despeses › Nòmina), la diferència surt a «Nòmines que falten per cobrir».
+      </p>
+    </section>
 
 
   </div>
@@ -177,6 +264,17 @@ import TreasuryAnnotationInput from "@/components/TreasuryAnnotationInput.vue";
 import { loadKendo, waitForJQuery } from "@/helpers/addScript";
 import getTreasuryData from "@/service/treasury";
 import { formatNumber, sign } from "@/helpers/format-number";
+import { GROUPINGS, forecastRows, forecastTotals } from "@/domain/forecastByProject.js";
+
+const BY_PROJECT_GROUPING_KEY = "PrevisioTable.grouping";
+function readGrouping() {
+  try {
+    const g = localStorage.getItem(BY_PROJECT_GROUPING_KEY);
+    return GROUPINGS.some(x => x.id === g) ? g : "project";
+  } catch (e) {
+    return "project";
+  }
+}
 
 export default {
   name: "Tresoreria",
@@ -232,6 +330,12 @@ export default {
       forecastPayrollsByYear: {},
       // filters changed since the last load (Refrescar applies them)
       filtersChanged: false,
+      // issues/368: «Resum global» or «Resum per projectes»
+      activeTab: "global",
+      forecastByProject: [],
+      grouping: readGrouping(),
+      // a year of yearRows, or "all"
+      byProjectYear: null,
     };
   },
   async mounted() {
@@ -523,6 +627,32 @@ export default {
     chartMax() {
       return Math.max(1, ...this.yearRows.map(y => Math.max(y.incomes, -y.expenses)));
     },
+    tabs() {
+      return [
+        { id: "global", label: "Resum global" },
+        { id: "projectes", label: "Resum per projectes" }
+      ];
+    },
+    groupings() {
+      return GROUPINGS;
+    },
+    groupingLabel() {
+      return (GROUPINGS.find(g => g.id === this.grouping) || GROUPINGS[0]).label;
+    },
+    byProjectYears() {
+      const years = this.yearRows.map(y => y.year);
+      if (this.byProjectYear === "all") return years;
+      return years.includes(this.byProjectYear) ? [this.byProjectYear] : years.slice(0, 1);
+    },
+    byProjectRows() {
+      return forecastRows(this.forecastByProject, this.byProjectYears, this.grouping);
+    },
+    byProjectTotals() {
+      const payroll = this.yearRows
+        .filter(y => this.byProjectYears.includes(y.year))
+        .reduce((acc, y) => acc + y.payroll, 0);
+      return forecastTotals(this.byProjectRows, payroll);
+    },
     periodOptions() {
       return [
         { value: "no", label: "No" },
@@ -537,6 +667,26 @@ export default {
   watch: {
     periodificacio() {
       this.filtersChanged = true;
+    },
+    "$route.query.vista": {
+      immediate: true,
+      handler(vista) {
+        this.activeTab = this.tabs.some(t => t.id === vista) ? vista : "global";
+      }
+    },
+    grouping(g) {
+      try {
+        localStorage.setItem(BY_PROJECT_GROUPING_KEY, g);
+      } catch (e) {
+        // private window: the grouping is not remembered
+      }
+    },
+    // the current year when it is shown, else the first one
+    yearRows(rows) {
+      const years = rows.map(y => y.year);
+      if (this.byProjectYear === "all" || years.includes(this.byProjectYear)) return;
+      const current = moment().format("YYYY");
+      this.byProjectYear = years.includes(current) ? current : years[0] || null;
     }
   },
   methods: {
@@ -549,6 +699,11 @@ export default {
     sign,
     h(amount) {
       return Math.max(0, (Number(amount) || 0) / this.chartMax * 100) + "%";
+    },
+    selectTab(id) {
+      if (id === this.activeTab) return;
+      this.activeTab = id;
+      this.$router.replace({ query: { ...this.$route.query, vista: id === "global" ? undefined : id } });
     },
     async onStateChanged() {
     },
@@ -654,7 +809,8 @@ export default {
         null,
         this.periodificacio,
         this.selectedProjectTypes,
-        this.selectedProjectLikelihoods
+        this.selectedProjectLikelihoods,
+        true
       );
       this.treasuryData = treasuryData.treasury.map(d => {
         return { ...d, executat: d.paid ? "SÍ" : "NO" };
@@ -662,6 +818,7 @@ export default {
       this.projects = treasuryData.projects;
       this.forecastByYear = treasuryData.forecast_by_year || {};
       this.forecastPayrollsByYear = treasuryData.forecast_payrolls_by_year || {};
+      this.forecastByProject = Object.freeze(treasuryData.forecast_by_project || []);
       this.pivotData = Object.freeze(this.monthlySummaryTotal);
       this.filtersChanged = false;
 
@@ -837,6 +994,26 @@ export default {
 }
 .table-wrap {
   overflow-x: auto;
+}
+.forecast-tabs {
+  margin-bottom: 1rem;
+}
+.forecast-tabs ul {
+  border-bottom: 1px solid var(--a-line);
+}
+.forecast-tabs a {
+  padding: .625rem .875rem;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+.forecast-tabs li.is-active a {
+  border-bottom-color: var(--a-accent);
+}
+.by-project-bar {
+  margin-bottom: .75rem;
+}
+.by-project-table tfoot tr.is-uncovered > * {
+  font-weight: 700;
 }
 .forecast-table {
   font-variant-numeric: tabular-nums;
