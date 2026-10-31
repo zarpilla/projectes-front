@@ -31,10 +31,23 @@ export function moveLogo (logos, id, delta) {
     .map(({ id, order }) => ({ id, order }))
 }
 
+/**
+ * The link of a logo, only to a web page: «https://…» or «http://…» as written, a
+ * bare «www.x.cat» as https. Any other scheme (javascript:, data:…) gives no link
+ * (issues/380).
+ */
+export function logoHref (url) {
+  const href = String(url || '').trim()
+  if (!href) return null
+  if (/^https?:\/\//i.test(href)) return href
+  if (/^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('/')) return null
+  return 'https://' + href
+}
+
 /** The logos as the login page and the menu draw them: image src and link. */
 export const logosForDisplay = (logos, apiUrl) =>
   shownLogos(logos).map(logo => ({
     ...logo,
     src: logo.logo && logo.logo.url ? (/^https?:/.test(logo.logo.url) ? '' : apiUrl || '') + logo.logo.url : '',
-    href: (logo.url || '').trim() || null
+    href: logoHref(logo.url)
   })).filter(logo => logo.src)
