@@ -212,7 +212,7 @@ import sumBy from "lodash/sumBy";
 import moment from "moment";
 import CardComponent from "@/components/CardComponent.vue";
 import _ from "lodash";
-import html2pdf from "html3pdf";
+import html2pdf from "@/helpers/html2pdf";
 import getConfig from '@/config'
 import { slotMinutes, slotIsInverted, slotActivityHours, formatDuration, formatExpected, formatHoursMinutes, expectedHours, festiveOn, festivesBetween, isValidTime, workdayRegisterMonths } from "@/domain/workdayLog.js";
 import "@/assets/fonts/rubik.css";

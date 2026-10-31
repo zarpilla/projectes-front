@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import Buefy from 'buefy'
-import { sortLogos, shownLogos, nextLogoOrder, moveLogo, logosForDisplay } from '@/domain/logos'
+import { sortLogos, shownLogos, nextLogoOrder, moveLogo, logosForDisplay, logoHref } from '@/domain/logos'
 
 const LOGOS = [
   { id: 1, order: 20, url: 'https://a.cat', logo: { id: 11, url: '/uploads/a.png' } },
@@ -44,6 +44,20 @@ describe('logos (issues/159)', () => {
       expect.objectContaining({ id: 1, src: 'https://api.test/uploads/a.png', href: 'https://a.cat' }),
       expect.objectContaining({ id: 4, src: 'https://api.test/uploads/d.png' })
     ])
+  })
+
+  // issues/380: a logo links only to a web page, never to javascript: or data:
+  it('links a logo only to an http(s) page', () => {
+    expect(logoHref('https://a.cat/x?y=1')).toBe('https://a.cat/x?y=1')
+    expect(logoHref(' HTTP://a.cat ')).toBe('HTTP://a.cat')
+    expect(logoHref('www.a.cat')).toBe('https://www.a.cat')
+    expect(logoHref('javascript:alert(1)')).toBe(null)
+    expect(logoHref(' JavaScript:alert(1)')).toBe(null)
+    expect(logoHref('data:text/html,<script>alert(1)</script>')).toBe(null)
+    expect(logoHref('//evil.test')).toBe(null)
+    expect(logoHref('')).toBe(null)
+    expect(logoHref(null)).toBe(null)
+    expect(logosForDisplay([{ id: 1, url: 'javascript:alert(1)', logo: { url: '/uploads/a.png' } }], '')[0].href).toBe(null)
   })
 
   it('is in the Administració menu, for admins', () => {

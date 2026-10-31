@@ -8,9 +8,10 @@ server {
     # an absolute one would point at http://<host>:80.
     absolute_redirect off;
 
-    # Keep the app out of search engines. Repeated in every location that
-    # defines its own add_header, since nginx does not inherit them.
-    add_header X-Robots-Tag "noindex, nofollow" always;
+    # Security headers and X-Robots-Tag (nginx-security-headers.conf, filled in by
+    # docker-entrypoint.sh). Included again in every location that defines its
+    # own add_header, since nginx does not inherit them there (issues/380).
+    include /etc/nginx/snippets/security-headers.conf;
 
     # Security: block direct download of sensitive credential files (defense in depth).
     location ~* \.(p12|pfx|pem|key|crt|cer|jks|kdb)$ {
@@ -25,7 +26,7 @@ server {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         add_header Pragma "no-cache";
-        add_header X-Robots-Tag "noindex, nofollow" always;
+        include /etc/nginx/snippets/security-headers.conf;
         try_files /service-worker.js =404;
     }
 
@@ -46,14 +47,14 @@ server {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         add_header Pragma "no-cache";
-        add_header X-Robots-Tag "noindex, nofollow" always;
+        include /etc/nginx/snippets/security-headers.conf;
     }
 
     # Built files carry a content hash in their name
     location /assets/ {
         expires 1y;
         add_header Cache-Control "public, immutable";
-        add_header X-Robots-Tag "noindex, nofollow" always;
+        include /etc/nginx/snippets/security-headers.conf;
         try_files $uri =404;
     }
 
@@ -62,7 +63,7 @@ server {
         expires -1;
         add_header Cache-Control "no-cache, no-store, must-revalidate";
         add_header Pragma "no-cache";
-        add_header X-Robots-Tag "noindex, nofollow" always;
+        include /etc/nginx/snippets/security-headers.conf;
         add_header Last-Modified $date_gmt;
         add_header ETag "";
         if_modified_since off;
@@ -73,7 +74,7 @@ server {
     # config.js is written per site at container start
     location = /config.js {
         expires -1;
-        add_header X-Robots-Tag "noindex, nofollow" always;
+        include /etc/nginx/snippets/security-headers.conf;
     }
 
     # App routes: serve index.html for SPA routing

@@ -36,6 +36,9 @@ RUN npm run build
 # unregisters itself; clients then always load from the network.
 RUN cp service-worker.kill.js dist/service-worker.js
 
+# Hashes of the inline scripts of the built index.html, for the CSP (issues/380)
+RUN node tools/csp-script-hashes.mjs dist/index.html > csp-script-hashes && cat csp-script-hashes
+
 # Production stage
 FROM nginx:alpine AS production
 
@@ -48,6 +51,8 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Create a basic nginx configuration for Vue Router
 # Copy nginx config template
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx-security-headers.conf /etc/nginx/templates/security-headers.conf.template
+COPY --from=builder /app/csp-script-hashes /etc/nginx/csp-script-hashes
 
 # Copy the startup script and config template
 COPY docker-entrypoint.sh /docker-entrypoint.sh

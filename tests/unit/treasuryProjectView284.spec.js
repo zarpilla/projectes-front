@@ -119,8 +119,8 @@ describe('Tresoreria project view follow-ups (issues/284)', () => {
   it('the «Per projecte» pivot redraws when a project is picked', async () => {
     const fs = await import('node:fs')
     const vendor = `${process.cwd()}/public/vendor/`
-    // the real jQuery + Kendo the page loads, in the test's window
-    ;(0, eval)(fs.readFileSync(vendor + 'jquery/jquery.js', 'utf8'))
+    // the real jQuery (the npm one main.js bundles) + Kendo the page loads, in the test's window
+    ;(0, eval)(fs.readFileSync(`${process.cwd()}/node_modules/jquery/dist/jquery.js`, 'utf8'))
     ;(0, eval)(fs.readFileSync(vendor + 'kendo/kendo.all.min.js', 'utf8'))
     const { default: configPivot } = await import('@/service/configStatsTreasury')
     const host = document.createElement('div')

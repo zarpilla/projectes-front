@@ -11,7 +11,7 @@ const get = vi.fn(async () => ({ data: [] }))
 const post = vi.fn(async (url, data) => ({ data: { ...data, id: 900 } }))
 const put = vi.fn(async (url, data) => ({ data }))
 vi.mock('@/service/index', () => ({ default: () => ({ get, post, put }) }))
-vi.mock('html3pdf', () => ({ default: () => ({}) }))
+vi.mock('@/helpers/html2pdf', () => ({ default: () => ({}) }))
 import JornadaDiaria from '@/components/JornadaDiaria.vue'
 
 const open = async () => {
