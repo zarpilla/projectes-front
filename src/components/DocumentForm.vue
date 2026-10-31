@@ -785,12 +785,33 @@
               </b-datepicker>
             </b-field>
 
+            <!-- «Modificable» doesn't apply to emitted invoices: issuing one
+                 locks its fiscal data (what VeriFactu asks for). -->
             <b-field
               label="Modificable"
               horizontal
-              v-if="type !== 'payrolls' && type !== 'quotes'"
+              v-if="hasUpdatableSwitch"
             >
-              <b-switch v-model="form.updatable"> </b-switch>
+              <div class="updatable-field">
+                <b-switch v-model="form.updatable" :disabled="isLocked"> </b-switch>
+                <template v-if="isLocked">
+                  <small class="updatable-note">Bloquejat: no es pot desar cap canvi.</small>
+                  <b-button
+                    v-if="isAppAdmin"
+                    size="is-small"
+                    icon-left="lock-open-variant"
+                    :loading="isUnlocking"
+                    @click="unlockDocument"
+                  >Desbloqueja</b-button>
+                </template>
+              </div>
+            </b-field>
+            <b-field
+              label="Modificable"
+              horizontal
+              v-if="type === 'emitted-invoices' && form.state === 'real'"
+            >
+              <small class="updatable-note">Emesa: les dades fiscals no es poden modificar.</small>
             </b-field>
 
             <b-field
@@ -1034,7 +1055,7 @@
     </section>
 
     <div v-if="canSave" class="savebar">
-      <span class="savebar-state">{{ form.id ? (form.updatable === false ? 'Document no modificable' : 'Desa els canvis quan acabis') : 'Document nou' }}</span>
+      <span class="savebar-state">{{ form.id ? (isLocked ? 'Document no modificable' : 'Desa els canvis quan acabis') : 'Document nou' }}</span>
       <b-button v-if="form.id" :loading="isLoading" @click="canEditDocument(true)">Guardar i sortir</b-button>
       <b-button type="is-primary" :loading="isLoading" @click="canEditDocument(false)">Guardar</b-button>
     </div>
@@ -1109,6 +1130,9 @@ export default {
       appPath: import.meta.env.BASE_URL,
       isProfileExists: false,
       isLoading: false,
+      // «Modificable» was off when the document was read: every save is refused
+      lockedOnLoad: false,
+      isUnlocking: false,
       // bumped when the document is read again (after a save, an email)
       historyKey: 0,
       isLoadingProject: false,
@@ -1236,6 +1260,16 @@ export default {
         type = "Factures Rebudes";
       }
       return ["Facturació", type, this.formCardTitle];
+    },
+    hasUpdatableSwitch() {
+      return !["payrolls", "quotes", "emitted-invoices"].includes(this.type);
+    },
+    isLocked() {
+      return Boolean(this.form.id) && this.lockedOnLoad;
+    },
+    isAppAdmin() {
+      const permissions = ((this.user && this.user.permissions) || []).map(p => p.permission || p);
+      return permissions.includes("admin");
     },
     // the «Historial» (issues/161): the API answers only projects/admin
     canSeeHistory() {
@@ -1677,6 +1711,7 @@ export default {
               if (this.form.updatable === null) {
                 this.form.updatable = true;
               }
+              this.lockedOnLoad = this.hasUpdatableSwitch && this.form.updatable === false;
               if (this.form.document_type && this.form.document_type.id) {
                 this.form.document_type = this.form.document_type.id;
               }
@@ -2659,6 +2694,22 @@ export default {
         });
       }
     },
+    // «Desbloqueja»: a locked document refuses every save, the one that would
+    // turn «Modificable» back on too, so an admin turns it on here.
+    async unlockDocument() {
+      this.isUnlocking = true;
+      try {
+        await service({ requiresAuth: true }).put(`document-unlock/${this.type}/${this.form.id}`);
+        this.form.updatable = true;
+        this.lockedOnLoad = false;
+        this.historyKey++;
+        this.$buefy.snackbar.open({ message: "Document desbloquejat", queue: false });
+      } catch (error) {
+        this.$buefy.snackbar.open({ message: "No s'ha pogut desbloquejar el document", type: "is-danger", queue: false });
+      } finally {
+        this.isUnlocking = false;
+      }
+    },
     canEditDocument(exit) {
       if (this.type === "emitted-invoices" && !this.form.id) {
         this.exitAfterSave = exit;
@@ -3391,6 +3442,15 @@ export default {
   .doc-layout {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+.updatable-field {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.updatable-note {
+  color: var(--a-muted);
 }
 .savebar-state {
   margin-right: auto;
