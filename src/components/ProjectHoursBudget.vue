@@ -50,8 +50,24 @@
                 {{ r.hour.quantity_type === 'week' ? 'a la setmana' : 'al mes' }} · {{ hoursText(hoursOfRow(r.hour)) }}
               </small>
             </td>
-            <td><b-input :model-value="r.hour.from" type="date" size="is-small" :disabled="!editable" aria-label="Des de" @update:model-value="set(r, 'from', $event)" /></td>
-            <td><b-input :model-value="r.hour.to" type="date" size="is-small" :disabled="!editable" aria-label="Fins a" @update:model-value="set(r, 'to', $event)" /></td>
+            <td v-for="f in ['from', 'to']" :key="f">
+              <b-datepicker
+                :model-value="toDate(r.hour[f])"
+                :date-parser="strictDateParser"
+                :show-week-number="false"
+                locale="ca-ES"
+                :first-day-of-week="1"
+                icon="calendar-today"
+                size="is-small"
+                :placeholder="f === 'from' ? 'Des de' : 'Fins a'"
+                :aria-label="f === 'from' ? 'Des de' : 'Fins a'"
+                :disabled="!editable"
+                append-to-body
+                trap-focus
+                editable
+                @update:model-value="set(r, f, toDay($event))"
+              />
+            </td>
             <td v-if="editable" class="has-text-right">
               <b-button size="is-small" icon-left="delete" type="is-danger is-light" :aria-label="'Treu les hores de ' + userName(r.hour)" @click="remove(r)" />
             </td>
@@ -87,6 +103,8 @@
 <script>
 import service from '@/service/index'
 import { formatMoney, formatNumber } from '@/helpers/format-number'
+import { strictDateParser } from '@/helpers/datepickerFormat'
+import moment from 'moment'
 import { hoursLines, hoursOfLine, hoursOfRow, ensureHoursLine, priceHoursLines, otherLinesCount, hoursLinesTotal, invoicedHoursLinesCount } from '@/domain/hoursBudget.js'
 
 export default {
@@ -148,7 +166,11 @@ export default {
   },
   methods: {
     hoursOfRow,
+    strictDateParser,
     money: formatMoney,
+    // the hours keep their dates as «YYYY-MM-DD»; the datepicker works with Dates
+    toDate: v => (v ? moment(v, 'YYYY-MM-DD').toDate() : null),
+    toDay: d => (d ? moment(d).format('YYYY-MM-DD') : null),
     hoursText: v => formatNumber(v, 2) + ' h',
     userId (hour) {
       const u = hour.users_permissions_user
@@ -212,6 +234,9 @@ export default {
 }
 .price-input {
   max-width: 10rem;
+}
+.table :deep(.datepicker) {
+  min-width: 9rem;
 }
 .hours-input {
   max-width: 7rem;
