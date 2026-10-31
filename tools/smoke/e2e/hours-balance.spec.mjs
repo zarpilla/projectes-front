@@ -22,7 +22,7 @@ import {
 
 useE2E()
 
-const USER = { username: `e2e-hores-${STAMP}`, email: `e2e-hores-${STAMP}@exemple.coop`, password: `E2e-${STAMP}!` }
+const USER = { username: `e2e-hores-${STAMP}`, email: `e2e-hores-${STAMP}@exemple.coop`, password: "Tramuntana-Groga-47!" }
 const PROJECT_A = `${NAME} saldo A`
 const PROJECT_B = `${NAME} saldo B`
 const PERIODS = [
