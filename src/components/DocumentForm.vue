@@ -2360,6 +2360,11 @@ export default {
       ) {
         return true;
       }
+      // Without «Lligar el pressupost amb les factures» the lines have no
+      // «Fact.»/«Doc» columns, so the document can't be assigned to one.
+      if (!(this.me && this.me.options && this.me.options.treasury)) {
+        return true;
+      }
       this.form.projects.forEach(p => {
         if (this.type === "emitted-invoices") {
           p.project_phases.forEach(ph => {
