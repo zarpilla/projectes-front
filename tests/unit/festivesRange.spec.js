@@ -7,7 +7,7 @@ import Buefy from 'buefy'
 
 const get = vi.fn(async () => ({ data: [] }))
 vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
-vi.mock('html3pdf', () => ({ default: () => ({}) }))
+vi.mock('@/helpers/html2pdf', () => ({ default: () => ({}) }))
 import JornadaDiaria from '@/components/JornadaDiaria.vue'
 import DedicationSaldo from '@/components/DedicationSaldo.vue'
 import DedicationSalary from '@/components/DedicationSalary.vue'

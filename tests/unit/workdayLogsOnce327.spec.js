@@ -8,7 +8,7 @@ import Buefy from 'buefy'
 
 const get = vi.fn(async () => ({ data: [] }))
 vi.mock('@/service/index', () => ({ default: () => ({ get, post: vi.fn(), put: vi.fn() }) }))
-vi.mock('html3pdf', () => ({ default: () => ({}) }))
+vi.mock('@/helpers/html2pdf', () => ({ default: () => ({}) }))
 import JornadaDiaria from '@/components/JornadaDiaria.vue'
 
 const asked = prefix => get.mock.calls.filter(c => c[0].startsWith(prefix)).length
