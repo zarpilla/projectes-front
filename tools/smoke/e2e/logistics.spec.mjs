@@ -22,7 +22,7 @@ useE2E()
 const TOWN = `${NAME} Poble`
 const POINT = `${NAME} Colmado`
 const MEMBER_POINT = `${NAME} Fleca`
-const MEMBER = { username: `e2e-${STAMP}-soc`, email: `e2e-${STAMP}-soc@exemple.coop`, password: `E2e-${STAMP}!s` }
+const MEMBER = { username: `e2e-${STAMP}-soc`, email: `e2e-${STAMP}-soc@exemple.coop`, password: "Tramuntana-Groga-47!s" }
 const idOf = relation => relation?.id ?? relation
 const dayOf = value => String(value || '').slice(0, 10)
 const addDays = (iso, n) => {

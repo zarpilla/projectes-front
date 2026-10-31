@@ -24,6 +24,7 @@ import menu, { hasMenuPermission } from "@/service/menu";
 import { isMemberOnly, landingForUser } from "@/domain/home";
 import { useHomePins } from "@/stores/homePins";
 import ModalBoxInvoice from "@/components/ModalBoxInvoice.vue";
+import { takeWeakPasswordNotice, sendPasswordLink } from "@/service/passwordPolicy";
 
 const PENDING_NOTICE = "pendingInvoicesNotice";
 const pendingNoticeShown = userId => {
@@ -130,6 +131,28 @@ export default {
       // fresh permissions: users/me is otherwise kept for the page load (issues/327)
       await this.loadUserData({ reload: true });
     },
+    // once after a login whose password doesn't meet the minimum (only a
+    // suggestion: nobody is forced to change it)
+    warnWeakPassword(user) {
+      if (!takeWeakPasswordNotice() || !user || !user.email) return;
+      this.$buefy.dialog.confirm({
+        title: "Et recomanem canviar la clau",
+        message:
+          "La teva clau de pas no compleix el mínim de seguretat: 10 caràcters, que no sigui una clau comuna " +
+          "i que no contingui el teu nom o correu. T'enviem un correu amb un enllaç per triar-ne una de nova?",
+        confirmText: "Envia'm l'enllaç",
+        cancelText: "Més tard",
+        trapFocus: true,
+        onConfirm: async () => {
+          try {
+            await sendPasswordLink(user.email);
+            this.$buefy.toast.open({ message: `T'hem enviat l'enllaç a ${user.email}`, type: "is-success", duration: 6000 });
+          } catch (e) {
+            this.$buefy.toast.open({ message: "No s'ha pogut enviar: ho pots fer des d'El meu compte", type: "is-danger" });
+          }
+        }
+      });
+    },
     async loadUserData(options) {
       if (localStorage.getItem("user") && localStorage.getItem("jwt")) {
         // the load on created() counts for the focus throttle: the first focus
@@ -219,6 +242,7 @@ export default {
             }
 
             this.loaded = true;
+            this.warnWeakPassword(user);
           }
         } catch {
           localStorage.removeItem("user");

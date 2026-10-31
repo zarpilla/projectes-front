@@ -11,7 +11,7 @@ import {
 
 useE2E()
 
-const USER = { username: `e2e-${STAMP}`, email: `e2e-${STAMP}@exemple.coop`, password: `E2e-${STAMP}!` }
+const USER = { username: `e2e-${STAMP}`, email: `e2e-${STAMP}@exemple.coop`, password: "Tramuntana-Groga-47!" }
 const idOf = relation => relation?.id ?? relation
 
 // operations guarded by the isAdmin policy
@@ -41,8 +41,10 @@ test('admin: create a user with only the hours permission', async () => {
   await field('Rol').locator('select').selectOption({ label: 'Authenticated' })
   await page.locator('.perm-option .b-checkbox', { hasText: /^\s*Hores/ }).click()
   await button('Guardar').click()
+  // the link is recommended; the test sets the password itself (issues/079 policy UI)
+  await page.locator('.dialog.modal.is-active').getByRole('button', { name: 'La poso jo' }).click()
   // new users get their password in a prompt
-  const prompt = page.locator('.dialog.modal.is-active')
+  const prompt = page.locator('.dialog.modal.is-active', { has: page.locator('input[type=password]') })
   await prompt.locator('input[type=password]').fill(USER.password)
   await prompt.locator('.modal-card-foot .button.is-primary').click()
   await expect(page.locator('.toast', { hasText: 'Usuària creada correctament' })).toBeVisible()
@@ -59,7 +61,8 @@ test('a new user can be created without picking a role', async () => {
   await field("Nom d'usuari").locator('input').fill(`${USER.username}-r`)
   await field('Correu electrònic').locator('input').fill(`r-${USER.email}`)
   await button('Guardar').click()
-  const prompt = page.locator('.dialog.modal.is-active')
+  await page.locator('.dialog.modal.is-active').getByRole('button', { name: 'La poso jo' }).click()
+  const prompt = page.locator('.dialog.modal.is-active', { has: page.locator('input[type=password]') })
   await prompt.locator('input[type=password]').fill(USER.password)
   await prompt.locator('.modal-card-foot .button.is-primary').click()
   await settle()
@@ -205,6 +208,10 @@ test('contacts: create, edit and delete', async () => {
   expect(contact.trade_name ?? contact.commercial_name ?? contact.comercial_name).toBe(`${NAME} coop`)
 
   await visit(`/contacte/${id}`)
+
+  // a saved contact opens on «Resum» (since aac9a02): the form is under «Dades»
+
+  await page.locator('.tabs li', { hasText: 'Dades' }).click()
   await button('Esborrar').click()
   await confirmDialog('Vols esborrar aquest contacte?')
   await expectSnackbar('Esborrat')
@@ -228,6 +235,8 @@ async function contactWithIssuedInvoice () {
 test('contacts with invoices can\'t be deleted', async () => {
   const contactId = await contactWithIssuedInvoice()
   await visit(`/contacte/${contactId}`)
+  // a saved contact opens on «Resum» (since aac9a02): the form is under «Dades»
+  await page.locator('.tabs li', { hasText: 'Dades' }).click()
   await button('Esborrar').click()
   await confirmDialog('Vols esborrar aquest contacte?')
   await expectSnackbar("Error. El contacte no s'ha pogut esborrar perquè té dades associades")

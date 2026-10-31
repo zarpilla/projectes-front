@@ -8,7 +8,7 @@ order: 1
 roles: []
 routes: ["/", "/recuperar-clau", "/canviar-clau", "/el-meu-compte", "/novetats", "/documentacio"]
 lang: ca
-updated: 2026-10-18
+updated: 2026-10-31
 ---
 # 01. Primers passos
 
@@ -30,6 +30,10 @@ triar que, en comptes d'Inici, obri una altra pantalla (vegeu [37. La pàgina d'
 
 **He oblidat la clau** obre **Recupera la clau de pas**: s'escriu el correu i l'aplicació hi envia un enllaç per
 triar-ne una de nova. Si no arriba, **Torna-ho a enviar** (i mireu la carpeta de correu brossa).
+
+La clau nova ha de tenir **10 caràcters** com a mínim, no pot ser una clau comuna ni contenir el vostre nom o
+correu (vegeu [02. Usuàries, rols i permisos](02-usuaris-rols-permisos.md#la-clau-de-pas-mínim-de-seguretat)). Una frase de tres o
+quatre paraules és fàcil de recordar i segura.
 
 ![Recuperar la clau de pas](img/01-primers-passos/02-clau-oblidada.png)
 

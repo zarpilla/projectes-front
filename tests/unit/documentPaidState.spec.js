@@ -18,6 +18,7 @@ describe('estimated payment from the budget line (issues/256)', () => {
 
   it('in the form, when the document is assigned to a line', () => {
     const vm = {
+      me: { options: { treasury: true } },
       type: 'received-incomes',
       form: {
         id: null,

@@ -6,6 +6,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import Buefy from 'buefy'
+import { buefyConfig } from '@/helpers/buefyConfig'
 
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn().mockResolvedValue({ data: [] }), put: vi.fn() }) }))
 
@@ -89,7 +90,7 @@ describe('ProjectHoursBudget (issues/371)', () => {
   const mountBudget = (phases, price = 40) =>
     mount(ProjectHoursBudget, {
       props: { phases, price, usersList: users, dateStart: '2026-11-01', dateEnd: '2026-12-31' },
-      global: { plugins: [Buefy] }
+      global: { plugins: [[Buefy, buefyConfig]] }
     })
 
   it('adds hours to a new «Hores» line, priced at the project price', async () => {
@@ -102,6 +103,17 @@ describe('ProjectHoursBudget (issues/371)', () => {
     expect(line).toMatchObject({ quantity: 12, amount: 40, total_amount: 480 })
     expect(w.emitted('phases-updated').length).toBeGreaterThan(1)
     expect(w.text()).toContain('Ingrés previst: 480,00 €')
+  })
+
+  it('edits the dates with the app datepicker (dd/mm/aaaa), stored as YYYY-MM-DD', async () => {
+    const phases = [{ incomes: [{ quantity: 1, amount: 40, estimated_hours: [{ id: 1, quantity: 5, from: '2023-01-08', to: '2026-12-31' }] }] }]
+    const w = mountBudget(phases)
+    const pickers = w.findAllComponents({ name: 'BDatepicker' })
+    expect(pickers.length).toBe(2)
+    expect(w.find('input[aria-label="Des de"]').element.value).toBe('08/01/2023')
+    pickers[1].vm.$emit('update:modelValue', new Date(2027, 2, 15))
+    await w.vm.$nextTick()
+    expect(phases[0].incomes[0].estimated_hours[0]).toMatchObject({ from: '2023-01-08', to: '2027-03-15', dirty: true })
   })
 
   it('offers the visible people and a hidden one who already has hours', () => {

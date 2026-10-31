@@ -94,16 +94,36 @@
             </div>
           </section>
 
-          <!-- Password of an existing user (a new one is asked for it on save) -->
+          <!-- Password of an existing user (a new one is asked for it on save).
+               Setting someone else's password is discouraged: the link lets her
+               choose it, and nobody else knows it. Some tenants asked to keep it. -->
           <section v-if="userId" class="form-box">
             <h2>Clau de pas</h2>
-            <p class="form-box-sub">Deixa-ho en blanc per no canviar-la. Mínim 6 caràcters.</p>
+            <div class="password-advice">
+              <p>
+                <b>Recomanat:</b> envia-li un enllaç per correu perquè triï la clau ella mateixa.
+                Així ningú més la coneix.
+              </p>
+              <b-button size="is-small" icon-left="email-outline" :loading="sendingLink" :disabled="!form.email" @click="sendLink">
+                Envia-li l'enllaç per canviar la clau
+              </b-button>
+              <span v-if="linkSent" class="has-text-success link-sent">Enviat a {{ form.email }}</span>
+            </div>
+            <p class="form-box-sub">
+              També la pots posar tu, però no és recomanable: hauràs de fer-l'hi arribar per un canal segur
+              i demanar-li que la canviï. Deixa-ho en blanc per no canviar-la. {{ passwordHint }}
+            </p>
             <div class="user-grid">
-              <b-field label="Clau nova">
-                <b-input v-model="password" type="password" minlength="6" autocomplete="new-password" password-reveal />
+              <!-- our own messages: the browser's (minlength) come in its language -->
+              <b-field label="Clau nova" :type="tooShort ? 'is-danger' : ''" :message="tooShort ? `${[...password].length} de ${minLength} caràcters com a mínim` : ''">
+                <b-input v-model="password" type="password" autocomplete="new-password" password-reveal :use-html5-validation="false" />
               </b-field>
-              <b-field label="Repeteix la clau">
-                <b-input v-model="passwordConfirmation" type="password" autocomplete="new-password" password-reveal />
+              <b-field
+                label="Repeteix la clau"
+                :type="mismatch ? 'is-danger' : ''"
+                :message="mismatch ? 'Les dues claus no coincideixen' : ''"
+              >
+                <b-input v-model="passwordConfirmation" type="password" autocomplete="new-password" password-reveal :use-html5-validation="false" />
               </b-field>
             </div>
           </section>
@@ -157,6 +177,9 @@ import UserApiKeys from '@/components/UserApiKeys.vue';
 import moment from 'moment';
 import { formatNumber } from '@/helpers/format-number';
 import { permissionCodes } from '@/domain/permissions';
+import { MIN_LENGTH, passwordProblem, apiMessage, randomPassword, sendPasswordLink } from '@/service/passwordPolicy';
+
+const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 // Strapi's users-permissions role types, in Catalan (issues/113)
 const ROLE_LABELS = { authenticated: 'usuària', public: 'públic' };
@@ -228,10 +251,20 @@ export default {
       ordersAdmin: false,
       password: '',
       passwordConfirmation: '',
+      passwordHint: `Mínim ${MIN_LENGTH} caràcters; no pot ser una clau comuna ni contenir el seu nom o correu.`,
+      minLength: MIN_LENGTH,
+      sendingLink: false,
+      linkSent: false,
       periods: []
     };
   },
   computed: {
+    tooShort() {
+      return !!this.password && [...this.password].length < MIN_LENGTH;
+    },
+    mismatch() {
+      return !!this.passwordConfirmation && this.password !== this.passwordConfirmation;
+    },
     permissionGroups() {
       return PERMISSION_GROUPS;
     },
@@ -314,9 +347,69 @@ export default {
     // The message to show when the new password can't be saved, or null
     passwordError() {
       if (!this.password) return null;
-      if (this.password.length < 6) return 'La contrasenya ha de tenir 6 caràcters com a mínim';
-      if (this.password !== this.passwordConfirmation) return 'Les contrasenyes no coincideixen';
-      return null;
+      return passwordProblem(this.password, this.passwordConfirmation);
+    },
+    // the reset e-mail, the same one «He oblidat la clau» sends
+    async sendLink() {
+      this.sendingLink = true;
+      this.linkSent = false;
+      try {
+        await sendPasswordLink(this.form.email);
+        this.linkSent = true;
+      } catch (error) {
+        this.$buefy.toast.open({ message: apiMessage(error, "No s'ha pogut enviar l'enllaç"), type: 'is-danger' });
+      } finally {
+        this.sendingLink = false;
+      }
+    },
+    // a new user: created with the given password, or with a random one nobody
+    // knows and the link to choose hers
+    async createUser(data, password) {
+      const byLink = !password;
+      try {
+        data.password = byLink ? randomPassword() : password;
+        // Strapi 5 requires a role (issues/027): saved before the roles loaded
+        if (!data.role) data.role = await this.authenticatedRoleId();
+        await service({ requiresAuth: true }).post('/users', data);
+      } catch (error) {
+        this.$buefy.toast.open({
+          message: `Error creant la usuària: ${apiMessage(error, error.message)}`,
+          type: 'is-danger'
+        });
+        return false;
+      }
+      let message = 'Usuària creada correctament';
+      if (byLink) {
+        try {
+          await sendPasswordLink(data.email);
+          message += `. Li hem enviat l'enllaç per triar la clau a ${data.email}`;
+        } catch (error) {
+          message += ", però no s'ha pogut enviar l'enllaç: envia-l'hi des de la seva fitxa";
+        }
+      }
+      this.$buefy.toast.open({ message, type: 'is-success', duration: 6000 });
+      this.$router.push('/administracio/usuaries');
+      return true;
+    },
+    askPassword(data) {
+      this.$buefy.dialog.prompt({
+        title: 'Clau de la nova usuària',
+        message: `${this.passwordHint} Fes-l'hi arribar per un canal segur i demana-li que la canviï.`,
+        // no minlength/required: the browser would say it in its own language
+        inputAttrs: { type: 'password', autocomplete: 'new-password' },
+        trapFocus: true,
+        closeOnConfirm: false,
+        onConfirm: async (password, dialog) => {
+          const problem = passwordProblem(password);
+          if (problem) {
+            // shown under the input, the dialog stays open
+            dialog.validationMessage = problem;
+            return;
+          }
+          dialog.close();
+          await this.createUser(data, password);
+        }
+      });
     },
     findAuthenticatedRole() {
       const role = this.roles.find(r => r.type === 'authenticated');
@@ -391,39 +484,37 @@ export default {
             return;
           }
           if (this.password) data.password = this.password;
-          await service({ requiresAuth: true }).put(`/users/${this.userId}`, data);
+          try {
+            await service({ requiresAuth: true }).put(`/users/${this.userId}`, data);
+          } catch (error) {
+            this.$buefy.toast.open({
+              message: `Error guardant la usuària: ${apiMessage(error, error.message)}`,
+              type: 'is-danger'
+            });
+            return;
+          }
           this.$buefy.toast.open({
             message: 'Usuària actualitzada correctament',
             type: 'is-success'
           });
         } else {
-          // Create - for new users, we need a password
-          this.$buefy.dialog.prompt({
-            message: 'Introdueix una contrasenya per a la nova usuària',
-            inputAttrs: {
-              type: 'password',
-              minlength: 6,
-              required: true
-            },
+          // Create: Strapi needs a password. Recommended: a random one and the
+          // link for her to choose hers; some tenants want to set it themselves.
+          if (!data.email) {
+            this.$buefy.toast.open({ message: 'Cal el correu electrònic de la nova usuària', type: 'is-danger' });
+            return;
+          }
+          this.$buefy.dialog.confirm({
+            title: 'Com tindrà la clau?',
+            message:
+              `Recomanat: li enviem un correu a <b>${escapeHtml(data.email)}</b> amb un enllaç perquè triï la clau ella mateixa. ` +
+              'També la pots posar tu, però no és recomanable: l\'hauràs de fer arribar per un canal segur.',
+            confirmText: "Envia-li l'enllaç",
+            cancelText: 'La poso jo',
+            canCancel: ['button'],
             trapFocus: true,
-            onConfirm: async (password) => {
-              try {
-                data.password = password;
-                // Strapi 5 requires a role (issues/027): saved before the roles loaded
-                if (!data.role) data.role = await this.authenticatedRoleId();
-                await service({ requiresAuth: true }).post('/users', data);
-                this.$buefy.toast.open({
-                  message: 'Usuària creada correctament',
-                  type: 'is-success'
-                });
-                this.$router.push('/administracio/usuaries');
-              } catch (error) {
-                this.$buefy.toast.open({
-                  message: `Error creant la usuària: ${error.message}`,
-                  type: 'is-danger'
-                });
-              }
-            }
+            onConfirm: () => this.createUser(data, null),
+            onCancel: () => this.askPassword(data)
           });
           return; // Don't navigate yet, wait for password prompt
         }
@@ -442,6 +533,25 @@ export default {
 };
 </script>
 <style scoped>
+.password-advice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem .75rem;
+  padding: .75rem 1rem;
+  margin-bottom: .75rem;
+  border-radius: 8px;
+  background: var(--a-info-bg);
+  color: var(--a-info-fg);
+  border: 1px solid var(--a-info-line);
+}
+.password-advice p {
+  flex: 1 1 100%;
+  margin: 0;
+}
+.link-sent {
+  font-size: .875rem;
+}
 .user-head {
   padding: 1.5rem 2rem .25rem;
 }
