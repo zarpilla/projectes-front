@@ -27,6 +27,16 @@ export const CHANGELOG = [
       type: "Millores",
       modules: ["Plataforma", "Administració"],
       text: ["Mínim de seguretat per a les claus de pas, igual per a totes les entitats: 10 caràcters com a mínim, que no sigui una clau comuna i que no contingui el nom o el correu de la persona ni el nom de l'entitat. Les claus d'abans continuen funcionant; qui entra amb una que no compleix el mínim rep un avís amb l'enllaç per canviar-la. A ", { to: "/administracio/usuaries", label: "Usuàries" }, ", el recomanat és enviar l'enllaç perquè cada persona triï la seva clau, també en donar d'alta una usuària nova; posar-la a mà continua sent possible."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Plataforma", "Logística", "Hores"],
+      text: ["Millores de seguretat: cada persona només arriba a les dades i accions dels seus permisos, també en casos poc habituals que encara ho permetien, i els documents en PDF que es generen (factures, pressupostos, albarans) tenen adreces que no es poden endevinar. L'enllaç per canviar la clau de pas caduca al cap d'una hora: si arriba tard, se'n demana un de nou."]
+    },
+    {
+      type: "Correccions",
+      modules: ["Logística", "Informes"],
+      text: ["L'", { to: "/estadistiques-incidencies", label: "Informe d'incidències" }, " compta també les incidències creades l'últim dia del mes o de l'any, que no hi sortien."]
     }
   ]
 },
