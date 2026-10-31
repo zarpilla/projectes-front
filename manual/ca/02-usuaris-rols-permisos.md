@@ -86,7 +86,8 @@ El mateix per a totes les entitats:
 - **10 caràcters** com a mínim. Millor una frase de tres o quatre paraules (*cavall bateria grapa*) que una paraula
   amb números: no cal majúscules ni símbols.
 - No pot ser una **clau comuna** (*barcelona2026*, *contrasenya123*, *qwertyuiop*...).
-- No pot contenir el **correu**, el **nom** de la persona ni el de l'**entitat**.
+- No pot contenir el **correu**, el **nom** de la persona ni el de l'**entitat**. Un correu compartit
+  (*hola@*, *info@*, *comandes@*) no compta, però el nom del domini sí (*areliabio* de hola@areliabio.com).
 
 Les claus d'abans continuen funcionant. Qui entra amb una que no compleix el mínim veu un avís que li recomana
 canviar-la i li ofereix l'enllaç per correu.
