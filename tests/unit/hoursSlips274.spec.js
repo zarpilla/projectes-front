@@ -9,7 +9,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn() }) }))
 vi.mock('@/domain/currentUser', () => ({ findCurrentUser: users => users[0] }))
-vi.mock('html3pdf', () => ({ default: () => ({}) }))
+vi.mock('@/helpers/html2pdf', () => ({ default: () => ({}) }))
 import JornadaDiaria from '@/components/JornadaDiaria.vue'
 import jornadaSource from '@/components/JornadaDiaria.vue?raw'
 import ModalBoxFestive from '@/components/ModalBoxFestive.vue'
