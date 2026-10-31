@@ -114,11 +114,16 @@
               i demanar-li que la canviï. Deixa-ho en blanc per no canviar-la. {{ passwordHint }}
             </p>
             <div class="user-grid">
-              <b-field label="Clau nova">
-                <b-input v-model="password" type="password" :minlength="minLength" autocomplete="new-password" password-reveal />
+              <!-- our own messages: the browser's (minlength) come in its language -->
+              <b-field label="Clau nova" :type="tooShort ? 'is-danger' : ''" :message="tooShort ? `${[...password].length} de ${minLength} caràcters com a mínim` : ''">
+                <b-input v-model="password" type="password" autocomplete="new-password" password-reveal :use-html5-validation="false" />
               </b-field>
-              <b-field label="Repeteix la clau">
-                <b-input v-model="passwordConfirmation" type="password" autocomplete="new-password" password-reveal />
+              <b-field
+                label="Repeteix la clau"
+                :type="mismatch ? 'is-danger' : ''"
+                :message="mismatch ? 'Les dues claus no coincideixen' : ''"
+              >
+                <b-input v-model="passwordConfirmation" type="password" autocomplete="new-password" password-reveal :use-html5-validation="false" />
               </b-field>
             </div>
           </section>
@@ -250,6 +255,12 @@ export default {
     };
   },
   computed: {
+    tooShort() {
+      return !!this.password && [...this.password].length < MIN_LENGTH;
+    },
+    mismatch() {
+      return !!this.passwordConfirmation && this.password !== this.passwordConfirmation;
+    },
     permissionGroups() {
       return PERMISSION_GROUPS;
     },
@@ -380,18 +391,18 @@ export default {
       this.$buefy.dialog.prompt({
         title: 'Clau de la nova usuària',
         message: `${this.passwordHint} Fes-l'hi arribar per un canal segur i demana-li que la canviï.`,
-        inputAttrs: {
-          type: 'password',
-          minlength: MIN_LENGTH,
-          required: true
-        },
+        // no minlength/required: the browser would say it in its own language
+        inputAttrs: { type: 'password', autocomplete: 'new-password' },
         trapFocus: true,
-        onConfirm: async (password) => {
+        closeOnConfirm: false,
+        onConfirm: async (password, dialog) => {
           const problem = passwordProblem(password);
           if (problem) {
-            this.$buefy.toast.open({ message: problem, type: 'is-danger' });
+            // shown under the input, the dialog stays open
+            dialog.validationMessage = problem;
             return;
           }
+          dialog.close();
           await this.createUser(data, password);
         }
       });

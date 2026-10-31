@@ -105,12 +105,18 @@ describe('AdminUserForm: password by link', () => {
     await form.submit()
     dialog.confirm.mock.calls[0][0].onCancel()
     const prompt = dialog.prompt.mock.calls[0][0]
-    expect(prompt.inputAttrs.minlength).toBe(10)
+    // no browser validation: it speaks the browser's language, not Catalan
+    expect(prompt.inputAttrs).not.toHaveProperty('minlength')
+    expect(prompt.closeOnConfirm).toBe(false)
 
-    await prompt.onConfirm('curta')
+    const box = { validationMessage: '', close: vi.fn() }
+    await prompt.onConfirm('curta', box)
     expect(post).not.toHaveBeenCalled()
+    expect(box.validationMessage).toContain('10 caràcters')
+    expect(box.close).not.toHaveBeenCalled()
 
-    await prompt.onConfirm('cavall bateria grapa')
+    await prompt.onConfirm('cavall bateria grapa', box)
+    expect(box.close).toHaveBeenCalled()
     expect(post.mock.calls[0][1].password).toBe('cavall bateria grapa')
     // no link when the admin set the password
     expect(post).toHaveBeenCalledTimes(1)
@@ -124,5 +130,12 @@ describe('AdminUserForm: password by link', () => {
     await form.submit()
     expect(form.$buefy.toast.open.mock.calls[0][0].message).toContain('massa comuna')
     expect(form.$router.push).not.toHaveBeenCalled()
+  })
+
+  it('says in Catalan, under the inputs, what is wrong while typing', () => {
+    const ctx = { password: 'abcde', passwordConfirmation: '' }
+    expect(AdminUserForm.computed.tooShort.call(ctx)).toBe(true)
+    expect(AdminUserForm.computed.tooShort.call({ password: '' })).toBe(false)
+    expect(AdminUserForm.computed.mismatch.call({ password: 'cavall bateria grapa', passwordConfirmation: 'cavall' })).toBe(true)
   })
 })

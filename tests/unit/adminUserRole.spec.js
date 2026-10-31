@@ -19,7 +19,7 @@ function vm (props = {}) {
     $buefy: {
       toast: { open: vi.fn() },
       // «La poso jo»: the admin types the password
-      dialog: { confirm: ({ onCancel }) => onCancel(), prompt: ({ onConfirm }) => onConfirm('Secret-123') }
+      dialog: { confirm: ({ onCancel }) => onCancel(), prompt: ({ onConfirm }) => onConfirm('Secret-123', { close: vi.fn() }) }
     },
     $router: { push: vi.fn() }
   }
