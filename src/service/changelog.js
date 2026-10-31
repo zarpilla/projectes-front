@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.10.31",
+  items: [
+    {
+      type: "Millores",
+      modules: ["Plataforma", "Administració"],
+      text: ["Mínim de seguretat per a les claus de pas, igual per a totes les entitats: 10 caràcters com a mínim, que no sigui una clau comuna i que no contingui el nom o el correu de la persona ni el nom de l'entitat. Les claus d'abans continuen funcionant; qui entra amb una que no compleix el mínim rep un avís amb l'enllaç per canviar-la. A ", { to: "/administracio/usuaries", label: "Usuàries" }, ", el recomanat és enviar l'enllaç perquè cada persona triï la seva clau, també en donar d'alta una usuària nova; posar-la a mà continua sent possible."]
+    }
+  ]
+},
+{
   date: "2026.10.30",
   items: [
     {

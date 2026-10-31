@@ -83,10 +83,10 @@ describe('AdminUserForm password change', () => {
 
   it('sends the new password', async () => {
     const form = vm({ userId: '7' })
-    form.password = 'Nova-1234'
-    form.passwordConfirmation = 'Nova-1234'
+    form.password = 'Tardor-blava-1'
+    form.passwordConfirmation = 'Tardor-blava-1'
     await form.submit()
-    expect(lastPutBody().password).toBe('Nova-1234')
+    expect(lastPutBody().password).toBe('Tardor-blava-1')
   })
 
   it('refuses a password that is too short or not repeated the same', async () => {
@@ -94,7 +94,7 @@ describe('AdminUserForm password change', () => {
     form.password = 'abc'
     form.passwordConfirmation = 'abc'
     await form.submit()
-    form.password = 'Nova-1234'
+    form.password = 'Tardor-blava-1'
     form.passwordConfirmation = 'Nova-12345'
     await form.submit()
     expect(put).not.toHaveBeenCalled()

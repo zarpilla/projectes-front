@@ -61,6 +61,7 @@
 </template>
 
 <script>
+import { rememberWeakPassword } from "@/service/passwordPolicy";
 import service from "@/service/index";
 import { clearCache } from "@/service/cache";
 import { storedPermissions, userPermissions } from "@/domain/routeAccess";
@@ -159,6 +160,8 @@ export default {
             clearCache();
             localStorage.setItem("user", JSON.stringify(user));
             localStorage.setItem("jwt", response.data.jwt);
+            // App.vue suggests changing a password below the minimum
+            rememberWeakPassword(response.data.passwordWeak === true);
             useMainStore().setUser({
               user: user,
               name: user.username,

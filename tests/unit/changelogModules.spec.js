@@ -22,10 +22,11 @@ describe('Registre de canvis filtered by module', () => {
     await router.push('/')
     const wrapper = mount(ChangeLog, { global: { plugins: [router, Buefy] } })
     const items = () => wrapper.findAll('.news-day li')
-    const all = items().length
+    // some shown items are about other modules (counts don't compare: both
+    // views show the latest 10 days, of different items)
+    expect(items().some(li => !li.find('.news-modules').text().includes('Logística'))).toBe(true)
     await wrapper.find('.filter-select select').setValue('Logística')
     expect(items().length).toBeGreaterThan(0)
-    expect(items().length).toBeLessThan(all)
     items().forEach(li => expect(li.find('.news-modules').text()).toContain('Logística'))
   })
 })
