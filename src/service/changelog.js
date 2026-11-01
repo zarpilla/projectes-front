@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.11.01",
+  items: [
+    {
+      type: "Correccions",
+      modules: ["Diners"],
+      text: ["Pujar el PDF d'una factura o despesa rebuda per llegir-ne les dades ja funciona: abans sempre donava l'error «No PDF file was provided»."]
+    }
+  ]
+},
+{
   date: "2026.10.31",
   items: [
     {
