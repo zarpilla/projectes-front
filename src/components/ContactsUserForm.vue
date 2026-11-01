@@ -324,9 +324,10 @@
               >
                 <b-switch v-model="form.pickup_point" :disabled="!(permissions.includes('orders_admin') || permissions.includes('orders_delivery'))" />
               </b-field>
+              <!-- the office only: drivers don't assign the point's user (issues/403) -->
               <b-field
                 label="Usuària ESSTRAPIS"
-                v-if="(permissions.includes('orders_admin') || permissions.includes('orders_delivery')) && form.pickup_point"
+                v-if="permissions.includes('orders_admin') && form.pickup_point"
                 message="Usuària assignada per a la gestió de comandes del punt de consum"
               >
                 <b-select v-model="form.users_permissions_user" placeholder="">

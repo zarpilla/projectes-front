@@ -6,8 +6,9 @@ import { createPinia } from 'pinia'
 import Buefy from 'buefy'
 import { NIF_HELP } from '@/domain/deliveryPointForm.js'
 
+let mePermissions = ['orders']
 const get = vi.fn(async url => {
-  if (url === 'users/me') return { data: { id: 3, permissions: [{ permission: 'orders' }] } }
+  if (url === 'users/me') return { data: { id: 3, permissions: mePermissions.map(permission => ({ permission })) } }
   if (url === 'sectors') return { data: [{ id: 2, name: 'Restauració' }, { id: 5, name: 'Particular' }] }
   if (url.startsWith('cities?')) return { data: [{ id: 1, name: 'Artés' }, { id: 2, name: 'Vic' }] }
   if (url.startsWith('routes?')) {
@@ -71,5 +72,24 @@ describe('delivery point form (issues/360)', () => {
     wrapper.vm.form.city = 'Vic'
     await flushPromises()
     expect(wrapper.text()).toContain('De moment no passem per Vic')
+  })
+})
+
+// issues/403 (security review round 3): a driver could link a new pickup point
+// to any member, and its orders then showed in that member's scope. The
+// «Usuària ESSTRAPIS» of a pickup point is the office's to set.
+describe("the pickup point's user (issues/403)", () => {
+  const userField = async permissions => {
+    mePermissions = permissions
+    const wrapper = await mountForm()
+    wrapper.vm.form.pickup_point = true
+    await flushPromises()
+    mePermissions = ['orders']
+    return wrapper.findAll('label.label').some(l => l.text().startsWith('Usuària ESSTRAPIS'))
+  }
+
+  it('the office sees it, a driver does not', async () => {
+    expect(await userField(['orders_admin'])).toBe(true)
+    expect(await userField(['orders_delivery', 'hours'])).toBe(false)
   })
 })
