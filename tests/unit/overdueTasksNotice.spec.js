@@ -1,45 +1,32 @@
-// issues/114 (review): the projects list warns about overdue tasks with a notice that
-// stays until it's dismissed. It followed people into a project and covered the ⋯ menu
-// of the save bar; leaving the list closes it.
+// issues/114 (review): the projects list warned about overdue tasks with a notice that
+// stayed until it was dismissed. The dot of the Tasques menu entry already says it, so
+// the notice is gone, and with it the list's request for all the tasks.
 import { describe, it, expect, vi } from 'vitest'
 import { shallowMount, flushPromises } from '@vue/test-utils'
 
-vi.mock('@/stores/main.js', () => ({ useMainStore: () => ({ userName: 'anna' }) }))
-vi.mock('@/service/index', () => ({
-  default: () => ({
-    get: vi.fn(async path => {
-      if (path === 'users/me') return { data: { permissions: [{ permission: 'projects' }] } }
-      if (path.startsWith('tasks')) {
-        return {
-          data: [{
-            users_permissions_users: [{ username: 'anna' }],
-            task_state: { id: 1 },
-            due_date: '2000-01-01'
-          }]
-        }
-      }
-      return { data: [] }
-    })
-  })
+const get = vi.hoisted(() => vi.fn(async path => {
+  if (path === 'users/me') return { data: { permissions: [{ permission: 'projects' }] } }
+  return { data: [] }
 }))
+
+vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
 
 import Home from '@/views/Home.vue'
 
 describe('overdue tasks notice', () => {
-  it('closes when leaving the projects list', async () => {
+  it('the projects list neither shows it nor asks for the tasks', async () => {
     localStorage.setItem('welcome', 'true')
-    const notice = { close: vi.fn() }
-    const open = vi.fn(() => notice)
-    const wrapper = shallowMount(Home, {
+    const open = vi.fn()
+    shallowMount(Home, {
       global: {
         mocks: { $buefy: { snackbar: { open } }, $router: { push: vi.fn() }, $route: { query: {} } },
         stubs: { 'download-excel': true }
       }
     })
     await flushPromises()
-    expect(open).toHaveBeenCalledWith(expect.objectContaining({ message: 'Atenció, tens tasques amb la data límit superada!' }))
 
-    wrapper.unmount()
-    expect(notice.close).toHaveBeenCalled()
+    expect(open).not.toHaveBeenCalled()
+    expect(get).toHaveBeenCalledWith('project-states')
+    expect(get.mock.calls.filter(([path]) => /^tasks?\b|^task-states/.test(path))).toEqual([])
   })
 })

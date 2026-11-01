@@ -95,10 +95,6 @@ import { projectsExportFields, exportDate } from "@/domain/projectsExport";
 import sumBy from "lodash/sumBy";
 import { withoutMothers } from "@/domain/motherFigures";
 import { sortProjectsByName } from "@/domain/projectList";
-import { mapState } from "pinia"
-import { useMainStore } from "@/stores/main.js";
-import moment from "moment";
-import { isDone } from "@/domain/tasks";
 
 export default {
   name: "Home",
@@ -137,7 +133,6 @@ export default {
     };
   },
   computed: {
-    ...mapState(useMainStore, ["userName"]),
     titleStack() {
       return ["Projectes", "Projectes"];
     },
@@ -256,50 +251,6 @@ export default {
         this.loading = false;
         this.applyProjects();
       });
-
-    // "done" is the last state by order, as on the Tasques board (it was the id 3)
-    Promise.all([
-      service({ requiresAuth: true }).get("tasks?_limit=-1&_where[archived_eq]=false"),
-      service({ requiresAuth: true, cached: true }).get("task-states?_sort=order")
-    ])
-      .then(([r, statesResponse]) => {
-        const allTasks = r.data;
-        const states = statesResponse.data || [];
-        const myTasks = allTasks.filter(
-          t =>
-            t.users_permissions_users &&
-            t.users_permissions_users.length &&
-            t.task_state &&
-            !isDone(t, states) &&
-            t.users_permissions_users.find(u => u.username === this.userName) &&
-            t.due_date &&
-            t.due_date <= moment().format("YYYY-MM-DD")
-        );
-        const myChecklists = allTasks.filter(
-          t =>
-            t.checklist &&
-            t.checklist.length &&
-            t.checklist.find(
-              c =>
-                c.user &&
-                c.user.username === this.userName &&
-                c.done === false &&
-                c.due_date &&
-                c.due_date <= moment().format("YYYY-MM-DD")
-            )
-        );
-        if (myTasks.length || myChecklists.length) {
-          // a notice of this list: closed when leaving it (it covered the project's save bar)
-          this.overdueNotice = this.$buefy.snackbar.open({
-            message: "Atenció, tens tasques amb la data límit superada!",
-            queue: false,
-            indefinite: true
-          });
-        }
-      });
-  },
-  beforeUnmount() {
-    if (this.overdueNotice) this.overdueNotice.close();
   },
   methods: {
     toggleProjectsEditMode() {
