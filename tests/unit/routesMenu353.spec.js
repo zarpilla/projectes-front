@@ -10,7 +10,7 @@ import RoutesTabs, { TABS, isRoutesScreenPath } from '@/components/RoutesTabs.vu
 import AsideMenuItem from '@/components/AsideMenuItem.vue'
 import { createPinia, setActivePinia } from 'pinia'
 
-const SCREENS = ['/poblacions-rutes', '/rutes-dies', '/simulador-logistic', '/poblacions-punts-entrega', '/rutes']
+const SCREENS = ['/poblacions-rutes', '/rutes-dies', '/mapa-rutes', '/simulador-logistic', '/poblacions-punts-entrega', '/rutes']
 
 describe('one menu entry for the routes screens (issues/353)', () => {
   it('«Rutes i punts» has «Poblacions i rutes» and none of the other screens', () => {
@@ -41,6 +41,6 @@ describe('one menu entry for the routes screens (issues/353)', () => {
     const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:p(.*)', component: { template: '<div />' } }] })
     await router.push('/rutes-dies')
     const w = mount(RoutesTabs, { props: { isStaff: true, isOffice: true }, global: { plugins: [router] } })
-    expect(w.findAll('a').map(a => a.text())).toEqual(['Poblacions i rutes', 'Rutes i dies', 'Simulador', 'Poblacions i punts', 'Rutes'])
+    expect(w.findAll('a').map(a => a.text())).toEqual(['Poblacions i rutes', 'Rutes i dies', 'Mapa', 'Simulador', 'Poblacions i punts', 'Rutes'])
   })
 })

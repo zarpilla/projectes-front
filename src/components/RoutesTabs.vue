@@ -14,6 +14,8 @@
 export const TABS = [
   { to: "/poblacions-rutes", label: "Poblacions i rutes" },
   { to: "/rutes-dies", label: "Rutes i dies" },
+  // where there is service, by comarca (issues/356)
+  { to: "/mapa-rutes", label: "Mapa" },
   // what an order would cost (issues/361)
   { to: "/simulador-logistic", label: "Simulador" },
   { to: "/poblacions-punts-entrega", label: "Poblacions i punts", staff: true },

@@ -471,6 +471,17 @@ const routes = [
   },
   {
     meta: {
+      title: "Mapa de rutes",
+      requiresAuth: true
+    },
+    // the comarques and towns with service (issues/356)
+    path: "/mapa-rutes",
+    name: "routes.map",
+    component: () =>
+      import("../views/RouteMap.vue"),
+  },
+  {
+    meta: {
       title: "Simulador logístic",
       requiresAuth: true
     },

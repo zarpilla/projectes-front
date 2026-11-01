@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.11.01",
   items: [
     {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Nou mapa a «Poblacions i rutes»: les comarques amb servei per dia de repartiment. Tria una comarca per veure'n les poblacions, les rutes i les franges."]
+    },
+    {
       type: "Millores",
       modules: ["Projectes"],
       text: ["El Resum d'un contacte mostra les hores dedicades als seus projectes, en total i projecte per projecte, per a cada any i a l'històric."]

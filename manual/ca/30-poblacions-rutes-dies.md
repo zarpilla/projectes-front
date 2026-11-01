@@ -6,7 +6,7 @@ manual: usuari
 module: logistica
 order: 30
 roles: [orders, orders_admin]
-routes: ["/poblacions-rutes", "/poblacions-punts-entrega", "/rutes-dies", "/rutes"]
+routes: ["/poblacions-rutes", "/mapa-rutes", "/poblacions-punts-entrega", "/rutes-dies", "/rutes"]
 lang: ca
 updated: 2026-10-18
 ---
@@ -116,6 +116,18 @@ servir per saber quina ruta li va bé:
   seguida.
 
 No hi ha cap botó per esborrar o canviar el nom d'una població.
+
+### El mapa
+
+La pestanya **Mapa** ensenya les comarques on hi ha servei. Una comarca amb un sol dia de repartiment surt del color d'aquest dia. Si n'hi ha més d'un, surt en gris amb una etiqueta per a cada dia.
+
+- Tria un dia a la llegenda per veure només on es reparteix aquell dia.
+- Clica una comarca, al mapa o a la llista, per acostar-t'hi. Hi veuràs els municipis i, al costat, cada població amb les seves rutes i franges.
+- **Totes les comarques** torna a la vista general.
+
+Un municipi surt pintat si alguna de les seves poblacions té ruta, encara que no hi hagi servei a tot el municipi.
+
+Si una població amb ruta no es pot situar, l'oficina la veu a **Poblacions sense ubicar**, on pot triar-ne el municipi o treure-la del mapa.
 
 ### 3. Poblacions i punts (oficina)
 
