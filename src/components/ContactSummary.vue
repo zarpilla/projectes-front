@@ -22,6 +22,11 @@
           <small>{{ projectsSmall }}</small>
         </div>
         <div class="doc-kpi">
+          <span>Hores {{ periodName }}</span>
+          <b>{{ hoursText(hoursTotals.hours) }}</b>
+          <small>{{ isAll ? "Dedicades als projectes" : `Històric: ${hoursText(hoursTotals.hoursAll)}` }}</small>
+        </div>
+        <div class="doc-kpi">
           <span>Facturat {{ periodName }}</span>
           <b>{{ money(figures.sales) }}</b>
           <small>{{ isAll ? "Sense IVA" : `Històric: ${money(figures.salesAll)}` }}</small>
@@ -52,6 +57,7 @@
               <th>Rol</th>
               <th>Estat</th>
               <th>Dates</th>
+              <th class="has-text-right">Hores {{ periodName }}</th>
               <th class="has-text-right">Facturat {{ periodName }}</th>
               <th class="has-text-right">Comprat {{ periodName }}</th>
             </tr>
@@ -62,6 +68,7 @@
               <td><span v-for="r in p.roles" :key="r" class="tag mr-1">{{ roleLabel(r) }}</span></td>
               <td>{{ p.state ? p.state.name : "—" }}</td>
               <td class="is-nowrap">{{ dateRange(p) }}</td>
+              <td class="has-text-right is-nowrap">{{ p.hours ? hoursText(p.hours) : "—" }}<sup v-if="p.childHours" title="Hores dels projectes fills"> †</sup></td>
               <td class="has-text-right is-nowrap">{{ p.sales ? money(p.sales) : "—" }}<sup v-if="p.shared && p.sales" title="Inclou documents repartits entre diversos projectes"> *</sup></td>
               <td class="has-text-right is-nowrap">{{ p.purchases ? money(p.purchases) : "—" }}<sup v-if="p.shared && p.purchases" title="Inclou documents repartits entre diversos projectes"> *</sup></td>
             </tr>
@@ -71,6 +78,10 @@
       </div>
       <p v-if="projectRows.some(p => p.shared && (p.sales || p.purchases))" class="summary-note">
         * Inclou documents repartits entre diversos projectes, comptats sencers a cadascun.
+      </p>
+
+      <p v-if="projectRows.some(p => p.childHours)" class="summary-note">
+        † Un projecte mare mostra les hores dels seus fills.
       </p>
 
       <h3 class="summary-title">Documents</h3>
@@ -138,7 +149,7 @@
 <script>
 import moment from "moment";
 import service from "@/service/index";
-import { formatMoney } from "@/helpers/format-number";
+import { formatMoney, formatHours } from "@/helpers/format-number";
 import { loadFiscalSettings } from "@/service/fiscalYear";
 import { fiscalYearOf, fiscalYearLabel } from "@/domain/years";
 import {
@@ -150,6 +161,7 @@ import {
   isPending,
   periodYears,
   summaryFigures,
+  hoursFigures,
   projectFigures,
   filterDocuments
 } from "@/domain/contactSummary";
@@ -183,6 +195,7 @@ export default {
       error: "",
       projects: [],
       documents: [],
+      hours: [],
       startMonth: 1,
       period: null,
       docFilter: "all",
@@ -196,7 +209,7 @@ export default {
       return this.period === ALL_YEARS;
     },
     years() {
-      return periodYears(this.documents, this.startMonth);
+      return periodYears(this.documents, this.startMonth, moment(), this.hours);
     },
     periodLabel() {
       return this.isAll ? "Històric" : this.yearLabel(this.period);
@@ -208,8 +221,11 @@ export default {
     figures() {
       return summaryFigures(this.documents, this.period, this.startMonth);
     },
+    hoursTotals() {
+      return hoursFigures(this.hours, this.projects, this.documents, this.period, this.startMonth);
+    },
     projectRows() {
-      return projectFigures(this.projects, this.documents, this.period, this.startMonth);
+      return projectFigures(this.projects, this.documents, this.period, this.startMonth, this.hours);
     },
     projectsSmall() {
       const counts = {};
@@ -249,6 +265,7 @@ export default {
         this.startMonth = settings.startMonth;
         this.projects = summary.data.projects || [];
         this.documents = summary.data.documents || [];
+        this.hours = summary.data.hours || [];
         this.period = fiscalYearOf(moment(), this.startMonth);
         this.loaded = true;
       } catch (e) {
@@ -262,6 +279,9 @@ export default {
     },
     money(v) {
       return formatMoney(Number(v) || 0);
+    },
+    hoursText(v) {
+      return formatHours(Number(v) || 0);
     },
     date(d) {
       return d ? moment(d, "YYYY-MM-DD").format("DD/MM/YYYY") : "—";
@@ -293,6 +313,10 @@ export default {
 .contact-summary {
   position: relative;
   min-height: 8rem;
+}
+// six figures: they fit in one row next to the side menu
+.doc-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
 }
 .summary-title {
   font-size: 1rem;

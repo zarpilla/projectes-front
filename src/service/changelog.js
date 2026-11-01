@@ -24,6 +24,11 @@ export const CHANGELOG = [
   date: "2026.11.01",
   items: [
     {
+      type: "Millores",
+      modules: ["Projectes"],
+      text: ["El Resum d'un contacte mostra les hores dedicades als seus projectes, en total i projecte per projecte, per a cada any i a l'històric."]
+    },
+    {
       type: "Correccions",
       modules: ["Diners"],
       text: ["Pujar el PDF d'una factura o despesa rebuda per llegir-ne les dades ja funciona: abans sempre donava l'error «No PDF file was provided»."]

@@ -5,7 +5,8 @@ import { fiscalYearOf } from '@/domain/years'
 // from GET /contacts/:id/summary, with the figures of a (fiscal) year or of
 // every year («Històric»). Sales are emitted invoices and other incomes,
 // purchases received invoices and expenses. Figures are without VAT (base);
-// what is still to collect or to pay is the document total.
+// what is still to collect or to pay is the document total. Hours are the ones
+// worked on the projects, per month (see hoursProjectIds for which ones count).
 
 export const ALL_YEARS = 'all'
 
@@ -54,11 +55,11 @@ export function inPeriod(d, period, startMonth = 1) {
   return period === ALL_YEARS || fiscalYearOf(d.emitted, startMonth) === Number(period)
 }
 
-/** The years with documents, and the current one, newest first. */
-export function periodYears(documents, startMonth = 1, today = moment()) {
+/** The years with documents or hours, and the current one, newest first. */
+export function periodYears(documents, startMonth = 1, today = moment(), hours = []) {
   const years = new Set([fiscalYearOf(today, startMonth)])
-  for (const d of documents || []) {
-    const y = fiscalYearOf(d.emitted, startMonth)
+  for (const date of [...(documents || []).map(d => d.emitted), ...hours.map(h => h.date)]) {
+    const y = fiscalYearOf(date, startMonth)
     if (y !== null) years.add(y)
   }
   return [...years].sort((a, b) => b - a)
@@ -88,20 +89,49 @@ export function summaryFigures(documents, period, startMonth = 1, today = moment
 const projectIds = d => (d.projects || []).map(p => p.id)
 
 /**
- * Each project with the sales and purchases of this contact on it in the
- * period. A document shared between several projects counts whole on each:
- * its lines don't say what part goes to which, so `shared` marks the rows
- * that include one.
+ * The projects whose hours are the contact's: as client, as intercooperation
+ * or with sales to it. A provider's invoice on a project doesn't make the
+ * hours worked there hours for that provider.
  */
-export function projectFigures(projects, documents, period, startMonth = 1) {
+export function hoursProjectIds(projects, documents) {
+  const sold = new Set((documents || []).filter(d => !isDraft(d) && isSale(d)).flatMap(projectIds))
+  return new Set((projects || []).filter(p => (p.roles || []).some(r => r !== 'documents') || sold.has(p.id)).map(p => p.id))
+}
+
+const sumHours = rows => rows.reduce((acc, h) => acc + cents(h.hours), 0) / 100
+const hoursInPeriod = (h, period, startMonth) => inPeriod({ emitted: h.date }, period, startMonth)
+
+/** Hours of the period and of every year: each row once, also when it counts on a child and its mother. */
+export function hoursFigures(hours, projects, documents, period, startMonth = 1) {
+  const ids = hoursProjectIds(projects, documents)
+  const rows = (hours || []).filter(h => h.projects.some(id => ids.has(id)))
+  return {
+    hours: sumHours(rows.filter(h => hoursInPeriod(h, period, startMonth))),
+    hoursAll: sumHours(rows)
+  }
+}
+
+/**
+ * Each project with the sales and purchases of this contact on it in the
+ * period, and its hours. A document shared between several projects counts
+ * whole on each: its lines don't say what part goes to which, so `shared`
+ * marks the rows that include one. `childHours` marks a mother with hours of
+ * its children.
+ */
+export function projectFigures(projects, documents, period, startMonth = 1, hours = []) {
   const docs = (documents || []).filter(d => !isDraft(d) && (isSale(d) || isPurchase(d)) && inPeriod(d, period, startMonth))
+  const ids = hoursProjectIds(projects, documents)
+  const periodHours = hours.filter(h => hoursInPeriod(h, period, startMonth))
   return (projects || []).map(p => {
     const mine = docs.filter(d => projectIds(d).includes(p.id))
+    const myHours = ids.has(p.id) ? periodHours.filter(h => h.projects.includes(p.id)) : []
     return {
       ...p,
       sales: sum(mine.filter(isSale), 'total_base'),
       purchases: sum(mine.filter(isPurchase), 'total_base'),
-      shared: mine.some(d => projectIds(d).length > 1)
+      shared: mine.some(d => projectIds(d).length > 1),
+      hours: sumHours(myHours),
+      childHours: myHours.some(h => h.hours && h.project !== p.id)
     }
   })
 }
