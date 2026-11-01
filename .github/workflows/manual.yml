@@ -1,0 +1,55 @@
+name: Publish the manual
+
+# Sends the manual to docs.esstrapis.org when it changes on main. Only the content:
+# the app is not built or deployed, and the viewer has its own repo (esstrapis-docs).
+# The key is locked on the server to /var/www/docs/receive-content.sh (forced command),
+# which checks what arrives, copies it and reloads the site.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'manual/manual.json'
+      - 'manual/ca/**'
+      - 'manual/check-meta.mjs'
+      - '.github/workflows/manual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    concurrency:
+      group: publish-manual
+      cancel-in-progress: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check the chapters' metadata
+        run: node manual/check-meta.mjs
+
+      - name: Send the manual to the VPS
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          MANUAL_SSH_KEY: ${{ secrets.MANUAL_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$MANUAL_SSH_KEY" > ~/.ssh/manual_key && chmod 600 ~/.ssh/manual_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+          tar -czf - -C manual manual.json ca | ssh -i ~/.ssh/manual_key -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o ConnectTimeout=20 "$VPS_USER@$VPS_HOST"
