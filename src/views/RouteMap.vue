@@ -63,12 +63,13 @@
 
             <template v-if="labelsReady">
               <g v-for="label in labels" :key="label.key" class="rm-label">
-                <text :x="label.x" :y="label.y" :font-size="labelSize" text-anchor="middle">{{ label.name }}</text>
+                <line v-if="label.at[0] !== label.x || label.at[1] !== label.y" class="rm-leader" :x1="label.x" :y1="label.y" :x2="label.at[0]" :y2="label.at[1]" />
+                <text :x="label.at[0]" :y="label.at[1]" :font-size="labelSize" :stroke-width="labelSize * .3" text-anchor="middle">{{ label.name }}</text>
                 <g v-if="label.days.length > 1">
                   <template v-for="(d, i) in label.days" :key="d">
                     <rect
-                      :x="label.x + (i - label.days.length / 2) * tile"
-                      :y="label.y + labelSize * .35"
+                      :x="label.at[0] + (i - label.days.length / 2) * tile"
+                      :y="label.at[1] + labelSize * .35"
                       :width="tile * .92"
                       :height="tile * .92"
                       :rx="tile * .18"
@@ -76,8 +77,8 @@
                     />
                     <text
                       class="rm-tile"
-                      :x="label.x + (i - label.days.length / 2 + .46) * tile"
-                      :y="label.y + labelSize * .35 + tile * .66"
+                      :x="label.at[0] + (i - label.days.length / 2 + .46) * tile"
+                      :y="label.at[1] + labelSize * .35 + tile * .66"
                       :font-size="tile * .56"
                       :style="{ fill: dayInk(d) }"
                       text-anchor="middle"
@@ -102,7 +103,7 @@
               <ul class="rm-towns">
                 <li v-for="town in shownTowns" :key="town.city.id" :class="{ 'is-picked': picked === town.place.code }">
                   <b>{{ town.city.name }}</b>
-                  <small v-if="isVillage(town)" class="has-text-muted"> {{ town.place.name }}</small>
+                  <small v-if="isVillage(town)" class="rm-place has-text-muted">{{ town.place.name }}</small>
                   <div v-for="route in townRoutes(town)" :key="route.id" class="rm-town-route">
                     <i class="rm-dot" :style="{ background: dayColor(firstDay(route)) }" />
                     {{ routeDaysText(route) }} · {{ route.name }}<span v-if="slotText(town, route)"> · {{ slotText(town, route) }}</span>
@@ -154,7 +155,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
 import { WEEKDAYS, normalizeName, routeDays, slotOf } from "@/domain/cityRoutes.js";
-import { OFF_MAP, boxOfBoxes, placeKey, serviceMap, shownDays, zoomBox } from "@/domain/routeMap.js";
+import { OFF_MAP, boxOfBoxes, placeKey, placeLabels, serviceMap, shownDays, zoomBox } from "@/domain/routeMap.js";
 
 const ZOOM_MS = 380;
 const EMPTY = { municipis: new Map(), comarques: new Map(), unplaced: [] };
@@ -222,14 +223,14 @@ export default {
     },
     labels() {
       const label = (place, area, name) => ({ key: place.code, x: place.label[0], y: place.label[1], name, days: this.areaDays(area) });
-      if (this.comarca) {
-        return this.municipis
+      const labels = this.comarca
+        ? this.municipis
           .filter(m => this.areaDays(this.service.municipis.get(m.code)).length)
-          .map(m => label(m, this.service.municipis.get(m.code), m.name.replace(/^(el|la|els|les) /, "")));
-      }
-      return this.map.comarques
-        .filter(c => this.areaDays(this.service.comarques.get(c.code)).length)
-        .map(c => label(c, this.service.comarques.get(c.code), c.name));
+          .map(m => label(m, this.service.municipis.get(m.code), m.name.replace(/^(el|la|els|les) /, "")))
+        : this.map.comarques
+          .filter(c => this.areaDays(this.service.comarques.get(c.code)).length)
+          .map(c => label(c, this.service.comarques.get(c.code), c.name));
+      return placeLabels(labels, { fontSize: this.labelSize, tile: this.tile, view: this.viewBox }).filter(l => l.at);
     },
     servedComarques() {
       if (!this.map) return [];
@@ -497,10 +498,14 @@ export default {
 .rm-label > text {
   fill: var(--a-fg);
   stroke: var(--a-surface);
-  stroke-width: 3px;
   stroke-linejoin: round;
   paint-order: stroke;
   font-weight: 600;
+}
+.rm-leader {
+  stroke: var(--a-fg);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 .rm-tile {
   font-weight: 700;
@@ -558,6 +563,9 @@ export default {
 }
 .rm-towns li.is-picked {
   background: var(--a-accent-soft);
+}
+.rm-place {
+  display: block;
 }
 .rm-town-route {
   display: flex;

@@ -1,7 +1,7 @@
 // The map of routes (issues/356): towns land on their municipality and comarca,
 // coloured by the days of their routes.
 import { describe, it, expect } from "vitest";
-import { OFF_MAP, boxOfBoxes, placeIndex, placeKey, serviceMap, shownDays, townPlace, zoomBox } from "@/domain/routeMap.js";
+import { OFF_MAP, boxOfBoxes, placeIndex, placeLabels, placeKey, serviceMap, shownDays, townPlace, zoomBox } from "@/domain/routeMap.js";
 import realMap from "@/data/catalunyaMap.json";
 
 const map = {
@@ -108,5 +108,27 @@ describe("zoom (issues/356)", () => {
     expect(x + w / 2).toBeCloseTo(150);
     expect(y + h / 2).toBeCloseTo(125);
     expect(h).toBeGreaterThan(50);
+  });
+});
+
+describe("labels (issues/356)", () => {
+  const options = { fontSize: 10, tile: 12, view: [0, 0, 400, 300] };
+  const label = (key, x, y, name, days = ["monday"]) => ({ key, x, y, name, days });
+  const overlap = (a, b, w) => Math.abs(a.at[0] - b.at[0]) < w && Math.abs(a.at[1] - b.at[1]) < 12;
+
+  it("leaves a label where it is when there is room", () => {
+    expect(placeLabels([label("a", 100, 100, "Girona")], options)[0].at).toEqual([100, 100]);
+  });
+
+  it("moves apart two names on the same place", () => {
+    const [a, b] = placeLabels([label("a", 100, 100, "Badalona"), label("b", 100, 100, "Santa Coloma")], options);
+    expect(a.at && b.at).toBeTruthy();
+    expect(overlap(a, b, 40)).toBe(false);
+  });
+
+  it("gives up on a name that doesn't fit instead of covering another one", () => {
+    const tiny = { ...options, view: [90, 85, 60, 20] };
+    const placed = placeLabels([label("a", 120, 100, "Vilanova"), label("b", 120, 100, "Vilafranca")], tiny);
+    expect(placed.filter(l => l.at)).toHaveLength(1);
   });
 });

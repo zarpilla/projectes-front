@@ -148,3 +148,39 @@ export const boxOfBoxes = boxes => {
   const bottom = Math.max(...boxes.map(b => b[1] + b[3]));
   return [left, top, right - left, bottom - top];
 };
+
+// Where the names go, so that none covers another one (issues/356). Each label
+// { key, x, y, name, days } gets the free spot closest to its place, looking
+// further and further away; the longest names choose first because they fit in
+// fewer spots. `at: null`: no room, the name stays in the list and the tooltip.
+export const placeLabels = (labels, { fontSize, tile, view }) => {
+  const [viewX, viewY, viewW, viewH] = view;
+  const taken = [];
+  const boxAt = (x, y, label) => {
+    const halfW = Math.max(label.name.length * fontSize * 0.3, (label.days.length * tile) / 2) + fontSize * 0.3;
+    const bottom = y + fontSize * 0.45 + (label.days.length > 1 ? tile : 0);
+    return { left: x - halfW, right: x + halfW, top: y - fontSize * 1.05, bottom };
+  };
+  const fits = box =>
+    box.left >= viewX && box.right <= viewX + viewW && box.top >= viewY && box.bottom <= viewY + viewH &&
+    !taken.some(o => box.left < o.right && o.left < box.right && box.top < o.bottom && o.top < box.bottom);
+  const spots = [[0, 0]];
+  for (let ring = 1; ring <= 6; ring++) {
+    for (let i = 0; i < 12; i++) {
+      const angle = (i * Math.PI) / 6;
+      spots.push([Math.cos(angle) * ring * fontSize * 2.2, Math.sin(angle) * ring * fontSize * 1.1]);
+    }
+  }
+  const placed = new Map();
+  for (const label of [...labels].sort((a, b) => b.name.length - a.name.length)) {
+    const spot = spots.find(([dx, dy]) => fits(boxAt(label.x + dx, label.y + dy, label)));
+    if (!spot) {
+      placed.set(label.key, null);
+      continue;
+    }
+    const at = [label.x + spot[0], label.y + spot[1]];
+    taken.push(boxAt(at[0], at[1], label));
+    placed.set(label.key, at);
+  }
+  return labels.map(label => ({ ...label, at: placed.get(label.key) }));
+};
