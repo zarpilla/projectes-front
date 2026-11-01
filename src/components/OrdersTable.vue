@@ -395,6 +395,7 @@
 
 <script>
 import service from "@/service/index";
+import { textCell } from "@/service/csvFormula";
 import { orderMembers } from "@/domain/routeAccess";
 import { parse } from "csv-parse/browser/esm";
 import { mapState } from "pinia"
@@ -2638,6 +2639,8 @@ export default {
       
       // Get headers from csvFieldsRouter
       const headers = Object.keys(this.csvFieldsRouter);
+      // what people type, never read as a formula by the spreadsheet (issues/405)
+      const textColumns = ["NOM CLIENT", "ADREÇA", "DETALLS COMANDA", "HORARIS CLIENT", "SOCIA", "MAIL", "ID CLIENT", "DETALLS REPARTIDORES"];
       
       // Generate CSV rows
       const rows = (await this.rowsToExport()).map(row => {
@@ -2658,6 +2661,7 @@ export default {
           if (value === null || value === undefined) {
             value = '';
           }
+          if (textColumns.includes(header)) value = textCell(value);
           
           // Convert to string and escape quotes
           value = String(value).replace(/"/g, '""');

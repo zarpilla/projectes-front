@@ -190,8 +190,10 @@ export default {
         })
       } catch (error) {
         console.error('Error deleting pivot view:', error)
+        // without full access only one's own saved views can be deleted (issues/394)
+        const forbidden = error && error.response && error.response.status === 403
         this.$toast.open({
-          message: 'Error eliminant la vista',
+          message: forbidden ? 'Només pots eliminar les vistes que has desat tu' : 'Error eliminant la vista',
           type: 'is-danger'
         })
       }
