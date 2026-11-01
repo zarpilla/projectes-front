@@ -239,3 +239,7 @@ Keep `manual/ca/README.md` as the manual's table of contents, generated from `TO
 
 `manual/` is versioned with the front (branch rules in the repo's notes apply; don't commit or push unless
 asked). `manual/capture/.gitignore` keeps `node_modules/`, `results/` and `.env.manual` out.
+
+A push to `main` that changes `manual/manual.json` or `manual/ca/` publishes the manual on docs.esstrapis.org
+(`.github/workflows/manual.yml`), without building or deploying the app. It goes out at once: if the chapter
+describes something still being deployed, it can arrive a few minutes before the app.
