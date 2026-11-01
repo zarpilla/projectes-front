@@ -169,12 +169,16 @@ test('the forgotten password form is accepted', async ({ browser }) => {
 })
 
 test('an expired access token is refreshed without logging out', async () => {
+  await visit('/contactes')
   const before = await page.evaluate(() => localStorage.getItem('jwt'))
   // a token the backend rejects, as an expired one would be
   await page.evaluate(() => localStorage.setItem('jwt', 'expired.e2e.token'))
   const refresh = page.waitForResponse(r => r.url().includes('/api/auth/refresh'))
-  await visit('/contactes')
+  // a single load, not visit(): its second navigation can abort the refresh once the
+  // server has spent the single-use token, and the next one then answers 401
+  await page.reload()
   expect((await refresh).status()).toBe(200)
+  await settle()
   const after = await page.evaluate(() => localStorage.getItem('jwt'))
   expect(after).not.toBe('expired.e2e.token')
   expect(after).not.toBe(before)
