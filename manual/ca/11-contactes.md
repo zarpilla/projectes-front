@@ -1,6 +1,6 @@
 ---
 title: "Contactes"
-description: "Clientes, proveïdores i entitats d'intercooperació: la llista, el resum de projectes i documents i la fitxa de contacte."
+description: "Clientes, proveïdores i entitats d'intercooperació: la llista, el resum de projectes, hores i documents i la fitxa de contacte."
 product: esstrapis
 manual: usuari
 module: projectes
@@ -8,7 +8,7 @@ order: 11
 roles: [projects]
 routes: ["/contactes", "/contacte/:id"]
 lang: ca
-updated: 2026-10-30
+updated: 2026-11-01
 ---
 # 11. Contactes
 
@@ -46,7 +46,7 @@ subvenció), a les factures i als pressupostos.
 Clicant un nom s'obre el contacte amb dues pestanyes: **Resum** (la que s'obre primer) i **Dades** (la fitxa).
 L'adreça recorda la pestanya oberta.
 
-### Resum: projectes i documents
+### Resum: projectes, hores i documents
 
 El **Resum** aplega tot el que la cooperativa ha fet amb aquest contacte. Només el veuen les persones amb
 permís de projectes o d'administració.
@@ -55,13 +55,15 @@ permís de projectes o d'administració.
 
 - **Període**: un any (l'any fiscal, si l'entitat en té) o **Històric** (tots els anys).
 - **Projectes**: quants en té, i en quants és clienta, entitat d'intercooperació o només hi té documents.
+- **Hores** al període: les hores dedicades als projectes d'aquest contacte. A sota, el total de tots els anys.
+  Vegeu [quines hores compten](#quines-hores-compten).
 - **Facturat** i **Comprat** al període: el que se li ha facturat (factures emeses i altres ingressos) i el
   que ens ha facturat (factures rebudes i despeses), sense IVA. A sota, el total de tots els anys.
 - **Pendent de cobrar** i **Pendent de pagar**: els documents encara no cobrats o no pagats, de tots els
   anys, amb IVA. Si n'hi ha de vençuts, la targeta de cobrar es marca.
 - La taula **Projectes**: cada projecte amb el seu **Rol** (**Clienta**, **Intercooperació** o
-  **Documents**, si el contacte no hi és com a clienta però hi té factures), l'**Estat**, les **Dates** i
-  el que s'hi ha facturat i comprat al període. Un asterisc vol dir que hi ha documents repartits entre
+  **Documents**, si el contacte no hi és com a clienta però hi té factures), l'**Estat**, les **Dates**, les
+  **Hores** del període i el que s'hi ha facturat i comprat. Un asterisc vol dir que hi ha documents repartits entre
   diversos projectes, comptats sencers a cadascun.
 
 ![La llista de documents del contacte](img/11-contactes/07-resum-documents.png)
@@ -72,6 +74,18 @@ permís de projectes o d'administració.
   anys. Clicant el codi s'obre el document; clicant el projecte, el projecte.
 
 Els punts d'entrega de la logística no tenen aquesta pestanya: tenen la seva de comandes.
+
+#### Quines hores compten
+
+- Són les hores imputades als projectes, segons la data de cada imputació, per l'any triat. Les hores sense
+  data només surten a **Històric**.
+- Compten els projectes on el contacte és clienta o entitat d'intercooperació, o on hi ha vendes seves. En un
+  projecte on només té factures rebudes o despeses no compten, perquè aquella feina no és per a ell: la
+  columna **Hores** hi mostra un guió.
+- Un **projecte mare** mostra les hores dels seus fills, com a la llista de projectes mare, i porta la marca
+  †. Si un fill també surt a la taula, les seves hores surten a totes dues files, però a la targeta **Hores**
+  compten una sola vegada.
+- Si un projecte té diverses clientes, cadascuna hi veu totes les hores del projecte.
 
 ### Dades: la fitxa
 

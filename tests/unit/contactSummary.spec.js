@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest'
 import moment from 'moment'
 import {
-  ALL_YEARS, contactTab, showContactSummary, docStatus, isPending, periodYears, summaryFigures, projectFigures, filterDocuments
+  ALL_YEARS, contactTab, showContactSummary, docStatus, isPending, periodYears, summaryFigures, hoursFigures, hoursProjectIds, projectFigures, filterDocuments
 } from '@/domain/contactSummary'
 
 const today = moment('2026-10-30')
@@ -78,6 +78,53 @@ describe('projectFigures', () => {
   it('counts a document shared between projects whole on each, and marks it', () => {
     const rows = projectFigures([{ id: 7 }, { id: 8 }], docs, 2026)
     expect(rows.map(r => r.shared)).toEqual([true, false])
+  })
+})
+
+describe('hours', () => {
+  const projects = [
+    { id: 7, roles: ['client'] }, // mother of 8
+    { id: 8, roles: ['documents'] }, // only an expense of the contact
+    { id: 9, roles: ['documents'] }, // a sale of the contact
+    { id: 10, roles: ['documents'] } // only an expense of the contact, no mother
+  ]
+  const hours = [
+    { project: 7, projects: [7], date: '2026-02-01', hours: 10.5 },
+    { project: 8, projects: [8, 7], date: '2026-09-01', hours: 4 },
+    { project: 9, projects: [9], date: '2025-11-01', hours: 2.25 },
+    { project: 10, projects: [10], date: '2026-03-01', hours: 100 },
+    { project: 7, projects: [7], date: null, hours: 1 }
+  ]
+
+  it('counts client, intercooperation and sales projects, not a provider\'s', () => {
+    expect([...hoursProjectIds(projects, docs)]).toEqual([7, 9])
+    expect([...hoursProjectIds([{ id: 5, roles: ['intercooperation'] }], [])]).toEqual([5])
+    // a draft is not a sale yet
+    expect([...hoursProjectIds([{ id: 3, roles: ['documents'] }], [{ kind: 'emitted-invoices', state: 'draft', projects: [{ id: 3 }] }])]).toEqual([])
+  })
+  it('adds each row once, undated hours only in Històric', () => {
+    expect(hoursFigures(hours, projects, docs, 2026)).toEqual({ hours: 14.5, hoursAll: 17.75 })
+    expect(hoursFigures(hours, projects, docs, 2025).hours).toBe(2.25)
+    expect(hoursFigures(hours, projects, docs, ALL_YEARS).hours).toBe(17.75)
+  })
+  it('follows the fiscal year', () => {
+    // September–August: 2026-09 is 2026/27, 2026-02 and 2025-11 are 2025/26
+    expect(hoursFigures(hours, projects, docs, 2025, 9).hours).toBe(12.75)
+    expect(hoursFigures(hours, projects, docs, 2026, 9).hours).toBe(4)
+  })
+  it('shows them per project, a mother with those of its children', () => {
+    const rows = projectFigures(projects, docs, 2026, 1, hours)
+    expect(rows.map(r => [r.id, r.hours, r.childHours])).toEqual([
+      [7, 14.5, true], [8, 0, false], [9, 0, false], [10, 0, false]
+    ])
+    expect(projectFigures(projects, docs, ALL_YEARS, 1, hours).find(r => r.id === 9).hours).toBe(2.25)
+  })
+  it('marks a mother whose child is not on the list', () => {
+    const rows = projectFigures([{ id: 7, roles: ['client'] }], [], 2026, 1, [{ project: 99, projects: [7], date: '2026-01-01', hours: 3 }])
+    expect(rows.map(r => [r.hours, r.childHours])).toEqual([[3, true]])
+  })
+  it('offers the years with hours', () => {
+    expect(periodYears([], 1, today, [{ date: '2023-05-01' }, { date: null }])).toEqual([2026, 2023])
   })
 })
 

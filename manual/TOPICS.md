@@ -27,7 +27,7 @@ Dades per a les captures: **resilience** i **arrandeterra** (projectes, fases, h
 | 08 | Documents del projecte | Adjuntar i consultar documents d'un projecte; pestanya Cobraments i pagaments (documents econòmics i moviments). | `/project/:id` | projects | done (2026-10-18) |
 | 09 | Planificació (Gantt) | Diagrama de Gantt del projecte i previsió de dedicació. | `/project/:id`, `/stats-previsio-gantt` | projects | done (2026-10-18) |
 | 10 | Tasques | Tauler, llista i calendari; fitxa de tasca (descripció, checklist, documents, comentaris i mencions, prioritat, dates, hores estimades i fetes, imputar hores); tasques recurrents; plantilles; avisos per correu i l'opció de Configuració general; tasques al Gantt. | `/tasks`, `/project/:id` | projects | done (2026-10-17) |
-| 11 | Contactes | Clients i proveïdors, tipus de contacte, fitxa, esborrar, DIR3 per a l'administració pública (FACe; sense captura: FACe desactivat a la còpia), pestanya Resum (projectes i documents del contacte), avís de NIF repetit. | `/contacts`, `/contact/:id`, `/client/:id` | projects | done (2026-10-30) |
+| 11 | Contactes | Clients i proveïdors, tipus de contacte, fitxa, esborrar, DIR3 per a l'administració pública (FACe; sense captura: FACe desactivat a la còpia), pestanya Resum (projectes, hores i documents del contacte), avís de NIF repetit. | `/contacts`, `/contact/:id`, `/client/:id` | projects | done (2026-11-01) |
 | 12 | Pressupostos | Crear un pressupost, línies, enviament i acceptació, proforma, PDF. (No hi ha conversió automàtica a projecte o factura.) | `/quotes`, `/quote/:id` | projects | done (2026-10-18) |
 
 ## C. Hores i persones
