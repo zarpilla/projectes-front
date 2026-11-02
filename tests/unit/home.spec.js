@@ -78,7 +78,9 @@ describe('Inici', () => {
 
   it('opens Inici after login unless the person chose otherwise', () => {
     expect(landingFor(null, ['projects'])).toBe(HOME_PATH)
-    expect(landingFor({ pins: [], landing: 'home' }, ['orders'])).toBe(HOME_PATH)
+    // a member lands on «Avisos» (issues/354)
+    expect(landingFor({ pins: [], landing: 'home' }, ['orders'])).toBe('/avisos')
+    expect(landingFor({ pins: [], landing: 'home' }, ['orders', 'orders_admin'])).toBe(HOME_PATH)
     expect(landingFor({ pins: [], landing: 'usual' }, ['projects'])).toBe('/projectes')
     expect(landingFor({ pins: [], landing: 'usual' }, ['hours'])).toBe('/dedicacio')
     expect(landingFor({ pins: ['/tresoreria', '/dedicacio'], landing: 'first' }, ['hours'])).toBe('/dedicacio')

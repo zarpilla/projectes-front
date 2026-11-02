@@ -5,21 +5,7 @@
         <p class="modal-card-title">Hola {{ userName }}</p>
       </header>
       <section class="modal-card-body modal-card-body-festive">
-        Aquest missatge és per recordar-te que tens pagaments pendents de les
-        factures de servei per un import total de {{ sumOfInvoices }}.
-        <br /><br />T'hem enviat les factures al correu el darrer dia de mes i
-        les pots consultar també a la secció de 
-        <router-link to="/factures-proveidor">FACTURES</router-link>
-        aquí mateix a
-        l'ESStrapis, on veureu indicades les que estan pendents. Aprofitem per
-        recordar que per tenir un seguiment òptim de la facturació, feu una
-        transferència per factura amb l'import exacte indicant al concepte: "el
-        vostre nom comercial_el mes de facturació_número de factura".<br /><br />
-        Si ja has fet el pagament, no en facis cas, una vegada l'informem
-        deixarà d'aparèixer aquest missatge!<br /><br />
-        Necessitem la responsabilitat de totes per poder facilitar la gestió i
-        us recordem que les factures s'emeten a mes vençut i si acumulem
-        impagaments posem en risc la tresoreria {{ ofEntity }}.
+        <pending-invoices-text :invoices="invoices" />
       </section>
       <footer class="modal-card-foot">
           <button class="button is-primary" native-type="submit" @click="submit">D'acord</button>
@@ -36,6 +22,7 @@ import { useMainStore } from "@/stores/main.js";
 import ModalBox from "@/components/ModalBox.vue";
 import moment from "moment";
 import RadioPicker from "@/components/RadioPicker.vue";
+import PendingInvoicesText from "@/components/PendingInvoicesText.vue";
 import FileUpload from "@/components/FileUpload.vue";
 import { formatMoney } from "@/helpers/format-number";
 import { ofWord } from "@/helpers/catalan";
@@ -43,7 +30,7 @@ import { ofWord } from "@/helpers/catalan";
 export default {
   name: "ModalBoxTask",
   emits: ["cancel", "submit"],
-  components: { ModalBox, RadioPicker, FileUpload },
+  components: { ModalBox, RadioPicker, FileUpload, PendingInvoicesText },
   props: {
     isActive: {
       type: Boolean,

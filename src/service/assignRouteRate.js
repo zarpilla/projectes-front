@@ -1,5 +1,5 @@
 import moment from "moment";
-import { isLateDelivery, lateRules } from "@/domain/lateOrders.js";
+import { isClosedDelivery, isClosedPickup, isLateDelivery, lateRules } from "@/domain/lateOrders.js";
 
 const idOf = value => (value && typeof value === "object" ? value.id : value);
 
@@ -95,8 +95,23 @@ const isRouteClosed = (route, day, closures = []) => {
 // surcharge, or picks a later day. Admins are exempt. The deadline is the
 // limit of the working day before (workingDays, lateOrders.js): on the weekend
 // a Monday is late too.
+//
+// A route day whose closing has passed (routeClosingHour, issues/363) is
+// skipped for a member and answered as `closedDay`: the form tells her the
+// route is closed and offers the next date of a route of the town. It used to
+// go silently to next week («Ruta tancada per avui… setmana vinent», only when
+// the route ran today). `pickup` judges a farm pickup: an afternoon one
+// («Ruta de tarda») never closes.
 const assignRouteDate = (route, options = {}) => {
-  const { nextDayLimitHour = 14, workingDays = null, isAdmin = false, closures = [] } = options;
+  const {
+    nextDayLimitHour = 14,
+    routeClosingHour = null,
+    workingDays = null,
+    holidays = [],
+    isAdmin = false,
+    closures = [],
+    pickup = false
+  } = options;
   const routeDaysOfWeek = [];
   if (route.monday) routeDaysOfWeek.push(1);
   if (route.tuesday) routeDaysOfWeek.push(2);
@@ -118,30 +133,33 @@ const assignRouteDate = (route, options = {}) => {
   };
 
   const today = moment().startOf("day");
+  const rules = lateRules(
+    { next_day_limit_hour: nextDayLimitHour, route_closing_hour: routeClosingHour, working_days: workingDays },
+    { holidays }
+  );
+  const closed = day =>
+    pickup ? isClosedPickup(day, moment(), rules, { afternoon: Boolean(route.afternoon) }) : isClosedDelivery(day, moment(), rules);
   let nextDay = firstOpenDayAfter(today);
+  let closedDay = null;
+  if (!isAdmin && closed(nextDay)) {
+    closedDay = nextDay.clone();
+    for (let i = 0; i < 60 && closed(nextDay); i++) nextDay = firstOpenDayAfter(nextDay);
+  }
   let warning = "";
   let late = false;
 
-  const rules = lateRules({ next_day_limit_hour: nextDayLimitHour, working_days: workingDays });
   if (!isAdmin && isLateDelivery(nextDay, moment(), rules)) {
     late = true;
     const when = nextDay.isSame(today.clone().add(1, "day"), "day") ? "demà" : nextDay.format("dddd");
     warning =
       `Vas tard per ${when}: les comandes s'han d'informar abans de les ${nextDayLimitHour} h del dia laborable anterior. ` +
-      `Si la deixes per ${when} serà una comanda fora de temps i pot portar recàrrec. Si no és urgent, tria un altre dia de la ruta.`;
-  } else if (
-    routeDaysOfWeek.includes(today.day()) &&
-    nextDay.diff(today, "days") >= 7
-  ) {
-    // today's route has left and the route doesn't run again until next week
-    warning =
-      "Ruta tancada per avui. Se t'assignarà la mateixa ruta però de la setmana vinent ja. Recorda portar el paquet.";
+      `Si la deixes per ${when} serà una comanda fora de temps i porta recàrrec. Si no és urgent, tria un altre dia de la ruta.`;
   }
 
   // the time of day as before (the form saves nextDay.toDate())
   const now = moment();
   nextDay.set({ hour: now.hour(), minute: now.minute(), second: now.second(), millisecond: now.millisecond() });
-  return { nextDay, warning, late };
+  return { nextDay, warning, late, closedDay };
 };
 
 const checkIfDateIsValidInroute = (route, date, routeFestives) => {

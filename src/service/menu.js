@@ -92,6 +92,8 @@ const menu = [
   // permissions (orders = member, orders_admin = office, orders_delivery = drivers)
   "Logística",
   [
+    // route closures, holidays and unpaid invoices for the members (issues/354, 355)
+    { to: "/avisos", icon: "bullhorn-outline", label: "Avisos", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/comandes", icon: "truck-outline", label: "Comandes", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/diposits", icon: "package-down", label: "Dipòsits", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/incidencies", icon: "alert-outline", label: "Incidències", permission: ["orders", "orders_admin", "orders_delivery"] },
@@ -103,10 +105,8 @@ const menu = [
   ],
   "Rutes i punts",
   [
-    { to: "/poblacions-rutes", icon: "city-variant-outline", label: "Poblacions i rutes", permission: ["orders", "orders_admin"] },
-    { to: "/poblacions-punts-entrega", icon: "map-marker-outline", label: "Poblacions i punts", permission: "orders_admin" },
-    { to: "/rutes-dies", icon: "calendar-month-outline", label: "Rutes i dies", permission: ["orders", "orders_admin"] },
-    { to: "/rutes", icon: "map-marker-path", label: "Rutes", permission: "orders_admin" },
+    // one entry for the routes screens, the others are its tabs (RoutesTabs, issues/353)
+    { to: "/poblacions-rutes", icon: "city-variant-outline", label: "Poblacions i rutes", permission: ["orders", "orders_admin"], activeWhen: "routes-screens" },
     { to: "/clientes", icon: "store-outline", label: "Punts d'entrega", permission: ["orders", "orders_admin", "orders_delivery"] },
     { to: "/punts-recollida", icon: "basket-outline", label: "Punts de consum", permission: ["orders", "orders_admin"] },
     { to: "/usuaries", icon: "account-group-outline", label: "Sòcies", permission: "orders_admin" },

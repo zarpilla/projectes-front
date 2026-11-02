@@ -56,11 +56,11 @@ describe('slot sheet export (issues/320)', () => {
   it('a route row, then its towns, with the slot that applies and the ID', () => {
     expect(slotSheetRows(cities, routes, cityRoutes)).toEqual([
       SLOT_HEADER,
-      ['dilluns', 'DLL - VALLÈS OCCIDENTAL', '', '09:00', '13:30', 'de 9 a 13:30 h', 'r12'],
-      ['dilluns', 'DLL - VALLÈS OCCIDENTAL', 'Abrera', '09:00', '09:10', 'de 9 a 9:10 h', 'l345'],
-      ['dilluns', 'DLL - VALLÈS OCCIDENTAL', 'Artés', '', '', 'de 9 a 13:30 h', 'l346'],
-      ['dilluns', 'DLL - BCN CIUTAT', '', '', '', 'per definir', 'r14'],
-      ['dilluns', 'DLL - BCN CIUTAT', 'Barcelona', '', '', 'per definir', 'l400']
+      ['dilluns', 'DLL - VALLÈS OCCIDENTAL', '', '09:00', '13:30', '', '', 'de 9 a 13:30 h', 'r12'],
+      ['dilluns', 'DLL - VALLÈS OCCIDENTAL', 'Abrera', '09:00', '09:10', '', '', 'de 9 a 9:10 h', 'l345'],
+      ['dilluns', 'DLL - VALLÈS OCCIDENTAL', 'Artés', '', '', '', '', 'de 9 a 13:30 h', 'l346'],
+      ['dilluns', 'DLL - BCN CIUTAT', '', '', '', '', '', 'per definir', 'r14'],
+      ['dilluns', 'DLL - BCN CIUTAT', 'Barcelona', '', '', '', '', 'per definir', 'l400']
     ])
   })
 })
@@ -86,9 +86,9 @@ describe('slot sheet import (issues/320)', () => {
     expect(plan.errors).toEqual([])
     expect(plan.unchanged).toBe(2)
     expect(plan.changes).toEqual([
-      { kind: 'link', id: 345, url: 'city-routes/345', row: 3, label: 'DLL - VALLÈS OCCIDENTAL › Abrera', before: 'de 9 a 9:10 h', after: 'la de la ruta', data: { time_from: null, time_to: null } },
-      { kind: 'route', id: 14, url: 'routes/14', row: 5, label: 'DLL - BCN CIUTAT', before: 'per definir', after: 'a les 7 h', data: { time_from: '07:00:00.000', time_to: null } },
-      { kind: 'link', id: 400, url: 'city-routes/400', row: 6, label: 'DLL - BCN CIUTAT › Barcelona', before: 'la de la ruta', after: 'de 12 a 15 h', data: { time_from: '12:00:00.000', time_to: '15:00:00.000' } }
+      { kind: 'link', id: 345, url: 'city-routes/345', row: 3, label: 'DLL - VALLÈS OCCIDENTAL › Abrera', before: 'de 9 a 9:10 h', after: 'la de la ruta', data: { time_from: null, time_to: null, time_from_2: null, time_to_2: null } },
+      { kind: 'route', id: 14, url: 'routes/14', row: 5, label: 'DLL - BCN CIUTAT', before: 'per definir', after: 'a les 7 h', data: { time_from: '07:00:00.000', time_to: null, time_from_2: null, time_to_2: null } },
+      { kind: 'link', id: 400, url: 'city-routes/400', row: 6, label: 'DLL - BCN CIUTAT › Barcelona', before: 'la de la ruta', after: 'de 12 a 15 h', data: { time_from: '12:00:00.000', time_to: '15:00:00.000', time_from_2: null, time_to_2: null } }
     ])
   })
 
@@ -100,14 +100,14 @@ describe('slot sheet import (issues/320)', () => {
   it('lists the rows it cannot use, and saves none of them', () => {
     const rows = [
       SLOT_HEADER,
-      ['', 'DLL - BCN CIUTAT', '', '15:00', '12:00', '', 'r14'],
-      ['', 'RUTA NOVA', '', '9', '', '', ''],
-      ['', 'DLL - BCN CIUTAT', 'Girona', '9', '', '', ''],
-      ['', '', '', 'migdia', '', '', 'l345'],
-      ['', '', '', '9', '', '', 'l999'],
-      ['', '', '', '10', '', '', 'l346'],
-      ['', '', '', '11', '', '', 'l346'],
-      ['', '', '', '', '14:00', '', 'r12']
+      ['', 'DLL - BCN CIUTAT', '', '15:00', '12:00', '', '', '', 'r14'],
+      ['', 'RUTA NOVA', '', '9', '', '', '', '', ''],
+      ['', 'DLL - BCN CIUTAT', 'Girona', '9', '', '', '', '', ''],
+      ['', '', '', 'migdia', '', '', '', '', 'l345'],
+      ['', '', '', '9', '', '', '', '', 'l999'],
+      ['', '', '', '10', '', '', '', '', 'l346'],
+      ['', '', '', '11', '', '', '', '', 'l346'],
+      ['', '', '', '', '14:00', '', '', '', 'r12']
     ]
     const plan = planSlotImport(rows, data)
     expect(plan.errors).toEqual([
@@ -120,6 +120,44 @@ describe('slot sheet import (issues/320)', () => {
       { row: 9, message: "Cal l'hora d'inici de la franja" }
     ])
     expect(plan.changes.map(c => c.url)).toEqual(['city-routes/346'])
+  })
+
+  // 2026-11-02: a second, optional slot in «Inici 2» / «Fi 2»
+  it('exports and imports the second slot', () => {
+    const withSecond = [{ ...routes[0], time_from_2: '16:00:00.000', time_to_2: '19:00:00.000' }, routes[1]]
+    const rows = slotSheetRows(cities, withSecond, cityRoutes)
+    expect(rows[1]).toEqual(['dilluns', 'DLL - VALLÈS OCCIDENTAL', '', '09:00', '13:30', '16:00', '19:00', 'de 9 a 13:30 h i de 16 a 19 h', 'r12'])
+    expect(rows[3][7]).toBe('de 9 a 13:30 h i de 16 a 19 h') // Artés takes the route's
+    rows[2][5] = '17h' // Abrera: a les 17 h too
+    rows[1][5] = ''; rows[1][6] = '' // the route drops its second slot
+    const plan = planSlotImport(rows, { ...data, routes: withSecond })
+    expect(plan.errors).toEqual([])
+    expect(plan.changes.map(c => [c.url, c.before, c.after, c.data])).toEqual([
+      ['routes/12', 'de 9 a 13:30 h i de 16 a 19 h', 'de 9 a 13:30 h', { time_from: '09:00:00.000', time_to: '13:30:00.000', time_from_2: null, time_to_2: null }],
+      ['city-routes/345', 'de 9 a 9:10 h', 'de 9 a 9:10 h i a les 17 h', { time_from: '09:00:00.000', time_to: '09:10:00.000', time_from_2: '17:00:00.000', time_to_2: null }]
+    ])
+  })
+
+  it('refuses a second slot before the first or without it', () => {
+    const rows = [
+      SLOT_HEADER,
+      ['', '', '', '9', '13', '12', '', '', 'r12'],
+      ['', '', '', '', '', '16', '19', '', 'r14'],
+      ['', '', '', '9', '', 'tarda', '', '', 'l346']
+    ]
+    expect(planSlotImport(rows, data).errors).toEqual([
+      { row: 2, message: 'La segona franja ha de començar després de la primera' },
+      { row: 3, message: 'La segona franja necessita la primera' },
+      { row: 4, message: "No s'entén l'hora d'inici de la segona franja «tarda»" }
+    ])
+  })
+
+  it('a sheet without the second slot columns keeps the stored second slot', () => {
+    const withSecond = [{ ...routes[0], time_from_2: '16:00:00.000', time_to_2: '19:00:00.000' }, routes[1]]
+    const rows = [['Ruta', 'Població', 'Inici', 'Fi', 'ID'], ['', '', '8', '13:30', 'r12']]
+    expect(planSlotImport(rows, { ...data, routes: withSecond }).changes.map(c => [c.after, c.data])).toEqual([
+      ['de 8 a 13:30 h i de 16 a 19 h', { time_from: '08:00:00.000', time_to: '13:30:00.000', time_from_2: '16:00:00.000', time_to_2: '19:00:00.000' }]
+    ])
   })
 
   it('says so when the header row is missing', () => {

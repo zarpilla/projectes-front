@@ -131,10 +131,11 @@ describe('«Rutes» page (issues/141)', () => {
     expect(canOpenPath('/rutes', ['orders_delivery'])).toBe(false)
   })
 
-  it('is in the menu under «Rutes i punts»', () => {
+  // since issues/353 it is a tab of the one «Poblacions i rutes» entry
+  it('is reached from «Poblacions i rutes» under «Rutes i punts»', () => {
     const i = menuList.indexOf('Rutes i punts')
-    const item = menuList[i + 1].find(m => m.to === '/rutes')
-    expect(item).toMatchObject({ label: 'Rutes', permission: 'orders_admin' })
+    expect(menuList[i + 1].find(m => m.to === '/rutes')).toBeUndefined()
+    expect(menuList[i + 1].find(m => m.to === '/poblacions-rutes')).toMatchObject({ activeWhen: 'routes-screens' })
   })
 
   const tabs = async props => {

@@ -2,11 +2,15 @@
 // exports every active route and its towns, fills the times in LibreOffice and
 // imports the file back. A route row has no town: its times are the route's
 // usual slot. A town row holds the town's own slot; empty, the town takes the
-// route's. The import only changes slots, never which towns a route has.
+// route's. «Inici 2» / «Fi 2» are the optional second slot. The import only
+// changes slots, never which towns a route has.
 
-import { routeDays, formatSlot, slotOf, timeInput, timeValue, slotError, normalizeName, indexLinks, groupByWeekday } from "./cityRoutes.js";
+import { routeDays, formatSlots, slotOf, slotInputs, NO_SLOT_INPUTS, sameSlotInputs, slotData, slotsError, normalizeName, indexLinks, groupByWeekday } from "./cityRoutes.js";
 
-export const SLOT_HEADER = ["Dia", "Ruta", "Població", "Inici", "Fi", "Franja que s'aplica", "ID"];
+export const SLOT_HEADER = ["Dia", "Ruta", "Població", "Inici", "Fi", "Inici 2", "Fi 2", "Franja que s'aplica", "ID"];
+
+// the slots as text from the time inputs ({ from, to, from2, to2 })
+const inputsText = t => formatSlots(slotData(t));
 
 const NONE = "per definir";
 
@@ -17,19 +21,12 @@ export const slotSheetRows = (cities, routes, cityRoutes) => {
   for (const group of groupByWeekday(routes)) {
     for (const route of group.routes) {
       const day = routeDays(route).join(", ");
-      rows.push([day, route.name, "", timeInput(route.time_from), timeInput(route.time_to), formatSlot(route.time_from, route.time_to) || NONE, `r${route.id}`]);
+      const r = slotInputs(route);
+      rows.push([day, route.name, "", r.from, r.to, r.from2, r.to2, formatSlots(route) || NONE, `r${route.id}`]);
       for (const town of index.townsByRoute.get(route.id) || []) {
         const link = index.linkOf(town.id, route.id);
-        const own = !!(link && link.time_from);
-        rows.push([
-          day,
-          route.name,
-          town.name,
-          own ? timeInput(link.time_from) : "",
-          own ? timeInput(link.time_to) : "",
-          slotOf(link, route).text || NONE,
-          `l${link.id}`
-        ]);
+        const own = link && link.time_from ? slotInputs(link) : NO_SLOT_INPUTS;
+        rows.push([day, route.name, town.name, own.from, own.to, own.from2, own.to2, slotOf(link, route).text || NONE, `l${link.id}`]);
       }
     }
   }
@@ -70,13 +67,13 @@ export const parseHour = value => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
-const COLUMNS = { ruta: "route", poblacio: "town", inici: "from", fi: "to", id: "id" };
+const COLUMNS = { ruta: "route", poblacio: "town", inici: "from", fi: "to", inici2: "from2", fi2: "to2", id: "id" };
 
 // the column of each field, from the header row
 const headerOf = row => {
   const columns = {};
   row.forEach((cell, i) => {
-    const key = COLUMNS[normalizeName(String(cell || "")).replace(/[^a-z]/g, "")];
+    const key = COLUMNS[normalizeName(String(cell || "")).replace(/[^a-z0-9]/g, "")];
     if (key && columns[key] === undefined) columns[key] = i;
   });
   return columns.route !== undefined && columns.from !== undefined && columns.to !== undefined ? columns : null;
@@ -117,7 +114,7 @@ export const planSlotImport = (rows, { cities, routes, cityRoutes }) => {
     const routeName = cellText(get("route"));
     const townName = cellText(get("town"));
     const id = cellText(get("id")).toLowerCase();
-    if (!routeName && !townName && !id && cellText(get("from")) === "" && cellText(get("to")) === "") return;
+    if (!routeName && !townName && !id && ["from", "to", "from2", "to2"].every(k => cellText(get(k)) === "")) return;
     const fail = message => errors.push({ row: rowNumber, message });
 
     // the route or town the row is about: by ID, else by names
@@ -144,21 +141,30 @@ export const planSlotImport = (rows, { cities, routes, cityRoutes }) => {
       }
     }
 
+    const stored = target.kind === "route" ? target.route : target.link.time_from ? target.link : {};
+    const before = slotInputs(stored);
+
     const from = parseHour(get("from"));
     const to = parseHour(get("to"));
     if (from === null) return fail(`No s'entén l'hora d'inici «${cellText(get("from"))}»`);
     if (to === null) return fail(`No s'entén l'hora final «${cellText(get("to"))}»`);
-    const invalid = slotError(from, to);
+    // a sheet without the second slot columns keeps the stored second slot
+    const second = col.from2 !== undefined;
+    const from2 = second ? parseHour(get("from2")) : before.from2;
+    const to2 = second && col.to2 !== undefined ? parseHour(get("to2")) : second ? "" : before.to2;
+    if (from2 === null) return fail(`No s'entén l'hora d'inici de la segona franja «${cellText(get("from2"))}»`);
+    if (to2 === null) return fail(`No s'entén l'hora final de la segona franja «${cellText(get("to2"))}»`);
+    // (an old sheet that clears the first slot clears the stored second one too)
+    const check2 = second || from;
+    const invalid = slotsError({ from, to, from2: check2 ? from2 : "", to2: check2 ? to2 : "" });
     if (invalid) return fail(invalid);
 
     const key = target.kind === "route" ? `r${target.route.id}` : `l${target.link.id}`;
     if (seen.has(key)) return fail(`Repetida: ja surt a la fila ${seen.get(key)}`);
     seen.set(key, rowNumber);
 
-    const stored = target.kind === "route" ? target.route : target.link.time_from ? target.link : {};
-    const before = { from: timeInput(stored.time_from), to: timeInput(stored.time_to) };
-    const after = { from, to: from ? to : "" };
-    if (before.from === after.from && before.to === after.to) {
+    const after = from ? { from, to, from2, to2: from2 ? to2 : "" } : NO_SLOT_INPUTS;
+    if (sameSlotInputs(before, after)) {
       unchanged++;
       return;
     }
@@ -169,9 +175,9 @@ export const planSlotImport = (rows, { cities, routes, cityRoutes }) => {
       url: target.kind === "route" ? `routes/${target.route.id}` : `city-routes/${target.link.id}`,
       row: rowNumber,
       label: target.kind === "route" ? target.route.name : `${target.route.name} › ${target.town.name}`,
-      before: formatSlot(before.from, before.to) || empty,
-      after: formatSlot(after.from, after.to) || empty,
-      data: { time_from: timeValue(after.from), time_to: after.from ? timeValue(after.to) : null }
+      before: inputsText(before) || empty,
+      after: inputsText(after) || empty,
+      data: slotData(after)
     });
   });
 

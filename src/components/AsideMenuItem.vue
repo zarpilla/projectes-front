@@ -46,6 +46,7 @@ import { isAdminTablePath, isOfficeTablePath } from '@/service/adminTables'
 import { useTaskAlerts } from '@/stores/taskAlerts'
 import { useHomePins } from '@/stores/homePins'
 import { HOME_PATH } from '@/domain/home'
+import { isRoutesScreenPath } from '@/components/RoutesTabs.vue'
 export default {
   name: 'AsideMenuItem',
   emits: ["menu-click"],
@@ -81,6 +82,7 @@ export default {
       const path = this.$route.path
       if (this.item.activeWhen === 'admin-tables') return isAdminTablePath(path)
       if (this.item.activeWhen === 'logistics-tables') return isOfficeTablePath(path)
+      if (this.item.activeWhen === 'routes-screens') return isRoutesScreenPath(path)
       if (this.item.activeWhen === 'energy-partners') return /^\/energia\/soci/.test(path)
       if (this.item.activeWhen === 'verifactu') return /^\/administracio\/(verifactu|verifactu-chain|face-queue)(\/|$)/.test(path)
       return false

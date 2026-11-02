@@ -21,8 +21,23 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.11.02",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Hora de tancament de la ruta (14 h per defecte): a partir d'aquesta hora del dia laborable anterior una sòcia ja no pot entrar comandes per a aquella ruta i dia, ni recollides de matí; a les rutes de tarda, el mateix dia a partir de les 10 h, una recollida nova només es pot afegir a una recollida que ja tingui per aquell dia. Surt un avís de ruta tancada amb la propera data d'una ruta de la seva població; «Segueix» la posa a la comanda (també la ruta, si és una altra). Aquestes comandes porten la senyal «Ruta tancada, redirigida» a la llista, amb la ruta i el dia d'on venen. Entre l'hora límit i la de tancament la comanda va fora de temps: s'hi obre una incidència i porta el recàrrec, ara un % fix per comanda (0 % per defecte: es posa a Configuració). L'oficina pot entrar comandes després del tancament, amb recàrrec. Els festius de tothom ja no compten com a dia laborable: amb el dilluns festiu, les comandes de dimarts tanquen divendres. L'hora i el text es canvien a ", { to: "/administracio/configuracio", label: "Configuració general" }, " → Logística."]
+    }
+  ]
+},
+{
   date: "2026.11.01",
   items: [
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Nou mapa a «Poblacions i rutes»: les comarques amb servei per dia de repartiment. Tria una comarca per veure'n les poblacions, les rutes i les franges."]
+    },
     {
       type: "Millores",
       modules: ["Projectes"],
@@ -89,6 +104,11 @@ export const CHANGELOG = [
   date: "2026.10.29",
   items: [
     {
+      type: "Novetats",
+      modules: ["Integracions", "Logística", "Administració"],
+      text: ["API d'integració per a les sòcies: el programa de gestió d'una sòcia pot crear, actualitzar i anul·lar les seves comandes i punts d'entrega sense passar pel CSV, amb les mateixes normes que a l'aplicació (només es modifiquen les comandes pendents, data a partir de demà, recàrrec fora de temps, preu calculat per la Diligència). Cada comanda porta el seu identificador i no es duplica mai. L'oficina crea i revoca les claus a ", { to: "/administracio/usuaries", label: "Administració › Usuàries" }, ", a la fitxa de cada sòcia (Claus d'API)."]
+    },
+    {
       type: "Millores",
       modules: ["Projectes", "Diners"],
       text: "Al pressupost i a les fases d'un projecte, l'etiqueta del document de cada línia (columna «Doc.») és verda si el document està cobrat o pagat i vermella si encara està pendent, segons el que hi ha marcat al requadre «Pagament» del document. Passant-hi el ratolí ho diu en paraules."
@@ -108,6 +128,21 @@ export const CHANGELOG = [
 {
   date: "2026.10.27",
   items: [
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Rutes tancades amb motiu i ruta alternativa: a ", { to: "/rutes-dies", label: "Rutes i dies" }, " l'oficina tanca una ruta un dia (els festius no la tanquen sols), n'escriu el motiu i, si cal, tria una ruta alternativa un altre dia. Les sòcies de les poblacions d'aquella ruta la veuen a la comanda des de 10 dies abans, amb la data ja posada. Les sòcies entren ara a ", { to: "/avisos", label: "Avisos" }, ": les rutes tancades dels propers dies amb el motiu i la ruta alternativa, els festius de l'any i, si n'hi ha, el recordatori de factures pendents (que ja no surt en una finestra)."]
+    },
+    {
+      type: "Millores",
+      modules: ["Logística"],
+      text: ["Al menú, «Rutes i punts» té una sola entrada per a les pantalles de rutes, ", { to: "/poblacions-rutes", label: "Poblacions i rutes" }, ": Rutes i dies, el Simulador, Poblacions i punts i Rutes són pestanyes a dalt de tot."]
+    },
+    {
+      type: "Novetats",
+      modules: ["Logística"],
+      text: ["Nou ", { to: "/simulador-logistic", label: "Simulador" }, " (Rutes i punts): tries la població, el tipus de servei, els kg, el magatzem d'origen i si hi ha recollida a finca, i et diu la ruta, el dia i el preu desglossat (tarifa, descomptes per volum i multientrega, recàrrec fora de temps), igual que el d'una comanda real i sense desar res. L'oficina hi tria primer la sòcia i pot exportar el pressupost (.ods). Cada sòcia té un magatzem per defecte: l'oficina el posa a ", { to: "/usuaries", label: "Sòcies" }, " i, si encara no en té, la sòcia el pot desar des del simulador."]
+    },
     {
       type: "Millores",
       modules: ["Logística"],

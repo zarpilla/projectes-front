@@ -34,7 +34,7 @@
                 </td>
                 <td>
                   {{ routeDaysShort(route) || "—" }}
-                  <small v-if="formatSlot(route.time_from, route.time_to)" class="ra-short">{{ formatSlot(route.time_from, route.time_to) }}</small>
+                  <small v-if="formatSlots(route)" class="ra-short">{{ formatSlots(route) }}</small>
                 </td>
                 <td>{{ userName(route.delivery_user) }}</td>
                 <td><small>{{ note(route) }}</small></td>
@@ -95,6 +95,15 @@
             </b-field>
             <b-field label="A" label-position="inside">
               <input v-model="form.time_to" class="input" type="time" aria-label="Franja: a" />
+            </b-field>
+          </b-field>
+
+          <b-field label="Segona franja" message="Opcional, si hi passem dues vegades (p. ex. matí i tarda). Ha de començar després de la primera." grouped>
+            <b-field label="De" label-position="inside">
+              <input v-model="form.time_from_2" class="input" type="time" aria-label="Segona franja: de" />
+            </b-field>
+            <b-field label="A" label-position="inside">
+              <input v-model="form.time_to_2" class="input" type="time" aria-label="Segona franja: a" />
             </b-field>
           </b-field>
 
@@ -162,7 +171,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
 import { formatMoney } from "@/helpers/format-number";
-import { formatSlot } from "@/domain/cityRoutes.js";
+import { formatSlots } from "@/domain/cityRoutes.js";
 import {
   WEEKDAYS,
   TRANSFER_DATE_OPTIONS,
@@ -239,7 +248,7 @@ export default {
   },
   methods: {
     routeDaysShort,
-    formatSlot,
+    formatSlots,
     async getData() {
       this.routes = await service({ requiresAuth: true, cached: false })
         .get("routes?_sort=order&_limit=-1")

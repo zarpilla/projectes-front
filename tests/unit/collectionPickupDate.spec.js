@@ -17,14 +17,22 @@ const at = when => {
   vi.setSystemTime(new Date(when))
 }
 
-const vmFor = (route, { closures = [], permissions = [] } = {}) => ({
-  form: { collection_pickup_route: route.id, collection_pickup_date: null },
-  collectionPickupRoutes: [route],
-  routeFestives: closures,
-  nextDayLimitHour: 14,
-  permissions,
-  checkCollectionPickupDate: vi.fn()
-})
+const vmFor = (route, { closures = [], permissions = [] } = {}) => {
+  const vm = {
+    form: { collection_pickup_route: route.id, collection_pickup_date: null },
+    collectionPickupRoutes: [route],
+    routeFestives: closures,
+    nextDayLimitHour: 14,
+    ordersOptions: {},
+    holidays: [],
+    permissions,
+    checkCollectionPickupDate: vi.fn(),
+    routeDateOptions: OrdersForm.methods.routeDateOptions
+  }
+  vm.lateRulesNow = OrdersForm.computed.lateRulesNow.call(vm)
+  vm.dateRulesExempt = OrdersForm.computed.dateRulesExempt.call(vm)
+  return vm
+}
 
 const run = async vm => {
   await OrdersForm.methods.calculateCollectionPickupDate.call(vm)
@@ -54,8 +62,16 @@ describe('collection date of the order form (issues/156)', () => {
 
   // since issues/315 tomorrow is kept past the cutoff (a late pickup), as the delivery date
   it('follows the next-day cutoff, as the delivery date', async () => {
-    at('2026-10-14T15:00:00') // Wednesday afternoon, tomorrow is past the cutoff
+    at('2026-10-14T13:30:00') // Wednesday, between the limit and the closing
     expect(await run(vmFor(monThu))).toBe('2026-10-15')
+  })
+
+  // issues/363: a morning pickup closes at 14 h of the working day before, as
+  // the deliveries; an afternoon one («Ruta de tarda») doesn't; the office can
+  it('skips a closed day for a morning pickup', async () => {
+    at('2026-10-14T15:00:00') // Wednesday afternoon: Thursday is closed
+    expect(await run(vmFor(monThu))).toBe('2026-10-19')
+    expect(await run(vmFor({ ...monThu, afternoon: true }))).toBe('2026-10-15')
     expect(await run(vmFor(monThu, { permissions: ['orders_admin'] }))).toBe('2026-10-15')
   })
 

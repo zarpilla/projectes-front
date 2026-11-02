@@ -156,6 +156,8 @@
               <template v-else>Encara no té cap període de jornada.</template>
             </p>
           </section>
+          <!-- the integrations API: keys of a member's own system, only for Logística users -->
+          <user-api-keys v-if="selectedPermissions.includes('orders')" :user-id="userId" />
         </aside>
       </div>
     </section>
@@ -171,6 +173,7 @@
 <script>
 import service from '@/service/index';
 import CardComponent from '@/components/CardComponent.vue';
+import UserApiKeys from '@/components/UserApiKeys.vue';
 import moment from 'moment';
 import { formatNumber } from '@/helpers/format-number';
 import { permissionCodes } from '@/domain/permissions';
@@ -214,7 +217,8 @@ const PERMISSION_GROUPS = [
 export default {
   name: 'AdminUserForm',
   components: {
-    CardComponent
+    CardComponent,
+    UserApiKeys
   },
   props: {
     userId: {

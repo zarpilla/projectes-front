@@ -9,6 +9,8 @@ export function signalWhere (key, today = moment()) {
     express: '_where[late_order]=true',
     'late-pickup': '_where[late_pickup]=true',
     'next-week': `_where[estimated_delivery_date_gte]=${nextMonday}`,
+    // taken from «Ruta tancada» to the next date (issues/363)
+    redirected: '_where[route_redirected_from_null]=false',
     cold: '_where[delivery_type.name_contains]=Refr',
     collection: '_where[is_collection_order]=true',
     transfer: '_where[transfer]=true',

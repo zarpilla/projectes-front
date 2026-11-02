@@ -22,7 +22,7 @@ export const TRANSFER_DATE_OPTIONS = [
   { value: 'only_previous_days', label: "Només els dies abans de l'entrega" }
 ]
 
-import { timeInput, timeValue, slotError } from './cityRoutes.js'
+import { timeInput, slotData, slotsError } from './cityRoutes.js'
 
 const TRANSFER_DATES = TRANSFER_DATE_OPTIONS.map(o => o.value)
 
@@ -49,9 +49,12 @@ export function routeToForm (route, routes = []) {
     delivery_user: idOf(r.delivery_user),
     volume_discount_number_of_orders: r.volume_discount_number_of_orders ?? null,
     volume_discount_price: r.volume_discount_price ?? null,
-    // the usual time slot (issues/314), as HH:mm for the time inputs
+    // the usual time slot (issues/314) and an optional second one, as HH:mm
+    // for the time inputs
     time_from: timeInput(r.time_from),
     time_to: timeInput(r.time_to),
+    time_from_2: timeInput(r.time_from_2),
+    time_to_2: timeInput(r.time_to_2),
     // «Ruta de tarda»: its pickups are on time until 10 h of the day (issues/346)
     afternoon: Boolean(r.afternoon)
   }
@@ -78,7 +81,7 @@ export function validateRoute (form, routes = []) {
     errors.volume_discount = 'Cal el nombre de comandes i el descompte, o cap dels dos'
   }
   if (form.is_transfer_route && !form.transfer_pickup) errors.transfer_pickup = 'Tria on van les transferències'
-  const slot = slotError(form.time_from, form.time_to)
+  const slot = slotsError({ from: form.time_from, to: form.time_to, from2: form.time_from_2, to2: form.time_to_2 })
   if (slot) errors.time_slot = slot
   return errors
 }
@@ -102,8 +105,7 @@ export function routePayload (form) {
     delivery_user: idOf(form.delivery_user),
     volume_discount_number_of_orders: numberOrNull(form.volume_discount_number_of_orders),
     volume_discount_price: numberOrNull(form.volume_discount_price),
-    time_from: timeValue(form.time_from),
-    time_to: timeValue(form.time_from) ? timeValue(form.time_to) : null,
+    ...slotData({ from: form.time_from, to: form.time_to, from2: form.time_from_2, to2: form.time_to_2 }),
     afternoon: Boolean(form.afternoon)
   }
   for (const d of WEEKDAYS) data[d.key] = Boolean(form[d.key])
