@@ -20,6 +20,8 @@ import {
 const api = vi.hoisted(() => ({ get: null }))
 vi.mock('@/service/index', () => ({ default: () => ({ get: (...a) => api.get(...a), put: vi.fn(), post: vi.fn() }) }))
 import OrdersForm from '@/components/OrdersForm.vue'
+import OrdersTable from '@/components/OrdersTable.vue'
+import { signalWhere } from '@/domain/orderSignals'
 
 afterEach(() => vi.useRealTimers())
 
@@ -124,6 +126,16 @@ describe('the order form', () => {
     expect(ymd(vm.form.estimated_delivery_date)).toBe('2026-10-23')
     expect(vm.form.route).toBe(2)
     expect(vm.changeRoute).toHaveBeenCalledWith({ keepDate: true })
+    // the list's «Redirigida» signal says from where
+    expect(vm.form.route_redirected_from).toBe('DJ Osona, dijous 22/10')
+  })
+
+  it('a date picked by hand is no redirection any more', async () => {
+    const vm = vmFor({ form: { route_redirected_from: 'DJ Osona, dijous 22/10' } })
+    vm.routes = []
+    vm.checkMultidelivery = vi.fn()
+    await OrdersForm.methods.checkEstimatedDeliveryDate.call(vm)
+    expect(vm.form.route_redirected_from).toBe(null)
   })
 
   it('«Torna» saves nothing', async () => {
@@ -202,5 +214,19 @@ describe('the order form', () => {
     expect(await OrdersForm.methods.confirmOfficeLate.call(vm)).toBe(true)
     const dialog = vm.$buefy.dialog.confirm.mock.calls[0][0]
     expect(dialog.message).toBe("És una comanda fora de temps: es marcarà com a tal i s'obrirà una incidència.")
+  })
+})
+
+describe('the orders list (issues/363)', () => {
+  const ctx = { isFutureWeek: () => false }
+  it('shows a redirected order with its signal, in the legend and the filter too', () => {
+    const signals = OrdersTable.methods.signalsOf.call(ctx, { id: 1, route_redirected_from: 'DJ Osona, dijous 22/10' })
+    expect(signals).toEqual([
+      { key: 'redirected', kind: 'is-next', icon: 'directions-fork', label: 'Ruta tancada: redirigida des de DJ Osona, dijous 22/10' }
+    ])
+    expect(OrdersTable.methods.signalsOf.call(ctx, { id: 2 })).toEqual([])
+    const legend = OrdersTable.computed.signalLegend.call({})
+    expect(legend.find(l => l.key === 'redirected')).toMatchObject({ icon: 'directions-fork', legend: 'Ruta tancada, redirigida' })
+    expect(signalWhere('redirected')).toEqual(['_where[route_redirected_from_null]=false'])
   })
 })

@@ -1521,7 +1521,9 @@ export default {
           // next date of a route of the town, which may be another route.
           // «Torna» leaves no date: the next week's one went in silently.
           const closedOffer = routeDate.closedDay && this.form.status === "pending";
-          const moved = closedOffer ? await this.offerNextOpenDelivery() : false;
+          // a route picked by hand is no redirection any more
+          this.form.route_redirected_from = null;
+          const moved = closedOffer ? await this.offerNextOpenDelivery({ route, date: routeDate.closedDay }) : false;
           // a closure of the route before that day, with its reason or substitute (issues/355)
           const closure = closureNotice(route, this.routeFestives, { until: nextDay });
           const warning = [closure ? closureText(closure) : "", routeDate.warning].filter(Boolean).join(" ");
@@ -1547,6 +1549,8 @@ export default {
       if (!keepTransfer) this.checkTransferNeeded();
     },
     async checkEstimatedDeliveryDate() {
+      // a date picked by hand is no redirection any more (issues/363)
+      this.form.route_redirected_from = null;
       if (this.form.is_collection_order) {
         this.dateWarningMessage = "";
         return;
@@ -2769,7 +2773,7 @@ export default {
      * route, when it is another one) on the order and answers true; «Torna»
      * answers false. No next date: the member is told to pick another one.
      */
-    offerNextOpenDelivery() {
+    offerNextOpenDelivery(closed) {
       const next = nextOpenDelivery({
         routes: this.routes,
         closures: this.routeFestives,
@@ -2792,14 +2796,16 @@ export default {
           confirmText: "Segueix",
           cancelText: "Torna",
           onConfirm: async () => {
-            await this.applyNextOpenDelivery(next);
+            await this.applyNextOpenDelivery(next, closed);
             resolve(true);
           },
           onCancel: () => resolve(false)
         });
       });
     },
-    async applyNextOpenDelivery(next) {
+    // `closed`: the route and day asked, closed; the list's «Redirigida»
+    // signal says which (route_redirected_from)
+    async applyNextOpenDelivery(next, closed = null) {
       const otherRoute = next.route.id !== this.form.route;
       this.form.estimated_delivery_date = next.date.clone().toDate();
       if (otherRoute) {
@@ -2807,6 +2813,10 @@ export default {
         await this.changeRoute({ keepDate: true });
       }
       const name = next.route.short_name || next.route.name;
+      if (closed && closed.date) {
+        const was = closed.route ? closed.route.short_name || closed.route.name || "" : "";
+        this.form.route_redirected_from = [was, moment(closed.date).locale("ca").format("dddd D/M")].filter(Boolean).join(", ");
+      }
       this.dateWarningMessage = `La comanda va per a ${next.date.locale("ca").format("dddd D/M")} amb la ruta ${name}.`;
     },
     // A member's afternoon pickup for today from 10 h that would need a new
@@ -2853,7 +2863,8 @@ export default {
         return false;
       }
       if (!this.closedDeliveryDate()) return true;
-      return this.offerNextOpenDelivery();
+      const route = (this.routes || []).find(r => r.id === this.form.route) || null;
+      return this.offerNextOpenDelivery({ route, date: this.form.estimated_delivery_date });
     },
     percent(value) {
       return formatNumber(Number(value) || 0, 2);

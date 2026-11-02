@@ -987,6 +987,7 @@ export default {
         { key: "express", kind: "is-alert", icon: "alert", legend: "Fora de temps" },
         { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", legend: "Recollida tard" },
         { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", legend: "Setmana vinent" },
+        { key: "redirected", kind: "is-next", icon: "directions-fork", legend: "Ruta tancada, redirigida" },
         { key: "cold", kind: "is-cold", icon: "snowflake", legend: "Refrigerada" },
         { key: "collection", kind: "is-info", icon: "package-variant-closed", legend: "Recollida (-R)" },
         { key: "transfer", kind: "is-info", icon: "swap-horizontal", legend: "Transferència" },
@@ -2806,6 +2807,8 @@ export default {
         order.late_order ? { key: "express", kind: "is-alert", icon: "alert", label: `Comanda fora de temps: informada després de l'hora límit${surcharge ? ` (recàrrec +${formatNumber(surcharge, 2)} %)` : ""}` } : null,
         order.late_pickup ? { key: "late-pickup", kind: "is-alert", icon: "clock-alert-outline", label: order.is_collection_order ? "Inclou recollides informades tard" : "Recollida informada tard" } : null,
         this.isFutureWeek(order) ? { key: "next-week", kind: "is-next", icon: "calendar-arrow-right", label: "Entrega prevista una setmana vinent" } : null,
+        // the member took the next date from «Ruta tancada» (issues/363)
+        order.route_redirected_from ? { key: "redirected", kind: "is-next", icon: "directions-fork", label: `Ruta tancada: redirigida des de ${order.route_redirected_from}` } : null,
         cold ? { key: "cold", kind: "is-cold", icon: "snowflake", label: "Refrigerada" } : null,
         order.is_collection_order ? { key: "collection", kind: "is-info", icon: "package-variant-closed", label: "Comanda de recollida" } : null,
         order.transfer ? { key: "transfer", kind: "is-info", icon: "swap-horizontal", label: "Transferència" } : null,
