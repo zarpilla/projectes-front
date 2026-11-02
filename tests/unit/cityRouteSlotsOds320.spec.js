@@ -77,7 +77,7 @@ describe('«Poblacions i rutes» slots as .ods (issues/320)', () => {
     const [blob, name] = download.mock.calls[0]
     expect(name).toBe('franges-poblacions-rutes.ods')
     const rows = readOds(new Uint8Array(await blob.arrayBuffer()))
-    expect(rows.map(r => [r[1], r[2] || '', r[3] || '', r[6]])).toEqual([
+    expect(rows.map(r => [r[1], r[2] || '', r[3] || '', r[8]])).toEqual([
       ['Ruta', 'Població', 'Inici', 'ID'],
       ['DT - BCN CIUTAT', '', '09:00', 'r16'],
       ['DT - BCN CIUTAT', 'Alella', '', 'l160'],
@@ -107,8 +107,8 @@ describe('«Poblacions i rutes» slots as .ods (issues/320)', () => {
     await button(w, 'Desa 2 canvis').trigger('click')
     await flushPromises()
     expect(put.mock.calls).toEqual([
-      ['routes/11', { time_from: '08:00:00.000', time_to: '12:00:00.000' }],
-      ['city-routes/161', { time_from: '07:30:00.000', time_to: null }]
+      ['routes/11', { time_from: '08:00:00.000', time_to: '12:00:00.000', time_from_2: null, time_to_2: null }],
+      ['city-routes/161', { time_from: '07:30:00.000', time_to: null, time_from_2: null, time_to_2: null }]
     ])
     expect(snackbar.open).toHaveBeenCalledWith(expect.objectContaining({ message: '2 franges desades' }))
     expect(w.vm.importOpen).toBe(false)

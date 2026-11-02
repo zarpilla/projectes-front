@@ -125,7 +125,9 @@ export const editDistance = (a, b) => {
 // --- delivery time slot (issues/314) ------------------------------------------
 // A route has a usual slot and a town can have its own one in that route
 // (fields time_from / time_to, Strapi "time": "HH:mm:ss.SSS"). Only a start is
-// a fixed time («a les 7 h»); start and end is a range («de 12 a 15 h»).
+// a fixed time («a les 7 h»); start and end is a range («de 12 a 15 h»). An
+// optional second slot (time_from_2 / time_to_2) comes after the first one
+// («de 9 a 13 h i de 16 a 19 h»).
 
 const toMinutes = t => {
   const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
@@ -148,12 +150,46 @@ export const formatSlot = (from, to) => {
   return `de ${hourText(from)} a ${hourText(to)} h`;
 };
 
-// the slot that applies to a town in a route: its own one, else the route's
+// both slots of a route or a town link: "de 9 a 13 h i de 16 a 19 h"
+export const formatSlots = r => {
+  const first = formatSlot(r?.time_from, r?.time_to);
+  const second = first ? formatSlot(r?.time_from_2, r?.time_to_2) : "";
+  return second ? `${first} i ${second}` : first;
+};
+
+// the slots that apply to a town in a route: its own ones, else the route's
 export const slotOf = (link, route) => {
   const own = !!(link && link.time_from);
-  const from = own ? link.time_from : route?.time_from || null;
-  const to = own ? link.time_to || null : route?.time_to || null;
-  return { from, to, own, text: formatSlot(from, to) };
+  const source = own ? link : route || {};
+  const from = source.time_from || null;
+  const to = (from && source.time_to) || null;
+  const from2 = (from && source.time_from_2) || null;
+  const to2 = (from2 && source.time_to_2) || null;
+  return { from, to, from2, to2, own, text: formatSlots({ time_from: from, time_to: to, time_from_2: from2, time_to_2: to2 }) };
+};
+
+// the HH:mm of the time inputs of a route or a town link: { from, to, from2, to2 }
+export const slotInputs = r => ({
+  from: timeInput(r?.time_from),
+  to: timeInput(r?.time_to),
+  from2: timeInput(r?.time_from_2),
+  to2: timeInput(r?.time_to_2)
+});
+
+export const NO_SLOT_INPUTS = { from: "", to: "", from2: "", to2: "" };
+
+export const sameSlotInputs = (a, b) => ["from", "to", "from2", "to2"].every(k => (a[k] || "") === (b[k] || ""));
+
+// what Strapi takes from the time inputs; no first slot clears them all
+export const slotData = ({ from, to, from2, to2 }) => {
+  const first = timeValue(from);
+  const second = first ? timeValue(from2) : null;
+  return {
+    time_from: first,
+    time_to: first ? timeValue(to) : null,
+    time_from_2: second,
+    time_to_2: second ? timeValue(to2) : null
+  };
 };
 
 // "07:00:00.000" → "07:00" for an <input type="time">
@@ -174,5 +210,14 @@ export const slotError = (from, to) => {
   if (toMinutes(to) === null) return "";
   if (toMinutes(from) === null) return "Cal l'hora d'inici de la franja";
   if (toMinutes(to) <= toMinutes(from)) return "L'hora final ha de ser posterior a la d'inici";
+  return "";
+};
+
+// the message for invalid slots (same rules as the API), or ""
+export const slotsError = ({ from, to, from2, to2 }) => {
+  const error = slotError(from, to) || slotError(from2, to2);
+  if (error || toMinutes(from2) === null) return error;
+  if (toMinutes(from) === null) return "La segona franja necessita la primera";
+  if (toMinutes(from2) <= toMinutes(toMinutes(to) === null ? from : to)) return "La segona franja ha de començar després de la primera";
   return "";
 };

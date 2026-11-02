@@ -80,11 +80,11 @@ describe('«Poblacions i rutes» time slots (issues/314)', () => {
     await toggle.trigger('click')
 
     await type(w, 'Franja de Alella a DT - BCN CIUTAT: de', '12:00')
-    expect(put).toHaveBeenCalledWith('city-routes/160', { time_from: '12:00:00.000', time_to: null })
+    expect(put).toHaveBeenCalledWith('city-routes/160', { time_from: '12:00:00.000', time_to: null, time_from_2: null, time_to_2: null })
     expect(w.find('input[aria-label="Franja de Alella a DT - BCN CIUTAT: de"]').element.value).toBe('12:00')
 
     await type(w, 'Franja de DT - BCN CIUTAT: a', '15:00')
-    expect(put).toHaveBeenCalledWith('routes/16', { time_from: '09:00:00.000', time_to: '15:00:00.000' })
+    expect(put).toHaveBeenCalledWith('routes/16', { time_from: '09:00:00.000', time_to: '15:00:00.000', time_from_2: null, time_to_2: null })
   })
 
   it('typing both times saves once, when leaving the pair', async () => {
@@ -93,8 +93,8 @@ describe('«Poblacions i rutes» time slots (issues/314)', () => {
     await type(w, 'Franja de Alella a DT - BCN CIUTAT: de', '12:00', false)
     await type(w, 'Franja de Alella a DT - BCN CIUTAT: a', '15:00')
     expect(put).toHaveBeenCalledTimes(1)
-    expect(put).toHaveBeenCalledWith('city-routes/160', { time_from: '12:00:00.000', time_to: '15:00:00.000' })
-    expect(w.find('.cr-slot-table').text()).toMatch(/Alella\s*a\s*de 12 a 15 h pròpia/)
+    expect(put).toHaveBeenCalledWith('city-routes/160', { time_from: '12:00:00.000', time_to: '15:00:00.000', time_from_2: null, time_to_2: null })
+    expect(w.find('.cr-slot-table').text()).toMatch(/Alella\s*a\s*i\s*a\s*de 12 a 15 h pròpia/)
   })
 
   it('«Torna a la de la ruta» clears the own slot', async () => {
@@ -102,8 +102,31 @@ describe('«Poblacions i rutes» time slots (issues/314)', () => {
     await w.findAll('button').find(b => b.text() === 'Franges').trigger('click')
     await w.findAll('button').find(b => b.text() === 'Torna a la de la ruta').trigger('click')
     await flushPromises()
-    expect(put).toHaveBeenCalledWith('city-routes/159', { time_from: null, time_to: null })
-    expect(w.find('.cr-slot-table').text()).toMatch(/Badalona\s*a\s*de 9 a 14 h la de la ruta/)
+    expect(put).toHaveBeenCalledWith('city-routes/159', { time_from: null, time_to: null, time_from_2: null, time_to_2: null })
+    expect(w.find('.cr-slot-table').text()).toMatch(/Badalona\s*a\s*i\s*a\s*de 9 a 14 h la de la ruta/)
+  })
+
+  it('a second slot for the route and for a town (2026-11-02)', async () => {
+    const { w } = await mountAs(['orders_admin'])
+    await w.findAll('button').find(b => b.text() === 'Franges').trigger('click')
+    await type(w, 'Segona franja de DT - BCN CIUTAT: de', '16:00', false)
+    await type(w, 'Segona franja de DT - BCN CIUTAT: a', '19:00')
+    expect(put).toHaveBeenCalledWith('routes/16', { time_from: '09:00:00.000', time_to: '14:00:00.000', time_from_2: '16:00:00.000', time_to_2: '19:00:00.000' })
+    expect(w.find('.cr-route-meta').text()).toContain('de 9 a 14 h i de 16 a 19 h')
+    // Alella has no own slot: it takes both
+    expect(w.find('.cr-slot-table').text()).toMatch(/Alella\s*a\s*i\s*a\s*de 9 a 14 h i de 16 a 19 h la de la ruta/)
+
+    await type(w, 'Segona franja de Badalona a DT - BCN CIUTAT: de', '12:00')
+    expect(put).toHaveBeenCalledWith('city-routes/159', { time_from: '07:00:00.000', time_to: null, time_from_2: '12:00:00.000', time_to_2: null })
+    expect(w.find('.cr-slot-table').text()).toContain('a les 7 h i a les 12 h pròpia')
+  })
+
+  it('a second slot before the first one is not saved', async () => {
+    const { w, snackbar } = await mountAs(['orders_admin'])
+    await w.findAll('button').find(b => b.text() === 'Franges').trigger('click')
+    await type(w, 'Segona franja de DT - BCN CIUTAT: de', '12:00')
+    expect(put).not.toHaveBeenCalled()
+    expect(snackbar.open).toHaveBeenCalledWith(expect.objectContaining({ type: 'is-danger', message: expect.stringMatching(/després de la primera/) }))
   })
 
   it('an invalid slot is not saved', async () => {

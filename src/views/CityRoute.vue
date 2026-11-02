@@ -73,7 +73,23 @@
                     :aria-label="`Franja de ${route.name}: a`"
                     @input="editDraft(`r${route.id}`, routeDraft(route), 'to', $event.target.value)"
                   />
-                  <span class="field-note">Totes les poblacions de la ruta la fan servir, menys les que en tenen una de pròpia. Deixa «a» buit per a una hora fixa («a les 7 h»).</span>
+                  i
+                  <input
+                    class="input is-small slot-input"
+                    type="time"
+                    :value="routeDraft(route).from2"
+                    :aria-label="`Segona franja de ${route.name}: de`"
+                    @input="editDraft(`r${route.id}`, routeDraft(route), 'from2', $event.target.value)"
+                  />
+                  a
+                  <input
+                    class="input is-small slot-input"
+                    type="time"
+                    :value="routeDraft(route).to2"
+                    :aria-label="`Segona franja de ${route.name}: a`"
+                    @input="editDraft(`r${route.id}`, routeDraft(route), 'to2', $event.target.value)"
+                  />
+                  <span class="field-note">Totes les poblacions de la ruta la fan servir, menys les que en tenen una de pròpia. Deixa «a» buit per a una hora fixa («a les 7 h»). La segona franja és opcional (p. ex. matí i tarda).</span>
                 </div>
                 <div class="table-container">
                   <table class="table is-fullwidth is-narrow cr-slot-table">
@@ -98,6 +114,22 @@
                             :value="townDraft(town, route).to"
                             :aria-label="`Franja de ${town.name} a ${route.name}: a`"
                             @input="editDraft(townKey(town, route), townDraft(town, route), 'to', $event.target.value)"
+                          />
+                          i
+                          <input
+                            class="input is-small slot-input"
+                            type="time"
+                            :value="townDraft(town, route).from2"
+                            :aria-label="`Segona franja de ${town.name} a ${route.name}: de`"
+                            @input="editDraft(townKey(town, route), townDraft(town, route), 'from2', $event.target.value)"
+                          />
+                          a
+                          <input
+                            class="input is-small slot-input"
+                            type="time"
+                            :value="townDraft(town, route).to2"
+                            :aria-label="`Segona franja de ${town.name} a ${route.name}: a`"
+                            @input="editDraft(townKey(town, route), townDraft(town, route), 'to2', $event.target.value)"
                           />
                         </td>
                         <td>
@@ -305,7 +337,7 @@
 import TitleBar from "@/components/TitleBar.vue";
 import RoutesTabs from "@/components/RoutesTabs.vue";
 import service from "@/service/index";
-import { indexLinks, groupByWeekday, routeDays, searchTowns, normalizeName, formatSlot, slotOf, timeInput, timeValue, slotError } from "@/domain/cityRoutes.js";
+import { indexLinks, groupByWeekday, routeDays, searchTowns, normalizeName, formatSlots, slotOf, timeInput, slotInputs, NO_SLOT_INPUTS, sameSlotInputs, slotData, slotsError } from "@/domain/cityRoutes.js";
 import { slotSheetRows, planSlotImport } from "@/domain/citySlotsSheet.js";
 import { buildOds, readOds, ODS_MIME } from "@/service/ods";
 import download from "downloadjs";
@@ -417,7 +449,7 @@ export default {
     },
     timeInput,
     routeSlotText(route) {
-      return formatSlot(route.time_from, route.time_to);
+      return formatSlots(route);
     },
     // the slot of a town in a route: its own one, else the route's
     townSlot(town, route) {
@@ -429,12 +461,11 @@ export default {
     },
     // what the time inputs show: the draft, else what is saved
     routeDraft(route) {
-      return this.drafts[`r${route.id}`] || { from: timeInput(route.time_from), to: timeInput(route.time_to) };
+      return this.drafts[`r${route.id}`] || slotInputs(route);
     },
     townDraft(town, route) {
       const link = this.index.linkOf(town.id, route.id);
-      const own = link && link.time_from ? { from: timeInput(link.time_from), to: timeInput(link.time_to) } : { from: "", to: "" };
-      return this.drafts[`l${link?.id}`] || own;
+      return this.drafts[`l${link?.id}`] || (link && link.time_from ? slotInputs(link) : NO_SLOT_INPUTS);
     },
     editDraft(key, current, field, value) {
       if (!key) return;
@@ -449,40 +480,40 @@ export default {
       if (event && event.relatedTarget && event.currentTarget.contains(event.relatedTarget)) return;
       const draft = this.drafts[key];
       if (!draft) return;
-      if (draft.from === saved.from && draft.to === saved.to) {
+      if (sameSlotInputs(draft, saved)) {
         this.dropDraft(key);
         return;
       }
-      if (await this.saveSlot(url, draft.from, draft.to, data => Object.assign(target, data))) this.dropDraft(key);
+      if (await this.saveSlot(url, draft, data => Object.assign(target, data))) this.dropDraft(key);
     },
     commitRouteSlot(route, event) {
-      const saved = { from: timeInput(route.time_from), to: timeInput(route.time_to) };
+      const saved = slotInputs(route);
       return this.commitDraft(`r${route.id}`, saved, `routes/${route.id}`, route, event);
     },
     commitTownSlot(town, route, event) {
       const link = this.index.linkOf(town.id, route.id);
       if (!link) return;
-      const saved = link.time_from ? { from: timeInput(link.time_from), to: timeInput(link.time_to) } : { from: "", to: "" };
+      const saved = link.time_from ? slotInputs(link) : NO_SLOT_INPUTS;
       return this.commitDraft(`l${link.id}`, saved, `city-routes/${link.id}`, link, event);
     },
     async clearTownSlot(town, route) {
       const link = this.index.linkOf(town.id, route.id);
       if (!link) return;
-      if (await this.saveSlot(`city-routes/${link.id}`, "", "", data => Object.assign(link, data))) this.dropDraft(`l${link.id}`);
+      if (await this.saveSlot(`city-routes/${link.id}`, NO_SLOT_INPUTS, data => Object.assign(link, data))) this.dropDraft(`l${link.id}`);
     },
     toggleSlots(route, on) {
       const show = on ?? !this.slotEdit[route.id];
       this.slotEdit = { ...this.slotEdit, [route.id]: show };
       if (show) this.open = { ...this.open, [route.id]: true };
     },
-    // validated like the API; "" for both clears the slot. True when saved.
-    async saveSlot(url, from, to, apply) {
-      const error = slotError(from, to);
+    // validated like the API; no first slot clears them all. True when saved.
+    async saveSlot(url, slots, apply) {
+      const error = slotsError(slots);
       if (error) {
         this.$buefy.snackbar.open({ message: error, type: "is-danger", queue: false });
         return false;
       }
-      const data = { time_from: timeValue(from), time_to: timeValue(from) ? timeValue(to) : null };
+      const data = slotData(slots);
       this.saving = true;
       try {
         await service({ requiresAuth: true }).put(url, data);
