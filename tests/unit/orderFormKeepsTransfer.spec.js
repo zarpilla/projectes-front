@@ -28,6 +28,11 @@ const formVm = form => {
     $buefy: { toast: { open: () => {} } }
   }
   vm.changeRoute = OrdersForm.methods.changeRoute.bind(vm)
+  // the limits and closings of issues/363
+  vm.routeDateOptions = OrdersForm.methods.routeDateOptions.bind(vm)
+  for (const name of ['lateRulesNow', 'dateRulesExempt']) {
+    Object.defineProperty(vm, name, { get: () => OrdersForm.computed[name].call(vm), configurable: true })
+  }
   vm.checkTransferNeeded = OrdersForm.methods.checkTransferNeeded.bind(vm)
   return vm
 }
@@ -64,8 +69,12 @@ describe('the transfer of a loaded order (issues/296)', () => {
   })
 
   it('is computed for a new order', async () => {
+    // a morning, before any route closes (issues/363)
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-19T10:00:00'))
     const vm = formVm({ status: 'pending' })
     await OrdersForm.methods.citySelected.call(vm, town)
     expect(vm.form.transfer).toBe(true)
+    vi.useRealTimers()
   })
 })

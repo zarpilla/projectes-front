@@ -35,6 +35,11 @@ function formVm (form, cityRoutes = [{ city: { id: 4 }, route: ROUTE }]) {
   }
   vm.validCityRoutes = OrdersForm.methods.validCityRoutes.bind(vm)
   vm.changeRoute = OrdersForm.methods.changeRoute.bind(vm)
+  // the limits and closings of issues/363
+  vm.routeDateOptions = OrdersForm.methods.routeDateOptions.bind(vm)
+  for (const name of ['lateRulesNow', 'dateRulesExempt']) {
+    Object.defineProperty(vm, name, { get: () => OrdersForm.computed[name].call(vm), configurable: true })
+  }
   return vm
 }
 

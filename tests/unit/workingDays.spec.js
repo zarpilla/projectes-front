@@ -70,12 +70,22 @@ describe('the date the form proposes', () => {
     vi.setSystemTime(new Date(s))
   }
 
-  it('Monday, proposed on Saturday, is late', () => {
-    at('2026-10-24T10:00:00')
-    const { nextDay, late, warning } = assignRouteDate({ monday: true, wednesday: true })
+  it('Monday, proposed on Friday between the limit and the closing, is late', () => {
+    at('2026-10-23T13:30:00')
+    const { nextDay, late, warning } = assignRouteDate({ monday: true, wednesday: true }, { nextDayLimitHour: 13 })
     expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-26')
     expect(late).toBe(true)
     expect(warning).toContain('Vas tard per dilluns')
+  })
+
+  // issues/363: on Saturday Monday closed on Friday 14 h; the office can still take it
+  it('Monday, proposed on Saturday, is closed: Wednesday for a member', () => {
+    at('2026-10-24T10:00:00')
+    const member = assignRouteDate({ monday: true, wednesday: true })
+    expect(member.closedDay.format('YYYY-MM-DD')).toBe('2026-10-26')
+    expect(member.nextDay.format('YYYY-MM-DD')).toBe('2026-10-28')
+    const office = assignRouteDate({ monday: true, wednesday: true }, { isAdmin: true })
+    expect(office.nextDay.format('YYYY-MM-DD')).toBe('2026-10-26')
   })
 
   it('Tuesday, proposed on Friday afternoon, is on time', () => {

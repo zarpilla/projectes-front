@@ -31,9 +31,11 @@ describe('the rules, as the API (issues/315)', () => {
     expect(isLateDelivery('2026-10-23', at('20:00'), rules)).toBe(false)
   })
 
-  it('an afternoon pickup is late on its day from 10 h, a morning one from the limit of the day before', () => {
+  // an afternoon pickup is never late since issues/363 (from 10 h of its day it
+  // only joins a pending collection order)
+  it('an afternoon pickup is never late, a morning one from the limit of the day before', () => {
     expect(isLatePickup('2026-10-21', at('09:59'), rules, { afternoon: true })).toBe(false)
-    expect(isLatePickup('2026-10-21', at('10:00'), rules, { afternoon: true })).toBe(true)
+    expect(isLatePickup('2026-10-21', at('10:00'), rules, { afternoon: true })).toBe(false)
     expect(isLatePickup('2026-10-22', at('13:00'), rules)).toBe(true)
     expect(isLatePickup('2026-10-22', at('12:00'), rules)).toBe(false)
   })
@@ -47,11 +49,11 @@ describe('the rules, as the API (issues/315)', () => {
 })
 
 describe('what the member is told before saving', () => {
-  const options = { next_day_limit_hour: 13, late_order_message: 'Tard! {recarrec}%' }
+  const options = { next_day_limit_hour: 13, late_surcharge: 15, late_order_message: 'Tard! {recarrec}%' }
 
   it('a late order, with the configured text', () => {
     const w = lateWarnings({ estimated_delivery_date: '2026-10-22' }, null, options, { now: at('14:00') })
-    expect(w).toEqual([{ key: 'order', text: 'Tard! 25%' }])
+    expect(w).toEqual([{ key: 'order', text: 'Tard! 15%' }])
   })
 
   it('nothing when the date was already there', () => {
@@ -60,8 +62,8 @@ describe('what the member is told before saving', () => {
   })
 
   it('a late pickup, with the default text', () => {
-    const form = { estimated_delivery_date: '2026-10-24', collection_point: 8, collection_pickup_date: '2026-10-21' }
-    const w = lateWarnings(form, null, options, { now: at('10:30'), afternoon: true })
+    const form = { estimated_delivery_date: '2026-10-24', collection_point: 8, collection_pickup_date: '2026-10-22' }
+    const w = lateWarnings(form, null, options, { now: at('13:30') })
     expect(w.map(x => x.key)).toEqual(['pickup'])
     expect(w[0].text).toContain('límit de les 10h del mateix dia')
   })
@@ -81,9 +83,16 @@ describe('the order form', () => {
     storedDates: null,
     ordersOptions: { next_day_limit_hour: 13 },
     collectionPickupRoutes: [],
+    holidays: [],
+    nextDayLimitHour: 13,
     get dateRulesExempt() {
       return OrdersForm.computed.dateRulesExempt.call(this)
     },
+    get lateRulesNow() {
+      return OrdersForm.computed.lateRulesNow.call(this)
+    },
+    confirmOfficeLate: OrdersForm.methods.confirmOfficeLate,
+    percent: OrdersForm.methods.percent,
     $buefy: { dialog: { confirm: vi.fn(onDialog) } }
   })
 
@@ -101,11 +110,12 @@ describe('the order form', () => {
     vi.useRealTimers()
   })
 
-  it("doesn't ask the office, nor for an order on time", async () => {
+  it("doesn't ask the office on a change, nor for an order on time", async () => {
     vi.useFakeTimers()
     vi.setSystemTime(at('14:00'))
-    const office = vmFor({ permissions: ['orders_admin'] })
+    const office = vmFor({ permissions: ['orders_admin'], form: { id: 5 } })
     expect(await OrdersForm.methods.confirmLate.call(office)).toBe(true)
+    expect(office.$buefy.dialog.confirm).not.toHaveBeenCalled()
     const onTime = vmFor({ form: { estimated_delivery_date: '2026-10-24' } })
     expect(await OrdersForm.methods.confirmLate.call(onTime)).toBe(true)
     expect(onTime.$buefy.dialog.confirm).not.toHaveBeenCalled()

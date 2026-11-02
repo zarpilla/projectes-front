@@ -40,6 +40,11 @@ function formVm (form = {}) {
   for (const m of ['fetchCollectionPickupRoutes', 'calculateCollectionPickupDate', 'checkCollectionPickupDate', 'movePastCollectionPickupDate']) {
     vm[m] = OrdersForm.methods[m].bind(vm)
   }
+  // the limits and closings of issues/363
+  vm.routeDateOptions = OrdersForm.methods.routeDateOptions.bind(vm)
+  for (const name of ['lateRulesNow', 'dateRulesExempt']) {
+    Object.defineProperty(vm, name, { get: () => OrdersForm.computed[name].call(vm), configurable: true })
+  }
   return vm
 }
 
