@@ -90,7 +90,7 @@ describe('the order form', () => {
       permissions,
       form: { status: 'pending', route: 1, estimated_delivery_date: moment('2026-10-22').toDate(), ...form },
       storedDates: null,
-      ordersOptions: { next_day_limit_hour: 13 },
+      ordersOptions: { next_day_limit_hour: 13, late_surcharge: 15 },
       nextDayLimitHour: 13,
       holidays: [],
       routes: [THU, FRI],
@@ -193,5 +193,14 @@ describe('the order form', () => {
       expect(await OrdersForm.methods.confirmClosedRoute.call(pickupVm())).toBe(true)
       expect(api.get).not.toHaveBeenCalled()
     })
+  })
+
+  it('tells the office without a surcharge when the tenant has none (0 % by default)', async () => {
+    now(wed('13:30'))
+    const vm = vmFor({ permissions: ['orders_admin'], onDialog: o => o.onConfirm() })
+    vm.ordersOptions = { next_day_limit_hour: 13 }
+    expect(await OrdersForm.methods.confirmOfficeLate.call(vm)).toBe(true)
+    const dialog = vm.$buefy.dialog.confirm.mock.calls[0][0]
+    expect(dialog.message).toBe("És una comanda fora de temps: es marcarà com a tal i s'obrirà una incidència.")
   })
 })

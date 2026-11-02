@@ -6,12 +6,13 @@ import moment from "moment";
 //
 // - delivery: entered at or after «Hora límit per a l'endemà» of the day before
 //   (orders_options.next_day_limit_hour) → late, with a surcharge
-//   (orders_options.late_surcharge %, 15 by default since issues/363);
-// - farm pickup on an afternoon route («Ruta de tarda», route.afternoon,
-//   issues/346): on its own day at or after
-//   orders_options.pickup_same_day_limit_hour (10 by default); on any other
-//   route: at or after the next-day limit of the day before, or on its own
-//   day → late, no surcharge.
+//   (orders_options.late_surcharge %, 0 by default since issues/363: the
+//   tenant sets it);
+// - farm pickup on a morning route: at or after the next-day limit of the
+//   day before, or on its own day → late, no surcharge. On an afternoon route
+//   («Ruta de tarda», route.afternoon, issues/346) never late since issues/363:
+//   on its own day from orders_options.pickup_same_day_limit_hour (10 h) it
+//   can only join a pending collection order (isAfternoonPickupCutoff).
 //
 // The limits fall on working days («Dies laborables», orders_options.working_days,
 // Monday to Friday by default, 2026-10-25): the deadline of day D is the
@@ -23,7 +24,7 @@ import moment from "moment";
 // (orders_options.route_closing_hour, 14 h) of that working day the route is
 // closed for D: the member can't order for D any more and the form offers the
 // next date a route of the town runs (nextOpenDelivery). Between the limit and
-// the closing the order is late: flat surcharge (15 % by default) and an
+// the closing the order is late: flat surcharge (0 % by default) and an
 // incidence the API opens. The office can still enter it, with the surcharge.
 // A morning farm pickup closes at the same hour; an afternoon one never.
 // The working day before skips the holidays for everyone too (Festius without
@@ -32,7 +33,7 @@ import moment from "moment";
 export const DEFAULT_NEXT_DAY_LIMIT_HOUR = 14;
 export const DEFAULT_PICKUP_SAME_DAY_LIMIT_HOUR = 10;
 export const DEFAULT_ROUTE_CLOSING_HOUR = 14;
-export const DEFAULT_LATE_SURCHARGE = 15;
+export const DEFAULT_LATE_SURCHARGE = 0;
 // moment's day(): 0 Sunday … 6 Saturday; the names of the route fields
 export const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 export const DEFAULT_WORKING_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday"];
@@ -188,8 +189,8 @@ export const isLatePickup = (date, now, rules, { afternoon = false } = {}) => {
   const current = moment(now);
   const today = current.clone().startOf("day");
   if (day.isBefore(today, "day")) return false;
-  if (day.isSame(today, "day")) return afternoon ? current.hour() >= rules.pickupSameDayLimitHour : true;
-  if (afternoon) return false;
+  if (afternoon) return false; // see isAfternoonPickupCutoff (issues/363)
+  if (day.isSame(today, "day")) return true;
   return !current.isBefore(deadlineOf(day, rules));
 };
 

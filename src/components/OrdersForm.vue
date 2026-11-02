@@ -2714,8 +2714,10 @@ export default {
       const closed = isClosedDelivery(date, new Date(), this.lateRulesNow);
       const message =
         (closed ? "La ruta ja és tancada per a aquest dia. " : "") +
-        `És una comanda fora de temps: portarà un recàrrec del ${this.percent(this.lateRulesNow.lateSurcharge)} % i s'obrirà una incidència. ` +
-        "Ho pots treure després amb «Recàrrec per incidència».";
+        (this.lateRulesNow.lateSurcharge
+          ? `És una comanda fora de temps: portarà un recàrrec del ${this.percent(this.lateRulesNow.lateSurcharge)} % i s'obrirà una incidència. ` +
+            "Ho pots treure després amb «Recàrrec per incidència»."
+          : "És una comanda fora de temps: es marcarà com a tal i s'obrirà una incidència.");
       return new Promise(resolve => {
         this.$buefy.dialog.confirm({
           title: "Comanda fora de temps",
