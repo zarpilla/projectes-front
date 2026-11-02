@@ -257,7 +257,7 @@
                 </div>
               </b-field>
               <!-- late orders and pickups (issues/315) -->
-              <b-field label="Hora límit de les recollides de tarda" message="Una recollida d'una «Ruta de tarda» (Rutes) informada el mateix dia a partir d'aquesta hora va tard. Les de les altres rutes van tard a partir de l'hora límit del dia laborable anterior.">
+              <b-field label="Hora límit de les recollides de tarda" message="Una recollida d'una «Ruta de tarda» (Rutes) informada el mateix dia a partir d'aquesta hora va tard, i una sòcia només la pot afegir a una recollida que ja tingui per aquell dia (no se'n crea cap de nova). Les de les altres rutes van tard a partir de l'hora límit del dia laborable anterior.">
                 <b-input v-model.number="form.orders_options.pickup_same_day_limit_hour" type="number" step="1" min="0" max="23" placeholder="10" />
               </b-field>
               <b-field label="Recàrrec de les comandes fora de temps (%)" message="Una comanda per a l'endemà informada després de l'hora límit es marca en vermell, se li obre una incidència, l'albarà porta un triangle d'avís i aquest recàrrec fix a cada comanda (0: sense recàrrec). Coordinació el pot treure a la comanda («Recàrrec per incidència»).">

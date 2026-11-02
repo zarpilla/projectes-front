@@ -132,6 +132,16 @@ export const isClosedPickup = (date, now, rules, { afternoon = false } = {}) => 
   return !current.isBefore(closingOf(day, rules));
 };
 
+// An afternoon pickup («Ruta de tarda») asked on its own day from the
+// same-day limit (10 h) on: it can only join a collection order (-R) already
+// pending for that point, route and day, never create one (issues/363).
+export const isAfternoonPickupCutoff = (date, now, rules) => {
+  const day = dayOf(date);
+  if (!day) return false;
+  const current = moment(now);
+  return day.isSame(current, "day") && current.hour() >= rules.pickupSameDayLimitHour;
+};
+
 const idOf = value => (value && typeof value === "object" ? value.id : value);
 const ROUTE_DAY_FLAGS = WEEKDAYS;
 

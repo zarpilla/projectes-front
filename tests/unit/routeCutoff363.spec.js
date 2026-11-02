@@ -17,7 +17,8 @@ import {
   routeClosedMessage
 } from '@/domain/lateOrders'
 
-vi.mock('@/service/index', () => ({ default: () => ({ get: vi.fn(), put: vi.fn(), post: vi.fn() }) }))
+const api = vi.hoisted(() => ({ get: null }))
+vi.mock('@/service/index', () => ({ default: () => ({ get: (...a) => api.get(...a), put: vi.fn(), post: vi.fn() }) }))
 import OrdersForm from '@/components/OrdersForm.vue'
 
 afterEach(() => vi.useRealTimers())
@@ -102,7 +103,7 @@ describe('the order form', () => {
     for (const name of ['dateRulesExempt', 'lateRulesNow']) {
       Object.defineProperty(vm, name, { get: () => OrdersForm.computed[name].call(vm) })
     }
-    for (const name of ['closedDeliveryDate', 'closedPickupDate', 'offerNextOpenDelivery', 'applyNextOpenDelivery', 'percent']) {
+    for (const name of ['afternoonPickupNeedsNewCollection', 'closedDeliveryDate', 'closedPickupDate', 'offerNextOpenDelivery', 'applyNextOpenDelivery', 'percent']) {
       vm[name] = OrdersForm.methods[name]
     }
     return vm
@@ -160,5 +161,37 @@ describe('the order form', () => {
     const dialog = vm.$buefy.dialog.confirm.mock.calls[0][0]
     expect(dialog.message).toContain('La ruta ja és tancada per a aquest dia.')
     expect(dialog.message).toContain('recàrrec del 15 %')
+  })
+
+  // issues/363: on an afternoon route, from 10 h of the pickup's own day, a
+  // new pickup can only join the member's pending collection order (-R)
+  describe('an afternoon pickup for today from 10 h', () => {
+    const pickupVm = () => {
+      const vm = vmFor({ form: { owner: 54, estimated_delivery_date: moment('2026-10-24').toDate(), collection_point: 8, collection_pickup_route: 6, collection_pickup_date: moment('2026-10-21').toDate() } })
+      vm.collectionPickupRoutes = [{ id: 6, afternoon: true }]
+      return vm
+    }
+
+    it('is refused when it would create a new collection order', async () => {
+      now(wed('10:00'))
+      api.get = vi.fn(async () => ({ data: [{ id: 71, collection_pickup_date: '2026-10-22' }] }))
+      const vm = pickupVm()
+      expect(await OrdersForm.methods.confirmClosedRoute.call(vm)).toBe(false)
+      expect(api.get.mock.calls[0][0]).toContain('_where[is_collection_order]=true&_where[status]=pending&_where[owner]=54&_where[contact]=8&_where[route]=6')
+      expect(vm.$buefy.snackbar.open.mock.calls[0][0].message).toContain('a partir de les 10 h')
+    })
+
+    it('joins the pending one of the day', async () => {
+      now(wed('15:00'))
+      api.get = vi.fn(async () => ({ data: [{ id: 70, collection_pickup_date: '2026-10-21' }] }))
+      expect(await OrdersForm.methods.confirmClosedRoute.call(pickupVm())).toBe(true)
+    })
+
+    it('asks nothing before 10 h', async () => {
+      now(wed('09:59'))
+      api.get = vi.fn(async () => ({ data: [] }))
+      expect(await OrdersForm.methods.confirmClosedRoute.call(pickupVm())).toBe(true)
+      expect(api.get).not.toHaveBeenCalled()
+    })
   })
 })

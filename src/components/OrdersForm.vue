@@ -588,6 +588,7 @@ import { depositNotice } from "@/domain/depositNotice";
 import { slotOf } from "@/domain/cityRoutes.js";
 import {
   DEFAULT_ROUTE_CLOSED_MESSAGE,
+  isAfternoonPickupCutoff,
   isClosedDelivery,
   isClosedPickup,
   isLateDelivery,
@@ -2806,9 +2807,41 @@ export default {
       const name = next.route.short_name || next.route.name;
       this.dateWarningMessage = `La comanda va per a ${next.date.locale("ca").format("dddd D/M")} amb la ruta ${name}.`;
     },
+    // A member's afternoon pickup for today from 10 h that would need a new
+    // collection order (-R): none pending for the point, route and day (issues/363)
+    async afternoonPickupNeedsNewCollection() {
+      if (this.dateRulesExempt || this.form.is_collection_order) return false;
+      const date = this.form.collection_pickup_date;
+      if (!this.form.collection_point || !date) return false;
+      const stored = this.storedDates && this.storedDates.collection_pickup_date;
+      if (stored && moment(stored).isSame(moment(date), "day")) return false;
+      const route = (this.collectionPickupRoutes || []).find(r => r.id === this.form.collection_pickup_route);
+      if (!(route && route.afternoon) || !isAfternoonPickupCutoff(date, new Date(), this.lateRulesNow)) return false;
+      const idOf = v => (v && typeof v === "object" ? v.id : v);
+      try {
+        const pending = (
+          await service({ requiresAuth: true }).get(
+            `orders?_limit=-1&_where[is_collection_order]=true&_where[status]=pending` +
+              `&_where[owner]=${idOf(this.form.owner)}&_where[contact]=${idOf(this.form.collection_point)}&_where[route]=${route.id}`
+          )
+        ).data;
+        const day = moment(date).format("YYYY-MM-DD");
+        return !(pending || []).some(co => moment(co.collection_pickup_date || co.estimated_delivery_date).format("YYYY-MM-DD") === day);
+      } catch (e) {
+        return false; // the API decides
+      }
+    },
     // Before saving: a closed date can't be saved by a member (the API
     // refuses it too); she can take the next open one instead.
     async confirmClosedRoute() {
+      if (await this.afternoonPickupNeedsNewCollection()) {
+        this.$buefy.snackbar.open({
+          message: `Avui ja no es poden demanar recollides noves a la ruta de tarda a partir de les ${this.lateRulesNow.pickupSameDayLimitHour} h. Només es pot afegir a una recollida que ja hi tinguis per avui.`,
+          queue: false,
+          type: "is-danger"
+        });
+        return false;
+      }
       if (this.closedPickupDate()) {
         this.$buefy.snackbar.open({
           message: `La recollida de ${moment(this.form.collection_pickup_date).locale("ca").format("dddd D/M")} ja és tancada: les recollides s'han d'informar abans de les ${this.lateRulesNow.routeClosingHour} h del dia laborable anterior. Tria una data posterior.`,
