@@ -28,20 +28,21 @@ const MWF = { monday: true, wednesday: true, friday: true }
 // day (issues/150 moved it in the same week, or to next week): it stays for
 // tomorrow, late, and the warning gives the configured hour
 describe('tomorrow after the cutoff (issues/150, 315)', () => {
+  // between the limit and the route's closing (14 h, issues/363)
   it('stays for tomorrow, late', () => {
-    at('2026-10-06', '15:00') // Tuesday afternoon, tomorrow (Wednesday) is past the cutoff
-    const { nextDay, warning, late } = assignRouteDate(MWF)
+    at('2026-10-06', '13:30') // Tuesday, tomorrow (Wednesday) is past the 13 h cutoff
+    const { nextDay, warning, late } = assignRouteDate(MWF, { nextDayLimitHour: 13 })
     expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-07')
     expect(late).toBe(true)
-    expect(warning).toContain('14 h')
+    expect(warning).toContain('13 h')
     expect(warning).not.toContain('setmana vinent')
   })
 
   it('gives the configured hour', () => {
-    at('2026-10-08', '15:00') // Thursday afternoon, route on Friday only
-    const { nextDay, warning } = assignRouteDate({ friday: true }, { nextDayLimitHour: 13 })
+    at('2026-10-08', '12:30') // Thursday, route on Friday only
+    const { nextDay, warning } = assignRouteDate({ friday: true }, { nextDayLimitHour: 12 })
     expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-09')
-    expect(warning).toContain('13 h')
+    expect(warning).toContain('12 h')
   })
 
   it('does not warn that today is closed when the next route day is this week', () => {
@@ -51,11 +52,14 @@ describe('tomorrow after the cutoff (issues/150, 315)', () => {
     expect(warning).toBe('')
   })
 
-  it('warns that today is closed when the order goes to the same day next week', () => {
+  // «…setmana vinent» is gone (issues/363): a closed day is told by the form
+  // with the next date of the town's routes (closedDay)
+  it('does not talk about next week when the route ran today', () => {
     at('2026-10-05', '09:00') // Monday, route on Monday only
-    const { nextDay, warning } = assignRouteDate({ monday: true })
+    const { nextDay, warning, closedDay } = assignRouteDate({ monday: true })
     expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-12')
-    expect(warning).toContain('per avui')
+    expect(warning).toBe('')
+    expect(closedDay).toBe(null)
   })
 })
 

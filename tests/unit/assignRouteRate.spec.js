@@ -76,12 +76,35 @@ describe('assignRouteDate', () => {
   // it moved to next week's day (issues/150); since issues/315 the order stays
   // for tomorrow, late, with a warning
   it('keeps tomorrow past the cutoff as a late order', () => {
-    at('2026-10-07', '15:00') // Wednesday after 14:00, route on Thursday
-    const { nextDay, warning, late } = assignRouteDate(ROUTES.thursday)
+    at('2026-10-07', '13:30') // Wednesday after 13:00, before the closing, route on Thursday
+    const { nextDay, warning, late, closedDay } = assignRouteDate(ROUTES.thursday, { nextDayLimitHour: 13 })
     expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-08')
     expect(late).toBe(true)
+    expect(closedDay).toBe(null)
     expect(warningCode(warning)).toBe('TOMORROW')
     expect(warning).toContain('fora de temps')
+  })
+
+  // issues/363: from the closing hour (14 h) the day is closed: the member's
+  // next date is the route's next one, and the form is told (closedDay)
+  it('skips a closed day for a member and says which one', () => {
+    at('2026-10-07', '15:00') // Wednesday after 14:00, route on Thursday
+    const { nextDay, late, closedDay } = assignRouteDate(ROUTES.thursday, { nextDayLimitHour: 13 })
+    expect(closedDay.format('YYYY-MM-DD')).toBe('2026-10-08')
+    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-15')
+    expect(late).toBe(false)
+    // a later closing hour keeps it late, not closed
+    const at16 = assignRouteDate(ROUTES.thursday, { nextDayLimitHour: 13, routeClosingHour: 16 })
+    expect(at16.closedDay).toBe(null)
+    expect(at16.nextDay.format('YYYY-MM-DD')).toBe('2026-10-08')
+  })
+
+  it('closes on the working day before a holiday', () => {
+    at('2026-12-07', '10:00') // Monday 7 December, a holiday: Tuesday closed on Friday
+    const { closedDay, nextDay } = assignRouteDate(ROUTES.tuesday, { holidays: ['2026-12-07'] })
+    expect(closedDay.format('YYYY-MM-DD')).toBe('2026-12-08')
+    expect(nextDay.format('YYYY-MM-DD')).toBe('2026-12-15')
+    expect(assignRouteDate(ROUTES.tuesday).closedDay).toBe(null)
   })
 
   it('lets admins keep tomorrow after the cutoff', () => {
@@ -91,11 +114,13 @@ describe('assignRouteDate', () => {
     expect(warning).toBe('')
   })
 
-  it('warns that today is closed and picks the next route day', () => {
+  // «Ruta tancada per avui… setmana vinent» is gone (issues/363): next week's
+  // day is open, nothing to warn about
+  it('picks the next route day when the route runs today', () => {
     at('2026-10-05', '09:00') // Monday, route on Monday
     const { nextDay, warning } = assignRouteDate(ROUTES.monday)
     expect(nextDay.format('YYYY-MM-DD')).toBe('2026-10-12')
-    expect(warningCode(warning)).toBe('TODAY')
+    expect(warning).toBe('')
   })
 
   it('returns a date object the order form can call toDate() and format() on', () => {

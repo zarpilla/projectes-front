@@ -244,10 +244,14 @@
               <b-field label="Descompte multientrega (%)" message="Quan una sòcia té més d'una comanda per al mateix punt d'entrega i dia.">
                 <b-input v-model.number="form.orders_options.multidelivery_discount" type="number" step="0.01" min="0" max="100" />
               </b-field>
-              <b-field label="Hora límit per a l'endemà" message="Les comandes fetes després d'aquesta hora van tard per al següent dia laborable. Divendres tanca les de dilluns (o dissabte, si és laborable).">
+              <b-field label="Hora límit per a l'endemà" message="Les comandes fetes després d'aquesta hora van tard (recàrrec i incidència) per al següent dia laborable. Divendres tanca les de dilluns (o dissabte, si és laborable).">
                 <b-input v-model.number="form.orders_options.next_day_limit_hour" type="number" step="1" min="0" max="23" />
               </b-field>
-              <b-field label="Dies laborables" message="L'hora límit d'una entrega és la del dia laborable anterior. Sense cap dia marcat: de dilluns a divendres.">
+              <!-- issues/363 -->
+              <b-field label="Hora de tancament de la ruta" message="A partir d'aquesta hora del dia laborable anterior la ruta és tancada: una sòcia ja no hi pot entrar comandes ni recollides de matí, i se li proposa la propera data d'una ruta de la seva població. L'oficina sí que pot, amb recàrrec.">
+                <b-input v-model.number="form.orders_options.route_closing_hour" type="number" step="1" min="0" max="23" placeholder="14" />
+              </b-field>
+              <b-field label="Dies laborables" message="L'hora límit i la de tancament són les del dia laborable anterior; els festius de tothom (Festius) no compten com a laborables. Sense cap dia marcat: de dilluns a divendres.">
                 <div class="working-days">
                   <b-checkbox v-for="d in weekdayOptions" :key="d.value" v-model="workingDays" :native-value="d.value">{{ d.label }}</b-checkbox>
                 </div>
@@ -256,11 +260,14 @@
               <b-field label="Hora límit de les recollides de tarda" message="Una recollida d'una «Ruta de tarda» (Rutes) informada el mateix dia a partir d'aquesta hora va tard. Les de les altres rutes van tard a partir de l'hora límit del dia laborable anterior.">
                 <b-input v-model.number="form.orders_options.pickup_same_day_limit_hour" type="number" step="1" min="0" max="23" placeholder="10" />
               </b-field>
-              <b-field label="Recàrrec de les comandes fora de temps (%)" message="Una comanda per a l'endemà informada després de l'hora límit es marca en vermell, l'albarà porta un triangle d'avís i aquest recàrrec (0: sense recàrrec). Coordinació el pot treure a la comanda («Recàrrec per incidència»).">
-                <b-input v-model.number="form.orders_options.late_surcharge" type="number" step="0.01" min="0" max="1000" placeholder="25" />
+              <b-field label="Recàrrec de les comandes fora de temps (%)" message="Una comanda per a l'endemà informada després de l'hora límit es marca en vermell, se li obre una incidència, l'albarà porta un triangle d'avís i aquest recàrrec fix a cada comanda (0: sense recàrrec). Coordinació el pot treure a la comanda («Recàrrec per incidència»).">
+                <b-input v-model.number="form.orders_options.late_surcharge" type="number" step="0.01" min="0" max="1000" placeholder="15" />
               </b-field>
               <b-field label="Missatge de les comandes fora de temps" class="is-full" message="Surt a la sòcia abans de desar una comanda fora de temps. {hora} l'hora límit per a l'endemà, {recarrec} el recàrrec. Buit: el text de sempre (el de l'exemple).">
                 <b-input v-model="form.orders_options.late_order_message" type="textarea" rows="4" :placeholder="defaultLateOrderMessage" />
+              </b-field>
+              <b-field label="Missatge de ruta tancada" class="is-full" message="Surt a la sòcia quan tria una ruta o una data ja tancada, amb els botons «Segueix» (posa la propera data) i «Torna». {data} la propera data d'una ruta de la població, {ruta} aquesta ruta. Buit: el text de sempre.">
+                <b-input v-model="form.orders_options.route_closed_message" type="textarea" rows="3" :placeholder="defaultRouteClosedMessage" />
               </b-field>
               <b-field label="Missatge de les recollides fora de temps" class="is-full" message="Surt a la sòcia abans de desar una comanda amb una recollida fora de temps (sense recàrrec). {hora} l'hora límit per a l'endemà, {hora_tarda} la de les recollides de tarda. Buit: el text de sempre.">
                 <b-input v-model="form.orders_options.late_pickup_message" type="textarea" rows="4" :placeholder="defaultLatePickupMessage" />
@@ -338,7 +345,7 @@ import getConfig from '@/config';
 import CardComponent from '@/components/CardComponent.vue';
 import CertificateCard from '@/components/CertificateCard.vue';
 import ReadCacheCard from '@/components/ReadCacheCard.vue';
-import { DEFAULT_LATE_ORDER_MESSAGE, DEFAULT_LATE_PICKUP_MESSAGE, workingDaysOf } from '@/domain/lateOrders';
+import { DEFAULT_LATE_ORDER_MESSAGE, DEFAULT_LATE_PICKUP_MESSAGE, DEFAULT_ROUTE_CLOSED_MESSAGE, workingDaysOf } from '@/domain/lateOrders';
 
 // the settings components of `me` edited here (issues/139)
 const COMPONENTS = ['options', 'quotes', 'orders_options'];
@@ -355,6 +362,7 @@ export default {
       logo: null,
       defaultLateOrderMessage: DEFAULT_LATE_ORDER_MESSAGE,
       defaultLatePickupMessage: DEFAULT_LATE_PICKUP_MESSAGE,
+      defaultRouteClosedMessage: DEFAULT_ROUTE_CLOSED_MESSAGE,
       weekdayOptions: [
         { value: 'monday', label: 'Dl' },
         { value: 'tuesday', label: 'Dt' },

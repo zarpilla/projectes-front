@@ -586,7 +586,17 @@ import { contactName, contactLabel, matchesContact } from "@/domain/orderContact
 import { RATE_ORDERS_RELATIONS, populateQuery } from "@/domain/orderPopulate";
 import { depositNotice } from "@/domain/depositNotice";
 import { slotOf } from "@/domain/cityRoutes.js";
-import { lateRules, lateSurchargeOf, lateWarnings } from "@/domain/lateOrders.js";
+import {
+  DEFAULT_ROUTE_CLOSED_MESSAGE,
+  isClosedDelivery,
+  isClosedPickup,
+  isLateDelivery,
+  lateRules,
+  lateSurchargeOf,
+  lateWarnings,
+  nextOpenDelivery,
+  routeClosedMessage
+} from "@/domain/lateOrders.js";
 import { townSubstitutes, isSubstituteDay, closureNotice, closureText } from "@/domain/routeClosures.js";
 import { orderStatusLabel, orderStatusTag, formStatuses, canSetStatus, statusChange, canDeposit as canDepositOrder, canTransfer as canTransferOrder } from "@/domain/orderStatus";
 
@@ -644,6 +654,8 @@ export default {
       ordersOptions: {},
       // the dates as loaded: a date that doesn't move is not judged late again
       storedDates: null,
+      // the holidays for everyone (YYYY-MM-DD): no working day for the limits (issues/363)
+      holidays: [],
       dateWarningMessage: "",
       collectionPickupDateWarningMessage: "",
       isModalActive: false,
@@ -794,7 +806,13 @@ export default {
       return this.form.pickup_point === true;
     },
     cutoffReminder() {
-      return `s'han d'informar les comandes com a límit a les ${this.nextDayLimitHour} h del dia laborable anterior.`;
+      const closing = this.lateRulesNow ? this.lateRulesNow.routeClosingHour : 0;
+      const text = `s'han d'informar les comandes com a límit a les ${this.nextDayLimitHour} h del dia laborable anterior.`;
+      return closing > this.nextDayLimitHour ? `${text} A partir de les ${closing} h la ruta és tancada.` : text;
+    },
+    // the tenant's limits, with its holidays (issues/363)
+    lateRulesNow() {
+      return lateRules({ next_day_limit_hour: this.nextDayLimitHour, ...(this.ordersOptions || {}) }, { holidays: this.holidays });
     },
     errors() {
       return orderErrors(this);
@@ -1410,7 +1428,8 @@ export default {
         cityRoutes,
         routeFestives,
         sociesContacts,
-        depositNotices
+        depositNotices,
+        festives
       ] = await Promise.all([
         service({ requiresAuth: true, cached: true }).get("products?_limit=-1"),
         service({ requiresAuth: true, cached: true }).get("pickups?_limit=-1"),
@@ -1422,7 +1441,14 @@ export default {
         service({ requiresAuth: true }).get("route-festives?_limit=-1"),
         service({ requiresAuth: true }).get("contacts/for-orders?socies=1"),
         // «Avisos de dipòsit»: without them, the warehouse's own text (issues/313)
-        service({ requiresAuth: true }).get("route-pickup-notices?_limit=-1").catch(() => ({ data: [] }))
+        service({ requiresAuth: true }).get("route-pickup-notices?_limit=-1").catch(() => ({ data: [] })),
+        // the holidays for everyone of the coming weeks: the limits skip them (issues/363)
+        service({ requiresAuth: true, cached: true })
+          .get(
+            `festives?_where[date_gte]=${moment().subtract(7, "days").format("YYYY-MM-DD")}` +
+              `&_where[date_lte]=${moment().add(3, "months").format("YYYY-MM-DD")}&_limit=-1`
+          )
+          .catch(() => ({ data: [] }))
       ]);
 
       this.products = products.data;
@@ -1435,6 +1461,7 @@ export default {
       this.routeFestives = routeFestives.data;
       this.sociesContacts = sociesContacts.data;
       this.depositNotices = depositNotices.data || [];
+      this.holidays = (festives.data || []).filter(f => f && !f.users_permissions_user).map(f => String(f.date).slice(0, 10));
     },
     async changeOwner() {
       this.refreshClients(this.form.owner);
@@ -1483,21 +1510,26 @@ export default {
           });
           this.dateWarningMessage = "Aquesta ruta no té dies configurats";
         } else {
-          const routeDate = assignRouteDate(route, {
-            nextDayLimitHour: this.nextDayLimitHour,
-            workingDays: (this.ordersOptions || {}).working_days,
-            isAdmin: this.permissions.includes("orders_admin"),
-            closures: this.routeFestives
-          });
+          const routeDate = assignRouteDate(route, this.routeDateOptions());
           const nextDay = routeDate.nextDay;
           
           if (this.form.status === "pending") {
             this.form.estimated_delivery_date = nextDay.toDate();
           }
+          // the route's next day is closed (issues/363): say so and offer the
+          // next date of a route of the town, which may be another route.
+          // «Torna» leaves no date: the next week's one went in silently.
+          const closedOffer = routeDate.closedDay && this.form.status === "pending";
+          const moved = closedOffer ? await this.offerNextOpenDelivery() : false;
           // a closure of the route before that day, with its reason or substitute (issues/355)
           const closure = closureNotice(route, this.routeFestives, { until: nextDay });
           const warning = [closure ? closureText(closure) : "", routeDate.warning].filter(Boolean).join(" ");
-          if (warning) {
+          if (closedOffer) {
+            if (!moved) {
+              this.form.estimated_delivery_date = null;
+              this.dateWarningMessage = `La ruta ja és tancada per a ${routeDate.closedDay.locale("ca").format("dddd D/M")}. Tria una altra ruta o data.`;
+            }
+          } else if (warning) {
             this.dateWarningMessage = warning;
             this.$buefy.toast.open({
               message: warning,
@@ -1527,6 +1559,8 @@ export default {
       if (!valid) {
         this.dateWarningMessage =
           "Atenció! La data de lliurament no és vàlida per la ruta seleccionada";
+      } else if (this.closedDeliveryDate()) {
+        this.dateWarningMessage = `La ruta ja és tancada per a ${moment(this.form.estimated_delivery_date).locale("ca").format("dddd D/M")}: tria una data posterior.`;
       } else {
         this.dateWarningMessage = "";
       }
@@ -1689,6 +1723,11 @@ export default {
           });
           this.isLoading = false;
           this.scrollToField(orderProblemField(problem, this.form, this.isPickupPoint));
+          return;
+        }
+
+        if (!(await this.confirmClosedRoute())) {
+          this.isLoading = false;
           return;
         }
 
@@ -2449,12 +2488,8 @@ export default {
       // is closed, the same cutoff (issues/156).
       const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
       if (!days.some(d => route[d])) return;
-      const { nextDay } = assignRouteDate(route, {
-        nextDayLimitHour: this.nextDayLimitHour,
-        workingDays: (this.ordersOptions || {}).working_days,
-        isAdmin: this.permissions.includes("orders_admin"),
-        closures: this.routeFestives
-      });
+      // a morning pickup closes as the deliveries do (issues/363)
+      const { nextDay } = assignRouteDate(route, { ...this.routeDateOptions(), pickup: true });
       this.form.collection_pickup_date = nextDay.toDate();
       // Validate the calculated date
       this.checkCollectionPickupDate();
@@ -2647,11 +2682,12 @@ export default {
     // Before saving a late order or pickup the member reads why it matters and
     // chooses to save it anyway or go back and pick another day (issues/315).
     confirmLate() {
-      if (this.dateRulesExempt || this.form.is_collection_order) return Promise.resolve(true);
+      if (this.form.is_collection_order) return Promise.resolve(true);
+      if (this.dateRulesExempt) return this.confirmOfficeLate();
       const route = (this.collectionPickupRoutes || []).find(r => r.id === this.form.collection_pickup_route);
       // «Ruta de tarda» on the route (issues/346)
       const afternoon = Boolean(route && route.afternoon);
-      const warnings = lateWarnings(this.form, this.storedDates, this.ordersOptions, { afternoon });
+      const warnings = lateWarnings(this.form, this.storedDates, this.ordersOptions, { afternoon, holidays: this.holidays });
       if (!warnings.length) return Promise.resolve(true);
       const escape = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const message = warnings.map(w => `<p>${escape(w.text).replace(/\n/g, "<br>")}</p>`).join("<br>");
@@ -2668,6 +2704,121 @@ export default {
           onCancel: () => resolve(false)
         });
       });
+    },
+    // The office can enter an order past the limit, even past the route's
+    // closing, but it pays the surcharge too (issues/363): it is told first.
+    confirmOfficeLate() {
+      const date = this.form.estimated_delivery_date;
+      if (this.form.id || !date || !isLateDelivery(date, new Date(), this.lateRulesNow)) return Promise.resolve(true);
+      const closed = isClosedDelivery(date, new Date(), this.lateRulesNow);
+      const message =
+        (closed ? "La ruta ja és tancada per a aquest dia. " : "") +
+        `És una comanda fora de temps: portarà un recàrrec del ${this.percent(this.lateRulesNow.lateSurcharge)} % i s'obrirà una incidència. ` +
+        "Ho pots treure després amb «Recàrrec per incidència».";
+      return new Promise(resolve => {
+        this.$buefy.dialog.confirm({
+          title: "Comanda fora de temps",
+          message,
+          type: "is-warning",
+          hasIcon: true,
+          icon: "alert",
+          confirmText: "Desa la comanda",
+          cancelText: "Torna",
+          onConfirm: () => resolve(true),
+          onCancel: () => resolve(false)
+        });
+      });
+    },
+    // the options of assignRouteDate: the limits, closings and closures
+    routeDateOptions() {
+      const rules = this.lateRulesNow;
+      return {
+        nextDayLimitHour: rules.nextDayLimitHour,
+        routeClosingHour: rules.routeClosingHour,
+        workingDays: rules.workingDays,
+        holidays: this.holidays,
+        isAdmin: this.dateRulesExempt,
+        closures: this.routeFestives
+      };
+    },
+    // a member's delivery date (new or moved) whose route has closed (issues/363)
+    closedDeliveryDate() {
+      if (this.dateRulesExempt || this.form.is_collection_order || this.form.status !== "pending") return false;
+      const date = this.form.estimated_delivery_date;
+      if (!date) return false;
+      const stored = this.storedDates && this.storedDates.estimated_delivery_date;
+      if (stored && moment(stored).isSame(moment(date), "day")) return false;
+      return isClosedDelivery(date, new Date(), this.lateRulesNow);
+    },
+    // a member's morning farm pickup (new or moved) whose route has closed
+    closedPickupDate() {
+      if (this.dateRulesExempt || this.form.is_collection_order) return false;
+      const date = this.form.collection_pickup_date;
+      if (!this.form.collection_point || !date) return false;
+      const stored = this.storedDates && this.storedDates.collection_pickup_date;
+      if (stored && moment(stored).isSame(moment(date), "day")) return false;
+      const route = (this.collectionPickupRoutes || []).find(r => r.id === this.form.collection_pickup_route);
+      return isClosedPickup(date, new Date(), this.lateRulesNow, { afternoon: Boolean(route && route.afternoon) });
+    },
+    /**
+     * The route is closed for the date (issues/363): Joel's message with the
+     * next date a route of the town runs. «Segueix» puts that date (and that
+     * route, when it is another one) on the order and answers true; «Torna»
+     * answers false. No next date: the member is told to pick another one.
+     */
+    offerNextOpenDelivery() {
+      const next = nextOpenDelivery({
+        routes: this.routes,
+        closures: this.routeFestives,
+        rules: this.lateRulesNow,
+        prefer: this.form.route
+      });
+      if (!next) {
+        this.dateWarningMessage = "La ruta ja és tancada i no hi ha cap altra data propera: tria'n una altra.";
+        return Promise.resolve(false);
+      }
+      const text = routeClosedMessage((this.ordersOptions || {}).route_closed_message || DEFAULT_ROUTE_CLOSED_MESSAGE, next);
+      const escape = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return new Promise(resolve => {
+        this.$buefy.dialog.confirm({
+          title: "Ruta tancada",
+          message: `<p>${escape(text).replace(/\n/g, "<br>")}</p>`,
+          type: "is-danger",
+          hasIcon: true,
+          icon: "clock-alert-outline",
+          confirmText: "Segueix",
+          cancelText: "Torna",
+          onConfirm: async () => {
+            await this.applyNextOpenDelivery(next);
+            resolve(true);
+          },
+          onCancel: () => resolve(false)
+        });
+      });
+    },
+    async applyNextOpenDelivery(next) {
+      const otherRoute = next.route.id !== this.form.route;
+      this.form.estimated_delivery_date = next.date.clone().toDate();
+      if (otherRoute) {
+        this.form.route = next.route.id;
+        await this.changeRoute({ keepDate: true });
+      }
+      const name = next.route.short_name || next.route.name;
+      this.dateWarningMessage = `La comanda va per a ${next.date.locale("ca").format("dddd D/M")} amb la ruta ${name}.`;
+    },
+    // Before saving: a closed date can't be saved by a member (the API
+    // refuses it too); she can take the next open one instead.
+    async confirmClosedRoute() {
+      if (this.closedPickupDate()) {
+        this.$buefy.snackbar.open({
+          message: `La recollida de ${moment(this.form.collection_pickup_date).locale("ca").format("dddd D/M")} ja és tancada: les recollides s'han d'informar abans de les ${this.lateRulesNow.routeClosingHour} h del dia laborable anterior. Tria una data posterior.`,
+          queue: false,
+          type: "is-danger"
+        });
+        return false;
+      }
+      if (!this.closedDeliveryDate()) return true;
+      return this.offerNextOpenDelivery();
     },
     percent(value) {
       return formatNumber(Number(value) || 0, 2);
