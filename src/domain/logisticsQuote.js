@@ -3,7 +3,7 @@
 // orderRoutePrice, invoicedPrice, the late rules), so the quote can't drift
 // from the price the same real order gets.
 import moment from "moment";
-import { assignRouteRate, assignRouteDate, orderRoutePrice, pickupIsFarm } from "@/service/assignRouteRate.js";
+import { assignRouteRate, assignRouteDate, calculateRoutePrice, orderRoutePrice, pickupIsFarm } from "@/service/assignRouteRate.js";
 import { invoicedPrice } from "@/domain/logisticsInvoicing.js";
 import { isLateDelivery, lateRules } from "@/domain/lateOrders.js";
 
@@ -42,10 +42,84 @@ export const quoteDate = (route, { ordersOptions = {}, closures = [], exempt = f
   });
 };
 
+// The rate of a collection order (-R), as the server picks it (projectes-v5
+// route-price.js pickCollectionOrderRouteRate): the rates of its route (or of
+// every route), of a warehouse or of no pickup, of its delivery type (or of
+// any); route-specific first, then the delivery type's, then the lowest id.
+export const collectionRate = (rates, { routeId, deliveryTypeId = null, pickups = [] } = {}) => {
+  const routesOf = r => (Array.isArray(r.routes) ? r.routes : []);
+  const candidates = (rates || []).filter(r => {
+    if (!r) return false;
+    const routes = routesOf(r);
+    if (routes.length && !routes.some(rt => idOf(rt) === routeId)) return false;
+    if (r.pickup && pickupIsFarm(r.pickup, { pickups, routeRates: rates })) return false;
+    if (deliveryTypeId && r.delivery_type && idOf(r.delivery_type) !== deliveryTypeId) return false;
+    return true;
+  });
+  const rank = r => [routesOf(r).length ? 0 : 1, deliveryTypeId && r.delivery_type ? 0 : 1, Number(r.id) || 0];
+  candidates.sort((a, b) => {
+    const ra = rank(a);
+    const rb = rank(b);
+    for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i];
+    return 0;
+  });
+  return candidates[0] || null;
+};
+
+const isCold = (type, deliveryTypes) => {
+  const t = typeof type === "object" && type ? type : (deliveryTypes || []).find(d => d.id === idOf(type));
+  return Boolean(t && t.refrigerated);
+};
+
+/**
+ * The collection order (-R) of a farm pickup through a collection point: the
+ * server groups the member's orders of the same point, pickup route and day
+ * in one pending -R, priced at the collection rate for all their kilos, less
+ * the point's «Descompte recollida» (lifecycles updateCollectionOrderAggregates).
+ * `input`: point (the collection point contact), pickupRoute, kilograms,
+ * deliveryType (id). `ctx`: routeRates, pickups, deliveryTypes,
+ * pending: the -R already pending for that point, route and day, or null.
+ * `extra` is what this order adds to the -R: all of it for a new one.
+ */
+export const quoteCollection = (input, ctx = {}) => {
+  const { point, pickupRoute } = input;
+  const pending = ctx.pending || null;
+  const kilograms = Number(input.kilograms) || 0;
+  const discount = Number(point && point.pickup_discount) || 0;
+  // refrigerated when any of its orders is (issues/292)
+  let deliveryTypeId = input.deliveryType || null;
+  if (pending && pending.delivery_type) {
+    const cold = isCold(input.deliveryType, ctx.deliveryTypes) || isCold(pending.delivery_type, ctx.deliveryTypes);
+    deliveryTypeId = isCold(pending.delivery_type, ctx.deliveryTypes) === cold ? idOf(pending.delivery_type) : deliveryTypeId;
+  }
+  const rate = pickupRoute
+    ? collectionRate(ctx.routeRates, { routeId: pickupRoute.id, deliveryTypeId, pickups: ctx.pickups })
+    : null;
+  const before = pending ? Number(pending.kilograms) || 0 : 0;
+  const totalKg = before + kilograms;
+  const price = rate ? Math.round(calculateRoutePrice(rate, totalKg, 0) * 100) / 100 : 0;
+  const total = invoicedPrice({ price, contact_pickup_discount: discount });
+  const current = pending
+    ? invoicedPrice({ price: Number(pending.price) || 0, contact_pickup_discount: Number(pending.contact_pickup_discount) || 0 })
+    : 0;
+  return {
+    rate,
+    pending,
+    kilograms: totalKg,
+    price,
+    discount,
+    total,
+    current,
+    extra: Math.round((total - current) * 100) / 100
+  };
+};
+
 /**
  * The quote. `input`:
  *   route, date, kilograms, deliveryType (id), warehouse (pickup row),
- *   farmPickup (the farm pickup row when there is a pickup at the farm, else null)
+ *   farmPickup (the farm pickup row when there is a pickup at the farm, else null),
+ *   collectionPoint (the farm's collection point contact: the order takes the
+ *     warehouses' rates and the pickup is a -R, see quoteCollection)
  * `ctx`:
  *   routeRates, pickups, ownerId,
  *   pendingOrders: the member's pending orders on the route (a farm pickup
@@ -66,7 +140,7 @@ export const quoteOrder = (input, ctx = {}) => {
     delivery_type: deliveryType || null,
     pickup: pickup ? pickup.id : null,
     owner: ctx.ownerId || null,
-    collection_point: null,
+    collection_point: input.collectionPoint ? input.collectionPoint.id : null,
     route_rate: null,
     status: "pending"
   };
@@ -81,6 +155,13 @@ export const quoteOrder = (input, ctx = {}) => {
 
   const multideliveryPct = ctx.multideliveryAllowed === false ? 0 : Number(o.multidelivery_discount) || 0;
   const multidelivery_discount = ctx.otherOrderToPoint ? multideliveryPct : 0;
+
+  const collection = input.collectionPoint
+    ? quoteCollection(
+        { point: input.collectionPoint, pickupRoute: input.pickupRoute, kilograms, deliveryType },
+        { routeRates: ctx.routeRates, pickups: ctx.pickups, deliveryTypes: ctx.deliveryTypes, pending: ctx.pendingCollection }
+      )
+    : null;
 
   const rules = lateRules(o);
   const late = Boolean(!ctx.exempt && date && isLateDelivery(date, ctx.now || new Date(), rules));
@@ -101,7 +182,9 @@ export const quoteOrder = (input, ctx = {}) => {
     volume: { discount: volume_discount, fromOrders: volumeOrders, amount: volumePrice, orders: others + 1 },
     multidelivery: { discount: multidelivery_discount, percent: multideliveryPct },
     late: { late, surcharge: late_surcharge },
-    total: invoicedPrice(order),
+    orderTotal: invoicedPrice(order),
+    collection,
+    total: Math.round((invoicedPrice(order) + (collection ? collection.extra : 0)) * 100) / 100,
     order
   };
 };
@@ -124,7 +207,23 @@ export const quoteRows = (input, quote, { member = "", town = "", deliveryTypeNa
     ["Descompte per volum (€)", money(quote.volume.discount)],
     ["Descompte multientrega (%)", quote.multidelivery.discount],
     ["Recàrrec fora de temps (%)", quote.late.surcharge],
-    ["Total sense IVA (€)", money(quote.total)]
+    ["Total comanda (€)", money(quote.orderTotal)]
   ];
+  const c = quote.collection;
+  if (c) {
+    rows.push(
+      ["Punt de recollida", input.collectionPoint ? input.collectionPoint.name : ""],
+      ["Ruta de recollida", input.pickupRoute ? input.pickupRoute.name : ""],
+      ["Data de recollida", input.pickupDate ? moment(input.pickupDate).format("DD/MM/YYYY") : ""],
+      ["Tarifa de la recollida", c.rate ? c.rate.name : ""],
+      ["Kg de la recollida", c.kilograms],
+      ["Preu de la recollida (€)", money(c.price)],
+      ["Descompte recollida (%)", c.discount],
+      ["Recollida (-R) (€)", money(c.total)]
+    );
+    if (c.pending) rows.push(["La -R ja pendent costava (€)", money(c.current)]);
+    rows.push(["Aquesta comanda hi afegeix (€)", money(c.extra)]);
+  }
+  rows.push(["Total sense IVA (€)", money(quote.total)]);
   return rows.map(([concepte, valor]) => ({ concepte, valor }));
 };

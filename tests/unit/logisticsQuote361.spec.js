@@ -3,7 +3,7 @@
 // route price, volume/multidelivery discounts and late surcharge.
 import { describe, it, expect } from 'vitest'
 import moment from 'moment'
-import { quoteOrder, townRoutes, transferNeeded, quoteRows } from '@/domain/logisticsQuote'
+import { quoteOrder, quoteCollection, collectionRate, townRoutes, transferNeeded, quoteRows } from '@/domain/logisticsQuote'
 import { assignRouteRate, orderRoutePrice } from '@/service/assignRouteRate'
 import { invoicedPrice } from '@/domain/logisticsInvoicing'
 
@@ -95,5 +95,52 @@ describe('logistics quote (issues/361)', () => {
     const rows = quoteRows(input, quoteOrder(input, { routeRates, pickups }), { member: 'Formatgeria', town: 'Olot' })
     expect(rows.find(r => r.concepte === 'Total sense IVA (€)').valor).toBe(12)
     expect(rows.find(r => r.concepte === 'Ruta').valor).toBe('Garrotxa')
+  })
+
+  // 2026-11-02 (the user): the quote includes the collection order (-R) of a
+  // farm pickup and the collection point's «Descompte recollida»
+  describe('farm pickup through a collection point (-R)', () => {
+    const POINT = { id: 70, name: 'Mas Pla', pickup_discount: 10 }
+    const pickupRoute = { id: 8, name: 'Recollides Garrotxa', tuesday: true }
+    const deliveryTypes = [{ id: 4, refrigerated: false }, { id: 9, refrigerated: true }]
+    const input = { route, date: thursday, kilograms: 5, deliveryType: 4, warehouse: GIRONA, farmPickup: FARM, collectionPoint: POINT, pickupRoute }
+
+    it('the -R takes a warehouse (or no pickup) rate of its delivery type, never a farm one', () => {
+      expect(collectionRate(routeRates, { routeId: 8, deliveryTypeId: 4, pickups }).id).toBe(1)
+      expect(collectionRate(routeRates, { routeId: 8, deliveryTypeId: 9, pickups }).id).toBe(3)
+    })
+
+    it('the order takes the warehouse rate and adds a new -R less the pickup discount', () => {
+      const q = quoteOrder(input, { routeRates, pickups, deliveryTypes, ownerId: 5 })
+      expect(q.rate.id).toBe(1)
+      expect(q.orderTotal).toBe(8)
+      expect(q.collection).toMatchObject({ kilograms: 5, price: 8, discount: 10, total: 7.2, current: 0, extra: 7.2, pending: null })
+      expect(q.total).toBe(15.2)
+    })
+
+    it('joining a pending -R costs only what it raises', () => {
+      const pending = { id: 900, kilograms: 20, price: 14, contact_pickup_discount: 10, delivery_type: { id: 4 } }
+      const q = quoteOrder(input, { routeRates, pickups, deliveryTypes, ownerId: 5, pendingCollection: pending })
+      // 25 kg: 14 + 0.5 × (18 − 14) = 16, less 10 % = 14.4; it was 12.6
+      expect(q.collection).toMatchObject({ kilograms: 25, price: 16, total: 14.4, current: 12.6, extra: 1.8 })
+      expect(q.total).toBe(9.8)
+    })
+
+    it('a refrigerated order makes the -R refrigerated', () => {
+      const pending = { id: 900, kilograms: 20, price: 14, delivery_type: { id: 4, refrigerated: false } }
+      const c = quoteCollection({ point: POINT, pickupRoute, kilograms: 5, deliveryType: 9 }, { routeRates, pickups, deliveryTypes, pending })
+      expect(c.rate.id).toBe(3)
+    })
+
+    it('exports the -R rows', () => {
+      const q = quoteOrder(input, { routeRates, pickups, deliveryTypes })
+      const rows = quoteRows({ ...input, units: 1 }, q)
+      const value = label => rows.find(r => r.concepte === label).valor
+      expect(value('Total comanda (€)')).toBe(8)
+      expect(value('Punt de recollida')).toBe('Mas Pla')
+      expect(value('Descompte recollida (%)')).toBe(10)
+      expect(value('Aquesta comanda hi afegeix (€)')).toBe(7.2)
+      expect(value('Total sense IVA (€)')).toBe(15.2)
+    })
   })
 })

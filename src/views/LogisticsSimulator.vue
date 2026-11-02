@@ -48,14 +48,41 @@
                   {{ isOffice ? "Desa'l com a magatzem de la sòcia" : "Desa'l com el meu magatzem" }}
                 </b-button>
               </div>
-              <b-field v-if="farmPickups.length" class="mt-3">
-                <b-checkbox v-model="withFarmPickup" data-test="farm-pickup">Amb recollida a finca</b-checkbox>
+              <!-- as in the order form: a farm pickup goes through one of the
+                   member's collection points and is a -R of its own -->
+              <b-field v-if="farmPickups.length && collectionPoints.length" class="mt-3">
+                <b-checkbox v-model="withFarmPickup" data-test="farm-pickup" @update:model-value="onFarmPickup">Amb recollida a finca</b-checkbox>
               </b-field>
-              <b-field v-if="withFarmPickup && farmPickups.length > 1" label="Recollida">
-                <b-select v-model="farmPickupId" expanded>
-                  <option v-for="p in farmPickups" :key="p.id" :value="p.id">{{ p.name }}</option>
-                </b-select>
-              </b-field>
+              <template v-if="withFarmPickup">
+                <b-field v-if="farmPickups.length > 1" label="Recollida">
+                  <b-select v-model="farmPickupId" expanded>
+                    <option v-for="p in farmPickups" :key="p.id" :value="p.id">{{ p.name }}</option>
+                  </b-select>
+                </b-field>
+                <b-field label="Punt de recollida en finca">
+                  <b-select v-model="collectionPointId" expanded data-test="collection-point" @update:model-value="loadPickupRoutes">
+                    <option v-for="cp in collectionPoints" :key="cp.id" :value="cp.id">{{ cp.name }}</option>
+                  </b-select>
+                </b-field>
+                <p v-if="collectionPointId && !pickupRoutes.length" class="notification is-warning is-light">Cap ruta passa pel punt de recollida.</p>
+                <b-field v-else-if="pickupRoutes.length > 1" label="Ruta de recollida">
+                  <b-select v-model="pickupRouteId" expanded data-test="pickup-route" @update:model-value="selectPickupRoute">
+                    <option v-for="r in pickupRoutes" :key="r.id" :value="r.id">{{ r.name }}</option>
+                  </b-select>
+                </b-field>
+                <b-field v-if="pickupRoute" label="Data de recollida">
+                  <b-datepicker
+                    v-model="pickupDate"
+                    :show-week-number="false"
+                    :locale="'ca-ES'"
+                    :first-day-of-week="1"
+                    :unselectable-dates="d => !isPickupRouteDay(d)"
+                    icon="calendar-today"
+                    trap-focus
+                    @update:model-value="loadPendingCollection"
+                  />
+                </b-field>
+              </template>
             </section>
 
             <!-- where to -->
@@ -152,12 +179,26 @@
                 <template v-if="quote.volume.discount"><dt>Descompte per volum</dt><dd class="has-text-success">−{{ money(quote.volume.discount) }}</dd></template>
                 <template v-if="quote.late.late"><dt>Recàrrec fora de temps</dt><dd class="has-text-danger">+{{ percent(quote.late.surcharge) }} %</dd></template>
                 <template v-if="quote.multidelivery.discount"><dt>Descompte multientrega</dt><dd class="has-text-success">−{{ percent(quote.multidelivery.discount) }} %</dd></template>
+                <template v-if="quote.collection">
+                  <dt class="subtotal">Comanda</dt><dd class="subtotal">{{ money(quote.orderTotal) }}</dd>
+                  <dt class="section">Recollida a finca (-R)</dt><dd class="section">{{ formatDate(pickupDate) }}</dd>
+                  <dt>Tarifa</dt><dd>{{ quote.collection.rate ? quote.collection.rate.name || `#${quote.collection.rate.id}` : "Cap tarifa" }}</dd>
+                  <dt>Preu ({{ kg(quote.collection.kilograms) }} kg)</dt><dd>{{ money(quote.collection.price) }}</dd>
+                  <template v-if="quote.collection.discount"><dt>Descompte recollida</dt><dd class="has-text-success">−{{ percent(quote.collection.discount) }} %</dd></template>
+                  <template v-if="quote.collection.pending"><dt>Ja costava</dt><dd>−{{ money(quote.collection.current) }}</dd></template>
+                  <dt class="subtotal">Recollida</dt><dd class="subtotal" data-test="collection-extra">{{ money(quote.collection.extra) }}</dd>
+                </template>
                 <dt class="total">Total (sense IVA)</dt><dd class="total" data-test="quote-total">{{ money(quote.total) }}</dd>
               </dl>
               <p v-if="!quote.rate" class="notification is-warning is-light">Cap tarifa d'aquesta ruta encaixa amb aquest tipus de servei i magatzem.</p>
               <p v-if="quote.volume.fromOrders && !quote.volume.discount" class="box-help">
                 Descompte per volum: −{{ money(quote.volume.amount) }} per comanda a partir de {{ quote.volume.fromOrders }} comandes el mateix dia en aquesta ruta (amb aquesta, {{ quote.volume.orders }}).
               </p>
+              <p v-if="quote.collection && !quote.collection.rate" class="notification is-warning is-light">Cap tarifa de recollida de la ruta {{ pickupRoute.name }} encaixa amb aquest tipus de servei.</p>
+              <p v-if="quote.collection && quote.collection.pending" class="box-help" data-test="collection-pending">
+                Ja tens una recollida pendent en aquest punt aquell dia ({{ kg(quote.collection.pending.kilograms) }} kg, {{ money(quote.collection.current) }}): la comanda s'hi afegeix i només paga el que la fa pujar.
+              </p>
+              <p v-else-if="quote.collection" class="box-help">Les altres comandes que recollim al mateix punt aquell dia s'afegeixen a aquesta recollida i en reparteixen el cost.</p>
               <p v-if="quote.late.late" class="box-help">Aquest dia ja vas tard: seria una comanda fora de temps.</p>
               <p v-if="transfer" class="box-help">La ruta no passa pel magatzem: les caixes hi arriben amb una transferència (sense cost afegit).</p>
               <download-excel v-if="isOffice" class="mt-3" :data="exportRows" :fields="{ Concepte: 'concepte', Valor: 'valor' }" :name="exportName">
@@ -209,6 +250,12 @@ export default {
       warehouseId: null,
       withFarmPickup: false,
       farmPickupId: null,
+      memberContact: null,
+      collectionPointId: null,
+      pickupRoutes: [],
+      pickupRouteId: null,
+      pickupDate: null,
+      pendingCollection: null,
       townSearch: "",
       town: null,
       routeId: null,
@@ -246,6 +293,18 @@ export default {
       if (!this.withFarmPickup) return null;
       return this.farmPickups.find(p => p.id === this.farmPickupId) || this.farmPickups[0] || null;
     },
+    // the member's collection points, with their «Descompte recollida»
+    collectionPoints() {
+      const points = (this.memberContact && this.memberContact.collection_points) || [];
+      return points.filter(cp => cp && typeof cp === "object");
+    },
+    collectionPoint() {
+      if (!this.farmPickup) return null;
+      return this.collectionPoints.find(cp => cp.id === this.collectionPointId) || null;
+    },
+    pickupRoute() {
+      return this.pickupRoutes.find(r => r.id === this.pickupRouteId) || null;
+    },
     townOptions() {
       return searchTowns(this.cities, this.townSearch, 10);
     },
@@ -265,7 +324,8 @@ export default {
       return this.routeOrders.filter(o => o.estimated_delivery_date && moment(o.estimated_delivery_date).format("YYYY-MM-DD") === day);
     },
     ready() {
-      return Boolean(this.memberId && this.warehouse && this.route && this.date && this.deliveryTypeId && Number(this.kilograms) > 0);
+      const pickupReady = !this.farmPickup || Boolean(this.collectionPoint && this.pickupRoute && this.pickupDate);
+      return Boolean(this.memberId && this.warehouse && this.route && this.date && this.deliveryTypeId && Number(this.kilograms) > 0 && pickupReady);
     },
     missingText() {
       if (!this.memberId) return this.isOffice ? "Tria la sòcia." : "";
@@ -274,7 +334,10 @@ export default {
       if (!this.route) return this.routesOfTown.length ? "Tria la ruta." : "Cap ruta passa per aquesta població.";
       if (!this.date) return "Tria el dia d'entrega.";
       if (!this.deliveryTypeId) return "Tria el tipus de servei.";
-      return "Escriu els kg.";
+      if (!(Number(this.kilograms) > 0)) return "Escriu els kg.";
+      if (!this.collectionPoint) return "Tria el punt de recollida.";
+      if (!this.pickupRoute) return "Cap ruta passa pel punt de recollida.";
+      return "Tria el dia de recollida.";
     },
     quote() {
       if (!this.ready) return null;
@@ -285,11 +348,15 @@ export default {
           kilograms: this.kilograms,
           deliveryType: this.deliveryTypeId,
           warehouse: this.warehouse,
-          farmPickup: this.farmPickup
+          farmPickup: this.farmPickup,
+          collectionPoint: this.collectionPoint,
+          pickupRoute: this.pickupRoute
         },
         {
           routeRates: this.routeRates,
           pickups: this.pickups,
+          deliveryTypes: this.deliveryTypes,
+          pendingCollection: this.pendingCollection,
           ownerId: this.memberId,
           pendingOrders: this.pendingOrders,
           sameDayOrders: this.sameDayOrders,
@@ -313,7 +380,17 @@ export default {
       if (!this.quote) return [];
       const type = this.deliveryTypes.find(t => t.id === this.deliveryTypeId);
       return quoteRows(
-        { route: this.route, date: this.date, kilograms: this.kilograms, units: this.units, warehouse: this.warehouse, farmPickup: this.farmPickup },
+        {
+          route: this.route,
+          date: this.date,
+          kilograms: this.kilograms,
+          units: this.units,
+          warehouse: this.warehouse,
+          farmPickup: this.farmPickup,
+          collectionPoint: this.collectionPoint,
+          pickupRoute: this.pickupRoute,
+          pickupDate: this.pickupDate
+        },
         this.quote,
         { member: this.member ? this.memberName(this.member) : "", town: this.town ? this.town.name : "", deliveryTypeName: type ? type.name : "" }
       );
@@ -369,7 +446,11 @@ export default {
       this.memberId = m ? m.id : null;
       this.defaultPickup = null;
       this.warehouseId = null;
+      this.memberContact = null;
+      this.withFarmPickup = false;
+      this.onFarmPickup(false);
       if (!m) return;
+      this.loadMemberContact(m.id);
       try {
         const path = this.isOffice ? `users/${m.id}/default-pickup` : "users/me/default-pickup";
         this.defaultPickup = (await service({ requiresAuth: true }).get(path)).data.pickup;
@@ -391,6 +472,74 @@ export default {
         this.$buefy.snackbar.open({ message: "No s'ha pogut desar el magatzem", type: "is-danger" });
       } finally {
         this.savingDefault = false;
+      }
+    },
+    // the member's own contact (sòcia), for her collection points
+    async loadMemberContact(userId) {
+      try {
+        const contacts = (await service({ requiresAuth: true, cached: true }).get("contacts/for-orders?socies=1")).data || [];
+        if (this.memberId !== userId) return;
+        this.memberContact = contacts.find(c => idOf(c.users_permissions_user) === userId) || null;
+      } catch (e) {
+        this.memberContact = null;
+      }
+    },
+    onFarmPickup(on) {
+      this.pickupRoutes = [];
+      this.pickupRouteId = null;
+      this.pickupDate = null;
+      this.pendingCollection = null;
+      this.collectionPointId = on && this.collectionPoints.length ? this.collectionPoints[0].id : null;
+      if (this.collectionPointId) this.loadPickupRoutes();
+    },
+    // the routes that pass by the collection point (the form's collectionPickupRoutes)
+    async loadPickupRoutes() {
+      this.pickupRoutes = [];
+      this.pickupRouteId = null;
+      this.pickupDate = null;
+      this.pendingCollection = null;
+      const pointId = this.collectionPointId;
+      if (!pointId) return;
+      try {
+        const routes = (await service({ requiresAuth: true }).get(`orders/collection-point-routes?collection_point=${pointId}`)).data || [];
+        if (this.collectionPointId !== pointId) return;
+        this.pickupRoutes = routes;
+      } catch (e) {
+        this.pickupRoutes = [];
+      }
+      if (this.pickupRoutes.length) this.selectPickupRoute(this.pickupRoutes[0].id);
+    },
+    selectPickupRoute(id) {
+      this.pickupRouteId = id;
+      const { nextDay } = quoteDate(this.pickupRoute, { ordersOptions: this.ordersOptions, closures: this.closures });
+      this.pickupDate = nextDay.clone().startOf("day").toDate();
+      this.loadPendingCollection();
+    },
+    isPickupRouteDay(d) {
+      if (!this.pickupRoute) return false;
+      const day = moment(d);
+      return !day.isBefore(moment(), "day") && checkIfDateIsValidInroute(this.pickupRoute, day, this.closures);
+    },
+    // the -R already pending for the member, point, pickup route and day: the
+    // order would join it (lifecycles processCollectionOrder)
+    async loadPendingCollection() {
+      this.pendingCollection = null;
+      if (!this.memberId || !this.collectionPointId || !this.pickupRouteId || !this.pickupDate) return;
+      const key = [this.memberId, this.collectionPointId, this.pickupRouteId, moment(this.pickupDate).format("YYYY-MM-DD")].join(":");
+      try {
+        const rows = (
+          await service({ requiresAuth: true }).get(
+            `orders?_limit=-1&_where[is_collection_order]=true&_where[status]=pending&_where[owner]=${this.memberId}&_where[contact]=${this.collectionPointId}&_where[route]=${this.pickupRouteId}&populate[0]=delivery_type`
+          )
+        ).data || [];
+        const [, , , day] = key.split(":");
+        if (key !== [this.memberId, this.collectionPointId, this.pickupRouteId, moment(this.pickupDate).format("YYYY-MM-DD")].join(":")) return;
+        this.pendingCollection =
+          rows
+            .filter(o => moment(o.collection_pickup_date || o.estimated_delivery_date).format("YYYY-MM-DD") === day)
+            .sort((a, b) => a.id - b.id)[0] || null;
+      } catch (e) {
+        this.pendingCollection = null;
       }
     },
     selectTown(t) {
@@ -441,6 +590,9 @@ export default {
       return formatMoney(Number(v) || 0);
     },
     percent(v) {
+      return formatNumber(Number(v) || 0, 2);
+    },
+    kg(v) {
       return formatNumber(Number(v) || 0, 2);
     },
     formatDate(d) {
@@ -508,6 +660,14 @@ export default {
 .quote-list dd {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+.quote-list .subtotal {
+  font-weight: 700;
+}
+.quote-list .section {
+  margin-top: .5rem;
+  font-weight: 700;
+  color: var(--a-muted);
 }
 .quote-list .total {
   font-weight: 800;
