@@ -57,7 +57,7 @@
     <section v-if="issues.length" class="a-box list-box vat-issues">
       <header class="box-head">
         <h2>Per revisar</h2>
-        <span class="box-hint">No són a cap casella: cal saber de quina operació es tracta. Tria'n una per veure els documents.</span>
+        <span class="box-hint">No són a cap casella fins que no es classifiquen. Tria'n una, marca els documents al detall i classifica'ls, o aplica'n la proposta.</span>
       </header>
       <ul>
         <li v-for="i in issues" :key="i.code">
@@ -136,6 +136,23 @@
         </div>
       </section>
 
+      <section class="a-box list-box">
+        <header class="box-head">
+          <h2>Informació addicional</h2>
+          <span class="box-hint">Bases de les línies al 0 % classificades</span>
+        </header>
+        <div class="table-wrap">
+          <table class="table is-fullwidth vat-boxes">
+            <tbody>
+              <tr v-for="r in information" :key="r.box">
+                <th scope="row">{{ r.label }}</th>
+                <td class="has-text-right"><box-value :box="r.box" :value="boxes[r.box]" :on="box" pickable @pick="selectBox" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section v-if="!quarter" class="a-box list-box">
         <header class="box-head">
           <h2>Volum d'operacions (390)</h2>
@@ -143,17 +160,22 @@
         <div class="table-wrap">
           <table class="table is-fullwidth vat-boxes">
             <tbody>
-              <tr>
-                <th scope="row">Operacions en règim general</th>
-                <td class="has-text-right"><box-value box="80" :value="boxes['80']" /></td>
+              <tr v-for="r in volume" :key="r.box" :class="{ 'is-total': r.total }">
+                <th scope="row">{{ r.label }}</th>
+                <td class="has-text-right"><box-value :box="r.box" :value="boxes[r.box]" :on="box" :pickable="!['80', '88'].includes(r.box)" @pick="selectBox" /></td>
               </tr>
-              <tr class="is-missing">
-                <th scope="row">Exemptes, no subjectes, intracomunitàries i exportacions<small class="not-computed">sense classificar</small></th>
+              <tr v-if="boxes.unclassified_base" class="is-missing">
+                <th scope="row">Línies al 0 % sense classificar<small class="not-computed">no sumen</small></th>
                 <td class="has-text-right">{{ money(boxes.unclassified_base) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <p v-if="data.prorrata" class="vat-prorrata">
+          <b>Prorrata definitiva estimada: {{ data.prorrata.definitive }} %</b> (provisional {{ data.prorrata.provisional }} %).
+          La regularització del 4T (casella 44) seria de {{ money(data.prorrata.regularisation) }}.
+          És una estimació a partir de les operacions classificades: no es posa al model.
+        </p>
       </section>
     </div>
 
@@ -163,7 +185,42 @@
         <button v-if="box || issue" type="button" class="button is-small is-text" @click="clearDetail">Mostra-ho tot</button>
         <span v-else class="box-hint">Una fila per document i tipus d'IVA. Tria una casella per veure'n els documents.</span>
       </header>
-      <b-table :data="tableRows" :paginated="tableRows.length > 50" :per-page="50" :striped="false" default-sort="date" class="vat-documents">
+      <div v-if="checkedRows.length" class="vat-classify" role="group" aria-label="Classifica">
+        <span class="vat-classify-count">{{ checkedRows.length }} {{ checkedRows.length === 1 ? "seleccionada" : "seleccionades" }}</span>
+        <template v-if="checkedIssued.length">
+          <b-select v-model="operation" size="is-small" aria-label="Tipus d'operació">
+            <option :value="null">Tipus d'operació…</option>
+            <option v-for="(label, code) in operationLabels" :key="code" :value="code">{{ label }}</option>
+            <option value="clear">Sense classificar</option>
+          </b-select>
+          <b-button size="is-small" :disabled="!operation || saving" @click="classify('vat_operation', operation)">Classifica les emeses ({{ checkedIssued.length }})</b-button>
+        </template>
+        <template v-if="checkedReceived.length">
+          <b-select v-model="reverseCharge" size="is-small" aria-label="Autoliquidació">
+            <option :value="null">Autoliquidació…</option>
+            <option v-for="(label, code) in reverseChargeLabels" :key="code" :value="code">{{ label }}</option>
+            <option value="clear">Sense classificar</option>
+          </b-select>
+          <label v-if="reverseCharge === 'intracom' || reverseCharge === 'isp'" class="vat-classify-rate">
+            <span>% IVA</span>
+            <input v-model="reverseChargeRate" class="input is-small" type="number" min="0" max="100" step="0.01" aria-label="% IVA autoliquidat">
+          </label>
+          <b-button size="is-small" :disabled="!reverseCharge || saving" @click="classify('reverse_charge', reverseCharge, reverseChargeRate)">Classifica les rebudes ({{ checkedReceived.length }})</b-button>
+        </template>
+        <b-button v-if="checkedWithProposal.length" size="is-small" type="is-primary" :disabled="saving" @click="applyProposals">Aplica la proposta ({{ checkedWithProposal.length }})</b-button>
+      </div>
+      <b-table
+        v-model:checked-rows="checkedRows"
+        :data="tableRows"
+        :paginated="tableRows.length > 50"
+        :per-page="50"
+        :striped="false"
+        checkable
+        :is-row-checkable="r => !!r.classify"
+        custom-row-key="key"
+        default-sort="date"
+        class="vat-documents"
+      >
         <b-table-column sortable searchable label="Tipus" field="typeLabel" v-slot="props">
           {{ props.row.typeLabel }}
         </b-table-column>
@@ -195,7 +252,12 @@
         <b-table-column sortable label="Caselles" field="boxesLabel" v-slot="props">
           <span v-if="props.row.boxesLabel">{{ props.row.boxesLabel }}</span>
           <span v-else-if="props.row.issue" class="tag is-warning is-light">Per revisar</span>
-          <span v-else class="tag is-light">Fora del 303</span>
+          <span v-else class="tag is-light">Fora del 303{{ props.row.annual_box ? ` · 390: ${props.row.annual_box}` : "" }}</span>
+        </b-table-column>
+        <b-table-column sortable searchable label="Classificació" field="classLabel" v-slot="props">
+          <span v-if="props.row.classLabel">{{ props.row.classLabel }}</span>
+          <small v-else-if="props.row.proposalLabel" class="vat-proposal">Proposta: {{ props.row.proposalLabel }}</small>
+          <span v-else-if="props.row.classify" class="has-text-muted">—</span>
         </b-table-column>
         <template #empty>
           <p class="box-empty">No hi ha documents.</p>
@@ -227,9 +289,19 @@ import { startLoad } from "@/domain/latestLoad.js";
 import { formatMoney } from "@/helpers/format-number";
 import VatBoxValue from "@/components/VatBoxValue.vue";
 import {
-  ACCRUED, DEDUCTIBLE, RESULT, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
-  periodBoxes, filterVatRows, periodIssues, rowVat, vatRowsTotals
+  ACCRUED, DEDUCTIBLE, RESULT, INFORMATION, VOLUME, AREA_LABELS, KIND_LABELS, ISSUE_LABELS,
+  OPERATION_LABELS, REVERSE_CHARGE_LABELS,
+  periodBoxes, filterVatRows, periodIssues, rowVat, vatRowsTotals, classificationLabel, classifyItems
 } from "@/domain/vatModels.js";
+
+// «10 / 11 · 36 / 37» for a self-assessed purchase, «120» for an information box
+function boxesLabel(r) {
+  const parts = [];
+  if (r.accrued_boxes) parts.push(r.accrued_boxes.join(" / "));
+  if (r.base_box) parts.push(`${r.base_box} / ${r.vat_box}`);
+  if (r.info_box) parts.push(r.info_box);
+  return parts.join(" · ");
+}
 
 const EMPTY = { quarters: [], annual: {}, issues: [], notes: [], rows: [], deductible_pct: 100 };
 
@@ -252,6 +324,15 @@ export default {
       ],
       accrued: ACCRUED,
       deductible: DEDUCTIBLE,
+      information: INFORMATION,
+      volume: VOLUME,
+      operationLabels: OPERATION_LABELS,
+      reverseChargeLabels: REVERSE_CHARGE_LABELS,
+      checkedRows: [],
+      operation: null,
+      reverseCharge: null,
+      reverseChargeRate: 21,
+      saving: false,
       data: EMPTY
     };
   },
@@ -282,11 +363,22 @@ export default {
         typeLabel: KIND_LABELS[r.kind] || r.kind,
         areaLabel: AREA_LABELS[r.area] || r.area,
         returnVat: r.base_box ? rowVat(r) : 0,
-        boxesLabel: r.base_box ? `${r.base_box} / ${r.vat_box}` : ""
+        boxesLabel: boxesLabel(r),
+        classLabel: r.classify ? classificationLabel(r.classify.field, r.classify.value) : "",
+        proposalLabel: r.classify && r.proposal ? classificationLabel(r.classify.field, r.proposal) : ""
       }));
     },
     rowsTotals() {
       return vatRowsTotals(this.tableRows.filter(r => r.base_box));
+    },
+    checkedIssued() {
+      return this.checkedRows.filter(r => r.classify && r.classify.field === "vat_operation");
+    },
+    checkedReceived() {
+      return this.checkedRows.filter(r => r.classify && r.classify.field === "reverse_charge");
+    },
+    checkedWithProposal() {
+      return this.checkedRows.filter(r => r.classify && r.proposal);
     }
   },
   watch: {
@@ -320,6 +412,34 @@ export default {
     clearDetail() {
       this.box = null;
       this.issue = null;
+      this.checkedRows = [];
+    },
+    async classify(field, value, rate = null) {
+      await this.sendClassification(classifyItems(this.checkedRows, field, value, rate));
+    },
+    async applyProposals() {
+      await this.sendClassification([
+        ...classifyItems(this.checkedRows, "vat_operation"),
+        ...classifyItems(this.checkedRows, "reverse_charge")
+      ]);
+    },
+    async sendClassification(items) {
+      if (!items.length) return;
+      this.saving = true;
+      try {
+        const answer = (await service({ requiresAuth: true }).post("treasuries/vat-models/classify", { items })).data;
+        const n = (answer && answer.updated) || 0;
+        this.$buefy.toast.open({ message: `${n} ${n === 1 ? "document classificat" : "documents classificats"}`, type: "is-success" });
+        this.checkedRows = [];
+        this.operation = null;
+        this.reverseCharge = null;
+        await this.load();
+      } catch (e) {
+        const message = (e.response && e.response.data && e.response.data.error && e.response.data.error.message) || e.message;
+        this.$buefy.toast.open({ message: `No s'ha pogut classificar: ${message}`, type: "is-danger", duration: 5000 });
+      } finally {
+        this.saving = false;
+      }
     },
     async load() {
       const isStale = startLoad(this);
@@ -384,6 +504,41 @@ export default {
   margin-left: .5rem;
   font-size: .75rem;
   font-style: italic;
+}
+.vat-classify {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  padding: .75rem 1.25rem;
+  border-bottom: 1px solid var(--a-line);
+  background: var(--a-chip);
+}
+.vat-classify-count {
+  font-weight: 700;
+  margin-right: .5rem;
+}
+.vat-classify-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .8125rem;
+}
+.vat-classify-rate .input {
+  width: 5rem;
+}
+.vat-documents :deep(td.has-text-right) {
+  white-space: nowrap;
+}
+.vat-proposal {
+  color: var(--a-muted);
+  font-style: italic;
+}
+.vat-prorrata {
+  margin: 0;
+  padding: .875rem 1.25rem;
+  border-top: 1px solid var(--a-line);
+  font-size: .875rem;
 }
 .vat-issues,
 .vat-notes {

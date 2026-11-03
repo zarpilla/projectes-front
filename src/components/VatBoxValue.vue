@@ -30,6 +30,9 @@ export default {
 };
 </script>
 <style scoped>
+.box-value {
+  white-space: nowrap;
+}
 .box-number {
   margin-left: .375rem;
   font-size: .75rem;

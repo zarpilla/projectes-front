@@ -6,11 +6,12 @@ import Buefy from 'buefy'
 import { setActivePinia, createPinia } from 'pinia'
 
 const get = vi.fn()
-vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
+const post = vi.fn()
+vi.mock('@/service/index', () => ({ default: () => ({ get, post }) }))
 
 import VatModelsTable from '@/components/VatModelsTable.vue'
 import Vat from '@/views/Vat.vue'
-import { filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
+import { classificationLabel, classifyItems, filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
 import { canOpenPath } from '@/domain/routeAccess'
 import menu from '@/service/menu'
 
@@ -126,5 +127,65 @@ describe('VAT models page', () => {
     await w.find('.vat-issue').trigger('click')
     expect(w.findAll('.vat-documents tbody tr')).toHaveLength(1)
     expect(w.find('.vat-documents').text()).toContain('Per revisar')
+  })
+})
+
+describe('phase 2: classifying the 0 % lines', () => {
+  const zero = [
+    { key: 'emitted-invoices:2:0', kind: 'emitted-invoices', id: 2, code: 'F2', contact: 'Client UE', area: 'EU', date: '2026-02-10', quarter: 1, side: 'issued', rate: 0, base: 500, vat: 0, issue: 'issued-zero', proposal: 'N2', classify: { field: 'vat_operation', value: null }, to: '/document/2/emitted-invoices' },
+    { key: 'emitted-invoices:5:0', kind: 'emitted-invoices', id: 5, code: 'F5', contact: 'Local', area: 'ES', date: '2026-02-11', quarter: 1, side: 'issued', rate: 0, base: 80, vat: 0, issue: 'issued-zero', proposal: null, classify: { field: 'vat_operation', value: null }, to: '/document/5/emitted-invoices' },
+    { key: 'emitted-invoices:6:0', kind: 'emitted-invoices', id: 6, code: 'F6', contact: 'Client UE', area: 'EU', date: '2026-02-12', quarter: 1, side: 'issued', rate: 0, base: 90, vat: 0, info_box: '120', annual_box: '84', classify: { field: 'vat_operation', value: 'N2' }, to: '/document/6/emitted-invoices' },
+    { key: 'received-invoices:7:0:c', kind: 'received-invoices', id: 7, code: 'R7', contact: 'Google', area: 'EU', date: '2026-02-13', quarter: 1, side: 'received', rate: 0, base: 100, vat: 0, self_vat: 21, deductible_vat: 21, deductible_pct: 100, accrued_boxes: ['10', '11'], base_box: '36', vat_box: '37', classify: { field: 'reverse_charge', value: 'intracom' }, to: '/document/7/received-invoices' },
+    { key: 'received-invoices:8:0:c', kind: 'received-invoices', id: 8, code: 'R8', contact: 'Zoom', area: 'NONEU', date: '2026-02-14', quarter: 1, side: 'received', rate: 0, base: 40, vat: 0, issue: 'received-foreign-zero', proposal: 'isp', classify: { field: 'reverse_charge', value: null }, to: '/document/8/received-invoices' }
+  ]
+
+  it('builds one item per document, with the chosen value, the proposal or none', () => {
+    expect(classifyItems(zero, 'vat_operation', 'E1').map(i => [i.id, i.value])).toEqual([[2, 'E1'], [5, 'E1'], [6, 'E1']])
+    expect(classifyItems(zero, 'vat_operation')).toEqual([{ kind: 'emitted-invoices', id: 2, value: 'N2' }])
+    expect(classifyItems(zero, 'vat_operation', 'clear').map(i => [i.id, i.value])).toEqual([[2, null], [5, null], [6, null]])
+    expect(classifyItems(zero, 'reverse_charge', 'isp', 10)).toEqual([
+      { kind: 'received-invoices', id: 7, value: 'isp', rate: 10 },
+      { kind: 'received-invoices', id: 8, value: 'isp', rate: 10 }
+    ])
+    expect(classifyItems(zero, 'reverse_charge', 'none')).toEqual([
+      { kind: 'received-invoices', id: 7, value: 'none' },
+      { kind: 'received-invoices', id: 8, value: 'none' }
+    ])
+  })
+
+  it('finds a row by its information, self-assessment and 390 boxes', () => {
+    expect(filterVatRows(zero, { box: '120' }).map(r => r.id)).toEqual([6])
+    expect(filterVatRows(zero, { box: '84' }).map(r => r.id)).toEqual([6])
+    expect(filterVatRows(zero, { box: '11' }).map(r => r.id)).toEqual([7])
+    expect(filterVatRows(zero, { box: '37' }).map(r => r.id)).toEqual([7])
+    expect(classificationLabel('reverse_charge', 'intracom')).toMatch(/intracomunitària/)
+    expect(classificationLabel('vat_operation', 'E1')).toMatch(/^Exempta/)
+  })
+
+  it('classifies the checked documents from the detail and reloads', async () => {
+    post.mockReset()
+    post.mockResolvedValue({ data: { updated: 2 } })
+    const withZero = { ...answer, rows: [rows[0], rows[2], rows[3], ...zero] }
+    get.mockResolvedValue({ data: withZero })
+    const w = mount(VatModelsTable, {
+      global: { plugins: [Buefy], stubs: { 'b-loading': true, 'router-link': { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
+    })
+    await flushPromises()
+    await w.findAll('.vat-periods button')[0].trigger('click')
+    // only the rows that can be classified have a checkbox
+    const checkable = w.vm.tableRows.filter(r => r.classify)
+    expect(checkable.map(r => r.id)).toEqual([2, 5, 6, 7, 8])
+    w.vm.checkedRows = w.vm.tableRows.filter(r => [2, 8].includes(r.id))
+    await flushPromises()
+    expect(w.find('.vat-classify').text()).toContain('Aplica la proposta (2)')
+    expect(w.text()).toContain('Proposta: No subjecta per localització')
+    await w.findAll('.vat-classify button').find(b => b.text().startsWith('Aplica la proposta')).trigger('click')
+    await flushPromises()
+    expect(post).toHaveBeenCalledWith('treasuries/vat-models/classify', { items: [
+      { kind: 'emitted-invoices', id: 2, value: 'N2' },
+      { kind: 'received-invoices', id: 8, value: 'isp' }
+    ] })
+    expect(get).toHaveBeenCalledTimes(2)
+    expect(w.vm.checkedRows).toEqual([])
   })
 })

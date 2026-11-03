@@ -26,7 +26,7 @@ export const CHANGELOG = [
     {
       type: "Novetats",
       modules: ["Diners"],
-      text: ["Nova pestanya en proves «Models 303 i 390» a ", { to: "/iva?pestanya=models", label: "IVA" }, ": les caselles de l'autoliquidació d'IVA de cada trimestre (303) i la suma de l'any (390), a partir de les factures emeses i rebudes, amb els documents de cada casella. Avisa del que encara no sap classificar (línies al 0 %, compres de fora sense IVA, tipus sense casella). Les despeses (tiquets, dietes…) no compten. Són xifres orientatives per contrastar amb la gestoria."]
+      text: ["Nova pestanya en proves «Models 303 i 390» a ", { to: "/iva?pestanya=models", label: "IVA" }, ": les caselles de l'autoliquidació d'IVA de cada trimestre (303) i la suma de l'any (390), a partir de les factures emeses i rebudes, amb els documents de cada casella. Les línies al 0 % es classifiquen des del detall, diversos documents alhora o aplicant-ne la proposta (la del mateix contacte o segons el país): exemptes, exportacions, lliuraments intracomunitaris, no subjectes (també per localització) i inversió del subjecte passiu a les emeses; adquisicions intracomunitàries i inversió del subjecte passiu a autoliquidar a les rebudes. Els tipus de despesa marcats com a «Béns d'inversió» (Taules auxiliars) van a les seves caselles. «Any (390)» dona el volum d'operacions i una estimació de la prorrata definitiva. Les despeses (tiquets, dietes…) no compten. Són xifres orientatives per contrastar amb la gestoria."]
     },
     {
       type: "Novetats",
