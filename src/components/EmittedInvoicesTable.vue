@@ -185,10 +185,12 @@
       <b-table-column :label="provider ? 'Pagada' : 'Cobrada'" field="paid_date" v-slot="props" sortable cell-class="is-nowrap">
         <span v-if="props.row.state === 'draft'" class="tag is-info is-light">Esborrany</span>
         <span v-else-if="props.row.paid_date" class="tag is-success is-light">{{ provider ? "Pagada" : "Cobrada" }}</span>
+        <span v-else-if="isPartiallyPaid(props.row)" class="tag is-info is-light">Parcial</span>
         <span v-else-if="Number(props.row.total) < 0" class="tag">Abonament</span>
         <span v-else-if="isOverdue(props.row)" class="tag is-danger is-light">Vençuda</span>
         <span v-else class="tag is-warning">{{ provider ? "Pendent de pagar" : "No cobrada" }}</span>
         <span v-if="props.row.paid_date" class="doc-subline">{{ formatDate(props.row.paid_date) }}</span>
+        <span v-else-if="isPartiallyPaid(props.row)" class="doc-subline">pendent {{ formatMoney(pendingAmount(props.row)) }}</span>
         <span v-else-if="!provider && props.row.estimated_payment" class="doc-subline">prev. {{ formatDate(props.row.estimated_payment) }}</span>
         <span v-if="!provider && !props.row.assigned" class="doc-subline doc-unassigned" title="No assignada a cap línia de pressupost de projecte">Sense assignar</span>
       </b-table-column>
@@ -213,6 +215,7 @@ import { useMainStore } from '@/stores/main.js'
 import getConfig from '@/config'
 import { stateFilter } from '@/domain/incomeListFilters'
 import { startLoad } from '@/domain/latestLoad.js'
+import { isPartiallyPaid, pendingAmount } from '@/domain/partialPayments.js'
 
 export default {
   name: "EmittedInvoices",
@@ -345,6 +348,9 @@ export default {
     this.getData();
   },
   methods: {
+    // collected or paid in several goes (issues/412)
+    isPartiallyPaid,
+    pendingAmount,
     formatMoney,
     // not collected, positive and past its due date ("Venciment")
     isOverdue(row) {

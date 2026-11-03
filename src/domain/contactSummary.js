@@ -1,5 +1,6 @@
 import moment from 'moment'
 import { fiscalYearOf } from '@/domain/years'
+import { isPartiallyPaid, pendingAmount } from '@/domain/partialPayments'
 
 // «Resum» tab of a contact (decided 2026-10-30): its projects and documents
 // from GET /contacts/:id/summary, with the figures of a (fiscal) year or of
@@ -30,6 +31,8 @@ const isMasculine = d => d.kind === 'received-incomes'
 
 const cents = v => Math.round((Number(v) || 0) * 100)
 const sum = (docs, field) => docs.reduce((acc, d) => acc + cents(d[field]), 0) / 100
+// what is still pending: the total less its partial payments (issues/412)
+const sumPending = docs => docs.reduce((acc, d) => acc + cents(pendingAmount(d)), 0) / 100
 
 /** Still to collect (a sale) or to pay (a purchase): not a draft, not paid, not a credit note. */
 export function isPending(d) {
@@ -45,6 +48,8 @@ export function docStatus(d, today = moment()) {
   if (d.kind === 'quotes') return d.accepted ? { label: 'Acceptat', tone: 'success' } : { label: 'Obert', tone: 'neutral' }
   if (isDraft(d)) return { label: 'Esborrany', tone: 'info' }
   if (isPaid(d)) return { label: isSale(d) ? (isMasculine(d) ? 'Cobrat' : 'Cobrada') : 'Pagada', tone: 'success' }
+  // collected or paid in part (issues/412)
+  if (isPartiallyPaid(d)) return { label: 'Parcial', tone: 'info' }
   if (Number(d.total) < 0) return { label: 'Abonament', tone: 'neutral' }
   if (isOverdue(d, today)) return { label: isMasculine(d) ? 'Vençut' : 'Vençuda', tone: 'danger' }
   return { label: isSale(d) ? (isMasculine(d) ? 'No cobrat' : 'No cobrada') : 'Pendent de pagar', tone: 'warning' }
@@ -78,10 +83,10 @@ export function summaryFigures(documents, period, startMonth = 1, today = moment
     salesAll: sum(sales, 'total_base'),
     purchases: sum(inP(purchases), 'total_base'),
     purchasesAll: sum(purchases, 'total_base'),
-    toCollect: sum(toCollect, 'total'),
+    toCollect: sumPending(toCollect),
     toCollectCount: toCollect.length,
     overdueCount: toCollect.filter(d => isOverdue(d, today)).length,
-    toPay: sum(toPay, 'total'),
+    toPay: sumPending(toPay),
     toPayCount: toPay.length
   }
 }

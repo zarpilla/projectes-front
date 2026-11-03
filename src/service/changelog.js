@@ -21,6 +21,16 @@ export const CHANGELOG_MODULES = [
 
 export const CHANGELOG = [
 {
+  date: "2026.11.03",
+  items: [
+    {
+      type: "Novetats",
+      modules: ["Diners", "Informes"],
+      text: ["Cobraments i pagaments parcials: a les factures emeses, als altres ingressos, a les factures rebudes i a les despeses pots afegir cobraments o pagaments parcials, cadascun amb la data i l'import. El document queda «Cobrat» o «Pagat» quan sumen el total (no el poden superar), i fins llavors surt com a «Parcial» a les llistes, amb el que queda pendent. A ", { to: "/tresoreria", label: "Tresoreria" }, " i a la Previsió econòmica cada cobrament o pagament parcial és un moviment en la seva data, que es valida per separat, i el que falta queda previst en la data prevista de cobrament o de venciment."]
+    }
+  ]
+},
+{
   date: "2026.11.02",
   items: [
     {

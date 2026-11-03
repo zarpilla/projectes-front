@@ -172,11 +172,13 @@
         </b-table-column>
         <b-table-column label="Pagada" field="paid_date" v-slot="props" sortable cell-class="is-nowrap">
           <span v-if="props.row.paid_date || props.row.paid" class="tag is-success is-light">Pagada</span>
+          <span v-else-if="isPartiallyPaid(props.row)" class="tag is-info is-light">Parcial</span>
           <span v-else-if="Number(props.row.total) < 0" class="tag">Abonament</span>
           <span v-else-if="isOverdue(props.row)" class="tag is-danger is-light">Vençuda</span>
           <span v-else class="tag is-warning">No pagada</span>
           <span v-if="props.row.paid_date" class="doc-subline">{{ formatDate(props.row.paid_date) }}</span>
           <span v-else-if="props.row.paid" class="doc-subline">sense data</span>
+          <span v-else-if="isPartiallyPaid(props.row)" class="doc-subline">pendent {{ formatMoney(pendingAmount(props.row)) }}</span>
           <span v-if="!props.row.assigned" class="doc-subline doc-unassigned" title="No assignada a cap línia de pressupost de projecte">Sense assignar</span>
         </b-table-column>
       </b-table>
@@ -195,6 +197,7 @@ import { format } from "@/helpers/excelFormatter";
 import { invoiceExportLineRow } from "@/domain/invoiceExport";
 import { payrollCode, payrollUserName } from "@/domain/payrollLabel";
 import { startLoad } from "@/domain/latestLoad.js";
+import { isPartiallyPaid, pendingAmount } from "@/domain/partialPayments.js";
 import { mapState } from 'pinia'
 import { useMainStore } from '@/stores/main.js'
 
@@ -313,6 +316,9 @@ export default {
     this.getData();
   },
   methods: {
+    // collected or paid in several goes (issues/412)
+    isPartiallyPaid,
+    pendingAmount,
     formatMoney,
     payrollCode,
     payrollUserName,

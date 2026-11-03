@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { partialPaymentsForApi, partialPaymentsForPickers } from '@/domain/partialPayments.js'
 
 // The document's date fields edited with a Buefy datepicker, which needs Date
 // objects: the API gives «YYYY-MM-DD» strings. accepted_date was left out, and
@@ -26,6 +27,8 @@ export function documentDatesForPickers (form) {
       form[field] = moment(form[field], 'YYYY-MM-DD').toDate()
     }
   }
+  // collected or paid in several goes (issues/412)
+  if (Array.isArray(form.partial_payments)) form.partial_payments = partialPaymentsForPickers(form.partial_payments)
   return form
 }
 
@@ -45,6 +48,7 @@ export function documentDatesForApi (form) {
   if (Array.isArray(form.lines) && form.lines.some(l => l && l.date instanceof Date)) {
     out.lines = form.lines.map(l => (l && l.date instanceof Date ? { ...l, date: localDay(l.date) } : l))
   }
+  if ('partial_payments' in form) out.partial_payments = partialPaymentsForApi(form.partial_payments)
   return out
 }
 
