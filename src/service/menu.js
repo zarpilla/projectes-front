@@ -182,6 +182,14 @@ const menu = [
       permission: "projects"
     },
     {
+      // in tests: the label carries a «Beta» tag (AsideMenuItem)
+      to: "/models-iva",
+      icon: "file-percent-outline",
+      label: "Models 303/390",
+      beta: true,
+      permission: "projects"
+    },
+    {
       to: "/panell-estrategies",
       icon: "target",
       label: "Estratègies",

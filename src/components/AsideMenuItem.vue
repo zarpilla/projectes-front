@@ -17,6 +17,7 @@
       <span v-if="item.label" :class="{ 'menu-item-label': !!item.icon }">{{
         item.label
       }}</span>
+      <span v-if="item.beta && !isCollapsed" class="menu-beta" title="En proves">Beta</span>
       <span
         v-if="badge && !isCollapsed"
         class="menu-badge"
@@ -141,6 +142,18 @@ export default {
 /* the menu greys its icons (AsideMenu.vue); the star keeps its colour */
 .menu-pin :deep(.icon) {
   color: var(--a-star) !important;
+}
+.menu-beta {
+  margin-left: .375rem;
+  padding: 0 .375rem;
+  border-radius: 999px;
+  background: var(--a-chip);
+  color: var(--a-muted);
+  font-size: .625rem;
+  font-weight: 800;
+  line-height: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
 }
 .menu-badge {
   margin-left: auto;

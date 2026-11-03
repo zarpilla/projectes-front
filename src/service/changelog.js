@@ -25,6 +25,11 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
+      modules: ["Informes", "Diners"],
+      text: ["Nova pantalla en proves ", { to: "/models-iva", label: "Models 303 i 390 (Beta)" }, " (Informes): les caselles de l'autoliquidació d'IVA de cada trimestre (303) i la suma de l'any (390), a partir de les factures emeses i rebudes, amb els documents de cada casella. Avisa del que encara no sap classificar (línies al 0 %, compres de fora sense IVA, tipus sense casella). Les despeses (tiquets, dietes…) no compten. Són xifres orientatives per contrastar amb la gestoria."]
+    },
+    {
+      type: "Novetats",
       modules: ["Diners", "Informes"],
       text: ["Cobraments i pagaments parcials: a les factures emeses, als altres ingressos, a les factures rebudes i a les despeses pots afegir cobraments o pagaments parcials, cadascun amb la data i l'import. El document queda «Cobrat» o «Pagat» quan sumen el total (no el poden superar), i fins llavors surt com a «Parcial» a les llistes, amb el que queda pendent. A ", { to: "/tresoreria", label: "Tresoreria" }, " i a la Previsió econòmica cada cobrament o pagament parcial és un moviment en la seva data, que es valida per separat, i el que falta queda previst en la data prevista de cobrament o de venciment."]
     }

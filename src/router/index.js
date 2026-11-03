@@ -381,6 +381,17 @@ const routes = [
     props: true,
   },
   {
+    // Models 303 i 390 (Beta), 2026-11-03
+    meta: {
+      title: "Models 303 i 390 (Beta)",
+      requiresAuth: true
+    },
+    path: "/models-iva",
+    name: "vat-models.view",
+    component: () =>
+      import("../views/VatModels.vue"),
+  },
+  {
     meta: {
       title: "Previsió facturació",
       requiresAuth: true
