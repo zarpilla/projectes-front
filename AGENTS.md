@@ -25,3 +25,6 @@ A separate package (`cd tools/smoke && npm install`, Node 20+), run against a lo
 - `node style-diff.mjs <route>`: computed-style differences between two running builds.
 - `npm run e2e`: end-to-end tests (`tools/smoke/e2e/`) of the critical flows (projects, phases, hours and their cost, the workday log, Persones, invoices, treasury, quotes, users and permissions, contacts, tasks, admin screens) that **save for real**, so only against a throwaway `*_e2e` copy of an anonymized tenant made with `e2e-db.sh`, or an empty database seeded by the backend (see `tools/smoke/README.md`). Settings in `.env.e2e`. CI runs them every night on an empty database (`.github/workflows/e2e.yml`).
 Use these for refactors and UI-library upgrades. Bug fixes still need a Vitest test. Ask before adding other e2e tooling.
+
+## Contacts access: don't change it without asking
+Members (`orders`) read and use EVERY delivery point, other members' too: the order form and the orders CSV import load `contacts/for-orders?owned=1`. Only editing is limited. Don't switch these screens to a narrower list (`contacts/basic` gives a member only her own and the shared points): that broke La Dotzena's weekly CSV import (issues/409). Ask first, and keep `tests/unit/ordersCsvImport409.spec.js` green.
