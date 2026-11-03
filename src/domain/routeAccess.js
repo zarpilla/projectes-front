@@ -46,7 +46,6 @@ export const ROUTE_PERMISSIONS = {
   '/panell-intercooperacio': PROJECTS,
   '/previsio': PROJECTS,
   '/previsio-facturacio': PROJECTS,
-  '/models-iva': PROJECTS,
   '/dedicacio-saldo': PROJECTS,
   '/resum-hores': PROJECTS,
   '/justificacions': PROJECTS,

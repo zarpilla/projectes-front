@@ -9,7 +9,7 @@ const get = vi.fn()
 vi.mock('@/service/index', () => ({ default: () => ({ get }) }))
 
 import VatModelsTable from '@/components/VatModelsTable.vue'
-import AsideMenuItem from '@/components/AsideMenuItem.vue'
+import Vat from '@/views/Vat.vue'
 import { filterVatRows, periodBoxes, periodIssues, vatRowsTotals } from '@/domain/vatModels.js'
 import { canOpenPath } from '@/domain/routeAccess'
 import menu from '@/service/menu'
@@ -57,18 +57,40 @@ describe('VAT models rows', () => {
     expect(periodIssues(answer, rows, 2)).toEqual([])
     expect(periodIssues(answer, rows, 1)[0]).toMatchObject({ count: 1, base: 500, areas: [{ area: 'EU', count: 1 }] })
   })
+})
 
-  it('has a «Beta» entry under Informes, with the access of IVA', () => {
-    const groups = menu
-    const informes = groups[groups.indexOf('Informes') + 1]
-    expect(informes.find(e => e.to === '/models-iva')).toMatchObject({ label: 'Models 303/390', beta: true, permission: 'projects' })
-    expect(canOpenPath('/models-iva', ['projects'])).toBe(canOpenPath('/iva', ['projects']))
-    expect(canOpenPath('/models-iva', ['orders'])).toBe(canOpenPath('/iva', ['orders']))
-    const w = mount(AsideMenuItem, {
-      props: { item: { to: '/models-iva', icon: 'file-percent-outline', label: 'Models 303/390', beta: true } },
-      global: { plugins: [Buefy], stubs: { 'router-link': { template: '<a><slot /></a>' } } }
+describe('VAT models tab of IVA', () => {
+  const mountVat = async (query = {}) => {
+    const replace = vi.fn()
+    const w = mount(Vat, {
+      global: {
+        plugins: [Buefy],
+        mocks: { $route: { query }, $router: { replace } },
+        stubs: { 'title-bar': { props: ['titleStack', 'subtitle'], template: '<h1>{{ titleStack.join(" / ") }}</h1>' }, 'vat-table': { template: '<div class="vat-table-stub" />' }, 'b-loading': true, 'router-link': true }
+      }
     })
-    expect(w.find('.menu-beta').text()).toBe('Beta')
+    await flushPromises()
+    return { w, replace }
+  }
+
+  it('opens «Saldo i documents» by default and the models with ?pestanya=models, tagged Beta', async () => {
+    const plain = await mountVat()
+    expect(plain.w.find('.vat-table-stub').exists()).toBe(true)
+    expect(plain.w.find('.vat-models-page').exists()).toBe(false)
+    expect(plain.w.find('.tab-beta').text()).toBe('Beta')
+    await plain.w.findAll('.vat-tabs button')[1].trigger('click')
+    expect(plain.replace).toHaveBeenCalledWith({ query: { pestanya: 'models' } })
+
+    const models = await mountVat({ pestanya: 'models' })
+    expect(models.w.find('.vat-models-page').exists()).toBe(true)
+    expect(models.w.find('h1').text()).toContain('Models 303 i 390 (Beta)')
+  })
+
+  it('is a tab of IVA, with its access, and not a menu entry of its own', () => {
+    const entries = menu.flat(2).filter(e => e && e.to)
+    expect(entries.some(e => /models/.test(e.to))).toBe(false)
+    expect(canOpenPath('/iva', ['projects'])).toBe(true)
+    expect(canOpenPath('/iva', ['orders'])).toBe(false)
   })
 })
 

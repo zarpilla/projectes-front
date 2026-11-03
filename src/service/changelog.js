@@ -25,8 +25,8 @@ export const CHANGELOG = [
   items: [
     {
       type: "Novetats",
-      modules: ["Informes", "Diners"],
-      text: ["Nova pantalla en proves ", { to: "/models-iva", label: "Models 303 i 390 (Beta)" }, " (Informes): les caselles de l'autoliquidació d'IVA de cada trimestre (303) i la suma de l'any (390), a partir de les factures emeses i rebudes, amb els documents de cada casella. Avisa del que encara no sap classificar (línies al 0 %, compres de fora sense IVA, tipus sense casella). Les despeses (tiquets, dietes…) no compten. Són xifres orientatives per contrastar amb la gestoria."]
+      modules: ["Diners"],
+      text: ["Nova pestanya en proves «Models 303 i 390» a ", { to: "/iva?pestanya=models", label: "IVA" }, ": les caselles de l'autoliquidació d'IVA de cada trimestre (303) i la suma de l'any (390), a partir de les factures emeses i rebudes, amb els documents de cada casella. Avisa del que encara no sap classificar (línies al 0 %, compres de fora sense IVA, tipus sense casella). Les despeses (tiquets, dietes…) no compten. Són xifres orientatives per contrastar amb la gestoria."]
     },
     {
       type: "Novetats",
