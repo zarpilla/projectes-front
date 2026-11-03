@@ -734,11 +734,13 @@
               horizontal
             >
               <!-- the box and the date kept together (issues/256) -->
-              <b-checkbox :model-value="form.paid" class="checkbox-inline" @update:model-value="v => setPaid(form, v)">
+              <!-- set from the partial payments when there are some (issues/412) -->
+              <b-checkbox :model-value="form.paid" class="checkbox-inline" :disabled="hasPartialPayments" @update:model-value="v => setPaid(form, v)">
               </b-checkbox>
               <b-datepicker
                 v-if="type !== 'quotes'"
                 :model-value="form.paid_date"
+                :disabled="hasPartialPayments"
                 @update:model-value="v => setPaidDate(form, v)"
                 :show-week-number="false"
                 :locale="'ca-ES'"
@@ -749,6 +751,56 @@
                 editable
               >
               </b-datepicker>
+            </b-field>
+            <!-- collected or paid in several goes (issues/412) -->
+            <b-field
+              v-if="partialPaymentsAllowed"
+              :label="isIncome ? 'Cobraments parcials' : 'Pagaments parcials'"
+              horizontal
+            >
+              <div class="partial-payments">
+                <div
+                  v-for="(p, idx) in form.partial_payments || []"
+                  :key="p.id || `new-${idx}`"
+                  class="partial-payment-row"
+                >
+                  <b-datepicker
+                    v-model="p.date"
+                    @update:model-value="partialPaymentsChanged"
+                    :show-week-number="false"
+                    :locale="'ca-ES'"
+                    :first-day-of-week="1"
+                    icon="calendar-today"
+                    placeholder="Data"
+                    trap-focus
+                    editable
+                  >
+                  </b-datepicker>
+                  <b-input
+                    v-model="p.amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="Import"
+                    @update:model-value="partialPaymentsChanged"
+                  />
+                  <b-button
+                    icon-left="delete"
+                    :title="isIncome ? 'Esborra el cobrament' : 'Esborra el pagament'"
+                    @click="removePartialPayment(idx)"
+                  />
+                </div>
+                <p v-if="hasPartialPayments" class="help" :class="{ 'is-danger': partialPaymentsExceed }">
+                  <template v-if="partialPaymentsExceed">
+                    Els {{ isIncome ? "cobraments" : "pagaments" }} ({{ formatMoney(partialPaymentsPaid) }}) superen el total ({{ formatMoney(total) }})
+                  </template>
+                  <template v-else>
+                    {{ isIncome ? "Cobrat" : "Pagat" }} {{ formatMoney(partialPaymentsPaid) }} de {{ formatMoney(total) }} · pendent {{ formatMoney(partialPaymentsPending) }}
+                  </template>
+                </p>
+                <b-button size="is-small" icon-left="plus" @click="addPartialPayment">
+                  {{ isIncome ? "Afegeix un cobrament parcial" : "Afegeix un pagament parcial" }}
+                </b-button>
+              </div>
             </b-field>
 
             <b-field label="Compte bancari" horizontal v-if="type === 'payrolls'">
@@ -1072,6 +1124,7 @@ import { documentPayload } from "@/domain/documentPayload.js";
 import { documentDatesForPickers, documentDatesForApi, estimatedPaymentFrom, setPaid, setPaidDate, setAccepted, setAcceptedDate } from "@/domain/documentDates.js";
 import { budgetLineTotal, documentLineQuantity } from "@/domain/budgetLines.js";
 import { formatMoney } from "@/helpers/format-number";
+import { PARTIAL_PAYMENT_TYPES, hasPartialPayments, paidAmount, pendingAmount, exceedsTotal, newPartialPayment, applyPartialPaymentsToForm } from "@/domain/partialPayments.js";
 import { mapState } from "pinia"
 import { useMainStore } from "@/stores/main.js";
 
@@ -1297,6 +1350,25 @@ export default {
     },
     isIncome() {
       return this.type === "emitted-invoices" || this.type === "received-incomes" || this.type === "quotes";
+    },
+    // collected or paid in several goes (issues/412)
+    partialPaymentsAllowed() {
+      return PARTIAL_PAYMENT_TYPES.includes(this.type);
+    },
+    hasPartialPayments() {
+      return this.partialPaymentsAllowed && hasPartialPayments(this.form);
+    },
+    partialPaymentsDoc() {
+      return { partial_payments: this.form.partial_payments, total: this.total };
+    },
+    partialPaymentsPaid() {
+      return paidAmount(this.partialPaymentsDoc);
+    },
+    partialPaymentsPending() {
+      return pendingAmount(this.partialPaymentsDoc);
+    },
+    partialPaymentsExceed() {
+      return exceedsTotal(this.partialPaymentsDoc);
     },
     headStack() {
       const crumbs = {
@@ -1949,7 +2021,41 @@ export default {
             .filter(p => !p.is_mother);
     },
     input(v) {},
+    addPartialPayment() {
+      const list = this.form.partial_payments || [];
+      this.form.partial_payments = [...list, newPartialPayment(this.partialPaymentsDoc)];
+      this.partialPaymentsChanged();
+    },
+    removePartialPayment(idx) {
+      this.form.partial_payments = (this.form.partial_payments || []).filter((_p, i) => i !== idx);
+      this.partialPaymentsChanged();
+    },
+    partialPaymentsChanged() {
+      const form = { ...this.partialPaymentsDoc, paid: this.form.paid, paid_date: this.form.paid_date };
+      applyPartialPaymentsToForm(form);
+      if (this.hasPartialPayments) {
+        this.form.paid = form.paid;
+        this.form.paid_date = form.paid_date;
+      }
+    },
     async submit(exit) {
+
+      // they can't add up to more than the total (issues/412)
+      if (this.hasPartialPayments) {
+        const incomplete = this.form.partial_payments.some(p => !p.date || !Number(p.amount));
+        if (incomplete || this.partialPaymentsExceed) {
+          this.$buefy.snackbar.open({
+            message: incomplete
+              ? "Error. Cada cobrament o pagament parcial necessita una data i un import"
+              : "Error. Els cobraments o pagaments parcials superen el total del document",
+            type: "is-danger",
+            queue: false
+          });
+          return;
+        }
+        // the lines may have changed the total since
+        this.partialPaymentsChanged();
+      }
 
       this.isLoading = true;
       this.canEditDraft = false;
@@ -3437,6 +3543,21 @@ export default {
 }
 .side-fields > :deep(.field) {
   grid-column: 1 / -1 !important;
+}
+.partial-payments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+.partial-payment-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+.partial-payments > .button {
+  align-self: flex-start;
 }
 @media screen and (max-width: 1215px) {
   .doc-layout {
