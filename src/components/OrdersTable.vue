@@ -1829,6 +1829,7 @@ export default {
       return String(name ?? "")
         .toLowerCase()
         .trim()
+        .replace(/\s+/g, " ")
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
     },
@@ -2158,10 +2159,14 @@ export default {
         }
       }));
     },
+    // Every delivery point, other members' too, as the order form lists them
+    // (`for-orders?owned=1`). `contacts/basic` gives a member only her own and
+    // the shared ones, so a sòcia's weekly CSV to another member's point said
+    // «no trobat» (issues/409).
     async getContactsForImport(owner) {
       const contacts = (
         await service({ requiresAuth: true, cached: false }).get(
-          `contacts/basic?_limit=-1&_where[owner_ne]=null`
+          `contacts/for-orders?owned=1`
         )
       ).data;
 
